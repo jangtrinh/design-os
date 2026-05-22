@@ -1,0 +1,17 @@
+{
+  "blue": {
+    "500": { "$value": "#3b82f6", "$type": "color" },
+    "900": { "$value": "#1e3a8a", "$type": "color" }
+  },
+  "space": {
+    "4": { "$value": "16px", "$type": "dimension" },
+    "8": { "$value": "32px", "$type": "dimension" }
+  },
+  "color": {
+    "primary":   { "$value": "{blue.500}", "$type": "color" },
+    "text-body": { "$value": "{blue.900}", "$type": "color" }
+  },
+  "spacing": {
+    "section": { "$value": "{space.8}", "$type": "dimension" }
+  }
+}

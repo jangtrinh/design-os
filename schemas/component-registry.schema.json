@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ease-design.dev/schemas/component-registry.schema.json",
+  "title": "ease-design component registry",
+  "description": "Validates a component registry file listing UI components with their canonical names, markup, token usage, variants, and states.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Semver string for this registry snapshot."
+    },
+    "components": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/component" }
+    }
+  },
+  "required": ["version", "components"],
+  "additionalProperties": false,
+  "$defs": {
+    "component": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z]+/[A-Z][A-Za-z]+$",
+          "description": "Canonical name in Category/Variant form, e.g. Button/Primary or Card/Pricing."
+        },
+        "category": {
+          "type": "string",
+          "description": "Component category, e.g. action, form, layout."
+        },
+        "markup": {
+          "type": "string",
+          "description": "Representative HTML/JSX snippet showing the component structure."
+        },
+        "tokensUsed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9.-]*$"
+          },
+          "description": "Semantic token paths consumed by this component, e.g. color.primary, space.4."
+        },
+        "variants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Named variants, e.g. primary, secondary, ghost."
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["default", "hover", "active", "focus", "disabled"]
+          },
+          "description": "Interactive states this component exposes."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the component's purpose."
+        }
+      },
+      "required": ["name", "category", "markup", "tokensUsed"],
+      "additionalProperties": false
+    }
+  }
+}
