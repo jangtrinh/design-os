@@ -4,3 +4,9 @@ coverage/
 *.local
 *.log
 .DS_Store
+
+# Local agent-CLI dev environment — not part of the distributable repo
+.claude/
+plans/
+release-manifest.json
+.repomixignore
