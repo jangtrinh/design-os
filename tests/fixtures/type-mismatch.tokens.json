@@ -1,0 +1,8 @@
+{
+  "space": {
+    "4": { "$value": "16px", "$type": "dimension" }
+  },
+  "color": {
+    "primary": { "$value": "{space.4}", "$type": "color" }
+  }
+}

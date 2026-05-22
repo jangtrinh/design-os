@@ -1,0 +1,6 @@
+{
+  "color": {
+    "a": { "$value": "{color.b}", "$type": "color" },
+    "b": { "$value": "{color.a}", "$type": "color" }
+  }
+}

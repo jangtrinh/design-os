@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ease-design.dev/schemas/design.tokens.schema.json",
+  "title": "ease-design DTCG token file",
+  "description": "Validates a two-tier DTCG design token file: primitive tokens (literal $value) and semantic tokens (alias $value). Two levels deep: category → token name → token leaf.",
+  "type": "object",
+  "patternProperties": {
+    "^[a-z][a-z0-9-]*$": {
+      "$ref": "#/$defs/tokenGroup"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "tokenName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "alias": {
+      "type": "string",
+      "pattern": "^\\{[a-z0-9][a-z0-9.-]*\\}$"
+    },
+    "colorValue": {
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+    },
+    "dimensionValue": {
+      "type": "string",
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?(px|rem|em|%)$"
+    },
+    "durationValue": {
+      "type": "string",
+      "pattern": "^[0-9]+(\\.[0-9]+)?ms$"
+    },
+    "shadowObject": {
+      "type": "object",
+      "properties": {
+        "offsetX": { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] },
+        "offsetY": { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] },
+        "blur":    { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] },
+        "spread":  { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] },
+        "color":   { "oneOf": [{ "$ref": "#/$defs/colorValue"     }, { "$ref": "#/$defs/alias" }] }
+      },
+      "required": ["offsetX", "offsetY", "blur", "spread", "color"],
+      "additionalProperties": false
+    },
+    "typographyObject": {
+      "type": "object",
+      "properties": {
+        "fontFamily":    { "oneOf": [{ "type": "string" }, { "$ref": "#/$defs/alias" }] },
+        "fontSize":      { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] },
+        "fontWeight":    { "oneOf": [{ "type": ["string", "number"] }, { "$ref": "#/$defs/alias" }] },
+        "lineHeight":    { "oneOf": [{ "type": ["string", "number"] }, { "$ref": "#/$defs/alias" }] },
+        "letterSpacing": { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] }
+      },
+      "required": ["fontFamily", "fontSize", "fontWeight", "lineHeight"],
+      "additionalProperties": false
+    },
+    "colorToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "color" },
+        "$value":       { "oneOf": [{ "$ref": "#/$defs/colorValue" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "dimensionToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "dimension" },
+        "$value":       { "oneOf": [{ "$ref": "#/$defs/dimensionValue" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "fontFamilyToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "fontFamily" },
+        "$value":       { "oneOf": [{ "type": "string" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "fontWeightToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "fontWeight" },
+        "$value":       {
+          "oneOf": [
+            { "type": "integer", "minimum": 100, "maximum": 900, "multipleOf": 100 },
+            { "type": "string" },
+            { "$ref": "#/$defs/alias" }
+          ]
+        },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "numberToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "number" },
+        "$value":       { "oneOf": [{ "type": "number" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "durationToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "duration" },
+        "$value":       { "oneOf": [{ "$ref": "#/$defs/durationValue" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "shadowToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "shadow" },
+        "$value":       { "oneOf": [{ "$ref": "#/$defs/shadowObject" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "typographyToken": {
+      "type": "object",
+      "properties": {
+        "$type":        { "const": "typography" },
+        "$value":       { "oneOf": [{ "$ref": "#/$defs/typographyObject" }, { "$ref": "#/$defs/alias" }] },
+        "$description": { "type": "string" },
+        "$extensions":  { "type": "object" }
+      },
+      "required": ["$type", "$value"],
+      "additionalProperties": false
+    },
+    "anyToken": {
+      "oneOf": [
+        { "$ref": "#/$defs/colorToken" },
+        { "$ref": "#/$defs/dimensionToken" },
+        { "$ref": "#/$defs/fontFamilyToken" },
+        { "$ref": "#/$defs/fontWeightToken" },
+        { "$ref": "#/$defs/numberToken" },
+        { "$ref": "#/$defs/durationToken" },
+        { "$ref": "#/$defs/shadowToken" },
+        { "$ref": "#/$defs/typographyToken" }
+      ]
+    },
+    "tokenGroup": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": { "$ref": "#/$defs/anyToken" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
