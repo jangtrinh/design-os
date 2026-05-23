@@ -1,0 +1,52 @@
+# Design System: demo  (generation 1, persona liquid-glass / material-surface)
+
+Intent: landing page for a new gym
+
+> ENFORCEMENT: This is the active design system. Any new design **MUST** consume
+> only the semantic tokens below and only the registered components below. Adding
+> a new component requires `ui registry register`. Adding/changing a token
+> requires `ui ds change-token`.
+
+## Tokens (semantic only)
+
+| Token                 | Resolves to               |
+|-----------------------|---------------------------|
+| color.border          | #CACAD1                   |
+| color.danger          | #DC2626                   |
+| color.info            | #0087C0                   |
+| color.primary         | #2367D3                   |
+| color.primary-hover   | #104BA7                   |
+| color.success         | #008538                   |
+| color.surface         | #F5F5F9                   |
+| color.surface-raised  | #E7E7ED                   |
+| color.text-body       | #0D0D10                   |
+| color.text-muted      | #71717A                   |
+| color.text-on-primary | #F5F5F9                   |
+| color.warning         | #A66900                   |
+| elevation.card        | 0px 1px 2px 0px #000000   |
+| elevation.overlay     | 0px 12px 24px 0px #000000 |
+| motion.base           | 200ms                     |
+| motion.fast           | 150ms                     |
+| radius.button         | 6px                       |
+| radius.card           | 12px                      |
+| space.component       | 16px                      |
+| space.inline          | 8px                       |
+| space.section         | 40px                      |
+
+## Registered components
+
+(none yet — generations may register new components via `ui registry register`)
+
+## Naming rules
+
+- Use semantic tokens, never primitives, in markup.
+- Component names follow `Category/Variant` PascalCase.
+- One canonical name per concept.
+
+## Anti-patterns (from persona)
+
+- opaque backgrounds
+- hard shadows
+- sharp corners
+- flat surfaces
+- heavy borders

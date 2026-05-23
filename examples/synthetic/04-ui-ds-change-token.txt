@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "command": "ds change-token",
+  "data": {
+    "path": "color.primary",
+    "from": "{primary.500}",
+    "to": "{primary.600}",
+    "changed": true,
+    "generation": 2,
+    "compiledHash": "sha256-TZZcOpa04H36D8dXmUcqLWWKU8ZftH440qjP7uAJRh0"
+  }
+}

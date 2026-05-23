@@ -1,0 +1,14 @@
+Color scale for #3B82F6
+stop   hex        contrast   wcag
+──────────────────────────────────────
+50     #EAF2FF    1.13       fail     
+100    #D5E5FF    1.27       fail     
+200    #A5C8FF    1.71       fail     
+300    #6FA6FF    2.45       fail     
+400    #3B82F6    3.68       AA-large  ◀ anchor
+500    #2367D3    5.31       AA       
+600    #104BA7    8.12       AAA      
+700    #043279    12.09      AAA      
+800    #001B4D    16.61      AAA      
+900    #000927    19.66      AAA      
+950    #000114    20.70      AAA      
