@@ -1,7 +1,7 @@
 /**
  * Component registry store — hand-rolled validation, load/save, and query logic.
  *
- * This module is the only Phase 2b core module that performs filesystem I/O;
+ * This module is the only registry module that performs filesystem I/O;
  * that is its defined purpose. loadRegistry / saveRegistry are the I/O boundary;
  * all other exports (validate, register, lookup, list) are pure transforms
  * testable without touching disk.
