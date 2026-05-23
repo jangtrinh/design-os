@@ -1,0 +1,9 @@
+@@ line 11-11 @@
+- <h1>Welcome</h1>
++ <h1>Hello World</h1>
+@@ line 17-17 @@
+- <button class="bg-red-500 text-white px-4 py-2">Click Me</button>
++ <button class="bg-blue-500 text-white px-4 py-2">Click Me</button>
+@@ line 30-30 @@
+- <p>Footer content here</p>
++ <p>Updated footer content</p>

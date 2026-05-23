@@ -1,0 +1,3 @@
+@@ line 14-14 @@
+- <button class="bg-red-500 text-white px-4 py-2">Click Me</button>
++ <button class="bg-green-500 text-white px-4 py-2">Click Me</button>
