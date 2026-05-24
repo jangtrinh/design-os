@@ -78,14 +78,23 @@ function formatValue(token: ResolvedToken): string {
 
 /**
  * Extract only the semantic tokens from a DesignSystem.
- * A token is semantic when its source $value in tokens tree is an alias string.
- * Returns resolved tokens sorted by category then path.
+ *
+ * A token is semantic when it carries the `$extensions.ease.layer = "semantic"`
+ * marker stamped at expand time (persona-expand.ts). Falls back to alias-shape
+ * detection so token files predating the marker still render correctly.
+ *
+ * The marker is required because `ds change-token` can convert an alias into a
+ * literal (e.g. `color.primary` from `{primary.500}` → `#FF0066`). Without the
+ * marker, the value-shape filter would silently drop the token from the host
+ * model's context block, leaving the model with no semantic token to use.
  */
 function semanticTokens(ds: DesignSystem): ResolvedToken[] {
   const result: ResolvedToken[] = [];
   for (const [category, group] of Object.entries(ds.tokens)) {
     for (const [name, token] of Object.entries(group)) {
-      if (isAlias(token.$value)) {
+      const layer = (token.$extensions as { ease?: { layer?: string } } | undefined)?.ease?.layer;
+      const isSemantic = layer === "semantic" || isAlias(token.$value);
+      if (isSemantic) {
         const path = `${category}.${name}`;
         const resolved = ds.resolved.find((r) => r.path === path);
         if (resolved !== undefined) {

@@ -15,7 +15,7 @@
     },
     "generation": 1,
     "tokenCount": 125,
-    "compiledHash": "sha256-1fVMVbaZVgRdw5LY7Y1nITQ4YngYkS1eXoRzrJqt9lg",
+    "compiledHash": "sha256-RJe5s01Jr_UkIZ8mnuLBSH3n_QcryfbBmnsycvKRXV4",
     "registryHash": "sha256-SSt6U5_2txSLRWCLIhVJ2XMsW2WODUBMKGFj44qhvZI"
   }
 }

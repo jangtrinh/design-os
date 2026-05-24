@@ -7,6 +7,6 @@
     "to": "{primary.600}",
     "changed": true,
     "generation": 2,
-    "compiledHash": "sha256-TZZcOpa04H36D8dXmUcqLWWKU8ZftH440qjP7uAJRh0"
+    "compiledHash": "sha256-A4EVRfbW1QJY6rF69L2p6sTVxNZ_kF1xbt2g_yK7nzw"
   }
 }

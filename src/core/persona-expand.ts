@@ -38,6 +38,26 @@ export class ExpandError extends Error {
 
 const HEX6_RE = /^#[0-9a-fA-F]{6}$/;
 
+/**
+ * $extensions marker stamped on every semantic-layer token at expand time.
+ * Survives `ds change-token` mutations (which preserve $extensions) and lets
+ * the context renderer identify semantics by structure, not by value shape.
+ * Critical: without this, change-token from alias → literal would silently
+ * drop the token from the host-model context block.
+ */
+const SEMANTIC_MARKER = { ease: { layer: "semantic" as const } } as const;
+
+/** Stamp every token in a group with the semantic marker (returns a new object). */
+function withSemanticMarker<T extends Record<string, { $value: unknown; $type: string }>>(
+  group: T,
+): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(group)) {
+    out[k] = { ...v, $extensions: { ...SEMANTIC_MARKER } };
+  }
+  return out as T;
+}
+
 // Spacing ladder multipliers (step × base px)
 const SPACE_STEPS = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16] as const;
 
@@ -295,20 +315,23 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
     "font-weight": fontWeightGroup  as TokenTree[string],
     "duration":    durationGroup    as TokenTree[string],
     "shadow":      shadowGroup      as TokenTree[string],
-    // Semantics (alias layer)
-    "color":     colorGroup         as TokenTree[string],
-    "text":      textGroup          as TokenTree[string],
-    "elevation": elevationGroup     as TokenTree[string],
-    "motion":    motionGroup        as TokenTree[string],
+    // Semantics (alias layer) — stamped with $extensions.ease.layer = "semantic"
+    "color":     withSemanticMarker(colorGroup)     as TokenTree[string],
+    "text":      withSemanticMarker(textGroup)      as TokenTree[string],
+    "elevation": withSemanticMarker(elevationGroup) as TokenTree[string],
+    "motion":    withSemanticMarker(motionGroup)    as TokenTree[string],
   };
 
   // Merge semantic space/radius into their primitive categories so that
   // aliases like "{space.2}" and "{radius.md}" resolve correctly.
-  // The space category already contains numeric steps; we add named semantics.
-  for (const [k, v] of Object.entries(spaceSemanticGroup)) {
+  // The space category already contains numeric steps; we add named semantics
+  // with the semantic marker so the context renderer keeps them distinct.
+  const markedSpaceSem  = withSemanticMarker(spaceSemanticGroup);
+  const markedRadiusSem = withSemanticMarker(radiusSemanticGroup);
+  for (const [k, v] of Object.entries(markedSpaceSem)) {
     (tokens["space"] as Record<string, unknown>)[k] = v;
   }
-  for (const [k, v] of Object.entries(radiusSemanticGroup)) {
+  for (const [k, v] of Object.entries(markedRadiusSem)) {
     (tokens["radius"] as Record<string, unknown>)[k] = v;
   }
 

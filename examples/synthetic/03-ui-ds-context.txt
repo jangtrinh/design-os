@@ -9,29 +9,32 @@ Intent: landing page for a new gym
 
 ## Tokens (semantic only)
 
-| Token                 | Resolves to               |
-|-----------------------|---------------------------|
-| color.border          | #CACAD1                   |
-| color.danger          | #DC2626                   |
-| color.info            | #0087C0                   |
-| color.primary         | #2367D3                   |
-| color.primary-hover   | #104BA7                   |
-| color.success         | #008538                   |
-| color.surface         | #F5F5F9                   |
-| color.surface-raised  | #E7E7ED                   |
-| color.text-body       | #0D0D10                   |
-| color.text-muted      | #71717A                   |
-| color.text-on-primary | #F5F5F9                   |
-| color.warning         | #A66900                   |
-| elevation.card        | 0px 1px 2px 0px #000000   |
-| elevation.overlay     | 0px 12px 24px 0px #000000 |
-| motion.base           | 200ms                     |
-| motion.fast           | 150ms                     |
-| radius.button         | 6px                       |
-| radius.card           | 12px                      |
-| space.component       | 16px                      |
-| space.inline          | 8px                       |
-| space.section         | 40px                      |
+| Token                 | Resolves to                                        |
+|-----------------------|----------------------------------------------------|
+| color.border          | #CACAD1                                            |
+| color.danger          | #DC2626                                            |
+| color.info            | #0087C0                                            |
+| color.primary         | #2367D3                                            |
+| color.primary-hover   | #104BA7                                            |
+| color.success         | #008538                                            |
+| color.surface         | #F5F5F9                                            |
+| color.surface-raised  | #E7E7ED                                            |
+| color.text-body       | #0D0D10                                            |
+| color.text-muted      | #71717A                                            |
+| color.text-on-primary | #F5F5F9                                            |
+| color.warning         | #A66900                                            |
+| elevation.card        | 0px 1px 2px 0px #000000                            |
+| elevation.overlay     | 0px 12px 24px 0px #000000                          |
+| motion.base           | 200ms                                              |
+| motion.fast           | 150ms                                              |
+| radius.button         | 6px                                                |
+| radius.card           | 12px                                               |
+| space.component       | 16px                                               |
+| space.inline          | 8px                                                |
+| space.section         | 40px                                               |
+| text.body             | SF Pro Text, Inter, sans-serif 18px / 400 / 1.5    |
+| text.caption          | SF Pro Text, Inter, sans-serif 16px / 400 / 1.4    |
+| text.heading          | SF Pro Display, Inter, sans-serif 25px / 600 / 1.2 |
 
 ## Registered components
 

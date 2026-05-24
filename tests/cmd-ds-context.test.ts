@@ -130,4 +130,34 @@ describe("ui ds context", () => {
     expect(r.exitCode).toBe(1);
     expect(JSON.parse(r.stdout).error.code).toBe("BAD_ARG");
   });
+
+  it("semantic tokens remain in context after change-token converts alias → literal", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-ctx-"));
+    initDs(tmp);
+
+    // Sanity: color.primary starts as a semantic alias and appears in context
+    const before = capture(["ds", "context", "--dir", tmp]);
+    expect(before.exitCode).toBe(0);
+    expect(before.stdout).toMatch(/\| color\.primary\s+\|/);
+
+    // Mutate to a literal hex via change-token (the only sanctioned mutation)
+    const ct = capture([
+      "ds", "change-token", "color.primary",
+      "--value", "#FF0066",
+      "--dir", tmp,
+    ]);
+    expect(ct.exitCode, `change-token failed: ${ct.stderr}`).toBe(0);
+
+    // Bug regression: post-mutation context MUST still list color.primary.
+    // Without the $extensions.ease.layer marker, the alias-shape filter would
+    // drop the token and the host model would lose its semantic primary.
+    const after = capture(["ds", "context", "--dir", tmp]);
+    expect(after.exitCode).toBe(0);
+    expect(after.stdout, "color.primary must remain in context after change-token").toMatch(
+      /\| color\.primary\s+\|/,
+    );
+    expect(after.stdout, "the new literal value must be visible to the host model").toContain(
+      "#FF0066",
+    );
+  });
 });

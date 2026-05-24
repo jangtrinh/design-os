@@ -6,6 +6,9 @@
  * spawning a subprocess or touching real stdin.
  */
 
+import { readSync } from "node:fs";
+import { stdin } from "node:process";
+
 // ─── Injection seam ───────────────────────────────────────────────────────────
 
 /**
@@ -16,12 +19,6 @@ export type StdinReader = (buf: Buffer, offset: number, length: number) => numbe
 
 /** Production implementation — reads from the real stdin fd. */
 export function makeNodeStdinReader(): StdinReader {
-  // Deferred require keeps the module safe to import in tests without
-  // accidentally touching the real stdin fd at import time.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { readSync } = require("node:fs") as typeof import("node:fs");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { stdin } = require("node:process") as typeof import("node:process");
   return (buf, offset, length) => readSync(stdin.fd, buf, offset, length, null);
 }
 
