@@ -1,0 +1,27 @@
+{
+  "changelog": [
+    {
+      "by": "ui ds init",
+      "kind": "init",
+      "note": "compiled from persona=modular-system-layout",
+      "ts": "2026-05-24T14:08:42.548Z"
+    }
+  ],
+  "compiledHash": "sha256-bQzYWvrrWt_GsJlXJGmxNc2TiOFTymk0lY3YLJ2DXNw",
+  "createdAt": "2026-05-24T14:08:42.548Z",
+  "generation": 1,
+  "intent": "Weekly vegan meal-prep subscription with delivery — pick, cook, deliver",
+  "name": "vegan-prep-landing",
+  "persona": {
+    "antiPatterns": [
+      "organic shapes",
+      "asymmetric layouts",
+      "extreme whitespace",
+      "hand-drawn elements"
+    ],
+    "family": "product-marketing",
+    "slug": "modular-system-layout"
+  },
+  "registryHash": "sha256-SSt6U5_2txSLRWCLIhVJ2XMsW2WODUBMKGFj44qhvZI",
+  "version": "1.0.0"
+}

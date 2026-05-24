@@ -1,0 +1,74 @@
+{
+  "version": "0.1.0",
+  "components": [
+    {
+      "name": "Card/Meal",
+      "category": "card",
+      "markup": "<article class=\"rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-250\">\n  <div class=\"aspect-[4/3] overflow-hidden\">\n    <img src=\"https://picsum.photos/seed/meal-tempeh/600/450\" alt=\"Miso glazed tempeh\" class=\"w-full h-full object-cover\" onerror=\"this.onerror=null;this.src='https://picsum.photos/seed/fallback/600/450';\">\n  </div>\n  <div class=\"p-5\">\n    <div class=\"flex items-center justify-between\">\n      <span class=\"text-[11px] uppercase tracking-wider text-[#2E7D32] font-semibold\">New</span>\n      <span class=\"text-[13px] text-[#64748B]\">630 cal</span>\n    </div>\n    <h3 class=\"mt-2 text-[17px] font-semibold tracking-tight\">Miso Glazed Tempeh</h3>\n    <p class=\"mt-1 text-[14px] text-[#64748B]\">Brown rice · bok choy · sesame</p>\n    <div class=\"mt-4 flex items-center justify-between\">\n      <span class=\"text-[18px] font-bold text-[#080E17]\">$12.50</span>\n      <button class=\"px-3 py-1.5 rounded-[4px] border border-[#C0CDDE] text-[13px] font-medium hover:bg-[#E0EAF7] transition-colors\">Add</button>\n    </div>\n  </div>\n</article>\n",
+      "tokensUsed": [
+        "color.primary",
+        "color.surface",
+        "color.border",
+        "color.text-body",
+        "color.text-muted",
+        "radius.card",
+        "radius.button",
+        "space.component"
+      ],
+      "variants": [
+        "default",
+        "featured",
+        "bestseller"
+      ],
+      "states": [
+        "default",
+        "hover"
+      ],
+      "description": "Vegan meal card with image, badge, price, calorie count, and add button"
+    },
+    {
+      "name": "Card/MealSwissPunk",
+      "category": "card",
+      "markup": "<article class=\"col-span-12 md:col-span-3 py-10 px-6 border-r border-[#080E17]\">\n  <img src=\"https://picsum.photos/seed/meal/600/500\" alt=\"meal photo\" class=\"w-full aspect-[4/3] object-cover\" onerror=\"this.onerror=null;this.src='https://picsum.photos/seed/fallback/600/500';\">\n  <div class=\"mt-5 flex items-center justify-between\">\n    <div class=\"text-[10px] uppercase tracking-[0.2em] font-bold text-[#2E7D32]\">New</div>\n    <div class=\"text-[11px] text-[#64748B]\">630 cal</div>\n  </div>\n  <h3 class=\"mt-2 text-[20px] font-extrabold tracking-tight leading-tight\">Meal Name</h3>\n  <div class=\"mt-4 flex items-end justify-between\">\n    <div class=\"text-[24px] font-extrabold tracking-tight text-[#2E7D32]\">$12.50</div>\n    <button class=\"text-[11px] uppercase tracking-[0.18em] font-bold border-b border-[#080E17] hover:text-[#2E7D32] hover:border-[#2E7D32] transition-colors\">Add →</button>\n  </div>\n</article>\n",
+      "tokensUsed": [
+        "color.primary",
+        "color.text-body",
+        "color.text-muted",
+        "color.warning"
+      ],
+      "variants": [
+        "new",
+        "bestseller",
+        "spicy",
+        "comfort"
+      ],
+      "states": [
+        "default",
+        "hover"
+      ],
+      "description": "Swiss-punk meal card with hairline divider, ultra-bold price, underline-only CTA"
+    },
+    {
+      "name": "Card/PricingTier",
+      "category": "card",
+      "markup": "<article class=\"col-span-12 md:col-span-3 py-14 px-8 border-r border-[#080E17] flex flex-col justify-between\">\n  <div>\n    <h3 class=\"text-[16px] uppercase tracking-[0.18em] font-bold\">Solo</h3>\n    <div class=\"mt-2 text-[11px] text-[#64748B] uppercase tracking-wider\">4 meals · 1 person</div>\n    <div class=\"mt-8 flex items-baseline gap-2\">\n      <span class=\"text-[56px] font-extrabold leading-none tracking-tight\">$48</span>\n      <span class=\"text-[12px] text-[#64748B] uppercase tracking-wider\">/wk</span>\n    </div>\n  </div>\n  <a href=\"#\" class=\"mt-10 block w-full text-center py-3 border border-[#080E17] text-[11px] uppercase tracking-[0.18em] font-bold hover:bg-[#080E17] hover:text-[#F0F6FF] transition-colors\">Start Solo →</a>\n</article>\n",
+      "tokensUsed": [
+        "color.primary",
+        "color.text-body",
+        "color.text-muted",
+        "color.surface",
+        "space.section"
+      ],
+      "variants": [
+        "solo",
+        "duo",
+        "family"
+      ],
+      "states": [
+        "default",
+        "hover"
+      ],
+      "description": "Swiss-punk pricing tier with hairline border, extreme type contrast, and uppercase CTA"
+    }
+  ]
+}

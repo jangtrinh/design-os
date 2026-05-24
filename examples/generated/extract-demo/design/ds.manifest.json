@@ -1,0 +1,27 @@
+{
+  "changelog": [
+    {
+      "by": "ui ds init",
+      "kind": "init",
+      "note": "compiled from persona=saas-aurora-minimal",
+      "ts": "2026-05-24T14:20:56.228Z"
+    }
+  ],
+  "compiledHash": "sha256-VwbE95gXifNhbkpli2FwnBa2dcWQ4PIuaC7wVCR_aro",
+  "createdAt": "2026-05-24T14:20:56.228Z",
+  "generation": 1,
+  "intent": "Extracted design language: cyan primary, rounded-2xl shapes, light neutral surfaces",
+  "name": "extracted-from-source",
+  "persona": {
+    "antiPatterns": [
+      "heavy textures",
+      "maximalist decoration",
+      "extreme artistic expression",
+      "unpredictable layouts"
+    ],
+    "family": "functional-saas",
+    "slug": "saas-aurora-minimal"
+  },
+  "registryHash": "sha256-SSt6U5_2txSLRWCLIhVJ2XMsW2WODUBMKGFj44qhvZI",
+  "version": "1.0.0"
+}
