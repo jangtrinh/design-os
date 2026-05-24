@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plantbox — Vegan meal prep, delivered weekly</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-[#F0F6FF] text-[#080E17] antialiased" style="font-family: 'Inter', system-ui, sans-serif; font-size: 16px;">
+
+<header class="border-b border-[#C0CDDE] bg-[#F0F6FF]">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-[8px] bg-[#2E7D32] flex items-center justify-center">
+        <i data-lucide="leaf" class="w-5 h-5 text-[#F0F6FF]"></i>
+      </div>
+      <span class="text-[18px] font-semibold tracking-tight">Plantbox</span>
+    </div>
+    <nav class="hidden md:flex items-center gap-8 text-[15px]">
+      <a href="#meals" class="text-[#64748B] hover:text-[#080E17] transition-colors">Meals</a>
+      <a href="#how" class="text-[#64748B] hover:text-[#080E17] transition-colors">How it works</a>
+      <a href="#plans" class="text-[#64748B] hover:text-[#080E17] transition-colors">Plans</a>
+      <a href="#faq" class="text-[#64748B] hover:text-[#080E17] transition-colors">FAQ</a>
+    </nav>
+    <a href="#plans" class="px-4 py-2 rounded-[4px] bg-[#2E7D32] text-[#F0F6FF] text-[15px] font-medium hover:bg-[#0E6017] transition-colors duration-200">Start a box</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="border-b border-[#C0CDDE]">
+  <div class="max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-12 items-center">
+    <div>
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-[4px] bg-[#E0EAF7] text-[#080E17] text-[13px] font-medium border-l-2 border-[#2E7D32]">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        New this week · Miso glazed tempeh
+      </span>
+      <h1 class="mt-6 text-[40px] leading-[1.1] tracking-[-0.02em] font-bold">Plant-based meals,<br><span class="text-[#2E7D32]">cooked &amp; delivered</span> every Tuesday.</h1>
+      <p class="mt-5 text-[18px] leading-[1.6] text-[#64748B] max-w-lg">
+        Pick from 14 chef-built meals each week. We cook, chill, and drop them at your door — ready in 4 minutes, zero prep, zero plastic.
+      </p>
+      <div class="mt-8 flex items-center gap-3">
+        <a href="#plans" class="px-5 py-3 rounded-[4px] bg-[#2E7D32] text-[#F0F6FF] text-[16px] font-semibold hover:bg-[#0E6017] transition-all duration-200 inline-flex items-center gap-2">
+         Order my first box
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+        <a href="#meals" class="px-5 py-3 rounded-[4px] border border-[#C0CDDE] text-[#080E17] text-[16px] font-medium hover:bg-[#E0EAF7] transition-colors duration-200">See this week's menu</a>
+      </div>
+      <div class="mt-8 flex items-center gap-6 text-[13px] text-[#64748B]">
+        <div class="flex items-center gap-2"><i data-lucide="truck" class="w-4 h-4 text-[#2E7D32]"></i>Free delivery from $59</div>
+        <div class="flex items-center gap-2"><i data-lucide="recycle" class="w-4 h-4 text-[#2E7D32]"></i>100% compostable packaging</div>
+        <div class="flex items-center gap-2"><i data-lucide="x-circle" class="w-4 h-4 text-[#2E7D32]"></i>Skip any week</div>
+      </div>
+    </div>
+    <div class="relative">
+      <div class="aspect-[4/5] rounded-[8px] border-2 border-[#2E7D32] overflow-hidden shadow-md">
+        <img src="https://picsum.photos/seed/plantbox-hero/800/1000" alt="A wooden tray of vegan meal prep containers with grain bowls and seasonal vegetables" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/seed/fallback/800/1000';">
+      </div>
+      <div class="absolute -bottom-6 -left-6 px-4 py-3 rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] shadow-md">
+        <div class="text-[12px] text-[#64748B] uppercase tracking-wider">Avg. delivery</div>
+        <div class="mt-1 flex items-baseline gap-2">
+          <span class="text-[24px] font-bold">Tue 4:30 PM</span>
+          <span class="text-[13px] text-[#008538]">on schedule</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="border-b border-[#C0CDDE]">
+  <div class="max-w-7xl mx-auto px-6 py-20">
+    <div class="max-w-2xl">
+      <span class="text-[13px] uppercase tracking-wider text-[#2E7D32] font-semibold">How it works</span>
+      <h2 class="mt-3 text-[32px] leading-[1.15] tracking-[-0.02em] font-bold">Three steps. Then dinner is solved.</h2>
+    </div>
+    <div class="mt-12 grid md:grid-cols-3 gap-6">
+      <article class="p-8 rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] border-t-2 border-t-[#2E7D32] hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="text-[40px] font-bold text-[#2E7D32] tracking-tight">01</div>
+        <h3 class="mt-4 text-[20px] font-semibold tracking-tight">Pick your box</h3>
+        <p class="mt-3 text-[15px] leading-[1.6] text-[#64748B]">Choose 4, 6, 8, or 12 meals each week. Swap and skip anytime before Friday at noon.</p>
+      </article>
+      <article class="p-8 rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] border-t-2 border-t-[#2E7D32] hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="text-[40px] font-bold text-[#2E7D32] tracking-tight">02</div>
+        <h3 class="mt-4 text-[20px] font-semibold tracking-tight">We cook it</h3>
+        <p class="mt-3 text-[15px] leading-[1.6] text-[#64748B]">Chefs prep your meals every Monday with organic, in-season produce — never frozen.</p>
+      </article>
+      <article class="p-8 rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] border-t-2 border-t-[#2E7D32] hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="text-[40px] font-bold text-[#2E7D32] tracking-tight">03</div>
+        <h3 class="mt-4 text-[20px] font-semibold tracking-tight">Eat in 4 minutes</h3>
+        <p class="mt-3 text-[15px] leading-[1.6] text-[#64748B]">Microwave-safe glass jars. Compostable lids. Leave them by the door for pickup next week.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- MEALS -->
+<section id="meals" class="border-b border-[#C0CDDE] bg-[#E0EAF7]">
+  <div class="max-w-7xl mx-auto px-6 py-20">
+    <div class="flex items-end justify-between flex-wrap gap-4">
+      <div>
+        <span class="text-[13px] uppercase tracking-wider text-[#2E7D32] font-semibold">This week's menu</span>
+        <h2 class="mt-3 text-[32px] leading-[1.15] tracking-[-0.02em] font-bold">14 meals. All under 700 calories.</h2>
+      </div>
+      <a href="#plans" class="text-[15px] font-medium text-[#2E7D32] hover:text-[#0E6017] inline-flex items-center gap-1 transition-colors">See full menu <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+    </div>
+    <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- meal card 1 -->
+      <article class="rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/meal-tempeh/600/450" alt="Miso glazed tempeh with brown rice and bok choy" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/seed/fallback/600/450';">
+        </div>
+        <div class="p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] uppercase tracking-wider text-[#2E7D32] font-semibold">New</span>
+            <span class="text-[13px] text-[#64748B]">630 cal</span>
+          </div>
+          <h3 class="mt-2 text-[17px] font-semibold tracking-tight">Miso Glazed Tempeh</h3>
+          <p class="mt-1 text-[14px] text-[#64748B]">Brown rice · bok choy · sesame</p>
+          <div class="mt-4 flex items-center justify-between">
+            <span class="text-[18px] font-bold text-[#080E17]">$12.50</span>
+            <button class="px-3 py-1.5 rounded-[4px] border border-[#C0CDDE] text-[13px] font-medium hover:bg-[#E0EAF7] transition-colors">Add</button>
+          </div>
+        </div>
+      </article>
+      <!-- meal card 2 -->
+      <article class="rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/meal-bowl/600/450" alt="Mediterranean grain bowl with chickpeas hummus and roasted peppers" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/seed/fallback/600/450';">
+        </div>
+        <div class="p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] uppercase tracking-wider text-[#2E7D32] font-semibold">Bestseller</span>
+            <span class="text-[13px] text-[#64748B]">580 cal</span>
+          </div>
+          <h3 class="mt-2 text-[17px] font-semibold tracking-tight">Mediterranean Bowl</h3>
+          <p class="mt-1 text-[14px] text-[#64748B]">Chickpeas · hummus · peppers</p>
+          <div class="mt-4 flex items-center justify-between">
+            <span class="text-[18px] font-bold text-[#080E17]">$11.00</span>
+            <button class="px-3 py-1.5 rounded-[4px] border border-[#C0CDDE] text-[13px] font-medium hover:bg-[#E0EAF7] transition-colors">Add</button>
+          </div>
+        </div>
+      </article>
+      <!-- meal card 3 -->
+      <article class="rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/meal-curry/600/450" alt="Thai green curry with crispy tofu jasmine rice and lime" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/seed/fallback/600/450';">
+        </div>
+        <div class="p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] uppercase tracking-wider text-[#B26000] font-semibold">Spicy</span>
+            <span class="text-[13px] text-[#64748B]">690 cal</span>
+          </div>
+          <h3 class="mt-2 text-[17px] font-semibold tracking-tight">Green Curry Tofu</h3>
+          <p class="mt-1 text-[14px] text-[#64748B]">Jasmine rice · lime · basil</p>
+          <div class="mt-4 flex items-center justify-between">
+            <span class="text-[18px] font-bold text-[#080E17]">$13.00</span>
+            <button class="px-3 py-1.5 rounded-[4px] border border-[#C0CDDE] text-[13px] font-medium hover:bg-[#E0EAF7] transition-colors">Add</button>
+          </div>
+        </div>
+      </article>
+      <!-- meal card 4 -->
+      <article class="rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-250">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/meal-lasagna/600/450" alt="Lentil lasagna with cashew bechamel and spinach" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/seed/fallback/600/450';">
+        </div>
+        <div class="p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] uppercase tracking-wider text-[#64748B] font-semibold">Comfort</span>
+            <span class="text-[13px] text-[#64748B]">540 cal</span>
+          </div>
+          <h3 class="mt-2 text-[17px] font-semibold tracking-tight">Lentil Lasagna</h3>
+          <p class="mt-1 text-[14px] text-[#64748B]">Cashew béchamel · spinach</p>
+          <div class="mt-4 flex items-center justify-between">
+            <span class="text-[18px] font-bold text-[#080E17]">$12.00</span>
+            <button class="px-3 py-1.5 rounded-[4px] border border-[#C0CDDE] text-[13px] font-medium hover:bg-[#E0EAF7] transition-colors">Add</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section id="plans" class="border-b border-[#C0CDDE]">
+  <div class="max-w-7xl mx-auto px-6 py-20">
+    <div class="text-center max-w-2xl mx-auto">
+      <span class="text-[13px] uppercase tracking-wider text-[#2E7D32] font-semibold">Plans</span>
+      <h2 class="mt-3 text-[32px] leading-[1.15] tracking-[-0.02em] font-bold">One subscription. Three sizes. Pause anytime.</h2>
+      <p class="mt-4 text-[16px] text-[#64748B]">No contracts. Cancel in two clicks. First-box discount applied at checkout.</p>
+    </div>
+    <div class="mt-12 grid md:grid-cols-3 gap-6">
+      <article class="p-8 rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] hover:shadow-md transition-all duration-250">
+        <h3 class="text-[20px] font-semibold tracking-tight">Solo</h3>
+        <p class="mt-1 text-[14px] text-[#64748B]">4 meals · perfect for one</p>
+        <div class="mt-6 flex items-baseline gap-2">
+          <span class="text-[36px] font-bold tracking-tight">$48</span>
+          <span class="text-[14px] text-[#64748B]">/ week</span>
+        </div>
+        <a href="#" class="mt-6 block w-full text-center px-4 py-3 rounded-[4px] border border-[#C0CDDE] text-[15px] font-medium hover:bg-[#E0EAF7] transition-colors duration-200">Start Solo</a>
+        <ul class="mt-6 space-y-2 text-[14px] text-[#080E17]">
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>4 chef-built meals</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Free delivery</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Skip any week</li>
+        </ul>
+      </article>
+      <article class="p-8 rounded-[8px] bg-[#F0F6FF] border-2 border-[#2E7D32] relative hover:shadow-md transition-all duration-250">
+        <span class="absolute top-0 right-6 -translate-y-1/2 px-3 py-1 rounded-[4px] bg-[#2E7D32] text-[#F0F6FF] text-[12px] font-semibold uppercase tracking-wider">Most picked</span>
+        <h3 class="text-[20px] font-semibold tracking-tight">Duo</h3>
+        <p class="mt-1 text-[14px] text-[#64748B]">8 meals · two of you</p>
+        <div class="mt-6 flex items-baseline gap-2">
+          <span class="text-[36px] font-bold tracking-tight">$88</span>
+          <span class="text-[14px] text-[#64748B]">/ week</span>
+        </div>
+        <a href="#" class="mt-6 block w-full text-center px-4 py-3 rounded-[4px] bg-[#2E7D32] text-[#F0F6FF] text-[15px] font-semibold hover:bg-[#0E6017] transition-colors duration-200">Start Duo</a>
+        <ul class="mt-6 space-y-2 text-[14px] text-[#080E17]">
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>8 chef-built meals</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Free priority delivery</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Two-person portions</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Pause &amp; skip</li>
+        </ul>
+      </article>
+      <article class="p-8 rounded-[8px] bg-[#F0F6FF] border border-[#C0CDDE] hover:shadow-md transition-all duration-250">
+        <h3 class="text-[20px] font-semibold tracking-tight">Family</h3>
+        <p class="mt-1 text-[14px] text-[#64748B]">12 meals · feeds 3–4</p>
+        <div class="mt-6 flex items-baseline gap-2">
+          <span class="text-[36px] font-bold tracking-tight">$132</span>
+          <span class="text-[14px] text-[#64748B]">/ week</span>
+        </div>
+        <a href="#" class="mt-6 block w-full text-center px-4 py-3 rounded-[4px] border border-[#C0CDDE] text-[15px] font-medium hover:bg-[#E0EAF7] transition-colors duration-200">Start Family</a>
+        <ul class="mt-6 space-y-2 text-[14px] text-[#080E17]">
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>12 chef-built meals</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Two delivery windows</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>Kid-friendly options</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#2E7D32]"></i>10% off after week 4</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-[#F0F6FF]">
+  <div class="max-w-7xl mx-auto px-6 py-10 flex flex-wrap items-center justify-between gap-4 text-[13px] text-[#64748B]">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-[4px] bg-[#2E7D32] flex items-center justify-center">
+        <i data-lucide="leaf" class="w-3.5 h-3.5 text-[#F0F6FF]"></i>
+      </div>
+      <span>© Plantbox 2026 · Brooklyn, NY</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <a href="#" class="hover:text-[#080E17] transition-colors">Privacy</a>
+      <a href="#" class="hover:text-[#080E17] transition-colors">Terms</a>
+      <a href="#" class="hover:text-[#080E17] transition-colors">Careers</a>
+      <a href="#" class="hover:text-[#080E17] transition-colors">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
