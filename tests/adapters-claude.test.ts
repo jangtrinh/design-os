@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateClaudeAdapter", () => {
-  it("returns exactly 15 artifacts (9 commands + 6 skills)", () => {
+  it("returns exactly 17 artifacts (10 commands + 7 skills)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length);
-    expect(arts).toHaveLength(15);
+    expect(arts).toHaveLength(17);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -25,7 +25,7 @@ describe("generateClaudeAdapter", () => {
     }
   });
 
-  it("9 artifacts are slash-command paths under .claude/commands/ui/", () => {
+  it("10 artifacts are slash-command paths under .claude/commands/ui/", () => {
     const commands = makeArtifacts().filter((a) =>
       a.absPath.includes(".claude/commands/ui/"),
     );
@@ -33,9 +33,11 @@ describe("generateClaudeAdapter", () => {
     for (const verb of WORKFLOW_VERBS) {
       expect(commands.some((c) => c.absPath.endsWith(`/${verb}.md`))).toBe(true);
     }
+    // explicit presence assertions for the new verb
+    expect(commands.some((c) => c.absPath.endsWith("/from-url.md"))).toBe(true);
   });
 
-  it("6 artifacts are skill paths under .claude/skills/ease-design-*/SKILL.md", () => {
+  it("7 artifacts are skill paths under .claude/skills/ease-design-*/SKILL.md", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".claude/skills/ease-design-"),
     );
@@ -45,6 +47,10 @@ describe("generateClaudeAdapter", () => {
         skills.some((s) => s.absPath.endsWith(`ease-design-${name}/SKILL.md`)),
       ).toBe(true);
     }
+    // explicit presence assertion for the new skill
+    expect(
+      skills.some((s) => s.absPath.endsWith("ease-design-designmd-emit/SKILL.md")),
+    ).toBe(true);
   });
 
   it("each non-init command content references the absolute workflow template path", () => {
