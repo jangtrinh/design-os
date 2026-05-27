@@ -68,6 +68,9 @@ describe("generateCodexAdapter", () => {
     // Should have hash entries like "workflows/generate.md: <hex>"
     expect(art.content).toMatch(/workflows\/generate\.md: [0-9a-f]{64}/);
     expect(art.content).toMatch(/skills\/pick-persona\.md: [0-9a-f]{64}/);
+    // New verb / skill must also be hashed
+    expect(art.content).toMatch(/workflows\/from-url\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/skills\/designmd-emit\.md: [0-9a-f]{64}/);
   });
 
   it("is deterministic — two calls produce identical content", () => {

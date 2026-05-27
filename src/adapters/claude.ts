@@ -2,10 +2,10 @@
  * Claude Code adapter — generates the adapter artifact list for the claude runtime.
  *
  * Emits:
- *   9 slash-command files  → <cwd>/.claude/commands/ui/<verb>.md
- *   6 skill files          → <cwd>/.claude/skills/ease-design-<name>/SKILL.md
+ *   10 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
+ *   7 skill files          → <cwd>/.claude/skills/ease-design-<name>/SKILL.md
  *
- * Total: 15 artifacts, all mode "write".
+ * Total: 17 artifacts, all mode "write".
  */
 import { join } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}

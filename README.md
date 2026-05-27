@@ -44,8 +44,9 @@ ui init --runtime claude     # wire ease-design into the current project
 ```
 
 In an agent CLI, the workflows surface as `/ui:generate`, `/ui:iterate`,
-`/ui:extract`, `/ui:from-ref`, `/ui:figma`, `/ui:redesign`, `/ui:refine`,
-`/ui:slides` (Claude Code namespace).
+`/ui:extract`, `/ui:from-ref`, `/ui:from-url`, `/ui:figma`, `/ui:redesign`,
+`/ui:refine`, `/ui:slides` (Claude Code namespace). `/ui:from-url <url>`
+emits a portable `DESIGN.md` (Google-Labs alpha spec) at project root.
 
 ## The non-designer happy path
 

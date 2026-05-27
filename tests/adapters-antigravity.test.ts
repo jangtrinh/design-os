@@ -13,8 +13,8 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 15 artifacts (9 workflows + 6 skills)", () => {
-    expect(makeArtifacts()).toHaveLength(15);
+  it("returns exactly 17 artifacts (10 workflows + 7 skills)", () => {
+    expect(makeArtifacts()).toHaveLength(17);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -23,7 +23,7 @@ describe("generateAntigravityAdapter", () => {
     }
   });
 
-  it("9 artifacts are workflow paths under .agent/workflows/ui-<verb>.md", () => {
+  it("10 artifacts are workflow paths under .agent/workflows/ui-<verb>.md", () => {
     const workflows = makeArtifacts().filter((a) =>
       a.absPath.includes(".agent/workflows/"),
     );
@@ -31,9 +31,10 @@ describe("generateAntigravityAdapter", () => {
     for (const verb of WORKFLOW_VERBS) {
       expect(workflows.some((w) => w.absPath.endsWith(`/ui-${verb}.md`))).toBe(true);
     }
+    expect(workflows.some((w) => w.absPath.endsWith("/ui-from-url.md"))).toBe(true);
   });
 
-  it("6 artifacts are skill paths under .agent/skills/ease-design-*/SKILL.md", () => {
+  it("7 artifacts are skill paths under .agent/skills/ease-design-*/SKILL.md", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".agent/skills/ease-design-"),
     );
@@ -43,6 +44,9 @@ describe("generateAntigravityAdapter", () => {
         skills.some((s) => s.absPath.endsWith(`ease-design-${name}/SKILL.md`)),
       ).toBe(true);
     }
+    expect(
+      skills.some((s) => s.absPath.endsWith("ease-design-designmd-emit/SKILL.md")),
+    ).toBe(true);
   });
 
   it("each non-init workflow content contains // turbo above a bash block", () => {
