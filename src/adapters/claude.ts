@@ -7,7 +7,7 @@
  *
  * Total: 17 artifacts, all mode "write".
  */
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
 import { WORKFLOW_VERBS, SKILL_NAMES, resolveTemplatePath } from "./templates.js";
 import { buildClaudeCommand, buildClaudeSkill } from "./wrapper-shapes.js";
@@ -19,13 +19,16 @@ import { VERB_SKILL_REFS } from "./skill-refs.js";
  */
 export function generateClaudeAdapter(input: AdapterInput): AdapterArtifact[] {
   const { cwd, templatesRoot } = input;
+  // knowledge/ is the sibling of templates/ at the package root — supply it as
+  // an absolute anchor so the template's bare `knowledge/...` refs resolve.
+  const knowledgeRoot = resolve(templatesRoot, "..", "knowledge");
   const artifacts: AdapterArtifact[] = [];
 
   // ── Slash-command files ────────────────────────────────────────────────────
   for (const verb of WORKFLOW_VERBS) {
     const templatePath = resolveTemplatePath(templatesRoot, "workflow", verb);
     const skillRefs = VERB_SKILL_REFS[verb] ?? [];
-    const content = buildClaudeCommand(verb, templatePath, skillRefs);
+    const content = buildClaudeCommand(verb, templatePath, skillRefs, knowledgeRoot);
     artifacts.push({
       mode: "write",
       absPath: join(cwd, ".claude", "commands", "ui", `${verb}.md`),
@@ -40,7 +43,7 @@ export function generateClaudeAdapter(input: AdapterInput): AdapterArtifact[] {
       // Skills always have a template file; null here indicates a registry/fs mismatch.
       throw new Error(`skill template not found for "${name}" under ${templatesRoot}`);
     }
-    const content = buildClaudeSkill(name, templatePath);
+    const content = buildClaudeSkill(name, templatePath, knowledgeRoot);
     artifacts.push({
       mode: "write",
       absPath: join(cwd, ".claude", "skills", `ease-design-${name}`, "SKILL.md"),

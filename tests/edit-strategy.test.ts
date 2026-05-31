@@ -178,6 +178,42 @@ describe("applyLnDiff", () => {
     expect(applyLnDiff(HTML, [])).toBeNull();
   });
 
+  it("does NOT over-delete when the header range is wider than oldLines", () => {
+    // Regression: a model emits a wide header (line 5-7) but only quotes ONE
+    // old line. The exact-match path must splice 1 line (oldLines.length), not
+    // 2 (endLine - startLine). Otherwise lines 6-7 are silently deleted.
+    const chunk = {
+      startLine: 5, endLine: 7,
+      oldLines: ["  <h1>Hello</h1>"],
+      newLines: ["  <h1>Wide</h1>"],
+    };
+    const result = applyLnDiff(HTML, [chunk]);
+    expect(result).not.toBeNull();
+    expect(result).toContain("<h1>Wide</h1>");
+    // The unverified neighbours must survive untouched.
+    expect(result).toContain("<p>World</p>"); // was line 6
+    expect(result).toContain("</body>");      // was line 7
+  });
+
+  it("exact and fuzzy paths delete the same span for an identical chunk", () => {
+    // Same chunk, but one HTML matches at the stated line (exact) and one is
+    // shifted (fuzzy). Both must yield structurally equivalent output —
+    // proving the two branches splice consistent spans.
+    const chunk = {
+      startLine: 5, endLine: 8, // deliberately wide
+      oldLines: ["  <h1>Hello</h1>"],
+      newLines: ["  <h1>Same</h1>"],
+    };
+    const exact = applyLnDiff(HTML, [chunk]);
+    const shifted = "\n\n" + HTML; // pushes the target down 2 lines → fuzzy
+    const fuzzy = applyLnDiff(shifted, [{ ...chunk, startLine: 5, endLine: 8 }]);
+    expect(exact).not.toBeNull();
+    expect(fuzzy).not.toBeNull();
+    // Both keep World + </body>; neither over-deletes.
+    expect(exact).toContain("<p>World</p>");
+    expect(fuzzy).toContain("<p>World</p>");
+  });
+
   it("is idempotent second pass returns null (old lines no longer present)", () => {
     const chunk = {
       startLine: 5, endLine: 5,

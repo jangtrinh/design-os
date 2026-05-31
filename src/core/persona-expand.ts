@@ -7,6 +7,7 @@
  * the test golden counts.
  */
 import { generatePalette, STOPS } from "./color-scale.js";
+import { hexToOKLCH, oklchToHex } from "./color-convert.js";
 import { createEmptyRegistry } from "./registry-store.js";
 import type { PersonaRecord } from "./persona-loader.js";
 import type { TokenTree } from "./token-model.js";
@@ -109,6 +110,26 @@ const SHADOW_MATRIX: Record<
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Derive a background-tinted shadow color from the persona's neutral hue.
+ *
+ * The taste rubric requires "shadows tinted toward the background hue, not pure
+ * black" (and `ui taste-lint` flags pure `#000000`/hard-black shadows). The DTCG
+ * shadow `color` slot is `#RRGGBB` only (no alpha — see design.tokens.schema),
+ * so we can't express softness via opacity here; instead we carry the hue: take
+ * the neutral hex, push lightness very low and keep a little chroma, yielding a
+ * near-black that still leans toward the surface hue (e.g. warm browns tint warm,
+ * cool grays tint cool). Deterministic — same neutral in, same hex out.
+ */
+function tintedShadowHex(neutralHex: string): string {
+  const { c, h } = hexToOKLCH(neutralHex);
+  // Very dark (L≈0.16) but not 0; retain a hint of the neutral's chroma so the
+  // shadow reads as tinted, never pure black. Hue preserved.
+  const shadowL = 0.16;
+  const shadowC = Math.min(c, 0.03); // subtle tint, never a colored shadow
+  return oklchToHex(shadowL, shadowC, h);
+}
+
 /** Build a color-stop category from a hex base, e.g. "primary" → { "50": {…}, "100": {…}, … }. */
 function buildColorCategory(hex: string): Record<string, { $value: string; $type: "color" }> {
   const palette = generatePalette(hex);
@@ -204,10 +225,16 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
   // ── Primitives: shadow ──────────────────────────────────────────────────────
 
   const shadowSpec = SHADOW_MATRIX[persona.shadowIntensity];
+  // Tint shadows toward the persona's background hue instead of the matrix's
+  // placeholder #000000 (rubric: "tinted toward the background hue, not pure
+  // black"; taste-lint flags pure black). Derived from the same neutral hex the
+  // surface tokens use, so shadow and surface share a hue family.
+  const shadowTint = tintedShadowHex(persona.colorPhilosophy.neutralHex ?? "#71717A");
+  const tintShadow = (s: ShadowComposite): ShadowComposite => ({ ...s, color: shadowTint });
   const shadowGroup: Record<string, { $value: ShadowComposite; $type: "shadow" }> = {
-    sm: { $value: shadowSpec.sm, $type: "shadow" },
-    md: { $value: shadowSpec.md, $type: "shadow" },
-    lg: { $value: shadowSpec.lg, $type: "shadow" },
+    sm: { $value: tintShadow(shadowSpec.sm), $type: "shadow" },
+    md: { $value: tintShadow(shadowSpec.md), $type: "shadow" },
+    lg: { $value: tintShadow(shadowSpec.lg), $type: "shadow" },
   };
 
   // ── Semantics: color ────────────────────────────────────────────────────────

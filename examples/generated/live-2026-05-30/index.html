@@ -1,0 +1,102 @@
+<!doctype html>
+<!-- Proof gallery index — self-contained, no build. Open directly in a browser. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ease-design — proof gallery (2026-05-30)</title>
+<style>
+  :root{
+    --primary:#6366F1; --surface:#F2F5FC; --raised:#FFFFFF; --border:#C5CBD6;
+    --text:#0B0D13; --muted:#6B7280; --success:#007B54;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--surface);color:var(--text);line-height:1.5;}
+  .wrap{max-width:1040px;margin:0 auto;padding:48px 24px 80px;}
+  header h1{font-size:40px;font-weight:600;letter-spacing:-0.02em;margin:0 0 8px;}
+  header p{font-size:18px;color:var(--muted);margin:0 0 4px;max-width:640px;}
+  .badge{display:inline-block;font-size:14px;color:var(--success);border:1px solid var(--border);border-radius:9999px;padding:4px 12px;margin-top:16px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:40px;}
+  .card{background:var(--raised);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(11,13,19,0.06);transition:transform .2s ease-out,border-color .2s ease-out;}
+  .card:hover{transform:translateY(-2px);border-color:var(--primary);}
+  .frame{height:220px;border:0;width:100%;background:#fff;border-bottom:1px solid var(--border);pointer-events:none;}
+  .card-body{padding:16px 18px;}
+  .card h2{font-size:17px;font-weight:600;margin:0 0 4px;}
+  .card p{font-size:14px;color:var(--muted);margin:0 0 12px;}
+  .gates{font-size:14px;color:var(--success);font-family:ui-monospace,monospace;}
+  .open{display:inline-block;margin-top:12px;font-size:14px;color:var(--primary);text-decoration:none;font-weight:500;}
+  .open:hover{text-decoration:underline;}
+  footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--border);font-size:14px;color:var(--muted);}
+  code{font-family:ui-monospace,monospace;background:var(--surface);padding:2px 6px;border-radius:4px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ease-design — proof gallery</h1>
+    <p>Real output from the <code>/ui:*</code> workflows, generated 2026-05-30 against the v1 binary.
+       Every file below is token-bound (0 hardcoded hex) and passes <code>autofix</code> +
+       <code>validate-layout</code> + <code>taste-lint</code> cleanly.</p>
+    <span class="badge">764 tests green · 0 arbitrary hex · same quality bar across every example</span>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <iframe class="frame" src="variant-1-saas-aurora-minimal.html" title="generated pricing page" loading="lazy"></iframe>
+      <div class="card-body">
+        <h2>Generate — pricing page</h2>
+        <p>saas-aurora-minimal · light, airy · 64 token utilities</p>
+        <span class="gates">autofix 0 · layout 0 · taste 1→refined→0</span><br>
+        <a class="open" href="variant-1-saas-aurora-minimal.html" target="_blank">Open full page →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <iframe class="frame" src="variant-1-iterated.html" title="iterated variant" loading="lazy"></iframe>
+      <div class="card-body">
+        <h2>Iterate — bigger headline</h2>
+        <p>real ln-diff apply · surgical edit · neighbors intact</p>
+        <span class="gates">autofix 0 · layout 0 · taste 0</span><br>
+        <a class="open" href="variant-1-iterated.html" target="_blank">Open full page →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <iframe class="frame" src="variant-2-redesign-liquid-glass.html" title="redesigned variant" loading="lazy"></iframe>
+      <div class="card-body">
+        <h2>Redesign — liquid glass</h2>
+        <p>contra-persona · radically different look · <strong>same DS tokens</strong></p>
+        <span class="gates">autofix 0 · layout 0 · taste 0</span><br>
+        <a class="open" href="variant-2-redesign-liquid-glass.html" target="_blank">Open full page →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <iframe class="frame" src="dashboard/variant-1-data-dense-observatory.html" title="dense dashboard" loading="lazy"></iframe>
+      <div class="card-body">
+        <h2>Breadth — dark dense dashboard</h2>
+        <p>data-dense-observatory · dark + compact + flat · opposite extreme</p>
+        <span class="gates">autofix 0 · layout 0 · taste 0</span><br>
+        <a class="open" href="dashboard/variant-1-data-dense-observatory.html" target="_blank">Open full page →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <iframe class="frame" src="extracted/DESIGN.preview.html" title="extracted design preview" loading="lazy"></iframe>
+      <div class="card-body">
+        <h2>Extract — design system out</h2>
+        <p>tokens recovered with line provenance · audit gate caught format + WCAG issues</p>
+        <span class="gates">audit: 15 PASS · 0 FAIL · 1 WARN (real WCAG)</span><br>
+        <a class="open" href="extracted/DESIGN.md" target="_blank">Open DESIGN.md →</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Generate → iterate → redesign → extract, plus two UI types at opposite taste extremes —
+    every advertised workflow has a real, gate-checked artifact here. See <code>README.md</code>
+    in this folder for the full method and per-step results.
+  </footer>
+</div>
+</body>
+</html>

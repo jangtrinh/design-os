@@ -5,7 +5,7 @@
  * The block is delimited by sentinel comments so it can be idempotently
  * replaced without disturbing user-authored content around it.
  */
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
 import {
   WORKFLOW_VERBS,
@@ -45,7 +45,8 @@ export function generateCodexAdapter(input: AdapterInput): AdapterArtifact[] {
     }
   }
 
-  const content = buildCodexBlock(templatesRoot, hashes);
+  const knowledgeRoot = resolve(templatesRoot, "..", "knowledge");
+  const content = buildCodexBlock(templatesRoot, hashes, knowledgeRoot);
 
   return [
     {

@@ -180,6 +180,22 @@ Keep the context block in scratch state — it is appended verbatim to the
 generation prompt in step 5, and the critique workflow in step 6 reads it
 to score the Consistency axis.
 
+Then compile the design tokens into a Tailwind v4 `@theme` block so the
+variant consumes the design system **mechanically** (utility classes bound
+to tokens), not by re-typing hex values:
+
+```sh
+ui tokens compile design/design.tokens.json --target tailwind
+```
+
+Capture stdout — it is a complete `@theme { --color-primary: …; … }` block.
+Keep it in scratch state alongside the context block; step 5 inlines it into
+the page `<style>` so every token becomes a Tailwind utility
+(`--color-primary` → `bg-primary` / `text-primary`, `--space-4` → `p-4`,
+`--radius-md` → `rounded-md`). This is what makes "token reuse" verifiable
+rather than aspirational. (Adjust the tokens path if `ui ds status` reports a
+non-default location.)
+
 ### Step 5 — Generate `<count>` variants (one per persona)
 
 Decide the effective mode:
@@ -221,6 +237,12 @@ iconography, and layout described in the PERSONA DNA below — exactly.
 [DESIGN SYSTEM]
 <output of `ui ds context --strict` from step 4>
 
+[DESIGN TOKENS — Tailwind @theme]
+Paste this block verbatim inside a `<style>` tag in the page `<head>`. It
+binds every design-system token to a Tailwind v4 utility. Build the entire
+UI from these utilities.
+<output of `ui tokens compile … --target tailwind` from step 4>
+
 [UNIVERSAL STYLE GUIDE]
 <Universal Style Guide block from knowledge/mode-constraints.md>
 
@@ -228,12 +250,18 @@ iconography, and layout described in the PERSONA DNA below — exactly.
 <mode section from knowledge/mode-constraints.md>
 
 [CONSTRAINTS]
+- Inline the `@theme` block above inside a `<style>` tag in `<head>`, then
+  style EVERY element with the token-bound utilities it defines
+  (`bg-surface`, `text-primary`, `border-border`, `p-4`, `rounded-md`, …).
 - Use only registered components from the DS where one fits; if a needed
   component is missing, design it, then register it (step 7).
-- Use only DS tokens for color, spacing, typography, radius — never raw
-  arbitrary values when a token exists.
-- Standard Tailwind utility classes only. Arbitrary-value utilities
-  (`bg-[#1a1614]`, `mt-[3px]`) are allowed.
+- Color, spacing, typography, radius, and shadow MUST come from the `@theme`
+  tokens. Arbitrary-value utilities for these (`bg-[#1a1614]`, `mt-[3px]`,
+  `text-[#fff]`) are **forbidden** — if a value seems missing, pick the
+  nearest token; never hardcode a hex/px. (Arbitrary values remain allowed
+  only for genuinely one-off geometry a token cannot express, e.g.
+  `w-[37%]`.) The critique Consistency axis fails a variant that hardcodes
+  values a token already covers.
 - Every `<img>` carries an `onerror` fallback handler.
 - Initialize Lucide icons once at the end of `<body>` via
   `lucide.createIcons()`.
@@ -321,8 +349,9 @@ contra-persona).
 
 - `<count>` self-contained `.html` files at the project root (or under a
   user-supplied output directory), each one a complete `<html>…</html>`
-  document using only standard Tailwind utilities, Lucide icons, and
-  Chart.js where applicable.
+  document with the compiled `@theme` block inlined in `<head>`, styled via
+  the token-bound Tailwind utilities (not hardcoded hex/px), plus Lucide
+  icons and Chart.js where applicable.
 - Updated DS artifacts if step 3 Branch A ran: `design.tokens.json`,
   `component-registry.json`, `ds.manifest.json`.
 - Updated `component-registry.json` if step 7 registered new shapes.

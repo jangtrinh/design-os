@@ -55,6 +55,20 @@ visually consistent, so no variant fan-out at the deck level).
 Capture the design-system context block as `design_system_context` for the rest of
 the workflow.
 
+Then compile the design tokens to a Tailwind `@theme` block so every slide
+consumes the palette **mechanically** (token-bound utilities) rather than by
+re-typing hex — this is what makes the "stay inside the DS palette" rule in
+step 5 verifiable:
+
+```sh
+ui tokens compile design/design.tokens.json --target tailwind
+```
+
+Capture stdout as `design_system_theme`. Step 4 inlines it once into the
+deck's shared chrome `<style>`, so `--color-primary` → `bg-primary`,
+`--space-4` → `p-4`, etc. (Adjust the tokens path if `ui ds status` reports a
+non-default location.)
+
 ### 3. Plan the outline
 
 Acting as a presentation strategist and information architect, produce a JSON
@@ -127,9 +141,17 @@ Acting as a presentation template designer, extract the visual identity from
 - `bgCss` — a CSS background property value, e.g.
   `linear-gradient(135deg, #0F172A, #1E293B)` or `#FFFFFF`.
 
+There is also a fourth, non-generated chrome element: `themeStyle` — the
+`design_system_theme` (`@theme` block) captured in step 2, wrapped in a
+`<style>…</style>` tag. It is inserted verbatim into the `<head>` of **every**
+slide (step 5) so all slides share token-bound Tailwind utilities. Do not
+regenerate or edit it per slide.
+
 Chrome constraints:
 
-- Use **only** colours found in the provided design system.
+- Use **only** colours found in the provided design system — prefer the
+  token-bound utilities from `themeStyle` (`bg-surface`, `text-primary`, …)
+  over hardcoded hex wherever a token covers the value.
 - Use **only** fonts found in the provided design system.
 - Keep the chrome **minimal** — it must not compete with the slide's content.
 - Tailwind utility classes inside the snippets. Inline styles are acceptable for
@@ -162,8 +184,10 @@ Per-slide prompt structure:
 - **Context:**
   - `design_system_context` from step 2.
   - `deckTitle`, slide `title`, slide `contentBrief`, slide `role`.
-  - The shared chrome (`headerHtml`, `footerHtml`, `bgCss`) from step 4 — these are
-    **inserted into the slide markup verbatim**, not regenerated per slide.
+  - The shared chrome (`themeStyle`, `headerHtml`, `footerHtml`, `bgCss`) from
+    step 4 — these are **inserted into the slide markup verbatim**, not
+    regenerated per slide. `themeStyle` goes in `<head>`; build the slide with
+    the token-bound utilities it defines.
   - The previous slide's HTML (if any), passed for consistency anchoring. The model
     must match the typographic rhythm and visual language of prior slides; only the
     content zone changes.
@@ -186,7 +210,8 @@ section of `knowledge/mode-constraints.md`):
 - **Layout:** generous edge padding (60–120 px). Centre content within the padded
   area.
 - **Colours:** high-contrast text on solid or gradient backgrounds. No low-contrast
-  text.
+  text. Use the `themeStyle` token utilities (`text-primary`, `bg-surface`, …);
+  don't hardcode hex for values a DS token already covers.
 - **Backgrounds:** each slide has a distinct full-bleed background — solid,
   gradient, or subtle pattern. The shared `bgCss` from chrome is the default; a
   slide may darken/tint it but must stay inside the DS palette.
