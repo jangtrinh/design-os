@@ -10,7 +10,7 @@
  * Antigravity uses the same YAML-frontmatter Markdown shape as Claude.
  * Shell blocks are preceded by `// turbo` to mark them as auto-executable.
  */
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
 import { WORKFLOW_VERBS, SKILL_NAMES, resolveTemplatePath } from "./templates.js";
 import { buildAntigravityWorkflow, buildAntigravitySkill } from "./wrapper-shapes.js";
@@ -21,12 +21,14 @@ import { buildAntigravityWorkflow, buildAntigravitySkill } from "./wrapper-shape
  */
 export function generateAntigravityAdapter(input: AdapterInput): AdapterArtifact[] {
   const { cwd, templatesRoot } = input;
+  // knowledge/ is the sibling of templates/ at the package root.
+  const knowledgeRoot = resolve(templatesRoot, "..", "knowledge");
   const artifacts: AdapterArtifact[] = [];
 
   // ── Workflow files ─────────────────────────────────────────────────────────
   for (const verb of WORKFLOW_VERBS) {
     const templatePath = resolveTemplatePath(templatesRoot, "workflow", verb);
-    const content = buildAntigravityWorkflow(verb, templatePath);
+    const content = buildAntigravityWorkflow(verb, templatePath, knowledgeRoot);
     artifacts.push({
       mode: "write",
       absPath: join(cwd, ".agent", "workflows", `ui-${verb}.md`),
@@ -40,7 +42,7 @@ export function generateAntigravityAdapter(input: AdapterInput): AdapterArtifact
     if (templatePath === null) {
       throw new Error(`skill template not found for "${name}" under ${templatesRoot}`);
     }
-    const content = buildAntigravitySkill(name, templatePath);
+    const content = buildAntigravitySkill(name, templatePath, knowledgeRoot);
     artifacts.push({
       mode: "write",
       absPath: join(cwd, ".agent", "skills", `ease-design-${name}`, "SKILL.md"),

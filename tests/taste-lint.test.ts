@@ -1,0 +1,306 @@
+import { describe, expect, it } from "vitest";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import {
+  checkTinyBodyText,
+  checkOffGridSpacing,
+  checkMixedIconFamilies,
+  checkPureBlackShadow,
+  checkLinearOrAllTransition,
+  checkRawHexWhenTokenExists,
+} from "../src/core/taste-checks.js";
+import { lintTaste } from "../src/core/taste-lint.js";
+import { run } from "../src/cli.js";
+
+// In-process CLI capture (mirrors cmd-validate-layout.test.ts).
+function captureRun(args: string[]): { code: number; out: string; err: string } {
+  let out = "";
+  let err = "";
+  const origOut = process.stdout.write.bind(process.stdout);
+  const origErr = process.stderr.write.bind(process.stderr);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  process.stdout.write = (chunk: any) => { out += String(chunk); return true; };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  process.stderr.write = (chunk: any) => { err += String(chunk); return true; };
+  let code: number;
+  try {
+    code = run(args);
+  } finally {
+    process.stdout.write = origOut;
+    process.stderr.write = origErr;
+  }
+  return { code, out, err };
+}
+
+function writeTmp(name: string, content: string): string {
+  const dir = mkdtempSync(join(tmpdir(), "ease-taste-"));
+  const p = join(dir, name);
+  writeFileSync(p, content, "utf8");
+  return p;
+}
+
+// ─── checkTinyBodyText (Typography) ─────────────────────────────────────────────
+
+describe("checkTinyBodyText", () => {
+  it("flags an inline/style font-size ≤ 13px", () => {
+    const f = checkTinyBodyText("<style>body{font-size:11px}</style>");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.axis).toBe("Typography");
+    expect(f[0]?.checkId).toBe("tiny-body-text");
+  });
+
+  it("flags a Tailwind text-[Npx] ≤ 13px", () => {
+    const f = checkTinyBodyText('<p class="text-[10px]">x</p>');
+    expect(f).toHaveLength(1);
+    expect(f[0]?.line).toBe(1);
+  });
+
+  it("does NOT flag 16px body", () => {
+    expect(checkTinyBodyText("<style>body{font-size:16px}</style>")).toHaveLength(0);
+  });
+
+  it("does NOT flag 14px (left to the model — dense-UI grey zone)", () => {
+    expect(checkTinyBodyText("<style>.cap{font-size:14px}</style>")).toHaveLength(0);
+  });
+
+  it("does NOT match font-size mentioned in body copy text", () => {
+    // "font-size: 10px" appears as visible prose, not a CSS region → not matched
+    expect(checkTinyBodyText("<p>Set your font-size: 10px in settings.</p>")).toHaveLength(0);
+  });
+});
+
+// ─── checkOffGridSpacing (Spacing) ──────────────────────────────────────────────
+
+describe("checkOffGridSpacing", () => {
+  it("flags an off-4px-grid padding value", () => {
+    const f = checkOffGridSpacing('<div class="p-[13px]"></div>');
+    expect(f).toHaveLength(1);
+    expect(f[0]?.axis).toBe("Spacing");
+  });
+
+  it("flags off-grid margin and gap", () => {
+    expect(checkOffGridSpacing('<div class="mt-[27px]"></div>')).toHaveLength(1);
+    expect(checkOffGridSpacing('<div class="gap-[18px]"></div>')).toHaveLength(1);
+  });
+
+  it("does NOT flag on-grid multiples of 4", () => {
+    expect(checkOffGridSpacing('<div class="p-[16px] mt-[8px] gap-[24px]"></div>')).toHaveLength(0);
+  });
+
+  it("does NOT flag sub-4px hairline nudges", () => {
+    expect(checkOffGridSpacing('<div class="mt-[2px]"></div>')).toHaveLength(0);
+  });
+
+  it("does NOT flag non-spacing arbitrary utilities (border width)", () => {
+    expect(checkOffGridSpacing('<div class="border-[3px]"></div>')).toHaveLength(0);
+  });
+});
+
+// ─── checkMixedIconFamilies (Iconography) ───────────────────────────────────────
+
+describe("checkMixedIconFamilies", () => {
+  it("flags two icon families in one document", () => {
+    const f = checkMixedIconFamilies('<i class="fas fa-home"></i><span data-lucide="user"></span>');
+    expect(f).toHaveLength(1);
+    expect(f[0]?.axis).toBe("Iconography");
+    expect(f[0]?.message).toContain("Lucide");
+    expect(f[0]?.message).toContain("Font Awesome");
+  });
+
+  it("does NOT flag a single family (Lucide, the project default)", () => {
+    expect(checkMixedIconFamilies('<span data-lucide="user"></span><script>lucide.createIcons()</script>')).toHaveLength(0);
+  });
+
+  it("does NOT flag a document with no icons", () => {
+    expect(checkMixedIconFamilies("<div>plain</div>")).toHaveLength(0);
+  });
+});
+
+// ─── checkPureBlackShadow (Depth/Surface) ───────────────────────────────────────
+
+describe("checkPureBlackShadow", () => {
+  it("flags a #000000 box-shadow", () => {
+    const f = checkPureBlackShadow("<style>.c{box-shadow:0 4px 8px #000000}</style>");
+    expect(f.length).toBeGreaterThanOrEqual(1);
+    expect(f[0]?.axis).toBe("Depth/Surface");
+  });
+
+  it("flags a hard rgba black (alpha ≥ 0.5)", () => {
+    expect(checkPureBlackShadow("<style>.c{box-shadow:0 2px 4px rgba(0,0,0,0.8)}</style>").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("does NOT flag a soft low-alpha black shadow (conventional)", () => {
+    expect(checkPureBlackShadow("<style>.c{box-shadow:0 4px 12px rgba(0,0,0,0.12)}</style>")).toHaveLength(0);
+  });
+
+  it("does NOT flag a tinted shadow", () => {
+    expect(checkPureBlackShadow("<style>.c{box-shadow:0 4px 12px rgba(30,20,10,0.3)}</style>")).toHaveLength(0);
+  });
+
+  it("flags a Tailwind shadow-[...] with pure black", () => {
+    expect(checkPureBlackShadow('<div class="shadow-[0_4px_8px_#000]"></div>').length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ─── checkLinearOrAllTransition (Motion) ────────────────────────────────────────
+
+describe("checkLinearOrAllTransition", () => {
+  it("flags linear easing", () => {
+    const f = checkLinearOrAllTransition("<style>.c{transition:transform 0.2s linear}</style>");
+    expect(f.some((x) => x.checkId === "linear-easing")).toBe(true);
+    expect(f[0]?.axis).toBe("Motion");
+  });
+
+  it("flags transition: all", () => {
+    const f = checkLinearOrAllTransition("<style>.c{transition:all 0.3s ease}</style>");
+    expect(f.some((x) => x.checkId === "transition-all")).toBe(true);
+  });
+
+  it("does NOT flag a proper directional easing on a named property", () => {
+    expect(checkLinearOrAllTransition("<style>.c{transition:opacity 0.2s ease-out}</style>")).toHaveLength(0);
+  });
+
+  it("does NOT match the word 'linear' in body copy", () => {
+    expect(checkLinearOrAllTransition("<p>A linear regression model.</p>")).toHaveLength(0);
+  });
+});
+
+// ─── checkRawHexWhenTokenExists (Consistency) ───────────────────────────────────
+
+describe("checkRawHexWhenTokenExists", () => {
+  const tokens = new Set(["#896d31", "#0d0d0d"]);
+
+  it("is skipped entirely when no token set is supplied", () => {
+    expect(checkRawHexWhenTokenExists('<div class="bg-[#abcdef]"></div>', undefined)).toHaveLength(0);
+  });
+
+  it("flags an arbitrary hex NOT in the palette", () => {
+    const f = checkRawHexWhenTokenExists('<div class="bg-[#abcdef]"></div>', tokens);
+    expect(f).toHaveLength(1);
+    expect(f[0]?.axis).toBe("Consistency");
+  });
+
+  it("does NOT flag a hex that IS a palette token", () => {
+    expect(checkRawHexWhenTokenExists('<div class="bg-[#896D31]"></div>', tokens)).toHaveLength(0);
+  });
+
+  it("normalises 3-digit hex against 6-digit tokens", () => {
+    const t = new Set(["#ffffff"]);
+    expect(checkRawHexWhenTokenExists('<div class="bg-[#fff]"></div>', t)).toHaveLength(0);
+  });
+
+  it("flags an inline-style invented hex", () => {
+    const f = checkRawHexWhenTokenExists('<div style="color:#123456"></div>', tokens);
+    expect(f).toHaveLength(1);
+  });
+});
+
+// ─── lintTaste orchestrator ─────────────────────────────────────────────────────
+
+describe("lintTaste", () => {
+  it("returns zero findings for a clean DS-faithful variant", () => {
+    const clean = [
+      "<!doctype html><html><head><style>",
+      "body{font-size:16px;transition:transform 0.2s ease-out}",
+      ".card{box-shadow:0 4px 12px rgba(30,20,10,0.18)}",
+      "</style></head><body class='bg-surface text-text-body'>",
+      "<span data-lucide='user'></span>",
+      "<div class='p-4 mt-8 gap-6 rounded-md'>Hi</div>",
+      "<p class='text-[18px]'>Readable copy.</p>",
+      "</body></html>",
+    ].join("\n");
+    const r = lintTaste(clean);
+    expect(r.errorCount).toBe(0);
+    expect(r.findings).toHaveLength(0);
+    expect(r.axesAffected).toHaveLength(0);
+  });
+
+  it("aggregates violations across axes, sorted by rubric order", () => {
+    const bad = [
+      "<style>body{font-size:11px;transition:all 0.3s linear}",
+      ".c{box-shadow:0 4px 8px #000}</style>",
+      '<i class="fas fa-home"></i><span data-lucide="x"></span>',
+      '<div class="mt-[27px]"></div>',
+    ].join("\n");
+    const r = lintTaste(bad);
+    expect(r.errorCount).toBeGreaterThanOrEqual(5);
+    // Axes appear in rubric order: Typography < Spacing < Motion < Iconography < Depth/Surface
+    const idx = (ax: string) => r.axesAffected.indexOf(ax as never);
+    expect(idx("Typography")).toBeLessThan(idx("Spacing"));
+    expect(idx("Spacing")).toBeLessThan(idx("Motion"));
+    expect(idx("Motion")).toBeLessThan(idx("Iconography"));
+  });
+
+  it("does not trip on a commented-out AI_CRITIQUE_LOG block", () => {
+    // critique.md writes an HTML comment at the top of variants — must be ignored.
+    const withLog = [
+      "<!-- AI_CRITIQUE_LOG round=1: font-size 9px linear all #000 fa-home -->",
+      "<!doctype html><html><body><p class='text-[18px]'>ok</p></body></html>",
+    ].join("\n");
+    expect(lintTaste(withLog).errorCount).toBe(0);
+  });
+
+  it("activates the Consistency check only with knownHexes", () => {
+    const html = '<div class="bg-[#abcdef]"></div>';
+    expect(lintTaste(html).errorCount).toBe(0);
+    expect(lintTaste(html, { knownHexes: new Set(["#000000"]) }).errorCount).toBe(1);
+  });
+});
+
+// ─── ui taste-lint command ──────────────────────────────────────────────────────
+
+describe("ui taste-lint — command", () => {
+  const CLEAN = "<!doctype html><html><body><p class='text-[18px]'>ok</p></body></html>";
+  const DIRTY = "<!doctype html><html><body><p class='text-[10px]'>x</p></body></html>";
+
+  it("exits 0 with errorCount 0 on a clean file (--json)", () => {
+    const p = writeTmp("clean.html", CLEAN);
+    const { code, out } = captureRun(["taste-lint", p, "--json"]);
+    expect(code).toBe(0);
+    const json = JSON.parse(out) as { ok: boolean; data: { errorCount: number } };
+    expect(json.ok).toBe(true);
+    expect(json.data.errorCount).toBe(0);
+  });
+
+  it("exits 0 in text mode and reports no violations", () => {
+    const p = writeTmp("clean.html", CLEAN);
+    const { code, out } = captureRun(["taste-lint", p]);
+    expect(code).toBe(0);
+    expect(out).toContain("0 violation(s)");
+  });
+
+  it("exits 1 with violations on a dirty file (--json)", () => {
+    const p = writeTmp("dirty.html", DIRTY);
+    const { code, out } = captureRun(["taste-lint", p, "--json"]);
+    expect(code).toBe(1);
+    const json = JSON.parse(out) as { data: { errorCount: number; axesAffected: string[] } };
+    expect(json.data.errorCount).toBeGreaterThanOrEqual(1);
+    expect(json.data.axesAffected).toContain("Typography");
+  });
+
+  it("exits 1 with FILE_NOT_FOUND on a missing file (--json)", () => {
+    const { code, out } = captureRun(["taste-lint", "/no/such/file.html", "--json"]);
+    expect(code).toBe(1);
+    const json = JSON.parse(out) as { ok: boolean; error: { code: string } };
+    expect(json.ok).toBe(false);
+    expect(json.error.code).toBe("FILE_NOT_FOUND");
+  });
+
+  it("exits 1 with BAD_ARG when no file argument is given (--json)", () => {
+    const { code, out } = captureRun(["taste-lint", "--json"]);
+    expect(code).toBe(1);
+    const json = JSON.parse(out) as { ok: boolean; error: { code: string } };
+    expect(json.error.code).toBe("BAD_ARG");
+  });
+
+  it("uses --tokens to activate the Consistency check", () => {
+    const tokens = JSON.stringify({ primary: { "500": { $type: "color", $value: "#896D31" } } });
+    const tp = writeTmp("design.tokens.json", tokens);
+    const html = writeTmp("mixed.html", '<div class="bg-[#abcdef]">x</div>');
+    const { code, out } = captureRun(["taste-lint", html, "--tokens", tp, "--json"]);
+    expect(code).toBe(1);
+    const json = JSON.parse(out) as { data: { axesAffected: string[] } };
+    expect(json.data.axesAffected).toContain("Consistency");
+  });
+});

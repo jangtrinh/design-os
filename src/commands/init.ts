@@ -31,6 +31,7 @@ import {
   RUNTIMES,
   buildManifest,
   manifestTargetPath,
+  resolvePackageRoots,
 } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
 import { generateAdapter } from "../adapters/index.js";
@@ -128,44 +129,24 @@ export const initCommand = {
     const cwdFlag = parsed.flags["cwd"];
     const targetCwd = typeof cwdFlag === "string" ? resolve(cwdFlag) : processCwd();
 
-    // ── Resolve templatesRoot ──────────────────────────────────────────────
-    // The `templates/` directory ships alongside `dist/` and `src/` at the
-    // repo/package root. We locate it by walking upward from this file's
-    // directory until we find a sibling `templates/` that contains the
-    // canonical sentinel `workflows/generate.md`. Requiring the sentinel
-    // prevents latching onto a stray `templates/` in a parent monorepo
-    // workspace before reaching the correct ease-design package root.
-    //   - Bundled binary: dist/cli.js → dist/ → ../templates/  (1 hop)
-    //   - Vitest source import: src/commands/init.ts → src/commands/ →
-    //       src/ → ../../templates/  (2 hops)
-    // The loop runs until the filesystem root (parent === searchDir) so it
-    // handles unusual install layouts without an arbitrary hop limit.
+    // ── Resolve package roots (templates/ + knowledge/) ────────────────────
+    // Shared with `ui doctor` via resolvePackageRoots (init-stub.ts). Walks up
+    // from this file to the ease-design package root, identified by the sentinel
+    // templates/workflows/generate.md.
     const thisFile = fileURLToPath(import.meta.url);
     const startDir = dirname(thisFile);
-    let templatesRoot: string | null = null;
-    let searchDir = startDir;
-    while (true) {
-      const candidate = join(searchDir, "templates");
-      if (
-        existsSync(candidate) &&
-        existsSync(join(candidate, "workflows", "generate.md"))
-      ) {
-        templatesRoot = candidate;
-        break;
-      }
-      const parent = resolve(searchDir, "..");
-      if (parent === searchDir) break; // filesystem root reached
-      searchDir = parent;
-    }
+    const { templatesRoot, knowledgeRoot } = resolvePackageRoots(startDir);
 
-    if (templatesRoot === null) {
-      const msg =
-        `ease-design templates not found (searched ${startDir} .. ${searchDir})`;
+    if (templatesRoot === null || knowledgeRoot === null) {
+      const msg = `ease-design templates not found (searched upward from ${startDir})`;
       return useJson ? errJson(CMD, "WRITE_ERROR", msg) : errText(`ui: ${msg}\n`);
     }
 
     const binaryPath = "ui";
-    const knowledgePath = resolve(targetCwd, "knowledge");
+    // knowledge/ ships inside the package as a sibling of templates/ — anchor to
+    // the package root, NOT the consumer's project dir (resolve(targetCwd,
+    // "knowledge") was the bug: that path doesn't exist in a consumer project).
+    const knowledgePath = knowledgeRoot;
 
     // ── Pre-flight: collect manifest entries ───────────────────────────────
     type ManifestEntry = {

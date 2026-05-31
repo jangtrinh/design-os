@@ -39,10 +39,13 @@ const NAMING_RULES = [
 ];
 
 const STRICT_PREAMBLE =
-  "> ENFORCEMENT: This is the active design system. Any new design **MUST** consume\n" +
-  "> only the semantic tokens below and only the registered components below. Adding\n" +
-  "> a new component requires `ui registry register`. Adding/changing a token\n" +
-  "> requires `ui ds change-token`.\n";
+  "> ENFORCEMENT: This is the active design system. Any new design **MUST** style\n" +
+  "> exclusively with the semantic tokens below — never hardcode colors, spacing,\n" +
+  "> radius, or shadow when a token covers them. Prefer a registered component\n" +
+  "> below when one fits; when none does (e.g. the registry is empty on the first\n" +
+  "> generation), design the component from these tokens and register it with\n" +
+  "> `ui registry register` so the next generation can reuse it. Adding/changing a\n" +
+  "> token requires `ui ds change-token`.\n";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

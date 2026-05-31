@@ -13,3 +13,6 @@ examples/synthetic/output/
 plans/
 release-manifest.json
 .repomixignore
+.fog-context/
+.project-agent.md
+.brv/
