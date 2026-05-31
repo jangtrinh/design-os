@@ -17,16 +17,21 @@ import { colorCommand } from "./commands/color.js";
 import { tokensCommand } from "./commands/tokens.js";
 import { autofixCommand } from "./commands/autofix.js";
 import { validateLayoutCommand } from "./commands/validate-layout.js";
+import { tasteLintCommand } from "./commands/taste-lint.js";
 import { registryCommand } from "./commands/registry.js";
 import { editStrategyCommand } from "./commands/edit-strategy.js";
 import { stripFencesCommand } from "./commands/strip-fences.js";
 import { parseJsonStreamCommand } from "./commands/parse-json-stream.js";
 import { exportCommand } from "./commands/export.js";
 import { initCommand } from "./commands/init.js";
+import { doctorCommand } from "./commands/doctor.js";
+import { guideCommand } from "./commands/guide.js";
 import { dsCommand } from "./commands/ds.js";
 import { designmdCommand } from "./commands/designmd.js";
 
-const VERSION = "0.0.1";
+// Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
+// asserts these match, so drift fails CI rather than shipping silently.
+const VERSION = "0.1.0";
 
 // ─── Command registry ─────────────────────────────────────────────────────────
 
@@ -44,12 +49,15 @@ COMMANDS[colorCommand.name] = colorCommand;
 COMMANDS[tokensCommand.name] = tokensCommand;
 COMMANDS[autofixCommand.name] = autofixCommand;
 COMMANDS[validateLayoutCommand.name] = validateLayoutCommand;
+COMMANDS[tasteLintCommand.name] = tasteLintCommand;
 COMMANDS[registryCommand.name] = registryCommand;
 COMMANDS[editStrategyCommand.name] = editStrategyCommand;
 COMMANDS[stripFencesCommand.name] = stripFencesCommand;
 COMMANDS[parseJsonStreamCommand.name] = parseJsonStreamCommand;
 COMMANDS[exportCommand.name] = exportCommand;
+COMMANDS[guideCommand.name] = guideCommand;
 COMMANDS[initCommand.name] = initCommand;
+COMMANDS[doctorCommand.name] = doctorCommand;
 COMMANDS[dsCommand.name] = dsCommand;
 COMMANDS[designmdCommand.name] = designmdCommand;
 
@@ -58,6 +66,8 @@ COMMANDS[designmdCommand.name] = designmdCommand;
 function buildRootHelp(): string {
   const lines = [
     "ui — ease-design CLI",
+    "",
+    "New here? Run `ui guide` for the plain-language workflow (start a design, tweak it, …).",
     "",
     "Usage:",
     "  ui <command> [subcommand] [options]",
