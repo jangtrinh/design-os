@@ -40,6 +40,29 @@ function toFwdSlash(p: string): string {
   return p.replace(/\\/g, "/");
 }
 
+// ─── Knowledge anchor ───────────────────────────────────────────────────────────
+
+/**
+ * Build the anchor line that resolves the bare `knowledge/<file>` references
+ * inside a runtime-neutral template to an absolute base.
+ *
+ * The templates are intentionally runtime-neutral: they say `knowledge/foo.md`,
+ * not an absolute path. The wrapper supplies the absolute knowledge root — the
+ * same way it supplies the absolute template path — so a consumer running
+ * outside the ease-design repo (e.g. an npm install) can still reach the
+ * knowledge core. Without this, every `knowledge/...` read in the workflow has
+ * no resolvable anchor. Returns "" when no root is supplied (legacy callers).
+ */
+function buildKnowledgeAnchor(knowledgeRoot: string | undefined): string {
+  if (knowledgeRoot === undefined || knowledgeRoot === "") return "";
+  const kr = toFwdSlash(knowledgeRoot);
+  return (
+    "\nThe workflow reads files under `knowledge/`. Resolve every such path " +
+    `against this absolute base: \`${kr}\` ` +
+    `(e.g. \`knowledge/persona-index.md\` → \`${kr}/persona-index.md\`).\n`
+  );
+}
+
 // ─── Skill-ref prose helpers ──────────────────────────────────────────────────
 
 /** Build the "invoke skill" lines appended to Claude command bodies. */
@@ -64,6 +87,7 @@ export function buildClaudeCommand(
   verb: string,
   templatePath: string | null,
   skillRefs: readonly string[],
+  knowledgeRoot?: string,
 ): string {
   const summary = VERB_SUMMARIES[verb] ?? verb;
   const skillBlock = buildSkillRefLines(skillRefs);
@@ -97,6 +121,7 @@ export function buildClaudeCommand(
     "",
     "Follow the runtime-neutral workflow at:",
     `\`${tplPath}\``,
+    buildKnowledgeAnchor(knowledgeRoot),
     skillBlock,
   ].join("\n");
 }
@@ -107,7 +132,11 @@ export function buildClaudeCommand(
  * @param name         The skill name (e.g. "pick-persona").
  * @param templatePath Absolute path to the skill template file.
  */
-export function buildClaudeSkill(name: string, templatePath: string): string {
+export function buildClaudeSkill(
+  name: string,
+  templatePath: string,
+  knowledgeRoot?: string,
+): string {
   const summary = SKILL_SUMMARIES[name] ?? name;
   const tplPath = toFwdSlash(templatePath);
   return [
@@ -118,6 +147,7 @@ export function buildClaudeSkill(name: string, templatePath: string): string {
     "",
     "Follow the runtime-neutral skill at:",
     `\`${tplPath}\``,
+    buildKnowledgeAnchor(knowledgeRoot),
     "",
   ].join("\n");
 }
@@ -137,6 +167,7 @@ export function buildClaudeSkill(name: string, templatePath: string): string {
 export function buildAntigravityWorkflow(
   verb: string,
   templatePath: string | null,
+  knowledgeRoot?: string,
 ): string {
   const summary = VERB_SUMMARIES[verb] ?? verb;
 
@@ -170,7 +201,7 @@ export function buildAntigravityWorkflow(
     "",
     "Follow the runtime-neutral workflow at:",
     `\`${tplPath}\``,
-    "",
+    buildKnowledgeAnchor(knowledgeRoot),
     "When the workflow calls for a `ui` command, run it via the shell:",
     "",
     "// turbo",
@@ -185,8 +216,12 @@ export function buildAntigravityWorkflow(
  * Build the body of a `.agent/skills/ease-design-<name>/SKILL.md` wrapper.
  * Shape is byte-identical to the Claude skill wrapper.
  */
-export function buildAntigravitySkill(name: string, templatePath: string): string {
-  return buildClaudeSkill(name, templatePath);
+export function buildAntigravitySkill(
+  name: string,
+  templatePath: string,
+  knowledgeRoot?: string,
+): string {
+  return buildClaudeSkill(name, templatePath, knowledgeRoot);
 }
 
 // ─── Codex builder ────────────────────────────────────────────────────────────
@@ -203,6 +238,7 @@ export const CODEX_SENTINEL_END   = "<!-- END ease-design -->";
 export function buildCodexBlock(
   templatesRoot: string,
   hashes: Record<string, string>,
+  knowledgeRoot?: string,
 ): string {
   const tplRoot = toFwdSlash(templatesRoot);
   // Stable sorted hash listing for deterministic output
@@ -211,6 +247,11 @@ export function buildCodexBlock(
     .map((k) => `  ${k}: ${hashes[k] ?? ""}`)
     .join("\n");
 
+  const knowledgeLine =
+    knowledgeRoot !== undefined && knowledgeRoot !== ""
+      ? `Templates reference \`knowledge/<file>\` — resolve those against \`${toFwdSlash(knowledgeRoot)}\`. `
+      : "";
+
   return [
     CODEX_SENTINEL_BEGIN,
     "## ease-design",
@@ -218,7 +259,7 @@ export function buildCodexBlock(
     "This project uses ease-design. Workflows and skills live under",
     `\`${tplRoot}/workflows/\` and \`${tplRoot}/skills/\`. Invoke them`,
     "by following the relevant Markdown file when the user asks for design",
-    "work. The `ui` binary handles all non-LLM work (autofix, layout",
+    `work. ${knowledgeLine}The \`ui\` binary handles all non-LLM work (autofix, layout`,
     "validation, token compilation, color math).",
     "",
     "Available slash-commands when proxied: /ui:generate /ui:iterate /ui:refine",

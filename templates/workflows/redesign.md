@@ -155,6 +155,21 @@ component catalog naming. If not, generate the redesigned components inline —
 the **Consistency axis** in `templates/workflows/critique.md` will flag low
 reuse so a follow-up `/ui:iterate` can register the new pieces.
 
+**Consume the design tokens mechanically.** Compile the DS tokens to a Tailwind
+`@theme` block and inline it in the redesigned page's `<head>`:
+
+```bash
+ui tokens compile design/design.tokens.json --target tailwind
+```
+
+Build the redesign with the token-bound utilities (`bg-surface`, `text-primary`,
+`p-4`, …) rather than re-typing hex/px. The contra-persona changes *which* tokens
+carry the look and the overall composition — but a value the DS already defines
+must still resolve to its token, or the critique Consistency floor
+(`ui taste-lint`) will flag the off-palette literal. If the contra-persona
+genuinely needs a value no token expresses, that is the signal to add a token via
+`ui ds change-token`, not to hardcode.
+
 Open the file with a thought-process comment block, e.g.:
 
 ```html
