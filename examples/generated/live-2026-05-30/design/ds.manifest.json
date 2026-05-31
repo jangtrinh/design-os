@@ -1,0 +1,27 @@
+{
+  "changelog": [
+    {
+      "by": "ui ds init",
+      "kind": "init",
+      "note": "compiled from persona=saas-aurora-minimal",
+      "ts": "2026-05-30T16:25:47.751Z"
+    }
+  ],
+  "compiledHash": "sha256-Xybp0H0g0D4YAlDSQaOMBUxO962SxUTn63WSp5WT4-s",
+  "createdAt": "2026-05-30T16:25:47.750Z",
+  "generation": 1,
+  "intent": "pricing page for a project management SaaS — three tiers, monthly/annual toggle, feature comparison, FAQ",
+  "name": "pmflow-pricing",
+  "persona": {
+    "antiPatterns": [
+      "heavy textures",
+      "maximalist decoration",
+      "extreme artistic expression",
+      "unpredictable layouts"
+    ],
+    "family": "functional-saas",
+    "slug": "saas-aurora-minimal"
+  },
+  "registryHash": "sha256-SSt6U5_2txSLRWCLIhVJ2XMsW2WODUBMKGFj44qhvZI",
+  "version": "1.0.0"
+}

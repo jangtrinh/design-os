@@ -1,0 +1,156 @@
+<!doctype html>
+<!-- AI_CRITIQUE_LOG: live dogfood 2026-05-30
+  persona: saas-aurora-minimal (functional-saas) · intent: PM SaaS pricing page
+  tokens: styled exclusively via @theme utilities (no arbitrary hex)
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PMFlow — Pricing</title>
+
+
+<style>
+@theme {
+  --color-border: #C5CBD6;
+  --color-danger: #CB262C;
+  --color-info: #2367D3;
+  --color-primary: #6366F1;
+  --color-primary-hover: #4946C9;
+  --color-success: #007B54;
+  --color-surface: #F2F5FC;
+  --color-surface-raised: #E4E8F0;
+  --color-text-body: #0B0D13;
+  --color-text-muted: #6B7280;
+  --color-text-on-primary: #F2F5FC;
+  --color-warning: #A66900;
+}
+:root {
+  --color-border: #C5CBD6; --color-primary: #6366F1; --color-primary-hover: #4946C9;
+  --color-success: #007B54; --color-surface: #F2F5FC; --color-surface-raised: #E4E8F0;
+  --color-text-body: #0B0D13; --color-text-muted: #6B7280; --color-text-on-primary: #F2F5FC;
+}
+/* Ambient aurora orbs — persona DNA: large blurred gradients at low opacity */
+body { background: var(--color-surface); color: var(--color-text-body); }
+.aurora { position: fixed; border-radius: 9999px; filter: blur(80px); opacity: 0.18; z-index: 0; pointer-events: none; }
+.glass { background: color-mix(in srgb, var(--color-surface) 70%, transparent); backdrop-filter: blur(12px); }
+.card-elev { box-shadow: 0 1px 3px rgba(11,13,19,0.08); transition: transform 0.2s ease-out, border-color 0.2s ease-out; }
+.card-elev:hover { transform: scale(1.01); border-color: var(--color-primary); }
+.tier-btn { transition: background-color 0.2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .card-elev, .tier-btn { transition: none; } .card-elev:hover { transform: none; } }
+</style>
+</head>
+<body class="min-h-screen relative" style="font-family: Inter, system-ui, sans-serif;">
+
+<!-- Aurora ambient background (decorative) -->
+<div class="aurora" style="width:520px;height:520px;top:-120px;left:-80px;background:linear-gradient(135deg,#6366F1,#22D3EE);"></div>
+<div class="aurora" style="width:460px;height:460px;top:240px;right:-100px;background:linear-gradient(135deg,#EC4899,#F59E0B);"></div>
+
+<!-- Floating glass nav -->
+<nav class="glass sticky top-0 z-20 border-b" style="border-color: var(--color-border);">
+  <div class="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2 font-medium text-text-body">
+      <i data-lucide="layout-grid" class="text-primary" style="width:24px;height:24px;"></i>
+      <span>PMFlow</span>
+    </div>
+    <div class="hidden md:flex items-center gap-8 text-text-muted">
+      <a href="#" class="hover:text-text-body">Product</a>
+      <a href="#pricing" class="hover:text-text-body">Pricing</a>
+      <a href="#faq" class="hover:text-text-body">FAQ</a>
+    </div>
+    <button class="tier-btn bg-primary text-text-on-primary px-4 py-2 rounded-lg hover:bg-primary-hover">Start free</button>
+  </div>
+</nav>
+
+<main class="relative z-10 max-w-6xl mx-auto px-8">
+
+  <!-- Hero -->
+  <header class="text-center pt-24 pb-12">
+    <h1 class="text-text-body font-semibold tracking-tight" style="font-size:56px;line-height:1.1;">Pricing that scales with your team</h1>
+    <p class="text-text-muted mt-6 mx-auto" style="font-size:20px;line-height:1.6;max-width:560px;">
+      Every plan includes unlimited projects, real-time collaboration, and the integrations your team already uses.
+    </p>
+
+    <!-- Monthly / annual toggle -->
+    <div class="inline-flex items-center gap-3 mt-10 glass border rounded-full px-2 py-2" style="border-color:var(--color-border);">
+      <button class="tier-btn px-5 py-2 rounded-full bg-primary text-text-on-primary" style="font-size:15px;">Monthly</button>
+      <button class="tier-btn px-5 py-2 rounded-full text-text-muted hover:text-text-body" style="font-size:15px;">Annual <span class="text-success">−20%</span></button>
+    </div>
+  </header>
+
+  <!-- Three tiers -->
+  <section id="pricing" class="grid md:grid-cols-3 gap-6 pb-24 pt-4">
+
+    <!-- Starter -->
+    <div class="card-elev bg-surface border rounded-xl p-8" style="border-color:var(--color-border);">
+      <h2 class="text-text-body font-medium" style="font-size:20px;">Starter</h2>
+      <p class="text-text-muted mt-2" style="font-size:15px;">For individuals and small projects.</p>
+      <p class="mt-6"><span class="text-text-body font-semibold" style="font-size:44px;">$0</span><span class="text-text-muted"> /mo</span></p>
+      <button class="tier-btn w-full mt-6 border rounded-lg py-3 text-text-body hover:bg-surface-raised" style="border-color:var(--color-border);">Get started</button>
+      <ul class="mt-8 space-y-3 text-text-body" style="font-size:15px;">
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Up to 3 projects</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> 2 team members</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Community support</li>
+      </ul>
+    </div>
+
+    <!-- Pro (featured) -->
+    <div class="card-elev bg-surface rounded-xl p-8 relative" style="border:2px solid var(--color-primary);">
+      <span class="absolute -top-3 left-8 bg-primary text-text-on-primary px-3 py-1 rounded-full" style="font-size:14px;">Most popular</span>
+      <h2 class="text-text-body font-medium" style="font-size:20px;">Pro</h2>
+      <p class="text-text-muted mt-2" style="font-size:15px;">For growing teams that ship fast.</p>
+      <p class="mt-6"><span class="text-text-body font-semibold" style="font-size:44px;">$12</span><span class="text-text-muted"> /user /mo</span></p>
+      <button class="tier-btn w-full mt-6 bg-primary text-text-on-primary rounded-lg py-3 hover:bg-primary-hover">Start free trial</button>
+      <ul class="mt-8 space-y-3 text-text-body" style="font-size:15px;">
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Unlimited projects</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Unlimited members</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Timeline &amp; Gantt views</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Priority support</li>
+      </ul>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="card-elev bg-surface border rounded-xl p-8" style="border-color:var(--color-border);">
+      <h2 class="text-text-body font-medium" style="font-size:20px;">Enterprise</h2>
+      <p class="text-text-muted mt-2" style="font-size:15px;">For organizations with advanced needs.</p>
+      <p class="mt-6"><span class="text-text-body font-semibold" style="font-size:44px;">Custom</span></p>
+      <button class="tier-btn w-full mt-6 border rounded-lg py-3 text-text-body hover:bg-surface-raised" style="border-color:var(--color-border);">Contact sales</button>
+      <ul class="mt-8 space-y-3 text-text-body" style="font-size:15px;">
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> SSO &amp; SAML</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Audit logs &amp; SCIM</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> Dedicated success manager</li>
+        <li class="flex gap-3"><i data-lucide="check" class="text-success" style="width:20px;height:20px;"></i> 99.9% uptime SLA</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="pb-24 max-w-3xl mx-auto">
+    <h2 class="text-text-body font-semibold text-center" style="font-size:32px;">Frequently asked questions</h2>
+    <div class="mt-10 space-y-4">
+      <div class="bg-surface border rounded-xl p-6" style="border-color:var(--color-border);">
+        <h3 class="text-text-body font-medium" style="font-size:17px;">Can I change plans later?</h3>
+        <p class="text-text-muted mt-2" style="font-size:15px;line-height:1.6;">Yes — upgrade or downgrade anytime. Changes are prorated to your billing cycle.</p>
+      </div>
+      <div class="bg-surface border rounded-xl p-6" style="border-color:var(--color-border);">
+        <h3 class="text-text-body font-medium" style="font-size:17px;">Is there a free trial on paid plans?</h3>
+        <p class="text-text-muted mt-2" style="font-size:15px;line-height:1.6;">Pro includes a 14-day free trial — no card required to start.</p>
+      </div>
+      <div class="bg-surface border rounded-xl p-6" style="border-color:var(--color-border);">
+        <h3 class="text-text-body font-medium" style="font-size:17px;">What payment methods do you accept?</h3>
+        <p class="text-text-muted mt-2" style="font-size:15px;line-height:1.6;">All major cards and ACH for annual Enterprise contracts.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="relative z-10 border-t" style="border-color:var(--color-border);">
+  <div class="max-w-6xl mx-auto px-8 py-8 text-text-muted flex items-center justify-between" style="font-size:14px;">
+    <span>© 2026 PMFlow</span>
+    <span>Built with ease-design</span>
+  </div>
+</footer>
+
+
+</body>
+</html>

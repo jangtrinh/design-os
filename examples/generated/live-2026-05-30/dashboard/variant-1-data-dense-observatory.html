@@ -1,0 +1,142 @@
+<!doctype html>
+<!-- AI_CRITIQUE_LOG: live dogfood 2026-05-30 — breadth proof
+  persona: data-dense-observatory (functional-saas) · intent: logistics ops dashboard
+  taste extreme: DENSE + DARK + FLAT (opposite of the airy/light pricing page)
+  tokens: styled exclusively via @theme utilities; body ≥14px (respects the taste-lint floor
+          even though the persona notes 12-14px — the deterministic floor wins)
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FleetOps — Control</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+@theme {
+  --color-border: #363B45;
+  --color-danger: #CB262C;
+  --color-info: #2367D3;
+  --color-primary: #007787;
+  --color-primary-hover: #0E5965;
+  --color-success: #007B54;
+  --color-surface: #0B0D13;
+  --color-surface-raised: #1E222A;
+  --color-text-body: #F2F5FC;
+  --color-text-muted: #8A93A3;
+  --color-text-on-primary: #F2F5FC;
+  --color-warning: #A66900;
+}
+:root{
+  --color-border:#363B45;--color-danger:#CB262C;--color-info:#2367D3;--color-primary:#007787;
+  --color-success:#007B54;--color-surface:#0B0D13;--color-surface-raised:#1E222A;
+  --color-text-body:#F2F5FC;--color-text-muted:#8A93A3;--color-warning:#A66900;
+}
+body{ background:var(--color-surface); color:var(--color-text-body); }
+/* Flat depth: 1px borders define containers, NO shadows (persona DNA) */
+.panel{ background:var(--color-surface-raised); border:1px solid var(--color-border); }
+.num{ font-family:'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.row-div{ border-top:1px solid var(--color-border); }
+.btn{ transition: background-color 0.15s ease-out; }
+@media (prefers-reduced-motion: reduce){ .btn{ transition:none } }
+</style>
+</head>
+<body class="min-h-screen" style="font-family: Inter, system-ui, sans-serif;">
+
+<!-- Dense top bar -->
+<header class="panel flex items-center justify-between px-4 py-3" style="border-left:none;border-right:none;border-top:none;">
+  <div class="flex items-center gap-2 font-medium">
+    <i data-lucide="radar" class="text-primary" style="width:20px;height:20px;"></i>
+    <span style="font-size:15px;">FleetOps Control</span>
+  </div>
+  <div class="flex items-center gap-4 text-text-muted" style="font-size:14px;">
+    <span class="flex items-center gap-1"><i data-lucide="circle" class="text-success" style="width:10px;height:10px;fill:currentColor;"></i> 142 active</span>
+    <span class="num">Updated 12s ago</span>
+    <button class="btn bg-primary text-text-on-primary px-3 py-1.5 rounded" style="font-size:14px;">Export</button>
+  </div>
+</header>
+
+<main class="p-4 space-y-4">
+
+  <!-- Dense KPI grid: 4 columns -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="panel rounded p-4">
+      <p class="text-text-muted" style="font-size:14px;">On-time rate</p>
+      <p class="num mt-1" style="font-size:30px;font-weight:600;">94.2<span class="text-text-muted" style="font-size:18px;">%</span></p>
+      <p class="text-success flex items-center gap-1" style="font-size:14px;"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +1.8 pts</p>
+    </div>
+    <div class="panel rounded p-4">
+      <p class="text-text-muted" style="font-size:14px;">Active routes</p>
+      <p class="num mt-1" style="font-size:30px;font-weight:600;">317</p>
+      <p class="text-text-muted flex items-center gap-1" style="font-size:14px;"><i data-lucide="minus" style="width:14px;height:14px;"></i> flat</p>
+    </div>
+    <div class="panel rounded p-4">
+      <p class="text-text-muted" style="font-size:14px;">Avg delay</p>
+      <p class="num mt-1" style="font-size:30px;font-weight:600;">6.4<span class="text-text-muted" style="font-size:18px;">m</span></p>
+      <p class="text-danger flex items-center gap-1" style="font-size:14px;"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +0.9m</p>
+    </div>
+    <div class="panel rounded p-4">
+      <p class="text-text-muted" style="font-size:14px;">Exceptions</p>
+      <p class="num mt-1" style="font-size:30px;font-weight:600;">23</p>
+      <p class="text-warning flex items-center gap-1" style="font-size:14px;"><i data-lucide="alert-triangle" style="width:14px;height:14px;"></i> 5 critical</p>
+    </div>
+  </section>
+
+  <!-- Chart + table, dense two-column -->
+  <section class="grid lg:grid-cols-3 gap-4">
+    <div class="panel rounded p-4 lg:col-span-2">
+      <h2 class="font-medium" style="font-size:15px;">Throughput — last 24h</h2>
+      <canvas id="chart" height="90" class="mt-3"></canvas>
+    </div>
+    <div class="panel rounded p-4">
+      <h2 class="font-medium" style="font-size:15px;">Alerts</h2>
+      <ul class="mt-3 space-y-2" style="font-size:14px;">
+        <li class="flex gap-2"><i data-lucide="alert-circle" class="text-danger" style="width:16px;height:16px;"></i> Route R-204 stalled 18m</li>
+        <li class="flex gap-2"><i data-lucide="alert-triangle" class="text-warning" style="width:16px;height:16px;"></i> Depot 3 capacity 92%</li>
+        <li class="flex gap-2"><i data-lucide="info" class="text-info" style="width:16px;height:16px;"></i> Weather hold lifted NW</li>
+        <li class="flex gap-2"><i data-lucide="alert-circle" class="text-danger" style="width:16px;height:16px;"></i> Vehicle 88 offline</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Live fleet table -->
+  <section class="panel rounded">
+    <div class="flex items-center justify-between px-4 py-3">
+      <h2 class="font-medium" style="font-size:15px;">Live fleet</h2>
+      <span class="text-text-muted num" style="font-size:14px;">142 vehicles</span>
+    </div>
+    <table class="w-full" style="font-size:14px;">
+      <thead class="text-text-muted text-left">
+        <tr class="row-div">
+          <th class="px-4 py-2 font-medium">Vehicle</th>
+          <th class="px-4 py-2 font-medium">Route</th>
+          <th class="px-4 py-2 font-medium">Status</th>
+          <th class="px-4 py-2 font-medium text-right">ETA</th>
+          <th class="px-4 py-2 font-medium text-right">Load</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="row-div"><td class="px-4 py-2">VH-021</td><td class="px-4 py-2">R-118</td><td class="px-4 py-2"><span class="text-success">On time</span></td><td class="px-4 py-2 text-right">14:32</td><td class="px-4 py-2 text-right">82%</td></tr>
+        <tr class="row-div"><td class="px-4 py-2">VH-044</td><td class="px-4 py-2">R-204</td><td class="px-4 py-2"><span class="text-danger">Stalled</span></td><td class="px-4 py-2 text-right">—</td><td class="px-4 py-2 text-right">61%</td></tr>
+        <tr class="row-div"><td class="px-4 py-2">VH-067</td><td class="px-4 py-2">R-091</td><td class="px-4 py-2"><span class="text-warning">Delayed</span></td><td class="px-4 py-2 text-right">15:10</td><td class="px-4 py-2 text-right">95%</td></tr>
+        <tr class="row-div"><td class="px-4 py-2">VH-088</td><td class="px-4 py-2">R-150</td><td class="px-4 py-2"><span class="text-text-muted">Offline</span></td><td class="px-4 py-2 text-right">—</td><td class="px-4 py-2 text-right">0%</td></tr>
+        <tr class="row-div"><td class="px-4 py-2">VH-103</td><td class="px-4 py-2">R-077</td><td class="px-4 py-2"><span class="text-success">On time</span></td><td class="px-4 py-2 text-right">14:58</td><td class="px-4 py-2 text-right">73%</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+  lucide.createIcons();
+  const ctx = document.getElementById('chart');
+  if (ctx) new Chart(ctx, {
+    type: 'line',
+    data: { labels: Array.from({length:12},(_,i)=>`${i*2}h`),
+      datasets: [{ data: [120,135,128,160,182,176,201,195,210,188,205,222],
+        borderColor: '#007787', backgroundColor: 'rgba(0,119,135,0.15)', fill: true, tension: 0.35, pointRadius: 0 }] },
+    options: { plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#8A93A3'},grid:{color:'#363B45'}}, y:{ticks:{color:'#8A93A3'},grid:{color:'#363B45'}} } }
+  });
+</script>
+</body>
+</html>

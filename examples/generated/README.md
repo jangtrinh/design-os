@@ -1,3 +1,15 @@
+> **⚠️ Correction (2026-05-30) — these examples predate the token→HTML fix.**
+> This dogfood ran *before* `generate.md` was fixed to compile a Tailwind `@theme`
+> block and forbid arbitrary-hex utilities. The 4 variants here style with
+> `bg-[#hex]` arbitrary-value utilities (135 in variant-1), **not** token-bound
+> classes (`bg-primary`) — so the "100% DS-token consistency" line below does
+> **not** hold by the rubric's own definition (which counts `bg-[#hex]` as a raw
+> literal when a token exists). The new `ui taste-lint` floor also flags issues
+> this hand-reviewed pass missed (e.g. 21 Typography findings on variant-1).
+> A re-dogfood against the fixed workflow is needed to refresh these as accurate,
+> token-bound examples — tracked as the "Live dogfood" pending item in the root
+> README. Kept as a dated historical record; do not cite as current-quality output.
+
 # Host-Model Dogfood — 2026-05-24
 
 Live end-to-end execution of every `/ui:*` workflow against the v1 binary,
