@@ -116,3 +116,30 @@ describe("expandPersona — brandHex override", () => {
     }
   });
 });
+
+// ─── Shadow tinting (regression: no pure-black shadows) ───────────────────────
+
+describe("expandPersona — shadows are tinted, never pure black", () => {
+  it("no persona emits a pure-black (#000000) shadow color", () => {
+    const records = loadPersonaIndex(PERSONAS_PATH);
+    for (const persona of records) {
+      const { tokens } = expandPersona({ persona, intent: "test" });
+      const shadow = tokens["shadow"] as unknown as Record<string, { $value: { color: string } }>;
+      for (const step of ["sm", "md", "lg"]) {
+        const color = shadow[step]?.$value.color.toLowerCase();
+        // Rubric: "tinted toward the background hue, not pure black."
+        // taste-lint flags #000/#000000 — the engine must not emit them.
+        expect(color, `${persona.slug} shadow.${step}`).not.toBe("#000000");
+        expect(color, `${persona.slug} shadow.${step}`).not.toBe("#000");
+      }
+    }
+  });
+
+  it("derives shadow hue from the persona neutral (deterministic)", () => {
+    const persona = liquidGlass();
+    const a = expandPersona({ persona, intent: "x" }).tokens["shadow"] as unknown as Record<string, { $value: { color: string } }>;
+    const b = expandPersona({ persona, intent: "x" }).tokens["shadow"] as unknown as Record<string, { $value: { color: string } }>;
+    expect(a["md"]?.$value.color).toBe(b["md"]?.$value.color); // same in → same out
+    expect(a["md"]?.$value.color).toMatch(/^#[0-9a-fA-F]{6}$/);  // schema-valid hex
+  });
+});
