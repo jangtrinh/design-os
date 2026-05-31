@@ -78,9 +78,29 @@ persona DNA is what supplies the **axis targets**: some personas target
 *dense*. A variant is graded against the target the persona asks for, not
 against a single fixed setpoint.
 
-### Step 2 — Score the 6 craft axes
+### Step 2 — Run the deterministic taste floor, then score the 6 craft axes
 
-For each of the six craft axes — **Layout, Typography, Spacing, Motion,
+**First, run the deterministic taste linter** — the machine-checkable floor
+under the model's self-scoring. It catches unambiguous rubric breaches the
+model might score leniently or miss:
+
+```sh
+ui taste-lint <variant-html> --tokens design/design.tokens.json --json
+```
+
+(Omit `--tokens` if the project has no DS yet — the Consistency check then
+self-skips.) The JSON envelope returns `findings` (each tagged with its
+`axis`) and `axesAffected`. **Binding rule: any axis listed in `axesAffected`
+is capped below the pass threshold — it CANNOT be scored ≥ 7 in this round
+regardless of the model's qualitative read.** A linter finding is a definite
+violation (body < 16px, off-grid spacing, two icon families, pure-black
+shadow, linear easing, `transition: all`, or an off-palette hex), not a
+matter of taste. Fold each finding into that axis's refine directive in
+step 5. The linter is precision-tuned (it only flags certainties), so a clean
+run does **not** imply an axis passes — the model still scores qualitatively
+below.
+
+Then, for each of the six craft axes — **Layout, Typography, Spacing, Motion,
 Iconography, Depth/Surface** — produce one short paragraph with:
 
 1. **What to look at** in the rendered HTML for that axis (use the
@@ -454,7 +474,10 @@ is the floor every other workflow defers to. Its own self-check:
   rubric's "Score against" questions.
 - The verdict must be deterministic given the same HTML, persona DNA, and
   DS context — re-running critique on an unchanged file must produce the
-  same scores.
+  same scores. The `ui taste-lint` floor (step 2) is fully deterministic and
+  is the part of the gate that does not depend on model judgment: a variant
+  that trips a linter finding fails the corresponding axis every time,
+  reproducibly.
 - The loop must terminate. Round counter is enforced at 3.
 - A passing verdict must not silently regress any axis below 7 — every
   axis is re-scored each round, not just the targeted one.
