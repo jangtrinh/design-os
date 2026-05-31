@@ -13,13 +13,66 @@
  * The `now` parameter is injectable so tests can assert on a fixed timestamp
  * without time-dependent flakiness.
  */
-import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { join, resolve, dirname } from "node:path";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Runtime = "claude" | "antigravity" | "codex";
 
 export const RUNTIMES: readonly Runtime[] = ["claude", "antigravity", "codex"] as const;
+
+// ─── Package-root resolution ────────────────────────────────────────────────────
+
+/** Resolved absolute paths to the bundled `templates/` and `knowledge/` roots. */
+export interface PackageRoots {
+  /** Absolute path to `<pkg>/templates`, or null if not found. */
+  templatesRoot: string | null;
+  /** Absolute path to `<pkg>/knowledge` (sibling of templates), or null. */
+  knowledgeRoot: string | null;
+}
+
+/**
+ * Locate the ease-design package roots by walking upward from `startDir` until
+ * a sibling `templates/` containing the canonical sentinel
+ * `workflows/generate.md` is found. Requiring the sentinel prevents latching
+ * onto a stray `templates/` in a parent monorepo workspace before reaching the
+ * real ease-design package root.
+ *
+ *   - Bundled binary: dist/cli.js → dist/ → ../templates/  (1 hop up from dist)
+ *   - Vitest source import: src/commands/init.ts → ... → ../../templates/
+ *
+ * `knowledgeRoot` is resolved as the sibling `knowledge/` of `templatesRoot`
+ * (the bundle layout — both ship at the package root per package.json `files`).
+ * Both are null when the package layout cannot be found (a broken install).
+ *
+ * Pure except for `existsSync` reads; no writes, no network.
+ */
+export function resolvePackageRoots(startDir: string): PackageRoots {
+  let searchDir = startDir;
+  let templatesRoot: string | null = null;
+  while (true) {
+    const candidate = join(searchDir, "templates");
+    if (
+      existsSync(candidate) &&
+      existsSync(join(candidate, "workflows", "generate.md"))
+    ) {
+      templatesRoot = candidate;
+      break;
+    }
+    const parent = resolve(searchDir, "..");
+    if (parent === searchDir) break; // filesystem root reached
+    searchDir = parent;
+  }
+  const knowledgeRoot =
+    templatesRoot !== null ? resolve(templatesRoot, "..", "knowledge") : null;
+  return { templatesRoot, knowledgeRoot };
+}
+
+/** `dirname` re-export convenience so callers needn't import it separately. */
+export function dirOf(filePath: string): string {
+  return dirname(filePath);
+}
 
 export interface InitManifest {
   version: 1;

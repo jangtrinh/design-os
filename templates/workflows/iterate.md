@@ -143,7 +143,22 @@ never picks the strategy itself — it executes the strategy the binary returned
    `lucide.createIcons()` is called when Lucide icons appear, normalises CDN URLs, and
    uniques duplicate `id`s. It is idempotent — running it twice is a no-op.
 
-6. **Run the quality gate.** Hand the patched file to `templates/workflows/critique.md`.
+6. **Run the structural linter.** Before the (model-judged) quality gate, run the
+   deterministic structural check on the edited file:
+
+   ```bash
+   ui validate-layout <variant.html> --json
+   ```
+
+   This catches structural breakage a surgical edit can introduce — unbalanced or
+   orphaned tags, broken nesting, overflow smells. **Hard rule:** if it reports any
+   `error`-severity finding (the 3 structural checks), the edit corrupted the markup —
+   discard it and re-run this pass as `full_regen` (the safe path that always produces
+   valid HTML). Layout smells (the 7 heuristics) are advisory: note them and let the
+   quality gate weigh them. This mirrors `redesign.md`; it exists because a malformed
+   ln_diff splice would otherwise reach the user with no machine check.
+
+7. **Run the quality gate.** Hand the patched file to `templates/workflows/critique.md`.
    The critique returns a per-axis score plus a verdict. If the verdict is **fail**, fold
    the critique's recommended fixes into the next iterate pass — but never loop forever:
    the critique's own pass budget is the hard ceiling.

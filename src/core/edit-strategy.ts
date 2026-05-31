@@ -147,7 +147,12 @@ export function applyLnDiff(html: string, chunks: LnDiffChunk[]): string | null 
       chunk.oldLines.every((old, i) => slice[i]?.trim() === old.trim());
 
     if (exactMatch) {
-      lines.splice(start, end - start, ...chunk.newLines);
+      // Splice exactly the verified lines (oldLines.length), NOT the header
+      // range (end - start). Models routinely emit a wide `@@ line a-b @@`
+      // header while quoting fewer old lines; splicing the header width would
+      // silently delete the unverified trailing lines. This mirrors the fuzzy
+      // path below, keeping both branches consistent.
+      lines.splice(start, chunk.oldLines.length, ...chunk.newLines);
       continue;
     }
 
