@@ -1,8 +1,25 @@
 {
   "name": "ease-design",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Multi-runtime design-cli — describe what you want, get pro-taste UI.",
   "type": "module",
+  "keywords": [
+    "design",
+    "design-cli",
+    "ui-generation",
+    "design-system",
+    "design-tokens",
+    "tailwind",
+    "ai",
+    "agent",
+    "claude-code",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/easestart/ease-design.git"
+  },
+  "homepage": "https://github.com/easestart/ease-design#readme",
   "bin": {
     "ui": "./dist/cli.js"
   },
@@ -21,7 +38,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests",
     "test": "vitest run",
-    "personas:verify": "node scripts/derive-personas-json.mjs"
+    "personas:verify": "node scripts/derive-personas-json.mjs",
+    "prepublishOnly": "npm run typecheck && npm run lint && npm run build && npm test"
   },
   "license": "MIT",
   "devDependencies": {

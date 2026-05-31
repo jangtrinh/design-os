@@ -1,0 +1,58 @@
+name: Release
+
+# Publishes to npm when a version tag (v1.2.3) is pushed.
+# Gated by the same 4 checks as CI, plus a tag↔package.json version match,
+# so a broken or mis-tagged build can never reach the registry.
+#
+# Setup (one-time, by the maintainer):
+#   1. Create an npm automation token; add it as the repo secret NPM_TOKEN.
+#   2. Release flow:
+#        npm version patch|minor|major   # bumps package.json + creates the git tag
+#        git push --follow-tags           # triggers this workflow
+#
+# (`npm version` also keeps src/cli.ts in sync only if you run it — the
+#  cli-version test fails CI if package.json and the binary VERSION drift.)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # enables npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm ci
+
+      # Guard: the pushed tag (v1.2.3) must match package.json "version" (1.2.3).
+      - name: Verify tag matches package.json version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::tag v$TAG does not match package.json version $PKG"
+            exit 1
+          fi
+          echo "tag and package.json agree on $PKG"
+
+      # Same gates as CI — prepublishOnly also runs these, this is defense-in-depth.
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
