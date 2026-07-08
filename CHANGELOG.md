@@ -6,6 +6,14 @@ All notable changes to ease-design are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.1.0] - 2026-07-08
+
+First public release: the multi-runtime design CLI — 12 `/ui:*` workflows, 8 skills,
+a 17-command deterministic `ui` binary, the knowledge core (personas, taste rubric,
+UX psychology, benchmark DNA, motion craft, Figma craft), and the Figma authoring track.
+
 ### Added
 - **`knowledge/motion-craft.md`** — the animation **decision ladder** (T1 CSS transitions/
   keyframes → T2 View Transitions → T3 CSS scroll-driven → T4 Motion/anime.js → T5 GSAP →
