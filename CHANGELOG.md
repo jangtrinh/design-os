@@ -45,6 +45,15 @@ All notable changes to ease-design are documented here. Format follows
   `<!doctype`/`<html` and commentary after `</html>` (full documents only; fragments pass
   through untouched — no fuzzy first-tag guessing). `--json` reports
   `strippedLeading`/`strippedTrailing`. Now wired into `generate.md`'s raw→html step.
+- **`ui scan`** — deterministic, read-only project scanner: detects existing design
+  signals (framework, styling, CSS/HTML files, component directories, design-system
+  status) and prints a routing verdict — greenfield, brownfield-code, brownfield-html,
+  or ds-present.
+- **`/ui:learn`** — brownfield onboarding workflow (12th workflow): runs `ui scan`,
+  asks ONE question (learn from code, a URL, Figma, or start fresh), routes to
+  `extract.md`, `from-url.md`, or `figma.md`, and compiles the project's own design
+  system from that evidence — so `/ui:generate` output matches the product instead of
+  a persona default.
 
 ### Changed (workflow templates — propagate via `ui init --force`)
 - `generate.md`/`slides.md`/`redesign.md`/`from-ref.md` consume the DS context + Tailwind
@@ -96,6 +105,14 @@ All notable changes to ease-design are documented here. Format follows
 - `QUICKSTART.md`; `LICENSE` (MIT); `CONTRIBUTING.md`; this changelog.
 - Release automation: `.github/workflows/release.yml` (tag-triggered, version-matched,
   provenance) + a `prepublishOnly` gate.
+- `generate.md` Branch A gains a brownfield guard (step 0) — if `ui scan` reports the
+  project is brownfield, it stops and points the user to `/ui:learn` instead of
+  compiling a persona-default design system over existing UI.
+- `ui init` — prints a next-step hint after install (brownfield projects point at
+  `/ui:learn`, everything else at `/ui:generate`).
+- Codex `AGENTS.md` block — its slash-command list is now derived from the verb
+  registry instead of a hardcoded list, fixing drift that had left it missing
+  `from-url`/`to-figma`.
 
 ### Fixed
 - **Token→HTML loop**: `generate.md` (and `slides.md`, `redesign.md`) now compile DS tokens to

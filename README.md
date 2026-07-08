@@ -74,10 +74,18 @@ ui doctor --cwd .              # confirm the project wired up correctly
 ```
 
 `ui init` writes a per-runtime adapter tree. For **Claude Code** that is
-**11 `/ui:*` workflow commands** (`.claude/commands/ui/`) + **8 supporting skills**
+**12 `/ui:*` workflow commands** (`.claude/commands/ui/`) + **8 supporting skills**
 (`.claude/skills/ease-design-*/`). Codex gets an `AGENTS.md` block; Antigravity gets the
 equivalent workflow tree. Every generated wrapper anchors the absolute `knowledge/` path,
 so the workflows resolve no matter where the project lives.
+
+### Have an existing app?
+
+If the project already has UI, don't jump straight to `/ui:generate` — run `/ui:learn`
+right after `ui init`. It scans the repo, asks one question (learn from code, a URL,
+Figma, or start fresh), and compiles a design system from **your product's own
+evidence** instead of a persona default. The flow becomes **init → `/ui:learn` →
+`/ui:generate`** — so the output actually matches what you already shipped.
 
 ### 2. Design, entirely in plain words
 
@@ -123,7 +131,7 @@ These surface as slash-commands in your agent CLI (Claude Code namespace shown).
 | `/ui:extract`           | Inverse direction — pull a design system **out of** existing HTML. |
 | `/ui:slides <intent>`   | Generate a token-bound slide deck. |
 
-All HTML-emitting workflows defer to an internal **critique gate** (11th workflow): the
+All HTML-emitting workflows defer to an internal **critique gate** (12th workflow): the
 model scores 6 craft axes + 1 consistency axis, and a deterministic `ui taste-lint` floor
 enforces the machine-checkable rules underneath — so an axis with a real rule breach
 *cannot* pass. Quality is enforced, not merely suggested.
@@ -172,6 +180,7 @@ envelope.
 | `ui guide` | Plain-language map of the `/ui:*` workflow (**start here if you're new**) |
 | `ui schema` | Machine-readable signatures for every (sub)command — flags, enums, error codes |
 | `ui doctor` | Verify an ease-design install (and, with `--cwd`, a project) is healthy |
+| `ui scan` | Detect existing design signals — routes brownfield projects to /ui:learn |
 | `ui init` | Write the ease-design manifest and per-runtime adapter tree |
 | `ui ds` | Compile, inspect, and mutate the project's design system (`init`/`context`/`change-token`/`status`) |
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
@@ -237,8 +246,8 @@ The happy path, mechanically:
 
 - **`knowledge/` core:** a 6+1-axis taste rubric, 23 personas across 7 families, 32
   components across 8 categories, color science, token taxonomy, prompt modes.
-- **`ui` binary:** 15 deterministic commands (see table above).
-- **Workflows:** 11 host-model workflows + 8 skills, adapter-generated per runtime by `ui init`.
+- **`ui` binary:** 17 deterministic commands (see table above).
+- **Workflows:** 12 host-model workflows + 8 skills, adapter-generated per runtime by `ui init`.
 - **Critique gate:** a hard pass/fail loop — model-scored subjective axes + a deterministic
   `ui taste-lint` floor (body ≥ 16px, on-grid spacing, one icon family, tinted shadows,
   non-linear easing, token-bound colors).

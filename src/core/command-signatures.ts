@@ -281,6 +281,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  scan: {
+    summary: "Detect existing design signals in a project (framework, styling, components)",
+    signature: {
+      summary: "Detect existing design signals in a project (framework, styling, components)",
+      positionals: [],
+      flags: [{ name: "cwd", type: "string", summary: "Directory to scan (default: current working directory)" }],
+      errorCodes: ["BAD_ARG", "READ_ERROR"],
+    },
+  },
+
   ds: {
     summary: "Compile, inspect, and mutate the project's design system",
     subcommands: {

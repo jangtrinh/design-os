@@ -53,6 +53,9 @@ replicate / enhance / adapt, then the generate flow above
 3. `figma-craft/<reference>.md` — the one deep-dive the current step needs
 4. `taste-rubric.md` — critique the exported PNG; refine the failing axes
 
+**Onboard an existing project** (`/ui:learn`) — `ui scan` routes into the `extract.md`
+flow, which draws on `token-taxonomy.md` + `color-science.md`
+
 ## Relationship to the `ui` binary
 
 These files hold *design knowledge and reasoning*. Deterministic work — color math, token

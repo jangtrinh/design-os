@@ -175,7 +175,7 @@ describe("ui init argument validation", () => {
 // ── Adapter tree integration tests ────────────────────────────────────────────
 
 describe("ui init --runtime claude adapter tree", () => {
-  it("JSON envelope data.adapters[0].paths has 19 entries", () => {
+  it("JSON envelope data.adapters[0].paths has 20 entries", () => {
     const cwd = makeTmpDir();
     const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--json"]);
     expect(code).toBe(0);
@@ -183,7 +183,7 @@ describe("ui init --runtime claude adapter tree", () => {
       data: { adapters: { runtime: string; paths: string[] }[] };
     };
     expect(json.data.adapters).toHaveLength(1);
-    expect(json.data.adapters[0]?.paths.length).toBe(19);
+    expect(json.data.adapters[0]?.paths.length).toBe(20);
   });
 
   it("JSON envelope data.adapters[0].paths includes the generate slash-command path", () => {
@@ -302,5 +302,40 @@ describe("ui init --all cross-runtime rollback", () => {
     expect(existsSync(join(cwd, ".claude", "commands", "ui", "generate.md"))).toBe(false);
     // Claude manifest must also be rolled back.
     expect(existsSync(join(cwd, ".claude", "ease-design.json"))).toBe(false);
+  });
+});
+
+// ── Next-step hint (brownfield onboarding) ────────────────────────────────────
+
+describe("ui init next-step hint", () => {
+  it("text mode hints /ui:learn when the target project already has UI", () => {
+    const cwd = makeTmpDir();
+    writeFileSync(join(cwd, "index.html"), "<!doctype html><html><body>x</body></html>", "utf8");
+    const { code, err } = captureRun(["init", "--runtime", "claude", "--cwd", cwd]);
+    expect(code).toBe(0);
+    expect(err).toContain("/ui:learn");
+  });
+
+  it("text mode hints /ui:generate for an empty (greenfield) project", () => {
+    const cwd = makeTmpDir();
+    const { code, err } = captureRun(["init", "--runtime", "claude", "--cwd", cwd]);
+    expect(code).toBe(0);
+    expect(err).toContain("/ui:generate");
+    expect(err).not.toContain("/ui:learn");
+  });
+
+  it("JSON mode carries nextStep 'learn' for a brownfield project", () => {
+    const cwd = makeTmpDir();
+    writeFileSync(join(cwd, "index.html"), "<!doctype html><html><body>x</body></html>", "utf8");
+    const { out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--json"]);
+    const json = JSON.parse(out) as { data: { nextStep?: string } };
+    expect(json.data.nextStep).toBe("learn");
+  });
+
+  it("JSON mode carries nextStep 'generate' for a greenfield project", () => {
+    const cwd = makeTmpDir();
+    const { out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--json"]);
+    const json = JSON.parse(out) as { data: { nextStep?: string } };
+    expect(json.data.nextStep).toBe("generate");
   });
 });

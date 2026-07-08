@@ -165,6 +165,36 @@ locally by running `ui tokens compile <draft.tokens.json> --target css` and
 confirming the compile succeeds; alias cycles, dangling aliases, or type
 mismatches surface as compile errors and must be fixed before step 5.
 
+#### Interaction-state evidence
+
+Static markup shows the *default* state, but the feel of a system lives in its
+interaction states and motion. This is the **canonical** doctrine for state
+harvesting — other workflows (e.g. `/ui:learn`) reference this section rather
+than restating it. Scan the sampled CSS, `<style>` blocks, and any Tailwind
+config for `:hover`, `:focus`, `:focus-visible`, and `:active` rules, plus every
+`transition` and `animation` / `@keyframes` declaration. For each component you
+register (step 8), pass the subset you *actually observed* to
+`ui registry register … --states <observed>` — only states with evidence, never
+a fabricated one. Separately, distil the motion signature into a one-line
+**Motion identity** note in the summary (e.g. "150ms ease-out hovers, 2px lift
+on cards, no entrance animation") — it is the interaction fingerprint later
+generation must match. Where the source has no observable interaction states
+(pure static HTML), say so: an absent hover is data, not a gap to invent.
+
+#### Evidence grade
+
+Every value that enters the DS must be **SOURCE-grade** — it traces to
+deterministic extraction: real file contents, a computed style, or a `ui`
+command output (`ui designmd extract-tokens`, `ui color convert`,
+`ui color scale`). A value the model merely remembers, pattern-matches from a
+framework's defaults, or infers to "fill a gap" is **GUESS-grade** and must
+never enter the tokens or the registry. This is the **canonical** anti-
+hallucination rule that `/ui:learn` and other extraction flows reference.
+Exclude every GUESS-grade value and list it under an explicit **"unverified"**
+heading in the summary, so the user sees exactly what was and was not learned.
+When a token slot has no observed value, leave it unset rather than padding it
+with a plausible default — a smaller true system beats a larger invented one.
+
 ### 5. Synthesize a persona slug for the manifest
 
 Every project DS needs a persona slug in the manifest. When extracting from
