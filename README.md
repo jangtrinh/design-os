@@ -185,6 +185,7 @@ envelope.
 | `ui scan` | Detect existing design signals — routes brownfield projects to /ui:learn |
 | `ui init` | Write the ease-design manifest and per-runtime adapter tree |
 | `ui ds` | Compile, inspect, and mutate the project's design system (`init`/`context`/`change-token`/`status`) |
+| `ui memory` | Per-project design-decision ledger → compiled graph → cross-project taste profile (`record`/`compile`/`context`/`query`/`consolidate`/`fingerprint`/`status`) |
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
 | `ui taste-lint` | Deterministic taste-rubric floor for generated HTML (6 machine-checkable axes) |
@@ -196,6 +197,20 @@ envelope.
 | `ui export` | Export HTML as a standalone self-contained file |
 | `ui strip-fences` | Remove fences + stray prose around a full LLM HTML document |
 | `ui parse-json-stream` | Extract concatenated JSON objects from a file or stdin |
+
+### Design Memory (`ui memory`)
+
+Every other `ui` command is stateless; **`ui memory`** is where a project's taste history
+accrues. It closes the feedback loop the rest of the pipeline was missing: an **append-only
+event ledger** (`design/memory.events.jsonl` — what personas got picked, which axis a variant
+failed, which vibe edit fixed it, why a token changed) compiles deterministically into a
+**graph** (`ui memory compile`) that `/ui:generate` reads back as a *preference prior*, and
+consolidates across projects into a **cross-project taste profile** (`~/.ease-design/`). The
+precedence is strict — **brief > project memory > taste profile > `knowledge/` floors** — so
+memory only *biases* generation; it never overrides the brief and never touches critique
+scoring (the gate stays craft-only). It is cold-start-safe: an empty ledger returns
+`memory: empty` and callers proceed, with provenance seeded the first time you run `/ui:learn`
+or `/ui:generate`.
 
 ---
 

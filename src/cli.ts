@@ -33,6 +33,7 @@ import { guideCommand } from "./commands/guide.js";
 import { dsCommand } from "./commands/ds.js";
 import { designmdCommand } from "./commands/designmd.js";
 import { schemaCommand } from "./commands/schema.js";
+import { memoryCommand } from "./commands/memory.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
@@ -67,6 +68,7 @@ COMMANDS[scanCommand.name] = scanCommand;
 COMMANDS[dsCommand.name] = dsCommand;
 COMMANDS[designmdCommand.name] = designmdCommand;
 COMMANDS[schemaCommand.name] = schemaCommand;
+COMMANDS[memoryCommand.name] = memoryCommand;
 
 // ─── Root help ────────────────────────────────────────────────────────────────
 
