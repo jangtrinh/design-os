@@ -1,0 +1,311 @@
+{
+  "slug": "raycast-marketing",
+  "url": "https://www.raycast.com",
+  "capturedAt": "2026-07-02T16:28:46.476Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Raycast - Your shortcut to everything",
+  "fonts": [
+    {
+      "value": "Inter",
+      "uses": 1782
+    },
+    {
+      "value": "SF Pro Text",
+      "uses": 523
+    },
+    {
+      "value": "GeistMono",
+      "uses": 31
+    },
+    {
+      "value": "SF Pro",
+      "uses": 29
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "32px",
+      "uses": 202
+    },
+    {
+      "value": "14px",
+      "uses": 140
+    },
+    {
+      "value": "16px",
+      "uses": 140
+    },
+    {
+      "value": "13px",
+      "uses": 104
+    },
+    {
+      "value": "24px",
+      "uses": 40
+    },
+    {
+      "value": "18px",
+      "uses": 21
+    },
+    {
+      "value": "20px",
+      "uses": 20
+    },
+    {
+      "value": "12px",
+      "uses": 18
+    },
+    {
+      "value": "23.75px",
+      "uses": 18
+    },
+    {
+      "value": "11px",
+      "uses": 11
+    },
+    {
+      "value": "10px",
+      "uses": 6
+    },
+    {
+      "value": "22px",
+      "uses": 2
+    }
+  ],
+  "weights": [
+    {
+      "value": "500",
+      "uses": 382
+    },
+    {
+      "value": "400",
+      "uses": 198
+    },
+    {
+      "value": "600",
+      "uses": 123
+    },
+    {
+      "value": "700",
+      "uses": 15
+    },
+    {
+      "value": "300",
+      "uses": 6
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "normal",
+      "uses": 242
+    },
+    {
+      "value": "36.8px",
+      "uses": 202
+    },
+    {
+      "value": "18.4px",
+      "uses": 39
+    },
+    {
+      "value": "22.4px",
+      "uses": 35
+    },
+    {
+      "value": "16px",
+      "uses": 27
+    },
+    {
+      "value": "25.6px",
+      "uses": 27
+    },
+    {
+      "value": "27.6px",
+      "uses": 20
+    },
+    {
+      "value": "27.3125px",
+      "uses": 18
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 441
+    },
+    {
+      "value": "rgb(156, 156, 157)",
+      "uses": 99
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.6)",
+      "uses": 66
+    },
+    {
+      "value": "rgb(106, 107, 108)",
+      "uses": 51
+    },
+    {
+      "value": "rgb(67, 67, 69)",
+      "uses": 38
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.4)",
+      "uses": 20
+    },
+    {
+      "value": "rgb(47, 48, 49)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(255, 99, 99)",
+      "uses": 1
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgba(255, 255, 255, 0.05)",
+      "uses": 85
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.1)",
+      "uses": 24
+    },
+    {
+      "value": "rgb(67, 67, 69)",
+      "uses": 18
+    },
+    {
+      "value": "rgb(230, 230, 230)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(8, 9, 12)",
+      "uses": 6
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 5
+    },
+    {
+      "value": "rgb(69, 35, 36)",
+      "uses": 4
+    },
+    {
+      "value": "rgba(158, 190, 215, 0.1)",
+      "uses": 3
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.2)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(27, 28, 30)",
+      "uses": 3
+    }
+  ],
+  "radii": [
+    {
+      "value": "11px",
+      "uses": 159
+    },
+    {
+      "value": "8px",
+      "uses": 109
+    },
+    {
+      "value": "6px",
+      "uses": 63
+    },
+    {
+      "value": "12px",
+      "uses": 55
+    },
+    {
+      "value": "20px",
+      "uses": 35
+    },
+    {
+      "value": "16px",
+      "uses": 29
+    },
+    {
+      "value": "99999px",
+      "uses": 24
+    },
+    {
+      "value": "4px",
+      "uses": 17
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgba(0, 0, 0, 0.4) 0px 1.5px 0.5px 2.5px, rgb(0, 0, 0) 0px 0px 0.5px 1px, rgba(0, 0, 0, 0.25) 0px 2px 1px 1px inset, rgba(255, 255, 255, 0.2) 0px 1px 1px 1px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px inset",
+      "uses": 159
+    },
+    {
+      "value": "rgb(27, 28, 30) 0px 0px 0px 1px, rgb(7, 8, 10) 0px 0px 0px 1px inset",
+      "uses": 54
+    },
+    {
+      "value": "rgba(215, 201, 175, 0.05) 0px 0px 20px 5px, rgba(215, 201, 175, 0.05) 0px 0px 16px -7px",
+      "uses": 18
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.28) 0px 1.189px 2.377px 0px",
+      "uses": 17
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.25) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px -1px 0px 0px inset",
+      "uses": 17
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.5) 0px 0px 0px 2px, rgba(255, 255, 255, 0.19) 0px 0px 14px 0px, rgba(0, 0, 0, 0.2) 0px -1px 0.4px 0px inset, rgb(255, 255, 255) 0px 1px 0.4px 0px inset",
+      "uses": 7
+    }
+  ],
+  "gaps": [
+    {
+      "value": "8px",
+      "uses": 142
+    },
+    {
+      "value": "10px",
+      "uses": 80
+    },
+    {
+      "value": "12px",
+      "uses": 39
+    },
+    {
+      "value": "24px",
+      "uses": 24
+    },
+    {
+      "value": "4px 24px",
+      "uses": 24
+    },
+    {
+      "value": "16px",
+      "uses": 17
+    },
+    {
+      "value": "32px",
+      "uses": 9
+    },
+    {
+      "value": "3px",
+      "uses": 9
+    },
+    {
+      "value": "2px",
+      "uses": 8
+    },
+    {
+      "value": "40px",
+      "uses": 8
+    }
+  ],
+  "elementsSampled": 2365
+}

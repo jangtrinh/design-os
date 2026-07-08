@@ -1,0 +1,291 @@
+{
+  "slug": "stripe-marketing",
+  "url": "https://stripe.com",
+  "capturedAt": "2026-07-02T16:29:07.825Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Stripe | Financial Infrastructure to Grow Your Revenue",
+  "fonts": [
+    {
+      "value": "sohne-var",
+      "uses": 1802
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "16px",
+      "uses": 206
+    },
+    {
+      "value": "10px",
+      "uses": 93
+    },
+    {
+      "value": "14px",
+      "uses": 40
+    },
+    {
+      "value": "26px",
+      "uses": 24
+    },
+    {
+      "value": "22px",
+      "uses": 20
+    },
+    {
+      "value": "9px",
+      "uses": 19
+    },
+    {
+      "value": "48px",
+      "uses": 12
+    },
+    {
+      "value": "8px",
+      "uses": 12
+    },
+    {
+      "value": "32px",
+      "uses": 11
+    },
+    {
+      "value": "18px",
+      "uses": 11
+    },
+    {
+      "value": "12px",
+      "uses": 9
+    },
+    {
+      "value": "11px",
+      "uses": 5
+    }
+  ],
+  "weights": [
+    {
+      "value": "300",
+      "uses": 304
+    },
+    {
+      "value": "400",
+      "uses": 159
+    },
+    {
+      "value": "500",
+      "uses": 2
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "20px",
+      "uses": 82
+    },
+    {
+      "value": "22.4px",
+      "uses": 67
+    },
+    {
+      "value": "normal",
+      "uses": 58
+    },
+    {
+      "value": "11.5px",
+      "uses": 40
+    },
+    {
+      "value": "14px",
+      "uses": 38
+    },
+    {
+      "value": "16px",
+      "uses": 34
+    },
+    {
+      "value": "29.12px",
+      "uses": 20
+    },
+    {
+      "value": "24.2px",
+      "uses": 20
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(80, 97, 122)",
+      "uses": 157
+    },
+    {
+      "value": "rgb(6, 27, 49)",
+      "uses": 112
+    },
+    {
+      "value": "rgb(100, 116, 141)",
+      "uses": 51
+    },
+    {
+      "value": "rgb(83, 58, 253)",
+      "uses": 42
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 26
+    },
+    {
+      "value": "rgb(39, 57, 81)",
+      "uses": 16
+    },
+    {
+      "value": "rgb(60, 79, 105)",
+      "uses": 16
+    },
+    {
+      "value": "rgb(26, 44, 68)",
+      "uses": 10
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 26
+    },
+    {
+      "value": "rgb(229, 237, 245)",
+      "uses": 16
+    },
+    {
+      "value": "rgba(255, 255, 255, 0)",
+      "uses": 12
+    },
+    {
+      "value": "rgb(248, 250, 253)",
+      "uses": 9
+    },
+    {
+      "value": "rgb(83, 58, 253)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(226, 228, 255)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(232, 233, 255)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(227, 236, 247)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(255, 224, 209)",
+      "uses": 2
+    },
+    {
+      "value": "rgb(13, 23, 56)",
+      "uses": 2
+    }
+  ],
+  "radii": [
+    {
+      "value": "4px",
+      "uses": 58
+    },
+    {
+      "value": "6px",
+      "uses": 39
+    },
+    {
+      "value": "5px",
+      "uses": 6
+    },
+    {
+      "value": "8px",
+      "uses": 5
+    },
+    {
+      "value": "100%",
+      "uses": 3
+    },
+    {
+      "value": "50%",
+      "uses": 3
+    },
+    {
+      "value": "3px",
+      "uses": 2
+    },
+    {
+      "value": "2px",
+      "uses": 2
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgba(50, 50, 93, 0.12) 0px 16px 32px 0px",
+      "uses": 2
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.1) 0px 30px 60px -50px, rgba(50, 50, 93, 0.25) 0px 30px 60px -10px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(23, 23, 23, 0.08) 0px 15px 35px 0px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(23, 23, 23, 0.06) 0px 3px 6px 0px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.05) 0px 12px 15px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.08) 0px 5px 9px 0px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.06) 0px 4px 24px 0px, rgba(0, 0, 0, 0.03) 0px 1px 2px 0px",
+      "uses": 1
+    }
+  ],
+  "gaps": [
+    {
+      "value": "8px",
+      "uses": 46
+    },
+    {
+      "value": "16px",
+      "uses": 21
+    },
+    {
+      "value": "32px",
+      "uses": 17
+    },
+    {
+      "value": "64px",
+      "uses": 14
+    },
+    {
+      "value": "16px normal",
+      "uses": 11
+    },
+    {
+      "value": "4px",
+      "uses": 9
+    },
+    {
+      "value": "4px normal",
+      "uses": 8
+    },
+    {
+      "value": "10px",
+      "uses": 6
+    },
+    {
+      "value": "12px",
+      "uses": 6
+    },
+    {
+      "value": "normal 8px",
+      "uses": 5
+    }
+  ],
+  "elementsSampled": 1802
+}

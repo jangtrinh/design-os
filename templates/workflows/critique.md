@@ -202,6 +202,28 @@ A brief may raise the threshold (e.g. `≥ 8` for a flagship marketing page)
 or mark a single axis not-applicable (e.g. Iconography for a UI with no
 icons). It must not be silently lowered.
 
+**Excellence tier (opt-in, brief-driven).** When the brief demands
+ship-grade output ("excellence", a flagship/public surface, or scoring
+against named products), apply `knowledge/taste-rubric.md` § "The
+Excellence Tier" on top of this gate:
+
+1. **Correctness gate before any score** — `ui validate-layout` zero
+   error-severity findings, `ui taste-lint` zero findings (fix-first, not
+   axis-cap), `ui autofix` re-run a no-op, Consistency work list empty.
+   Any failure → NO SCORE this round; fix, then score.
+2. **Adversarial judging** — score in a fresh context (a judge subagent on
+   runtimes that have them; otherwise an explicit refute-first stance with
+   cited evidence per axis). The maker never grades its own work.
+3. **Reference duel** — duel the variant against the 1–2 nearest
+   `knowledge/benchmarks/*.dna.json` captures on measurable traits;
+   a lost trait routes its axis back through refine with the DNA value as
+   the target bar.
+4. **Excellence round** — on a pass, run one extra targeted refine pushing
+   the weakest passing axis toward 9 before returning.
+
+The excellence protocols consume rounds from the same ≤ 3-round cap — they
+change what a round checks, not how many rounds exist.
+
 ### Step 5 — Refine the failing axis (bounded loop)
 
 If the variant failed and `round < 3`:

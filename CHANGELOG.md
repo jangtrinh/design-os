@@ -7,6 +7,24 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`knowledge/ux-psychology.md`** — UX laws (Hick's, Fitts', Miller's, Von Restorff, …),
+  Gestalt perception, cognitive biases, emotional design (Norman's three levels), trust
+  building, cognitive-load management, and ethical persuasion, each with application
+  rules and a final audit checklist. `generate.md` consults it selectively for heavy
+  choice-architecture briefs (forms, pricing, funnels, dense nav). Ported from the
+  figma-design-agent design-intelligence corpus.
+- **`knowledge/benchmarks/`** — SOURCE-grade measured DNA captures (type ramps, weights,
+  surfaces, shadow recipes, radius/gap scales, by usage count) for 8 ship-grade products:
+  Arc, Figma, Framer, Linear, Notion, Raycast, Stripe, Vercel. 56 KB of JSON; the heavy
+  PNG screenshots are deliberately not checked in (regenerable — see the README).
+- **Excellence tier** in `knowledge/taste-rubric.md` + `critique.md` (opt-in, brief-driven,
+  on top of the ≥7 gate): (1) correctness is a **gate, not a score** — validate-layout /
+  taste-lint / autofix-idempotence / Consistency work list must be clean before any axis
+  is scored; (2) **adversarial judging** — a fresh judge context (subagent where the
+  runtime has them) that tries to refute each pass, never the maker grading its own work,
+  plus a mandatory excellence round on pass; (3) the **reference duel** — the variant is
+  duelled against the nearest benchmark DNA on measurable traits, evidence-anchored.
+  The protocols consume rounds from the same ≤3-round cap.
 - **`ui schema [--json]`** — machine-readable invocation contract for every `ui`
   (sub)command: positionals, flags (type/required/enums), documented error codes, and
   global flags/error codes. Nested per-subcommand signatures for the dispatcher commands

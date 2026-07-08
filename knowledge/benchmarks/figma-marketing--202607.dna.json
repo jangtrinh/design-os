@@ -1,0 +1,231 @@
+{
+  "slug": "figma-marketing",
+  "url": "https://www.figma.com",
+  "capturedAt": "2026-07-02T16:29:41.845Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Figma: The Collaborative Interface Design Tool",
+  "fonts": [
+    {
+      "value": "figmaSans",
+      "uses": 831
+    },
+    {
+      "value": "figmaMono",
+      "uses": 9
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "16px",
+      "uses": 92
+    },
+    {
+      "value": "18px",
+      "uses": 14
+    },
+    {
+      "value": "30px",
+      "uses": 9
+    },
+    {
+      "value": "44px",
+      "uses": 5
+    },
+    {
+      "value": "12px",
+      "uses": 4
+    },
+    {
+      "value": "56px",
+      "uses": 2
+    },
+    {
+      "value": "14px",
+      "uses": 2
+    },
+    {
+      "value": "88px",
+      "uses": 1
+    }
+  ],
+  "weights": [
+    {
+      "value": "400",
+      "uses": 60
+    },
+    {
+      "value": "320",
+      "uses": 55
+    },
+    {
+      "value": "330",
+      "uses": 14
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "23.2px",
+      "uses": 62
+    },
+    {
+      "value": "22.4px",
+      "uses": 25
+    },
+    {
+      "value": "25.2px",
+      "uses": 14
+    },
+    {
+      "value": "36px",
+      "uses": 9
+    },
+    {
+      "value": "48.4px",
+      "uses": 5
+    },
+    {
+      "value": "20.8px",
+      "uses": 5
+    },
+    {
+      "value": "12px",
+      "uses": 4
+    },
+    {
+      "value": "56px",
+      "uses": 2
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 63
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 51
+    },
+    {
+      "value": "oklch(0 0 none / 0.54)",
+      "uses": 10
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.6)",
+      "uses": 5
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 15
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 12
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.24)",
+      "uses": 4
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.16)",
+      "uses": 4
+    },
+    {
+      "value": "oklch(0 0 none / 0)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(226, 226, 226)",
+      "uses": 1
+    },
+    {
+      "value": "oklch(0 0 none / 0.04)",
+      "uses": 1
+    }
+  ],
+  "radii": [
+    {
+      "value": "9999px",
+      "uses": 16
+    },
+    {
+      "value": "2px",
+      "uses": 15
+    },
+    {
+      "value": "8px",
+      "uses": 4
+    },
+    {
+      "value": "50%",
+      "uses": 4
+    },
+    {
+      "value": "4px",
+      "uses": 4
+    },
+    {
+      "value": "16px",
+      "uses": 1
+    },
+    {
+      "value": "24px",
+      "uses": 1
+    }
+  ],
+  "shadows": [
+    {
+      "value": "oklch(0 0 none / 0.16) 0px 0px 0px 1px inset",
+      "uses": 3
+    },
+    {
+      "value": "oklch(0 0 none / 0.16) 0px 1px 0px 0px",
+      "uses": 1
+    }
+  ],
+  "gaps": [
+    {
+      "value": "24px",
+      "uses": 17
+    },
+    {
+      "value": "12px",
+      "uses": 6
+    },
+    {
+      "value": "16px",
+      "uses": 4
+    },
+    {
+      "value": "70px",
+      "uses": 4
+    },
+    {
+      "value": "8px",
+      "uses": 3
+    },
+    {
+      "value": "normal 16px",
+      "uses": 2
+    },
+    {
+      "value": "32px",
+      "uses": 2
+    },
+    {
+      "value": "0px 16px",
+      "uses": 1
+    },
+    {
+      "value": "64px normal",
+      "uses": 1
+    },
+    {
+      "value": "64px 16px",
+      "uses": 1
+    }
+  ],
+  "elementsSampled": 840
+}

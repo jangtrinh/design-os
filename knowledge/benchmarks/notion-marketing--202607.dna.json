@@ -1,0 +1,283 @@
+{
+  "slug": "notion-marketing",
+  "url": "https://www.notion.com",
+  "capturedAt": "2026-07-02T16:29:30.688Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "The AI workspace that works for you. | Notion",
+  "fonts": [
+    {
+      "value": "NotionInter",
+      "uses": 966
+    },
+    {
+      "value": "Lyon Text",
+      "uses": 2
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "14px",
+      "uses": 101
+    },
+    {
+      "value": "16px",
+      "uses": 37
+    },
+    {
+      "value": "12px",
+      "uses": 32
+    },
+    {
+      "value": "22px",
+      "uses": 15
+    },
+    {
+      "value": "20px",
+      "uses": 7
+    },
+    {
+      "value": "54px",
+      "uses": 5
+    },
+    {
+      "value": "26px",
+      "uses": 3
+    },
+    {
+      "value": "32px",
+      "uses": 2
+    },
+    {
+      "value": "64px",
+      "uses": 1
+    }
+  ],
+  "weights": [
+    {
+      "value": "500",
+      "uses": 125
+    },
+    {
+      "value": "700",
+      "uses": 38
+    },
+    {
+      "value": "400",
+      "uses": 31
+    },
+    {
+      "value": "600",
+      "uses": 9
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "20px",
+      "uses": 101
+    },
+    {
+      "value": "24px",
+      "uses": 37
+    },
+    {
+      "value": "16px",
+      "uses": 32
+    },
+    {
+      "value": "28px",
+      "uses": 22
+    },
+    {
+      "value": "56px",
+      "uses": 5
+    },
+    {
+      "value": "32px",
+      "uses": 3
+    },
+    {
+      "value": "40px",
+      "uses": 2
+    },
+    {
+      "value": "64px",
+      "uses": 1
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgba(0, 0, 0, 0.898)",
+      "uses": 70
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.54)",
+      "uses": 31
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.95)",
+      "uses": 30
+    },
+    {
+      "value": "rgb(97, 93, 89)",
+      "uses": 21
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 19
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 14
+    },
+    {
+      "value": "rgb(246, 245, 244)",
+      "uses": 9
+    },
+    {
+      "value": "rgb(0, 117, 222)",
+      "uses": 6
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 42
+    },
+    {
+      "value": "rgba(255, 255, 255, 0)",
+      "uses": 17
+    },
+    {
+      "value": "rgb(246, 245, 244)",
+      "uses": 9
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(2, 9, 58)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(98, 174, 240)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(247, 247, 245)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(252, 248, 245)",
+      "uses": 2
+    },
+    {
+      "value": "rgb(255, 245, 237)",
+      "uses": 2
+    },
+    {
+      "value": "rgb(254, 243, 241)",
+      "uses": 2
+    }
+  ],
+  "radii": [
+    {
+      "value": "8px",
+      "uses": 92
+    },
+    {
+      "value": "12px",
+      "uses": 37
+    },
+    {
+      "value": "4px",
+      "uses": 31
+    },
+    {
+      "value": "9999px",
+      "uses": 20
+    },
+    {
+      "value": "100%",
+      "uses": 7
+    },
+    {
+      "value": "12px 0px 0px",
+      "uses": 6
+    },
+    {
+      "value": "16px",
+      "uses": 4
+    },
+    {
+      "value": "12px 12px 0px 0px",
+      "uses": 3
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgba(0, 0, 0, 0.01) 0px 0.175px 1.041px 0px, rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px, rgba(0, 0, 0, 0.027) 0px 2.025px 7.847px 0px, rgba(0, 0, 0, 0.04) 0px 4px 18px 0px",
+      "uses": 14
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.01) 0px 1px 3px 0px, rgba(0, 0, 0, 0.02) 0px 3px 7px 0px, rgba(0, 0, 0, 0.02) 0px 7px 15px 0px, rgba(0, 0, 0, 0.04) 0px 14px 28px 0px, rgba(0, 0, 0, 0.05) 0px 23px 52px 0px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 1px 0px 0px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.2) 0px 0px 20px 5px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.008) 0px 0.667px 3.502px 0px, rgba(0, 0, 0, 0.016) 0px 2.933px 7.252px 0px, rgba(0, 0, 0, 0.02) 0px 7.2px 14.462px 0px, rgba(0, 0, 0, 0.024) 0px 13.867px 28.348px 0px, rgba(0, 0, 0, 0.03) 0px 23.333px 52.123px 0px, rgba(0, 0, 0, 0.04) 0px 36px 89px 0px",
+      "uses": 1
+    }
+  ],
+  "gaps": [
+    {
+      "value": "0px 8px",
+      "uses": 54
+    },
+    {
+      "value": "8px",
+      "uses": 40
+    },
+    {
+      "value": "16px",
+      "uses": 21
+    },
+    {
+      "value": "12px",
+      "uses": 20
+    },
+    {
+      "value": "24px",
+      "uses": 12
+    },
+    {
+      "value": "0px 16px",
+      "uses": 8
+    },
+    {
+      "value": "0px 24px",
+      "uses": 4
+    },
+    {
+      "value": "32px",
+      "uses": 4
+    },
+    {
+      "value": "0px 12px",
+      "uses": 4
+    },
+    {
+      "value": "4px",
+      "uses": 3
+    }
+  ],
+  "elementsSampled": 968
+}

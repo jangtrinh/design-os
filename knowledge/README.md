@@ -19,6 +19,8 @@ directly** while designing UI — curated design taste that sets the quality flo
 | `color-science.md` | OKLCH reasoning, WCAG contrast targets, 11-stop scale generation, semantic role mapping. The *reasoning* — the *math* is a `ui` binary subcommand. |
 | `token-taxonomy.md` | The DTCG design-token model — primitive vs. semantic tiers, naming, alias resolution, post-compile immutability. |
 | `prompt-modes.md` | The replicate / enhance / adapt strategy modifiers for reference-driven generation. |
+| `ux-psychology.md` | UX laws (Hick's, Fitts', Miller's, …), Gestalt perception, cognitive biases, emotional design, trust building, cognitive-load management, ethical persuasion — with per-law application rules and a final audit checklist. Read selectively: only the law(s) a brief triggers. |
+| `benchmarks/*.dna.json` | SOURCE-grade measured DNA (type ramps, surfaces, shadows, gaps) of 8 ship-grade products — Arc, Figma, Framer, Linear, Notion, Raycast, Stripe, Vercel. Calibration data for the excellence-tier reference duel; see `benchmarks/README.md`. |
 | `figma-craft/figma-craft.md` | The senior-designer construction brain for **authoring idiomatic Figma** — craft philosophy, a decision ladder, build workflows, and the L1–L14 construction lints. Deep-dives live in `figma-craft/{layout-mastery,components-variables-styles,structure-hygiene,visual-craft,intent-recipes}.md`. Used by `/ui:to-figma`. |
 | `figma-agent-hand.md` | How to drive the **external** `figma-agent` CLI (the Figma "hands"). This is an optional external tool — like the `ui` binary it runs over Bash, but it is NOT part of ease-design's binary and requires a local clone of the figma-design-agent repo with its Figma plugin loaded. |
 
@@ -34,7 +36,9 @@ directly** while designing UI — curated design taste that sets the quality flo
 - `token-taxonomy.md` — token tiers and immutability rules
 - `color-science.md` — palette generation and contrast
 
-**Critique or score a generation** — `taste-rubric.md` (all 7 axes; the Consistency axis grades against `token-taxonomy.md`)
+**Critique or score a generation** — `taste-rubric.md` (all 7 axes; the Consistency axis grades against `token-taxonomy.md`). For ship-grade briefs, add § "The Excellence Tier" + the `benchmarks/` DNA for the reference duel.
+
+**Design heavy choice architecture (forms, pricing, funnels, dense nav)** — `ux-psychology.md`, only the law(s) the brief triggers
 
 **Build a specific component** — `component-catalog.md`
 
