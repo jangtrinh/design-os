@@ -202,8 +202,8 @@ envelope.
 ease-design ships two runtime-neutral **sources of truth** and a thin per-runtime adapter:
 
 - **`knowledge/`** — a plain-Markdown knowledge core (taste rubric, persona library,
-  generation rules, component catalog, color science, prompt modes) the host model reads
-  directly. Never duplicated into code.
+  generation rules, component catalog, color science, the motion decision ladder, prompt
+  modes) the host model reads directly. Never duplicated into code.
 - **`ui` binary** — the deterministic Node CLI above for all non-LLM work.
 - **Adapters** — `ui init` generates the config a given agent CLI needs to know *when* to
   read the knowledge core and *when* to shell out to `ui`. **The host CLI's own model

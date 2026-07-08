@@ -16,7 +16,8 @@
  *   Spacing       → off-grid-spacing        (Tailwind spacing not on 4px grid)
  *   Iconography   → mixed-icon-families     (≥ 2 icon libraries)
  *   Depth/Surface → pure-black-shadow       (hard/opaque black shadow)
- *   Motion        → linear-easing, transition-all
+ *   Motion        → linear-easing, transition-all, animation-no-reduced-motion,
+ *                   keyframes-layout-props
  *   Consistency   → raw-hex-when-token-exists (needs DS token set)
  *
  * Axes intentionally NOT covered (subjective — left to the model): Layout in
@@ -29,6 +30,8 @@ import {
   checkMixedIconFamilies,
   checkPureBlackShadow,
   checkLinearOrAllTransition,
+  checkAnimationNoReducedMotion,
+  checkKeyframesLayoutProps,
   checkRawHexWhenTokenExists,
 } from "./taste-checks.js";
 
@@ -98,6 +101,8 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     ...checkMixedIconFamilies(stripped),
     ...checkPureBlackShadow(stripped),
     ...checkLinearOrAllTransition(stripped),
+    ...checkAnimationNoReducedMotion(stripped),
+    ...checkKeyframesLayoutProps(stripped),
     ...checkRawHexWhenTokenExists(stripped, opts.knownHexes),
   ];
 

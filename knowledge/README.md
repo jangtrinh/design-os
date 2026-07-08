@@ -12,6 +12,7 @@ directly** while designing UI — curated design taste that sets the quality flo
 | File | Covers |
 |---|---|
 | `taste-rubric.md` | The 6-axis taste model — Layout, Typography, Spacing, Motion, Iconography, Depth/Surface — plus the 7th Consistency axis. Per-axis 0–10 scoring and the critique-gate pass thresholds. |
+| `motion-craft.md` | The animation decision ladder (T1 CSS → T6 Lottie/WebGL) — which motion technology to reach for so capability never exceeds intent, plus persona tier caps, the non-negotiable motion floors (reduced-motion every tier, transform/opacity only), and copy-paste CDN recipes. The *build* contract; `taste-rubric.md` Motion axis is the *grading* contract. |
 | `personas/<family>.md` | The persona library — 23 curated personas across 7 families, one file per family. Each persona carries full aesthetic DNA (typography, color, spacing, depth, motion, anti-patterns, …). A persona is a fixed point in taste-space. |
 | `persona-index.md` | Compact lookup table for all 23 personas + the auto-selection algorithm (keyword scoring, industry affinity, diverse-top-K) that picks personas from a user's intent. |
 | `mode-constraints.md` | The 8 UI-mode constraint sets — mobile, desktop, component, slide, dashboard, app, admin, ecommerce — plus `TECHNICAL_RULES`, the universal hard style guide. |
@@ -46,6 +47,9 @@ directly** while designing UI — curated design taste that sets the quality flo
 replicate / enhance / adapt, then the generate flow above
 
 **Make a color decision** — `color-science.md`
+
+**Add or fix animation** — `motion-craft.md` (ladder + floors), then `taste-rubric.md`
+Motion axis for grading
 
 **Author idiomatic Figma from intent** (`/ui:to-figma`)
 1. `figma-agent-hand.md` — confirm the external hand is set up and live
