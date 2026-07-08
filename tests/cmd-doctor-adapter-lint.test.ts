@@ -86,4 +86,28 @@ describe("ui doctor — adapter integrity (template-drift + wrappers)", () => {
     expect(check(j, "template-drift")?.status).toBe("warn");
     expect(check(j, "adapter-wrappers")?.status).toBe("warn");
   });
+
+  it("an empty templateHashes object warns rather than reporting spurious drift", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-doc-empty-"));
+    initClaude(dir);
+    const mf = JSON.parse(readFileSync(manifestPath(dir), "utf8")) as Record<string, unknown>;
+    mf["templateHashes"] = {};
+    writeFileSync(manifestPath(dir), JSON.stringify(mf, null, 2), "utf8");
+
+    const r = captureRun(["doctor", "--cwd", dir, "--json"]);
+    expect(r.code).toBe(0);
+    const j = JSON.parse(r.out) as DoctorJson;
+    expect(check(j, "template-drift")?.status).toBe("warn");
+  });
+
+  it("a manifest that parses to a bare `null` fails cleanly (no internal error)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-doc-null-"));
+    initClaude(dir);
+    writeFileSync(manifestPath(dir), "null", "utf8");
+
+    const r = captureRun(["doctor", "--cwd", dir, "--json"]);
+    expect(r.code).toBe(1); // failed check, not a crash (exit 2)
+    const j = JSON.parse(r.out) as DoctorJson;
+    expect(check(j, "project-manifest")?.status).toBe("fail");
+  });
 });
