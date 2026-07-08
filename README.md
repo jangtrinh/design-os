@@ -8,7 +8,7 @@ commands. The host model writes the HTML; ease-design supplies the taste — per
 compiled design system, and a hard quality gate — so the output looks like a pro
 designer made it. **No API keys, no design tokens to hand-edit, no taste vocabulary to learn.**
 
-<sub>`v0.1.0` · Node ≥ 20 · MIT · zero runtime dependencies · 768 tests green</sub>
+<sub>`v0.1.0` · Node ≥ 20 · MIT · zero runtime dependencies · 851 tests green</sub>
 
 > Distilled from EaseUI's design engine. The binary and slash-command namespace are
 > `ui` / `/ui:*`.
@@ -251,7 +251,7 @@ The happy path, mechanically:
 - **Critique gate:** a hard pass/fail loop — model-scored subjective axes + a deterministic
   `ui taste-lint` floor (body ≥ 16px, on-grid spacing, one icon family, tinted shadows,
   non-linear easing, token-bound colors).
-- **768 tests passing**; zero runtime dependencies; four CI gates green (typecheck, lint,
+- **851 tests passing**; zero runtime dependencies; four CI gates green (typecheck, lint,
   build, test).
 
 **Known boundaries (honest):**
