@@ -15,30 +15,23 @@
  * motion "expressive"?) stays with the model. Each check cites the rubric line
  * it enforces. Precision over recall: when in doubt, do NOT flag — a false
  * positive that fails a good variant is worse than a missed marginal one.
+ *
+ * This module is the barrel for all per-axis checks. Typography / Spacing /
+ * Iconography / Depth live here; the Motion and Consistency axes live in
+ * taste-checks-motion.ts / taste-checks-consistency.ts (re-exported below);
+ * shared string helpers live in taste-checks-shared.ts.
  */
 import type { TasteFinding } from "./taste-lint.js";
+import { cssRegions, lineOf } from "./taste-checks-shared.js";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Return 1-based line number for a match at byte offset `idx`. */
-function lineOf(html: string, idx: number): number {
-  return html.slice(0, idx).split("\n").length;
-}
-
-/**
- * Extract the text inside `<style>…</style>` blocks plus all `style="…"`
- * inline attribute values — i.e. everywhere a CSS declaration can live.
- * Used by checks that must not match CSS-like substrings in body copy.
- */
-function cssRegions(html: string): string {
-  const parts: string[] = [];
-  const styleBlock = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = styleBlock.exec(html)) !== null) parts.push(m[1] ?? "");
-  const inline = /style\s*=\s*["']([^"']*)["']/gi;
-  while ((m = inline.exec(html)) !== null) parts.push(m[1] ?? "");
-  return parts.join("\n");
-}
+// Re-export the split-out per-axis modules so consumers (taste-lint.ts, tests)
+// keep a single import surface.
+export {
+  checkLinearOrAllTransition,
+  checkAnimationNoReducedMotion,
+  checkKeyframesLayoutProps,
+} from "./taste-checks-motion.js";
+export { checkRawHexWhenTokenExists } from "./taste-checks-consistency.js";
 
 // ─── Typography: body font-size ≥ 16px (rubric line 91) ─────────────────────────
 
@@ -188,193 +181,5 @@ export function checkPureBlackShadow(html: string): TasteFinding[] {
   };
   scan(css, false);
   scan(html, true); // Tailwind shadow-[...] lives in class attributes, not CSS regions
-  return findings;
-}
-
-// ─── Motion: directional easing, never linear (rubric lines 147, 153) ───────────
-
-/**
- * linear-or-all-transition: a CSS transition using `linear` easing or the
- * `transition: all` shorthand. Rubric: "never linear for UI transitions
- * (linear reads mechanical)"; "Animate transform and opacity, not layout
- * properties" (transition:all animates every property, including layout).
- * Only inspects CSS regions so the word "linear"/"all" in body copy is safe.
- */
-export function checkLinearOrAllTransition(html: string): TasteFinding[] {
-  const findings: TasteFinding[] = [];
-  const css = cssRegions(html);
-
-  // transition-timing-function: linear  OR  transition: ... linear ...
-  const linearRe = /transition(?:-timing-function)?\s*:\s*[^;}"']*\blinear\b/gi;
-  if (linearRe.test(css)) {
-    findings.push({
-      checkId: "linear-easing", axis: "Motion", severity: "error",
-      message: `transition uses linear easing (rubric: "never linear for UI transitions — linear reads mechanical") — use ease-out for enter, ease-in for exit`,
-    });
-  }
-
-  // transition: all ...  (shorthand that animates layout props)
-  const allRe = /transition(?:-property)?\s*:\s*(?:[^;}"']*\s)?all\b/gi;
-  if (allRe.test(css)) {
-    findings.push({
-      checkId: "transition-all", axis: "Motion", severity: "error",
-      message: `transition targets "all" properties (rubric: "Animate transform and opacity, not layout properties") — name the specific properties to transition`,
-    });
-  }
-
-  return findings;
-}
-
-// ─── Motion: every animation honors reduced-motion (rubric lines 151, 153) ──────
-
-/**
- * animation-no-reduced-motion: a document that ships real animation — a CSS
- * `@keyframes` rule, an `animation:` shorthand, or a T4–T6 animation-library
- * `<script src>` (gsap / motion / anime / lottie / dotlottie) — yet nowhere
- * honors `prefers-reduced-motion`. Rubric Motion rule: "Respect a reduced-motion
- * preference"; anti-pattern: "motion with no reduced-motion fallback".
- *
- * Precision: a plain `transition:` alone never triggers (a transition is neither
- * a keyframes animation nor a library). The `@keyframes`/`animation:` signals are
- * scoped to CSS regions, so the word "animation" in body copy is safe; the library
- * signal requires a `<script src>` URL match. A reduced-motion guard ANYWHERE in
- * the document — a `@media (prefers-reduced-motion…)` block or a JS
- * `matchMedia("(prefers-reduced-motion…")` check — clears the finding.
- */
-export function checkAnimationNoReducedMotion(html: string): TasteFinding[] {
-  const css = cssRegions(html);
-  const hasKeyframes = /@keyframes\b/i.test(css);
-  const hasAnimationDecl = /animation\s*:/i.test(css);
-  // A CDN animation library loaded via <script src="…gsap|motion|anime|lottie…">.
-  const libScript =
-    /<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:gsap|motion|anime|lottie|dotlottie)[^"']*["']/i.test(html);
-
-  if (!hasKeyframes && !hasAnimationDecl && !libScript) return [];
-  // A reduced-motion fallback anywhere (CSS media query OR JS matchMedia) suffices.
-  if (/prefers-reduced-motion/i.test(html)) return [];
-
-  return [{
-    checkId: "animation-no-reduced-motion", axis: "Motion", severity: "error",
-    message: `animation present (@keyframes / animation / animation library) with no prefers-reduced-motion fallback anywhere (rubric Motion: "motion with no reduced-motion fallback" is an anti-pattern) — add an @media (prefers-reduced-motion: reduce) block or a matchMedia guard`,
-  }];
-}
-
-// ─── Motion: keyframes animate transform/opacity, not layout (rubric line 150) ──
-
-/** Layout properties that reflow when animated — anchored to a declaration start
- *  (`{`/`;`) so `max-width`, `line-height`, `border-right` do NOT false-positive. */
-const LAYOUT_PROP_RE =
-  /(?:[{;]|^)\s*(width|height|top|left|right|bottom|margin(?:-[a-z]+)?|padding(?:-[a-z]+)?)\s*:/gi;
-
-/**
- * Extract each `@keyframes NAME { … }` block from CSS, returning its name and
- * inner body (declarations across all stops). Brace-depth aware so the nested
- * per-stop blocks (`0% { … }`) do not terminate the scan early.
- */
-function keyframesBlocks(css: string): Array<{ name: string; body: string }> {
-  const out: Array<{ name: string; body: string }> = [];
-  const head = /@keyframes\s+([\w-]+)\s*\{/gi;
-  let m: RegExpExecArray | null;
-  while ((m = head.exec(css)) !== null) {
-    const name = m[1] ?? "";
-    let depth = 1;
-    let i = head.lastIndex;
-    const start = i;
-    while (i < css.length && depth > 0) {
-      const ch = css[i];
-      if (ch === "{") depth++;
-      else if (ch === "}") depth--;
-      i++;
-    }
-    out.push({ name, body: css.slice(start, i - 1) }); // exclude the closing brace
-    head.lastIndex = i;
-  }
-  return out;
-}
-
-/**
- * keyframes-layout-props: a `@keyframes` block that animates a layout property
- * (`width`/`height`/`top`/`left`/`right`/`bottom`/`margin*`/`padding*`). Rubric
- * Motion: "Animate transform and opacity, not layout properties"; anti-pattern:
- * "animating width/height/top/left". `transform`, `opacity`, `background`,
- * `color` and the like never trigger. One finding per keyframes block, naming
- * the first offending property and the keyframes name.
- */
-export function checkKeyframesLayoutProps(html: string): TasteFinding[] {
-  const findings: TasteFinding[] = [];
-  const css = cssRegions(html);
-
-  for (const { name, body } of keyframesBlocks(css)) {
-    LAYOUT_PROP_RE.lastIndex = 0;
-    const m = LAYOUT_PROP_RE.exec(body);
-    if (m) {
-      const prop = m[1] ?? "";
-      findings.push({
-        checkId: "keyframes-layout-props", axis: "Motion", severity: "error",
-        message: `@keyframes "${name}" animates layout property "${prop}" (rubric Motion: "Animate transform and opacity, not layout properties") — animate transform/opacity instead`,
-      });
-    }
-  }
-  return findings;
-}
-
-// ─── Consistency: no raw hex when a token exists (rubric lines 139–144) ─────────
-
-/**
- * raw-hex-when-token-exists: a Tailwind arbitrary-hex utility (bg-[#…],
- * text-[#…], border-[#…]) OR an inline `color:`/`background:` hex literal, when
- * the project's design tokens are supplied via `knownHexes`. Rubric Consistency
- * axis: "every color … resolves to a DS token. Raw #3b82f6 … when the project
- * already defines color-primary [is] a violation. Tailwind arbitrary-value
- * utilities count as raw literals when an equivalent token exists."
- *
- * Requires the caller to pass the set of token hex values (lower-cased, no
- * alpha) — without it the check is skipped (no DS context → nothing to enforce
- * against, matching the rubric's "only applies when the project has a system").
- * A hex that equals a token value is NOT flagged (the model used the right
- * color, just spelled it as a literal — that's a separate, softer concern the
- * model handles); a hex NOT among the tokens is the violation (an invented
- * color that ignores the palette).
- */
-export function checkRawHexWhenTokenExists(
-  html: string,
-  knownHexes: Set<string> | undefined,
-): TasteFinding[] {
-  if (knownHexes === undefined || knownHexes.size === 0) return [];
-  const findings: TasteFinding[] = [];
-
-  const norm = (hex: string): string => {
-    let h = hex.toLowerCase().replace(/^#/, "");
-    if (h.length === 3) h = h.split("").map((c) => c + c).join(""); // #abc → #aabbcc
-    return `#${h}`;
-  };
-
-  // Tailwind arbitrary-hex color utilities.
-  const twRe = /\b(?:bg|text|border|ring|fill|stroke|from|via|to|shadow|outline|decoration|divide|accent|caret)-\[(#[0-9a-fA-F]{3,8})\]/g;
-  let m: RegExpExecArray | null;
-  while ((m = twRe.exec(html)) !== null) {
-    const hex = norm((m[1] ?? "").slice(0, 7)); // drop any 8-digit alpha for compare
-    if (!knownHexes.has(hex)) {
-      findings.push({
-        checkId: "raw-hex-when-token-exists", axis: "Consistency", severity: "error",
-        message: `arbitrary color ${m[1]} is not a design-system token (rubric Consistency: every color must resolve to a token) — use the nearest token utility or register the color`,
-        line: lineOf(html, m.index),
-      });
-    }
-  }
-
-  // Inline CSS hex literals on color/background.
-  const css = cssRegions(html);
-  const cssRe = /(?:color|background(?:-color)?)\s*:\s*(#[0-9a-fA-F]{3,8})\b/gi;
-  while ((m = cssRe.exec(css)) !== null) {
-    const hex = norm((m[1] ?? "").slice(0, 7));
-    if (!knownHexes.has(hex)) {
-      findings.push({
-        checkId: "raw-hex-when-token-exists", axis: "Consistency", severity: "error",
-        message: `inline color ${m[1]} is not a design-system token (rubric Consistency: every color must resolve to a token) — use a token-backed utility`,
-      });
-    }
-  }
-
   return findings;
 }
