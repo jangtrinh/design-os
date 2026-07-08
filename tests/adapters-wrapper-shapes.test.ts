@@ -209,9 +209,13 @@ describe("buildCodexBlock", () => {
     assertNoTimestamp(buildCodexBlock(FAKE_TEMPLATES, {}), "buildCodexBlock");
   });
 
-  it("contains the /ui:* slash-command list", () => {
+  it("contains the /ui:* slash-command list derived from every workflow verb", () => {
     const out = buildCodexBlock(FAKE_TEMPLATES, {});
     expect(out).toContain("/ui:generate");
     expect(out).toContain("/ui:init");
+    // The list is derived from WORKFLOW_VERBS (not a hand-maintained copy), so
+    // verbs the old hardcoded line omitted — /ui:learn, /ui:to-figma — appear.
+    expect(out).toContain("/ui:learn");
+    expect(out).toContain("/ui:to-figma");
   });
 });

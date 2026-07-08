@@ -18,7 +18,7 @@ import { createHash } from "node:crypto";
 
 /**
  * All user-facing workflow verbs. "init" is synthetic (no template file).
- * The remaining 10 correspond to files in templates/workflows/.
+ * The remaining 11 correspond to files in templates/workflows/.
  */
 export const WORKFLOW_VERBS = [
   "generate",
@@ -26,6 +26,7 @@ export const WORKFLOW_VERBS = [
   "refine",
   "redesign",
   "extract",
+  "learn",
   "from-ref",
   "from-url",
   "figma",

@@ -28,6 +28,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
+import { scanProject } from "../core/project-scan.js";
 import {
   RUNTIMES,
   buildManifest,
@@ -67,10 +68,10 @@ Options:
 
 Output paths:
   claude      → <cwd>/.claude/ease-design.json
-                <cwd>/.claude/commands/ui/*.md  (11 slash-commands)
+                <cwd>/.claude/commands/ui/*.md  (12 slash-commands)
                 <cwd>/.claude/skills/ease-design-*/SKILL.md  (8 skills)
   antigravity → <cwd>/.agent/ease-design.json
-                <cwd>/.agent/workflows/ui-*.md  (11 workflows)
+                <cwd>/.agent/workflows/ui-*.md  (12 workflows)
                 <cwd>/.agent/skills/ease-design-*/SKILL.md  (8 skills)
   codex       → <cwd>/AGENTS.ease-design.json
                 <cwd>/AGENTS.md  (sentinel block appended/upserted)
@@ -91,6 +92,29 @@ Error codes:
   MANIFEST_EXISTS Target file already exists (use --force to overwrite)
   WRITE_ERROR     File could not be written
 `;
+
+/**
+ * Derive the post-install next-step hint by scanning the target project for
+ * existing design signals. A brownfield project routes to /ui:learn; an empty
+ * or DS-carrying one routes to /ui:generate. Best-effort: a scan failure must
+ * never fail init, so the caller treats a null return as "omit the hint".
+ */
+function computeNextStepHint(
+  cwd: string,
+): { nextStep: "learn" | "generate"; hintLine: string } | null {
+  try {
+    const { verdict } = scanProject(cwd);
+    if (verdict === "brownfield-code" || verdict === "brownfield-html") {
+      return { nextStep: "learn", hintLine: "next: existing UI detected — run /ui:learn" };
+    }
+    if (verdict === "ds-present") {
+      return { nextStep: "generate", hintLine: "next: design system already present — /ui:generate" };
+    }
+    return { nextStep: "generate", hintLine: 'next: run /ui:generate "<your idea>"' };
+  } catch {
+    return null;
+  }
+}
 
 export const initCommand = {
   name: CMD,
@@ -351,9 +375,14 @@ export const initCommand = {
       });
     }
 
+    // ── Next-step hint (best-effort scan of the target project) ────────────
+    const hint = computeNextStepHint(targetCwd);
+
     // ── Emit result ────────────────────────────────────────────────────────
     if (useJson) {
-      return okJson(CMD, { manifests, adapters: adapterResults });
+      const data: Record<string, unknown> = { manifests, adapters: adapterResults };
+      if (hint !== null) data.nextStep = hint.nextStep;
+      return okJson(CMD, data);
     }
 
     const lines = manifests
@@ -371,6 +400,7 @@ export const initCommand = {
         );
       })
       .join("\n");
-    return { exitCode: 0, stderr: lines + "\n" };
+    const body = hint !== null ? `${lines}\n${hint.hintLine}` : lines;
+    return { exitCode: 0, stderr: body + "\n" };
   },
 };

@@ -151,6 +151,14 @@ Branch on the result.
 
 #### Branch A — No DS yet (`status` returns `DS_NOT_FOUND`)
 
+**Step 0 — brownfield guard.** Before compiling anything, run `ui scan --json`.
+If the verdict is `brownfield-code` or `brownfield-html`, do **not** compile a
+persona-default DS — that would paper over the product's real design language
+with a generic one. Stop and tell the user: *"This project already has UI. Run
+`/ui:learn` first so generation matches your product (or say 'start fresh' to
+override)."* Proceed to step 1 only on a `greenfield` verdict, or when the user
+has explicitly chosen to start fresh.
+
 1. Pick the **highest-scoring** persona from step 2 as the seed; its
    aesthetic DNA anchors the DS.
 2. Build a single-line intent string for the DS — the `CONCEPT` line from

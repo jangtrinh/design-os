@@ -35,6 +35,11 @@ const WORKFLOW: GuideStep[] = [
     detail: "e.g. /ui:generate landing page for a yoga studio, warm and calm — you get three variants to pick from, each already quality-checked.",
   },
   {
+    want: "Onboard an existing app or codebase",
+    command: "/ui:learn",
+    detail: "Have an existing app? ease-design scans it and learns your design system from it — tokens, components, interaction states — so everything you generate next matches your product.",
+  },
+  {
     want: "Tweak a design you like",
     command: "/ui:iterate <plain-words change>",
     detail: "e.g. /ui:iterate make the headline bigger and the shadows softer — describe the change in words; the system handles the rest.",

@@ -7,6 +7,11 @@
  * - All file paths use forward-slash separators for cross-platform Markdown rendering.
  * - Wrappers point AT template files; they never copy their content.
  */
+// WORKFLOW_VERBS is the canonical verb registry. Importing it keeps the Codex
+// slash-command list derived (never a hand-maintained copy that drifts). This
+// is a const-array import only — templates.ts does no fs work at import time, so
+// the "no fs access" rule above still holds.
+import { WORKFLOW_VERBS } from "./templates.js";
 
 // ─── Descriptions ─────────────────────────────────────────────────────────────
 //
@@ -265,8 +270,8 @@ export function buildCodexBlock(
     "invocation, run `ui schema --json` for the machine-readable signature",
     "(positionals, flags, enums, error codes) of every (sub)command.",
     "",
-    "Available slash-commands when proxied: /ui:generate /ui:iterate /ui:refine",
-    "/ui:redesign /ui:extract /ui:from-ref /ui:figma /ui:slides /ui:init.",
+    "Available slash-commands when proxied:",
+    `${WORKFLOW_VERBS.map((v) => `/ui:${v}`).join(" ")}.`,
     "",
     "Template hashes (sha256, for drift detection):",
     hashLines,
