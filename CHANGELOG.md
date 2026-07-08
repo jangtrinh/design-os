@@ -7,6 +7,22 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`knowledge/motion-craft.md`** — the animation **decision ladder** (T1 CSS transitions/
+  keyframes → T2 View Transitions → T3 CSS scroll-driven → T4 Motion/anime.js → T5 GSAP →
+  T6 authored Lottie/dotLottie · WebGL), so a variant needing motion beyond CSS follows
+  doctrine instead of improvising. Carries **persona → tier caps** (a low-motion persona
+  never ships GSAP), the non-negotiable **motion floors** (reduced-motion in every tier,
+  transform/opacity-only, role-based durations, directional easing), copy-paste **CDN
+  recipes** with the reduced-motion guard inline, choreography patterns, and anti-patterns.
+  Lottie authoring is framed as an **external Text-to-Lottie hand** (like the figma-agent
+  hand) — never bundled, the `ui` binary stays zero-network. Wired into `generate.md`,
+  `critique.md`, and `slides.md`.
+- **Two new `ui taste-lint` Motion checks** — `animation-no-reduced-motion` (a page that
+  ships `@keyframes` / an `animation:` shorthand / a T4–T6 animation library `<script src>`
+  but honors `prefers-reduced-motion` nowhere) and `keyframes-layout-props` (a `@keyframes`
+  block animating a layout property — width/height/top/left/right/bottom/margin/padding —
+  instead of transform/opacity). Both error-severity; they lift the deterministic Motion
+  floor from 2 checks to 4.
 - **`knowledge/ux-psychology.md`** — UX laws (Hick's, Fitts', Miller's, Von Restorff, …),
   Gestalt perception, cognitive biases, emotional design (Norman's three levels), trust
   building, cognitive-load management, and ethical persuasion, each with application

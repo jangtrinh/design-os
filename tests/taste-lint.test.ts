@@ -8,6 +8,8 @@ import {
   checkMixedIconFamilies,
   checkPureBlackShadow,
   checkLinearOrAllTransition,
+  checkAnimationNoReducedMotion,
+  checkKeyframesLayoutProps,
   checkRawHexWhenTokenExists,
 } from "../src/core/taste-checks.js";
 import { lintTaste } from "../src/core/taste-lint.js";
@@ -163,6 +165,88 @@ describe("checkLinearOrAllTransition", () => {
 
   it("does NOT match the word 'linear' in body copy", () => {
     expect(checkLinearOrAllTransition("<p>A linear regression model.</p>")).toHaveLength(0);
+  });
+});
+
+// ─── checkAnimationNoReducedMotion (Motion) ─────────────────────────────────────
+
+describe("checkAnimationNoReducedMotion", () => {
+  it("flags @keyframes with no reduced-motion guard", () => {
+    const f = checkAnimationNoReducedMotion("<style>@keyframes spin{from{opacity:0}to{opacity:1}}</style>");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.axis).toBe("Motion");
+    expect(f[0]?.checkId).toBe("animation-no-reduced-motion");
+  });
+
+  it("flags an `animation:` shorthand with no guard", () => {
+    expect(checkAnimationNoReducedMotion("<style>.c{animation:spin 1s infinite}</style>")).toHaveLength(1);
+  });
+
+  it("flags a gsap <script src> with no guard", () => {
+    const html = '<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>';
+    expect(checkAnimationNoReducedMotion(html)).toHaveLength(1);
+  });
+
+  it("is clean when a @media (prefers-reduced-motion) block is present", () => {
+    const html = [
+      "<style>@keyframes spin{from{opacity:0}to{opacity:1}}",
+      "@media (prefers-reduced-motion: reduce){*{animation:none}}</style>",
+    ].join("");
+    expect(checkAnimationNoReducedMotion(html)).toHaveLength(0);
+  });
+
+  it("is clean when a JS matchMedia reduced-motion guard is present alongside a lib", () => {
+    const html = [
+      '<script src="https://cdn.jsdelivr.net/npm/animejs@4/+esm"></script>',
+      '<script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches){animate(".x",{})}</script>',
+    ].join("");
+    expect(checkAnimationNoReducedMotion(html)).toHaveLength(0);
+  });
+
+  it("does NOT flag the word 'animation' in body copy", () => {
+    expect(checkAnimationNoReducedMotion("<p>Our animation studio ships motion design.</p>")).toHaveLength(0);
+  });
+
+  it("does NOT flag a page with only transitions (no keyframes/animation/lib)", () => {
+    expect(checkAnimationNoReducedMotion("<style>.c{transition:transform 0.2s ease-out}</style>")).toHaveLength(0);
+  });
+});
+
+// ─── checkKeyframesLayoutProps (Motion) ─────────────────────────────────────────
+
+describe("checkKeyframesLayoutProps", () => {
+  it("flags @keyframes animating width, naming the property and keyframes name", () => {
+    const f = checkKeyframesLayoutProps("<style>@keyframes grow{from{width:0}to{width:100%}}</style>");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.axis).toBe("Motion");
+    expect(f[0]?.checkId).toBe("keyframes-layout-props");
+    expect(f[0]?.message).toContain("width");
+    expect(f[0]?.message).toContain("grow");
+  });
+
+  it("flags an animated margin-left (naming the hyphenated property)", () => {
+    const f = checkKeyframesLayoutProps("<style>@keyframes slide{from{margin-left:0}to{margin-left:40px}}</style>");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.message).toContain("margin-left");
+  });
+
+  it("does NOT flag transform/opacity-only keyframes", () => {
+    const clean = "<style>@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}</style>";
+    expect(checkKeyframesLayoutProps(clean)).toHaveLength(0);
+  });
+
+  it("does NOT false-positive on max-width / line-height (declaration-boundary anchored)", () => {
+    const html = "<style>@keyframes z{from{max-width:0;line-height:1.2;transform:scale(0.9)}to{transform:scale(1)}}</style>";
+    expect(checkKeyframesLayoutProps(html)).toHaveLength(0);
+  });
+
+  it("emits one finding per keyframes block even with several layout props", () => {
+    const html = "<style>@keyframes m{from{width:0;height:0;top:0}to{width:9px}}</style>";
+    expect(checkKeyframesLayoutProps(html)).toHaveLength(1);
+  });
+
+  it("does NOT flag when there are no keyframes at all", () => {
+    expect(checkKeyframesLayoutProps("<style>.c{width:100%;transition:opacity .2s ease-out}</style>")).toHaveLength(0);
   });
 });
 

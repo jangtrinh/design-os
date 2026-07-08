@@ -154,6 +154,9 @@ Chrome constraints:
   over hardcoded hex wherever a token covers the value.
 - Use **only** fonts found in the provided design system.
 - Keep the chrome **minimal** — it must not compete with the slide's content.
+- Slide/transition motion defaults to **T1/T2** per `knowledge/motion-craft.md`
+  (CSS transitions or the View Transitions API); reserve T5 (GSAP) only for an
+  explicitly cinematic brief.
 - Tailwind utility classes inside the snippets. Inline styles are acceptable for
   colours and fonts.
 - Header and footer both use `position: absolute` so they overlay the slide.

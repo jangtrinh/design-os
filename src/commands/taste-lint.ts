@@ -36,6 +36,8 @@ Checks (the machine-verifiable subset of knowledge/taste-rubric.md; all error-se
   pure-black-shadow          Depth/Surface  hard/opaque black shadow (should be tinted)
   linear-easing              Motion         transition uses linear easing
   transition-all             Motion         transition: all (animates layout properties)
+  animation-no-reduced-motion Motion        animation/@keyframes/anim library with no prefers-reduced-motion fallback
+  keyframes-layout-props     Motion         @keyframes animating a layout property (width/height/top/…)
   raw-hex-when-token-exists  Consistency    arbitrary hex not in the DS palette (needs --tokens)
 
 Subjective axis judgment (is the composition authored? the scale on one ratio?)

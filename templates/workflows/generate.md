@@ -256,6 +256,13 @@ Then read **`knowledge/mode-constraints.md`** and lift two blocks:
 - The single mode section matching the effective mode (Mobile, Desktop,
   Component, Slide, Dashboard, App, Admin, or Ecommerce).
 
+When the chosen persona's Motion target is **mid or high**, or the brief
+explicitly asks for animation, also read **`knowledge/motion-craft.md`** and pick
+the **lowest tier** on its ladder (T1–T6) that satisfies the intent — bounded by
+the persona's tier cap and the floors. Paste that tier's CDN recipe verbatim if it
+needs a library. The `ui taste-lint` motion floor (reduced-motion fallback,
+transform/opacity-only keyframes) applies to every variant regardless of tier.
+
 For each persona `P` in step 2's result list, produce one HTML variant by
 generating a self-contained `index.html` from the prompt skeleton below.
 Generate variants **sequentially**, not in parallel — each variant's
