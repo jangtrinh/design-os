@@ -19,3 +19,18 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test
+
+  # figma-agent is an in-repo npm workspace (the optional Figma authoring "hands").
+  # Typecheck + build it on its own job so the workspace can't silently rot; the
+  # four `ui` gates in `check` above are left exactly as they were.
+  figma-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck --workspace=figma-agent
+      - run: npm run build --workspace=figma-agent
