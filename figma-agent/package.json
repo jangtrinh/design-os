@@ -12,7 +12,8 @@
     "build:cli": "node scripts/build.mjs cli",
     "build:plugin-main": "node scripts/build.mjs plugin-main",
     "build:plugin-ui": "node scripts/build.mjs plugin-ui",
-    "typecheck": "tsc -p cli --noEmit && tsc -p plugin --noEmit"
+    "typecheck": "tsc -p cli --noEmit && tsc -p plugin --noEmit",
+    "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
     "ws": "^8.18.0"

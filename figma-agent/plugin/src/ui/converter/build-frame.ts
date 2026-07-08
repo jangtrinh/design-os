@@ -303,6 +303,9 @@ export function buildFrameNode(el: HTMLElement, cs: CSSStyleDeclaration, win: Wi
       if (effect) effects.push(effect);
     }
     if (effects.length > 0) node.effects = effects;
+    // Track 5 COPY #8: a shadow with a positive spread needs the node to clip
+    // so Figma renders the spread ring correctly (esp. inset shadows).
+    if (effects.some((e) => (e.spread || 0) > 0)) node.clipsContent = true;
   }
 
   // ─── Opacity (skip near-zero animation artifacts)

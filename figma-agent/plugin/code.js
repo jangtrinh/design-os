@@ -501,7 +501,7 @@
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const buffer = await response.arrayBuffer();
-      const image = figma.createImage(new Uint8Array(buffer));
+      const image = await createImageFromBytes(new Uint8Array(buffer), url);
       rect.fills = [{ type: "IMAGE", imageHash: image.hash, scaleMode: "FILL" }];
     } catch (err) {
       pushImportWarning(`image fetch failed for "${exportNode.name}" (${url}): ${String(err)}`);
@@ -513,6 +513,49 @@
     const comma = url.indexOf(",");
     const b64 = url.slice(comma + 1);
     return figma.base64Decode(b64);
+  }
+  async function createImageFromBytes(bytes, url) {
+    try {
+      return figma.createImage(bytes);
+    } catch (err) {
+      if (url && /^https?:/i.test(url)) return await figma.createImageAsync(url);
+      throw err;
+    }
+  }
+  async function resolveImagePaint(url, scaleMode = "FILL") {
+    if (!url || url.startsWith("blob:")) return null;
+    try {
+      let image;
+      if (url.startsWith("data:")) {
+        image = await createImageFromBytes(decodeDataUrl(url), void 0);
+      } else {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const buffer = await response.arrayBuffer();
+        image = await createImageFromBytes(new Uint8Array(buffer), url);
+      }
+      return { type: "IMAGE", imageHash: image.hash, scaleMode };
+    } catch (err) {
+      if (/^https?:/i.test(url)) {
+        try {
+          const image = await figma.createImageAsync(url);
+          return { type: "IMAGE", imageHash: image.hash, scaleMode };
+        } catch {
+        }
+      }
+      pushImportWarning(`background image fetch failed (${url}): ${String(err)}`);
+      return null;
+    }
+  }
+
+  // plugin/src/main/background-fill.ts
+  function backgroundSizeToScaleMode(bgSize) {
+    const s = (bgSize || "").trim().toLowerCase();
+    if (!s || s === "auto") return "FILL";
+    if (s === "cover") return "FILL";
+    if (s === "contain") return "FIT";
+    if (s.includes("repeat")) return "TILE";
+    return "FILL";
   }
 
   // plugin/src/main/executor-frame.ts
@@ -649,9 +692,11 @@
         }
       }
     }
-    if (exportNode.fills && exportNode.fills.length > 0) {
+    const hasBgImage = !!exportNode.backgroundImageUrl;
+    if (exportNode.fills && exportNode.fills.length > 0 || hasBgImage) {
       const figmaFills = [];
-      for (const fill of exportNode.fills) {
+      let usedPaintStyle = false;
+      for (const fill of exportNode.fills ?? []) {
         if ((fill.type === "GRADIENT_LINEAR" || fill.type === "GRADIENT_RADIAL" || fill.type === "GRADIENT_ANGULAR") && fill.gradientStops && fill.gradientTransform) {
           figmaFills.push({
             type: fill.type,
@@ -664,8 +709,9 @@
         } else if (fill.color) {
           const hex = figmaColorToHex(fill.color);
           const paintStyle = colorStyles.get(hex);
-          if (paintStyle) {
+          if (paintStyle && !hasBgImage) {
             await frame.setFillStyleIdAsync(paintStyle.id);
+            usedPaintStyle = true;
           } else {
             figmaFills.push({
               type: "SOLID",
@@ -675,7 +721,13 @@
           }
         }
       }
+      if (hasBgImage) {
+        const scaleMode = backgroundSizeToScaleMode(exportNode.backgroundSize);
+        const imgPaint = await resolveImagePaint(exportNode.backgroundImageUrl, scaleMode);
+        if (imgPaint) figmaFills.push(imgPaint);
+      }
       if (figmaFills.length > 0) frame.fills = figmaFills;
+      else if (!usedPaintStyle) frame.fills = [];
     } else {
       frame.fills = [];
     }

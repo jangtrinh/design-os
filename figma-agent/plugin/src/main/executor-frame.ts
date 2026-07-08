@@ -7,9 +7,10 @@
 
 import type { FigmaExportNode } from '../../../shared/figma-payload-types';
 import { createTextNode } from './executor-text';
-import { createRectangleNode, createImageNode, createSvgNode, createImageNodeWithFetch } from './executor-shapes';
+import { createRectangleNode, createImageNode, createSvgNode, createImageNodeWithFetch, resolveImagePaint } from './executor-shapes';
 import { rgbToFigma, figmaColorToHex, mapExportEffects, pushImportWarning } from './executor-styles';
 import { applyTokenRefs } from './executor-variables';
+import { backgroundSizeToScaleMode } from './background-fill';
 
 /** Recursive dispatcher: payload node → Figma SceneNode. `tokenVars` = token-name → Variable (P3 leg B). */
 export async function createFigmaNode(
@@ -168,10 +169,13 @@ export async function createFrameNode(
     }
   }
 
-  // Fills — gradient (linear/radial/angular), solid (token style reuse), or transparent
-  if (exportNode.fills && exportNode.fills.length > 0) {
+  // Fills — gradient (linear/radial/angular), solid (token style reuse),
+  // CSS background-image (Track 5 COPY #1: IMAGE fill on top), or transparent.
+  const hasBgImage = !!exportNode.backgroundImageUrl;
+  if ((exportNode.fills && exportNode.fills.length > 0) || hasBgImage) {
     const figmaFills: Paint[] = [];
-    for (const fill of exportNode.fills) {
+    let usedPaintStyle = false;
+    for (const fill of exportNode.fills ?? []) {
       if ((fill.type === 'GRADIENT_LINEAR' || fill.type === 'GRADIENT_RADIAL' || fill.type === 'GRADIENT_ANGULAR')
         && fill.gradientStops && fill.gradientTransform) {
         figmaFills.push({
@@ -185,8 +189,12 @@ export async function createFrameNode(
       } else if (fill.color) {
         const hex = figmaColorToHex(fill.color);
         const paintStyle = colorStyles.get(hex);
-        if (paintStyle) {
+        // Skip the paint-style shortcut when a bg-image must sit on top — the
+        // image + solid have to coexist in the fills array (setFillStyleIdAsync
+        // would replace them entirely).
+        if (paintStyle && !hasBgImage) {
           await frame.setFillStyleIdAsync(paintStyle.id);
+          usedPaintStyle = true;
         } else {
           figmaFills.push({
             type: 'SOLID',
@@ -196,7 +204,14 @@ export async function createFrameNode(
         }
       }
     }
+    // CSS background-image paints ABOVE background-color (Figma: last fill on top).
+    if (hasBgImage) {
+      const scaleMode = backgroundSizeToScaleMode(exportNode.backgroundSize);
+      const imgPaint = await resolveImagePaint(exportNode.backgroundImageUrl!, scaleMode);
+      if (imgPaint) figmaFills.push(imgPaint);
+    }
     if (figmaFills.length > 0) frame.fills = figmaFills;
+    else if (!usedPaintStyle) frame.fills = [];
   } else {
     frame.fills = []; // transparent background for layout frames (like CSS)
   }
