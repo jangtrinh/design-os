@@ -369,6 +369,84 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       },
     },
   },
+
+  memory: {
+    summary: "Record, compile, and query the project's design memory + taste profile",
+    subcommands: {
+      record: {
+        summary: "Append one validated event to the ledger (folds in a recompile)",
+        positionals: [{ name: "<type>", required: true, summary: "Event type (v1 closed set)" }],
+        flags: [
+          { name: "data", type: "string", required: true, summary: "Event payload (JSON object)" },
+          { name: "at", type: "string", summary: "Event timestamp (ISO-8601; default: system clock)" },
+          { name: "actor", type: "string", summary: "Who caused the event" },
+          { name: "medium", type: "string", values: ["html", "figma"], summary: "Output medium" },
+          { name: "design", type: "string", summary: "Design id this event is about" },
+          { name: "artifact-ref", type: "string", summary: "Artifact reference (file path or node id)" },
+          { name: "fingerprint", type: "string", summary: "Artifact fingerprint (sha256:…)" },
+          { name: "refs", type: "string", summary: "Comma-separated source event ids (required for insight)" },
+          { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
+          { name: "no-registry", type: "boolean", summary: "Do not upsert this project into the user registry" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_EVENT_TYPE", "BAD_EVENT", "WRITE_ERROR"],
+      },
+      compile: {
+        summary: "Rebuild memory.graph.json from the ledger",
+        positionals: [],
+        flags: [
+          { name: "now", type: "string", summary: "Clock for decay + compiledAt (deterministic when fixed)" },
+          { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_MEMORY", "BAD_LEDGER", "WRITE_ERROR"],
+      },
+      context: {
+        summary: "Emit a compact memory prior for the host model",
+        positionals: [],
+        flags: [
+          { name: "for", type: "string", values: ["generate", "critique", "why"], summary: "Consumer mode (default generate)" },
+          { name: "max-bytes", type: "string", summary: "Truncate the block, sections whole (default 2048)" },
+          { name: "now", type: "string", summary: "Decay clock (deterministic when fixed)" },
+          { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_LEDGER"],
+      },
+      query: {
+        summary: "List raw events, newest first",
+        positionals: [],
+        flags: [
+          { name: "type", type: "string", summary: "Filter by event type" },
+          { name: "design", type: "string", summary: "Filter by design id" },
+          { name: "persona", type: "string", summary: "Filter by persona slug" },
+          { name: "limit", type: "string", summary: "Max events (default 20)" },
+          { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_LEDGER"],
+      },
+      fingerprint: {
+        summary: "Print sha256:<hex> of a file's bytes",
+        positionals: [{ name: "<file>", required: true, summary: "File to hash" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR"],
+      },
+      consolidate: {
+        summary: "Rebuild the cross-project taste profile (user scope)",
+        positionals: [],
+        flags: [
+          { name: "insight", type: "string", summary: "Append one insight (needs --refs)" },
+          { name: "refs", type: "string", summary: "Insight provenance JSON [{project,events}]" },
+          { name: "actor", type: "string", summary: "Restrict to one actor's events" },
+          { name: "now", type: "string", summary: "Consolidation clock (deterministic when fixed)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG"],
+      },
+      status: {
+        summary: "Ledger count, graph freshness, registry size, profile presence",
+        positionals: [],
+        flags: [{ name: "dir", type: "string", summary: "Project directory (default: cwd)" }],
+        errorCodes: ["UNKNOWN_FLAG"],
+      },
+    },
+  },
 };
 
 // ─── Lookup helper (shared by `ui schema` and the central flag guard) ─────────

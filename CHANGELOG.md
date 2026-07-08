@@ -7,6 +7,14 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **Design Memory (`ui memory`)** — a per-project, append-only event ledger
+  (`design/memory.events.jsonl`) + a deterministically compiled graph
+  (`design/memory.graph.json`) + a cross-project taste profile under `~/.ease-design/`
+  (override `EASE_DESIGN_HOME`). Seven pure subcommands — `record`, `compile`, `context`,
+  `query`, `fingerprint`, `consolidate`, `status` — let the pipeline record what was
+  picked / failed / edited / changed and read it back as a generation prior. Precedence is
+  strict (brief > project memory > taste profile > `knowledge/` floors); memory biases
+  generation and never scores critique. Stays deterministic / zero-dep / no-network / no-LLM.
 - **`figma-agent/` in-repo workspace** — the Figma authoring "hands" (the `figma-agent`
   CLI + Figma Free plugin behind `/ui:to-figma`) now ship in this repo as an npm workspace
   instead of a separate external repository. Build from the root with
