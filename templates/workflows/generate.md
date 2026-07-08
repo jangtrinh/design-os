@@ -84,6 +84,12 @@ Rules:
 - If `--industry <slug>` was provided, use it verbatim and skip industry
   classification.
 
+When the brief involves heavy choice architecture — long forms, pricing
+pages, multi-step funnels, dense navigation — consult the matching law in
+`knowledge/ux-psychology.md` (Hick's, Fitts', Miller's, goal gradient,
+anchoring, …) while writing the `SECTIONS` lines. Read only the sections
+the brief triggers, never the whole file.
+
 Keep the brief in scratch state. It feeds steps 2 and 4.
 
 ### Step 2 — Select three personas

@@ -1,0 +1,247 @@
+{
+  "slug": "arc-marketing",
+  "url": "https://arc.net",
+  "capturedAt": "2026-07-02T16:28:51.708Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Arc from The Browser Company",
+  "fonts": [
+    {
+      "value": "Marlin Soft SQ",
+      "uses": 113
+    },
+    {
+      "value": "Marlin",
+      "uses": 96
+    },
+    {
+      "value": "InterVariable",
+      "uses": 44
+    },
+    {
+      "value": "-apple-system",
+      "uses": 9
+    },
+    {
+      "value": "ABC Favorit Mono",
+      "uses": 9
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "12px",
+      "uses": 20
+    },
+    {
+      "value": "16px",
+      "uses": 16
+    },
+    {
+      "value": "17px",
+      "uses": 9
+    },
+    {
+      "value": "14px",
+      "uses": 8
+    },
+    {
+      "value": "28px",
+      "uses": 6
+    },
+    {
+      "value": "40px",
+      "uses": 4
+    },
+    {
+      "value": "36px",
+      "uses": 1
+    },
+    {
+      "value": "20px",
+      "uses": 1
+    },
+    {
+      "value": "24px",
+      "uses": 1
+    },
+    {
+      "value": "45.51px",
+      "uses": 1
+    },
+    {
+      "value": "13px",
+      "uses": 1
+    }
+  ],
+  "weights": [
+    {
+      "value": "700",
+      "uses": 39
+    },
+    {
+      "value": "600",
+      "uses": 16
+    },
+    {
+      "value": "500",
+      "uses": 9
+    },
+    {
+      "value": "400",
+      "uses": 4
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "normal",
+      "uses": 42
+    },
+    {
+      "value": "25.5px",
+      "uses": 9
+    },
+    {
+      "value": "39px",
+      "uses": 4
+    },
+    {
+      "value": "30px",
+      "uses": 4
+    },
+    {
+      "value": "29px",
+      "uses": 3
+    },
+    {
+      "value": "30.8px",
+      "uses": 2
+    },
+    {
+      "value": "36px",
+      "uses": 1
+    },
+    {
+      "value": "24px",
+      "uses": 1
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(49, 57, 251)",
+      "uses": 29
+    },
+    {
+      "value": "rgb(255, 252, 236)",
+      "uses": 19
+    },
+    {
+      "value": "rgb(105, 105, 105)",
+      "uses": 8
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(39, 2, 194)",
+      "uses": 2
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 1
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.65)",
+      "uses": 1
+    },
+    {
+      "value": "rgb(255, 250, 221)",
+      "uses": 1
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(49, 57, 251)",
+      "uses": 4
+    },
+    {
+      "value": "rgb(255, 252, 236)",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.85)",
+      "uses": 1
+    },
+    {
+      "value": "rgb(39, 2, 194)",
+      "uses": 1
+    }
+  ],
+  "radii": [
+    {
+      "value": "8px",
+      "uses": 9
+    },
+    {
+      "value": "10px",
+      "uses": 3
+    },
+    {
+      "value": "22px",
+      "uses": 1
+    },
+    {
+      "value": "4px",
+      "uses": 1
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgba(0, 0, 0, 0.1) 0px 5px 5px 0px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.25) 0px 2px 8px 0px",
+      "uses": 1
+    }
+  ],
+  "gaps": [
+    {
+      "value": "12px",
+      "uses": 19
+    },
+    {
+      "value": "16px",
+      "uses": 8
+    },
+    {
+      "value": "8px",
+      "uses": 8
+    },
+    {
+      "value": "6px",
+      "uses": 5
+    },
+    {
+      "value": "24px",
+      "uses": 5
+    },
+    {
+      "value": "10px",
+      "uses": 3
+    },
+    {
+      "value": "32px",
+      "uses": 2
+    },
+    {
+      "value": "43.2px",
+      "uses": 1
+    }
+  ],
+  "elementsSampled": 278
+}

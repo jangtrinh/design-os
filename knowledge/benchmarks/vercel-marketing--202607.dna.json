@@ -1,0 +1,251 @@
+{
+  "slug": "vercel-marketing",
+  "url": "https://vercel.com",
+  "capturedAt": "2026-07-02T16:28:39.236Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Agentic Infrastructure - Vercel",
+  "fonts": [
+    {
+      "value": "GeistSans",
+      "uses": 566
+    },
+    {
+      "value": "Geist Mono",
+      "uses": 62
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "14px",
+      "uses": 144
+    },
+    {
+      "value": "22px",
+      "uses": 31
+    },
+    {
+      "value": "30px",
+      "uses": 9
+    },
+    {
+      "value": "8px",
+      "uses": 9
+    },
+    {
+      "value": "56px",
+      "uses": 5
+    },
+    {
+      "value": "13px",
+      "uses": 2
+    },
+    {
+      "value": "16px",
+      "uses": 1
+    },
+    {
+      "value": "64px",
+      "uses": 1
+    },
+    {
+      "value": "12px",
+      "uses": 1
+    }
+  ],
+  "weights": [
+    {
+      "value": "400",
+      "uses": 151
+    },
+    {
+      "value": "600",
+      "uses": 26
+    },
+    {
+      "value": "500",
+      "uses": 21
+    },
+    {
+      "value": "450",
+      "uses": 5
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "20px",
+      "uses": 140
+    },
+    {
+      "value": "28px",
+      "uses": 31
+    },
+    {
+      "value": "8px",
+      "uses": 9
+    },
+    {
+      "value": "33px",
+      "uses": 8
+    },
+    {
+      "value": "21px",
+      "uses": 6
+    },
+    {
+      "value": "56px",
+      "uses": 5
+    },
+    {
+      "value": "24px",
+      "uses": 1
+    },
+    {
+      "value": "64px",
+      "uses": 1
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(237, 237, 237)",
+      "uses": 85
+    },
+    {
+      "value": "rgb(136, 136, 136)",
+      "uses": 80
+    },
+    {
+      "value": "rgb(161, 161, 161)",
+      "uses": 30
+    },
+    {
+      "value": "rgb(10, 10, 10)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(125, 125, 125)",
+      "uses": 3
+    },
+    {
+      "value": "rgb(82, 168, 255)",
+      "uses": 1
+    },
+    {
+      "value": "rgb(143, 143, 143)",
+      "uses": 1
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgb(10, 10, 10)",
+      "uses": 12
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 6
+    },
+    {
+      "value": "rgb(237, 237, 237)",
+      "uses": 6
+    },
+    {
+      "value": "oklab(0 0 0 / 0.5)",
+      "uses": 1
+    },
+    {
+      "value": "lab(0 0 0)",
+      "uses": 1
+    },
+    {
+      "value": "rgb(136, 136, 136)",
+      "uses": 1
+    }
+  ],
+  "radii": [
+    {
+      "value": "3.35544e+07px",
+      "uses": 17
+    },
+    {
+      "value": "6px",
+      "uses": 13
+    },
+    {
+      "value": "2px",
+      "uses": 9
+    },
+    {
+      "value": "4px",
+      "uses": 1
+    },
+    {
+      "value": "3.35544e+07px 6px 6px 3.35544e+07px",
+      "uses": 1
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.145) 0px 0px 0px 1px, rgb(0, 0, 0) 0px 0px 0px 1px",
+      "uses": 8
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(46, 46, 46) 0px 0px 0px 1px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.13) 0px 1px 0px 0px",
+      "uses": 2
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgb(82, 168, 255) 0px 0px 0px 4px",
+      "uses": 1
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.145) 0px 0px 0px 1px, rgba(0, 0, 0, 0.16) 0px 1px 2px 0px, rgb(0, 0, 0) 0px 0px 0px 1px",
+      "uses": 1
+    }
+  ],
+  "gaps": [
+    {
+      "value": "6px",
+      "uses": 88
+    },
+    {
+      "value": "4px",
+      "uses": 34
+    },
+    {
+      "value": "12px",
+      "uses": 5
+    },
+    {
+      "value": "4px 20px",
+      "uses": 4
+    },
+    {
+      "value": "44px",
+      "uses": 3
+    },
+    {
+      "value": "normal 20px",
+      "uses": 3
+    },
+    {
+      "value": "40px",
+      "uses": 3
+    },
+    {
+      "value": "3px",
+      "uses": 2
+    },
+    {
+      "value": "normal 16px",
+      "uses": 2
+    },
+    {
+      "value": "16px normal",
+      "uses": 2
+    }
+  ],
+  "elementsSampled": 628
+}

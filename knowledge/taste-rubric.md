@@ -328,6 +328,63 @@ produces a plausible-looking but generic, system-ignoring result and ships it.
 
 ---
 
+## The Excellence Tier
+
+The 7-axis gate is the *floor* — it rejects generic output. Briefs that demand
+**ship-grade** output (a flagship marketing page, a public product surface, anything the
+brief marks "excellence" or scores against named products) run three additional
+protocols on top of the gate. They are opt-in per brief; routine generations stop at
+the gate.
+
+### 1. Correctness is a gate, not a score
+
+Deterministic failures never trade off against beauty. Before any axis is scored:
+
+- `ui validate-layout` must report **zero error-severity findings**;
+- `ui taste-lint` must report **zero findings** (at the excellence tier the axis-cap
+  rule tightens to fix-first);
+- `ui autofix` re-run must be a no-op (idempotence proof);
+- the Consistency work list (unresolved tokens, unregistered components) must be empty.
+
+Any failure here means **NO SCORE** — fix, then score. A 9/10 design with an unbalanced
+tag or an off-palette hex is not a 9; it is unshippable. This prevents the classic
+failure where high craft scores launder correctness debt.
+
+### 2. Adversarial judging — the maker never grades its own work
+
+Self-scoring drifts lenient: the context that generated a variant "knows what it meant"
+and scores the intention, not the artifact. At the excellence tier:
+
+- Score in a **fresh context** that has the rubric, the persona DNA, the DS context, and
+  the artifact — but none of the generation conversation. On runtimes with subagents,
+  spawn a judge subagent; otherwise, adopt an explicit adversarial stance: for each
+  axis, actively try to **refute** the pass ("what would a senior designer flag here?")
+  and only award ≥ 7 when the refutation fails.
+- The judge cites evidence for every score — a specific element, measured value, or
+  rubric question — never "looks good".
+- On a pass at this tier, run one more round anyway (**the excellence round**): take the
+  weakest passing axis and push it toward 9 with a targeted refine. Ship-grade work is
+  never "barely cleared the bar".
+
+### 3. The reference duel — calibrate against measured reality
+
+Model memory of what "Linear-quality" looks like is GUESS-grade. `knowledge/benchmarks/`
+holds SOURCE-grade DNA captures (measured type ramps, surface recipes, shadow stacks,
+gap scales) for eight ship-grade products. For an excellence brief:
+
+1. Pick the 1–2 benchmarks nearest the brief's genre (see `benchmarks/README.md`).
+2. Duel the variant against the DNA **on measurable traits**: type-ramp discipline,
+   surface layering (low-alpha overlays vs flat hexes), shadow recipes (tinted
+   multi-stop vs single black blur), gap-scale tightness, weight precision.
+3. The verdict cites DNA values (`Linear body clusters 13–15px; this variant scatters
+   12–19px across six sizes`) — evidence-anchored, not vibes.
+
+The duel calibrates the **level of discipline**; it never copies a benchmark's palette
+or layout into an unrelated brand. Losing the duel on a trait routes that trait's axis
+back through refine with the DNA value as the target quality bar.
+
+---
+
 ## Mapping the legacy 3-dial model into the 6-axis model
 
 Earlier versions of this taste system exposed only three dials — **variance**, **motion**,

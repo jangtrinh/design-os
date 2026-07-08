@@ -1,0 +1,311 @@
+{
+  "slug": "framer-marketing",
+  "url": "https://www.framer.com",
+  "capturedAt": "2026-07-02T16:29:50.546Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Framer: AI website builder for professional sites",
+  "fonts": [
+    {
+      "value": "sans-serif",
+      "uses": 2710
+    },
+    {
+      "value": "Inter",
+      "uses": 302
+    },
+    {
+      "value": "Inter Variable",
+      "uses": 168
+    },
+    {
+      "value": "Input Mono Regular",
+      "uses": 28
+    },
+    {
+      "value": "GT Walsheim Medium",
+      "uses": 10
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "12px",
+      "uses": 237
+    },
+    {
+      "value": "14px",
+      "uses": 106
+    },
+    {
+      "value": "13px",
+      "uses": 70
+    },
+    {
+      "value": "18px",
+      "uses": 25
+    },
+    {
+      "value": "10px",
+      "uses": 19
+    },
+    {
+      "value": "15px",
+      "uses": 16
+    },
+    {
+      "value": "9px",
+      "uses": 7
+    },
+    {
+      "value": "44px",
+      "uses": 5
+    },
+    {
+      "value": "20px",
+      "uses": 5
+    },
+    {
+      "value": "7px",
+      "uses": 4
+    },
+    {
+      "value": "54px",
+      "uses": 3
+    },
+    {
+      "value": "16px",
+      "uses": 2
+    }
+  ],
+  "weights": [
+    {
+      "value": "500",
+      "uses": 261
+    },
+    {
+      "value": "400",
+      "uses": 197
+    },
+    {
+      "value": "600",
+      "uses": 30
+    },
+    {
+      "value": "700",
+      "uses": 14
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "14.4px",
+      "uses": 117
+    },
+    {
+      "value": "14px",
+      "uses": 98
+    },
+    {
+      "value": "20.8px",
+      "uses": 70
+    },
+    {
+      "value": "12px",
+      "uses": 41
+    },
+    {
+      "value": "16px",
+      "uses": 31
+    },
+    {
+      "value": "16.8px",
+      "uses": 24
+    },
+    {
+      "value": "15.6px",
+      "uses": 24
+    },
+    {
+      "value": "15px",
+      "uses": 14
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(153, 153, 153)",
+      "uses": 175
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 153
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.6)",
+      "uses": 92
+    },
+    {
+      "value": "rgb(102, 102, 102)",
+      "uses": 24
+    },
+    {
+      "value": "rgb(0, 187, 136)",
+      "uses": 10
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.4)",
+      "uses": 9
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 7
+    },
+    {
+      "value": "rgb(204, 204, 204)",
+      "uses": 7
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgb(0, 0, 0)",
+      "uses": 55
+    },
+    {
+      "value": "rgb(36, 36, 36)",
+      "uses": 49
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "uses": 27
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.1)",
+      "uses": 23
+    },
+    {
+      "value": "rgb(17, 17, 17)",
+      "uses": 20
+    },
+    {
+      "value": "rgb(30, 30, 30)",
+      "uses": 16
+    },
+    {
+      "value": "rgb(0, 153, 255)",
+      "uses": 12
+    },
+    {
+      "value": "rgba(0, 187, 136, 0.1)",
+      "uses": 10
+    },
+    {
+      "value": "rgb(102, 102, 102)",
+      "uses": 8
+    },
+    {
+      "value": "rgb(48, 48, 48)",
+      "uses": 7
+    }
+  ],
+  "radii": [
+    {
+      "value": "8px",
+      "uses": 265
+    },
+    {
+      "value": "15px",
+      "uses": 82
+    },
+    {
+      "value": "6px",
+      "uses": 35
+    },
+    {
+      "value": "20px",
+      "uses": 33
+    },
+    {
+      "value": "5px",
+      "uses": 30
+    },
+    {
+      "value": "4px",
+      "uses": 26
+    },
+    {
+      "value": "100px",
+      "uses": 18
+    },
+    {
+      "value": "10px",
+      "uses": 13
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgb(17, 17, 17) 0px 0px 0px 1.5px",
+      "uses": 4
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.1) 0px 1px 2px 0px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.25) 0px 4px 8px 0px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.2) 0px 2px 6px 0px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 153, 255, 0.2) 0px 5px 5px 0px",
+      "uses": 2
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.15) 0px 10px 20px 0px, rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset",
+      "uses": 1
+    }
+  ],
+  "gaps": [
+    {
+      "value": "10px",
+      "uses": 266
+    },
+    {
+      "value": "5px",
+      "uses": 172
+    },
+    {
+      "value": "15px",
+      "uses": 69
+    },
+    {
+      "value": "8px",
+      "uses": 53
+    },
+    {
+      "value": "6px",
+      "uses": 41
+    },
+    {
+      "value": "20px",
+      "uses": 19
+    },
+    {
+      "value": "4px",
+      "uses": 13
+    },
+    {
+      "value": "30px",
+      "uses": 12
+    },
+    {
+      "value": "25px",
+      "uses": 11
+    },
+    {
+      "value": "7px",
+      "uses": 9
+    }
+  ],
+  "elementsSampled": 3232
+}

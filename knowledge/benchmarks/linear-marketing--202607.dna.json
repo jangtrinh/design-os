@@ -1,0 +1,299 @@
+{
+  "slug": "linear-marketing",
+  "url": "https://linear.app",
+  "capturedAt": "2026-07-02T16:19:31.875Z",
+  "evidence": "SOURCE",
+  "viewport": "1440x900@1",
+  "title": "Linear – The system for product development",
+  "fonts": [
+    {
+      "value": "Inter Variable",
+      "uses": 1903
+    },
+    {
+      "value": "Berkeley Mono",
+      "uses": 262
+    }
+  ],
+  "typeScale": [
+    {
+      "value": "14px",
+      "uses": 195
+    },
+    {
+      "value": "12px",
+      "uses": 136
+    },
+    {
+      "value": "13px",
+      "uses": 96
+    },
+    {
+      "value": "15px",
+      "uses": 87
+    },
+    {
+      "value": "10px",
+      "uses": 37
+    },
+    {
+      "value": "18px",
+      "uses": 16
+    },
+    {
+      "value": "16px",
+      "uses": 11
+    },
+    {
+      "value": "48px",
+      "uses": 8
+    },
+    {
+      "value": "24px",
+      "uses": 5
+    },
+    {
+      "value": "11px",
+      "uses": 4
+    },
+    {
+      "value": "64px",
+      "uses": 2
+    },
+    {
+      "value": "32px",
+      "uses": 2
+    }
+  ],
+  "weights": [
+    {
+      "value": "400",
+      "uses": 464
+    },
+    {
+      "value": "510",
+      "uses": 116
+    },
+    {
+      "value": "590",
+      "uses": 18
+    },
+    {
+      "value": "300",
+      "uses": 4
+    }
+  ],
+  "lineHeights": [
+    {
+      "value": "24px",
+      "uses": 264
+    },
+    {
+      "value": "16.8px",
+      "uses": 116
+    },
+    {
+      "value": "19.5px",
+      "uses": 80
+    },
+    {
+      "value": "15px",
+      "uses": 37
+    },
+    {
+      "value": "21px",
+      "uses": 23
+    },
+    {
+      "value": "18px",
+      "uses": 17
+    },
+    {
+      "value": "28.8px",
+      "uses": 16
+    },
+    {
+      "value": "normal",
+      "uses": 15
+    }
+  ],
+  "textColors": [
+    {
+      "value": "rgb(98, 102, 109)",
+      "uses": 164
+    },
+    {
+      "value": "rgb(138, 143, 152)",
+      "uses": 119
+    },
+    {
+      "value": "rgb(208, 214, 224)",
+      "uses": 98
+    },
+    {
+      "value": "rgb(226, 228, 231)",
+      "uses": 81
+    },
+    {
+      "value": "rgb(247, 156, 224)",
+      "uses": 41
+    },
+    {
+      "value": "rgb(247, 248, 248)",
+      "uses": 36
+    },
+    {
+      "value": "rgb(247, 191, 139)",
+      "uses": 22
+    },
+    {
+      "value": "rgb(255, 223, 159)",
+      "uses": 10
+    }
+  ],
+  "surfaces": [
+    {
+      "value": "rgba(255, 255, 255, 0.05)",
+      "uses": 39
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.02)",
+      "uses": 20
+    },
+    {
+      "value": "rgba(0, 255, 5, 0.1)",
+      "uses": 16
+    },
+    {
+      "value": "rgb(8, 9, 10)",
+      "uses": 6
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.03)",
+      "uses": 6
+    },
+    {
+      "value": "rgb(15, 16, 17)",
+      "uses": 6
+    },
+    {
+      "value": "rgb(99, 102, 241)",
+      "uses": 5
+    },
+    {
+      "value": "rgba(243, 78, 82, 0.1)",
+      "uses": 4
+    },
+    {
+      "value": "rgba(39, 166, 68, 0.07)",
+      "uses": 4
+    },
+    {
+      "value": "rgb(235, 87, 87)",
+      "uses": 3
+    }
+  ],
+  "radii": [
+    {
+      "value": "2px",
+      "uses": 42
+    },
+    {
+      "value": "6px",
+      "uses": 40
+    },
+    {
+      "value": "50%",
+      "uses": 38
+    },
+    {
+      "value": "4px",
+      "uses": 27
+    },
+    {
+      "value": "9999px",
+      "uses": 18
+    },
+    {
+      "value": "12px",
+      "uses": 12
+    },
+    {
+      "value": "8px",
+      "uses": 12
+    },
+    {
+      "value": "12px 12px 0px 0px",
+      "uses": 11
+    }
+  ],
+  "shadows": [
+    {
+      "value": "rgba(0, 0, 0, 0.03) 0px 1.2px 0px 0px",
+      "uses": 31
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.4) 0px 2px 4px 0px",
+      "uses": 16
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset",
+      "uses": 6
+    },
+    {
+      "value": "rgb(35, 37, 42) 0px 0px 0px 1px inset",
+      "uses": 5
+    },
+    {
+      "value": "rgba(0, 0, 0, 0.2) 0px 0px 0px 1px",
+      "uses": 3
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 8px 2px 0px, rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(0, 0, 0, 0.07) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px",
+      "uses": 2
+    }
+  ],
+  "gaps": [
+    {
+      "value": "8px",
+      "uses": 90
+    },
+    {
+      "value": "12px",
+      "uses": 34
+    },
+    {
+      "value": "4px",
+      "uses": 25
+    },
+    {
+      "value": "3px",
+      "uses": 16
+    },
+    {
+      "value": "2px",
+      "uses": 13
+    },
+    {
+      "value": "15px",
+      "uses": 5
+    },
+    {
+      "value": "6px",
+      "uses": 4
+    },
+    {
+      "value": "16px",
+      "uses": 3
+    },
+    {
+      "value": "5px",
+      "uses": 3
+    },
+    {
+      "value": "20px",
+      "uses": 2
+    }
+  ],
+  "elementsSampled": 2165
+}
