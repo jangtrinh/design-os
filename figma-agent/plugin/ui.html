@@ -758,6 +758,7 @@
         if (effect) effects.push(effect);
       }
       if (effects.length > 0) node.effects = effects;
+      if (effects.some((e) => (e.spread || 0) > 0)) node.clipsContent = true;
     }
     const opacity = parseFloat(cs.opacity);
     if (opacity < 1 && opacity > 0.01) node.opacity = opacity;
@@ -877,10 +878,11 @@
     if (cs.display === "none") return null;
     if (cs.visibility === "hidden") return null;
     if (tag === "IMG") {
+      const img = el;
       return {
         type: "IMAGE",
-        name: el.getAttribute("alt") || "Image",
-        imageUrl: el.getAttribute("src") || "",
+        name: img.getAttribute("alt") || "Image",
+        imageUrl: img.currentSrc || img.getAttribute("src") || "",
         width: el.offsetWidth || 200,
         height: el.offsetHeight || 200
       };

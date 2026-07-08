@@ -46,10 +46,14 @@ export function computedElementToNode(el: HTMLElement, win: Window, depth: numbe
 
   // ─── Image
   if (tag === 'IMG') {
+    // currentSrc resolves the ACTUAL rendered source under srcset / <picture> /
+    // lazy-loading; getAttribute('src') alone misses responsive + lazy images
+    // (Track 5 COPY #6).
+    const img = el as HTMLImageElement;
     return {
       type: 'IMAGE',
-      name: el.getAttribute('alt') || 'Image',
-      imageUrl: el.getAttribute('src') || '',
+      name: img.getAttribute('alt') || 'Image',
+      imageUrl: img.currentSrc || img.getAttribute('src') || '',
       width: el.offsetWidth || 200,
       height: el.offsetHeight || 200,
     };

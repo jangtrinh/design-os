@@ -127,7 +127,7 @@ export async function createImageNodeWithFetch(exportNode: FigmaExportNode): Pro
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const buffer = await response.arrayBuffer();
-    const image = figma.createImage(new Uint8Array(buffer));
+    const image = await createImageFromBytes(new Uint8Array(buffer), url);
     rect.fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }];
   } catch (err) {
     pushImportWarning(`image fetch failed for "${exportNode.name}" (${url}): ${String(err)}`);
@@ -138,8 +138,59 @@ export async function createImageNodeWithFetch(exportNode: FigmaExportNode): Pro
 }
 
 /** Decode a base64 data: URL into bytes (figma.base64Decode handles the b64 part). */
-function decodeDataUrl(url: string): Uint8Array {
+export function decodeDataUrl(url: string): Uint8Array {
   const comma = url.indexOf(',');
   const b64 = url.slice(comma + 1);
   return figma.base64Decode(b64);
+}
+
+/**
+ * Create a Figma Image from raw bytes with a format fallback. `figma.createImage`
+ * decodes PNG/JPG/GIF; when it rejects (e.g. WebP — see Track 5 COPY #4) fall
+ * back to `figma.createImageAsync(url)` which routes decoding through Figma's
+ * backend and accepts more formats. `url` is only used for the async fallback.
+ */
+export async function createImageFromBytes(bytes: Uint8Array, url?: string): Promise<Image> {
+  try {
+    return figma.createImage(bytes);
+  } catch (err) {
+    // WebP / unsupported byte format: Figma's async loader can decode it, but
+    // needs a fetchable URL (not data:/blob:). Re-throw if we have none.
+    if (url && /^https?:/i.test(url)) return await figma.createImageAsync(url);
+    throw err;
+  }
+}
+
+/**
+ * Resolve a CSS background-image URL (data: or http(s)) into a Figma IMAGE Paint.
+ * Returns null when the bytes can't be resolved (blob:/empty/CORS) so the caller
+ * keeps the solid/gradient fill it already built. Track 5 COPY #1 + #2.
+ */
+export async function resolveImagePaint(
+  url: string,
+  scaleMode: 'FILL' | 'FIT' | 'TILE' = 'FILL',
+): Promise<ImagePaint | null> {
+  if (!url || url.startsWith('blob:')) return null;
+  try {
+    let image: Image;
+    if (url.startsWith('data:')) {
+      image = await createImageFromBytes(decodeDataUrl(url), undefined);
+    } else {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const buffer = await response.arrayBuffer();
+      image = await createImageFromBytes(new Uint8Array(buffer), url);
+    }
+    return { type: 'IMAGE', imageHash: image.hash, scaleMode };
+  } catch (err) {
+    // Last resort for http(s): let Figma's backend fetch + decode.
+    if (/^https?:/i.test(url)) {
+      try {
+        const image = await figma.createImageAsync(url);
+        return { type: 'IMAGE', imageHash: image.hash, scaleMode };
+      } catch { /* give up below */ }
+    }
+    pushImportWarning(`background image fetch failed (${url}): ${String(err)}`);
+    return null;
+  }
 }
