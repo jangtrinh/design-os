@@ -93,6 +93,27 @@ const n = await figma.getNodeByIdAsync('123:45');   // ALWAYS *Async (dynamic-pa
 for (const f of n.getRangeAllFontNames(0, n.characters.length)) await figma.loadFontAsync(f);
 ```
 
+**Performance rules for exec-js walkers (F1) — keep scripts fast on big files:**
+- **Index, don't predicate-scan:** prefer `root.findAllWithCriteria({ types: ['TEXT'] })`
+  (served from Figma's internal index) over `root.findAll(n => n.type === 'TEXT')`, which
+  visits and tests every descendant in JS.
+- **Scope to the smallest KNOWN ancestor — never `figma.root.findAll`.** Walk inside the
+  specific section/frame you already hold; a document-wide walk on a large file hangs.
+- **Batch INDEPENDENT awaits with `Promise.all`** — component imports,
+  `getVariableByIdAsync` lookups, `loadFontAsync` for a known font set — instead of
+  `await`-ing in a loop (which serializes every round-trip). Keep true dependencies
+  sequential. (Same discipline as `canvas-operations.md` R9.)
+
+**Newer Plugin-API surface — PROBE before use (F2). ⚠️ CAVEATED, version-dependent.**
+Recent Figma versions add convenience APIs that, IF present on the running Figma, cut a lot
+of boilerplate — but they are **not on every version**, so **probe one on the target file's
+Figma before relying on it** (feature-detect, wrap in try/catch, fall back to the classic
+call). Candidates to test: `node.query('<CSS selector>')` (selector-style descendant
+search), `node.set({ ... })` (batched property assignment), `figma.createAutoLayout(...)`
+(auto-layout frame in one call), `node.placeholder = true` (skeleton placeholder), and
+`await node.screenshot()` (in-plugin capture). Treat each as "may not exist here" until a
+one-line probe confirms it; do NOT assume the surface across seats or versions.
+
 ## Reading a whole section/file — distill in the plugin, never dump (≈85× cheaper)
 
 To understand many screens at once (conventions, audits, usage DNA) do NOT pull them through
@@ -122,3 +143,10 @@ truncation, badge-merge, DOM order, absolute-overlay placement, stretch defaults
 GRID mode issues + TEXT-never-FILL + line-clamp-'none' TRUNCATE stamp. Plugin can't
 publish libraries (user does); creating a new file from the plugin is impossible
 (Plugin API limitation).
+
+**D4 — the Plugin API cannot fetch external image URLs.** `createImageAsync(url)` is
+gated by manifest `networkAccess` and does not reliably pull an arbitrary remote URL from
+plugin context. The workaround ease-design already uses: the `html-to-figma` path **inlines
+external images to `data:` URIs** before sending them to the plugin, so the bytes arrive
+with the payload instead of being fetched inside Figma. When writing raw exec-js that needs
+an image, pass bytes (`figma.createImage(uint8Array)`) or a `data:` URI, not a live URL.
