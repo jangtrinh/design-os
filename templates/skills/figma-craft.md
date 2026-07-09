@@ -23,7 +23,9 @@ construction lints).
    decision ladder, build workflows, and the L1–L14 construction lints. Read this first.
 3. Follow the decision ladder into one `knowledge/figma-craft/*` reference at a time
    (`layout-mastery`, `components-variables-styles`, `structure-hygiene`, `visual-craft`,
-   `intent-recipes`) — only the one the current step needs, not all five.
+   `intent-recipes`, `canvas-operations`) — only the one the current step needs, not all six.
+   `canvas-operations` is the one to read when operating on an existing / team-owned file
+   (rebuild against a live library, audit + normalize, idempotent re-run).
 
 ## What to produce
 Idiomatic Figma nodes — auto-layout structure, component instances over copies, token-bound
