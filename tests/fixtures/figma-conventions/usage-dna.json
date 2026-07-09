@@ -1,0 +1,28 @@
+[
+  {
+    "section": "Alpha",
+    "screens": 2,
+    "nodesWalked": 50,
+    "truncated": false,
+    "fills": { "bound": 8, "raw": 2, "tokenizedPct": 80 },
+    "layout": { "autolayoutFrames": 9, "rawFrames": 1 },
+    "topComponents": { "Button": 5, "Icon": 3, "[DEPRECATED] OldTab": 2 },
+    "radiusHist": { "0": 10, "8": 4, "5": 1, "999": 2 },
+    "spacingHist": { "8": 6, "12": 4, "11": 1, "4": 3 },
+    "fonts": { "Be Vietnam Pro": 20, "Inter": 1 },
+    "sampleScreens": [{ "name": "Home", "layout": "HORIZONTAL", "gap": 0 }]
+  },
+  {
+    "section": "Beta",
+    "screens": 3,
+    "nodesWalked": 80,
+    "truncated": true,
+    "fills": { "bound": 10, "raw": 0, "tokenizedPct": 100 },
+    "layout": { "autolayoutFrames": 10, "rawFrames": 0 },
+    "topComponents": { "Badge": 4 },
+    "radiusHist": { "0": 5, "8": 3 },
+    "spacingHist": { "8": 5, "16": 2 },
+    "fonts": { "Be Vietnam Pro": 15 },
+    "sampleScreens": []
+  }
+]

@@ -36,6 +36,7 @@ import { designmdCommand } from "./commands/designmd.js";
 import { schemaCommand } from "./commands/schema.js";
 import { memoryCommand } from "./commands/memory.js";
 import { ingestFigmaDsCommand } from "./commands/ingest-figma-ds.js";
+import { synthesizeConventionsCommand } from "./commands/synthesize-conventions.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
@@ -73,6 +74,7 @@ COMMANDS[designmdCommand.name] = designmdCommand;
 COMMANDS[schemaCommand.name] = schemaCommand;
 COMMANDS[memoryCommand.name] = memoryCommand;
 COMMANDS[ingestFigmaDsCommand.name] = ingestFigmaDsCommand;
+COMMANDS[synthesizeConventionsCommand.name] = synthesizeConventionsCommand;
 
 // ─── Root help ────────────────────────────────────────────────────────────────
 

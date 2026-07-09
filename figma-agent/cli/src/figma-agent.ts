@@ -15,6 +15,7 @@ import * as exportPng from './commands/export-png.ts';
 import * as getSelection from './commands/get-selection.ts';
 import * as htmlToFigma from './commands/html-to-figma.ts';
 import * as scanDesignSystem from './commands/scan-design-system.ts';
+import * as scanConventions from './commands/scan-conventions.ts';
 import * as setAutolayout from './commands/set-autolayout.ts';
 import * as setConstraints from './commands/set-constraints.ts';
 import * as seat from './commands/seat.ts';
@@ -76,6 +77,7 @@ const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown>
   seat,
   'get-selection': getSelection,
   'scan-design-system': scanDesignSystem,
+  'scan-conventions': scanConventions,
   'create-frame': createFrame,
   'create-instance': createInstance,
   'set-variant': setVariant,
@@ -100,6 +102,7 @@ Commands:
   seat                 Probe seat → {seat, bridge, reason} [--seat free|paid skips the probe]
   get-selection        Serialize the current selection [--depth 1]
   scan-design-system   Components/variables/styles registry [--out file.json]
+  scan-conventions     Convention-DNA walk over sections → usage-dna.json [<sectionId...> --out file.json --budget 14000]
   create-frame         --name n --w 400 --h 300 [--parent id --x 0 --y 0]
   create-instance      --component <key|id> [--parent id]
   set-variant          --node id --props k=v,k2=v2
