@@ -399,6 +399,21 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "synthesize-conventions": {
+    summary: "Learn applied conventions from real screens (usage-dna.json → CONVENTIONS.md)",
+    signature: {
+      summary: "Compile a scan-conventions usage-dna.json into a CONVENTIONS.md of measured DO/DON'T",
+      positionals: [{ name: "<usage-dna.json>", required: true, summary: "figma-agent scan-conventions output" }],
+      flags: [
+        { name: "ds", type: "string", summary: "DTCG tokens.json; cross-references the DS scale/grid to split valid values from real deviations" },
+        { name: "out", type: "string", summary: "Output directory (default: current working directory)" },
+        { name: "seed-memory", type: "boolean", summary: "Also seed 'ui memory' (a harvested anchor + prefers/avoids insight events)" },
+        { name: "now", type: "string", summary: "Deterministic clock for the seeded memory graph (ISO-8601)" },
+      ],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DNA", "BAD_DS", "WRITE_ERROR"],
+    },
+  },
+
   memory: {
     summary: "Record, compile, and query the project's design memory + taste profile",
     subcommands: {
