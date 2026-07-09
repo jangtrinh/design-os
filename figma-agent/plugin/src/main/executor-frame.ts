@@ -11,6 +11,7 @@ import { createRectangleNode, createImageNode, createSvgNode, createImageNodeWit
 import { rgbToFigma, figmaColorToHex, mapExportEffects, pushImportWarning } from './executor-styles';
 import { applyTokenRefs } from './executor-variables';
 import { backgroundSizeToScaleMode } from './background-fill';
+import { applyMotionTracks } from './executor-motion';
 
 /** Recursive dispatcher: payload node → Figma SceneNode. `tokenVars` = token-name → Variable (P3 leg B). */
 export async function createFigmaNode(
@@ -18,20 +19,29 @@ export async function createFigmaNode(
   colorStyles: Map<string, PaintStyle>,
   tokenVars?: Map<string, Variable>,
 ): Promise<SceneNode | null> {
+  let node: SceneNode | null;
   switch (exportNode.type) {
     case 'TEXT':
-      return await createTextNode(exportNode, tokenVars);
+      node = await createTextNode(exportNode, tokenVars); break;
     case 'IMAGE':
-      if (exportNode.svgContent) return createSvgNode(exportNode);
-      if (exportNode.imageUrl) return await createImageNodeWithFetch(exportNode);
-      return createImageNode(exportNode);
+      node = exportNode.svgContent ? createSvgNode(exportNode)
+        : exportNode.imageUrl ? await createImageNodeWithFetch(exportNode)
+          : createImageNode(exportNode);
+      break;
     case 'RECTANGLE':
-      return await createRectangleNode(exportNode, colorStyles, tokenVars);
+      node = await createRectangleNode(exportNode, colorStyles, tokenVars); break;
     case 'FRAME':
     case 'GROUP':
     default:
-      return await createFrameNode(exportNode, colorStyles, tokenVars);
+      node = await createFrameNode(exportNode, colorStyles, tokenVars); break;
   }
+  // Track 5 Commit-4 wiring: apply captured Motion keyframes to the built node.
+  // applyMotionTracks is metronome-gated + per-field try/catch — a no-op when the
+  // Motion API is unavailable or the node carries no animatable fields.
+  if (node && exportNode.motion && exportNode.motion.steps && exportNode.motion.steps.length >= 2) {
+    applyMotionTracks(node, exportNode.motion.steps, exportNode.motion.durationSec, exportNode.motion.easing);
+  }
+  return node;
 }
 
 /** Native GRID (Figma May-2025 API); falls back to HORIZONTAL+WRAP preserving gaps. */

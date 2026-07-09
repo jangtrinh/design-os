@@ -103,6 +103,14 @@ export interface FigmaExportNode {
   imageUrl?: string;
   svgContent?: string;
 
+  // Motion (Track 5 Commit-4): captured behavior.json keyframes, applied after the
+  // node is built via node.applyManualKeyframeTrack (metronome-gated, no-ops if absent).
+  motion?: {
+    steps: { offset: number; style: { opacity?: string; transform?: string } }[];
+    durationSec: number;
+    easing?: string;
+  };
+
   // Layout control
   clipsContent?: boolean;
   absolutePosition?: boolean;
