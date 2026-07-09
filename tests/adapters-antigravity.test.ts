@@ -13,8 +13,8 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 21 artifacts (13 workflows + 8 skills)", () => {
-    expect(makeArtifacts()).toHaveLength(21);
+  it("returns exactly 22 artifacts (14 workflows + 8 skills)", () => {
+    expect(makeArtifacts()).toHaveLength(22);
   });
 
   it("all artifacts have mode 'write'", () => {
