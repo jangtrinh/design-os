@@ -64,6 +64,19 @@ describe("detached-instance", () => {
     const spec = buildAuditSpec({ tokens: TOKENS });
     expect(rules({ name: "Button/Primary", type: "FRAME" }, spec)).toEqual([]);
   });
+
+  it("does NOT flag a frame with a generic default name even if a junk component shares it", () => {
+    // Registry contains a junk component literally named "Frame"; a frame named
+    // "Frame" is UNNAMED in intent and must not be reported as a lookalike.
+    const spec = buildAuditSpec({
+      registry: { version: "1", components: [{ name: "Frame", category: "Frame" }, { name: "Button/Primary", category: "Button" }] },
+    });
+    expect(rules({ name: "Frame", type: "FRAME" }, spec)).toEqual([]);
+    expect(rules({ name: "frame", type: "FRAME" }, spec)).toEqual([]); // case-insensitive
+    expect(rules({ name: "Frame 12", type: "FRAME" }, spec)).toEqual([]); // numbered default
+    // But a genuinely component-named frame is still flagged.
+    expect(rules({ name: "Button/Primary", type: "FRAME" }, spec)).toEqual(["detached-instance"]);
+  });
 });
 
 describe("raw-icon-vs-Icon", () => {
@@ -109,6 +122,30 @@ describe("off-grid", () => {
   it("runs with no spec files at all (pure grid math)", () => {
     const spec = buildAuditSpec({});
     expect(rules({ name: "C", type: "FRAME", cornerRadius: 6 }, spec)).toEqual(["off-grid"]);
+  });
+
+  it("with --tokens, treats a DS radius token as valid even when off-grid", () => {
+    // radius scale sm=9 (off the 4px grid but a real DS token) → NOT flagged;
+    // radius 11 (not in the set, not a grid multiple) → still flagged.
+    const spec = buildAuditSpec({
+      tokens: { radius: { sm: { $value: "9px", $type: "dimension" }, md: { $value: "12px", $type: "dimension" } } },
+    });
+    expect(rules({ name: "Card", type: "FRAME", cornerRadius: 9 }, spec)).toEqual([]);
+    expect(rules({ name: "Card", type: "FRAME", cornerRadius: 11 }, spec)).toEqual(["off-grid"]);
+  });
+
+  it("with --tokens, treats a DS spacing token as valid even when off-grid", () => {
+    const spec = buildAuditSpec({
+      tokens: { spacing: { xs: { $value: "6px", $type: "dimension" } } },
+    });
+    expect(rules({ name: "Row", type: "FRAME", itemSpacing: 6 }, spec)).toEqual([]);
+    expect(rules({ name: "Row", type: "FRAME", itemSpacing: 10 }, spec)).toEqual(["off-grid"]);
+  });
+
+  it("without --tokens, an off-grid value with no DS scale stays flagged", () => {
+    // radius 9 has no token set to validate it → grid-multiple behavior unchanged.
+    expect(rules({ name: "Card", type: "FRAME", cornerRadius: 9 }, buildAuditSpec({})).length).toBe(1);
+    expect(rules({ name: "Card", type: "FRAME", cornerRadius: 9 }, buildAuditSpec({}))).toEqual(["off-grid"]);
   });
 });
 
