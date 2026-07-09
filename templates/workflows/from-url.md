@@ -33,6 +33,14 @@ Use `/ui:from-url` when:
 This workflow does **not** mutate `design/*.json`. It writes one
 folder at `./<slug>/` and stops.
 
+When invoked as the **URL path of reference intake** (a designer
+dropped several URLs/images as inspiration before a build), follow
+`knowledge/figma-craft/workflow-experience.md` §2b: run this capture
+**isolated in a subagent**, return the compact `reference-DNA.json`
+(not the raw dump), cache it under `<project>/references/<slug>/`, and
+never re-read the raw asset. The same doc's cost contract governs the
+run (cheapest-first reads, minimal vision, subagent isolation).
+
 ---
 
 ## Inputs

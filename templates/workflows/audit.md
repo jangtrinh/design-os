@@ -47,6 +47,11 @@ clone-safety + await-swap, section-aware sweeps, semantic-token audit).
 
 ## The lifecycle (the uniform F0 shape, parameterized for audit)
 
+This is the `knowledge/figma-craft/workflow-experience.md` lifecycle + cost contract
+(REFERENCE→SCOPE→PLAN→BUILD→SEE→ITERATE→LAND, the "eyes" contract, determinism-first cost
+rules) parameterized for the audit job. Read that doc for the router + shared rhythm; the
+steps below are its audit specialization.
+
 ### REFERENCE — the DS is the source of truth
 The "reference" here is not inspiration images — it is the **design system**. Confirm the
 tokens + registry files exist and are current; they are the spec every violation is judged

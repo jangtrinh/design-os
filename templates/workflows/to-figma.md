@@ -38,6 +38,12 @@ hand is unavailable, stop and tell the user how to obtain it, or fall back to `/
 
 ## What to read (in order)
 
+This verb follows the **`knowledge/figma-craft/workflow-experience.md` lifecycle + cost
+contract** — the uniform REFERENCE→SCOPE→PLAN→BUILD→SEE→ITERATE→LAND rhythm, the "eyes"
+feedback contract, and the determinism-first (zero-token `ui` binary) cost rules. Read it
+first when the job arrived as a plain-language intent or dropped references (it routes the
+intent and runs reference intake before this build).
+
 1. `knowledge/figma-agent-hand.md` — the hand: setup, `status` health check, the command
    table, and the `export-png → Read` loop. Confirm the hand is live **before** authoring.
 2. `knowledge/figma-craft/figma-craft.md` — the construction brain: craft philosophy,
