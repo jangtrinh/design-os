@@ -430,6 +430,30 @@ Onboarding is complete only with BOTH: C0 (vocabulary) + C7 (grammar).
 
 ---
 
+## 17. Component-state board (C2 — show a component's grammar)
+
+Given a `COMPONENT_SET` with variant axes, author a labeled matrix of every state combination as
+**real instances** (not a mockup) — the "component-state demo" a designer asks for. Proven live.
+
+**Plan (deterministic):**
+- Read `set.variantGroupProperties` → axes `{name: values}`.
+- **Column axis** = the state-like axis (`/state|status/i`), else the first axis.
+- **Rows** = cartesian product of the remaining axes; each cell = `{…rowCombo, [colAxis]: colVal}`.
+- Cell content = the child `COMPONENT` whose `variantProperties` match → `child.createInstance()`.
+
+**Author (hand, exec-js):**
+- Board = auto-layout VERTICAL: title + header row (row-axis label + one label per column value) +
+  N rows (row-combo label + one instance cell per column value).
+- Labels: `loadFontAsync` FIRST (Inter is always safe); `createText` → set `fontName` before `characters`.
+- Place in a **fresh empty spot** — past real content's max-x, or a scratch/Archive page — never overlap real work.
+- Verify: `export-png` → Read → the matrix reads as the component's state grammar.
+
+Instances stay linked to the component, so the board updates when the component changes. Optionally
+embed the board beside the host screen it documents. Pairs with the captured hover/focus states from
+`from-url` (Track 5) when the "component" is a rebuilt web element rather than a Figma component set.
+
+---
+
 ## Recipe → lint map (maps to figma-craft.md's construction lints)
 
 | Recipe | Guards against |
