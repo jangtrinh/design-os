@@ -152,9 +152,9 @@ seat/bridge the selector chose (`figma-agent-hand.md` → Bridge selection).
   partway, nothing it did is committed — the canvas is exactly as before. There the retry
   discipline is *stop → read the error → fix the script → re-run whole*, and blind retry is
   never needed because a failed script left no partial mutation. **Our figma-agent `exec-js`
-  bridge may NOT be atomic** — a script that throws on line 20 may have already committed
-  lines 1–19 (partial mutation). **Do not assume atomicity on the figma-agent bridge; verify
-  it before relying on it.** Until confirmed, treat exec-js as non-atomic: make scripts
+  bridge is NOT atomic** — a script that throws on line 20 has already committed lines 1–19
+  (partial mutation). **✅ VERIFIED 2026-07-09** — a probe that created a node then threw left
+  the node on the canvas. So treat exec-js as non-atomic: make scripts
   idempotent (R4 tags, resolve-or-create), read back what actually landed after a throw, and
   never blind-retry a script that may have half-applied. The per-bridge difference changes
   the whole retry contract — match it to the bridge you're on (`figma-agent-hand.md` →
