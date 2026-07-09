@@ -113,6 +113,11 @@ frame.paddingBottom = 24; frame.paddingLeft = 32;
     "/mo" 14px) — CENTER visibly misaligns mixed type; BASELINE is the senior move.
   - Default cross-axis behavior for children is STRETCH-like until child sizing is set —
     see §5, live lesson.
+  - **No `'STRETCH'` value (A7):** the enum is `MIN | MAX | CENTER | BASELINE` only —
+    passing `'STRETCH'` throws. "Stretch every child across the counter axis" is not an
+    alignment; realize it as `counterAxisAlignItems = 'MIN'` **plus** each child's
+    cross-axis sizing set to `FILL` (§5). Alignment positions a hugging child; FILL is what
+    makes it span.
 - **Provenance:**
   https://developers.figma.com/docs/plugins/api/properties/nodes-counteraxisalignitems/
   ("'BASELINE' ... can only be set on horizontal auto-layout frames"); FrameNode page for
@@ -142,6 +147,14 @@ Two API layers exist. **Use the ergonomic one:**
   'STRETCH' | 'INHERIT'` (counter axis). Read them when inspecting old files; write the
   ergonomic setters. Note `layoutSizing*` meaning is PER PARENT DIRECTION: FILL horizontal
   in a HORIZONTAL parent = `layoutGrow = 1`; in a VERTICAL parent = counter-axis stretch.
+- **The two enums are NOT interchangeable (A3) — the #1 sizing crash:**
+  `layoutSizingHorizontal`/`layoutSizingVertical` take **`FIXED | HUG | FILL`** (child-side
+  ergonomic layer); `primaryAxisSizingMode`/`counterAxisSizingMode` take **`FIXED | AUTO`**
+  (frame-side legacy layer). `'AUTO'` is invalid for `layoutSizing*` and `'FILL'` is invalid
+  for the `*SizingMode` properties — mixing them throws. And **`HUG` is only legal on an
+  auto-layout frame itself or a TEXT child**; a plain FRAME or RECTANGLE child that should
+  shrink-wrap can't take `layoutSizing* = 'HUG'` — make it hug via the parent
+  (`counterAxisSizingMode = 'AUTO'`) or give it explicit FIXED dimensions.
 
 **Truth table — what actually stretches (per axis):**
 
@@ -158,12 +171,30 @@ counter-axis STRETCHED unless sizing is set explicitly.
   step-number bug was a tile silently stretched to row height.
 - Never leave sizing at whatever the default landed on; lint L5 audits this.
 
+**`resize()` silently resets sizing modes (A1) — order is load-bearing:** calling
+`node.resize(w, h)` sets BOTH `primaryAxisSizingMode` and `counterAxisSizingMode` back to
+`FIXED` as a side effect. So the order is always **resize FIRST, then (re)apply the sizing
+modes / `layoutSizing*`** — reverse the order and your HUG/FILL silently reverts to a fixed
+box. Corollary: **never pass `0` or `1` to an axis you intend to HUG.** A throwaway
+`resize(280, 1)` to "seed a width" locks `height = 1` as a FIXED value permanently — the
+frame will not grow back to its content. Seed width via a FIXED-then-HUG dance
+(`resize(280, node.height)` then set the target axis to HUG), never with a sentinel `1`.
+
 **Text nodes couple into this system** via `textAutoResize: 'NONE' | 'WIDTH_AND_HEIGHT' |
 'HEIGHT' | 'TRUNCATE'` (`TRUNCATE` deprecated → use `textTruncation`).
 - Single-line text: `WIDTH_AND_HEIGHT` (= HUG both) — live lesson: fixed-box single-line
   text truncates when font metrics drift; matched Google fonts are pixel-true.
 - Paragraph text: `HEIGHT` + `layoutSizingHorizontal = 'FILL'` (fixed width from parent,
   height follows content).
+- **The "0-width thread" trap (A2):** a freshly created TEXT node defaults to
+  `textAutoResize = 'WIDTH_AND_HEIGHT'` (HUG both). If you assign
+  `layoutSizingHorizontal = 'FILL'` while it is still in that mode, the FILL is **ignored**
+  and the node collapses to a ~0-width vertical "thread" of stacked single characters —
+  a silent, easy-to-miss failure. Fix ordering: switch `textAutoResize` OFF hug FIRST. The
+  bullet-proof recipe for a wrapping block is `textAutoResize = 'HEIGHT'`, then
+  `layoutSizingHorizontal = 'FIXED'`, then `resize(targetWidth, node.height)` — and
+  **assert `node.width > 0`** afterward. (FILL can work for paragraphs too, but only once
+  the node is out of `WIDTH_AND_HEIGHT`; the FIXED+resize path is the reliable default.)
 - Before ANY text edit: `await figma.loadFontAsync(...)` — per range if
   `fontName === figma.mixed`.
 - Provenance:
