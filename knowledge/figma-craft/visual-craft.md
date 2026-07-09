@@ -85,6 +85,19 @@ fixed width defines the column — it collapses the column layout. See intent-re
   ```
 - **Provenance:** https://developers.figma.com/docs/plugins/api/LineHeight/ · TextNode page.
 
+**Property-shape gotchas (A6) — the ones that throw or silently fail:**
+- **`width` / `height` are READ-ONLY** — assigning them no-ops (or throws in strict paths).
+  Change size only via `node.resize(w, h)` (or `resizeWithoutConstraints`). `x` / `y` ARE
+  writable — position by assignment, size by method.
+- **`lineHeight` / `letterSpacing` are `{ unit, value }` OBJECTS**, never bare numbers
+  (§1.4 above) — `node.lineHeight = 24` throws; `{ value: 24, unit: 'PIXELS' }` is correct.
+- **`fontSize` / `fontWeight` / `lineHeight` may NOT be bindable via `setBoundVariable` on
+  every runtime/version.** ⚠️ This conflicts with `components-variables-styles.md` §3.4A,
+  which lists them as bindable per plugin-typings `VariableBindableTextField`. Figma has
+  changed text-field bindability over time and it can differ by runtime — **probe a single
+  `setBoundVariable('fontSize', v)` on the target file before relying on it**; if it throws,
+  drive type scale via text styles (`components-variables-styles.md` §4) instead.
+
 ### 1.5 Type-scale discipline
 
 - **Principle:** every fontSize comes from the product's scale — never invented. Floor: **12px**.
@@ -112,7 +125,30 @@ fixed width defines the column — it collapses the column layout. See intent-re
   ```
   CLI: `create-variable --type COLOR --value "#4F46E5"` (de-dups, `reused:true`) then
   `bind-variable --node id --field fills --variable color/x`.
-- **Provenance:** https://developers.figma.com/docs/plugins/api/Paint/ · `figma-agent-hand.md`.
+- **Two color shapes, don't confuse them (A4):** a PAINT color is `{r, g, b}` on 0–1 with
+  **no alpha** (opacity lives at the paint level, `paint.opacity`). But a **COLOR *variable*
+  value** is `{r, g, b, a}` — the alpha rides inside the variable value (`setValueForMode`,
+  see `components-variables-styles.md` §3.2). Feeding a `{r,g,b,a}` object where a paint
+  color is expected (or dropping `a` when you set a variable value) is a silent bug.
+- **`fills` / `strokes` are READ-ONLY arrays (A4):** you cannot mutate an element in place
+  (`node.fills[0].color = …` no-ops). Clone → modify → reassign:
+  ```js
+  const paints = [...node.fills];                 // clone the readonly array
+  paints[0] = { ...paints[0], opacity: 0.5 };     // modify the copy
+  node.fills = paints;                            // reassign to commit
+  ```
+- **`setBoundVariableForPaint` / `setBoundVariableForEffect` RETURN a NEW paint/effect
+  (A5)** — they do NOT mutate in place. Capture the return and reassign it into the cloned
+  array, or the binding is lost:
+  ```js
+  const paints = [...node.fills];
+  paints[0] = figma.variables.setBoundVariableForPaint(paints[0], 'color', colorVar); // capture
+  node.fills = paints;                                                                // reassign
+  ```
+  (ease-design's `executor-variables.ts` already follows this capture-and-reassign
+  discipline; exec-js authors writing raw scripts must do the same by hand.)
+- **Provenance:** https://developers.figma.com/docs/plugins/api/Paint/ · `figma-agent-hand.md` ·
+  `components-variables-styles.md` §3.4B (immutable-copy binding pattern).
 
 ### 2.2 Gradients — gradientStops + gradientTransform
 
