@@ -111,8 +111,10 @@ Figma before relying on it** (feature-detect, wrap in try/catch, fall back to th
 call). Candidates to test: `node.query('<CSS selector>')` (selector-style descendant
 search), `node.set({ ... })` (batched property assignment), `figma.createAutoLayout(...)`
 (auto-layout frame in one call), `node.placeholder = true` (skeleton placeholder), and
-`await node.screenshot()` (in-plugin capture). Treat each as "may not exist here" until a
-one-line probe confirms it; do NOT assume the surface across seats or versions.
+`await node.screenshot()` (in-plugin capture). **✅ PROBED 2026-07-09: NONE of these five exist
+on the figma-agent plugin's current Figma version** (all feature-detected `false`) — use the
+classic calls (`findAllWithCriteria`, per-property assignment, `createFrame`+`applyAutoLayout`,
+`export-png`). Re-probe only if the plugin's Figma updates; do NOT assume the surface across versions.
 
 ## Reading a whole section/file — distill in the plugin, never dump (≈85× cheaper)
 

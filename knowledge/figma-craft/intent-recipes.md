@@ -474,8 +474,10 @@ the discipline that makes "rebuild a screen" a design-system workflow, not a moc
   its own text prop via `exposedInstances`; find the key on the right node before setting. The reason to
   prefer `setProperties`: on the official runtime a managed layer's rendered text is authored by the
   component property, so writing `node.characters` directly can be **overridden back** at render time.
-  **⚠️ This render-authority claim is `use_figma`-runtime-specific — verify it on the figma-agent
-  `exec-js` bridge before relying on it;** our bridge may render `node.characters` faithfully.
+  **✅ VERIFIED 2026-07-09 on the figma-agent bridge: `node.characters` set directly on a managed
+  instance text STICKS (reads back the set value) — it is NOT overridden.** So on figma-agent,
+  `node.characters` is a valid way to set instance text; `setProperties` remains the portable/official
+  path (and the only one that also swaps NESTED-instance text) but is not strictly required here.
   **Fallback:** for *unmanaged* text (a plain TEXT layer with no component property), set
   `node.characters` directly — and load the node's OWN font first (`getRangeAllFontNames` →
   `loadFontAsync`, `visual-craft.md` §1.1), never assume Inter.
