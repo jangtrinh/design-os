@@ -546,7 +546,7 @@ and the phase-gated cost contract in `workflow-experience.md`.
 
 | Recipe | Guards against |
 |---|---|
-| 1, 2, 3 | L2 truncation-risk · L3 fixed-text-cells · `structure-hygiene.md` §3 (flipped icon/label order) |
+| 1, 2, 3 | L2 truncation-risk · L3 fixed-text-cells · L19 text-fill-thread (a label given FILL while still `WIDTH_AND_HEIGHT` collapses) · `structure-hygiene.md` §3 (flipped icon/label order) |
 | 4, 5 | L1 absolute-soup · L4 off-grid-spacing · L11 radius-scale (concentric rule) |
 | 9 | L3 *exception* — fixed columns are correct here |
 | 10, 14 | L8 stray-absolutes · hierarchy separation |

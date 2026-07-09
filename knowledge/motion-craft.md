@@ -266,6 +266,39 @@ Named recipes, each with its tier and when to reach for it.
 
 ---
 
+## Figma canvas motion — the prototype / Smart-Animate layer
+
+Everything above authors motion for **web output**. This section is different: motion
+authored **on the Figma canvas** — prototype reactions and Motion keyframe tracks — which
+ease-design drives through the figma-agent plugin (`executor-motion.ts`). The Plugin-API
+facts here are what keep that path from silently producing dead animation.
+
+**G1 — the field & easing contract (Plugin API truth):**
+- **Public transform field allowlist:** `TRANSLATION_X`, `TRANSLATION_Y`, `TRANSLATION_XY`,
+  `ROTATION`, `SCALE_X`, `SCALE_Y`, `SCALE_XY` — plus absolute value fields
+  (`OPACITY`, `CORNER_RADIUS`, …). A keyframe track must target one of these; anything
+  outside the allowlist is rejected. (`executor-motion.ts` emits the X/Y forms — a valid
+  subset.)
+- **Easing enum is `EASE_IN_AND_OUT`, NEVER `EASE_IN_OUT`.** The intuitive `EASE_IN_OUT`
+  string does not exist in the API — using it throws/no-ops. The real member is
+  `EASE_IN_AND_OUT` (with `EASE_IN`, `EASE_OUT`, `LINEAR`, `GENTLE`, spring presets, …).
+- **Animate DESCENDANTS, not the top-level frame.** Keyframe/Smart-Animate tracks belong on
+  the children *inside* a frame (the elements that move), not on the frame node itself —
+  animating the top-level frame produces no visible motion.
+- **Omit `baseValue` for a NEW track.** When creating a fresh keyframe track, do not pass a
+  `baseValue`; let Figma seed it from the node. Supplying one on a new track is a common
+  source of a track that starts from the wrong state.
+
+**G2 — verifying canvas motion (`export_video`):**
+- Motion on the canvas is verified with **`export_video`** — a **server-side** render that
+  takes **~10 s to minutes**, so treat each render as expensive.
+- **Plan 4–6 phase frames**, render at a **small width + low fps**, then **extract stills
+  with ffmpeg** to inspect the motion frame by frame.
+- **Batch all fixes before re-rendering** — never re-run the slow `export_video` per tweak;
+  collect the corrections across phases and render once more.
+
+---
+
 ## Anti-patterns
 
 - **Scrolljacking** — overriding native scroll speed/direction so the page fights the
