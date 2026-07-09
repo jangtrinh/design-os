@@ -97,6 +97,26 @@ Follow the flow for the chosen source; **do not** restate its steps here.
       against a fixture `ds.json`.
   - **A single screen / frame** → follow `templates/workflows/figma.md` to produce
     HTML, then feed that HTML into `templates/workflows/extract.md`.
+  - **A SET of built screens** (the user points at a section/page of real,
+    already-designed screens and wants ease-design to learn *how the DS is used* —
+    the applied grammar / house style) → learn the CONVENTIONS (C7), the companion
+    to the C0 vocabulary:
+    1. Pick the bridge with the seat-adaptive selector.
+    2. Distill the screens' usage DNA **in-plugin** — NEVER dump `get_metadata` for
+       a section (see `knowledge/figma-agent-hand.md` §"Reading a whole section"):
+       ```sh
+       figma-agent scan-conventions <sectionId…> --out usage-dna.json
+       ```
+    3. Synthesize it (zero-network, zero-LLM) into an AI-readable house-style spec:
+       ```sh
+       ui synthesize-conventions usage-dna.json --ds tokens.json --out . --seed-memory
+       ```
+       This writes `CONVENTIONS.md` (measured DO/DON'T with counts, cross-referenced
+       to the DS scale so real deviations are separated from valid tokens) and seeds
+       `ui memory` prefers/avoids. The DON'Ts feed `/ui:audit` as convention rules
+       and ground new generation in the product's house style.
+    - **LIVE-E2E:** `scan-conventions` needs the live plugin (proven); `ui
+      synthesize-conventions` is deterministic + fixture-tested.
 - **Fresh** → stop and tell the user to run `/ui:generate "<their idea>"`; the
   Design System compiles there (generate.md step 3, Branch A). `/ui:learn` has
   nothing to extract in this case.
