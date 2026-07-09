@@ -54,7 +54,9 @@ this one question:
 1. **Learn from code** *(default when the verdict is `brownfield-code`)* —
    harvest the design system from the repo's own components and styles.
 2. **Learn from a live URL** — capture a deployed page's real computed styles.
-3. **Learn from a Figma file** — reproduce a frame as HTML, then extract from it.
+3. **Learn from a Figma file** — an existing design system/library (Variables,
+   Styles, Components) is ingested wholesale; a single screen/frame is reproduced
+   as HTML then extracted. The route (step 3) picks the path from the target.
 4. **Start fresh with a persona** — nothing existing is worth keeping; compile a
    new system from scratch.
 
@@ -69,8 +71,32 @@ Follow the flow for the chosen source; **do not** restate its steps here.
 - **Code** → follow `templates/workflows/extract.md` against the representative
   files chosen in step 3a.
 - **URL** → follow `templates/workflows/from-url.md` with the user's URL.
-- **Figma** → follow `templates/workflows/figma.md` to produce HTML, then feed
-  that HTML into `templates/workflows/extract.md`.
+- **Figma** → branch on what the target IS:
+  - **A design SYSTEM / library** (the user points at a file whose value is its
+    Variables + Styles + Components — the common onboarding case) → **do NOT
+    reproduce frames as HTML.** Scan the system once and compile it
+    deterministically. This is the durable, zero-token on-ramp (C0):
+    1. Pick the write/read bridge with the seat-adaptive selector (never hardcode
+       a bridge) — see `knowledge/figma-agent-hand.md` §"Bridge selection".
+    2. Scan the system to a `ds.json` inventory:
+       ```sh
+       figma-agent scan-design-system --out ds.json
+       ```
+    3. Compile it into ease-design's portable stores (zero-network, zero-LLM):
+       ```sh
+       ui ingest-figma-ds ds.json --out . --name "<ds-name>" --seed-memory
+       ```
+       This emits `tokens.json` (DTCG primitive+semantic tiers, incl. Light/Dark
+       modes), `component-registry.json` (name · variants · props), and a
+       `DESIGN.md` DS spec, and seeds `ui memory` so the system is remembered.
+       The portable files ARE the durable memory (F0) — no per-turn re-read.
+    4. Skip the reproduce-as-HTML + `extract.md` path entirely; go to step 4.
+    - **LIVE-E2E PENDING:** `scan-design-system` reads a *live* plugin session;
+      run it against the real file when the figma-agent plugin is open. The
+      compile step (`ui ingest-figma-ds`) is deterministic and already testable
+      against a fixture `ds.json`.
+  - **A single screen / frame** → follow `templates/workflows/figma.md` to produce
+    HTML, then feed that HTML into `templates/workflows/extract.md`.
 - **Fresh** → stop and tell the user to run `/ui:generate "<their idea>"`; the
   Design System compiles there (generate.md step 3, Branch A). `/ui:learn` has
   nothing to extract in this case.
@@ -103,6 +129,13 @@ merely remembers or infers is GUESS-grade — exclude it and list it under
 `templates/workflows/extract.md` (canonical); `/ui:learn` adds no separate rule.
 
 ### Step 4 — Compile and verify
+
+**Figma design-SYSTEM ingest path:** the stores are already written by
+`ui ingest-figma-ds` (step 3). Verify them instead of `ds status`: confirm
+`ui tokens compile tokens.json --json` exits 0 (aliases resolve) and
+`ui registry list --file component-registry.json --json` lists the components.
+Then skip to step 5. (The `ds.manifest.json` checks below apply only to the
+persona/extract-compiled paths.)
 
 The routed flow ends by compiling a Design System on disk. Verify it is healthy
 before reporting success:

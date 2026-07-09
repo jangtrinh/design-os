@@ -1,0 +1,53 @@
+{
+  "components": [
+    {
+      "id": "1:100",
+      "key": "aaa",
+      "name": "Button",
+      "type": "COMPONENT_SET",
+      "variantAxes": { "Size": ["Small", "Large"], "Tone": ["Primary", "Ghost"] }
+    },
+    { "id": "1:200", "key": "bbb", "name": "Icon", "type": "COMPONENT" },
+    {
+      "id": "1:300",
+      "key": "ccc",
+      "name": "Card/Elevated",
+      "type": "COMPONENT_SET",
+      "variantAxes": { "State": ["Default", "Hover"] }
+    }
+  ],
+  "tokens": [
+    { "id": "V:blue500", "name": "primitives/blue/500", "type": "COLOR", "collection": "Primitives", "value": { "r": 0.231372549, "g": 0.509803922, "b": 0.964705882, "a": 1 } },
+    { "id": "V:blue400", "name": "primitives/blue/400", "type": "COLOR", "collection": "Primitives", "value": { "r": 0.376470588, "g": 0.647058824, "b": 0.980392157, "a": 1 } },
+    { "id": "V:gray900", "name": "primitives/gray/900", "type": "COLOR", "collection": "Primitives", "value": { "r": 0.066666667, "g": 0.094117647, "b": 0.152941176, "a": 1 } },
+    { "id": "V:gray50", "name": "primitives/gray/50", "type": "COLOR", "collection": "Primitives", "value": { "r": 0.976470588, "g": 0.980392157, "b": 0.984313725, "a": 1 } },
+    { "id": "V:space4", "name": "primitives/space/4", "type": "FLOAT", "collection": "Primitives", "value": 16 },
+    { "id": "V:fwbold", "name": "primitives/font-weight/bold", "type": "FLOAT", "collection": "Primitives", "value": 700 },
+    { "id": "V:ffsans", "name": "primitives/font-family/sans", "type": "STRING", "collection": "Primitives", "value": "Inter" },
+    {
+      "id": "V:primary", "name": "semantic/color/primary", "type": "COLOR", "collection": "Semantic",
+      "valuesByMode": {
+        "Light": { "type": "VARIABLE_ALIAS", "id": "V:blue500" },
+        "Dark": { "type": "VARIABLE_ALIAS", "id": "V:blue400" }
+      }
+    },
+    {
+      "id": "V:textbody", "name": "semantic/color/text/body", "type": "COLOR", "collection": "Semantic",
+      "valuesByMode": {
+        "Light": { "type": "VARIABLE_ALIAS", "id": "V:gray900" },
+        "Dark": { "type": "VARIABLE_ALIAS", "id": "V:gray50" }
+      }
+    },
+    { "id": "V:spacesection", "name": "semantic/space/section", "type": "FLOAT", "collection": "Semantic", "value": { "type": "VARIABLE_ALIAS", "id": "V:space4" } },
+    { "id": "V:enabled", "name": "flags/is-enabled", "type": "BOOLEAN", "collection": "Primitives", "value": true },
+    { "id": "V:label", "name": "content/label", "type": "STRING", "collection": "Primitives", "value": "Hello" }
+  ],
+  "styles": [
+    { "id": "S:h1", "name": "Heading/H1", "type": "TEXT" },
+    { "id": "S:body", "name": "Body/Regular", "type": "TEXT" },
+    { "id": "S:shadowcard", "name": "Shadow/Card", "type": "EFFECT" },
+    { "id": "S:shadowoverlay", "name": "Shadow/Overlay", "type": "EFFECT" },
+    { "id": "S:brand", "name": "Brand/Primary", "type": "PAINT" }
+  ],
+  "counts": { "components": 3, "tokens": 12, "styles": 5 }
+}
