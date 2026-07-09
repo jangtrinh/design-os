@@ -57,6 +57,16 @@ node.setSharedPluginData(NS, 'op', 'radius-snapped');
 if (node.getSharedPluginData(NS, 'run') === runId) return; // already handled this run
 ```
 
+**Persist a state ledger to DISK for long builds (E2).** On any long operation — a 20–100
+call build or sweep — the model's own context truncates: the created-node ids, the
+section→node-id map, and the "which step am I on" all fall out of the window mid-run.
+Node tags survive on the canvas, but you still need an off-canvas index to know *what to
+look up*. Keep a JSON ledger on disk (`/tmp/easeDesign-{runId}.json`) — node ids, section
+map, completed steps, pending fixes — **write it after each step and RE-READ it at the top
+of each turn**. The file, not the conversation, is the source of truth for run state; that
+is what makes a half-finished build resumable after a stall. (Pairs with the E1 phase-gated
+recipe in `intent-recipes.md`, which drives this ledger phase by phase.)
+
 ### R5 — Clone-to-a-new-page safety + await-user-swap on team-owned frames
 Never mutate a **team-owned** frame in place. Default to writing to a **clone on a new page**
 (`figma.createPage()` + `setCurrentPageAsync`, page named `[FA …]`), do the work there, then
@@ -87,6 +97,14 @@ judge the result. A "the fix didn't apply" verdict off a single screenshot is of
 paint lag — verify with a second capture before retrying (see R8). Keep to the *minimal*
 scale that answers the question (F0 cost contract §3, minimal vision).
 
+**Screenshot individual sections by node id, not one reduced-res full view (D3).** A single
+whole-page capture is downscaled so far that the defects that matter — truncated text, a
+gray placeholder that never got a real image, a component showing the WRONG variant — are
+invisible at that resolution. For verification, screenshot each SECTION / major frame **by
+its node id** at a legible scale and inspect them one at a time. The full-view capture is
+for composition/spacing sanity only; correctness verdicts need per-section shots. (Balance
+against the F0 minimal-vision budget: shoot the sections you actually changed, not all.)
+
 ### R8 — Semantic-token-only color audit
 When auditing color, compare against the **semantic token layer only** (e.g.
 `color/surface`, `color/text-primary`) — never against raw primitive hexes or a flat palette
@@ -95,6 +113,26 @@ it binds a primitive instead of the semantic alias. Auditing against primitives 
 false "clean" verdicts (a raw hex that happens to equal a primitive) and false violations
 (a legitimately-bound primitive). Resolve the semantic layer, then check each fill's bound
 variable against it.
+
+### R9 — Traverse indexed, scope tight, batch awaits (performance)
+Big files punish naive traversal and serial awaits. Three habits keep operations fast (F1):
+- **Prefer `findAllWithCriteria({ types: [...] })` over `findAll(predicate)`.**
+  `findAllWithCriteria` is served from Figma's internal index and is dramatically faster than
+  a predicate `findAll`, which visits and tests every descendant in JS.
+- **Scope to the smallest KNOWN ancestor — never `figma.root.findAll`.** Search inside the
+  specific section/frame you already hold, not the whole document. A document-wide walk on a
+  large file is the classic hang; a scoped one is instant.
+- **Batch independent awaits with `Promise.all`.** Awaiting in a loop serializes network/IPC
+  round-trips. Fire independent async calls together — component imports, `getVariableByIdAsync`
+  lookups, `loadFontAsync` for a known font set — and await them as one:
+  ```js
+  await Promise.all(fonts.map(f => figma.loadFontAsync(f)));         // not a serial for-await loop
+  const [vA, vB] = await Promise.all([                               // parallel lookups
+    figma.variables.getVariableByIdAsync(idA),
+    figma.variables.getVariableByIdAsync(idB),
+  ]);
+  ```
+  (Only batch *independent* awaits — keep true dependencies sequential.)
 
 ## Cross-bridge harness gotchas
 
@@ -109,6 +147,18 @@ seat/bridge the selector chose (`figma-agent-hand.md` → Bridge selection).
 - **Verify before retry.** After any write op, confirm the result (read-back or a stable
   screenshot per R7) **before** retrying. A silent partial success followed by a blind retry
   duplicates nodes. Never retry on a single stale screenshot.
+- **Script atomicity is PER-BRIDGE — verify ours before relying on it (A8). ⚠️ CAVEATED.**
+  On the official Figma MCP (`use_figma`), a script runs **atomically**: if it throws
+  partway, nothing it did is committed — the canvas is exactly as before. There the retry
+  discipline is *stop → read the error → fix the script → re-run whole*, and blind retry is
+  never needed because a failed script left no partial mutation. **Our figma-agent `exec-js`
+  bridge may NOT be atomic** — a script that throws on line 20 may have already committed
+  lines 1–19 (partial mutation). **Do not assume atomicity on the figma-agent bridge; verify
+  it before relying on it.** Until confirmed, treat exec-js as non-atomic: make scripts
+  idempotent (R4 tags, resolve-or-create), read back what actually landed after a throw, and
+  never blind-retry a script that may have half-applied. The per-bridge difference changes
+  the whole retry contract — match it to the bridge you're on (`figma-agent-hand.md` →
+  Bridge selection).
 - **New nodes default to (0,0).** A freshly created node lands at `(0,0)` in its parent —
   explicitly set `x`/`y` (or append into an auto-layout parent) or every new node stacks at
   the origin. (figma-agent's import path centers roots; raw `create*` calls do not.)
