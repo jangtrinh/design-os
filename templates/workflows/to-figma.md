@@ -106,16 +106,34 @@ fonts, radius scale, grid legality, root sizing, fill-in-hug, etc. Fix each hit 
 **narrowest** targeted `exec-js` (specific node ids, never page-wide `findAll` mutations),
 then re-lint until clean.
 
-### 5. Critique loop (the eyes)
+### 5. SEE — the critique gate (the eyes)
 
-```bash
-$FA export-png --node <BUILT_FRAME_ID> --out out.png --scale 2
-```
+This step is a **gate, not a formality** — the `workflow-experience.md` "eyes" contract made
+explicit. Every build owes the designer an honest visual verdict before it can LAND.
 
-`Read` the PNG, then run ease-design's critique gate — `templates/workflows/critique.md`
-scored against the `knowledge/taste-rubric.md` axes. Fix the failing axis with targeted
-`exec-js`, re-export, re-score. Iterate to the ship bar or a hard cap of 5 rounds; an honest
-STOP beats a discounted ship.
+1. **Export minimal.** Crop to the changed/built region and use the **smallest scale that
+   answers the question** (F0 cost §3 — vision tokens are the loop's hidden cost; do not
+   re-Read unchanged areas):
+
+   ```bash
+   $FA export-png --node <BUILT_FRAME_ID> --out out.png --scale 1
+   ```
+
+2. **Read + score.** `Read` the PNG, then run ease-design's critique gate — invoke the
+   **`critique-rubric` skill** / `templates/workflows/critique.md`, scored against the
+   `knowledge/taste-rubric.md` axes. Do **not** duplicate rubric content here; the rubric is
+   the single source of the axes and the ship thresholds. Correctness (L1–L18 lint hit,
+   truncation, contrast, overlap) is a **pass/fail gate** — fix before any score.
+
+3. **Honest verdict, never "looks great" by default.** Give the 2–3 honest lines the eyes
+   contract owes: what changed · does it meet the intent · what's off — plus the PNG path
+   (auto-open where the runtime allows).
+
+4. **Refine the failing axes.** Fix the lowest-scoring axis with the **narrowest** targeted
+   `exec-js`, re-export (minimal), re-score.
+
+5. **Cap the rounds (≤ 3–5).** Iterate to the ship bar or the hard cap. An honest STOP with
+   the remaining gap beats a discounted ship.
 
 Once a canvas critique verdict is produced, record it (mirroring generate.md Step 6c, with the figma medium):
 
