@@ -13,8 +13,8 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 22 artifacts (14 workflows + 8 skills)", () => {
-    expect(makeArtifacts()).toHaveLength(22);
+  it("returns exactly 23 artifacts (15 workflows + 8 skills)", () => {
+    expect(makeArtifacts()).toHaveLength(23);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -23,7 +23,7 @@ describe("generateAntigravityAdapter", () => {
     }
   });
 
-  it("12 artifacts are workflow paths under .agent/workflows/ui-<verb>.md", () => {
+  it("15 artifacts are workflow paths under .agent/workflows/ui-<verb>.md", () => {
     const workflows = makeArtifacts().filter((a) =>
       a.absPath.includes(".agent/workflows/"),
     );
