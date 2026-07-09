@@ -34,6 +34,7 @@ export const WORKFLOW_VERBS = [
   "figma",
   "to-figma",
   "audit",
+  "design",
   "slides",
   "init",
 ] as const satisfies readonly string[];

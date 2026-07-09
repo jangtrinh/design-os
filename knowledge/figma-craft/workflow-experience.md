@@ -28,6 +28,8 @@ guesswork. Ambiguous → **one** cheap clarifying question, not a wall.
 
 | Designer says / drops | Job | Routed verb |
 |---|---|---|
+| "design a NEW screen / page from a requirement" (no source frame) | design a screen from scratch | `/ui:design` (screen scope) |
+| "design a NEW component" · "add a variant to `<component>`" | design a component from scratch | `/ui:design` (component scope) |
 | "rebuild this screen" + a Figma frame URL · "apply our DS" | rebuild a screen | `/ui:to-figma` (real-instance mode) |
 | "show every state / variant of X" | component-state board | state-board recipe (`intent-recipes.md`) |
 | "lay out the flow / all these screens" | journey / flow | flow layout (`intent-recipes.md`) |
