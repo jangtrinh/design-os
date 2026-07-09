@@ -50,6 +50,7 @@ designer would accept the *layer structure* of, not just the pixels.
 | Name layers, organize pages/sections, decide nesting depth, clean up after a build | `structure-hygiene.md` |
 | Apply color, type scale, effects (elevation/focus), radii, imagery — make it look designed | `visual-craft.md` |
 | Build a KNOWN pattern (card list, nav bar, form, table, modal, badge, hero...) | `intent-recipes.md` — check here FIRST; a matching recipe beats first-principles |
+| Operate on an EXISTING / team-owned file: rebuild against a live library, audit + normalize violations, re-run a build idempotently, or drive either bridge's harness | `canvas-operations.md` — the operating disciplines (real-instance, resolve-by-NAME, idempotent tagging, clone-safety, section sweeps, semantic-token audit, cross-bridge gotchas) |
 | Critique/score what was built | run ease-design's critique gate — `templates/workflows/critique.md` + the `knowledge/taste-rubric.md` axes (vision + systemic passes); for Figma-node structural checks, use "Construction lints" below |
 
 Order for a fresh screen: intent-recipes (pattern match) → layout-mastery (structure) →
@@ -117,6 +118,7 @@ visual review).
 - **L12 grid-legality** — GRID frames: never `setGridChildPosition` when `gridItemsPositioning==='ROW_AUTO_FLOW'` (throws); never set `gridRowCount` when `gridAutoTracks==='ROWS'` (throws — smoke-verified); no child anchored out of bounds.
 - **L13 root-sizing** — top-level screen frame has deliberate sizing: FIXED width (device/breakpoint), FIXED or HUG height — never accidental HUG width on a screen.
 - **L14 fill-in-hug** — no child set to FILL on an axis where the parent HUGs (degenerate cycle; pick which side owns the size — see `layout-mastery.md` §5).
+- **L15–L18 (operating on an existing file)** — icon-is-instance, semantic-token-color, section-sweep-complete, run-tagged idempotency. Definitions + harness in `canvas-operations.md` → "Checkable subset". Run these too whenever the build touched a file you did not create fresh (rebuild / audit / re-run).
 
 Minimal harness (fill in predicates from the referenced files):
 
@@ -139,7 +141,8 @@ FILL width" mappings). Check it before building any recognizable pattern; extend
 a build teaches a new lesson (that is how this knowledge compounds).
 
 Companion references (same directory): `layout-mastery.md` ·
-`components-variables-styles.md` · `structure-hygiene.md` · `visual-craft.md`.
+`components-variables-styles.md` · `structure-hygiene.md` · `visual-craft.md` ·
+`canvas-operations.md`.
 
 ## Provenance
 
