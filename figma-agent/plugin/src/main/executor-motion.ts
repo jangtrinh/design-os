@@ -65,7 +65,13 @@ export interface KeyframeStyle { opacity?: string; transform?: string }
 export interface KeyframeStepInput { offset: number; style: KeyframeStyle }
 export interface MotionTrackSpec { field: KeyframeField; track: ManualKeyframeTrackInput }
 
-/** Per-animatable-field value extractors (offset-style → number). */
+/**
+ * Per-animatable-field value extractors (offset-style → number).
+ * Names below are drawn from the PUBLIC Figma Motion transform allowlist
+ * (TRANSLATION_X/Y[/XY], ROTATION, SCALE_X/Y[/XY], plus absolute OPACITY/CORNER_RADIUS/…);
+ * we emit the X/Y form. Easing maps to EASE_IN_AND_OUT (the real enum) — never EASE_IN_OUT.
+ * See knowledge/motion-craft.md → "Figma canvas motion". Keep this allowlist in sync there.
+ */
 const FIELD_EXTRACTORS: { name: KeyframePropertyFieldName; get: (s: KeyframeStyle) => number | undefined }[] = [
   { name: 'OPACITY', get: (s) => (s.opacity !== undefined && s.opacity !== '' ? parseFloat(s.opacity) : undefined) },
   { name: 'TRANSLATION_X', get: (s) => parseTransform(s.transform).translateX },

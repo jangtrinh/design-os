@@ -98,8 +98,8 @@ existing components), default layer names on deliverables.
 
 ## Construction lints — run after EVERY build, before critique
 
-One combined exec-js walk over the built frame checks all fourteen lints below in one
-pass (same walker pattern used throughout this knowledge base). Fix hits via exec-js
+One combined exec-js walk over the built frame checks all the construction lints below in
+one pass (same walker pattern used throughout this knowledge base). Fix hits via exec-js
 (70–430ms per op, smoke-proven), then re-lint. These are construction-time checks — run
 them before handing off to any taste critique (ease-design's critique gate, or a manual
 visual review).
@@ -119,6 +119,7 @@ visual review).
 - **L13 root-sizing** — top-level screen frame has deliberate sizing: FIXED width (device/breakpoint), FIXED or HUG height — never accidental HUG width on a screen.
 - **L14 fill-in-hug** — no child set to FILL on an axis where the parent HUGs (degenerate cycle; pick which side owns the size — see `layout-mastery.md` §5).
 - **L15–L18 (operating on an existing file)** — icon-is-instance, semantic-token-color, section-sweep-complete, run-tagged idempotency. Definitions + harness in `canvas-operations.md` → "Checkable subset". Run these too whenever the build touched a file you did not create fresh (rebuild / audit / re-run).
+- **L19 text-fill-thread** (fresh-build, run alongside L1–L14) — no TEXT node with `layoutSizingHorizontal==='FILL'` while `textAutoResize==='WIDTH_AND_HEIGHT'`: that combination is silently ignored and collapses the text to a ~0-width vertical "thread" of stacked characters. Detect: `n.type==='TEXT' && n.textAutoResize==='WIDTH_AND_HEIGHT' && n.layoutSizingHorizontal==='FILL'` (or an already-collapsed `n.width` near 0 on a multi-character label). Fix per `layout-mastery.md` §5 (A2): switch `textAutoResize` off hug FIRST (`'HEIGHT'`), set `'FIXED'`, `resize(targetWidth, n.height)`, then assert `n.width>0`.
 
 Minimal harness (fill in predicates from the referenced files):
 
