@@ -466,6 +466,19 @@ the discipline that makes "rebuild a screen" a design-system workflow, not a moc
   `set.variantGroupProperties`); wrap in try/catch so an unknown value keeps the default and never aborts the build.
 - **Compose in auto-layout;** `i.layoutSizingHorizontal='FILL'` for inputs/rows that should stretch.
 - **Robust:** try/catch each instantiation, collect a `built`/`errs` report — one missing component never kills the screen.
+- **Set instance TEXT the managed way, not `node.characters` (B7). ⚠️ render-authority CAVEATED.**
+  For a *managed* text layer (one wired to a TEXT component property, `components-variables-styles.md`
+  §1.4), override its content via `i.setProperties({ '<textPropKey>': 'Save changes' })` using the
+  **discovered property key** (read it from `set.componentPropertyDefinitions` / `i.componentProperties`,
+  never hand-type the `#suffix`). **Discover NESTED-instance props first** — a button-inside-a-card exposes
+  its own text prop via `exposedInstances`; find the key on the right node before setting. The reason to
+  prefer `setProperties`: on the official runtime a managed layer's rendered text is authored by the
+  component property, so writing `node.characters` directly can be **overridden back** at render time.
+  **⚠️ This render-authority claim is `use_figma`-runtime-specific — verify it on the figma-agent
+  `exec-js` bridge before relying on it;** our bridge may render `node.characters` faithfully.
+  **Fallback:** for *unmanaged* text (a plain TEXT layer with no component property), set
+  `node.characters` directly — and load the node's OWN font first (`getRangeAllFontNames` →
+  `loadFontAsync`, `visual-craft.md` §1.1), never assume Inter.
 - **Verify:** export-png → Read → critique (the C5 gate). Set real text/tone per instance for a finished screen
   (default variant + text is fine for a scaffold).
 
@@ -494,6 +507,38 @@ As the live file is edited, diff the onboarded `component-registry.json` (C0) ag
   file). A rename shows as one missing (old name) + one extra (new name).
 - Report drift; re-`ingest-figma-ds` to refresh, or register the new/renamed components.
 - Skip generic-named junk (`Frame`, `Component 1`) — the same stoplist the audit uses (C1.1).
+
+---
+
+## 21. Build a design system in Figma — phase-gated (E1)
+
+Building a whole DS in Figma is a LONG, multi-call job; run it as ordered phases with a
+gate between each, not one heroic script. **Tokens ALWAYS come before components** — a
+component built before its tokens exist hardcodes raw values and has to be redone. Drive the
+whole thing off a **disk state ledger** (`canvas-operations.md` E2, `/tmp/easeDesign-{runId}.json`)
+so a stall mid-phase resumes instead of restarting.
+
+- **Phase 0 — Discovery + gap analysis.** Inventory what already exists: local variables/collections
+  AND the library surface (`search_design_system` / `scan-design-system` — "empty local" ≠ "none exist",
+  `components-variables-styles.md` §3.6 C4). List the components the product needs; diff against what's
+  present → the gap list. Write the plan (needed tokens, collections, components) to the ledger. NO writes yet.
+- **Phase 1 — Tokens (FIRST, always).** Create collections + variables via resolve-or-create (§3.6):
+  primitives → semantic aliases (VARIABLE_ALIAS, never duplicated raw values, §3.3) → set **scopes**
+  (role-based, `[]` on primitives, C1) and **`setVariableCodeSyntax`** (WEB `var()` wrapper, C2) on every
+  variable. Rename `Mode 1` (C3). Architecture scales with count (§3.3 C3). Gate: second run reports reuse.
+- **Phase 2 — File structure.** Lay out the DS pages/sections (`[tokens]`, `[components]`, `[docs]`) per
+  `structure-hygiene.md`; wrapper frames first (D1). This is the skeleton components will land in.
+- **Phase 3 — Components, ONE at a time.** Build each component fully — auto-layout, variants named
+  `Prop=Value`, properties wired (§1.4), fills/radii/gaps **bound to the Phase-1 tokens** (not raw values) —
+  then screenshot-verify THAT component (D3) and tag it in the ledger before starting the next. Never
+  batch many components into one blind call; one finished + verified component per step.
+- **Phase 4 — QA.** Run the construction lints (`figma-craft.md` L1–L19) + the critique gate across the set;
+  fix the narrowest hits; confirm every component instance binds semantic tokens (L6) and zero detached
+  instances remain (§2.4).
+
+Per-phase checklist lives in the ledger; each phase writes its `done` marker so a re-run skips completed
+phases (resume, don't rebuild — `canvas-operations.md` R4/E2). Grounds on §3 (variables), §1 (components),
+and the phase-gated cost contract in `workflow-experience.md`.
 
 ---
 

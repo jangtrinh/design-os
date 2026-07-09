@@ -80,6 +80,21 @@ front step **and a cost hotspot** — handle it disciplined:
 - The reference brief feeds SCOPE/PLAN as a prior. Precedence stays: **explicit brief >
   references > project memory (`ui memory`) > knowledge floors.**
 
+### 2c. Build ordering — wrapper first, one section per call (D1)
+
+How the BUILD step is *sequenced* across calls is itself make-or-break:
+
+- **Build the wrapper frame FIRST, then create each section INSIDE it.** Establish the
+  page's outer auto-layout frame, then append sections as its children as you go.
+- **Do NOT create sections as page children and reparent them later.** A cross-call
+  `appendChild` to move a section under the wrapper **silently orphans** it — the reparent
+  reads as success but the node ends up detached or mis-nested, and the failure is invisible
+  until a screenshot. Parent correctly on creation; never build-then-move across calls.
+- **One section per call, and validate a screenshot of THAT section before the next (D3 in
+  `canvas-operations.md`).** This keeps each write small, catches a broken section
+  immediately, and — with the disk state ledger (E2) — makes a long build resumable. Batch
+  ops *within* a section; do not batch multiple whole sections into one blind mega-call.
+
 ### 3. Session context (set once, never re-ask)
 
 Project · Figma file key · design-system / registry · **seat** — captured once into a project
@@ -94,6 +109,14 @@ export-png (minimal scale / cropped to the changed region) → `Read` → **2–
 the runtime allows, else just the path). Critique is honest — never "looks great" by default.
 The designer always knows the current visual state without opening Figma. The scoring form of
 this step is the critique gate (`taste-rubric.md` axes via `templates/workflows/critique.md`).
+
+**Assert the FONT FAMILY explicitly as part of the eyes contract (D2).** A successful
+`loadFontAsync` of the WRONG font is a *silent* failure — the call resolves, text renders,
+nothing throws, and the design is quietly off-brand. So the visual confirmation must include
+an explicit font check: identify the product's real font **from the source** (the reference
+capture, the codebase, the DS) and assert the built text uses that family — read back
+`node.fontName.family` and compare, don't eyeball it. **Never default to Inter** because it
+loaded cleanly; a clean load says nothing about correctness. Wrong-font is a fail, not a nit.
 
 ### 5. Trust & safety (it's their live file)
 
