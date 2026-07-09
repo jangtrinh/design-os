@@ -17,6 +17,7 @@ import * as htmlToFigma from './commands/html-to-figma.ts';
 import * as scanDesignSystem from './commands/scan-design-system.ts';
 import * as setAutolayout from './commands/set-autolayout.ts';
 import * as setConstraints from './commands/set-constraints.ts';
+import * as seat from './commands/seat.ts';
 import * as setText from './commands/set-text.ts';
 import * as setVariant from './commands/set-variant.ts';
 import * as status from './commands/status.ts';
@@ -72,6 +73,7 @@ export function parseArgs(argv: string[]): CommandArgs {
 
 const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown> }> = {
   status,
+  seat,
   'get-selection': getSelection,
   'scan-design-system': scanDesignSystem,
   'create-frame': createFrame,
@@ -95,6 +97,7 @@ Usage: figma-agent <command> [options]
 
 Commands:
   status               Broker + plugin connection info
+  seat                 Probe seat → {seat, bridge, reason} [--seat free|paid skips the probe]
   get-selection        Serialize the current selection [--depth 1]
   scan-design-system   Components/variables/styles registry [--out file.json]
   create-frame         --name n --w 400 --h 300 [--parent id --x 0 --y 0]

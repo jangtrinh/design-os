@@ -48,6 +48,33 @@ $FA status   # spawns the broker if absent; needs the plugin open in Figma
 | `exec-js file.js [--timeout ms]` | arbitrary Plugin-API JS (self-hosted `use_figma`) |
 | `batch ops.json` | many ops, one round-trip (3 ops ≈ 74ms) |
 
+## Bridge selection — which hand to drive (seat-adaptive)
+
+ease-design drives ONE of two Figma write bridges, chosen by seat. Never hardcode a
+bridge — ask the selector once per session and carry the answer (F0 §3, session context):
+
+```bash
+$FA seat            # probe once → {seat, bridge, reason}
+$FA seat --seat paid # skip the probe, force the paid route (see note below)
+```
+
+| Seat | `bridge` | What ease-design drives | Why |
+|---|---|---|---|
+| **free / starter** | `figma-agent-cli` | this CLI (ease-design's own hand) | Plugin API, editor rights on Figma Free, native variable binding — no paid seat, no DesignAgent, no hand-built binder |
+| **paid (full / dev)** | `figma-mcp` | the official Figma MCP (`use_figma`, richer reads, motion skills) | matches the designer's current best path; ease-design orchestrates it |
+
+**DesignAgent is NOT adopted** — the figma-agent CLI supersedes it on every seat.
+
+How the probe works (cheapest-first): STATUS round-trip for plugin connectivity → a
+throwaway `setSharedPluginData` write (immediately cleared) for editor rights → classify.
+The seat→bridge decision is a pure, unit-tested routing table (`cli/src/seat/routing.ts`);
+the probe is the non-deterministic hand.
+
+**Note on `paid`:** the Plugin API exposes no seat/entitlement signal, so a paid Figma
+MCP seat is not probe-detectable. The probe positively confirms the free/editor-rights
+path and defaults there; select the official MCP with an explicit `--seat paid`. The
+`reason` field always states which path was taken and why.
+
 ## The loop (how a senior designer works)
 
 1. Build (`html-to-figma` or native commands) → 2. `export-png` + `Read` the image →
