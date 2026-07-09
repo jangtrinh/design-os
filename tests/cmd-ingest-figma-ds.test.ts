@@ -30,6 +30,7 @@ function capture(args: string[]): { code: number; out: string; err: string } {
 }
 
 const DS = resolve(__dirname, "fixtures/figma-ds/ds.json");
+const DS_MIXED = resolve(__dirname, "fixtures/figma-ds/ds-mixed.json");
 const savedHome = process.env["EASE_DESIGN_HOME"];
 let home: string;
 let out: string;
@@ -55,8 +56,8 @@ describe("ui ingest-figma-ds — happy path", () => {
     const { code, env } = json(["ingest-figma-ds", DS, "--out", out, "--json"]);
     expect(code).toBe(0);
     expect(env.ok).toBe(true);
-    const counts = env.data.counts as { tokens: number; components: number; styles: number };
-    expect(counts).toEqual({ tokens: 12, components: 3, styles: 5 });
+    const counts = env.data.counts as { tokens: number; components: number; styles: number; icons: number; screens: number };
+    expect(counts).toEqual({ tokens: 12, components: 3, styles: 5, icons: 0, screens: 0 });
     const tiers = env.data.tiers as { primitives: number; semantics: number; skippedTokens: number };
     expect(tiers.primitives).toBe(7); // 4 colors + space + weight + family
     expect(tiers.semantics).toBe(3);  // primary, text-body, section (all aliases)
@@ -101,7 +102,7 @@ describe("ui ingest-figma-ds — happy path", () => {
     const list = json(["registry", "list", "--file", reg, "--json"]);
     expect(list.env.data.count).toBe(3);
     const names = (list.env.data.components as Array<{ name: string }>).map((c) => c.name);
-    expect(names).toEqual(["Button", "Card/Elevated", "Icon"]); // sorted by name
+    expect(names).toEqual(["Badge", "Button", "Card/Elevated"]); // sorted by name
 
     const button = json(["registry", "lookup", "Button", "--file", reg, "--json"]);
     const comp = button.env.data.component as { category: string; variants: string[]; description: string };
@@ -152,6 +153,85 @@ describe("ui ingest-figma-ds — happy path", () => {
     const a = mkdtempSync(join(tmpdir(), "ease-a-"));
     const b = mkdtempSync(join(tmpdir(), "ease-b-"));
     const args = (o: string): string[] => ["ingest-figma-ds", DS, "--out", o, "--name", "X", "--now", "2026-07-09T00:00:00.000Z"];
+    capture(args(a));
+    capture(args(b));
+    for (const f of ["tokens.json", "component-registry.json", "DESIGN.md"]) {
+      expect(readFileSync(join(a, f), "utf8")).toBe(readFileSync(join(b, f), "utf8"));
+    }
+  });
+});
+
+describe("ui ingest-figma-ds — C0.1 classification (icons bulked, screens separated)", () => {
+  // ds-mixed.json: 2 real components (Button, Card), 3 icons (Icon, Icon / X,
+  // Icon / Search, lucide-menu → 4), 2 screens (01 · Foo, 10 · Bar).
+  it("keeps the registry to real components — icons/screens excluded", () => {
+    const { env } = json(["ingest-figma-ds", DS_MIXED, "--out", out, "--json"]);
+    const counts = env.data.counts as { components: number; icons: number; screens: number };
+    expect(counts.components).toBe(2); // Button, Card only
+    expect(counts.icons).toBe(4);      // Icon, Icon / X, Icon / Search, lucide-menu
+    expect(counts.screens).toBe(2);    // 01 · Foo, 10 · Bar
+    expect(env.data.componentsRegistered).toBe(2);
+    expect(env.data.icons).toBe(4);
+    expect(env.data.screens).toBe(2);
+
+    // The on-disk registry has ONLY the real components — no icon/screen rows.
+    const reg = join(out, "component-registry.json");
+    const list = json(["registry", "list", "--file", reg, "--json"]);
+    expect(list.env.data.count).toBe(2);
+    const names = (list.env.data.components as Array<{ name: string }>).map((c) => c.name);
+    expect(names).toEqual(["Button", "Card"]);
+    expect(names).not.toContain("Icon");
+    expect(names).not.toContain("Icon / X");
+    expect(names).not.toContain("01 · Foo");
+  });
+
+  it("documents icons in bulk and screens separately in DESIGN.md", () => {
+    capture(["ingest-figma-ds", DS_MIXED, "--out", out, "--name", "Mixed DS"]);
+    const md = readFileSync(join(out, "DESIGN.md"), "utf8");
+    // Inventory line carries the classified breakdown.
+    expect(md).toContain("1 variables · 2 components · 4 icons · 2 screens · 1 styles");
+    // Icons: one bulk note, not four component rows.
+    expect(md).toContain("## Icons");
+    expect(md).toContain("4 icons (icon-set)");
+    // Screens: separated + flagged as NOT DS components.
+    expect(md).toContain("## Screens");
+    expect(md).toContain("NOT design-system components");
+    expect(md).toContain("`01 · Foo`");
+    expect(md).toContain("`10 · Bar`");
+    // Real components still listed.
+    expect(md).toContain("`Button`");
+    expect(md).toContain("`Card`");
+  });
+
+  it("aggregates icons/screens into single memory events — never one-per-icon", () => {
+    const nowIso = "2026-07-09T00:00:00.000Z";
+    capture(["ingest-figma-ds", DS_MIXED, "--out", out, "--seed-memory", "--now", nowIso]);
+    const q = json(["memory", "query", "--dir", out, "--json"]);
+    const events = q.env.data.events as Array<{ type: string; data: Record<string, unknown> }>;
+
+    // One component_registered per REAL component (2), not per icon.
+    const registered = events.filter((e) => e.type === "component_registered");
+    expect(registered).toHaveLength(2);
+    const registeredNames = registered.map((e) => String(e.data["name"])).sort();
+    expect(registeredNames).toEqual(["Button", "Card"]);
+    // No per-icon rows leaked in as components.
+    expect(registeredNames).not.toContain("Icon");
+
+    // Icons + screens each folded into a single harvested event (+1 provenance = 3).
+    const harvested = events.filter((e) => e.type === "harvested");
+    expect(harvested).toHaveLength(3);
+    const whats = harvested.map((e) => String(e.data["what"]));
+    expect(whats.some((w) => w.includes("4 icons"))).toBe(true);
+    expect(whats.some((w) => w.includes("2 screens"))).toBe(true);
+
+    // Total ledger stays tiny (< 10), NOT ~1-per-scanned-node.
+    expect(events.length).toBeLessThan(10);
+  });
+
+  it("is deterministic on the mixed fixture — identical bytes", () => {
+    const a = mkdtempSync(join(tmpdir(), "ease-ma-"));
+    const b = mkdtempSync(join(tmpdir(), "ease-mb-"));
+    const args = (o: string): string[] => ["ingest-figma-ds", DS_MIXED, "--out", o, "--name", "M", "--now", "2026-07-09T00:00:00.000Z"];
     capture(args(a));
     capture(args(b));
     for (const f of ["tokens.json", "component-registry.json", "DESIGN.md"]) {
