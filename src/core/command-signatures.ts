@@ -148,6 +148,20 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  audit: {
+    summary: "Deterministic DS-violation audit of a structured node export",
+    signature: {
+      summary: "Audit a node-export JSON against a DS spec; exit 1 on any violation",
+      positionals: [{ name: "<nodes.json>", required: true, summary: "Structured node export (a node or array of nodes)" }],
+      flags: [
+        { name: "tokens", type: "string", summary: "DTCG token file; enables the raw-hex-vs-token check" },
+        { name: "registry", type: "string", summary: "Component registry; enables detached/raw-icon/deprecated checks" },
+        { name: "grid", type: "string", summary: "Base grid for off-grid radius/spacing (default 4)" },
+      ],
+      errorCodes: [...IO_CODES, "BAD_JSON"],
+    },
+  },
+
   registry: {
     summary: "Component registry store",
     subcommands: {

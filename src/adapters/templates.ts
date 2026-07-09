@@ -17,8 +17,9 @@ import { createHash } from "node:crypto";
 // ─── Registries ───────────────────────────────────────────────────────────────
 
 /**
- * All user-facing workflow verbs. "init" is synthetic (no template file).
- * The remaining 11 correspond to files in templates/workflows/.
+ * All user-facing workflow verbs. "init" is synthetic (no template file). The
+ * rest correspond to files in templates/workflows/ (critique.md is a build
+ * sub-step, not a directly-invoked verb, so it is intentionally absent).
  */
 export const WORKFLOW_VERBS = [
   "generate",
@@ -32,6 +33,7 @@ export const WORKFLOW_VERBS = [
   "from-url",
   "figma",
   "to-figma",
+  "audit",
   "slides",
   "init",
 ] as const satisfies readonly string[];

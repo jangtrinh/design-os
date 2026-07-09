@@ -18,7 +18,10 @@ const FAKE_SKILL_TPL = `${FAKE_TEMPLATES}/skills/pick-persona.md`;
 
 // ─── Shared assertions ────────────────────────────────────────────────────────
 
-const PLAN_REF_PATTERN = /phase[-_ ]\d|finding|F\d+|audit|OD-\d/i;
+// NOTE: `audit` is intentionally NOT here — `/ui:audit` is a shipped product
+// verb that legitimately appears in generated wrappers. This pattern guards
+// against internal PLAN/PHASE/FINDING references leaking in, not product verbs.
+const PLAN_REF_PATTERN = /phase[-_ ]\d|finding|F\d+|OD-\d/i;
 
 function assertNoPlanRefs(output: string, label: string): void {
   expect(

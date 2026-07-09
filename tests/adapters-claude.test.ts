@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateClaudeAdapter", () => {
-  it("returns exactly 21 artifacts (13 commands + 8 skills)", () => {
+  it("returns exactly 22 artifacts (14 commands + 8 skills)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length);
-    expect(arts).toHaveLength(21);
+    expect(arts).toHaveLength(22);
   });
 
   it("all artifacts have mode 'write'", () => {
