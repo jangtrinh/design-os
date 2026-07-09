@@ -136,6 +136,11 @@ bounded, stated answer.
    user-set depth/budget; the router picks the **cheapest path that satisfies the intent**.
 9. **Lean knowledge loading.** Route to the ONE minimal knowledge file a step needs; read a
    compact index tier first, deep files only when the task requires them.
+10. **Plugin-distill, not MCP-dump.** To read a whole section/file (conventions, audit, usage
+    DNA), run an in-plugin `exec-js` aggregate that returns only the compact summary — never dump
+    `get_metadata`/`get_design_context` for a section (a page can be ~242K tokens; the distill is
+    ≈85× smaller). See `figma-agent-hand.md` §"Reading a whole section". (`figma-agent
+    scan-conventions` packages this.)
 
 ---
 

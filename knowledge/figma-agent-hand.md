@@ -93,6 +93,17 @@ const n = await figma.getNodeByIdAsync('123:45');   // ALWAYS *Async (dynamic-pa
 for (const f of n.getRangeAllFontNames(0, n.characters.length)) await figma.loadFontAsync(f);
 ```
 
+## Reading a whole section/file — distill in the plugin, never dump (≈85× cheaper)
+
+To understand many screens at once (conventions, audits, usage DNA) do NOT pull them through
+`get_metadata` / `get_design_context` — a single page can be ~242K tokens. Instead run an
+`exec-js` walk that **aggregates inside Figma** and returns only the compact summary (token-binding
+%, auto-layout %, radius/spacing histograms, component + font counts) — ~700 tokens for ~9K nodes,
+≈**85× smaller**. The heavy tree stays in Figma; only the conclusion crosses the wire. Cap the walk
+with a node budget and report truncation (no silent cap). `figma-agent scan-conventions <sectionId…>`
+packages exactly this walk. **Rule: whole-section/file reads always walk-and-aggregate in the
+plugin; never MCP-dump a section.**
+
 ## Proven recipes (learned the hard way — reuse them)
 
 1. **Read an existing design before rebuilding it**: exec-js walk (name/type/size/layoutMode/gap/pad/fill-hex/radius/text/font per node, depth-capped) + `export-png` the original. Gives exact tokens — no guessing colors.

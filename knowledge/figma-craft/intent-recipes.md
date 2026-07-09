@@ -409,6 +409,27 @@ transitions + `@keyframes` — which is where hover/focus/entrances/carousels li
 
 ---
 
+## 16. Learn conventions from real screens (C7 — companion to C0 onboarding)
+
+C0 (`ui ingest-figma-ds`) captures the DS **vocabulary** (tokens/components). This captures the
+**grammar** — how screens actually use it, as measured DO/DON'T house style.
+
+1. Bridge via the seat-adaptive selector.
+2. Distill usage DNA **in-plugin** (never MCP-dump a section — see `figma-agent-hand.md`
+   §"Reading a whole section", ≈85× cheaper):
+   `figma-agent scan-conventions <sectionId…> --out usage-dna.json`
+   → per section: token-binding %, auto-layout %, radius/spacing histograms, component + font counts.
+3. Synthesize (deterministic, zero-token):
+   `ui synthesize-conventions usage-dna.json --ds tokens.json --out . --seed-memory`
+   → `CONVENTIONS.md` — **DO** = the dominant pattern; **DON'T** = off-grid spacing / off-scale
+   radius / raw-unbound fills / stray fonts / deprecated-in-use, cross-referenced to the DS so valid
+   tokens are NOT flagged — plus `ui memory` prefers/avoids insights.
+4. The DON'Ts become `/ui:audit` convention rules; the profile grounds `/ui:generate` in the house style.
+
+Onboarding is complete only with BOTH: C0 (vocabulary) + C7 (grammar).
+
+---
+
 ## Recipe → lint map (maps to figma-craft.md's construction lints)
 
 | Recipe | Guards against |
