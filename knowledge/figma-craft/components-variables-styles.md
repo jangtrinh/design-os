@@ -69,6 +69,18 @@ compDisabled.name = 'State=Disabled';
   existing components.
 - Renaming a variant child to a non-`Prop=Value` shape silently creates a property
   named after the whole string — lint for `=` in every child name of a `COMPONENT_SET`.
+- **Post-combine geometry (B4):** immediately after `combineAsVariants` the variant
+  children all stack at `(0, 0)` overlapping. Size the set from the ACTUAL child bounds —
+  walk the children for `max(x + width)` / `max(y + height)` and `resize()` the set to that
+  (Figma's own auto-layout on the set will then space them). NEVER size it from a formula
+  like `cols * cardWidth + gaps`: variant children differ in size and the formula clips or
+  leaves dead space.
+
+```js
+const maxX = Math.max(...set.children.map(c => c.x + c.width));
+const maxY = Math.max(...set.children.map(c => c.y + c.height));
+set.resize(maxX, maxY);   // from real bounds, never a formula
+```
 - Provenance: https://developers.figma.com/docs/plugins/api/figma/#combineasvariants ·
   naming convention: https://help.figma.com/hc/en-us/articles/360056440594 (Create and
   use variants).
@@ -76,7 +88,8 @@ compDisabled.name = 'State=Disabled';
 ### 1.4 Component properties — definitions
 
 `componentPropertyDefinitions` (readonly map) + three mutators. Types:
-`'VARIANT' | 'BOOLEAN' | 'TEXT' | 'INSTANCE_SWAP'` (+ newer `'SLOT'`, ignore until needed).
+`'VARIANT' | 'BOOLEAN' | 'TEXT' | 'INSTANCE_SWAP'` (+ newer `'SLOT'` — build via
+`createSlot()`, see §1.6).
 
 ```js
 const set = await figma.getNodeByIdAsync('<COMPONENT_SET_ID>');
@@ -94,7 +107,15 @@ return set.componentPropertyDefinitions; // { 'State': {type:'VARIANT', variantO
 Rules that bite:
 - **VARIANT properties are only creatable on `ComponentSetNode`** (they come from child
   names, §1.3); `addComponentProperty('X','VARIANT',…)` on a plain `ComponentNode` throws.
-  BOOLEAN/TEXT/INSTANCE_SWAP work on both `ComponentNode` and `ComponentSetNode`.
+  BOOLEAN/TEXT/INSTANCE_SWAP work on a standalone `ComponentNode` and on a `ComponentSetNode`.
+- **But NOT on a variant child of a set (B3):** once a component is combined into a set,
+  calling `addComponentProperty` on that individual variant `ComponentNode` throws. Two legal
+  orders: add the BOOLEAN/TEXT/INSTANCE_SWAP props on each component BEFORE
+  `combineAsVariants`, or add them on the parent `COMPONENT_SET` AFTER combining. Never on a
+  variant child post-combine.
+- **`addComponentProperty` RETURNS the property key as a plain STRING (B1)** — e.g.
+  `"label#4:0"`. Use that return value directly. `Object.keys(result)[0]` is a BUG (the
+  return is a string, not a map — indexing its keys yields `"0"`/a character, not the key).
 - **Keep the returned name** (with `#suffix`) — you need it verbatim for
   `componentPropertyReferences` and `setProperties`. Never hand-type the suffix.
 - `deleteComponentProperty(name)` works for BOOLEAN/TEXT/INSTANCE_SWAP; VARIANT props are
@@ -114,6 +135,14 @@ icon.componentPropertyReferences = { mainComponent: iconProp,    // INSTANCE_SWA
 
 Wire the SAME references in every variant child (walk all children of the set), or the
 property silently stops working on the unwired variants.
+
+**The reference key is fixed by property type (B2)** — `componentPropertyReferences` only
+accepts these keys, one per capability: **`characters`** (a TEXT prop → the text layer's
+content), **`visible`** (a BOOLEAN prop → the layer's visibility), **`mainComponent`** (an
+INSTANCE_SWAP prop → which component an inner INSTANCE renders). A TEXT prop wired to
+anything but `characters`, or a BOOLEAN wired to anything but `visible`, does nothing.
+Until this wiring exists the property is completely inert — the definition alone changes
+nothing on the canvas.
 Provenance: https://developers.figma.com/docs/plugins/api/node-properties/ →
 `componentPropertyReferences`.
 
@@ -135,6 +164,27 @@ card.exposedInstances[0].setProperties({ State: 'Hover' });
 
 - Provenance: https://developers.figma.com/docs/plugins/api/InstanceNode/
   (`isExposedInstance`, `exposedInstances`).
+
+### 1.6 Property-count discipline & slots
+
+- **Swappable content = ONE INSTANCE_SWAP prop, never a variant-per-icon (B5).** An icon,
+  avatar, or badge that varies by *which* glyph shows is an INSTANCE_SWAP property whose
+  `preferredValues` list the candidate components — NOT a `Icon=Home | Icon=Search | …`
+  variant axis. Variant-per-icon explodes the matrix and can't grow without editing the set.
+- **Cap the variant matrix at ~30 (B5).** `Size × Style × State` multiplies fast
+  (3 × 4 × 3 = 36 already over). When the product of axes exceeds ~30, factor a dimension
+  OUT into a nested sub-component (e.g. the icon becomes an INSTANCE_SWAP, the size becomes
+  a token-driven prop) rather than enumerating every combination. Huge sets are slow, hard
+  to wire consistently (§1.4), and usually mean an axis wants to be a property, not a variant.
+- **Slots (B6)** — for "put arbitrary consumer content here" regions (card body, dialog
+  content):
+  - Prefer **`component.createSlot()`**: it creates the slot node AND auto-wires the SLOT
+    property for you. Hand-adding a `'SLOT'` property is the error-prone path.
+  - **GRID `layoutMode` is banned on a slot node** — use HORIZONTAL/VERTICAL auto-layout
+    (or NONE); setting GRID on a slot throws.
+  - **`instance.setProperties()` THROWS for slot content** — a slot is not a value you set.
+    Populate a slot on an instance by APPENDING children into the slot node
+    (`slotNode.appendChild(...)`), not via the properties API.
 
 ---
 
@@ -225,6 +275,15 @@ const all = await figma.variables.getLocalVariableCollectionsAsync();
   in a paid org — on a personal Free draft assume **1 mode**; design token architecture
   accordingly (theme = separate semantic collections if stuck on Free, modes when the
   plan allows).
+- Published Figma design-system skill guidance quotes a coarser tiering
+  (**Free = 1 / Pro = 4 / Org = 40+**), which differs from the Schema-2025 numbers above —
+  Figma has changed these over time. Treat the exact cap as **plan- AND date-dependent**:
+  the authoritative check is `addMode`'s throw message (*"Limited to N modes only"*), not a
+  memorized number. Design for 1 mode on Free regardless.
+- **Rename the default mode immediately (C3).** A new collection's first mode is named
+  `'Mode 1'` — rename it (`renameMode(modes[0].modeId, 'Light')` or `'Value'`) before adding
+  variables. Leaving `'Mode 1'` is a hygiene smell and produces confusing codegen/column
+  headers.
 - Provenance: https://help.figma.com/hc/en-us/articles/35794667554839 (Schema 2025 mode
   limits) · https://help.figma.com/hc/en-us/articles/15145852043927 (5,000/collection) ·
   plan matrix: https://help.figma.com/hc/en-us/articles/360040328273
@@ -262,6 +321,15 @@ semantic.setValueForMode(modeId, figma.variables.createVariableAlias(primitiveVa
 return semantic.resolveForConsumer(someNode); // {value, resolvedType}
 ```
 
+- **Semantic tokens ALWAYS alias primitives via `VARIABLE_ALIAS` (C3)** — never re-enter a
+  raw hex/number at the semantic tier; the alias is the whole point (change the primitive,
+  every semantic follows). Duplicated raw values are a systems defect.
+- **Architecture scales with token count (C3):**
+  - **< ~50 tokens** → ONE collection, 2 modes (Light/Dark) is plenty.
+  - **~50–200 tokens** → split into collections by concern: **Primitives** (scopes `[]`,
+    §3.5) + **Color** (Light/Dark modes, aliases into Primitives) + **Spacing** +
+    **Typography**. Keeping primitives in their own collection is what makes the semantic
+    collections readable.
 - Slash names (`color/bg/action`) render as a folder tree in the Figma variables UI —
   the naming IS the taxonomy.
 - Provenance: https://developers.figma.com/docs/plugins/api/figma-variables/#createvariablealias ·
@@ -328,9 +396,37 @@ Two facts that matter:
 - **Scopes filter the Figma UI pickers only — the API ignores them.** `setBoundVariable`
   will happily bind a `CORNER_RADIUS`-scoped var to `itemSpacing`. Discipline is on you;
   set scopes anyway so human collaborators get clean pickers.
-- Default is `['ALL_SCOPES']` — a file where every color offers itself for every fill is
-  a hygiene smell. Scope semantic-tier variables tightly; primitives may stay broad.
+- **Never ship a variable at `['ALL_SCOPES']` (C1)** — a file where every color offers
+  itself for every fill is a hygiene smell. Set an explicit scope by role:
+  - background fills → `['FRAME_FILL', 'SHAPE_FILL']`
+  - text color → `['TEXT_FILL']`
+  - spacing / gap → `['GAP']`
+  - corner radius → `['CORNER_RADIUS']`
+  - **primitives you want HIDDEN from every picker → `[]`** (empty array): the semantic tier
+    aliases them (§3.3), so raw primitives should never be pickable directly — an empty
+    `scopes` removes them from the UI while leaving them bindable by alias.
 Provenance: https://developers.figma.com/docs/plugins/api/Variable/ (`scopes`).
+
+#### 3.5.1 Code syntax — the dev-mode / codegen name (C2)
+
+Scopes steer the design picker; **`setVariableCodeSyntax` steers what developers copy.** Set
+it per variable so Dev Mode and codegen emit the real token name instead of `var-12-3`.
+
+```js
+v.setVariableCodeSyntax('WEB', 'var(--color-bg-action)');  // WEB: wrap in var()
+v.setVariableCodeSyntax('ANDROID', 'color_bg_action');
+v.setVariableCodeSyntax('iOS', 'colorBgAction');
+```
+
+- **WEB uses the `var(--…)` wrapper**, not a bare custom-property name — that's what pastes
+  straight into CSS.
+- **Deriving the CSS name from a slash path: replace BOTH `/` AND spaces with `-`** (and
+  lowercase). `color/bg/action` → `--color-bg-action`; `Color/Bg Action` → `--color-bg-action`.
+  A common bug replaces only slashes, leaving a space that's illegal in a custom property.
+- If your token source already carries a `cssVar` field, **reuse it verbatim** rather than
+  re-deriving — the source is authoritative and avoids drift.
+Provenance: https://developers.figma.com/docs/plugins/api/Variable/
+(`setVariableCodeSyntax`, `codeSyntax`).
 
 ### 3.6 NO getVariableByName → resolve-or-create (the load-bearing pattern)
 
@@ -350,6 +446,14 @@ Exposed as `figma-agent create-variable …` → returns `{id, name, reused}` �
 replicate the same lookup before ANY `createVariable`; matching by NAME instead of value
 is also valid when your token registry owns naming (name = identity, then update the
 value). Never create blind.
+
+**"Empty local" ≠ "none exist" (C4).** `getLocalVariableCollectionsAsync()` /
+`getLocalVariablesAsync()` see **LOCAL variables only** — variables that live in a
+team/published LIBRARY (remote) do NOT appear. The official `use_figma` runtime exposes
+`search_design_system({ includeVariables: true })`, which DOES see library/remote assets;
+our figma-agent analog is `scan-design-system`. So before concluding "this file has no
+tokens, I'll create fresh ones," check the library surface too — otherwise you duplicate a
+design system that already exists remotely.
 
 ### 3.7 Publish limits on Free
 
