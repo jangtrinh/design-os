@@ -303,9 +303,11 @@ export function buildFrameNode(el: HTMLElement, cs: CSSStyleDeclaration, win: Wi
       if (effect) effects.push(effect);
     }
     if (effects.length > 0) node.effects = effects;
-    // Track 5 COPY #8: a shadow with a positive spread needs the node to clip
-    // so Figma renders the spread ring correctly (esp. inset shadows).
-    if (effects.some((e) => (e.spread || 0) > 0)) node.clipsContent = true;
+    // Track 5 COPY #8: only an INSET (inner) shadow with positive spread needs the
+    // node to clip so Figma renders the spread ring. A drop shadow with spread (incl.
+    // our outline synth) renders OUTSIDE the box and must NOT force clipping — doing so
+    // would crop overflowing children on cards with spread drop-shadows.
+    if (effects.some((e) => e.type === 'INNER_SHADOW' && (e.spread || 0) > 0)) node.clipsContent = true;
   }
 
   // ─── Opacity (skip near-zero animation artifacts)

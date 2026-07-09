@@ -762,7 +762,7 @@
         if (effect) effects.push(effect);
       }
       if (effects.length > 0) node.effects = effects;
-      if (effects.some((e) => (e.spread || 0) > 0)) node.clipsContent = true;
+      if (effects.some((e) => e.type === "INNER_SHADOW" && (e.spread || 0) > 0)) node.clipsContent = true;
     }
     const opacity = parseFloat(cs.opacity);
     if (opacity < 1 && opacity > 0.01) node.opacity = opacity;
