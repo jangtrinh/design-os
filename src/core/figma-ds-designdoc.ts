@@ -11,6 +11,7 @@
  */
 import type { DtcgTree, DtcgLeaf } from "./figma-ds-tokens.js";
 import type { Registry } from "./registry-store.js";
+import type { IconSummary } from "./figma-ds-registry.js";
 
 export interface DsStyle {
   id: string;
@@ -85,6 +86,36 @@ function componentsBlock(registry: Registry): string[] {
   return out;
 }
 
+/** Icons rolled up into a single bulk note (count + a representative sample), never one row each. */
+function iconsBlock(icons: IconSummary): string[] {
+  if (icons.count === 0) return [];
+  const out: string[] = [
+    "## Icons",
+    "",
+    `_${icons.count} icons (icon-set) — represented in bulk, not as individual components._`,
+    "",
+  ];
+  if (icons.sample.length > 0) {
+    const shown = icons.sample.map((n) => `\`${n}\``).join(", ");
+    const more = icons.count > icons.sample.length ? `, … (+${icons.count - icons.sample.length} more)` : "";
+    out.push(`Sample: ${shown}${more}`, "");
+  }
+  return out;
+}
+
+/** Screen-frames listed separately and flagged — they are full designs, NOT DS components. */
+function screensBlock(screens: string[]): string[] {
+  if (screens.length === 0) return [];
+  return [
+    "## Screens",
+    "",
+    `_${screens.length} screen-frames — full designs, NOT design-system components (excluded from the registry)._`,
+    "",
+    ...screens.map((n) => `- \`${n}\``),
+    "",
+  ];
+}
+
 function stylesBlock(styles: DsStyle[]): string[] {
   const out: string[] = ["## Styles", ""];
   const groups: Array<[string, string]> = [["TEXT", "Text styles"], ["EFFECT", "Effect styles"], ["PAINT", "Paint styles"]];
@@ -105,12 +136,21 @@ export interface DesignDocInput {
   tree: DtcgTree;
   registry: Registry;
   styles: DsStyle[];
-  counts: { tokens: number; components: number; styles: number };
+  counts: { tokens: number; components: number; styles: number; icons: number; screens: number };
+  icons: IconSummary;
+  screens: string[];
 }
 
 /** Build the full DESIGN.md markdown string. Deterministic given identical input. */
 export function buildDesignDoc(input: DesignDocInput): string {
-  const { name, source, tree, registry, styles, counts } = input;
+  const { name, source, tree, registry, styles, counts, icons, screens } = input;
+  const inventory = [
+    `${counts.tokens} variables`,
+    `${counts.components} components`,
+    ...(icons.count > 0 ? [`${icons.count} icons`] : []),
+    ...(screens.length > 0 ? [`${screens.length} screens`] : []),
+    `${counts.styles} styles`,
+  ].join(" · ");
   const lines: string[] = [
     `# ${name} — Design System`,
     "",
@@ -119,10 +159,12 @@ export function buildDesignDoc(input: DesignDocInput): string {
     `components load with \`ui registry list --file component-registry.json\`.`,
     "",
     `- **Source:** ${source}`,
-    `- **Inventory:** ${counts.tokens} variables · ${counts.components} components · ${counts.styles} styles`,
+    `- **Inventory:** ${inventory}`,
     "",
     ...tokensBlock(tree),
     ...componentsBlock(registry),
+    ...iconsBlock(icons),
+    ...screensBlock(screens),
     ...stylesBlock(styles),
   ];
   return lines.join("\n") + "\n";

@@ -9,8 +9,8 @@
  */
 import { buildTokensTree } from "./figma-ds-tokens.js";
 import type { DsVariable, DtcgTree } from "./figma-ds-tokens.js";
-import { buildRegistry } from "./figma-ds-registry.js";
-import type { DsComponent } from "./figma-ds-registry.js";
+import { classifyRegistry } from "./figma-ds-registry.js";
+import type { DsComponent, IconSummary } from "./figma-ds-registry.js";
 import { buildDesignDoc } from "./figma-ds-designdoc.js";
 import type { DsStyle } from "./figma-ds-designdoc.js";
 import type { Registry } from "./registry-store.js";
@@ -35,9 +35,14 @@ export interface IngestResult {
   tree: DtcgTree;
   registry: Registry;
   designMd: string;
-  counts: { tokens: number; components: number; styles: number };
+  /** `components` counts REAL DS components only; icons/screens are the classified noise. */
+  counts: { tokens: number; components: number; styles: number; icons: number; screens: number };
   stats: { primitives: number; semantics: number; skippedTokens: number };
   componentNames: string[];
+  /** Bulk icon summary (not one row per icon). */
+  icons: IconSummary;
+  /** Screen-frame names — full designs, not DS components. */
+  screens: string[];
 }
 
 function requireArray(obj: Record<string, unknown>, key: string): unknown[] {
@@ -63,11 +68,14 @@ export function parseDsFile(json: unknown): DsFile {
 /** Transform a validated ds.json into the portable stores. Deterministic. */
 export function ingestDesignSystem(ds: DsFile, name: string, source: string): IngestResult {
   const built = buildTokensTree(ds.tokens);
-  const registry = buildRegistry(ds.components);
+  const classified = classifyRegistry(ds.components);
+  const registry = classified.registry;
   const counts = {
     tokens: ds.tokens.length,
-    components: ds.components.length,
+    components: registry.components.length, // real DS components only
     styles: ds.styles.length,
+    icons: classified.icons.count,
+    screens: classified.screens.length,
   };
   const designMd = buildDesignDoc({
     name,
@@ -76,6 +84,8 @@ export function ingestDesignSystem(ds: DsFile, name: string, source: string): In
     registry,
     styles: ds.styles,
     counts,
+    icons: classified.icons,
+    screens: classified.screens,
   });
   return {
     tree: built.tree,
@@ -84,5 +94,7 @@ export function ingestDesignSystem(ds: DsFile, name: string, source: string): In
     counts,
     stats: { primitives: built.primitives, semantics: built.semantics, skippedTokens: built.skipped },
     componentNames: registry.components.map((c) => c.name),
+    icons: classified.icons,
+    screens: classified.screens,
   };
 }

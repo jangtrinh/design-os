@@ -79,13 +79,30 @@ function flagStr(parsed: ParsedArgs, key: string): string | undefined {
   return typeof v === "string" ? v : undefined;
 }
 
-/** Seed the project memory with the DS provenance + one event per component. */
-function seedMemory(outDir: string, source: string, componentNames: string[], nowIso: string): void {
+/**
+ * Seed the project memory with the DS provenance + one event per REAL component.
+ * Icons and screens are aggregated into a single event each — never one-per-icon —
+ * so onboarding a 1,600-node icon library does not bloat the ledger.
+ */
+function seedMemory(
+  outDir: string,
+  source: string,
+  componentNames: string[],
+  iconCount: number,
+  screenCount: number,
+  nowIso: string,
+): void {
   const paths = memoryPaths(outDir);
   const events: Array<{ type: EventType; data: Record<string, unknown> }> = [
     { type: "harvested", data: { source, what: `${componentNames.length} components ingested from a Figma design system` } },
     ...componentNames.map((name) => ({ type: "component_registered" as EventType, data: { name } })),
   ];
+  if (iconCount > 0) {
+    events.push({ type: "harvested", data: { source, what: `${iconCount} icons (icon-set)` } });
+  }
+  if (screenCount > 0) {
+    events.push({ type: "harvested", data: { source, what: `${screenCount} screens (not DS components)` } });
+  }
   for (const e of events) {
     validateEvent(e.type, e.data, undefined);
     const id = nextEventId(ledgerLineCount(paths));
@@ -155,7 +172,7 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     saveRegistry(registryPath, result.registry);
     writeFileSync(designMdPath, result.designMd, "utf8");
     if (parsed.flags["seed-memory"] === true) {
-      seedMemory(outDir, result.source, result.componentNames, nowIso);
+      seedMemory(outDir, result.source, result.componentNames, result.icons.count, result.screens.length, nowIso);
     }
   } catch (e) {
     if (e instanceof MemoryEventError) return err(e.code, `cannot seed memory: ${e.message}`);
@@ -170,13 +187,19 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     counts: result.counts,
     tiers: { primitives: result.stats.primitives, semantics: result.stats.semantics, skippedTokens: result.stats.skippedTokens },
     componentsRegistered: result.componentNames.length,
+    icons: result.icons.count,
+    screens: result.screens.length,
     memorySeeded: parsed.flags["seed-memory"] === true,
   };
   if (useJson) return okJson(CMD, data);
+  const classifiedNote = [
+    ...(result.icons.count > 0 ? [`${result.icons.count} icons`] : []),
+    ...(result.screens.length > 0 ? [`${result.screens.length} screens`] : []),
+  ];
   const lines = [
     `Ingested Figma design system → ${outDir}`,
     `  tokens.json            ${result.stats.primitives} primitives · ${result.stats.semantics} semantic${result.stats.skippedTokens > 0 ? ` (${result.stats.skippedTokens} skipped)` : ""}`,
-    `  component-registry.json ${result.componentNames.length} components`,
+    `  component-registry.json ${result.componentNames.length} components${classifiedNote.length > 0 ? ` (${classifiedNote.join(" · ")} classified out)` : ""}`,
     `  DESIGN.md              ${result.counts.styles} styles documented`,
     ...(data.memorySeeded ? ["  design/memory.events.jsonl  seeded"] : []),
   ];

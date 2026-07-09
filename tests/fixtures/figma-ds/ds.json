@@ -7,7 +7,7 @@
       "type": "COMPONENT_SET",
       "variantAxes": { "Size": ["Small", "Large"], "Tone": ["Primary", "Ghost"] }
     },
-    { "id": "1:200", "key": "bbb", "name": "Icon", "type": "COMPONENT" },
+    { "id": "1:200", "key": "bbb", "name": "Badge", "type": "COMPONENT" },
     {
       "id": "1:300",
       "key": "ccc",
