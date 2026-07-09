@@ -384,6 +384,21 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "ingest-figma-ds": {
+    summary: "Onboard an existing Figma design system (ds.json → tokens + registry + DESIGN.md)",
+    signature: {
+      summary: "Compile a scan-design-system ds.json into portable tokens + registry + DESIGN.md",
+      positionals: [{ name: "<ds.json>", required: true, summary: "figma-agent scan-design-system output" }],
+      flags: [
+        { name: "out", type: "string", summary: "Output directory (default: current working directory)" },
+        { name: "name", type: "string", summary: "Design-system name for DESIGN.md (default: the --out folder name)" },
+        { name: "seed-memory", type: "boolean", summary: "Also seed 'ui memory' (harvested + component_registered events)" },
+        { name: "now", type: "string", summary: "Deterministic clock for the seeded memory graph (ISO-8601)" },
+      ],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DS", "WRITE_ERROR"],
+    },
+  },
+
   memory: {
     summary: "Record, compile, and query the project's design memory + taste profile",
     subcommands: {
