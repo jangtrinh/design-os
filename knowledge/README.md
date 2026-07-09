@@ -22,6 +22,7 @@ directly** while designing UI — curated design taste that sets the quality flo
 | `prompt-modes.md` | The replicate / enhance / adapt strategy modifiers for reference-driven generation. |
 | `ux-psychology.md` | UX laws (Hick's, Fitts', Miller's, …), Gestalt perception, cognitive biases, emotional design, trust building, cognitive-load management, ethical persuasion — with per-law application rules and a final audit checklist. Read selectively: only the law(s) a brief triggers. |
 | `benchmarks/*.dna.json` | SOURCE-grade measured DNA (type ramps, surfaces, shadows, gaps) of 8 ship-grade products — Arc, Figma, Framer, Linear, Notion, Raycast, Stripe, Vercel. Calibration data for the excellence-tier reference duel; see `benchmarks/README.md`. |
+| `figma-craft/workflow-experience.md` | The **interaction + cost brain** above the Figma verbs — the intent router (intent/drop → job → verb, incl. the multi-URL/image reference-drop row), the uniform job lifecycle (REFERENCE→SCOPE→PLAN→BUILD→SEE→ITERATE→LAND), reference intake (subagent-isolated DNA extract → cache in `<project>/references/` → deterministic synth), the "eyes" feedback contract, trust/clone-safety, progressive disclosure, and the zero-token-`ui`-binary cost contract. Read FIRST when routing a plain-language Figma job; every `/ui:*` Figma verb follows it. |
 | `figma-craft/figma-craft.md` | The senior-designer construction brain for **authoring idiomatic Figma** — craft philosophy, a decision ladder, build workflows, and the L1–L18 construction lints. Deep-dives live in `figma-craft/{layout-mastery,components-variables-styles,structure-hygiene,visual-craft,intent-recipes,canvas-operations}.md` (`canvas-operations` = operating on an existing/team-owned file: rebuild against a live library, audit + normalize, idempotent re-run). Used by `/ui:to-figma` and `/ui:audit`. |
 | `figma-agent-hand.md` | How to drive the `figma-agent` CLI (the Figma "hands"). An optional **in-repo** hand — like the `ui` binary it runs over Bash, but it is NOT part of ease-design's deterministic binary; it ships as an npm workspace at `figma-agent/` (build once with `npm run build --workspace=figma-agent`) and needs its Figma plugin loaded. |
 
@@ -50,6 +51,11 @@ replicate / enhance / adapt, then the generate flow above
 
 **Add or fix animation** — `motion-craft.md` (ladder + floors), then `taste-rubric.md`
 Motion axis for grading
+
+**Run a Figma job / route a plain-language intent** (any `/ui:*` Figma verb, or a bare description / dropped references)
+1. `figma-craft/workflow-experience.md` — the intent router (intent/drop → job → verb), the
+   uniform lifecycle, reference intake, the "eyes" + trust contracts, and the cost contract
+2. Then the routed verb's own template + the "Author idiomatic Figma from intent" route below
 
 **Author idiomatic Figma from intent** (`/ui:to-figma`)
 1. `figma-agent-hand.md` — confirm the external hand is set up and live
