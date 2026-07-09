@@ -31,15 +31,21 @@ let dir: string;
 let nodesClean: string;
 let nodesDirty: string;
 let tokens: string;
+let nodesRadius9: string;
+let radiusTokens: string;
 
 beforeAll(() => {
   dir = mkdtempSync(join(tmpdir(), "ui-audit-"));
   nodesClean = join(dir, "clean.json");
   nodesDirty = join(dir, "dirty.json");
   tokens = join(dir, "tokens.json");
+  nodesRadius9 = join(dir, "radius9.json");
+  radiusTokens = join(dir, "radius-tokens.json");
   writeFileSync(nodesClean, JSON.stringify({ name: "OK", type: "FRAME", cornerRadius: 8 }));
   writeFileSync(nodesDirty, JSON.stringify({ name: "Bad", type: "FRAME", fills: [{ hex: "#ff0000" }] }));
   writeFileSync(tokens, JSON.stringify({ color: { danger: { $value: "#ff0000", $type: "color" } } }));
+  writeFileSync(nodesRadius9, JSON.stringify({ name: "Card", type: "FRAME", cornerRadius: 9 }));
+  writeFileSync(radiusTokens, JSON.stringify({ radius: { sm: { $value: "9px", $type: "dimension" } } }));
 });
 
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -54,6 +60,16 @@ describe("ui audit — exit codes", () => {
     const { exitCode, stdout } = capture(["audit", nodesDirty, "--tokens", tokens]);
     expect(exitCode).toBe(1);
     expect(stdout).toContain("raw-hex-vs-token");
+  });
+  it("exit 0 when an off-grid radius is a DS token value (--tokens radius scale)", () => {
+    const { exitCode, stdout } = capture(["audit", nodesRadius9, "--tokens", radiusTokens]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("No DS violations");
+  });
+  it("exit 1 for the same off-grid radius without --tokens (grid-multiple behavior)", () => {
+    const { exitCode, stdout } = capture(["audit", nodesRadius9]);
+    expect(exitCode).toBe(1);
+    expect(stdout).toContain("off-grid");
   });
   it("--json returns an ok envelope with counts + remap even on exit 1", () => {
     const { exitCode, stdout } = capture(["audit", nodesDirty, "--tokens", tokens, "--json"]);

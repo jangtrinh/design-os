@@ -81,6 +81,35 @@ export interface AuditResult {
 // exempt from the off-grid check (matches construction lint L11's 999 pill).
 const PILL_RADIUS_MIN = 100;
 
+// Generic/default Figma node names (case-insensitive, exact-match). A frame that
+// still carries one of these is UNNAMED in intent — it must never be flagged as a
+// detached-instance just because a junk registry component happens to share the
+// name (e.g. a component literally named "Frame"). Numbered defaults like
+// "Frame 12" / "Component 3" are covered by the `<word> <n>` pattern below.
+const GENERIC_NODE_NAMES = new Set<string>([
+  "frame",
+  "group",
+  "rectangle",
+  "ellipse",
+  "vector",
+  "line",
+  "component",
+  "instance",
+  "slice",
+  "union",
+  "subtract",
+  "intersect",
+  "exclude",
+]);
+
+/** True when a name is a generic/default Figma name (exact or numbered default). */
+function isGenericName(name: string): boolean {
+  const t = name.trim().toLowerCase();
+  if (GENERIC_NODE_NAMES.has(t)) return true;
+  const m = /^([a-z]+) \d+$/.exec(t); // numbered default: "Frame 12", "Component 3"
+  return m !== null && GENERIC_NODE_NAMES.has(m[1] ?? "");
+}
+
 /** True when a TEXT node's characters are icon-font glyphs (private-use area). */
 function isIconGlyphs(chars: string | undefined): boolean {
   if (chars === undefined || chars.length === 0) return false;
@@ -122,7 +151,15 @@ function checkNode(node: AuditNode, spec: AuditSpec, v: Violation[], r: Remap[])
   //    registered component but not actually an INSTANCE.
   if (node.detached === true) {
     v.push({ rule: "detached-instance", nodeName: name, detail: "node is a detached instance" });
-  } else if (type !== "INSTANCE" && type !== "COMPONENT" && type !== "COMPONENT_SET" && spec.componentNames.has(name)) {
+  } else if (
+    type !== "INSTANCE" &&
+    type !== "COMPONENT" &&
+    type !== "COMPONENT_SET" &&
+    spec.componentNames.has(name) &&
+    // Skip when the node's name (== the matched component's name, exact-match) is a
+    // generic/default Figma name: a frame named "Frame" is not a real lookalike.
+    !isGenericName(name)
+  ) {
     v.push({ rule: "detached-instance", nodeName: name, detail: `${type || "node"} named like component '${name}' but is not an INSTANCE` });
   }
 
@@ -134,9 +171,12 @@ function checkNode(node: AuditNode, spec: AuditSpec, v: Violation[], r: Remap[])
     }
   }
 
-  // 4. off-grid — radius + spacing not divisible by the base grid.
+  // 4. off-grid — radius + spacing that is BOTH off the base grid AND not a real DS
+  //    token value. With --tokens, a value present in the DS radius/spacing scale
+  //    (e.g. radius 9 = sm) is valid even when it isn't a grid multiple. Without
+  //    --tokens the token sets are empty, so this is pure grid-multiple behavior.
   if (typeof node.cornerRadius === "number" && node.cornerRadius > 0 && node.cornerRadius < PILL_RADIUS_MIN) {
-    if (node.cornerRadius % spec.gridBase !== 0) {
+    if (node.cornerRadius % spec.gridBase !== 0 && !spec.radiusTokens.has(node.cornerRadius)) {
       const to = snapToGrid(node.cornerRadius, spec.gridBase);
       v.push({ rule: "off-grid", nodeName: name, detail: `cornerRadius ${node.cornerRadius} off the ${spec.gridBase}px grid` });
       r.push({ kind: "radius", nodeName: name, from: String(node.cornerRadius), to: String(to) });
@@ -150,7 +190,7 @@ function checkNode(node: AuditNode, spec: AuditSpec, v: Violation[], r: Remap[])
     ["paddingLeft", node.paddingLeft],
   ];
   for (const [prop, value] of spacings) {
-    if (typeof value === "number" && value > 0 && value % spec.gridBase !== 0) {
+    if (typeof value === "number" && value > 0 && value % spec.gridBase !== 0 && !spec.spacingTokens.has(value)) {
       const to = snapToGrid(value, spec.gridBase);
       v.push({ rule: "off-grid", nodeName: name, detail: `${prop} ${value} off the ${spec.gridBase}px grid` });
       r.push({ kind: "spacing", nodeName: name, from: String(value), to: String(to) });

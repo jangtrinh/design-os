@@ -8,6 +8,7 @@
  * whole audit is a pure, reproducible transform of its JSON inputs.
  */
 import { isTokenLeaf } from "./token-model.js";
+import { parseDsScale } from "./figma-conventions-synth.js";
 
 /** The compact spec the detector consults; all lookups are by value or NAME. */
 export interface AuditSpec {
@@ -21,6 +22,10 @@ export interface AuditSpec {
   hasIconComponent: boolean;
   /** Base grid for off-grid radius/spacing checks (default 4). */
   gridBase: number;
+  /** DS radius token values — off-grid radii in this set are valid (from --tokens). */
+  radiusTokens: Set<number>;
+  /** DS spacing token values — off-grid spacings in this set are valid (from --tokens). */
+  spacingTokens: Set<number>;
 }
 
 /** Normalize a hex string to lower-case `#rrggbb`, or null if not a hex. */
@@ -92,6 +97,21 @@ export function registryFrom(parsed: unknown): {
   return { componentNames, deprecated, hasIconComponent };
 }
 
+/**
+ * Extract the DS radius/spacing scale (Sets of px values) from a parsed DTCG
+ * tokens.json, reusing the convention-synth scale parser. TOLERANT: a token file
+ * without a dimension scale (e.g. color-only) — or a malformed one — yields empty
+ * sets rather than throwing, so an audit never crashes on its inputs.
+ */
+function dimensionScalesFrom(tokens: unknown): { radius: Set<number>; spacing: Set<number> } {
+  try {
+    const scale = parseDsScale(tokens);
+    return { radius: scale.radius, spacing: scale.spacing };
+  } catch {
+    return { radius: new Set<number>(), spacing: new Set<number>() };
+  }
+}
+
 /** Assemble the full AuditSpec from optional parsed inputs + a grid base. */
 export function buildAuditSpec(opts: {
   tokens?: unknown;
@@ -99,6 +119,7 @@ export function buildAuditSpec(opts: {
   gridBase?: number;
 }): AuditSpec {
   const colorTokens = opts.tokens !== undefined ? colorTokensFrom(opts.tokens) : new Map<string, string>();
+  const dims = opts.tokens !== undefined ? dimensionScalesFrom(opts.tokens) : { radius: new Set<number>(), spacing: new Set<number>() };
   const reg =
     opts.registry !== undefined
       ? registryFrom(opts.registry)
@@ -109,5 +130,7 @@ export function buildAuditSpec(opts: {
     deprecated: reg.deprecated,
     hasIconComponent: reg.hasIconComponent,
     gridBase: opts.gridBase !== undefined && opts.gridBase > 0 ? opts.gridBase : 4,
+    radiusTokens: dims.radius,
+    spacingTokens: dims.spacing,
   };
 }
