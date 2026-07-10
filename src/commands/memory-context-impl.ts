@@ -8,14 +8,21 @@
  * add the cross-project taste profile, labelled "fills gaps only". Cold start is
  * not an error: an absent ledger prints `memory: empty` and exits 0.
  */
+import { existsSync, readFileSync } from "node:fs";
+
 import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
-import { memoryPaths, loadGraph, loadProfile } from "../core/memory-store.js";
+import { memoryPaths, loadGraph, loadProfile, readEvents } from "../core/memory-store.js";
 import type { MemoryGraph } from "../core/memory-graph.js";
+import { exportCorpus, corpusById, parseRankFile } from "../core/memory-corpus.js";
+import type { CorpusItem } from "../core/memory-corpus.js";
 
 const FOR_MODES = ["generate", "critique", "why"] as const;
 type ForMode = (typeof FOR_MODES)[number];
+
+/** Most recalled items ever spliced into the prior, however long the rank file is. */
+const RECALL_CAP = 10;
 
 interface Section { label: string; lines: string[] }
 
@@ -44,6 +51,10 @@ function designLines(g: MemoryGraph): string[] {
   return Object.entries(g.designs)
     .filter(([, d]) => d.lastFingerprint !== undefined)
     .map(([id, d]) => `- ${id} [${d.medium.join(", ")}]${d.picked ? "{picked}" : ""} ${d.lastFingerprint}`);
+}
+/** Recalled corpus items, rank order preserved; the event id keeps provenance visible. */
+function recalledLines(items: readonly CorpusItem[]): string[] {
+  return items.map((i) => `- (${i.tier}) ${i.text} [${i.id}]`);
 }
 
 /** Assemble sections, drop whole trailing sections until within maxBytes. */
@@ -86,9 +97,10 @@ export function runContext(parsed: ParsedArgs): CommandResult {
   }
 
   const dirFlag = parsed.flags["dir"];
+  const paths = memoryPaths(typeof dirFlag === "string" ? dirFlag : undefined);
   let g: MemoryGraph;
   try {
-    g = loadGraph(memoryPaths(typeof dirFlag === "string" ? dirFlag : undefined), nowIso);
+    g = loadGraph(paths, nowIso);
   } catch (e) {
     return err("BAD_LEDGER", e instanceof Error ? e.message : String(e));
   }
@@ -98,13 +110,53 @@ export function runContext(parsed: ParsedArgs): CommandResult {
     return useJson ? okJson(CMD, { for: mode, empty: true }) : ok("memory: empty\n");
   }
 
+  // ── Recalled items (a ranked id list produced by `recall query`) ──
+  // Invariant #4: memory biases generation, never scores critique. The rank file is
+  // still validated in critique mode (a bad path fails loud) but never spliced.
+  const rankFlag = parsed.flags["rank-file"];
+  const recalled: CorpusItem[] = [];
+  if (typeof rankFlag === "string") {
+    if (!existsSync(rankFlag)) return err("FILE_NOT_FOUND", `rank file not found: '${rankFlag}'`);
+    let text: string;
+    try {
+      text = readFileSync(rankFlag, "utf8");
+    } catch (e) {
+      return err("READ_ERROR", `cannot read rank file '${rankFlag}': ${e instanceof Error ? e.message : String(e)}`);
+    }
+    let raw: unknown;
+    try {
+      raw = JSON.parse(text);
+    } catch {
+      return err("BAD_ARG", `rank file '${rankFlag}' is not valid JSON`);
+    }
+    let ids: string[];
+    try {
+      ids = parseRankFile(raw);
+    } catch (e) {
+      return err("BAD_ARG", e instanceof Error ? e.message : String(e));
+    }
+    if (mode !== "critique") {
+      let byId: Map<string, CorpusItem>;
+      try {
+        byId = corpusById(exportCorpus(readEvents(paths)));
+      } catch (e) {
+        return err("BAD_LEDGER", e instanceof Error ? e.message : String(e));
+      }
+      for (const id of ids) {
+        const item = byId.get(id);
+        if (item !== undefined) recalled.push(item);
+        if (recalled.length === RECALL_CAP) break;
+      }
+    }
+  }
+
   const profile = mode === "critique" ? null : loadProfile();
 
   if (useJson) {
     const prior = mode === "critique"
       ? { tokens: g.tokens, designs: g.designs }
       : { personas: g.personas, vibes: g.vibes.slice(0, 3), axes: g.axes, tokens: g.tokens, designs: g.designs };
-    return okJson(CMD, { for: mode, empty: false, prior, profile });
+    return okJson(CMD, { for: mode, empty: false, prior, recalled, profile });
   }
 
   // ── PROJECT PREFERENCE PRIOR ──
@@ -123,6 +175,13 @@ export function runContext(parsed: ParsedArgs): CommandResult {
   const priorHeader =
     "[PROJECT PREFERENCE PRIOR]\nThis project's recorded design history — a prior, not a rule. The brief always wins.";
   let out = render(priorHeader, priorSections, maxBytes);
+
+  // ── RECALLED CONTEXT (semantic recall; outranks the cross-project profile) ──
+  if (recalled.length > 0) {
+    const rcHeader =
+      "[RECALLED CONTEXT]\nSemantically recalled from this project's memory, most relevant first. Cite the event id when you rely on one.";
+    out += "\n" + render(rcHeader, [{ label: "Recalled:", lines: recalledLines(recalled) }], maxBytes);
+  }
 
   // ── DESIGNER TASTE PROFILE (generate|why only) ──
   if (profile !== null && (mode === "generate" || mode === "why")) {

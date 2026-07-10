@@ -186,7 +186,7 @@ envelope.
 | `ui scan` | Detect existing design signals — routes brownfield projects to /ui:learn |
 | `ui init` | Write the ease-design manifest and per-runtime adapter tree |
 | `ui ds` | Compile, inspect, and mutate the project's design system (`init`/`context`/`change-token`/`status`) |
-| `ui memory` | Per-project design-decision ledger → compiled graph → cross-project taste profile (`record`/`compile`/`context`/`query`/`consolidate`/`fingerprint`/`status`) |
+| `ui memory` | Per-project design-decision ledger → compiled graph → cross-project taste profile (`record`/`compile`/`context`/`query`/`consolidate`/`fingerprint`/`status`/`export-corpus`) |
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
 | `ui taste-lint` | Deterministic taste-rubric floor for generated HTML (6 machine-checkable axes) |
@@ -212,6 +212,14 @@ memory only *biases* generation; it never overrides the brief and never touches 
 scoring (the gate stays craft-only). It is cold-start-safe: an empty ledger returns
 `memory: empty` and callers proceed, with provenance seeded the first time you run `/ui:learn`
 or `/ui:generate`.
+
+Two **pure seams** let an optional semantic-recall layer sit on top without ever touching the
+binary's zero-dependency, no-network guarantee: `ui memory export-corpus [--since <eventId>]`
+emits the ledger as tiered natural-language payloads (`episodic` insights, `semantic` token
+rationales + harvest sources, `procedural` persona/vibe signatures) for an external indexer to
+embed, and `ui memory context --rank-file <ids.json>` splices a recall-ranked selection back
+into the prior. The ledger stays the sole source of truth — any vector index is a rebuildable
+view — and a rank file is never spliced into `--for critique`.
 
 ---
 
