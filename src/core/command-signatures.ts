@@ -461,8 +461,19 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         positionals: [],
         flags: [
           { name: "for", type: "string", values: ["generate", "critique", "why"], summary: "Consumer mode (default generate)" },
+          { name: "rank-file", type: "string", summary: "JSON array of ranked event ids to splice into the prior (never for --for critique)" },
           { name: "max-bytes", type: "string", summary: "Truncate the block, sections whole (default 2048)" },
           { name: "now", type: "string", summary: "Decay clock (deterministic when fixed)" },
+          { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_LEDGER", "FILE_NOT_FOUND", "READ_ERROR"],
+      },
+
+      "export-corpus": {
+        summary: "Emit tiered natural-language payloads for the recall workspace to embed",
+        positionals: [],
+        flags: [
+          { name: "since", type: "string", summary: "Emit only items recorded after this event id" },
           { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_LEDGER"],

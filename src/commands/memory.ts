@@ -10,6 +10,7 @@ import { runRecord, runCompile, runFingerprint } from "./memory-record-impl.js";
 import { runContext } from "./memory-context-impl.js";
 import { runQuery, runStatus } from "./memory-query-impl.js";
 import { runConsolidate } from "./memory-consolidate-impl.js";
+import { runExportCorpus } from "./memory-export-corpus-impl.js";
 
 const CMD = "memory";
 
@@ -18,20 +19,22 @@ export const MEMORY_HELP = `ui memory — per-project design-decision ledger + c
 Usage:
   ui memory record <type> --data '<json>' [options]
   ui memory compile [--now <iso>] [--dir <path>]
-  ui memory context [--for generate|critique|why] [--max-bytes <n>] [--now <iso>] [--dir <path>]
+  ui memory context [--for generate|critique|why] [--rank-file <path>] [--max-bytes <n>] [--now <iso>] [--dir <path>]
   ui memory query [--type <t>] [--design <id>] [--persona <slug>] [--limit <n>] [--dir <path>]
   ui memory fingerprint <file>
   ui memory consolidate [--insight "<text>" --refs '<json>'] [--actor <name>] [--now <iso>]
   ui memory status [--dir <path>]
+  ui memory export-corpus [--since <eventId>] [--dir <path>]
 
 Subcommands:
-  record        Append one validated event to the ledger (folds in a graph recompile)
-  compile       Rebuild memory.graph.json from the ledger (deterministic with --now)
-  context       Emit a compact memory prior for the host model
-  query         List raw events, newest first
-  fingerprint   Print sha256:<hex> of a file's bytes
-  consolidate   Rebuild the cross-project taste profile (user scope)
-  status        Ledger count, graph freshness, registry size, profile presence
+  record         Append one validated event to the ledger (folds in a graph recompile)
+  compile        Rebuild memory.graph.json from the ledger (deterministic with --now)
+  context        Emit a compact memory prior for the host model
+  query          List raw events, newest first
+  fingerprint    Print sha256:<hex> of a file's bytes
+  consolidate    Rebuild the cross-project taste profile (user scope)
+  status         Ledger count, graph freshness, registry size, profile presence
+  export-corpus  Emit tiered natural-language payloads for the recall workspace to embed
 
 record flags:
   --data '<json>'     Event payload (required; a JSON object)
@@ -52,7 +55,11 @@ Event types (v1): variant_generated, rendition_created, taste_verdict, user_pick
 Other flags:
   --now <iso>         compile/context/consolidate: decay + compiledAt clock (deterministic when fixed)
   --for <mode>        context only: generate | critique | why (default generate)
+  --rank-file <path>  context only: JSON array of ranked event ids (from 'recall query') whose
+                      corpus items are spliced into the prior; never spliced for --for critique
+                      (the taste gate stays craft-only)
   --max-bytes <n>     context only: truncate the block, sections whole (default 2048)
+  --since <eventId>   export-corpus only: emit only items recorded after this event id
   --type <t>          query only: filter by event type
   --persona <slug>    query only: filter by persona
   --limit <n>         query only: max events (default 20)
@@ -90,6 +97,7 @@ export const memoryCommand = {
       case "fingerprint": return runFingerprint(parsed);
       case "consolidate": return runConsolidate(parsed);
       case "status":      return runStatus(parsed);
+      case "export-corpus": return runExportCorpus(parsed);
       case undefined: {
         const msg = "ui memory requires a subcommand. Run 'ui memory --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);

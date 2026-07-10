@@ -7,6 +7,17 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **Recall seams on `ui memory` (Track 9 · P3a)** — two pure, deterministic subcommand
+  surfaces that let an optional semantic-recall layer sit on top of the design memory without
+  adding a single runtime dependency to the binary. `ui memory export-corpus [--since
+  <eventId>]` walks the ledger and emits one natural-language payload per embeddable item,
+  tagged by tier (`episodic` = recorded insights with provenance, `semantic` = token-change
+  rationales + harvest sources, `procedural` = persona signatures + vibe→axis mappings);
+  `--since` makes it incremental and it emits NDJSON (or a `--json` envelope). `ui memory
+  context --rank-file <ids.json>` splices a recall-ranked selection of those items back into
+  the emitted prior, in rank order and capped. The JSONL ledger stays the sole source of truth
+  (any vector index is a rebuildable view), and a rank file is **never** spliced into
+  `--for critique` — the taste gate stays craft-only.
 - **`/ui:design` — scope-aware design of something NEW** (a screen or a component) from a
   requirement, distinct from rebuilding an existing frame (`/ui:to-figma`) or auditing one
   (`/ui:audit`). Detects **SCREEN vs COMPONENT** scope from the phrasing, runs an
