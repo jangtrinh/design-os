@@ -379,6 +379,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "READ_ERROR"],
       },
+      docs: {
+        summary: "Regenerate component reference docs from the registry (decay-proof)",
+        positionals: [],
+        flags: [
+          { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
+          { name: "out", type: "string", summary: "Write the docs to a file instead of stdout" },
+          { name: "format", type: "string", values: ["markdown", "json"], summary: "Output format (default markdown)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "REGISTRY_NOT_FOUND", "BAD_REGISTRY", "WRITE_ERROR"],
+      },
     },
   },
 
