@@ -25,6 +25,14 @@ export interface CoverageSpec {
 export interface CoverageOptions {
   /** Treat criteria without evidence as unmet debt (assumptions), not real coverage. */
   requireEvidence?: boolean;
+  /**
+   * Optional evidence resolver (DESIGN-OS T6). When provided, a criterion's `evidence[]`
+   * entries are treated as EVIDENCE IDS that must resolve to a real, verified ledger
+   * record — a cited id that doesn't exist or whose quote no longer matches its source
+   * does NOT make the criterion evidenced (it's still an assumption) and is reported in
+   * `unresolvedEvidence`. Without a resolver, any non-empty evidence[] counts (legacy).
+   */
+  resolveEvidence?: (id: string) => { ok: boolean; reason?: string };
 }
 export interface DesignScreen {
   name: string;
@@ -48,6 +56,8 @@ export interface CoverageResult {
   evidencedCoveragePct?: number;
   /** True when the run demanded evidence provenance. */
   requireEvidence: boolean;
+  /** Cited evidence ids that failed to resolve/verify (present only when a resolver ran). */
+  unresolvedEvidence?: { criterionId: string; evidenceId: string; reason: string }[];
 }
 
 /** Thrown on a malformed spec/manifest — the command maps it to BAD_JSON. */
@@ -109,12 +119,30 @@ export function checkCoverage(
   const validIds = new Set(criteria.map((c) => c.id));
   const requireEvidence = opts.requireEvidence === true;
 
-  const perCriterion = criteria.map((c) => ({
-    id: c.id,
-    text: c.text,
-    coveredBy: screens.filter((s) => (s.coversCriteria ?? []).includes(c.id)).map((s) => s.name),
-    evidenced: (c.evidence ?? []).length > 0,
-  }));
+  const resolver = opts.resolveEvidence;
+  const unresolvedEvidence: { criterionId: string; evidenceId: string; reason: string }[] = [];
+  const perCriterion = criteria.map((c) => {
+    const cited = c.evidence ?? [];
+    let evidenced: boolean;
+    if (resolver === undefined) {
+      evidenced = cited.length > 0; // legacy: any cited string counts as provenance
+    } else {
+      // T6: a cited id must resolve to a real, verified record to count.
+      let anyOk = false;
+      for (const id of cited) {
+        const r = resolver(id);
+        if (r.ok) anyOk = true;
+        else unresolvedEvidence.push({ criterionId: c.id, evidenceId: id, reason: r.reason ?? "unresolved" });
+      }
+      evidenced = anyOk;
+    }
+    return {
+      id: c.id,
+      text: c.text,
+      coveredBy: screens.filter((s) => (s.coversCriteria ?? []).includes(c.id)).map((s) => s.name),
+      evidenced,
+    };
+  });
   const covered = perCriterion.filter((p) => p.coveredBy.length > 0).map((p) => p.id);
   const uncovered = perCriterion.filter((p) => p.coveredBy.length === 0).map((p) => p.id);
   // A criterion sourced from nothing — a plausible requirement nobody grounded.
@@ -129,6 +157,7 @@ export function checkCoverage(
   const result: CoverageResult = {
     coveragePct, criterionCount: criteria.length, screenCount: screens.length,
     covered, uncovered, perCriterion, unknownRefs, assumptions, requireEvidence,
+    ...(resolver !== undefined ? { unresolvedEvidence } : {}),
   };
   if (requireEvidence) {
     // Real coverage = covered AND evidenced. An assumption is never real coverage.

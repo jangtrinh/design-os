@@ -214,6 +214,48 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  evidence: {
+    summary: "Record & verify user-evidence findings (anti-fabrication ledger)",
+    subcommands: {
+      add: {
+        summary: "Append a finding; a quote must be a verbatim substring of its source",
+        positionals: [],
+        flags: [
+          { name: "kind", type: "string", values: ["quote", "metric", "observation"], summary: "Evidence kind (default quote)" },
+          { name: "finding", type: "string", summary: "The synthesised insight (required)" },
+          { name: "quote", type: "string", summary: "Verbatim source text (required for kind=quote)" },
+          { name: "source", type: "string", summary: "Source file to ingest and verify against" },
+          { name: "medium", type: "string", summary: "interview | survey | analytics | support | review | …" },
+          { name: "locator", type: "string", summary: "Where in the source (line 42, 0:14:20) — provenance only" },
+          { name: "metric", type: "string", summary: "Metric value (required for kind=metric)" },
+          { name: "unit", type: "string", summary: "Metric unit" },
+          { name: "n", type: "string", summary: "Sample size" },
+          { name: "tags", type: "string", summary: "Comma-separated tags" },
+          { name: "dir", type: "string", summary: "Evidence store directory (default 'design')" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "QUOTE_TOO_SHORT", "QUOTE_MISMATCH", "SOURCE_COLLISION", "BAD_EVIDENCE"],
+      },
+      list: {
+        summary: "List every recorded finding with support level and verify status",
+        positionals: [],
+        flags: [{ name: "dir", type: "string", summary: "Evidence store directory (default 'design')" }],
+        errorCodes: ["UNKNOWN_FLAG", "READ_ERROR", "BAD_EVIDENCE"],
+      },
+      verify: {
+        summary: "Re-check every quote finding against its stored source; exit 1 on any break",
+        positionals: [],
+        flags: [{ name: "dir", type: "string", summary: "Evidence store directory (default 'design')" }],
+        errorCodes: ["UNKNOWN_FLAG", "READ_ERROR", "SOURCE_MISSING", "BAD_EVIDENCE"],
+      },
+      show: {
+        summary: "Print one finding by id",
+        positionals: [{ name: "<id>", required: true, summary: "Evidence id (e.g. ev1)" }],
+        flags: [{ name: "dir", type: "string", summary: "Evidence store directory (default 'design')" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "NOT_FOUND", "BAD_EVIDENCE"],
+      },
+    },
+  },
+
   "taste-lint": {
     summary: "Deterministic taste-rubric floor for generated HTML",
     signature: {
@@ -248,8 +290,9 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       ],
       flags: [
         { name: "require-evidence", type: "boolean", summary: "Treat criteria with no evidence provenance as assumptions, not real coverage" },
+        { name: "evidence-dir", type: "string", summary: "Resolve criterion evidence[] as ids in the T6 evidence ledger at DIR" },
       ],
-      errorCodes: [...IO_CODES, "BAD_JSON"],
+      errorCodes: [...IO_CODES, "BAD_JSON", "BAD_EVIDENCE"],
     },
   },
 

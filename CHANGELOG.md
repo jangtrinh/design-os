@@ -7,6 +7,18 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui evidence` — user-evidence ledger with an anti-fabrication gate (DESIGN-OS T6).** Grounds design in
+  what users actually said: a self-contained, git-committable store (`design/research.events.jsonl` +
+  `research-sources/`) of findings at three support levels — `quote` (a verbatim user utterance; **must be a
+  whitespace-normalised substring of its ingested source or `add`/`verify` reject it** — the binary cannot
+  invent a quote), `metric` (a number + source ref), and `observation` (a hunch, permanently flagged
+  `unsupported`). Subcommands `add`/`list`/`verify`/`show`; `verify` exits 1 on any fabricated or drifted
+  quote. **Loop-closure with T0:** `ui critique-coverage --evidence-dir DIR` now resolves a criterion's
+  `evidence[]` as ledger ids — a criterion counts as evidenced only if a cited id exists AND verifies; a
+  missing/drifted citation is reported as `unresolvedEvidence` and fails the gate even without
+  `--require-evidence` (legacy string-provenance behaviour is preserved when `--evidence-dir` is absent).
+  The binary records and verifies; turning transcripts into findings stays the host model's job. Authoring
+  brain `knowledge/user-evidence.md`.
 - **`ui vr` — deterministic visual-regression tooling (DESIGN-OS T5).** Catches rendered-output changes a
   code diff can't (a token tweak that moved every button, a silently-deleted shadow). Three subcommands:
   `vr diff <base.png> <head.png>` (one comparison), `vr gate <baseline-dir> <current-dir>` (diff every

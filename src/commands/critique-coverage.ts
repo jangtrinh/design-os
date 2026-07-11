@@ -12,13 +12,15 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { parseSpec, parseManifest, checkCoverage, CoverageError } from "../core/coverage-check.js";
+import { loadEvidence, verifyRecord } from "../core/evidence-store.js";
+import { EvidenceError } from "../core/evidence-model.js";
 
 const CMD = "critique-coverage";
 
 export const CRITIQUE_COVERAGE_HELP = `ui critique-coverage — acceptance-criteria coverage of a produced design
 
 Usage:
-  ui critique-coverage <spec.json> <manifest.json> [--require-evidence] [--json]
+  ui critique-coverage <spec.json> <manifest.json> [--require-evidence] [--evidence-dir DIR] [--json]
 
 Inputs:
   <spec.json>      The brief: { acceptanceCriteria: [{ id, text?, evidence?: [ids] }], successMetrics?: [...] }
@@ -28,8 +30,12 @@ Options:
   --require-evidence  Treat any acceptance criterion with no 'evidence' provenance as an
                       ASSUMPTION — not real coverage. A design can otherwise score 100% against
                       criteria the model invented; this gates that. Exit 1 if any assumption remains.
+  --evidence-dir DIR  Resolve each criterion's evidence[] as IDS in the T6 evidence ledger at DIR
+                      (default store 'design'). A cited id that doesn't exist, or whose quote no
+                      longer matches its source, does NOT make the criterion evidenced and is
+                      reported as unresolvedEvidence — a broken citation fails the gate (exit 1).
   --json              Emit a JSON envelope (coveragePct, covered, uncovered, assumptions,
-                      evidencedCoveragePct, perCriterion, unknownRefs)
+                      evidencedCoveragePct, perCriterion, unknownRefs, unresolvedEvidence)
   -h, --help          Show this help
 
 Reports every acceptance criterion that no screen/state covers, the coverage %, any
@@ -47,12 +53,24 @@ Error codes:
   FILE_NOT_FOUND An input file does not exist (ENOENT)
   READ_ERROR     An input file exists but cannot be read
   BAD_JSON       An input file is not valid JSON, or is the wrong shape
+  BAD_EVIDENCE   The --evidence-dir ledger has a malformed line
 `;
 
 class InputError extends Error {
   constructor(readonly code: "FILE_NOT_FOUND" | "READ_ERROR" | "BAD_JSON", message: string) {
     super(message);
   }
+}
+
+/** Build an evidence resolver over a T6 ledger dir: a cited id must exist and verify. */
+function buildResolver(dir: string): (id: string) => { ok: boolean; reason?: string } {
+  const byId = new Map(loadEvidence(dir).map((r) => [r.id, r]));
+  return (id: string) => {
+    const rec = byId.get(id);
+    if (rec === undefined) return { ok: false, reason: `no evidence '${id}' in ${dir}` };
+    const v = verifyRecord(dir, rec);
+    return v.ok ? { ok: true } : { ok: false, reason: v.reason ?? "unverified" };
+  };
 }
 
 function readJson(path: string): unknown {
@@ -86,6 +104,10 @@ function formatReport(result: ReturnType<typeof checkCoverage>): string {
   if (result.unknownRefs.length > 0) {
     lines.push(`  unknownRefs (screens claim criteria not in the spec): ${result.unknownRefs.join(", ")}`);
   }
+  if (result.unresolvedEvidence !== undefined && result.unresolvedEvidence.length > 0) {
+    lines.push("  BROKEN EVIDENCE (cited id missing or quote no longer verbatim — fails the gate):");
+    for (const u of result.unresolvedEvidence) lines.push(`    [${u.criterionId}] ${u.evidenceId}: ${u.reason}`);
+  }
   if (result.assumptions.length > 0) {
     const tag = result.requireEvidence ? "ASSUMPTIONS (no evidence — NOT counted as real coverage)" : "assumptions (no evidence provenance)";
     lines.push(`  ${tag}: ${result.assumptions.join(", ")}`);
@@ -117,21 +139,30 @@ export const critiqueCoverageCommand = {
     }
 
     const requireEvidence = parsed.flags["require-evidence"] === true;
+    const evidenceDir = typeof parsed.flags["evidence-dir"] === "string" ? parsed.flags["evidence-dir"] : undefined;
     let result: ReturnType<typeof checkCoverage>;
     try {
       const spec = parseSpec(readJson(specPath), specPath);
       const manifest = parseManifest(readJson(manifestPath), manifestPath);
-      result = checkCoverage(spec, manifest, { requireEvidence });
+      const resolveEvidence = evidenceDir !== undefined ? buildResolver(evidenceDir) : undefined;
+      result = checkCoverage(spec, manifest, { requireEvidence, ...(resolveEvidence ? { resolveEvidence } : {}) });
     } catch (e) {
       if (e instanceof InputError || e instanceof CoverageError) {
         return useJson ? errJson(CMD, e.code, e.message) : errText(`ui: ${e.message}\n`);
       }
+      if (e instanceof EvidenceError) {
+        const code = e.code === "BAD_EVIDENCE" ? "BAD_EVIDENCE" : "READ_ERROR";
+        return useJson ? errJson(CMD, code, e.message) : errText(`ui: ${e.message}\n`);
+      }
       throw e;
     }
 
-    // With --require-evidence an unsourced criterion is debt, not coverage → it fails the gate.
+    // Gate: uncovered criteria fail; unsourced assumptions fail under --require-evidence; a
+    // BROKEN evidence citation (fabricated/drifted quote) always fails when a ledger was consulted.
     const exitCode =
-      result.uncovered.length > 0 || (requireEvidence && result.assumptions.length > 0) ? 1 : 0;
+      result.uncovered.length > 0 ||
+      (requireEvidence && result.assumptions.length > 0) ||
+      (result.unresolvedEvidence !== undefined && result.unresolvedEvidence.length > 0) ? 1 : 0;
     if (useJson) {
       return okJsonWithExit(CMD, result, exitCode);
     }
