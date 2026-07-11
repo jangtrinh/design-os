@@ -365,6 +365,20 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         flags: [{ name: "dir", type: "string", summary: "Override the project directory" }],
         errorCodes: ["UNKNOWN_FLAG", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST"],
       },
+      diff: {
+        summary: "Compare two DS states → semver + visual-breaking classification",
+        positionals: [
+          { name: "<base-dir>", required: true, summary: "Baseline dir holding design.tokens.json (+ optional component-registry.json)" },
+          { name: "<head-dir>", required: true, summary: "Candidate dir to compare against the baseline" },
+        ],
+        flags: [
+          { name: "format", type: "string", values: ["markdown", "json", "pr-comment"], summary: "Output format (default markdown)" },
+          { name: "base-version", type: "string", summary: "Base semver to compute the recommended next version from" },
+          { name: "color-tolerance", type: "string", summary: "OKLab ΔE below which a colour change is a patch (default 0.02)" },
+          { name: "dim-tolerance", type: "string", summary: "Dimension % change below which it is a patch (default 5)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "READ_ERROR"],
+      },
     },
   },
 

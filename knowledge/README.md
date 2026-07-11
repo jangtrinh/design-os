@@ -19,6 +19,7 @@ directly** while designing UI — curated design taste that sets the quality flo
 | `component-catalog.md` | 32 reusable components across 8 categories — id, name, description, and generation spec for each. |
 | `color-science.md` | OKLCH reasoning, WCAG contrast targets, 11-stop scale generation, semantic role mapping. The *reasoning* — the *math* is a `ui` binary subcommand. |
 | `token-taxonomy.md` | The DTCG design-token model — primitive vs. semantic tiers, naming, alias resolution, post-compile immutability. |
+| `versioning-semver.md` | Semver for a design system — how `ui ds diff` classifies a change (token/component add·remove·change) as **breaking/additive/patch**, incl. *computed* visual-breaking-change (colour ΔEOK, dimension %), and the cross-artifact dangling-reference check. Read when releasing a DS version or generating a design PR comment. |
 | `prompt-modes.md` | The replicate / enhance / adapt strategy modifiers for reference-driven generation. |
 | `ux-psychology.md` | UX laws (Hick's, Fitts', Miller's, …), Gestalt perception, cognitive biases, emotional design, trust building, cognitive-load management, ethical persuasion — with per-law application rules and a final audit checklist. Read selectively: only the law(s) a brief triggers. |
 | `benchmarks/*.dna.json` | SOURCE-grade measured DNA (type ramps, surfaces, shadows, gaps) of 8 ship-grade products — Arc, Figma, Framer, Linear, Notion, Raycast, Stripe, Vercel. Calibration data for the excellence-tier reference duel; see `benchmarks/README.md`. |
