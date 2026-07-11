@@ -227,3 +227,24 @@ migration — never a silent edit. Changing a value is a normal, safe, intended 
 This is the same distinction the Consistency axis in `taste-rubric.md` enforces from the
 generation side: a generation must consume the **canonical, stable token names** and must
 not invent new raw values that should have resolved through an existing semantic token.
+
+## Onboarding an existing token file — `ui ds import`
+
+Most real projects already have a flat token file (a Figma-reconciled `tokens.json`,
+`{ category: { name: value } }`) rather than a compiled ease-design DS store. `ui ds import
+<tokens.json> --dir <project>` bridges the two: it converts the flat file into the DTCG
+two-tier store (`design/design.tokens.json` + a sealed manifest + an empty registry), so
+the rest of `ui ds *` — a11y contrast audit, status, diff, docs — works on it immediately.
+
+- `$type` is **inferred** per value: hex/rgb/hsl/oklch → `color`; a px/rem/em/% string, or a
+  bare number in a dimension-ish group (spacing, radii, sizes, layout) → `dimension`; a number
+  under a *weight* group → `fontWeight`; a `…ms` motion value → `duration`; a font-family → 
+  `fontFamily`; other bare numbers → `number`.
+- Nested groups (e.g. `typography.sizes`) are hoisted to their own `<category>-<sub>` category
+  (DTCG is two levels deep).
+- **Un-typeable values are skipped and reported, never guessed** — box-shadow strings and
+  cubic-bezier easings have no clean DTCG type, so they're listed as skipped rather than
+  emitted with a wrong `$type` that would corrupt a downstream check. Honesty over coverage.
+
+This is the *deterministic on-ramp*: the highest-value first move after `ui init` on a project
+that already has a design system — one import, then a full systemic contrast audit for free.

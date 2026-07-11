@@ -468,6 +468,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "BAD_INTENT", "BAD_BRAND_HEX", "PERSONA_NOT_FOUND", "BAD_TOKEN", "DS_EXISTS", "WRITE_ERROR"],
       },
+      import: {
+        summary: "Onboard an existing flat tokens.json into the DTCG store",
+        positionals: [{ name: "<tokens.json>", required: true, summary: "Flat token file { category: { name: value } }" }],
+        flags: [
+          { name: "dir", type: "string", summary: "Project directory to write design/ into (default cwd)" },
+          { name: "name", type: "string", summary: "DS name for the sealed manifest (default imported-ds)" },
+          { name: "force", type: "boolean", summary: "Overwrite an existing design.tokens.json" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "EXISTS", "EMPTY_IMPORT", "WRITE_ERROR"],
+      },
       context: {
         summary: "Emit the active design system as a context block for the host model",
         positionals: [],
