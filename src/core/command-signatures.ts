@@ -138,6 +138,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "a11y-lint": {
+    summary: "Static-HTML accessibility linter (Tier-1 WCAG checks; not a conformance claim)",
+    signature: {
+      summary: "Lint an HTML file for static a11y violations; exit 1 on error-severity findings",
+      positionals: [htmlFile("HTML file to lint")],
+      flags: [],
+      errorCodes: [...IO_CODES],
+    },
+  },
+
   "taste-lint": {
     summary: "Deterministic taste-rubric floor for generated HTML",
     signature: {
