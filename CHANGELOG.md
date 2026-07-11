@@ -18,6 +18,14 @@ All notable changes to ease-design are documented here. Format follows
   flag a document whose body is a bare `<meta http-equiv="refresh">` redirect (no page to title/voice).
 
 ### Added
+- **`ui ds import` — onboard an existing flat token file into the DS store (dogfood G1).** Real projects
+  carry a flat `tokens.json` (`{ category: { name: value } }`, e.g. Figma-reconciled), not a compiled DS
+  store — so `ui ds a11y/status/diff/docs` couldn't run on them. `ui ds import <tokens.json> --dir <project>`
+  converts the flat file to the DTCG two-tier store (inferring `$type` per value: color / dimension /
+  number / fontFamily / fontWeight / duration; hoisting nested groups to `<cat>-<sub>`; **skipping and
+  reporting** un-typeable values like box-shadow strings and bezier easings rather than emitting a wrong
+  type) and seals a manifest + empty registry. On the VSF-PCP dogfood this imported 117 tokens and
+  immediately surfaced a systemic contrast matrix via `ui ds a11y` that a one-off check had missed.
 - **`ui evidence` — user-evidence ledger with an anti-fabrication gate (DESIGN-OS T6).** Grounds design in
   what users actually said: a self-contained, git-committable store (`design/research.events.jsonl` +
   `research-sources/`) of findings at three support levels — `quote` (a verbatim user utterance; **must be a

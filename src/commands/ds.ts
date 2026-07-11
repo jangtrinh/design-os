@@ -9,6 +9,7 @@ import { runDocs } from "./ds-docs-impl.js";
 import { runA11y } from "./ds-a11y-impl.js";
 import { runChangeToken } from "./ds-change-token-impl.js";
 import { runStatus } from "./ds-status-impl.js";
+import { runImport } from "./ds-import-impl.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -27,6 +28,7 @@ Usage:
 
 Subcommands:
   init           Compile a project-scoped design system from a persona + intent
+  import         Onboard an EXISTING flat tokens.json → the DTCG store (so ds a11y/status/diff work)
   context        Emit the active design system as a context block for the host model
   change-token   Update one token's $value (only sanctioned mutation post-init)
   status         Show the manifest summary (generation, persona, hashes)
@@ -56,6 +58,15 @@ Subcommands:
   --force            Overwrite an existing DS (preserves changelog history)
   --persona-data <f> Override the personas.json path (test support)
   --dir <path>       Override the project directory
+
+'ds import' options:
+  --dir <path>       Project directory to write design/ into (default: cwd)
+  --name <name>      DS name for the sealed manifest (default: imported-ds)
+  --force            Overwrite an existing design.tokens.json
+  Converts a flat { category: { name: value } } token file into DTCG, inferring
+  $type per value (color/dimension/number/fontFamily/fontWeight/duration). Nested
+  groups are hoisted to <cat>-<sub>. Un-typeable values (box-shadow strings,
+  bezier easings) are SKIPPED and reported — never emitted with a bad type.
 
 'ds change-token' options:
   --value <v>        New $value for the token (required)
@@ -109,6 +120,13 @@ Error codes:
   BAD_TOKEN          Compiled token set failed validation on 'ds init'
   PERSONA_NOT_FOUND  --persona slug not in personas.json
   TOKEN_NOT_FOUND    'change-token' on a non-existent path
+  UNKNOWN_FLAG       Unrecognised --flag
+  BAD_ARG            Missing <tokens.json> on 'ds import'
+  FILE_NOT_FOUND     'ds import' source file does not exist
+  BAD_JSON           'ds import' source is not valid JSON / did not convert
+  EXISTS             'ds import' target design.tokens.json exists (use --force)
+  EMPTY_IMPORT       'ds import' found no typeable tokens
+  WRITE_ERROR        'ds import' could not write the DS store
   BAD_VALUE          'change-token' --value fails type/format check
   ALIAS_CYCLE        New alias graph has a cycle
   DANGLING_ALIAS     New alias points to a missing token
@@ -133,6 +151,7 @@ export const dsCommand = {
     const sub = parsed.subcommand;
     switch (sub) {
       case "init":         return runInit(parsed);
+      case "import":       return runImport(parsed);
       case "context":      return runContext(parsed);
       case "change-token": return runChangeToken(parsed);
       case "status":       return runStatus(parsed);
