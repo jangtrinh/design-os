@@ -7,6 +7,11 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui changelog` — a readable design changelog (DESIGN-OS T1).** Folds the DS manifest's `changelog[]`
+  (init / change-token / register) and the memory ledger's recorded `insight` decisions into a
+  Keep-a-Changelog-style history — Added / Changed / Decisions, newest first, each line provenance-tagged
+  (the acting command, or the `refs` behind a decision). Human- and model-readable; pure, read-only.
+  `--dir`, `--format markdown|json`.
 - **`ui ds docs` — decay-proof component documentation (DESIGN-OS T1).** Regenerates Markdown (or JSON)
   reference docs from the component registry + resolved token values: per component its variants, states,
   tokens-used (with resolved values), and a "consider adding" hint for commonly-missed states

@@ -36,6 +36,7 @@ import { dsCommand } from "./commands/ds.js";
 import { designmdCommand } from "./commands/designmd.js";
 import { schemaCommand } from "./commands/schema.js";
 import { memoryCommand } from "./commands/memory.js";
+import { changelogCommand } from "./commands/changelog.js";
 import { ingestFigmaDsCommand } from "./commands/ingest-figma-ds.js";
 import { synthesizeConventionsCommand } from "./commands/synthesize-conventions.js";
 
@@ -75,6 +76,7 @@ COMMANDS[dsCommand.name] = dsCommand;
 COMMANDS[designmdCommand.name] = designmdCommand;
 COMMANDS[schemaCommand.name] = schemaCommand;
 COMMANDS[memoryCommand.name] = memoryCommand;
+COMMANDS[changelogCommand.name] = changelogCommand;
 COMMANDS[ingestFigmaDsCommand.name] = ingestFigmaDsCommand;
 COMMANDS[synthesizeConventionsCommand.name] = synthesizeConventionsCommand;
 

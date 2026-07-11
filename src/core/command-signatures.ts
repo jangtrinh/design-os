@@ -285,6 +285,19 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     signature: { summary: "Emit the typed invocation contract (flags, positionals, enums, error codes)", positionals: [], flags: [], errorCodes: [] },
   },
 
+  changelog: {
+    summary: "Fold the design-system history into a readable changelog",
+    signature: {
+      summary: "Fold the DS manifest changelog + recorded decisions into a Keep-a-Changelog history",
+      positionals: [],
+      flags: [
+        { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
+        { name: "format", type: "string", values: ["markdown", "json"], summary: "Output format (default markdown)" },
+      ],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_MEMORY", "BAD_JSON"],
+    },
+  },
+
   init: {
     summary: "Write the ease-design manifest and per-runtime adapter tree",
     signature: {

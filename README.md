@@ -187,6 +187,7 @@ envelope.
 | `ui init` | Write the ease-design manifest and per-runtime adapter tree |
 | `ui ds` | Compile, inspect, and mutate the project's design system (`init`/`context`/`change-token`/`status`/`diff`/`docs`) |
 | `ui memory` | Per-project design-decision ledger → compiled graph → cross-project taste profile (`record`/`compile`/`context`/`query`/`consolidate`/`fingerprint`/`status`/`export-corpus`) |
+| `ui changelog` | Fold the design-system history (manifest changelog + recorded decisions) into a readable changelog |
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
 | `ui taste-lint` | Deterministic taste-rubric floor for generated HTML (6 machine-checkable axes) |
