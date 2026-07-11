@@ -7,6 +7,15 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui flow lint` — deterministic IA linting for multi-screen flows (DESIGN-OS T3).** A `flow.json`
+  models screens (each with its data-lifecycle states), transitions and entry points; `ui flow lint`
+  runs 12 pure graph checks nobody else does deterministically: **errors** — dangling-ref,
+  unreachable-screen, dead-end, missing-error-state (an async/submit transition on a screen with no
+  `error` state), invalid-trigger, noop-self-loop, no-entry; **warnings** — orphan-screen,
+  unreachable-state (a declared state nothing targets — decorative), missing-back-path,
+  missing-empty-state/skeleton (for data modes), guard-without-complement. Guards are declared for
+  linting/handoff, never executed (the deterministic guarantee). Schema `schemas/flow.schema.json`;
+  authoring brain `knowledge/flow-craft.md`.
 - **`ui a11y-lint` — Tier-1 static-HTML accessibility linter (DESIGN-OS T2).** Precision-first checks a
   parser can decide with no browser: img-missing-alt (1.1.1), html-lang (3.1.1), document-title (2.4.2),
   positive-tabindex (2.4.3), viewport-zoom-blocked (1.4.4), **icon-control-unnamed (4.1.2)** — an emoji/glyph

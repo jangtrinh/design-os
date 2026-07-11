@@ -191,6 +191,7 @@ envelope.
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
 | `ui taste-lint` | Deterministic taste-rubric floor for generated HTML (6 machine-checkable axes) |
+| `ui flow` | Lint a multi-screen flow's IA graph — unreachable screens, dead ends, missing error/empty states, dangling refs (`flow lint`) |
 | `ui a11y-lint` | Static-HTML accessibility linter — Tier-1 WCAG checks (alt, lang, title, tabindex, zoom, unnamed icon/emoji controls, heading order). Not a conformance claim. |
 | `ui validate-layout` | Static HTML structural/overflow linter (10 heuristic checks) |
 | `ui autofix` | Apply 5 deterministic HTML fix rules (viewport, imgs, Lucide, CDN, dup-ids) |

@@ -148,6 +148,18 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  flow: {
+    summary: "Lint a multi-screen flow (IA graph) deterministically",
+    subcommands: {
+      lint: {
+        summary: "Deterministically lint an IA graph (screens + states + transitions)",
+        positionals: [{ name: "<flow.json>", required: true, summary: "The flow artefact to lint" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_FLOW"],
+      },
+    },
+  },
+
   "taste-lint": {
     summary: "Deterministic taste-rubric floor for generated HTML",
     signature: {
