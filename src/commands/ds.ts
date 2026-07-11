@@ -4,6 +4,7 @@
 import { errJson, errText } from "../core/output.js";
 import { runInit } from "./ds-init-impl.js";
 import { runContext } from "./ds-context-impl.js";
+import { runDiff } from "./ds-diff-impl.js";
 import { runChangeToken } from "./ds-change-token-impl.js";
 import { runStatus } from "./ds-status-impl.js";
 import type { ParsedArgs } from "../core/cli-args.js";
@@ -18,12 +19,20 @@ Usage:
   ui ds context [--strict] [--with-theme] [--format markdown|json] [options]
   ui ds change-token <path> --value <v> [options]
   ui ds status   [--dir <project-dir>] [--json]
+  ui ds diff <base-dir> <head-dir> [--format markdown|json|pr-comment] [--base-version <v>]
 
 Subcommands:
   init           Compile a project-scoped design system from a persona + intent
   context        Emit the active design system as a context block for the host model
   change-token   Update one token's $value (only sanctioned mutation post-init)
   status         Show the manifest summary (generation, persona, hashes)
+  diff           Compare two DS states (dirs with design.tokens.json) → semver + visual-breaking classification
+
+'ds diff' options:
+  --format <f>       markdown (default) | json | pr-comment
+  --base-version <v> Base semver (x.y.z) to compute the recommended next version from
+  --color-tolerance <n>  OKLab ΔE below which a colour change is a patch (default 0.02)
+  --dim-tolerance <n>    Dimension % change below which it is a patch (default 5)
 
 'ds init' options:
   --persona <slug>   Persona slug from personas.json (required)
@@ -92,6 +101,9 @@ Error codes:
   WRITE_ERROR        A design/ artifact could not be written
   BAD_ARG            Missing required flag, unknown subcommand, etc.
   UNKNOWN_FLAG       Unrecognised --flag (rejected, with a did-you-mean hint)
+  FILE_NOT_FOUND     'ds diff' input dir has no design.tokens.json
+  BAD_JSON           'ds diff' input file is not valid JSON / bad token shape
+  READ_ERROR         'ds diff' input could not be read
 `;
 
 export const dsCommand = {
@@ -106,6 +118,7 @@ export const dsCommand = {
       case "context":      return runContext(parsed);
       case "change-token": return runChangeToken(parsed);
       case "status":       return runStatus(parsed);
+      case "diff":         return runDiff(parsed);
       case undefined: {
         const msg = "ui ds requires a subcommand. Run 'ui ds --help'.";
         return parsed.json

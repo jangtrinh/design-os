@@ -7,6 +7,20 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui ds diff` — semver + computed visual-breaking-change for a design system (DESIGN-OS T1).**
+  Compares two DS states (dirs holding `design.tokens.json` + optional `component-registry.json` — the
+  host materialises them from git refs) and classifies every token/component change as
+  **breaking / additive / patch**, folding to a `recommendedBump` and (with `--base-version`) a
+  `recommendedVersion`. Crucially it *measures* visual breakage instead of guessing: a colour change is a
+  patch below an OKLab **ΔEOK** tolerance and breaking above it; a dimension change is a patch below a %
+  tolerance and breaking above. A token removed while a component still lists it in `tokensUsed` is a
+  **dangling** reference — forces major and exits 1. `--format markdown|json|pr-comment` (the last is a
+  `gh pr comment`-ready summary). Pure, deterministic; the rules the model narrates from live in
+  `knowledge/versioning-semver.md`.
+- **`ui critique-coverage --require-evidence` (DESIGN-OS T0)** — closes the fabricated-criteria hole: an
+  acceptance criterion with no `evidence` provenance is an **assumption**, never counted as real coverage
+  (`evidencedCoveragePct`), and fails the gate. `curator.md` gains the matching honesty rules (coverage is a
+  self-report; a11y is a hard floor above the style source; never claim "accessible" from a static check).
 - **The recall loop closes (Track 9 · P4)** — `recall reflect <job-events.json>` assembles a job's
   own events plus the semantic neighbours memory already held, prints the Reflexion instruction
   ("extract ONE durable lesson — what was LEARNED, not what was said") and the exact
