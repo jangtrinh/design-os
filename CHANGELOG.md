@@ -7,6 +7,11 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui ds docs` — decay-proof component documentation (DESIGN-OS T1).** Regenerates Markdown (or JSON)
+  reference docs from the component registry + resolved token values: per component its variants, states,
+  tokens-used (with resolved values), and a "consider adding" hint for commonly-missed states
+  (focus/disabled/loading/error/empty). Because the docs are a pure function of the registry, they cannot
+  drift out of sync the way hand-maintained docs do. `--dir`, `--out <file>`, `--format markdown|json`.
 - **`ui ds diff` — semver + computed visual-breaking-change for a design system (DESIGN-OS T1).**
   Compares two DS states (dirs holding `design.tokens.json` + optional `component-registry.json` — the
   host materialises them from git refs) and classifies every token/component change as

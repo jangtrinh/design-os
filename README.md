@@ -185,7 +185,7 @@ envelope.
 | `ui doctor` | Verify an ease-design install (and, with `--cwd`, a project) is healthy |
 | `ui scan` | Detect existing design signals — routes brownfield projects to /ui:learn |
 | `ui init` | Write the ease-design manifest and per-runtime adapter tree |
-| `ui ds` | Compile, inspect, and mutate the project's design system (`init`/`context`/`change-token`/`status`/`diff`) |
+| `ui ds` | Compile, inspect, and mutate the project's design system (`init`/`context`/`change-token`/`status`/`diff`/`docs`) |
 | `ui memory` | Per-project design-decision ledger → compiled graph → cross-project taste profile (`record`/`compile`/`context`/`query`/`consolidate`/`fingerprint`/`status`/`export-corpus`) |
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
