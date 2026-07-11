@@ -38,6 +38,7 @@ import { schemaCommand } from "./commands/schema.js";
 import { memoryCommand } from "./commands/memory.js";
 import { changelogCommand } from "./commands/changelog.js";
 import { a11yLintCommand } from "./commands/a11y-lint.js";
+import { flowCommand } from "./commands/flow.js";
 import { ingestFigmaDsCommand } from "./commands/ingest-figma-ds.js";
 import { synthesizeConventionsCommand } from "./commands/synthesize-conventions.js";
 
@@ -79,6 +80,7 @@ COMMANDS[schemaCommand.name] = schemaCommand;
 COMMANDS[memoryCommand.name] = memoryCommand;
 COMMANDS[changelogCommand.name] = changelogCommand;
 COMMANDS[a11yLintCommand.name] = a11yLintCommand;
+COMMANDS[flowCommand.name] = flowCommand;
 COMMANDS[ingestFigmaDsCommand.name] = ingestFigmaDsCommand;
 COMMANDS[synthesizeConventionsCommand.name] = synthesizeConventionsCommand;
 
