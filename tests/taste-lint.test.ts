@@ -70,6 +70,57 @@ describe("checkTinyBodyText", () => {
     // "font-size: 10px" appears as visible prose, not a CSS region → not matched
     expect(checkTinyBodyText("<p>Set your font-size: 10px in settings.</p>")).toHaveLength(0);
   });
+
+  // ── role-aware rewrite (dogfood L2) ────────────────────────────────────────
+
+  it("<style> body selector at 12px fires (body copy)", () => {
+    expect(checkTinyBodyText("<style> p{font-size:12px}</style>")).toHaveLength(1);
+  });
+
+  it("<style> chrome-role selector (.badge) at 11px does NOT fire", () => {
+    expect(checkTinyBodyText("<style> .badge{font-size:11px}</style>")).toHaveLength(0);
+  });
+
+  it("<style> body-ish selector (.description) at 13px fires — not a chrome role", () => {
+    expect(checkTinyBodyText("<style> .description{font-size:13px}</style>")).toHaveLength(1);
+  });
+
+  it("<style> chrome-role selector (.badge) at 8px FIRES — below the abuse floor even for chrome", () => {
+    expect(checkTinyBodyText("<style> .badge{font-size:8px}</style>")).toHaveLength(1);
+  });
+
+  it("inline style on a non-body element (<span>) at 12px does NOT fire", () => {
+    expect(checkTinyBodyText('<span style="font-size:12px">x</span>')).toHaveLength(0);
+  });
+
+  it("inline style on a body element (<p>) at 12px fires", () => {
+    expect(checkTinyBodyText('<p style="font-size:12px">x</p>')).toHaveLength(1);
+  });
+
+  it("Tailwind text-[12px] on a <div> does NOT fire; on a <p> fires", () => {
+    expect(checkTinyBodyText('<div class="text-[12px]">x</div>')).toHaveLength(0);
+    expect(checkTinyBodyText('<p class="text-[12px]">x</p>')).toHaveLength(1);
+  });
+
+  it("a size ≥14px never fires", () => {
+    expect(checkTinyBodyText("<style>p{font-size:14px}</style>")).toHaveLength(0);
+  });
+
+  it("line number sanity: <style> rule violation reports the line the font-size token is on", () => {
+    const css = [
+      "<style>",             // line 1
+      ".badge {",            // line 2
+      "  color: red;",       // line 3
+      "}",                   // line 4
+      ".description {",      // line 5
+      "  font-size: 13px;",  // line 6
+      "}",                   // line 7
+      "</style>",            // line 8
+    ].join("\n");
+    const f = checkTinyBodyText(css);
+    expect(f).toHaveLength(1);
+    expect(f[0]?.line).toBe(6);
+  });
 });
 
 // ─── checkOffGridSpacing (Spacing) ──────────────────────────────────────────────

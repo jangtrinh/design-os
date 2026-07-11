@@ -6,6 +6,7 @@ import { lintA11y } from "../src/core/a11y-lint.js";
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
   checkViewportZoom, checkIconControlUnnamed, checkHeadingHierarchy,
+  isRedirectStub,
 } from "../src/core/a11y-checks.js";
 import { run } from "../src/cli.js";
 
@@ -50,6 +51,39 @@ describe("a11y-checks — per rule", () => {
     expect(ids(checkHeadingHierarchy("<h2>x</h2>"))).toContain("heading-no-h1");
     expect(ids(checkHeadingHierarchy("<h1></h1>"))).toContain("heading-empty");
     expect(checkHeadingHierarchy("<h1>a</h1><h2>b</h2>")).toHaveLength(0);
+  });
+});
+
+describe("isRedirectStub — L1 dogfood exemption", () => {
+  it("true for a bare meta-refresh stub with no real body copy", () => {
+    expect(isRedirectStub('<!doctype html><meta http-equiv="refresh" content="0; url=overview.html">')).toBe(true);
+  });
+  it("false for a normal page with a real <body> of content, even with meta-refresh", () => {
+    const html = [
+      '<!doctype html><meta http-equiv="refresh" content="0; url=overview.html">',
+      "<body><h1>Welcome</h1><p>This page has substantial body copy describing the product in detail.</p></body>",
+    ].join("");
+    expect(isRedirectStub(html)).toBe(false);
+  });
+  it("false for a doc with NO meta-refresh even if short", () => {
+    expect(isRedirectStub("<html><body>hi</body></html>")).toBe(false);
+  });
+});
+
+describe("checkHtmlLang / checkDocumentTitle — redirect-stub exemption (L1)", () => {
+  const STUB = '<!doctype html><meta http-equiv="refresh" content="0; url=overview.html">';
+
+  it("checkHtmlLang returns [] on the redirect stub", () => {
+    expect(checkHtmlLang(STUB)).toHaveLength(0);
+  });
+  it("checkDocumentTitle returns [] on the redirect stub", () => {
+    expect(checkDocumentTitle(STUB)).toHaveLength(0);
+  });
+
+  it("REGRESSION: a normal full page with no <title>/no lang still flags both", () => {
+    const normal = "<!doctype html><html><head></head><body><h1>Hi</h1><p>Some real page content that is not a redirect stub at all, plenty of body text here.</p></body></html>";
+    expect(checkHtmlLang(normal)).toHaveLength(1);
+    expect(checkDocumentTitle(normal)).toHaveLength(1);
   });
 });
 

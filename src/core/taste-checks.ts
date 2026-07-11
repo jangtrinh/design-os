@@ -38,38 +38,106 @@ export { checkRawHexWhenTokenExists } from "./taste-checks-consistency.js";
 /**
  * tiny-body-text: a font-size below 16px applied via inline style, a `<style>`
  * rule, or a Tailwind arbitrary value `text-[Npx]`. The rubric is explicit:
- * "Body text never below 16px" (Typography axis). Small UI chrome (captions,
- * labels) legitimately goes below 16px, so this is a *heuristic*: it flags only
- * px font-sizes ≤ 13px, the threshold below which body copy is unambiguously
- * too small. 14–15px is left to the model (often a deliberate dense-UI choice).
+ * "Body text never below 16px" (Typography axis) — but the rule is about BODY
+ * copy. Small UI chrome (badges, captions, labels, nav, buttons, table meta,
+ * code, eyebrow headings) legitimately goes below 16px, so a size ≤13px is only
+ * a violation when it is NOT explained by a chrome/label/heading role.
+ *
+ * Role is read from the selector (for `<style>` rules) or the element's tag +
+ * class/id (for inline styles / Tailwind). If the context names a chrome role we
+ * exempt it down to an ABUSE_FLOOR (9px) below which even chrome is broken. Body
+ * contexts (`p`, `body`, `.prose`, `.description`, an unlabelled `<div>`…) still
+ * flag at ≤13px. Precision over recall (dogfood L2: a UI-kit showcase of badges
+ * and nav should not read as 35 body-text violations).
  */
+const BODY_FLOOR = 13; // ≤ this is flagged for body text
+const ABUSE_FLOOR = 9; // < this is flagged even for chrome — nothing should be this small
+
+/** Selector / element context that is NOT body copy (chrome, labels, headings, controls, secondary text). */
+// Leading boundary is intentionally omitted (trailing `\b` kept) so compound/abbreviated class
+// tokens still match a role — e.g. `savatar`→avatar, `icode`→code, `metric-t`→metric. This widens
+// exemptions, which is the correct bias for a precision-over-recall taste check.
+const CHROME_ROLE_RE =
+  /(?:h[1-6]|nav|navbar|brand|badge|chip|pill|tag|label|lbl|method|meta|caption|code|pre|kbd|mono|icon|ico|small|hint|tip|tooltip|toast|tab|tabs|breadcrumb|crumb|footnote|legend|counter?|timestamp|time|date|unit|eyebrow|overline|kicker|subtitle|sublabel|helper|help|micro|fineprint|disclaimer|status|state|dot|pip|avatar|swatch|spec|note|name|btn|button|input|field|placeholder|toolbar|stat|metric|kpi|pager|th|td|thead|tfoot|sec|sub|muted|subtle|secondary|dim|faint|quiet|soft|ghost|pagination|summary|footer|foot|aside|sidebar|rail|menu|dropdown|row|cell|header)\b/i;
+
+/** Element context that IS plausibly body copy — the only inline/Tailwind case worth flagging. */
+const BODY_ROLE_RE =
+  /\b(?:p|body|article|prose|content|description|desc|copy|paragraph|para|readme|bio|about|message|msg|text-body|bodytext)\b/i;
+
+const FONT_SIZE_RE = /font-size\s*:\s*(\d+(?:\.\d+)?)px/i;
+
+function tinyMsg(px: number, prefix: string): string {
+  return `${prefix} ${px}px is below the 16px body-text floor (rubric: "Body text never below 16px") — too small for body copy${px < ABUSE_FLOOR ? "" : "; if this is a badge/label/nav element, name that role so it can be exempted"}`;
+}
+
+/**
+ * `<style>`-rule verdict: the selector carries semantics, so flag a ≤BODY_FLOOR size UNLESS a
+ * chrome role explains it (below ABUSE_FLOOR nothing is acceptable).
+ */
+function isSelectorViolation(px: number, selector: string): boolean {
+  if (px <= 0) return false;
+  if (px < ABUSE_FLOOR) return true;
+  if (px > BODY_FLOOR) return false;
+  return !CHROME_ROLE_RE.test(selector);
+}
+
+/**
+ * Inline-style / Tailwind verdict: there is no selector, and an inline font-size is almost always a
+ * one-off chrome micro-adjustment (badges, status, meta), not body copy — body copy is styled via
+ * classes/stylesheets. So flag ONLY when the element is positively body-named, or the size is broken
+ * (<ABUSE_FLOOR). Precision over recall.
+ */
+function isInlineViolation(px: number, roleContext: string): boolean {
+  if (px <= 0) return false;
+  if (px < ABUSE_FLOOR) return true;
+  if (px > BODY_FLOOR) return false;
+  return BODY_ROLE_RE.test(roleContext);
+}
+
 export function checkTinyBodyText(html: string): TasteFinding[] {
   const findings: TasteFinding[] = [];
-  const css = cssRegions(html);
-
-  // CSS font-size declarations (inline + <style>): font-size: Npx
-  const cssRe = /font-size\s*:\s*(\d+(?:\.\d+)?)px/gi;
   let m: RegExpExecArray | null;
-  while ((m = cssRe.exec(css)) !== null) {
-    const px = parseFloat(m[1] ?? "0");
-    if (px > 0 && px <= 13) {
-      findings.push({
-        checkId: "tiny-body-text", axis: "Typography", severity: "error",
-        message: `font-size ${px}px is below the 16px body-text floor (rubric: "Body text never below 16px") — values ≤13px are too small for body copy`,
-      });
+
+  // 1. <style> rules — parse `selector { … }` so the selector gives the role.
+  const styleRe = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
+  let s: RegExpExecArray | null;
+  while ((s = styleRe.exec(html)) !== null) {
+    const block = s[1] ?? "";
+    const base = s.index + s[0].indexOf(block);
+    const ruleRe = /([^{}]+)\{([^{}]*)\}/g;
+    let r: RegExpExecArray | null;
+    while ((r = ruleRe.exec(block)) !== null) {
+      const selector = r[1] ?? "", body = r[2] ?? "";
+      const fs = FONT_SIZE_RE.exec(body);
+      if (fs === null) continue;
+      const px = parseFloat(fs[1] ?? "0");
+      if (isSelectorViolation(px, selector)) {
+        // Point the line at the font-size token itself (the selector may span newlines).
+        const fsOffset = base + r.index + selector.length + 1 + (fs.index ?? 0);
+        findings.push({ checkId: "tiny-body-text", axis: "Typography", severity: "error", message: tinyMsg(px, "font-size"), line: lineOf(html, fsOffset) });
+      }
     }
   }
 
-  // Tailwind arbitrary font-size: text-[Npx]
-  const twRe = /\btext-\[(\d+(?:\.\d+)?)px\]/g;
+  // 2. Inline style="… font-size:Npx …" — role from the element's tag + class/id.
+  const inlineRe = /<([a-zA-Z][\w-]*)\b([^>]*?)\bstyle\s*=\s*"([^"]*)"/gi;
+  while ((m = inlineRe.exec(html)) !== null) {
+    const fs = FONT_SIZE_RE.exec(m[3] ?? "");
+    if (fs === null) continue;
+    const px = parseFloat(fs[1] ?? "0");
+    const roleContext = `${m[1] ?? ""} ${m[2] ?? ""}`;
+    if (isInlineViolation(px, roleContext)) {
+      findings.push({ checkId: "tiny-body-text", axis: "Typography", severity: "error", message: tinyMsg(px, "font-size"), line: lineOf(html, m.index) });
+    }
+  }
+
+  // 3. Tailwind arbitrary font-size: text-[Npx] — role from the element's classlist + tag.
+  const twRe = /<([a-zA-Z][\w-]*)\b([^>]*?\btext-\[(\d+(?:\.\d+)?)px\][^>]*)>/gi;
   while ((m = twRe.exec(html)) !== null) {
-    const px = parseFloat(m[1] ?? "0");
-    if (px > 0 && px <= 13) {
-      findings.push({
-        checkId: "tiny-body-text", axis: "Typography", severity: "error",
-        message: `Tailwind text-[${px}px] is below the 16px body-text floor (rubric: "Body text never below 16px")`,
-        line: lineOf(html, m.index),
-      });
+    const px = parseFloat(m[3] ?? "0");
+    const roleContext = `${m[1] ?? ""} ${m[2] ?? ""}`;
+    if (isInlineViolation(px, roleContext)) {
+      findings.push({ checkId: "tiny-body-text", axis: "Typography", severity: "error", message: tinyMsg(px, "Tailwind text-["), line: lineOf(html, m.index) });
     }
   }
 
