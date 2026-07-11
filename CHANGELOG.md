@@ -6,6 +6,17 @@ All notable changes to ease-design are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- **taste-lint `tiny-body-text` is now role-aware (dogfood L2).** The 16px body-text floor was firing on
+  legitimate UI chrome (badges, nav, labels, table meta, code, eyebrow headings). It now reads the role from
+  the `<style>` selector (exempt a ≤13px size when the selector names a chrome/label/heading/secondary role,
+  but still flag below a 9px abuse floor) and, for inline/Tailwind sizes, only flags positively body-named
+  elements (`p`, `article`, `.prose`, `.description`…) since an inline font-size is almost always a one-off
+  chrome tweak. On a real enterprise UI-kit showcase this cut false positives from 35 → 1. `<style>`-rule
+  findings now anchor the line at the `font-size` token itself.
+- **a11y-lint skips redirect-only stubs (dogfood L1).** `checkHtmlLang` / `checkDocumentTitle` no longer
+  flag a document whose body is a bare `<meta http-equiv="refresh">` redirect (no page to title/voice).
+
 ### Added
 - **`ui evidence` — user-evidence ledger with an anti-fabrication gate (DESIGN-OS T6).** Grounds design in
   what users actually said: a self-contained, git-committable store (`design/research.events.jsonl` +

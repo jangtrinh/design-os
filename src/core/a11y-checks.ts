@@ -15,6 +15,18 @@ function hasAttr(tag: string, name: string): boolean {
   return new RegExp(`\\b${name}(\\s*=|\\s|>|/)`, "i").test(tag);
 }
 
+/**
+ * A redirect-only stub: `<meta http-equiv="refresh" content="…url=…">` with effectively no
+ * visible body. Such a document has no page to title and no content to voice, so gating it for
+ * <title>/<html lang> is noise (dogfood L1: VSF-PCP index.html is a 1-line meta-refresh stub).
+ */
+const REFRESH_RE = /<meta\b[^>]*\bhttp-equiv\s*=\s*["']?refresh["']?[^>]*\bcontent\s*=\s*["'][^"']*url=/i;
+export function isRedirectStub(html: string): boolean {
+  if (!REFRESH_RE.test(html)) return false;
+  const bodyText = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return bodyText.length < 40; // just the redirect target, no real page copy
+}
+
 // ── 1.1.1 Non-text content: every <img> needs an alt attribute (empty=decorative ok) ──
 export function checkImgAlt(html: string): A11yFinding[] {
   const out: A11yFinding[] = [];
@@ -29,6 +41,7 @@ export function checkImgAlt(html: string): A11yFinding[] {
 
 // ── 3.1.1 Language of page: <html lang="…"> present + non-empty ──
 export function checkHtmlLang(html: string): A11yFinding[] {
+  if (isRedirectStub(html)) return [];
   const m = /<html\b[^>]*>/i.exec(html);
   const lang = m !== null ? attr(m[0], "lang") : null;
   if (m === null || lang === null || lang.trim() === "") {
@@ -40,6 +53,7 @@ export function checkHtmlLang(html: string): A11yFinding[] {
 
 // ── 2.4.2 Page titled: non-empty <title> ──
 export function checkDocumentTitle(html: string): A11yFinding[] {
+  if (isRedirectStub(html)) return [];
   const m = /<title\b[^>]*>([\s\S]*?)<\/title>/i.exec(html);
   if (m === null || (m[1] ?? "").trim() === "") {
     return [{ checkId: "document-title", severity: "error", sc: "2.4.2",
