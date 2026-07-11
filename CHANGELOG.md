@@ -7,6 +7,13 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui a11y-lint` — Tier-1 static-HTML accessibility linter (DESIGN-OS T2).** Precision-first checks a
+  parser can decide with no browser: img-missing-alt (1.1.1), html-lang (3.1.1), document-title (2.4.2),
+  positive-tabindex (2.4.3), viewport-zoom-blocked (1.4.4), **icon-control-unnamed (4.1.2)** — an emoji/glyph
+  or icon-only button/link with no accessible name (closes the recurring "emoji as a control" defect) — and
+  heading-hierarchy (1.3.1/2.4.6, warnings). Exit 1 on error-severity findings. Honest by construction: a pass
+  is **not** "accessible" and **not** "WCAG AA conformant"; rendered contrast, focus visibility/order, and
+  alt-text quality need a browser (Tier 2) or a human and are explicitly out of scope.
 - **`ui ds a11y` — token-pair contrast audit (DESIGN-OS T2).** For every text-role token × surface-role
   token (roles inferred from names, or pinned with `--pairs "text.muted:bg.default,..."`), computes the WCAG
   contrast ratio and flags any pair below AA (4.5:1), exiting 1. This catches the recurring secondary-text
