@@ -20,3 +20,6 @@ dev = ["pytest>=8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: end-to-end test that shells out to the real `ui` kernel (skipped when absent)",
+]
