@@ -16,7 +16,17 @@ build-backend = "hatchling.build"
 packages = ["src/design_os"]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+# design-os-figma is the first real plugin (a workspace member). Dev-installing it makes its
+# `design_os.plugins` entry point discoverable in the test env — the whole point of Phase 05.
+dev = ["pytest>=8", "design-os-figma"]
+
+# uv workspace: `design-os` is the root; every plugin lives under plugins/* as a member sharing
+# this project's single uv.lock (es-typer §8 — monorepo → uv workspaces).
+[tool.uv.workspace]
+members = ["plugins/*"]
+
+[tool.uv.sources]
+design-os-figma = { workspace = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

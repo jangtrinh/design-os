@@ -1,0 +1,23 @@
+[project]
+name = "design-os-figma"
+version = "0.1.0"
+description = "design-os plugin: drive the Figma broker/plugin via the `figma-agent` hand."
+requires-python = ">=3.10"
+dependencies = ["typer==0.26.8", "design-os"]
+
+# The plugin imports envelope/JsonFlag/resolve_bin FROM the design_os package (contract §1),
+# so it depends on the umbrella itself — resolved as a sibling workspace member, not from PyPI.
+[tool.uv.sources]
+design-os = { workspace = true }
+
+# The one line that makes this a REAL design-os plugin: `design-os` (and the `plugins`
+# diagnostic) discover it via importlib.metadata.entry_points(group="design_os.plugins").
+[project.entry-points."design_os.plugins"]
+figma = "design_os_figma:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/design_os_figma"]
