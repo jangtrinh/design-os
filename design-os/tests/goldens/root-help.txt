@@ -1,0 +1,13 @@
+Usage: design-os [OPTIONS] COMMAND [ARGS]...
+
+  design-os — the DESIGN-OS conductor over the deterministic `ui` kernel.
+
+Options:
+  --install-completion  Install completion for the current shell.
+  --show-completion     Show completion for the current shell, to copy it or
+                        customize the installation.
+  --help                Show this message and exit.
+
+Commands:
+  doctor  Verify the design-os runtime: the `ui` kernel, node, and optional...
+  ui      Raw passthrough to the deterministic `ui` kernel (bytes + exit...
