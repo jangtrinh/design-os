@@ -15,6 +15,7 @@ import sys
 
 import typer
 
+from design_os import plugins
 from design_os.commands import audit as audit_cmd
 from design_os.commands import doctor as doctor_cmd
 from design_os.commands import ui_passthrough
@@ -70,6 +71,10 @@ app.command(
 # Sub-app: `reference` is a GROUP (its callback is the collapse guard), so `add` stays a
 # nested leaf reachable as `design-os reference add`.
 app.add_typer(reference_app, name="reference")
+# Built-in diagnostic (NOT a third-party plugin): lists the discovered `design_os.plugins` and
+# their mount status. It lives on the STATIC app — unlike the third-party plugins themselves,
+# which mount only in main() — so it shows in --help and the tree-walk sees a normal --json leaf.
+app.command(name="plugins")(plugins.plugins_command)
 
 
 def run(argv: list[str]) -> int:
@@ -124,5 +129,11 @@ def run(argv: list[str]) -> int:
 
 
 def main() -> None:
-    """Console-script entry point (``[project.scripts] design-os``)."""
+    """Console-script entry point (``[project.scripts] design-os``).
+
+    Mounts third-party plugins onto the real ``app`` right before dispatch — NOT at module
+    import time, so the static ``app`` that the tests and the ``--help`` golden pin stays
+    plugin-free. A broken plugin degrades to a stderr warning and is skipped (see plugins.mount).
+    """
+    plugins.mount(app)
     sys.exit(run(sys.argv[1:]))
