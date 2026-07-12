@@ -28,16 +28,35 @@ class KernelResult:
     stderr: str
 
 
+def resolve_bin(name: str, env_var: str) -> str | None:
+    """Locate a binary by name.
+
+    Order: explicit ``env_var`` override (used verbatim) → ``PATH`` lookup via
+    ``shutil.which(name)`` → ``None`` when nothing is found. This is the single resolution
+    policy shared by every hand the umbrella shells out to.
+    """
+    override = os.environ.get(env_var)
+    if override:
+        return override
+    return shutil.which(name)
+
+
 def resolve_ui() -> str | None:
     """Locate the ``ui`` kernel binary.
 
     Order: explicit ``DESIGN_OS_UI_BIN`` env override (used verbatim) → ``PATH`` lookup →
     ``None`` when nothing is found.
     """
-    override = os.environ.get("DESIGN_OS_UI_BIN")
-    if override:
-        return override
-    return shutil.which("ui")
+    return resolve_bin("ui", "DESIGN_OS_UI_BIN")
+
+
+def resolve_pixelshot() -> str | None:
+    """Locate the ``pixelshot`` capture hand.
+
+    Order: explicit ``DESIGN_OS_PIXELSHOT_BIN`` env override (used verbatim) → ``PATH``
+    lookup → ``None`` when nothing is found.
+    """
+    return resolve_bin("pixelshot", "DESIGN_OS_PIXELSHOT_BIN")
 
 
 def run_ui(args: list[str], *, timeout: float = 120.0) -> KernelResult:

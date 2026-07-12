@@ -18,6 +18,7 @@ import typer
 from design_os.commands import audit as audit_cmd
 from design_os.commands import doctor as doctor_cmd
 from design_os.commands import ui_passthrough
+from design_os.commands.reference import reference_app
 from design_os.envelope import err_env
 
 # --- Exception imports -------------------------------------------------------
@@ -66,6 +67,9 @@ app.command(
     name="ui",
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )(ui_passthrough.ui_cmd)
+# Sub-app: `reference` is a GROUP (its callback is the collapse guard), so `add` stays a
+# nested leaf reachable as `design-os reference add`.
+app.add_typer(reference_app, name="reference")
 
 
 def run(argv: list[str]) -> int:
