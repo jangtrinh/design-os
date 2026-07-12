@@ -2,6 +2,12 @@ version = 1
 revision = 3
 requires-python = ">=3.10"
 
+[manifest]
+members = [
+    "design-os",
+    "design-os-figma",
+]
+
 [[package]]
 name = "annotated-doc"
 version = "0.0.4"
@@ -30,6 +36,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "design-os-figma" },
     { name = "pytest" },
 ]
 
@@ -37,7 +44,25 @@ dev = [
 requires-dist = [{ name = "typer", specifier = "==0.26.8" }]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8" }]
+dev = [
+    { name = "design-os-figma", editable = "plugins/figma" },
+    { name = "pytest", specifier = ">=8" },
+]
+
+[[package]]
+name = "design-os-figma"
+version = "0.1.0"
+source = { editable = "plugins/figma" }
+dependencies = [
+    { name = "design-os" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "design-os", editable = "." },
+    { name = "typer", specifier = "==0.26.8" },
+]
 
 [[package]]
 name = "exceptiongroup"
