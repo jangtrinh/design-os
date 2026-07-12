@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audit fixture — with defects</title>
+  </head>
+  <body>
+    <header>
+      <h1>Storefront</h1>
+      <!-- a11y defect: an emoji used as a control with no accessible name (WCAG 4.1.2) -->
+      <button type="button">🔍</button>
+    </header>
+    <main>
+      <section>
+        <h2>Featured</h2>
+        <!-- content defect: unfinished body copy shipped verbatim as real text -->
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      </section>
+    </main>
+  </body>
+</html>
