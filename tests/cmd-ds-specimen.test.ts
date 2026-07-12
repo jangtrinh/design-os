@@ -41,6 +41,17 @@ const CLEAN_REGISTRY = {
   ],
 };
 
+/** Lifecycle-status fixture (P4): a stable gap (→ error, always gates), a draft
+ * gap (→ warning, informational unless --strict), and a complete unset control. */
+const STATUS_REGISTRY = {
+  version: "0.1.0",
+  components: [
+    { name: "Toolbar / Button", variants: ["State=Hover"], status: "stable" }, // gap on stable → error
+    { name: "Filters / Select", variants: ["State=Default"], status: "draft" }, // gap on draft → warning
+    { name: "Forms / Field", variants: ["State=Hover", "State=Focus", "State=Disabled"] }, // complete, unset
+  ],
+};
+
 function writeRegistry(dir: string, registry: unknown): void {
   mkdirSync(join(dir, "design"), { recursive: true });
   writeFileSync(join(dir, "design", "component-registry.json"), JSON.stringify(registry), "utf8");
@@ -106,5 +117,48 @@ describe("ui ds specimen", () => {
     const r = capture(["ds", "specimen", "--dir", dir, "--bogus", "--json"]);
     expect(r.code).toBe(1);
     expect(errorCode(r)).toBe("UNKNOWN_FLAG");
+  });
+});
+
+// ─── ui ds specimen — lifecycle status (P4) ────────────────────────────────
+
+describe("ui ds specimen — lifecycle status (P4)", () => {
+  it("a gap on a stable component gates WITHOUT --strict", () => {
+    const d = mkdtempSync(join(tmpdir(), "ease-specimen-status-"));
+    writeRegistry(d, STATUS_REGISTRY);
+    const r = capture(["ds", "specimen", "--dir", d, "--json"]);
+    expect(r.code).toBe(1);
+    const data = JSON.parse(r.out).data as {
+      errorCount: number;
+      warningCount: number;
+      statusBreakdown: { stable: number; beta: number; draft: number; unset: number };
+    };
+    expect(data.errorCount).toBe(1);
+    expect(data.warningCount).toBe(1);
+    expect(data.statusBreakdown).toEqual({ stable: 1, beta: 0, draft: 1, unset: 1 });
+  });
+
+  it("text mode marks the stable gap and shows the status suffix", () => {
+    const d = mkdtempSync(join(tmpdir(), "ease-specimen-status-text-"));
+    writeRegistry(d, STATUS_REGISTRY);
+    const r = capture(["ds", "specimen", "--dir", d]);
+    expect(r.code).toBe(1);
+    expect(r.out).toContain("✗ [missing-disabled] Toolbar / Button");
+    expect(r.out).toContain("(marked stable — must honour its state contract)");
+    expect(r.out).toContain("! [missing-empty] Filters / Select");
+    expect(r.out).toContain("1 error(s) + 1 warning(s)");
+    expect(r.out).toContain("status 1 stable / 0 beta / 1 draft / 1 unset");
+  });
+
+  it("a draft gap alone stays informational: exit 0 by default, exit 1 under --strict", () => {
+    const d = mkdtempSync(join(tmpdir(), "ease-specimen-draft-only-"));
+    writeRegistry(d, {
+      version: "0.1.0",
+      components: [{ name: "Filters / Select", variants: ["State=Default"], status: "draft" }],
+    });
+    const r1 = capture(["ds", "specimen", "--dir", d, "--json"]);
+    expect(r1.code).toBe(0);
+    const r2 = capture(["ds", "specimen", "--dir", d, "--strict", "--json"]);
+    expect(r2.code).toBe(1);
   });
 });

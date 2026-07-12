@@ -115,6 +115,35 @@ describe("validateComponentRecord", () => {
       validateComponentRecord({ ...validRecord(), extraField: "not-allowed" }),
     ).toThrow(expect.objectContaining({ code: "BAD_REGISTRY" }));
   });
+
+  // ─── lifecycle status (P4) ───────────────────────────────────────────────
+
+  it("accepts each valid lifecycle status and preserves it on the returned record", () => {
+    for (const status of ["draft", "beta", "stable"] as const) {
+      const rec = validateComponentRecord(validRecord({ status }));
+      expect(rec.status).toBe(status);
+    }
+  });
+
+  it("throws BAD_ARG for an invalid status string", () => {
+    expect(() =>
+      validateComponentRecord(validRecord({ status: "experimental" as never })),
+    ).toThrow(
+      expect.objectContaining({
+        code: "BAD_ARG",
+        message: expect.stringMatching(/component\.status must be one of/),
+      }),
+    );
+  });
+
+  it("throws BAD_ARG when status is not a string", () => {
+    expect(() => validateComponentRecord(validRecord({ status: 1 as never }))).toThrow(
+      expect.objectContaining({
+        code: "BAD_ARG",
+        message: expect.stringMatching(/component\.status must be one of/),
+      }),
+    );
+  });
 });
 
 // ─── createEmptyRegistry ──────────────────────────────────────────────────────
@@ -228,6 +257,17 @@ describe("lookupComponent", () => {
   it("returns undefined for an absent name", () => {
     const reg = createEmptyRegistry();
     expect(lookupComponent(reg, "Nope/Thing")).toBeUndefined();
+  });
+});
+
+// ─── registerComponent + lookupComponent — lifecycle status roundtrip (P4) ────
+
+describe("registerComponent + lookupComponent — lifecycle status (P4)", () => {
+  it("roundtrips status through register then lookup", () => {
+    const reg = createEmptyRegistry();
+    const { registry } = registerComponent(reg, validRecord({ status: "beta" }), false);
+    const found = lookupComponent(registry, "Button/Primary");
+    expect(found?.status).toBe("beta");
   });
 });
 
