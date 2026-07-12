@@ -17,6 +17,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ComponentState = "default" | "hover" | "active" | "focus" | "disabled";
+/** Lifecycle status (shadcn 🔵/🟢 convention): a `stable` component must honour its state contract. */
+export type ComponentStatus = "draft" | "beta" | "stable";
 
 export interface ComponentRecord {
   name: string;
@@ -26,6 +28,7 @@ export interface ComponentRecord {
   variants?: string[];
   states?: ComponentState[];
   description?: string;
+  status?: ComponentStatus;
 }
 
 export interface Registry {
@@ -54,8 +57,9 @@ const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
 
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([
-  "name", "category", "markup", "tokensUsed", "variants", "states", "description",
+  "name", "category", "markup", "tokensUsed", "variants", "states", "description", "status",
 ]);
+const VALID_STATUSES = new Set<string>(["draft", "beta", "stable"]);
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -135,6 +139,11 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
     throw new RegistryError("BAD_ARG", "component.description must be a string");
   }
 
+  // Optional: status (lifecycle)
+  if (r["status"] !== undefined && (typeof r["status"] !== "string" || !VALID_STATUSES.has(r["status"]))) {
+    throw new RegistryError("BAD_ARG", `component.status must be one of: ${[...VALID_STATUSES].join(", ")}`);
+  }
+
   // additionalProperties: false — reject keys outside the schema
   for (const key of Object.keys(r)) {
     if (!COMPONENT_ALLOWED_KEYS.has(key)) {
@@ -153,6 +162,7 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
     ...(r["variants"] !== undefined && { variants: r["variants"] as string[] }),
     ...(r["states"] !== undefined && { states: r["states"] as ComponentState[] }),
     ...(r["description"] !== undefined && { description: r["description"] as string }),
+    ...(r["status"] !== undefined && { status: r["status"] as ComponentStatus }),
   };
 }
 

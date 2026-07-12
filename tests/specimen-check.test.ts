@@ -132,3 +132,67 @@ describe("checkSpecimen", () => {
     ]);
   });
 });
+
+// ─── checkSpecimen — lifecycle status (P4) ────────────────────────────────
+//
+// A gap on a `stable` component is a broken lifecycle promise → severity
+// "error" (always gates ds-specimen, even without --strict). beta/draft/unset
+// gaps stay "warning" (only gate under --strict). statusBreakdown tallies
+// every component's status, whether or not it participates in the gap
+// contract (see the loop in checkSpecimen: the tally runs before the
+// stateful/`continue` branch).
+
+describe("checkSpecimen — lifecycle status (P4)", () => {
+  it("a gap on a stable component is an error", () => {
+    const r = checkSpecimen([{ name: "Foo / Button", states: ["Hover"], status: "stable" }]);
+    expect(r.findings[0]?.severity).toBe("error");
+    expect(r.errorCount).toBe(1);
+    expect(r.warningCount).toBe(0);
+  });
+
+  it("a gap on a beta component is a warning", () => {
+    const r = checkSpecimen([{ name: "Foo / Button", states: ["Hover"], status: "beta" }]);
+    expect(r.findings[0]?.severity).toBe("warning");
+    expect(r.errorCount).toBe(0);
+    expect(r.warningCount).toBe(1);
+  });
+
+  it("a gap on a draft component is a warning", () => {
+    const r = checkSpecimen([{ name: "Foo / Button", states: ["Hover"], status: "draft" }]);
+    expect(r.findings[0]?.severity).toBe("warning");
+    expect(r.errorCount).toBe(0);
+    expect(r.warningCount).toBe(1);
+  });
+
+  it("a gap on a component with no status (unset) is a warning", () => {
+    const r = checkSpecimen([{ name: "Foo / Button", states: ["Hover"] }]);
+    expect(r.findings[0]?.severity).toBe("warning");
+  });
+
+  it("mixed: a stable-gap and an unset-gap component both surface, only the stable one errors", () => {
+    const r = checkSpecimen([
+      { name: "Stable / Button", states: ["Hover"], status: "stable" }, // gap → error
+      { name: "Plain / Button", states: ["Hover"] }, // gap → warning (unset)
+    ]);
+    expect(r.errorCount + r.warningCount).toBe(r.findings.length);
+    expect(r.errorCount).toBe(1);
+  });
+
+  it("statusBreakdown counts every component, including non-stateful ones", () => {
+    const components: SpecimenComponent[] = [
+      { name: "Icon", variants: ["Size=sm"], status: "stable" }, // not stateful, still tallied
+      { name: "B / Button", states: ["Hover"], status: "beta" },
+      { name: "C / Button", states: ["Hover"] }, // unset
+      { name: "D", status: "draft" }, // not stateful, still tallied
+    ];
+    const r = checkSpecimen(components);
+    expect(r.statusBreakdown).toEqual({ stable: 1, beta: 1, draft: 1, unset: 1 });
+  });
+
+  it("a complete stable control produces no findings — status alone never creates findings", () => {
+    const r = checkSpecimen([{ name: "Button", states: ["Hover", "Disabled"], status: "stable" }]);
+    expect(r.findings).toHaveLength(0);
+    expect(r.errorCount).toBe(0);
+    expect(r.statusBreakdown.stable).toBe(1);
+  });
+});

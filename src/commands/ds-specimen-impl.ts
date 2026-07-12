@@ -41,15 +41,18 @@ export function runSpecimen(parsed: ParsedArgs): CommandResult {
 
   const result = checkSpecimen(components);
   const strict = parsed.flags["strict"] === true;
-  const exitCode = strict && result.warningCount > 0 ? 1 : 0;
+  // A gap on a `stable` component always gates (broken promise); warnings gate only under --strict.
+  const exitCode = result.errorCount > 0 || (strict && result.warningCount > 0) ? 1 : 0;
 
-  if (useJson) return okJsonWithExit(CMD, { total: components.length, stateful: result.stateful, warningCount: result.warningCount, findings: result.findings }, exitCode);
+  const sb = result.statusBreakdown;
+  if (useJson) return okJsonWithExit(CMD, { total: components.length, stateful: result.stateful, errorCount: result.errorCount, warningCount: result.warningCount, statusBreakdown: sb, findings: result.findings }, exitCode);
 
+  const statusLine = sb.stable + sb.beta + sb.draft > 0 ? ` · status ${sb.stable} stable / ${sb.beta} beta / ${sb.draft} draft / ${sb.unset} unset` : "";
   const lines = [
-    `ds specimen: ${components.length} component(s), ${result.stateful} declare states, ${result.warningCount} completeness gap(s)${strict ? " (strict: gated)" : ""}`,
+    `ds specimen: ${components.length} component(s), ${result.stateful} declare states, ${result.errorCount} error(s) + ${result.warningCount} warning(s)${statusLine}`,
   ];
-  for (const f of result.findings) lines.push(`  ! [${f.checkId}] ${f.component}: ${f.message}`);
-  if (result.warningCount === 0) lines.push("  No applicable-state gaps found.");
+  for (const f of result.findings) lines.push(`  ${f.severity === "error" ? "✗" : "!"} [${f.checkId}] ${f.component}: ${f.message}${f.severity === "error" ? " (marked stable — must honour its state contract)" : ""}`);
+  if (result.findings.length === 0) lines.push("  No applicable-state gaps found.");
   lines.push("  NOTE: checks only reliably-modelled gaps (disabled on interactive, empty on data-family). 'focus' is intentionally not required (usually a runtime :focus-visible, not a Figma variant).");
   return exitCode === 0 ? ok(lines.join("\n") + "\n") : { exitCode, stdout: lines.join("\n") + "\n" };
 }

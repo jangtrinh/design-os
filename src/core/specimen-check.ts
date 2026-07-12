@@ -13,8 +13,10 @@ export interface SpecimenComponent {
   category?: string;
   variants?: string[];
   states?: string[];
+  /** Lifecycle status; a `stable` component with a gap is an ERROR (a broken promise), not a warning. */
+  status?: string;
 }
-export type SpecimenSeverity = "warning";
+export type SpecimenSeverity = "warning" | "error";
 export interface SpecimenFinding {
   component: string;
   checkId: string;
@@ -35,6 +37,10 @@ export interface SpecimenResult {
   stateful: number;
   findings: SpecimenFinding[];
   warningCount: number;
+  /** Gaps on a component marked `stable` — a broken lifecycle promise (always gates). */
+  errorCount: number;
+  /** Lifecycle breakdown across the registry. */
+  statusBreakdown: { stable: number; beta: number; draft: number; unset: number };
 }
 
 const INTERACTION_STATES = ["hover", "pressed", "active", "loading"] as const;
@@ -100,8 +106,16 @@ export function checkSpecimen(components: readonly SpecimenComponent[]): Specime
   const reports: SpecimenComponentReport[] = [];
   const all: SpecimenFinding[] = [];
   let stateful = 0;
+  const statusBreakdown = { stable: 0, beta: 0, draft: 0, unset: 0 };
 
   for (const c of components) {
+    // A gap on a `stable` component is a broken promise → error; otherwise a warning.
+    const sev: SpecimenSeverity = c.status === "stable" ? "error" : "warning";
+    if (c.status === "stable") statusBreakdown.stable++;
+    else if (c.status === "beta") statusBreakdown.beta++;
+    else if (c.status === "draft") statusBreakdown.draft++;
+    else statusBreakdown.unset++;
+
     const dims = parseDimensions(c.variants ?? []);
     const present = statesOf(dims, c.states);
     if (present.size === 0) { // no declared state → not part of the contract
@@ -115,12 +129,12 @@ export function checkSpecimen(components: readonly SpecimenComponent[]): Specime
     // variant convention → a reliable gap). Gated to the control family so icons/close buttons
     // (which legitimately omit disabled) don't over-fire.
     if (CONTROL_FAMILY_RE.test(leaf) && isInteractive(present) && !present.has("disabled")) {
-      findings.push({ component: c.name, checkId: "missing-disabled", severity: "warning",
+      findings.push({ component: c.name, checkId: "missing-disabled", severity: sev,
         message: `${leaf} declares ${[...present].filter((s) => (INTERACTION_STATES as readonly string[]).includes(s)).join("/")} but no 'disabled' state` });
     }
     // A data CONTAINER (matched on leaf role, not a parent prefix) with states but no `empty`.
     if (DATA_FAMILY_RE.test(leaf) && !present.has("empty")) {
-      findings.push({ component: c.name, checkId: "missing-empty", severity: "warning",
+      findings.push({ component: c.name, checkId: "missing-empty", severity: sev,
         message: `${leaf} is a data container but declares no 'empty' state (data-bearing UIs need one)` });
     }
     all.push(...findings);
@@ -128,5 +142,6 @@ export function checkSpecimen(components: readonly SpecimenComponent[]): Specime
   }
 
   all.sort((a, b) => a.component.localeCompare(b.component) || a.checkId.localeCompare(b.checkId));
-  return { components: reports, stateful, findings: all, warningCount: all.length };
+  const errorCount = all.filter((f) => f.severity === "error").length;
+  return { components: reports, stateful, findings: all, warningCount: all.length - errorCount, errorCount, statusBreakdown };
 }

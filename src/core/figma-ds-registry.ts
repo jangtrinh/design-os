@@ -13,7 +13,7 @@
  * not pushed through `ui registry register` (whose Category/Variant name pattern
  * exists for code-authored components, not scanned Figma inventory).
  */
-import type { Registry, ComponentRecord } from "./registry-store.js";
+import type { Registry, ComponentRecord, ComponentStatus } from "./registry-store.js";
 
 export interface DsComponent {
   id: string;
@@ -126,6 +126,18 @@ function propSummary(axes: Record<string, string[]>): string {
   return parts.length > 0 ? `props: ${parts.join(", ")}` : "";
 }
 
+/** shadcn lifecycle markers: 🟢 = stable, 🔵/🟡 = beta. Read from the component or its page name. */
+function statusFromMarker(...names: (string | undefined)[]): ComponentStatus | undefined {
+  const hay = names.filter((s): s is string => s !== undefined).join(" ");
+  if (/🟢/u.test(hay)) return "stable";
+  if (/🔵|🟡/u.test(hay)) return "beta";
+  return undefined;
+}
+/** Drop lifecycle-marker emoji from a name so the stored name stays clean/aliasable. */
+function stripMarkers(s: string): string {
+  return s.replace(/[🟢🔵🟡]/gu, "").replace(/\s+/g, " ").trim();
+}
+
 /** Build a registry (registry-store shape) from ds.json components. Sorted by name. */
 export function buildRegistry(components: DsComponent[]): Registry {
   const records: ComponentRecord[] = components.map((c) => {
@@ -133,14 +145,17 @@ export function buildRegistry(components: DsComponent[]): Registry {
     const hasAxes = Object.keys(axes).length > 0;
     const descParts = [`Figma ${c.type}`];
     if (hasAxes) descParts.push(propSummary(axes));
+    const cleanName = stripMarkers(c.name);
+    const status = statusFromMarker(c.name, c.section);
     const rec: ComponentRecord = {
-      name: c.name,
-      category: categoryOf(c),
+      name: cleanName,
+      category: categoryOf({ ...c, name: cleanName }),
       markup: "", // no HTML from a Figma scan; instances are authored on-canvas later
       tokensUsed: [],
       description: descParts.join(" · "),
     };
     if (hasAxes) rec.variants = variantList(axes);
+    if (status !== undefined) rec.status = status;
     return rec;
   });
   records.sort((a, b) => a.name.localeCompare(b.name));
