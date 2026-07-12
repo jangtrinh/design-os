@@ -148,10 +148,51 @@ variant, so demanding it would over-fire (the same discipline as the taste/a11y 
 over recall — flag only what is unambiguous). Informational by default; `--strict` gates a release.
 This makes the states-board discipline above **checkable**, not just aspirational.
 
+## Lifecycle status — draft → beta → stable
+
+A component's registry row may carry `status: draft | beta | stable` — its **lifecycle
+promise**, not decoration:
+
+- **draft** — being designed; the state matrix may be incomplete by intent. Specimen gaps are
+  informational.
+- **beta** — usable, contract still settling; gaps are warnings to burn down before promotion.
+- **stable** — a **published promise** that the component honours its applicable-state contract.
+  `ui ds specimen` grades a gap on a `stable` component as an **error** and always gates (exit 1
+  even without `--strict`) — a stable component missing `disabled`/`empty` is a broken promise,
+  not a nice-to-have. `ui ds status` reports the breakdown (`N stable / N beta / N draft / N unset`).
+
+Two disciplines follow:
+
+- **Promote on evidence, not optimism.** Move a component to `stable` only when its specimen
+  grid is complete for its role (specimen reports no gap for it). If a stable component must
+  lose a state, demote it — or treat the edit as a breaking change (`versioning-semver.md`):
+  consumers sized their trust to the marker.
+- **On ingest, markers are read, then stripped.** `ui ingest-figma-ds` maps the shadcn page
+  markers 🟢→`stable`, 🔵/🟡→`beta` (component or section name) and strips the emoji so the
+  stored NAME stays clean — the name is the reconcile key (`canvas-operations.md` R2); the
+  marker's meaning moves into the `status` field where a deterministic tool can act on it.
+
+## The three tiers — where the artifact lives
+
+The Design-OS catalog standard (adopted from the shadcn file structure) organises a DS into:
+
+- **Foundations** — typography, icons, assets, and the token tiers (`token-taxonomy.md`).
+- **Components** — one page per component, each laid out as a specimen grid (variant × size ×
+  state) with a lifecycle status. Everything in this file (①–⑤) lives here.
+- **Blocks / compositions** — assembled patterns (a hero, a pricing section, a login block)
+  built FROM component instances — the section-scale entries of `component-catalog.md`. A block
+  is not a component: it has no variant axes of its own; it composes instances and is judged at
+  screen scope.
+
+Classify before designing: a "date range picker" is a component (walk ①–⑤); "a settings page"
+is a block/screen (compose instances — Recipe 18). The tier decides which brain applies and
+what the registry records.
+
 ## Companions
 
 `components-variables-styles.md` (the construction mechanics — combineAsVariants, props,
 variable binding B1–B7) · `intent-recipes.md` Recipe 17 (states board) + Recipe 18 (compose a
 screen from real instances) · `ux-psychology.md` (the accessibility + interaction floors a
 state/edge-case must honor) · `workflow-experience.md` (the lifecycle + cost contract the
-`/ui:design` component flow parameterizes) · `taste-rubric.md` (the critique gate).
+`/ui:design` component flow parameterizes) · `taste-rubric.md` (the critique gate) ·
+`versioning-semver.md` (the DS semver/breaking-change brain).

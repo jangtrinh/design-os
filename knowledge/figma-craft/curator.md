@@ -11,7 +11,7 @@ ship-grade briefs, the Excellence tier (adversarial judge + reference duel). Cor
 (validate-layout / taste-lint clean first). This axis catches "ugly / off-system / inconsistent."
 
 ## Axis 2 — GOAL / SPEC (does it do the job it was built for?)  ← the added axis
-A beautiful screen that misses the story is a FAIL. Check three things:
+A beautiful screen that misses the story is a FAIL. Check four things:
 1. **Acceptance-criteria coverage (deterministic).** Run `ui critique-coverage <spec.json> <manifest.json>`:
    - `spec.json` = the brief's `{ acceptanceCriteria:[{id,text,evidence?:[ids]}], successMetrics?:[...] }`.
    - `manifest.json` = the produced design's `{ screens:[{ name, coversCriteria:[ids], states:[...] }] }`.
@@ -29,8 +29,11 @@ A beautiful screen that misses the story is a FAIL. Check three things:
    pricing page's persuasion must be **honest** (no dark patterns / fake scarcity — ux-psychology's ethical
    persuasion rules are a HARD gate, not a nicety).
 3. **Accessibility gate (deterministic — a HARD FLOOR, above aesthetic fidelity).** WCAG contrast
-   (`ui color contrast`), focus order / keyboard reachability, ARIA-able structure. A contrast fail is a fail, not
-   a nit. Two rules that override everything else on this axis:
+   (`ui color contrast`; for a DS-scoped job, `ui ds a11y` in **paired** mode — it checks each
+   `{role}-foreground` against its declared `{role}`, deterministic, no cartesian guessing), focus order /
+   keyboard reachability, ARIA-able structure. A contrast fail is a fail, not a nit. The verdict must report
+   WHICH mode ran (`paired` vs the legacy `inferred` fallback) as part of verdict honesty. Two rules that
+   override everything else on this axis:
    - **A11y beats the style source.** When a persona/style DNA supplies a token or literal (`bg-[#8A909C]`) that
      fails contrast, the a11y floor **wins** — re-run the pair through `ui color contrast`; fix the token, do not
      honor the aesthetic. (Secondary/muted text ~#8A-lightness on white ≈ 3.2:1 fails AA — a recurring trap.)
@@ -41,6 +44,15 @@ A beautiful screen that misses the story is a FAIL. Check three things:
      order is meaningful. So the verdict says *"N deterministic a11y checks passed; these criteria (list) need
      human/assistive-tech judgment and were not evaluated"* — it must **never** state "accessible" or
      "WCAG AA compliant" from a static/token-only run.
+4. **DS-standard conformance (deterministic — when the job builds or extends a design system).**
+   The Design-OS standard is checkable; run it, don't opine:
+   - `ui ds a11y` runs in **paired** mode (the DS names its `{role}`/`{role}-foreground` pairs —
+     `token-taxonomy.md`). If it falls back to `inferred`, the missing pairing IS the finding.
+   - `ui ds specimen` is the release bar: **any error = FAIL** (a `stable` component with a state
+     gap is a broken promise — `component-design.md` §Lifecycle status); warnings are the
+     burn-down list for beta/draft components.
+   - Status honesty: the `ui ds status` breakdown matches reality — nothing marked `stable` that
+     specimen contradicts; promotion happens on evidence, not optimism.
 
 ## Adversarial pass (excellence, reused from taste-rubric §Excellence)
 A FRESH judge context (never the maker grading its own work — a subagent where the runtime has them) tries to

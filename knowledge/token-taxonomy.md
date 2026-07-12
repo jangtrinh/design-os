@@ -250,6 +250,11 @@ VSF dogfood over-pairing). Adopt the pairing and the a11y audit is exact:
 This is the same discipline the whole taxonomy teaches: **encode intent in the name** so a
 deterministic tool can act on it. A paired name is an interface contract a checker can trust.
 
+The pairing is one pillar of the **Design-OS DS standard** — together with the exhaustive
+state matrix and the per-component lifecycle status (`figma-craft/component-design.md`), it is
+what makes a design system *auditable by deterministic tools* rather than by opinion: paired
+names → exact contrast; declared states → checkable completeness; status → gate severity.
+
 ## Onboarding an existing token file — `ui ds import`
 
 Most real projects already have a flat token file (a Figma-reconciled `tokens.json`,
