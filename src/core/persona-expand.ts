@@ -6,7 +6,7 @@
  * tested with golden assertions. Do not reorder sections without updating
  * the test golden counts.
  */
-import { generatePalette, STOPS } from "./color-scale.js";
+import { generatePalette, STOPS, contrastRatio } from "./color-scale.js";
 import { hexToOKLCH, oklchToHex } from "./color-convert.js";
 import { createEmptyRegistry } from "./registry-store.js";
 import type { PersonaRecord } from "./persona-loader.js";
@@ -142,6 +142,66 @@ function buildColorCategory(hex: string): Record<string, { $value: string; $type
   return group;
 }
 
+// ─── Contrast-aware foreground picking (the paired-standard key to correct a11y) ─
+
+type ColorCat = Record<string, { $value: string; $type: "color" }>;
+
+/** AA contrast for normal text. */
+const AA_NORMAL = 4.5;
+const PURE_WHITE = "#FFFFFF";
+
+/** Resolved hex of a stop in a built color category (all STOPS are present post-generation). */
+function stopHex(cat: ColorCat, stop: number): string {
+  return cat[String(stop)]?.$value ?? "#000000";
+}
+
+/**
+ * Does `fg` clear AA on `bg`? Rounds the ratio to 2 dp FIRST, matching `ds a11y`'s
+ * own comparison exactly (ds-a11y.ts rounds before the ≥4.5 test), so the picker
+ * and the auditor never disagree on a borderline pair.
+ */
+function clearsAA(fg: string, bg: string): boolean {
+  return Math.round(contrastRatio(fg, bg) * 100) / 100 >= AA_NORMAL;
+}
+
+/**
+ * Pick a NEUTRAL foreground (returns an alias `{neutral.NNN}`) whose resolved hex
+ * clears AA (≥4.5:1) on EVERY provided surface hex. Tries `order` (a stop preference
+ * list) and returns the first that clears on all surfaces; if none clears it returns
+ * the highest-min-contrast stop (kept total + deterministic — for the neutral
+ * surfaces here one always clears with wide margin).
+ *
+ * `order` encodes intent: a "strong" text role leads with the darkest steps (light
+ * mode) so body copy is maximally readable; a "muted" role leads with mid steps so
+ * it lands on the LIGHTEST neutral that still clears AA and thus stays visibly muted.
+ */
+function pickNeutralFg(neutral: ColorCat, surfaces: readonly string[], order: readonly number[]): string {
+  let best: { stop: number; min: number } | null = null;
+  for (const stop of order) {
+    const hex = stopHex(neutral, stop);
+    if (surfaces.every((s) => clearsAA(hex, s))) return `{neutral.${stop}}`;
+    const min = Math.min(...surfaces.map((s) => contrastRatio(hex, s)));
+    if (best === null || min > best.min) best = { stop, min };
+  }
+  return `{neutral.${(best as { stop: number }).stop}}`;
+}
+
+/**
+ * Pick a contrast-safe foreground for a SATURATED surface (a primary/status `.500`
+ * fill) — returns `{base.white}` or `{base.black}`.
+ *
+ * Pure white/black are the ONLY foreground primitives that guarantee AA on an
+ * arbitrary mid-toned brand fill: the generated neutral scale caps at ~0.92 / ~0.001
+ * relative luminance (neutral.50 / neutral.950) and misses AA by ~0.1 on many hues at
+ * the 500 stop (measured across every persona). WCAG's overlap guarantee — white
+ * clears any surface with luminance ≤ 0.183, black any ≥ 0.175 — means one of the two
+ * always clears. Prefer white (convention: light text on a colored fill) when it
+ * clears; else black.
+ */
+function pickOnColorFg(surfaceHex: string): string {
+  return clearsAA(PURE_WHITE, surfaceHex) ? "{base.white}" : "{base.black}";
+}
+
 // ─── Expansion ────────────────────────────────────────────────────────────────
 
 /**
@@ -170,6 +230,17 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
   const warning = buildColorCategory(persona.colorPhilosophy.warningHex ?? "#F59E0B");
   const danger  = buildColorCategory(persona.colorPhilosophy.dangerHex  ?? "#DC2626");
   const info    = buildColorCategory(persona.colorPhilosophy.infoHex    ?? "#0EA5E9");
+
+  // ── Primitives: base (pure white / black) ───────────────────────────────────
+  //
+  // The two anchor tones every design system needs but a generated scale cannot
+  // reach: pure #FFFFFF and #000000. They are the contrast fallback the paired
+  // foregrounds alias for saturated fills (see pickOnColorFg). Context-free raw
+  // values → primitives; the semantic tier aliases them, two-tier discipline intact.
+  const baseGroup: Record<string, { $value: string; $type: "color" }> = {
+    white: { $value: "#FFFFFF", $type: "color" },
+    black: { $value: "#000000", $type: "color" },
+  };
 
   // ── Primitives: spacing ─────────────────────────────────────────────────────
 
@@ -237,28 +308,55 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
     lg: { $value: tintShadow(shadowSpec.lg), $type: "shadow" },
   };
 
-  // ── Semantics: color ────────────────────────────────────────────────────────
-
-  // Light-mode defaults for both "light" and "both" modes; dark-only persona swaps
-  // text-body, surface, surface-raised, and border to dark neutral values.
-  // colorMode "both" intentionally falls through to the light-mode defaults — the
-  // semantic tokens reference neutral stops that work in either mode, and the host
-  // model is expected to apply the appropriate CSS custom-property overrides at runtime.
+  // ── Semantics: color (paired {role} + {role}-foreground — Design-OS standard) ─
+  //
+  // Every surface role ships its paired foreground (knowledge/token-taxonomy.md
+  // §"The paired semantic convention"), so `ui ds a11y` audits in the deterministic
+  // "paired" mode — checking {role}-foreground on its own {role}, never the legacy
+  // text×surface cartesian. Each foreground is CONTRAST-AWARE: picked to clear AA
+  // (≥4.5:1) on its surface, so a freshly compiled DS never lands in the a11y
+  // inferred fallback (dogfood finding L7).
+  //
+  // Light-mode defaults serve "light" and "both"; a dark-only persona flips the
+  // neutral surface/foreground ends. "both" reuses the light defaults — the host
+  // model applies dark CSS-custom-property overrides at runtime.
   const isDarkOnly = persona.colorMode === "dark";
 
+  // Resolved surface hexes the contrast picker measures against.
+  const bgHex    = isDarkOnly ? stopHex(neutral, 900) : stopHex(neutral, 50);
+  const cardHex  = isDarkOnly ? stopHex(neutral, 800) : stopHex(neutral, 100);
+  const mutedHex = isDarkOnly ? stopHex(neutral, 700) : stopHex(neutral, 200);
+
+  // Neutral foreground preference orders. Light mode leads dark→light (strong body
+  // text = darkest; muted = lightest that still clears AA); dark-only mirrors it.
+  const strongOrder = isDarkOnly ? [50, 100, 200, 300, 400] : [900, 950, 800, 700, 600];
+  const mutedOrder  = isDarkOnly ? [500, 400, 300, 200, 100, 50] : [500, 600, 700, 800, 900];
+
   const colorGroup: Record<string, { $value: string; $type: "color" }> = {
-    "primary":          { $value: "{primary.500}",  $type: "color" },
-    "primary-hover":    { $value: "{primary.600}",  $type: "color" },
-    "text-body":        { $value: isDarkOnly ? "{neutral.50}"  : "{neutral.900}", $type: "color" },
-    "text-muted":       { $value: "{neutral.500}",  $type: "color" },
-    "text-on-primary":  { $value: "{neutral.50}",   $type: "color" },
-    "surface":          { $value: isDarkOnly ? "{neutral.900}" : "{neutral.50}",  $type: "color" },
-    "surface-raised":   { $value: isDarkOnly ? "{neutral.800}" : "{neutral.100}", $type: "color" },
-    "border":           { $value: isDarkOnly ? "{neutral.700}" : "{neutral.200}", $type: "color" },
-    "success":          { $value: "{success.500}",  $type: "color" },
-    "warning":          { $value: "{warning.500}",  $type: "color" },
-    "danger":           { $value: "{danger.500}",   $type: "color" },
-    "info":             { $value: "{info.500}",     $type: "color" },
+    // Bare pair — the app-default surface + its text.
+    "background":         { $value: isDarkOnly ? "{neutral.900}" : "{neutral.50}",  $type: "color" },
+    "foreground":         { $value: pickNeutralFg(neutral, [bgHex, cardHex], strongOrder), $type: "color" },
+    // Card surface + its text.
+    "card":               { $value: isDarkOnly ? "{neutral.800}" : "{neutral.100}", $type: "color" },
+    "card-foreground":    { $value: pickNeutralFg(neutral, [cardHex], strongOrder),  $type: "color" },
+    // Brand: primary fill + its text; primary-hover is an unpaired state variant.
+    "primary":            { $value: "{primary.500}", $type: "color" },
+    "primary-foreground": { $value: pickOnColorFg(stopHex(primary, 500)), $type: "color" },
+    "primary-hover":      { $value: "{primary.600}", $type: "color" },
+    // Muted/subdued surface + its (body-adjacent) text — text must also clear on background.
+    "muted":              { $value: isDarkOnly ? "{neutral.700}" : "{neutral.200}", $type: "color" },
+    "muted-foreground":   { $value: pickNeutralFg(neutral, [mutedHex, bgHex], mutedOrder), $type: "color" },
+    // Unpaired hairline (may share muted's neutral; a theme can diverge them).
+    "border":             { $value: isDarkOnly ? "{neutral.700}" : "{neutral.200}", $type: "color" },
+    // Status quartet — richer than shadcn, still standard-conformant because paired.
+    "danger":             { $value: "{danger.500}",  $type: "color" },
+    "danger-foreground":  { $value: pickOnColorFg(stopHex(danger, 500)),  $type: "color" },
+    "success":            { $value: "{success.500}", $type: "color" },
+    "success-foreground": { $value: pickOnColorFg(stopHex(success, 500)), $type: "color" },
+    "info":               { $value: "{info.500}",    $type: "color" },
+    "info-foreground":    { $value: pickOnColorFg(stopHex(info, 500)),    $type: "color" },
+    "warning":            { $value: "{warning.500}", $type: "color" },
+    "warning-foreground": { $value: pickOnColorFg(stopHex(warning, 500)), $type: "color" },
   };
 
   // ── Semantics: space ────────────────────────────────────────────────────────
@@ -329,6 +427,7 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
 
   const tokens: TokenTree = {
     // Primitives
+    base: baseGroup as TokenTree[string],
     primary,
     neutral,
     success,
