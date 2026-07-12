@@ -42,20 +42,44 @@ describe("expandPersona — token skeleton", () => {
     }
   });
 
-  it("produces semantic color aliases", () => {
-    const persona = liquidGlass();
+  it("produces paired semantic color aliases ({role}/{role}-foreground)", () => {
+    const persona = liquidGlass(); // colorMode "both" → light-mode defaults
     const { tokens } = expandPersona({ persona, intent: "test" });
-    expect(tokens["color"]?.["primary"]?.$value).toBe("{primary.500}");
-    expect(tokens["color"]?.["primary-hover"]?.$value).toBe("{primary.600}");
-    expect(tokens["color"]?.["text-body"]?.$value).toBe("{neutral.900}");
+    const color = tokens["color"] ?? {};
+    // Brand + surfaces
+    expect(color["primary"]?.$value).toBe("{primary.500}");
+    expect(color["primary-hover"]?.$value).toBe("{primary.600}");
+    expect(color["background"]?.$value).toBe("{neutral.50}");
+    expect(color["foreground"]?.$value).toBe("{neutral.900}");
+    expect(color["card"]?.$value).toBe("{neutral.100}");
+    expect(color["muted"]?.$value).toBe("{neutral.200}");
+    // Every foreground is present and aliases a primitive (two-tier); on-color
+    // foregrounds resolve through the pure-white/black base primitives.
+    expect(color["primary-foreground"]?.$value).toMatch(/^\{base\.(white|black)\}$/);
+    expect(color["card-foreground"]?.$value).toMatch(/^\{neutral\.\d+\}$/);
+    expect(color["muted-foreground"]?.$value).toMatch(/^\{neutral\.\d+\}$/);
+    for (const role of ["danger", "success", "info", "warning"]) {
+      expect(color[`${role}-foreground`]?.$value, `${role}-foreground`).toMatch(/^\{base\.(white|black)\}$/);
+    }
+    // The pre-standard names are gone (dogfood finding L7).
+    for (const old of ["text-body", "text-muted", "text-on-primary", "surface", "surface-raised"]) {
+      expect(color[old], `stale name ${old}`).toBeUndefined();
+    }
   });
 
-  it("dark-only persona swaps surface and text-body to dark values", () => {
+  it("exposes pure white/black base primitives (the on-color foreground anchors)", () => {
+    const { tokens } = expandPersona({ persona: liquidGlass(), intent: "test" });
+    expect(tokens["base"]?.["white"]?.$value).toBe("#FFFFFF");
+    expect(tokens["base"]?.["black"]?.$value).toBe("#000000");
+  });
+
+  it("dark-only persona swaps background and foreground to dark-appropriate values", () => {
     const records = loadPersonaIndex(PERSONAS_PATH);
     const darkPersona = findPersona(records, "velvet-noir"); // colorMode: dark
     const { tokens } = expandPersona({ persona: darkPersona, intent: "test" });
-    expect(tokens["color"]?.["text-body"]?.$value).toBe("{neutral.50}");
-    expect(tokens["color"]?.["surface"]?.$value).toBe("{neutral.900}");
+    expect(tokens["color"]?.["background"]?.$value).toBe("{neutral.900}");
+    expect(tokens["color"]?.["foreground"]?.$value).toBe("{neutral.50}");
+    expect(tokens["color"]?.["card"]?.$value).toBe("{neutral.800}");
   });
 
   it("produces spacing ladder with 11 steps", () => {

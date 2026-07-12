@@ -108,8 +108,8 @@ describe("ui ds change-token", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-ct-"));
     initDs(tmp);
     const r = capture([
-      "ds", "change-token", "color.text-body",
-      "--value", "{color.text-body}",
+      "ds", "change-token", "color.foreground",
+      "--value", "{color.foreground}",
       "--dir", tmp,
       "--json",
     ]);
