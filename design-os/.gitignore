@@ -1,0 +1,6 @@
+# Python / uv artifacts — uv.lock IS tracked (pins exact deps); the venv is not.
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
