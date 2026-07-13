@@ -255,6 +255,19 @@ state matrix and the per-component lifecycle status (`figma-craft/component-desi
 what makes a design system *auditable by deterministic tools* rather than by opinion: paired
 names → exact contrast; declared states → checkable completeness; status → gate severity.
 
+**The standard is enforced at birth, not just documented:** `ui ds init` COMPILES the full
+paired vocabulary (background/card/muted/primary/secondary/accent/popover + the status quartet,
+each `-foreground` picked contrast-aware ≥4.5:1; `ring` at the 3:1 non-text floor) — a fresh DS
+audits at `mode: paired`, 14 pairs, 0 failures before a human touches it. A standard that lives
+only in prose drifts; this one has an emitter (the compiler) and a gate (`ds a11y` + the
+23-persona test) — that pairing of emitter+linter is the pattern for every future standard.
+
+**Honesty caveat — only DECLARED pairs are gated.** `{role}-foreground` on `{role}` is audited;
+interaction-state surfaces are not: `primary-foreground` on `primary-hover` is a real rendered
+pair no tool currently checks (it once shipped at ~2.8:1 while the declared pair passed). Keep
+hover/active surfaces within AA of the same foreground by construction, and treat a future
+"state-pair audit" as the known gap in the standard.
+
 ## Onboarding an existing token file — `ui ds import`
 
 Most real projects already have a flat token file (a Figma-reconciled `tokens.json`,

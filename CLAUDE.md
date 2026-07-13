@@ -27,3 +27,17 @@ implementation plan (kept in the internal design-engine repo) for the 8-phase pl
 - Keep the binary deterministic: pure transforms, no network, no model calls.
 - Read selectively — open the `knowledge/` file relevant to the task, not all of them.
 - Decisions in `plans/ease-design/brainstorm.md` §6 are locked; do not relitigate them.
+
+## Hard-won rules (from the dogfood loop — each cost a real bug)
+
+- **A standard needs an emitter AND a linter.** Prose-only standards drift — our own compiler
+  violated the paired convention the knowledge already taught (L7). When you write a standard,
+  ship the code that emits it and the check that fails without it, same commit if possible.
+- **Every phase budgets one run on real data before it's "done".** All eight dogfood findings
+  (L1–L8) came from real projects/files, zero from fixtures. A green suite on a fresh fixture
+  validates the mechanism, not the contract.
+- **A missing-rule bug is fixed at the shared layer.** Ask "which other consumer has this blind
+  spot" first — the redirect-stub rule patched only into a11y-lint resurfaced in validate-layout
+  (L1→L4). Extract the helper; don't patch where it surfaced.
+- **Generated artifacts run the FULL linter set in their own tests.** The generated specimen page
+  shipped an unguarded animation because its gate ran 3 of 4 linters (missed taste-lint).
