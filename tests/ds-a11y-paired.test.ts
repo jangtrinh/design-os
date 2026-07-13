@@ -100,3 +100,59 @@ describe("checkTokenContrast — paired ({role}/{role}-foreground) mode", () => 
     expect(out).toContain("{role}/{role}-foreground pairs");
   });
 });
+
+describe("checkTokenContrast — state-pair audit ({role}-foreground × {role}-hover/-active)", () => {
+  it("checks the SAME foreground on primary-hover AND primary-active, each tagged with `state`", () => {
+    const tokens: ResolvedToken[] = [
+      tok("color.primary", "#2563eb"),
+      tok("color.primary-foreground", "#ffffff"),
+      tok("color.primary-hover", "#1d4ed8"),  // darker → white keeps AA
+      tok("color.primary-active", "#1e40af"), // darker still → white keeps AA
+    ];
+    const r = checkTokenContrast(tokens);
+    expect(r.mode).toBe("paired");
+    expect(r.checkedPairs).toBe(1);            // base pair count is unchanged by state pairs
+    expect(r.checkedStatePairs).toBe(2);
+    expect(r.statePairs.map((p) => p.state).sort()).toEqual(["active", "hover"]);
+    for (const sp of r.statePairs) expect(sp.text).toBe("color.primary-foreground");
+    expect(r.failures).toHaveLength(0);
+  });
+
+  it("a foreground that FAILS on the hover surface surfaces as a failure and gates identically", () => {
+    const tokens: ResolvedToken[] = [
+      tok("color.primary", "#f0d000"),            // light yellow
+      tok("color.primary-foreground", "#000000"), // black clears on the base fill…
+      tok("color.primary-hover", "#5a4e00"),      // …but not on this dark hover (~2.6:1)
+    ];
+    const r = checkTokenContrast(tokens);
+    expect(r.checkedPairs).toBe(1);               // base primary pair passes
+    expect(r.checkedStatePairs).toBe(1);
+    const fail = r.failures.find((f) => f.state === "hover");
+    expect(fail, "hover state failure").toBeDefined();
+    expect(fail!.surface).toBe("color.primary-hover");
+    expect(fail!.text).toBe("color.primary-foreground");
+    expect(fail!.passesNormalText).toBe(false);
+    expect(r.failures.length).toBeGreaterThan(0); // → runA11y exits 1
+  });
+
+  it("an unresolved hover surface lands in `unresolved`, never a silent pass", () => {
+    const tokens: ResolvedToken[] = [
+      tok("color.primary", "#2563eb"),
+      tok("color.primary-foreground", "#ffffff"),
+      tok("color.primary-hover", "var(--x)"),     // no hex
+    ];
+    const r = checkTokenContrast(tokens);
+    expect(r.unresolved).toContain("color.primary-foreground:color.primary-hover");
+    expect(r.checkedStatePairs).toBe(0);
+  });
+
+  it("explicit and inferred modes carry no state pairs (scoped to paired mode)", () => {
+    const explicit = checkTokenContrast(
+      [tok("color.primary", "#2563eb"), tok("color.primary-foreground", "#ffffff"), tok("color.primary-hover", "#111111")],
+      [["color.primary-foreground", "color.primary"]],
+    );
+    expect(explicit.mode).toBe("explicit");
+    expect(explicit.checkedStatePairs).toBe(0);
+    expect(explicit.statePairs).toHaveLength(0);
+  });
+});
