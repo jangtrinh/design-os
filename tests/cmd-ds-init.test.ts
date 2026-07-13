@@ -204,9 +204,9 @@ describe("ui ds init", () => {
   });
 });
 
-// ─── ds init — ships the mature component kit (P2a) ────────────────────────────
+// ─── ds init — ships the mature component kit (P2a + P2b) ──────────────────────
 
-describe("ui ds init — ships the component kit (P2a)", () => {
+describe("ui ds init — ships the component kit (P2a + P2b)", () => {
   function initKit(tmp: string, bare = false): void {
     capture([
       "ds", "init", "acme",
@@ -220,13 +220,15 @@ describe("ui ds init — ships the component kit (P2a)", () => {
     return (JSON.parse(raw).components ?? []) as { name: string; status?: string }[];
   }
 
-  it("a fresh init registers the 7 Control components (all stable)", () => {
+  it("a fresh init registers the 14 kit components (all stable)", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-init-kit-"));
     initKit(tmp);
     const comps = readComponents(tmp);
     expect(comps.map((c) => c.name)).toEqual([
       "Control/Button", "Control/Checkbox", "Control/Input", "Control/Radio",
       "Control/Select", "Control/Switch", "Control/Textarea",
+      "Data/Table", "Display/Alert", "Display/Badge", "Display/Card",
+      "Form/Field", "Overlay/Dialog", "Structure/Tabs",
     ]);
     expect(comps.every((c) => c.status === "stable")).toBe(true);
   });
@@ -257,6 +259,6 @@ describe("ui ds init — ships the component kit (P2a)", () => {
     const data = JSON.parse(r.stdout).data as { errorCount: number; warningCount: number; stateful: number };
     expect(data.errorCount).toBe(0);
     expect(data.warningCount).toBe(0);
-    expect(data.stateful).toBe(7);
+    expect(data.stateful).toBe(14);
   });
 });

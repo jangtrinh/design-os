@@ -1,5 +1,5 @@
 /**
- * Component-kit (P2a wave A) — the 7 Control components `ds init` registers into every
+ * Component-kit (P2a wave A + P2b wave B) — the 14 components `ds init` registers into every
  * fresh design system. Verifies the kit's structural contract (validity, shape), markup
  * hygiene (semantic vars only, every var real, tokensUsed correlated), and the a11y
  * wrap-lint. The specimen 0/0 contract + the `ds init` count are E2E'd in cmd-ds-init.
@@ -40,13 +40,15 @@ function varsUsed(markup: string): Set<string> {
 // ─── Structural contract ───────────────────────────────────────────────────────
 
 describe("component-kit — records", () => {
-  it("ships exactly 7 Control components, name-sorted, all stable", () => {
-    expect(COMPONENT_KIT).toHaveLength(7);
+  it("ships exactly 14 kit components, name-sorted, all stable", () => {
+    expect(COMPONENT_KIT).toHaveLength(14);
     const names = COMPONENT_KIT.map((c) => c.name);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     expect(names).toEqual([
       "Control/Button", "Control/Checkbox", "Control/Input", "Control/Radio",
       "Control/Select", "Control/Switch", "Control/Textarea",
+      "Data/Table", "Display/Alert", "Display/Badge", "Display/Card",
+      "Form/Field", "Overlay/Dialog", "Structure/Tabs",
     ]);
     for (const c of COMPONENT_KIT) expect(c.status, c.name).toBe("stable");
   });
@@ -86,8 +88,9 @@ describe("component-kit — markup hygiene", () => {
   });
 
   it("every colour is a semantic --color-* var (no primitive/hardcoded colour vars)", () => {
-    // The only var prefixes a mature-kit fragment may use.
-    const ALLOWED = /^--(color|radius|font-family|font-size|font-weight|space|duration|motion)-/;
+    // The only var prefixes a mature-kit fragment may use (all semantic-layer tiers).
+    // `elevation` is the semantic shadow role wave-B surfaces (Card, Dialog) compose from.
+    const ALLOWED = /^--(color|radius|font-family|font-size|font-weight|space|duration|motion|elevation)-/;
     for (const c of COMPONENT_KIT) {
       for (const v of varsUsed(c.markup)) {
         expect(ALLOWED.test(v), `${c.name}: ${v} is not an allowed semantic var prefix`).toBe(true);
