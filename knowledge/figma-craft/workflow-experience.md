@@ -172,6 +172,16 @@ Simple job = one line in, done. A lightweight `/ui` menu lists what's possible; 
 **proactively suggests the next verb** ("built the screen — want the state board or the
 flow?"). Power is hidden, not absent.
 
+### 7. Preview-first — decide on the cheapest renderable medium
+
+Design decisions land on the CHEAPEST artifact that can show them, and only then does the
+work materialize to expensive surfaces (a live Figma file, production code). The canonical
+instance: a DS is reviewed on its generated HTML specimen (`ui ds preview` — one command to
+regenerate, gates re-run in seconds); the owner picks the primary color there, and the canvas
+build happens once, after sign-off — if at all. Lesson from the first mature-DS job: the
+preview WAS the deliverable; the Figma step turned out unnecessary for the decision the owner
+needed. Corollary: never make a taste decision for the first time on the expensive surface.
+
 ---
 
 ## Part B — the cost contract (invariant across every job)
