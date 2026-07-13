@@ -22,3 +22,23 @@ uv run pytest -q                 # test suite
 
 Set `DESIGN_OS_UI_BIN` to point at a specific `ui` binary; otherwise it is resolved on
 `PATH`.
+
+## Update
+
+`design-os update` refreshes the **dev-linked toolchain**. The `ui` kernel plus the
+`figma-agent` / `recall` / `a11y-audit` / `page-shot` hands are npm-linked global bins that
+serve the repo's compiled TS output, so a refresh = recompile that TS with the same lines CI
+runs (the root build for `ui`, then each workspace build). `design-os` itself is an editable
+uv-tool install — its Python tracks source live and needs no rebuild.
+
+```sh
+uv run design-os update            # recompile every dist (ui + figma-agent/recall/a11y)
+uv run design-os update --pull     # git pull --ff-only first, then recompile
+uv run design-os update --check    # read-only: repo / commit / branch / dirty (no network)
+```
+
+The repo root is discovered by walking up from the installed package (markers:
+`design-os/pyproject.toml` + `package.json` + `knowledge/`); override with `DESIGN_OS_REPO`.
+A non-editable snapshot install has nothing local to rebuild → `update` reports `NOT_EDITABLE`
+with the editable-reinstall hint. `--check` performs **no fetch** — run `git fetch` yourself
+to see behind/ahead. After an update, run `design-os doctor` for the full hand check.
