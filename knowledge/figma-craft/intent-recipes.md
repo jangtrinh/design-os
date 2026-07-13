@@ -544,6 +544,72 @@ and the phase-gated cost contract in `workflow-experience.md`.
 
 ---
 
+## 22. Shell template + page-content slot — assemble any full screen in two operations
+
+When an app's chrome (nav rails, sub-sidebar, top bar) is INVARIANT across screens, do not
+re-assemble it per screen. Build ONE `Shell / Template` master that composes the chrome plus a single
+`Slot / Page content` nested instance; every screen is then that shell with the slot swapped to the
+screen's body. Two operations per screen — no chrome rebuild, no per-screen alignment drift.
+
+```
+Shell / Template            (master — the invariant chrome, built ONCE)
+├── Sidebar (rail)          nested instance
+├── Sub-sidebar / {App}     nested instance
+├── Top bar                 nested instance
+└── Slot / Page content     nested INSTANCE (a real component instance, FILL×FILL)
+```
+
+Assemble a screen — instance the shell, resolve the slot by NAME, swap it:
+
+```js
+const inst = shellMaster.createInstance();
+inst.name = 'Screen · <App> <Page>';
+const slot = inst.findOne(n => n.type === 'INSTANCE' && n.name === 'Slot / Page content');
+slot.swapComponent(pageContentMaster);              // 2nd (and last) structural op
+parent.appendChild(inst);
+```
+
+- **FILL sizing SURVIVES `swapComponent`** — the swapped-in page-content instance inherits the slot's
+  FILL/FILL, so it fits the content area with NO re-layout. (Live-verified.)
+- **The slot is a plain nested instance + a manual `swapComponent`, NOT an `INSTANCE_SWAP` property.**
+  INSTANCE_SWAP defaults reject LOCAL, unpublished component keys (`components-variables-styles.md`
+  §1.6 + §3.7 — on Free everything is local), so you cannot wire the slot as a swap property; a nested
+  instance you swap by hand is the working construction.
+- **Per-screen overrides happen AFTER the swap, never before** (a pre-swap override is reset): set the
+  rail's active nav state (nested NavItem `State=active`), swap the sub-sidebar to the screen's app +
+  active item, override the top-bar text/badge. Order matters — swap first, then override
+  (`components-variables-styles.md` §2.3, B8).
+
+**Extract a page-content master from an existing screen (clone-convert, don't re-implement):** when a
+screen already exists, the cheapest master is its own body — cloned and promoted preserves every nested
+instance + override for free (far cheaper and more faithful than reading the design context and
+rebuilding):
+
+```js
+const body  = screen.findOne(n => n.name === 'Body');    // content ONLY — no chrome
+const clone = body.clone(); srcPage.appendChild(clone);   // R5/clone-safety: parent immediately
+const comp  = figma.createComponentFromNode(clone);       // preserves nested instances + overrides
+comp.name   = 'Page content / <App> · <Page>';            // naming convention
+// Retrofit top-level auto-layout so the instance FILLs the slot; DERIVE paddings from the ORIGINAL
+// absolute geometry (children sat at x=32 → padding 32), don't invent them:
+comp.layoutMode = 'VERTICAL'; comp.itemSpacing = 24;
+comp.paddingLeft = comp.paddingRight = 32; comp.paddingTop = 24; comp.paddingBottom = 0;
+for (const c of comp.children) c.layoutSizingHorizontal = 'FILL';
+```
+
+- Only the TOP level gets auto-layout; inner cards keep their own fixed internal layout (their
+  instances stay untouched).
+- Derive spacing from the source's MEASURED geometry (`canvas-operations.md` R10 — measure, don't
+  eyeball); keep `paddingBottom = 0` when the slot area is shorter than the old free-standing body, to
+  avoid overflow.
+- Convert many screens SEQUENTIALLY — one file, one connection, rate-limited (`canvas-operations.md`
+  R15); track the conversion as a `plans/` checklist, one screen per step, never parallel agents.
+
+Provenance: distilled from the VSF-PCP `figma-idp-rebuild` field skill (dogfood 2026-07-13) —
+generalized, no project-specific inventory.
+
+---
+
 ## Recipe → lint map (maps to figma-craft.md's construction lints)
 
 | Recipe | Guards against |

@@ -134,6 +134,78 @@ Big files punish naive traversal and serial awaits. Three habits keep operations
   ```
   (Only batch *independent* awaits — keep true dependencies sequential.)
 
+### R10 — Verified means measured — geometry is a NUMERIC assert, not a screenshot
+A screenshot proves nothing about geometry. **Correctness is measured**: geometry gets numeric
+asserts read from `get_metadata` (or an exec-js bounds read), structure gets metadata reads, state
+gets property dumps. Screenshots are for taste and humans only — two real defects shipped in one day
+because a layout "looked aligned" and a cell "looked like an instance." The canonical case: a table's
+header row and its data rows are separate masters and Figma keeps **nothing** structural in sync
+across them, so after building or editing any table, assert per column that the header box `x`/`width`
+matches every row's within **≤0.5px**:
+
+```js
+for (let i = 0; i < COLUMNS.length; i++) {
+  const h = headerInst.children[i];
+  const drift = Math.max(...rowInsts.map(r =>
+    Math.abs(r.children[i].x - h.x) + Math.abs(r.children[i].width - h.width)));
+  if (drift > 0.5) throw new Error(`column ${COLUMNS[i].name} drifts ${drift}px`);
+}
+```
+
+The table that carried this latent bug *looked* perfectly aligned in a screenshot. Write the assert,
+not a prose reminder — an executable check is the operating form of the loop-closure rule
+(`figma-craft.md` → "Fix the class, not the symptom"). Complements R7 (screenshot the RESULT past
+paint lag); R10 says the screenshot never *verifies* the numbers in the first place.
+
+### R11 — `get_screenshot` render bounds INCLUDE effect bleed — confirm the layout box first
+A render's reported bounds include **effect bleed**: a drop shadow extends `offset + radius` past the
+node's layout box (a button with a soft shadow can bleed 30+px below its box). A reported height taller
+than the layout box is almost always shadow bleed, **not** a gap or an overflow. Confirm the true
+layout box via `get_metadata` (or a child-bounds measurement) **before** "fixing" a perceived
+misfit — chasing a shadow deforms a layout that was already correct. (`contentsOnly:true` excludes
+overlapping *canvas* content but still includes the node's own effects.) Pairs with R10: the measured
+box is truth, the rendered bleed is not.
+
+### R12 — After an AMBIGUOUS write, re-read state before you report OR retry
+Tool errors lie in **both** directions: a "connection lost"/timeout may have already committed the
+mutation, and a clean return may have been rolled back. After any ambiguous write (error, timeout,
+harness throw), do a read-only check — `get_metadata`, a child-count/bounds read, or a stable
+screenshot (R7) — **before** reporting success/failure or retrying. Retrying a write that actually
+landed duplicates nodes; reporting failure on a write that landed corrupts your ledger (R4). Rollback
+scope is per-bridge: on the official Figma MCP a failed batched call rolls back the **whole** call
+(atomic — nothing partial); on the non-atomic figma-agent `exec-js` bridge a throw can leave lines
+`1..k` committed (see "Script atomicity is PER-BRIDGE" below). Either way the rule is identical:
+**never ASSUME partial success or full failure — CHECK.**
+
+### R13 — Micro-test before retrying a failed batch — isolate, don't iterate
+When a long batched write fails, do **not** blind-retry the whole script. Isolate: reproduce the
+failure with ONE throwaway instance, probe the exact property/node that threw, then remove the probe.
+One cheap call finds the real cause; three blind retries of a 150-line script cost far more and can
+half-apply on a non-atomic bridge (R12). Stack-trace line numbers have pointed at the **wrong** node —
+trust a fresh reproduction over the trace. Then root-cause the bug **class**, not the instance:
+"cell width wrong" was really "instances default to HUG" — fixing one cell would have left the class
+alive in every table (`figma-craft.md` → "Fix the class, not the symptom").
+
+### R14 — Capture before destroy — dump data to JSON before instancing/replacing
+Before instancing, replacing, or variant-switching anything that **carries data** (table rows,
+per-instance text/fill overrides, form values), dump that content to JSON **first**. Node replacement
+and variant switches **reset overrides** — `swapComponent` / `setProperties({Variant})` re-apply the
+master's defaults, and you cannot recover an override you did not capture. Procedure for a shared-master
+replacement: (1) walk file-wide for direct usages, capturing each usage's overrides on the doomed node
+(texts, fills); (2) swap/replace the node in the master; (3) re-apply the captured overrides onto the
+new node per usage (plus any overrides that live at deeper composition levels). This is "read before
+write" for destructive edits; it is the safety net for when the swap's name-matching heuristic
+(`components-variables-styles.md` §2.3) can't carry an override across.
+
+### R15 — One live file is SEQUENTIAL — never fan out parallel agents against it
+A live Figma file is ONE connection, rate-limited, and the user may be editing it in parallel:
+mutations are inherently **sequential**. Never fan out parallel agents (or concurrent sessions) that
+all **write** the same file — they race, blow the rate limit, and corrupt each other's ledger (R4/E2).
+Multi-screen or multi-component work is a **stepwise checklist** (a `plans/` file, one step per screen)
+driven one step at a time WITH per-step verification (R10) before advancing. Parallelism belongs to
+independent READ fan-out and to batching independent awaits *within* one script (R9) — never to
+concurrent writes on the shared file.
+
 ## Cross-bridge harness gotchas
 
 Facts that bite when driving *either* write bridge. Generic — they hold regardless of which
@@ -197,3 +269,6 @@ No design-system specifics are encoded here — resolve names, tokens, and compo
 live file (`scan-design-system`) at run time. API facts (`setSharedPluginData`, `SECTION`
 as a `ChildrenMixin`, async export timing, `COMPONENT_SET` sizing) verified against
 https://developers.figma.com/docs/plugins/.
+
+R10–R15 distilled from the VSF-PCP `figma-idp-rebuild` field skill (dogfood 2026-07-13) —
+principles only, no project-specific inventory.

@@ -176,6 +176,22 @@ card.exposedInstances[0].setProperties({ State: 'Hover' });
   OUT into a nested sub-component (e.g. the icon becomes an INSTANCE_SWAP, the size becomes
   a token-driven prop) rather than enumerating every combination. Huge sets are slow, hard
   to wire consistently (§1.4), and usually mean an axis wants to be a property, not a variant.
+- **Enhance, don't duplicate — extend a component that almost fits (B9).** When an existing component
+  covers all but one need, ADD to it — a new variant value, a TEXT/BOOLEAN property, or a new axis —
+  rather than minting a sibling master ("Button 2"). A new master is justified ONLY by a genuinely new
+  reuse scope, never by one missing state. This is the counter-pressure to B5's ~30-variant cap:
+  extend within the set until an axis truly wants to be a property or a nested sub-component. When you
+  build only the variants today's data needs and deliberately DEFER an axis (YAGNI), **record the
+  deferred axis in the component's registry/inventory entry** so it reads as a decision, not an
+  omission the next agent has to rediscover.
+- **Turn a platform limitation into a design decision that lives INSIDE the component (B10).** When the
+  Plugin API can't express something per-instance, encode the workaround as component STRUCTURE, not a
+  rule humans must remember. Canonical case: Figma cannot override an instance's SUBLAYER geometry (no
+  API, no UI) — so a data-driven bar/meter width becomes a stepped variant axis (`Pct=0|10|…|100`),
+  built by cloning a real on-canvas meter and stepping the fill width; the "limitation" is now a
+  variant a consumer just picks. Same move for any "you can't tweak X per instance" gap: make X an
+  enumerated axis or a property, and the constraint stops being tribal knowledge. (B8–B10 distilled
+  from the VSF-PCP `figma-idp-rebuild` field skill, dogfood 2026-07-13 — principles only.)
 - **Slots (B6)** — for "put arbitrary consumer content here" regions (card body, dialog
   content):
   - Prefer **`component.createSlot()`**: it creates the slot node AND auto-wires the SLOT
@@ -236,6 +252,12 @@ Provenance: https://developers.figma.com/docs/plugins/api/InstanceNode/#setprope
   override on a layer named `label` survives a swap only if the target component also
   has a layer named `label`. This is the systems reason for disciplined layer naming
   (`structure-hygiene.md` §1): sloppy names silently drop user customizations on swap.
+- **Set a nested instance's VARIANT before its TEXT overrides (B8).** `setProperties({ Variant: … })`
+  can RESET the instance's text overrides to the variant's default; a text override written AFTER the
+  variant switch survives. Order is always **variant first, then text** (`characters` or the managed
+  TEXT prop, §2.2) — reverse it and the text silently reverts. Same root cause as the swap heuristic
+  above: a variant change re-applies master defaults, so any content you want to keep must be
+  (re-)applied *after* it (capture-before-destroy, `canvas-operations.md` R14).
 - Under dynamic-page, `inst.mainComponent` is write-only — READ via
   `await inst.getMainComponentAsync()`.
 - Provenance: https://developers.figma.com/docs/plugins/api/InstanceNode/
