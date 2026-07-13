@@ -41,6 +41,25 @@ designer would accept the *layer structure* of, not just the pixels.
    (`getNodeByIdAsync`, `setCurrentPageAsync`, `getLocalVariablesAsync`). Return JSON-safe
    values. Scope walks to the target frame, never the whole page.
 
+## Fix the class, not the symptom
+
+A defect is rarely local — fix it where the mistake is OWNED, not where it surfaced:
+
+- Defect in an **instance** → suspect the **master** (the instance only inherited it).
+- Defect in a **master** → suspect the **recipe** (every master built that way carries it).
+- Fix at the **highest level that owns the mistake**, then **sweep siblings for the same latent
+  defect** — the second table that "looked fine" carried the identical bug; an atom whose internals
+  were wrong poisons everything composed from it. One visible symptom usually means N silent siblings.
+
+**Close the loop in the SAME change.** Every canvas defect converts into a hard rule or an executable
+check — a construction lint (below), a numeric assert (`canvas-operations.md` R10) — written the same
+turn you fix it, not "later." A check outlives model choice, mood, and context loss; prose discipline
+doesn't. This is why a new standard ships its linter alongside its emitter (`CLAUDE.md` hard-won
+rules), and why a missing-rule bug is patched at the shared layer so no other consumer inherits the
+blind spot — the check is the part of the lesson that survives to the next session.
+
+Provenance: distilled from the VSF-PCP `figma-idp-rebuild` field skill (dogfood 2026-07-13).
+
 ## Decision ladder — which reference to read when
 
 | You are about to... | Read |
