@@ -202,6 +202,67 @@ function pickOnColorFg(surfaceHex: string): string {
   return clearsAA(PURE_WHITE, surfaceHex) ? "{base.white}" : "{base.black}";
 }
 
+// ─── Non-text (UI) contrast: focus ring picking ─────────────────────────────────
+
+/**
+ * Non-text UI contrast floor (WCAG 1.4.11) — for focus rings, borders, and other
+ * non-text affordances. Lower than the 4.5 text floor because these are not read as
+ * glyphs; they only need to be perceivable against their surface.
+ */
+const AA_NONTEXT = 3;
+
+/**
+ * Pick a focus-ring primary stop (returns `{primary.NNN}`) that is visible on `surfaceHex`.
+ *
+ * A ring is a NON-TEXT affordance, so it targets the 3:1 UI floor (WCAG 1.4.11), not the
+ * 4.5 text floor. Among the stops that clear 3:1 we take the one NEAREST the floor — the
+ * most brand-vivid ring that is still a legible focus indicator (a much higher-contrast
+ * stop would read as a hard border, not a brand ring). Falls back to the max-contrast stop
+ * if — for a pathological hue — no stop reaches 3:1 (never happens in practice: the
+ * palette's extreme stops always clear against the near-white/near-black background).
+ * Deterministic: same palette + surface in, same stop out.
+ */
+function pickRingStop(primary: ColorCat, surfaceHex: string): string {
+  let clearing: { stop: number; ratio: number } | null = null;
+  let best: { stop: number; ratio: number } | null = null;
+  for (const stop of STOPS) {
+    const ratio = contrastRatio(stopHex(primary, stop), surfaceHex);
+    if (best === null || ratio > best.ratio) best = { stop, ratio };
+    if (ratio >= AA_NONTEXT && (clearing === null || ratio < clearing.ratio)) {
+      clearing = { stop, ratio };
+    }
+  }
+  const chosen = clearing ?? (best as { stop: number });
+  return `{primary.${chosen.stop}}`;
+}
+
+// ─── Data-viz chart palette (unpaired categorical primitives) ───────────────────
+
+/** Number of categorical chart colors the standard mandates (chart-1 … chart-5). */
+const CHART_COUNT = 5;
+/** Mid lightness — one legible weight for every series, readable on light or dark. */
+const CHART_L = 0.62;
+/** Vivid-but-broadly-in-gamut chroma; oklchToHex clamps per-hue into sRGB. */
+const CHART_C = 0.14;
+
+/**
+ * Build the `chart` primitive scale (chart.1 … chart.5) — 5 hue-distinct, theme-coherent
+ * data-viz colors derived from the persona's primary hue by even 72° rotation in OKLCH (a
+ * classic 5-way categorical wheel). chart-1 sits on the brand hue so the first series stays
+ * on-brand; lightness/chroma are held fixed so all five read at one weight. Pure function of
+ * the primary hex — deterministic, no randomness; the gamut clamp inside oklchToHex reduces
+ * chroma but preserves hue, so the five hues (72° apart) stay distinct.
+ */
+function buildChartScale(primaryHex: string): Record<string, { $value: string; $type: "color" }> {
+  const { h } = hexToOKLCH(primaryHex);
+  const out: Record<string, { $value: string; $type: "color" }> = {};
+  for (let i = 0; i < CHART_COUNT; i++) {
+    const hue = (h + (360 / CHART_COUNT) * i) % 360;
+    out[String(i + 1)] = { $value: oklchToHex(CHART_L, CHART_C, hue), $type: "color" };
+  }
+  return out;
+}
+
 // ─── Expansion ────────────────────────────────────────────────────────────────
 
 /**
@@ -241,6 +302,15 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
     white: { $value: "#FFFFFF", $type: "color" },
     black: { $value: "#000000", $type: "color" },
   };
+
+  // ── Primitives: chart (data-viz categorical palette) ─────────────────────────
+  //
+  // Five hue-distinct colors the Design-OS standard mandates for data-viz. Derived
+  // deterministically from the brand hue (even 72° OKLCH rotations) so chart-1 is
+  // on-brand and the set is theme-coherent. A real primitive scale → the semantic
+  // `color.chart-N` aliases point here, so the two-tier discipline holds (no literal
+  // colors in the semantic tier).
+  const chart = buildChartScale(primaryHex);
 
   // ── Primitives: spacing ─────────────────────────────────────────────────────
 
@@ -327,6 +397,15 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
   const cardHex  = isDarkOnly ? stopHex(neutral, 800) : stopHex(neutral, 100);
   const mutedHex = isDarkOnly ? stopHex(neutral, 700) : stopHex(neutral, 200);
 
+  // Extended surface roles the contrast picker measures its foregrounds against.
+  const secondaryHex = isDarkOnly ? stopHex(neutral, 700) : stopHex(neutral, 200);
+  const popoverHex   = isDarkOnly ? stopHex(neutral, 800) : stopHex(neutral, 100);
+  const sidebarHex   = isDarkOnly ? stopHex(neutral, 800) : stopHex(neutral, 100);
+  // accent (and sidebar-accent) is a LIGHT primary tint in light mode / a dark primary
+  // tint in dark mode — the hover/highlight surface. Its neutral foreground is picked
+  // contrast-aware (dark-on-light in light mode, light-on-dark in dark), so it clears AA.
+  const accentHex    = isDarkOnly ? stopHex(primary, 800) : stopHex(primary, 100);
+
   // Neutral foreground preference orders. Light mode leads dark→light (strong body
   // text = darkest; muted = lightest that still clears AA); dark-only mirrors it.
   const strongOrder = isDarkOnly ? [50, 100, 200, 300, 400] : [900, 950, 800, 700, 600];
@@ -357,6 +436,35 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
     "info-foreground":    { $value: pickOnColorFg(stopHex(info, 500)),    $type: "color" },
     "warning":            { $value: "{warning.500}", $type: "color" },
     "warning-foreground": { $value: pickOnColorFg(stopHex(warning, 500)), $type: "color" },
+    // ── Extended surface roles (Design-OS full semantic vocabulary) ───────────
+    // Secondary — a soft neutral action surface (secondary buttons, chips) + its text.
+    "secondary":            { $value: isDarkOnly ? "{neutral.700}" : "{neutral.200}", $type: "color" },
+    "secondary-foreground": { $value: pickNeutralFg(neutral, [secondaryHex], strongOrder), $type: "color" },
+    // Accent — hover/highlight tint (a primary step) + its contrast-aware text.
+    "accent":               { $value: isDarkOnly ? "{primary.800}" : "{primary.100}", $type: "color" },
+    "accent-foreground":    { $value: pickNeutralFg(neutral, [accentHex], strongOrder), $type: "color" },
+    // Popover — elevated overlay surface (its own role; may share card's primitive) + text.
+    "popover":              { $value: isDarkOnly ? "{neutral.800}" : "{neutral.100}", $type: "color" },
+    "popover-foreground":   { $value: pickNeutralFg(neutral, [popoverHex], strongOrder), $type: "color" },
+    // Input — form-control border strength (unpaired): one step stronger than border.
+    "input":                { $value: isDarkOnly ? "{neutral.600}" : "{neutral.300}", $type: "color" },
+    // Ring — focus ring (unpaired, non-text): a primary step nearest the 3:1 UI floor on background.
+    "ring":                 { $value: pickRingStop(primary, bgHex), $type: "color" },
+    // ── Sidebar set (8, per the standard) — its own themeable surface family ───
+    "sidebar":                    { $value: isDarkOnly ? "{neutral.800}" : "{neutral.100}", $type: "color" },
+    "sidebar-foreground":         { $value: pickNeutralFg(neutral, [sidebarHex], strongOrder), $type: "color" },
+    "sidebar-primary":            { $value: "{primary.500}", $type: "color" },
+    "sidebar-primary-foreground": { $value: pickOnColorFg(stopHex(primary, 500)), $type: "color" },
+    "sidebar-accent":             { $value: isDarkOnly ? "{primary.800}" : "{primary.100}", $type: "color" },
+    "sidebar-accent-foreground":  { $value: pickNeutralFg(neutral, [accentHex], strongOrder), $type: "color" },
+    "sidebar-border":             { $value: isDarkOnly ? "{neutral.700}" : "{neutral.200}", $type: "color" },
+    "sidebar-ring":               { $value: pickRingStop(primary, sidebarHex), $type: "color" },
+    // ── Data-viz palette (unpaired) — aliases into the chart primitive scale ───
+    "chart-1": { $value: "{chart.1}", $type: "color" },
+    "chart-2": { $value: "{chart.2}", $type: "color" },
+    "chart-3": { $value: "{chart.3}", $type: "color" },
+    "chart-4": { $value: "{chart.4}", $type: "color" },
+    "chart-5": { $value: "{chart.5}", $type: "color" },
   };
 
   // ── Semantics: space ────────────────────────────────────────────────────────
@@ -434,6 +542,7 @@ export function expandPersona(opts: ExpandOptions): ExpandResult {
     warning,
     danger,
     info,
+    chart,
     "space":       spaceGroup       as TokenTree[string],
     "radius":      radiusGroup      as TokenTree[string],
     "font-size":   fontSizeGroup    as TokenTree[string],

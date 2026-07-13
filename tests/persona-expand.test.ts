@@ -4,6 +4,7 @@ import { expandPersona, ExpandError } from "../src/core/persona-expand.js";
 import { loadPersonaIndex, findPersona } from "../src/core/persona-loader.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
 import { parseTokenFile } from "../src/core/token-model.js";
+import { contrastRatio } from "../src/core/color-scale.js";
 
 const PERSONAS_PATH = new URL(
   "../knowledge/personas/personas.json",
@@ -67,6 +68,48 @@ describe("expandPersona — token skeleton", () => {
     }
   });
 
+  it("emits the FULL Design-OS semantic vocabulary (L8: secondary/accent/popover/input/ring/sidebar/chart)", () => {
+    const { tokens } = expandPersona({ persona: liquidGlass(), intent: "test" });
+    const color = tokens["color"] ?? {};
+
+    // Extended paired surface roles — each aliases a primitive (two-tier), each has a foreground.
+    expect(color["secondary"]?.$value).toBe("{neutral.200}");
+    expect(color["accent"]?.$value).toBe("{primary.100}");
+    expect(color["popover"]?.$value).toBe("{neutral.100}");
+    for (const role of ["secondary", "accent", "popover", "sidebar", "sidebar-accent"]) {
+      expect(color[`${role}-foreground`]?.$value, `${role}-foreground`).toMatch(/^\{neutral\.\d+\}$/);
+    }
+    // Sidebar-primary reuses the brand fill → on-color (white/black) foreground.
+    expect(color["sidebar-primary"]?.$value).toBe("{primary.500}");
+    expect(color["sidebar-primary-foreground"]?.$value).toMatch(/^\{base\.(white|black)\}$/);
+
+    // Unpaired roles (no -foreground): border-strength input, focus ring, sidebar hairline/ring.
+    expect(color["input"]?.$value).toBe("{neutral.300}");         // one step stronger than border (neutral.200)
+    expect(color["ring"]?.$value).toMatch(/^\{primary\.\d+\}$/);   // a brand step
+    expect(color["sidebar-border"]?.$value).toBe("{neutral.200}");
+    expect(color["sidebar-ring"]?.$value).toMatch(/^\{primary\.\d+\}$/);
+
+    // Data-viz palette — semantic aliases into a real chart PRIMITIVE scale (two-tier discipline).
+    for (let i = 1; i <= 5; i++) {
+      expect(color[`chart-${i}`]?.$value, `chart-${i}`).toBe(`{chart.${i}}`);
+      expect(tokens["chart"]?.[String(i)]?.$value, `chart primitive ${i}`).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+    // chart primitives are literals (primitive tier), NOT aliases.
+    expect(tokens["chart"]?.["1"]?.$type).toBe("color");
+  });
+
+  it("dark-only persona flips accent/secondary/popover/sidebar to dark-appropriate primitives", () => {
+    const records = loadPersonaIndex(PERSONAS_PATH);
+    const dark = findPersona(records, "velvet-noir"); // colorMode: dark
+    const { tokens } = expandPersona({ persona: dark, intent: "test" });
+    const color = tokens["color"] ?? {};
+    expect(color["secondary"]?.$value).toBe("{neutral.700}");
+    expect(color["accent"]?.$value).toBe("{primary.800}");
+    expect(color["popover"]?.$value).toBe("{neutral.800}");
+    expect(color["sidebar"]?.$value).toBe("{neutral.800}");
+    expect(color["input"]?.$value).toBe("{neutral.600}");
+  });
+
   it("exposes pure white/black base primitives (the on-color foreground anchors)", () => {
     const { tokens } = expandPersona({ persona: liquidGlass(), intent: "test" });
     expect(tokens["base"]?.["white"]?.$value).toBe("#FFFFFF");
@@ -108,6 +151,75 @@ describe("expandPersona — token skeleton", () => {
     const persona = liquidGlass();
     const { registry } = expandPersona({ persona, intent: "test" });
     expect(registry.components).toHaveLength(0);
+  });
+});
+
+// ─── Ring: non-text (3:1) contrast floor, not the 4.5 text floor ───────────────
+
+describe("expandPersona — focus ring targets the 3:1 non-text UI floor (L8)", () => {
+  /** Resolve a compiled DS to a path→literal map. */
+  function resolvedMap(slug: string): Map<string, string> {
+    const persona = findPersona(loadPersonaIndex(PERSONAS_PATH), slug);
+    const resolved = resolveTokens(expandPersona({ persona, intent: "test" }).tokens);
+    return new Map(resolved.map((t) => [t.path, t.value as string]));
+  }
+
+  it("every persona's ring reaches 3:1 against its background (WCAG 1.4.11 non-text floor)", () => {
+    for (const p of loadPersonaIndex(PERSONAS_PATH)) {
+      const m = resolvedMap(p.slug);
+      const ring = m.get("color.ring")!;
+      const bg = m.get("color.background")!;
+      expect(ring, `${p.slug} ring hex`).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      // Reaches the 3:1 UI floor — a ring is a non-text affordance.
+      expect(contrastRatio(ring, bg), `${p.slug} ring contrast`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("uses the 3:1 floor, NOT the 4.5 text floor — at least one persona's ring sits below 4.5", () => {
+    // A picker anchored on the 4.5 text floor could never produce a sub-4.5 ring. That
+    // some (in fact most) rings land in [3, 4.5) is proof the non-text floor is in force.
+    const belowText = loadPersonaIndex(PERSONAS_PATH).filter((p) => {
+      const m = resolvedMap(p.slug);
+      return contrastRatio(m.get("color.ring")!, m.get("color.background")!) < 4.5;
+    });
+    expect(belowText.length).toBeGreaterThan(0);
+  });
+
+  it("sidebar-ring likewise reaches 3:1 against the sidebar surface", () => {
+    const m = resolvedMap("saas-aurora-minimal");
+    expect(contrastRatio(m.get("color.sidebar-ring")!, m.get("color.sidebar")!)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// ─── Chart palette: 5 distinct, deterministic ──────────────────────────────────
+
+describe("expandPersona — data-viz chart palette (L8)", () => {
+  function chartHexes(persona: ReturnType<typeof liquidGlass>): string[] {
+    const { tokens } = expandPersona({ persona, intent: "test" });
+    const chart = tokens["chart"] as Record<string, { $value: string }>;
+    return [1, 2, 3, 4, 5].map((i) => chart[String(i)]!.$value);
+  }
+
+  it("chart-1..5 are 5 distinct hue-rotated colors for every persona", () => {
+    for (const p of loadPersonaIndex(PERSONAS_PATH)) {
+      const hexes = chartHexes(p);
+      expect(hexes, `${p.slug} chart`).toHaveLength(5);
+      expect(new Set(hexes).size, `${p.slug} distinct charts`).toBe(5);
+      for (const hex of hexes) expect(hex).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+  });
+
+  it("is deterministic — two compiles of the same persona yield identical chart hexes", () => {
+    const persona = liquidGlass();
+    expect(chartHexes(persona)).toEqual(chartHexes(persona));
+  });
+
+  it("chart-1 sits on the brand hue (seeded from the persona primary, not a fixed palette)", () => {
+    // Different brand hex → different chart palette (proves derivation from the seed).
+    const persona = liquidGlass();
+    const a = expandPersona({ persona, intent: "t" }).tokens["chart"] as Record<string, { $value: string }>;
+    const b = expandPersona({ persona, intent: "t", brandHex: "#FF0066" }).tokens["chart"] as Record<string, { $value: string }>;
+    expect(a["1"]?.$value).not.toBe(b["1"]?.$value);
   });
 });
 
