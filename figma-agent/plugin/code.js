@@ -1112,6 +1112,99 @@
     };
   }
 
+  // shared/audit-types.ts
+  var AUDIT_FACTS_SCHEMA = 2;
+
+  // plugin/src/main/executor-audit-units.ts
+  var MAX_UNIT_NODES = 300;
+  var MAX_UNIT_DEPTH = 10;
+  var MAX_UNIT_TEXT = 2e3;
+  var CAPPED = "\u2026capped";
+  function hex2(c) {
+    const v = Math.max(0, Math.min(255, Math.round(c * 255)));
+    return v.toString(16).padStart(2, "0");
+  }
+  function paintFingerprint(prefix, p) {
+    if (p.type === "SOLID") {
+      const bound = p.boundVariables?.color;
+      if (bound) return `${prefix}:var:${bound.id}`;
+      let s = `${prefix}:#${hex2(p.color.r)}${hex2(p.color.g)}${hex2(p.color.b)}`;
+      if (typeof p.opacity === "number" && p.opacity < 1) s += `@${p.opacity.toFixed(2)}`;
+      return s;
+    }
+    return `${prefix}:${p.type}`;
+  }
+  function collectPaints(node, st) {
+    for (const field of ["fills", "strokes"]) {
+      if (!(field in node)) continue;
+      let paints;
+      try {
+        paints = node[field];
+      } catch {
+        continue;
+      }
+      if (!Array.isArray(paints)) continue;
+      const prefix = field === "fills" ? "f" : "s";
+      for (const p of paints) st.paints.push(paintFingerprint(prefix, p));
+    }
+  }
+  function walk(node, depth, isRoot, st) {
+    if (st.cappedNodes) return;
+    if (st.nodes >= MAX_UNIT_NODES) {
+      st.structure.push(CAPPED);
+      st.cappedNodes = true;
+      return;
+    }
+    st.nodes++;
+    let w = 0;
+    let h = 0;
+    try {
+      w = Math.round(node.width);
+      h = Math.round(node.height);
+    } catch {
+      w = 0;
+      h = 0;
+    }
+    st.structure.push(`${depth}:${node.type}:${isRoot ? "" : node.name}:${w}x${h}`);
+    if (node.type === "TEXT") {
+      try {
+        const chars = node.characters;
+        if (!st.cappedText) {
+          if (st.textLen + chars.length > MAX_UNIT_TEXT) {
+            st.texts.push(CAPPED);
+            st.cappedText = true;
+          } else {
+            st.texts.push(chars);
+            st.textLen += chars.length;
+          }
+        }
+      } catch {
+      }
+    }
+    collectPaints(node, st);
+    if (node.type === "INSTANCE") return;
+    if (depth >= MAX_UNIT_DEPTH) return;
+    if ("children" in node) {
+      for (const child of node.children) {
+        if (st.cappedNodes) break;
+        walk(child, depth + 1, false, st);
+      }
+    }
+  }
+  function unitFact(node) {
+    const st = {
+      structure: [],
+      texts: [],
+      paints: [],
+      nodes: 0,
+      textLen: 0,
+      cappedNodes: false,
+      cappedText: false
+    };
+    walk(node, 0, true, st);
+    return { id: node.id, name: node.name, structure: st.structure, texts: st.texts, paints: st.paints };
+  }
+
   // plugin/src/main/executor-audit.ts
   function countUnboundPaints(node, field) {
     if (!(field in node)) return 0;
@@ -1128,7 +1221,17 @@
     }
     return n;
   }
-  function factForNode(n, pageName) {
+  async function getInstancesAsyncLength(node) {
+    const fn = node.getInstancesAsync;
+    if (typeof fn !== "function") return null;
+    try {
+      const instances = await fn.call(node);
+      return Array.isArray(instances) ? instances.length : null;
+    } catch {
+      return null;
+    }
+  }
+  async function factForNode(n, pageName) {
     let variantAxes = {};
     try {
       const defs = n.componentPropertyDefinitions;
@@ -1149,14 +1252,31 @@
       p = p.parent;
     }
     const deprecatedData = n.getSharedPluginData("idp", "status") === "deprecated";
+    let width = 0;
+    let height = 0;
+    try {
+      width = Math.round(n.width);
+      height = Math.round(n.height);
+    } catch {
+      width = 0;
+      height = 0;
+    }
     const rep = n.type === "COMPONENT_SET" ? n.children[0] : n;
     const repChildren = rep && "children" in rep ? [...rep.children] : [];
-    const childTypeSignature = repChildren.map((c) => c.type);
     let unboundFills = 0;
     let unboundStrokes = 0;
     for (const s of rep ? [rep, ...repChildren] : []) {
       unboundFills += countUnboundPaints(s, "fills");
       unboundStrokes += countUnboundPaints(s, "strokes");
+    }
+    let units;
+    if (n.type === "COMPONENT_SET") {
+      units = [];
+      for (const child of n.children) {
+        units.push({ ...unitFact(child), usageCount: await getInstancesAsyncLength(child) });
+      }
+    } else {
+      units = [{ ...unitFact(n), usageCount: null }];
     }
     return {
       id: n.id,
@@ -1168,17 +1288,19 @@
       pageName,
       section,
       deprecatedData,
-      childTypeSignature,
+      width,
+      height,
       unboundFills,
-      unboundStrokes
+      unboundStrokes,
+      units
     };
   }
-  function inventoryPage(page) {
+  async function inventoryPage(page) {
     const nodes = page.findAllWithCriteria({ types: ["COMPONENT", "COMPONENT_SET"] });
     const facts = [];
     for (const n of nodes) {
       if (n.type === "COMPONENT" && n.parent && n.parent.type === "COMPONENT_SET") continue;
-      facts.push(factForNode(n, page.name));
+      facts.push(await factForNode(n, page.name));
     }
     return facts;
   }
@@ -1228,12 +1350,14 @@
         skippedPages.push(page.name);
         continue;
       }
-      components.push(...inventoryPage(page));
+      components.push(...await inventoryPage(page));
       instancesTallied += await tallyUsagePage(page, usage);
     }
-    const componentCount = components.filter((c) => c.type === "COMPONENT").length;
+    const masters = components.length;
     const sets = components.filter((c) => c.type === "COMPONENT_SET").length;
+    const variants = components.reduce((sum, c) => sum + c.variantCount, 0);
     return {
+      schema: AUDIT_FACTS_SCHEMA,
       // Only plain objects survive past a page boundary (C5) — no SceneNode is retained.
       file: {
         fileName: figma.root.name,
@@ -1242,7 +1366,7 @@
       },
       components,
       usage,
-      counts: { components: componentCount, sets, instancesTallied }
+      counts: { masters, sets, standalone: masters - sets, variants, instancesTallied }
     };
   }
 
