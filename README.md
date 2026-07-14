@@ -1,10 +1,10 @@
-<h1 align="center">ease-design</h1>
+<h1 align="center">DESIGN:OS</h1>
 
 <p align="center"><b>Describe what you want in plain words — get production-grade, on-system UI back.</b></p>
 
 <p align="center">
   [<a href="#quick-start">Quick start</a>] ·
-  [<a href="#built-by-the-studio-behind-ease-design">Gallery</a>] ·
+  [<a href="#built-by-the-studio-behind-designos">Gallery</a>] ·
   [<a href="#workflow-map--every-way-in-every-way-out">Workflow map</a>] ·
   [<a href="#the-machine-floor">The machine floor</a>] ·
   [<a href="#the-figma-hand">The Figma hand</a>] ·
@@ -16,15 +16,15 @@
 1,787 tests green · 23 personas · a 27-component kit · four deterministic linters
 </sub></p>
 
-ease-design is a multi-runtime **design CLI**. You drive it through the agent CLI you
+DESIGN:OS is a multi-runtime **design CLI**. You drive it through the agent CLI you
 already use (Claude Code, Codex CLI, or Antigravity) with plain-language `/ui:*` commands.
-The host model writes the HTML; ease-design supplies the taste — personas, a compiled
+The host model writes the HTML; DESIGN:OS supplies the taste — personas, a compiled
 design system, and a hard quality gate the model cannot talk past. **No API keys, no
 design tokens to hand-edit, no taste vocabulary to learn.**
 
 ---
 
-## Built by the studio behind ease-design
+## Built by the studio behind DESIGN:OS
 
 Five live products, five different worlds — an AI dev-tool, a farm's direct-to-Hanoi
 fruit brand, a plugin marketplace, a villa-care service, a deal CRM for real-estate
@@ -106,8 +106,8 @@ The whole tool fits in six moves. Everything else is depth on demand.
 ## Quick start
 
 ```sh
-git clone https://github.com/jangtrinh/ease-design.git
-cd ease-design && npm install && npm run build && npm link
+git clone https://github.com/jangtrinh/design-os.git
+cd design-os && npm install && npm run build && npm link
 ui doctor                      # verify the install is healthy
 ```
 
@@ -127,13 +127,13 @@ Then open your agent CLI in that project and type:
 That's the whole loop: **describe → pick → refine.** Have an existing app? Run
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
-> Once published to npm, `npx ease-design` replaces the clone-and-link step.
+> Once published to npm, a global install replaces the clone-and-link step.
 
 ---
 
 ## The machine floor
 
-Most design guidance is prose the model can talk itself past. ease-design's floor is
+Most design guidance is prose the model can talk itself past. The DESIGN:OS floor is
 **code**: four deterministic linters run on every build, and the rendered tier re-checks
 what static analysis can't see. A rule breach *cannot* pass — the gate is enforced, not
 suggested.
@@ -178,7 +178,7 @@ flowchart TD
     E2["An existing codebase"] --> SCAN["ui scan"] --> LEARN["/ui:learn — DS from your own evidence"] --> STORE
     E3["A live URL you admire"] --> FURL["/ui:from-url — spec + tokens + audit folder"] --> STORE
     E4["A Figma file"] --> FSTAT["design-os figma scan"] --> ING["ui ingest-figma-ds"] --> STORE
-    E4 --> FAUD["design-os figma audit<br/>9 hygiene detectors"] --> CLEAN["cleanup plan:<br/>delete · dedupe · consolidate"] -.-> FSTAT
+    E4 --> FAUD["design-os figma audit<br/>10 hygiene detectors"] --> CLEAN["cleanup plan:<br/>delete · dedupe · consolidate"] -.-> FSTAT
     E5["A shadcn / DTCG token set"] --> IMP["ui ds import"] --> STORE
     E6["Reference shots · brand mood"] --> RADD["design-os reference add"] --> DNA["DNA doc → persona seed"] --> DSINIT
     E1 -.-> DSINIT["ui ds init — persona compiles a<br/>27-component, paired-token DS"]
@@ -230,9 +230,9 @@ Three moves, both directions:
 
 - **Read** — `design-os figma scan` exports components/variables/styles;
   `ui ingest-figma-ds` turns them into tokens + registry + DESIGN.md.
-- **Audit** — `design-os figma audit` runs nine deterministic DS-hygiene detectors over
+- **Audit** — `design-os figma audit` runs ten deterministic DS-hygiene detectors over
   the open file's component library (unused · junk names · deprecated · duplicates by
-  name and by structure · redundant families · empty sets · misfiled · unbound paints) —
+  name and by structure · dead variants · redundant families · empty sets · misfiled · unbound paints) —
   a raw one-pass scan that survives 160k-instance files, judged entirely in
   fixture-tested CLI code.
 - **Write** — `/ui:to-figma` authors idiomatic canvas: auto-layout, real instances,
@@ -329,20 +329,6 @@ Still open, stated plainly:
   the worst failure mode.
 
 ---
-
-## Acknowledgements
-
-Built on the shoulders of, and honestly indebted to:
-
-- [**Hallmark**](https://github.com/Nutlope/hallmark) (MIT) — we adopted its
-  structural-variety thinking (macrostructures, diversification) and distilled five of its
-  slop tells into real linter checks; its README structure shaped this one.
-- [**shadcn/ui**](https://ui.shadcn.com) — the maturity bar for the default kit, and the
-  registry shape `ui ds import` onboards.
-- [**Typer**](https://typer.tiangolo.com) — the `design-os` conductor's CLI framework.
-- [**axe-core**](https://github.com/dequelabs/axe-core), **Playwright**,
-  **pixelmatch** — the rendered verification tier.
-- [**Lucide**](https://lucide.dev) — the single icon family the taste floor enforces.
 
 ## Contributing
 
