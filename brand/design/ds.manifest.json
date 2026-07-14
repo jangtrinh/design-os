@@ -1,0 +1,91 @@
+{
+  "changelog": [
+    {
+      "by": "ui ds init",
+      "kind": "init",
+      "note": "compiled from persona=kinetic-swiss-punk",
+      "ts": "2026-07-14T02:07:59.450Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "{neutral.50}",
+      "kind": "change-token",
+      "path": "color.background",
+      "reason": "Reference bg: paper gray #f5f5f5, not pure white",
+      "to": "#f5f5f5",
+      "ts": "2026-07-14T02:07:59.521Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "{primary.500}",
+      "kind": "change-token",
+      "path": "color.primary",
+      "reason": "Brand hue is the soul — keep it verbatim; fg flips to ink instead (5.9:1)",
+      "to": "#ff3e00",
+      "ts": "2026-07-14T02:08:37.260Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "{base.white}",
+      "kind": "change-token",
+      "path": "color.primary-foreground",
+      "reason": "Ink on burnt orange: 5.9:1 AA, more brutalist than white-on-darker",
+      "to": "{base.black}",
+      "ts": "2026-07-14T02:08:37.333Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "{primary.600}",
+      "kind": "change-token",
+      "path": "color.primary-hover",
+      "reason": "Hover one step deeper; black fg still clears AA",
+      "to": "#D13000",
+      "ts": "2026-07-14T02:08:37.406Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "#D13000",
+      "kind": "change-token",
+      "path": "color.primary-hover",
+      "reason": "Hover LIGHTER (brutalist inversion energy) — black fg 6.5:1, state-pair audit green",
+      "to": "#FF6533",
+      "ts": "2026-07-14T02:09:09.648Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "Neue Haas Grotesk, Helvetica, sans-serif",
+      "kind": "change-token",
+      "path": "font-family.display",
+      "reason": "Reference: Inter 900 headlines",
+      "to": "Inter, sans-serif",
+      "ts": "2026-07-14T02:09:32.651Z"
+    },
+    {
+      "by": "ui ds change-token",
+      "from": "Neue Haas Grotesk, Helvetica, sans-serif",
+      "kind": "change-token",
+      "path": "font-family.body",
+      "reason": "Reference: Inter body",
+      "to": "Inter, sans-serif",
+      "ts": "2026-07-14T02:09:32.722Z"
+    }
+  ],
+  "compiledHash": "sha256-iRGR06VBUOjWT4Er2zj1eZ3qmwJEBAVyZI-ixMzngag",
+  "createdAt": "2026-07-14T02:07:59.449Z",
+  "generation": 8,
+  "intent": "Design-OS product surfaces — Swiss Monolith brutalist modernism: rigid grids, high contrast ink-on-paper, one burnt-orange accent, mechanical typography (heavy grotesk headlines, monospace data), sharp 0-radius geometry, flat surfaces with 2px borders, inversion on hover. Clarity as decoration.",
+  "name": "designos",
+  "persona": {
+    "antiPatterns": [
+      "decorative elements",
+      "rounded corners",
+      "soft subtle colors",
+      "gradients",
+      "icon decorations"
+    ],
+    "family": "graphic-modernist",
+    "slug": "kinetic-swiss-punk"
+  },
+  "registryHash": "sha256-sxRo42L-kjVdvS9imobKxtdVEHpcLYS4BeLPXNt6Aoo",
+  "version": "1.0.0"
+}
