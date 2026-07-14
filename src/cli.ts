@@ -44,6 +44,7 @@ import { vrCommand } from "./commands/vr.js";
 import { evidenceCommand } from "./commands/evidence.js";
 import { ingestFigmaDsCommand } from "./commands/ingest-figma-ds.js";
 import { synthesizeConventionsCommand } from "./commands/synthesize-conventions.js";
+import { tasteCommand } from "./commands/taste.js";
 import { agentsCommand } from "./commands/agents.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
@@ -90,6 +91,7 @@ COMMANDS[vrCommand.name] = vrCommand;
 COMMANDS[evidenceCommand.name] = evidenceCommand;
 COMMANDS[ingestFigmaDsCommand.name] = ingestFigmaDsCommand;
 COMMANDS[synthesizeConventionsCommand.name] = synthesizeConventionsCommand;
+COMMANDS[tasteCommand.name] = tasteCommand;
 COMMANDS[agentsCommand.name] = agentsCommand;
 
 // ─── Root help ────────────────────────────────────────────────────────────────
