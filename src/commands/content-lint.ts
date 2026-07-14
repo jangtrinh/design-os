@@ -7,18 +7,10 @@ import { readFileSync } from "node:fs";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
-import {
-  checkLoremIpsum, checkPlaceholderCopy, checkClickHereLink, checkErrorCodeAlone,
-  checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
-} from "../core/content-checks.js";
+import { allContentChecks } from "../core/content-checks.js";
 import type { ContentFinding } from "../core/content-checks.js";
 
 const CMD = "content-lint";
-
-const CHECKS = [
-  checkLoremIpsum, checkPlaceholderCopy, checkClickHereLink, checkErrorCodeAlone,
-  checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
-];
 
 export const CONTENT_LINT_HELP = `ui content-lint — deterministic content / UX-writing floor
 
@@ -26,7 +18,7 @@ Usage:
   ui content-lint <file.html> [--json]
 
 Checks (low-false-positive only; voice/tone fit stays a model judgment):
-  lorem-ipsum · placeholder-copy            (errors — unfinished copy)
+  lorem-ipsum · placeholder-copy · placeholder-name   (errors — unfinished copy)
   click-here-link (WCAG 2.4.4) · error-code-alone · exclamation-overload ·
   insensitive-terms (whitelist/blacklist/master-slave) · plural-s-hack ("item(s)") ·
   text-in-image · all-caps-shout            (warnings)
@@ -73,7 +65,7 @@ export const contentLintCommand = {
     }
 
     const all: ContentFinding[] = [];
-    for (const check of CHECKS) all.push(...check(html));
+    for (const check of allContentChecks) all.push(...check(html));
     all.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1) || (a.line ?? 0) - (b.line ?? 0) || a.checkId.localeCompare(b.checkId));
     const errorCount = all.filter((f) => f.severity === "error").length;
     const result = { file, findings: all, errorCount, warningCount: all.length - errorCount };

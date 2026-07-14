@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  checkLoremIpsum, checkPlaceholderCopy, checkClickHereLink, checkErrorCodeAlone,
+  checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
   checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
 } from "../src/core/content-checks.js";
 
@@ -38,6 +38,27 @@ describe("checkPlaceholderCopy (error)", () => {
   });
   it("does not fire on TODO", () => {
     expect(checkPlaceholderCopy("<p>TODO: ship it</p>")).toEqual([]);
+  });
+});
+
+describe("checkPlaceholderName (error)", () => {
+  it("fires on 'Jane Doe' in visible copy", () => {
+    const out = checkPlaceholderName("<p>Signed, Jane Doe</p>");
+    expect(out).toHaveLength(1);
+    expect(out[0]?.checkId).toBe("placeholder-name");
+    expect(out[0]?.severity).toBe("error");
+  });
+  it("fires on the 'Acme' company filler (with or without a suffix)", () => {
+    expect(checkPlaceholderName("<h2>Welcome to Acme Corp</h2>")).toHaveLength(1);
+    expect(checkPlaceholderName("<h2>Welcome to Acme</h2>")).toHaveLength(1);
+  });
+  it("ALSO fires inside an attribute value — the check scans raw HTML by design", () => {
+    // A demo form shipping placeholder="Jane Doe" is still a placeholder-name tell,
+    // so matching in an attribute is the intended, accepted behavior (not a false positive).
+    expect(checkPlaceholderName('<input placeholder="Jane Doe">')).toHaveLength(1);
+  });
+  it("does not fire on a plausible real name outside the filler set", () => {
+    expect(checkPlaceholderName("<p>Contact Sarah Chen for access</p>")).toEqual([]);
   });
 });
 

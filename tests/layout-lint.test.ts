@@ -224,6 +224,54 @@ describe("lintLayout — empty-flex-grid", () => {
   });
 });
 
+describe("lintLayout — css-100vw-width", () => {
+  it("flags a width:100vw inside a <style> rule", () => {
+    const html = '<!doctype html><html><body><style>.hero{width:100vw}</style><div class="hero"></div></body></html>';
+    const { findings } = lintLayout(html);
+    expect(findings.some((f) => f.checkId === "css-100vw-width")).toBe(true);
+  });
+
+  it("flags max-width:100vw too", () => {
+    const html = '<!doctype html><html><body><style>.wrap{max-width:100vw}</style></body></html>';
+    const { findings } = lintLayout(html);
+    expect(findings.some((f) => f.checkId === "css-100vw-width")).toBe(true);
+  });
+
+  it("does NOT flag width:100% (the correct value)", () => {
+    const html = '<!doctype html><html><body><style>.hero{width:100%}</style></body></html>';
+    const { findings } = lintLayout(html);
+    expect(findings.some((f) => f.checkId === "css-100vw-width")).toBe(false);
+  });
+});
+
+describe("lintLayout — root-overflow-x-hidden", () => {
+  it("flags overflow-x:hidden on body", () => {
+    const html = '<!doctype html><html><body><style>body{overflow-x:hidden}</style></body></html>';
+    const { findings } = lintLayout(html);
+    expect(findings.some((f) => f.checkId === "root-overflow-x-hidden")).toBe(true);
+  });
+
+  it("appends a 'USES sticky' note when the page also uses position:sticky", () => {
+    const html = '<!doctype html><html><body><style>html{overflow-x:hidden}.nav{position:sticky;top:0}</style></body></html>';
+    const { findings } = lintLayout(html);
+    const f = findings.find((x) => x.checkId === "root-overflow-x-hidden");
+    expect(f).toBeDefined();
+    expect(f?.message).toContain("USES sticky");
+  });
+
+  it("does NOT flag overflow-x:clip (the sticky-safe alternative)", () => {
+    const html = '<!doctype html><html><body><style>body{overflow-x:clip}</style></body></html>';
+    const { findings } = lintLayout(html);
+    expect(findings.some((f) => f.checkId === "root-overflow-x-hidden")).toBe(false);
+  });
+
+  it("does NOT flag overflow-x:hidden on a non-root class (.body-text)", () => {
+    const html = '<!doctype html><html><body><style>.body-text{overflow-x:hidden}</style></body></html>';
+    const { findings } = lintLayout(html);
+    expect(findings.some((f) => f.checkId === "root-overflow-x-hidden")).toBe(false);
+  });
+});
+
 // ─── Comment stripping ────────────────────────────────────────────────────────
 
 describe("lintLayout — HTML comments do not trigger findings", () => {
