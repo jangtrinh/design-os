@@ -60,15 +60,15 @@ describe("figma-agent P2 panel — dogfood tokens + provenance", () => {
   });
 
   it("records how to regenerate the tokens (provenance) and the persona", () => {
-    expect(html).toContain("ui ds init figma-panel");
+    expect(html).toContain("brand/design");
     expect(html).toContain("ui tokens compile");
-    expect(html).toContain("saas-aurora-minimal");
+    expect(html).toContain("kinetic-swiss-punk");
   });
 
   it("overrides the body/display font to a system stack (iframe can't load a webfont)", () => {
     expect(html).toContain("-apple-system");
     // the override must come AFTER the compiled :root so it wins the cascade
-    expect(html.lastIndexOf("--font-family-body")).toBeGreaterThan(html.indexOf("Inter, system-ui"));
+    expect(html.lastIndexOf("--font-family-body")).toBeGreaterThan(html.indexOf("Inter, sans-serif"));
   });
 
   it("uses no raw hex outside the pasted :root blocks (every chrome color via var())", () => {

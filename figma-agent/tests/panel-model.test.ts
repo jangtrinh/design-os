@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import {
   stateView, formatAge, formatDuration, timeAgo, humanizeTool,
   toActivityRecord, pushActivity, troubleshootHint, showOnboarding,
+  togglePanelMode, detailsLabel, compactMeta, PANEL_WIDTH, PANEL_HEIGHT,
   type ActivityRecord,
 } from '../plugin/src/ui/panel-model.ts';
 import type { ConnectionState } from '../shared/protocol.ts';
@@ -126,5 +127,28 @@ describe('showOnboarding — first-run only', () => {
     expect(showOnboarding('connected', true)).toBe(false);
     expect(showOnboarding('disconnected', true)).toBe(false); // a later drop still hides it
     expect(showOnboarding('handshake', false)).toBe(false);
+  });
+});
+
+describe('panel mode (P5.1) — compact-first, expand on demand', () => {
+  it('the iframe geometry is 300 wide, 170 compact / 460 expanded', () => {
+    expect(PANEL_WIDTH).toBe(300);
+    expect(PANEL_HEIGHT.compact).toBe(170);
+    expect(PANEL_HEIGHT.expanded).toBe(460);
+  });
+  it('togglePanelMode flips and round-trips', () => {
+    expect(togglePanelMode('compact')).toBe('expanded');
+    expect(togglePanelMode('expanded')).toBe('compact');
+    expect(togglePanelMode(togglePanelMode('compact'))).toBe('compact');
+  });
+  it('detailsLabel invites with ▾ and collapses with ▴', () => {
+    expect(detailsLabel('compact')).toBe('Details ▾');
+    expect(detailsLabel('expanded')).toBe('Details ▴');
+  });
+  it('compactMeta covers ONLY the disconnected wait — next-step copy, no pill echo', () => {
+    expect(compactMeta('disconnected')).toBe('First CLI command starts it');
+    expect(compactMeta('connected')).toBeNull();
+    expect(compactMeta('probing')).toBeNull();
+    expect(compactMeta('handshake')).toBeNull();
   });
 });

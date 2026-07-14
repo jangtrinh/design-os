@@ -12,11 +12,13 @@ import type { ConnectionState, ConnectionStatePayload } from '../../../shared/pr
 import {
   stateView, formatAge, formatDuration, timeAgo, humanizeTool,
   toActivityRecord, pushActivity, troubleshootHint, showOnboarding,
-  type ActivityRecord,
+  togglePanelMode, detailsLabel, compactMeta, PANEL_HEIGHT,
+  type ActivityRecord, type PanelMode,
 } from './panel-model';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
+const panelRoot = el('fga-panel');
 const dot = el('fga-dot');
 const pill = el('fga-pill');
 const sentence = el('fga-sentence');
@@ -24,6 +26,8 @@ const meta = el('fga-meta');
 const onboarding = el('fga-onboarding');
 const hint = el('fga-hint');
 const activityList = el('fga-activity');
+const expandedZone = el('fga-expanded');
+const toggleBtn = el('fga-toggle');
 const dPort = el('fga-d-port');
 const dProto = el('fga-d-proto');
 const dHeartbeat = el('fga-d-heartbeat');
@@ -38,9 +42,14 @@ let probeAttempts = 0; // full broker scans since load (one per scan cycle)
 let activity: ActivityRecord[] = []; // newest-first, capped at 50 by pushActivity
 let sceneFile = '';
 let scenePage = '';
+let mode: PanelMode = 'compact'; // ALWAYS compact on open (spec P5.1 — no persistence)
 
 // ─── Rendering ──────────────────────────────────────────────────────────────
 function metaLine(state: ConnectionState, now: number): string {
+  if (mode === 'compact') {
+    const compact = compactMeta(state);
+    if (compact !== null) return compact; // disconnected compact still communicates
+  }
   if (!payload) return '';
   const age = now - payload.since;
   if (state === 'connected') {
@@ -156,13 +165,32 @@ copyBtn.addEventListener('click', () => {
   const text = JSON.stringify(snapshot, null, 2);
   const done = (): void => {
     copyBtn.textContent = 'Copied';
-    setTimeout(() => { copyBtn.textContent = 'Copy status'; }, 1500);
+    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
   };
   if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
   else fallbackCopy(text, done);
 });
 
+// ─── Compact ⇄ expanded (P5.1) ───────────────────────────────────────────────
+// The DETAILS footer cell toggles the expanded zone and asks main to resize the
+// iframe to the mode's height (main owns figma.ui.resize; resize is instant, no
+// animation). Default is always compact on open — mode is never persisted.
+function applyMode(): void {
+  panelRoot.dataset.mode = mode;
+  expandedZone.hidden = mode !== 'expanded';
+  toggleBtn.textContent = detailsLabel(mode);
+  toggleBtn.setAttribute('aria-expanded', String(mode === 'expanded'));
+}
+
+toggleBtn.addEventListener('click', () => {
+  mode = togglePanelMode(mode);
+  applyMode();
+  parent.postMessage({ pluginMessage: { type: 'PANEL_RESIZE', h: PANEL_HEIGHT[mode] } }, '*');
+  render(); // the meta line is mode-dependent (compact disconnected override)
+});
+
 // A 1s heartbeat keeps the live ages (uptime, retry elapsed, time-ago) fresh
 // between transitions.
 setInterval(render, 1000);
+applyMode();
 render();

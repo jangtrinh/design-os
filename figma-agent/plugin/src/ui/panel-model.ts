@@ -130,3 +130,34 @@ export function troubleshootHint(
 export function showOnboarding(state: ConnectionState, hadConnection: boolean): boolean {
   return !hadConnection && (state === 'disconnected' || state === 'probing');
 }
+
+// ─── Panel layout mode (P5.1: compact-first) ─────────────────────────────────
+// The panel opens COMPACT (owner decree: small + minimal on the canvas) and
+// expands only on demand. Mode is session-local — always compact on open, no
+// persistence. main.ts reads the same constants for figma.showUI/resize so the
+// iframe and the layout can never disagree.
+
+export type PanelMode = 'compact' | 'expanded';
+
+export const PANEL_WIDTH = 300;
+export const PANEL_HEIGHT: Record<PanelMode, number> = { compact: 170, expanded: 460 };
+
+export function togglePanelMode(mode: PanelMode): PanelMode {
+  return mode === 'expanded' ? 'compact' : 'expanded';
+}
+
+/** Footer toggle label — ▾ invites expansion, ▴ collapse. (CSS uppercases it.) */
+export function detailsLabel(mode: PanelMode): string {
+  return mode === 'expanded' ? 'Details ▴' : 'Details ▾';
+}
+
+/**
+ * Compact-mode meta-line override. Compact drops the status sentence, so the
+ * disconnected wait must still communicate on the ONE remaining line (spec §3).
+ * The pill directly above already reads "No broker yet" — the meta carries only
+ * the next step, so the 276px column keeps it to one physical line.
+ * Null means "no override — use the regular meta line".
+ */
+export function compactMeta(state: ConnectionState): string | null {
+  return state === 'disconnected' ? 'First CLI command starts it' : null;
+}

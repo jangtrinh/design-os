@@ -1335,8 +1335,12 @@
     }
   }
 
+  // plugin/src/ui/panel-model.ts
+  var PANEL_WIDTH = 300;
+  var PANEL_HEIGHT = { compact: 170, expanded: 460 };
+
   // plugin/src/main/main.ts
-  figma.showUI(__html__, { visible: true, width: 340, height: 480 });
+  figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
   function announceFileInfo() {
     figma.ui.postMessage({
       type: "FILE_INFO",
@@ -1346,6 +1350,12 @@
   announceFileInfo();
   figma.on("currentpagechange", announceFileInfo);
   figma.ui.onmessage = async (msg) => {
+    const chrome = msg;
+    if (chrome && chrome.type === "PANEL_RESIZE") {
+      const raw = typeof chrome.h === "number" && Number.isFinite(chrome.h) ? chrome.h : PANEL_HEIGHT.compact;
+      figma.ui.resize(PANEL_WIDTH, Math.round(Math.min(PANEL_HEIGHT.expanded, Math.max(PANEL_HEIGHT.compact, raw))));
+      return;
+    }
     const req = msg;
     if (!req || typeof req.requestId !== "string" || typeof req.cmd !== "string") return;
     try {
