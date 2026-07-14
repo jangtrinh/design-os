@@ -89,6 +89,22 @@ $FA html-to-figma --html page.html --width 1440     # HTML → real auto-layout
 $FA export-png --node <id> --out out.png            # the eyes — then Read the PNG
 ```
 
+## Multiple files open at once
+
+Each open Figma file that has the panel loaded connects on its own — they no longer
+evict each other. `figma-agent status` lists every connected file (`plugins[]`) and
+marks the **active** one (`activePlugin`). By default a command goes to the file you
+touched most recently (the last to (re)connect, change page, or heartbeat). To pin
+commands to a specific file regardless of recency, set `FIGMA_AGENT_FILE` to a
+case-insensitive substring of its name:
+
+```bash
+FIGMA_AGENT_FILE="VSF" $FA html-to-figma --html page.html   # only ever the "VSF …" file
+```
+
+With the pin set and no open file matches, the command waits briefly then fails with
+`E_NO_PLUGIN` naming the requested file and listing the ones actually connected.
+
 **Troubleshooting**
 
 - **Panel says "No broker yet" and never connects** — that's the resting state; it only

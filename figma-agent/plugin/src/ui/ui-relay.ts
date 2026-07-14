@@ -25,6 +25,15 @@ const PLUGIN_VERSION = '0.1.0';
 const PORT_PROBE_TIMEOUT_MS = 1200; // a real broker greets in <50ms; short = fast scan
 const BACKOFF_OPTS = { minMs: RECONNECT_BACKOFF_MIN_MS, maxMs: RECONNECT_BACKOFF_MAX_MS };
 
+// Stable per-instance id, minted ONCE per iframe load and carried in every
+// PLUGIN_HELLO. It lets the broker keep this file in its own registry slot and
+// recognise a reconnect as the SAME instance (update, not a duplicate) — the
+// backbone of running two Figma files at once without them evicting each other.
+const INSTANCE_ID: string =
+  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `inst_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+
 let ws: WebSocket | null = null;
 let backoffBase = 0; // grows via nextBackoff; reset to 0 (→ min) on a successful connect
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
@@ -296,8 +305,10 @@ function adoptSocket(socket: WebSocket): void {
   socket.onerror = () => { /* onclose fires next and drives the reconnect */ };
   socket.onclose = () => teardown(socket, 'broker connection lost — reconnecting…');
 
-  // Register plugin identity (fileName merged in once main sends FILE_INFO)
-  wsSend({ type: 'PLUGIN_HELLO', data: { ...fileInfo, pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
+  // Register plugin identity (fileName merged in once main sends FILE_INFO).
+  // instanceId is stable across reconnects so the broker updates this file's slot
+  // instead of spawning a duplicate.
+  wsSend({ type: 'PLUGIN_HELLO', data: { ...fileInfo, instanceId: INSTANCE_ID, pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
   startHeartbeat(socket);
   transition('READY', { detail: `broker at ${url} · protocol v${PROTOCOL_VERSION}`, brokerUrl: url, port });
 }

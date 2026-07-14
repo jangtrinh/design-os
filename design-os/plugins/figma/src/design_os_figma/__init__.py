@@ -102,12 +102,35 @@ def _call_hand(
 
 
 def _status_text(result: dict[str, Any]) -> str:
-    plugin = result.get("plugin", "?")
-    # The hand sends `plugin` as an object ({connected, state, …}); a stub/older hand may send a
-    # string. When the plugin isn't connected, point the user at the P2 panel — the CLI can only
+    broker = result.get("broker", "?")
+
+    # Multi-file hand (P4): `plugins` is a per-file list; `activePlugin` names the file commands
+    # currently route to (most-recently-active, or the FIGMA_AGENT_FILE-matched one). Render one
+    # line per open file, marking the active target.
+    plugins = result.get("plugins")
+    if isinstance(plugins, list) and plugins:
+        active = result.get("activePlugin")
+        noun = "file" if len(plugins) == 1 else "files"
+        lines = [f"figma status: broker={broker} ({len(plugins)} {noun} connected)"]
+        for p in plugins:
+            name = p.get("fileName") or "(unnamed)" if isinstance(p, dict) else "(unnamed)"
+            page = p.get("page") if isinstance(p, dict) else None
+            page_txt = f" · page {page}" if page else ""
+            mark = "  ← active" if name == active else ""
+            lines.append(f"  - {name}{page_txt}{mark}")
+        if active is None:
+            lines.append(
+                "hint: a file is open but none is the active target (FIGMA_AGENT_FILE matched nothing?) — "
+                "commands will wait or fail until a matching file is active.\n"
+            )
+        return "\n".join(lines) + ("" if active is None else "\n")
+
+    # Legacy single-plugin shape: `plugin` is an object ({connected, state, …}); a stub/older hand
+    # may send a string. When it isn't connected, point the user at the P2 panel — the CLI can only
     # drive the file while that panel is open (its own onboarding says the same).
+    plugin = result.get("plugin", "?")
     connected = plugin.get("connected") is True if isinstance(plugin, dict) else plugin == "connected"
-    line = f"figma status: broker={result.get('broker', '?')} plugin={plugin}\n"
+    line = f"figma status: broker={broker} plugin={plugin}\n"
     if not connected:
         line += (
             "hint: no plugin connected — open the Ease Design Figma Agent panel in Figma Desktop "

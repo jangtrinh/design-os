@@ -73,6 +73,25 @@ export interface EventMsg {
   data: Record<string, unknown>;
 }
 
+// ── Multi-plugin registry (P4) ──────────────────────────────────────
+// A plugin instance's scene identity, carried on PLUGIN_HELLO and grown by
+// FILE_INFO. Two Figma files open at once each keep their own scene + slot.
+export interface PluginScene {
+  fileName?: string;
+  page?: string;
+  [k: string]: unknown;
+}
+
+// One row of the `figma-agent status` plugins[] list (one per connected file).
+export interface PluginStatusEntry {
+  instanceId: string;
+  fileName: string | null;
+  page: string | null;
+  state: 'connected';
+  lastHeartbeatAge: number | null; // ms since the last frame/pong from this instance
+  connectedAt: number; // ms epoch of this instance's first HELLO
+}
+
 // Chunked transport for payloads > CHUNK_LIMIT (both directions).
 export interface ChunkMsg {
   id: string;

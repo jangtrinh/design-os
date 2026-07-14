@@ -2132,6 +2132,7 @@ code {
   var PLUGIN_VERSION = "0.1.0";
   var PORT_PROBE_TIMEOUT_MS = 1200;
   var BACKOFF_OPTS = { minMs: RECONNECT_BACKOFF_MIN_MS, maxMs: RECONNECT_BACKOFF_MAX_MS };
+  var INSTANCE_ID = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `inst_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
   var ws = null;
   var backoffBase = 0;
   var heartbeatTimer = null;
@@ -2379,7 +2380,7 @@ code {
     socket.onerror = () => {
     };
     socket.onclose = () => teardown(socket, "broker connection lost \u2014 reconnecting\u2026");
-    wsSend({ type: "PLUGIN_HELLO", data: { ...fileInfo, pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
+    wsSend({ type: "PLUGIN_HELLO", data: { ...fileInfo, instanceId: INSTANCE_ID, pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
     startHeartbeat(socket);
     transition("READY", { detail: `broker at ${url} \xB7 protocol v${PROTOCOL_VERSION}`, brokerUrl: url, port });
   }
