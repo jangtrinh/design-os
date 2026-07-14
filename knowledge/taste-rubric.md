@@ -71,11 +71,13 @@ excellent type still reads as competent. The reverse is not true.
 unrelated sizes. Tighten tracking on large display text (negative, ~−0.02em); leave body
 near normal; widen tracking slightly on small uppercase labels. Body leading ~1.5–1.6;
 display leading tight (~1.0–1.2). Body text never below 16px. Reserve all-caps for short
-labels, never running text.
+labels, never running text. Display type is roman — italic headings (or an italic emphasis
+word inside a heading) read as generated, not designed. All-caps display keeps line-height
+≥ 1.0; below that, cap-tops collide when the text wraps.
 
 **Anti-patterns:** five+ font sizes with no ratio relationship; headings and body at the
 same weight; uppercase paragraphs; default-tracked huge display text; pairing two fonts
-that occupy the same role.
+that occupy the same role; italic display headings; all-caps display with line-height below 1.0.
 
 ### Scoring 0–10
 
@@ -148,11 +150,15 @@ ease-in for elements leaving; never linear for UI transitions (linear reads mech
 Keep functional transitions short (~150–250ms); reserve longer durations for large or
 expressive movement. Stagger lists by a small per-item delay rather than animating all at
 once. Animate `transform` and `opacity`, not layout properties. Respect a reduced-motion
-preference — expressive motion must degrade to near-instant.
+preference — expressive motion must degrade to near-instant. Never overshoot/bounce curves
+(cubic-bezier with y outside [0,1]) on UI state transitions — reserve overshoot for
+deliberately physical moments. A focus ring appears instantly; never transition outline or
+focus box-shadow into existence.
 
 **Anti-patterns:** linear easing; durations over ~400ms on routine UI feedback; animating
 width/height/top/left; everything animating at once with no stagger; motion with no
-reduced-motion fallback; hover transforms so large they cause layout shift.
+reduced-motion fallback; hover transforms so large they cause layout shift; bouncy overshoot
+easing on buttons/inputs/menus; focus rings that fade in.
 
 ### Scoring 0–10
 
@@ -226,11 +232,13 @@ role (e.g. flat → card → raised → overlay → modal) — never invent a on
 component. Higher elevation = larger, softer, more diffuse shadow, not just darker.
 Shadows should be tinted toward the background hue, not pure black. Use either a shadow
 or a border to separate a surface, rarely both. Glass (backdrop-blur) needs sufficient
-contrast behind it to keep foreground text legible.
+contrast behind it to keep foreground text legible. Stacking order is a designed scale
+(e.g. 1/10/100), not an arms race — an all-nines z-index is an admission the scale was
+never designed.
 
 **Anti-patterns:** a unique shadow value on every element; pure-black harsh shadows;
 shadow and heavy border stacked on the same surface; glass over busy content that kills
-text contrast; elevation that doesn't correlate with actual stacking order.
+text contrast; elevation that doesn't correlate with actual stacking order; z-index 9999.
 
 ### Scoring 0–10
 

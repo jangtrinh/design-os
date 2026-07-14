@@ -14,10 +14,7 @@ import { fileURLToPath } from "node:url";
 import { lintLayout } from "../src/core/layout-lint.js";
 import { lintA11y } from "../src/core/a11y-lint.js";
 import { lintTaste } from "../src/core/taste-lint.js";
-import {
-  checkLoremIpsum, checkPlaceholderCopy, checkClickHereLink, checkErrorCodeAlone,
-  checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
-} from "../src/core/content-checks.js";
+import { allContentChecks } from "../src/core/content-checks.js";
 
 const PANEL = fileURLToPath(new URL("../figma-agent/plugin/src/ui/panel.html", import.meta.url));
 const MODEL = fileURLToPath(new URL("../figma-agent/plugin/src/ui/panel-model.ts", import.meta.url));
@@ -25,14 +22,10 @@ const MODEL = fileURLToPath(new URL("../figma-agent/plugin/src/ui/panel-model.ts
 const html = readFileSync(PANEL, "utf8");
 const model = readFileSync(MODEL, "utf8");
 
-/** Count content-lint ERROR-severity findings (mirrors the content-lint command's check set). */
+/** Count content-lint ERROR-severity findings (consumes the shared allContentChecks set). */
 function contentErrors(source: string): number {
-  const checks = [
-    checkLoremIpsum, checkPlaceholderCopy, checkClickHereLink, checkErrorCodeAlone,
-    checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
-  ];
   let errs = 0;
-  for (const c of checks) for (const f of c(source)) if (f.severity === "error") errs++;
+  for (const c of allContentChecks) for (const f of c(source)) if (f.severity === "error") errs++;
   return errs;
 }
 

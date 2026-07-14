@@ -39,6 +39,18 @@ export function checkPlaceholderCopy(html: string): ContentFinding[] {
   return out;
 }
 
+// ── placeholder-name (error) — persona/company filler shipped as copy ──
+const PLACEHOLDER_NAME = /\b(jane doe|john doe|john smith|acme(?:\s+(?:corp|inc|co))?)\b/gi;
+export function checkPlaceholderName(html: string): ContentFinding[] {
+  const out: ContentFinding[] = [];
+  // Scans raw HTML (not just visible text): a placeholder name in an attribute —
+  // e.g. placeholder="Jane Doe" on a demo form — is still a shipped tell, so it counts.
+  for (const m of html.matchAll(PLACEHOLDER_NAME)) {
+    out.push({ checkId: "placeholder-name", severity: "error", message: `placeholder persona/company name "${m[0]}" shipped as copy — use a plausible name or the user's real content`, line: lineAt(html, m.index) });
+  }
+  return out;
+}
+
 // ── click-here-link (warning) — WCAG 2.4.4 / F84 ──
 const VAGUE_LINK = new Set(["click here", "here", "read more", "more", "link", "this", "learn more"]);
 export function checkClickHereLink(html: string): ContentFinding[] {
@@ -126,3 +138,14 @@ export function checkAllCapsShout(html: string): ContentFinding[] {
   }
   return out;
 }
+
+/**
+ * The canonical content-check set — the single source of truth every consumer
+ * composes from (the `ui content-lint` command and the figma-agent panel gate).
+ * Adding a check here makes both consumers pick it up automatically (L4 lesson:
+ * fix mirror drift at the shared layer, not at each copy site).
+ */
+export const allContentChecks = [
+  checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
+  checkAllCapsShout, checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage,
+] as const;

@@ -15,9 +15,12 @@
  *   Typography    → tiny-body-text          (font-size ≤ 13px)
  *   Spacing       → off-grid-spacing        (Tailwind spacing not on 4px grid)
  *   Iconography   → mixed-icon-families     (≥ 2 icon libraries)
+ *   Typography    → italic-display-heading, uppercase-tight-line-height
  *   Depth/Surface → pure-black-shadow       (hard/opaque black shadow)
+ *   Depth/Surface → z-index-inflation       (all-nines z-index)
  *   Motion        → linear-easing, transition-all, animation-no-reduced-motion,
  *                   keyframes-layout-props
+ *   Motion        → overshoot-easing, focus-ring-animates-in
  *   Consistency   → raw-hex-when-token-exists (needs DS token set)
  *
  * Axes intentionally NOT covered (subjective — left to the model): Layout in
@@ -34,6 +37,11 @@ import {
   checkKeyframesLayoutProps,
   checkRawHexWhenTokenExists,
 } from "./taste-checks.js";
+// Hallmark-derived checks live in their own modules (taste-checks.ts is over the
+// 200-line guideline, so we import these directly rather than via that barrel).
+import { checkOvershootEasing, checkFocusRingAnimatesIn } from "./taste-checks-motion-state.js";
+import { checkItalicDisplayHeading, checkUppercaseTightLineHeight } from "./taste-checks-typography.js";
+import { checkZIndexInflation } from "./taste-checks-depth.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -97,12 +105,17 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
 
   const findings: TasteFinding[] = [
     ...checkTinyBodyText(stripped),
+    ...checkItalicDisplayHeading(stripped),
+    ...checkUppercaseTightLineHeight(stripped),
     ...checkOffGridSpacing(stripped),
     ...checkMixedIconFamilies(stripped),
     ...checkPureBlackShadow(stripped),
+    ...checkZIndexInflation(stripped),
     ...checkLinearOrAllTransition(stripped),
     ...checkAnimationNoReducedMotion(stripped),
     ...checkKeyframesLayoutProps(stripped),
+    ...checkOvershootEasing(stripped),
+    ...checkFocusRingAnimatesIn(stripped),
     ...checkRawHexWhenTokenExists(stripped, opts.knownHexes),
   ];
 

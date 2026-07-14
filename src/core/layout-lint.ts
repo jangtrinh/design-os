@@ -1,7 +1,7 @@
 /**
  * Static HTML layout linter — pure string/regex heuristics, zero deps.
  *
- * Runs 10 checks against an HTML string and returns a structured result.
+ * Runs 12 checks against an HTML string and returns a structured result.
  * All checks are documented as heuristic approximations (no DOM parser, no
  * browser, no rendering). See layout-checks.ts for individual check logic.
  *
@@ -24,6 +24,7 @@ import {
   checkImgNoDimensions,
   checkEmptyFlexGrid,
 } from "./layout-checks.js";
+import { checkCss100vwWidth, checkRootOverflowXHidden } from "./layout-checks-viewport.js";
 import { isRedirectStub } from "./redirect-stub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -64,6 +65,8 @@ const WARNING_CHECKS = [
   checkMissingDoctype,
   checkFixedWidthOverflow,
   checkViewportUnitOnBody,
+  checkCss100vwWidth,
+  checkRootOverflowXHidden,
   checkNestedScrollContainer,
   checkAbsoluteWithoutRelative,
   checkImgNoDimensions,
@@ -81,10 +84,10 @@ function stripCommentsPreservingOffsets(html: string): string {
   return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
 }
 
-/** Run all 10 checks and return findings sorted errors-first, then warnings. */
+/** Run all 12 checks and return findings sorted errors-first, then warnings. */
 export function lintLayout(html: string): LayoutLintResult {
   // L4 dogfood: a redirect stub intentionally has no <html>/<body>, so every structural
-  // check below is noise on it — short-circuit before running any of the 10 checks.
+  // check below is noise on it — short-circuit before running any of the 12 checks.
   if (isRedirectStub(html)) {
     return { findings: [], errorCount: 0, warningCount: 0 };
   }

@@ -1,7 +1,7 @@
 /**
  * `ui validate-layout` command — static HTML structural/overflow linter.
  *
- * Runs 10 heuristic checks against an HTML file and reports findings.
+ * Runs 12 heuristic checks against an HTML file and reports findings.
  * Read-only: never writes to disk.
  *
  * Exit code policy (D4): exit 1 iff any error-severity finding; warnings → 0.
@@ -35,6 +35,8 @@ Checks (heuristic — may false-positive on unusual markup):
   absolute-without-relative warning position:absolute with no relative anchor
   img-no-dimensions         warning <img> lacks width/height attrs and Tailwind size class
   empty-flex-grid           warning flex/grid container with no child tags
+  css-100vw-width           warning width:100vw in a <style> rule (scrollbar gutter → overflow)
+  root-overflow-x-hidden    warning overflow-x:hidden on html/body/:root (breaks position:sticky)
 
 Exit codes:
   0  No error-severity findings (warnings are allowed)
@@ -76,7 +78,7 @@ function formatReport(
 
 export const validateLayoutCommand = {
   name: CMD,
-  summary: "Static HTML structural/overflow linter (10 heuristic checks)",
+  summary: "Static HTML structural/overflow linter (12 heuristic checks)",
   hasSubcommands: false,
   help: VALIDATE_LAYOUT_HELP,
 

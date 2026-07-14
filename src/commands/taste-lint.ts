@@ -31,13 +31,18 @@ Options:
 
 Checks (the machine-verifiable subset of knowledge/taste-rubric.md; all error-severity):
   tiny-body-text             Typography     font-size <= 13px (rubric: body never below 16px)
+  italic-display-heading     Typography     italic heading/display type (a generated-UI tell)
+  uppercase-tight-line-height Typography    all-caps text with line-height below 1.0
   off-grid-spacing           Spacing        Tailwind spacing not on the 4px base grid
   mixed-icon-families        Iconography    two or more icon libraries in one UI
   pure-black-shadow          Depth/Surface  hard/opaque black shadow (should be tinted)
+  z-index-inflation          Depth/Surface  all-nines z-index (9999) — an un-designed stacking scale
   linear-easing              Motion         transition uses linear easing
   transition-all             Motion         transition: all (animates layout properties)
   animation-no-reduced-motion Motion        animation/@keyframes/anim library with no prefers-reduced-motion fallback
   keyframes-layout-props     Motion         @keyframes animating a layout property (width/height/top/…)
+  overshoot-easing           Motion         transition uses overshoot/bounce cubic-bezier (y outside [0,1])
+  focus-ring-animates-in     Motion         focus ring transitions in (it must appear instantly)
   raw-hex-when-token-exists  Consistency    arbitrary hex not in the DS palette (needs --tokens)
 
 Subjective axis judgment (is the composition authored? the scale on one ratio?)
