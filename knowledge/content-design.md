@@ -45,10 +45,22 @@ date/number/currency · no text baked into images.
 ## The deterministic floor — `ui content-lint`
 Ships ONLY low-FP rules (microcopy is short, imperative, fragmentary — full prose linters and
 readability formulas misfire and are deliberately excluded):
-- **errors:** `lorem-ipsum`, `placeholder-copy` (unfinished copy).
+- **errors:** `lorem-ipsum`, `placeholder-copy`, `placeholder-name` (unfinished copy / placeholder filler).
 - **warnings:** `click-here-link` (WCAG 2.4.4) · `error-code-alone` · `exclamation-overload` ·
   `insensitive-terms` (whitelist/blacklist/master-slave only) · `plural-s-hack` (`item(s)`) ·
   `text-in-image` · `all-caps-shout` (text-content caps; taste-lint owns CSS-transform caps).
+
+## Honest copy — never fabricate evidence
+Copy must not invent evidence to fill a layout. No fabricated metrics (`10× faster`,
+`trusted by 50,000+ teams`), no fictional testimonials or logo walls, no case-study count you
+cannot source. Missing a real number → an explicit placeholder (`—` beside `metric to confirm`)
+or a layout that does not lead with the number. A figure is never a headline on its own — it
+stands beside the words that say what it measures.
+- **Machine floor:** `ui content-lint` catches the crude fills — `placeholder-name` (Jane Doe /
+  Acme filler shipped as copy), `lorem-ipsum`, `placeholder-copy`. Whether a *present* number is
+  actually true is judgment no linter reaches — the model owns that honesty.
+- The full shape-level treatment (evidence honesty per macrostructure, the "no number-only hero"
+  rule, placeholder discipline) lives in `page-structures.md` § 3.
 
 ## How the curator scores content (without becoming a prose critic)
 1. **Floor (deterministic):** `ui content-lint` = 0 errors.
