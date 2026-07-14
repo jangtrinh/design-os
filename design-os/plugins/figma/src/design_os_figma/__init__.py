@@ -37,6 +37,9 @@ _NEXT_HINT = "ui ingest-figma-ds <out> --name <slug>"
 # figma-agent `scan-design-system` on a large file is slow (memory F3); `status` is a quick ping.
 _STATUS_TIMEOUT = 30.0
 _SCAN_TIMEOUT = 240.0
+# `audit-ds` also walks EVERY page's instances for the usage tally — the heaviest read, so the
+# most generous budget of the three.
+_AUDIT_TIMEOUT = 300.0
 
 # no_args_is_help so `design-os figma` prints help instead of erroring (humane UX, es-typer §2).
 app = typer.Typer(name="figma", no_args_is_help=True)
@@ -143,6 +146,29 @@ def _scan_text(out: Path) -> str:
     return f"figma scan: wrote {out}\nnext: {_NEXT_HINT}\n"
 
 
+def _audit_text(result: dict[str, Any]) -> str:
+    """One header line + a one-line-per-key summary table. Renders BOTH hand shapes: the full
+    report ({file, summary, components, …}) and the compact --out shape ({path, file, summary}).
+
+    We never parse ``components[]`` here — that is the JSON consumer's job; text mode stays a
+    scannable overview (fileName, page count, and the per-detector tallies).
+    """
+    file = result.get("file") if isinstance(result.get("file"), dict) else {}
+    file_name = file.get("fileName", "?")
+    pages = file.get("pages")
+    page_count = len(pages) if isinstance(pages, list) else 0
+    summary = result.get("summary") if isinstance(result.get("summary"), dict) else {}
+    total = summary.get("total", "?")
+
+    lines = [f"figma audit: {file_name} — {total} components, {page_count} pages"]
+    for key, value in summary.items():
+        lines.append(f"  {key}: {value}")
+    path = result.get("path")
+    if path:
+        lines.append(f"wrote {path}")
+    return "\n".join(lines) + "\n"
+
+
 @app.command(name="status")
 def status(json_: JsonFlag = False) -> None:
     """Report the figma-agent broker + plugin status. (network: pings the Figma broker)"""
@@ -168,3 +194,23 @@ def scan(
     )
     data = {"out": str(out), "result": result, "next": _NEXT_HINT}
     emit(ok_env("figma scan", data), json_mode=json_, text=_scan_text(out), exit_code=0)
+
+
+@app.command(name="audit")
+def audit(
+    out: Annotated[
+        Path | None, typer.Option("--out", help="Write the audit report JSON to this path")
+    ] = None,
+    json_: JsonFlag = False,
+) -> None:
+    """Audit the open Figma file's component library for DS-hygiene problems. (network: reads the Figma document)"""
+    # Forward --out only when given; the hand omits it → returns the full report on stdout.
+    argv = ["audit-ds", *(["--out", str(out)] if out else [])]
+    bin_, result = _call_hand("figma audit", argv, _AUDIT_TIMEOUT, json_)
+    # Contract §1: re-emit the hand's JSON result VERBATIM — never reinterpret it.
+    emit(
+        ok_env("figma audit", {"agent": bin_, "result": result}),
+        json_mode=json_,
+        text=_audit_text(result),
+        exit_code=0,
+    )

@@ -24,6 +24,16 @@ from design_os_figma import app as figma_app
 # figma-agent status stub: prints the single JSON object the broker returns, exit 0.
 _STATUS_OK_STUB = 'echo \'{"broker": "up", "plugin": "connected"}\'\nexit 0\n'
 
+# figma-agent audit-ds stub: prints one FULL-report JSON object (no --out), exit 0.
+_AUDIT_OK_STUB = (
+    'echo \'{"file": {"fileName": "VSF - PCP", "pages": ["Page 1"]}, '
+    '"summary": {"total": 3, "unused": 1, "junk": 1, "deprecated": 0, "duplicate": 0, '
+    '"emptySets": 0, "misfiled": 1, "redundantFamilies": 0, "tokenViolations": 0}, '
+    '"components": [], "families": [], '
+    '"counts": {"components": 2, "sets": 1, "instancesTallied": 5, "unresolvedUsage": 0}}\'\n'
+    "exit 0\n"
+)
+
 
 @pytest.fixture
 def figma_env(fake_bin, monkeypatch: pytest.MonkeyPatch):
@@ -146,3 +156,81 @@ def test_scan_writes_out_and_emits_next_hint(runner: CliRunner, figma_env, tmp_p
     assert argv_log.read_text().strip() == f"scan-design-system --out {out_file}"
     # …and the hand actually wrote the counts file at --out.
     assert json.loads(out_file.read_text()) == {"components": 3, "tokens": 42}
+
+
+# ── Case 8: `audit --json` (no --out) re-emits the hand's full report VERBATIM in the envelope. ──
+def test_audit_json_reemits_report_verbatim(runner: CliRunner, figma_env) -> None:
+    figma_env.make_stub("figma-agent", _AUDIT_OK_STUB)
+    res = runner.invoke(figma_app, ["audit", "--json"])
+    assert res.exit_code == 0, res.stdout
+    env = json.loads(res.stdout)
+    assert env["ok"] is True
+    assert env["command"] == "figma audit"
+    result = env["data"]["result"]
+    assert result["file"]["fileName"] == "VSF - PCP"
+    assert result["summary"]["total"] == 3
+    assert result["summary"]["unused"] == 1
+    assert result["counts"]["unresolvedUsage"] == 0
+    assert "agent" in env["data"]  # the resolved bin path is echoed alongside the result
+
+
+# ── Case 9: audit hand exits 1 with its own {error:{code,message}} → surfaced verbatim, exit 1. ──
+def test_audit_hand_error_propagates_code(runner: CliRunner, figma_env) -> None:
+    figma_env.make_stub(
+        "figma-agent",
+        'echo \'{"error": {"code": "E_NO_PLUGIN", "message": "no plugin connected"}}\'\nexit 1\n',
+    )
+    res = runner.invoke(figma_app, ["audit", "--json"])
+    assert res.exit_code == 1
+    env = json.loads(res.stdout)
+    assert env["ok"] is False
+    assert env["command"] == "figma audit"
+    assert env["error"]["code"] == "E_NO_PLUGIN"
+    assert env["error"]["message"] == "no plugin connected"
+
+
+# ── Case 10: audit forwards --out at the right argv position and re-emits the compact result. ──
+def test_audit_forwards_out_argv_and_reemits(runner: CliRunner, figma_env, tmp_path: Path) -> None:
+    argv_log = tmp_path / "argv.txt"
+    out_file = tmp_path / "audit.json"
+    compact = (
+        '{"path": "' + str(out_file) + '", '
+        '"file": {"fileName": "VSF - PCP", "pages": ["Page 1"]}, '
+        '"summary": {"total": 2, "unused": 0}}'
+    )
+    # Stub: record argv → write the full report to the --out path ($3) → print the compact shape.
+    body = (
+        'echo "$@" > "' + str(argv_log) + '"\n'
+        "echo '" + '{"full": true}' + "' > \"$3\"\n"
+        "echo '" + compact + "'\n"
+        "exit 0\n"
+    )
+    figma_env.make_stub("figma-agent", body)
+
+    res = runner.invoke(figma_app, ["audit", "--out", str(out_file), "--json"])
+    assert res.exit_code == 0, res.stdout
+    env = json.loads(res.stdout)
+    assert env["ok"] is True
+    assert env["command"] == "figma audit"
+    result = env["data"]["result"]
+    assert result["path"] == str(out_file)
+    assert result["summary"]["total"] == 2
+    # The stub received EXACTLY the argv the plugin promises to forward, --out in position.
+    assert argv_log.read_text().strip() == f"audit-ds --out {out_file}"
+
+
+# ── Case 11: text mode renders the one-line header + the per-detector summary table. ──
+def test_audit_text_mode_renders_header_and_summary(runner: CliRunner, figma_env) -> None:
+    figma_env.make_stub("figma-agent", _AUDIT_OK_STUB)
+    res = runner.invoke(figma_app, ["audit"])  # no --json → human text
+    assert res.exit_code == 0, res.stdout
+    assert "figma audit: VSF - PCP — 3 components, 1 pages" in res.stdout
+    assert "unused: 1" in res.stdout
+    assert "misfiled: 1" in res.stdout
+
+
+# ── Case 12: `figma --help` lists the new `audit` leaf. ──
+def test_figma_help_lists_audit(runner: CliRunner) -> None:
+    res = runner.invoke(figma_app, ["--help"])
+    assert res.exit_code == 0
+    assert "audit" in res.stdout
