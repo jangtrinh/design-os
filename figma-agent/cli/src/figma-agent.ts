@@ -60,7 +60,7 @@ Commands:
   get-selection        Serialize the current selection [--depth 1]
   scan-design-system   Components/variables/styles registry [--out file.json --timeout ms]
   scan-conventions     Convention-DNA walk over sections → usage-dna.json [<sectionId...> --out file.json --budget 14000 --timeout ms]
-  audit-ds             DS-hygiene audit of the open file's component library [--out file.json --timeout ms]
+  audit-ds             DS-hygiene audit of the open file's component library [--out file.json --sections "01 A,02 B" --facts raw.json --from-facts raw.json --timeout ms]
   create-frame         --name n --w 400 --h 300 [--parent id --x 0 --y 0]
   create-instance      --component <key|id> [--parent id]
   set-variant          --node id --props k=v,k2=v2

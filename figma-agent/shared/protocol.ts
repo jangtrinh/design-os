@@ -113,7 +113,10 @@ export type ErrorCode =
   | 'E_PLUGIN_ERROR'
   | 'E_EVAL'
   | 'E_VERSION_MISMATCH'
-  | 'E_CHUNK_LOST';
+  | 'E_CHUNK_LOST'
+  // audit-ds v2: captured facts carry a `schema`; a mismatch (stale plugin sandbox, or a
+  // v1 --from-facts file) is refused BEFORE detect with this code (see cli/.../audit-ds.ts §5).
+  | 'E_PLUGIN_STALE';
 
 // ── Timeouts (ms) ───────────────────────────────────────────────────
 export const DEFAULT_TIMEOUT_MS = 15_000;

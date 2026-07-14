@@ -12,9 +12,11 @@
 //  (C4) Map a resolved main → its parent COMPONENT_SET; tally usage at the SET level.
 //  (C5) Cross-page node refs go stale under dynamic-page → resolve on the page we stand on;
 //       never stash a node to resolve later, and keep only plain objects after leaving a page.
-import type {
-  AuditComponentFact, AuditDsFacts, AuditUsageFacts,
+import {
+  AUDIT_FACTS_SCHEMA,
+  type AuditComponentFact, type AuditDsFacts, type AuditUnitFact, type AuditUsageFacts,
 } from '../../../shared/audit-types';
+import { unitFact } from './executor-audit-units';
 
 /** Count SOLID paints on `node[field]` that are NOT bound to a color variable. */
 function countUnboundPaints(node: SceneNode, field: 'fills' | 'strokes'): number {
@@ -34,8 +36,24 @@ function countUnboundPaints(node: SceneNode, field: 'fills' | 'strokes'): number
   return n;
 }
 
-/** A single COMPONENT/COMPONENT_SET node → its raw fact (no verdicts). */
-function factForNode(n: ComponentNode | ComponentSetNode, pageName: string): AuditComponentFact {
+/** Doc-wide instance count for a SET's variant child — feature-detected + guarded.
+ *  Called ONLY for variant children (≈291 on VSF), NEVER for standalone masters (the
+ *  1469 icons would each pay a getInstancesAsync round-trip for nothing). null = the API
+ *  is unavailable or the call threw → the detector treats it as "unknown", never "dead". */
+async function getInstancesAsyncLength(node: SceneNode): Promise<number | null> {
+  const fn = (node as unknown as { getInstancesAsync?: () => Promise<InstanceNode[]> }).getInstancesAsync;
+  if (typeof fn !== 'function') return null;
+  try {
+    const instances = await fn.call(node);
+    return Array.isArray(instances) ? instances.length : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A single COMPONENT/COMPONENT_SET node → its raw fact (no verdicts). Async: variant
+ *  children each get a getInstancesAsync usage read (SETs only). */
+async function factForNode(n: ComponentNode | ComponentSetNode, pageName: string): Promise<AuditComponentFact> {
   // variantAxes + variantCount — componentPropertyDefinitions THROWS on a malformed set → {}.
   let variantAxes: Record<string, string[]> = {};
   try {
@@ -58,12 +76,22 @@ function factForNode(n: ComponentNode | ComponentSetNode, pageName: string): Aud
 
   const deprecatedData = n.getSharedPluginData('idp', 'status') === 'deprecated';
 
+  // node size feeds ds/icon/screen classification CLI-side (0×0 if the read throws).
+  let width = 0;
+  let height = 0;
+  try {
+    width = Math.round(n.width);
+    height = Math.round(n.height);
+  } catch {
+    width = 0;
+    height = 0;
+  }
+
   // Representative node = a SET's first variant, else the component itself.
   const rep: SceneNode | undefined = n.type === 'COMPONENT_SET' ? n.children[0] : n;
   const repChildren: SceneNode[] = rep && 'children' in rep
     ? [...(rep as ChildrenMixin).children]
     : [];
-  const childTypeSignature = repChildren.map((c) => c.type);
 
   // unbound SOLID paints on rep + its DIRECT children only (v1 cost bound — root+direct is signal enough).
   let unboundFills = 0;
@@ -71,6 +99,18 @@ function factForNode(n: ComponentNode | ComponentSetNode, pageName: string): Aud
   for (const s of rep ? [rep, ...repChildren] : []) {
     unboundFills += countUnboundPaints(s, 'fills');
     unboundStrokes += countUnboundPaints(s, 'strokes');
+  }
+
+  // Comparable units: a SET emits one per variant child (usage via getInstancesAsync); a
+  // standalone COMPONENT emits exactly ONE (itself), usage null (the census already covers it).
+  let units: AuditUnitFact[];
+  if (n.type === 'COMPONENT_SET') {
+    units = [];
+    for (const child of n.children) {
+      units.push({ ...unitFact(child), usageCount: await getInstancesAsyncLength(child) });
+    }
+  } else {
+    units = [{ ...unitFact(n), usageCount: null }];
   }
 
   return {
@@ -83,20 +123,22 @@ function factForNode(n: ComponentNode | ComponentSetNode, pageName: string): Aud
     pageName,
     section,
     deprecatedData,
-    childTypeSignature,
+    width,
+    height,
     unboundFills,
     unboundStrokes,
+    units,
   };
 }
 
 /** Inventory the COMPONENT / COMPONENT_SET nodes on ONE (already-current) page. */
-function inventoryPage(page: PageNode): AuditComponentFact[] {
+async function inventoryPage(page: PageNode): Promise<AuditComponentFact[]> {
   const nodes = page.findAllWithCriteria({ types: ['COMPONENT', 'COMPONENT_SET'] });
   const facts: AuditComponentFact[] = [];
   for (const n of nodes) {
     // A COMPONENT that is a direct variant child of a SET is already covered by the set (C4-adjacent).
     if (n.type === 'COMPONENT' && n.parent && n.parent.type === 'COMPONENT_SET') continue;
-    facts.push(factForNode(n, page.name));
+    facts.push(await factForNode(n, page.name));
   }
   return facts;
 }
@@ -157,13 +199,15 @@ export async function auditDs(): Promise<AuditDsFacts> {
       skippedPages.push(page.name);
       continue;
     }
-    components.push(...inventoryPage(page));
+    components.push(...(await inventoryPage(page)));
     instancesTallied += await tallyUsagePage(page, usage);
   }
 
-  const componentCount = components.filter((c) => c.type === 'COMPONENT').length;
+  const masters = components.length;
   const sets = components.filter((c) => c.type === 'COMPONENT_SET').length;
+  const variants = components.reduce((sum, c) => sum + c.variantCount, 0);
   return {
+    schema: AUDIT_FACTS_SCHEMA,
     // Only plain objects survive past a page boundary (C5) — no SceneNode is retained.
     file: {
       fileName: figma.root.name,
@@ -172,6 +216,6 @@ export async function auditDs(): Promise<AuditDsFacts> {
     },
     components,
     usage,
-    counts: { components: componentCount, sets, instancesTallied },
+    counts: { masters, sets, standalone: masters - sets, variants, instancesTallied },
   };
 }
