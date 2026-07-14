@@ -5,92 +5,93 @@
 <title>Figma Design Agent</title>
 <style>
 /* ─────────────────────────────────────────────────────────────────────────────
-   Design tokens — DOGFOODED from ease-design's own DS pipeline, NOT hand-picked.
-   Same persona as EaseUI (saas-aurora-minimal) so the panel is one product identity.
+   Design tokens — the OFFICIAL Design-OS brand: Swiss Monolith / Brutalist
+   Modernism. Compiled from the brand DS, NOT hand-picked, so the panel wears the
+   same identity the owner decreed. Persona kinetic-swiss-punk (family
+   graphic-modernist, generation 8): ink-on-paper, ONE burnt-orange accent whose
+   foreground flips to INK (the machine-corrected AA pair, ~5.9:1), 0-radius
+   geometry, flat 2px-bordered surfaces, inversion on hover, mechanical mono data.
    Do NOT edit the :root block by hand; regenerate it (run from the repo root):
 
-     ui ds init figma-panel --persona saas-aurora-minimal \
-       --intent "compact tool chrome for the Figma bridge panel" \
-       --dir <tmp> --persona-data knowledge/personas/personas.json
-     ui tokens compile <tmp>/design/design.tokens.json --target css
+     ui tokens compile brand/design/design.tokens.json --target css
 
-   Persona family: functional-saas · 160 tokens · compiled 2026-07-14.
+   Source: brand/design · persona kinetic-swiss-punk · compiled 2026-07-14.
    Rule: no hex outside this :root — every color in the chrome below goes through a var().
    ───────────────────────────────────────────────────────────────────────────── */
 :root {
   --base-black: #000000;
   --base-white: #FFFFFF;
-  --chart-1: #727CD9;
-  --chart-2: #C25F93;
-  --chart-3: #C16F0E;
-  --chart-4: #639737;
-  --chart-5: #0098A5;
-  --color-accent: #EAEDFF;
-  --color-accent-foreground: #040026;
-  --color-background: #F2F5FC;
-  --color-border: #C5CBD6;
-  --color-card: #E4E8F0;
-  --color-card-foreground: #0B0D13;
-  --color-chart-1: #727CD9;
-  --color-chart-2: #C25F93;
-  --color-chart-3: #C16F0E;
-  --color-chart-4: #639737;
-  --color-chart-5: #0098A5;
-  --color-danger: #CB262C;
+  --chart-1: #CC624A;
+  --chart-2: #918A00;
+  --chart-3: #009C86;
+  --chart-4: #398AD7;
+  --chart-5: #AD67B7;
+  --color-accent: #FFE4DE;
+  --color-accent-foreground: #150000;
+  --color-background: #f5f5f5;
+  --color-border: #C5C5C5;
+  --color-card: #E6E6E6;
+  --color-card-foreground: #010101;
+  --color-chart-1: #CC624A;
+  --color-chart-2: #918A00;
+  --color-chart-3: #009C86;
+  --color-chart-4: #398AD7;
+  --color-chart-5: #AD67B7;
+  --color-danger: #D10000;
   --color-danger-foreground: #FFFFFF;
-  --color-foreground: #0B0D13;
-  --color-info: #2367D3;
+  --color-foreground: #010101;
+  --color-info: #215DFF;
   --color-info-foreground: #FFFFFF;
-  --color-input: #A5ABB8;
-  --color-muted: #C5CBD6;
-  --color-muted-foreground: #4F5662;
-  --color-popover: #E4E8F0;
-  --color-popover-foreground: #0B0D13;
-  --color-primary: #6366F1;
+  --color-input: #A2A2A2;
+  --color-muted: #C5C5C5;
+  --color-muted-foreground: #454545;
+  --color-popover: #E6E6E6;
+  --color-popover-foreground: #010101;
+  --color-primary: #ff3e00;
   --color-primary-foreground: #000000;
-  --color-primary-hover: #7D87FF;
-  --color-ring: #6366F1;
-  --color-scrim: #020306;
-  --color-secondary: #C5CBD6;
-  --color-secondary-foreground: #0B0D13;
-  --color-sidebar: #E4E8F0;
-  --color-sidebar-accent: #EAEDFF;
-  --color-sidebar-accent-foreground: #040026;
-  --color-sidebar-border: #C5CBD6;
-  --color-sidebar-foreground: #0B0D13;
-  --color-sidebar-primary: #6366F1;
-  --color-sidebar-primary-foreground: #000000;
-  --color-sidebar-ring: #6366F1;
-  --color-success: #007B54;
+  --color-primary-hover: #FF6533;
+  --color-ring: #FF3E00;
+  --color-scrim: #000000;
+  --color-secondary: #C5C5C5;
+  --color-secondary-foreground: #010101;
+  --color-sidebar: #E6E6E6;
+  --color-sidebar-accent: #FFE4DE;
+  --color-sidebar-accent-foreground: #150000;
+  --color-sidebar-border: #C5C5C5;
+  --color-sidebar-foreground: #010101;
+  --color-sidebar-primary: #D13000;
+  --color-sidebar-primary-foreground: #FFFFFF;
+  --color-sidebar-ring: #D13000;
+  --color-success: #008000;
   --color-success-foreground: #FFFFFF;
-  --color-warning: #A66900;
+  --color-warning: #757630;
   --color-warning-foreground: #FFFFFF;
-  --danger-50: #FFF1EF;
-  --danger-100: #FFDEDB;
-  --danger-200: #FFB3AC;
-  --danger-300: #FF7C74;
-  --danger-400: #EF4444;
-  --danger-500: #CB262C;
-  --danger-600: #A00A19;
-  --danger-700: #73000B;
-  --danger-800: #480003;
-  --danger-900: #250000;
-  --danger-950: #110000;
+  --danger-50: #FFEEEB;
+  --danger-100: #FFDCD6;
+  --danger-200: #FFB0A4;
+  --danger-300: #FF7967;
+  --danger-400: #FF0000;
+  --danger-500: #D10000;
+  --danger-600: #9F0000;
+  --danger-700: #710000;
+  --danger-800: #460000;
+  --danger-900: #240000;
+  --danger-950: #130000;
   --duration-base: 200ms;
   --duration-fast: 150ms;
   --duration-slow: 300ms;
-  --elevation-card-blur: 2px;
-  --elevation-card-color: #080D17;
+  --elevation-card-blur: 0px;
+  --elevation-card-color: #0D0D0D;
   --elevation-card-offset-x: 0px;
-  --elevation-card-offset-y: 1px;
+  --elevation-card-offset-y: 0px;
   --elevation-card-spread: 0px;
-  --elevation-overlay-blur: 24px;
-  --elevation-overlay-color: #080D17;
+  --elevation-overlay-blur: 0px;
+  --elevation-overlay-color: #0D0D0D;
   --elevation-overlay-offset-x: 0px;
-  --elevation-overlay-offset-y: 12px;
+  --elevation-overlay-offset-y: 0px;
   --elevation-overlay-spread: 0px;
-  --font-family-body: Inter, system-ui, sans-serif;
-  --font-family-display: Inter, system-ui, sans-serif;
+  --font-family-body: Inter, sans-serif;
+  --font-family-display: Inter, sans-serif;
   --font-size-2xl: 25px;
   --font-size-3xl: 28px;
   --font-size-4xl: 32px;
@@ -103,127 +104,136 @@
   --font-weight-medium: 500;
   --font-weight-regular: 400;
   --font-weight-semibold: 600;
-  --info-50: #EAF2FF;
-  --info-100: #D5E5FF;
-  --info-200: #A5C8FF;
-  --info-300: #6FA6FF;
-  --info-400: #3B82F6;
-  --info-500: #2367D3;
-  --info-600: #104BA7;
-  --info-700: #043279;
-  --info-800: #001B4D;
-  --info-900: #000927;
-  --info-950: #000114;
+  --info-50: #F1F6FF;
+  --info-100: #DDE9FF;
+  --info-200: #B1CBFF;
+  --info-300: #80A9FF;
+  --info-400: #4F84FF;
+  --info-500: #215DFF;
+  --info-600: #0000FF;
+  --info-700: #0000B8;
+  --info-800: #000075;
+  --info-900: #000041;
+  --info-950: #010024;
   --motion-base: 200ms;
   --motion-fast: 150ms;
-  --neutral-50: #F2F5FC;
-  --neutral-100: #E4E8F0;
-  --neutral-200: #C5CBD6;
-  --neutral-300: #A5ABB8;
-  --neutral-400: #868D9B;
-  --neutral-500: #6B7280;
-  --neutral-600: #4F5662;
-  --neutral-700: #363B45;
-  --neutral-800: #1E222A;
-  --neutral-900: #0B0D13;
-  --neutral-950: #020306;
-  --primary-50: #FAFBFF;
-  --primary-100: #EAEDFF;
-  --primary-200: #C6CFFF;
-  --primary-300: #A0ACFF;
-  --primary-400: #7D87FF;
-  --primary-500: #6366F1;
-  --primary-600: #4946C9;
-  --primary-700: #322A9A;
-  --primary-800: #1D126A;
-  --primary-900: #0C023E;
-  --primary-950: #040026;
-  --radius-button: 6px;
-  --radius-card: 10px;
+  --neutral-50: #F5F5F5;
+  --neutral-100: #E6E6E6;
+  --neutral-200: #C5C5C5;
+  --neutral-300: #A2A2A2;
+  --neutral-400: #808080;
+  --neutral-500: #636363;
+  --neutral-600: #454545;
+  --neutral-700: #282828;
+  --neutral-800: #0F0F0F;
+  --neutral-900: #010101;
+  --neutral-950: #000000;
+  --primary-50: #FFF6F3;
+  --primary-100: #FFE4DE;
+  --primary-200: #FFBBAB;
+  --primary-300: #FF886C;
+  --primary-400: #FF3E00;
+  --primary-500: #D13000;
+  --primary-600: #A12100;
+  --primary-700: #731300;
+  --primary-800: #490500;
+  --primary-900: #290000;
+  --primary-950: #150000;
+  --radius-button: 0px;
+  --radius-card: 0px;
   --radius-full: 9999px;
-  --radius-lg: 16px;
-  --radius-md: 10px;
-  --radius-sm: 6px;
-  --shadow-lg-blur: 24px;
-  --shadow-lg-color: #080D17;
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
+  --shadow-lg-blur: 0px;
+  --shadow-lg-color: #0D0D0D;
   --shadow-lg-offset-x: 0px;
-  --shadow-lg-offset-y: 12px;
+  --shadow-lg-offset-y: 0px;
   --shadow-lg-spread: 0px;
-  --shadow-md-blur: 8px;
-  --shadow-md-color: #080D17;
+  --shadow-md-blur: 0px;
+  --shadow-md-color: #0D0D0D;
   --shadow-md-offset-x: 0px;
-  --shadow-md-offset-y: 4px;
+  --shadow-md-offset-y: 0px;
   --shadow-md-spread: 0px;
-  --shadow-sm-blur: 2px;
-  --shadow-sm-color: #080D17;
+  --shadow-sm-blur: 0px;
+  --shadow-sm-color: #0D0D0D;
   --shadow-sm-offset-x: 0px;
-  --shadow-sm-offset-y: 1px;
+  --shadow-sm-offset-y: 0px;
   --shadow-sm-spread: 0px;
   --space-0: 0px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-component: 16px;
-  --space-inline: 8px;
-  --space-section: 40px;
-  --success-50: #AFFFD8;
-  --success-100: #87F7C4;
-  --success-200: #54DAA2;
-  --success-300: #10B981;
-  --success-400: #009868;
-  --success-500: #007B54;
-  --success-600: #005C3E;
-  --success-700: #003F29;
-  --success-800: #002415;
-  --success-900: #000E06;
-  --success-950: #000401;
-  --text-body-font-family: Inter, system-ui, sans-serif;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --space-12: 96px;
+  --space-16: 128px;
+  --space-component: 32px;
+  --space-inline: 16px;
+  --space-section: 80px;
+  --success-50: #D3FECE;
+  --success-100: #BFF3BA;
+  --success-200: #94D88F;
+  --success-300: #67BB61;
+  --success-400: #389C34;
+  --success-500: #008000;
+  --success-600: #006000;
+  --success-700: #004200;
+  --success-800: #002600;
+  --success-900: #001000;
+  --success-950: #000400;
+  --text-body-font-family: Inter, sans-serif;
   --text-body-font-size: 18px;
   --text-body-font-weight: 400;
   --text-body-letter-spacing: 0px;
   --text-body-line-height: 1.5;
-  --text-caption-font-family: Inter, system-ui, sans-serif;
+  --text-caption-font-family: Inter, sans-serif;
   --text-caption-font-size: 16px;
   --text-caption-font-weight: 400;
   --text-caption-letter-spacing: 0px;
   --text-caption-line-height: 1.4;
-  --text-heading-font-family: Inter, system-ui, sans-serif;
+  --text-heading-font-family: Inter, sans-serif;
   --text-heading-font-size: 25px;
   --text-heading-font-weight: 600;
   --text-heading-letter-spacing: 0px;
   --text-heading-line-height: 1.2;
-  --warning-50: #FFFBF7;
-  --warning-100: #FFECD6;
-  --warning-200: #FFC785;
-  --warning-300: #F59E0B;
-  --warning-400: #CB8100;
-  --warning-500: #A66900;
-  --warning-600: #7E4E00;
-  --warning-700: #593500;
-  --warning-800: #371E00;
-  --warning-900: #1A0C00;
-  --warning-950: #0A0300;
+  --warning-50: #FFFF00;
+  --warning-100: #F1F100;
+  --warning-200: #D3D300;
+  --warning-300: #B2B200;
+  --warning-400: #919221;
+  --warning-500: #757630;
+  --warning-600: #57582E;
+  --warning-700: #3B3C25;
+  --warning-800: #222317;
+  --warning-900: #0D0E08;
+  --warning-950: #030302;
 }
 
-/* Panel override (spec P2 §Tokens): the plugin iframe cannot load a webfont, so
-   the display/body families fall back to the host system stack — self-contained. */
+/* Panel override (spec P5 §Tokens): the plugin iframe cannot fetch a webfont, so
+   the display/body families keep Inter first but fall back to the host system
+   stack — self-contained, no network. A mono family var carries the brand's
+   JetBrains-Mono data/label voice (falls back to the system monospace). */
 :root {
-  --font-family-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-family-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-body: Inter, -apple-system, system-ui, sans-serif;
+  --font-family-display: Inter, -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
 }
 
-/* ── Panel chrome ─────────────────────────────────────────────────────────── */
+/* ── Panel chrome — Swiss Monolith brutalism, COMPACT-FIRST (P5.1) ─────────────
+   One ink-bordered monolith block fills the tiny 300×170 iframe: a slim masthead
+   band, the condensed status band, and a three-cell mono footer. The DETAILS
+   footer cell expands the monolith (main resizes the iframe to 460) revealing the
+   onboarding / activity / connection bands. Flat, radius 0, separation by 2px ink
+   rules only, inversion on hover. ──────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
+  padding: 4px;
   font-family: var(--font-family-body);
   font-size: var(--font-size-sm);
   line-height: 1.5;
@@ -232,127 +242,149 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The monolith: a single 2px ink border wraps every band; bands never float. */
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  min-height: 100%;
+  border: 2px solid var(--color-foreground);
+  background: var(--color-background);
 }
 
-/* Header: title · version · docs link */
+/* Masthead band: one-line title + version. Docs lives in the footer row (P5.1). */
 .app-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 2px solid var(--color-foreground);
 }
 .brand-title {
   margin: 0;
   font-family: var(--font-family-display);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.01em;
+  font-size: var(--font-size-xs);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
 }
 .brand-version {
+  margin-left: auto;
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--color-muted-foreground);
 }
-.docs-link {
-  margin-left: auto;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-primary);
-  text-decoration: none;
-  border-radius: var(--radius-sm);
-  padding: var(--space-1) var(--space-2);
-  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-.docs-link:hover { background: var(--color-accent); color: var(--color-accent-foreground); }
-.docs-link:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
 
-/* Status hero */
+/* Status band — condensed: pill + ONE meta line. The sentence only exists in
+   expanded mode (compact drops it; the pill already says it). */
 .status-hero {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm-offset-x) var(--shadow-sm-offset-y) var(--shadow-sm-blur) var(--shadow-sm-spread) var(--color-scrim);
 }
-.status-row { display: flex; align-items: center; gap: var(--space-3); }
+.panel[data-mode="compact"] .status-sentence { display: none; }
+.status-row { display: flex; align-items: center; gap: var(--space-2); }
+
+/* Live marker — a solid ink square (radius 0). Pings outward while probing. */
 .status-dot {
   position: relative;
   width: 10px;
   height: 10px;
   flex: 0 0 auto;
-  border-radius: var(--radius-full);
-  background: var(--color-muted-foreground);
+  background: var(--color-foreground);
 }
-.status-dot[data-tone="success"] { background: var(--color-success); }
-.status-dot[data-tone="warning"] { background: var(--color-warning); }
-.status-dot[data-tone="info"]    { background: var(--color-info); }
-.status-dot[data-tone="muted"]   { background: var(--color-muted-foreground); }
 .status-dot::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: var(--radius-full);
   background: inherit;
   opacity: 0;
 }
 .status-dot.is-pulsing::after { animation: fga-ping 1.6s ease-out infinite; }
 
+/* State title-block — Inter-900 uppercase tight, FILLED with the tone pair.
+   Connected is the HERO: the burnt-orange primary block carrying INK text
+   (the machine-corrected AA pair). Disconnected stays muted — never red. */
 .status-pill {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  display: inline-block;
+  padding: 4px var(--space-2);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: var(--color-muted);
   color: var(--color-foreground);
 }
-.status-sentence { margin: 0; color: var(--color-muted-foreground); }
+.status-pill[data-tone="success"] { background: var(--color-primary); color: var(--color-primary-foreground); }
+.status-pill[data-tone="warning"] { background: var(--color-warning); color: var(--color-warning-foreground); }
+.status-pill[data-tone="info"]    { background: var(--color-info);    color: var(--color-info-foreground); }
+.status-pill[data-tone="muted"]   { background: var(--color-muted);   color: var(--color-foreground); }
+
+.status-sentence { margin: 0; color: var(--color-foreground); }
 .status-sentence:empty { display: none; }
 .status-meta {
   margin: 0;
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 .status-meta:empty { display: none; }
 
-/* Onboarding (first-run only; JS toggles [hidden]) */
+/* ── Expanded zone (hidden in compact; the DETAILS cell reveals it) ─────────── */
+
+/* Onboarding (first-run only; JS toggles [hidden]) — a band with the single
+   burnt-orange accent rule down its left edge. */
 .onboarding {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-accent);
-  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  background: var(--color-background);
+  border-top: 2px solid var(--color-foreground);
+  border-left: 6px solid var(--color-primary);
 }
 .onboarding-list {
   margin: 0;
-  padding-left: var(--space-4);
+  padding-left: var(--space-3);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   font-size: var(--font-size-xs);
-  color: var(--color-accent-foreground);
-}
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: var(--font-size-xs);
-  padding: 1px var(--space-1);
-  border-radius: var(--radius-sm);
-  background: var(--color-card);
   color: var(--color-foreground);
 }
-
-/* Section label (activity heading + details summary) */
-.section-label {
-  margin: 0 0 var(--space-2);
+/* Inline code as an inverted ink chip — mechanical, radius 0. */
+code {
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.03em;
+  padding: 1px var(--space-1);
+  background: var(--color-foreground);
+  color: var(--color-background);
+}
+
+/* Section label (activity + connection headings) — mono, uppercase, tracked. */
+.section-label {
+  margin: 0 0 4px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--color-muted-foreground);
 }
 
-/* Activity log */
+/* Activity band — mono, uppercase-tracked rows. */
+.activity {
+  border-top: 2px solid var(--color-foreground);
+  padding: var(--space-1) var(--space-2);
+}
 .activity-list {
   list-style: none;
   margin: 0;
@@ -360,90 +392,122 @@ code {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  max-height: 168px;
+  max-height: 120px;
   overflow-y: auto;
 }
 .activity-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-1) 0;
+  padding: 2px 0;
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
 }
 .log-dot {
   width: 6px;
   height: 6px;
   flex: 0 0 auto;
-  border-radius: var(--radius-full);
   background: var(--color-success);
 }
 .log-dot[data-ok="false"] { background: var(--color-danger); }
-.log-tool { font-weight: var(--font-weight-medium); color: var(--color-foreground); }
+.log-tool {
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-foreground);
+}
 .log-meta {
   margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-muted-foreground);
   font-variant-numeric: tabular-nums;
 }
-.activity-empty { font-size: var(--font-size-xs); color: var(--color-muted-foreground); }
+.activity-empty {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+}
 
-/* Troubleshoot hint */
-.hint { margin: 0; font-size: var(--font-size-xs); color: var(--color-muted-foreground); }
+/* Troubleshoot hint band */
+.hint {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-top: 2px solid var(--color-foreground);
+  font-size: var(--font-size-xs);
+  color: var(--color-foreground);
+}
 .hint:empty { display: none; }
 
-/* Connection details */
+/* Connection band — the details grid, always open in expanded mode. */
 .conn-details {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
+  border-top: 2px solid var(--color-foreground);
+  padding: var(--space-1) var(--space-2);
 }
-.conn-details > summary {
-  cursor: pointer;
-  list-style: revert;
-}
-.conn-details > summary:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
 .detail-grid {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: var(--space-1) var(--space-3);
-  margin: var(--space-2) 0 0;
+  gap: 4px var(--space-3);
+  margin: 0;
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
 }
-.detail-grid dt { color: var(--color-muted-foreground); }
+.detail-grid dt {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted-foreground);
+}
 .detail-grid dd { margin: 0; color: var(--color-foreground); font-variant-numeric: tabular-nums; }
 
-.ghost-btn {
-  margin-top: var(--space-3);
-  font-family: inherit;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-foreground);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
-  padding: var(--space-1) var(--space-3);
-  cursor: pointer;
-  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
+/* Footer band — three mono cells split by 2px ink rules: DETAILS ▾ · DOCS ↗ ·
+   COPY. Ink-on-paper flips to paper-on-ink on hover (the inversion principle). */
+.footer-row {
+  display: flex;
+  border-top: 2px solid var(--color-foreground);
+  margin-top: auto;
 }
-.ghost-btn:hover { background: var(--color-card); border-color: var(--color-input); }
-.ghost-btn:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+.footer-cell {
+  flex: 1 1 auto;
+  display: block;
+  margin: 0;
+  padding: var(--space-1) 4px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-foreground);
+  background: var(--color-background);
+  border: none;
+  border-right: 2px solid var(--color-foreground);
+  cursor: pointer;
+  transition: background-color 0.1s ease-out, color 0.1s ease-out;
+}
+.footer-cell:last-child { border-right: none; }
+.footer-cell:hover { background: var(--color-foreground); color: var(--color-background); }
+.footer-cell:focus-visible { outline: 2px solid var(--color-ring); outline-offset: -2px; }
 
-/* Motion — the probing dot pings outward. Guarded below for reduced motion. */
+/* Motion — the probing marker pings outward (transform + opacity only, never a
+   layout property). Snappy 0.1s ease-out is the brand curve. Guarded below. */
 @keyframes fga-ping {
-  0%   { opacity: 0.55; transform: scale(1); }
-  100% { opacity: 0;    transform: scale(2.6); }
+  0%   { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(2.4); }
 }
 @media (prefers-reduced-motion: reduce) {
   .status-dot.is-pulsing::after { animation: none; }
-  .docs-link, .ghost-btn { transition: none; }
+  .footer-cell { transition: none; }
 }
 </style>
 </head>
 <body>
-<main class="panel">
+<main class="panel" id="fga-panel" data-mode="compact">
   <header class="app-header">
     <h1 class="brand-title">Figma Design Agent</h1>
     <span class="brand-version" id="fga-version">v0.1.0</span>
-    <a class="docs-link" id="fga-docs" href="https://github.com/jangtrinh/ease-design/blob/main/figma-agent/README.md"
-       target="_blank" rel="noopener" aria-label="Open the figma-agent documentation in a new tab">Docs&nbsp;↗</a>
   </header>
 
   <section class="status-hero" id="fga-hero" aria-live="polite" aria-label="Connection status">
@@ -455,35 +519,44 @@ code {
     <p class="status-meta" id="fga-meta"></p>
   </section>
 
-  <section class="onboarding" id="fga-onboarding" aria-label="Getting started">
-    <ul class="onboarding-list">
-      <li>This panel bridges the figma-agent CLI to this file.</li>
-      <li>Verify from a terminal: <code>figma-agent status</code></li>
-      <li>Keep this panel open while agents work.</li>
-    </ul>
-  </section>
+  <div id="fga-expanded" hidden>
+    <section class="onboarding" id="fga-onboarding" aria-label="Getting started">
+      <ul class="onboarding-list">
+        <li>This panel bridges the figma-agent CLI to this file.</li>
+        <li>Verify from a terminal: <code>figma-agent status</code></li>
+        <li>Keep this panel open while agents work.</li>
+      </ul>
+    </section>
 
-  <section class="activity" aria-label="Activity log">
-    <h2 class="section-label">Activity</h2>
-    <ul class="activity-list" id="fga-activity" aria-live="polite">
-      <li class="activity-empty">No activity yet — run a figma-agent command.</li>
-    </ul>
-  </section>
+    <section class="activity" aria-label="Activity log">
+      <h2 class="section-label">Activity</h2>
+      <ul class="activity-list" id="fga-activity" aria-live="polite">
+        <li class="activity-empty">No activity yet — run a figma-agent command.</li>
+      </ul>
+    </section>
 
-  <p class="hint" id="fga-hint" aria-live="polite"></p>
+    <p class="hint" id="fga-hint" aria-live="polite"></p>
 
-  <details class="conn-details">
-    <summary class="section-label">Connection details</summary>
-    <dl class="detail-grid">
-      <dt>Port</dt><dd id="fga-d-port">—</dd>
-      <dt>Protocol</dt><dd id="fga-d-proto">—</dd>
-      <dt>Heartbeat</dt><dd id="fga-d-heartbeat">—</dd>
-      <dt>Reconnect attempts</dt><dd id="fga-d-attempts">—</dd>
-      <dt>File</dt><dd id="fga-d-file">—</dd>
-      <dt>Page</dt><dd id="fga-d-page">—</dd>
-    </dl>
-    <button class="ghost-btn" id="fga-copy" type="button">Copy status</button>
-  </details>
+    <section class="conn-details" aria-label="Connection details">
+      <h2 class="section-label">Connection details</h2>
+      <dl class="detail-grid">
+        <dt>Port</dt><dd id="fga-d-port">—</dd>
+        <dt>Protocol</dt><dd id="fga-d-proto">—</dd>
+        <dt>Heartbeat</dt><dd id="fga-d-heartbeat">—</dd>
+        <dt>Reconnect attempts</dt><dd id="fga-d-attempts">—</dd>
+        <dt>File</dt><dd id="fga-d-file">—</dd>
+        <dt>Page</dt><dd id="fga-d-page">—</dd>
+      </dl>
+    </section>
+  </div>
+
+  <footer class="footer-row">
+    <button class="footer-cell" id="fga-toggle" type="button"
+            aria-expanded="false" aria-controls="fga-expanded">Details ▾</button>
+    <a class="footer-cell" id="fga-docs" href="https://github.com/jangtrinh/ease-design/blob/main/figma-agent/README.md"
+       target="_blank" rel="noopener" aria-label="Open the figma-agent documentation in a new tab">Docs&nbsp;↗</a>
+    <button class="footer-cell" id="fga-copy" type="button">Copy</button>
+  </footer>
 </main>
 <script>
 "use strict";
@@ -592,9 +665,20 @@ code {
   function showOnboarding(state, hadConnection2) {
     return !hadConnection2 && (state === "disconnected" || state === "probing");
   }
+  var PANEL_HEIGHT = { compact: 170, expanded: 460 };
+  function togglePanelMode(mode2) {
+    return mode2 === "expanded" ? "compact" : "expanded";
+  }
+  function detailsLabel(mode2) {
+    return mode2 === "expanded" ? "Details \u25B4" : "Details \u25BE";
+  }
+  function compactMeta(state) {
+    return state === "disconnected" ? "First CLI command starts it" : null;
+  }
 
   // plugin/src/ui/panel-ui.ts
   var el = (id) => document.getElementById(id);
+  var panelRoot = el("fga-panel");
   var dot = el("fga-dot");
   var pill = el("fga-pill");
   var sentence = el("fga-sentence");
@@ -602,6 +686,8 @@ code {
   var onboarding = el("fga-onboarding");
   var hint = el("fga-hint");
   var activityList = el("fga-activity");
+  var expandedZone = el("fga-expanded");
+  var toggleBtn = el("fga-toggle");
   var dPort = el("fga-d-port");
   var dProto = el("fga-d-proto");
   var dHeartbeat = el("fga-d-heartbeat");
@@ -615,7 +701,12 @@ code {
   var activity = [];
   var sceneFile = "";
   var scenePage = "";
+  var mode = "compact";
   function metaLine(state, now) {
+    if (mode === "compact") {
+      const compact = compactMeta(state);
+      if (compact !== null) return compact;
+    }
     if (!payload) return "";
     const age = now - payload.since;
     if (state === "connected") {
@@ -720,13 +811,26 @@ code {
     const done = () => {
       copyBtn.textContent = "Copied";
       setTimeout(() => {
-        copyBtn.textContent = "Copy status";
+        copyBtn.textContent = "Copy";
       }, 1500);
     };
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
     else fallbackCopy(text, done);
   });
+  function applyMode() {
+    panelRoot.dataset.mode = mode;
+    expandedZone.hidden = mode !== "expanded";
+    toggleBtn.textContent = detailsLabel(mode);
+    toggleBtn.setAttribute("aria-expanded", String(mode === "expanded"));
+  }
+  toggleBtn.addEventListener("click", () => {
+    mode = togglePanelMode(mode);
+    applyMode();
+    parent.postMessage({ pluginMessage: { type: "PANEL_RESIZE", h: PANEL_HEIGHT[mode] } }, "*");
+    render();
+  });
   setInterval(render, 1e3);
+  applyMode();
   render();
 
   // plugin/src/ui/converter/color-utils.ts

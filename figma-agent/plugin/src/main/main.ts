@@ -18,8 +18,11 @@ import {
   opStatus, opGetSelection, opCreateFrame, opCreateInstance, opSetVariant,
   opSetAutoLayout, opSetConstraints, opSetText, opExportPng, opExecJs,
 } from './executor-ops';
+import { PANEL_WIDTH, PANEL_HEIGHT } from '../ui/panel-model';
 
-figma.showUI(__html__, { visible: true, width: 340, height: 480 }); // P2 panel chrome
+// P5.1: the panel opens COMPACT (small + minimal on the canvas — owner decree);
+// the UI's DETAILS toggle posts PANEL_RESIZE to grow/shrink it on demand.
+figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
 
 // Announce scene identity to the UI iframe so the P2 panel's Connection details can
 // show File/Page; ui-relay also forwards this to the broker (enriches PLUGIN_HELLO /
@@ -38,6 +41,14 @@ type Params = Record<string, unknown>;
 interface UiRequest { requestId: string; cmd: CommandName; params?: Params }
 
 figma.ui.onmessage = async (msg: unknown) => {
+  // P5.1 panel chrome: the DETAILS toggle asks for an iframe resize. Height is
+  // clamped to the mode range so a malformed message can never blow up the panel.
+  const chrome = msg as { type?: unknown; h?: unknown } | null;
+  if (chrome && chrome.type === 'PANEL_RESIZE') {
+    const raw = typeof chrome.h === 'number' && Number.isFinite(chrome.h) ? chrome.h : PANEL_HEIGHT.compact;
+    figma.ui.resize(PANEL_WIDTH, Math.round(Math.min(PANEL_HEIGHT.expanded, Math.max(PANEL_HEIGHT.compact, raw))));
+    return;
+  }
   const req = msg as Partial<UiRequest> | null;
   if (!req || typeof req.requestId !== 'string' || typeof req.cmd !== 'string') return; // relay chatter, not a command
   try {
