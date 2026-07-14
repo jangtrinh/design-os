@@ -26,26 +26,33 @@ design tokens to hand-edit, no taste vocabulary to learn.**
 
 ## Built by the studio behind ease-design
 
-Four live products, four different worlds — an AI dev-tool, a farm's
-direct-to-Hanoi fruit brand, a plugin marketplace, a villa-care service. Same studio,
-same design discipline this toolchain distills. **Every image links to the live site.**
+Five live products, five different worlds — an AI dev-tool, a farm's direct-to-Hanoi
+fruit brand, a plugin marketplace, a villa-care service, a deal CRM for real-estate
+brokers. Same studio, same design discipline this toolchain distills. **Real scrolling
+recordings of the live sites — every demo links through.**
 
 <table>
   <tr>
-    <td width="50%"><a href="https://easeui.design/"><img src="docs/assets/readme/live-easeui.jpg" alt="EaseUI — 'Describe a UI. Get production code.' — AI UI generator landing page, floating pill nav, model badges" /></a></td>
-    <td width="50%"><a href="https://www.traicaybentre.com/"><img src="docs/assets/readme/live-traicaybentre.jpg" alt="Trái Cây Bến Tre — bold yellow editorial hero, oversized Vietnamese display type, real orchard photography, live purchase toast" /></a></td>
+    <td width="50%"><a href="https://easeui.design/"><img src="docs/assets/readme/demo-easeui.gif" alt="EaseUI — 'Describe a UI. Get production code.' — scrolling from the hero into the four-step workflow with live variant previews" /></a></td>
+    <td width="50%"><a href="https://www.traicaybentre.com/"><img src="docs/assets/readme/demo-traicaybentre.gif" alt="Trái Cây Bến Tre — bold yellow editorial hero with oversized Vietnamese display type, scrolling into orchard video content" /></a></td>
   </tr>
   <tr>
     <td><b>EaseUI</b> · <a href="https://easeui.design/">easeui.design</a><br/><sub>AI UI generation · SaaS landing</sub></td>
     <td><b>Trái Cây Bến Tre</b> · <a href="https://www.traicaybentre.com/">traicaybentre.com</a><br/><sub>D2C farm brand · editorial e-commerce</sub></td>
   </tr>
   <tr>
-    <td><a href="https://www.gravityhive.com/"><img src="docs/assets/readme/live-gravityhive.jpg" alt="GravityHive — 'Plugins for WordPress, Shopify & Framer & Webflow' — condensed black display type on cream with orange line-art" /></a></td>
-    <td><a href="https://www.hvs.care/"><img src="docs/assets/readme/live-hvs.jpg" alt="HVS — 'Bác sĩ cho villa, homestay và second home' — services hero with villa photography and a live inspection-report card" /></a></td>
+    <td><a href="https://www.gravityhive.com/"><img src="docs/assets/readme/demo-gravityhive.gif" alt="GravityHive — condensed black display type on cream with orange line-art, scrolling through the platform grid" /></a></td>
+    <td><a href="https://www.hvs.care/"><img src="docs/assets/readme/demo-hvs.gif" alt="HVS — bilingual villa-care hero with a live inspection-report card, scrolling into the Doctor House Care service flow" /></a></td>
   </tr>
   <tr>
     <td><b>GravityHive</b> · <a href="https://www.gravityhive.com/">gravityhive.com</a><br/><sub>plugin marketplace · brutalist type</sub></td>
     <td><b>HVS</b> · <a href="https://www.hvs.care/">hvs.care</a><br/><sub>villa & homestay care · bilingual services</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><a href="https://www.sodeal.vn/"><img src="docs/assets/readme/demo-sodeal.gif" width="50%" alt="SổDeal — 'Tool quản lý deal cho môi giới BĐS' — teal SaaS hero scrolling into features and testimonials" /></a></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><b>SổDeal</b> · <a href="https://www.sodeal.vn/">sodeal.vn</a><br/><sub>deal CRM for real-estate brokers · SaaS</sub></td>
   </tr>
 </table>
 
