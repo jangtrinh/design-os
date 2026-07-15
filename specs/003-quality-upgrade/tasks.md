@@ -8,8 +8,7 @@
       font-display-missing, z-index-off-ladder (unbounded-measure D3-gated) — stage:spec
 - [ ] P3 — mobile floor M1–M6 (layout-checks-mobile.ts + a11y-checks.ts) — stage:spec ·
       D1 (web-only OK without native)
-- [ ] P4 — delivery-assets: knowledge/delivery-assets.md + resolve-assets + avoidable-crop
-      lint (draft + prototype ready in lab) — stage:spec
+- [x] P4 — delivery-assets — ✓ 2026-07-15 merged (PR #24, CI 5/5). knowledge + avoidable-screenshot-crop lint; resolver = workflow-guidance (kernel stays pure). The 'not a noob' fix shipped.
 - [ ] P5 — signature-devices.md + persona directions (D2) + RODES generation contract in
       prompt-modes.md — stage:spec
 - [ ] Decisions D1 (native scope) · D2 (persona bloat) · D3 (heuristic severity) · D4
