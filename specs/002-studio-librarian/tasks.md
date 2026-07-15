@@ -4,8 +4,7 @@
 > tick the issue when done; issue thread carries phase reports. Executor DỪNG sau mỗi
 > phase, báo cáo theo format trong issue, chờ final-gate review trước phase kế.
 
-- [ ] P1 — WS-A: gap event type trong ledger (memory-events + record help + docs ranh
-      giới kênh + tests) — stage:implement
+- [x] P1 — WS-A: gap event type trong ledger — ✓ 2026-07-15 merged `5f6afef` (PR #14, CI 5/5, suite 1687; issue #10 closed)
 - [ ] P2 — WS-C: `ui knowledge check` (6 checks + CI gate) rồi WS-E:
       `knowledge/authoring-standard.md` (+ retrofit taste-rubric failure-modes) —
       stage:implement · depends: P1 merged
