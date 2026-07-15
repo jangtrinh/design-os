@@ -4,8 +4,7 @@
 > no decision — safe to build first. Each phase = 1 PR, 3-tier pipeline, human merge.
 
 - [x] P1 — tap-target-undersized + ai-cliche-gradient — ✓ 2026-07-15 merged (PR #23, CI 5/5, suite 1739; dogfood-fire precision-verified on hashicorp/composio/cohere)
-- [ ] P2 — web craft lints: font-scale-sprawl, mode-invisible-surface, clickable-no-pointer,
-      font-display-missing, z-index-off-ladder (unbounded-measure D3-gated) — stage:spec
+- [x] P2 — web craft lints (5) — ✓ 2026-07-16 merged (PR #25, CI 5/5, suite 1777; dogfood-fired). unbounded-measure deferred to D3.
 - [ ] P3 — mobile floor M1–M6 (layout-checks-mobile.ts + a11y-checks.ts) — stage:spec ·
       D1 (web-only OK without native)
 - [x] P4 — delivery-assets — ✓ 2026-07-15 merged (PR #24, CI 5/5). knowledge + avoidable-screenshot-crop lint; resolver = workflow-guidance (kernel stays pure). The 'not a noob' fix shipped.
