@@ -78,6 +78,19 @@ describe("ui memory record + compile", () => {
     expect(JSON.parse(record(["frobnicate", "--data", "{}", "--json"]).out).error.code).toBe("BAD_EVENT_TYPE");
   });
 
+  it("records a gap event (no refs needed) → envelope { id, type: 'gap' }", () => {
+    const r = record(["gap", "--data", '{"text":"motion has no bounce guidance","target":"taste-rubric.md#motion"}', "--json"]);
+    expect(r.code, r.out).toBe(0);
+    const data = JSON.parse(r.out).data;
+    expect(data.id).toBe("e1");
+    expect(data.type).toBe("gap");
+    expect(data.eventCount).toBe(1);
+  });
+
+  it("rejects a gap missing target with BAD_EVENT", () => {
+    expect(JSON.parse(record(["gap", "--data", '{"text":"x"}', "--json"]).out).error.code).toBe("BAD_EVENT");
+  });
+
   it("compile on an empty project → NO_MEMORY", () => {
     const r = capture(["memory", "compile", "--dir", proj, "--json"]);
     expect(r.code).toBe(1);

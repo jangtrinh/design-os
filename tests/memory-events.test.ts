@@ -33,11 +33,25 @@ describe("memory-events — validateEvent", () => {
       component_registered: { name: "Card/Elevated" },
       harvested: { source: "https://example.com" },
       duel_result: { benchmark: "linear", traits: [] },
+      gap: { text: "motion axis has no bounce guidance", target: "taste-rubric.md#motion" },
     };
     for (const [type, data] of Object.entries(happy)) {
       expect(codeOf(() => validateEvent(type, data, undefined)), type).toBeNull();
     }
     expect(codeOf(() => validateEvent("insight", { text: "learned x" }, ["e1"]))).toBeNull();
+  });
+
+  it("records a gap event with text+target", () => {
+    expect(codeOf(() => validateEvent("gap", { text: "no bounce guidance", target: "taste-rubric.md#motion" }, undefined))).toBeNull();
+  });
+
+  it("rejects gap missing target with BAD_EVENT", () => {
+    expect(codeOf(() => validateEvent("gap", { text: "no bounce guidance" }, undefined))).toBe("BAD_EVENT");
+  });
+
+  it("gap does not require refs", () => {
+    expect(codeOf(() => validateEvent("gap", { text: "x", target: "personas" }, undefined))).toBeNull();
+    expect(codeOf(() => validateEvent("gap", { text: "x", target: "personas" }, []))).toBeNull();
   });
 
   it("rejects an unknown type with BAD_EVENT_TYPE", () => {
@@ -55,8 +69,9 @@ describe("memory-events — validateEvent", () => {
     expect(codeOf(() => validateEvent("insight", { text: "x" }, ["e1"]))).toBeNull();
   });
 
-  it("EVENT_TYPES has 11 members; isEventType/isMedium guard", () => {
-    expect(EVENT_TYPES.length).toBe(11);
+  it("EVENT_TYPES has 12 members; isEventType/isMedium guard", () => {
+    expect(EVENT_TYPES.length).toBe(12);
+    expect(isEventType("gap")).toBe(true);
     expect(isEventType("user_pick")).toBe(true);
     expect(isEventType("nope")).toBe(false);
     expect(isMedium("html")).toBe(true);

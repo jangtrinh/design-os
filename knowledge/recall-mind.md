@@ -29,7 +29,22 @@ NON-DETERMINISTIC  recall/ — embeddings + vector index + ranking
   it comes back identical. Never treat the index as a second source of truth.
 - Learned knowledge flows back into the ledger **only** through
   `ui memory record insight --refs <ids>` — provenance is mandatory.
+- A gap in the knowledge core is filed, not fixed in place:
+  `ui memory record gap --data '{"text":"…","target":"<file>[#<section>]"}'`. A `gap` is the
+  raw material of the librarian loop — designer/curator/figma-hand never edit `knowledge/`
+  themselves; they record a gap and the librarian graduates it through a PR. `refs` is
+  optional (unlike `insight`), but pointing at the `taste_verdict`/`duel_result` that
+  exposed the gap is encouraged.
 - The `ui` binary never imports anything from `recall/` (a test enforces this).
+
+### Which channel: gap vs. GitHub issue
+
+A `gap` event is for when the **knowledge core** cannot express something — a rubric axis,
+a persona, a recipe, a stale benchmark. A **GitHub issue** is for when **code or a check** is
+missing — a linter blind spot, a CLI feature, a broken gate. A hybrid case (the knowledge is
+absent *and* a check should enforce it) is filed as a `gap`; the librarian then proposes the
+issue in the PR body. When in doubt, file the gap — a gap is cheap to record and the librarian
+routes it.
 
 ## Setup
 

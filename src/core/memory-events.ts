@@ -28,6 +28,7 @@ export const EVENT_TYPES = [
   "harvested",
   "duel_result",
   "insight",
+  "gap",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
@@ -44,6 +45,11 @@ const REQUIRED_DATA: Readonly<Record<EventType, readonly string[]>> = {
   harvested: ["source"],
   duel_result: ["benchmark", "traits"],
   insight: ["text"],
+  // A knowledge gap the librarian graduates: `text` describes the gap, `target`
+  // names where it belongs (`<file>[#<section>]`, e.g. `taste-rubric.md#motion`).
+  // `data.kind` is optional and unenforced (rubric-gap | persona-gap | recipe-gap |
+  // benchmark-stale | guardrail-lesson). Unlike `insight`, `gap` needs no refs.
+  gap: ["text", "target"],
 };
 
 export interface MemoryArtifact {
