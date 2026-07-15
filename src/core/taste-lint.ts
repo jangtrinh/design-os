@@ -10,14 +10,19 @@
  *   error   — a definite rubric-rule violation (exit 1). These are not smells;
  *             each is a rule the rubric states as an absolute ("body never below
  *             16px", "exactly one icon family", "never linear easing").
+ *   warning — a craft smell the rubric flags but does not treat as absolute; it
+ *             surfaces in the report but never fails the exit code (e.g. an
+ *             undersized touch target whose true size may live in external CSS).
  *
  * Coverage (axis → check):
  *   Typography    → tiny-body-text          (font-size ≤ 13px)
  *   Spacing       → off-grid-spacing        (Tailwind spacing not on 4px grid)
+ *   Spacing       → tap-target-undersized   (interactive control < 44px; warning)
  *   Iconography   → mixed-icon-families     (≥ 2 icon libraries)
  *   Typography    → italic-display-heading, uppercase-tight-line-height
  *   Depth/Surface → pure-black-shadow       (hard/opaque black shadow)
  *   Depth/Surface → z-index-inflation       (all-nines z-index)
+ *   Depth/Surface → ai-cliche-gradient      (indigo/violet/magenta AI-glow gradient)
  *   Motion        → linear-easing, transition-all, animation-no-reduced-motion,
  *                   keyframes-layout-props
  *   Motion        → overshoot-easing, focus-ring-animates-in
@@ -42,10 +47,18 @@ import {
 import { checkOvershootEasing, checkFocusRingAnimatesIn } from "./taste-checks-motion-state.js";
 import { checkItalicDisplayHeading, checkUppercaseTightLineHeight } from "./taste-checks-typography.js";
 import { checkZIndexInflation } from "./taste-checks-depth.js";
+import { checkTapTargetUndersized } from "./taste-checks-tap-target.js";
+import { checkAiClicheGradient } from "./taste-checks-gradient.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type TasteSeverity = "error";
+/**
+ * Most taste findings are `error` — a definite rubric-rule breach that exits 1.
+ * A `warning` is a craft smell the rubric flags but does not treat as absolute
+ * (e.g. an undersized touch target whose real size may live in external CSS); it
+ * surfaces in the report but never fails the exit code.
+ */
+export type TasteSeverity = "error" | "warning";
 
 /** A taste-rubric axis label (matches knowledge/taste-rubric.md exactly). */
 export type TasteAxis =
@@ -68,7 +81,10 @@ export interface TasteFinding {
 
 export interface TasteLintResult {
   findings: TasteFinding[];
+  /** Count of error-severity findings only — the exit code keys off this. */
   errorCount: number;
+  /** Count of warning-severity findings (craft smells; never fail the build). */
+  warningCount: number;
   /** Distinct rubric axes that have at least one violation. */
   axesAffected: TasteAxis[];
 }
@@ -117,6 +133,9 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     ...checkOvershootEasing(stripped),
     ...checkFocusRingAnimatesIn(stripped),
     ...checkRawHexWhenTokenExists(stripped, opts.knownHexes),
+    // Craft lints (spec 003 P1). ai-cliche-gradient is an error; tap-target is a warning.
+    ...checkAiClicheGradient(stripped),
+    ...checkTapTargetUndersized(stripped),
   ];
 
   // Sort by rubric axis order, then by line (undefined lines last).
@@ -130,5 +149,6 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     (a, b) => AXIS_ORDER[a] - AXIS_ORDER[b],
   );
 
-  return { findings, errorCount: findings.length, axesAffected };
+  const errorCount = findings.filter((f) => f.severity === "error").length;
+  return { findings, errorCount, warningCount: findings.length - errorCount, axesAffected };
 }
