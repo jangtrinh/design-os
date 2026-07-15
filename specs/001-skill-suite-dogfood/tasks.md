@@ -15,6 +15,7 @@
 - [x] T4 — Findings synthesis + one template fix round (Sonnet) + re-gates —
       stage:audit · depends: T1-T3
       ✓ 2026-07-15 11 edits applied (10 template + 1 help-string), 5 verified factual corrections, 4 gates green (1682 tests)
-- [ ] T5 — Opus audit of fix round + final gate verdict (PASS→ unlock P3 spec) —
+- [x] T5 — Opus audit of fix round + final gate verdict (PASS→ unlock P3 spec) —
       stage:final-gate · depends: T4
-      → in progress 2026-07-15 (Opus audit running)
+      ✓ 2026-07-15 Opus COMMIT_WITH_FIXES (1-line naming fix applied) → landed `501f626`, CI green.
+      **VERDICT: PASS — P3 distribution unlocked.** Issue #1 closed; kernel backlog K1-K6 = issues #2-#7.
