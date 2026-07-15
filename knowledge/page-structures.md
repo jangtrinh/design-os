@@ -125,12 +125,18 @@ page *genuinely* needs nothing else, and reach for a deliberate archetype otherw
 - **Hero:** the core (headline + lede + primary CTA) must fit the 1280×800 fold. A hero
   never builds *fake* chrome to look substantial — no drawn browser bar, phone frame, or
   IDE window. Use a real screenshot or drop the chrome entirely.
+- **The AI-glow gradient:** a large indigo/violet/magenta background gradient (radial glow
+  behind the hero, `from-indigo-500 … to-purple-600` full-bleed) is the loudest
+  machine-default surface tell. Reach for it only when the brand *is* that hue; otherwise
+  recolor to the brand or drop the gradient for a flat/tinted surface.
 
 **What the machine already catches (do not spend judgment re-inspecting these):**
 `taste-lint` owns `italic-display-heading`, `uppercase-tight-line-height`,
-`overshoot-easing`, `focus-ring-animates-in`, `z-index-inflation`; `validate-layout` owns
-`css-100vw-width` and `root-overflow-x-hidden`. If a tell is on that list, the linter has
-it — spend your attention on the tells that are not.
+`overshoot-easing`, `focus-ring-animates-in`, `z-index-inflation`, `ai-cliche-gradient`
+(large violet-band background gradient), and `tap-target-undersized` (interactive control
+under the 44px touch minimum); `validate-layout` owns `css-100vw-width` and
+`root-overflow-x-hidden`. If a tell is on that list, the linter has it — spend your
+attention on the tells that are not.
 
 ## §6 When to read this file
 

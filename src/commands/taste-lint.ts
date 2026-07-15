@@ -6,8 +6,9 @@
  * binary floor under the model's self-scored critique gate — a variant that
  * trips an error here breaks a rubric rule the model cannot talk past.
  *
- * Exit code policy (mirrors validate-layout's D4): exit 1 iff any finding. All
- * taste findings are error-severity (definite rubric violations, not smells).
+ * Exit code policy (mirrors validate-layout's D4): exit 1 iff any error-severity
+ * finding. Most taste findings are errors (definite rubric violations); a few
+ * craft lints are warnings (smells that surface but never fail the build).
  * No subcommands — hasSubcommands: false.
  */
 import { readFileSync } from "node:fs";
@@ -29,7 +30,9 @@ Options:
   --json        Emit a JSON envelope instead of human-readable output
   -h, --help    Show this help
 
-Checks (the machine-verifiable subset of knowledge/taste-rubric.md; all error-severity):
+Checks (the machine-verifiable subset of knowledge/taste-rubric.md; error unless noted):
+  tap-target-undersized      Spacing        interactive control below the 44px touch target (warning)
+  ai-cliche-gradient         Depth/Surface  large indigo/violet/magenta "AI glow" background gradient
   tiny-body-text             Typography     font-size <= 13px (rubric: body never below 16px)
   italic-display-heading     Typography     italic heading/display type (a generated-UI tell)
   uppercase-tight-line-height Typography    all-caps text with line-height below 1.0
@@ -49,8 +52,8 @@ Subjective axis judgment (is the composition authored? the scale on one ratio?)
 stays with the model's critique. This command only catches unambiguous breaches.
 
 Exit codes:
-  0  No violations
-  1  One or more violations, or user/file error
+  0  No error-severity violations (warnings may still be reported)
+  1  One or more error-severity violations, or user/file error
 
 Error codes:
   BAD_ARG        Missing <file.html> argument or unexpected extra positionals
@@ -109,8 +112,9 @@ function loadTokenHexes(path: string): Set<string> | undefined {
 function formatReport(
   filePath: string,
   errorCount: number,
+  warningCount: number,
   axesAffected: string[],
-  findings: Array<{ checkId: string; axis: string; message: string; line?: number }>,
+  findings: Array<{ checkId: string; axis: string; severity: string; message: string; line?: number }>,
 ): string {
   const lines: string[] = [];
   lines.push(`taste-lint: ${filePath}`);
@@ -120,13 +124,15 @@ function formatReport(
   } else {
     for (const f of findings) {
       const loc = f.line !== undefined ? `:${f.line}` : "";
-      lines.push(`  [${f.axis}] ${f.checkId}${loc}: ${f.message}`);
+      lines.push(`  [${f.axis}] ${f.checkId} (${f.severity})${loc}: ${f.message}`);
     }
   }
 
   lines.push("");
   const axes = axesAffected.length > 0 ? ` (axes: ${axesAffected.join(", ")})` : "";
-  lines.push(`${errorCount} violation(s)${axes}`);
+  const total = errorCount + warningCount;
+  const split = total > 0 ? ` (${errorCount} error, ${warningCount} warning)` : "";
+  lines.push(`${total} violation(s)${split}${axes}`);
   return lines.join("\n") + "\n";
 }
 
@@ -173,22 +179,22 @@ export const tasteLintCommand = {
       typeof tokensFlag === "string" ? loadTokenHexes(tokensFlag) : undefined;
 
     // 4. Run the linter (pure transform).
-    const { findings, errorCount, axesAffected } = lintTaste(raw, { knownHexes });
+    const { findings, errorCount, warningCount, axesAffected } = lintTaste(raw, { knownHexes });
 
-    // 5. Exit 1 iff any violation (all findings are error-severity).
+    // 5. Exit 1 iff any error-severity violation; warnings never fail the build.
     const exitCode = errorCount > 0 ? 1 : 0;
 
     // 6. Shape output.
     if (useJson) {
       return okJsonWithExit(
         CMD,
-        { file: filePath, errorCount, axesAffected, findings },
+        { file: filePath, errorCount, warningCount, axesAffected, findings },
         exitCode,
       );
     }
     return {
       exitCode,
-      stdout: formatReport(filePath, errorCount, axesAffected, findings),
+      stdout: formatReport(filePath, errorCount, warningCount, axesAffected, findings),
     };
   },
 };
