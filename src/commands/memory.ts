@@ -50,7 +50,9 @@ record flags:
 
 Event types (v1): variant_generated, rendition_created, taste_verdict, user_pick,
   vibe_edit, manual_edit, token_change, component_registered, harvested, duel_result,
-  insight (an 'insight' event requires --refs for provenance).
+  insight (an 'insight' event requires --refs for provenance),
+  gap (a knowledge-core gap for the librarian to graduate; refs optional).
+  Example: ui memory record gap --data '{"text":"…","target":"taste-rubric.md#motion"}'
 
 Other flags:
   --now <iso>         compile/context/consolidate: decay + compiledAt clock (deterministic when fixed)
