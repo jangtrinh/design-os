@@ -20,6 +20,13 @@ implementation plan (kept in the internal design-engine repo) for the 8-phase pl
   non-LLM work (autofix, layout validation, token compilation, color math, registry,
   export) is a `ui <subcommand>`, callable via Bash and identical on every runtime.
 
+## Constitution
+
+The canonical governing principles live in `.specify/memory/constitution.md`
+(spec-kit). Specs for new work live in `specs/NNN-slug/` (committed — any machine
+resumes); cross-machine task state lives in GitHub issues (stage:* labels).
+The rules below summarize repo practice; the constitution wins on conflict.
+
 ## Working rules
 
 - Build / check before committing: `npm run typecheck`, `npm run lint`, `npm run build`,
