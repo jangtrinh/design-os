@@ -4,11 +4,12 @@
 
 <p align="center">
   [<a href="#quick-start">Quick start</a>] ·
+  [<a href="#your-project-gets-a-staff--the-agents">Agents</a>] ·
   [<a href="#built-by-the-studio-behind-designos">Gallery</a>] ·
   [<a href="#workflow-map--every-way-in-every-way-out">Workflow map</a>] ·
   [<a href="#the-machine-floor">The machine floor</a>] ·
   [<a href="#the-figma-hand">The Figma hand</a>] ·
-  [<a href="#the-surfaces">Surfaces</a>]
+  [<a href="#changelog">Changelog</a>]
 </p>
 
 <p align="center"><sub>
@@ -128,6 +129,54 @@ That's the whole loop: **describe → pick → refine.** Have an existing app? R
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
 > Once published to npm, a global install replaces the clone-and-link step.
+
+---
+
+## Your project gets a staff — the agents
+
+One command turns the design system into a small team of **Claude Code
+subagents**, each bound to the project's declared identity and scoped to exactly
+one job:
+
+| Agent | Name pattern | Does | Never does |
+|---|---|---|---|
+| **Designer** | `designer-<studio>-<project>` | generation & iteration on the project DS | scores its own work |
+| **Curator** | `curator-<studio>-<project>` | critique, audits, verdicts with evidence | edits an artifact |
+| **Figma hand** | `figma-<studio>-<project>` | canvas operations via `figma-agent`, drift-asserted | simulates when the plugin is down |
+
+The prefix is generic on purpose — every DESIGN:OS project has *a* designer, *a*
+curator, *a* figma hand — while the suffix carries the identity: a studio soul
+named `JANG` on the project `vsf-pcp` yields `designer-jang-vsf-pcp`.
+
+### Set it up
+
+```sh
+ui ds soul init --studio    # once per MACHINE — your studio's stance; its name: names the agents
+ui ds soul init             # once per PROJECT — the project's stance (or let /ui:learn draft it from evidence)
+ui agents init              # writes .claude/agents/<role>-<studio>-<project>.md
+```
+
+Both souls start as `status: draft` scaffolds — fill **Never / Always / Voice**,
+then set `status: ratified`. `ui ds soul check` (and `--studio`) lints the
+structure. No studio soul yet? Agents still generate as `designer-<project>` and
+the command tells you what you're missing.
+
+### Use them
+
+In Claude Code, delegate in plain words — *"ask the **designer** agent to build
+the empty state for API Reviews"* — or just describe the task and let Claude
+Code auto-route: each agent's description declares its scope, so build requests
+find the designer and review requests find the curator.
+
+**Identity is live, not baked.** Every agent's first action is `ui ds context`,
+which carries the project soul (and the studio soul beneath it). Edit a soul —
+the whole staff changes its taste at the next task, no regeneration needed. Only
+the *names* are stamped at generate time.
+
+**The roster is yours** — one agent or all three: `ui agents init --roster
+designer,curator`. `ui agents list` shows what exists; `ui agents check` fails
+(`agent-stale`, exit 1) on hand-edited or outdated files — heal with
+`ui agents init --force`. Claude Code runtime only for now.
 
 ---
 
@@ -333,6 +382,27 @@ bring changes, audits, and evidence to the file.**
    hash-seal keeps refinements on-system.
 5. **Memory compounds** — decisions land in the ledger; `recall query` primes the next
    job; `recall reflect` distills the lesson at the end. Neither ever calls a model.
+
+---
+
+## Changelog
+
+The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
+
+| Date | Change | Commit |
+|---|---|---|
+| 2026-07-14 | **Agents**: role-first naming (`designer-<studio>-<project>`) — generic prefix to delegate by, genealogy suffix for identity | *(this commit)* |
+| 2026-07-14 | **`ui agents`** — soul-bound, task-scoped project agents (designer · curator · figma-hand) with template-hash drift check | `fe1eda3` |
+| 2026-07-14 | **`ui taste`** — vote-driven taste corpus: ingest (sha256+dHash dedup), pairwise Elo ranking, study ledger | `8cf2bfd` |
+| 2026-07-14 | **`brand/`** — the studio's own DS store + the first evidence-cited design soul | `cf7c46b` |
+| 2026-07-14 | **`ui ds soul --studio`** — the studio identity layer above every project soul; names the agents | `8ef3a28` |
+| 2026-07-14 | **`design-os heartbeat`** — deterministic design-health rhythm: due-scheduled checks, DESIGN_OK contract, delta gating | `57224b3` |
+| 2026-07-14 | **`ui ds soul`** — declared design stance (`design/soul.md`): scaffold, 6-check structure floor, context injection, 9 workflow gates | `daa6c82` |
+| 2026-07-14 | **`design-os figma audit`** / `figma-agent audit-ds` — automated DS-hygiene audit (v2: ds/icon/screen segmentation, variant-aware detectors, offline replay) | `c1e676b`…`7a3a20d` |
+| 2026-07-14 | **DESIGN:OS** — rebrand + repo rename; live-product demo gallery; README workflow map | `2f28e80` |
+| 2026-07-14 | **Slop gates** — 8 deterministic anti-generated-UI checks across taste/layout/content linters + `knowledge/page-structures.md` | `28f027e` |
+| 2026-07-13 | **Figma plugin** — self-healing multi-file broker, brand panel (compact-first), connection stability | `55ec6f3`…`a6c90e3` |
+| 2026-07-13 | **27-component kit** — `ds init` compiles a full paired-token component library out of the box | `30fd579`…`7e24258` |
 
 ---
 
