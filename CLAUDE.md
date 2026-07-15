@@ -33,7 +33,9 @@ The rules below summarize repo practice; the constitution wins on conflict.
   `npm test` — all must pass (CI runs the same).
 - Keep the binary deterministic: pure transforms, no network, no model calls.
 - Read selectively — open the `knowledge/` file relevant to the task, not all of them.
-- Decisions in `plans/ease-design/brainstorm.md` §6 are locked; do not relitigate them.
+- Locked decisions live in `.specify/memory/constitution.md` (ratified from the original
+  brainstorm); do not relitigate them. The pre-spec-kit brainstorm archive is
+  single-machine under `plans/` and may not exist on every clone.
 
 ## Hard-won rules (from the dogfood loop — each cost a real bug)
 
