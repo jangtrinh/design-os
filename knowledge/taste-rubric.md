@@ -115,7 +115,10 @@ reads correctly. Spacing steps should progress on a recognizable scale (e.g. 4, 
 
 **Anti-patterns:** off-grid values (`13px`, `27px`); inconsistent gaps between sibling
 elements; padding that doesn't scale with element role; cramped touch targets (interactive
-hit area below ~44px on touch surfaces).
+hit area below ~44px on touch surfaces). *Machine floor:* `taste-lint`'s
+`tap-target-undersized` (warning) flags an interactive control with a fixed height below
+44px, a min-height floor below 44px with no compensating padding, or an icon-only control
+with too little padding — the WCAG 2.5.5 / HIG / Material touch minimum.
 
 ### Scoring 0–10
 
@@ -238,7 +241,12 @@ never designed.
 
 **Anti-patterns:** a unique shadow value on every element; pure-black harsh shadows;
 shadow and heavy border stacked on the same surface; glass over busy content that kills
-text contrast; elevation that doesn't correlate with actual stacking order; z-index 9999.
+text contrast; elevation that doesn't correlate with actual stacking order; z-index 9999;
+a large background gradient in the indigo→magenta band (the machine-default "AI glow" —
+finance/enterprise surfaces read it as cheap). *Machine floor:* `taste-lint`'s
+`ai-cliche-gradient` (error) converts each gradient stop to OKLCH and flags a large-surface
+linear/radial/conic gradient dominated by stops in the ~270–330° hue band; recolor to the
+brand hue (or declare that hue as an in-doc brand token to exempt it).
 
 ### Scoring 0–10
 
