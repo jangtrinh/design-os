@@ -38,32 +38,27 @@ export function sanitizeAgentName(raw: string): string {
 }
 
 /**
- * Genealogy naming (studio × project × role):
+ * Role-first naming with a genealogy suffix (generic prefix, identity tail):
  *   with a studio soul (`name: JANG`, project `vsf-pcp`):
- *     designer   → jang-vsf-pcp          (the flagship carries the bare name)
- *     curator    → jang-vsf-pcp-curator
- *     figma-hand → jang-vsf-pcp-figma
+ *     designer   → designer-jang-vsf-pcp
+ *     curator    → curator-jang-vsf-pcp
+ *     figma-hand → figma-jang-vsf-pcp
  *   without a studio soul:
- *     designer   → vsf-pcp-designer      (+ the command layer hints at
- *     curator    → vsf-pcp-curator        creating a studio soul)
- *     figma-hand → vsf-pcp-figma
- * The assembled name is sanitized as a whole (see sanitizeAgentName).
+ *     designer   → designer-vsf-pcp      (+ the command layer hints at
+ *     curator    → curator-vsf-pcp        creating a studio soul)
+ *     figma-hand → figma-vsf-pcp
+ * The generic role prefix is what docs and delegation reach for ("the designer
+ * agent"); the suffix keeps names unique across projects and carries the
+ * studio×project identity. Sanitized as a whole (see sanitizeAgentName).
  */
 export function agentName(
   role: AgentRole,
   projectName: string,
   studioName: string | null,
 ): string {
+  const roleToken = role === "figma-hand" ? "figma" : role;
   const base = studioName !== null ? `${studioName}-${projectName}` : projectName;
-  const named =
-    role === "designer"
-      ? studioName !== null
-        ? base
-        : `${base}-designer`
-      : role === "curator"
-        ? `${base}-curator`
-        : `${base}-figma`;
-  return sanitizeAgentName(named);
+  return sanitizeAgentName(`${roleToken}-${base}`);
 }
 
 // ─── Template hash (fnv1a → 8 hex chars) ──────────────────────────────────────

@@ -21,19 +21,19 @@ import {
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const NAME_RE = /^[a-z][a-z0-9-]*$/;
 
-// ─── agentName — the genealogy matrix ────────────────────────────────────────
+// ─── agentName — role-first with the genealogy suffix ────────────────────────
 
 describe("agentName", () => {
-  it("with a studio: designer carries the bare genealogy name; others suffix", () => {
-    expect(agentName("designer", "vsf-pcp", "JANG")).toBe("jang-vsf-pcp");
-    expect(agentName("curator", "vsf-pcp", "JANG")).toBe("jang-vsf-pcp-curator");
-    expect(agentName("figma-hand", "vsf-pcp", "JANG")).toBe("jang-vsf-pcp-figma");
+  it("with a studio: generic role prefix + studio-project genealogy suffix", () => {
+    expect(agentName("designer", "vsf-pcp", "JANG")).toBe("designer-jang-vsf-pcp");
+    expect(agentName("curator", "vsf-pcp", "JANG")).toBe("curator-jang-vsf-pcp");
+    expect(agentName("figma-hand", "vsf-pcp", "JANG")).toBe("figma-jang-vsf-pcp");
   });
 
-  it("without a studio: every role suffixes the project name", () => {
-    expect(agentName("designer", "vsf-pcp", null)).toBe("vsf-pcp-designer");
-    expect(agentName("curator", "vsf-pcp", null)).toBe("vsf-pcp-curator");
-    expect(agentName("figma-hand", "vsf-pcp", null)).toBe("vsf-pcp-figma");
+  it("without a studio: role prefix + project only", () => {
+    expect(agentName("designer", "vsf-pcp", null)).toBe("designer-vsf-pcp");
+    expect(agentName("curator", "vsf-pcp", null)).toBe("curator-vsf-pcp");
+    expect(agentName("figma-hand", "vsf-pcp", null)).toBe("figma-vsf-pcp");
   });
 
   it("sanitizes a dirty studio name into the Claude subagent shape", () => {
@@ -41,7 +41,7 @@ describe("agentName", () => {
       const name = agentName(role, "vsf-pcp", "Jang Trịnh!");
       expect(name).toMatch(NAME_RE);
     }
-    expect(agentName("designer", "vsf-pcp", "Jang Trịnh!")).toBe("jang-tr-nh-vsf-pcp");
+    expect(agentName("designer", "vsf-pcp", "Jang Trịnh!")).toBe("designer-jang-tr-nh-vsf-pcp");
   });
 
   it("caps the assembled name at 64 chars, still valid", () => {

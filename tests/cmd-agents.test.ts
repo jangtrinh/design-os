@@ -84,14 +84,14 @@ describe("ui agents init", () => {
     expect(env.ok).toBe(true);
     expect(env.command).toBe("agents init");
     expect(env.data.agents).toEqual([
-      { role: "designer", name: "jang-vsf-pcp", path: agentPath(tmp, "jang-vsf-pcp.md"), written: true },
-      { role: "curator", name: "jang-vsf-pcp-curator", path: agentPath(tmp, "jang-vsf-pcp-curator.md"), written: true },
-      { role: "figma-hand", name: "jang-vsf-pcp-figma", path: agentPath(tmp, "jang-vsf-pcp-figma.md"), written: true },
+      { role: "designer", name: "designer-jang-vsf-pcp", path: agentPath(tmp, "designer-jang-vsf-pcp.md"), written: true },
+      { role: "curator", name: "curator-jang-vsf-pcp", path: agentPath(tmp, "curator-jang-vsf-pcp.md"), written: true },
+      { role: "figma-hand", name: "figma-jang-vsf-pcp", path: agentPath(tmp, "figma-jang-vsf-pcp.md"), written: true },
     ]);
 
-    const designer = readFileSync(agentPath(tmp, "jang-vsf-pcp.md"), "utf8");
-    expect(designer).toContain("name: jang-vsf-pcp");
-    expect(designer).toContain("You are jang-vsf-pcp, the designer agent for **vsf-pcp**.");
+    const designer = readFileSync(agentPath(tmp, "designer-jang-vsf-pcp.md"), "utf8");
+    expect(designer).toContain("name: designer-jang-vsf-pcp");
+    expect(designer).toContain("You are designer-jang-vsf-pcp, the designer agent for **vsf-pcp**.");
     expect(designer).toContain("You carry the JANG studio's soul as your base identity.");
     expect(designer).toMatch(/roster-role: designer · template-hash: [0-9a-f]{8}/);
     expect(designer).not.toContain("{{");
@@ -103,12 +103,12 @@ describe("ui agents init", () => {
 
     const r = capture(["agents", "init", "--dir", tmp]);
     expect(r.exitCode).toBe(0);
-    expect(existsSync(agentPath(tmp, "vsf-pcp-designer.md"))).toBe(true);
-    expect(existsSync(agentPath(tmp, "vsf-pcp-curator.md"))).toBe(true);
-    expect(existsSync(agentPath(tmp, "vsf-pcp-figma.md"))).toBe(true);
+    expect(existsSync(agentPath(tmp, "designer-vsf-pcp.md"))).toBe(true);
+    expect(existsSync(agentPath(tmp, "curator-vsf-pcp.md"))).toBe(true);
+    expect(existsSync(agentPath(tmp, "figma-vsf-pcp.md"))).toBe(true);
     expect(r.stdout).toContain("ui ds soul init --studio");
     expect(r.stdout).toContain("agents are Claude Code subagents — delegate with their names.");
-    expect(readFileSync(agentPath(tmp, "vsf-pcp-designer.md"), "utf8")).not.toContain("studio's soul");
+    expect(readFileSync(agentPath(tmp, "designer-vsf-pcp.md"), "utf8")).not.toContain("studio's soul");
   });
 
   it("errors DS_NOT_FOUND (with the ds init hint) when the project has no manifest", () => {
@@ -126,19 +126,19 @@ describe("ui agents init", () => {
     writeStudioSoul(home);
     capture(["agents", "init", "--dir", tmp]);
 
-    const p = agentPath(tmp, "jang-vsf-pcp.md");
+    const p = agentPath(tmp, "designer-jang-vsf-pcp.md");
     writeFileSync(p, "hand-edited\n", "utf8");
 
     const r = capture(["agents", "init", "--dir", tmp, "--json"]);
     expect(r.exitCode).toBe(1);
     const env = JSON.parse(r.stdout);
     expect(env.error.code).toBe("EXISTS");
-    expect(env.error.message).toContain("jang-vsf-pcp.md");
+    expect(env.error.message).toContain("designer-jang-vsf-pcp.md");
     expect(readFileSync(p, "utf8")).toBe("hand-edited\n");
 
     const rf = capture(["agents", "init", "--dir", tmp, "--force", "--json"]);
     expect(rf.exitCode).toBe(0);
-    expect(readFileSync(p, "utf8")).toContain("You are jang-vsf-pcp");
+    expect(readFileSync(p, "utf8")).toContain("You are designer-jang-vsf-pcp");
   });
 
   it("--roster subset writes only those roles; an unknown role is BAD_ARG naming the roster", () => {
@@ -149,7 +149,7 @@ describe("ui agents init", () => {
     const r = capture(["agents", "init", "--dir", tmp, "--roster", "designer,curator", "--json"]);
     expect(r.exitCode).toBe(0);
     expect(JSON.parse(r.stdout).data.agents.map((a: { role: string }) => a.role)).toEqual(["designer", "curator"]);
-    expect(existsSync(agentPath(tmp, "jang-vsf-pcp-figma.md"))).toBe(false);
+    expect(existsSync(agentPath(tmp, "figma-jang-vsf-pcp.md"))).toBe(false);
 
     const bad = capture(["agents", "init", "--dir", tmp, "--roster", "designer,researcher", "--force", "--json"]);
     expect(bad.exitCode).toBe(1);
@@ -173,7 +173,7 @@ describe("ui agents list", () => {
     expect(r.exitCode).toBe(0);
     const agents = JSON.parse(r.stdout).data.agents as Array<{ name: string; role: string; hash: string; fresh: boolean }>;
     expect(agents).toHaveLength(3);
-    expect(agents.map((a) => a.name).sort()).toEqual(["jang-vsf-pcp", "jang-vsf-pcp-curator", "jang-vsf-pcp-figma"]);
+    expect(agents.map((a) => a.name).sort()).toEqual(["curator-jang-vsf-pcp", "designer-jang-vsf-pcp", "figma-jang-vsf-pcp"]);
     for (const a of agents) {
       expect(a.hash).toMatch(/^[0-9a-f]{8}$/);
       expect(a.fresh).toBe(true);
@@ -212,7 +212,7 @@ describe("ui agents check", () => {
     writeStudioSoul(home);
     capture(["agents", "init", "--dir", tmp]);
 
-    const p = agentPath(tmp, "jang-vsf-pcp-curator.md");
+    const p = agentPath(tmp, "curator-jang-vsf-pcp.md");
     writeFileSync(p, readFileSync(p, "utf8") + "x", "utf8");
 
     const r = capture(["agents", "check", "--dir", tmp, "--json"]);
@@ -220,7 +220,7 @@ describe("ui agents check", () => {
     const data = JSON.parse(r.stdout).data;
     expect(data.errorCount).toBe(1);
     expect(data.findings[0].checkId).toBe("agent-stale");
-    expect(data.findings[0].message).toContain("jang-vsf-pcp-curator");
+    expect(data.findings[0].message).toContain("curator-jang-vsf-pcp");
     expect(data.findings[0].message).toContain("ui agents init --force");
 
     capture(["agents", "init", "--dir", tmp, "--force"]);
@@ -248,8 +248,8 @@ describe("ui agents check", () => {
 
     mkdirSync(join(tmp, ".claude", "agents"), { recursive: true });
     writeFileSync(
-      agentPath(tmp, "jang-vsf-pcp-researcher.md"),
-      "---\nname: jang-vsf-pcp-researcher\n---\n\nold role\n\n<!-- design-os agents · roster-role: researcher · template-hash: 0123abcd -->\n",
+      agentPath(tmp, "designer-jang-vsf-pcp-researcher.md"),
+      "---\nname: designer-jang-vsf-pcp-researcher\n---\n\nold role\n\n<!-- design-os agents · roster-role: researcher · template-hash: 0123abcd -->\n",
       "utf8",
     );
 
@@ -267,7 +267,7 @@ describe("ui agents check", () => {
     initDs(tmp);
     writeStudioSoul(home);
     capture(["agents", "init", "--dir", tmp]);
-    const p = agentPath(tmp, "jang-vsf-pcp.md");
+    const p = agentPath(tmp, "designer-jang-vsf-pcp.md");
     writeFileSync(p, readFileSync(p, "utf8") + "x", "utf8");
 
     const r = capture(["agents", "check", "--dir", tmp]);

@@ -12,8 +12,9 @@ siblings. `ui agents init|list|check` is the toolchain.
 `studio × project × role`. The studio soul's frontmatter `name:` (e.g. `name: JANG`)
 crossed with the project's manifest name (e.g. `vsf-pcp`):
 
-- **designer** (flagship) → `jang-vsf-pcp` — carries the bare genealogy name.
-- **curator** → `jang-vsf-pcp-curator`; **figma-hand** → `jang-vsf-pcp-figma`.
+- **designer** → `designer-jang-vsf-pcp` — generic role prefix, genealogy suffix.
+- **curator** → `curator-jang-vsf-pcp`; **figma-hand** → `figma-jang-vsf-pcp`.
+- No studio soul → `designer-<project>` etc.; the role prefix is what you delegate to.
 - No studio soul → `vsf-pcp-designer` / `vsf-pcp-curator` / `vsf-pcp-figma`, and
   `init` hints at `ui ds soul init --studio`.
 

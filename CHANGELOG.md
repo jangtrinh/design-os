@@ -7,6 +7,40 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **`ui agents` — soul-bound, task-scoped project agents.** `agents init` writes Claude Code
+  subagents into `.claude/agents/` — role-first names with a genealogy suffix
+  (`designer-jang-vsf-pcp`), identity read at runtime via `ui ds context` (souls are never
+  baked into the file), hard role boundaries (designer never self-scores · curator never
+  edits · figma-hand never simulates), opt-in roster, and a template-hash drift check
+  (`agents check` → `agent-stale`).
+- **`ui ds soul` (+ `--studio`) — the declared design stance.** `design/soul.md` (Never /
+  Always / Voice, owner-ratified) rides ahead of personas in every generation flow;
+  `~/.ease-design/studio-soul.md` is the studio layer above every project soul and names
+  the agents. Emitter + linter: scaffolds from `ds init`, a 6-check structure floor, and
+  evidence-cited extraction via `/ui:learn`. Precedence: brief > soul > memory > floors.
+- **`design-os heartbeat` — deterministic design-health rhythm.** Due-scheduled checks
+  (ds-a11y · specimen · audit-pages · figma-audit) with per-task intervals, a DESIGN_OK
+  silence contract, worsened/improved delta gating (exit 1 = the notification), skip
+  reasons everywhere, FNV-1a stagger, and `--stats` ok-rates. No model calls.
+- **`ui taste` — vote-driven taste corpus.** Ingest with sha256 + dHash dedup, pairwise
+  Elo ranking, study-verdict ledger; pure JSONL stores.
+- **`design-os figma audit` / `figma-agent audit-ds` — automated DS-hygiene audit.** One
+  raw plugin pass (dynamic-page-safe, census-accurate on 160k-instance files), judged
+  entirely in fixture-tested CLI code: ds/icon/screen segmentation, ten detectors
+  (unused, junk names, deprecated, duplicates by name and structure, dead variants,
+  redundant families, empty sets, misfiled, unbound paints), offline `--from-facts` replay.
+- **Slop gates** — 8 deterministic anti-generated-UI checks (overshoot easing, italic
+  display headings, uppercase tight line-height, focus rings that fade in, z-index
+  inflation, 100vw widths, root overflow-x hidden, placeholder names) wired into the
+  taste/layout/content linters, plus `knowledge/page-structures.md` (21 macrostructures,
+  variety↔conformance switch, honest copy, pre-emit self-critique).
+- **`brand/`** — the studio's own design-system store (Swiss Monolith, machine-corrected
+  contrast) and the first evidence-cited soul, extracted from five live products.
+
+### Changed
+- **DESIGN:OS** — project rebranded (repo renamed to `design-os`); README rebuilt hero-first
+  with a live-product demo gallery, workflow maps, and this changelog surfaced as a table.
+
 - **`ui ds specimen` — the component-registry state/variant completeness contract (learn-from-shadcn Phase 3).**
   A shadcn component page draws every variant×size×state as a specimen grid; `ui ingest-figma-ds` captures it
   as `variants: ["State=Hover", …]`. `ui ds specimen` reads that back and reports each component's variant
