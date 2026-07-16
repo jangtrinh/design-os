@@ -10,10 +10,11 @@
 // Nothing here throws: an unresolvable main degrades to the plain frame the build
 // path would have produced before P2, with a warning (visible loss, not silent).
 
-import type { FigmaExportNode } from '../../../shared/figma-payload-types';
+import type { FigmaExportFill, FigmaExportNode } from '../../../shared/figma-payload-types';
 import { applyInnerOverrides } from './executor-instance-inner-overrides';
 import { exportFillToPaint, mapExportEffects, pushImportWarning } from './executor-styles';
 import { resolveMainComponent } from './resolve-main-component';
+import { asFills } from './scan-node-paint';
 
 /** Builds the degrade-to-frame placeholder — injected to avoid an import cycle. */
 export type FrameFallback = (spec: FigmaExportNode) => Promise<SceneNode | null>;
@@ -30,10 +31,27 @@ function applyComponentProperties(instance: InstanceNode, spec: FigmaExportNode)
   }
 }
 
-/** True when the spec's fills differ from the paints the main already produced. */
-function fillsDiffer(current: readonly Paint[] | symbol, wanted: Paint[]): boolean {
+/**
+ * True when the spec's fills differ from the paints the main already produced.
+ *
+ * COMPARED THROUGH THE SCAN'S OWN LENS (spec-005 P14), and that is the whole fix. The
+ * old comparison put a LIVE Paint next to a payload-derived one and asked
+ * JSON.stringify to judge — but a live Paint carries `visible`, `blendMode` and, the
+ * expensive one, `boundVariables`, none of which the payload models. So it answered
+ * "differ" for EVERY instance, always, and the write below then stamped literal paints
+ * over the main's — destroying an inherited variable binding and minting the spurious
+ * override this file's header promises never to mint. Live proof: the DS Filter drawer
+ * (25579:376846), whose `_Sheet` child has `overrides: []` and inherits its fill
+ * binding straight from its main; the rebuild lost `tailwind colors/base/black`
+ * without a single warning, because nothing ever failed — we simply overwrote it.
+ *
+ * `asFills` is the same function the walker scans with, so both sides of this
+ * comparison speak the payload's vocabulary and CANNOT drift apart: whatever the scan
+ * would have recorded off the main is what we test the spec against.
+ */
+function fillsDiffer(current: readonly Paint[] | symbol, wanted: FigmaExportFill[]): boolean {
   if (typeof current === 'symbol') return true; // figma.mixed → cannot compare
-  return JSON.stringify(current) !== JSON.stringify(wanted);
+  return JSON.stringify(asFills(current as Paint[]) ?? []) !== JSON.stringify(wanted);
 }
 
 /**
@@ -55,7 +73,7 @@ function applyNodeOverrides(instance: InstanceNode, spec: FigmaExportNode): void
 
   if (spec.fills && spec.fills.length) {
     const paints = spec.fills.map(exportFillToPaint).filter((p): p is Paint => p !== null);
-    if (paints.length && fillsDiffer(instance.fills, paints)) {
+    if (paints.length && fillsDiffer(instance.fills, spec.fills)) {
       try { instance.fills = paints; } catch { /* fills locked by the main */ }
     }
   }
