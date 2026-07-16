@@ -1,93 +1,92 @@
-# Spec 004 — Figma live-sync: the design system's registry follows Figma in near-real-time
+# Spec 004 — Figma live-sync: the registry auto-follows Figma on idle
 
 **Status**: draft-for-review · **Stage**: spec · **Tracking**: GitHub issues per phase
-**Constitution**: Art I (two sources of truth — capture lives outside the kernel, the
-delta→registry transform is deterministic), Art II (emitter+linter), Art III (real data),
-Art V (three-tier pipeline), Art X (no auto-overwrite: a11y/quality gates still apply)
+**Constitution**: Art I (capture lives outside the kernel; the delta→registry transform is
+deterministic), Art II (emitter+linter), Art III (real data), Art V (three-tier pipeline)
 
 ## What
 
-Turn Figma from a one-shot snapshot source into a **living source**: when a user edits a
-frame or component in Figma, the change is captured near-real-time to an append-only
-change-log, and a deterministic reconcile applies it into design:os's component-registry —
-one-way (Figma→registry), scope-aware (local vs global), detect-automatically but
-apply-with-a-brake (preview-delta → human/heartbeat accept). Detail + exact hook points:
-`plan.md`. Feasibility research (all API facts + code hooks cited): lab
+When the user edits anything in Figma, then stops for **5 minutes** (idle window,
+configurable), the accumulated changes auto-save into design:os's component-registry —
+one-way (Figma→registry), same rule for local and global components, deterministic reconcile.
+The append-only change-log is the audit trail and the undo source: the registry is a
+replayable view over the log (the design:os ledger philosophy). Detail + hook points:
+`plan.md`. Feasibility research (API + code hooks, file:line): lab
 `harvest/figma-sync-research.md`.
 
 ## Why
 
 Today the flow is pull-once: `figma scan → ingest-figma-ds → registry` re-snapshots the whole
-DS. Owner wants push-continuous: an edit to one component flows to the registry without a full
-re-scan, so the registry is a live reflection of the design source. Research confirms this maps
-cleanly onto primitives design:os already has (broker event fan-out, the memory-store jsonl
-ledger+cursor pattern, `registerComponent` reconcile-by-name, `ds-diff` for deltas) — it is an
-extension, not new infrastructure.
+DS. Owner wants it automatic: edit, walk away, and the registry has already caught up — no
+publish step, no manual sync, no accept dialog. The 5-min-idle model is the simplest thing
+that works: it needs no library-publish signal (which Figma only exposes via a paid REST
+webhook) and no "which component did you leave" heuristic — every edit flows the same way.
 
 ## Locked model (owner, 2026-07-16)
 
 - **Direction: one-way Figma→registry.** Figma is the design source of truth.
-- **Scope: one registry, records tagged `scope: local | global`.** Local = this project only;
-  global = shared/published library used across projects. Scope inferred from Figma publish
-  status / `remote`.
-- **Two-speed commit points:** LOCAL component → applied when the user leaves editing it
-  (save/deselect boundary); GLOBAL → only on library publish.
-- **Detect auto, apply braked:** changes are logged in real-time automatically; reconcile
-  produces a preview-delta; a human or the heartbeat accepts before it lands. No silent
-  overwrite of the registry (no-silent-caps).
-- **Deletion = soft-deprecate** (not hard-delete), matching the existing audit `deprecated`
-  concept.
+- **Commit-point: 5-minute idle debounce, uniform for local AND global.** Each Figma change
+  resets a timer; 5 minutes with no change → auto-commit. Default 5 min, **configurable** in
+  `design/` (one line). No publish-gate, no per-component boundary.
+- **Confirm mechanism (locked): a 1-click prompt in the plugin's existing status panel.** At
+  the idle point, the figma-agent panel — already open in Figma, already showing connection
+  status — adds a line *"N changes ready — Sync now / Later"*. One click applies; in-context,
+  never leaves Figma. Safe because the change-log is append-only: every apply is reversible by
+  replaying the log to a prior cursor.
+- **Scope tag stays:** records are still tagged `scope: local | global` (inferred from Figma
+  publish-status / `remote`) — the tag matters for cross-project reuse, but both scopes use
+  the same idle-commit timing.
+- **Deletion = soft-deprecate** (not hard-delete), matching the existing audit `deprecated`.
 
-## Feasibility (from research — VERIFY-first, grades in the report)
+## Feasibility (from research)
 
-Strong for most of the model. Existing primitives reused: broker `broadcastToClients` event
-channel + `EventMsg` (transport), `memory-store` append-only jsonl + line-count cursor
-(the change-log is a drop-in mirror), `registerComponent` name-keyed replace + `ds-diff`
-added/removed/changed (reconcile). `documentchange` gives op + node id + changed props +
-`origin: LOCAL|REMOTE`, whole-document under `dynamic-page` + `loadAllPagesAsync()`.
+Strong, and the idle model removes the one real risk. Reused primitives: broker
+`broadcastToClients` event channel + `EventMsg` (transport), `memory-store` append-only jsonl +
+line-count cursor (the change-log is a drop-in mirror — and the undo source), `registerComponent`
+name-keyed replace + `ds-diff` added/removed/changed (reconcile). `documentchange` gives op +
+node id + changed props + `origin: LOCAL|REMOTE`, whole-document under `dynamic-page` +
+`loadAllPagesAsync()`. The idle timer is a plain debounce (`setTimeout` reset on each change).
 
-**The one real risk — GLOBAL publish signal.** `LIBRARY_PUBLISH` is exposed only via the
-**REST webhook v2** (needs a server + team token + paid plan), NOT as a plugin event.
-Plugin-side, `getPublishStatusAsync()` is only accurate inside the library file and emits no
-event — it must be polled. So the GLOBAL "second speed" is the only part without a clean
-plugin signal. Two workarounds (decision D2 below).
+**Dropped by this model:** the `LIBRARY_PUBLISH` webhook (was the one risk — gone) and the
+selectionchange "leave-component" heuristic (gone). Both replaced by the single idle timer.
 
-Second-order risks: `documentchange` volume (batched but fires on every settle → must coalesce
-hard to the component level); `RemovedNode` loses most props on DELETE → must snapshot identity
-at capture time; `loadAllPagesAsync()` at boot loads all pages into RAM.
+**Remaining caveats (not blockers):**
+- The idle timer needs the plugin open during the 5 min. If Figma/plugin closes first, that
+  idle-commit doesn't fire — but the change-log persisted at the broker, so the next reconcile
+  catches up. No data loss, just a delayed save.
+- `documentchange` fires on every settle → coalesce hard to the component level before commit.
+- `RemovedNode` loses props on DELETE → snapshot identity at capture.
+- `loadAllPagesAsync()` at boot loads all pages into RAM.
 
-## Owner decisions needed (flagged)
+## Owner decision needed (one)
 
-- **D1 — LOCAL commit boundary:** the "leave editing a component" signal is a *derived
-  heuristic* (selectionchange-boundary + documentchange coalesce), not a native Figma event.
-  Accept the heuristic (recommended), or require an explicit user action (e.g. a plugin
-  "commit" button) as the boundary?
-- **D2 — GLOBAL publish workaround:** default **A. plugin publish-status polling** (no server,
-  coarse, single-file-only) with **B. REST webhook** as an opt-in team tier later
-  (recommended); or require the webhook from the start (accurate, multi-machine, but needs
-  server + token + plan)?
-- **D3 — Registry schema change:** add `scope: local|global` and `deprecated?: boolean` to
-  `ComponentRecord` (its allowed-keys are closed, `additionalProperties:false`) — this is a
-  DS-manifest schema change (per constitution, schema changes go through a normal reviewed PR,
-  the librarian only proposes). Confirm the two new fields + their defaults.
+- **D3 — Registry schema:** add `scope: local|global` and `deprecated?: boolean` to
+  `ComponentRecord` (its allowed-keys are closed, `additionalProperties:false`). This is a
+  DS-manifest schema change — normal reviewed PR. Confirm the two fields + defaults
+  (proposed: `scope` defaults `local`, `deprecated` defaults absent/false).
+
+*(D1 local-boundary and D2 publish-workaround from the earlier draft are RESOLVED — the idle
+model eliminates both.)*
 
 ## Non-goals
 
-- Two-way sync (registry→Figma) — deferred; would need real conflict resolution.
+- Two-way sync (registry→Figma) — deferred; needs real conflict resolution.
+- Manual accept / preview-gate — owner chose auto-save; the log is the undo path.
 - LLM in the reconcile path — the transform stays deterministic (kernel rule).
-- Real-time *apply* — apply is always braked (preview + accept); only *detection* is real-time.
+- Library-publish webhook / server — not needed for the idle model (may revisit for
+  multi-machine global sync later, opt-in).
 
-## Acceptance criteria (per phase, 3-tier pipeline)
+## Acceptance criteria (per phase)
 
-1. Capture: `documentchange` → `design/figma.changes.jsonl` append-only with identity
-   snapshotted; dogfood on a real Figma file measuring event coverage + volume (Art III).
-2. Reconcile `--dry-run`: deterministic preview-delta from the log, zero network/LLM, verified
-   against a real change batch; scope mapping correct.
-3. Apply braked: preview → accept advances the cursor; nothing lands silently.
+1. Capture: `documentchange` → `design/figma.changes.jsonl` append-only, identity snapshotted;
+   dogfood on a real Figma file measuring event coverage + volume (Art III).
+2. Reconcile `--dry-run`: deterministic preview-delta from the log, zero network/LLM.
+3. Idle-auto-commit: 5-min idle (configurable) → reconcile applies; cursor advances; an
+   `undo`/replay path to a prior cursor exists.
 4. Deletion soft-deprecates; audit still reads `deprecated`.
 5. Every phase = 1 PR, human merge; 4 gates + `ui knowledge check` + `uv run pytest -q` green.
 
 ## References
 
-- Feasibility research (API + code hooks, file:line): lab `harvest/figma-sync-research.md`.
-- Rule/phase detail + exact hook points: `plan.md`.
+- Feasibility research: lab `harvest/figma-sync-research.md`.
+- Hook points + phasing: `plan.md`.
