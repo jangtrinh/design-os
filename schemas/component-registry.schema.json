@@ -57,6 +57,16 @@
         "description": {
           "type": "string",
           "description": "Human-readable description of the component's purpose."
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["local", "global"],
+          "default": "local",
+          "description": "Reuse scope (spec 004): 'local' = owned by this project's DS; 'global' = a published/shared library component. Semantically required, but omitted here from the required list so pre-migration registries stay valid — a missing value is read as 'local'."
+        },
+        "deprecated": {
+          "type": "boolean",
+          "description": "Soft-deprecation flag (spec 004). Absent or false = active; true = deprecated (the audit reads this). Distinct from lifecycle 'status'."
         }
       },
       "required": ["name", "category", "markup", "tokensUsed"],
