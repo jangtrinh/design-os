@@ -19,6 +19,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 export type ComponentState = "default" | "hover" | "active" | "focus" | "disabled";
 /** Lifecycle status (shadcn 🔵/🟢 convention): a `stable` component must honour its state contract. */
 export type ComponentStatus = "draft" | "beta" | "stable";
+/**
+ * Reuse scope (spec 004 D3): `local` = owned by this project's DS; `global` = a
+ * published/shared library component reusable across projects (inferred from Figma
+ * publish-status / `remote` during reconcile). Semantically REQUIRED — every record
+ * carries a scope after load/validate. Optional here only so a pre-migration file
+ * (written before this field existed) parses; the load/validate boundary normalizes a
+ * missing value to `"local"`.
+ */
+export type ComponentScope = "local" | "global";
 
 export interface ComponentRecord {
   name: string;
@@ -29,6 +38,11 @@ export interface ComponentRecord {
   states?: ComponentState[];
   description?: string;
   status?: ComponentStatus;
+  /** Reuse scope; defaults to `"local"` when absent (migration). See {@link ComponentScope}. */
+  scope?: ComponentScope;
+  /** Soft-deprecation flag (spec 004). Absent = active; `true` = deprecated (audit reads this).
+   * A distinct field, NOT a `status` value — a component can be `stable` and `deprecated`. */
+  deprecated?: boolean;
 }
 
 export interface Registry {
@@ -58,8 +72,12 @@ const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([
   "name", "category", "markup", "tokensUsed", "variants", "states", "description", "status",
+  "scope", "deprecated",
 ]);
 const VALID_STATUSES = new Set<string>(["draft", "beta", "stable"]);
+const VALID_SCOPES = new Set<string>(["local", "global"]);
+/** Default reuse scope for records that predate the `scope` field (spec 004 migration). */
+const DEFAULT_SCOPE: ComponentScope = "local";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -144,6 +162,16 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
     throw new RegistryError("BAD_ARG", `component.status must be one of: ${[...VALID_STATUSES].join(", ")}`);
   }
 
+  // Optional: scope (reuse scope) — absent is valid and migrates to the default below.
+  if (r["scope"] !== undefined && (typeof r["scope"] !== "string" || !VALID_SCOPES.has(r["scope"]))) {
+    throw new RegistryError("BAD_ARG", `component.scope must be one of: ${[...VALID_SCOPES].join(", ")}`);
+  }
+
+  // Optional: deprecated (soft-deprecation flag)
+  if (r["deprecated"] !== undefined && typeof r["deprecated"] !== "boolean") {
+    throw new RegistryError("BAD_ARG", "component.deprecated must be a boolean");
+  }
+
   // additionalProperties: false — reject keys outside the schema
   for (const key of Object.keys(r)) {
     if (!COMPONENT_ALLOWED_KEYS.has(key)) {
@@ -163,6 +191,9 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
     ...(r["states"] !== undefined && { states: r["states"] as ComponentState[] }),
     ...(r["description"] !== undefined && { description: r["description"] as string }),
     ...(r["status"] !== undefined && { status: r["status"] as ComponentStatus }),
+    // Migration: missing scope defaults to "local" so the returned record always carries one.
+    scope: (r["scope"] as ComponentScope | undefined) ?? DEFAULT_SCOPE,
+    ...(r["deprecated"] !== undefined && { deprecated: r["deprecated"] as boolean }),
   };
 }
 
@@ -224,7 +255,17 @@ export function loadRegistry(path: string): Registry {
     }
   }
 
-  return { version: obj["version"], components: obj["components"] as ComponentRecord[] };
+  // Migration (spec 004): records written before `scope` existed lack it — default to
+  // "local" on read so every in-memory record carries a scope. Deliberately scoped to this
+  // one field; loadRegistry does not otherwise per-record-validate (that would retroactively
+  // reject registries the old lenient loader accepted).
+  const components = (obj["components"] as ComponentRecord[]).map((c) =>
+    c !== null && typeof c === "object" && (c as ComponentRecord).scope === undefined
+      ? { ...(c as ComponentRecord), scope: DEFAULT_SCOPE }
+      : c,
+  );
+
+  return { version: obj["version"], components };
 }
 
 /**
