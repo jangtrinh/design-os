@@ -94,6 +94,26 @@ Target: a single mobile screen.
 - **States:** Any data view requires a skeleton loading state (`animate-pulse`) **and** an
   empty state. Errors require a retry button.
 
+**Machine floor (responsive-web mobile).** These reliability rules are enforced by
+`ui validate-layout` / `ui a11y-lint` on ANY HTML — the mobile mode above is where they bite
+hardest, but a responsive desktop page that reflows to a phone owes them too:
+
+- **Tap spacing (`tap-spacing-cramped`):** adjacent tappables in a flex/grid row or stack need
+  a gap of **at least 8 px** (`gap-2`). A `gap-0`/`gap-1` row of controls invites mis-taps —
+  fingers are wider than a cursor. WHY: sub-8px spacing is the top touch-reliability failure.
+- **Input font (`input-font-below-16`):** a text-entry `<input>`/`<textarea>`/`<select>` must
+  render at **16 px or larger**. WHY: iOS Safari auto-zooms the page when a focused control is
+  under 16 px and does not zoom back out — a `text-sm` field is the classic offender.
+- **Safe area (`edge-bar-no-safe-area`):** a `fixed`/`sticky` bar anchored to the **bottom**
+  viewport edge (a bottom tab bar, a sticky CTA) must pad the system inset with
+  `env(safe-area-inset-bottom)`. WHY: without it the bar sits under the home indicator on
+  modern phones, hiding its own controls. (A top-0 sticky header is not flagged — the top
+  inset only bites in standalone/PWA mode, which static markup cannot prove.)
+- **Viewport height (`dvh-over-100vh`):** a full-viewport container uses **`100dvh`**
+  (`h-dvh` / `min-h-dvh`), never `100vh` / `h-screen`. WHY: the mobile URL bar resizes the
+  visual viewport, so `100vh` clips content then jumps as the bar collapses; the dynamic unit
+  tracks the real viewport.
+
 ## Desktop
 
 Default for web pages — landing, portfolio, documentation, marketing, social.

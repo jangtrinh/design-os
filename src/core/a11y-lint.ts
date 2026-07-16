@@ -4,7 +4,8 @@
  *
  * Scope is deliberately narrow: only WCAG criteria decidable from static markup with
  * near-zero false positives (alt presence, page language, title, positive tabindex,
- * viewport zoom, unnamed icon/emoji controls, heading hierarchy). Everything requiring
+ * viewport zoom, missing viewport meta on a responsive doc, unnamed icon/emoji
+ * controls, heading hierarchy). Everything requiring
  * a rendered DOM (real contrast, focus visibility, focus ORDER meaning) is Tier 2
  * (a browser workspace); everything requiring judgment (alt *quality*) is human.
  *
@@ -13,7 +14,7 @@
  */
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
-  checkViewportZoom, checkIconControlUnnamed, checkHeadingHierarchy,
+  checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
 } from "./a11y-checks.js";
 
 export type A11ySeverity = "error" | "warning";
@@ -39,6 +40,7 @@ const CHECKS = [
   checkDocumentTitle,
   checkPositiveTabindex,
   checkViewportZoom,
+  checkViewportMetaPresent,
   checkIconControlUnnamed,
   checkHeadingHierarchy,
 ];
