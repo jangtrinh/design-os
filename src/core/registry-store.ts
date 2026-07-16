@@ -43,6 +43,14 @@ export interface ComponentRecord {
   /** Soft-deprecation flag (spec 004). Absent = active; `true` = deprecated (audit reads this).
    * A distinct field, NOT a `status` value — a component can be `stable` and `deprecated`. */
   deprecated?: boolean;
+  /**
+   * Pointer to this component's Figma node sidecar (spec 005 P3), relative to the design
+   * dir — e.g. `"components/button-primary.figma.json"`. A POINTER, never the node tree
+   * inline, so the shared registry file stays small. Absent = no mirror captured yet
+   * (a pre-005 record, or a component never scanned); readers must treat it as optional.
+   * Orthogonal to `markup`, which stays one-way design→code. See `figma-node-reader.ts`.
+   */
+  figmaNode?: string;
 }
 
 export interface Registry {
@@ -72,14 +80,54 @@ const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([
   "name", "category", "markup", "tokensUsed", "variants", "states", "description", "status",
-  "scope", "deprecated",
+  "scope", "deprecated", "figmaNode",
 ]);
 const VALID_STATUSES = new Set<string>(["draft", "beta", "stable"]);
 const VALID_SCOPES = new Set<string>(["local", "global"]);
 /** Default reuse scope for records that predate the `scope` field (spec 004 migration). */
 const DEFAULT_SCOPE: ComponentScope = "local";
+/** Required suffix of a `figmaNode` sidecar pointer (spec 005 P3). */
+export const FIGMA_NODE_SUFFIX = ".figma.json";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
+
+/**
+ * Validate a `ComponentRecord.figmaNode` pointer: a design-dir-relative path ending in
+ * `.figma.json`.
+ *
+ * Absolute paths and `..` traversal are rejected here, at the shared layer, rather than
+ * only where a path gets resolved: a registry file is committed, shared input, so every
+ * consumer that joins this pointer to a design dir needs the same guarantee — it must not
+ * escape the design dir. `figma-node-reader.readFigmaNode` re-runs this before resolving.
+ *
+ * @returns the pointer unchanged when valid.
+ * @throws RegistryError("BAD_ARG") on a malformed pointer.
+ */
+export function validateFigmaNodePointer(relPath: unknown): string {
+  if (typeof relPath !== "string" || relPath.length === 0) {
+    throw new RegistryError("BAD_ARG", "component.figmaNode must be a non-empty string");
+  }
+  // Absolute POSIX ("/x"), Windows drive ("C:\x") and UNC ("\\srv") forms all escape.
+  if (relPath.startsWith("/") || relPath.startsWith("\\") || /^[A-Za-z]:/.test(relPath)) {
+    throw new RegistryError(
+      "BAD_ARG",
+      `component.figmaNode must be relative to the design dir, got absolute: '${relPath}'`,
+    );
+  }
+  if (relPath.split(/[/\\]/).includes("..")) {
+    throw new RegistryError(
+      "BAD_ARG",
+      `component.figmaNode must not traverse outside the design dir with '..': '${relPath}'`,
+    );
+  }
+  if (!relPath.endsWith(FIGMA_NODE_SUFFIX)) {
+    throw new RegistryError(
+      "BAD_ARG",
+      `component.figmaNode must point at a '${FIGMA_NODE_SUFFIX}' sidecar: '${relPath}'`,
+    );
+  }
+  return relPath;
+}
 
 /**
  * Validate an unknown value as a ComponentRecord against the schema constraints.
@@ -172,6 +220,11 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
     throw new RegistryError("BAD_ARG", "component.deprecated must be a boolean");
   }
 
+  // Optional: figmaNode (sidecar pointer, spec 005) — absent = no mirror captured yet.
+  if (r["figmaNode"] !== undefined) {
+    validateFigmaNodePointer(r["figmaNode"]);
+  }
+
   // additionalProperties: false — reject keys outside the schema
   for (const key of Object.keys(r)) {
     if (!COMPONENT_ALLOWED_KEYS.has(key)) {
@@ -194,6 +247,8 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
     // Migration: missing scope defaults to "local" so the returned record always carries one.
     scope: (r["scope"] as ComponentScope | undefined) ?? DEFAULT_SCOPE,
     ...(r["deprecated"] !== undefined && { deprecated: r["deprecated"] as boolean }),
+    // No migration default: a record without a sidecar simply has no pointer (P3 no-op).
+    ...(r["figmaNode"] !== undefined && { figmaNode: r["figmaNode"] as string }),
   };
 }
 

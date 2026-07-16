@@ -195,6 +195,69 @@ describe("validateComponentRecord", () => {
       validateComponentRecord({ ...validRecord({ scope: "global", deprecated: true }), bogus: 1 }),
     ).toThrow(expect.objectContaining({ code: "BAD_REGISTRY" }));
   });
+
+  // ─── figmaNode sidecar pointer (spec 005 P3) ─────────────────────────────
+
+  it("accepts a figmaNode pointer and preserves it on the returned record", () => {
+    const rec = validateComponentRecord(
+      validRecord({ figmaNode: "components/button-primary.figma.json" }),
+    );
+    expect(rec.figmaNode).toBe("components/button-primary.figma.json");
+  });
+
+  it("leaves figmaNode absent for a record with no sidecar (no migration default)", () => {
+    // A pre-005 record must load unchanged — no mirror captured is a valid state.
+    const rec = validateComponentRecord(validRecord());
+    expect(rec.figmaNode).toBeUndefined();
+    expect("figmaNode" in rec).toBe(false);
+  });
+
+  it("rejects a figmaNode pointer that escapes the design dir", () => {
+    for (const bad of [
+      "/etc/passwd.figma.json",
+      "../../secrets.figma.json",
+      "components/../../x.figma.json",
+      "C:\\windows\\x.figma.json",
+    ]) {
+      expect(() => validateComponentRecord(validRecord({ figmaNode: bad }))).toThrow(
+        expect.objectContaining({ code: "BAD_ARG" }),
+      );
+    }
+  });
+
+  it("rejects a figmaNode pointer that is not a .figma.json sidecar", () => {
+    expect(() => validateComponentRecord(validRecord({ figmaNode: "components/button.json" }))).toThrow(
+      expect.objectContaining({
+        code: "BAD_ARG",
+        message: expect.stringMatching(/must point at a '\.figma\.json' sidecar/),
+      }),
+    );
+  });
+
+  it("throws BAD_ARG when figmaNode is not a non-empty string", () => {
+    for (const bad of ["", 42 as never, null as never]) {
+      expect(() => validateComponentRecord(validRecord({ figmaNode: bad }))).toThrow(
+        expect.objectContaining({ code: "BAD_ARG" }),
+      );
+    }
+  });
+
+  it("keeps markup untouched alongside a figmaNode pointer (the two halves are orthogonal)", () => {
+    const rec = validateComponentRecord(
+      validRecord({ markup: "<button>Click</button>", figmaNode: "components/button-primary.figma.json" }),
+    );
+    expect(rec.markup).toBe("<button>Click</button>");
+    expect(rec.figmaNode).toBe("components/button-primary.figma.json");
+  });
+
+  it("still rejects an unknown key now that figmaNode is allowed", () => {
+    expect(() =>
+      validateComponentRecord({
+        ...validRecord({ figmaNode: "components/button-primary.figma.json" }),
+        bogus: 1,
+      }),
+    ).toThrow(expect.objectContaining({ code: "BAD_REGISTRY" }));
+  });
 });
 
 // ─── createEmptyRegistry ──────────────────────────────────────────────────────
