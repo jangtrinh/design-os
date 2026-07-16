@@ -14,7 +14,7 @@
 
 <p align="center"><sub>
 <code>v0.1.0</code> · Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel ·
-1,787 tests green · 23 personas · a 27-component kit · four deterministic linters
+1,787 tests green · 26 personas · a 27-component kit · four deterministic linters
 </sub></p>
 
 DESIGN:OS is a multi-runtime **design CLI**. You drive it through the agent CLI you
@@ -57,7 +57,7 @@ recordings of the live sites — every demo links through.**
   </tr>
 </table>
 
-Under the hood the same mechanism scales from one screen to a whole product: 23 personas
+Under the hood the same mechanism scales from one screen to a whole product: 26 personas
 compile the same 27-component, paired-token kit into any system (`ui ds init`), and every
 generated surface passes the same machine gates before it ships. The toolchain is also
 dogfooded on a production internal developer platform — a 129-component Figma library
@@ -207,7 +207,7 @@ commit** — prose-only rules drift; enforced rules hold.
 ```mermaid
 flowchart LR
     U["You — plain words"] --> HM["Host model<br/>Claude Code · Codex · Antigravity<br/>16 /ui:* workflows"]
-    HM -- reads --> K["knowledge/<br/>taste rubric · 23 personas · figma-craft<br/>page-structures · color science"]
+    HM -- reads --> K["knowledge/<br/>taste rubric · 26 personas · figma-craft<br/>page-structures · color science"]
     HM -- shells out --> UI["ui kernel — 28 deterministic commands<br/>ds · tokens · color · 4 linters · vr · memory"]
     HM -- orchestrates --> DOS["design-os conductor<br/>doctor · audit · reference · vr-matrix · update"]
     DOS -- verbatim envelopes --> UI
@@ -328,7 +328,7 @@ bring changes, audits, and evidence to the file.**
 | **`figma-agent` hand** | `figma-agent/` | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 9-detector hygiene audit, exec-js, capture. | 161 |
 | **rendered-tier hands** | `a11y/` | `a11y-audit` (axe-core over installed Chrome — wording never claims "compliant") + `page-shot` (deterministic full-page PNG). | — |
 | **`recall` mind** | `recall/` | Optional semantic memory: local embeddings (MiniLM/ONNX, nothing leaves the machine), hybrid RRF ranking, `query → …work… → reflect` loop. The kernel never imports it — a test fails the build if it does. | — |
-| **`knowledge/` core** | `knowledge/` | The model-facing brain: 6+1-axis taste rubric, 23 personas / 7 families, page-structures (21 shapes + diversification + honest copy), two-tier a11y model, color science, token taxonomy, `figma-craft/` construction tree. | — |
+| **`knowledge/` core** | `knowledge/` | The model-facing brain: 6+1-axis taste rubric, 26 personas / 7 families, page-structures (21 shapes + diversification + honest copy), two-tier a11y model, color science, token taxonomy, `figma-craft/` construction tree. | — |
 
 <details>
 <summary><b>All 28 <code>ui</code> commands</b></summary>
@@ -371,7 +371,7 @@ bring changes, audits, and evidence to the file.**
 ## How the loop works, mechanically
 
 1. **You describe intent** → `/ui:generate landing page for a new gym`.
-2. **Personas + DS compile** — the model scores intent against 23 personas, picks a
+2. **Personas + DS compile** — the model scores intent against 26 personas, picks a
    diverse top-K; `ui ds init` compiles semantic paired tokens + the component registry +
    a hash-sealed manifest, emitting a Tailwind `@theme` the HTML consumes as utilities.
 3. **Variants come back** — each from a different persona; the critique gate scores them

@@ -1,12 +1,18 @@
 # Family: Editorial Minimal
 
-Personas that treat **restraint, precision, and whitespace as the design**. Either the
-calculated rigor of technical documentation or the confident silence of luxury
-editorial. Pick this family when the content should feel curated, exact, and
-uncrowded — high-end landing pages, documentation, technical dashboards, and
-portfolios.
+Personas that treat **restraint, precision, and whitespace as the design** — the
+calculated rigor of technical documentation, the confident silence of luxury editorial,
+the ink-density of print journalism, and the serif/mono voice of editorial-tech. Pick
+this family when the content should feel curated, exact, and authored — high-end landing
+pages, documentation, technical dashboards, and portfolios.
 
-**Personas in this family:** Industrial Blueprint · Quiet Luxury Editorial
+**Family typography note** — prose in this family is set in **sentence case, never Title
+Case** (Title Case reads as a machine-default heading tell), and headings hold a **6:1 or
+greater headline:body size contrast** on desktop so the hierarchy is unmistakable. Both are
+DNA defaults for every persona below unless a block overrides them.
+
+**Personas in this family:** Industrial Blueprint · Quiet Luxury Editorial · Newsprint
+Editorial · Italic Serif × Mono-Label
 
 See `persona-index.md` for the cross-family lookup table and auto-selection rules.
 
@@ -82,3 +88,78 @@ fonts. NO dense layouts. NO shadows deeper than 2px. NO gradients. NO icons used
 decoration.
 **Avoid list:** bright accent colors; rounded pill buttons; playful fonts; dense
 layouts; decorative icons.
+
+---
+
+## Newsprint Editorial
+
+- **Slug:** `newsprint-editorial`
+- **Family:** editorial-minimal
+- **UI types:** landing, documentation, portfolio
+- **Density:** compact
+- **Color mode:** light
+- **Keywords:** newsprint, print, journalism, broadsheet, masthead, editorial, column
+
+**Philosophy** — The printed broadsheet rendered on screen: dense columns, hairline rules,
+ink on newsprint. Density is the point — the page earns trust by looking edited, not spaced
+out.
+
+### Aesthetic DNA
+
+| Field | Direction |
+|---|---|
+| **Typography** | High-contrast serif masthead (Playfair Display, Cheltenham-style) over a condensed serif or grotesque body at 15–16px. Small-caps kicker labels; occasional drop-cap opening a lead. Prose in **sentence case**; headline:body contrast **6:1+** on desktop. Tabular figures for datelines and standings. |
+| **Color philosophy** | Ink on paper: near-black (#111111) text on warm newsprint (#F7F4EC), one spot red (#C0392B) reserved for kickers and rules. NO tints, NO gradients, NO pastels. |
+| **Spacing** | Tight and columnar. 4px base unit, dense line-packing, narrow gutters. Whitespace is rationed, not lavished. |
+| **Depth** | Completely flat. Zero shadow. Depth comes from column structure and rule weight, never elevation. |
+| **Borders** | Hairline rules everywhere (1px ink). Collapsed grid borders — cells share a single rule. A thick masthead rule (2–4px) under the header. |
+| **Texture** | Optional faint paper grain (compose the grain-as-texture device at ~5–8%). No noise heavy enough to touch text contrast. |
+
+**Interactions** — Restrained: underline-on-hover links, section rules that thicken on
+focus. Nothing animated for its own sake.
+
+**Layout** — Multi-column broadsheet grid with a masthead header and an above-the-fold lead
+hierarchy. Content-dense; imagery cropped tight to columns, never full-bleed hero.
+
+**Anti-patterns** — NO rounded corners. NO drop shadows. NO gradients. NO pastel palettes.
+NO sparse whitespace-forward layouts (density is the voice).
+**Avoid list:** rounded corners; drop shadows; gradients; pastel palettes; whitespace-forward
+layouts.
+
+---
+
+## Italic Serif × Mono-Label
+
+- **Slug:** `serif-italic-mono-label`
+- **Family:** editorial-minimal
+- **UI types:** landing, portfolio, documentation
+- **Density:** comfortable
+- **Color mode:** both
+- **Keywords:** serif, italic, mono, label, editorial, technical, contrast
+
+**Philosophy** — Editorial warmth meets technical precision: display serif italics carry the
+voice, monospace micro-labels carry the system. The tension between the two *is* the identity
+— neither a pure literary nor a pure engineering look.
+
+### Aesthetic DNA
+
+| Field | Direction |
+|---|---|
+| **Typography** | Display serif in **italic** for headings and pull quotes (Newsreader, Fraunces, PT Serif italic) paired with a monospace (IBM Plex Mono, Space Mono) for micro-labels, metadata, eyebrows, and captions in small caps. Body prose in **sentence case**; headline:body contrast **6:1+** on desktop. |
+| **Color philosophy** | Restrained two-tone with one accent: warm off-white or deep charcoal base, ink text, a single saturated accent (oxblood #7B2D26 or ink-blue #1D3A5F) used only on mono labels. |
+| **Spacing** | Comfortable editorial rhythm. 8px base; generous line-height on serif body (1.6–1.75); tight, letterspaced mono labels. |
+| **Depth** | Near-flat. Hairline separators; at most a 1–2px shadow. Hierarchy from the serif/mono type contrast, not elevation. |
+| **Borders** | Hairline rules and mono-labelled section dividers (a small caps mono tag sitting on a 1px rule). Sharp or minimal radius (0–4px). |
+| **Texture** | None to faint. Let the two typefaces be the texture. |
+
+**Interactions** — Underline and italic-to-roman shifts on hover; mono labels that reveal a
+value on focus. Quiet, precise.
+
+**Layout** — Single-column editorial flow with a mono-label margin rail (eyebrows, dates,
+section tags). Serif carries the reading line; mono annotates the structure.
+
+**Anti-patterns** — NO sans-serif headings (the serif italic is the voice). NO decorative
+display fonts beyond the serif/mono pair. NO bright multi-color palettes. NO heavy shadows or
+gradients.
+**Avoid list:** sans-serif headings; extra display fonts; bright multi-color palettes; heavy
+shadows; gradients.

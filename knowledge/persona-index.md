@@ -1,6 +1,6 @@
 # Persona Index & Auto-Selection Rules
 
-The persona library is **curated design taste** — 23 personas grouped into 7 families.
+The persona library is **curated design taste** — 26 personas grouped into 7 families.
 Each persona is a fixed point in taste-space carrying a full aesthetic DNA
 (typography, color, spacing, depth, borders, texture, interactions, layout,
 anti-patterns).
@@ -8,7 +8,7 @@ anti-patterns).
 This file is what the host model reads to **auto-select** the right personas for a
 given design intent. It contains:
 
-1. A compact lookup table across all 23 personas.
+1. A compact lookup table across all 26 personas.
 2. The keyword-scoring algorithm.
 3. The industry-affinity mapping.
 4. The diverse top-K selection logic.
@@ -18,7 +18,7 @@ persona is selected.
 
 ---
 
-## 1. Lookup Table — All 23 Personas
+## 1. Lookup Table — All 26 Personas
 
 | Slug | Family | UI types | Density | Color mode | Trending | Keywords |
 |---|---|---|---|---|---|---|
@@ -27,6 +27,8 @@ persona is selected.
 | `data-dense-observatory` | functional-saas | dashboard, admin, app | compact | dark | — | data, dense, charts, metrics, numbers, dashboard, observatory |
 | `industrial-blueprint` | editorial-minimal | dashboard, admin, documentation, app | compact | dark | — | blueprint, technical, precision, engineering, grid, mono, data |
 | `quiet-luxury-editorial` | editorial-minimal | landing, portfolio, ecommerce | spacious | light | — | luxury, editorial, serif, whitespace, quiet, refined, minimal |
+| `newsprint-editorial` | editorial-minimal | landing, documentation, portfolio | compact | light | — | newsprint, print, journalism, broadsheet, masthead, editorial, column |
+| `serif-italic-mono-label` | editorial-minimal | landing, portfolio, documentation | comfortable | both | — | serif, italic, mono, label, editorial, technical, contrast |
 | `velvet-noir` | material-surface | landing, app, ecommerce, portfolio | comfortable | dark | — | dark, luxury, velvet, warm, gold, premium, elegant |
 | `prismatic-glass` | material-surface | landing, app, portfolio | comfortable | light | — | glass, rainbow, prism, light, prismatic, spectrum, refraction |
 | `haptic-claymorphism` | material-surface | landing, app, social | comfortable | light | — | clay, soft, tactile, rounded, pastel, friendly, playful |
@@ -39,6 +41,7 @@ persona is selected.
 | `motion-led-storytelling` | immersive-cinematic | landing, portfolio | spacious | both | — | cinematic, story, scroll, animation, dramatic, immersive, narrative |
 | `kinetic-swiss-punk` | graphic-modernist | landing, portfolio | comfortable | both | — | swiss, typography, grid, punk, bold, primary, modernist |
 | `kinetic-type-studio` | graphic-modernist | landing, portfolio | spacious | both | **yes** | typography, type, bold, minimal, editorial, poster, display, variable |
+| `neo-brutalist-hard-shadow` | graphic-modernist | landing, portfolio, app | comfortable | light | — | brutalist, hard-shadow, offset, border, bold, raw, block |
 | `neo-frutiger-aero` | retro-digital | landing, app | comfortable | light | — | aero, glossy, aqua, nostalgic, vista, retro, optimistic |
 | `iridescent-chrome` | retro-digital | landing, portfolio, ecommerce | comfortable | both | — | iridescent, holographic, chrome, metallic, reflective, y2k, glossy |
 | `modular-system-layout` | product-marketing | landing, documentation, app, ecommerce | comfortable | both | — | modular, system, feature, grid, product, organized, scalable |

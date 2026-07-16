@@ -1247,5 +1247,167 @@
       "crowded sections",
       "corporate rigidity"
     ]
+  },
+  {
+    "slug": "newsprint-editorial",
+    "family": "editorial-minimal",
+    "uiTypes": [
+      "landing",
+      "documentation",
+      "portfolio"
+    ],
+    "density": "compact",
+    "colorMode": "light",
+    "trending": false,
+    "keywords": [
+      "newsprint",
+      "print",
+      "journalism",
+      "broadsheet",
+      "masthead",
+      "editorial",
+      "column"
+    ],
+    "typography": {
+      "fontFamilyDisplay": "Playfair Display, Georgia, serif",
+      "fontFamilyBody": "Georgia, Times New Roman, serif",
+      "fontWeightBody": 400,
+      "fontWeightHeading": 700
+    },
+    "colorPhilosophy": {
+      "primaryHex": "#C0392B",
+      "neutralHex": "#111111",
+      "successHex": "#1E7A46",
+      "warningHex": "#B8860B",
+      "dangerHex": "#C0392B",
+      "infoHex": "#1D3A5F",
+      "bgLightHex": "#F7F4EC",
+      "bgDarkHex": "#111111"
+    },
+    "radius": {
+      "sm": "0px",
+      "md": "0px",
+      "lg": "0px",
+      "full": "9999px"
+    },
+    "spacing": {
+      "base": 4
+    },
+    "shadowIntensity": "none",
+    "antiPatterns": [
+      "rounded corners",
+      "drop shadows",
+      "gradients",
+      "pastel palettes",
+      "whitespace-forward layouts"
+    ]
+  },
+  {
+    "slug": "serif-italic-mono-label",
+    "family": "editorial-minimal",
+    "uiTypes": [
+      "landing",
+      "portfolio",
+      "documentation"
+    ],
+    "density": "comfortable",
+    "colorMode": "both",
+    "trending": false,
+    "keywords": [
+      "serif",
+      "italic",
+      "mono",
+      "label",
+      "editorial",
+      "technical",
+      "contrast"
+    ],
+    "typography": {
+      "fontFamilyDisplay": "Newsreader, PT Serif, serif",
+      "fontFamilyBody": "Newsreader, Georgia, serif",
+      "fontWeightBody": 400,
+      "fontWeightHeading": 600
+    },
+    "colorPhilosophy": {
+      "primaryHex": "#7B2D26",
+      "neutralHex": "#1A1A1A",
+      "successHex": "#2E7D5B",
+      "warningHex": "#B8860B",
+      "dangerHex": "#A32B22",
+      "infoHex": "#1D3A5F",
+      "bgLightHex": "#FAF9F5",
+      "bgDarkHex": "#1A1A1A"
+    },
+    "radius": {
+      "sm": "2px",
+      "md": "4px",
+      "lg": "6px",
+      "full": "9999px"
+    },
+    "spacing": {
+      "base": 8
+    },
+    "shadowIntensity": "soft",
+    "antiPatterns": [
+      "sans-serif headings",
+      "extra display fonts",
+      "bright multi-color palettes",
+      "heavy shadows",
+      "gradients"
+    ]
+  },
+  {
+    "slug": "neo-brutalist-hard-shadow",
+    "family": "graphic-modernist",
+    "uiTypes": [
+      "landing",
+      "portfolio",
+      "app"
+    ],
+    "density": "comfortable",
+    "colorMode": "light",
+    "trending": false,
+    "keywords": [
+      "brutalist",
+      "hard-shadow",
+      "offset",
+      "border",
+      "bold",
+      "raw",
+      "block"
+    ],
+    "typography": {
+      "fontFamilyDisplay": "Archivo, Space Grotesk, sans-serif",
+      "fontFamilyBody": "Inter, sans-serif",
+      "fontWeightBody": 500,
+      "fontWeightHeading": 900
+    },
+    "colorPhilosophy": {
+      "primaryHex": "#2547FF",
+      "neutralHex": "#000000",
+      "successHex": "#00A050",
+      "warningHex": "#FFDD00",
+      "dangerHex": "#FF3B30",
+      "infoHex": "#2547FF",
+      "bgLightHex": "#FDFCF7",
+      "bgDarkHex": "#000000"
+    },
+    "radius": {
+      "sm": "0px",
+      "md": "2px",
+      "lg": "2px",
+      "full": "9999px"
+    },
+    "spacing": {
+      "base": 8
+    },
+    "shadowIntensity": "strong",
+    "antiPatterns": [
+      "soft blurred shadows",
+      "gradients",
+      "rounded pill shapes",
+      "pastel fills",
+      "hairline borders"
+    ]
   }
 ]

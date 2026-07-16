@@ -14,8 +14,9 @@ directly** while designing UI — curated design taste that sets the quality flo
 | `authoring-standard.md` | **The meta-standard for writing knowledge/ files** — the repeatable file frame (`Purpose → Mental Model → When to Use/NOT → Content → Failure Modes`, Failure Modes mandatory), the constraint-language rules (bilateral ALLOWED/NOT-ALLOWED, WHY-with-mechanism, CAPS discipline), no-hardcoded-counts-in-prose, dual machine+human examples, the `<!-- ease:source ref=… -->` provenance grammar, untrusted-content quarantine, and scar-driven guardrails. Enforced by `ui knowledge check`. Read when writing or editing any knowledge file. |
 | `taste-rubric.md` | The 6-axis taste model — Layout, Typography, Spacing, Motion, Iconography, Depth/Surface — plus the 7th Consistency axis. Per-axis 0–10 scoring and the critique-gate pass thresholds. |
 | `motion-craft.md` | The animation decision ladder (T1 CSS → T6 Lottie/WebGL) — which motion technology to reach for so capability never exceeds intent, plus persona tier caps, the non-negotiable motion floors (reduced-motion every tier, transform/opacity only), and copy-paste CDN recipes. The *build* contract; `taste-rubric.md` Motion axis is the *grading* contract. |
-| `personas/<family>.md` | The persona library — 23 curated personas across 7 families, one file per family. Each persona carries full aesthetic DNA (typography, color, spacing, depth, motion, anti-patterns, …). A persona is a fixed point in taste-space. |
-| `persona-index.md` | Compact lookup table for all 23 personas + the auto-selection algorithm (keyword scoring, industry affinity, diverse-top-K) that picks personas from a user's intent. |
+| `personas/<family>.md` | The persona library — 26 curated personas across 7 families, one file per family. Each persona carries full aesthetic DNA (typography, color, spacing, depth, motion, anti-patterns, …). A persona is a fixed point in taste-space. |
+| `persona-index.md` | Compact lookup table for all 26 personas + the auto-selection algorithm (keyword scoring, industry affinity, diverse-top-K) that picks personas from a user's intent. |
+| `signature-devices.md` | **The composable signature-move library** — the one memorable *gesture* (echo/ghost type, grain texture, light-leak background, simulated chrome, blend-difference nav, viewport-scaled display type, marquee ticker, sticker-tilt, hand-drawn annotation) a persona layers on top of its DNA so output has a fingerprint, not just a palette. A menu not a mandate (one hero device, at most two); every device stays subordinate to the a11y floor (Art X). Read when a design is on-brief but forgettable. |
 | `mode-constraints.md` | The 8 UI-mode constraint sets — mobile, desktop, component, slide, dashboard, app, admin, ecommerce — plus `TECHNICAL_RULES`, the universal hard style guide. |
 | `component-catalog.md` | 32 reusable components across 8 categories — id, name, description, and generation spec for each. |
 | `color-science.md` | OKLCH reasoning, WCAG contrast targets, 11-stop scale generation, semantic role mapping. The *reasoning* — the *math* is a `ui` binary subcommand. |
@@ -54,8 +55,10 @@ enforces.
 **Generate a design from an intent**
 1. `persona-index.md` — auto-select personas from the intent
 2. `personas/<family>.md` — load the full DNA of each chosen persona
-3. `mode-constraints.md` — apply the UI mode's constraints + `TECHNICAL_RULES`
-4. `taste-rubric.md` — score the result; refine the failing axes
+3. `signature-devices.md` — when the persona reads on-brief but forgettable, compose one hero
+   signature move (at most two) onto its DNA
+4. `mode-constraints.md` — apply the UI mode's constraints + `TECHNICAL_RULES`
+5. `taste-rubric.md` — score the result; refine the failing axes
 
 **Establish / compile a design system**
 - `token-taxonomy.md` — token tiers and immutability rules
