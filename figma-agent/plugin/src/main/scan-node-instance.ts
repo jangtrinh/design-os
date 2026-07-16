@@ -1,0 +1,98 @@
+// Reverse-walker: the non-visual material — variable bindings (spec-005 P1) and
+// the instance/component reference (spec-005 P2, this module's reason to exist).
+//
+// INSTANCE MODEL — ref + overrides, NOT a copy of the inner tree:
+// an instance's composition belongs to its MAIN component, so the reversible
+// representation is (componentKey|componentId) + componentProperties, and the
+// builder rebuilds it with `main.createInstance()`. Recursing the inner tree would
+// capture the main's structure and rebuild it as a detached frame — exactly the
+// degradation P2 exists to remove. What the ref+overrides model cannot carry is
+// recorded in `figmaScanInnerOverrides` so the loss stays visible.
+
+import type { FigmaExportNode } from '../../../shared/figma-payload-types';
+import type { ScannedNode } from './scan-node-types';
+import { aliasId, safe } from './scan-node-utils';
+import { bindingsToTokenRefs } from './scan-token-refs';
+
+/** field→variable-id for every bound field the walker can see (node + paints). */
+function readBindings(n: Record<string, unknown>): Record<string, string> {
+  const rec: Record<string, string> = {};
+  // Scalar fields (cornerRadius, itemSpacing, padding…) live on node.boundVariables.
+  const bound = safe(() => n.boundVariables as Record<string, unknown>);
+  if (bound && typeof bound === 'object') {
+    for (const [field, val] of Object.entries(bound)) {
+      const id = aliasId(val);
+      if (id) rec[field] = id;
+    }
+  }
+  // Paint fields (fills/strokes) record the alias on the PAINT, not the node.
+  for (const field of ['fills', 'strokes'] as const) {
+    const paints = safe(() => n[field] as Array<Record<string, unknown>>);
+    if (!Array.isArray(paints)) continue;
+    for (const p of paints) {
+      const id = aliasId((p.boundVariables as { color?: unknown } | undefined)?.color);
+      if (id) { rec[field] = id; break; }
+    }
+  }
+  return rec;
+}
+
+/**
+ * Fields overridden on the instance's INNER children (deduped + sorted).
+ * `InstanceNode.overrides` reports one entry per overridden node; entries for the
+ * instance node ITSELF are excluded — those are node-level overrides the payload
+ * models and the builder re-applies. What remains is the un-survivable class.
+ */
+function readInnerOverrideFields(n: Record<string, unknown>, selfId: string): string[] {
+  const overrides = safe(() => n.overrides as Array<{ id?: string; overriddenFields?: string[] }>);
+  if (!Array.isArray(overrides)) return [];
+  const fields = new Set<string>();
+  for (const o of overrides) {
+    if (!o || o.id === selfId) continue;
+    for (const f of o.overriddenFields ?? []) fields.add(f);
+  }
+  return [...fields].sort();
+}
+
+/** The instance reference + property overrides — everything a rebuild needs. */
+export function readInstance(n: Record<string, unknown>, out: ScannedNode, selfId: string): void {
+  // `mainComponent` is the sync getter (the async twin can't be used: the walker is
+  // injected as a sync EXEC_JS function). Null for a main outside the loaded page.
+  const main = safe(() => n.mainComponent as { id?: string; key?: string; name?: string } | null);
+  if (main) {
+    if (typeof main.key === 'string' && main.key) out.componentKey = main.key;
+    if (typeof main.id === 'string' && main.id) out.componentId = main.id;
+    if (typeof main.name === 'string' && main.name) out.componentName = main.name;
+  }
+  const props = safe(() => n.componentProperties as Record<string, { value?: unknown }>);
+  if (props && typeof props === 'object') {
+    const rec: Record<string, string | boolean> = {};
+    for (const [k, entry] of Object.entries(props)) {
+      const v = entry?.value;
+      // string | boolean only — a variable-bound property value (VariableAlias)
+      // has no reversible slot and is left out (documented edge, see the header).
+      if (typeof v === 'string' || typeof v === 'boolean') rec[k] = v;
+    }
+    if (Object.keys(rec).length) out.componentProperties = rec;
+  }
+  const inner = readInnerOverrideFields(n, selfId);
+  if (inner.length) out.figmaScanInnerOverrides = inner;
+}
+
+/** Capture bindings (→ tokenRefs when resolvable) + un-modelled component types. */
+export function readExtensions(
+  n: Record<string, unknown>,
+  out: ScannedNode,
+  tokenNames: Map<string, string> | undefined,
+): void {
+  const rec = readBindings(n);
+  if (Object.keys(rec).length) {
+    out.figmaScanBindings = rec;
+    const refs = bindingsToTokenRefs(rec, out.type as FigmaExportNode['type'], tokenNames);
+    if (refs) out.tokenRefs = refs;
+  }
+  const type = n.type as string;
+  // COMPONENT / COMPONENT_SET have no payload representation (they ARE definitions,
+  // not instances of one) → they still degrade to FRAME; record the source type.
+  if (type === 'COMPONENT' || type === 'COMPONENT_SET') out.figmaScanSourceType = type;
+}
