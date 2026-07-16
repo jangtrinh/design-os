@@ -8,7 +8,8 @@
 import type { FigmaExportNode } from '../../../shared/figma-payload-types';
 import { createTextNode } from './executor-text';
 import { createRectangleNode, createImageNode, createSvgNode, createImageNodeWithFetch, resolveImagePaint } from './executor-shapes';
-import { rgbToFigma, figmaColorToHex, mapExportEffects, pushImportWarning } from './executor-styles';
+import { rgbToFigma, figmaColorToHex, exportFillToPaint, mapExportEffects, pushImportWarning } from './executor-styles';
+import { createInstanceNode } from './executor-instance';
 import { applyTokenRefs } from './executor-variables';
 import { backgroundSizeToScaleMode } from './background-fill';
 import { applyMotionTracks } from './executor-motion';
@@ -30,6 +31,11 @@ export async function createFigmaNode(
       break;
     case 'RECTANGLE':
       node = await createRectangleNode(exportNode, colorStyles, tokenVars); break;
+    case 'INSTANCE':
+      // spec-005 P2: rebuild from the main component + overrides; an unresolvable
+      // main degrades to the pre-P2 behaviour (a plain frame) with a warning.
+      node = await createInstanceNode(exportNode, (spec) => createFrameNode(spec, colorStyles, tokenVars));
+      break;
     case 'FRAME':
     case 'GROUP':
     default:
@@ -186,32 +192,17 @@ export async function createFrameNode(
     const figmaFills: Paint[] = [];
     let usedPaintStyle = false;
     for (const fill of exportNode.fills ?? []) {
-      if ((fill.type === 'GRADIENT_LINEAR' || fill.type === 'GRADIENT_RADIAL' || fill.type === 'GRADIENT_ANGULAR')
-        && fill.gradientStops && fill.gradientTransform) {
-        figmaFills.push({
-          type: fill.type,
-          gradientStops: fill.gradientStops.map((stop) => ({
-            color: { ...rgbToFigma(stop.color), a: stop.color.a },
-            position: stop.position,
-          })),
-          gradientTransform: fill.gradientTransform as Transform,
-        } as GradientPaint);
-      } else if (fill.color) {
-        const hex = figmaColorToHex(fill.color);
-        const paintStyle = colorStyles.get(hex);
-        // Skip the paint-style shortcut when a bg-image must sit on top — the
-        // image + solid have to coexist in the fills array (setFillStyleIdAsync
-        // would replace them entirely).
-        if (paintStyle && !hasBgImage) {
-          await frame.setFillStyleIdAsync(paintStyle.id);
-          usedPaintStyle = true;
-        } else {
-          figmaFills.push({
-            type: 'SOLID',
-            color: rgbToFigma(fill.color),
-            opacity: fill.color.a,
-          });
-        }
+      const paint = exportFillToPaint(fill);
+      if (!paint) continue;
+      const paintStyle = paint.type === 'SOLID' ? colorStyles.get(figmaColorToHex(fill.color)) : undefined;
+      // Skip the paint-style shortcut when a bg-image must sit on top — the
+      // image + solid have to coexist in the fills array (setFillStyleIdAsync
+      // would replace them entirely).
+      if (paintStyle && !hasBgImage) {
+        await frame.setFillStyleIdAsync(paintStyle.id);
+        usedPaintStyle = true;
+      } else {
+        figmaFills.push(paint);
       }
     }
     // CSS background-image paints ABOVE background-color (Figma: last fill on top).

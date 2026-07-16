@@ -10,8 +10,12 @@
 //      walker must fall back to per-corner reads.
 //   3. variable bindings are recorded on node.boundVariables (scalar fields) and on
 //      the PAINT's boundVariables (fills/strokes) — the split the walker must scan.
+//   4. an INSTANCE mirrors its main component (createInstance clones it) and
+//      setProperties throws on a property the main does not expose — the two
+//      behaviours the spec-005 P2 instance round-trip stands on.
 // It does NOT emulate Figma's layout re-flow (a child's FILL coercing the parent's
-// sizing mode). That is exactly the class of loss the LIVE half must confirm.
+// sizing mode), nor `InstanceNode.overrides` bookkeeping (tests set it by hand).
+// Those are exactly the classes of loss the LIVE half (P5) must confirm.
 
 let idSeq = 0;
 export const FIGMA_MIXED = Symbol('figma.mixed');
@@ -48,6 +52,37 @@ export class FakeNode {
 
   setBoundVariable(field: string, variable: { id: string }): void {
     this.boundVariables[field] = { type: 'VARIABLE_ALIAS', id: variable.id };
+  }
+
+  /** Own data props (incl. the private corner/sizing fields) + children, deep-copied. */
+  private cloneAs(type: string): FakeNode {
+    const copy = new FakeNode(type);
+    for (const [k, v] of Object.entries(this)) {
+      if (k === 'id' || k === 'type' || k === 'parent' || k === 'children') continue;
+      copy[k] = v && typeof v === 'object' ? JSON.parse(JSON.stringify(v)) : v;
+    }
+    for (const c of this.children) copy.appendChild(c.cloneAs(c.type));
+    return copy;
+  }
+
+  /** ComponentNode.createInstance — an instance MIRRORS its main until overridden. */
+  createInstance(): FakeNode {
+    const inst = this.cloneAs('INSTANCE');
+    delete inst.key; // only a main component is publishable
+    inst.mainComponent = { id: this.id, key: this.key, name: this.name };
+    return inst;
+  }
+
+  /** InstanceNode.setProperties — throws on a property the main doesn't expose. */
+  setProperties(props: Record<string, string | boolean>): void {
+    const defs = this.componentPropertyDefinitions as Record<string, unknown> | undefined;
+    const current = (this.componentProperties as Record<string, { value: unknown }>) ?? {};
+    const next: Record<string, { type: string; value: unknown }> = { ...(current as never) };
+    for (const [k, v] of Object.entries(props)) {
+      if (defs && !(k in defs)) throw new Error(`property "${k}" not found on the main component`);
+      next[k] = { type: 'VARIANT', value: v };
+    }
+    this.componentProperties = next;
   }
 
   private get inAutoLayout(): boolean {
@@ -95,13 +130,32 @@ export function setMockLocalVariables(vars: Array<{ id: string; name: string }>)
   localVariables = vars;
 }
 
+/** The file's COMPONENT / COMPONENT_SET nodes, as the instance build-case resolves
+ * them: by publishable `key` (importComponentByKeyAsync) or node id
+ * (getNodeByIdAsync). A ref that matches neither = the unresolvable-main edge. */
+let components: FakeNode[] = [];
+export function setMockComponents(comps: FakeNode[]): void {
+  components = comps;
+}
+
+/** A COMPONENT the instance build-case can resolve + instantiate. */
+export function makeMockComponent(name: string, key?: string): FakeNode {
+  const comp = new FakeNode('COMPONENT');
+  comp.name = name;
+  if (key) comp.key = key;
+  return comp;
+}
+
 export interface MockFigma {
   mixed: symbol;
   createFrame(): FakeNode;
   createText(): FakeNode;
   createRectangle(): FakeNode;
+  createComponent(): FakeNode;
   loadFontAsync(font: FontName): Promise<void>;
   listAvailableFontsAsync(): Promise<Array<{ fontName: FontName }>>;
+  getNodeByIdAsync(id: string): Promise<FakeNode | null>;
+  importComponentByKeyAsync(key: string): Promise<FakeNode>;
   variables: {
     setBoundVariableForPaint: typeof setBoundVariableForPaint;
     getLocalVariablesAsync(): Promise<Array<{ id: string; name: string }>>;
@@ -120,8 +174,15 @@ export function installMockFigma(): MockFigma {
     createFrame: () => mk('FRAME'),
     createText: () => mk('TEXT'),
     createRectangle: () => mk('RECTANGLE'),
+    createComponent: () => mk('COMPONENT'),
     loadFontAsync: async () => { /* every font "exists" */ },
     listAvailableFontsAsync: async () => [],
+    getNodeByIdAsync: async (id: string) => components.find((c) => c.id === id) ?? null,
+    importComponentByKeyAsync: async (key: string) => {
+      const found = components.find((c) => c.key === key);
+      if (!found) throw new Error(`component key not found: ${key}`); // the library-miss edge
+      return found;
+    },
     variables: {
       setBoundVariableForPaint,
       getLocalVariablesAsync: async () => localVariables,
