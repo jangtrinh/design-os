@@ -7,6 +7,33 @@ All notable changes to ease-design are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **Figma mirror — the registry is a 1:1, rebuildable reflection of the canvas.**
+  `figma-agent mirror-verify <nodeId>` proves the round-trip in one command: scan a
+  component → rebuild it from the record → scan again → structural-diff. A real component
+  comes back a **fixed point** (`equal: true`, 0 diff), verified live across **9/9 diverse
+  components** of a production 27-screen design system (screens, instances, nested
+  instances, variant swaps). Token bindings survive — reattached by publish **key**, local
+  and published-**library** variables alike, on every bindable field, with a bound value's
+  literal treated as a mode projection so a component scanned under a different variable
+  mode still round-trips. Instances survive — component reference, properties, **variant
+  swaps** (an override Figma never names), and inner-child overrides (visual + layout).
+  Honest by construction: what Figma's API refuses to reproduce (a `maxWidth` binding on a
+  TEXT node; a "was-set" flag on a FILL child) is recorded and reported in a `normalized`
+  list with its reason — geometry and values are still checked both sides, so `equal: true`
+  is never silent. The reverse-walker is pre-bundled into the CLI (a dist-only install
+  mirrors without a repo checkout). Every gap the diff surfaced was a real Plugin-API
+  subtlety caught on the live canvas (sync `.mainComponent`/`.fontName`/`.strokeWeight`
+  lie under `dynamic-page`; `resize()` clobbers auto-layout sizing; an inherited fill
+  binding was being silently overwritten), never a fixture.
+- **Plugin panel — a per-operation activity feed.** The panel says what the plugin is
+  doing, per operation: the CLI states its intent on each request (`Mirror-verify ·
+  rebuild`, `Scan · <id>`) and the plugin derives the outcome from the reply (`→ 42 nodes`,
+  `→ Hero card, 2 warnings`). Rendered as a mini data-log — 12/11px, older rows dim, status
+  by shape (■ ok · □ running · ✗ failed) — filling the iframe edge-to-edge.
+- **Figma live-sync — the registry follows the canvas.** `documentchange` events append to
+  a local ledger; a 5-minute idle debounce surfaces a 1-click Sync in the plugin panel;
+  `design-os figma reconcile --dry-run/--apply` folds the change-set into the registry. The
+  panel reports exactly what landed — including "nothing landed" when nothing did.
 - **Journey skills — the whole user journey as three installable skills.** `ui init` now
   emits `design-os-onboard` (six entry routes, git + manifest-name STOP-gates, soul
   layer selection, heartbeat schema), `design-os-daily` (the four-"audit"

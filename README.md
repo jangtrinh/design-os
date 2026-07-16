@@ -14,7 +14,8 @@
 
 <p align="center"><sub>
 <code>v0.1.0</code> · Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel ·
-1,787 tests green · 26 personas · a 27-component kit · four deterministic linters
+1,891 tests green · 26 personas · a 27-component kit · four deterministic linters ·
+a 1:1 Figma mirror
 </sub></p>
 
 DESIGN:OS is a multi-runtime **design CLI**. You drive it through the agent CLI you
@@ -275,7 +276,7 @@ both through the same gates — the store is the meeting point, the gates are th
   </tr>
 </table>
 
-Three moves, both directions:
+Four moves, both directions:
 
 - **Read** — `design-os figma scan` exports components/variables/styles;
   `ui ingest-figma-ds` turns them into tokens + registry + DESIGN.md.
@@ -286,6 +287,21 @@ Three moves, both directions:
   fixture-tested CLI code.
 - **Write** — `/ui:to-figma` authors idiomatic canvas: auto-layout, real instances,
   token-bound variables, drift-asserted geometry.
+- **Mirror** — `design-os figma reconcile --apply` keeps each component's registry record
+  a **1:1, rebuildable reflection** of its Figma node: the same buildable representation
+  the write path draws *from*. An AI reads the record and rebuilds the exact component —
+  read-and-execute, symmetric both ways. `figma-agent mirror-verify <nodeId>` proves it:
+  scan → rebuild → scan comes back a **fixed point** (`equal: true`), including auto-layout,
+  token bindings (local **and** published-library, by publish key), instances, variant
+  swaps, and inner-child overrides. What Figma's API genuinely won't let a rebuild carry (a
+  `maxWidth` binding on a text node, a "was-set" flag on a FILL child) is **recorded and
+  reported** in a `normalized` list, never silently dropped — `equal: true` is never a lie.
+
+That last move makes the whole thing a **verification loop for authoring**: any draw can be
+checked by round-trip — draw → scan → diff against intent — so "what I drew == what I meant"
+stops being a matter of eyeballing. Verified live on a production 27-screen design system:
+9/9 diverse components (screens, instances, nested instances, variant swaps) round-trip to
+`equal: true`.
 
 Kept deliberately *out* of the `ui` binary (it needs a network and a live plugin); ships
 in-repo as the `figma-agent/` workspace. Fall back to `/ui:generate` (HTML) any time the
@@ -391,6 +407,8 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-07-16 | **Figma mirror (1:1)** — each component's registry record is a rebuildable reflection of its Figma node; `mirror-verify` proves the scan→rebuild→scan **fixed point** live (bindings by publish key, instances, variant swaps, inner overrides), `equal:true` across a real 27-screen DS. Plus a per-operation activity feed in the plugin panel | `b9b7255`…`7959464` |
+| 2026-07-16 | **Figma live-sync** — `documentchange` → append-only ledger → 5-min idle → 1-click panel Sync → `reconcile --apply`; the registry follows the canvas near-real-time | `#34`…`#38` |
 | 2026-07-15 | **Journey skills** — `design-os-{onboard,daily,deliver}`: the full user journey as three installable skills (entry router, audit disambiguation, delivery playbook), all skills renamed `design-os-*`, command-consistency + drift linters | *(this commit)* |
 | 2026-07-15 | **Souls speak English** — character-over-cosmetics doctrine; scaffolds EN; factory→studio→project chain live on a real project | `cc1a56c` |
 | 2026-07-15 | **Factory soul** — the world-class baseline stance design:os ships day-0; user souls override clause-by-clause | `6183662` |
@@ -413,16 +431,20 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 **Dogfooded on real work, not fixtures:** a production Figma project (129-component
 library scanned, audited, reconciled), a full brand pipeline (reference intake → DNA →
-compiled brand DS → the plugin panel you see above, contrast machine-corrected), and the
-toolchain's own preview/specimen surfaces.
+compiled brand DS → the plugin panel you see above, contrast machine-corrected), the
+toolchain's own preview/specimen surfaces, and the **1:1 mirror verified live** on a
+production 27-screen design system (9/9 diverse components round-trip to `equal: true`;
+every remaining gap was a real bug caught on the live canvas, not a fixture).
 
 Still open, stated plainly:
 
 - **`figma-agent audit-ds` live acceptance** — unit-tested + fixture-proven; the
   ground-truth comparison against a hand-classified 129-component audit runs on the next
   plugin reload.
-- **`/ui:to-figma` canvas E2E** — live-validated piecewise; a full intent→canvas run on a
-  fresh file is still scheduled.
+- **`/ui:to-figma` canvas E2E** — the write path is now **live-verified by the mirror
+  round-trip** (`mirror-verify` returns `equal: true` on real components); a full
+  intent→canvas run authored from a plain-language prompt on a fresh file is the last
+  piece still being filmed for the docs.
 - **Taste-rubric threshold calibration** — the ≥7 per-axis cutoff is a reasoned default;
   tuning against a labeled corpus is future work. The deterministic floor already removes
   the worst failure mode.
