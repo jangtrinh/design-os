@@ -80,6 +80,29 @@ export function checkViewportZoom(html: string): A11yFinding[] {
   return out;
 }
 
+// ── 1.4.10 Reflow: a mobile-responsive doc must declare a viewport meta ──
+/** Mobile-intent signals: a responsive breakpoint prefix or a width-based media query. */
+const MOBILE_INTENT = /\b(?:sm|md|lg|xl|2xl):[a-z[]/i;
+const WIDTH_MEDIA = /@media[^{]*\(\s*(?:max|min)-width/i;
+
+/**
+ * checkViewportMetaPresent — the companion to checkViewportZoom (which flags a meta
+ * that BLOCKS zoom). This flags a meta that is entirely MISSING on a document that
+ * is clearly built to be responsive. Without `<meta name="viewport"
+ * content="width=device-width…">`, mobile browsers render at a fake ~980px desktop
+ * width and downscale, so the responsive breakpoints never fire. Precision-first:
+ * only fires when the markup shows mobile intent (a responsive breakpoint class or a
+ * width media query), so a print/email/desktop-only page is never nagged.
+ */
+export function checkViewportMetaPresent(html: string): A11yFinding[] {
+  if (isRedirectStub(html)) return [];
+  if (/<meta\b[^>]*name\s*=\s*("|')?viewport\1?/i.test(html)) return [];
+  if (!MOBILE_INTENT.test(html) && !WIDTH_MEDIA.test(html)) return [];
+  return [{ checkId: "viewport-meta-missing", severity: "warning", sc: "1.4.10",
+    message: "a responsive document has no <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> — mobile browsers render it at a fake ~980px desktop width and downscale, so the breakpoints never fire",
+    line: 1 }];
+}
+
 // ── 4.1.2 / 2.4.4 Icon/emoji controls need an accessible name ──
 const ICON_GLYPHS = "×✕✓✔▶◀▲▼☰≡⋮⋯…→←↑↓«»‹›⌄⌃✚＋−✖☆★♥♡⚙🔍";
 // eslint-disable-next-line no-misleading-character-class

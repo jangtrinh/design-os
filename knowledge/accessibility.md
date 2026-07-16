@@ -26,8 +26,13 @@ handoff. Neither, alone or together, is a conformance verdict.
 
 - **`ui a11y-lint <file.html>`** — structural / markup WCAG checks over the HTML AST:
   missing `alt` attribute, an icon-only control with no accessible name, missing `lang`,
-  a label-less input, a redirect-only stub, and similar *presence/absence* facts the source
-  states outright. Precision-first: a finding is a real defect, and a pass is **not** a
+  a label-less input, a redirect-only stub, a viewport meta that blocks zoom
+  (`viewport-zoom-blocked`, 1.4.4) **or is missing entirely on a responsive document**
+  (`viewport-meta-missing`, 1.4.10 Reflow — without it a mobile browser renders at a fake
+  ~980px desktop width, so the breakpoints never fire), and similar *presence/absence* facts
+  the source states outright. Precision-first: `viewport-meta-missing` fires only when the
+  markup shows mobile intent (a responsive breakpoint class or a width media query), so a
+  print/desktop-only page is never nagged. A finding is a real defect, and a pass is **not** a
   conformance claim.
 - **`ui ds a11y`** — token-pair contrast. It checks the **declared** `{role}` /
   `{role}-foreground` pairs at ≥ AA using color math, exactly because the paired *name*

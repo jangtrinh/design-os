@@ -1,7 +1,7 @@
 /**
  * Static HTML layout linter — pure string/regex heuristics, zero deps.
  *
- * Runs 15 checks against an HTML string and returns a structured result.
+ * Runs every registered check against an HTML string and returns a structured result.
  * All checks are documented as heuristic approximations (no DOM parser, no
  * browser, no rendering). See layout-checks.ts for individual check logic.
  *
@@ -24,9 +24,14 @@ import {
   checkImgNoDimensions,
   checkEmptyFlexGrid,
 } from "./layout-checks.js";
-import { checkCss100vwWidth, checkRootOverflowXHidden } from "./layout-checks-viewport.js";
+import { checkCss100vwWidth, checkRootOverflowXHidden, checkDvhOver100vh } from "./layout-checks-viewport.js";
 import { checkAvoidableScreenshotCrop } from "./layout-checks-delivery.js";
 import { checkClickableNoPointer, checkFontDisplayMissing } from "./layout-checks-craft.js";
+import {
+  checkTapSpacingCramped,
+  checkInputFontBelow16,
+  checkEdgeBarNoSafeArea,
+} from "./layout-checks-mobile.js";
 import { isRedirectStub } from "./redirect-stub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -69,6 +74,7 @@ const WARNING_CHECKS = [
   checkViewportUnitOnBody,
   checkCss100vwWidth,
   checkRootOverflowXHidden,
+  checkDvhOver100vh,
   checkNestedScrollContainer,
   checkAbsoluteWithoutRelative,
   checkImgNoDimensions,
@@ -77,6 +83,10 @@ const WARNING_CHECKS = [
   // Web craft lints (spec 003 P2): functional affordance/loading bugs, not layout structure.
   checkClickableNoPointer,
   checkFontDisplayMissing,
+  // Mobile machine floor (spec 003 P3): responsive-web mobile-reliability warnings.
+  checkTapSpacingCramped,
+  checkInputFontBelow16,
+  checkEdgeBarNoSafeArea,
 ] as const;
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
@@ -90,7 +100,7 @@ function stripCommentsPreservingOffsets(html: string): string {
   return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
 }
 
-/** Run all 15 checks and return findings sorted errors-first, then warnings. */
+/** Run every registered check and return findings sorted errors-first, then warnings. */
 export function lintLayout(html: string): LayoutLintResult {
   // L4 dogfood: a redirect stub intentionally has no <html>/<body>, so every structural
   // check below is noise on it — short-circuit before running any of the other checks.

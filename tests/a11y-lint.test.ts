@@ -5,7 +5,7 @@ import { writeFileSync, mkdtempSync } from "node:fs";
 import { lintA11y } from "../src/core/a11y-lint.js";
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
-  checkViewportZoom, checkIconControlUnnamed, checkHeadingHierarchy,
+  checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
   isRedirectStub,
 } from "../src/core/a11y-checks.js";
 import { run } from "../src/cli.js";
@@ -37,6 +37,18 @@ describe("a11y-checks — per rule", () => {
     expect(checkViewportZoom('<meta name="viewport" content="width=device-width, user-scalable=no">')).toHaveLength(1);
     expect(checkViewportZoom('<meta name="viewport" content="width=device-width, maximum-scale=1">')).toHaveLength(1);
     expect(checkViewportZoom('<meta name="viewport" content="width=device-width, initial-scale=1">')).toHaveLength(0);
+  });
+  it("viewport-meta-missing fires on a responsive doc with no viewport meta (M3)", () => {
+    // Responsive-intent signal (a breakpoint class) but no viewport meta → fires.
+    expect(ids(checkViewportMetaPresent('<html><body><div class="md:flex">x</div></body></html>'))).toContain("viewport-meta-missing");
+    // A width-based media query is also mobile intent.
+    expect(checkViewportMetaPresent("<style>@media (max-width:640px){.a{display:none}}</style>")).toHaveLength(1);
+    // Present viewport meta → never fires (checkViewportZoom owns the bad-content case).
+    expect(checkViewportMetaPresent('<meta name="viewport" content="width=device-width, initial-scale=1"><div class="md:flex"></div>')).toHaveLength(0);
+    // No mobile intent → not nagged (precision-first: print/desktop-only page).
+    expect(checkViewportMetaPresent("<html><body><h1>Static doc</h1></body></html>")).toHaveLength(0);
+    // A redirect stub is exempt.
+    expect(checkViewportMetaPresent('<!doctype html><meta http-equiv="refresh" content="0; url=x.html">')).toHaveLength(0);
   });
   it("icon-control-unnamed catches emoji/glyph and icon-only controls, exempts named ones", () => {
     expect(checkIconControlUnnamed("<button>☰</button>")).toHaveLength(1); // emoji-as-control (the dogfood)
