@@ -21,10 +21,15 @@
 //    structural-diff-keyed for the shape rules and the proof that this cannot change
 //    the verdict, only the report). Without it one missing member of `innerOverrides`
 //    shifted the whole tail and turned 5 real diffs into 43.
+//  - The literal of a value BOUND to the same variable on both sides is not compared:
+//    it is that binding's projection into the scan's current variable mode, not data
+//    (spec-005 P17 — see structural-diff-bound-projection). Every skipped literal that
+//    actually differed is reported in `normalized`, so this never buys silence.
 
 import {
   innerOverrideKeys, stringSetMembers, unionKeys,
 } from './structural-diff-keyed.ts';
+import { boundProjectedPaths } from './structural-diff-bound-projection.ts';
 
 /** One field that did not survive the round-trip. */
 export interface StructuralDiffEntry {
@@ -37,6 +42,20 @@ export interface StructuralDiffEntry {
 export interface StructuralDiffResult {
   equal: boolean;
   diffs: StructuralDiffEntry[];
+  /**
+   * Literals that were NOT compared because they are a shared binding's mode
+   * projection (P17) AND that do differ between the two scans — one line per path, so
+   * a reader can see exactly what `equal: true` looked past and why.
+   */
+  normalized: string[];
+}
+
+/** The walk's accumulators — one per structuralDiff call, never shared. */
+interface Ctx {
+  diffs: StructuralDiffEntry[];
+  notes: string[];
+  /** Absolute path → the binding that makes the literal there a projection. */
+  projected: Map<string, string>;
 }
 
 /** Float tolerance — matches the fixed-point test's `toBeCloseTo(x, 5)`. */
@@ -64,7 +83,7 @@ function numbersEqual(a: number, b: number): boolean {
  * reported AT ITS OWN KEY, which says strictly more than a count does. The two
  * together would be the cascade this rule exists to remove, just shorter.
  */
-function walkAsSet(a: unknown[], b: unknown[], path: string, out: StructuralDiffEntry[]): boolean {
+function walkAsSet(a: unknown[], b: unknown[], path: string, ctx: Ctx): boolean {
   const keysA = innerOverrideKeys(a);
   const keysB = innerOverrideKeys(b);
   if (keysA && keysB) {
@@ -73,7 +92,7 @@ function walkAsSet(a: unknown[], b: unknown[], path: string, out: StructuralDiff
     const ma = byKey(a, keysA);
     const mb = byKey(b, keysB);
     for (const key of unionKeys(keysA, keysB)) {
-      walk(ma.get(key), mb.get(key), `${path}[childKey=${key}]`, out);
+      walk(ma.get(key), mb.get(key), `${path}[childKey=${key}]`, ctx);
     }
     return true;
   }
@@ -87,7 +106,7 @@ function walkAsSet(a: unknown[], b: unknown[], path: string, out: StructuralDiff
       // Membership is the only thing a string set can differ in — the member IS its
       // own value, so a present/absent pair is the whole story.
       if (inA.has(member) !== inB.has(member)) {
-        out.push({
+        ctx.diffs.push({
           path: `${path}[${member}]`,
           left: inA.has(member) ? member : undefined,
           right: inB.has(member) ? member : undefined,
@@ -99,33 +118,54 @@ function walkAsSet(a: unknown[], b: unknown[], path: string, out: StructuralDiff
   return false;
 }
 
-function walk(a: unknown, b: unknown, path: string, out: StructuralDiffEntry[]): void {
+/**
+ * Report a projection that was skipped — but ONLY when the two literals really do
+ * differ, so the `normalized` list stays a record of what was forgiven rather than an
+ * inventory of every bound field on the node. The re-walk runs with an empty context:
+ * it asks the plain question "are these two literals equal?", and its findings are
+ * thrown away either way.
+ */
+function noteProjection(a: unknown, b: unknown, path: string, binding: string, ctx: Ctx): void {
+  const probe: Ctx = { diffs: [], notes: [], projected: new Map() };
+  walk(a, b, path, probe);
+  if (!probe.diffs.length) return;
+  ctx.notes.push(`${path} — bound to ${binding} on both sides; a bound value's literal is only its projection into the scan's current variable mode, so the two differ while the data — the binding — is identical`);
+}
+
+function walk(a: unknown, b: unknown, path: string, ctx: Ctx): void {
   if (a === undefined && b === undefined) return;
 
+  const binding = ctx.projected.get(path);
+  if (binding !== undefined) {
+    noteProjection(a, b, path, binding, ctx);
+    return;
+  }
+
   if (typeof a === 'number' && typeof b === 'number') {
-    if (!numbersEqual(a, b)) out.push({ path, left: a, right: b });
+    if (!numbersEqual(a, b)) ctx.diffs.push({ path, left: a, right: b });
     return;
   }
 
   if (Array.isArray(a) && Array.isArray(b)) {
-    if (walkAsSet(a, b, path, out)) return;
+    if (walkAsSet(a, b, path, ctx)) return;
     if (a.length !== b.length) {
-      out.push({ path: joinPath(path, 'length'), left: a.length, right: b.length });
+      ctx.diffs.push({ path: joinPath(path, 'length'), left: a.length, right: b.length });
     }
     const n = Math.max(a.length, b.length);
-    for (let i = 0; i < n; i++) walk(a[i], b[i], `${path}[${i}]`, out);
+    for (let i = 0; i < n; i++) walk(a[i], b[i], `${path}[${i}]`, ctx);
     return;
   }
 
   if (isPlainObject(a) && isPlainObject(b)) {
+    for (const p of boundProjectedPaths(a, b, path)) ctx.projected.set(p.path, p.binding);
     const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
-    for (const key of keys) walk(a[key], b[key], joinPath(path, key), out);
+    for (const key of keys) walk(a[key], b[key], joinPath(path, key), ctx);
     return;
   }
 
   // Primitives, null, and every type mismatch (array↔object, object↔primitive,
   // present↔absent) land here: one comparison, one entry.
-  if (a !== b) out.push({ path, left: a, right: b });
+  if (a !== b) ctx.diffs.push({ path, left: a, right: b });
 }
 
 /**
@@ -133,7 +173,7 @@ function walk(a: unknown, b: unknown, path: string, out: StructuralDiffEntry[]):
  * every field that does, in a deterministic order.
  */
 export function structuralDiff(a: unknown, b: unknown): StructuralDiffResult {
-  const diffs: StructuralDiffEntry[] = [];
-  walk(a, b, '', diffs);
-  return { equal: diffs.length === 0, diffs };
+  const ctx: Ctx = { diffs: [], notes: [], projected: new Map() };
+  walk(a, b, '', ctx);
+  return { equal: ctx.diffs.length === 0, diffs: ctx.diffs, normalized: ctx.notes.sort() };
 }

@@ -12,7 +12,7 @@ describe('structuralDiff — equal specs', () => {
       children: [{ type: 'TEXT', name: 'Title', characters: 'Hello', fontSize: 20 }],
     };
     const res = structuralDiff(spec, structuredClone(spec));
-    expect(res).toEqual({ equal: true, diffs: [] });
+    expect(res).toEqual({ equal: true, diffs: [], normalized: [] });
   });
 
   it('treats an explicitly-undefined field as absent (the walker deletes empties)', () => {
@@ -31,6 +31,7 @@ describe('structuralDiff — a single field that lost the round-trip', () => {
     expect(structuralDiff(a, b)).toEqual({
       equal: false,
       diffs: [{ path: 'children[0].characters', left: 'Hello', right: 'Hi' }],
+      normalized: [],
     });
   });
 

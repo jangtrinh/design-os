@@ -49,10 +49,11 @@ export interface MirrorVerifyResult {
   keptRebuild: boolean;
   /** The rebuild's own import warnings (bindings skipped, main lost, …). */
   warnings: string[];
-  /** Everything dropped before the diff, said out loud: the root's absolute
-   * position (normalizeForDiff) plus each binding Figma itself refuses to replay
-   * (util/mirror-normalize). A reader must never have to guess what `equal: true`
-   * forgave. */
+  /** Everything the verdict looked past, said out loud: the root's absolute position
+   * (normalizeForDiff), each binding Figma itself refuses to replay
+   * (util/mirror-normalize), and each bound literal that is only a mode projection
+   * (util/structural-diff-bound-projection). A reader must never have to guess what
+   * `equal: true` forgave. */
   normalized: string[];
 }
 
@@ -124,7 +125,7 @@ export async function execute(
   //    and every one of them is reported below. See util/mirror-normalize.
   const clean = (spec: ScannedSpec): ScannedSpec =>
     stripUnreproducibleInnerFields(stripUnbindableBindings(normalizeForDiff(spec)));
-  const { equal, diffs } = structuralDiff(clean(specA), clean(specB));
+  const { equal, diffs, normalized } = structuralDiff(clean(specA), clean(specB));
   return {
     nodeId,
     rebuiltId,
@@ -137,6 +138,9 @@ export async function execute(
       ...NORMALIZED_FIELDS,
       ...unbindableNotes(specA),
       ...unreproducibleInnerNotes(specA),
+      // The diff's own concession (P17): a bound literal it read as a projection, and
+      // only where the two scans' literals actually diverged.
+      ...normalized,
     ],
   };
 }

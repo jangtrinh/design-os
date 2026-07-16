@@ -46,7 +46,7 @@ describe('spec-005 P16 — innerOverrides pair by childKey, not by index', () =>
   it('reports equal for the same members — and pairing is what makes that true', () => {
     const members = [entry('a:1', { width: 10 }), entry('b:2', { name: 'X' })];
     const res = structuralDiff({ innerOverrides: members }, { innerOverrides: structuredClone(members) });
-    expect(res).toEqual({ equal: true, diffs: [] });
+    expect(res).toEqual({ equal: true, diffs: [], normalized: [] });
   });
 
   it('falls back to POSITIONAL when the keys are not strictly ascending', () => {
@@ -97,7 +97,7 @@ describe('spec-005 P16 — a sorted string array is a SET, compared by membershi
 
   it('reports equal for identical sets', () => {
     const set = ['effects', 'fills', 'name'];
-    expect(structuralDiff({ f: set }, { f: [...set] })).toEqual({ equal: true, diffs: [] });
+    expect(structuralDiff({ f: set }, { f: [...set] })).toEqual({ equal: true, diffs: [], normalized: [] });
   });
 
   it('keeps an ORDERED string array positional — a font stack is not a set', () => {
