@@ -48,6 +48,7 @@ beforeAll(() => { installMockFigma(); });
 // executor modules only touch `figma` inside function bodies.
 const { createFigmaNode } = await import('../plugin/src/main/executor-frame.ts');
 const { nodeToSpec, readTokenNameMap } = await import('../plugin/src/main/scan-node.ts');
+const { resolveTokenVars } = await import('../plugin/src/main/executor-token-var-resolve.ts');
 
 type Vars = Map<string, { id: string; name: string }>;
 
@@ -232,6 +233,26 @@ describe('fixed point — variable bindings survive via the token NAME (spec-005
     const map = await readTokenNameMap();
     expect(map.get('VariableID:1')).toBe('color/brand');
     setMockLocalVariables([]);
+  });
+
+  /**
+   * spec-005 P6 — the assertion the suite above CANNOT make, and the reason it was
+   * too weak: `roundTrips` hands the rebuild its token map, but the mirror rebuilds
+   * from a sidecar spec that carries NO tokens. This test withholds them and lets the
+   * production resolver find the file's own variables by name — the real rebuild path.
+   * Without the P6 fix the second pass binds nothing and the fixed point collapses.
+   */
+  it('STAYS a fixed point when the rebuild is handed NO tokens (spec-005 P6)', async () => {
+    const spec1 = await build(btn, vars);
+
+    setMockLocalVariables([...vars.values()]); // the variables the file already has
+    const resolved = await resolveTokenVars({ colors: [], typography: [], spacing: [], radii: [], shadows: [] });
+    const spec2 = await build(spec1, resolved as unknown as Vars, namesOf(vars));
+    setMockLocalVariables([]);
+
+    expect(spec2.tokenRefs).toEqual(spec1.tokenRefs);
+    expect(spec2.figmaScanBindings).toEqual(spec1.figmaScanBindings);
+    expectFixedPoint(spec1, spec2);
   });
 });
 
