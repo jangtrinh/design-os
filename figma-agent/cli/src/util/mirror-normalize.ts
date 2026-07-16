@@ -1,4 +1,9 @@
-// spec-005 P9 — the mirror's ONE concession, and the rules that keep it honest.
+// spec-005 P9/P14 — the mirror's concessions, and the rules that keep them honest.
+//
+// TWO of them now, one shape: a field Figma's own API will not let ANY rebuild carry.
+// P9 found it in a binding (`maxWidth` on TEXT); P14 found it in an inner-override
+// FLAG (width/height on a child auto-layout sizes — `resize()` there is a silent
+// no-op). Both obey the same three rules below, and both are reported out loud.
 //
 // THE PROBLEM: the live footer text 25575:354192 carries a real
 // `boundVariables.maxWidth`, authored through Figma's UI. `setBoundVariable` on a
@@ -71,6 +76,56 @@ export function stripUnbindableBindings<T>(spec: T): T {
   return out as T;
 }
 
+const refusedInnerBy = (spec: Spec): string[] =>
+  Array.isArray(spec.figmaScanUnreproducibleInner)
+    ? spec.figmaScanUnreproducibleInner.filter((f): f is string => typeof f === 'string')
+    : [];
+
+/**
+ * Drop every inner-override FLAG the walker recorded as unreproducible (P14), on both
+ * specs: the name from `figmaScanInnerOverrides`, and the value from every
+ * `innerOverrides[].fields`.
+ *
+ * BOTH must go, for the mirrored reason P9's do: the ORIGINAL carries the flag and the
+ * rebuild cannot, so leaving either behind reproduces the diff this closes.
+ *
+ * WHAT IS NOT DROPPED — and this is the guard, not a detail. `figmaScanFillSize`
+ * stays: the child's MEASURED size on those very axes, emitted by both scans, diffed
+ * like any other field. So this forgives Figma's "was SET" bit and nothing else — a
+ * FILL child that actually rebuilt at the wrong size still fails the gate, on the
+ * measurement. Symmetric and pure, exactly like stripUnbindableBindings.
+ */
+export function stripUnreproducibleInnerFields<T>(spec: T): T {
+  const node = asSpec(spec);
+  if (!node) return spec;
+  const out: Spec = { ...node };
+
+  const refused = refusedInnerBy(out);
+  if (refused.length) {
+    delete out.figmaScanUnreproducibleInner;
+    if (Array.isArray(out.figmaScanInnerOverrides)) {
+      const kept = out.figmaScanInnerOverrides.filter((f) => !refused.includes(f as string));
+      if (kept.length) out.figmaScanInnerOverrides = kept;
+      else delete out.figmaScanInnerOverrides;
+    }
+    if (Array.isArray(out.innerOverrides)) {
+      out.innerOverrides = out.innerOverrides.map((entry) => {
+        const e = asSpec(entry);
+        const fields = e && asSpec(e.fields);
+        if (!e || !fields) return entry;
+        const keptFields = { ...fields };
+        for (const field of refused) delete keptFields[field];
+        return { ...e, fields: keptFields };
+      });
+    }
+  }
+
+  if (Array.isArray(out.children)) {
+    out.children = out.children.map((child) => stripUnreproducibleInnerFields(child));
+  }
+  return out as T;
+}
+
 /**
  * What stripUnbindableBindings removed, as gate-readable lines — one per refused
  * field, addressed by the same JSON path convention the diffs use, so a reader can
@@ -86,6 +141,25 @@ export function unbindableNotes(spec: unknown, path = ''): string[] {
   }
   childrenOf(node).forEach((child, i) => {
     out.push(...unbindableNotes(child, `${joinPath(path, 'children')}[${i}]`));
+  });
+  return out;
+}
+
+/**
+ * The P14 twin of unbindableNotes: what stripUnreproducibleInnerFields removed, by
+ * path — and, crucially, what is still being checked in its place, so `equal: true`
+ * never reads as "the size was forgiven too".
+ */
+export function unreproducibleInnerNotes(spec: unknown, path = ''): string[] {
+  const node = asSpec(spec);
+  if (!node) return [];
+  const out: string[] = [];
+  for (const field of refusedInnerBy(node)) {
+    const where = joinPath(path, `figmaScanInnerOverrides.${field}`);
+    out.push(`${where} — '${field}' is overridden only on inner children their auto-layout parent sizes (FILL); Figma registers no such override on a rebuild (resize() is a silent no-op there), so the flag cannot be carried. The measured size still is, and is still compared: innerOverrides[].figmaScanFillSize`);
+  }
+  childrenOf(node).forEach((child, i) => {
+    out.push(...unreproducibleInnerNotes(child, `${joinPath(path, 'children')}[${i}]`));
   });
   return out;
 }

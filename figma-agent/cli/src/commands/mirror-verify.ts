@@ -29,7 +29,10 @@ import type { CommandArgs } from '../figma-agent.ts';
 import { CliError } from '../transport/protocol-helpers.ts';
 import { runCommand } from '../transport/broker-client.ts';
 import { structuralDiff, type StructuralDiffEntry } from '../util/structural-diff.ts';
-import { stripUnbindableBindings, unbindableNotes } from '../util/mirror-normalize.ts';
+import {
+  stripUnbindableBindings, stripUnreproducibleInnerFields,
+  unbindableNotes, unreproducibleInnerNotes,
+} from '../util/mirror-normalize.ts';
 import {
   resolveScanTimeout, scanNodeSpec, type Runner, type ScannedSpec,
 } from './scan-node.ts';
@@ -115,13 +118,13 @@ export async function execute(
     if (!opts.keep) await removeNode(rebuiltId, opts.timeoutMs, run);
   }
 
-  // 4. Normalize, then diff. Bindings Figma REFUSES on this node type are dropped
-  //    from both sides (spec-005 P9) — but only where the walker itself named the
-  //    refusal, and every one of them is reported below. See util/mirror-normalize.
-  const { equal, diffs } = structuralDiff(
-    stripUnbindableBindings(normalizeForDiff(specA)),
-    stripUnbindableBindings(normalizeForDiff(specB)),
-  );
+  // 4. Normalize, then diff. What Figma REFUSES to let any rebuild carry is dropped
+  //    from both sides — a binding it will not bind (P9), an inner-override flag it
+  //    will not register (P14) — but only where the walker itself named the refusal,
+  //    and every one of them is reported below. See util/mirror-normalize.
+  const clean = (spec: ScannedSpec): ScannedSpec =>
+    stripUnreproducibleInnerFields(stripUnbindableBindings(normalizeForDiff(spec)));
+  const { equal, diffs } = structuralDiff(clean(specA), clean(specB));
   return {
     nodeId,
     rebuiltId,
@@ -130,7 +133,11 @@ export async function execute(
     diffs,
     keptRebuild: opts.keep,
     warnings: imported?.warnings ?? [],
-    normalized: [...NORMALIZED_FIELDS, ...unbindableNotes(specA)],
+    normalized: [
+      ...NORMALIZED_FIELDS,
+      ...unbindableNotes(specA),
+      ...unreproducibleInnerNotes(specA),
+    ],
   };
 }
 

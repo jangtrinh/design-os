@@ -11,17 +11,12 @@
 // loss that remains, and it stays on the record instead of being normalised away.
 
 import type { FigmaInnerOverride } from '../../../shared/figma-payload-types';
-import { INNER_OVERRIDE_FIELDS, innerChildKey, keyInnerChildren } from './instance-inner-override-keys';
+import { readFillSize } from './instance-inner-fill-sizing';
+import {
+  INNER_OVERRIDE_FIELDS, innerChildKey, innerOverrideEntries, keyInnerChildren,
+} from './instance-inner-override-keys';
 import type { MainComponentRef } from './scan-node-instance';
 import { r2, safe } from './scan-node-utils';
-
-/** One override entry as `InstanceNode.overrides` reports it. */
-type OverrideEntry = { id?: string; overriddenFields?: string[] };
-
-const overrideEntries = (n: Record<string, unknown>): OverrideEntry[] => {
-  const o = safe(() => n.overrides as OverrideEntry[]);
-  return Array.isArray(o) ? o : [];
-};
 
 /**
  * Fields overridden on the instance's INNER children (deduped + sorted).
@@ -31,8 +26,7 @@ const overrideEntries = (n: Record<string, unknown>): OverrideEntry[] => {
  */
 export function readInnerOverrideFields(n: Record<string, unknown>, selfId: string): string[] {
   const fields = new Set<string>();
-  for (const o of overrideEntries(n)) {
-    if (!o || o.id === selfId) continue;
+  for (const o of innerOverrideEntries(n, selfId)) {
     for (const f of o.overriddenFields ?? []) fields.add(f);
   }
   return [...fields].sort();
@@ -138,7 +132,7 @@ export function readInnerOverrides(
   // NOT filtered on `overriddenFields.length`: a SWAPPED inner child can be listed
   // with no field names at all (the swap is the override, and Figma does not name it),
   // and dropping that entry is exactly how P11 rebuilt the wrong component in silence.
-  const entries = overrideEntries(n).filter((o) => o && o.id !== selfId);
+  const entries = innerOverrideEntries(n, selfId);
   if (!entries.length) return [];
   const byKey = keyInnerChildren(n, selfId);
   const out: FigmaInnerOverride[] = [];
@@ -152,12 +146,26 @@ export function readInnerOverrides(
     const fields = readOverriddenValues(child, overridden);
     const swap = readSwapRef(child, entry.id, mainComps);
     const props = readChildComponentProperties(child, overridden);
+    // The geometry guard for the width/height flags the gate forgives (P14). Read off
+    // the FILL axes THEMSELVES, not off the override report, so the rebuilt twin —
+    // FILL too, but carrying no width/height override for Figma to report — emits it
+    // as well and the two measurements can actually be compared.
+    const fillSize = readFillSize(child);
     // An entry earns its place if ANY half is reversible: a swapped inner slot can
     // carry no replayable field at all (live P5: every field of the swapped child
     // equalled the main's, so the fields alone rebuilt a byte-identical WRONG node),
     // and a variant picked inside a slot carries ONLY componentProperties (live P13).
+    // `fillSize` alone does NOT earn an entry: it is an observation about a child,
+    // not an override of one. Minting entries for it would make the rebuild report
+    // inner overrides its source never had — P10's spurious-override trap, moved.
     if (Object.keys(fields).length || swap || props) {
-      out.push({ childKey: key, fields, ...swap, ...(props ? { componentProperties: props } : {}) });
+      out.push({
+        childKey: key,
+        fields,
+        ...swap,
+        ...(props ? { componentProperties: props } : {}),
+        ...(fillSize ? { figmaScanFillSize: fillSize } : {}),
+      });
     }
   }
   return out.sort((a, b) => (a.childKey < b.childKey ? -1 : a.childKey > b.childKey ? 1 : 0));

@@ -19,6 +19,7 @@
 
 import type { FigmaExportNode, FigmaKeyedBinding } from '../../../shared/figma-payload-types';
 import { unbindableFields } from '../../../shared/figma-unbindable-fields';
+import { readUnreproducibleInnerFields } from './instance-inner-fill-sizing';
 import { readInnerOverrideFields, readInnerOverrides } from './scan-node-inner-overrides';
 import type { ScannedNode } from './scan-node-types';
 import { aliasId, safe } from './scan-node-utils';
@@ -92,6 +93,10 @@ export function readInstance(
   }
   const inner = readInnerOverrideFields(n, selfId);
   if (inner.length) out.figmaScanInnerOverrides = inner;
+  // …and, of that total, the names Figma refuses to let a rebuild reproduce (P14).
+  // The walker names the refusal; the CLI's normalizer never guesses one of its own.
+  const refused = readUnreproducibleInnerFields(n, selfId);
+  if (refused.length) out.figmaScanUnreproducibleInner = refused;
   // The reversible SUBSET of the same fact, with values (P11). Both are emitted: the
   // names list stays the honest total, `innerOverrides` is only what a rebuild can
   // carry — when the two disagree, the difference IS the residual loss.

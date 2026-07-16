@@ -44,6 +44,23 @@ export const INNER_OVERRIDE_FIELDS = [
 
 export type InnerOverrideField = (typeof INNER_OVERRIDE_FIELDS)[number];
 
+/** One override as `InstanceNode.overrides` reports it: a node id + the fields it edits. */
+export type OverrideEntry = { id?: string; overriddenFields?: string[] };
+
+/**
+ * The instance's override report, minus the entry for the instance NODE itself —
+ * those are node-level overrides the payload models and the builder re-applies, and
+ * every inner-override reader must skip them identically.
+ *
+ * Lives here, with the addressing, because it is the same shared premise: this is the
+ * one place that knows how Figma reports an inner edit. Two readers copying the filter
+ * is how they drift apart.
+ */
+export function innerOverrideEntries(n: Record<string, unknown>, selfId: string): OverrideEntry[] {
+  const o = safe(() => n.overrides as OverrideEntry[]);
+  return Array.isArray(o) ? o.filter((e) => e && e.id !== selfId) : [];
+}
+
 const FIELD_SET: ReadonlySet<string> = new Set(INNER_OVERRIDE_FIELDS);
 
 /** True when `field` is one of the reapplyable inner-override fields. */

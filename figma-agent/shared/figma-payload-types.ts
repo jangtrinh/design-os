@@ -75,6 +75,17 @@ export interface FigmaInnerOverride {
    * `figmaScanInnerOverrides` still names the field, so the loss stays visible.
    */
   componentProperties?: Record<string, string | boolean>;
+  /**
+   * SCAN-ONLY (spec-005 P14). The child's measured size on the axes its auto-layout
+   * parent FILLs — an observation, never an instruction: no builder reads it, because
+   * on a FILL axis the size is auto-layout's OUTPUT and `resize()` is a silent no-op.
+   *
+   * It exists so the mirror can forgive the unreproducible width/height OVERRIDE FLAG
+   * (see figmaScanUnreproducibleInner) without taking the geometry on faith. Emitted
+   * on both the original and its rebuilt twin — both children are FILL — so a size
+   * that genuinely drifted still surfaces as an ordinary diff.
+   */
+  figmaScanFillSize?: { width?: number; height?: number };
 }
 
 export interface FigmaExportNode {
@@ -226,6 +237,19 @@ export interface FigmaExportNode {
   // setProperties, addressed by `childKey`, best-effort per field: a write Figma
   // refuses warns and the loss stays visible in `figmaScanInnerOverrides`.
   innerOverrides?: FigmaInnerOverride[];
+  /**
+   * SCAN-ONLY (spec-005 P14). The `figmaScanInnerOverrides` names Figma itself will
+   * not let any rebuild reproduce: width / height on an inner child auto-layout sizes
+   * (`resize()` there is a silent no-op — see instance-inner-fill-sizing). Listed only
+   * when EVERY child overriding the name is refused, so one FIXED child's real width
+   * override keeps `width` accountable.
+   *
+   * The mirror's diff drops these from both sides and REPORTS each one (see
+   * cli/src/util/mirror-normalize) — the same bargain figmaScanUnbindable strikes for
+   * a binding Figma refuses: charged to the API, never hidden. The geometry itself
+   * stays checked via `FigmaInnerOverride.figmaScanFillSize`.
+   */
+  figmaScanUnreproducibleInner?: string[];
 
   // Nesting
   children?: FigmaExportNode[];

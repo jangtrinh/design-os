@@ -996,6 +996,31 @@
     }
   }
 
+  // plugin/src/main/scan-node-paint.ts
+  function paintToFill(p) {
+    if (p.type === "SOLID") {
+      const a = typeof p.opacity === "number" ? p.opacity : 1;
+      return { type: "SOLID", color: { r: p.color.r, g: p.color.g, b: p.color.b, a } };
+    }
+    if (p.type === "GRADIENT_LINEAR" || p.type === "GRADIENT_RADIAL" || p.type === "GRADIENT_ANGULAR") {
+      const g = p;
+      return {
+        type: p.type,
+        gradientStops: g.gradientStops.map((s) => ({
+          color: { r: s.color.r, g: s.color.g, b: s.color.b, a: s.color.a },
+          position: s.position
+        })),
+        gradientTransform: g.gradientTransform
+      };
+    }
+    return null;
+  }
+  var asFills = (v) => {
+    if (!Array.isArray(v) || v.length === 0) return void 0;
+    const out = v.map(paintToFill).filter((f) => f !== null);
+    return out.length ? out : void 0;
+  };
+
   // plugin/src/main/executor-instance.ts
   function applyComponentProperties(instance, spec) {
     if (!spec.componentProperties || Object.keys(spec.componentProperties).length === 0) return;
@@ -1007,7 +1032,7 @@
   }
   function fillsDiffer(current, wanted) {
     if (typeof current === "symbol") return true;
-    return JSON.stringify(current) !== JSON.stringify(wanted);
+    return JSON.stringify(asFills(current) ?? []) !== JSON.stringify(wanted);
   }
   function applyNodeOverrides(instance, spec) {
     if (spec.name && instance.name !== spec.name) {
@@ -1025,7 +1050,7 @@
     }
     if (spec.fills && spec.fills.length) {
       const paints = spec.fills.map(exportFillToPaint).filter((p) => p !== null);
-      if (paints.length && fillsDiffer(instance.fills, paints)) {
+      if (paints.length && fillsDiffer(instance.fills, spec.fills)) {
         try {
           instance.fills = paints;
         } catch {
