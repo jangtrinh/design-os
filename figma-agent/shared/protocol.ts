@@ -70,7 +70,10 @@ export type ReplyMsg = ReplyOk | ReplyErr;
 // cannot detect a half-open socket via WS control frames. It sends {type:'PING'}
 // JSON frames and the broker answers {type:'PONG'}; a missed PONG ⇒ socket dead.
 export interface EventMsg {
-  type: 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG';
+  // DOC_CHANGE (spec 004 P1): the plugin's coalesced documentchange batch, carried
+  // plugin → broker; the broker appends it to design/figma.changes.jsonl. Payload
+  // shape: { changes: ComponentChange[], page: string, fileKey: string|null }.
+  type: 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG' | 'DOC_CHANGE';
   data: Record<string, unknown>;
 }
 

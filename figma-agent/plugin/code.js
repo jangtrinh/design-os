@@ -1,5 +1,45 @@
 "use strict";
 (() => {
+  // shared/figma-changes.ts
+  function mapChangeType(type) {
+    switch (type) {
+      case "CREATE":
+        return "created";
+      case "DELETE":
+        return "deleted";
+      case "PROPERTY_CHANGE":
+        return "updated";
+      default:
+        return null;
+    }
+  }
+  var OP_RANK = { deleted: 3, created: 2, updated: 1 };
+  function coalesceChanges(raw) {
+    const byId = /* @__PURE__ */ new Map();
+    const propSets = /* @__PURE__ */ new Map();
+    for (const c of raw) {
+      const props = propSets.get(c.nodeId) ?? /* @__PURE__ */ new Set();
+      for (const p of c.changedProps) props.add(p);
+      propSets.set(c.nodeId, props);
+      const prev = byId.get(c.nodeId);
+      if (!prev) {
+        byId.set(c.nodeId, { ...c, changedProps: [] });
+        continue;
+      }
+      prev.op = OP_RANK[c.op] > OP_RANK[prev.op] ? c.op : prev.op;
+      if (prev.nodeName === null && c.nodeName !== null) prev.nodeName = c.nodeName;
+      if (!prev.nodeType && c.nodeType) prev.nodeType = c.nodeType;
+      if (c.origin === "REMOTE") prev.origin = "REMOTE";
+    }
+    const out = [];
+    for (const [id, c] of byId) {
+      c.changedProps = [...propSets.get(id) ?? /* @__PURE__ */ new Set()].sort();
+      out.push(c);
+    }
+    out.sort((a, b) => a.nodeId < b.nodeId ? -1 : a.nodeId > b.nodeId ? 1 : 0);
+    return out;
+  }
+
   // plugin/src/main/font-match.ts
   var GENERIC_FAMILIES = /* @__PURE__ */ new Set([
     "serif",
@@ -1607,6 +1647,50 @@
   }
   announceFileInfo();
   figma.on("currentpagechange", announceFileInfo);
+  function resolveComponentIdentity(node) {
+    if ("removed" in node && node.removed) {
+      if (node.type === "COMPONENT" || node.type === "COMPONENT_SET") {
+        return { id: node.id, name: null, type: node.type };
+      }
+      return null;
+    }
+    let n = node;
+    while (n) {
+      if (n.type === "COMPONENT_SET") return { id: n.id, name: n.name, type: n.type };
+      if (n.type === "COMPONENT") {
+        if (n.parent && n.parent.type === "COMPONENT_SET") {
+          return { id: n.parent.id, name: n.parent.name, type: n.parent.type };
+        }
+        return { id: n.id, name: n.name, type: n.type };
+      }
+      n = n.parent;
+    }
+    return null;
+  }
+  function onDocumentChange(event) {
+    const raw = [];
+    for (const dc of event.documentChanges) {
+      const op = mapChangeType(dc.type);
+      if (op === null) continue;
+      const identity = resolveComponentIdentity(dc.node);
+      if (!identity) continue;
+      raw.push({
+        op,
+        nodeId: identity.id,
+        nodeName: identity.name,
+        nodeType: identity.type,
+        changedProps: dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : [],
+        origin: dc.origin
+      });
+    }
+    const changes = coalesceChanges(raw);
+    if (changes.length === 0) return;
+    figma.ui.postMessage({
+      type: "DOC_CHANGE",
+      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null }
+    });
+  }
+  figma.loadAllPagesAsync().then(() => figma.on("documentchange", onDocumentChange)).catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
   figma.ui.onmessage = async (msg) => {
     const chrome = msg;
     if (chrome && chrome.type === "PANEL_RESIZE") {

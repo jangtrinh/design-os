@@ -2381,6 +2381,10 @@ code {
       wsSend({ type: "FILE_INFO", data: fileInfo });
       return;
     }
+    if (pm.type === "DOC_CHANGE") {
+      wsSend({ type: "DOC_CHANGE", data: pm.data ?? {} });
+      return;
+    }
     if (typeof pm.requestId === "string") {
       const reply = pm.ok ? { id: pm.requestId, ok: true, result: pm.result } : {
         id: pm.requestId,

@@ -8,6 +8,10 @@
 import type { CommandName, ErrorCode } from '../../../shared/protocol';
 import type { FigmaExportPayload } from '../../../shared/figma-payload-types';
 import {
+  coalesceChanges, mapChangeType,
+  type ChangeOrigin, type ComponentChange,
+} from '../../../shared/figma-changes';
+import {
   createColorStyles, createTextStyles, createEffectStyles,
   resetImportWarnings, getImportWarnings, withCode,
 } from './executor-styles';
@@ -36,6 +40,82 @@ function announceFileInfo(): void {
 }
 announceFileInfo();
 figma.on('currentpagechange', announceFileInfo);
+
+// ─── Live-sync capture (spec 004 P1) ────────────────────────────────
+// Watch whole-document edits, coalesce to the component level, and post the batch
+// as DOC_CHANGE; the relay forwards it to the broker, which appends it to
+// design/figma.changes.jsonl. Capture ONLY — no reconcile, no registry write here.
+//
+// The `dynamic-page` manifest requires loadAllPagesAsync() BEFORE subscribing to
+// `documentchange`, or the event fires for the current page only. We pay that cost
+// once at boot (RAM measured in the P1 dogfood) so edits on any page are captured.
+
+/** Component identity as recorded in a change (id + best-effort name + node type). */
+interface ComponentIdentity {
+  id: string;
+  name: string | null;
+  type: string;
+}
+
+/**
+ * Resolve a changed node to its canonical component container: the enclosing
+ * COMPONENT_SET if the node is a variant, else the nearest COMPONENT/COMPONENT_SET.
+ * Returns null when the change is not under any component (the volume filter —
+ * ordinary frame/text edits are ignored). Deletes arrive as a RemovedNode with only
+ * id + type (no name, no parent), so a deleted DESCENDANT of a component cannot be
+ * resolved upward — we capture only whole-component deletions. Documented P1 limit.
+ */
+function resolveComponentIdentity(node: SceneNode | RemovedNode): ComponentIdentity | null {
+  if ('removed' in node && node.removed) {
+    // RemovedNode: id + type only. Record it only if it WAS itself a component.
+    if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') {
+      return { id: node.id, name: null, type: node.type };
+    }
+    return null;
+  }
+  let n: BaseNode | null = node;
+  while (n) {
+    if (n.type === 'COMPONENT_SET') return { id: n.id, name: n.name, type: n.type };
+    if (n.type === 'COMPONENT') {
+      // A variant's canonical unit is its enclosing set (matches the registry).
+      if (n.parent && n.parent.type === 'COMPONENT_SET') {
+        return { id: n.parent.id, name: n.parent.name, type: n.parent.type };
+      }
+      return { id: n.id, name: n.name, type: n.type };
+    }
+    n = n.parent;
+  }
+  return null;
+}
+
+function onDocumentChange(event: DocumentChangeEvent): void {
+  const raw: ComponentChange[] = [];
+  for (const dc of event.documentChanges) {
+    const op = mapChangeType(dc.type);
+    if (op === null) continue; // STYLE_* — components only in P1
+    const identity = resolveComponentIdentity((dc as { node: SceneNode | RemovedNode }).node);
+    if (!identity) continue; // change not under any component — filtered out
+    raw.push({
+      op,
+      nodeId: identity.id,
+      nodeName: identity.name,
+      nodeType: identity.type,
+      changedProps: dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [],
+      origin: dc.origin as ChangeOrigin,
+    });
+  }
+  const changes = coalesceChanges(raw);
+  if (changes.length === 0) return;
+  figma.ui.postMessage({
+    type: 'DOC_CHANGE',
+    data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
+  });
+}
+
+// Subscribe only after all pages are loaded (dynamic-page requirement).
+figma.loadAllPagesAsync()
+  .then(() => figma.on('documentchange', onDocumentChange))
+  .catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
 
 type Params = Record<string, unknown>;
 
