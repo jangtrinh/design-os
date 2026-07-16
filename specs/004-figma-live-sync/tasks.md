@@ -4,9 +4,7 @@
 > build first. Each phase = 1 PR, 3-tier pipeline, human merge. Parallel executors MUST use
 > isolation: worktree (spec 003 P3/P5 race lesson).
 
-- [ ] P1 — Capture read-only: documentchange listener → design/figma.changes.jsonl (coalesced,
-      identity snapshot on DELETE, boot loadAllPagesAsync, EventMsg types + broker append). No
-      apply. Dogfood: event coverage + volume on a real Figma file — stage:spec
+- [x] P1 — Capture read-only (code + unit-gates) — ✓ 2026-07-16 merged (PR #35, CI 5/5, figma-agent 200 tests). JSONL contract locked. ⚠ LIVE dogfood (documentchange on real Figma) = owner-in-the-loop, still pending.
 - [ ] P2 — reconcile --dry-run: deterministic preview-delta from the log (coalesce → ds-diff →
       scope-map) — stage:spec · depends P1
 - [x] P3 — Registry schema (scope + deprecated) — ✓ 2026-07-16 merged (PR #34, CI 5/5, suite 1810; shadcn-standard migrates clean)
