@@ -62,20 +62,20 @@ describe('summarizeResult — what the plugin can honestly say it did', () => {
 });
 
 describe('summarizeError', () => {
-  it('marks the failure with the plugin error message', () => {
+  it('carries the plugin error message alone — the row\'s mark column says ✗, not the text', () => {
     expect(summarizeError({ code: 'E_PLUGIN_ERROR', message: 'node not found: 1:23' }))
-      .toBe('✗ node not found: 1:23');
+      .toBe('node not found: 1:23');
   });
   it('flattens a multi-line message onto the single row it has', () => {
-    expect(summarizeError({ message: 'line one\n  line two' })).toBe('✗ line one line two');
+    expect(summarizeError({ message: 'line one\n  line two' })).toBe('line one line two');
   });
   it('truncates a runaway message rather than blowing up the row', () => {
     const out = summarizeError({ message: 'x'.repeat(500) });
-    expect(out.length).toBeLessThanOrEqual(122);
+    expect(out.length).toBeLessThanOrEqual(120);
     expect(out.endsWith('…')).toBe(true);
   });
   it('still says something when the error carries no message', () => {
-    expect(summarizeError({})).toBe('✗ failed');
-    expect(summarizeError('boom')).toBe('✗ boom');
+    expect(summarizeError({})).toBe('failed');
+    expect(summarizeError('boom')).toBe('boom');
   });
 });
