@@ -82,9 +82,16 @@ precedent allows more only with reason). Kebab-case, long descriptive names.
 YAGNI/KISS/DRY: no speculative features; the smallest change that honors the
 articles above.
 
+## Article X — Cross-axis priority
+
+When design rules collide, resolve top-down in this fixed order:
+**accessibility → tap reliability → performance → layout → type/color → motion →
+decoration.** A higher axis always wins; accessibility never loses to aesthetics.
+The critique gate and any multi-axis rubric use this order as their tie-breaker.
+
 ## Governance
 
 Amendments to this constitution are their own commit, named in the message.
 Where a spec conflicts with the constitution, the constitution wins until amended.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-15
+**Version**: 1.1.0 | **Ratified**: 2026-07-15 | **Amended**: 2026-07-16 (Art X, spec 003 D4)
