@@ -18,9 +18,9 @@ const PERSONAS_PATH = new URL(
 // ─── loadPersonaIndex ─────────────────────────────────────────────────────────
 
 describe("loadPersonaIndex", () => {
-  it("loads and validates all 23 records from the committed index", () => {
+  it("loads and validates all 26 records from the committed index", () => {
     const records = loadPersonaIndex(PERSONAS_PATH);
-    expect(records).toHaveLength(23);
+    expect(records).toHaveLength(26);
   });
 
   it("every record has a non-empty slug and family", () => {

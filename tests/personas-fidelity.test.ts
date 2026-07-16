@@ -17,8 +17,8 @@ describe("personas.json fidelity against Markdown family files", () => {
     expect(result.stderr).toBe("");
   });
 
-  it("derive-personas-json stdout confirms all 23 personas verified", () => {
+  it("derive-personas-json stdout confirms all 26 personas verified", () => {
     const result = spawnSync("node", [SCRIPT], { encoding: "utf8" });
-    expect(result.stdout).toContain("23 personas verified");
+    expect(result.stdout).toContain("26 personas verified");
   });
 });
