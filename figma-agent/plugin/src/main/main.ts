@@ -16,7 +16,8 @@ import {
   createColorStyles, createTextStyles, createEffectStyles,
   resetImportWarnings, getImportWarnings, withCode,
 } from './executor-styles';
-import { createVariablesFromTokens, opCreateVariable, opBindVariable } from './executor-variables';
+import { opCreateVariable, opBindVariable } from './executor-variables';
+import { resolveTokenVars } from './executor-token-var-resolve';
 import { createFigmaNode } from './executor-frame';
 import { serializeDesignSystem } from './serialize-node';
 import { auditDs } from './executor-audit';
@@ -221,12 +222,14 @@ async function importPayload(params: Params): Promise<{ id: string; name: string
   resetImportWarnings();
 
   // 1. Local styles + variables from tokens (variables are de-duped on re-import);
-  //    tokenVars (name → Variable) feeds tokenRefs binding during node build (P3 leg B)
+  //    tokenVars (name → Variable) feeds tokenRefs binding during node build (P3 leg B).
+  //    spec-005 P6: the map now also carries the file's EXISTING local variables, so a
+  //    rebuild from a spec alone (no payload.tokens) reattaches its bindings by name.
   const tokens = payload.tokens ?? { colors: [], typography: [], spacing: [], radii: [], shadows: [] };
   const colorStyles = await createColorStyles(tokens.colors ?? []);
   await createTextStyles(tokens.typography ?? []);
   await createEffectStyles(tokens.shadows ?? []);
-  const tokenVars = await createVariablesFromTokens(tokens);
+  const tokenVars = await resolveTokenVars(tokens);
 
   // 2. Build the node tree (tokenRefs bound inline via tokenVars)
   const root = await createFigmaNode(payload.rootNode, colorStyles, tokenVars);

@@ -123,11 +123,65 @@ function setBoundVariableForPaint(paint: Record<string, unknown>, _field: 'color
   return { ...paint, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: variable.id } } };
 }
 
+/** A local Variable, as the plugin API models one: identity + a value per mode. */
+export interface FakeVariable {
+  id: string;
+  name: string;
+  resolvedType?: string;
+  variableCollectionId?: string;
+  valuesByMode?: Record<string, unknown>;
+  setValueForMode?(modeId: string, value: unknown): void;
+}
+
 /** The file's LOCAL variables, as getLocalVariablesAsync reports them. A binding
- * to an id absent from this list = the library/remote-variable edge. */
-let localVariables: Array<{ id: string; name: string }> = [];
-export function setMockLocalVariables(vars: Array<{ id: string; name: string }>): void {
+ * to an id absent from this list = the library/remote-variable edge (a library
+ * variable is real and bindable in Figma, but this call never lists it). */
+let localVariables: FakeVariable[] = [];
+export function setMockLocalVariables(vars: FakeVariable[]): void {
   localVariables = vars;
+}
+
+/** A local variable that already EXISTS in the file — what a rebuild-from-spec
+ * must find by name (spec-005 P6). */
+export function makeMockVariable(name: string, resolvedType = 'COLOR'): FakeVariable {
+  return { id: `VariableID:${idSeq++}`, name, resolvedType };
+}
+
+/** The file's variable COLLECTIONS, as the token-import path finds/creates them. */
+interface FakeCollection {
+  id: string;
+  name: string;
+  modes: Array<{ modeId: string; name: string }>;
+}
+let collections: FakeCollection[] = [];
+export function setMockVariableCollections(cols: FakeCollection[]): void {
+  collections = cols;
+}
+
+function createVariableCollection(name: string): FakeCollection {
+  const col: FakeCollection = {
+    id: `VariableCollectionId:${idSeq++}`,
+    name,
+    modes: [{ modeId: `m${idSeq++}`, name: 'Mode 1' }],
+  };
+  collections.push(col);
+  return col;
+}
+
+/** figma.variables.createVariable — mints a variable INTO the file's local list. */
+function createVariable(name: string, collection: FakeCollection, resolvedType: string): FakeVariable {
+  const v: FakeVariable = {
+    id: `VariableID:${idSeq++}`,
+    name,
+    resolvedType,
+    variableCollectionId: collection.id,
+    valuesByMode: {},
+    setValueForMode(modeId: string, value: unknown) {
+      (this.valuesByMode as Record<string, unknown>)[modeId] = value;
+    },
+  };
+  localVariables.push(v);
+  return v;
 }
 
 /** The file's COMPONENT / COMPONENT_SET nodes, as the instance build-case resolves
@@ -158,12 +212,17 @@ export interface MockFigma {
   importComponentByKeyAsync(key: string): Promise<FakeNode>;
   variables: {
     setBoundVariableForPaint: typeof setBoundVariableForPaint;
-    getLocalVariablesAsync(): Promise<Array<{ id: string; name: string }>>;
+    getLocalVariablesAsync(type?: string): Promise<FakeVariable[]>;
+    getLocalVariableCollectionsAsync(): Promise<FakeCollection[]>;
+    createVariableCollection(name: string): FakeCollection;
+    createVariable(name: string, collection: FakeCollection, type: string): FakeVariable;
   };
 }
 
 /** Install a fresh mock on globalThis.figma; returns it. Call once per test file. */
 export function installMockFigma(): MockFigma {
+  localVariables = [];
+  collections = [];
   const mk = (type: string): FakeNode => {
     const n = new FakeNode(type);
     if (type === 'TEXT') n.name = 'Text';
@@ -185,7 +244,13 @@ export function installMockFigma(): MockFigma {
     },
     variables: {
       setBoundVariableForPaint,
-      getLocalVariablesAsync: async () => localVariables,
+      // Figma filters by resolved type when asked; an untyped fixture variable
+      // answers only the untyped query.
+      getLocalVariablesAsync: async (type?: string) =>
+        (type ? localVariables.filter((v) => v.resolvedType === type) : localVariables),
+      getLocalVariableCollectionsAsync: async () => collections,
+      createVariableCollection,
+      createVariable,
     },
   };
   (globalThis as unknown as { figma: MockFigma }).figma = figma;

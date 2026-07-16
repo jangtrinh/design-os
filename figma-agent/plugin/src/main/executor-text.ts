@@ -126,9 +126,10 @@ export async function createTextNode(exportNode: FigmaExportNode, tokenVars?: Ma
     }
   }
 
-  // Token bindings (P3 leg B): textColor → fills variable
-  if (exportNode.tokenRefs && tokenVars && tokenVars.size > 0) {
-    applyTokenRefs(textNode, exportNode.tokenRefs, tokenVars);
+  // Token bindings (P3 leg B): textColor → fills variable.
+  // Gated on tokenRefs ALONE — see executor-frame's build (spec-005 P6).
+  if (exportNode.tokenRefs) {
+    applyTokenRefs(textNode, exportNode.tokenRefs, tokenVars ?? new Map());
   }
 
   return textNode;

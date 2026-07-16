@@ -67,9 +67,10 @@ export async function createRectangleNode(
     rect.opacity = exportNode.opacity;
   }
 
-  // Token bindings (carried follow-up): fill/stroke/radius refs on decorations
-  if (exportNode.tokenRefs && tokenVars && tokenVars.size > 0) {
-    applyTokenRefs(rect, exportNode.tokenRefs, tokenVars);
+  // Token bindings (carried follow-up): fill/stroke/radius refs on decorations.
+  // Gated on tokenRefs ALONE — see executor-frame's build (spec-005 P6).
+  if (exportNode.tokenRefs) {
+    applyTokenRefs(rect, exportNode.tokenRefs, tokenVars ?? new Map());
   }
 
   return rect;

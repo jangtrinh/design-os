@@ -464,6 +464,30 @@
     return { id: node.id, field, variable: variable.name };
   }
 
+  // plugin/src/main/executor-token-var-resolve.ts
+  function tokensAreEmpty(tokens) {
+    return !(tokens.colors?.length || tokens.spacing?.length || tokens.radii?.length);
+  }
+  async function readLocalVariableMap() {
+    const byName = /* @__PURE__ */ new Map();
+    try {
+      for (const v of await figma.variables.getLocalVariablesAsync()) {
+        if (!byName.has(v.name)) byName.set(v.name, v);
+      }
+    } catch (err) {
+      pushImportWarning(`local variable lookup failed \u2014 tokenRefs left unbound: ${String(err)}`);
+    }
+    return byName;
+  }
+  async function resolveTokenVars(tokens) {
+    const resolved = await readLocalVariableMap();
+    if (tokensAreEmpty(tokens)) return resolved;
+    for (const [name, variable] of await createVariablesFromTokens(tokens)) {
+      resolved.set(name, variable);
+    }
+    return resolved;
+  }
+
   // plugin/src/main/executor-text.ts
   async function createTextNode(exportNode, tokenVars) {
     const textNode = figma.createText();
@@ -560,8 +584,8 @@
       } catch {
       }
     }
-    if (exportNode.tokenRefs && tokenVars && tokenVars.size > 0) {
-      applyTokenRefs(textNode, exportNode.tokenRefs, tokenVars);
+    if (exportNode.tokenRefs) {
+      applyTokenRefs(textNode, exportNode.tokenRefs, tokenVars ?? /* @__PURE__ */ new Map());
     }
     return textNode;
   }
@@ -610,8 +634,8 @@
     if (exportNode.opacity !== void 0 && exportNode.opacity > 0) {
       rect.opacity = exportNode.opacity;
     }
-    if (exportNode.tokenRefs && tokenVars && tokenVars.size > 0) {
-      applyTokenRefs(rect, exportNode.tokenRefs, tokenVars);
+    if (exportNode.tokenRefs) {
+      applyTokenRefs(rect, exportNode.tokenRefs, tokenVars ?? /* @__PURE__ */ new Map());
     }
     return rect;
   }
@@ -1159,8 +1183,8 @@
     } catch {
     }
     frame.clipsContent = !!exportNode.clipsContent;
-    if (exportNode.tokenRefs && tokenVars && tokenVars.size > 0) {
-      applyTokenRefs(frame, exportNode.tokenRefs, tokenVars);
+    if (exportNode.tokenRefs) {
+      applyTokenRefs(frame, exportNode.tokenRefs, tokenVars ?? /* @__PURE__ */ new Map());
     }
     if (exportNode.children) {
       for (const childExport of exportNode.children) {
@@ -1898,7 +1922,7 @@
     const colorStyles = await createColorStyles(tokens.colors ?? []);
     await createTextStyles(tokens.typography ?? []);
     await createEffectStyles(tokens.shadows ?? []);
-    const tokenVars = await createVariablesFromTokens(tokens);
+    const tokenVars = await resolveTokenVars(tokens);
     const root = await createFigmaNode(payload.rootNode, colorStyles, tokenVars);
     if (!root) throw new Error("payload rootNode produced no Figma node");
     let replaceTarget = null;
