@@ -430,12 +430,13 @@ code {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  max-height: 120px;
+  max-height: 180px;
   overflow-y: auto;
 }
+/* A row is [dot][body], where body stacks the head line over the result line. */
 .activity-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
   padding: 2px 0;
   font-family: var(--font-mono);
@@ -444,23 +445,52 @@ code {
 .log-dot {
   width: 6px;
   height: 6px;
+  margin-top: 4px; /* optically centred on the head line, not the whole row */
   flex: 0 0 auto;
   background: var(--color-success);
 }
 .log-dot[data-ok="false"] { background: var(--color-danger); }
+/* In-flight beats the ok/fail colour — nothing has been decided yet. */
+.log-dot[data-pending="true"] { background: var(--color-warning); }
+.log-body {
+  flex: 1 1 auto;
+  min-width: 0; /* lets the ellipsis in .log-tool / .log-result actually engage */
+}
+.log-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.log-time {
+  flex: 0 0 auto;
+  color: var(--color-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
 .log-tool {
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .log-meta {
   margin-left: auto;
+  flex: 0 0 auto;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-muted-foreground);
   font-variant-numeric: tabular-nums;
 }
+/* Result line — indented under the label, one line, truncated. */
+.log-result {
+  color: var(--color-muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-result[data-ok="false"] { color: var(--color-danger); }
 .activity-empty {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
@@ -671,36 +701,6 @@ code {
     const h = Math.floor(m / 60);
     return `${h}h ${String(m % 60).padStart(2, "0")}m`;
   }
-  function formatDuration(ms) {
-    if (!Number.isFinite(ms) || ms < 0) return "\u2014";
-    if (ms < 1e3) return `${Math.round(ms)}ms`;
-    return `${(ms / 1e3).toFixed(1)}s`;
-  }
-  function timeAgo(nowMs, atMs) {
-    const s = Math.floor((nowMs - atMs) / 1e3);
-    if (s < 1) return "just now";
-    if (s < 60) return `${s}s ago`;
-    const m = Math.floor(s / 60);
-    if (m < 60) return `${m}m ago`;
-    return `${Math.floor(m / 60)}h ago`;
-  }
-  function toActivityRecord(detail) {
-    if (detail === null || typeof detail !== "object") return null;
-    const d = detail;
-    if (typeof d.tool !== "string" || d.tool === "") return null;
-    return {
-      tool: d.tool,
-      ok: d.ok === true,
-      ms: typeof d.ms === "number" && Number.isFinite(d.ms) && d.ms >= 0 ? d.ms : 0,
-      at: typeof d.at === "number" && Number.isFinite(d.at) ? d.at : Date.now()
-    };
-  }
-  function humanizeTool(tool) {
-    return tool.toLowerCase().replace(/_/g, " ");
-  }
-  function pushActivity(buf, rec, max = 50) {
-    return [rec, ...buf].slice(0, Math.max(0, max));
-  }
   function troubleshootHint(state, ageMs, hadConnection2) {
     if (state === "probing" && ageMs >= 1e4) {
       return "Broker not running? Any CLI command spawns it \u2014 run figma-agent status in a terminal.";
@@ -731,6 +731,73 @@ code {
   }
   function compactMeta(state) {
     return state === "disconnected" ? "First CLI command starts it" : null;
+  }
+
+  // plugin/src/ui/activity-feed.ts
+  function humanizeTool(tool) {
+    return tool.toLowerCase().replace(/_/g, " ");
+  }
+  function activityLabel(rec) {
+    const label = typeof rec.label === "string" ? rec.label.trim() : "";
+    return label !== "" ? label : humanizeTool(rec.tool);
+  }
+  function formatClock(at) {
+    if (!Number.isFinite(at)) return "--:--:--";
+    const d = new Date(at);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  function formatDuration(ms) {
+    if (!Number.isFinite(ms) || ms < 0) return "\u2014";
+    if (ms < 1e3) return `${Math.round(ms)}ms`;
+    return `${(ms / 1e3).toFixed(1)}s`;
+  }
+  function timeAgo(nowMs, atMs) {
+    const s = Math.floor((nowMs - atMs) / 1e3);
+    if (s < 1) return "just now";
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    return `${Math.floor(m / 60)}h ago`;
+  }
+  function toActivityRecord(detail) {
+    if (detail === null || typeof detail !== "object") return null;
+    const d = detail;
+    if (typeof d.tool !== "string" || d.tool === "") return null;
+    const at = typeof d.at === "number" && Number.isFinite(d.at) ? d.at : Date.now();
+    const rec = {
+      id: typeof d.id === "string" && d.id !== "" ? d.id : `${d.tool}:${at}`,
+      tool: d.tool,
+      pending: true,
+      ok: true,
+      ms: 0,
+      at
+    };
+    if (typeof d.label === "string" && d.label.trim() !== "") rec.label = d.label.trim();
+    return rec;
+  }
+  function toActivityResult(detail) {
+    if (detail === null || typeof detail !== "object") return null;
+    const d = detail;
+    if (typeof d.id !== "string" || d.id === "") return null;
+    const patch = {
+      id: d.id,
+      ok: d.ok === true,
+      ms: typeof d.ms === "number" && Number.isFinite(d.ms) && d.ms >= 0 ? d.ms : 0
+    };
+    if (typeof d.result === "string" && d.result !== "") patch.result = d.result;
+    return patch;
+  }
+  function pushActivity(buf, rec, max = 50) {
+    return [rec, ...buf].slice(0, Math.max(0, max));
+  }
+  function resolveActivity(buf, patch) {
+    return buf.map((rec) => {
+      if (rec.id !== patch.id) return rec;
+      const next = { ...rec, pending: false, ok: patch.ok, ms: patch.ms };
+      if (patch.result !== void 0) next.result = patch.result;
+      return next;
+    });
   }
 
   // plugin/src/ui/panel-ui.ts
@@ -788,24 +855,42 @@ code {
     dFile.textContent = sceneFile || "\u2014";
     dPage.textContent = scenePage || "\u2014";
   }
+  var ACTIVITY_ROWS = 20;
+  function activityRow(r, now) {
+    const li = document.createElement("li");
+    li.className = "activity-row";
+    const dot2 = document.createElement("span");
+    dot2.className = "log-dot";
+    dot2.dataset.ok = String(r.ok);
+    dot2.dataset.pending = String(r.pending);
+    const time = document.createElement("span");
+    time.className = "log-time";
+    time.textContent = formatClock(r.at);
+    const tool = document.createElement("span");
+    tool.className = "log-tool";
+    tool.textContent = activityLabel(r);
+    const m = document.createElement("span");
+    m.className = "log-meta";
+    m.textContent = r.pending ? "running\u2026" : `${r.ok ? "" : "failed \xB7 "}${formatDuration(r.ms)} \xB7 ${timeAgo(now, r.at)}`;
+    const head = document.createElement("div");
+    head.className = "log-head";
+    head.append(time, tool, m);
+    const body = document.createElement("div");
+    body.className = "log-body";
+    body.append(head);
+    if (r.result) {
+      const res = document.createElement("div");
+      res.className = "log-result";
+      res.dataset.ok = String(r.ok);
+      res.textContent = r.result;
+      body.append(res);
+    }
+    li.append(dot2, body);
+    return li;
+  }
   function renderActivity(now) {
     if (activity.length === 0) return;
-    const rows = activity.slice(0, 8).map((r) => {
-      const li = document.createElement("li");
-      li.className = "activity-row";
-      const d = document.createElement("span");
-      d.className = "log-dot";
-      d.dataset.ok = String(r.ok);
-      const tool = document.createElement("span");
-      tool.className = "log-tool";
-      tool.textContent = humanizeTool(r.tool);
-      const m = document.createElement("span");
-      m.className = "log-meta";
-      m.textContent = `${r.ok ? "" : "failed \xB7 "}${formatDuration(r.ms)} \xB7 ${timeAgo(now, r.at)}`;
-      li.append(d, tool, m);
-      return li;
-    });
-    activityList.replaceChildren(...rows);
+    activityList.replaceChildren(...activity.slice(0, ACTIVITY_ROWS).map((r) => activityRow(r, now)));
   }
   function render() {
     const now = Date.now();
@@ -831,9 +916,16 @@ code {
     render();
   });
   window.addEventListener("figma-agent:activity", (ev) => {
-    const rec = toActivityRecord(ev.detail);
-    if (!rec) return;
-    activity = pushActivity(activity, rec);
+    const detail = ev.detail;
+    if (detail?.phase === "done") {
+      const patch = toActivityResult(detail);
+      if (!patch) return;
+      activity = resolveActivity(activity, patch);
+    } else {
+      const rec = toActivityRecord(detail);
+      if (!rec) return;
+      activity = pushActivity(activity, rec);
+    }
     renderActivity(Date.now());
   });
   window.addEventListener("message", (ev) => {
@@ -850,8 +942,21 @@ code {
     if (typeof pm.data.page === "string") scenePage = pm.data.page;
     renderDetails();
   });
+  var reconcileRun = null;
   syncNowBtn.addEventListener("click", () => {
     syncMsg.textContent = "Syncing\u2026";
+    const at = Date.now();
+    reconcileRun = { id: `reconcile_${at}`, at };
+    activity = pushActivity(activity, {
+      id: reconcileRun.id,
+      tool: "RECONCILE",
+      label: "Reconcile \xB7 apply",
+      pending: true,
+      ok: true,
+      ms: 0,
+      at
+    });
+    renderActivity(at);
     try {
       window.dispatchEvent(new CustomEvent("figma-agent:sync-request"));
     } catch {
@@ -863,11 +968,23 @@ code {
   });
   window.addEventListener("figma-agent:sync-result", (ev) => {
     const d = ev.detail;
-    syncMsg.textContent = syncResultLabel(
+    const label = syncResultLabel(
       d?.ok === true,
       typeof d?.summary === "string" ? d.summary : "",
       d?.landed !== false
     );
+    syncMsg.textContent = label;
+    if (reconcileRun) {
+      const now = Date.now();
+      activity = resolveActivity(activity, {
+        id: reconcileRun.id,
+        ok: d?.ok === true,
+        ms: now - reconcileRun.at,
+        result: `\u2192 ${label}`
+      });
+      reconcileRun = null;
+      renderActivity(now);
+    }
     syncPrompt.hidden = false;
     setTimeout(() => {
       syncPrompt.hidden = true;
@@ -2323,6 +2440,48 @@ code {
     }
   }
 
+  // plugin/src/ui/activity-summary.ts
+  var MAX_SPEC_DEPTH = 100;
+  var MAX_ERROR_CHARS = 120;
+  function isNodeSpec(v) {
+    if (v === null || typeof v !== "object") return false;
+    const o = v;
+    return typeof o.type === "string" && (typeof o.name === "string" || Array.isArray(o.children));
+  }
+  function countSpecNodes(spec, depth = 0) {
+    if (!isNodeSpec(spec) || depth > MAX_SPEC_DEPTH) return 0;
+    const children = Array.isArray(spec.children) ? spec.children : [];
+    let n = 1;
+    for (const child of children) n += countSpecNodes(child, depth + 1);
+    return n;
+  }
+  function unwrapExecJs(reply) {
+    if (reply === null || typeof reply !== "object") return reply;
+    const r = reply;
+    return "result" in r && ("console" in r || "ms" in r) ? r.result : r;
+  }
+  function summarizeResult(cmd, result) {
+    if (cmd === "IMPORT_PAYLOAD" || cmd === "HTML_TO_FIGMA") {
+      const r = result ?? {};
+      const name = typeof r.name === "string" && r.name !== "" ? r.name : "imported";
+      const warnings = Array.isArray(r.warnings) ? r.warnings.length : 0;
+      return warnings > 0 ? `\u2192 ${name}, ${warnings} warning${warnings === 1 ? "" : "s"}` : `\u2192 ${name}`;
+    }
+    if (cmd === "EXEC_JS") {
+      const value = unwrapExecJs(result);
+      if (!isNodeSpec(value)) return null;
+      const n = countSpecNodes(value);
+      return `\u2192 ${n} node${n === 1 ? "" : "s"}`;
+    }
+    return null;
+  }
+  function summarizeError(error) {
+    const e = error ?? {};
+    const raw = typeof e.message === "string" && e.message !== "" ? e.message : typeof error === "string" && error !== "" ? error : "failed";
+    const oneLine = raw.replace(/\s+/g, " ").trim();
+    return `\u2717 ${oneLine.length > MAX_ERROR_CHARS ? `${oneLine.slice(0, MAX_ERROR_CHARS - 1)}\u2026` : oneLine}`;
+  }
+
   // plugin/src/ui/ui-relay.ts
   var PLUGIN_VERSION = "0.1.0";
   var PORT_PROBE_TIMEOUT_MS = 1200;
@@ -2336,15 +2495,23 @@ code {
   var fileInfo = {};
   var chunkBuffers = /* @__PURE__ */ new Map();
   var activityStart = /* @__PURE__ */ new Map();
-  function emitActivity(id, ok) {
-    const started = activityStart.get(id);
-    if (!started) return;
-    activityStart.delete(id);
-    const detail = { tool: started.cmd, ok, ms: Date.now() - started.at, at: started.at };
+  function dispatchActivity(detail) {
     try {
       window.dispatchEvent(new CustomEvent("figma-agent:activity", { detail }));
     } catch {
     }
+  }
+  function startActivity(req) {
+    const at = Date.now();
+    activityStart.set(req.id, { cmd: req.cmd, at });
+    dispatchActivity({ phase: "start", id: req.id, tool: req.cmd, label: req.activity, at });
+  }
+  function emitActivity(id, ok, payload2) {
+    const started = activityStart.get(id);
+    if (!started) return;
+    activityStart.delete(id);
+    const result = ok ? summarizeResult(started.cmd, payload2) : summarizeError(payload2);
+    dispatchActivity({ phase: "done", id, ok, ms: Date.now() - started.at, result: result ?? void 0 });
   }
   function renderStatusDom(p) {
     const statusEl = document.getElementById("status");
@@ -2447,13 +2614,13 @@ code {
     handleWireData(buf.join(""));
   }
   async function handleRequest(req) {
-    activityStart.set(req.id, { cmd: req.cmd, at: Date.now() });
+    startActivity(req);
     try {
       if (req.cmd === "HTML_TO_FIGMA") {
         const p = req.params ?? {};
         if (!p.html) {
           sendErr(req.id, "E_INVALID_ARGS", "HTML_TO_FIGMA requires params.html");
-          emitActivity(req.id, false);
+          emitActivity(req.id, false, { message: "HTML_TO_FIGMA requires params.html" });
           return;
         }
         setStatusText("rendering html\u2026", "ok");
@@ -2471,8 +2638,9 @@ code {
       }
     } catch (err) {
       setStatusText("connected", "ok");
-      sendErr(req.id, "E_PLUGIN_ERROR", err instanceof Error ? err.message : String(err));
-      emitActivity(req.id, false);
+      const message = err instanceof Error ? err.message : String(err);
+      sendErr(req.id, "E_PLUGIN_ERROR", message);
+      emitActivity(req.id, false, { message });
     }
   }
   window.addEventListener("message", (ev) => {
@@ -2494,7 +2662,7 @@ code {
         error: pm.error ?? { code: "E_PLUGIN_ERROR", message: "main thread returned no error detail" }
       };
       wsSend(reply);
-      emitActivity(pm.requestId, pm.ok === true);
+      emitActivity(pm.requestId, pm.ok === true, pm.ok === true ? pm.result : pm.error);
     }
   });
   function stopHeartbeat() {

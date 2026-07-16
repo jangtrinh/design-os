@@ -29,5 +29,8 @@ export async function run(args: CommandArgs): Promise<unknown> {
 
   const requested = args.num('timeout') ?? COMMAND_TIMEOUTS.EXEC_JS ?? 30_000;
   const timeoutMs = Math.min(requested, EXEC_JS_MAX_TIMEOUT_MS);
-  return runCommand('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS });
+  // Generic fallback: an ad-hoc script has no intent we can read off it. Named
+  // scan/mirror-verify/build runs label themselves and never reach this line.
+  const activity = !fileArg || fileArg === '-' ? 'Run script' : `Run script · ${fileArg}`;
+  return runCommand('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity });
 }

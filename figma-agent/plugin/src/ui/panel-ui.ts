@@ -10,12 +10,16 @@
 import { PORT_RANGE_START } from '../../../shared/protocol';
 import type { ConnectionState, ConnectionStatePayload } from '../../../shared/protocol';
 import {
-  stateView, formatAge, formatDuration, timeAgo, humanizeTool,
-  toActivityRecord, pushActivity, troubleshootHint, showOnboarding,
+  stateView, formatAge, troubleshootHint, showOnboarding,
   togglePanelMode, detailsLabel, compactMeta, PANEL_HEIGHT,
   syncPromptLabel, syncResultLabel,
-  type ActivityRecord, type PanelMode,
+  type PanelMode,
 } from './panel-model';
+import {
+  activityLabel, formatClock, formatDuration, timeAgo,
+  toActivityRecord, toActivityResult, pushActivity, resolveActivity,
+  type ActivityRecord,
+} from './activity-feed';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
@@ -77,24 +81,63 @@ function renderDetails(): void {
   dPage.textContent = scenePage || '—';
 }
 
+/** How many of the buffered rows the feed shows (the band scrolls past this). */
+const ACTIVITY_ROWS = 20;
+
+/**
+ * One feed row — two lines:
+ *   ● 14:32:07  MIRROR-VERIFY · REBUILD            1.2s · 5s ago
+ *               → Hero card, 2 warnings
+ * The second line is omitted while a request is in flight (no outcome yet) and
+ * whenever the command had nothing countable to report.
+ */
+function activityRow(r: ActivityRecord, now: number): HTMLElement {
+  const li = document.createElement('li');
+  li.className = 'activity-row';
+
+  const dot = document.createElement('span');
+  dot.className = 'log-dot';
+  dot.dataset.ok = String(r.ok);
+  dot.dataset.pending = String(r.pending);
+
+  const time = document.createElement('span');
+  time.className = 'log-time';
+  time.textContent = formatClock(r.at);
+
+  const tool = document.createElement('span');
+  tool.className = 'log-tool';
+  tool.textContent = activityLabel(r);
+
+  const m = document.createElement('span');
+  m.className = 'log-meta';
+  // Pending rows have no duration to report yet — they say so instead of showing "0ms".
+  m.textContent = r.pending
+    ? 'running…'
+    : `${r.ok ? '' : 'failed · '}${formatDuration(r.ms)} · ${timeAgo(now, r.at)}`;
+
+  const head = document.createElement('div');
+  head.className = 'log-head';
+  head.append(time, tool, m);
+
+  const body = document.createElement('div');
+  body.className = 'log-body';
+  body.append(head);
+
+  if (r.result) {
+    const res = document.createElement('div');
+    res.className = 'log-result';
+    res.dataset.ok = String(r.ok);
+    res.textContent = r.result;
+    body.append(res);
+  }
+
+  li.append(dot, body);
+  return li;
+}
+
 function renderActivity(now: number): void {
   if (activity.length === 0) return; // leave the static "No activity yet" empty-state row
-  const rows = activity.slice(0, 8).map((r) => {
-    const li = document.createElement('li');
-    li.className = 'activity-row';
-    const d = document.createElement('span');
-    d.className = 'log-dot';
-    d.dataset.ok = String(r.ok);
-    const tool = document.createElement('span');
-    tool.className = 'log-tool';
-    tool.textContent = humanizeTool(r.tool);
-    const m = document.createElement('span');
-    m.className = 'log-meta';
-    m.textContent = `${r.ok ? '' : 'failed · '}${formatDuration(r.ms)} · ${timeAgo(now, r.at)}`;
-    li.append(d, tool, m);
-    return li;
-  });
-  activityList.replaceChildren(...rows);
+  activityList.replaceChildren(...activity.slice(0, ACTIVITY_ROWS).map((r) => activityRow(r, now)));
 }
 
 function render(): void {
@@ -124,10 +167,19 @@ window.addEventListener('figma-agent:conn-state', (ev) => {
   render();
 });
 
+// The relay announces each request twice: `start` opens the row (so the panel shows
+// what is running while it runs), `done` lands the outcome onto that same row, by id.
 window.addEventListener('figma-agent:activity', (ev) => {
-  const rec = toActivityRecord((ev as CustomEvent).detail);
-  if (!rec) return;
-  activity = pushActivity(activity, rec);
+  const detail = (ev as CustomEvent).detail as { phase?: unknown } | undefined;
+  if (detail?.phase === 'done') {
+    const patch = toActivityResult(detail);
+    if (!patch) return;
+    activity = resolveActivity(activity, patch);
+  } else {
+    const rec = toActivityRecord(detail);
+    if (!rec) return;
+    activity = pushActivity(activity, rec);
+  }
   renderActivity(Date.now());
 });
 
@@ -153,8 +205,21 @@ window.addEventListener('message', (ev: MessageEvent) => {
 // "Sync now" → ask the relay to send SYNC_REQUEST to the broker (which runs `ui figma
 // reconcile --apply`) AND tell main the batch was acknowledged. "Later" just hides it —
 // the next documentchange restarts the idle timer. SYNC_RESULT confirms in place.
+// A reconcile is the one operation the feed cannot learn about from the wire: it runs
+// in the kernel (`ui figma reconcile --apply`, spawned by the broker) and sends no
+// command through this relay. Its two ends ARE observable here though — the click and
+// the SYNC_RESULT — so the feed logs it from those, keyed by this id.
+let reconcileRun: { id: string; at: number } | null = null;
+
 syncNowBtn.addEventListener('click', () => {
   syncMsg.textContent = 'Syncing…';
+  const at = Date.now();
+  reconcileRun = { id: `reconcile_${at}`, at };
+  activity = pushActivity(activity, {
+    id: reconcileRun.id, tool: 'RECONCILE', label: 'Reconcile · apply',
+    pending: true, ok: true, ms: 0, at,
+  });
+  renderActivity(at);
   try { window.dispatchEvent(new CustomEvent('figma-agent:sync-request')); } catch { /* no DOM events */ }
   parent.postMessage({ pluginMessage: { type: 'SYNC_DONE' } }, '*');
 });
@@ -164,11 +229,23 @@ syncLaterBtn.addEventListener('click', () => { syncPrompt.hidden = true; });
 window.addEventListener('figma-agent:sync-result', (ev) => {
   const d = (ev as CustomEvent).detail as { ok?: boolean; summary?: string; landed?: boolean } | undefined;
   // `landed` absent (an older broker) → assume it landed; a present `false` is honoured.
-  syncMsg.textContent = syncResultLabel(
+  const label = syncResultLabel(
     d?.ok === true,
     typeof d?.summary === 'string' ? d.summary : '',
     d?.landed !== false,
   );
+  syncMsg.textContent = label;
+  // The prompt line auto-dismisses in 4s; the feed row is the durable record. It
+  // repeats the SAME sentence syncResultLabel just made — including "Nothing synced",
+  // which a feed that only said "done" would quietly upgrade to a lie.
+  if (reconcileRun) {
+    const now = Date.now();
+    activity = resolveActivity(activity, {
+      id: reconcileRun.id, ok: d?.ok === true, ms: now - reconcileRun.at, result: `→ ${label}`,
+    });
+    reconcileRun = null;
+    renderActivity(now);
+  }
   syncPrompt.hidden = false;
   setTimeout(() => { syncPrompt.hidden = true; }, 4000); // auto-dismiss the confirmation
 });

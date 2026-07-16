@@ -1,15 +1,14 @@
 // P2 panel view-model — the pure layer under the DOM controller (panel-ui.ts).
-// Everything the panel decides (which pill/tone/sentence per state, how ages and
-// durations format, the activity ring buffer, onboarding + troubleshoot gating)
-// lives here so it is unit-testable without a DOM, mirroring the connection-state
-// machine's own pure tests.
+// Everything the panel decides (which pill/tone/sentence per state, how ages
+// format, onboarding + troubleshoot gating) lives here so it is unit-testable
+// without a DOM, mirroring the connection-state machine's own pure tests.
+// The activity feed's own model has moved to activity-feed.ts — see
+// activity-feed.test.ts.
 import { describe, it, expect } from 'vitest';
 import {
-  stateView, formatAge, formatDuration, timeAgo, humanizeTool,
-  toActivityRecord, pushActivity, troubleshootHint, showOnboarding,
+  stateView, formatAge, troubleshootHint, showOnboarding,
   togglePanelMode, detailsLabel, compactMeta, PANEL_WIDTH, PANEL_HEIGHT,
   syncPromptLabel, syncResultLabel,
-  type ActivityRecord,
 } from '../plugin/src/ui/panel-model.ts';
 import type { ConnectionState } from '../shared/protocol.ts';
 
@@ -39,7 +38,7 @@ describe('stateView — the four P1 states each map to one view', () => {
   });
 });
 
-describe('formatAge / formatDuration / timeAgo', () => {
+describe('formatAge', () => {
   it('formatAge steps just-now → seconds → minutes → hours', () => {
     expect(formatAge(0)).toBe('just now');
     expect(formatAge(8_000)).toBe('8s');
@@ -47,61 +46,6 @@ describe('formatAge / formatDuration / timeAgo', () => {
     expect(formatAge(3_780_000)).toBe('1h 03m');
     expect(formatAge(-5)).toBe('—');
     expect(formatAge(Number.NaN)).toBe('—');
-  });
-  it('formatDuration is ms under a second, then 1-decimal seconds', () => {
-    expect(formatDuration(12)).toBe('12ms');
-    expect(formatDuration(1_250)).toBe('1.3s');
-    expect(formatDuration(-1)).toBe('—');
-  });
-  it('timeAgo is relative to now', () => {
-    const now = 1_000_000;
-    expect(timeAgo(now, now)).toBe('just now');
-    expect(timeAgo(now, now - 5_000)).toBe('5s ago');
-    expect(timeAgo(now, now - 180_000)).toBe('3m ago');
-    expect(timeAgo(now, now - 7_200_000)).toBe('2h ago');
-  });
-});
-
-describe('humanizeTool', () => {
-  it('lowercases and de-snakes the wire command', () => {
-    expect(humanizeTool('CREATE_FRAME')).toBe('create frame');
-    expect(humanizeTool('HTML_TO_FIGMA')).toBe('html to figma');
-    expect(humanizeTool('STATUS')).toBe('status');
-  });
-});
-
-describe('toActivityRecord — defensive coercion of the CustomEvent detail', () => {
-  it('accepts a well-formed detail', () => {
-    expect(toActivityRecord({ tool: 'STATUS', ok: true, ms: 12, at: 500 }))
-      .toEqual({ tool: 'STATUS', ok: true, ms: 12, at: 500 });
-  });
-  it('rejects a missing/blank tool', () => {
-    expect(toActivityRecord({ ok: true })).toBeNull();
-    expect(toActivityRecord({ tool: '' })).toBeNull();
-    expect(toActivityRecord(null)).toBeNull();
-    expect(toActivityRecord('nope')).toBeNull();
-  });
-  it('coerces bad ms/ok and defaults at', () => {
-    const r = toActivityRecord({ tool: 'X', ms: -3 });
-    expect(r).not.toBeNull();
-    expect(r?.ok).toBe(false);
-    expect(r?.ms).toBe(0);
-    expect(typeof r?.at).toBe('number');
-  });
-});
-
-describe('pushActivity — newest-first, capped at 50', () => {
-  const rec = (n: number): ActivityRecord => ({ tool: `T${n}`, ok: true, ms: n, at: n });
-  it('prepends newest', () => {
-    const buf = pushActivity(pushActivity([], rec(1)), rec(2));
-    expect(buf.map((r) => r.tool)).toEqual(['T2', 'T1']);
-  });
-  it('never exceeds the cap and drops the oldest', () => {
-    let buf: ActivityRecord[] = [];
-    for (let i = 0; i < 60; i++) buf = pushActivity(buf, rec(i));
-    expect(buf).toHaveLength(50);
-    expect(buf[0].tool).toBe('T59'); // newest kept
-    expect(buf.at(-1)?.tool).toBe('T10'); // oldest 10 dropped
   });
 });
 
