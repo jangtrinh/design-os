@@ -51,4 +51,17 @@
       lies figma.mixed → read segments; unbindable-field registry), P10 sizing (resize() clobbers both
       axes → reassert; per-side strokeWeights), P11 inner-override reapply by main-relative key, P12
       slot-SWAP replay (`swapComponent`, an override Figma never names) + FILL coerces child's own mode.
-      figma-agent 350 tests. Verified vs a real baseline-main rebuild (no regression). SPEC 005 COMPLETE.
+      figma-agent 350 tests. Verified vs a real baseline-main rebuild (no regression).
+- [x] DS-WIDE GATE — **PASS 2026-07-16**. After the gate node passed, `mirror-verify` across the whole DS
+      surfaced systematic loss the single node hid (owner's call to sweep the DS first was right). Closed:
+      **P13** (`04216df`, #60) inner-instance `componentProperties` never replayed + its consequence (a
+      variant IS a different component → rebuilt slot at default variant, tree map taken before the write;
+      nested compound-id = ONE `I<outermost>;<a>;<b>`, each node's id in its OWN main); **P14** (`dc13d25`,
+      #61) `fillsDiffer` compared live-Paint vs payload-Paint by JSON.stringify → ALWAYS differed →
+      clobbered every instance's INHERITED fill binding (silent) → fixed via `asFills` lens; + FILL-child
+      width/height "was-set" flag Figma won't register → `figmaScanFillSize` normalize (geometry still
+      checked both sides; a real move → still red). **9/9 diverse components (incl. 3 unbriefed fresh) →
+      equal:true, 0 diff, 0 warning.** figma-agent 367 tests. **SPEC 005 COMPLETE — mirror is a proven
+      live fixed point DS-wide.** Honest debts: `applyNodeOverrides` writes `instance.effects` with no
+      differ-check (SAME clobber class as fills, not yet hit in data); a FILL child whose ONLY inner
+      override is width/height loses the entry (not in DS sample).
