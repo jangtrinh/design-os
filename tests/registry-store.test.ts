@@ -144,6 +144,57 @@ describe("validateComponentRecord", () => {
       }),
     );
   });
+
+  // ─── scope + deprecated (spec 004 D3) ────────────────────────────────────
+
+  it("accepts each valid scope and preserves it on the returned record", () => {
+    for (const scope of ["local", "global"] as const) {
+      const rec = validateComponentRecord(validRecord({ scope }));
+      expect(rec.scope).toBe(scope);
+    }
+  });
+
+  it("defaults a missing scope to 'local' (migration)", () => {
+    // validRecord() carries no scope — the returned record must still have one.
+    const rec = validateComponentRecord({
+      name: "Button/Primary",
+      category: "action",
+      markup: "<button>Click</button>",
+      tokensUsed: ["color.primary"],
+    });
+    expect(rec.scope).toBe("local");
+  });
+
+  it("throws BAD_ARG for an invalid scope value", () => {
+    expect(() => validateComponentRecord(validRecord({ scope: "team" as never }))).toThrow(
+      expect.objectContaining({
+        code: "BAD_ARG",
+        message: expect.stringMatching(/component\.scope must be one of/),
+      }),
+    );
+  });
+
+  it("accepts deprecated:true and preserves it; absent stays absent", () => {
+    const dep = validateComponentRecord(validRecord({ deprecated: true }));
+    expect(dep.deprecated).toBe(true);
+    const active = validateComponentRecord(validRecord());
+    expect(active.deprecated).toBeUndefined();
+  });
+
+  it("throws BAD_ARG when deprecated is not a boolean", () => {
+    expect(() => validateComponentRecord(validRecord({ deprecated: "yes" as never }))).toThrow(
+      expect.objectContaining({
+        code: "BAD_ARG",
+        message: expect.stringMatching(/component\.deprecated must be a boolean/),
+      }),
+    );
+  });
+
+  it("still rejects an unknown key now that scope/deprecated are allowed", () => {
+    expect(() =>
+      validateComponentRecord({ ...validRecord({ scope: "global", deprecated: true }), bogus: 1 }),
+    ).toThrow(expect.objectContaining({ code: "BAD_REGISTRY" }));
+  });
 });
 
 // ─── createEmptyRegistry ──────────────────────────────────────────────────────
@@ -201,6 +252,44 @@ describe("saveRegistry + loadRegistry", () => {
       "utf8",
     );
     expect(() => loadRegistry(path)).toThrow(expect.objectContaining({ code: "BAD_REGISTRY" }));
+  });
+
+  it("migrates a pre-scope registry file to scope 'local' on load (spec 004)", () => {
+    const path = registerTmp(tmpPath());
+    // Simulate a registry written before `scope` existed — the record has no scope key.
+    writeFileSync(
+      path,
+      JSON.stringify(
+        {
+          version: "0.1.0",
+          components: [
+            {
+              name: "Button/Primary",
+              category: "action",
+              markup: "<button>Click</button>",
+              tokensUsed: ["color.primary"],
+            },
+          ],
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+    const loaded = loadRegistry(path);
+    expect(loaded.components[0]?.scope).toBe("local");
+  });
+
+  it("round-trips scope + deprecated through disk", () => {
+    const path = registerTmp(tmpPath());
+    const reg: Registry = {
+      version: "0.1.0",
+      components: [validRecord({ scope: "global", deprecated: true })],
+    };
+    saveRegistry(path, reg);
+    const loaded = loadRegistry(path);
+    expect(loaded.components[0]?.scope).toBe("global");
+    expect(loaded.components[0]?.deprecated).toBe(true);
   });
 });
 

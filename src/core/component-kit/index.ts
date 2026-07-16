@@ -67,4 +67,8 @@ export const COMPONENT_KIT: ComponentRecord[] = [
   textarea,
   toast,
   tooltip,
-].sort((a, b) => a.name.localeCompare(b.name));
+]
+  // Every shipped kit component is scoped "local" (spec 004 D3 default) — once installed it
+  // belongs to the project's own DS. Injected centrally so the 27 source files stay scope-free.
+  .map((c): ComponentRecord => ({ ...c, scope: c.scope ?? "local" }))
+  .sort((a, b) => a.name.localeCompare(b.name));

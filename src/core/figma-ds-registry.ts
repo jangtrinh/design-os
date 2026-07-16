@@ -153,6 +153,10 @@ export function buildRegistry(components: DsComponent[]): Registry {
       markup: "", // no HTML from a Figma scan; instances are authored on-canvas later
       tokensUsed: [],
       description: descParts.join(" · "),
+      // TODO(spec 004 P1/P4): map scope from the Figma publish-status / `remote` signal once
+      // the capture stream carries it. The current scan (DsComponent) exposes no publish
+      // signal, so default every scanned record to "local" (spec 004 D3 default).
+      scope: "local",
     };
     if (hasAxes) rec.variants = variantList(axes);
     if (status !== undefined) rec.status = status;
