@@ -1,11 +1,18 @@
 # Family: Graphic Modernist
 
 Personas rooted in **graphic design tradition** — Swiss typography, grid systems,
-poster-scale type, primary colors, flat composition. Typography and grid carry the
-entire design; decoration is rejected. Pick this family for bold landing pages,
-portfolios, and brand-forward sites where the layout itself is the statement.
+poster-scale type, primary colors, flat composition, and hard-edged brutalism.
+Typography and grid carry the entire design; decoration is rejected. Pick this family for
+bold landing pages, portfolios, and brand-forward sites where the layout itself is the
+statement.
 
-**Personas in this family:** Kinetic Swiss-Punk · Kinetic Type Studio
+**Family typography note** — prose in this family is set in **sentence case, never Title
+Case** (Title Case reads as a machine-default heading tell), and headings hold a **6:1 or
+greater headline:body size contrast** on desktop. Both are DNA defaults for every persona
+below unless a block overrides them.
+
+**Personas in this family:** Kinetic Swiss-Punk · Kinetic Type Studio · Neo-Brutalist
+Hard-Shadow
 
 See `persona-index.md` for the cross-family lookup table and auto-selection rules.
 
@@ -82,3 +89,40 @@ decorative elements competing with type. NO more than 3 accent colors. NO rounde
 components.
 **Avoid list:** image-heavy layouts; small typography; decorative UI; rounded
 containers; complex navigation.
+
+---
+
+## Neo-Brutalist Hard-Shadow
+
+- **Slug:** `neo-brutalist-hard-shadow`
+- **Family:** graphic-modernist
+- **UI types:** landing, portfolio, app
+- **Density:** comfortable
+- **Color mode:** light
+- **Keywords:** brutalist, hard-shadow, offset, border, bold, raw, block
+
+**Philosophy** — Structure worn on the outside: 2px black borders, blur-less offset shadows,
+and controls that *move into their own shadow* on press. Adjacent to dopamine-maximalism but
+harder, rawer, unapologetically constructed. The interface admits it is a machine.
+
+### Aesthetic DNA
+
+| Field | Direction |
+|---|---|
+| **Typography** | Heavy grotesque sans (Archivo, Space Grotesk, Inter Black). Big, blunt weights (700–900). Sentence-case prose; headline:body contrast 6:1+ on desktop. Occasional monospace for labels and buttons. |
+| **Color philosophy** | High-saturation blocks on off-white (#FDFCF7): a primary (electric blue #2547FF or acid yellow #FFDD00), pure black (#000000) borders and shadows, one or two secondary blocks. Flat fills only, NO gradients. |
+| **Spacing** | Comfortable but blocky. 8px base. Elements sit in clearly bordered cards with real gaps between them — the grid is visible, not implied. |
+| **Depth** | Hard-shadow only: solid offset shadows (e.g. `4px 4px 0 #000`), zero blur. On press, the element translates by the shadow offset so it "fills its own shadow" — the only depth cue, and it is mechanical, not soft. |
+| **Borders** | Thick (2–3px) solid black borders on every surface — cards, buttons, inputs, images. Sharp corners (0–2px radius). Borders are load-bearing identity, not trim. |
+| **Texture** | Flat color fields. Optional halftone or a rotated "sticker" accent (compose the sticker-tilt device) for raw energy. |
+
+**Interactions** — Press = translate-into-shadow (offset collapses to 0,0). Hover = shadow
+grows or color inverts. Blunt, physical, immediate — no easing that reads as soft.
+
+**Layout** — Visible block grid: bordered cards with generous gaps, asymmetric placement,
+oversized bordered buttons. The construction is the aesthetic.
+
+**Anti-patterns** — NO soft/blurred shadows. NO gradients. NO rounded pill shapes. NO
+low-contrast pastel fills. NO subtle hairline borders (borders must be thick and black).
+**Avoid list:** soft blurred shadows; gradients; rounded pill shapes; pastel fills; hairline
+borders.
