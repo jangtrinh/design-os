@@ -79,8 +79,8 @@ describe('activityMeta — the row FOOTNOTE: outcome + timing on one line, never
     expect(activityMeta(rec({ at: 1_000 }), 1_000)).toBe('running… · now');
   });
   it('a failure reads its own error, not a generic "failed"', () => {
-    const r = rec({ at: 1_000, ms: 8, pending: false, ok: false, result: '✗ node not found' });
-    expect(activityMeta(r, 4_000)).toBe('✗ node not found · 8ms · 3s');
+    const r = rec({ at: 1_000, ms: 8, pending: false, ok: false, result: 'node not found' });
+    expect(activityMeta(r, 4_000)).toBe('node not found · 8ms · 3s');
   });
   it('a command with nothing countable to report still times itself', () => {
     expect(activityMeta(rec({ at: 1_000, ms: 40, pending: false }), 6_000)).toBe('40ms · 5s');

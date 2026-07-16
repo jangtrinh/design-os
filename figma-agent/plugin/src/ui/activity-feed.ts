@@ -19,7 +19,7 @@ export interface ActivityRecord {
   tool: string;
   /** The CLI's intent label ("Scan · 1:23"); absent ⇒ fall back to `tool`. */
   label?: string;
-  /** Result summary once done ("→ 42 nodes", "✗ node not found"); absent while pending. */
+  /** Result summary once done ("→ 42 nodes", "node not found"); absent while pending. */
   result?: string;
   /** True until the reply lands — the row renders as in-flight. */
   pending: boolean;
@@ -86,7 +86,7 @@ export function timeAgo(nowMs: number, atMs: number): string {
 
 /**
  * The row's SECOND line — outcome and timing folded into ONE muted sentence:
- *   "→ 42 nodes · 173ms · 2m" | "running… · now" | "✗ node not found · 8ms · 3s"
+ *   "→ 42 nodes · 173ms · 2m" | "running… · now" | "node not found · 8ms · 3s"
  * Deliberately carries no wall-clock stamp: the relative age already answers "when",
  * and the absolute time is what used to crowd the label — the only line that says WHAT
  * the plugin is doing — off the row entirely on a narrow panel. It survives in the

@@ -234,16 +234,21 @@
 }
 
 /* ── Panel chrome — Swiss Monolith brutalism, COMPACT-FIRST (P5.1) ─────────────
-   One ink-bordered monolith block fills the tiny 300×170 iframe: a slim masthead
+   A stack of bands fills the tiny 300×170 iframe edge to edge: a slim masthead
    band, the condensed status band, and a three-cell mono footer. The DETAILS
-   footer cell expands the monolith (main resizes the iframe to 460) revealing the
+   footer cell expands the stack (main resizes the iframe to 460) revealing the
    onboarding / activity / connection bands. Flat, radius 0, separation by 2px ink
-   rules only, inversion on hover. ──────────────────────────────────────────── */
+   rules only, inversion on hover. The iframe IS the frame — no outer border and
+   no body padding, or the panel reads as a box drawn inside a box. ──────────── */
 * { box-sizing: border-box; }
+
+/* The stack must be as tall as the iframe main sized, or the footer floats mid-air with
+   bare paper under it — the borderless panel has no frame left to close that gap. */
+html, body { height: 100%; }
 
 body {
   margin: 0;
-  padding: 4px;
+  padding: 0;
   font-family: var(--font-family-body);
   font-size: var(--font-size-sm);
   line-height: 1.5;
@@ -252,11 +257,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The monolith: a single 2px ink border wraps every band; bands never float. */
+/* The stack: bands butt against each other and against the iframe edge. Structure
+   comes from the 2px ink rules BETWEEN bands, never from a border around them. */
 .panel {
   display: flex;
   flex-direction: column;
-  border: 2px solid var(--color-foreground);
+  min-height: 100%;
   background: var(--color-background);
 }
 
@@ -512,7 +518,8 @@ code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* A failure's outcome IS this line ("✗ node not found · …") — colour the whole line. */
+/* A failure's outcome IS this line ("node not found · …") — colour the whole line. The
+   mark column already carries the ✗; the text must not repeat it (status redundancy). */
 .log-meta[data-ok="false"] { color: var(--color-danger); }
 .activity-empty {
   font-family: var(--font-mono);
@@ -2521,7 +2528,7 @@ code {
     const e = error ?? {};
     const raw = typeof e.message === "string" && e.message !== "" ? e.message : typeof error === "string" && error !== "" ? error : "failed";
     const oneLine = raw.replace(/\s+/g, " ").trim();
-    return `\u2717 ${oneLine.length > MAX_ERROR_CHARS ? `${oneLine.slice(0, MAX_ERROR_CHARS - 1)}\u2026` : oneLine}`;
+    return oneLine.length > MAX_ERROR_CHARS ? `${oneLine.slice(0, MAX_ERROR_CHARS - 1)}\u2026` : oneLine;
   }
 
   // plugin/src/ui/ui-relay.ts
