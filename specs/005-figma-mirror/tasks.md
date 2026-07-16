@@ -42,11 +42,13 @@
       (getMainComponentAsync, mirrors readTokenNameMap); (B) THE real set_name cause = `scanNodeSpec`
       returned the whole `{result,console,ms}` EXEC_JS envelope as the spec → unwrapExecJsReply;
       (C) `specNodeName` fallback at all 6 name sites. Same async-getter class as #50's getNodeByIdAsync.
-- [~] P5 — Live round-trip GATE — INSTANCES PASS (2026-07-16). Post-fix live run on 25575:353653:
-      rebuild end-to-end, **warnings=0, zero component-ref diffs** — instances survive. Remaining 24
-      diffs are ALL documented edges, dominated by **library/remote variable bindings (15)**: this DS
-      binds to PUBLISHED library variables; rebuild's `resolveTokenVars` sees only LOCAL variables, so
-      library bindings don't reattach (scan records the id, rebuild can't resolve by name). Also: inner
-      overrides (2, P2 edge), font-var fallback (2), sizing (3). CORE + INSTANCES + LOCAL bindings are a
-      fixed point. Library-variable reattach = open decision (needs importVariableByKeyAsync + scan
-      records the library key) → candidate P7 / spec 006.
+- [x] P5 — Live round-trip GATE — **PASS 2026-07-16** on owner's real component. `mirror-verify
+      25575:353653` (+ 25575:353516) → **equal:true, 0 diff, 0 warning** (2nd run; the 1st after any
+      code.js rebuild is STALE — plugin loads code lazily). 3 `normalized` entries = honest Figma-limit
+      exclusions (maxWidth unbindable on TEXT; x/y root absolute position). Path 24→10→6→0, every diff a
+      REAL bug caught only by live canvas (Art III), none conceded by fake-normalize. Closed across:
+      P7/P8 keyed-binding reattach (local+library by publish key, all fields), P9 text (node.fontName
+      lies figma.mixed → read segments; unbindable-field registry), P10 sizing (resize() clobbers both
+      axes → reassert; per-side strokeWeights), P11 inner-override reapply by main-relative key, P12
+      slot-SWAP replay (`swapComponent`, an override Figma never names) + FILL coerces child's own mode.
+      figma-agent 350 tests. Verified vs a real baseline-main rebuild (no regression). SPEC 005 COMPLETE.
