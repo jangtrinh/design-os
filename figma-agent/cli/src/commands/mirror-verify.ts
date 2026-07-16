@@ -89,7 +89,7 @@ export async function execute(
   run: Runner = runCommand,
 ): Promise<MirrorVerifyResult> {
   // 1. Scan the original — the same walker `scan-node` uses, not a copy.
-  const specA = await scanNodeSpec(nodeId, opts.timeoutMs, run);
+  const specA = await scanNodeSpec(nodeId, opts.timeoutMs, run, 'Mirror-verify · scan original');
 
   // 2. Rebuild it from that spec alone. IMPORT_PAYLOAD is registered in the wire
   //    protocol and the UI relay forwards every non-HTML_TO_FIGMA command to the
@@ -105,7 +105,7 @@ export async function execute(
       rootNode: specA,
     },
     parentId: opts.parentId,
-  }, { timeoutMs: COMMAND_TIMEOUTS.IMPORT_PAYLOAD })) as ImportReply | null;
+  }, { timeoutMs: COMMAND_TIMEOUTS.IMPORT_PAYLOAD, activity: 'Mirror-verify · rebuild' })) as ImportReply | null;
 
   const rebuiltId = imported?.id;
   if (!rebuiltId) throw new CliError('E_PLUGIN_ERROR', 'IMPORT_PAYLOAD returned no rebuilt node id');
@@ -114,7 +114,7 @@ export async function execute(
   //    failed verification never leaves scratch on the owner's canvas.
   let specB: ScannedSpec;
   try {
-    specB = await scanNodeSpec(rebuiltId, opts.timeoutMs, run);
+    specB = await scanNodeSpec(rebuiltId, opts.timeoutMs, run, 'Mirror-verify · scan rebuild');
   } finally {
     if (!opts.keep) await removeNode(rebuiltId, opts.timeoutMs, run);
   }
@@ -151,7 +151,7 @@ async function removeNode(id: string, timeoutMs: number, run: Runner): Promise<v
 if (n && 'remove' in n) n.remove();
 return { removed: !!n };`;
   try {
-    await run('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + 2_000 });
+    await run('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + 2_000, activity: 'Mirror-verify · remove scratch' });
   } catch {
     // The verdict is already computed; a stranded scratch node is the owner's to
     // delete and is named in the result as `rebuiltId`.

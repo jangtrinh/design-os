@@ -18,9 +18,16 @@ import { allContentChecks } from "../src/core/content-checks.js";
 
 const PANEL = fileURLToPath(new URL("../figma-agent/plugin/src/ui/panel.html", import.meta.url));
 const MODEL = fileURLToPath(new URL("../figma-agent/plugin/src/ui/panel-model.ts", import.meta.url));
+// The activity feed's model split out of panel-model.ts once it grew a per-operation
+// vocabulary of its own; panel-model keeps the connection chrome. The rows' outcome
+// lines split again into activity-summary.ts — the relay's half.
+const FEED = fileURLToPath(new URL("../figma-agent/plugin/src/ui/activity-feed.ts", import.meta.url));
+const SUMMARY = fileURLToPath(new URL("../figma-agent/plugin/src/ui/activity-summary.ts", import.meta.url));
 
 const html = readFileSync(PANEL, "utf8");
 const model = readFileSync(MODEL, "utf8");
+const feed = readFileSync(FEED, "utf8");
+const summary = readFileSync(SUMMARY, "utf8");
 
 /** Count content-lint ERROR-severity findings (consumes the shared allContentChecks set). */
 function contentErrors(source: string): number {
@@ -81,11 +88,21 @@ describe("figma-agent P2 panel — states, a11y live regions, motion", () => {
     expect(model).toContain("The broker starts automatically on your first CLI command.");
   });
 
-  it("wires an activity record shape of {tool, ok, ms, at}", () => {
-    expect(model).toContain("tool:");
-    expect(model).toContain("ok:");
-    expect(model).toContain("ms:");
-    expect(model).toContain("at:");
+  it("wires an activity record shape of {id, tool, ok, ms, at}", () => {
+    for (const field of ["id:", "tool:", "ok:", "ms:", "at:"]) {
+      expect(feed, `missing ${field}`).toContain(field);
+    }
+  });
+
+  it("keeps a row's intent label and its outcome — the feed says what ran, not just which cmd", () => {
+    // `cmd` alone is opaque (EXEC_JS is injected code), so the record carries the
+    // CLI's intent label and the plugin-derived result line. Without either, the feed
+    // regresses to "exec js · 1.2s", which is what this whole module exists to fix.
+    expect(feed).toContain("label?:");
+    expect(feed).toContain("result?:");
+    expect(feed).toContain("pending:");
+    expect(summary).toContain("summarizeResult");
+    expect(summary).toContain("summarizeError");
   });
 
   it("marks status + activity as aria-live polite regions", () => {

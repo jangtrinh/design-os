@@ -49,6 +49,20 @@ export interface RequestMsg {
   cmd: CommandName;
   params: unknown;
   v: number; // PROTOCOL_VERSION
+  /**
+   * Human-readable INTENT of this request, for the panel's activity feed
+   * ("Scan · 1:23", "Mirror-verify · rebuild", "Build · Hero card").
+   *
+   * `cmd` alone is opaque to the plugin: EXEC_JS is injected code, so the panel
+   * cannot tell a scan from a mirror-verify rebuild from an ad-hoc script — it
+   * could only ever log "exec js". The CALLER knows what it is doing, so the
+   * caller says so here.
+   *
+   * OPTIONAL by contract: the broker relays the frame verbatim and the plugin
+   * falls back to humanizing `cmd`, so an older CLI (no label) and a newer plugin
+   * still interoperate — the feed is just less specific.
+   */
+  activity?: string;
 }
 
 export interface ReplyOk {
@@ -176,6 +190,26 @@ export const PLUGIN_WAIT_MS = 12_000;
 
 export function makeRequestId(counter: number): string {
   return `c_${counter}_${Date.now()}`;
+}
+
+/**
+ * Build a RequestMsg frame, stamping the protocol version and OMITTING `activity`
+ * entirely when the caller has no intent label to declare.
+ *
+ * Omission, not `activity: undefined`: an unlabelled frame must serialize
+ * byte-identically to what every pre-label CLI sent, so the field can never be the
+ * thing that makes an old broker or plugin behave differently. Pure, so that
+ * guarantee is testable without a socket.
+ */
+export function makeRequestFrame(
+  id: string,
+  cmd: CommandName,
+  params: unknown,
+  activity?: string,
+): RequestMsg {
+  const frame: RequestMsg = { id, cmd, params, v: PROTOCOL_VERSION };
+  if (typeof activity === 'string' && activity.trim() !== '') frame.activity = activity;
+  return frame;
 }
 
 // ── Connection state machine (single source of truth) ───────────────
