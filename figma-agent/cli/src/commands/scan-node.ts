@@ -20,7 +20,11 @@ import { runCommand } from '../transport/broker-client.ts';
 const WIRE_MARGIN_MS = 2_000;
 
 /** Transport seam — the real `runCommand` in production, a recorder in tests. */
-export type Runner = (cmd: string, params: unknown, opts?: { timeoutMs?: number }) => Promise<unknown>;
+export type Runner = (
+  cmd: string,
+  params: unknown,
+  opts?: { timeoutMs?: number; activity?: string },
+) => Promise<unknown>;
 
 /** The walker's output, opaque to the CLI: plain JSON, compared structurally. */
 export type ScannedSpec = Record<string, unknown>;
@@ -74,6 +78,7 @@ export async function scanNodeSpec(
   nodeId: string,
   timeoutMs: number,
   run: Runner = runCommand,
+  activity = `Scan · ${nodeId}`,
 ): Promise<ScannedSpec> {
   const code = `${SCAN_NODE_WALKER_BUNDLE}
 const node = await figma.getNodeByIdAsync(${JSON.stringify(nodeId)});
@@ -82,7 +87,10 @@ const tokenNames = await __scan.readTokenNameMap();
 const mainComps = await __scan.readMainComponentMap(node);
 const keyedVars = await __scan.readKeyedVariableMap(node);
 return __scan.nodeToSpec(node, tokenNames, mainComps, keyedVars);`;
-  const reply = await run('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS });
+  // The label is the caller's, because EXEC_JS says nothing: this same walker runs
+  // as a bare `scan-node`, as mirror-verify's "scan original" and as its "scan
+  // rebuild" — three different waits the panel must be able to tell apart.
+  const reply = await run('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity });
   return unwrapExecJsReply(reply);
 }
 

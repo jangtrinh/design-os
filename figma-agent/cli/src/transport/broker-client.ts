@@ -8,6 +8,7 @@ import {
   COMMAND_TIMEOUTS,
   DEFAULT_TIMEOUT_MS,
   PROTOCOL_VERSION,
+  makeRequestFrame,
   makeRequestId,
   type CommandName,
 } from '../../../shared/protocol.ts';
@@ -44,7 +45,13 @@ function connectWs(port: number): Promise<WebSocket> {
   });
 }
 
-function exchange(ws: WebSocket, cmd: CommandName, params: unknown, timeoutMs: number): Promise<unknown> {
+function exchange(
+  ws: WebSocket,
+  cmd: CommandName,
+  params: unknown,
+  timeoutMs: number,
+  activity?: string,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const id = makeRequestId(++requestCounter);
     const assembler = new ChunkAssembler();
@@ -95,7 +102,7 @@ function exchange(ws: WebSocket, cmd: CommandName, params: unknown, timeoutMs: n
     ws.on('error', (err) => finish(() => reject(new CliError('E_NO_BROKER', `broker socket error: ${err.message}`))));
 
     try {
-      sendWireMsg(ws, { id, cmd, params, v: PROTOCOL_VERSION });
+      sendWireMsg(ws, makeRequestFrame(id, cmd, params, activity));
     } catch (err) {
       finish(() => reject(new CliError('E_NO_BROKER', `failed to send request: ${(err as Error).message}`)));
     }
@@ -131,8 +138,16 @@ export function fetchBrokerHello(port: number): Promise<Record<string, unknown>>
 /**
  * Run one command through the broker. Connect failure after a valid
  * advertisement forces one rediscovery (broker may have just died).
+ *
+ * `opts.activity` is the intent label the panel's activity feed shows instead of
+ * the wire `cmd` (see RequestMsg.activity) — pass it from any command whose `cmd`
+ * does not say what the user is actually waiting for.
  */
-export async function runCommand(cmd: string, params: unknown, opts?: { timeoutMs?: number }): Promise<unknown> {
+export async function runCommand(
+  cmd: string,
+  params: unknown,
+  opts?: { timeoutMs?: number; activity?: string },
+): Promise<unknown> {
   const wireCmd = cmd as CommandName;
   let ad = await ensureBroker();
   let ws: WebSocket;
@@ -150,7 +165,7 @@ export async function runCommand(cmd: string, params: unknown, opts?: { timeoutM
 
   const timeoutMs = opts?.timeoutMs ?? COMMAND_TIMEOUTS[wireCmd] ?? DEFAULT_TIMEOUT_MS;
   try {
-    return await exchange(ws, wireCmd, params, timeoutMs);
+    return await exchange(ws, wireCmd, params, timeoutMs, opts?.activity);
   } finally {
     try {
       ws.close();

@@ -24,6 +24,9 @@ export async function run(args: CommandArgs): Promise<unknown> {
   if (!rawHtml.trim()) throw new CliError('E_INVALID_ARGS', 'html input is empty');
 
   const { html, warnings: inlineWarnings } = await inlineImages(rawHtml);
+  // The label names the SOURCE, since HTML_TO_FIGMA's own params carry no name —
+  // main.ts names the import "HTML Import" only once the payload reaches it.
+  const source = !htmlArg || htmlArg === '-' ? 'stdin' : htmlArg;
   const result = (await runCommand('HTML_TO_FIGMA', {
     html,
     width: args.num('width') ?? 1280,
@@ -31,7 +34,7 @@ export async function run(args: CommandArgs): Promise<unknown> {
     y: args.num('y'),
     parentId: args.str('parent'),
     replaceId: args.str('replace'),
-  })) as Record<string, unknown>;
+  }, { activity: `Build · ${source}` })) as Record<string, unknown>;
 
   // Surface CLI-side inlining warnings alongside plugin conversion warnings.
   const pluginWarnings = Array.isArray(result?.warnings) ? (result.warnings as unknown[]) : [];

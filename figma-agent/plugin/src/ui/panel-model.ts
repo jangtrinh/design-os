@@ -45,63 +45,8 @@ export function formatAge(ms: number): string {
   return `${h}h ${String(m % 60).padStart(2, '0')}m`;
 }
 
-/** A completed request's duration: "12ms" under a second, else "1.2s". */
-export function formatDuration(ms: number): string {
-  if (!Number.isFinite(ms) || ms < 0) return '—';
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
-
-/** Relative time for the activity log: "just now", "5s ago", "3m ago", "2h ago". */
-export function timeAgo(nowMs: number, atMs: number): string {
-  const s = Math.floor((nowMs - atMs) / 1000);
-  if (s < 1) return 'just now';
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  return `${Math.floor(m / 60)}h ago`;
-}
-
-export interface ActivityRecord {
-  /** Wire command name (STATUS, CREATE_FRAME, HTML_TO_FIGMA…). */
-  tool: string;
-  ok: boolean;
-  /** Round-trip duration in ms. */
-  ms: number;
-  /** Epoch ms the request started — the log renders a time-ago from it. */
-  at: number;
-}
-
-/**
- * Coerce a raw `figma-agent:activity` CustomEvent detail (typed `unknown`) into a
- * record, or null if the shape is wrong. Defensive: the event crosses an untyped
- * DOM boundary.
- */
-export function toActivityRecord(detail: unknown): ActivityRecord | null {
-  if (detail === null || typeof detail !== 'object') return null;
-  const d = detail as Record<string, unknown>;
-  if (typeof d.tool !== 'string' || d.tool === '') return null;
-  return {
-    tool: d.tool,
-    ok: d.ok === true,
-    ms: typeof d.ms === 'number' && Number.isFinite(d.ms) && d.ms >= 0 ? d.ms : 0,
-    at: typeof d.at === 'number' && Number.isFinite(d.at) ? d.at : Date.now(),
-  };
-}
-
-/** Readable log label for a wire command: "CREATE_FRAME" → "create frame". */
-export function humanizeTool(tool: string): string {
-  return tool.toLowerCase().replace(/_/g, ' ');
-}
-
-/** Newest-first ring buffer capped at `max` (spec: keep 50, show 8). Returns a NEW array. */
-export function pushActivity(
-  buf: readonly ActivityRecord[],
-  rec: ActivityRecord,
-  max = 50,
-): ActivityRecord[] {
-  return [rec, ...buf].slice(0, Math.max(0, max));
-}
+// The activity feed's own vocabulary (records, labels, durations, result
+// summaries) lives in ./activity-feed.ts — this module owns the connection chrome.
 
 /**
  * State-specific troubleshoot hint (spec §6), or null when there's nothing useful

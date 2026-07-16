@@ -20,6 +20,7 @@ import {
   type ErrorCode, type ReplyMsg, type RequestMsg,
 } from '../../../shared/protocol';
 import { renderHtmlToPayload } from './render-host';
+import { summarizeError, summarizeResult } from './activity-summary';
 
 const PLUGIN_VERSION = '0.1.0';
 const PORT_PROBE_TIMEOUT_MS = 1200; // a real broker greets in <50ms; short = fast scan
@@ -43,18 +44,36 @@ let fileInfo: Record<string, unknown> = {}; // FILE_INFO from main (fileName, fi
 const chunkBuffers = new Map<string, string[]>(); // requestId → chunk slices
 
 // ─── Activity telemetry → UI (P2) ───────────────────────────────────────────
-// Each request that reaches handleRequest is timed; on completion the relay
-// dispatches a `figma-agent:activity` {tool, ok, ms, at} CustomEvent that the P2
-// panel renders in its activity log. Lives here (not in main) because the relay
-// owns the request lifecycle on the UI side — same place conn-state is emitted.
+// Each request that reaches handleRequest is timed and announced TWICE on the
+// `figma-agent:activity` CustomEvent: `phase:'start'` the moment it arrives (so the
+// panel shows what is running WHILE the user waits — a 60s html-to-figma is exactly
+// when "what is it doing?" is asked), and `phase:'done'` when the reply lands,
+// carrying the outcome. Lives here (not in main) because the relay owns the request
+// lifecycle on the UI side — same place conn-state is emitted — and it sees both
+// halves: the CLI's intent label on the way in, and main's result on the way out.
 const activityStart = new Map<string, { cmd: CommandName; at: number }>();
 
-function emitActivity(id: string, ok: boolean): void {
+function dispatchActivity(detail: Record<string, unknown>): void {
+  try { window.dispatchEvent(new CustomEvent('figma-agent:activity', { detail })); } catch { /* no DOM event support */ }
+}
+
+/** Announce an arriving request, carrying the CLI's intent label when it sent one. */
+function startActivity(req: RequestMsg): void {
+  const at = Date.now();
+  activityStart.set(req.id, { cmd: req.cmd, at });
+  dispatchActivity({ phase: 'start', id: req.id, tool: req.cmd, label: req.activity, at });
+}
+
+/**
+ * Announce a completed request. `payload` is main's reply — the result on success,
+ * the error on failure — from which the outcome line is derived plugin-side.
+ */
+function emitActivity(id: string, ok: boolean, payload?: unknown): void {
   const started = activityStart.get(id);
   if (!started) return;
   activityStart.delete(id);
-  const detail = { tool: started.cmd, ok, ms: Date.now() - started.at, at: started.at };
-  try { window.dispatchEvent(new CustomEvent('figma-agent:activity', { detail })); } catch { /* no DOM event support */ }
+  const result = ok ? summarizeResult(started.cmd, payload) : summarizeError(payload);
+  dispatchActivity({ phase: 'done', id, ok, ms: Date.now() - started.at, result: result ?? undefined });
 }
 
 // ─── Connection state machine → UI ──────────────────────────────────
@@ -169,13 +188,13 @@ interface HtmlToFigmaParams {
 }
 
 async function handleRequest(req: RequestMsg): Promise<void> {
-  activityStart.set(req.id, { cmd: req.cmd, at: Date.now() }); // timed until completion
+  startActivity(req); // timed + announced until completion
   try {
     if (req.cmd === 'HTML_TO_FIGMA') {
       const p = (req.params ?? {}) as HtmlToFigmaParams;
       if (!p.html) {
         sendErr(req.id, 'E_INVALID_ARGS', 'HTML_TO_FIGMA requires params.html');
-        emitActivity(req.id, false);
+        emitActivity(req.id, false, { message: 'HTML_TO_FIGMA requires params.html' });
         return;
       }
       setStatusText('rendering html…', 'ok');
@@ -194,8 +213,9 @@ async function handleRequest(req: RequestMsg): Promise<void> {
     }
   } catch (err) {
     setStatusText('connected', 'ok');
-    sendErr(req.id, 'E_PLUGIN_ERROR', err instanceof Error ? err.message : String(err));
-    emitActivity(req.id, false);
+    const message = err instanceof Error ? err.message : String(err);
+    sendErr(req.id, 'E_PLUGIN_ERROR', message);
+    emitActivity(req.id, false, { message });
   }
 }
 
@@ -229,7 +249,9 @@ window.addEventListener('message', (ev: MessageEvent) => {
             ?? { code: 'E_PLUGIN_ERROR', message: 'main thread returned no error detail' },
         };
     wsSend(reply);
-    emitActivity(pm.requestId, pm.ok === true); // request round-trip completed
+    // Round-trip completed — the feed's outcome line is derived from this same
+    // reply (count of nodes scanned, name + warnings imported, or the error).
+    emitActivity(pm.requestId, pm.ok === true, pm.ok === true ? pm.result : pm.error);
   }
 });
 
