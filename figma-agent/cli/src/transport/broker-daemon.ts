@@ -18,6 +18,8 @@ import { isPidAlive, readAdvertisement, selfBuildMtime, writeAdvertisement } fro
 import { isChunkMsg, isEventMsg, isReplyMsg, isRequestMsg, parseWireMsg, rawToString } from './protocol-helpers.ts';
 import { PluginRegistry } from './plugin-registry.ts';
 import { buildBrokerHelloData, noPluginMessage } from './broker-status.ts';
+import { appendChangeFrames, changeLogPath } from './change-log.ts';
+import type { ComponentChange } from '../../../shared/figma-changes.ts';
 
 const LOG_FILE = '/tmp/figma-agent-broker.log';
 
@@ -87,6 +89,24 @@ function sendReplyErr(ws: WebSocket, id: string, code: ErrorCode, message: strin
   } catch { /* client already gone */ }
 }
 
+/**
+ * Extract a DOC_CHANGE batch's fields and append every frame to the change log.
+ * Best-effort: malformed data or an fs error is swallowed (logged) — capture must
+ * never break the relay. `ts` is stamped here (broker append time), near-real-time.
+ */
+function appendDocChange(changesPath: string, data: Record<string, unknown>): void {
+  try {
+    const changes = Array.isArray(data.changes) ? (data.changes as ComponentChange[]) : [];
+    if (changes.length === 0) return;
+    const page = typeof data.page === 'string' ? data.page : '';
+    const fileKey = typeof data.fileKey === 'string' ? data.fileKey : null;
+    const written = appendChangeFrames(changesPath, changes, { page, fileKey }, Date.now());
+    if (written > 0) log(`DOC_CHANGE: appended ${written} change frame(s) → ${changesPath}`);
+  } catch (err) {
+    log(`DOC_CHANGE append failed: ${(err as Error).message}`);
+  }
+}
+
 export async function runBrokerDaemon(): Promise<void> {
   // Refuse to double-start when a live same-or-newer broker already advertises.
   const existing = readAdvertisement();
@@ -118,6 +138,11 @@ export async function runBrokerDaemon(): Promise<void> {
   };
   writeAdvertisement(port, startedAt);
   log(`broker listening on 127.0.0.1:${port}${wss6 ? ' + [::1]:' + port : ''}`);
+
+  // Live-sync change log (spec 004 P1): resolved once from the broker's cwd (or
+  // FIGMA_AGENT_CHANGES_DIR). Each DOC_CHANGE batch is appended here; reconcile
+  // (P2/P4) walks it. Path fixed for the daemon's life — cwd never changes.
+  const changesPath = changeLogPath();
 
   const shutdown = (code: number, reason: string): never => {
     log(`shutdown (${reason})`);
@@ -257,6 +282,12 @@ export async function runBrokerDaemon(): Promise<void> {
         }
       } else if (msg.type === 'FILE_INFO') {
         if (isPlugin) { st.registry.updateScene(ws, msg.data); broadcastToClients(text); } // page change → refresh scene + fan out
+      } else if (msg.type === 'DOC_CHANGE') {
+        // Live-sync capture: append the plugin's coalesced batch to the change log.
+        // Broker-side append (not CLI) because the broker is the long-lived process —
+        // it catches edits even when no CLI command is running. Best-effort: a log
+        // write failure must never disrupt the relay.
+        if (isPlugin) appendDocChange(changesPath, msg.data);
       } else if (isPlugin) {
         broadcastToClients(text); // other plugin events fan out to CLI clients
       }

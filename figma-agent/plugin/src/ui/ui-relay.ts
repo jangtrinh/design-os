@@ -201,6 +201,13 @@ window.addEventListener('message', (ev: MessageEvent) => {
     return;
   }
 
+  // Live-sync capture (spec 004 P1): main's coalesced documentchange batch →
+  // straight over the wire so the broker can append it to the change log.
+  if (pm.type === 'DOC_CHANGE') {
+    wsSend({ type: 'DOC_CHANGE', data: (pm.data as Record<string, unknown>) ?? {} });
+    return;
+  }
+
   // Command reply from main → back over the wire
   if (typeof pm.requestId === 'string') {
     const reply: ReplyMsg = pm.ok
