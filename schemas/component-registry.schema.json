@@ -67,6 +67,11 @@
         "deprecated": {
           "type": "boolean",
           "description": "Soft-deprecation flag (spec 004). Absent or false = active; true = deprecated (the audit reads this). Distinct from lifecycle 'status'."
+        },
+        "figmaNode": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[^\\\\:]+\\.figma\\.json$",
+          "description": "Pointer to this component's Figma node sidecar (spec 005), relative to the design dir — e.g. 'components/button-primary.figma.json'. Holds the buildable FigmaExportNode spec; the tree is never inlined here. Absent = no mirror captured yet. Must stay inside the design dir: no absolute path, no '..' traversal. Orthogonal to 'markup', which stays one-way design→code."
         }
       },
       "required": ["name", "category", "markup", "tokensUsed"],
