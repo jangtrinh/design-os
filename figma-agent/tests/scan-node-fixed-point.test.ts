@@ -16,17 +16,27 @@
 //     joins each bound variable id against the file's id→name map and re-emits
 //     tokenRefs, which the build path rebinds by name (fill/textColor/stroke/radius/
 //     gap/uniform padding).
+//     Since spec-005 P2, INSTANCE nodes are also a fixed point — as ref + overrides:
+//     the main-component link (componentKey/componentId), the variant + component
+//     PROPERTY values, and the node-level overrides the payload models (size, fills,
+//     radius, opacity) all come back. The inner composition is deliberately NOT
+//     captured — it belongs to the main, which the rebuild instantiates.
 //   DO NOT SURVIVE (documented gaps):
 //     - library / remote variable bindings: the id is not in the file's LOCAL
 //       variables, so no token name is recoverable → the binding is reported as a raw
 //       id in figmaScanBindings (visible, not silent) and a rebuild drops it.
 //     - per-side (non-uniform) padding bindings: tokenRefs models uniform padding
 //       only → no slot to carry them back.
-//     - instance / component references: FigmaExportNode has no instance type and
-//       createFigmaNode has no instance build-case → an INSTANCE degrades to a plain
-//       FRAME and its inner composition is not recursed. (spec-005 P2)
-import { describe, it, expect, beforeAll } from 'vitest';
-import { installMockFigma, setMockLocalVariables, FakeNode } from './helpers/mock-figma.ts';
+//     - an instance's INNER (per-child) ad-hoc overrides — e.g. a text edited inside
+//       the instance without a component property: ref+overrides has no slot for them.
+//       Reported in figmaScanInnerOverrides (visible), dropped by a rebuild. (P2 edge)
+//     - an instance whose main resolves to NOTHING (unpublished library component,
+//       main in another file): degrades to a plain frame + an import warning. (P2 edge)
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import {
+  installMockFigma, setMockLocalVariables, setMockComponents, makeMockComponent, FakeNode,
+} from './helpers/mock-figma.ts';
+import { getImportWarnings, resetImportWarnings } from '../plugin/src/main/executor-styles.ts';
 import type { FigmaExportNode } from '../shared/figma-payload-types.ts';
 import type { ScannedNode } from '../plugin/src/main/scan-node.ts';
 
@@ -248,28 +258,156 @@ describe('reversibility GAP that REMAINS — per-side (non-uniform) padding bind
   });
 });
 
-describe('reversibility GAP — instance / component references do not survive', () => {
-  it('degrades an INSTANCE to a FRAME and does not recurse its composition', async () => {
-    const inst = new FakeNode('INSTANCE');
-    inst.name = 'Button/Primary';
-    inst.resize(120, 40);
-    inst.layoutMode = 'HORIZONTAL';
-    inst.itemSpacing = 8;
-    inst.primaryAxisSizingMode = 'AUTO';
-    inst.mainComponent = { id: 'C:99' };
-    const label = new FakeNode('TEXT');
-    label.characters = 'Click';
-    inst.appendChild(label);
+// ── spec-005 P2: instances ────────────────────────────────────────────────
+// The main component every instance test instantiates. It carries the visuals an
+// instance MIRRORS (so a rebuild that resolves the main gets them for free) and a
+// State variant property.
+function mainButton(): FakeNode {
+  const comp = makeMockComponent('Button/Primary', 'KEY-BTN');
+  comp.resize(120, 40);
+  comp.layoutMode = 'HORIZONTAL';
+  comp.itemSpacing = 8;
+  comp.primaryAxisSizingMode = 'AUTO';
+  comp.counterAxisSizingMode = 'AUTO';
+  comp.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.2, b: 0.9 }, opacity: 1 }];
+  comp.cornerRadius = 8;
+  comp.componentPropertyDefinitions = { State: { type: 'VARIANT', defaultValue: 'Default' } };
+  comp.componentProperties = { State: { type: 'VARIANT', value: 'Default' } };
+  const label = new FakeNode('TEXT');
+  label.name = 'Label';
+  label.characters = 'Click';
+  comp.appendChild(label);
+  return comp;
+}
+
+describe('fixed point — INSTANCE survives as ref + overrides (spec-005 P2)', () => {
+  let main: FakeNode;
+  beforeEach(() => {
+    main = mainButton();
+    setMockComponents([main]);
+    resetImportWarnings();
+  });
+
+  const instSpec = (over: Partial<FigmaExportNode> = {}): FigmaExportNode => ({
+    type: 'INSTANCE', name: 'Button/Primary', componentKey: 'KEY-BTN',
+    componentProperties: { State: 'Hover' }, ...over,
+  });
+
+  it('rebuilds a real INSTANCE (not a frame) and keeps the main-component link', async () => {
+    const spec1 = await build(instSpec());
+    expect(spec1.type).toBe('INSTANCE');
+    expect(spec1.componentKey).toBe('KEY-BTN');
+    expect(spec1.componentId).toBe(main.id);
+    expect(spec1.componentName).toBe('Button/Primary');
+    // Inner composition is NOT captured — it is the main's, and createInstance rebuilds it.
+    expect(spec1.children).toBeUndefined();
+  });
+
+  it('keeps the variant / component property values', async () => {
+    const [spec1, spec2] = await roundTrips(instSpec());
+    expect(spec1.componentProperties).toEqual({ State: 'Hover' });
+    expect(spec2.componentProperties).toEqual({ State: 'Hover' });
+  });
+
+  it('IS a fixed point (spec1 === spec2)', async () => {
+    const [spec1, spec2] = await roundTrips(instSpec());
+    expect(spec2).toEqual(spec1);
+  });
+
+  it('mirrors the main visuals without re-writing them as overrides', async () => {
+    const spec1 = await build(instSpec());
+    // Read back off the instance: they came from the main via createInstance.
+    expect(spec1).toMatchObject({ width: 120, height: 40, layoutMode: 'HORIZONTAL', itemSpacing: 8, cornerRadius: 8 });
+    expect(spec1.fills?.[0]).toMatchObject({ type: 'SOLID', color: { r: 0.5, g: 0.2, b: 0.9, a: 1 } });
+  });
+
+  it('round-trips node-level overrides that DIFFER from the main (fill, size, radius)', async () => {
+    const overridden = instSpec({
+      width: 200, height: 48, cornerRadius: 24,
+      fills: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0, a: 1 } }],
+    });
+    const [spec1, spec2] = await roundTrips(overridden);
+    expect(spec1).toMatchObject({ type: 'INSTANCE', width: 200, height: 48, cornerRadius: 24 });
+    expect(spec1.fills?.[0]?.color).toMatchObject({ r: 1, g: 0, b: 0 });
+    expect(spec2).toEqual(spec1);
+  });
+
+  it('resolves the main by componentId when no key is published', async () => {
+    const local = mainButton();
+    delete local.key; // an unpublished local component has no key
+    setMockComponents([local]);
+    const spec1 = await build({ type: 'INSTANCE', name: 'Local', componentId: local.id });
+    expect(spec1.type).toBe('INSTANCE');
+    expect(spec1.componentId).toBe(local.id);
+    expect(spec1.componentKey).toBeUndefined();
+  });
+
+  it('survives as a CHILD of an auto-layout frame (the real registry shape)', async () => {
+    const card: FigmaExportNode = {
+      type: 'FRAME', name: 'Card', width: 320, height: 120, layoutMode: 'VERTICAL',
+      itemSpacing: 12, primaryAxisSizingMode: 'AUTO', counterAxisSizingMode: 'FIXED',
+      children: [
+        { type: 'TEXT', name: 'Title', characters: 'Hi', fontSize: 16, textAutoResize: 'WIDTH_AND_HEIGHT' },
+        instSpec(),
+      ],
+    };
+    const [spec1, spec2] = await roundTrips(card);
+    expect(spec1.children?.[1]).toMatchObject({
+      type: 'INSTANCE', componentKey: 'KEY-BTN', componentProperties: { State: 'Hover' },
+    });
+    expect(spec2).toEqual(spec1);
+  });
+});
+
+describe('instance EDGE — a property the main does not expose', () => {
+  beforeEach(() => { setMockComponents([mainButton()]); resetImportWarnings(); });
+
+  it('still builds the instance, on the main defaults, and warns (no silent loss)', async () => {
+    const spec1 = await build({
+      type: 'INSTANCE', name: 'Button/Primary', componentKey: 'KEY-BTN',
+      componentProperties: { Size: 'Large' }, // renamed/removed on the main
+    });
+    expect(spec1.type).toBe('INSTANCE');
+    expect(spec1.componentProperties).toEqual({ State: 'Default' }); // the main's default
+    expect(getImportWarnings().join('\n')).toContain('setProperties failed');
+  });
+});
+
+describe('instance GAP that REMAINS — main component not resolvable', () => {
+  beforeEach(() => { setMockComponents([]); resetImportWarnings(); });
+
+  it('degrades to a plain frame + warns; the component link is lost (visible, not silent)', async () => {
+    const spec1 = await build({
+      type: 'INSTANCE', name: 'Ghost', width: 100, height: 40, componentKey: 'KEY-GONE',
+      fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0, a: 1 } }],
+    });
+    expect(spec1.type).toBe('FRAME');            // degraded — the pre-P2 behaviour
+    expect(spec1.componentKey).toBeUndefined();  // the link did not survive
+    expect(spec1).toMatchObject({ name: 'Ghost', width: 100, height: 40 }); // visuals still land
+    expect(getImportWarnings().join('\n')).toContain('component link lost');
+  });
+});
+
+describe('instance GAP that REMAINS — INNER (per-child) ad-hoc overrides', () => {
+  it('reports them in figmaScanInnerOverrides; a rebuild drops them', async () => {
+    const main = mainButton();
+    setMockComponents([main]);
+    const inst = main.createInstance();
+    // Figma reports one entry per overridden node; the entry for the instance ITSELF
+    // is node-level (modelled + re-applied) — only the CHILD entries are the gap.
+    inst.overrides = [
+      { id: inst.id, overriddenFields: ['fills'] },
+      { id: `${inst.id};child`, overriddenFields: ['characters', 'fontSize'] },
+    ];
 
     const spec1 = nodeToSpec(inst as unknown as SceneNode);
-    expect(spec1.type).toBe('FRAME');                 // no INSTANCE type in the schema
-    expect(spec1.figmaScanSourceType).toBe('INSTANCE'); // detected, but only as metadata
-    expect(spec1.figmaScanMainComponent).toBe('C:99');
-    expect(spec1.children).toBeUndefined();            // composition NOT recursed (audit rule)
+    expect(spec1.figmaScanInnerOverrides).toEqual(['characters', 'fontSize']); // deduped + sorted
+    expect(spec1.figmaScanBindings).toBeUndefined();
 
-    // Rebuild → a plain frame; the instance identity is gone.
+    // Rebuild: the instance comes back, its inner edits do not.
     const spec2 = await build(spec1);
-    expect(spec2.figmaScanSourceType).toBeUndefined();
-    expect(spec2.type).toBe('FRAME');
+    expect(spec2.type).toBe('INSTANCE');
+    expect(spec2.figmaScanInnerOverrides).toBeUndefined();
+    expect(spec2).not.toEqual(spec1); // NOT a fixed point — the loss is reported, not faked
   });
 });

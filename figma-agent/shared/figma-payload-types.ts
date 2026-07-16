@@ -26,7 +26,7 @@ export interface FigmaExportEffect {
 }
 
 export interface FigmaExportNode {
-  type: 'FRAME' | 'TEXT' | 'RECTANGLE' | 'IMAGE' | 'GROUP';
+  type: 'FRAME' | 'TEXT' | 'RECTANGLE' | 'IMAGE' | 'GROUP' | 'INSTANCE';
   name: string;
 
   // Dimensions
@@ -130,6 +130,24 @@ export interface FigmaExportNode {
     gap?: string;       // spacing[].name  (itemSpacing)
     padding?: string;   // spacing[].name  (all four sides when uniform)
   };
+
+  // Instance reference (spec 005 P2) — only meaningful when `type === 'INSTANCE'`.
+  // An instance is modelled as REF + OVERRIDES, never as a copy of its inner tree:
+  // the composition belongs to the main component, so a rebuild instantiates the
+  // main and re-applies only what this instance overrides. `componentKey` is the
+  // portable identity (published/library components, importComponentByKeyAsync);
+  // `componentId` is the same-file fallback (local node id). At least one is needed
+  // to rebuild — with neither resolvable the builder degrades to a plain frame and
+  // warns (no silent loss).
+  componentKey?: string;
+  componentId?: string;
+  componentName?: string; // trace only — never used to resolve the main component
+  // Variant selection + component-property values, as `InstanceNode.setProperties`
+  // consumes them (keys are Figma's property names, e.g. "State" or "Label#12:3").
+  // Values are string (VARIANT / TEXT / INSTANCE_SWAP-key) or boolean (BOOLEAN) —
+  // the only kinds the Plugin API accepts; a bound VariableAlias value has no
+  // reversible slot here and is skipped by the walker.
+  componentProperties?: Record<string, string | boolean>;
 
   // Nesting
   children?: FigmaExportNode[];

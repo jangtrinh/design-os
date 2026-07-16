@@ -4,7 +4,7 @@
 // figmaColorToHex (858-864). Also hosts the cross-executor helpers:
 // error-code tagging and the per-import warnings collector.
 
-import type { FigmaColor, FigmaExportEffect, FigmaExportTokens } from '../../../shared/figma-payload-types';
+import type { FigmaColor, FigmaExportEffect, FigmaExportFill, FigmaExportTokens } from '../../../shared/figma-payload-types';
 import { loadBestFont } from './executor-fonts';
 
 // Folder prefix for generated local styles (EaseUI original used 'EaseUI/').
@@ -42,6 +42,30 @@ export function hexToFigmaColor(hex: string): FigmaColor {
   const int = parseInt(full.slice(0, 6), 16) || 0;
   const a = full.length >= 8 ? parseInt(full.slice(6, 8), 16) / 255 : 1;
   return { r: ((int >> 16) & 255) / 255, g: ((int >> 8) & 255) / 255, b: (int & 255) / 255, a };
+}
+
+/**
+ * One payload fill → one Figma Paint. The SHARED conversion behind every fill
+ * writer (frame build, instance overrides): a gradient with stops+transform maps
+ * to a GradientPaint, anything else carrying a colour maps to SOLID (alpha lives
+ * in paint.opacity, the convention the reverse-walker reads back).
+ */
+export function exportFillToPaint(fill: FigmaExportFill): Paint | null {
+  if ((fill.type === 'GRADIENT_LINEAR' || fill.type === 'GRADIENT_RADIAL' || fill.type === 'GRADIENT_ANGULAR')
+    && fill.gradientStops && fill.gradientTransform) {
+    return {
+      type: fill.type,
+      gradientStops: fill.gradientStops.map((stop) => ({
+        color: { ...rgbToFigma(stop.color), a: stop.color.a },
+        position: stop.position,
+      })),
+      gradientTransform: fill.gradientTransform as Transform,
+    } as GradientPaint;
+  }
+  if (fill.color) {
+    return { type: 'SOLID', color: rgbToFigma(fill.color), opacity: fill.color.a };
+  }
+  return null;
 }
 
 /** Map payload effects → Figma effects (shared by rect + frame executors). */

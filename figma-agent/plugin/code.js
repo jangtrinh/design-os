@@ -226,6 +226,22 @@
     const a = full.length >= 8 ? parseInt(full.slice(6, 8), 16) / 255 : 1;
     return { r: (int >> 16 & 255) / 255, g: (int >> 8 & 255) / 255, b: (int & 255) / 255, a };
   }
+  function exportFillToPaint(fill) {
+    if ((fill.type === "GRADIENT_LINEAR" || fill.type === "GRADIENT_RADIAL" || fill.type === "GRADIENT_ANGULAR") && fill.gradientStops && fill.gradientTransform) {
+      return {
+        type: fill.type,
+        gradientStops: fill.gradientStops.map((stop) => ({
+          color: { ...rgbToFigma(stop.color), a: stop.color.a },
+          position: stop.position
+        })),
+        gradientTransform: fill.gradientTransform
+      };
+    }
+    if (fill.color) {
+      return { type: "SOLID", color: rgbToFigma(fill.color), opacity: fill.color.a };
+    }
+    return null;
+  }
   function mapExportEffects(effects) {
     return effects.map((e) => {
       if (e.type === "LAYER_BLUR" || e.type === "BACKGROUND_BLUR") {
@@ -689,6 +705,106 @@
     }
   }
 
+  // plugin/src/main/executor-instance.ts
+  async function resolveMainComponent(spec) {
+    if (spec.componentKey) {
+      try {
+        return await figma.importComponentByKeyAsync(spec.componentKey);
+      } catch {
+      }
+    }
+    if (spec.componentId) {
+      try {
+        const local = await figma.getNodeByIdAsync(spec.componentId);
+        if (local && local.type === "COMPONENT") return local;
+        if (local && local.type === "COMPONENT_SET") return local.defaultVariant;
+      } catch {
+      }
+    }
+    return null;
+  }
+  function applyComponentProperties(instance, spec) {
+    if (!spec.componentProperties || Object.keys(spec.componentProperties).length === 0) return;
+    try {
+      instance.setProperties(spec.componentProperties);
+    } catch (err) {
+      pushImportWarning(`instance "${spec.name}": setProperties failed \u2014 built with main defaults (${String(err)})`);
+    }
+  }
+  function fillsDiffer(current, wanted) {
+    if (typeof current === "symbol") return true;
+    return JSON.stringify(current) !== JSON.stringify(wanted);
+  }
+  function applyNodeOverrides(instance, spec) {
+    if (spec.name && instance.name !== spec.name) {
+      try {
+        instance.name = spec.name;
+      } catch {
+      }
+    }
+    if (spec.width && spec.height && (Math.abs(instance.width - spec.width) > 0.01 || Math.abs(instance.height - spec.height) > 0.01)) {
+      try {
+        instance.resize(spec.width, spec.height);
+      } catch (err) {
+        pushImportWarning(`instance "${spec.name}": resize failed (${String(err)})`);
+      }
+    }
+    if (spec.fills && spec.fills.length) {
+      const paints = spec.fills.map(exportFillToPaint).filter((p) => p !== null);
+      if (paints.length && fillsDiffer(instance.fills, paints)) {
+        try {
+          instance.fills = paints;
+        } catch {
+        }
+      }
+    }
+    if (spec.cornerRadius !== void 0 && instance.cornerRadius !== spec.cornerRadius) {
+      try {
+        instance.cornerRadius = spec.cornerRadius;
+      } catch {
+      }
+    } else if (spec.cornerRadii) {
+      try {
+        instance.topLeftRadius = spec.cornerRadii.tl;
+        instance.topRightRadius = spec.cornerRadii.tr;
+        instance.bottomRightRadius = spec.cornerRadii.br;
+        instance.bottomLeftRadius = spec.cornerRadii.bl;
+      } catch {
+      }
+    }
+    if (spec.opacity !== void 0 && spec.opacity > 0 && instance.opacity !== spec.opacity) {
+      try {
+        instance.opacity = spec.opacity;
+      } catch {
+      }
+    }
+    if (spec.effects && spec.effects.length) {
+      try {
+        instance.effects = mapExportEffects(spec.effects);
+      } catch {
+      }
+    }
+  }
+  async function createInstanceNode(spec, frameFallback) {
+    const main = await resolveMainComponent(spec);
+    if (!main) {
+      pushImportWarning(
+        `instance "${spec.name}": main component not found (key=${spec.componentKey ?? "\u2014"}, id=${spec.componentId ?? "\u2014"}) \u2014 rebuilt as a plain frame, component link lost`
+      );
+      return frameFallback(spec);
+    }
+    let instance;
+    try {
+      instance = main.createInstance();
+    } catch (err) {
+      pushImportWarning(`instance "${spec.name}": createInstance failed \u2014 rebuilt as a plain frame (${String(err)})`);
+      return frameFallback(spec);
+    }
+    applyComponentProperties(instance, spec);
+    applyNodeOverrides(instance, spec);
+    return instance;
+  }
+
   // plugin/src/main/background-fill.ts
   function backgroundSizeToScaleMode(bgSize) {
     const s = (bgSize || "").trim().toLowerCase();
@@ -845,6 +961,9 @@
       case "RECTANGLE":
         node = await createRectangleNode(exportNode, colorStyles, tokenVars);
         break;
+      case "INSTANCE":
+        node = await createInstanceNode(exportNode, (spec) => createFrameNode(spec, colorStyles, tokenVars));
+        break;
       case "FRAME":
       case "GROUP":
       default:
@@ -978,28 +1097,14 @@
       const figmaFills = [];
       let usedPaintStyle = false;
       for (const fill of exportNode.fills ?? []) {
-        if ((fill.type === "GRADIENT_LINEAR" || fill.type === "GRADIENT_RADIAL" || fill.type === "GRADIENT_ANGULAR") && fill.gradientStops && fill.gradientTransform) {
-          figmaFills.push({
-            type: fill.type,
-            gradientStops: fill.gradientStops.map((stop) => ({
-              color: { ...rgbToFigma(stop.color), a: stop.color.a },
-              position: stop.position
-            })),
-            gradientTransform: fill.gradientTransform
-          });
-        } else if (fill.color) {
-          const hex = figmaColorToHex(fill.color);
-          const paintStyle = colorStyles.get(hex);
-          if (paintStyle && !hasBgImage) {
-            await frame.setFillStyleIdAsync(paintStyle.id);
-            usedPaintStyle = true;
-          } else {
-            figmaFills.push({
-              type: "SOLID",
-              color: rgbToFigma(fill.color),
-              opacity: fill.color.a
-            });
-          }
+        const paint = exportFillToPaint(fill);
+        if (!paint) continue;
+        const paintStyle = paint.type === "SOLID" ? colorStyles.get(figmaColorToHex(fill.color)) : void 0;
+        if (paintStyle && !hasBgImage) {
+          await frame.setFillStyleIdAsync(paintStyle.id);
+          usedPaintStyle = true;
+        } else {
+          figmaFills.push(paint);
         }
       }
       if (hasBgImage) {
