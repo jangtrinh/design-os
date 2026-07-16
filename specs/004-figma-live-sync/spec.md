@@ -58,15 +58,15 @@ selectionchange "leave-component" heuristic (gone). Both replaced by the single 
 - `RemovedNode` loses props on DELETE → snapshot identity at capture.
 - `loadAllPagesAsync()` at boot loads all pages into RAM.
 
-## Owner decision needed (one)
+## Owner decisions — RESOLVED (owner, 2026-07-16)
 
-- **D3 — Registry schema:** add `scope: local|global` and `deprecated?: boolean` to
-  `ComponentRecord` (its allowed-keys are closed, `additionalProperties:false`). This is a
-  DS-manifest schema change — normal reviewed PR. Confirm the two fields + defaults
-  (proposed: `scope` defaults `local`, `deprecated` defaults absent/false).
-
-*(D1 local-boundary and D2 publish-workaround from the earlier draft are RESOLVED — the idle
-model eliminates both.)*
+- **D3 — Registry schema:** ADD `scope: "local" | "global"` (default `"local"`) and
+  `deprecated?: boolean` (default absent) to `ComponentRecord`. DS-manifest schema change via a
+  normal reviewed PR; existing registries migrate with `scope: "local"`.
+- **D1 (local boundary) + D2 (publish workaround): eliminated** by the idle model — no
+  per-component boundary, no publish signal.
+- **Confirm mechanism:** 1-click prompt in the plugin's existing status panel (locked above).
+- **Idle window:** 5 minutes default, configurable in `design/`.
 
 ## Non-goals
 
