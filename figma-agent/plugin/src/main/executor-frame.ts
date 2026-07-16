@@ -266,9 +266,11 @@ export async function createFrameNode(
   frame.clipsContent = !!exportNode.clipsContent;
 
   // Token bindings (P3 leg B) — after fills/strokes/radius/spacing/padding
-  // are set so paint-copy binding rebinds the actual applied paints
-  if (exportNode.tokenRefs && tokenVars && tokenVars.size > 0) {
-    applyTokenRefs(frame, exportNode.tokenRefs, tokenVars);
+  // are set so paint-copy binding rebinds the actual applied paints.
+  // Gated on tokenRefs ALONE (spec-005 P6): an empty map must still reach
+  // applyTokenRefs so an unresolvable ref warns instead of vanishing.
+  if (exportNode.tokenRefs) {
+    applyTokenRefs(frame, exportNode.tokenRefs, tokenVars ?? new Map());
   }
 
   // Children
