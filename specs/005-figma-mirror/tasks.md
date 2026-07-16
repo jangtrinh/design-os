@@ -6,8 +6,7 @@
 
 - [x] Spike — reverse-walker node→FigmaExportNode + fixed-point proof — ✓ merged `b9b7255`.
       Core reversible; 2 gaps documented (bindings, instances).
-- [ ] P1 — Token bindings survive: variable id → token name (join scan's collection),
-      rebuild reattaches; fixed-point test asserts — stage:spec
+- [x] P1 — Token bindings survive — ✓ 2026-07-16 merged (PR #45, CI 5/5, figma-agent 223; mutation-verified). Edges: library-vars + per-edge-padding (→ P2/P4). scan-node.ts split folds into P2.
 - [ ] P2 — Instances survive: extend FigmaExportNode (INSTANCE + overrides), createFigmaNode
       instance build-case, nodeToSpec captures; inner composition preserved — stage:spec
 - [ ] P3 — Sidecar storage: design/components/<name>.figma.json + figma-node-reader +
