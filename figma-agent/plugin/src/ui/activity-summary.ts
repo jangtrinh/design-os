@@ -60,12 +60,16 @@ export function summarizeResult(cmd: string, result: unknown): string | null {
   return null;
 }
 
-/** One-line outcome for a failed reply: "✗ <message>", flattened to the single row it has. */
+/**
+ * One-line outcome for a failed reply, flattened to the single row it has. The message
+ * carries NO fail glyph: the row's own mark column already shows ✗ and the meta is tinted
+ * red — a second ✗ here is the status redundancy our own audit-ds flags.
+ */
 export function summarizeError(error: unknown): string {
   const e = (error ?? {}) as Record<string, unknown>;
   const raw = typeof e.message === 'string' && e.message !== ''
     ? e.message
     : (typeof error === 'string' && error !== '' ? error : 'failed');
   const oneLine = raw.replace(/\s+/g, ' ').trim();
-  return `✗ ${oneLine.length > MAX_ERROR_CHARS ? `${oneLine.slice(0, MAX_ERROR_CHARS - 1)}…` : oneLine}`;
+  return oneLine.length > MAX_ERROR_CHARS ? `${oneLine.slice(0, MAX_ERROR_CHARS - 1)}…` : oneLine;
 }
