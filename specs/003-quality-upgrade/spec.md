@@ -52,17 +52,18 @@ not yet have, confirm ~12 it already has (right direction), and expose two strat
   owner-owned confirmed).
 - Heuristic checks shipping as hard errors before calibration (see D3).
 
-## Owner decisions needed (flagged, not pre-decided)
+## Owner decisions — RESOLVED (owner, 2026-07-16)
 
-- **D1 — Native scope:** design:os covers responsive-web only (moves 1–2), or also native
-  knowledge workspace (iOS/Android personas + `mobile-native.md`)?
-- **D2 — Persona bloat:** mine EaseUI's 36 ref styles only for the signature-device library
-  (recommended, keeps roster at 23+3), or adopt more as literal personas?
-- **D3 — Heuristic checks** (`unbounded-measure`, `radius-non-concentric`): ship as low-severity
-  lints accepting some false positives, or keep as critique-only (model-judged)?
-- **D4 — Cross-axis priority:** ratify the conflict-resolution order (a11y → tap → perf →
-  layout → type/color → motion → decoration) into the constitution, since it changes how the
-  critique gate breaks ties?
+- **D1 — Native scope: RESPONSIVE-WEB ONLY.** Ship mobile M1–M6 as static lints in the web
+  pipeline. No native (iOS/Android) knowledge workspace this round.
+- **D2 — Persona: SIGNATURE-DEVICES LIBRARY + 3 net-new personas.** Mine the 36 ref styles
+  into `signature-devices.md` for the existing 23 to compose from; add exactly 3 directions
+  (newsprint, neo-brutalist hard-shadow, serif-italic×mono). Roster stays lean.
+- **D3 — Heuristic checks: LOW-SEVERITY LINT.** Ship `unbounded-measure` (and similar) as
+  warnings; accept some false positives; dogfood-calibrate before raising severity.
+- **D4 — Cross-axis priority: RATIFY INTO CONSTITUTION.** Add the conflict-resolution order
+  (a11y → tap → perf → layout → type/color → motion → decoration) as a constitution clause;
+  a11y never loses to aesthetics. Amendment is its own commit (governance).
 
 ## Acceptance criteria (per phase, 3-tier pipeline)
 
