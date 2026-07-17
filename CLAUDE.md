@@ -56,3 +56,11 @@ The rules below summarize repo practice; the constitution wins on conflict.
   `set_name` *rejects* an empty/undefined name (mock accepted it). Both only surfaced on the first live
   round-trip. When you mock an external API, encode its refusals; a permissive mock is a green light
   that means nothing.
+
+## [IMPORTANT] ES Workflow (mandatory)
+
+- Every coding task: apply the `/es-lazy` ladder — reuse codebase → stdlib → native platform → installed dep → one line → only then minimum code. Deliberate corner-cuts carry an `es-debt: <ceiling>, <upgrade trigger>` comment.
+- Every feature request: route through `/es-feature-dev` (classify → brainstorm → plan → dev → review). Never skip straight to code on non-trivial work.
+- Use `CONTEXT.md` canonical terms in all naming (code, plans, commits); never use terms listed under `_Avoid_`. New terms crystallise via `/es-brainstorm` grilling.
+- An es-* skill misled or lacks a rule? Do NOT patch the skill mid-task — record a `gap` in the evolution ledger (`/es-librarian` branch `record`); `/es-librarian run` graduates it with a judge + human merge.
+- End of ANY substantial task (pipeline or not): Reflect — distil AT MOST ONE durable lesson. Product lesson → `.brv`/`CONTEXT.md`; kit lesson → `gap`; nothing durable → record NOTHING.
