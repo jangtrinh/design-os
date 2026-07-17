@@ -17,13 +17,13 @@
       seen/upvotes/downvotes/lastSeenAt (ExpeL recurrence). `recall/rank.ts` decay switches to
       time-since-last-retrieval (Oblivion) — verify/add a retrieval timestamp first. Tests:
       recurrence strengthens; never-retrieved fades; DS/recall suites unregressed.
-- [ ] P4 — **Harvest command (host).** `design-os harvest [--dir] [--since]` (Python): read
+- [x] P4 — **Harvest command (host).** `design-os harvest [--dir] [--since]` (Python): read
       new `plans/*.md` + reports with outcomes → FRESH host-model extraction → structured
       candidates (insight/gap/taste + provenance) → selection gate → write via kernel event API
       + queue gaps for librarian. Extraction prompt versioned; model never writes knowledge/.
       Cursor so it only reads reports new since last harvest. Tests: on a fixture campaign
       report, surfaces the seeded finding, drops the noise.
-- [ ] P5 — **Heartbeat rhythm + real-data GATE.** `harvest` + `recall reflect` heartbeat
+- [x] P5 — **Heartbeat rhythm + real-data GATE.** `harvest` + `recall reflect` heartbeat
       runners on a due schedule (`heartbeat_runners.py`) — no human trigger. Art III proof:
       run the fed loop on VSF-PCP + platform-design-system → ledger goes ingest-only → alive
       (diverse events, populated graph, first real graduations). Owner-in-the-loop for the
