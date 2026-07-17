@@ -8,9 +8,17 @@
  * entries are visited in sorted (alphabetical) order. The walk itself is
  * breadth-first — a full level is visited before any one subtree is
  * descended into, so a shallow UI dir is found before an
- * alphabetically-earlier-but-deeper sibling can burn the entry cap. Either
- * cap (MAX_ENTRIES, MAX_DEPTH) sets `truncated: true` — never a silent
- * partial map reported as a complete one.
+ * alphabetically-earlier-but-deeper sibling can burn the entry cap.
+ *
+ * `truncated` reflects the ENTRY cap (MAX_ENTRIES) only. The DEPTH cap
+ * (MAX_DEPTH) stops descending one branch but never sets it: an entry-capped
+ * map is missing arbitrary things anywhere (the honest "do not trust this"
+ * signal); a depth-capped map is complete everywhere shallower than the cap —
+ * conflating the two made `truncated` mean "something, somewhere, was not
+ * visited", which is close enough to always-true to be useless (spec 009
+ * fix-scan-discovery: it caused a live misdiagnosis on spaflow — an agent read
+ * `truncated: true`, on a tree far under the entry cap, and built a wrong
+ * theory instead of noticing one route dir was 7 levels deep).
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, extname, join, relative, sep } from "node:path";
@@ -30,7 +38,7 @@ export interface ScanResult {
   cssFiles: Array<{ path: string; bytes: number }>;
   /** Top 5 .html files by size (same ordering). */
   htmlFiles: Array<{ path: string; bytes: number }>;
-  /** Dirs named components|ui|widgets with >=3 direct code files. */
+  /** Dirs with >=3 direct code files that are named components|ui|widgets, or sit under a "components" ancestor (outside any test tree). */
   componentDirs: Array<{ path: string; files: number }>;
   /** "./DESIGN.md" when present at the root, else null. */
   designMd: string | null;
@@ -38,7 +46,7 @@ export interface ScanResult {
   dsStatus: "none" | "present" | "tampered";
   /** Routing verdict derived from the signals above. */
   verdict: "greenfield" | "brownfield-code" | "brownfield-html" | "ds-present";
-  /** True when the walk hit MAX_ENTRIES or MAX_DEPTH and the map is therefore partial. */
+  /** True only when the walk hit MAX_ENTRIES — the map is missing arbitrary entries. The depth cap (MAX_DEPTH) never sets this; it only stops descending one branch. */
   truncated: boolean;
   /** Directory entries visited. Equals MAX_ENTRIES when truncated by the entry cap. */
   visited: number;
@@ -61,7 +69,20 @@ const SKIP_DIRS = new Set([
 const MAX_DEPTH = 6;
 const MAX_ENTRIES = 4000;
 const CODE_EXT = new Set([".tsx", ".jsx", ".vue", ".svelte", ".html"]);
+// Corpus-counted (9 real code projects), same discipline as SKIP_DIRS above:
+// name-only matching saw 375/1485 (25%) component files — every miss (dashboard
+// 73, icons 109, mdx 63, editor 43, marketing 28, settings 23, landing 19,
+// library 37, demos 35 …) sat under a "components" ancestor with an
+// unlisted name. A directory now also qualifies by ANCESTRY: >=3 direct code
+// files AND (own name in this set OR a "components" dir sits above it in the
+// walk) AND it is not inside a test tree (TEST_DIR_NAMES below) — measured at
+// 872/1485 (58%). "widgets" is 0/9 today (never fires on this corpus) but is
+// an existing published contract; kept, not removed, on that basis alone.
 const COMPONENT_DIR_NAMES = new Set(["components", "ui", "widgets"]);
+// Directories whose file counts are real but are not component inventory —
+// __tests__ alone measured 289 files across 2 projects, none of them a
+// component dir; counting by name without this guard over-collects.
+const TEST_DIR_NAMES = new Set(["__tests__", "__mocks__", "test", "tests", "spec", "stories"]);
 /** package.json dep names, checked in this priority order (next before react). */
 const FRAMEWORK_PRIORITY = ["next", "react", "vue", "svelte", "astro", "vite"];
 const TAILWIND_CONFIG_RE = /^tailwind\.config\.(js|ts|cjs|mjs)$/;
@@ -127,25 +148,44 @@ function sortedEntries(dir: string): Dirent[] {
   return entries;
 }
 
-// BFS: a queue of {dir, depth}. Within each level, entries keep sortedEntries'
+/** BFS queue item — carries the two ancestry flags a dir inherits from its parent. */
+interface WalkItem {
+  dir: string;
+  depth: number;
+  /** A "components"-named dir sits at or above this dir's parent. */
+  hasComponentsAncestor: boolean;
+  /** This dir's own name, or an ancestor's, is a TEST_DIR_NAMES entry. */
+  inTestTree: boolean;
+}
+
+// BFS: a queue of WalkItem. Within each level, entries keep sortedEntries'
 // alphabetical order (Art I — see header comment). Component-dir detection
 // happens as each dir is dequeued — the same check that ran depth-first before.
+// The entry cap (MAX_ENTRIES) sets `truncated`; the depth cap (MAX_DEPTH) only
+// stops descending that one branch — see header comment for why they differ.
 function walk(root: string, start: string, acc: WalkAccum): void {
-  const queue: Array<{ dir: string; depth: number }> = [{ dir: start, depth: 0 }];
+  const startBase = basename(start).toLowerCase();
+  const queue: WalkItem[] = [
+    { dir: start, depth: 0, hasComponentsAncestor: false, inTestTree: TEST_DIR_NAMES.has(startBase) },
+  ];
   while (queue.length > 0) {
     if (acc.visited >= MAX_ENTRIES) { acc.truncated = true; return; }
-    const { dir, depth } = queue.shift()!;
-    if (depth > MAX_DEPTH) { acc.truncated = true; continue; }
+    const { dir, depth, hasComponentsAncestor, inTestTree } = queue.shift()!;
+    if (depth > MAX_DEPTH) continue; // depth cap: skip this branch, map stays honest elsewhere
     const entries = sortedEntries(dir);
 
-    // >=3 direct code-file children in a components|ui|widgets dir qualifies it.
+    // >=3 direct code-file children qualifies a dir if its own name is
+    // components|ui|widgets, OR a "components" dir is one of its ancestors —
+    // unless it sits inside a test tree (see TEST_DIR_NAMES above).
     const base = basename(dir).toLowerCase();
-    if (COMPONENT_DIR_NAMES.has(base)) {
+    if (!inTestTree && (COMPONENT_DIR_NAMES.has(base) || hasComponentsAncestor)) {
       const directCode = entries.filter(
         (e) => e.isFile() && CODE_EXT.has(extname(e.name).toLowerCase()),
       ).length;
       if (directCode >= 3) acc.componentDirs.push({ path: relPath(root, dir), files: directCode });
     }
+
+    const childHasComponentsAncestor = hasComponentsAncestor || base === "components";
 
     for (const e of entries) {
       if (acc.visited >= MAX_ENTRIES) { acc.truncated = true; return; }
@@ -153,7 +193,13 @@ function walk(root: string, start: string, acc: WalkAccum): void {
       const full = join(dir, e.name);
       if (e.isDirectory()) {
         if (SKIP_DIRS.has(e.name)) continue;
-        queue.push({ dir: full, depth: depth + 1 });
+        const childBase = e.name.toLowerCase();
+        queue.push({
+          dir: full,
+          depth: depth + 1,
+          hasComponentsAncestor: childHasComponentsAncestor,
+          inTestTree: inTestTree || TEST_DIR_NAMES.has(childBase),
+        });
       } else if (e.isFile()) {
         const lower = e.name.toLowerCase();
         if (TAILWIND_CONFIG_RE.test(lower)) acc.tailwindConfigs.push(relPath(root, full));
