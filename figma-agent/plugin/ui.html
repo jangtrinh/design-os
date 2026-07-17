@@ -857,6 +857,7 @@ code {
   // plugin/src/ui/panel-ui.ts
   var el = (id) => document.getElementById(id);
   var panelRoot = el("fga-panel");
+  var versionEl = el("fga-version");
   var dot = el("fga-dot");
   var pill = el("fga-pill");
   var sentence = el("fga-sentence");
@@ -1086,6 +1087,7 @@ code {
     parent.postMessage({ pluginMessage: { type: "PANEL_RESIZE", h: PANEL_HEIGHT[mode] } }, "*");
     render();
   });
+  versionEl.textContent = `v0.1.0 \xB7 ${true ? "950ee34" : "dev"}`;
   setInterval(render, 1e3);
   applyMode();
   render();

@@ -21,9 +21,16 @@ import {
   type ActivityRecord,
 } from './activity-feed';
 
+// Injected by scripts/build.mjs via esbuild `define` — a content hash of the
+// code.js this UI bundle shipped alongside, so a reload can be verified as the
+// new build rather than a stale cached iframe. Undefined in dev/test (no
+// esbuild define pass); `typeof` never throws on an unresolved identifier.
+declare const __BUILD_ID__: string;
+
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
 const panelRoot = el('fga-panel');
+const versionEl = el('fga-version');
 const dot = el('fga-dot');
 const pill = el('fga-pill');
 const sentence = el('fga-sentence');
@@ -299,6 +306,8 @@ toggleBtn.addEventListener('click', () => {
   parent.postMessage({ pluginMessage: { type: 'PANEL_RESIZE', h: PANEL_HEIGHT[mode] } }, '*');
   render(); // the meta line is mode-dependent (compact disconnected override)
 });
+
+versionEl.textContent = `v0.1.0 · ${typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}`;
 
 // A 1s heartbeat keeps the live ages (uptime, retry elapsed, time-ago) fresh
 // between transitions.

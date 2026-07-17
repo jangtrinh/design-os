@@ -3,6 +3,7 @@
 // Usage: node scripts/build.mjs [walker-bundle|cli|plugin-main|plugin-ui|all] [--watch]
 import * as esbuild from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -68,12 +69,20 @@ async function buildPluginMain() {
 }
 
 async function buildPluginUi() {
+  // The build id the panel shows must match the code.js the user actually has
+  // loaded — rebuild it first so `plugin-ui` run standalone still hashes fresh
+  // bytes (same prerequisite pattern as buildCli/buildWalkerBundle above).
+  await buildPluginMain();
+  const codeJs = readFileSync(resolve(root, 'plugin/code.js'));
+  const buildId = createHash('sha256').update(codeJs).digest('hex').slice(0, 7);
+
   const res = await esbuild.build({
     ...common,
     entryPoints: [resolve(root, 'plugin/src/ui/ui-relay.ts')],
     platform: 'browser',
     format: 'iife',
     write: false,
+    define: { __BUILD_ID__: JSON.stringify(buildId) },
   });
   const js = res.outputFiles[0].text;
   // The panel chrome is authored in plugin/src/ui/panel.html — the SOURCE the P2
@@ -97,7 +106,9 @@ const jobs = {
   'plugin-ui': buildPluginUi,
 };
 // `all` omits walker-bundle on purpose: buildCli regenerates it as its prerequisite.
-const ALL = ['cli', 'plugin-main', 'plugin-ui'];
+// `all` also omits plugin-main: buildPluginUi regenerates it as its own
+// prerequisite (needed to hash code.js for the deterministic build id).
+const ALL = ['cli', 'plugin-ui'];
 if (target === 'all') {
   for (const t of ALL) await jobs[t]();
 } else if (jobs[target]) {
