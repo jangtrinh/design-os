@@ -3,6 +3,13 @@
  *
  * Emits a compact manifest summary: name, generation, persona, token count,
  * component count, and hash values. Read-only; never modifies artifacts.
+ *
+ * Also enforces the onboard.md §4 naming-hygiene STOP-gate (previously prose
+ * only, checked by nothing — spec 009 fix-scan-discovery): `ui ds import`
+ * defaults `--name` to the literal string "imported-ds" when the caller omits
+ * it, and that string becomes the identity `ui agents init` names every
+ * generated agent after. A warning here, not a hard error — an existing store
+ * sealed with the default must keep working.
  */
 import { resolve } from "node:path";
 
@@ -23,6 +30,20 @@ const CMD = "ds status";
 
 /** Long flags `ui ds status` accepts (globals --help/--json handled separately). */
 const KNOWN_FLAGS = ["dir"] as const;
+
+// Must match ds-import-impl.ts's `name` default literal — the STOP-gate fires
+// when a manifest still carries it (onboard.md §4).
+const IMPORTED_DS_DEFAULT_NAME = "imported-ds";
+
+/** null when the manifest carries a real name; a warning string otherwise. */
+function importedDsWarning(name: string): string | null {
+  if (name !== IMPORTED_DS_DEFAULT_NAME) return null;
+  return (
+    `manifest name is the 'ui ds import' default '${IMPORTED_DS_DEFAULT_NAME}' — ` +
+    "agent identity (ui agents init) derives from this name. Reseal with an explicit " +
+    "--name: ui ds import <tokens.json> --dir <project> --name <slug> --force"
+  );
+}
 
 export function runStatus(parsed: ParsedArgs): CommandResult {
   const useJson = parsed.json;
@@ -70,6 +91,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
     else statusBreakdown.unset++;
   }
   const anyStatus = statusBreakdown.stable + statusBreakdown.beta + statusBreakdown.draft > 0;
+  const warning = importedDsWarning(ds.manifest.name);
 
   if (useJson) {
     return okJson(CMD, {
@@ -83,6 +105,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
       compiledHash: ds.manifest.compiledHash,
       registryHash: ds.manifest.registryHash,
       paths: ds.paths,
+      warning,
     });
   }
 
@@ -91,6 +114,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
     ? ` (${statusBreakdown.stable} stable / ${statusBreakdown.beta} beta / ${statusBreakdown.draft} draft / ${statusBreakdown.unset} unset)`
     : "";
   return ok(
+    (warning !== null ? `warning: ${warning}\n` : "") +
     `ds: ${m.name} (gen ${m.generation})\n` +
     `persona: ${m.persona.slug} / ${m.persona.family}\n` +
     `intent:  ${m.intent}\n` +
