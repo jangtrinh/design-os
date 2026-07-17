@@ -223,7 +223,13 @@ describe("ui scan", () => {
     expect(env.data.truncated).toBe(false);
   });
 
-  it("test_a_tree_over_max_depth_reports_truncated", () => {
+  it("test_a_tree_over_max_depth_alone_does_NOT_report_truncated", () => {
+    // Fix 2 (spec 009 fix-scan-discovery): the depth cap alone must not set
+    // `truncated` — only the entry cap does. This tree is 8 levels deep (over
+    // MAX_DEPTH=6) but has a handful of entries (far under MAX_ENTRIES=4000):
+    // the map is honestly complete everywhere shallower than the cap, so
+    // `truncated` must read false. Before the fix this asserted `true` and
+    // passed — proving the old behavior conflated the two caps.
     const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
     // MAX_DEPTH is 6 — nest one directory deeper than that below the root.
     let deep = tmp;
@@ -234,7 +240,10 @@ describe("ui scan", () => {
     writeFileSync(join(deep, "buried.css"), "body {}\n");
 
     const env = scanJson(tmp);
-    expect(env.data.truncated).toBe(true);
+    expect(env.data.truncated).toBe(false);
+    // The depth cap still does its job silently: the buried file past depth 6
+    // is never counted, but that is not what `truncated` reports.
+    expect(env.data.cssFiles.find((f) => f.path.endsWith("buried.css"))).toBeUndefined();
   });
 
   it("test_truncated_does_not_change_any_existing_field_shape", () => {
@@ -284,5 +293,92 @@ describe("ui scan", () => {
       "app/src/components",
       "frontpage/app/src/components",
     ]);
+  });
+
+  // ─── Fix 1: ancestor-based component-dir detection (spec 009 fix-scan-discovery) ──
+
+  it("test_a_dir_under_a_components_ancestor_qualifies_even_with_an_unlisted_name", () => {
+    // spaflow pathology: src/components/dashboard holds 64 .tsx files but its
+    // own name ("dashboard") is not in COMPONENT_DIR_NAMES. Under Fix 1 it
+    // qualifies because "components" is an ancestor.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
+    const dashboard = join(tmp, "src", "components", "dashboard");
+    mkdirSync(dashboard, { recursive: true });
+    writeFileSync(join(dashboard, "A.tsx"), "export const A = () => null;\n");
+    writeFileSync(join(dashboard, "B.tsx"), "export const B = () => null;\n");
+    writeFileSync(join(dashboard, "C.tsx"), "export const C = () => null;\n");
+
+    const env = scanJson(tmp);
+    const dash = env.data.componentDirs.find((d) => d.path.endsWith("components/dashboard"));
+    expect(dash).toBeDefined();
+    expect(dash!.files).toBe(3);
+  });
+
+  it("test_a_dir_two_levels_under_a_components_ancestor_still_qualifies", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
+    const nested = join(tmp, "src", "components", "settings", "billing");
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(join(nested, "A.tsx"), "export const A = () => null;\n");
+    writeFileSync(join(nested, "B.tsx"), "export const B = () => null;\n");
+    writeFileSync(join(nested, "C.tsx"), "export const C = () => null;\n");
+
+    const env = scanJson(tmp);
+    const billing = env.data.componentDirs.find((d) => d.path.endsWith("settings/billing"));
+    expect(billing).toBeDefined();
+  });
+
+  it("test_a_dir_named_dashboard_with_no_components_ancestor_does_NOT_qualify", () => {
+    // Same name, no "components" ancestor anywhere above it — must stay invisible.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
+    const dashboard = join(tmp, "src", "dashboard");
+    mkdirSync(dashboard, { recursive: true });
+    writeFileSync(join(dashboard, "A.tsx"), "export const A = () => null;\n");
+    writeFileSync(join(dashboard, "B.tsx"), "export const B = () => null;\n");
+    writeFileSync(join(dashboard, "C.tsx"), "export const C = () => null;\n");
+
+    const env = scanJson(tmp);
+    expect(env.data.componentDirs.find((d) => d.path.endsWith("dashboard"))).toBeUndefined();
+  });
+
+  it("test___tests___dir_never_qualifies_even_with_3plus_code_files", () => {
+    // __tests__ measured at 289 files across 2 real projects, none a component
+    // dir — a bare name/ancestor rule would over-collect it.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
+    const testsDir = join(tmp, "src", "__tests__");
+    mkdirSync(testsDir, { recursive: true });
+    writeFileSync(join(testsDir, "A.tsx"), "export const A = () => null;\n");
+    writeFileSync(join(testsDir, "B.tsx"), "export const B = () => null;\n");
+    writeFileSync(join(testsDir, "C.tsx"), "export const C = () => null;\n");
+
+    const env = scanJson(tmp);
+    expect(env.data.componentDirs).toEqual([]);
+  });
+
+  it("test_a_components_ancestor_dir_inside_a_test_tree_still_does_NOT_qualify", () => {
+    // A "components" folder nested under __tests__/__mocks__ must not smuggle
+    // its descendants past the test-tree guard.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
+    const nested = join(tmp, "__mocks__", "components", "widgetish");
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(join(nested, "A.tsx"), "export const A = () => null;\n");
+    writeFileSync(join(nested, "B.tsx"), "export const B = () => null;\n");
+    writeFileSync(join(nested, "C.tsx"), "export const C = () => null;\n");
+
+    const env = scanJson(tmp);
+    expect(env.data.componentDirs).toEqual([]);
+  });
+
+  it("test_a_standalone_widgets_dir_still_qualifies_by_name_alone", () => {
+    // "widgets" measures 0/9 on the real corpus but stays a published contract —
+    // it must still qualify by name, with no "components" ancestor required.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-scan-"));
+    const widgets = join(tmp, "src", "widgets");
+    mkdirSync(widgets, { recursive: true });
+    writeFileSync(join(widgets, "A.tsx"), "export const A = () => null;\n");
+    writeFileSync(join(widgets, "B.tsx"), "export const B = () => null;\n");
+    writeFileSync(join(widgets, "C.tsx"), "export const C = () => null;\n");
+
+    const env = scanJson(tmp);
+    expect(env.data.componentDirs.find((d) => d.path.endsWith("widgets"))).toBeDefined();
   });
 });

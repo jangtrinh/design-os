@@ -109,4 +109,40 @@ describe("ui ds status", () => {
     const rText = capture(["ds", "status", "--dir", tmp]);
     expect(rText.stdout).toContain("components: 3 (1 stable / 1 beta / 0 draft / 1 unset)");
   });
+
+  // ─── Fix 3: imported-ds STOP-gate enforcement (spec 009 fix-scan-discovery) ─────
+
+  it("warns when the manifest name is the 'ds import' default 'imported-ds'", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-status-imported-"));
+    const tokensPath = join(tmp, "tokens.json");
+    writeFileSync(
+      tokensPath,
+      JSON.stringify({ color: { primary: "#ff3e00" } }),
+      "utf8",
+    );
+    // Omit --name → runImport defaults to the literal "imported-ds".
+    const r = capture(["ds", "import", tokensPath, "--dir", tmp]);
+    expect(r.exitCode).toBe(0);
+
+    const rJson = capture(["ds", "status", "--dir", tmp, "--json"]);
+    expect(rJson.exitCode).toBe(0);
+    const data = JSON.parse(rJson.stdout).data;
+    expect(data.name).toBe("imported-ds");
+    expect(data.warning).toMatch(/imported-ds/);
+
+    const rText = capture(["ds", "status", "--dir", tmp]);
+    expect(rText.stdout).toContain("warning:");
+    expect(rText.stdout).toContain("imported-ds");
+  });
+
+  it("does not warn when the manifest carries a real --name", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-status-named-"));
+    initDs(tmp, true); // --dir tmp, name "acme" via initDs()
+    const rJson = capture(["ds", "status", "--dir", tmp, "--json"]);
+    const data = JSON.parse(rJson.stdout).data;
+    expect(data.warning).toBeNull();
+
+    const rText = capture(["ds", "status", "--dir", tmp]);
+    expect(rText.stdout).not.toContain("warning:");
+  });
 });
