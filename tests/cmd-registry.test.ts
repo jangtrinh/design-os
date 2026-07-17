@@ -184,6 +184,77 @@ describe("ui registry register", () => {
 
 });
 
+// ─── register — --states folds into --variants, not the dead `states` field ───
+// (spec 009 P4, D3: 0/537 platform-design-system + 0/27 kit records ever populated
+// `states`; it lives as `State=X` inside `variants`, kit-identical to Tone=/Size=.)
+
+describe("ui registry register — --states → variants (spec 009 D3)", () => {
+  it("test_states_flag_writes_state_axes_into_variants", () => {
+    const p = tmpPath();
+    const { code, out } = captureRun([
+      "registry", "register", "Button/Primary",
+      "--category", "action",
+      "--markup", fix("registry-markup.html"),
+      "--states", "hover,focus",
+      "--file", p, "--json",
+    ]);
+    expect(code).toBe(0);
+    const json = JSON.parse(out) as {
+      data: { component: { variants?: string[]; states?: string[] } };
+    };
+    expect(json.data.component.variants).toEqual(["State=Hover", "State=Focus"]);
+    expect(json.data.component.states).toBeUndefined();
+  });
+
+  it("merges --variants and --states into one array, states appended after variants", () => {
+    const p = tmpPath();
+    const { out } = captureRun([
+      "registry", "register", "Button/Primary",
+      "--category", "action",
+      "--markup", fix("registry-markup.html"),
+      "--variants", "Variant=Primary,Size=Xs",
+      "--states", "default,active",
+      "--file", p, "--json",
+    ]);
+    const json = JSON.parse(out) as { data: { component: { variants?: string[] } } };
+    expect(json.data.component.variants).toEqual([
+      "Variant=Primary", "Size=Xs", "State=Default", "State=Active",
+    ]);
+  });
+
+  it("invalid --states value still refuses with BAD_STATE (enum unchanged)", () => {
+    const p = tmpPath();
+    const { code, out } = captureRun([
+      "registry", "register", "Button/Primary",
+      "--category", "action",
+      "--markup", fix("registry-markup.html"),
+      "--states", "smashed",
+      "--file", p, "--json",
+    ]);
+    expect(code).toBe(1);
+    const json = JSON.parse(out) as { error: { code: string } };
+    expect(json.error.code).toBe("BAD_STATE");
+    expect(existsSync(p)).toBe(false);
+  });
+
+  it("test_a_component_records_axes_from_its_own_prop_names (D2) — --variants passes source-named axes through verbatim, no reinterpretation", () => {
+    const p = tmpPath();
+    const { out } = captureRun([
+      "registry", "register", "Control/Button",
+      "--category", "action",
+      "--markup", fix("registry-markup.html"),
+      // dana's own prop name is literally "variant" — the axis must stay
+      // "Variant=", never rewritten to a house term like "Tone=".
+      "--variants", "Variant=Primary,Variant=AccentSoft,Size=Xs,Radius=Sm",
+      "--file", p, "--json",
+    ]);
+    const json = JSON.parse(out) as { data: { component: { variants?: string[] } } };
+    expect(json.data.component.variants).toEqual([
+      "Variant=Primary", "Variant=AccentSoft", "Size=Xs", "Radius=Sm",
+    ]);
+  });
+});
+
 // ─── register — sealed DS integration (spec 009 P1) ────────────────────────────
 
 describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
@@ -240,6 +311,57 @@ describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
     expect(json.error.code).toBe("BAD_TOKEN");
     expect(readFileSync(registryPath, "utf8")).toBe(before);
     expect(() => loadDesignSystem(pathsForDir(join(tmp, "design")))).not.toThrow();
+  });
+
+  // spec 009 P4 owner-correction: BAD_TOKEN was format-only (reports/p4-real-data-gate.md
+  // §3) — a well-formed but INVENTED path registered cleanly. registry.ts now also checks
+  // existence against the loaded DS's compiled tree (registry-token-check.ts) before saving.
+  it("a well-formed but nonexistent token is refused when a DS is present — existence, not format", () => {
+    const tmp = initDs();
+    const registryPath = join(tmp, "design", "component-registry.json");
+    const before = readFileSync(registryPath, "utf8");
+    const r = captureRun([
+      "registry", "register", "Button/Primary",
+      "--category", "action", "--markup", fix("registry-markup.html"),
+      "--tokens", "color.this-token-does-not-exist-anywhere",
+      "--file", registryPath, "--json",
+    ]);
+    expect(r.code).toBe(1);
+    const json = JSON.parse(r.out) as { error: { code: string; message: string } };
+    expect(json.error.code).toBe("BAD_TOKEN");
+    // Distinct message from the format failure above — "does not exist", never "must match".
+    expect(json.error.message).toMatch(/does not exist/);
+    expect(json.error.message).not.toMatch(/must match/);
+    expect(readFileSync(registryPath, "utf8")).toBe(before);
+  });
+
+  it("a token that genuinely resolves in the compiled DS is accepted", () => {
+    const tmp = initDs();
+    const registryPath = join(tmp, "design", "component-registry.json");
+    const ds = loadDesignSystem(pathsForDir(join(tmp, "design")));
+    const category = Object.keys(ds.tokens)[0]!;
+    const name = Object.keys(ds.tokens[category]!)[0]!;
+    const realPath = `${category}.${name}`;
+    const r = captureRun([
+      "registry", "register", "Button/Primary",
+      "--category", "action", "--markup", fix("registry-markup.html"),
+      "--tokens", realPath,
+      "--file", registryPath, "--json",
+    ]);
+    expect(r.code).toBe(0);
+    const json = JSON.parse(r.out) as { data: { component: { tokensUsed: string[] } } };
+    expect(json.data.component.tokensUsed).toEqual([realPath]);
+  });
+
+  it("a standalone registry (no DS next to --file) still accepts a nonexistent-but-well-formed token — format-only, unchanged", () => {
+    const p = tmpPath();
+    const r = captureRun([
+      "registry", "register", "Button/Primary",
+      "--category", "action", "--markup", fix("registry-markup.html"),
+      "--tokens", "color.this-token-does-not-exist-anywhere",
+      "--file", p, "--json",
+    ]);
+    expect(r.code).toBe(0);
   });
 });
 
