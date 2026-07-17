@@ -153,16 +153,30 @@ Per project, in `reports/p4-real-data-gate.md`:
 
 | | dana-desktop | traicaybentre | hvs |
 |---|---|---|---|
-| `ui scan` → UI found? truncated? | | | |
-| tokens compiled (primitive / semantic / modes) | | | |
-| components registered | | | |
-| `ds status` exit | | | |
-| `ds context --strict --with-theme` exit | | | |
-| **what the road got wrong** | | | |
+| `ui scan` → UI found? truncated? | `src/desktop-ui/components` found (157 files); `truncated:true`, `visited:4000/4000` | `src/components` found (27 files); `truncated:true`, `visited:2967` | `components/ui` (3 files) + `docs/product/hvs-design-system/components` (23 files) found; `truncated:false`, `visited:464` |
+| tokens compiled (primitive / semantic / modes) | 186 / 228 / 3 (dark, classic, light) — 15 unverified (fonts/shadows/transitions, composite) | 17 / 0 / 0 — 2 unverified | 13 / 7 / 0 — 7 unverified (fonts/easing/shadows, composite) |
+| components registered | 1 (`Control/Button`) | 1 (`Social/ShareButtons`) | 1 (`Control/LocationSelector`) |
+| `ds status` exit | 0 (generation 1→2) | 0 (generation 1→2) | 0 (generation 1→2) |
+| `ds context --strict --with-theme` exit | 0 | 0 | 0 |
+| **what the road got wrong** | see below — the `BAD_TOKEN` finding (applies to all three) | most components are one-off marketing sections, not variant-prop primitives — D1/D2 only had one real candidate (`ShareButtons`'s `placement` prop) in 27 files | `docs/product/hvs-design-system/` is a stale demo/preview tree with its own `ButtonPrimary.css` etc. — a less careful read could mistake it for the real DS instead of `app/globals.css` |
+
+**The one thing the road got wrong (all three projects, same root cause):** `ui registry
+register`'s `BAD_TOKEN` (`registry-store.ts`, `TOKEN_PATTERN`) validates only that a `--tokens`
+value matches `^[a-z][a-z0-9.-]*$` — it does **not** check the value against the project's
+compiled token set. `color.this-token-does-not-exist-anywhere` registers successfully (verified
+live, isolated from all three project runs). This phase's own Key Insight 6 and hard constraints
+describe `BAD_TOKEN` as refusing "any invented token" — that is not what the code does today; it
+refuses malformed *syntax*, not an *invented path*. Per the "never touch `validateComponentRecord`'s
+strictness" constraint this was not changed here — reported per Art V/Insight 7, not patched.
+See `reports/p4-real-data-gate.md` for the full reproduction and discussion.
 
 Plus, verbatim: **one component record the road produced**, and **one thing it got wrong** —
 or "none", but look. Also run **EaseUI** (no root `package.json`, 2 UI roots, 4220 entries vs a
-4000 cap) and report; not a gate condition.
+4000 cap) and report; not a gate condition. **Result**: `framework: null` (no root
+`package.json` to detect one — confirmed), `truncated:true` at exactly `visited:4000`
+(the cap), `componentDirs` surfaced `app/src/components/ui` (12 files) but not a second
+root under `frontpage/` (that tree's `components/` dir has no `ui`/`widgets`/`components`-named
+subfolder within the walk budget) — full detail in `reports/p4-real-data-gate.md`.
 
 ## Success Criteria
 
