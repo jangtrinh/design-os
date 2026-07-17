@@ -39,7 +39,7 @@ describe("ui ingest-css-ds — happy path", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-ingest-css-"));
     const src = writeExtractTokens(tmp, [
       { name: "--gray-900", value: "#181818", sources: ["a.css:L1"], selectors: [":root"] },
-      { name: "--color-text-primary", value: "var(--gray-900)", sources: ["a.css:L2"], selectors: [":root"] },
+      { name: "--text-primary", value: "var(--gray-900)", sources: ["a.css:L2"], selectors: [":root"] },
     ]);
     const out = mkdtempSync(join(tmpdir(), "ease-ingest-css-out-"));
     const r = capture(["ingest-css-ds", src, "--out", out, "--name", "acme", "--json"]);
@@ -53,6 +53,22 @@ describe("ui ingest-css-ds — happy path", () => {
     expect(written.color["text-primary"].$value).toBe("{color.gray-900}");
     // Unsealed — no manifest written by this command.
     expect(existsSync(join(out, "ds.manifest.json"))).toBe(false);
+  });
+
+  it("D6 (corrected): --gray-900 and --color-gray-900 coexist — no false collision", () => {
+    // dana's real shape: index.css's @theme re-exports --gray-900 under Tailwind's
+    // --color-* convention. Two different declared properties, two different paths.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-ingest-css-"));
+    const src = writeExtractTokens(tmp, [
+      { name: "--gray-900", value: "#181818", sources: ["dana-tokens.css:L10"], selectors: [":root"] },
+      { name: "--color-gray-900", value: "var(--gray-900)", sources: ["index.css:L31"], selectors: ["@theme"] },
+    ]);
+    const out = mkdtempSync(join(tmpdir(), "ease-ingest-css-out-"));
+    const r = capture(["ingest-css-ds", src, "--out", out, "--json"]);
+    expect(r.code).toBe(0);
+    const written = JSON.parse(readFileSync(join(out, "tokens.json"), "utf8"));
+    expect(written.color["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
+    expect(written.color["color-gray-900"].$value).toBe("{color.gray-900}");
   });
 });
 
@@ -79,11 +95,11 @@ describe("ui ingest-css-ds — error codes", () => {
     expect(errorCode(r.out)).toBe("BAD_JSON");
   });
 
-  it("a D6 leaf collision → LEAF_COLLISION, both source lines in the message", () => {
+  it("a genuine sanitization collision (case-only) → LEAF_COLLISION, both source lines", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-ingest-css-err-"));
     const src = writeExtractTokens(tmp, [
-      { name: "--gray-900", value: "#181818", sources: ["dana-tokens.css:L10"], selectors: [":root"] },
-      { name: "--color-gray-900", value: "var(--gray-900)", sources: ["index.css:L31"], selectors: ["@theme"] },
+      { name: "--Gray-900", value: "#181818", sources: ["dana-tokens.css:L10"], selectors: [":root"] },
+      { name: "--gray-900", value: "#181818", sources: ["index.css:L31"], selectors: [":root"] },
     ]);
     const r = capture(["ingest-css-ds", src, "--json"]);
     expect(r.code).toBe(1);
@@ -107,8 +123,8 @@ describe("ui ingest-css-ds — UC-03: extract-tokens → ingest-css-ds → ds im
     const cssPath = join(tmp, "tokens.css");
     writeFileSync(
       cssPath,
-      `:root {\n  --gray-900: #181818;\n  --color-text-primary: var(--gray-900);\n  --color-bg: #ffffff;\n}\n` +
-        `[data-theme="dark"] {\n  --color-bg: #111111;\n}\n`,
+      `:root {\n  --gray-900: #181818;\n  --text-primary: var(--gray-900);\n  --bg: #ffffff;\n}\n` +
+        `[data-theme="dark"] {\n  --bg: #111111;\n}\n`,
       "utf8",
     );
     const htmlPath = join(tmp, "empty.html");

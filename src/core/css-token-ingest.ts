@@ -1,18 +1,15 @@
 /**
  * CSS custom properties → DTCG token tree + modes (D4, spec 009 P3 — "the vocabulary").
  *
- * Input: the `customProperties` array from `ui designmd extract-tokens --css`
- * (designmd-token-extractor.ts), each `{name, value, hex?, sources, selectors}`.
- * Output: a two-tier DTCG tree (token-model.ts shape) where a literal value becomes
- * a PRIMITIVE and an alias value (`var(--x)`) becomes a SEMANTIC (Insight 4 — the
- * literal-vs-alias split IS the tier distinction, exactly as figma-ds-tokens.ts
- * already proved). Selectors become modes via classifySelector (D2): base selectors
- * (`:root`/`@theme`/`html`/`body`) → `$value`; theme selectors →
+ * Input: the `customProperties` array from `ui designmd extract-tokens --css`, each
+ * `{name, value, hex?, sources, selectors}`. Output: a two-tier DTCG tree (token-model.ts
+ * shape) — a literal value → PRIMITIVE, an alias (`var(--x)`) → SEMANTIC (Insight 4, same
+ * split figma-ds-tokens.ts already proved). Selectors become modes via classifySelector
+ * (D2): base (`:root`/`@theme`/`html`/`body`) → `$value`; theme selectors →
  * `$extensions["mode.<name>"]` (the shared encoding, token-model.ts).
  *
- * Pure: no filesystem, no network, deterministic. Reuses `inferToken`
- * (token-import.ts) for $type inference and `sanitizeSeg` (figma-ds-tokens.ts)
- * for the alias-safe alphabet — Insight 5's "reuse it" directive (Art IV).
+ * Pure: no filesystem, no network, deterministic. Reuses `inferToken` (token-import.ts)
+ * for $type inference and `sanitizeSeg` (figma-ds-tokens.ts) for the alias-safe alphabet.
  */
 import { inferToken } from "./token-import.js";
 import type { ImportedType } from "./token-import.js";
@@ -31,7 +28,16 @@ export class CssTokenIngestError extends Error {
   }
 }
 
-// ─── D6: leaf naming — category from the value, prefix stripped once ──────────
+// ─── D6 (corrected on the integration branch, spec 009 P3): leaf naming ───────
+//
+// The leaf is the custom-property name minus `--`, VERBATIM — no prefix stripping.
+// `--gray-900` and `--color-gray-900` are two DIFFERENT declared properties (dana: the
+// latter is a Tailwind `@theme` re-export of the former, `var(--gray-900)`, not a
+// duplicate) and land at two different paths: `color.gray-900` and `color.color-gray-900`.
+// An earlier rule stripped a category-matching prefix, silently merging the two and
+// collapsing the two-tier structure `token-taxonomy.md:110` mandates. The (uglier)
+// verbatim name is the source's own name, recorded as declared (SOURCE-grade,
+// `learn.md` §3c) — not rewritten to look nicer.
 
 function categoryForType(type: ImportedType): string {
   switch (type) {
@@ -58,12 +64,6 @@ function parseVarRef(value: string): string | null {
   const m = /^var\(\s*(--[a-zA-Z0-9_-]+)\s*\)$/.exec(value.trim());
   return m ? (m[1] as string) : null;
 }
-
-function stripRedundantPrefix(leaf: string, category: string): string {
-  const prefix = `${category}-`;
-  return leaf.startsWith(prefix) ? leaf.slice(prefix.length) : leaf;
-}
-
 interface PathInfo { category: string; leaf: string; type: ImportedType }
 
 /** This custom property's own {category, leaf, $type} — independent of alias/base/mode. */
@@ -75,7 +75,7 @@ function computeOwnPath(name: string, entries: CustomPropertyObservation[]): Pat
     : typeFromNameHint(leafRaw);
   if (type === null) return null;
   const category = sanitizeSeg(categoryForType(type));
-  const leaf = stripRedundantPrefix(sanitizeSeg(leafRaw), category);
+  const leaf = sanitizeSeg(leafRaw);
   return { category, leaf, type };
 }
 
@@ -114,7 +114,10 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
   const pathByName = new Map<string, PathInfo | null>();
   for (const [name, entries] of byName) pathByName.set(name, computeOwnPath(name, entries));
 
-  // D6 collision — two names strip to the same dotted path. Fail loudly, both source lines.
+  // Collision guard (D6) — two DIFFERENT declared names landing on the same dotted path.
+  // With no prefix stripping this should only fire on a genuine sanitization collision
+  // (e.g. differing only by case or an underscore/hyphen) — a real ambiguity, not a
+  // false merge. Fail loudly, both source lines; never silently pick one.
   const nameByDotted = new Map<string, string>();
   for (const [name, path] of pathByName) {
     if (path === null) continue;
@@ -126,7 +129,7 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
       throw new CssTokenIngestError(
         "LEAF_COLLISION",
         `'${prior}' (${priorSrc}) and '${name}' (${nameSrc}) both map to token path '${dotted}' ` +
-          `after the redundant-category-prefix strip (D6) — rename one of the source custom properties`,
+          `after sanitizing to the alias-safe alphabet — rename one of the source custom properties`,
       );
     }
     nameByDotted.set(dotted, name);

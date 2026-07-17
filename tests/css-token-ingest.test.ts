@@ -14,14 +14,28 @@ function cp(name: string, value: string, selector: string, source = "a.css:L1", 
 
 describe("test_a_literal_becomes_a_primitive_and_an_alias_becomes_a_semantic", () => {
   it("a literal hex is a primitive; a var() alias is a semantic {category.token}", () => {
+    // D6 (corrected): the leaf is the property name verbatim (minus --), no prefix
+    // stripping — so --text-primary lands at color.text-primary, not merged with anything.
     const { tree, stats } = ingestCssTokens([
       cp("--gray-900", "#181818", ":root"),
-      cp("--color-text-primary", "var(--gray-900)", ":root"),
+      cp("--text-primary", "var(--gray-900)", ":root"),
     ]);
     expect(tree.color?.["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
     expect(tree.color?.["text-primary"]?.$value).toBe("{color.gray-900}");
     expect(stats.primitives).toBe(1);
     expect(stats.semantics).toBe(1);
+  });
+
+  it("D6 (corrected): --color-gray-900 keeps its OWN verbatim name, not merged with --gray-900", () => {
+    // dana's real shape: index.css's @theme re-exports the primitive for Tailwind's
+    // --color-* convention. It is a DIFFERENT declared property, not a duplicate —
+    // it lands at color.color-gray-900, aliasing color.gray-900.
+    const { tree } = ingestCssTokens([
+      cp("--gray-900", "#181818", ":root", "dana-tokens.css:L10"),
+      cp("--color-gray-900", "var(--gray-900)", "@theme", "index.css:L31"),
+    ]);
+    expect(tree.color?.["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
+    expect(tree.color?.["color-gray-900"]?.$value).toBe("{color.gray-900}");
   });
 });
 
@@ -55,21 +69,26 @@ describe("test_a_token_declared_only_under_a_theme_has_no_base_and_is_listed_unv
   });
 });
 
-describe("test_a_redundant_category_prefix_is_stripped_once", () => {
-  it("--color-gray-900 strips the leading 'color-' once; --gray-900 needs no strip", () => {
-    const { tree } = ingestCssTokens([cp("--gray-900", "#181818", ":root")]);
+describe("D6 no longer strips a prefix (spec correction — see phase-03-the-vocabulary.md)", () => {
+  it("--gray-900 and --color-gray-900 land at two DIFFERENT paths — no merge, no collision", () => {
+    const { tree } = ingestCssTokens([
+      cp("--gray-900", "#181818", ":root"),
+      cp("--color-gray-900", "var(--gray-900)", "@theme"),
+    ]);
     expect(Object.keys(tree.color ?? {})).toContain("gray-900");
-    expect(Object.keys(tree.color ?? {})).not.toContain("color-gray-900");
+    expect(Object.keys(tree.color ?? {})).toContain("color-gray-900");
   });
 });
 
 describe("test_a_leaf_name_collision_fails_loudly_with_both_source_lines", () => {
-  it("--gray-900 and --color-gray-900 both strip to color.gray-900 — dana has this", () => {
+  it("a genuine sanitization collision (case-only difference) still fails loudly", () => {
+    // With prefix-stripping removed, a collision can only come from two DIFFERENT names
+    // sanitizing to the same alias-safe string — e.g. differing only by case.
     let error: unknown;
     try {
       ingestCssTokens([
-        cp("--gray-900", "#181818", ":root", "dana-tokens.css:L10"),
-        cp("--color-gray-900", "var(--gray-900)", "@theme", "index.css:L31"),
+        cp("--Gray-900", "#181818", ":root", "dana-tokens.css:L10"),
+        cp("--gray-900", "#181818", ":root", "index.css:L31"),
       ]);
     } catch (e) {
       error = e;

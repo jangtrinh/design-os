@@ -27,8 +27,8 @@ describe("test_both_emitters_encode_a_mode_identically", () => {
     const figmaResult = buildTokensTree([figmaVar]);
 
     const cssProps: CustomPropertyObservation[] = [
-      { name: "--color-bg", value: "#ffffff", sources: ["a.css:L1"], selectors: [":root"] },
-      { name: "--color-bg", value: "#000000", sources: ["a.css:L2"], selectors: ['[data-theme="dark"]'] },
+      { name: "--bg", value: "#ffffff", sources: ["a.css:L1"], selectors: [":root"] },
+      { name: "--bg", value: "#000000", sources: ["a.css:L2"], selectors: ['[data-theme="dark"]'] },
     ];
     const cssResult = ingestCssTokens(cssProps);
 

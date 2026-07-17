@@ -2,9 +2,21 @@
 
 Branch: `spec009/p3-vocabulary` (off `spec009/integration`, which carries P1 + P2 merged).
 
-## What changed
+**Update (round 2, post-audit):** the Art V/Opus audit verified gates independently and confirmed
+the two hvs bugs (below) were exactly what the live-run mandate exists for. It then found a real
+bug in *my* D6 rule, not in dana's data: stripping a "redundant category prefix" silently merged
+two genuinely different declared custom properties (`--gray-900` and `--color-gray-900`) into one
+path, collapsing the two-tier structure `token-taxonomy.md:110` mandates. The coordinator deleted
+the strip rule on the integration branch (correcting `phase-03-the-vocabulary.md` D6 and
+`usecases.md` UC-03) and asked me to apply the same fix here, keep the collision guard (now firing
+only on genuine sanitization collisions), and re-run the full LIVE block on all three projects —
+dana's two files combined is the one that must now succeed. See "Round 2 — D6 correction" below
+for what changed and the re-run numbers; the original round-1 sections are kept for the record but
+superseded where they conflict.
 
-**New (all < 200 lines, Art IX):**
+## What changed (round 1, superseded on D6 — see round 2 below)
+
+**New (all ≤ 200 lines, Art IX):**
 - `src/core/css-selector-blocks.ts` (86 ln) — a brace-nesting selector-block scanner, NOT a CSS
   parser: "which selector immediately encloses byte offset N?" Split out of
   `designmd-token-extractor.ts` to keep that file near budget. Handles comments (blanked, same
@@ -19,16 +31,16 @@ Branch: `spec009/p3-vocabulary` (off `spec009/integration`, which carries P1 + P
   measured live on dana: `[data-theme="dark"],\n[data-theme="classic"],\n.dark { … }` is a single
   block covering 2 distinct modes (`.dark` and `[data-theme="dark"]` both mean `dark`). This case
   is not in the phase file's D2 table; found reading real data, not guessed.
-- `src/core/css-token-ingest.ts` (197 ln) — D4/D6, pure. `ingestCssTokens(customProperties)` →
+- `src/core/css-token-ingest.ts` (200 ln) — D4/D6, pure. `ingestCssTokens(customProperties)` →
   `{tree, stats, unverified}`. Groups by name, computes each name's own `{category, leaf, $type}`
-  (D6: type from the value when a literal exists among its declarations, else a name-hint
-  fallback for alias-only names — the alias's OWN path, not inherited from its target, exactly
-  mirroring `figma-ds-tokens.ts`'s `resolveType`/`pathOf` split), checks all names for a D6
-  collision before emitting anything, then per name: unmapped-selector declarations are always
-  recorded (never silently dropped); no base entry → recorded unverified, not promoted (D2);
-  base resolves (literal or alias-string); each mode resolves the same way into `$extensions`.
-  Reuses `inferToken` (token-import.ts) and `sanitizeSeg` (figma-ds-tokens.ts) — Insight 5's
-  "reuse it," Art IV.
+  (type from the value when a literal exists among its declarations, else a name-hint fallback for
+  alias-only names — the alias's OWN path, not inherited from its target, mirroring
+  `figma-ds-tokens.ts`'s `resolveType`/`pathOf` split), checks all names for a leaf collision
+  before emitting anything, then per name: unmapped-selector declarations are always recorded
+  (never silently dropped); no base entry → recorded unverified, not promoted (D2); base resolves
+  (literal or alias-string); each mode resolves the same way into `$extensions`. Reuses
+  `inferToken` (token-import.ts) and `sanitizeSeg` (figma-ds-tokens.ts) — Insight 5's "reuse it,"
+  Art IV. **Round 1 shipped a prefix-strip step here that round 2 deleted — see below.**
 - `src/commands/ingest-css-ds.ts` (137 ln) — the command shell, I/O boundary only, mirrors
   `ingest-figma-ds.ts`'s split. Writes `<out>/tokens.json` only (DTCG, unsealed) — no
   `component-registry.json`/`DESIGN.md` (see "Scope decisions" below).
@@ -84,6 +96,111 @@ Branch: `spec009/p3-vocabulary` (off `spec009/integration`, which carries P1 + P
 - `tests/cmd-ds-import.test.ts`, `tests/cmd-designmd-extract-tokens.test.ts`,
   `tests/designmd-token-extractor.test.ts` — extended per the phase file's test list (see below).
 
+## Round 2 — D6 correction (the strip rule is deleted)
+
+**What was wrong:** round 1's D6 inferred a category from the value, then stripped that category
+as a name prefix if present — `--color-gray-900` → strip `color-` → `gray-900`, landing on the
+same path as the *actually separate* primitive `--gray-900`. Traced live: dana's own comment says
+what `index.css`'s `@theme { --color-gray-900: var(--gray-900); }` is —
+`/* --- Base palette registered as Tailwind colors --- */`, a **re-export** so Tailwind can
+generate `bg-gray-900`, not a duplicate declaration. dana's real semantic tier lives in names like
+`--text-primary: var(--gray-900)` and `--badge-danger-bg: var(--error-700)`, which round 1 never
+touched (no prefix to strip). The strip rule was therefore merging two *different* tokens on every
+one of the ≥120 `--X`/`--color-X` pairs dana declares — not catching a real ambiguity 120 times,
+but manufacturing 120 false ones.
+
+**Fix:** `src/core/css-token-ingest.ts` — `stripRedundantPrefix` deleted. The leaf is now
+`sanitizeSeg(name.slice(2))`, verbatim, always. `--gray-900` → `color.gray-900`;
+`--color-gray-900` → `color.color-gray-900` (an alias, `$value: "{color.gray-900}"`) — the
+source's own name, uglier and correct, not rewritten to look nicer (`learn.md` §3c, SOURCE-grade).
+The collision guard (`LEAF_COLLISION`) stays, unchanged in shape, now only reachable via a genuine
+sanitization collision — verified with a case-only pair (`--Gray-900` vs `--gray-900`, both
+sanitize to `gray-900`) in both `tests/css-token-ingest.test.ts` and
+`tests/cmd-ingest-css-ds.test.ts`; still fails loudly with both source lines. File is 200 lines
+exactly after the deletion + comment rewrite (down from 197 → briefly 204 → trimmed back to 200).
+
+**Tests updated:** `tests/css-token-ingest.test.ts` (`test_a_redundant_category_prefix_is_stripped_once`
+removed — the behavior it tested no longer exists; replaced with a test proving `--gray-900` and
+`--color-gray-900` now coexist, and the collision test rewritten to the case-only pair);
+`tests/mode-convention.test.ts` (renamed its fixture property from `--color-bg` to `--bg` so the
+byte-identical-shape assertion targets `color.bg` on both emitters, unaffected by the strip
+removal either way); `tests/cmd-ingest-css-ds.test.ts` (added the coexistence case at the command
+level, rewrote the collision-error test to the case-only pair, renamed the UC-03 seam fixture's
+properties from `--color-text-primary`/`--color-bg` to `--text-primary`/`--bg` — both forms are
+valid CSS, this one just isn't the collision case, so it stays a clean, focused seam test).
+
+**Four gates re-run after this change** — all still green: `npm run typecheck` (clean),
+`npm run lint` (clean), `npm run build` (`dist/cli.js` 815.63 KB), `npm test` (134 files, 2019
+passed, 4 skipped, 0 failed — 2 more than round 1's 2017, from the new coexistence tests),
+`ui knowledge check --json` (`errorCount: 0`).
+
+### Re-run LIVE block — dana-desktop, both files combined (the one that had to succeed)
+
+```
+$ node dist/cli.js designmd extract-tokens empty.html --css "dana-tokens.css,index.css" --out t.json
+wrote tokens.json (colors: 168, fonts: 0, customProperties: 567)
+
+$ node dist/cli.js ingest-css-ds t.json --out out --name dana-web --json
+{"ok":true,"data":{"stats":{"primitives":186,"semantics":228,"skipped":15}}}
+
+$ node dist/cli.js ds import out/tokens.json --dir out --name dana-web --json
+{"ok":true,"data":{"imported":414,"skipped":0,
+  "byType":{"color":362,"dimension":39,"fontFamily":2,"number":11},"categories":4}}
+
+$ node dist/cli.js ds status --dir out --json
+{"ok":true, ...}                                                        # exits 0
+
+$ node dist/cli.js tokens compile out/design/design.tokens.json --target css | grep -i gray-900
+  --color-color-gray-900: #181818;
+  --color-gray-900: #181818;
+```
+
+**No collision. Both files ingest together, `ds status` exits 0** — the outcome the phase file's
+"Expected" section originally described and round 1 could not reach. The grep shows both compiled
+names: `--color-gray-900` (from dana-tokens.css's primitive `--gray-900`) and
+`--color-color-gray-900` (from index.css's `--color-gray-900`, an alias resolved through
+`{color.gray-900}` to the same literal) — exactly the "two different declared properties, same
+resolved value" shape the coordinator traced. Both compile to `#181818` because dana's `@theme`
+re-export is a faithful mirror, not a divergent value — that's dana's data, correctly preserved.
+
+**Token count vs the dogfood's 286**: 414 imported (186 primitive + 228 semantic) + 15 unverified
+= 429 unique custom-property **names** out of 567 total `(name, value)` pairs across both files.
+429 vs 286 — **explaining the gap, not tuning to it**: round 1's single-file number (263) undercounted
+because it excluded index.css entirely (blocked by the false collision); this run is the first time
+both files' real vocabulary is visible together, and 429 is close to 1.5× the dogfood's hand-built
+286. The dogfood was almost certainly working at a *coarser grain* — 102 manual `change-token`
+calls plausibly targeted semantic roles once each rather than also re-declaring the Tailwind
+`--color-*` re-export layer as separate tokens (which this mechanism now correctly keeps distinct,
+per the corrected D6). The 15 unverified are the same composite/shadow/duration values as round 1
+(unchanged by the D6 fix — it only touches naming, not value resolvability).
+
+### Re-run — traicaybentre and hvs (unaffected, confirmed)
+
+Neither project has colliding `--X`/`--<category>-X` pairs (traicaybentre's traicaybentre
+`@theme inline` block declares literals directly with no re-export layer; hvs's primitives are
+already uniquely prefixed, `--hvs-brand` etc.), so round 2's fix changes nothing about either:
+
+```
+# traicaybentre
+$ node dist/cli.js ingest-css-ds t.json --out out --name traicaybentre --json
+{"stats":{"primitives":17,"semantics":0,"skipped":2}}
+$ node dist/cli.js ds import out/tokens.json --dir out --name traicaybentre --json
+{"imported":17}
+$ node dist/cli.js ds status --dir out --json
+{"ok":true}                                                              # exits 0
+
+# hvs
+$ node dist/cli.js ingest-css-ds t2.json --out out2 --name hvs --json
+{"stats":{"primitives":14,"semantics":7,"skipped":11}}
+$ node dist/cli.js ds import out2/tokens.json --dir out2 --name hvs --json
+{"imported":21}
+$ node dist/cli.js ds status --dir out2 --json
+{"ok":true}                                                              # exits 0
+```
+
+Identical to round 1's numbers — confirms the fix is scoped to the naming collision, doesn't touch
+value resolution, mode assembly, or the two projects that never triggered the bug.
+
 ## Scope decisions (stated, not discovered)
 
 - **`ingest-css-ds` writes only `tokens.json`.** D4 describes it as mirroring
@@ -96,108 +213,59 @@ Branch: `spec009/p3-vocabulary` (off `spec009/integration`, which carries P1 + P
   design system via `ui ingest-figma-ds`") — reusing it verbatim for a CSS-sourced DS would be a
   false claim (Art VIII), and `figma-ds-designdoc.ts` isn't in this phase's "Modify" list. Left
   as an **open gap**, not fixed: nothing renders `$extensions["mode.*"]` for the code road today.
-  A later phase's job.
+  Per the coordinator: record this, don't do it — it's a real question but touches the Figma
+  road's shipped semantics and needs its own decision, not a Phase 3 side-effect.
 - **D7 (parallel hardcoded gray ramps) is a narrative finding, not a computed field.** The spec
   says "record the finding," "no detector" — I did not add a `findings[]` array to the ingest
   result; the finding is written up below instead, per D7's own framing.
 
-## Four gates
+## Four gates (final, post round-2)
 
 - `npm run typecheck` — **PASS** (no output, exit 0).
 - `npm run lint` — **PASS** (no output, exit 0).
-- `npm run build` — **PASS** (`dist/cli.js` 815.82 KB, tsup build success).
-- `npm test` — **PASS**: 134 test files, 2017 passed, 4 skipped (fixture-gated, absent on this
+- `npm run build` — **PASS** (`dist/cli.js` 815.63 KB, tsup build success).
+- `npm test` — **PASS**: 134 test files, 2019 passed, 4 skipped (fixture-gated, absent on this
   machine — pre-existing, unrelated to this phase), 0 failed.
 - `ui knowledge check --json` — **PASS** (`errorCount: 0, warningCount: 0`).
 
-## LIVE runs (Art III)
+## LIVE runs (Art III) — final numbers, all three projects
 
-### dana-desktop — `dana-tokens.css` alone (443 ln)
+### dana-desktop — both files combined (the required run — see "Round 2" above for the full
+transcript and count reconciliation)
 
-The phase file's LIVE block writes `--css` **twice** (repeated flag). Run literally, that now
-hits F4's new guard on purpose:
+`ds status` exits 0. 414 tokens imported (186 primitive + 228 semantic), 15 composite values
+correctly left unverified. `--color-gray-900` and `--color-color-gray-900` both compile, distinct
+paths, both correct.
+
+The phase file's literal LIVE block also writes `--css` **twice** (a repeated flag). Run
+literally, that still hits F4's guard on purpose (unchanged by round 2):
 
 ```
-$ node dist/cli.js designmd extract-tokens empty.html \
-    --css dana-tokens.css --css index.css --out t.json
-{"ok":false,"command":"designmd extract-tokens",
- "error":{"code":"REPEATED_FLAG",
-   "message":"'--css' was passed more than once — only the last value would be used, silently
-   dropping the others. Combine multiple files into one flag instead: --css a.css,b.css"}}
+$ node dist/cli.js designmd extract-tokens empty.html --css dana-tokens.css --css index.css --out t.json
+{"ok":false,"error":{"code":"REPEATED_FLAG",
+  "message":"'--css' was passed more than once — … Combine multiple files into one flag instead:
+  --css a.css,b.css"}}
 ```
 
-Re-run with the documented working form (comma-joined, single flag) — first `dana-tokens.css`
-alone, to isolate the mechanism from the cross-file collision reported next:
+The comma-joined form (documented, pre-existing) is what every run above used.
+
+### dana-desktop — `dana-tokens.css` alone (443 ln, for isolation/comparison only)
 
 ```
 $ node dist/cli.js designmd extract-tokens empty.html --css dana-tokens.css --out t.json
 wrote tokens.json (colors: 119, fonts: 0, customProperties: 324)
-
 $ node dist/cli.js ingest-css-ds t.json --out out --name dana-web --json
-{"stats":{"primitives":176,"semantics":72,"skipped":15}, "unverified":[15 entries — all
-  composite: --font-mono/--font-sans (stack), --shadow-* (rgba(var(--shadow-color),…)),
-  --transition-* ("150ms ease", a shorthand, not a bare duration)]}
-
+{"stats":{"primitives":176,"semantics":72,"skipped":15}}
 $ node dist/cli.js ds import out/tokens.json --dir out --name dana-web --json
-{"imported":248, "skipped":0, "byType":{"color":202,"dimension":35,"number":11}}
-
+{"imported":248}
 $ node dist/cli.js ds status --dir out --json
-{"ok":true, ...}                                                        # exits 0
-
+{"ok":true}                                                              # exits 0
 $ node dist/cli.js tokens compile out/design/design.tokens.json --target css | grep -i gray-900
   --color-gray-900: #181818;
 ```
 
-56 tokens carry `$extensions` modes (e.g. `color.surface-content`: base `#FFFFFF`,
-`mode.classic`/`mode.dark` both `{color.gray-900}` — an unresolved alias inside the extension,
-same as the base tier; resolution is `tokens compile`'s job, not ingest's). The compiled CSS
-carries only the base value; grepping the compiled output for the dark/classic hex values (not
-shown above) confirms they never appear outside `design.tokens.json` — modes are preserved, not
-compiled.
-
-**Token count vs the dogfood's 286**: 248 imported (176 primitive + 72 semantic) + 15 unverified
-= 263 unique custom-property **names** out of 324 total `(name, value)` pairs (the gap is the
-multi-theme entries collapsing under one name). 263 vs 286 — **explaining the gap, not tuning to
-it**: the dogfood's 286 was hand-built via 102 individual `change-token` calls on a project the
-author was actively debugging live, plausibly touching composite/shadow/duration values by hand
-that this mechanism correctly refuses to synthesize (it has no rule for turning
-`0 1px 2px rgba(var(--shadow-color), 0.05)` into a `dimension`/`number` — that's out of scope,
-and it says so in `unverified` rather than guessing). This run also covers `dana-tokens.css`
-alone; the dogfood's number likely includes `index.css` contributions too (below).
-
-### dana-desktop — both files combined (`dana-tokens.css` + `index.css`)
-
-```
-$ node dist/cli.js designmd extract-tokens empty.html \
-    --css "dana-tokens.css,index.css" --out t.json
-wrote tokens.json (colors: 168, fonts: 0, customProperties: 567)
-
-$ node dist/cli.js ingest-css-ds t.json --out out --name dana-web --json
-{"ok":false,"command":"ingest-css-ds",
- "error":{"code":"LEAF_COLLISION",
-   "message":"'--blue-100' (dana-tokens.css:L40) and '--color-blue-100' (index.css:L51) both
-   map to token path 'color.blue-100' after the redundant-category-prefix strip (D6) — rename
-   one of the source custom properties"}}
-```
-
-**D6's collision rule fired — yes, exactly as the phase file predicted three separate times**
-(Insight 3, D6 itself, and the Risk Assessment row: *"dana has both — so this fires on the first
-real run, by design"* / *"if it fires everywhere, that is a finding about D6 — report it, do not
-add a suffix rule"*). A static check (`grep` over both files' declared names) shows this is not a
-one-off: **≥120** `--X` / `--color-X` name pairs exist across the two files. `index.css`'s
-`@theme { --color-gray-900: var(--gray-900); … }` block is Tailwind v4's *mechanical* bridge from
-hand-authored primitive names to the `--color-*` convention Tailwind utilities expect — not a
-deliberately-distinct semantic tier — so every one of those ~120 pairs collides under D6, and the
-first one aborts the whole ingest.
-
-**This means the phase file's "Expected" outcome for the combined-file LIVE block (reach
-`ds status` exit 0, ~140 aliases surviving) cannot be reached on dana's real two files as they
-exist today** — D6's fail-loud-on-first-collision design and the LIVE block's "reaches ds status"
-narrative are in tension for this specific project. I did not resolve this by weakening D6 (the
-spec explicitly forbids merging/suffixing); I ran the block as far as it goes and report the
-result: the mechanism is correct and proven end-to-end on real data (dana-tokens.css alone,
-traicaybentre, hvs — all below), and this collision is itself the reportable finding D6 asked
-for, not a bug to route around.
+56 tokens carry `$extensions` modes here (e.g. `color.surface-content`). Unaffected by round 2
+(no colliding names in this file alone) — kept as the isolation baseline against the combined run.
 
 ### traicaybentre (single-theme site — 445 ln `src/app/globals.css`, Tailwind v4 `@theme inline`)
 
@@ -209,17 +277,12 @@ measured. Reporting what is actually on disk now, not tuning to the older number
 ```
 $ node dist/cli.js designmd extract-tokens empty.html --css src/app/globals.css --out t.json
 wrote tokens.json (colors: 17, fonts: 1, customProperties: 19)
-
 $ node dist/cli.js ingest-css-ds t.json --out out --name traicaybentre --json
-{"stats":{"primitives":17,"semantics":0,"skipped":2},
- "unverified":[--font-body, --font-heading — both composite font stacks with an embedded
- var(--font-…) fallback, correctly not matched by the exact var(--x) alias regex]}
-
+{"stats":{"primitives":17,"semantics":0,"skipped":2}}
 $ node dist/cli.js ds import out/tokens.json --dir out --name traicaybentre --json
 {"imported":17,"skipped":0,"byType":{"color":17}}
-
 $ node dist/cli.js ds status --dir out --json
-{"ok":true, ...}                                                        # exits 0
+{"ok":true}                                                              # exits 0
 ```
 
 No collision, no modes (single theme) — confirms the mapper is not dana-shaped: it degrades
@@ -234,25 +297,20 @@ own test setup, not the mapper)
 ```
 $ node dist/cli.js designmd extract-tokens empty.html --css "<5 scan-reported files>" --out t.json
 wrote tokens.json (colors: 3, fonts: 6, customProperties: 35)
-
 $ node dist/cli.js ingest-css-ds t.json --out out --name hvs --json
-{"stats":{"primitives":14,"semantics":7,"skipped":11},
- "unverified":[--font-display/--font-mono/--font-sans (stacks), --hvs-ease (cubic-bezier),
- --hvs-stagger ("75ms" — no duration-hint word in the name, correctly left unresolved rather
- than guessed), --shadow-* (composite shadows/gradients/blur — 5 entries)]}
-
+{"stats":{"primitives":14,"semantics":7,"skipped":11}}
 $ node dist/cli.js ds import out/tokens.json --dir out --name hvs --json
 {"imported":21,"skipped":0,"byType":{"color":17,"dimension":3,"duration":1}}
-
 $ node dist/cli.js ds status --dir out --json
-{"ok":true, ...}                                                        # exits 0
+{"ok":true}                                                              # exits 0
 ```
 
 Also note: the spec's context box cites "1162 css-vars" for hvs; the real product CSS (excluding
 `node_modules`/`.next`/vendored skill assets) has far fewer declarations — same "report what's
 actually there" note as traicaybentre.
 
-**Two real bugs found only by running on hvs, both fixed, both covered by new tests:**
+**Two real bugs found only by running on hvs, both fixed, both covered by new tests (unaffected
+by the round-2 D6 correction — these are selector/value bugs, not naming):**
 1. `hvs/app/globals.css` opens with `@import "tailwindcss";` before its first `:root {` block. My
    selector scanner had no concept of a semicolon-terminated top-level statement, so it captured
    the whole `@import …;` line as part of `:root`'s "selector" text
@@ -272,9 +330,12 @@ the same way (scan only inside `<style>…</style>` for HTML sources).
 
 ## Whether D6's collision rule fired
 
-**Yes — on dana's two real files combined, immediately, exactly as predicted.** Did not fire on
-dana-tokens.css alone, traicaybentre, or hvs. See the dedicated section above for the full
-message and the ≥120-pair static count.
+**Round 1: yes, immediately, on dana's two files combined — but round 2's audit found this was
+the guard catching MY bad rule, not dana's bad data (the ≥120 `--X`/`--color-X` pairs are genuinely
+different declared properties, not duplicates).** After deleting the prefix-strip, the guard does
+**not** fire on any of the three projects' real data (dana combined, dana alone, traicaybentre,
+hvs). It is exercised only by a synthetic case-only-difference pair in the test suite
+(`--Gray-900` vs `--gray-900`) — proving it still works, without dana ever needing to hit it.
 
 ## D7 — the parallel-hardcoded-set finding (recorded, not detected)
 
@@ -294,8 +355,9 @@ per D7 — no detector was built.
    phase file's own "acceptable and lazier" option.
 3. **The `isTokenLeaf` pass-through fix in `token-import.ts`** (unplanned, detailed above) — the
    phase's own LIVE block cannot complete without it.
-4. **D6 blocks dana's combined-file LIVE run from reaching `ds status`** — reported above, not
-   routed around.
+4. **D6 itself was corrected mid-phase** (round 2, this report) — the prefix-strip rule as
+   originally specified silently merged distinct declared properties; deleted per the
+   coordinator's audit, spec corrected on the integration branch. See "Round 2" above.
 5. **`ingest-css-ds` writes only `tokens.json`**, not the 3-file bundle `ingest-figma-ds` writes —
    stated in "Scope decisions" above.
 
@@ -303,19 +365,18 @@ per D7 — no detector was built.
 
 - Should `figma-ds-designdoc.ts`'s DESIGN.md prose be parameterized (source-agnostic wording) so
   a future phase can safely reuse `buildDesignDoc` for the code road, or does the code road get
-  its own doc builder? Left open — no DESIGN.md ships from `ingest-css-ds` this phase.
-- dana's ~120-pair D6 collision effectively blocks combining `dana-tokens.css` + `index.css` in
-  one ingest run today. Is the intended remedy purely human (rename one file's convention), or is
-  a later phase expected to add an explicit `--prefer <file>` override? Not decided here per D6's
-  explicit "do not add a suffix rule" instruction — flagging the open question rather than
-  guessing an answer.
+  its own doc builder? Left open per the coordinator — out of Phase 3 scope, touches the Figma
+  road's shipped semantics, needs its own decision. No DESIGN.md ships from `ingest-css-ds` this
+  phase.
 
 **Status:** DONE
 **Summary:** CSS custom properties now compile to a DTCG vocabulary with base+mode tiers via
-`ui ingest-css-ds` + a `ds import` fix, proven end-to-end on 3 real projects (dana-tokens.css
-alone, traicaybentre, hvs); dana's two files combined hit D6's collision guard by design, exactly
-as the phase file predicted, and that is reported as the finding it was meant to surface, not
-routed around. Two real bugs (semicolon-terminated at-rules, duration-string resolution) were
-found and fixed via the hvs live run and are covered by tests. Four gates green.
-**Concerns/Blockers:** None blocking. Two follow-ups worth a human decision are listed under
-"Unresolved questions" above.
+`ui ingest-css-ds` + a `ds import` fix. D6's prefix-strip rule (round 1) was found by the Art V
+audit to silently merge distinct declared properties; deleted (round 2) — leaf names are now the
+source's own name, verbatim. Re-verified on all three real projects post-fix: dana's two files
+combined now succeed end-to-end (414 tokens, `ds status` exits 0 — the run round 1 could not
+complete), traicaybentre and hvs unchanged (they never had the false-collision shape). Two real
+selector/value bugs (semicolon-terminated at-rules, duration-string resolution) were found and
+fixed via the hvs live run and are covered by tests. Four gates green throughout both rounds.
+**Concerns/Blockers:** None. One follow-up worth a human decision (DESIGN.md generation for the
+code road) is recorded above per the coordinator's instruction, not actioned this phase.
