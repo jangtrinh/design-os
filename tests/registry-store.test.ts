@@ -10,6 +10,7 @@ import {
   registerComponent,
   lookupComponent,
   listComponents,
+  statesToVariants,
   RegistryError,
 } from "../src/core/registry-store.js";
 import type { ComponentRecord, Registry } from "../src/core/registry-store.js";
@@ -101,6 +102,19 @@ describe("validateComponentRecord", () => {
     expect(() =>
       validateComponentRecord(validRecord({ states: ["default", "clicked" as never] })),
     ).toThrow(expect.objectContaining({ code: "BAD_STATE" }));
+  });
+
+  // validateComponentRecord is a pure function with no DS access — it can only ever check
+  // --tokens FORMAT (spec 009 P4 real-data finding, reports/p4-real-data-gate.md §3, fixed
+  // by the owner in the same phase: registry.ts now ALSO calls
+  // registry-token-check.ts's assertTokensExist against the loaded DS before saving —
+  // see tests/cmd-registry.test.ts's "sealed DS integration" describe block for that half).
+  // This test pins that this function's job stops at format, by design — it is not the gap.
+  it("accepts a syntactically valid token path regardless of whether it resolves anywhere (format-only, by design — see registry-token-check.ts for the existence half)", () => {
+    const rec = validateComponentRecord(
+      validRecord({ tokensUsed: ["color.this-token-does-not-exist-anywhere"] }),
+    );
+    expect(rec.tokensUsed).toEqual(["color.this-token-does-not-exist-anywhere"]);
   });
 
   it("throws BAD_ARG when name is missing", () => {
@@ -452,6 +466,34 @@ describe("listComponents", () => {
   it("does not mutate the original registry", () => {
     listComponents(reg, "action");
     expect(reg.components).toHaveLength(3);
+  });
+});
+
+// ─── statesToVariants (spec 009 D3) ────────────────────────────────────────────
+
+describe("statesToVariants", () => {
+  it("PascalCases each valid state into a State=X variant entry", () => {
+    expect(statesToVariants(["hover", "focus"])).toEqual(["State=Hover", "State=Focus"]);
+  });
+
+  it("returns an empty array for an empty input", () => {
+    expect(statesToVariants([])).toEqual([]);
+  });
+
+  it("covers the full enum", () => {
+    expect(statesToVariants(["default", "hover", "active", "focus", "disabled"])).toEqual([
+      "State=Default", "State=Hover", "State=Active", "State=Focus", "State=Disabled",
+    ]);
+  });
+
+  it("throws RegistryError('BAD_STATE') on a value outside the enum", () => {
+    expect(() => statesToVariants(["smashed"])).toThrow(RegistryError);
+    try {
+      statesToVariants(["smashed"]);
+    } catch (e) {
+      expect(e).toBeInstanceOf(RegistryError);
+      expect((e as RegistryError).code).toBe("BAD_STATE");
+    }
   });
 });
 

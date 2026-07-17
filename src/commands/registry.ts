@@ -22,9 +22,11 @@ import {
   registerComponent,
   lookupComponent,
   listComponents,
+  statesToVariants,
 } from "../core/registry-store.js";
 import { pathsForDir } from "../core/design-system.js";
 import { reseal, loadDesignSystemForReseal } from "../core/ds-reseal.js";
+import { assertTokensExist } from "../core/registry-token-check.js";
 
 const CMD = "registry";
 const DEFAULT_REGISTRY_PATH = "./design/component-registry.json";
@@ -57,12 +59,14 @@ Token paths:
 
 States enum:
   default, hover, active, focus, disabled
+  (each observed state folds into --variants as "State=<PascalCase>" — e.g.
+  "hover" -> "State=Hover"; the record's own "states" field is never written)
 
 Error codes:
   BAD_ARG            Missing subcommand, positional, or required flag
   BAD_NAME           Name does not match Category/Variant pattern
   BAD_STATE          A --states value not in the enum
-  BAD_TOKEN          A --tokens value fails the token-path pattern
+  BAD_TOKEN          Bad --tokens format, OR (DS present) unresolvable path — distinct msgs
   NAME_EXISTS        register of existing name without --force
   NOT_FOUND          lookup of absent name
   FILE_NOT_FOUND     --markup file does not exist
@@ -92,6 +96,12 @@ function flagString(parsed: ParsedArgs, key: string): string | undefined {
 function splitComma(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+}
+
+/** Convert a caught RegistryError into a CommandResult; rethrow anything else. */
+function asResult(useJson: boolean, sub: string, e: unknown): CommandResult {
+  if (e instanceof RegistryError) return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
+  throw e;
 }
 
 // ─── Subcommand: register ─────────────────────────────────────────────────────
@@ -128,10 +138,17 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   try {
     markup = readMarkup(markupArg);
   } catch (e) {
-    if (e instanceof RegistryError) {
-      return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
-    }
-    throw e;
+    return asResult(useJson, sub, e);
+  }
+
+  // --variants + --states merge (spec 009 D3): a `State=X` entry per observed state folds
+  // into `variants`; the record's `states` field is never populated (statesToVariants
+  // throws BAD_STATE on an enum miss, same contract --states always had).
+  let variants: string[];
+  try {
+    variants = [...splitComma(flagString(parsed, "variants")), ...statesToVariants(splitComma(flagString(parsed, "states")))];
+  } catch (e) {
+    return asResult(useJson, sub, e);
   }
 
   // Build + validate record
@@ -140,12 +157,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
     category,
     markup,
     tokensUsed: splitComma(flagString(parsed, "tokens")),
-    ...(flagString(parsed, "variants") !== undefined && {
-      variants: splitComma(flagString(parsed, "variants")),
-    }),
-    ...(flagString(parsed, "states") !== undefined && {
-      states: splitComma(flagString(parsed, "states")),
-    }),
+    ...(variants.length > 0 && { variants }),
     ...(flagString(parsed, "description") !== undefined && {
       description: flagString(parsed, "description"),
     }),
@@ -155,10 +167,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   try {
     record = validateComponentRecord(rawRecord);
   } catch (e) {
-    if (e instanceof RegistryError) {
-      return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
-    }
-    throw e;
+    return asResult(useJson, sub, e);
   }
 
   // Load or create registry
@@ -168,10 +177,8 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   } catch (e) {
     if (e instanceof RegistryError && e.code === "REGISTRY_NOT_FOUND") {
       reg = createEmptyRegistry();
-    } else if (e instanceof RegistryError) {
-      return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
     } else {
-      throw e;
+      return asResult(useJson, sub, e);
     }
   }
 
@@ -180,16 +187,16 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   try {
     result = registerComponent(reg, record, force);
   } catch (e) {
-    if (e instanceof RegistryError) {
-      return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
-    }
-    throw e;
+    return asResult(useJson, sub, e);
   }
 
-  // Save — reseal on a sealed DS, else the plain unsealed write (spec 009 P1).
+  // Save — reseal on a sealed DS, else the plain unsealed write (spec 009 P1). DS present ->
+  // tokensUsed must also resolve in its compiled tree, not just match the format regex
+  // (spec 009 P4 owner-correction — BAD_TOKEN was format-only; see registry-token-check.ts).
   const dsPaths = pathsForDir(dirname(registryPath));
   try {
     const ds = loadDesignSystemForReseal(dsPaths);
+    assertTokensExist(record.tokensUsed, ds?.tokens);
     if (ds !== undefined) {
       reseal({
         ds, paths: dsPaths, registry: result.registry, nowIso: new Date().toISOString(),
@@ -237,10 +244,7 @@ function runLookup(parsed: ParsedArgs): CommandResult {
   try {
     reg = loadRegistry(registryPath);
   } catch (e) {
-    if (e instanceof RegistryError) {
-      return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
-    }
-    throw e;
+    return asResult(useJson, sub, e);
   }
 
   const component = lookupComponent(reg, name);
@@ -272,10 +276,7 @@ function runList(parsed: ParsedArgs): CommandResult {
   try {
     reg = loadRegistry(registryPath);
   } catch (e) {
-    if (e instanceof RegistryError) {
-      return useJson ? errJson(sub, e.code, e.message) : errText(`ui: ${e.message}\n`);
-    }
-    throw e;
+    return asResult(useJson, sub, e);
   }
 
   const components = listComponents(reg, categoryFilter);

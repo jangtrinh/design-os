@@ -153,16 +153,36 @@ Per project, in `reports/p4-real-data-gate.md`:
 
 | | dana-desktop | traicaybentre | hvs |
 |---|---|---|---|
-| `ui scan` → UI found? truncated? | | | |
-| tokens compiled (primitive / semantic / modes) | | | |
-| components registered | | | |
-| `ds status` exit | | | |
-| `ds context --strict --with-theme` exit | | | |
-| **what the road got wrong** | | | |
+| `ui scan` → UI found? truncated? | `src/desktop-ui/components` found (157 files); `truncated:true`, `visited:4000/4000` | `src/components` found (27 files); `truncated:true`, `visited:2967` | `components/ui` (3 files) + `docs/product/hvs-design-system/components` (23 files) found; `truncated:false`, `visited:464` |
+| tokens compiled (primitive / semantic / modes) | 186 / 228 / 3 (dark, classic, light) — 15 unverified (fonts/shadows/transitions, composite) | 17 / 0 / 0 — 2 unverified | 13 / 7 / 0 — 7 unverified (fonts/easing/shadows, composite) |
+| components registered | 1 (`Control/Button`) | 1 (`Social/ShareButtons`) | 1 (`Control/LocationSelector`) |
+| `ds status` exit | 0 (generation 1→2) | 0 (generation 1→2) | 0 (generation 1→2) |
+| `ds context --strict --with-theme` exit | 0 | 0 | 0 |
+| **what the road got wrong** | see below — the `BAD_TOKEN` finding, **since fixed** (applies to all three) | most components are one-off marketing sections, not variant-prop primitives — D1/D2 only had one real candidate (`ShareButtons`'s `placement` prop) in 27 files | `docs/product/hvs-design-system/` is a stale demo/preview tree with its own `ButtonPrimary.css` etc. — flagged as a P2 `project-scan.ts` follow-up, not fixed here |
+
+**The one thing the road got wrong (all three projects, same root cause) — FIXED in this phase:**
+`ui registry register`'s `BAD_TOKEN` (`registry-store.ts`, `TOKEN_PATTERN`) validated only that a
+`--tokens` value matched `^[a-z][a-z0-9.-]*$` — it did **not** check the value against the
+project's compiled token set. `color.this-token-does-not-exist-anywhere` registered successfully
+(verified live, isolated from all three project runs). The original phase briefing's Key Insight
+6 and hard constraints described `BAD_TOKEN` as refusing "any invented token" — that was a
+misread of the code (owner-confirmed), not what the code did. **Owner decision: fix it, reusing
+P1's `loadDesignSystemForReseal` (Art IV)** — new small module `src/core/registry-token-check.ts`
+(`assertTokensExist`) called once from `registry.ts`'s existing Save step: DS present → every
+`tokensUsed` path must resolve in the compiled tree (two-level `category.name`, base-mode
+resolution only — modes are `$extensions` on a token, not separate tokens); no DS (standalone
+`--file` registry) → format-only, unchanged. `registry.ts` stays at 330/330. Re-ran the
+three-project gate after the fix — **all three real components still pass**; the stricter check
+changed nothing about them because every `tokensUsed` entry was genuinely traced, not invented.
+See `reports/p4-real-data-gate.md` §3 addendum for the full reproduction, fix, and re-verification.
 
 Plus, verbatim: **one component record the road produced**, and **one thing it got wrong** —
 or "none", but look. Also run **EaseUI** (no root `package.json`, 2 UI roots, 4220 entries vs a
-4000 cap) and report; not a gate condition.
+4000 cap) and report; not a gate condition. **Result**: `framework: null` (no root
+`package.json` to detect one — confirmed), `truncated:true` at exactly `visited:4000`
+(the cap), `componentDirs` surfaced `app/src/components/ui` (12 files) but not a second
+root under `frontpage/` (that tree's `components/` dir has no `ui`/`widgets`/`components`-named
+subfolder within the walk budget) — full detail in `reports/p4-real-data-gate.md`.
 
 ## Success Criteria
 
