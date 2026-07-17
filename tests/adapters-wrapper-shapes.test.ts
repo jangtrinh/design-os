@@ -21,7 +21,14 @@ const FAKE_SKILL_TPL = `${FAKE_TEMPLATES}/skills/pick-persona.md`;
 // NOTE: `audit` is intentionally NOT here — `/ui:audit` is a shipped product
 // verb that legitimately appears in generated wrappers. This pattern guards
 // against internal PLAN/PHASE/FINDING references leaking in, not product verbs.
-const PLAN_REF_PATTERN = /phase[-_ ]\d|finding|F\d+|OD-\d/i;
+// Word-boundaried on purpose: the wrapper embeds an ABSOLUTE knowledge-root path
+// (buildKnowledgeAnchor), so an unanchored /F\d+/i matches any hex-ish path segment —
+// a git worktree at `.claude/worktrees/agent-a4cf826d…` made these four tests fail on
+// `f826` alone, while the same code passed from a checkout whose path had no such run.
+// A test that asserts a property of its own filesystem path is asserting nothing.
+// The boundaries keep every real catch (`F1`, `phase-1`, `finding`, `OD-3` as tokens)
+// and drop only matches buried inside another word.
+const PLAN_REF_PATTERN = /\bphase[-_ ]\d|\bfinding\b|\bF\d+\b|\bOD-\d/i;
 
 function assertNoPlanRefs(output: string, label: string): void {
   expect(
