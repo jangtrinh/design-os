@@ -36,8 +36,11 @@ export interface MainComponentRef { key?: string; id?: string; name?: string }
  * `documentAccess: "dynamic-page"` manifest the sync `mainComponent` getter THROWS
  * ("Use node.getMainComponentAsync instead"), `safe()` swallows that into null, and
  * every component ref silently vanished — the same deprecated-sync-API class as
- * getNodeById→getNodeByIdAsync. The sync read stays as a fallback for callers that
- * pass no map (and for a non-dynamic-page manifest, where it still answers).
+ * getNodeById→getNodeByIdAsync. The sync read stays ONLY for callers that pass no
+ * map (a non-dynamic-page manifest, where it still answers). When a `mainComps` map
+ * IS passed we are on the dynamic-page path: the sync getter can only THROW there,
+ * and Figma surfaces that throw to the panel ("in get_mainComponent…") even though
+ * `safe()` swallows it — so a node the map missed gets no ref, never a sync fallback.
  */
 export function readInstance(
   n: Record<string, unknown>,
@@ -47,8 +50,10 @@ export function readInstance(
   mainComps?: ReadonlyMap<string, MainComponentRef>,
   keyedVars?: ReadonlyMap<string, FigmaKeyedBinding>,
 ): void {
+  // Sync fallback ONLY when no async map was supplied (non-dynamic-page caller);
+  // under dynamic-page the map is authoritative and the sync getter only surfaces errors.
   const main = mainRef
-    ?? safe(() => n.mainComponent as { id?: string; key?: string; name?: string } | null);
+    ?? (mainComps ? undefined : safe(() => n.mainComponent as { id?: string; key?: string; name?: string } | null));
   if (main) {
     if (typeof main.key === 'string' && main.key) out.componentKey = main.key;
     if (typeof main.id === 'string' && main.id) out.componentId = main.id;
