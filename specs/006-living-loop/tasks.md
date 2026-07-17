@@ -4,16 +4,16 @@
 > Parallel executors MUST use isolation: worktree. P5 is owner-in-the-loop (real projects).
 > Kernel pieces (P1-P3) deterministic; harvest (P4) is the only model-driven piece, host-layer.
 
-- [ ] P1 — **Auto-record core.** `src/core/memory-autorecord.ts` `recordOutcome(kind,data,dir)`
+- [x] P1 — **Auto-record core.** `src/core/memory-autorecord.ts` `recordOutcome(kind,data,dir)`
       via the existing `memory-events`/`memory-store` API (no new write path, no model). New
       `EventType`s (lint_run · audit_run · autofix_run · token_changed · reconcile_applied).
       Wire the 9 outcome-bearing commands (a11y/content/taste-lint · validate-layout · audit ·
       autofix · taste-record · ds-change-token · figma-reconcile-run). One helper, all sites
       (Art IV). Tests: payload byte-stable given the same result; each command appends on run.
-- [ ] P2 — **Enforce (emitter+linter).** A single registry of outcome-bearing commands; a
+- [x] P2 — **Enforce (emitter+linter).** A single registry of outcome-bearing commands; a
       check (`ui lint autorecord` or fold into `ui knowledge check`) that FAILS if any listed
       command doesn't call `recordOutcome`. Art II — convention ships with its check.
-- [ ] P3 — **Recurrence + retrieval-decay.** `memory-graph.ts` insights gain
+- [x] P3 — **Recurrence + retrieval-decay.** `memory-graph.ts` insights gain
       seen/upvotes/downvotes/lastSeenAt (ExpeL recurrence). `recall/rank.ts` decay switches to
       time-since-last-retrieval (Oblivion) — verify/add a retrieval timestamp first. Tests:
       recurrence strengthens; never-retrieved fades; DS/recall suites unregressed.
