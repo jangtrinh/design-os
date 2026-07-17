@@ -1,11 +1,9 @@
-"""Task runners + lock helpers for ``design-os heartbeat`` (split out of
-commands/heartbeat.py per the <200-line rule; heartbeat_render.py keeps the rendering).
-
-Each runner takes ``(project_dir, params)`` and returns ``{"status": "ok"|"error"|
-"skipped", "summary": {…numeric…}, "detail": str, "skipReason"?}`` — summaries are
-numeric-only so heartbeat_core.compare_summary stays generic (phase-02 §Bước 3). Every
-subprocess catch includes ``OSError``: a dead/non-executable resolved bin path becomes a
-task "error" naming the bin, never a traceback (Opus P2 finding #4).
+"""Task runners + lock helpers for ``design-os heartbeat`` (<200-line rule: rendering lives
+in heartbeat_render.py, the harvest/reflect runners in heartbeat_runners_learning.py —
+phase-05 Decision 1). Each runner takes ``(project_dir, params)`` and returns
+``{"status": "ok"|"error"|"skipped", "summary": {…numeric…}, "detail": str, "skipReason"?}``
+— numeric-only summaries keep heartbeat_core.compare_summary generic. Every subprocess catch
+includes ``OSError`` (dead bin → task "error", never a traceback).
 """
 
 from __future__ import annotations
@@ -20,14 +18,14 @@ from pathlib import Path
 from typing import Any
 
 from design_os.commands.audit import build_audit
+from design_os.commands.heartbeat_runners_learning import _run_harvest, _run_reflect
 from design_os.kernel import KernelNotFound
 
 _SUBPROCESS_TIMEOUT = 120.0
 _FIGMA_PROBE_TIMEOUT = 10.0
 _FIGMA_AUDIT_TIMEOUT = 300.0
 _FIGMA_RETRY_BACKOFFS = (1.0, 2.0)  # phase-02 §Bước 3: figma-audit ONLY, max 2 retries
-# Deliberately excludes `unused`/`misfiled` (day-to-day noise per phase-02 §Bước 3) and
-# `total`/`deadVariants`/`redundantFamilies` (not in the spec's tracked-metric list).
+# Excludes `unused`/`misfiled` (day-to-day noise) and `total`/`deadVariants`/`redundantFamilies`.
 _FIGMA_SUMMARY_KEYS = ("junk", "deprecated", "duplicateName", "duplicateStructure", "emptySets", "tokenViolations")
 
 
@@ -39,10 +37,9 @@ def _parse_one_json(stdout: str) -> Any:
 
 
 def _resolve_bin(name: str, env_var: str) -> str | None:
-    """Resolve a hand binary THROUGH the command module's namespace: tests monkeypatch
-    ``commands.heartbeat.resolve_bin`` (the documented seam) to simulate a missing hand, so
-    runners read it late via that module instead of capturing ``kernel.resolve_bin`` at
-    import time. The deferred import cannot cycle (heartbeat imports this module at load)."""
+    """Resolve a hand binary THROUGH the command module's namespace (tests monkeypatch
+    ``commands.heartbeat.resolve_bin`` to simulate a missing hand); deferred import avoids
+    a cycle (heartbeat imports this module at load)."""
     from design_os.commands import heartbeat as heartbeat_cmd
     return heartbeat_cmd.resolve_bin(name, env_var)
 
@@ -50,15 +47,16 @@ def _resolve_bin(name: str, env_var: str) -> str | None:
 # ─── task runners ──────────────────────────────────────────────────────────────
 
 
-def _run_ui_json(argv_tail: list[str], label: str, data_key: str, summary_key: str) -> dict[str, Any]:
-    """Shared `ui … --json` runner for the two kernel-backed task types: resolve the bin,
-    run one subprocess, parse ONE envelope, count ``data[data_key]`` into ``{summary_key: n}``."""
+def _run_ui_json(argv_tail: list[str], label: str, data_key: str, summary_key: str, *, cwd: str) -> dict[str, Any]:
+    """Shared `ui … --json` runner: resolve the bin, run one subprocess in `cwd` (the
+    project dir, never this process's own — Key Insight 5), count `data[data_key]`
+    into `{summary_key: n}`."""
     ui_bin = _resolve_bin("ui", "DESIGN_OS_UI_BIN")
     if ui_bin is None:
         return {"status": "error", "summary": {}, "detail": "the `ui` kernel binary was not found"}
     try:
         proc = subprocess.run(  # noqa: S603
-            [ui_bin, *argv_tail], capture_output=True, text=True, timeout=_SUBPROCESS_TIMEOUT
+            [ui_bin, *argv_tail], capture_output=True, text=True, timeout=_SUBPROCESS_TIMEOUT, cwd=cwd
         )
     except subprocess.TimeoutExpired:
         return {"status": "error", "summary": {}, "detail": f"`{label}` exceeded {_SUBPROCESS_TIMEOUT:.0f}s"}
@@ -72,21 +70,22 @@ def _run_ui_json(argv_tail: list[str], label: str, data_key: str, summary_key: s
 
 
 def _run_ds_a11y(project_dir: Path, params: dict[str, Any]) -> dict[str, Any]:
-    return _run_ui_json(["ds", "a11y", "--dir", str(project_dir), "--json"], "ui ds a11y", "failures", "failures")
-
+    return _run_ui_json(["ds", "a11y", "--dir", str(project_dir), "--json"], "ui ds a11y", "failures", "failures", cwd=str(project_dir))
 
 def _run_specimen(project_dir: Path, params: dict[str, Any]) -> dict[str, Any]:
-    return _run_ui_json(["ds", "specimen", "--dir", str(project_dir), "--strict", "--json"], "ui ds specimen", "findings", "gaps")
+    return _run_ui_json(["ds", "specimen", "--dir", str(project_dir), "--strict", "--json"], "ui ds specimen", "findings", "gaps", cwd=str(project_dir))
 
 
 def _run_audit_pages(project_dir: Path, params: dict[str, Any]) -> dict[str, Any]:
-    """Static page audit via a direct :func:`build_audit` import (no subprocess).
+    """Static page audit via a direct :func:`build_audit` import (no subprocess). Point
+    ``params.dir`` at a page dir (e.g. ``design/preview``), not project root (double-count
+    with ds-a11y/specimen, Opus P2 #2); missing dir → skip ``pages-dir-missing`` (no-silent-
+    caps, Opus P2 #3).
 
-    Point ``params.dir`` at a page directory (e.g. ``design/preview``), not the project
-    root — a project-root target re-runs the DS/flow sections the separate ds-a11y/specimen
-    tasks already cover (double-count; hardening deferred to P3, Opus P2 finding #2).
-    A missing dir skips with reason ``pages-dir-missing`` instead of reporting a
-    silently-green empty audit (no-silent-caps, Opus P2 finding #3).
+    `build_audit`'s inner `run_ui` calls have no `cwd` param and inherit THIS process's cwd;
+    its linters resolve `lint_run`'s project from a (possibly relative) file path, so the
+    wrong cwd would record into design-os's own cwd (Key Insight 5) — chdir into
+    `project_dir` for the call, restore in `finally`.
     """
     raw_dir = params.get("dir") if isinstance(params, dict) else None
     target = Path(raw_dir) if raw_dir else project_dir
@@ -94,18 +93,21 @@ def _run_audit_pages(project_dir: Path, params: dict[str, Any]) -> dict[str, Any
         target = project_dir / target
     if not target.exists():
         return {"status": "skipped", "summary": {}, "detail": "", "skipReason": "pages-dir-missing"}
+    prev_cwd = os.getcwd()
     try:
+        os.chdir(project_dir)
         _sections, summary, _exit_code, _n_files = build_audit(target, None)
     except KernelNotFound as e:
         return {"status": "error", "summary": {}, "detail": f"`audit {target}`: {e}"}
+    except OSError as e:
+        return {"status": "error", "summary": {}, "detail": f"could not chdir into '{project_dir}': {e}"}
+    finally:
+        os.chdir(prev_cwd)
     return {"status": "ok", "summary": {"errors": summary["errors"], "warnings": summary["warnings"]}, "detail": ""}
 
 
 def _run_figma_audit(
-    project_dir: Path,
-    params: dict[str, Any],
-    *,
-    sleep: Callable[[float], None] = time.sleep,
+    project_dir: Path, params: dict[str, Any], *, sleep: Callable[[float], None] = time.sleep
 ) -> dict[str, Any]:
     bin_ = _resolve_bin("figma-agent", "DESIGN_OS_FIGMA_AGENT_BIN")
     if bin_ is None:
@@ -116,7 +118,7 @@ def _run_figma_audit(
         env["FIGMA_AGENT_FILE"] = str(file_param)
     try:
         probe = subprocess.run(  # noqa: S603
-            [bin_, "status"], capture_output=True, text=True, timeout=_FIGMA_PROBE_TIMEOUT, env=env
+            [bin_, "status"], capture_output=True, text=True, timeout=_FIGMA_PROBE_TIMEOUT, env=env, cwd=str(project_dir)
         )
     except subprocess.TimeoutExpired:
         return {"status": "error", "summary": {}, "detail": "`figma-agent status` exceeded 10s"}
@@ -132,7 +134,7 @@ def _run_figma_audit(
             sleep(backoff)
         try:
             proc = subprocess.run(  # noqa: S603
-                [bin_, "audit-ds"], capture_output=True, text=True, timeout=_FIGMA_AUDIT_TIMEOUT, env=env
+                [bin_, "audit-ds"], capture_output=True, text=True, timeout=_FIGMA_AUDIT_TIMEOUT, env=env, cwd=str(project_dir)
             )
         except subprocess.TimeoutExpired:
             detail = "`figma-agent audit-ds` exceeded 300s"
@@ -162,20 +164,18 @@ TaskRunner = Callable[[Path, dict[str, Any]], dict[str, Any]]
 # Dispatch table — tests monkeypatch entries via `monkeypatch.setitem(TASK_RUNNERS, "id", stub)`;
 # commands/heartbeat.py re-imports THIS dict object, so `heartbeat_cmd.TASK_RUNNERS` patches land.
 TASK_RUNNERS: dict[str, TaskRunner] = {
-    "ds-a11y": _run_ds_a11y,
-    "specimen": _run_specimen,
-    "audit-pages": _run_audit_pages,
-    "figma-audit": _run_figma_audit,
+    "ds-a11y": _run_ds_a11y, "specimen": _run_specimen,
+    "audit-pages": _run_audit_pages, "figma-audit": _run_figma_audit,
+    "harvest": _run_harvest, "reflect": _run_reflect,
 }
 
 # ─── lock ──────────────────────────────────────────────────────────────────────
-
 _LOCK_STALE_SECONDS = 600  # 10 minutes
 
 
 def acquire_lock(lock_path: Path, now: datetime) -> bool:
-    """True → lock acquired (absent, or stale >10min and overwritten) — caller MUST release
-    it in a `finally`. False → held by a live run; caller must skip everything, exit 0."""
+    """True → lock acquired (absent, or stale >10min, overwritten) — caller MUST release it
+    in a `finally`. False → held by a live run; caller skips everything, exit 0."""
     if lock_path.exists():
         stale = True
         try:
