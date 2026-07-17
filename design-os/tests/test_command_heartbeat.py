@@ -287,3 +287,57 @@ def test_runner_raising_file_not_found_becomes_task_error(
     assert entry["status"] == "error"
     assert "ui binary vanished" in entry["detail"]
     assert not (tmp_path / "design" / ".heartbeat.lock").exists()  # released in finally
+
+
+# ── Case 11: `harvest`/`reflect` are known task types (spec 006 P5 Decision 1) — a config
+# naming them validates, while an unrelated made-up "learning-ish" type still fails. ──
+def test_harvest_is_a_known_task_type(runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _write_config(tmp_path, [{"id": "h", "type": "harvest", "interval": "12h"}])
+    monkeypatch.setitem(heartbeat_cmd.TASK_RUNNERS, "harvest", _stub_from({"failures": 0}))
+    _freeze(monkeypatch)
+
+    res = runner.invoke(app, ["heartbeat", "--dir", str(tmp_path), "--json"])
+
+    assert res.exit_code == 0
+    assert json.loads(res.stdout)["ok"] is True
+
+
+def test_reflect_is_a_known_task_type(runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _write_config(tmp_path, [{"id": "r", "type": "reflect", "interval": "24h"}])
+    monkeypatch.setitem(heartbeat_cmd.TASK_RUNNERS, "reflect", _stub_from({"failures": 0}))
+    _freeze(monkeypatch)
+
+    res = runner.invoke(app, ["heartbeat", "--dir", str(tmp_path), "--json"])
+
+    assert res.exit_code == 0
+    assert json.loads(res.stdout)["ok"] is True
+
+
+def test_an_unknown_learning_type_still_fails_bad_config(runner: CliRunner, tmp_path: Path) -> None:
+    _write_config(tmp_path, [{"id": "x", "type": "distill", "interval": "1d"}])
+
+    res = runner.invoke(app, ["heartbeat", "--dir", str(tmp_path), "--json"])
+
+    assert res.exit_code == 2
+    env = json.loads(res.stdout)
+    assert env["ok"] is False
+    assert env["error"]["code"] == "BAD_CONFIG"
+
+
+# ── Case 12: spec AC5 in one assertion — `harvest` fires on the heartbeat with NO human
+# trigger (no `--force`, no `--task`, just a fresh due task), and its run is recorded. ──
+def test_harvest_task_runs_on_the_heartbeat_with_no_human_trigger(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_config(tmp_path, [{"id": "h", "type": "harvest", "interval": "12h"}])
+    monkeypatch.setitem(heartbeat_cmd.TASK_RUNNERS, "harvest", _stub_from({"failures": 0}))
+    _freeze(monkeypatch)
+
+    res = runner.invoke(app, ["heartbeat", "--dir", str(tmp_path), "--json"])
+
+    assert res.exit_code == 0
+    data = json.loads(res.stdout)["data"]
+    assert data["checked"] == 1
+    assert data["tasks"][0]["status"] == "baseline"
+    state = json.loads((tmp_path / "design" / "heartbeat-state.json").read_text())
+    assert state["tasks"]["h"]["nextRunAt"]

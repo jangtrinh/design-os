@@ -38,7 +38,7 @@ _CONFIG_REL = Path("design") / "heartbeat.json"
 _STATE_REL = Path("design") / "heartbeat-state.json"
 _LOCK_REL = Path("design") / ".heartbeat.lock"
 
-_KNOWN_TYPES = {"ds-a11y", "specimen", "audit-pages", "figma-audit"}
+_KNOWN_TYPES = {"ds-a11y", "specimen", "audit-pages", "figma-audit", "harvest", "reflect"}
 
 
 class _BadConfig(Exception):
