@@ -14,11 +14,11 @@
 
 ## The recognition contract (measured, §8 of brainstorm)
 
-For each token in a DS:
-1. **Primitive** (literal `$value`) → **no role.** Skip.
-2. **`{knownHue}-{number}`** (e.g. `color-blue-100`, a Tailwind palette re-export) → **no role.**
-   A recognizable primitive-re-export pattern, not a UI role.
-3. **Semantic** (alias `$value`) → extract from the counted dictionary:
+For each token in a DS (**recognition keys off the NAME, not the value form** — corrected
+2026-07-18; a role token may be literal-valued, e.g. dana's `surface-content: '#FFFFFF'`):
+1. **`{knownHue}-{number}`** (e.g. `blue-100`, `color-blue-100` — a palette scale / Tailwind
+   re-export, literal OR alias) → **no role.** The only skip. Not a UI role.
+2. **Every other token** → recognize the role by NAME from the counted dictionary:
    - **family role**: background · foreground · card · popover · primary · secondary · muted ·
      accent · border · input · ring · destructive · success · warning · info · neutral
    - **surface position**: `bg` vs `fg`/`text` (the paired axis F11 already handles)
@@ -48,8 +48,8 @@ One seam: **`recognizeRoles(tokenTree) → annotatedTree + gapReport`** (pure), 
   - Replace the guessed `ROLE_KEYWORDS` with the counted dictionary from
     `role-synonym-dictionary.md` (hard-code the synonym table as data, cite the report in a
     comment — it is the counted source, not a guess).
-  - Primitive skip: `!isAlias($value)` → no role.
-  - Hue-re-export skip: leaf matches `^(color-)?(red|orange|amber|yellow|lime|green|emerald|teal|
+  - **No isAlias skip** (corrected): recognize by name regardless of literal-vs-alias value.
+  - Hue-scale skip (the ONLY skip): leaf matches `^(color-)?(red|orange|amber|yellow|lime|green|emerald|teal|
     cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|gray|grey|zinc|slate|stone|neutral)-\d+$`
     → no role. (This is itself a list — **count it**: it is the standard Tailwind + common hue set;
     note in the report which hues appeared in the corpus vs which are speculative.)
