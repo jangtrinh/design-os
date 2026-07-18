@@ -1,108 +1,111 @@
 # Report — Spec 011 Phase 1: the role-recognition core
 
 **Date**: 2026-07-18 · **Branch**: `feat/role-recognition` · **Files**: `src/core/role-recognition.ts`
-(198 lines), `tests/role-recognition.test.ts` (19 tests, incl. 2 LIVE-on-dana)
+(199 lines), `tests/role-recognition.test.ts` (24 tests, incl. 2 LIVE-on-dana)
 
-This report supersedes the first pass. The coordinator sent two corrections after reading the
-first pass's flagged findings; both are landed and re-verified below.
+This is the third pass. The coordinator sent three rounds of correction after reading each pass's
+real-data findings; all are landed and re-verified below. **This should be the last correction —
+the numbers below are the honest, final Phase 1 numbers.**
 
-## Four gates (after both corrections)
+## Four gates (final)
 
 `typecheck` / `lint` / `build` / `test` — all green. `ui knowledge check` — 0 findings. Full suite:
-139 files, 2117 tests passed, 4 skipped (unrelated).
+139 files, 2122 tests passed, 4 skipped (unrelated).
 
-## What changed from the first pass
+## The three rounds, in order
 
-**Fix 1 — deleted the `isAlias` primitive-skip.** A token's role is about its NAME/intent, not
-whether `$value` is a literal or an alias. dana defines many semantic tokens as literals
-(`surface-content: '#FFFFFF'`); the old primitive-skip dropped 126 of dana's role-named tokens,
-including its own flagship background token. The only skip left is the hue-scale name pattern
-(`HUE_RE`) — a real primitive palette re-export, never a UI role. Confirmed on sodeal/spaflow/
-traicaybentre too: all three are 100%-or-near-100%-literal projects whose primitives are still
-named `accent`, `bg-base`, `border`, `color-brand-500`, `color-danger`, `color-primary-600` —
-genuinely role-shaped names sitting on literal hex values. The old skip was silently blind to all
-of them.
+**Pass 1 (original design)**: primitive (`!isAlias`) → no role; alias → classify by name.
+Result: dana 154 recognized, `surface-content`/`surface-chrome` flagged as unresolved.
 
-**Fix 2 — leading-prefix priority + a new `ambiguous` bucket.** A leading `surface-`/`bg-`
-morpheme is `background` regardless of what follows (`surface-chrome`, `surface-content`); a
-leading `text-`/`fg-`/`on-` morpheme is `foreground` (mirrors Material's `on-surface`, shadcn's
-own `-foreground`). This is checked before the specific-family table and wins outright — grounded
-across the dictionary, not tuned to one project. When the specific-family table still ties (two+
-roles at equal weight, e.g. `border-success`: `border` self-name vs `success` self-name, both
-weight 2) the token is now added to a new `ambiguous: string[]` field — never guessed, never
-silently tie-broken. `RecognitionResult` is now `{ annotated, recognized, gaps, unrecognized,
-ambiguous }`.
+**Pass 2 fixes** (fix 1 + fix 2): deleted the `isAlias` skip (role is about NAME/intent, not
+value shape — dana's `surface-content: '#FFFFFF'` is a literal but still the background role);
+added leading-prefix priority (`surface-`/`bg-` → background, `text-`/`fg-`/`on-` → foreground,
+decisive, grounded in Material's `on-surface` + shadcn's `-foreground`) and a new `ambiguous`
+bucket for genuine weight-ties. Result: dana jumped to 232 recognized — but this exposed a NEW
+over-recognition, described next.
 
-The SCRIM TRAP negative rule (`overlay`/`scrim` never auto-maps) is checked before the leading-
-prefix rule, so it still catches `surface-overlay` even though it has a leading `surface-` — this
-wasn't asked for explicitly but wasn't asked to be removed either; flagging it here for visibility
-since "Keep everything else" is how I read it.
+**Pass 3 fixes** (fix 3 + fix 3b, this pass): the isAlias fix meant every primitive is now
+classified by name too — including numbered SCALE STEPS whose word happens to match a role
+synonym (`color-brand-500`, `brand-25`…`-950`, `accent-300`…`-600`). Measured **174 such tokens
+across 4 projects** getting wrongly tagged. Fix 3 adds a scale-step skip: `{word}-{N}` is a
+palette step, not a role, when N is a lightness value (`{25,50,75,100,150,200,300,400,500,600,
+700,800,900,950}`) — disjoint from Carbon/Primer's 2-digit tiers (`layer-01`) and Radix's 1-12
+scale (`accent-9`), which still recognize (pinned by tests: `layer-01`→card, `field-01`→input,
+`accent-9`→accent). Fix 3b scopes recognition to `$type: "color"` tokens only — dimension/font/
+number tokens are now completely out of scope (not even counted in `unrecognized`), cleaning the
+noise flagged in pass 1. Fix 3c: left the SCRIM TRAP ordering unchanged (`surface-overlay` stays
+`unrecognized`, not `background`) — a deliberate, conservative choice, not a gap.
 
-## LIVE numbers (Art III, re-run after both fixes)
+## LIVE numbers (Art III, final re-run, color tokens only)
 
-| Project | Total tokens | Recognized | Ambiguous | Unrecognized (hue / genuine) | Gaps (of 16) |
+| Project | Color tokens | Recognized | Ambiguous | Unrecognized | Gaps (of 16) |
 |---|---|---|---|---|---|
-| **dana-desktop** | 414 | **232** | **10** | 172 (120 hue / 52 genuine) | 2: `popover`, `input` |
-| **traicaybentre** | 35 | **22** | 0 | 13 (0 hue / 13 genuine) | 9: card, popover, input, ring, destructive, success, warning, info, neutral |
-| **sodeal** | 47 | **40** | 0 | 7 (0 hue / 7 genuine) | 10: popover, secondary, muted, input, ring, destructive, success, warning, info, neutral |
-| **spaflow** | 33 | **18** | 0 | 15 (0 hue / 15 genuine) | 10: background, foreground, card, popover, secondary, muted, border, input, ring, neutral |
+| **dana-desktop** | 362 | **100** | **10** | 252 | 2: `popover`, `input` |
+| **traicaybentre** | 32 | **22** | 0 | 10 | 9: card, popover, input, ring, destructive, success, warning, info, neutral |
+| **sodeal** | 26 | **13** | 0 | 13 | 11: popover, **primary**, secondary, muted, input, ring, destructive, success, warning, info, neutral |
+| **spaflow** | 28 | **4** | 0 | 24 | 12: background, foreground, card, popover, primary, secondary, muted, accent, border, input, ring, neutral |
 
-**Not predicting or tuning to a number, per the brief — this is what it actually is.**
+Sum check on every project: recognized + ambiguous + unrecognized = total color tokens (no token
+lost or double-counted). **Not predicting or tuning to a number — this is what it actually is.**
 
-### The headline change: recognition on 100%-primitive projects is no longer zero
+### dana: 100, not the coordinator's estimated ~112, not pass 2's 232
 
-Before fix 1, sodeal/spaflow recognized **0** tokens (every token was literal, so the primitive
-skip ate all of them). After fix 1, sodeal recognizes **40/47** and spaflow **18/33** — because
-their primitives are genuinely named `accent`, `bg-base`, `border`, `color-brand-500`,
-`color-danger`, `color-primary-*`: real role-shaped names on literal hex values, exactly the case
-fix 1 was written for. traicaybentre went from 0 to **22/35** the same way. This confirms the
-coordinator's diagnosis was the real bug, not a marginal one — it was the dominant source of missed
-recognition on every primitive-styled project in the fixture set, not just dana.
+232 (pass 2) → **100** (pass 3). The 132-token drop is exactly the scale-step + non-color
+cleanup: dana's `brand-25`…`-950` (12), `color-brand-*` (12), `color-blue-*`/`color-cyan-*`/
+`color-error-*`/`color-gray-*`/`color-info-*`/`color-pink-*`/`color-purple-*`/`color-success-*`/
+`color-warning-*` (12 each, several of which pass 2 wrongly tagged via the `error`/`success`/
+`warning`/`info`/`brand` synonym matching the numbered scale) are now correctly unrecognized as
+scale steps, not roles. Gaps stayed at 2 (`popover`, `input`) — unaffected, because dana's
+un-numbered `color-primary`, `color-accent`, etc. still carry the real role signal independent of
+the scale.
 
-Dana's own recognized count moved from 154 (first pass, alias-only) → **232** (all tokens by name).
-The 126-token gap the coordinator measured lines up: `badge-danger-text` (`#FFFFFF`),
-`text-primary`/`text-secondary`/`text-heading`, `border-default`/`border-strong`/`border-subtle`,
-and dozens more of dana's literal-valued semantics are now recognized that were invisible before.
+### sodeal: primary is now a real, honest GAP
 
-### `surface-content` / `surface-chrome` — now resolved, not flagged
+Before fix 3, sodeal's `color-brand-100`…`-950` scale supplied `primary` (via the `brand` synonym)
+— 40 recognized, 0 gaps beyond a few structural ones. After fix 3, the whole `color-brand-*` scale
+is correctly skipped as steps, and sodeal has **no un-numbered `brand`/`primary` token at all** —
+so `primary` is now a genuine gap. This is exactly the coordinator's predicted, correct outcome:
+sodeal's primary IS a scale step with no named role token — the usage-inference case (deferred to
+a later spec), surfaced honestly instead of masked by a false per-step recognition. `secondary`,
+`muted`, `destructive`, `success`, `warning`, `info` are also gaps — sodeal is a small, mostly-
+primitive DS with only `accent`, `bg-*`, `border`, and a status handful actually role-named.
 
-Both now recognize as `background` on dana's real file: `surface-content` because fix 1 stopped
-skipping its literal `#FFFFFF` value, and both because fix 2's leading `surface-` prefix rule
-decides family outright ("later morphemes qualify WHICH surface, they don't flip it"). Pinned by a
-LIVE test. The prefix rule is grounded in the dictionary (Material's `on-`, shadcn's `-foreground`,
-and background/foreground being genuinely position-shaped roles across systems), not a one-project
-tune.
+### spaflow: recognition collapses to 4/28 — the sharpest primitive-only signal yet
 
-### Genuine ambiguity, dana's real 10
+spaflow's `color-primary-*` (10 steps), `color-surface-*` (10 steps), and `color-accent-*` (4
+steps) are ALL scale steps now, correctly unrecognized — and spaflow has no un-numbered `primary`/
+`surface`/`bg-base`/`accent` token at all (unlike sodeal, which does have bare `accent`/`bg-base`/
+`border`). Only `color-danger`/`color-info` (bare, no number) recognize. 12 of 16 canonical roles
+are gaps, including `background` and `foreground` — the two most basic roles. This is the clearest
+confirmation in the fixture set that usage-inference (deferred, MoSCoW "Could/later spec") is not
+an enhancement for stock-primitive-scale projects — it's the only mechanism that could recognize
+anything more here.
+
+### The 10 ambiguous tokens (dana) — unchanged by this pass
 
 `badge-neutral-border`, `border-success`, `color-accent-border`, `color-info-border`,
 `color-success-border`, `color-warning-border`, `semantic-error-bg-subtle`,
-`semantic-info-border`, `semantic-success-border`, `semantic-warning-border`. All are real ties:
-e.g. `color-accent-border` has both `accent` (weight-2 self-name) and `border` (weight-2
-self-name) — genuinely undecidable by name alone (is this the accent family's border, or the
-border family generically tinted for accent state?). `semantic-error-bg-subtle` ties `error`
-(destructive synonym, weight 1) against `subtle` (muted synonym, weight 1) — the OLD design would
-have silently resolved this via an arbitrary priority order; now it's flagged for the owner to
-settle via `ds set-role` in Phase 2. None of these appeared in the pre-fix report because the old
-design either dropped them (primitive skip) or silently guessed one side of the tie.
+`semantic-info-border`, `semantic-success-border`, `semantic-warning-border` — genuine weight-ties
+(e.g. `accent` vs `border`, both weight-2 self-names), flagged for `ds set-role` (Phase 2), not
+guessed.
 
-### Noise observation (not fixed, flagging for Phase 2 judgment)
+### `surface-content` / `surface-chrome` — still resolved cleanly
 
-Recognition now runs on every token in the tree, not just `color` — so dana's 52 "genuinely
-unrecognized" list includes `dimension.space-4`, `dimension.radius-lg`, `font.font-family-sans`,
-`number.z-modal`, etc. None of these carry a role-shaped name, so they correctly land as
-unrecognized (honest, not a false positive) — but the list is noisier than a color-only scan would
-be. The instructions didn't ask for a `$type === "color"` filter and I didn't add one unasked; flag
-this in case a future phase wants to scope `unrecognized` to color tokens only for readability.
+Both still recognize as `background` on dana's real file (fix 1 recovers `surface-content`'s
+literal value, fix 2's leading `surface-` prefix rule decides both). Pinned by a LIVE test.
+Unaffected by this pass's fixes (neither is a numbered scale step).
 
-## Unresolved questions
+## Unresolved questions (carried + updated)
 
-1. Should recognition scope to `$type: "color"` tokens only, to keep `unrecognized` legible (see
-   noise observation above)? Currently: no, runs on every token by name.
-2. The SCRIM TRAP negative check still runs ahead of the leading-prefix rule (`surface-overlay`
-   stays unrecognized, not `background`) — kept from the first pass since it wasn't asked to be
-   removed. Confirm this is the intended interaction, since fix 2's prefix rule is otherwise
-   unconditional.
-3. `border-success`-style ties (10 on dana) are real and will recur on any DS pairing a
-   component-state word with a family self-name. Phase 2's `ds set-role` is the intended
-   resolution path — confirming that's still the plan.
+1. The SCRIM TRAP negative check still runs ahead of the leading-prefix rule (`surface-overlay`
+   stays unrecognized) — confirmed correct and intentional per coordinator fix 3c. No longer open.
+2. `border-success`-style ties (10 on dana, unchanged across all three passes) will recur on any
+   DS pairing a component-state word with a family self-name — Phase 2's `ds set-role` is the
+   intended resolution path.
+3. sodeal/spaflow's low recognition (13/26, 4/28) is not a bug to fix in Phase 1 — it's the honest
+   measurement that motivates usage-inference as the next spec, per the brainstorm's own MoSCoW.
+4. New, small: `LIGHTNESS_STEPS` is itself a counted-ish list (25/50/75/100/150/200/300/400/500/
+   600/700/800/900/950) but wasn't independently cited from the dictionary the way the family
+   keywords were — it's the standard Tailwind/Radix-adjacent lightness scale observed across the
+   fixture set (dana, sodeal, spaflow all use a subset of it). Flagging in case a future phase
+   wants it formally sourced the way role-synonym-dictionary.md sourced the family table.

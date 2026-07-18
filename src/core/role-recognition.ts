@@ -4,19 +4,15 @@
  * `surface-content` stays `surface-content`; this only records, via DTCG
  * `$extensions["design-os.role"]`, that it plays the `background` role. Lossless
  * (every input token verbatim, plus the annotation), pure, zero deps (Art I).
- *
  * A token's role is about its NAME/intent, not whether $value is a literal or an
- * alias — dana defines many semantic tokens as literals (`surface-content:
- * '#FFFFFF'` is still the background role). Recognition runs on EVERY token; the
- * only skip is the hue-scale name pattern (a primitive palette re-export).
- *
+ * alias (`surface-content: '#FFFFFF'` is still background). Runs on every COLOR
+ * token (`$type: "color"`); skips are a hue-scale name and a numbered scale STEP.
  * The synonym table is TRANSCRIBED from the counted dictionary —
- * specs/009-code-road/reports/role-synonym-dictionary.md (13 systems, every token
- * cited). Not a guess, unlike color-roles.ts's `ROLE_KEYWORDS` this replaces
- * ("muted"→secondary there is wrong; every entry here traces to a cited synonym). */
+ * specs/009-code-road/reports/role-synonym-dictionary.md (13 systems, cited).
+ * Not a guess, unlike color-roles.ts's `ROLE_KEYWORDS` this replaces. */
 import { type TokenTree, type TokenGroup, type Token } from "./token-model.js";
 
-// Canonical role vocabulary (shadcn's set, plan.md's family list).
+// Canonical role vocabulary (shadcn's set).
 export type Role =
   | "background" | "foreground" | "card" | "popover" | "primary" | "secondary"
   | "muted" | "accent" | "border" | "input" | "ring" | "destructive"
@@ -37,34 +33,38 @@ export interface RecognitionResult {
 }
 
 // Hue re-export skip: a `{knownHue}-{number}` leaf (optionally `color-`
-// prefixed) is a primitive palette re-export, not a UI role — dana's
-// `color-blue-100` names `blue-100` literally. Counted: only hues seen in the
-// corpus (blue/cyan/gray/pink/purple) are confirmed; the rest of the standard
-// Tailwind + common set is speculative until seen live. The ONLY skip — value
-// shape (literal vs alias) is NOT a skip condition (see module doc).
+// prefixed) is a primitive palette re-export — dana's `color-blue-100` names
+// `blue-100` literally. Counted hues (blue/cyan/gray/pink/purple in dana); the
+// rest of the Tailwind + common set is speculative until seen live.
 const HUE_RE =
   /^(color-)?(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|gray|grey|zinc|slate|stone|neutral)-\d+$/;
 
+// Scale-step skip (fix 3, measured: 174 tokens across 4 projects): a
+// `{word}-{N}` leaf is a palette SCALE STEP, not a role, when N is a lightness
+// value — `color-brand-500`(sodeal), `brand-25`…`-950`(dana, 120) are steps
+// like `blue-500`; the word matching a role synonym doesn't make each STEP a
+// role. Disjoint from Carbon/Primer 2-digit tiers (`layer-01`) and Radix's
+// 1-12 scale (`accent-9`) — those ARE roles with a number, still recognized.
+const LIGHTNESS_STEPS = new Set([25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 950]);
+const SCALE_STEP_RE = /^.+-(\d+)$/;
+function isScaleStep(name: string): boolean {
+  const m = SCALE_STEP_RE.exec(name);
+  return m !== null && m[1] !== undefined && LIGHTNESS_STEPS.has(Number(m[1]));
+}
+
 // Leading-prefix priority (grounded, cross-project): a LEADING surface-/bg-
-// morpheme is the background family regardless of what follows — dana's
-// `surface-chrome`, `surface-content` are still a surface; later words qualify
-// WHICH surface, they don't flip the family. A leading text-/fg-/on- morpheme
-// is foreground, mirroring Material's `on-surface` and shadcn's `-foreground`
-// (`text-primary` → foreground, not `primary`+fg). Checked before the
-// specific-family table and wins outright — a leading morpheme is a strong,
-// cited signal, not an ambiguity.
-const LEADING_BG = new Set(["surface", "bg"]);
-const LEADING_FG = new Set(["text", "fg", "on"]);
-// Family keywords, transcribed from role-synonym-dictionary.md. [word, weight]:
-// weight 2 = the role's OWN name (a strong, self-declaring signal); weight 1 =
-// a cited synonym, beatable by a stronger match on another role. "focus"→ring
-// is weight 3 (dictionary consequence #4: "Map focus/outline-color/border-
-// focus → ring" — border-focus is a focus ring, not a border color).
-// background/foreground are NOT here — decided by the leading-prefix rule
-// above, or standaloneSurface's pure-position-word fallback below. Their proxy
-// words (bg/surface/text/fg) are reused everywhere as position markers, so a
-// weighted hit here would wrongly grant "background" to e.g. `citation-bg` —
-// the dictionary's own cited no-canonical-role example (§ Consequences, pt 3).
+// morpheme is background regardless of what follows — later words qualify
+// WHICH surface, they don't flip it. A leading text-/fg-/on- morpheme is
+// foreground (Material's `on-surface`, shadcn's `-foreground`). Checked before
+// the specific-family table and wins outright — a strong, cited signal.
+const LEADING_BG = new Set(["surface", "bg"]), LEADING_FG = new Set(["text", "fg", "on"]);
+// Family keywords, transcribed from role-synonym-dictionary.md. weight 2 = the
+// role's OWN name (self-declaring); weight 1 = a cited synonym, beatable by a
+// stronger match. "focus"→ring is weight 3 (border-focus is a focus ring, not
+// a border color, dictionary consequence #4). background/foreground are NOT
+// here — their proxy words are reused as position markers, so a weighted hit
+// here would wrongly grant "background" to `citation-bg` (the dictionary's own
+// cited no-canonical-role example).
 const FAMILY_KEYWORDS: Record<Exclude<Role, "background" | "foreground">, [string, number][]> = {
   destructive: [["destructive", 2], ["danger", 1], ["error", 1], ["critical", 1], ["negative", 1]],
   success: [["success", 2], ["positive", 1], ["valid", 1], ["ok", 1]],
@@ -82,23 +82,23 @@ const FAMILY_KEYWORDS: Record<Exclude<Role, "background" | "foreground">, [strin
   neutral: [["neutral", 2]],
 };
 const ALL_FAMILY_ROLES = Object.keys(FAMILY_KEYWORDS) as (keyof typeof FAMILY_KEYWORDS)[];
-/** The SCRIM TRAP (dictionary § point 4): overlay/scrim names the modal dimmer in
- * 5/13 systems, not the popover surface — never auto-map it to any family, even
- * under a leading surface- prefix (checked first, ahead of the prefix rule). */
+// SCRIM TRAP: overlay/scrim names the modal dimmer in 5/13 systems, not the
+// popover surface — never auto-map it, even under a leading surface- prefix
+// (checked first; kept as-is per coordinator fix 3c, a deliberate choice).
 const NEGATIVE_WORDS = new Set(["overlay", "scrim"]);
-/** Foreground/background-position words (token-pairs.ts FOREGROUND_RE synonyms, + "on-*"). */
+// Foreground/background-position words (token-pairs.ts FOREGROUND_RE synonyms, + "on-*").
 const POSITION_FG = new Set(["foreground", "text", "fg", "content", "ink", "on"]);
 const POSITION_BG = new Set(["background", "bg", "surface", "fill"]);
-/** Pure state/scaffolding words that carry no role signal by themselves. */
+// Pure state/scaffolding words that carry no role signal by themselves.
 const NOISE = new Set(["color", "default", "hover", "active", "alt"]);
 
 function segments(name: string): string[] {
   return name.toLowerCase().split(/[-_.]/).filter(Boolean);
 }
 
-/** Strongest specific-family match (excl. background/foreground): the single
- * winner, or the tied role list when ≥2 roles hit the same max weight (a
- * genuine ambiguity — never silently tie-broken). */
+// Strongest specific-family match (excl. background/foreground): the single
+// winner, or the tied role list when ≥2 roles hit the same max weight (a
+// genuine ambiguity — never silently tie-broken).
 function classifyFamily(segs: readonly string[]): Role | Role[] | null {
   let maxWeight = 0;
   let winners: Role[] = [];
@@ -112,9 +112,8 @@ function classifyFamily(segs: readonly string[]): Role | Role[] | null {
   return winners.length === 1 ? (winners[0] as Role) : winners;
 }
 
-/** background/foreground fallback (no leading trigger fired): only when EVERY
- * meaningful segment (noise stripped) is itself a position word — `citation-bg`
- * carries a domain word alongside the position word, must not be forced. */
+// background/foreground fallback: only when EVERY meaningful segment (noise
+// stripped) is a position word — `citation-bg` carries a domain word too, must not be forced.
 function standaloneSurface(segs: readonly string[]): Role | null {
   const meaningful = segs.filter((s) => !NOISE.has(s));
   if (meaningful.length === 0) return null;
@@ -124,7 +123,7 @@ function standaloneSurface(segs: readonly string[]): Role | null {
   return null;
 }
 
-/** Position (bg/fg); FG wins a tie (a name with both a surface- and text-word). */
+// Position (bg/fg); FG wins a tie (a name with both a surface- and text-word).
 function classifyPosition(segs: readonly string[]): "fg" | "bg" | null {
   if (segs.some((s) => POSITION_FG.has(s))) return "fg";
   if (segs.some((s) => POSITION_BG.has(s))) return "bg";
@@ -153,10 +152,8 @@ function classify(name: string): Classification {
   return { kind: "none" };
 }
 
-/** The pure entry point: annotate every token in `tree` (by NAME, regardless of
- * literal/alias $value) with the role it plays. Only hue re-exports get no
- * role. Never renames, drops, or injects — `annotated` carries every input
- * token verbatim, plus `$extensions`. */
+// The pure entry point: annotate every COLOR token in `tree` by NAME with its
+// role (non-color out of scope, fix 3b). Never renames/drops/injects.
 export function recognizeRoles(tree: TokenTree): RecognitionResult {
   const annotated: TokenTree = {};
   const foundRoles = new Set<Role>();
@@ -168,8 +165,12 @@ export function recognizeRoles(tree: TokenTree): RecognitionResult {
     const outGroup: TokenGroup = {};
     for (const [name, token] of Object.entries(group)) {
       const path = `${category}.${name}`;
-      if (HUE_RE.test(name)) {
-        outGroup[name] = token; // hue re-export — no role, correctly
+      if (token.$type !== "color") {
+        outGroup[name] = token; // non-color token — out of scope, untouched
+        continue;
+      }
+      if (HUE_RE.test(name) || isScaleStep(name)) {
+        outGroup[name] = token; // hue re-export / scale step — no role, correctly
         unrecognized.push(path);
         continue;
       }

@@ -10,6 +10,14 @@ function tree(color: Record<string, { $value: string; $extensions?: Record<strin
   return { color: group };
 }
 
+/** Like `tree`, but each leaf carries an explicit `$type` — for fix 3b (color-type scoping). */
+function treeTyped(
+  category: string,
+  leaves: Record<string, { $value: string; $type: "color" | "dimension" | "fontFamily" | "fontWeight" | "number" }>,
+): TokenTree {
+  return { [category]: leaves };
+}
+
 describe("recognizeRoles — Phase 1 contract", () => {
   it("a hue-scale name gets no role, literal or alias (blue-100, color-blue-100)", () => {
     const result = recognizeRoles(
@@ -162,6 +170,63 @@ describe("recognizeRoles — Phase 1 contract", () => {
     const result = recognizeRoles(tree({ "border-error": { $value: "{color.error-500}" } }));
     expect(result.annotated.color?.["border-error"]?.$extensions).toEqual({ "design-os.role": "border" });
     expect(result.ambiguous).toEqual([]);
+  });
+
+  // ─── FIX 3: a numbered SCALE STEP is not a role, even when the word matches one ──
+
+  it("a {word}-{lightness} leaf is a scale step, not a role, even when the word is a role synonym (color-brand-500, brand-25, accent-600)", () => {
+    const result = recognizeRoles(
+      tree({
+        "color-brand-500": { $value: "#14b8a6" },
+        "brand-25": { $value: "{color.teal-25}" },
+        "accent-600": { $value: "#b8923f" },
+      }),
+    );
+    expect(result.annotated.color?.["color-brand-500"]?.$extensions).toBeUndefined();
+    expect(result.annotated.color?.["brand-25"]?.$extensions).toBeUndefined();
+    expect(result.annotated.color?.["accent-600"]?.$extensions).toBeUndefined();
+    expect(result.recognized).toBe(0);
+    expect(result.unrecognized).toEqual(["color.color-brand-500", "color.brand-25", "color.accent-600"]);
+  });
+
+  it("Carbon/Primer 2-digit tiers still recognize — layer-01, field-01 are ROLES with a number, not scale steps", () => {
+    const result = recognizeRoles(
+      tree({ "layer-01": { $value: "{color.gray-50}" }, "field-01": { $value: "{color.gray-100}" } }),
+    );
+    expect(result.annotated.color?.["layer-01"]?.$extensions).toEqual({ "design-os.role": "card" });
+    expect(result.annotated.color?.["field-01"]?.$extensions).toEqual({ "design-os.role": "input" });
+  });
+
+  it("Radix's 1-12 step scale still recognizes — accent-9 is a ROLE with a number, not a scale step", () => {
+    const result = recognizeRoles(tree({ "accent-9": { $value: "#14b8a6" } }));
+    expect(result.annotated.color?.["accent-9"]?.$extensions).toEqual({ "design-os.role": "accent" });
+  });
+
+  // ─── FIX 3b: color roles only — non-color tokens are out of scope ────────────
+
+  it("non-color tokens are left untouched and out of scope — radius.button and font-size.md never enter recognition", () => {
+    const result = recognizeRoles(
+      treeTyped("dimension", {
+        "radius-button": { $value: "4px", $type: "dimension" },
+        "space-4": { $value: "16px", $type: "dimension" },
+      }),
+    );
+    expect(result.annotated.dimension?.["radius-button"]?.$extensions).toBeUndefined();
+    expect(result.annotated.dimension?.["space-4"]?.$extensions).toBeUndefined();
+    expect(result.recognized).toBe(0);
+    expect(result.unrecognized).toEqual([]); // out of scope, not "unrecognized"
+    expect(result.ambiguous).toEqual([]);
+  });
+
+  it("a mixed tree recognizes color tokens and leaves non-color tokens alone, both verbatim (lossless across types)", () => {
+    const mixed: TokenTree = {
+      color: { primary: { $value: "{color.brand-600}", $type: "color" } },
+      dimension: { "radius-lg": { $value: "8px", $type: "dimension" } },
+    };
+    const result = recognizeRoles(mixed);
+    expect(result.annotated.color?.["primary"]?.$extensions).toEqual({ "design-os.role": "primary" });
+    expect(result.annotated.dimension?.["radius-lg"]).toEqual(mixed.dimension?.["radius-lg"]);
+    expect(result.recognized).toBe(1);
   });
 });
 
