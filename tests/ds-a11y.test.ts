@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
-import { checkTokenContrast, parsePairs } from "../src/core/ds-a11y.js";
+import { checkTokenContrast, parsePairs, renderA11yReport } from "../src/core/ds-a11y.js";
 import type { ResolvedToken } from "../src/core/token-model.js";
 
 const tok = (path: string, value: string): ResolvedToken => ({ path, type: "color", value });
@@ -79,6 +79,34 @@ describe("ds-a11y — checkTokenContrast", () => {
     expect(r.inferred).toBe(true);
     expect(r.unresolved).toContain("color.text-ghost");
   });
+
+  // ── false-green fix: measured=false must never read as a clean pass ────────
+  it("(measured=false) colors with no recognized roles and no --pairs measure NOTHING — not a clean pass", () => {
+    const opaque: ResolvedToken[] = [
+      tok("brand.one", "#123456"),
+      tok("brand.two", "#abcdef"),
+    ];
+    const r = checkTokenContrast(opaque);
+    expect(r.measured).toBe(false);
+    expect(r.checkedPairs).toBe(0);
+    expect(r.checkedStatePairs).toBe(0);
+    const out = renderA11yReport(r);
+    expect(out).toContain("false-green risk");
+    expect(out.toLowerCase()).not.toContain("all checked pairs pass aa");
+  });
+
+  it("(measured=true) a store WITH {role}/{role}-foreground pairs measures normally — unchanged behavior", () => {
+    const paired: ResolvedToken[] = [
+      tok("color.background", "#ffffff"),
+      tok("color.foreground", "#111111"),
+    ];
+    const r = checkTokenContrast(paired);
+    expect(r.measured).toBe(true);
+    expect(r.checkedPairs).toBeGreaterThan(0);
+    const out = renderA11yReport(r);
+    expect(out).not.toContain("false-green risk");
+    expect(out).toContain("All checked pairs pass AA");
+  });
 });
 
 // ─── command ─────────────────────────────────────────────────────────────────
@@ -132,5 +160,32 @@ describe("ui ds a11y", () => {
   it("bad --pairs → BAD_ARG; unknown flag → UNKNOWN_FLAG", () => {
     expect(JSON.parse(capture(["ds", "a11y", "--dir", dir, "--pairs", "oops", "--json"]).out).error.code).toBe("BAD_ARG");
     expect(JSON.parse(capture(["ds", "a11y", "--dir", dir, "--nope", "--json"]).out).error.code).toBe("UNKNOWN_FLAG");
+  });
+
+  // ── false-green fix: an unmeasurable store must warn loudly, never pass silently ───────────
+  it("(measured=false) a store with no recognized roles exits 0 but warns — never a clean pass", () => {
+    const unmeasurable = mkdtempSync(join(tmpdir(), "ease-a11y-unmeasurable-"));
+    mkdirSync(join(unmeasurable, "design"), { recursive: true });
+    writeFileSync(join(unmeasurable, "design", "design.tokens.json"), JSON.stringify({
+      brand: { one: { $value: "#123456", $type: "color" }, two: { $value: "#abcdef", $type: "color" } },
+    }), "utf8");
+    const r = capture(["ds", "a11y", "--dir", unmeasurable]);
+    expect(r.code).toBe(0); // a11y exit-1 contract is reserved for actual contrast failures
+    expect(r.out).toContain("false-green risk");
+    expect(r.out.toLowerCase()).not.toContain("all checked pairs pass aa");
+  });
+
+  it("(measured=false) --json carries measured:false and checkedPairs:0", () => {
+    const unmeasurable = mkdtempSync(join(tmpdir(), "ease-a11y-unmeasurable-json-"));
+    mkdirSync(join(unmeasurable, "design"), { recursive: true });
+    writeFileSync(join(unmeasurable, "design", "design.tokens.json"), JSON.stringify({
+      brand: { one: { $value: "#123456", $type: "color" }, two: { $value: "#abcdef", $type: "color" } },
+    }), "utf8");
+    const r = capture(["ds", "a11y", "--dir", unmeasurable, "--json"]);
+    expect(r.code).toBe(0);
+    const d = JSON.parse(r.out).data as { measured: boolean; checkedPairs: number; checkedStatePairs: number };
+    expect(d.measured).toBe(false);
+    expect(d.checkedPairs).toBe(0);
+    expect(d.checkedStatePairs).toBe(0);
   });
 });
