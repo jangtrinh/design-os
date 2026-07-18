@@ -242,6 +242,61 @@ describe("ui ds import — F2: alias-valued tokens survive import (spec 009 P3 D
   });
 });
 
+describe("ui ds import — wires the fuel line: soul.md + heartbeat.json + harvest-inbox (spec 012 P2)", () => {
+  it("closes the dana-no-soul gap: import writes soul.md, heartbeat.json, harvest-inbox/", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-import-fuel-"));
+    const src = writeFlat(tmp, "tokens.json", { colors: { primary: "#111111" } });
+    const r = capture(["ds", "import", src, "--dir", tmp, "--json"]);
+    expect(r.code).toBe(0);
+
+    const soulPath = join(tmp, "design", "soul.md");
+    const hbPath = join(tmp, "design", "heartbeat.json");
+    expect(existsSync(soulPath)).toBe(true);
+    expect(existsSync(hbPath)).toBe(true);
+    expect(existsSync(join(tmp, "design", "harvest-inbox"))).toBe(true);
+
+    const text = readFileSync(soulPath, "utf8");
+    expect(text.startsWith("---\nstatus: draft\n---")).toBe(true);
+
+    const hb = JSON.parse(readFileSync(hbPath, "utf8"));
+    expect(hb.tasks.map((t: { type: string }) => t.type).sort()).toEqual(
+      ["ds-a11y", "harvest", "reflect", "specimen"],
+    );
+
+    const data = JSON.parse(r.out).data as { soul: { written: boolean }; heartbeat: { written: boolean } };
+    expect(data.soul.written).toBe(true);
+    expect(data.heartbeat.written).toBe(true);
+  });
+
+  it("re-import --force never clobbers an existing soul.md or heartbeat.json", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-import-fuel-force-"));
+    const src = writeFlat(tmp, "tokens.json", { colors: { primary: "#111111" } });
+    capture(["ds", "import", src, "--dir", tmp, "--json"]);
+
+    const soulPath = join(tmp, "design", "soul.md");
+    const hbPath = join(tmp, "design", "heartbeat.json");
+    const editedSoul = "---\nstatus: ratified\n---\n\n## Never\n\n- x\n\n## Always\n\n- y\n\n## Voice\n\n- z\n";
+    const editedHb = JSON.stringify({ version: 1, tasks: [] });
+    writeFileSync(soulPath, editedSoul, "utf8");
+    writeFileSync(hbPath, editedHb, "utf8");
+
+    const src2 = writeFlat(tmp, "tokens2.json", { colors: { primary: "#222222" } });
+    const r = capture(["ds", "import", src2, "--dir", tmp, "--force", "--json"]);
+    expect(r.code).toBe(0);
+    expect(readFileSync(soulPath, "utf8")).toBe(editedSoul);
+    expect(readFileSync(hbPath, "utf8")).toBe(editedHb);
+  });
+
+  it("the fuel-line files never affect the DS seal — ds status still exits 0 after import", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-import-fuel-seal-"));
+    const src = writeFlat(tmp, "tokens.json", { colors: { primary: "#111111" } });
+    capture(["ds", "import", src, "--dir", tmp, "--json"]);
+
+    const r = capture(["ds", "status", "--dir", tmp, "--json"]);
+    expect(r.code).toBe(0);
+  });
+});
+
 describe("ui ds import — writes a single trailing newline (spec 009 P1 D5 fallout)", () => {
   it("design.tokens.json / component-registry.json / ds.manifest.json each end with exactly one newline", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-import-newline-"));

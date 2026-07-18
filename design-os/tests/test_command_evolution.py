@@ -44,6 +44,36 @@ def test_dead_loop_text_and_exit_zero(runner: CliRunner, tmp_path: Path) -> None
     assert "evolution: DEAD-LOOP" in res.stdout
 
 
+def test_wired_project_json_and_text(runner: CliRunner, tmp_path: Path) -> None:
+    """spec 012 P2: a project fresh out of `ds init`/`ds import`'s wireFuelLine —
+    heartbeat.json present, no ledger yet — reads WIRED, and the text report still
+    names the heartbeat state (Art VIII) even with no ledger to report on."""
+    design_dir = tmp_path / "design"
+    design_dir.mkdir()
+    (design_dir / "heartbeat.json").write_text(json.dumps({
+        "version": 1,
+        "tasks": [
+            {"id": "a11y", "type": "ds-a11y", "interval": "1d"},
+            {"id": "specimen", "type": "specimen", "interval": "1d"},
+            {"id": "harvest", "type": "harvest", "interval": "12h"},
+            {"id": "reflect", "type": "reflect", "interval": "24h", "params": {"minEvents": 5}},
+        ],
+    }), encoding="utf-8")
+    (design_dir / "soul.md").write_text(
+        "---\nstatus: draft\n---\n\n## Never\n\n## Always\n\n## Voice\n", encoding="utf-8",
+    )
+
+    res_json = runner.invoke(app, ["evolution", "--dir", str(tmp_path), "--json"])
+    assert res_json.exit_code == 0
+    env = json.loads(res_json.stdout)
+    assert env["data"]["verdict"] == "WIRED"
+
+    res_text = runner.invoke(app, ["evolution", "--dir", str(tmp_path)])
+    assert res_text.exit_code == 0
+    assert "evolution: WIRED" in res_text.stdout
+    assert "heartbeat: wired (4 task(s)), wired but never fired" in res_text.stdout
+
+
 @pytest.mark.skipif(not _DANA.is_dir(), reason="dana-desktop checkout not present on this machine")
 def test_live_dana_is_dead_loop(runner: CliRunner) -> None:
     res = runner.invoke(app, ["evolution", "--dir", str(_DANA), "--json"])

@@ -16,6 +16,7 @@ import { createEmptyRegistry } from "../core/registry-store.js";
 import { parseTokenFile } from "../core/token-model.js";
 import { importFlatTokens } from "../core/token-import.js";
 import { recognizeRoles } from "../core/role-recognition.js";
+import { wireFuelLine } from "../core/ds-fuel-line.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -118,9 +119,16 @@ export function runImport(parsed: ParsedArgs): CommandResult {
     return err("WRITE_ERROR", `could not write DS store: ${e instanceof Error ? e.message : String(e)}`);
   }
 
+  // Wire the learning-loop fuel line (spec 012 P2): soul scaffold + default heartbeat +
+  // harvest-inbox. `ds init` already did this; `ds import` — the road dana was onboarded
+  // through — did not, which is why dana had no soul.md. Never clobbers an existing
+  // soul.md (e.g. a `/ui:learn` evidence-draft) or heartbeat.json.
+  const fuelLine = wireFuelLine(designDir);
+
   const summary = {
     name, dir: designDir, ...stats, categories: Object.keys(annotated).length,
     rolesRecognized: recognition.recognized, roleGaps: recognition.gaps,
+    soul: fuelLine.soul, heartbeat: fuelLine.heartbeat,
   };
   if (useJson) return okJsonWithExit(CMD, summary, 0);
   const typeLine = Object.entries(stats.byType).map(([t, n]) => `${n} ${t}`).join(", ");
@@ -128,6 +136,8 @@ export function runImport(parsed: ParsedArgs): CommandResult {
     `ds import: ${stats.imported} token(s) [${typeLine}] across ${summary.categories} categories → ${designDir}`,
     `  ${recognition.recognized} roles recognized, ${recognition.gaps.length} gaps: ${recognition.gaps.join(", ")}`,
     ...(stats.skipped > 0 ? [`  skipped ${stats.skipped} un-typeable token(s): ${stats.skippedKeys.slice(0, 6).map((s) => s.key).join(", ")}${stats.skipped > 6 ? " …" : ""}`] : []),
+    `  soul: ${fuelLine.soul.path} (draft — edit then set status: ratified)`,
+    `  heartbeat: ${fuelLine.heartbeat.path}`,
     `  next: ui ds a11y --dir ${parsed.flags["dir"] ?? "."}  ·  ui ds status --dir ${parsed.flags["dir"] ?? "."}`,
   ];
   return { exitCode: 0, stdout: lines.join("\n") + "\n" };
