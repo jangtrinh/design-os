@@ -12,17 +12,23 @@ import re
 from pathlib import Path
 from typing import Any
 
+from design_os.evolution_signals import (
+    read_heartbeat_signal,
+    read_registry_signal,
+    read_roles_signal,
+    read_taste_votes_signal,
+)
+
+__all__ = [
+    "read_ledger_signal", "read_graph_signal", "read_soul_signal",
+    "read_heartbeat_signal", "read_registry_signal", "read_roles_signal",
+    "read_taste_votes_signal", "compute_verdict", "gather_signals",
+]
+
 _DESIGN = "design"
 _LEDGER_REL = Path(_DESIGN) / "memory.events.jsonl"
 _GRAPH_REL = Path(_DESIGN) / "memory.graph.json"
 _SOUL_REL = Path(_DESIGN) / "soul.md"
-_HEARTBEAT_CONFIG_REL = Path(_DESIGN) / "heartbeat.json"
-_HEARTBEAT_STATE_REL = Path(_DESIGN) / "heartbeat-state.json"
-_REGISTRY_REL = Path(_DESIGN) / "component-registry.json"
-_TOKENS_REL = Path(_DESIGN) / "design.tokens.json"
-# Taste-hub votes root defaults to <project>/taste (taste-store.ts resolveTasteRoot);
-# design/votes.jsonl is also checked in case a project keeps it alongside the ledger.
-_VOTES_RELS = (Path(_DESIGN) / "votes.jsonl", Path("taste") / "votes.jsonl")
 
 # frontmatter/evidence regexes mirror src/core/ds-soul.ts's frontmatterStatus exactly.
 _FRONTMATTER_RE = re.compile(r"^---\r?\n([\s\S]*?)\r?\n---\r?\n?")
@@ -107,79 +113,6 @@ def read_soul_signal(project_dir: Path) -> dict[str, Any]:
         "ratified": status == "ratified",
         "evidence_count": len(_EVIDENCE_RE.findall(text)),
     }
-
-
-def read_heartbeat_signal(project_dir: Path) -> dict[str, Any]:
-    """Signal 6: heartbeat.json wiring + heartbeat-state.json firing. "Firing" = any task
-    has a non-empty `history` (heartbeat_core.record_run unshifts newest-first at index 0);
-    `last_run_at` is that entry's own `at`, never a wall-clock comparison."""
-    config = _read_json(project_dir / _HEARTBEAT_CONFIG_REL)
-    raw_tasks = config.get("tasks") if isinstance(config, dict) else None
-    tasks_cfg = raw_tasks if isinstance(raw_tasks, list) else []
-    wired = isinstance(config, dict) and len(tasks_cfg) > 0
-
-    state = _read_json(project_dir / _HEARTBEAT_STATE_REL)
-    raw_state_tasks = state.get("tasks") if isinstance(state, dict) else None
-    state_tasks = raw_state_tasks if isinstance(raw_state_tasks, dict) else {}
-
-    fired = False
-    last_run_at: str | None = None
-    for task_state in state_tasks.values():
-        if not isinstance(task_state, dict):
-            continue
-        history = task_state.get("history")
-        if isinstance(history, list) and history:
-            fired = True
-            entry = history[0]
-            at = entry.get("at") if isinstance(entry, dict) else None
-            if isinstance(at, str) and (last_run_at is None or at > last_run_at):
-                last_run_at = at
-
-    return {"wired": wired, "task_count": len(tasks_cfg), "fired": fired, "last_run_at": last_run_at}
-
-
-def read_registry_signal(project_dir: Path, ledger: dict[str, Any]) -> dict[str, Any]:
-    """Signal 8 (registry half): component-registry.json's own count vs the ledger's
-    `component_registered` event count — reported as two independent numbers (Art VIII);
-    they may legitimately diverge (a registry rebuilt/reset without replaying the ledger)."""
-    registry = _read_json(project_dir / _REGISTRY_REL)
-    components = registry.get("components") if isinstance(registry, dict) else None
-    component_count = len(components) if isinstance(components, list) else 0
-    return {
-        "component_count": component_count,
-        "component_registered_events": ledger["types"].get("component_registered", 0),
-    }
-
-
-def read_roles_signal(project_dir: Path) -> dict[str, Any]:
-    """Signal 8 (DS role half, spec 011): tokens carrying a baked `$extensions
-    ["design-os.role"]` vs the total token count (ds-context-roles.ts's baked-annotation
-    read — never recomputes recognition)."""
-    tokens = _read_json(project_dir / _TOKENS_REL)
-    total = 0
-    roled = 0
-    if isinstance(tokens, dict):
-        for group in tokens.values():
-            if not isinstance(group, dict):
-                continue
-            for tok in group.values():
-                if not isinstance(tok, dict):
-                    continue
-                total += 1
-                ext = tok.get("$extensions")
-                if isinstance(ext, dict) and isinstance(ext.get("design-os.role"), str):
-                    roled += 1
-    return {"total_tokens": total, "roled_tokens": roled}
-
-
-def read_taste_votes_signal(project_dir: Path) -> dict[str, Any]:
-    """Signal 7: taste-hub votes.jsonl line count, if the ledger exists anywhere it's
-    known to live (taste-store.ts's default root, or alongside design/)."""
-    for rel in _VOTES_RELS:
-        path = project_dir / rel
-        if path.is_file():
-            return {"exists": True, "count": len(_read_jsonl(path))}
-    return {"exists": False, "count": 0}
 
 
 def compute_verdict(signals: dict[str, Any]) -> str:
