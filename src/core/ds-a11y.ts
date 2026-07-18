@@ -47,6 +47,13 @@ export interface A11yTokenResult {
   failures: ContrastPair[];
   /** Tokens that look like text but carry no hex value → couldn't be checked. */
   unresolved: string[];
+  /**
+   * False means checkedPairs === 0 AND checkedStatePairs === 0 — NOTHING was measured (no
+   * recognized roles, no {role}/{role}-foreground pairs, no --pairs). A zero-failure result with
+   * measured=false is NOT a clean pass — it is an unmeasurable store (false-green risk). Callers
+   * MUST branch on this before treating `failures.length === 0` as "passed".
+   */
+  measured: boolean;
 }
 
 /** Interaction-state surface suffixes audited against the SAME {role}-foreground. */
@@ -93,7 +100,7 @@ export function checkTokenContrast(
     }
     pairs.sort((a, b) => a.ratio - b.ratio || a.text.localeCompare(b.text));
     const failures = pairs.filter((p) => !p.passesNormalText);
-    return { checkedPairs: pairs.length, checkedStatePairs: 0, inferred: false, mode: "explicit", pairs, statePairs: [], failures, unresolved: unresolved.sort() };
+    return { checkedPairs: pairs.length, checkedStatePairs: 0, inferred: false, mode: "explicit", pairs, statePairs: [], failures, unresolved: unresolved.sort(), measured: pairs.length > 0 };
   }
 
   // Paired path (shadcn standard): check {role}-foreground on its {role} surface — the intended
@@ -125,7 +132,7 @@ export function checkTokenContrast(
     statePairs.sort((a, b) => a.ratio - b.ratio || a.text.localeCompare(b.text) || a.surface.localeCompare(b.surface));
     // Base failures first, then state failures — both gate (exit 1) via runA11y.
     const failures = [...pairs, ...statePairs].filter((p) => !p.passesNormalText);
-    return { checkedPairs: pairs.length, checkedStatePairs: statePairs.length, inferred: false, mode: "paired", pairs, statePairs, failures, unresolved: unresolved.sort() };
+    return { checkedPairs: pairs.length, checkedStatePairs: statePairs.length, inferred: false, mode: "paired", pairs, statePairs, failures, unresolved: unresolved.sort(), measured: pairs.length > 0 || statePairs.length > 0 };
   }
 
   // Legacy inference fallback (no paired tokens): every text-role token × every surface-role token.
@@ -147,13 +154,19 @@ export function checkTokenContrast(
   }
   pairs.sort((a, b) => a.ratio - b.ratio || a.text.localeCompare(b.text) || a.surface.localeCompare(b.surface));
   const failures = pairs.filter((p) => !p.passesNormalText);
-  return { checkedPairs: pairs.length, checkedStatePairs: 0, inferred: true, mode: "inferred", pairs, statePairs: [], failures, unresolved: [...new Set(unresolved)].sort() };
+  return { checkedPairs: pairs.length, checkedStatePairs: 0, inferred: true, mode: "inferred", pairs, statePairs: [], failures, unresolved: [...new Set(unresolved)].sort(), measured: pairs.length > 0 };
 }
 
 export function renderA11yReport(r: A11yTokenResult): string {
   const lines: string[] = [];
-  if (r.checkedPairs === 0) {
-    lines.push("ds a11y: no text×surface token pairs to check (name roles: text*/fg*/… vs bg*/surface*/…, or use --pairs).");
+  // measured=false is NOT a clean pass — it is an unmeasurable store (Art VIII honesty floor:
+  // zero findings on zero pairs must never read identical to a genuinely-clean store). Never
+  // print a success line here.
+  if (!r.measured) {
+    lines.push(
+      "⚠ a11y: 0 contrast pairs measurable — this store has no recognized roles and no {role}/{role}-foreground pairs; nothing was checked (false-green risk).",
+      '  Run role recognition (ui ds import bakes roles) or pass --pairs "text:surface,...".',
+    );
     return lines.join("\n") + "\n";
   }
   const modeNote = r.mode === "paired" ? " ({role}/{role}-foreground pairs)" : r.mode === "inferred" ? " (roles inferred from token names — cartesian; prefer -foreground pairing or --pairs)" : "";
