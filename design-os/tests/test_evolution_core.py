@@ -112,6 +112,89 @@ def test_no_ledger_is_no_loop(tmp_path: Path) -> None:
     assert signals["ledger"]["total"] == 0
 
 
+# ─── WIRED (spec 012 P2): heartbeat configured, no learning signal yet ──────────────────
+
+def _write_heartbeat_config(project: Path) -> None:
+    (project / "design").mkdir(parents=True, exist_ok=True)
+    (project / "design" / "heartbeat.json").write_text(json.dumps({
+        "version": 1,
+        "tasks": [
+            {"id": "a11y", "type": "ds-a11y", "interval": "1d"},
+            {"id": "specimen", "type": "specimen", "interval": "1d"},
+            {"id": "harvest", "type": "harvest", "interval": "12h"},
+            {"id": "reflect", "type": "reflect", "interval": "24h", "params": {"minEvents": 5}},
+        ],
+    }), encoding="utf-8")
+
+
+def test_fresh_wired_project_no_events_is_wired_not_no_loop(tmp_path: Path) -> None:
+    """A project straight out of `ds init`/`ds import` (spec 012 P2's wireFuelLine):
+    heartbeat.json present, soul.md scaffolded as draft, no ledger at all yet."""
+    _write_heartbeat_config(tmp_path)
+    (tmp_path / "design" / "soul.md").write_text(
+        "---\nstatus: draft\n---\n\n## Never\n\n## Always\n\n## Voice\n", encoding="utf-8",
+    )
+
+    signals = evolution_core.gather_signals(tmp_path)
+
+    assert signals["verdict"] == "WIRED"
+    assert signals["heartbeat"]["wired"] is True
+    assert signals["heartbeat"]["fired"] is False
+    assert signals["soul"]["ratified"] is False
+
+
+def test_wired_project_with_mechanical_events_and_no_learning_is_still_wired(tmp_path: Path) -> None:
+    """Heartbeat wired + a ledger with mechanical-only events (e.g. a token edit made
+    after init, before the heartbeat ever fires) — still WIRED, not DEAD-LOOP: the loop
+    is configured, it just hasn't run or learned yet."""
+    _write_heartbeat_config(tmp_path)
+    _write_ledger(tmp_path, [
+        {"v": 1, "id": "e1", "t": "2026-07-18T12:00:00Z", "type": "token_change",
+         "data": {"path": "color.accent", "from": "#000", "to": "#111"}},
+    ])
+
+    signals = evolution_core.gather_signals(tmp_path)
+
+    assert signals["verdict"] == "WIRED"
+    assert signals["heartbeat"]["wired"] is True
+    assert signals["heartbeat"]["fired"] is False
+
+
+def test_wired_heartbeat_that_fired_with_no_learning_is_dead_loop(tmp_path: Path) -> None:
+    """The boundary case: heartbeat wired AND fired (has run history) but produced no
+    insight/gap/ratified-soul — it ran and learned nothing, so DEAD-LOOP, not WIRED."""
+    _write_heartbeat_config(tmp_path)
+    (tmp_path / "design" / "heartbeat-state.json").write_text(json.dumps({
+        "version": 1,
+        "tasks": {
+            "a11y": {
+                "nextRunAt": "2026-07-19T09:00:00Z", "lastStatus": "baseline",
+                "lastSummary": {"failures": 0}, "runs": 1,
+                "history": [{"at": "2026-07-18T09:00:00Z", "status": "baseline", "summary": {"failures": 0}}],
+            },
+        },
+    }), encoding="utf-8")
+
+    signals = evolution_core.gather_signals(tmp_path)
+
+    assert signals["verdict"] == "DEAD-LOOP"
+    assert signals["heartbeat"]["wired"] is True
+    assert signals["heartbeat"]["fired"] is True
+    assert signals["ledger"]["insight_events"] == 0
+    assert signals["soul"]["ratified"] is False
+
+
+def test_no_heartbeat_no_ledger_no_soul_is_no_loop_not_wired(tmp_path: Path) -> None:
+    """Sanity: an empty design/ with nothing at all is still NO-LOOP (no heartbeat to
+    be WIRED about)."""
+    (tmp_path / "design").mkdir(parents=True)
+
+    signals = evolution_core.gather_signals(tmp_path)
+
+    assert signals["verdict"] == "NO-LOOP"
+    assert signals["heartbeat"]["wired"] is False
+
+
 # ─── individual signal readers ──────────────────────────────────────────────────────────
 
 def test_graph_recurrence_counts_seen_greater_than_one(tmp_path: Path) -> None:

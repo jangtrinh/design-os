@@ -20,7 +20,7 @@ import { resolveTokens } from "../core/token-resolve.js";
 import { saveRegistry, registerComponent, validateComponentRecord } from "../core/registry-store.js";
 import { COMPONENT_KIT } from "../core/component-kit/index.js";
 import { countTokens } from "../core/design-system.js";
-import { writeSoulScaffold } from "../core/ds-soul.js";
+import { wireFuelLine } from "../core/ds-fuel-line.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -244,10 +244,11 @@ export function runInit(parsed: ParsedArgs): CommandResult {
 
   const tokenCount = countTokens(tokens);
 
-  // Scaffold the declared-stance file alongside the compiled DS. Never overwritten
-  // here — writeSoulScaffold only writes when soul.md doesn't already exist, so a
-  // re-init (even with --force) never clobbers an owner's edited stance.
-  const soul = writeSoulScaffold(paths.dir);
+  // Wire the learning-loop fuel line alongside the compiled DS: soul scaffold +
+  // default heartbeat + harvest-inbox (spec 012 P2). Never overwrites here — each
+  // piece only writes when absent, so a re-init (even with --force) never clobbers
+  // an owner's edited stance or hand-tuned heartbeat.
+  const fuelLine = wireFuelLine(paths.dir);
 
   const data = {
     name,
@@ -262,7 +263,8 @@ export function runInit(parsed: ParsedArgs): CommandResult {
     tokenCount,
     compiledHash,
     registryHash,
-    soul,
+    soul: fuelLine.soul,
+    heartbeat: fuelLine.heartbeat,
   };
 
   if (useJson) return okJson(CMD, data);
@@ -270,6 +272,7 @@ export function runInit(parsed: ParsedArgs): CommandResult {
     `ds init: compiled '${name}' (generation ${manifest.generation}, persona ${persona.slug}/${persona.family})\n` +
     `tokens:   ${tokenCount}\n` +
     `manifest: ${paths.manifest}\n` +
-    `soul: ${soul.path} (draft — edit then set status: ratified)\n`,
+    `soul: ${fuelLine.soul.path} (draft — edit then set status: ratified)\n` +
+    `heartbeat: ${fuelLine.heartbeat.path}\n`,
   );
 }
