@@ -1,6 +1,7 @@
-"""``design-os evolution [--dir] [--json]`` — spec 012 P1: reads a project's `design/`
-directory and reports whether its LEARNING LOOP is ALIVE, DEAD-LOOP, or NO-LOOP, with a
-per-signal breakdown (Art VIII — the report always names every dimension's state).
+"""``design-os evolution [--dir] [--json]`` — spec 012 P1 (+ P2's WIRED state): reads a
+project's `design/` directory and reports whether its LEARNING LOOP is ALIVE, WIRED,
+DEAD-LOOP, or NO-LOOP, with a per-signal breakdown (Art VIII — the report always names
+every dimension's state).
 
 Read-only, deterministic, no model, no network (Art I). This INFORMS — it never fails a
 build — so it always exits 0, unlike `doctor`/`heartbeat`'s health-gated exit codes.
@@ -20,21 +21,24 @@ _COMMAND = "evolution"
 
 
 def _render_text(signals: dict[str, Any]) -> str:
+    # Every dimension is printed regardless of the ledger's existence (Art VIII) — a
+    # WIRED project (spec 012 P2: heartbeat configured, never fired) has NO ledger yet,
+    # and cutting the report short there would hide the very signal (heartbeat wired)
+    # that explains why the verdict isn't NO-LOOP.
     lines: list[str] = [f"evolution: {signals['verdict']}"]
 
     ledger = signals["ledger"]
     if not ledger["exists"]:
         lines.append("  ledger: no memory.events.jsonl — the loop has never run")
-        return "\n".join(lines) + "\n"
-
-    types_str = ", ".join(f"{k}={v}" for k, v in ledger["types"].items()) or "(none)"
-    lines.append(
-        f"  ledger diversity: {ledger['distinct']} distinct type(s) over "
-        f"{ledger['total']} event(s) — {types_str}"
-    )
-    no_insights = "no insights" if ledger["insight_events"] == 0 else f"{ledger['insight_events']} insight(s)"
-    no_gaps = "no gaps" if ledger["gap_events"] == 0 else f"{ledger['gap_events']} gap(s)"
-    lines.append(f"  learning events: {no_insights}, {no_gaps}")
+    else:
+        types_str = ", ".join(f"{k}={v}" for k, v in ledger["types"].items()) or "(none)"
+        lines.append(
+            f"  ledger diversity: {ledger['distinct']} distinct type(s) over "
+            f"{ledger['total']} event(s) — {types_str}"
+        )
+        no_insights = "no insights" if ledger["insight_events"] == 0 else f"{ledger['insight_events']} insight(s)"
+        no_gaps = "no gaps" if ledger["gap_events"] == 0 else f"{ledger['gap_events']} gap(s)"
+        lines.append(f"  learning events: {no_insights}, {no_gaps}")
 
     graph = signals["graph"]
     if graph["exists"]:

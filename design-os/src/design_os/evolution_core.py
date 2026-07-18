@@ -1,8 +1,9 @@
-"""Pure decision core for `design-os evolution` (spec 012 P1): read a project's 8
-learning-loop signals from `design/` and roll them up into a verdict. No subprocess, no
-model call, no wall-clock read — heartbeat "firing" rides the state file's own recorded
-`history[].at` timestamps, never `datetime.now()` (Art I determinism). A missing/corrupt
-file degrades to its empty shape; this module never raises on a malformed project.
+"""Pure decision core for `design-os evolution` (spec 012 P1, WIRED verdict added P2):
+read a project's 8 learning-loop signals from `design/` and roll them up into a verdict.
+No subprocess, no model call, no wall-clock read — heartbeat "firing" rides the state
+file's own recorded `history[].at` timestamps, never `datetime.now()` (Art I
+determinism). A missing/corrupt file degrades to its empty shape; this module never
+raises on a malformed project.
 """
 
 from __future__ import annotations
@@ -116,19 +117,34 @@ def read_soul_signal(project_dir: Path) -> dict[str, Any]:
 
 
 def compute_verdict(signals: dict[str, Any]) -> str:
-    """Brainstorm §6.3 / plan §6.3 — a LEARNING-SIGNAL rule, not a type count.
-    NO-LOOP: no ledger at all. DEAD-LOOP: ledger has events but zero learning signal.
-    ALIVE: any learning signal — an insight, a gap, a ratified soul, or a firing heartbeat."""
+    """Brainstorm §6.3 / plan §6.3 (P1) + spec 012 P2's WIRED addendum — a
+    LEARNING-SIGNAL rule, not a type count.
+
+    - ALIVE: any learning signal — an insight, a gap, or a ratified soul. (A firing
+      heartbeat alone is NOT a learning signal — see WIRED below; P1's original rule
+      counted `heartbeat.fired` itself as ALIVE, but that conflated "the loop ran" with
+      "the loop learned". No shipped test asserted that path in isolation.)
+    - WIRED (P2, new): `heartbeat.json` is configured (loop wired) and hasn't yet
+      produced a learning signal. This is the state `ds init`/`ds import` hand a fresh
+      project into (spec 012 P2's `wireFuelLine`) — configured and ready, not stalled.
+    - DEAD-LOOP: either (a) the heartbeat is wired AND has actually fired, but still
+      produced no learning signal — it ran and learned nothing; or (b) there's no
+      heartbeat wired at all, but the ledger has events and no learning signal (the
+      dana shape: ran via some other road, never scaffolded a loop, never learned).
+    - NO-LOOP: no heartbeat wired AND no ledger at all — never ran, never configured.
+    """
     ledger = signals["ledger"]
-    if not ledger["exists"]:
-        return "NO-LOOP"
+    heartbeat = signals["heartbeat"]
     learning_signal = (
         ledger["insight_events"] > 0
         or ledger["gap_events"] > 0
         or signals["soul"]["ratified"]
-        or signals["heartbeat"]["fired"]
     )
-    return "ALIVE" if learning_signal else "DEAD-LOOP"
+    if learning_signal:
+        return "ALIVE"
+    if heartbeat["wired"]:
+        return "DEAD-LOOP" if heartbeat["fired"] else "WIRED"
+    return "DEAD-LOOP" if ledger["exists"] else "NO-LOOP"
 
 
 def gather_signals(project_dir: Path) -> dict[str, Any]:

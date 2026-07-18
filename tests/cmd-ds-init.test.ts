@@ -324,3 +324,63 @@ describe("ui ds init — writes the soul scaffold", () => {
     expect(readFileSync(path, "utf8")).toBe(edited);
   });
 });
+
+// ─── ds init — fuel line: heartbeat.json + harvest-inbox (spec 012 P2) ────────
+
+describe("ui ds init — wires heartbeat.json + harvest-inbox alongside the soul", () => {
+  it("fresh init writes design/heartbeat.json (figma-independent tasks) and design/harvest-inbox/", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-init-fuel-"));
+    const r = capture([
+      "ds", "init", "acme",
+      "--persona", "liquid-glass", "--intent", "test",
+      "--dir", tmp, "--persona-data", PERSONA_DATA, "--json",
+    ]);
+    expect(r.exitCode).toBe(0);
+
+    const hbPath = join(tmp, "design", "heartbeat.json");
+    expect(existsSync(hbPath)).toBe(true);
+    const hb = JSON.parse(readFileSync(hbPath, "utf8"));
+    expect(hb.version).toBe(1);
+    expect(hb.tasks.map((t: { type: string }) => t.type).sort()).toEqual(
+      ["ds-a11y", "harvest", "reflect", "specimen"],
+    );
+    expect(hb.tasks.some((t: { type: string }) => t.type === "figma-audit")).toBe(false);
+
+    expect(existsSync(join(tmp, "design", "harvest-inbox"))).toBe(true);
+
+    const heartbeat = JSON.parse(r.stdout).data.heartbeat as { path: string; written: boolean };
+    expect(heartbeat).toEqual({ path: hbPath, written: true });
+  });
+
+  it("re-init --force never overwrites an existing heartbeat.json", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-init-fuel-force-"));
+    capture([
+      "ds", "init", "acme",
+      "--persona", "liquid-glass", "--intent", "test",
+      "--dir", tmp, "--persona-data", PERSONA_DATA,
+    ]);
+    const hbPath = join(tmp, "design", "heartbeat.json");
+    const custom = JSON.stringify({ version: 1, tasks: [] });
+    writeFileSync(hbPath, custom, "utf8");
+
+    const r = capture([
+      "ds", "init", "acme",
+      "--persona", "liquid-glass", "--intent", "second",
+      "--dir", tmp, "--persona-data", PERSONA_DATA, "--force", "--json",
+    ]);
+    expect(r.exitCode).toBe(0);
+    expect(JSON.parse(r.stdout).data.heartbeat.written).toBe(false);
+    expect(readFileSync(hbPath, "utf8")).toBe(custom);
+  });
+
+  it("the fuel-line files never affect the DS seal — ds status still exits 0 after init", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-init-fuel-seal-"));
+    capture([
+      "ds", "init", "acme",
+      "--persona", "liquid-glass", "--intent", "test",
+      "--dir", tmp, "--persona-data", PERSONA_DATA,
+    ]);
+    const r = capture(["ds", "status", "--dir", tmp, "--json"]);
+    expect(r.exitCode).toBe(0);
+  });
+});
