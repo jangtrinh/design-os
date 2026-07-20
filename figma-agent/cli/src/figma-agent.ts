@@ -8,6 +8,7 @@ import { printErrorJson, printJson } from './util/json-out.ts';
 import * as batch from './commands/batch.ts';
 import * as bindVariable from './commands/bind-variable.ts';
 import * as capture from './commands/capture.ts';
+import * as cloneTraits from './commands/clone-traits.ts';
 import * as createFrame from './commands/create-frame.ts';
 import * as createInstance from './commands/create-instance.ts';
 import * as createVariable from './commands/create-variable.ts';
@@ -15,6 +16,7 @@ import * as execJs from './commands/exec-js.ts';
 import * as exportPng from './commands/export-png.ts';
 import * as getSelection from './commands/get-selection.ts';
 import * as htmlToFigma from './commands/html-to-figma.ts';
+import * as inspect from './commands/inspect.ts';
 import * as mirrorVerify from './commands/mirror-verify.ts';
 import * as scanDesignSystem from './commands/scan-design-system.ts';
 import * as scanNode from './commands/scan-node.ts';
@@ -26,6 +28,7 @@ import * as seat from './commands/seat.ts';
 import * as setText from './commands/set-text.ts';
 import * as setVariant from './commands/set-variant.ts';
 import * as status from './commands/status.ts';
+import * as syncCorrections from './commands/sync-corrections.ts';
 
 // Re-exported so command files keep `import type { CommandArgs } from '../figma-agent.ts'`.
 export type { CommandArgs } from './arg-parse.ts';
@@ -34,6 +37,7 @@ const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown>
   status,
   seat,
   'get-selection': getSelection,
+  inspect,
   'scan-design-system': scanDesignSystem,
   'scan-node': scanNode,
   'mirror-verify': mirrorVerify,
@@ -47,6 +51,8 @@ const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown>
   'set-autolayout': setAutolayout,
   'set-constraints': setConstraints,
   'set-text': setText,
+  'clone-traits': cloneTraits,
+  'sync-corrections': syncCorrections,
   'export-png': exportPng,
   'html-to-figma': htmlToFigma,
   'exec-js': execJs,
@@ -62,6 +68,7 @@ Commands:
   status               Broker + plugin connection info
   seat                 Probe seat → {seat, bridge, reason} [--seat free|paid skips the probe]
   get-selection        Serialize the current selection [--depth 1]
+  inspect              [nodeId|--node id] [--out file.png --scale 1 --timeout ms]
   scan-design-system   Components/variables/styles registry [--out file.json --timeout ms]
   scan-node            [SPIKE] Reverse-walk one node → FigmaExportNode spec <nodeId> [--timeout ms]
   mirror-verify        Prove one node round-trips: scan → rebuild → scan → diff <nodeId> [--parent id --keep --timeout ms]
@@ -75,6 +82,8 @@ Commands:
   set-autolayout       --node id --mode H|V|GRID|NONE [--gap n --pad t,r,b,l --align-primary --align-counter --wrap --sizing-h --sizing-v --rows n --cols n --col-sizes ...]
   set-constraints      --node id --h MIN|MAX|CENTER|STRETCH|SCALE --v MIN|MAX|CENTER|STRETCH|SCALE
   set-text             --node id --chars "..." [--font f --size n --weight n]
+  clone-traits         --source id --target id --traits layout,fills-variables,typography,spacing,text
+  sync-corrections     [--dir project] sync Figma edge memory with design/memory
   export-png           --node <id|selection> --out file.png [--scale 2]
   html-to-figma        --html <file|-> [--width 1280 --x --y --parent id --replace id]
   exec-js              <file|-> [--timeout ms (cap 120000)]

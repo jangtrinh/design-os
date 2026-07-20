@@ -54,10 +54,28 @@ $FA status                          # spawns the broker if absent; needs the plu
 $FA create-frame --name Card --w 320 --h 200
 $FA html-to-figma --html page.html --width 1440
 $FA export-png --node <id> --out out.png   # then Read the file to see the result
+$FA inspect <id>                            # structure + required screenshot artifact
+$FA clone-traits --source <id> --target <id> --traits layout,spacing
+$FA sync-corrections                        # Figma edge cache ⇄ design/memory
 ```
 
 Every command prints one JSON object to stdout. See `cli/src/commands/` for
 the full command list.
+
+## Supervised editing loop
+
+`inspect` resolves an explicit node first and otherwise uses the current selection. It
+returns the scoped node spec and a PNG marked `VISUAL_CHECK_REQUIRED`; run it before and
+after visual mutation.
+
+`clone-traits` copies only named groups: `layout`, `fills-variables`, `typography`,
+`spacing`, and `text`. Text content is never copied unless `text` is explicitly included.
+
+Successful typed mutations stamp agent-operation provenance. A later designer edit on the
+same node becomes an immutable linked correction in Figma shared plugin data.
+`sync-corrections` merges that bounded edge cache into the canonical project ledger at
+`design/memory/figma-corrections.jsonl`. Same-ID/different-hash conflicts are quarantined;
+corrections never promote themselves into knowledge.
 
 ## The panel
 

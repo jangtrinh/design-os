@@ -2150,6 +2150,224 @@
     }
   }
 
+  // plugin/src/main/executor-clone-traits.ts
+  var TRAIT_GROUPS = [
+    "layout",
+    "fills-variables",
+    "typography",
+    "spacing",
+    "text"
+  ];
+  function requestedTraits(value) {
+    const raw = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
+    const traits = raw.map(String).map((item) => item.trim()).filter(Boolean);
+    const unknown = traits.filter((item) => !TRAIT_GROUPS.includes(item));
+    if (unknown.length > 0) {
+      throw withCode(new Error(`unknown traits: ${unknown.join(", ")}; valid: ${TRAIT_GROUPS.join(", ")}`), "E_INVALID_ARGS");
+    }
+    if (traits.includes("text") && value === void 0) {
+      throw withCode(new Error("text copying requires an explicit text trait"), "E_INVALID_ARGS");
+    }
+    return [...new Set(traits)];
+  }
+  async function sceneNode(id, label) {
+    if (typeof id !== "string" || !id) throw withCode(new Error(`missing ${label} id`), "E_INVALID_ARGS");
+    const node = await figma.getNodeByIdAsync(id);
+    if (!node || node.type === "DOCUMENT" || node.type === "PAGE") {
+      throw withCode(new Error(`${label} not found: ${id}`), "E_INVALID_ARGS");
+    }
+    return node;
+  }
+  function copyFields(source, target, fields) {
+    const applied = [];
+    const skipped = [];
+    for (const field of fields) {
+      if (!(field in source) || !(field in target)) continue;
+      try {
+        target[field] = source[field];
+        applied.push(field);
+      } catch {
+        skipped.push(field);
+      }
+    }
+    return { applied, skipped };
+  }
+  async function copyTypography(source, target) {
+    if (source.type !== "TEXT" || target.type !== "TEXT") {
+      throw withCode(new Error("typography trait requires TEXT source and target"), "E_INVALID_ARGS");
+    }
+    const font = source.fontName;
+    if (font !== figma.mixed) {
+      await figma.loadFontAsync(font);
+      target.fontName = font;
+    }
+    return copyFields(source, target, [
+      "fontSize",
+      "lineHeight",
+      "letterSpacing",
+      "textAlignHorizontal",
+      "textAlignVertical",
+      "textCase",
+      "textDecoration",
+      "paragraphSpacing"
+    ]);
+  }
+  async function opCloneTraits(params) {
+    const source = await sceneNode(params.sourceId ?? params.source, "source");
+    const target = await sceneNode(params.targetId ?? params.target, "target");
+    const traits = requestedTraits(params.traits);
+    if (traits.length === 0) throw withCode(new Error("CLONE_TRAITS requires traits"), "E_INVALID_ARGS");
+    const applied = [];
+    const skipped = [];
+    const collect = (result) => {
+      applied.push(...result.applied);
+      skipped.push(...result.skipped);
+    };
+    for (const trait of traits) {
+      if (trait === "layout") collect(copyFields(source, target, [
+        "layoutMode",
+        "layoutWrap",
+        "primaryAxisAlignItems",
+        "counterAxisAlignItems",
+        "primaryAxisSizingMode",
+        "counterAxisSizingMode",
+        "layoutSizingHorizontal",
+        "layoutSizingVertical",
+        "constraints"
+      ]));
+      if (trait === "spacing") collect(copyFields(source, target, [
+        "itemSpacing",
+        "counterAxisSpacing",
+        "paddingTop",
+        "paddingRight",
+        "paddingBottom",
+        "paddingLeft"
+      ]));
+      if (trait === "fills-variables") collect(copyFields(source, target, [
+        "fills",
+        "strokes",
+        "strokeWeight",
+        "opacity"
+      ]));
+      if (trait === "typography") collect(await copyTypography(source, target));
+      if (trait === "text") {
+        if (source.type !== "TEXT" || target.type !== "TEXT") {
+          throw withCode(new Error("text trait requires TEXT source and target"), "E_INVALID_ARGS");
+        }
+        collect(await copyTypography(source, target));
+        target.characters = source.characters;
+        applied.push("characters");
+      }
+    }
+    return { sourceId: source.id, targetId: target.id, traits, applied, skipped };
+  }
+
+  // shared/supervised-memory.ts
+  var CORRECTION_SCHEMA_VERSION = 1;
+  var EDGE_RAW_LIMIT = 250;
+  var RAW_RETENTION_DAYS = 30;
+  function canonical(value) {
+    if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+    if (value && typeof value === "object") {
+      const entries = Object.entries(value).filter(([, child]) => child !== void 0).sort(([a], [b]) => a.localeCompare(b));
+      return `{${entries.map(([key, child]) => `${JSON.stringify(key)}:${canonical(child)}`).join(",")}}`;
+    }
+    return JSON.stringify(value) ?? "null";
+  }
+  function correctionContentHash(value) {
+    const text = canonical(value);
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `fnv1a-${(hash >>> 0).toString(16).padStart(8, "0")}`;
+  }
+  function buildCorrectionEvent(input) {
+    const body = { ...input, v: CORRECTION_SCHEMA_VERSION };
+    return { ...body, contentHash: correctionContentHash(body) };
+  }
+  function byTimeThenId(a, b) {
+    return a.timestamp.localeCompare(b.timestamp) || a.eventId.localeCompare(b.eventId);
+  }
+  function retainCorrectionEvents(events, now, limit, maxAgeDays = RAW_RETENTION_DAYS) {
+    const cutoff = now.getTime() - maxAgeDays * 864e5;
+    const protectedEvents = events.filter((event) => event.unresolved === true);
+    const candidates = events.filter((event) => event.unresolved !== true && Date.parse(event.timestamp) >= cutoff).sort(byTimeThenId);
+    const kept = candidates.slice(Math.max(0, candidates.length - Math.max(0, limit - protectedEvents.length)));
+    return [...new Map([...protectedEvents, ...kept].map((event) => [event.eventId, event])).values()].sort(byTimeThenId);
+  }
+
+  // plugin/src/main/correction-edge-store.ts
+  var NAMESPACE = "ease_design";
+  var KEY = "figma-corrections-v1";
+  var suppressedUntil = /* @__PURE__ */ new Map();
+  var eventSequence = 0;
+  function parseEvents(text) {
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  function readEdgeCorrections() {
+    return parseEvents(figma.root.getSharedPluginData(NAMESPACE, KEY));
+  }
+  function writeEdgeCorrections(events) {
+    const retained = retainCorrectionEvents(events, /* @__PURE__ */ new Date(), EDGE_RAW_LIMIT);
+    figma.root.setSharedPluginData(NAMESPACE, KEY, JSON.stringify(retained));
+    return retained;
+  }
+  function eventId(prefix, nodeId) {
+    eventSequence += 1;
+    return `${prefix}-${Date.now()}-${eventSequence}-${nodeId.replace(/[^a-z0-9]/gi, "-")}`;
+  }
+  function isDesignerCorrectionCandidate(changeType, properties) {
+    if (changeType !== "PROPERTY_CHANGE" || properties.length === 0) return false;
+    return !properties.includes("parent") && !properties.includes("relativeTransform");
+  }
+  function beginAgentMutation(nodeIds) {
+    const until = Date.now() + 2e3;
+    for (const nodeId of nodeIds) suppressedUntil.set(nodeId, until);
+  }
+  function recordAgentMutation(nodeId, traits) {
+    const event = buildCorrectionEvent({
+      eventId: eventId("agent", nodeId),
+      fileKey: figma.fileKey ?? "local-file",
+      nodeId,
+      source: "agent",
+      kind: "agent-operation",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      traits
+    });
+    writeEdgeCorrections([...readEdgeCorrections(), event]);
+    return event;
+  }
+  function recordDesignerCorrection(nodeId, traits) {
+    const changeType = typeof traits.changeType === "string" ? traits.changeType : "";
+    const properties = Array.isArray(traits.properties) ? traits.properties.filter((value) => typeof value === "string") : [];
+    if (!isDesignerCorrectionCandidate(changeType, properties)) return null;
+    if ((suppressedUntil.get(nodeId) ?? 0) >= Date.now()) return null;
+    const events = readEdgeCorrections();
+    const parent = [...events].reverse().find((event2) => event2.nodeId === nodeId && event2.kind === "agent-operation");
+    if (!parent) return null;
+    const event = buildCorrectionEvent({
+      eventId: eventId("correction", nodeId),
+      fileKey: figma.fileKey ?? "local-file",
+      nodeId,
+      source: "designer",
+      kind: "designer-correction",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      causalParent: parent.eventId,
+      unresolved: true,
+      traits
+    });
+    writeEdgeCorrections([...events, event]);
+    return event;
+  }
+
   // plugin/src/ui/panel-model.ts
   var PANEL_WIDTH = 300;
   var PANEL_HEIGHT = { compact: 170, expanded: 460 };
@@ -2200,6 +2418,13 @@
   function onDocumentChange(event) {
     const raw = [];
     for (const dc of event.documentChanges) {
+      const changedNode = dc.node;
+      if (!("removed" in changedNode) || !changedNode.removed) {
+        recordDesignerCorrection(changedNode.id, {
+          changeType: dc.type,
+          properties: dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : []
+        });
+      }
       const op = mapChangeType(dc.type);
       if (op === null) continue;
       const identity = resolveComponentIdentity(dc.node);
@@ -2242,7 +2467,11 @@
     const req = msg;
     if (!req || typeof req.requestId !== "string" || typeof req.cmd !== "string") return;
     try {
+      const targetIds = mutationTargetIds(req.cmd, req.params ?? {});
+      beginAgentMutation(targetIds);
       const result = await dispatch(req.cmd, req.params ?? {});
+      const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
+      for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
       figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
     } catch (err) {
       figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
@@ -2252,6 +2481,30 @@
     const code = err?.code ?? "E_PLUGIN_ERROR";
     const message = err instanceof Error ? err.message : String(err);
     return { code, message };
+  }
+  function resultMutationIds(cmd, result) {
+    const creating = [
+      "CREATE_FRAME",
+      "CREATE_INSTANCE",
+      "IMPORT_PAYLOAD",
+      "HTML_TO_FIGMA"
+    ];
+    if (!creating.includes(cmd) || !result || typeof result !== "object") return [];
+    const id = result.id;
+    return typeof id === "string" && id ? [id] : [];
+  }
+  function mutationTargetIds(cmd, params) {
+    const mutating = [
+      "SET_VARIANT",
+      "BIND_VARIABLE",
+      "SET_AUTOLAYOUT",
+      "SET_CONSTRAINTS",
+      "SET_TEXT",
+      "CLONE_TRAITS"
+    ];
+    if (!mutating.includes(cmd)) return [];
+    const raw = cmd === "CLONE_TRAITS" ? params.targetId ?? params.target : params.nodeId ?? params.node;
+    return typeof raw === "string" && raw ? [raw] : [];
   }
   async function dispatch(cmd, params) {
     switch (cmd) {
@@ -2279,6 +2532,15 @@
         return opSetConstraints(params);
       case "SET_TEXT":
         return opSetText(params);
+      case "CLONE_TRAITS":
+        return opCloneTraits(params);
+      case "GET_CORRECTION_MEMORY":
+        return { events: readEdgeCorrections() };
+      case "SET_CORRECTION_MEMORY": {
+        const events = params.events;
+        if (!Array.isArray(events)) throw withCode(new Error("SET_CORRECTION_MEMORY requires events[]"), "E_INVALID_ARGS");
+        return { events: writeEdgeCorrections(events) };
+      }
       case "EXPORT_PNG":
         return opExportPng(params);
       case "EXEC_JS":
