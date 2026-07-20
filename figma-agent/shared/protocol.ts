@@ -35,6 +35,9 @@ export const COMMANDS = [
   'SET_AUTOLAYOUT',
   'SET_CONSTRAINTS',
   'SET_TEXT',
+  'CLONE_TRAITS',
+  'GET_CORRECTION_MEMORY',
+  'SET_CORRECTION_MEMORY',
   'EXPORT_PNG',
   'HTML_TO_FIGMA', // handled by ui-relay (render → payload) then IMPORT_PAYLOAD to main
   'IMPORT_PAYLOAD', // internal: ui → main with FigmaExportPayload

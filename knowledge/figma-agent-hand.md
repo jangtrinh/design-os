@@ -54,6 +54,9 @@ $FA status   # spawns the broker if absent; needs the plugin open in Figma
 | `create-instance --component <key\|id>` · `set-variant --node id --props k=v` | component reuse |
 | `set-text --node id --chars "..." [--font --size --weight]` | fonts via fallback chain |
 | `export-png --node <id\|selection> --out /path.png --scale 2` | **the eyes** — then `Read` the file |
+| `inspect <id> [--out /path.png]` | scoped node spec + required screenshot contract |
+| `clone-traits --source <id> --target <id> --traits layout,fills-variables,typography,spacing,text` | surgical, allowlisted trait copy; text is explicit |
+| `sync-corrections [--dir project]` | merge Figma correction cache into canonical `design/memory` |
 | `html-to-figma --html file.html --width 1440 [--x --y] [--replace <id>]` | HTML → REAL auto-layout |
 | `exec-js file.js [--timeout ms]` | arbitrary Plugin-API JS (self-hosted `use_figma`) |
 | `batch ops.json` | many ops, one round-trip (3 ops ≈ 74ms) |
@@ -103,12 +106,18 @@ Route by that line, not by preference:
 
 ## The loop (how a senior designer works)
 
-1. Build (`html-to-figma` or native commands) → 2. `export-png` + `Read` the image →
-3. Critique — run ease-design's critique gate (`templates/workflows/critique.md` + the
-   `knowledge/taste-rubric.md` axes) for the taste read, and this knowledge base's own
-   construction lints (`knowledge/figma-craft/figma-craft.md` → "Construction lints") for
-   node-tree structural checks → 4. Fix **targeted** via `exec-js` → 5. Re-export.
-   Iterate to ≥85/100 or 5 rounds.
+1. `inspect` the target and Read its screenshot → 2. Build (`html-to-figma` or typed
+native commands) → 3. `inspect` again and Read the image →
+4. Critique — run ease-design's critique gate (`templates/workflows/critique.md` + the
+`knowledge/taste-rubric.md` axes) for the taste read, and this knowledge base's own
+construction lints (`knowledge/figma-craft/figma-craft.md` → "Construction lints") for
+node-tree structural checks → 5. Fix **targeted**, preferring `clone-traits` and other
+typed commands over `exec-js` → 6. inspect again.
+Iterate to ≥85/100 or 5 rounds.
+
+After a designer corrects an agent-touched node, run `sync-corrections`. Project
+`design/memory` is canonical; Figma shared plugin data is only the offline edge cache.
+Corrections are evidence for the governed learning loop, never automatic knowledge.
 
 ## exec-js — the escape hatch (unbounded)
 

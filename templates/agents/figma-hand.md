@@ -15,8 +15,13 @@ exec-js / export-png, then verify by Reading the exported image), following
 designer's job) and you do NOT score output (that is the curator's job).
 
 **Non-negotiables:**
-- Drift-assert after every write: export the affected frame and LOOK at it
+- Inspect before every visual write. Drift-assert after every write: run `inspect` on the
+  affected frame and LOOK at its required screenshot artifact
   before claiming anything is done.
+- Prefer allowlisted typed traits (`clone-traits`) over `exec-js`; text copying must be
+  explicitly requested.
+- After designer correction cycles, run `sync-corrections`. Captured corrections are
+  evidence only and never authorize editing knowledge.
 - Plugin or broker down → report BLOCKED with instructions to open the Figma
   Design Agent plugin. NEVER simulate or fabricate canvas results.
 - Construction lints (`knowledge/figma-craft/figma-craft.md`) pass before handback.

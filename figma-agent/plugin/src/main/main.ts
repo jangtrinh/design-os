@@ -26,6 +26,15 @@ import {
   opStatus, opGetSelection, opCreateFrame, opCreateInstance, opSetVariant,
   opSetAutoLayout, opSetConstraints, opSetText, opExportPng, opExecJs,
 } from './executor-ops';
+import { opCloneTraits } from './executor-clone-traits';
+import {
+  beginAgentMutation,
+  readEdgeCorrections,
+  recordAgentMutation,
+  recordDesignerCorrection,
+  writeEdgeCorrections,
+} from './correction-edge-store';
+import type { CorrectionEvent } from '../../../shared/supervised-memory';
 import { PANEL_WIDTH, PANEL_HEIGHT } from '../ui/panel-model';
 
 // P5.1: the panel opens COMPACT (small + minimal on the canvas — owner decree);
@@ -118,6 +127,13 @@ function fireIdle(): void {
 function onDocumentChange(event: DocumentChangeEvent): void {
   const raw: ComponentChange[] = [];
   for (const dc of event.documentChanges) {
+    const changedNode = (dc as { node: SceneNode | RemovedNode }).node;
+    if (!('removed' in changedNode) || !changedNode.removed) {
+      recordDesignerCorrection(changedNode.id, {
+        changeType: dc.type,
+        properties: dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [],
+      });
+    }
     const op = mapChangeType(dc.type);
     if (op === null) continue; // STYLE_* — components only in P1
     const identity = resolveComponentIdentity((dc as { node: SceneNode | RemovedNode }).node);
@@ -174,7 +190,11 @@ figma.ui.onmessage = async (msg: unknown) => {
   const req = msg as Partial<UiRequest> | null;
   if (!req || typeof req.requestId !== 'string' || typeof req.cmd !== 'string') return; // relay chatter, not a command
   try {
+    const targetIds = mutationTargetIds(req.cmd as CommandName, req.params ?? {});
+    beginAgentMutation(targetIds);
     const result = await dispatch(req.cmd, req.params ?? {});
+    const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
+    for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
     figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
   } catch (err) {
     figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
@@ -185,6 +205,25 @@ function shapeError(err: unknown): { code: ErrorCode; message: string } {
   const code = ((err as { code?: string } | null)?.code ?? 'E_PLUGIN_ERROR') as ErrorCode;
   const message = err instanceof Error ? err.message : String(err);
   return { code, message };
+}
+
+function resultMutationIds(cmd: CommandName, result: unknown): string[] {
+  const creating: readonly CommandName[] = [
+    'CREATE_FRAME', 'CREATE_INSTANCE', 'IMPORT_PAYLOAD', 'HTML_TO_FIGMA',
+  ];
+  if (!creating.includes(cmd) || !result || typeof result !== 'object') return [];
+  const id = (result as { id?: unknown }).id;
+  return typeof id === 'string' && id ? [id] : [];
+}
+
+function mutationTargetIds(cmd: CommandName, params: Params): string[] {
+  const mutating: readonly CommandName[] = [
+    'SET_VARIANT', 'BIND_VARIABLE', 'SET_AUTOLAYOUT', 'SET_CONSTRAINTS',
+    'SET_TEXT', 'CLONE_TRAITS',
+  ];
+  if (!mutating.includes(cmd)) return [];
+  const raw = cmd === 'CLONE_TRAITS' ? params.targetId ?? params.target : params.nodeId ?? params.node;
+  return typeof raw === 'string' && raw ? [raw] : [];
 }
 
 async function dispatch(cmd: CommandName, params: Params): Promise<unknown> {
@@ -201,6 +240,13 @@ async function dispatch(cmd: CommandName, params: Params): Promise<unknown> {
     case 'SET_AUTOLAYOUT': return opSetAutoLayout(params);
     case 'SET_CONSTRAINTS': return opSetConstraints(params);
     case 'SET_TEXT': return opSetText(params);
+    case 'CLONE_TRAITS': return opCloneTraits(params);
+    case 'GET_CORRECTION_MEMORY': return { events: readEdgeCorrections() };
+    case 'SET_CORRECTION_MEMORY': {
+      const events = params.events;
+      if (!Array.isArray(events)) throw withCode(new Error('SET_CORRECTION_MEMORY requires events[]'), 'E_INVALID_ARGS');
+      return { events: writeEdgeCorrections(events as CorrectionEvent[]) };
+    }
     case 'EXPORT_PNG': return opExportPng(params);
     case 'EXEC_JS': return opExecJs(params);
     case 'IMPORT_PAYLOAD': return importPayload(params);
