@@ -7,10 +7,10 @@
  */
 
 export const VERB_SKILL_REFS: Readonly<Record<string, readonly string[]>> = {
-  generate:  ["pick-persona", "score-taste", "check-consistency", "color-decision"],
+  generate:  ["pick-persona", "score-taste", "check-consistency", "color-decision", "gsap-motion"],
   iterate:   ["apply-prompt-mode", "score-taste"],
-  refine:    ["score-taste", "check-consistency"],
-  redesign:  ["pick-persona", "score-taste", "color-decision"],
+  refine:    ["score-taste", "check-consistency", "gsap-motion"],
+  redesign:  ["pick-persona", "score-taste", "color-decision", "gsap-motion"],
   extract:   ["token-model", "color-decision"],
   learn:     ["token-model", "color-decision"],
   why:       [],

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-21 - GSAP motion direction skill
+
+- Added `design-os-gsap-motion`, distributed by `ui init` to Claude Code, Antigravity, and Codex.
+- Adapted GreenSock's official MIT GSAP skill suite into a consolidated DESIGN:OS playbook for
+  timelines, ScrollTrigger, framework lifecycle, plugins, accessibility, and performance.
+- Wired the skill into generate, refine, and redesign workflows only when T5 web choreography is
+  justified. Simple transitions remain CSS and native mobile production motion remains native.
+- Installed the eight upstream GreenSock skills into the local Codex runtime for direct use.
+
 All notable changes to ease-design are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses
 [semantic versioning](https://semver.org/).

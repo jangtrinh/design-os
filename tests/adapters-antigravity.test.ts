@@ -13,8 +13,8 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 27 artifacts (16 workflows + 8 craft skills + 3 journey skills)", () => {
-    expect(makeArtifacts()).toHaveLength(27);
+  it("returns exactly 28 artifacts (16 workflows + 9 craft skills + 3 journey skills)", () => {
+    expect(makeArtifacts()).toHaveLength(28);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -34,7 +34,7 @@ describe("generateAntigravityAdapter", () => {
     expect(workflows.some((w) => w.absPath.endsWith("/ui-from-url.md"))).toBe(true);
   });
 
-  it("11 artifacts are skill paths under .agent/skills/design-os-*/SKILL.md (8 craft + 3 journey)", () => {
+  it("12 artifacts are skill paths under .agent/skills/design-os-*/SKILL.md (9 craft + 3 journey)", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".agent/skills/design-os-"),
     );
@@ -51,6 +51,9 @@ describe("generateAntigravityAdapter", () => {
     }
     expect(
       skills.some((s) => s.absPath.endsWith("design-os-designmd-emit/SKILL.md")),
+    ).toBe(true);
+    expect(
+      skills.some((s) => s.absPath.endsWith("design-os-gsap-motion/SKILL.md")),
     ).toBe(true);
   });
 
