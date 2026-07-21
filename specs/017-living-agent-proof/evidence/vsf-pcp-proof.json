@@ -1,0 +1,30 @@
+{
+  "kind": "evolution-proof",
+  "version": 1,
+  "projectId": "VSF-PCP",
+  "sources": [
+    {
+      "id": "vsf-independent-census",
+      "projectId": "VSF-PCP",
+      "learnedAt": "2026-07-17T05:28:19Z",
+      "evidenceRef": "/Users/jang/Products/VSF-PCP/design/memory.events.jsonl#e166",
+      "lesson": "Independently re-audit self-reported clean results with a full census."
+    },
+    {
+      "id": "vsf-reference-duel",
+      "projectId": "VSF-PCP",
+      "learnedAt": "2026-07-17T05:28:19Z",
+      "evidenceRef": "/Users/jang/Products/VSF-PCP/design/memory.events.jsonl#e167",
+      "lesson": "Use structural reference comparison in addition to pixel review."
+    }
+  ],
+  "applications": [],
+  "defects": [],
+  "comparisons": [],
+  "safeguards": {
+    "contradictionPassed": false,
+    "contradictionRef": "",
+    "isolationPassed": false,
+    "isolationRef": ""
+  }
+}
