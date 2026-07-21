@@ -174,8 +174,9 @@ DESIGN:OS now separates four claims that are often blurred together:
 1. **ALIVE** — the project has a learning loop.
 2. **LEARNING** — evidence became a bounded lesson.
 3. **APPLIED** — later work cites and uses that lesson.
-4. **IMPROVING** — a controlled comparison clears declared quality, repair, recurrence, and
-   safety thresholds.
+4. **IMPROVING** — a preregistered suite of at least three holdouts across at least two
+   categories clears the declared mean-quality, aggregate-repair, recurrence, and safety
+   thresholds — the deterministic engine computes the suite verdict itself.
 
 The proof is causal rather than volumetric. A thousand memory events do not prove learning. An
 APPLIED claim needs the original evidence, a later retrieval/application receipt, the affected
@@ -204,7 +205,8 @@ The deterministic verdict is still **APPLIED**, not **IMPROVING**. The study did
 predeclared +10 comparison delta, used one treatment repair round, and has not completed
 contradiction or cross-project isolation runs. That boundary is intentional: the final design
 crossed the world-class visual threshold, but one successful case is not proof of an everyday
-trend.
+trend — the engine now enforces a suite-level gate, so no single comparison can graduate on
+its own.
 
 Run the evidence report:
 

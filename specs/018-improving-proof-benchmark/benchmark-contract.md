@@ -31,7 +31,9 @@ cleanup, and console errors. Decorative complexity receives no credit.
 ## Controlled protocol
 
 - Same product facts, assets, model, environment, time budget, and repair budget.
-- Control excludes recalled project learning; treatment includes DESIGN:OS recall and orchestration.
+- The arms differ by exactly one variable: eligible recalled project learning. Control runs with it
+  disabled, treatment with it enabled. Orchestration, prompts, model, assets, and every other input are
+  identical in both arms — orchestration is never a treatment-only difference.
 - Anonymous randomized evaluation at required desktop/mobile/native device sizes.
 - Contradiction cases inject an irrelevant or conflicting lesson; treatment must reject it.
 - Isolation cases verify that private project rules do not leak across projects.
@@ -39,12 +41,16 @@ cleanup, and console errors. Decorative complexity receives no credit.
 
 ## Graduation threshold
 
-- Treatment wins all three cases.
+- At least three cases, across at least two categories.
+- Treatment wins all cases.
 - Mean blind curator delta is at least +10.
 - Repair rounds decrease at least 25 percent.
 - Repeated user corrections decrease at least 70 percent.
 - Zero critical regressions.
 - Contradiction and isolation safeguards pass.
+
+If aggregate control repair rounds or aggregate repeated corrections are zero, that reduction is
+undefined and the suite does not graduate — a `0 → 0` change is never counted as improvement.
 
 Failure produces a learning record naming helpful, harmful, and irrelevant lessons. It never
 lowers the threshold or promotes a single-case preference into universal knowledge.

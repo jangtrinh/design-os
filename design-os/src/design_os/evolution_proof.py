@@ -33,9 +33,11 @@ def _time(value: Any) -> datetime | None:
         return None
 
 
-def _reduction(before: int, after: int) -> float:
+def _reduction(before: int, after: int) -> float | None:
+    """Fractional reduction before→after. None when there is no baseline (before == 0):
+    a 0→0 or 0→N change demonstrates no reduction and must never read as improvement."""
     if before == 0:
-        return 1.0 if after == 0 else -1.0
+        return None
     return (before - after) / before
 
 
@@ -75,15 +77,19 @@ def validate_proof(proof: dict[str, Any]) -> dict[str, Any]:
             and _text(safeguards.get("isolationRef")))
     if not safe:
         findings.append({"code": "missing-proof-safeguards", "message": "contradiction and isolation checks must pass"})
+    suite = _suite_result(comparisons)
+    if comparisons and not suite["passed"]:
+        reason = "fewer than 3 cases" if suite["cases"] < 3 else "fewer than 2 categories" if suite["categories"] < 2 else "a case did not win" if not suite["allWon"] else "a case has a regression" if not suite["noRegressions"] else "mean delta below 10" if suite["meanDelta"] < 10 else "repair reduction below 25% or undefined" if suite["repairReduction"] is None or suite["repairReduction"] < .25 else "repeated-correction reduction below 70% or undefined"
+        findings.append({"code": "suite-below-improving-bar", "message": reason})
     level = "ALIVE"
     if valid_sources:
         level = "LEARNING"
     if valid_sources and (applications or defects):
         level = "APPLIED"
-    if level == "APPLIED" and comparisons and safe:
+    if level == "APPLIED" and suite["passed"] and safe:
         level = "IMPROVING"
     return {"level": level, "counts": {"sources": len(valid_sources), "applications": len(applications),
-            "defects": len(defects), "comparisons": len(comparisons)}, "findings": findings}
+            "defects": len(defects), "comparisons": len(comparisons)}, "suite": suite, "findings": findings}
 
 
 def _valid_applications(value: Any, sources: dict[Any, dict[str, Any]], findings: list[dict[str, str]]) -> list[dict[str, Any]]:
@@ -120,30 +126,39 @@ def _valid_defects(value: Any, sources: dict[Any, dict[str, Any]], findings: lis
     return valid
 
 
+def _suite_result(comparisons: list[dict[str, Any]]) -> dict[str, Any]:
+    cases = len(comparisons)
+    categories = {c["category"] for c in comparisons}
+    deltas = [c["treatment"]["curatorScore"] - c["control"]["curatorScore"] for c in comparisons]
+    wins = bool(comparisons) and all(d > 0 for d in deltas)
+    no_regressions = all(c["regressions"] == 0 for c in comparisons)
+    mean_delta = (sum(deltas) / cases) if cases else 0.0
+    repair = _reduction(sum(c["control"]["repairRounds"] for c in comparisons),
+                        sum(c["treatment"]["repairRounds"] for c in comparisons))
+    repeated = _reduction(sum(c["control"]["repeatedCorrections"] for c in comparisons),
+                          sum(c["treatment"]["repeatedCorrections"] for c in comparisons))
+    passed = (cases >= 3 and len(categories) >= 2 and wins and no_regressions
+              and mean_delta >= 10
+              and repair is not None and repair >= 0.25
+              and repeated is not None and repeated >= 0.70)
+    return {"cases": cases, "categories": len(categories), "meanDelta": mean_delta,
+            "repairReduction": repair, "repeatedReduction": repeated,
+            "allWon": wins, "noRegressions": no_regressions, "passed": passed}
+
+
 def _valid_comparisons(value: Any, findings: list[dict[str, str]]) -> list[dict[str, Any]]:
     valid = []
     for item in value if isinstance(value, list) else []:
         control, treatment = item.get("control", {}), item.get("treatment", {})
-        refs = _text(item.get("id")) and _text(control.get("artifactRef")) and _text(treatment.get("artifactRef"))
-        values = [control.get("curatorScore"), treatment.get("curatorScore")]
-        counts = [control.get("repairRounds"), treatment.get("repairRounds"),
-                  control.get("repeatedCorrections"), treatment.get("repeatedCorrections")]
-        numeric = all(isinstance(x, (int, float)) and not isinstance(x, bool) and 0 <= x <= 100 for x in values)
+        refs = all(_text(x) for x in (item.get("id"), control.get("artifactRef"), treatment.get("artifactRef"), item.get("category")))
+        scores = [control.get("curatorScore"), treatment.get("curatorScore")]
+        counts = [control.get("repairRounds"), treatment.get("repairRounds"), control.get("repeatedCorrections"), treatment.get("repeatedCorrections"), item.get("regressions")]
+        numeric = all(isinstance(x, (int, float)) and not isinstance(x, bool) and 0 <= x <= 100 for x in scores)
         integral = all(isinstance(x, int) and not isinstance(x, bool) and x >= 0 for x in counts)
-        try:
-            score = treatment["curatorScore"] - control["curatorScore"]
-            repair = _reduction(control["repairRounds"], treatment["repairRounds"])
-            repeated = _reduction(control["repeatedCorrections"], treatment["repeatedCorrections"])
-        except (KeyError, TypeError):
-            score, repair, repeated = -1, -1, -1
-        regressions = item.get("regressions")
-        if (refs and numeric and integral and item.get("controlledInputs") is True
-                and item.get("blindEvaluation") is True and isinstance(regressions, int)
-                and not isinstance(regressions, bool) and regressions == 0
-                and score >= 10 and repair >= .25 and repeated >= .70):
+        if refs and numeric and integral and item.get("controlledInputs") is True and item.get("blindEvaluation") is True:
             valid.append(item)
         else:
-            findings.append({"code": "comparison-below-proof-bar", "message": f"comparison '{item.get('id')}' does not clear controlled improvement thresholds"})
+            findings.append({"code": "invalid-comparison", "message": f"comparison '{item.get('id')}' is structurally incomplete"})
     return valid
 
 

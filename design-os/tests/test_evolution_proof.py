@@ -93,41 +93,56 @@ def test_defect_gate_requires_negative_fixture_and_later_run() -> None:
     assert validate_proof(proof)["level"] == "LEARNING"
 
 
-def test_improving_requires_control_thresholds_and_safeguards() -> None:
-    proof = base()
-    proof["applications"] = [{
+def application() -> dict[str, object]:
+    return {
         "id": "apply-1", "sourceIds": ["lesson-1"],
         "appliedAt": "2026-07-19T10:00:00Z", "relevance": "Relevant",
         "decisionRef": "d", "artifactRef": "a", "outcomeRef": "o",
-    }]
-    proof["comparisons"] = [{
-        "id": "cmp-1", "controlledInputs": True, "blindEvaluation": True,
-        "control": {"artifactRef": "c", "curatorScore": 60, "repairRounds": 4, "repeatedCorrections": 10},
-        "treatment": {"artifactRef": "t", "curatorScore": 72, "repairRounds": 2, "repeatedCorrections": 2},
-        "regressions": 0,
-    }]
+    }
+
+
+def three_case_suite() -> list[dict[str, object]]:
+    return [
+        {
+            "id": "cmp-promotion", "category": "promotion", "controlledInputs": True, "blindEvaluation": True,
+            "control": {"artifactRef": "c1", "curatorScore": 60, "repairRounds": 4, "repeatedCorrections": 10},
+            "treatment": {"artifactRef": "t1", "curatorScore": 76, "repairRounds": 1, "repeatedCorrections": 1},
+            "regressions": 0,
+        },
+        {
+            "id": "cmp-native-mobile", "category": "native-mobile", "controlledInputs": True, "blindEvaluation": True,
+            "control": {"artifactRef": "c2", "curatorScore": 62, "repairRounds": 4, "repeatedCorrections": 10},
+            "treatment": {"artifactRef": "t2", "curatorScore": 74, "repairRounds": 1, "repeatedCorrections": 1},
+            "regressions": 0,
+        },
+        {
+            "id": "cmp-architecture", "category": "architecture", "controlledInputs": True, "blindEvaluation": True,
+            "control": {"artifactRef": "c3", "curatorScore": 58, "repairRounds": 4, "repeatedCorrections": 10},
+            "treatment": {"artifactRef": "t3", "curatorScore": 70, "repairRounds": 1, "repeatedCorrections": 1},
+            "regressions": 0,
+        },
+    ]
+
+
+def test_improving_requires_control_thresholds_and_safeguards() -> None:
+    proof = base()
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
     proof["safeguards"] = {
         "contradictionPassed": True, "contradictionRef": "tests/contradiction.json",
         "isolationPassed": True, "isolationRef": "tests/isolation.json",
     }
     assert validate_proof(proof)["level"] == "IMPROVING"
-    proof["comparisons"][0]["treatment"]["curatorScore"] = 69
-    assert validate_proof(proof)["level"] == "APPLIED"
+    proof["comparisons"] = proof["comparisons"][:2]
+    result = validate_proof(proof)
+    assert result["level"] == "APPLIED"
+    assert any(x["code"] == "suite-below-improving-bar" for x in result["findings"])
 
 
 def test_improving_requires_safeguard_references_and_numeric_counts() -> None:
     proof = base()
-    proof["applications"] = [{
-        "id": "apply-1", "sourceIds": ["lesson-1"],
-        "appliedAt": "2026-07-19T10:00:00Z", "relevance": "Relevant",
-        "decisionRef": "d", "artifactRef": "a", "outcomeRef": "o",
-    }]
-    proof["comparisons"] = [{
-        "id": "cmp-1", "controlledInputs": True, "blindEvaluation": True,
-        "control": {"artifactRef": "c", "curatorScore": 60, "repairRounds": 4, "repeatedCorrections": 10},
-        "treatment": {"artifactRef": "t", "curatorScore": 72, "repairRounds": 2, "repeatedCorrections": 2},
-        "regressions": 0,
-    }]
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
     proof["safeguards"] = {
         "contradictionPassed": True, "contradictionRef": "",
         "isolationPassed": True, "isolationRef": "",
@@ -137,6 +152,100 @@ def test_improving_requires_safeguard_references_and_numeric_counts() -> None:
     proof["safeguards"]["isolationRef"] = "i.json"
     proof["comparisons"][0]["control"]["repairRounds"] = True
     assert validate_proof(proof)["level"] == "APPLIED"
+
+
+def test_suite_requires_two_categories() -> None:
+    proof = base()
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
+    for cmp in proof["comparisons"]:
+        cmp["category"] = "promotion"
+    proof["safeguards"] = {
+        "contradictionPassed": True, "contradictionRef": "c.json",
+        "isolationPassed": True, "isolationRef": "i.json",
+    }
+    result = validate_proof(proof)
+    assert result["level"] == "APPLIED"
+    assert any(x["code"] == "suite-below-improving-bar" and "categor" in x["message"] for x in result["findings"])
+
+
+def test_suite_requires_every_case_to_win() -> None:
+    proof = base()
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
+    proof["comparisons"][2]["treatment"]["curatorScore"] = proof["comparisons"][2]["control"]["curatorScore"]
+    proof["safeguards"] = {
+        "contradictionPassed": True, "contradictionRef": "c.json",
+        "isolationPassed": True, "isolationRef": "i.json",
+    }
+    assert validate_proof(proof)["level"] == "APPLIED"
+
+
+def test_mean_delta_gate_not_per_case() -> None:
+    proof = base()
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
+    proof["safeguards"] = {
+        "contradictionPassed": True, "contradictionRef": "c.json",
+        "isolationPassed": True, "isolationRef": "i.json",
+    }
+    deltas_passing = [16, 16, 4]
+    for cmp, delta in zip(proof["comparisons"], deltas_passing):
+        cmp["treatment"]["curatorScore"] = cmp["control"]["curatorScore"] + delta
+    assert validate_proof(proof)["level"] == "IMPROVING"
+
+    deltas_failing = [12, 12, 3]
+    for cmp, delta in zip(proof["comparisons"], deltas_failing):
+        cmp["treatment"]["curatorScore"] = cmp["control"]["curatorScore"] + delta
+    assert validate_proof(proof)["level"] == "APPLIED"
+
+
+def test_zero_denominator_repair_is_not_improvement() -> None:
+    proof = base()
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
+    for cmp in proof["comparisons"]:
+        cmp["control"]["repairRounds"] = 0
+        cmp["treatment"]["repairRounds"] = 0
+    proof["safeguards"] = {
+        "contradictionPassed": True, "contradictionRef": "c.json",
+        "isolationPassed": True, "isolationRef": "i.json",
+    }
+    result = validate_proof(proof)
+    assert result["level"] == "APPLIED"
+    assert result["suite"]["repairReduction"] is None
+    assert any(x["code"] == "suite-below-improving-bar" for x in result["findings"])
+
+
+def test_aggregate_reduction_thresholds() -> None:
+    proof = base()
+    proof["applications"] = [application()]
+    proof["comparisons"] = three_case_suite()
+    proof["safeguards"] = {
+        "contradictionPassed": True, "contradictionRef": "c.json",
+        "isolationPassed": True, "isolationRef": "i.json",
+    }
+    # aggregate repair reduction 24% (below the 25% bar): control 100, treatment 76.
+    rounds = [{"control": 34, "treatment": 26}, {"control": 33, "treatment": 25}, {"control": 33, "treatment": 25}]
+    for cmp, r in zip(proof["comparisons"], rounds):
+        cmp["control"]["repairRounds"] = r["control"]
+        cmp["treatment"]["repairRounds"] = r["treatment"]
+    result = validate_proof(proof)
+    assert result["level"] == "APPLIED"
+    assert round(result["suite"]["repairReduction"], 2) == 0.24
+
+    # aggregate repeated-correction reduction 69% (below the 70% bar): control 100, treatment 31.
+    proof2 = base()
+    proof2["applications"] = [application()]
+    proof2["comparisons"] = three_case_suite()
+    proof2["safeguards"] = proof["safeguards"]
+    corrections = [{"control": 34, "treatment": 11}, {"control": 33, "treatment": 10}, {"control": 33, "treatment": 10}]
+    for cmp, r in zip(proof2["comparisons"], corrections):
+        cmp["control"]["repeatedCorrections"] = r["control"]
+        cmp["treatment"]["repeatedCorrections"] = r["treatment"]
+    result2 = validate_proof(proof2)
+    assert result2["level"] == "APPLIED"
+    assert round(result2["suite"]["repeatedReduction"], 2) == 0.69
 
 
 def test_diagnostics_name_nested_store_stale_heartbeat_and_corrections(tmp_path: Path) -> None:
