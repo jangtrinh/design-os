@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["a", "b", "winner", "confidence", "limitations"],
+  "properties": {
+    "a": { "$ref": "#/$defs/score" },
+    "b": { "$ref": "#/$defs/score" },
+    "winner": { "enum": ["a", "b", "tie"], "type": "string" },
+    "confidence": { "type": "string" },
+    "limitations": { "type": "string" }
+  },
+  "$defs": {
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "artDirection", "hierarchy", "sectionDepth", "layoutDiversity", "imageUse", "responsive", "coherence", "findings"],
+      "properties": {
+        "total": { "type": "number", "minimum": 0, "maximum": 100 },
+        "artDirection": { "type": "number", "minimum": 0, "maximum": 15 },
+        "hierarchy": { "type": "number", "minimum": 0, "maximum": 15 },
+        "sectionDepth": { "type": "number", "minimum": 0, "maximum": 15 },
+        "layoutDiversity": { "type": "number", "minimum": 0, "maximum": 15 },
+        "imageUse": { "type": "number", "minimum": 0, "maximum": 10 },
+        "responsive": { "type": "number", "minimum": 0, "maximum": 10 },
+        "coherence": { "type": "number", "minimum": 0, "maximum": 20 },
+        "findings": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

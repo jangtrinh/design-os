@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/evolution-proof.schema.json",
+  "title": "DESIGN:OS living-agent evolution proof",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "version", "projectId", "sources", "applications", "defects", "comparisons", "safeguards"],
+  "properties": {
+    "kind": { "const": "evolution-proof" },
+    "version": { "const": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "projectId", "learnedAt", "evidenceRef", "lesson"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "projectId": { "type": "string", "minLength": 1 },
+          "learnedAt": { "type": "string", "format": "date-time" },
+          "evidenceRef": { "type": "string", "minLength": 1 },
+          "lesson": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "applications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "sourceIds", "appliedAt", "relevance", "decisionRef", "artifactRef", "outcomeRef"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "appliedAt": { "type": "string", "format": "date-time" },
+          "relevance": { "type": "string", "minLength": 1 },
+          "decisionRef": { "type": "string", "minLength": 1 },
+          "artifactRef": { "type": "string", "minLength": 1 },
+          "outcomeRef": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "sourceId", "escapedAt", "correctedAt", "rootCause", "gateId", "gateRef", "negativeFixtureRef", "fixtureFails", "laterRunRef", "laterDetectedCount"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "sourceId": { "type": "string", "minLength": 1 },
+          "escapedAt": { "type": "string", "format": "date-time" },
+          "correctedAt": { "type": "string", "format": "date-time" },
+          "rootCause": { "type": "string", "minLength": 1 },
+          "gateId": { "type": "string", "minLength": 1 },
+          "gateRef": { "type": "string", "minLength": 1 },
+          "negativeFixtureRef": { "type": "string", "minLength": 1 },
+          "fixtureFails": { "const": true },
+          "laterRunRef": { "type": "string", "minLength": 1 },
+          "laterDetectedCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "controlledInputs", "blindEvaluation", "control", "treatment", "regressions"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "controlledInputs": { "const": true },
+          "blindEvaluation": { "const": true },
+          "control": { "$ref": "#/definitions/outcome" },
+          "treatment": { "$ref": "#/definitions/outcome" },
+          "regressions": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "safeguards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contradictionPassed", "contradictionRef", "isolationPassed", "isolationRef"],
+      "properties": {
+        "contradictionPassed": { "type": "boolean" },
+        "contradictionRef": { "type": "string" },
+        "isolationPassed": { "type": "boolean" },
+        "isolationRef": { "type": "string" }
+      }
+    }
+  },
+  "definitions": {
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactRef", "curatorScore", "repairRounds", "repeatedCorrections"],
+      "properties": {
+        "artifactRef": { "type": "string", "minLength": 1 },
+        "curatorScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "repairRounds": { "type": "integer", "minimum": 0 },
+        "repeatedCorrections": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

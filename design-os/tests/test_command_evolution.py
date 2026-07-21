@@ -17,6 +17,7 @@ from design_os.cli import app
 
 _DANA = Path("/Users/jang/Products/dana-desktop")
 _VSF = Path("/Users/jang/Products/VSF-PCP")
+_PLATFORM_DS = Path("/Users/jang/Products/platform-design-system")
 
 
 def test_no_ledger_json_envelope(runner: CliRunner, tmp_path: Path) -> None:
@@ -97,3 +98,13 @@ def test_live_vsf_is_alive(runner: CliRunner) -> None:
     assert env["data"]["soul"]["ratified"] is True
     assert env["data"]["heartbeat"]["wired"] is True
     assert env["data"]["heartbeat"]["task_count"] == 5
+
+
+@pytest.mark.skipif(not _PLATFORM_DS.is_dir(), reason="platform-design-system checkout not present")
+def test_live_platform_ds_names_nested_store_and_stale_heartbeat(runner: CliRunner) -> None:
+    res = runner.invoke(app, ["evolution", "--dir", str(_PLATFORM_DS), "--json"])
+    assert res.exit_code == 0
+    env = json.loads(res.stdout)
+    codes = {item["code"] for item in env["data"]["proofDiagnostics"]}
+    assert "nested-memory-store" in codes
+    assert "heartbeat-never-recorded" in codes

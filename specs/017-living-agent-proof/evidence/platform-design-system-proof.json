@@ -1,0 +1,63 @@
+{
+  "kind": "evolution-proof",
+  "version": 1,
+  "projectId": "platform-design-system",
+  "sources": [
+    {
+      "id": "platform-curator-content-defects",
+      "projectId": "platform-design-system",
+      "learnedAt": "2026-07-18T08:00:00Z",
+      "evidenceRef": "/Users/jang/Products/platform-design-system/plans/260717-auto-review-workflow/curator-audit-4waves.md",
+      "lesson": "Escaped content and data-coherence defect classes must become executable gates with negative fixtures."
+    }
+  ],
+  "applications": [],
+  "defects": [
+    {
+      "id": "platform-g6-content-sanity",
+      "sourceId": "platform-curator-content-defects",
+      "escapedAt": "2026-07-18T08:10:00Z",
+      "correctedAt": "2026-07-18T10:00:00Z",
+      "rootCause": "Existing construction gates did not inspect unresolved placeholder and developer-error strings.",
+      "gateId": "G6",
+      "gateRef": "/Users/jang/Products/platform-design-system/.claude/skills/platform-ds-build/gates/06-content-sanity.js",
+      "negativeFixtureRef": "/Users/jang/Products/platform-design-system/.claude/skills/platform-ds-build/gates/cases/g6-content-sanity.json",
+      "fixtureFails": true,
+      "laterRunRef": "/Users/jang/Products/platform-design-system/plans/260717-auto-review-workflow/FINAL-AUDIT.md",
+      "laterDetectedCount": 1
+    },
+    {
+      "id": "platform-g8-count-coherence",
+      "sourceId": "platform-curator-content-defects",
+      "escapedAt": "2026-07-18T08:20:00Z",
+      "correctedAt": "2026-07-18T11:00:00Z",
+      "rootCause": "No gate compared tab counts, rendered rows, status details, and pager totals.",
+      "gateId": "G8",
+      "gateRef": "/Users/jang/Products/platform-design-system/.claude/skills/platform-ds-build/gates/08-count-coherence.js",
+      "negativeFixtureRef": "/Users/jang/Products/platform-design-system/.claude/skills/platform-ds-build/gates/cases/g8-count-coherence.json",
+      "fixtureFails": true,
+      "laterRunRef": "/Users/jang/Products/platform-design-system/plans/260717-auto-review-workflow/FINAL-AUDIT.md",
+      "laterDetectedCount": 1
+    },
+    {
+      "id": "platform-g9-chart-legend",
+      "sourceId": "platform-curator-content-defects",
+      "escapedAt": "2026-07-18T08:30:00Z",
+      "correctedAt": "2026-07-18T12:00:00Z",
+      "rootCause": "Visual review sampled too few charts and no gate reconciled marks, legend thresholds, and companion data.",
+      "gateId": "G9",
+      "gateRef": "/Users/jang/Products/platform-design-system/.claude/skills/platform-ds-build/gates/09-chart-legend.js",
+      "negativeFixtureRef": "/Users/jang/Products/platform-design-system/.claude/skills/platform-ds-build/gates/cases/g9-chart-legend.json",
+      "fixtureFails": true,
+      "laterRunRef": "/Users/jang/Products/platform-design-system/plans/260717-auto-review-workflow/FINAL-AUDIT.md",
+      "laterDetectedCount": 2
+    }
+  ],
+  "comparisons": [],
+  "safeguards": {
+    "contradictionPassed": false,
+    "contradictionRef": "",
+    "isolationPassed": false,
+    "isolationRef": ""
+  }
+}

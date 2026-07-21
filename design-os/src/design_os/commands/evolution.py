@@ -14,18 +14,33 @@ from typing import Annotated, Any
 
 import typer
 
-from design_os import evolution_core
+from design_os import evolution_core, evolution_proof
 from design_os.envelope import JsonFlag, emit, ok_env
 
 _COMMAND = "evolution"
 
 
-def _render_text(signals: dict[str, Any]) -> str:
+def _render_text(
+    signals: dict[str, Any],
+    proof: dict[str, Any] | None = None,
+    diagnostics: list[dict[str, str]] | None = None,
+) -> str:
     # Every dimension is printed regardless of the ledger's existence (Art VIII) — a
     # WIRED project (spec 012 P2: heartbeat configured, never fired) has NO ledger yet,
     # and cutting the report short there would hide the very signal (heartbeat wired)
     # that explains why the verdict isn't NO-LOOP.
+    proof = proof or {"level": "ALIVE", "counts": {}, "findings": []}
+    diagnostics = diagnostics or []
     lines: list[str] = [f"evolution: {signals['verdict']}"]
+    lines.append(
+        f"  living-agent proof: {proof['level']} "
+        f"(sources={proof.get('counts', {}).get('sources', 0)}, "
+        f"applications={proof.get('counts', {}).get('applications', 0)}, "
+        f"defects={proof.get('counts', {}).get('defects', 0)}, "
+        f"comparisons={proof.get('counts', {}).get('comparisons', 0)})"
+    )
+    for item in [*proof.get("findings", []), *diagnostics]:
+        lines.append(f"  proof finding [{item['code']}]: {item['message']}")
 
     ledger = signals["ledger"]
     if not ledger["exists"]:
@@ -86,10 +101,14 @@ def _render_text(signals: dict[str, Any]) -> str:
 
 def evolution(
     dir_: Annotated[Path, typer.Option("--dir", help="Project dir holding design/ (default: cwd)")] = Path("."),
+    proof_: Annotated[Path | None, typer.Option("--proof", help="Evolution proof JSON (default: design/evolution-proof.json)")] = None,
     json_: JsonFlag = False,
 ) -> None:
     """Read a project's `design/` directory and report ALIVE / DEAD-LOOP / NO-LOOP for its
     learning loop, plus every signal's raw state. Read-only; always exits 0."""
     signals = evolution_core.gather_signals(dir_)
-    data = {"project": str(dir_), **signals}
-    emit(ok_env(_COMMAND, data), json_mode=json_, text=_render_text(signals), exit_code=0)
+    proof_path = proof_ or dir_ / "design" / "evolution-proof.json"
+    proof = evolution_proof.read_and_validate(proof_path)
+    diagnostics = evolution_proof.proof_diagnostics(dir_)
+    data = {"project": str(dir_), **signals, "proof": proof, "proofDiagnostics": diagnostics}
+    emit(ok_env(_COMMAND, data), json_mode=json_, text=_render_text(signals, proof, diagnostics), exit_code=0)

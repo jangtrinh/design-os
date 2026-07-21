@@ -1,0 +1,82 @@
+{
+  "kind": "evolution-proof",
+  "version": 1,
+  "projectId": "ease-design",
+  "sources": [
+    {
+      "id": "feedback-image-as-design-material",
+      "projectId": "ease-design",
+      "learnedAt": "2026-07-20T05:00:00Z",
+      "evidenceRef": "specs/015-world-class-learning-loop/current-work-p0-audit-2026-07-19.md",
+      "lesson": "Use real imagery as section design material and include planned image-generation prompts in orchestration."
+    },
+    {
+      "id": "feedback-section-depth",
+      "projectId": "ease-design",
+      "learnedAt": "2026-07-20T06:00:00Z",
+      "evidenceRef": "specs/015-world-class-learning-loop/benchmark-section-architecture-findings.md",
+      "lesson": "Qualify every major section because landing-page quality commonly declines below the hero."
+    },
+    {
+      "id": "feedback-stronger-orchestration",
+      "projectId": "ease-design",
+      "learnedAt": "2026-07-20T07:00:00Z",
+      "evidenceRef": "specs/015-world-class-learning-loop/plan.md",
+      "lesson": "Translate raw intent into design read, section architecture, assets, interaction, and qualification decisions."
+    },
+    {
+      "id": "blind-round-one-feedback",
+      "projectId": "ease-design",
+      "learnedAt": "2026-07-21T05:34:00Z",
+      "evidenceRef": "specs/017-living-agent-proof/benchmark/blind-score-round-1.json",
+      "lesson": "Tighten vertical rhythm, vary headline treatment, preserve narrative order on mobile, and strengthen secondary-text contrast."
+    }
+  ],
+  "applications": [
+    {
+      "id": "apply-orchestration-to-repeatability-suite",
+      "sourceIds": ["feedback-image-as-design-material", "feedback-section-depth", "feedback-stronger-orchestration"],
+      "appliedAt": "2026-07-21T02:00:00Z",
+      "relevance": "The Architecture, Nutrition, and Planning runs needed topic-specific section architecture, imagery, and full-page qualification.",
+      "decisionRef": "knowledge/world-class-learning-loop.md",
+      "artifactRef": "experiments/world-class-benchmark/evidence/repeatability-study/",
+      "outcomeRef": "experiments/world-class-benchmark/evidence/repeatability-study/result.md"
+    },
+    {
+      "id": "apply-blind-feedback-to-treatment",
+      "sourceIds": ["blind-round-one-feedback"],
+      "appliedAt": "2026-07-21T05:40:00Z",
+      "relevance": "The first memory-enabled delivery scored 89 but retained four visible craft weaknesses.",
+      "decisionRef": "specs/017-living-agent-proof/benchmark/treatment-iteration-prompt.md",
+      "artifactRef": "specs/017-living-agent-proof/benchmark/treatment/index.html",
+      "outcomeRef": "specs/017-living-agent-proof/benchmark/blind-score.json"
+    }
+  ],
+  "defects": [],
+  "comparisons": [
+    {
+      "id": "nutrition-planning-memory-control",
+      "controlledInputs": true,
+      "blindEvaluation": true,
+      "control": {
+        "artifactRef": "specs/017-living-agent-proof/benchmark/control/index.html",
+        "curatorScore": 89,
+        "repairRounds": 0,
+        "repeatedCorrections": 27
+      },
+      "treatment": {
+        "artifactRef": "specs/017-living-agent-proof/benchmark/treatment/index.html",
+        "curatorScore": 94,
+        "repairRounds": 1,
+        "repeatedCorrections": 0
+      },
+      "regressions": 0
+    }
+  ],
+  "safeguards": {
+    "contradictionPassed": false,
+    "contradictionRef": "",
+    "isolationPassed": false,
+    "isolationRef": ""
+  }
+}

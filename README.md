@@ -6,6 +6,7 @@
   [<a href="#quick-start">Quick start</a>] ·
   [<a href="#your-project-gets-a-staff--the-agents">Agents</a>] ·
   [<a href="#generated-by-designos">Generated examples</a>] ·
+  [<a href="#the-agent-learns-in-the-work">Living proof</a>] ·
   [<a href="#built-by-the-studio-behind-designos">Studio gallery</a>] ·
   [<a href="#workflow-map--every-way-in-every-way-out">Workflow map</a>] ·
   [<a href="#the-machine-floor">The machine floor</a>] ·
@@ -139,6 +140,67 @@ deterministic repair gate, not a stronger adjective.
 Full evidence: [controlled comparison](experiments/world-class-benchmark/evidence/controlled-three-way-comparison.md),
 [repeatability result](experiments/world-class-benchmark/evidence/repeatability-study/result.md),
 and [blind curator report](experiments/world-class-benchmark/evidence/repeatability-study/blind-curation/report.md).
+
+---
+
+## The agent learns in the work
+
+DESIGN:OS now separates four claims that are often blurred together:
+
+1. **ALIVE** — the project has a learning loop.
+2. **LEARNING** — evidence became a bounded lesson.
+3. **APPLIED** — later work cites and uses that lesson.
+4. **IMPROVING** — a controlled comparison clears declared quality, repair, recurrence, and
+   safety thresholds.
+
+The proof is causal rather than volumetric. A thousand memory events do not prove learning. An
+APPLIED claim needs the original evidence, a later retrieval/application receipt, the affected
+decision, the artifact, and its outcome. Escaped defects need a gate, a failing negative fixture,
+and a later run.
+
+The first dogfood study used three real project histories:
+
+| Project | Supported level | What it proves |
+|---|---|---|
+| ease-design | **APPLIED** | User feedback changed orchestration and a later Nutrition Planning delivery |
+| VSF-PCP | **LEARNING** | Persistent project identity and harvested project lessons |
+| platform-design-system | **APPLIED** | Escaped defects became executable gates with negative fixtures and later detections |
+
+The controlled Nutrition Planning run produced this result:
+
+<table>
+  <tr>
+    <th>Memory-disabled control · 89/100</th>
+    <th>Learning-enabled treatment · 94/100</th>
+  </tr>
+  <tr>
+    <td width="50%"><a href="specs/017-living-agent-proof/benchmark/control/index.html"><img src="specs/017-living-agent-proof/benchmark/control-preview.webp" alt="Control Nutrition Planning landing page generated without accumulated DESIGN:OS lessons" /></a></td>
+    <td width="50%"><a href="specs/017-living-agent-proof/benchmark/treatment/index.html"><img src="specs/017-living-agent-proof/benchmark/treatment-preview.webp" alt="Treatment Nutrition Planning landing page generated with accumulated DESIGN:OS lessons and one blind feedback iteration" /></a></td>
+  </tr>
+</table>
+
+The treatment eliminated prohibited text/Unicode interface glyphs **27 → 0**, added motivated
+scroll reveals, preserved reduced-motion handling, and won the independent blind review by five
+points. After the first blind findings were reapplied, it improved **89 → 94** without the user
+repeating the feedback.
+
+The deterministic verdict is still **APPLIED**, not **IMPROVING**. The study did not clear the
+predeclared +10 comparison delta, used one treatment repair round, and has not completed
+contradiction or cross-project isolation runs. That boundary is intentional: the final design
+crossed the world-class visual threshold, but one successful case is not proof of an everyday
+trend.
+
+Run the evidence report:
+
+```bash
+design-os evolution \
+  --dir . \
+  --proof specs/017-living-agent-proof/evidence/ease-design-proof.json
+```
+
+Read the [controlled result](specs/017-living-agent-proof/benchmark/result.md),
+[forensic project comparison](specs/017-living-agent-proof/evidence/forensic-report.md), and
+[machine-readable proof](specs/017-living-agent-proof/evidence/ease-design-proof.json).
 
 ---
 
