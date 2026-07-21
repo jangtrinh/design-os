@@ -32,5 +32,7 @@ used one repair round, and contradiction plus isolation runs are absent.
 ## Next proof milestone
 
 Run a preregistered multi-topic suite with equal repair budgets, contradiction cases, project
-isolation checks, and at least three comparable rounds. Graduate to IMPROVING only if the machine
-verdict clears every threshold.
+isolation checks, and at least three comparable rounds. The engine now enforces a suite-level
+gate — at least three cases across at least two categories, mean delta +10, aggregate repair and
+repeated-correction reductions, zero regressions, zero-denominator-safe — so no single comparison
+can graduate on its own. Graduate to IMPROVING only if the machine verdict clears every threshold.

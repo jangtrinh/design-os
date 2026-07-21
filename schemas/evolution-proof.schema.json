@@ -67,9 +67,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "controlledInputs", "blindEvaluation", "control", "treatment", "regressions"],
+        "required": ["id", "category", "controlledInputs", "blindEvaluation", "control", "treatment", "regressions"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
+          "category": { "type": "string", "minLength": 1 },
           "controlledInputs": { "const": true },
           "blindEvaluation": { "const": true },
           "control": { "$ref": "#/definitions/outcome" },
