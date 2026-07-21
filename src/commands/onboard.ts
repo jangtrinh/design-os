@@ -117,8 +117,8 @@ function detectSteps(cwd: string): Step[] {
     { id: "ds", label: "design system", state: hasDs ? "done" : "pending", optional: false, hint: HINTS.ds },
     { id: "soul", label: "design soul", state: soulState, optional: false, hint: HINTS.soul },
     { id: "heartbeat", label: "learning loop (soul · heartbeat · harvest)", state: hasHeartbeat ? "done" : "pending", optional: false, hint: HINTS.heartbeat },
-    { id: "agents", label: "project agents           (optional)", state: hasAgents ? "done" : "pending", optional: true, hint: HINTS.agents },
-    { id: "figma", label: "figma design agent        (optional)", state: hasFigma ? "done" : "pending", optional: true, hint: HINTS.figma },
+    { id: "agents", label: "project agents      (optional)", state: hasAgents ? "done" : "pending", optional: true, hint: HINTS.agents },
+    { id: "figma", label: "figma design agent  (optional)", state: hasFigma ? "done" : "pending", optional: true, hint: HINTS.figma },
   ];
 }
 
