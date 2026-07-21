@@ -38,6 +38,7 @@ import {
 import type { Runtime } from "../core/init-stub.js";
 import { generateAdapter } from "../adapters/index.js";
 import type { GenerateAdapterInput } from "../adapters/index.js";
+import { renderBanner } from "../core/report-style.js";
 import {
   writeAdapterArtifacts,
   AdapterWriteError,
@@ -428,11 +429,18 @@ export const initCommand = {
         );
       })
       .join("\n");
-    let body = hint !== null ? `${lines}\n${hint.hintLine}` : lines;
+    // Chain to the onboarding checklist + capability guide (spec 019 P1) — the
+    // scan-based hint (if any) stays as a specific pointer; these two lines are
+    // the constant "what next" chain every init run ends on.
+    const nextBlock =
+      "next: run `ui onboard` — your setup checklist and what to do next\n" +
+      "      run `ui guide`   — see what DESIGN:OS can do";
+    let body = hint !== null ? `${lines}\n${hint.hintLine}\n${nextBlock}` : `${lines}\n${nextBlock}`;
     // Agents are opt-in (never auto-generated) — Claude Code installs get one hint line.
     if (runtimes.includes("claude")) {
       body += "\noptional: `ui agents init` gives this project soul-bound task agents";
     }
+    body = `${renderBanner(templatesRoot)}\n${body}`;
     return { exitCode: 0, stderr: body + "\n" };
   },
 };

@@ -480,6 +480,19 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  onboard: {
+    summary: "Show this project's setup checklist and what to do next",
+    signature: {
+      summary: "Report a project's onboarding readiness checklist",
+      positionals: [],
+      flags: [
+        { name: "cwd", type: "string", summary: "Project directory to inspect (default: current working directory)" },
+        { name: "no-banner", type: "boolean", summary: "Omit the wordmark banner from text output" },
+      ],
+      errorCodes: [],
+    },
+  },
+
   scan: {
     summary: "Detect existing design signals in a project (framework, styling, components)",
     signature: {
