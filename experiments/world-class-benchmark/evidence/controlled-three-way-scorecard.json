@@ -1,0 +1,28 @@
+{
+  "status": "maker-scored-provisional",
+  "blind": false,
+  "scale": "1-10",
+  "viewports": [390, 1440],
+  "workflows": ["raw", "enhanced", "orchestrated-selected"],
+  "cases": {
+    "d01": {
+      "regions": ["hero", "site-reading", "material-proof", "process", "conclusion"],
+      "raw": [6.4, 4.3, 4.5, 5.2, 4.8],
+      "enhanced": [7.0, 4.8, 5.0, 5.7, 5.2],
+      "orchestrated-selected": [8.5, 8.6, 8.3, 7.9, 8.4]
+    },
+    "d02": {
+      "regions": ["capture", "decode", "day-context", "recommendation", "conclusion"],
+      "raw": [6.3, 5.5, 5.7, 5.2, 4.8],
+      "enhanced": [6.9, 6.1, 6.2, 5.8, 5.2],
+      "orchestrated-selected": [8.2, 8.5, 8.2, 8.4, 8.0]
+    },
+    "d03": {
+      "regions": ["hero", "decision-path", "human-context", "connections", "conclusion"],
+      "raw": [5.8, 4.5, 4.0, 5.0, 4.6],
+      "enhanced": [6.5, 5.2, 4.8, 5.7, 5.1],
+      "orchestrated-selected": [8.6, 8.1, 8.5, 8.0, 8.4]
+    }
+  },
+  "promotionBoundary": "Requires an independent blind curator and repeated runs before default promotion."
+}

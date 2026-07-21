@@ -1,0 +1,81 @@
+{
+  "caseId": "d01-architecture",
+  "status": "maker-evaluation-not-blind",
+  "rubricVersion": "prompt-orchestration-development-v1",
+  "viewports": [390, 768, 1440],
+  "candidates": [
+    {
+      "id": "orchestrated-content-led",
+      "proportionStrategy": "Content minimums produce a 1:1.25 hero split",
+      "regionScores": {
+        "hero": 8.1,
+        "site-reading": 8.5,
+        "material-proof": 8.0,
+        "process": 7.9,
+        "conclusion": 8.4
+      },
+      "lowestRegionScore": 7.9,
+      "heroToFooterSlope": 0.0
+    },
+    {
+      "id": "orchestrated-golden",
+      "proportionStrategy": "Phi controls the hero and selected desktop regions, then releases below 900px",
+      "regionScores": {
+        "hero": 8.5,
+        "site-reading": 8.6,
+        "material-proof": 8.1,
+        "process": 7.9,
+        "conclusion": 8.4
+      },
+      "lowestRegionScore": 7.9,
+      "heroToFooterSlope": -0.09
+    },
+    {
+      "id": "orchestrated-selected",
+      "selectedFrom": "orchestrated-golden",
+      "regionScores": {
+        "hero": 8.5,
+        "site-reading": 8.6,
+        "material-proof": 8.1,
+        "process": 7.9,
+        "conclusion": 8.4
+      },
+      "lowestRegionScore": 7.9,
+      "heroToFooterSlope": -0.09
+    },
+    {
+      "id": "art-directed",
+      "basedOn": "orchestrated-selected",
+      "regionScores": {
+        "hero": 8.7,
+        "site-reading": 8.7,
+        "material-proof": 8.4,
+        "process": 8.2,
+        "conclusion": 8.5
+      },
+      "lowestRegionScore": 8.2,
+      "heroToFooterSlope": -0.07
+    }
+  ],
+  "provisionalSelection": {
+    "id": "orchestrated-golden",
+    "reason": "The larger media field strengthens architectural context without reducing copy readability. The ratio releases cleanly at tablet and mobile widths.",
+    "promotionEligible": false,
+    "blocker": "Independent randomized blind evaluation has not run."
+  },
+  "machineEvidence": {
+    "horizontalOverflow": {
+      "390": 0,
+      "768": 0,
+      "1440": 0
+    },
+    "primaryCtaVisibleInitially": {
+      "390": true,
+      "768": true,
+      "1440": true
+    },
+    "consoleErrors": 0,
+    "majorRegionCount": 5,
+    "builderPacketTokens": 5200
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "rubric": {
+    "scale": "1-10",
+    "criteria": [
+      "hierarchy",
+      "layout_coherence",
+      "topic_coupling",
+      "visual_evidence",
+      "interaction_product_credibility",
+      "responsive_composure",
+      "depth_quality_consistency",
+      "distinctiveness_taste",
+      "conversion_clarity",
+      "truthfulness_no_fake_evidence"
+    ]
+  },
+  "cases": {
+    "d01": {
+      "winner": "B",
+      "confidence": 0.93,
+      "candidates": {
+        "A": {
+          "scores": [8, 8, 8, 6, 6, 8, 7, 7, 9, 7],
+          "mean": 7.4,
+          "critical_failures": [
+            "Abstract system graphic is weak evidence of buildable architecture.",
+            "Internal design-guidance phrasing reduces client-facing credibility."
+          ]
+        },
+        "B": {
+          "scores": [9, 9, 10, 9, 8, 9, 9, 9, 9, 8],
+          "mean": 8.9,
+          "critical_failures": []
+        },
+        "C": {
+          "scores": [8, 8, 8, 6, 6, 8, 7, 7, 9, 7],
+          "mean": 7.4,
+          "critical_failures": [
+            "Abstract system graphic is weak evidence of buildable architecture.",
+            "Internal design-guidance phrasing reduces client-facing credibility."
+          ]
+        }
+      }
+    },
+    "d02": {
+      "winner": "B",
+      "confidence": 0.91,
+      "candidates": {
+        "A": {
+          "scores": [8, 8, 8, 7, 6, 9, 7, 7, 9, 5],
+          "mean": 7.4,
+          "critical_failures": [
+            "Precise 72% score has no visible provenance.",
+            "Generic design-system copy breaks nutrition-topic credibility."
+          ]
+        },
+        "B": {
+          "scores": [9, 9, 10, 9, 8, 9, 9, 9, 8, 8],
+          "mean": 8.8,
+          "critical_failures": []
+        },
+        "C": {
+          "scores": [8, 8, 8, 7, 6, 9, 7, 7, 9, 5],
+          "mean": 7.4,
+          "critical_failures": [
+            "Precise 72% score has no visible provenance.",
+            "Generic design-system copy breaks nutrition-topic credibility."
+          ]
+        }
+      }
+    },
+    "d03": {
+      "winner": "A",
+      "confidence": 0.97,
+      "candidates": {
+        "A": {
+          "scores": [9, 9, 10, 9, 9, 9, 9, 9, 9, 8],
+          "mean": 9.0,
+          "critical_failures": []
+        },
+        "B": {
+          "scores": [8, 7, 8, 7, 6, 4, 6, 6, 9, 5],
+          "mean": 6.6,
+          "critical_failures": [
+            "Four-step method is horizontally cropped/overflowing at 390 px.",
+            "Generic design-guidance copy appears inside product evidence.",
+            "68% and ready-count claims are unexplained."
+          ]
+        },
+        "C": {
+          "scores": [8, 7, 8, 7, 6, 4, 6, 6, 9, 5],
+          "mean": 6.6,
+          "critical_failures": [
+            "Four-step method is horizontally cropped/overflowing at 390 px.",
+            "Generic design-guidance copy appears inside product evidence.",
+            "68% and ready-count claims are unexplained."
+          ]
+        }
+      }
+    }
+  },
+  "overall_winner": {
+    "case": "d03",
+    "candidate": "A",
+    "confidence": 0.84,
+    "reason": "Strongest combined topic specificity, tangible product proof, responsive integrity, sustained depth, and conversion clarity."
+  },
+  "limitations": [
+    "Static renders cannot verify real interaction, accessibility, performance, semantics, or implementation.",
+    "Truthfulness evaluates visible contextualization only, not factual backend support.",
+    "No workflow identity or source implementation was inspected."
+  ]
+}

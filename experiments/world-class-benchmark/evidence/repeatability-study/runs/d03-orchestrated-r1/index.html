@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Threadline keeps outcomes, owners, signals, and reasoning connected from decision to execution.">
+  <title>Threadline — Decisions that survive execution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root{--ink:#eef1e8;--muted:#a4ab9e;--night:#0b0e0c;--panel:#121713;--line:#293128;--lime:#c9f277;--mint:#79d9b0;--violet:#a99af4;--paper:#f0f1e9;--paper-ink:#141814}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--night);color:var(--ink);font-family:"DM Sans",sans-serif;line-height:1.5}
+    button,a,input,textarea{font:inherit}
+    button,a{ -webkit-tap-highlight-color:transparent}
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer}
+    .wrap{width:min(1180px,calc(100% - 44px));margin:auto}
+    nav{height:70px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
+    .brand{font:700 18px/1 "Manrope";letter-spacing:-.4px;display:flex;align-items:center;gap:9px}
+    .brand-mark{width:24px;height:24px;border:1px solid #77944e;border-radius:7px;display:grid;place-items:center;transform:rotate(-6deg);background:#1d2716}
+    .brand-mark i{font-size:15px;color:var(--lime)}
+    .nav-links{display:flex;align-items:center;gap:30px;font-size:14px;color:#c6cbc1}
+    .nav-links a:hover{color:var(--lime)}
+    .button{border:0;border-radius:9px;background:var(--lime);color:#17200c;padding:11px 17px;font-weight:700;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+    .button:hover{background:#d8ff8d;transform:translateY(-1px)}
+    .button.ghost{background:transparent;color:var(--ink);border:1px solid #3a4339}
+    .menu{display:none;background:none;border:0;color:var(--ink);font-size:24px}
+    .hero{min-height:calc(100vh - 70px);max-height:820px;display:grid;grid-template-columns:.9fr 1.2fr;align-items:center;gap:64px;padding:46px 0 64px}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:1.6px;color:var(--lime);display:flex;gap:9px;align-items:center;font-weight:700}
+    .eyebrow:before{content:"";width:21px;height:1px;background:currentColor}
+    h1,h2,h3,p{margin-top:0}
+    h1{font:600 clamp(46px,5.4vw,76px)/.98 "Manrope";letter-spacing:-4px;margin:22px 0 24px;max-width:650px}
+    h1 em{font-style:normal;color:var(--lime)}
+    .lede{font-size:18px;color:var(--muted);max-width:530px;margin-bottom:30px}
+    .actions{display:flex;gap:12px;align-items:center}
+    .micro{display:flex;align-items:center;gap:7px;color:#899185;font-size:12px;margin-top:18px}
+    .micro i{color:var(--mint)}
+    .product{position:relative;min-width:0}
+    .product:before{content:"";position:absolute;inset:-40px;background:radial-gradient(circle,#b9e66e22,transparent 68%);filter:blur(10px);pointer-events:none}
+    .app{position:relative;border:1px solid #394336;border-radius:18px;background:#101411;box-shadow:0 30px 80px #0009;overflow:hidden}
+    .app-top{height:46px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:8px;color:#889084;font-size:11px}
+    .dot{width:7px;height:7px;border-radius:50%;background:#3b443a}.dot:first-child{background:var(--lime)}
+    .crumb{margin-left:10px}.app-body{display:grid;grid-template-columns:120px 1fr;min-height:430px}
+    .sidebar{border-right:1px solid var(--line);padding:18px 12px;color:#717a70;font-size:11px}
+    .side-item{padding:8px;border-radius:6px;display:flex;align-items:center;gap:7px;margin-bottom:5px}.side-item.active{background:#20271d;color:#d5e6be}
+    .workspace{padding:22px;min-width:0}
+    .workspace-head{display:flex;justify-content:space-between;align-items:start;margin-bottom:19px}
+    .workspace h3{font:600 18px "Manrope";margin:0}.status{font-size:10px;border:1px solid #53643f;border-radius:20px;padding:4px 8px;color:var(--lime)}
+    .outcome{background:#182017;border:1px solid #34422f;border-radius:10px;padding:14px;margin-bottom:13px;display:grid;grid-template-columns:1fr auto;gap:14px}
+    .card-kicker{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#87987c;margin-bottom:5px}
+    .outcome strong{font-size:13px;display:block}.owner{display:flex;align-items:center;gap:6px;color:#a8b0a4;font-size:10px}
+    .avatar{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#493e6e;color:#ded8ff;font-weight:700;font-size:9px}
+    .map{display:grid;grid-template-columns:1fr 28px 1fr;align-items:stretch;margin-bottom:13px}
+    .node{border:1px solid #303a30;background:#141a15;border-radius:9px;padding:12px;min-height:103px}
+    .node p{font-size:11px;color:#acb4a8;margin:3px 0 9px}.node small{color:#717a70;font-size:9px}
+    .connector{display:grid;place-items:center;color:#586452;position:relative}.connector:before{content:"";position:absolute;width:100%;height:1px;background:#3f493d}
+    .connector i{z-index:1;background:var(--panel);font-size:13px}
+    .signal{display:flex;justify-content:space-between;align-items:end;gap:9px}
+    .bars{display:flex;gap:3px;align-items:end;height:26px}.bars span{width:5px;border-radius:2px 2px 0 0;background:var(--mint)}.bars span:nth-child(1){height:30%}.bars span:nth-child(2){height:55%}.bars span:nth-child(3){height:43%}.bars span:nth-child(4){height:76%}.bars span:nth-child(5){height:100%}
+    .reason{border-left:2px solid var(--violet);padding:8px 10px;background:#1a1922;font-size:10px;color:#b7b3c4}
+    .proof{border-top:1px solid #202720;border-bottom:1px solid #202720;padding:26px 0}
+    .proof-inner{display:grid;grid-template-columns:1.1fr repeat(3,1fr);align-items:center;gap:30px}.proof p{margin:0;color:#8f978c;font-size:13px}
+    .proof-item{display:flex;gap:11px;align-items:center;font-weight:600;font-size:13px}.proof-item i{font-size:20px;color:var(--lime)}
+    section{padding:112px 0}
+    .section-head{max-width:700px;margin-bottom:54px}.section-head h2{font:600 clamp(36px,4.5vw,58px)/1.04 "Manrope";letter-spacing:-2.7px;margin:16px 0 18px}.section-head p{color:#959e92;font-size:17px;max-width:590px}
+    .context-grid{display:grid;grid-template-columns:.8fr 1.3fr;gap:70px;align-items:center}
+    .context-copy h2{font:600 48px/1.06 "Manrope";letter-spacing:-2.5px;margin:15px 0 20px}.context-copy>p{color:#9aa297}
+    .tabs{display:grid;gap:7px;margin-top:28px}
+    .tab{background:none;border:1px solid transparent;color:#818a7e;text-align:left;padding:13px;border-radius:9px;display:flex;gap:12px;align-items:center}
+    .tab i{font-size:21px}.tab.active{border-color:#3d493a;background:#151b15;color:var(--ink)}.tab.active i{color:var(--lime)}
+    .context-stage{min-height:440px;background:var(--paper);color:var(--paper-ink);border-radius:22px;padding:28px;position:relative;overflow:hidden}
+    .context-stage:after{content:"";position:absolute;width:200px;height:200px;background:#cadf9c;border-radius:50%;right:-80px;top:-100px;filter:blur(2px)}
+    .stage-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#626c5d}.stage-title{font:600 25px "Manrope";max-width:350px;margin:13px 0 30px}
+    .trail{position:relative;display:grid;gap:10px;z-index:1}.trail-item{background:#fff;border:1px solid #d8dbd2;border-radius:11px;padding:14px 16px;display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;box-shadow:0 8px 18px #1e28100a}
+    .trail-icon{width:34px;height:34px;border-radius:8px;background:#e9efda;display:grid;place-items:center}.trail-icon i{color:#455927}
+    .trail-item strong{display:block;font-size:13px}.trail-item small{color:#747b71}.stamp{font-size:10px;color:#777e74}.trail-item.muted{opacity:.58}
+    .connection{background:var(--paper);color:var(--paper-ink)}
+    .connection .eyebrow{color:#516d1d}.flow{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #d5d8ce;border-radius:18px;overflow:hidden}
+    .step{padding:28px;min-height:260px;border-right:1px solid #d5d8ce;position:relative}.step:last-child{border:0}.step-num{font:600 11px "Manrope";color:#77806f;margin-bottom:50px}.step i{font-size:28px;color:#536f20}.step h3{font:600 19px "Manrope";margin:20px 0 10px}.step p{font-size:13px;color:#697065}.step:after{content:"";position:absolute;top:37px;right:-5px;width:9px;height:9px;background:#94bb47;border-radius:50%;z-index:2}.step:last-child:after{display:none}
+    .conclusion{text-align:center;padding:120px 0;background:radial-gradient(circle at 50% 60%,#24301b 0,transparent 43%)}
+    .conclusion h2{font:600 clamp(44px,6vw,78px)/1 "Manrope";letter-spacing:-4px;max-width:850px;margin:18px auto 25px}.conclusion p{color:#9fa69b;max-width:550px;margin:0 auto 30px;font-size:18px}.conclusion .actions{justify-content:center}
+    footer{padding:28px 0;border-top:1px solid #252c24;color:#7e877b;font-size:12px}.footer-inner{display:flex;justify-content:space-between;align-items:center}.footer-links{display:flex;gap:22px}
+    dialog{border:1px solid #424c40;border-radius:18px;background:#121713;color:var(--ink);width:min(500px,calc(100% - 32px));padding:0;box-shadow:0 40px 100px #000b}
+    dialog::backdrop{background:#050705d9;backdrop-filter:blur(5px)}.modal{padding:28px}.modal-head{display:flex;justify-content:space-between;align-items:start}.modal h2{font:600 28px "Manrope";margin-bottom:6px}.modal p{color:#9da59a;font-size:14px}.close{border:0;background:none;color:#aeb5aa;font-size:24px}.field{display:grid;gap:6px;margin-top:16px}.field label{font-size:12px;color:#b4bbb1}.field input,.field textarea{background:#0b0e0c;border:1px solid #343d32;border-radius:8px;color:var(--ink);padding:11px;outline:0}.field input:focus,.field textarea:focus{border-color:var(--lime)}.modal .button{width:100%;margin-top:20px}
+    .success{text-align:center;padding:18px 0}.success i{font-size:48px;color:var(--lime)}[hidden]{display:none!important}
+    @media(max-width:850px){
+      .wrap{width:min(100% - 30px,650px)}.nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:#151a16;border:1px solid #303830;border-radius:10px;padding:16px;flex-direction:column;align-items:stretch}.nav-links.open{display:flex}.menu{display:block}
+      .hero{display:block;max-height:none;padding:54px 0 72px}.hero-copy{margin-bottom:48px}h1{letter-spacing:-2.6px}.app-body{grid-template-columns:1fr}.sidebar{display:none}.workspace{padding:15px}.map{grid-template-columns:1fr}.connector{height:25px;transform:rotate(90deg)}
+      .proof-inner{grid-template-columns:1fr 1fr}.proof-inner>p{grid-column:1/-1}.context-grid{grid-template-columns:1fr;gap:36px}.context-copy h2{font-size:39px}.flow{grid-template-columns:1fr 1fr}.step{min-height:220px;border-bottom:1px solid #d5d8ce}.step:nth-child(2){border-right:0}.step:after{display:none}
+    }
+    @media(max-width:520px){
+      .actions{align-items:stretch;flex-direction:column}.app-top{overflow:hidden}.crumb{white-space:nowrap}.workspace-head{gap:8px}.outcome{grid-template-columns:1fr}.map .node{min-height:auto}.proof-inner{grid-template-columns:1fr}.proof-inner>p{grid-column:auto}.context-stage{padding:20px;min-height:470px}.trail-item{grid-template-columns:34px 1fr}.stamp{grid-column:2}.flow{grid-template-columns:1fr}.step{border-right:0;min-height:auto}.section-head{margin-bottom:36px}section{padding:82px 0}.footer-inner{align-items:flex-start;gap:20px}.footer-links{flex-direction:column;gap:6px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <nav aria-label="Main navigation">
+      <a class="brand" href="#"><span class="brand-mark"><i class="ph ph-path"></i></span>Threadline</a>
+      <button class="menu" aria-label="Toggle menu" aria-expanded="false"><i class="ph ph-list"></i></button>
+      <div class="nav-links"><a href="#context">Product</a><a href="#connection">How it works</a><a href="#proof">Why Threadline</a><button class="button demo-trigger">Get a demo <i class="ph ph-arrow-up-right"></i></button></div>
+    </nav>
+  </header>
+  <main>
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <div class="eyebrow">Connected decision context</div>
+        <h1>Keep the <em>why</em> attached to the work.</h1>
+        <p class="lede">Threadline connects every outcome to its owner, signals, and reasoning—so decisions still make sense when execution gets messy.</p>
+        <div class="actions"><button class="button demo-trigger">Get a demo <i class="ph ph-arrow-up-right"></i></button><a class="button ghost" href="#context"><i class="ph ph-play-circle"></i> Explore the product</a></div>
+        <div class="micro"><i class="ph-fill ph-check-circle"></i> See it with your planning workflow</div>
+      </div>
+      <div class="product" aria-label="Interactive preview of a decision record">
+        <div class="app">
+          <div class="app-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="crumb">Northstar / Q3 planning / Activation decision</span></div>
+          <div class="app-body">
+            <aside class="sidebar"><div class="side-item active"><i class="ph ph-git-branch"></i> Decisions</div><div class="side-item"><i class="ph ph-target"></i> Outcomes</div><div class="side-item"><i class="ph ph-waveform"></i> Signals</div><div class="side-item"><i class="ph ph-users"></i> Owners</div></aside>
+            <div class="workspace">
+              <div class="workspace-head"><div><div class="card-kicker">Decision D-018</div><h3>Reduce setup friction</h3></div><span class="status">In execution</span></div>
+              <div class="outcome"><div><div class="card-kicker">Outcome</div><strong>Help new teams reach a useful plan sooner</strong></div><div class="owner"><span class="avatar">MS</span><span>Owner<br><b>Maya S.</b></span></div></div>
+              <div class="map">
+                <div class="node"><div class="card-kicker">Signal</div><p>Teams pause when asked to define every field up front.</p><div class="signal"><small>Onboarding observation</small><div class="bars"><span></span><span></span><span></span><span></span><span></span></div></div></div>
+                <div class="connector"><i class="ph-fill ph-caret-right"></i></div>
+                <div class="node"><div class="card-kicker">Choice</div><p>Start with outcome + owner. Reveal supporting context as work develops.</p><small><i class="ph ph-check-circle"></i> Accepted by planning group</small></div>
+              </div>
+              <div class="reason"><b>Reasoning preserved:</b> This keeps the first step light without discarding the evidence needed later.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="proof" id="proof"><div class="wrap proof-inner"><p>One decision record. Four questions execution keeps asking.</p><div class="proof-item"><i class="ph ph-target"></i> What outcome?</div><div class="proof-item"><i class="ph ph-user-focus"></i> Who owns it?</div><div class="proof-item"><i class="ph ph-waveform"></i> What changed?</div></div></div>
+    <section id="context"><div class="wrap context-grid">
+      <div class="context-copy"><div class="eyebrow">Context without archaeology</div><h2>Every choice carries its evidence.</h2><p>Move from the current plan back through the observations, tradeoffs, and people that shaped it. No reconstruction required.</p>
+        <div class="tabs" role="tablist" aria-label="Decision context views">
+          <button class="tab active" role="tab" aria-selected="true" data-view="reasoning"><i class="ph ph-tree-structure"></i><span><b>Reasoning trail</b><br><small>See how the choice formed</small></span></button>
+          <button class="tab" role="tab" aria-selected="false" data-view="signals"><i class="ph ph-pulse"></i><span><b>Signal history</b><br><small>See what changed over time</small></span></button>
+          <button class="tab" role="tab" aria-selected="false" data-view="ownership"><i class="ph ph-users-three"></i><span><b>Ownership map</b><br><small>See who carries it forward</small></span></button>
+        </div>
+      </div>
+      <div class="context-stage" aria-live="polite"><div class="stage-label" id="stage-label">Reasoning trail</div><div class="stage-title" id="stage-title">The decision stays attached to the path that produced it.</div><div class="trail" id="trail"></div></div>
+    </div></section>
+    <section class="connection" id="connection"><div class="wrap"><div class="section-head"><div class="eyebrow">A continuous thread</div><h2>From intent to evidence—and back again.</h2><p>Threadline makes planning a living loop. Execution produces signals; signals sharpen the next decision.</p></div>
+      <div class="flow"><article class="step"><div class="step-num">01 / Frame</div><i class="ph ph-target"></i><h3>Name the outcome</h3><p>Make the intended change explicit before work fragments into tasks.</p></article><article class="step"><div class="step-num">02 / Decide</div><i class="ph ph-scales"></i><h3>Capture the choice</h3><p>Record the tradeoff and reasoning at the moment they are understood.</p></article><article class="step"><div class="step-num">03 / Carry</div><i class="ph ph-user-focus"></i><h3>Assign real ownership</h3><p>Keep one accountable owner connected to the outcome, not just a ticket.</p></article><article class="step"><div class="step-num">04 / Learn</div><i class="ph ph-waveform"></i><h3>Return with signals</h3><p>Bring evidence from execution back to the decision that needs it.</p></article></div>
+    </div></section>
+    <section class="conclusion"><div class="wrap"><div class="eyebrow" style="justify-content:center">Make reasoning operational</div><h2>Let the plan remember what the team knew.</h2><p>See how Threadline can connect the decisions already moving through your team.</p><div class="actions"><button class="button demo-trigger">Get a demo <i class="ph ph-arrow-up-right"></i></button></div></div></section>
+  </main>
+  <footer><div class="wrap footer-inner"><a class="brand" href="#"><span class="brand-mark"><i class="ph ph-path"></i></span>Threadline</a><div class="footer-links"><a href="#context">Product</a><a href="#connection">How it works</a><span>© 2026 Threadline</span></div></div></footer>
+  <dialog id="demo-dialog"><div class="modal"><div class="modal-head"><div><h2>See your decisions connected.</h2><p>Tell us where planning context breaks down for your team.</p></div><button class="close" aria-label="Close demo form"><i class="ph ph-x"></i></button></div>
+    <form id="demo-form"><div class="field"><label for="name">Name</label><input id="name" name="name" autocomplete="name" required></div><div class="field"><label for="email">Work email</label><input id="email" name="email" type="email" autocomplete="email" required></div><div class="field"><label for="challenge">Where does context get lost?</label><textarea id="challenge" name="challenge" rows="3"></textarea></div><button class="button" type="submit">Request demo <i class="ph ph-arrow-up-right"></i></button></form>
+    <div class="success" hidden><i class="ph-fill ph-check-circle"></i><h2>Request captured.</h2><p>Thanks. Your planning challenge is ready for the conversation.</p><button class="button close-success">Done</button></div></div>
+  </dialog>
+  <script>
+    const views={
+      reasoning:{label:"Reasoning trail",title:"The decision stays attached to the path that produced it.",items:[["ph-lightbulb","Observation","Teams pause at a blank planning canvas","Research synthesis"],["ph-scales","Tradeoff","Less upfront structure, faster first value","Planning review"],["ph-check-circle","Decision","Begin with outcome and owner","Accepted"]]},
+      signals:{label:"Signal history",title:"New evidence lands where the team can act on it.",items:[["ph-chat-circle-text","Interview pattern","Setup questions repeat across new teams","Week 1"],["ph-cursor-click","Usage signal","Guided starts complete more often","Week 2"],["ph-arrow-bend-up-right","Plan response","Expand the guided entry path","Current"]]},
+      ownership:{label:"Ownership map",title:"Accountability follows the outcome across handoffs.",items:[["ph-user-focus","Outcome owner","Maya shapes the success condition","Product"],["ph-code","Execution partner","Eli carries the interface change","Engineering"],["ph-binoculars","Signal steward","Noor returns learning to the record","Research"]]}
+    };
+    const trail=document.querySelector("#trail");
+    function render(view){const v=views[view];document.querySelector("#stage-label").textContent=v.label;document.querySelector("#stage-title").textContent=v.title;trail.innerHTML=v.items.map((x,i)=>`<div class="trail-item ${i===2?"muted":""}"><span class="trail-icon"><i class="ph ${x[0]}"></i></span><span><strong>${x[1]}</strong><small>${x[2]}</small></span><span class="stamp">${x[3]}</span></div>`).join("")}
+    render("reasoning");
+    document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>{b.classList.remove("active");b.setAttribute("aria-selected","false")});btn.classList.add("active");btn.setAttribute("aria-selected","true");render(btn.dataset.view)}));
+    const menu=document.querySelector(".menu"),links=document.querySelector(".nav-links");menu.addEventListener("click",()=>{const open=links.classList.toggle("open");menu.setAttribute("aria-expanded",open);menu.innerHTML=`<i class="ph ${open?"ph-x":"ph-list"}"></i>`});links.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>links.classList.remove("open")));
+    const dialog=document.querySelector("#demo-dialog");document.querySelectorAll(".demo-trigger").forEach(b=>b.addEventListener("click",()=>dialog.showModal()));document.querySelector(".close").addEventListener("click",()=>dialog.close());dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close()});
+    document.querySelector("#demo-form").addEventListener("submit",e=>{e.preventDefault();e.target.hidden=true;document.querySelector(".success").hidden=false});document.querySelector(".close-success").addEventListener("click",()=>dialog.close());
+  </script>
+</body>
+</html>

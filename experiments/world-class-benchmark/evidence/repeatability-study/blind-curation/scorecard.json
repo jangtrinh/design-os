@@ -1,0 +1,78 @@
+{
+  "audit": "independent_blind_repeatability",
+  "scale": "0-10",
+  "criteria_order": [
+    "visual_hierarchy",
+    "composition_layout",
+    "typography",
+    "color_material",
+    "imagery_evidence",
+    "product_topic_specificity",
+    "responsive_mobile",
+    "interaction_affordance_visible",
+    "hero_to_conclusion_depth",
+    "overall_craft"
+  ],
+  "cases": {
+    "architecture": {
+      "mean": 8.93,
+      "population_sd": 0.05,
+      "significant_depth_decline": false,
+      "candidates": {
+        "A": {"scores": [9,9,9,9,9,9,9,8,9,9], "mean": 8.9, "critical_failures": []},
+        "B": {"scores": [9,9,9,9,10,9,9,8,9,9], "mean": 9.0, "critical_failures": []},
+        "C": {"scores": [9,9,9,9,9,9,9,8,9,9], "mean": 8.9, "critical_failures": []}
+      }
+    },
+    "nutrition": {
+      "mean": 8.83,
+      "population_sd": 0.38,
+      "significant_depth_decline": false,
+      "candidates": {
+        "A": {"scores": [9,9,9,9,9,10,9,9,9,9], "mean": 9.1, "critical_failures": []},
+        "B": {"scores": [9,9,9,9,9,10,9,9,9,9], "mean": 9.1, "critical_failures": []},
+        "C": {"scores": [8,9,8,8,7,9,9,9,8,8], "mean": 8.3, "critical_failures": []}
+      }
+    },
+    "planning": {
+      "mean": 9.1,
+      "population_sd": 0.0,
+      "significant_depth_decline": false,
+      "candidates": {
+        "A": {"scores": [9,9,9,9,9,10,9,9,9,9], "mean": 9.1, "critical_failures": []},
+        "B": {"scores": [9,9,9,9,9,10,9,9,9,9], "mean": 9.1, "critical_failures": []},
+        "C": {"scores": [9,9,9,9,9,10,9,9,9,9], "mean": 9.1, "critical_failures": []}
+      }
+    }
+  },
+  "aggregate": {
+    "overall_mean": 8.96,
+    "overall_population_sd": 0.25,
+    "candidates_at_or_above_7_5": 9,
+    "candidate_count": 9,
+    "critical_failure_count": 0,
+    "mobile_overflow_count": 0,
+    "cases_without_significant_depth_decline": 3
+  },
+  "critical_failure_categories": {
+    "accessibility_visible": 0,
+    "overflow_responsive": 0,
+    "truthfulness_fake_evidence": 0,
+    "placeholder_primary_visual": 0,
+    "severe_quality_decline": 0
+  },
+  "promotion_criteria": {
+    "overall_mean_at_least_8": true,
+    "at_least_8_of_9_at_or_above_7_5": true,
+    "no_critical_failure": true,
+    "overall_sd_at_most_1": true,
+    "each_case_sd_at_most_1": true,
+    "at_least_2_of_3_without_depth_decline": true,
+    "zero_mobile_overflow": true
+  },
+  "promotion_decision": "PROMOTE",
+  "limitations": [
+    "Static screenshots cannot verify keyboard behavior, semantics, exact contrast ratios, functional interactions, data provenance, or runtime performance.",
+    "Critical-failure findings apply only to visible evidence."
+  ]
+}
