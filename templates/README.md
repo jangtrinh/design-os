@@ -31,6 +31,7 @@ Small wrappers that tell the host model *which `knowledge/` files to read for wh
 | `color-decision.md` | Picking colors, building palettes, checking contrast. |
 | `token-model.md` | Defining, aliasing, or mutating tokens. |
 | `apply-prompt-mode.md` | Choosing `replicate` / `enhance` / `adapt` against a reference. |
+| `gsap-motion.md` | Directing and implementing advanced GSAP web choreography with lifecycle, accessibility, and performance gates. |
 
 ## Journeys — `journeys/`
 

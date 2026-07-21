@@ -7,6 +7,7 @@
   [<a href="#your-project-gets-a-staff--the-agents">Agents</a>] ·
   [<a href="#generated-by-designos">Generated examples</a>] ·
   [<a href="#the-agent-learns-in-the-work">Living proof</a>] ·
+  [<a href="#advanced-motion-direction">Motion</a>] ·
   [<a href="#built-by-the-studio-behind-designos">Studio gallery</a>] ·
   [<a href="#workflow-map--every-way-in-every-way-out">Workflow map</a>] ·
   [<a href="#the-machine-floor">The machine floor</a>] ·
@@ -16,7 +17,7 @@
 
 <p align="center"><sub>
 <code>v0.1.0</code> · Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel ·
-2,231 kernel + 453 Figma-agent tests green · 26 personas · a 27-component kit ·
+2,234 kernel + 453 Figma-agent tests green · 26 personas · a 27-component kit ·
 deterministic static + rendered gates ·
 a 1:1 Figma mirror
 </sub></p>
@@ -381,6 +382,29 @@ The schemas are public contracts:
 
 ---
 
+## Advanced motion direction
+
+`ui init` now installs `design-os-gsap-motion`, a runtime-neutral skill adapted from the
+[official GreenSock GSAP Skills](https://github.com/greensock/gsap-skills). It teaches the host
+agent to direct one story-bearing interaction, choose the smallest capable motion layer, and
+implement GSAP timelines, ScrollTrigger, responsive branches, framework cleanup, and plugin
+effects without sacrificing accessibility or runtime stability.
+
+The skill is contextual. CSS remains the default for simple transitions; GSAP activates for
+coordinated web choreography, pinned or scrubbed scenes, spatial continuity, SVG transformation,
+or gesture physics. Native mobile interfaces keep native animation and haptic APIs.
+
+```text
+trigger -> changed property -> user meaning -> reduced-motion equivalent
+```
+
+Every advanced scene must declare that contract and provide normal-motion, reduced-motion,
+cleanup, INP, CLS, and frame-stability evidence. Read the
+[motion direction](knowledge/gsap-motion-direction.md) and
+[runtime skill](templates/skills/gsap-motion.md).
+
+---
+
 ## Your project gets a staff — the agents
 
 One command turns the design system into a small team of **Claude Code
@@ -663,6 +687,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-07-21 | **Official GSAP motion skill** — advanced web choreography, ScrollTrigger, lifecycle cleanup, plugin restraint, reduced-motion and performance evidence; adapted from GreenSock's MIT skill suite | *(this commit)* |
 | 2026-07-19 | **Qualified Delivery (Spec 014 P0)** — weak prompt → provenance-tagged brief → generation contract → canonical renders → bounded repair → honest delivery status; `ui delivery validate` blocks false `QUALIFIED` verdicts | `59686cd` |
 | 2026-07-16 | **Figma mirror (1:1)** — each component's registry record is a rebuildable reflection of its Figma node; `mirror-verify` proves the scan→rebuild→scan **fixed point** live (bindings by publish key, instances, variant swaps, inner overrides), `equal:true` across a real 27-screen DS. Plus a per-operation activity feed in the plugin panel | `b9b7255`…`7959464` |
 | 2026-07-16 | **Figma live-sync** — `documentchange` → append-only ledger → 5-min idle → 1-click panel Sync → `reconcile --apply`; the registry follows the canvas near-real-time | `#34`…`#38` |

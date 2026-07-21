@@ -159,6 +159,10 @@ The generation must:
 - **Apply the persona's anti-patterns as hard prohibitions.** If the persona
   forbids drop-shadows, do not produce drop-shadows.
 
+When the visual transformation requires T5 web choreography, invoke `design-os-gsap-motion` and
+declare one story-bearing signature interaction. Preserve the source IA without preserving its
+motion language. Simple transitions remain CSS; native mobile production motion remains native.
+
 If the project DS is rich enough to express the contra-persona (registered
 components exist that match the new visual language), reuse them via the
 component catalog naming. If not, generate the redesigned components inline —

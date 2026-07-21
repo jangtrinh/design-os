@@ -74,10 +74,10 @@ Options:
 Output paths:
   claude      → <cwd>/.claude/ease-design.json
                 <cwd>/.claude/commands/ui/*.md  (16 slash-commands)
-                <cwd>/.claude/skills/design-os-*/SKILL.md  (11 skills: 8 craft + 3 journey)
+                <cwd>/.claude/skills/design-os-*/SKILL.md  (12 skills: 9 craft + 3 journey)
   antigravity → <cwd>/.agent/ease-design.json
                 <cwd>/.agent/workflows/ui-*.md  (16 workflows)
-                <cwd>/.agent/skills/design-os-*/SKILL.md  (11 skills: 8 craft + 3 journey)
+                <cwd>/.agent/skills/design-os-*/SKILL.md  (12 skills: 9 craft + 3 journey)
   codex       → <cwd>/AGENTS.ease-design.json
                 <cwd>/AGENTS.md  (sentinel block appended/upserted)
 

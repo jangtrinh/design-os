@@ -54,6 +54,7 @@ export const SKILL_NAMES = [
   "apply-prompt-mode",
   "designmd-emit",
   "figma-craft",
+  "gsap-motion",
 ] as const satisfies readonly string[];
 
 export type SkillName = (typeof SKILL_NAMES)[number];

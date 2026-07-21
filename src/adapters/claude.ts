@@ -3,9 +3,9 @@
  *
  * Emits:
  *   16 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
- *   11 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (8 craft + 3 journey)
+ *   12 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (9 craft + 3 journey)
  *
- * Total: 27 artifacts, all mode "write".
+ * Total: 28 artifacts, all mode "write".
  */
 import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
@@ -72,7 +72,7 @@ export function generateClaudeAdapter(input: AdapterInput): AdapterArtifact[] {
     });
   }
 
-  // ── Skill files (8 craft skills) ────────────────────────────────────────────
+  // ── Skill files (9 craft skills) ────────────────────────────────────────────
   for (const name of SKILL_NAMES) {
     pushSkillArtifact(artifacts, cwd, templatesRoot, knowledgeRoot, "skill", name);
   }

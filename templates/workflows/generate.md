@@ -130,6 +130,11 @@ prior, mode floor, and output contract. Use realistic content without unsupporte
 semantic responsive structure before motion. Custom-style controls from the correct semantic
 primitive; use custom behavior only when the contract declares and tests it.
 
+When the motion plan selects T5 choreography, invoke `design-os-gsap-motion` before implementation
+and again during motion review. The skill must produce the scene contract, responsive and
+reduced-motion branches, lifecycle ownership, and runtime evidence plan. Do not load GSAP merely
+to satisfy a motion-intensity number.
+
 Implement the declared section architecture, not a shared visual template with substituted copy.
 Related sections may share tokens and motifs; their spatial model must follow their content job.
 
