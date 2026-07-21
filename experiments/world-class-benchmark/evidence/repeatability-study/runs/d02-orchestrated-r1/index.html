@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Morsel helps you scan a meal, understand what is on your plate, and choose one realistic next step.">
+  <title>Morsel — understand your next meal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root{--ink:#183029;--muted:#65746d;--cream:#f5f1e7;--paper:#fffdf8;--lime:#c9f162;--orange:#ff7a4c;--line:#dcded3;--shadow:0 22px 60px rgba(24,48,41,.12)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--cream);color:var(--ink);font-family:"DM Sans",sans-serif;overflow-x:hidden}
+    button,a,input{font:inherit}
+    button,a{touch-action:manipulation}
+    button:focus-visible,a:focus-visible,label:focus-within{outline:3px solid var(--orange);outline-offset:3px}
+    .wrap{width:min(1180px,calc(100% - 48px));margin:auto}
+    nav{height:76px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px}
+    .brand-mark{width:30px;height:30px;background:var(--ink);border-radius:50% 50% 44% 56%;display:grid;place-items:center;color:var(--lime);transform:rotate(-8deg)}
+    .nav-links{display:flex;gap:28px;align-items:center}
+    .nav-links a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:600}
+    .nav-cta,.primary{border:0;border-radius:999px;background:var(--ink);color:white;padding:13px 19px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px}
+    .hero{min-height:calc(100vh - 76px);display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;gap:64px;padding:34px 0 68px}
+    .eyebrow{display:flex;align-items:center;gap:10px;font-size:13px;text-transform:uppercase;letter-spacing:.13em;font-weight:700}
+    .eyebrow:before{content:"";width:26px;height:2px;background:var(--orange)}
+    h1,h2,h3{font-family:"Newsreader",serif;margin:0;letter-spacing:-.035em}
+    h1{font-size:clamp(60px,6.7vw,104px);line-height:.86;margin:24px 0}
+    h1 em{color:var(--orange);font-weight:500}
+    .lede{font-size:18px;line-height:1.6;color:var(--muted);max-width:520px;margin:0 0 28px}
+    .hero-actions{display:flex;align-items:center;gap:18px}
+    .primary{font-size:16px;padding:17px 22px}
+    .secondary{border:0;background:none;color:var(--ink);font-weight:700;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+    .micro{font-size:12px;color:var(--muted);margin-top:17px;display:flex;gap:7px;align-items:center}
+    .hero-visual{position:relative;min-height:620px}
+    .photo-shell{position:absolute;inset:18px 20px 30px 72px;border-radius:260px 260px 46px 46px;overflow:hidden;box-shadow:var(--shadow);background:#d9c49f}
+    .photo-shell img{width:100%;height:100%;object-fit:cover}
+    .scan-line{position:absolute;left:0;right:0;top:44%;height:2px;background:var(--lime);box-shadow:0 0 18px var(--lime);animation:scan 4s ease-in-out infinite}
+    @keyframes scan{50%{transform:translateY(150px)}}
+    .float-card{position:absolute;background:rgba(255,253,248,.94);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow)}
+    .found{top:88px;left:0;border-radius:20px;padding:14px 17px;display:flex;align-items:center;gap:11px}
+    .found i{font-size:23px;color:#668c12}
+    .found small,.balance small{display:block;color:var(--muted);font-size:11px}
+    .found strong{font-size:14px}
+    .balance{right:0;bottom:0;width:250px;padding:20px;border-radius:24px}
+    .balance-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+    .score{font-family:"Newsreader";font-size:34px}
+    .bars{display:grid;gap:10px}
+    .bar{display:grid;grid-template-columns:68px 1fr;gap:8px;align-items:center;font-size:11px}
+    .track{height:7px;background:#e6e8df;border-radius:9px;overflow:hidden}
+    .fill{height:100%;width:var(--w);background:var(--c);border-radius:9px}
+    .proof{background:var(--ink);color:white;padding:98px 0}
+    .proof-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:45px}
+    h2{font-size:clamp(44px,5vw,72px);line-height:.98}
+    .proof-head p{color:#b9c5bf;max-width:420px;line-height:1.6;margin:0}
+    .plate-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px}
+    .analysis-card{background:#f8f5eb;color:var(--ink);border-radius:32px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:480px}
+    .meal-image{position:relative;min-height:350px;background:#bba17d}
+    .meal-image img{width:100%;height:100%;object-fit:cover}
+    .tag{position:absolute;background:white;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 8px 20px #18302922}
+    .t1{left:12%;top:20%}.t2{right:8%;top:42%}.t3{left:25%;bottom:18%}
+    .analysis-copy{padding:36px;display:flex;flex-direction:column}
+    .analysis-copy h3{font-size:38px;line-height:1;margin:10px 0 12px}
+    .analysis-copy>p{color:var(--muted);line-height:1.5;margin:0}
+    .nutrients{margin-top:auto;display:grid;gap:12px}
+    .nutrient{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px}
+    .nutrient .track{grid-column:1/-1;height:8px}
+    .insight-stack{display:grid;gap:22px}
+    .insight{border-radius:28px;padding:28px;color:var(--ink);min-height:229px;display:flex;flex-direction:column;justify-content:space-between}
+    .insight:first-child{background:var(--lime)}.insight:last-child{background:#f4a27e}
+    .insight i{font-size:30px}.insight h3{font-size:31px;line-height:1.05;max-width:320px}.insight p{margin:0;font-size:13px;line-height:1.5;max-width:330px}
+    .context{padding:120px 0}
+    .context-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:90px;align-items:center}
+    .context-copy h2{margin:18px 0 20px}.context-copy>p{color:var(--muted);font-size:17px;line-height:1.7}
+    .checks{display:grid;gap:15px;margin-top:28px}
+    .check{display:flex;gap:12px;align-items:center;font-weight:600}.check i{background:var(--lime);padding:7px;border-radius:50%}
+    .day-path{position:relative;display:grid;gap:18px}
+    .day-path:before{content:"";position:absolute;left:33px;top:50px;bottom:50px;width:1px;background:#bdc5bb}
+    .meal-row{display:grid;grid-template-columns:68px 86px 1fr;align-items:center;gap:16px;position:relative}
+    .time{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700}
+    .thumb{width:86px;height:86px;border-radius:22px;object-fit:cover}
+    .meal-note{background:var(--paper);padding:18px 20px;border-radius:20px;border:1px solid var(--line)}
+    .meal-note strong{display:block;margin-bottom:4px}.meal-note small{color:var(--muted)}
+    .meal-row.active .meal-note{background:var(--ink);color:white;border-color:var(--ink);transform:translateX(16px)}
+    .meal-row.active small{color:#bdc9c3}
+    .how{padding:0 0 120px}
+    .how h2{text-align:center;max-width:720px;margin:auto}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:55px}
+    .step{padding:30px;border-top:1px solid #aeb8b0}
+    .step-num{font-family:"Newsreader";font-size:18px;color:var(--orange)}
+    .step i{font-size:38px;margin:46px 0 24px;display:block}
+    .step h3{font-size:29px;margin-bottom:10px}.step p{color:var(--muted);line-height:1.6;font-size:14px}
+    .cta-section{padding:0 0 34px}
+    .cta-panel{background:var(--lime);border-radius:36px;padding:72px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:30px;position:relative;overflow:hidden}
+    .cta-panel:after{content:"";position:absolute;width:240px;height:240px;border:60px solid rgba(255,255,255,.35);border-radius:50%;right:-80px;top:-110px}
+    .cta-panel h2{max-width:700px}.cta-panel p{margin:16px 0 0;color:#496052}
+    .cta-panel .primary{z-index:1;white-space:nowrap}
+    footer{display:flex;justify-content:space-between;align-items:center;padding:32px 0 45px;font-size:13px;color:var(--muted)}
+    .footer-links{display:flex;gap:22px}.footer-links a{color:inherit;text-decoration:none}
+    .modal{position:fixed;inset:0;background:rgba(10,24,20,.72);z-index:20;display:none;place-items:center;padding:20px}
+    .modal.open{display:grid}
+    .scanner{width:min(560px,100%);background:var(--paper);border-radius:30px;padding:28px;box-shadow:var(--shadow);position:relative}
+    .scanner-top{display:flex;justify-content:space-between;align-items:center}.scanner h3{font-size:35px}
+    .icon-btn{border:0;background:#e9ebe3;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px}
+    .dropzone{margin-top:24px;border:2px dashed #aeb8b0;border-radius:22px;padding:48px 24px;text-align:center;display:block;cursor:pointer;transition:.2s}
+    .dropzone:hover,.dropzone.drag{background:#f0f6dc;border-color:#739619}
+    .dropzone i{font-size:48px;display:block;margin-bottom:10px}.dropzone strong{display:block}.dropzone span{font-size:13px;color:var(--muted)}
+    #file{position:absolute;opacity:0;pointer-events:none}
+    .sample{width:100%;margin-top:12px;padding:14px;border:0;border-radius:14px;background:#eceee7;cursor:pointer;font-weight:700}
+    .loading,.result{display:none;text-align:center;padding:42px 10px 20px}
+    .loader{width:50px;height:50px;border:5px solid #dfe2da;border-top-color:var(--orange);border-radius:50%;margin:0 auto 20px;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .result img{width:100%;height:190px;object-fit:cover;border-radius:18px;margin:16px 0}
+    .result-box{display:flex;justify-content:space-between;background:#eef6d7;border-radius:16px;padding:16px;text-align:left}
+    .result-box small{display:block;color:var(--muted)}.result-box strong{font-size:14px}
+    @media(max-width:800px){
+      .wrap{width:min(100% - 32px,620px)}.nav-links a{display:none}.nav-links{gap:8px}.nav-cta{padding:11px 15px}
+      .hero{grid-template-columns:1fr;padding-top:42px;gap:34px}.hero-visual{min-height:480px}.photo-shell{inset:0 14px 34px 35px}.found{top:45px}.balance{width:210px}
+      .proof,.context{padding:78px 0}.proof-head,.context-grid{display:grid;grid-template-columns:1fr;gap:28px}.plate-grid{grid-template-columns:1fr}.analysis-card{grid-template-columns:1fr}.analysis-copy{min-height:360px}
+      .steps{grid-template-columns:1fr}.step{display:grid;grid-template-columns:45px 45px 1fr;gap:12px}.step i{margin:0}.step p,.step h3{grid-column:3}.step p{margin:0}.cta-panel{padding:45px 28px;grid-template-columns:1fr}.cta-panel .primary{justify-self:start}
+    }
+    @media(max-width:480px){
+      h1{font-size:60px}.hero-actions{align-items:flex-start;flex-direction:column}.hero-visual{min-height:430px}.balance{right:-5px;bottom:0}.found{left:-5px}.photo-shell{border-radius:180px 180px 34px 34px}
+      .analysis-copy{padding:26px}.meal-row{grid-template-columns:52px 68px 1fr;gap:9px}.thumb{width:68px;height:68px;border-radius:17px}.meal-note{padding:13px}.meal-row.active .meal-note{transform:none}
+      footer{align-items:flex-start;gap:20px;flex-direction:column}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <nav class="wrap">
+    <a class="brand" href="#" aria-label="Morsel home"><span class="brand-mark"><i class="ph-fill ph-leaf"></i></span>Morsel</a>
+    <div class="nav-links"><a href="#how">How it works</a><a href="#example">See an example</a><button class="nav-cta scan-trigger"><i class="ph ph-camera"></i> Scan a meal</button></div>
+  </nav>
+  <main>
+    <section class="hero wrap">
+      <div>
+        <div class="eyebrow">Nutrition that meets you here</div>
+        <h1>Know your plate.<br><em>Keep your joy.</em></h1>
+        <p class="lede">Snap what you’re eating. Morsel helps you see the balance, understand the ingredients, and choose one doable next step.</p>
+        <div class="hero-actions"><button class="primary scan-trigger"><i class="ph ph-camera"></i> Scan your meal</button><button class="secondary" id="trySample"><i class="ph ph-play-circle"></i> Try an example</button></div>
+        <div class="micro"><i class="ph ph-shield-check"></i> Your meal photo is analyzed only when you choose to scan.</div>
+      </div>
+      <div class="hero-visual" aria-label="A colorful grain bowl being analyzed">
+        <div class="photo-shell"><img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=85" alt="Colorful bowl with grains, greens, roasted vegetables and avocado"><div class="scan-line"></div></div>
+        <div class="float-card found"><i class="ph-fill ph-check-circle"></i><div><small>Found on your plate</small><strong>6 whole-food ingredients</strong></div></div>
+        <div class="float-card balance"><div class="balance-head"><div><small>Meal balance</small><strong>Nicely rounded</strong></div><span class="score">3/4</span></div><div class="bars"><div class="bar">Plants<div class="track"><div class="fill" style="--w:86%;--c:#8bb52b"></div></div></div><div class="bar">Protein<div class="track"><div class="fill" style="--w:62%;--c:#ef865f"></div></div></div><div class="bar">Energy<div class="track"><div class="fill" style="--w:71%;--c:#e2b44a"></div></div></div></div></div>
+      </div>
+    </section>
+    <section class="proof" id="example">
+      <div class="wrap">
+        <div class="proof-head"><h2>See the meal,<br>not just the numbers.</h2><p>A useful read of your plate—what it offers, what could round it out, and how that fits the rest of your day.</p></div>
+        <div class="plate-grid">
+          <article class="analysis-card">
+            <div class="meal-image"><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=85" alt="Salad bowl with colorful vegetables"><span class="tag t1">Chickpeas</span><span class="tag t2">Leafy greens</span><span class="tag t3">Sweet potato</span></div>
+            <div class="analysis-copy"><div class="eyebrow">Lunch · plate read</div><h3>A plant-forward bowl with staying power.</h3><p>The chickpeas and grains bring steady energy. Plenty of color adds variety to the meal.</p><div class="nutrients"><div class="nutrient"><span>Plant variety</span><b>High</b><div class="track"><div class="fill" style="--w:88%;--c:#83ae28"></div></div></div><div class="nutrient"><span>Protein presence</span><b>Moderate</b><div class="track"><div class="fill" style="--w:60%;--c:#ff7a4c"></div></div></div><div class="nutrient"><span>Staying power</span><b>Good</b><div class="track"><div class="fill" style="--w:74%;--c:#e2b44a"></div></div></div></div></div>
+          </article>
+          <div class="insight-stack"><article class="insight"><i class="ph ph-lightbulb"></i><h3>Your most useful next move</h3><p>If you want this to keep you full longer, add a little more protein—extra chickpeas, tofu, an egg, or whatever is realistic today.</p></article><article class="insight"><i class="ph ph-heart"></i><h3>No “good food” score.</h3><p>Morsel describes the meal in front of you. It gives context, not judgment—and leaves the choice with you.</p></article></div>
+        </div>
+      </div>
+    </section>
+    <section class="context">
+      <div class="wrap context-grid">
+        <div class="context-copy"><div class="eyebrow">Your day has context</div><h2>One meal isn’t the whole story.</h2><p>Morsel connects the dots without turning your life into a dashboard. A light day, a late lunch, food you love—it all belongs in the picture.</p><div class="checks"><div class="check"><i class="ph ph-check"></i> Adjusts suggestions to the moment</div><div class="check"><i class="ph ph-check"></i> Keeps choices small and realistic</div><div class="check"><i class="ph ph-check"></i> Makes room for preference and appetite</div></div></div>
+        <div class="day-path"><div class="meal-row"><span class="time">8:10 AM</span><img class="thumb" src="https://images.unsplash.com/photo-1495214783159-3503fd1b572d?auto=format&fit=crop&w=240&q=80" alt="Yogurt and fruit breakfast"><div class="meal-note"><strong>A bright start</strong><small>Fruit, yogurt, and oats</small></div></div><div class="meal-row active"><span class="time">1:25 PM</span><img class="thumb" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=240&q=80" alt="Plant-forward lunch bowl"><div class="meal-note"><strong>Plenty of plants</strong><small>A protein boost could help with the long afternoon</small></div></div><div class="meal-row"><span class="time">Tonight</span><div class="thumb" style="background:#dfe3d8;display:grid;place-items:center"><i class="ph ph-fork-knife" style="font-size:27px"></i></div><div class="meal-note"><strong>Keep it flexible</strong><small>Choose what sounds good when you get there</small></div></div></div>
+      </div>
+    </section>
+    <section class="how wrap" id="how"><h2>From photo to a clearer choice in three moments.</h2><div class="steps"><article class="step"><span class="step-num">01</span><i class="ph ph-camera"></i><div><h3>Snap the meal</h3><p>Take a quick photo or choose one from your library. No careful staging needed.</p></div></article><article class="step"><span class="step-num">02</span><i class="ph ph-sparkle"></i><div><h3>See what’s there</h3><p>Get a plain-language view of the meal’s ingredients, balance, and strengths.</p></div></article><article class="step"><span class="step-num">03</span><i class="ph ph-path"></i><div><h3>Choose your next move</h3><p>Keep it as-is or pick one small adjustment that works for your actual day.</p></div></article></div></section>
+    <section class="cta-section wrap"><div class="cta-panel"><div><h2>Your next meal is enough to begin.</h2><p>No tracking streak. No perfect plate. Just a little more clarity.</p></div><button class="primary scan-trigger"><i class="ph ph-camera"></i> Scan a meal</button></div></section>
+  </main>
+  <footer class="wrap"><a class="brand" href="#"><span class="brand-mark"><i class="ph-fill ph-leaf"></i></span>Morsel</a><span>Food insight, without the food rules.</span><div class="footer-links"><a href="#">Privacy</a><a href="#">About</a></div></footer>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="scanTitle">
+    <div class="scanner"><div class="scanner-top"><h3 id="scanTitle">Scan your meal</h3><button class="icon-btn" id="close" aria-label="Close scanner"><i class="ph ph-x"></i></button></div>
+      <div id="uploadView"><label class="dropzone" id="dropzone" tabindex="0"><i class="ph ph-image-square"></i><strong>Drop a meal photo here</strong><span>or tap to choose from your library</span><input id="file" type="file" accept="image/*"></label><button class="sample" id="sampleBtn">Use the sample grain bowl</button></div>
+      <div class="loading" id="loading"><div class="loader"></div><strong>Looking at your plate…</strong><p class="micro" style="justify-content:center">Finding ingredients and meal patterns</p></div>
+      <div class="result" id="result"><div class="eyebrow" style="justify-content:center">Your plate read</div><img id="preview" src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85" alt="Meal selected for analysis"><h3>A colorful, varied meal.</h3><p class="lede" style="font-size:14px;margin:10px auto 18px">There’s a solid mix here. For more staying power, consider adding a protein you enjoy.</p><div class="result-box"><div><small>What stands out</small><strong>Plant variety</strong></div><div><small>A realistic next move</small><strong>Add protein</strong></div></div></div>
+    </div>
+  </div>
+  <script>
+    const modal=document.querySelector("#modal"),upload=document.querySelector("#uploadView"),loading=document.querySelector("#loading"),result=document.querySelector("#result"),file=document.querySelector("#file"),preview=document.querySelector("#preview"),drop=document.querySelector("#dropzone");
+    let previousFocus;
+    function openScanner(sample=false){previousFocus=document.activeElement;modal.classList.add("open");document.body.style.overflow="hidden";upload.style.display="block";loading.style.display=result.style.display="none";document.querySelector("#close").focus();if(sample)analyze()}
+    function closeScanner(){modal.classList.remove("open");document.body.style.overflow="";previousFocus?.focus()}
+    function analyze(src){if(src)preview.src=src;upload.style.display="none";loading.style.display="block";setTimeout(()=>{loading.style.display="none";result.style.display="block"},1100)}
+    document.querySelectorAll(".scan-trigger").forEach(b=>b.addEventListener("click",()=>openScanner()));
+    document.querySelector("#trySample").addEventListener("click",()=>openScanner(true));document.querySelector("#sampleBtn").addEventListener("click",()=>analyze());document.querySelector("#close").addEventListener("click",closeScanner);
+    modal.addEventListener("click",e=>{if(e.target===modal)closeScanner()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&modal.classList.contains("open"))closeScanner()});
+    file.addEventListener("change",()=>{if(file.files[0])analyze(URL.createObjectURL(file.files[0]))});
+    ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("drag")}));
+    ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("drag")}));
+    drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))analyze(URL.createObjectURL(f))});
+    drop.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();file.click()}});
+  </script>
+</body>
+</html>

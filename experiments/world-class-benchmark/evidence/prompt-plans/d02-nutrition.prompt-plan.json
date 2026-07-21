@@ -1,0 +1,784 @@
+{
+  "kind": "prompt-plan",
+  "version": 1,
+  "id": "prompt-plan-d02-nutrition",
+  "rawRequest": "Build a responsive AI nutrition product experience from the supplied reference",
+  "surface": "product-app",
+  "promptMode": "generate",
+  "facetBindings": [
+    {
+      "facet": "intent-goal",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-intent-goal",
+        "value": "resolved intent-goal",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "requirements",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-requirements",
+        "value": "resolved requirements",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "ia-flow",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-ia-flow",
+        "value": "resolved ia-flow",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "layout",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-layout",
+        "value": "resolved layout",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "style",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-style",
+        "value": "resolved style",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "content",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-content",
+        "value": "resolved content",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "behavior",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-behavior",
+        "value": "resolved behavior",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "audience",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-audience",
+        "value": "resolved audience",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "tone-voice",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-tone-voice",
+        "value": "resolved tone-voice",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "constraints",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-constraints",
+        "value": "resolved constraints",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "accessibility",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-accessibility",
+        "value": "resolved accessibility",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    },
+    {
+      "facet": "states-edge-cases",
+      "decisionChanging": false,
+      "decision": {
+        "id": "decision-states-edge-cases",
+        "value": "resolved states-edge-cases",
+        "sourceType": "user",
+        "sourceRef": "brief",
+        "confidence": "high"
+      }
+    }
+  ],
+  "productTruth": {
+    "audienceSituation": "people choosing what to eat next without wanting another dense dashboard",
+    "desiredChange": "turn one meal scan into an understandable next choice",
+    "primaryOutcome": "qualified understanding before commitment",
+    "primaryAction": "scan a meal",
+    "availableProof": [
+      "supplied reference",
+      "approved case content",
+      "local production assets"
+    ],
+    "prohibitedClaims": [
+      "invented metrics",
+      "unsupported customer claims"
+    ],
+    "decisionChangingUnknowns": [],
+    "contentInventory": [
+      "capture",
+      "decode",
+      "day-context",
+      "recommendation",
+      "next-action"
+    ]
+  },
+  "pageNarrative": {
+    "thesis": "turn one meal scan into an understandable next choice, then make scan a meal feel earned"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "structuralThesis": "guided sequence",
+      "focalMechanism": "media reveal",
+      "regionRhythm": "wide-tight-wide",
+      "signatureTechnique": "sticky chapters",
+      "heroWorkspaceArchitecture": "asymmetric split",
+      "shapeLanguage": "soft frames",
+      "briefFitScore": 8,
+      "executionRiskScore": 3,
+      "convergenceRiskScore": 2,
+      "selectionDecision": "selected for narrative fit"
+    },
+    {
+      "id": "direction-1",
+      "structuralThesis": "editorial field",
+      "focalMechanism": "kinetic typography",
+      "regionRhythm": "quiet-burst-quiet",
+      "signatureTechnique": "masked transitions",
+      "heroWorkspaceArchitecture": "manifesto stage",
+      "shapeLanguage": "sharp planes",
+      "briefFitScore": 7,
+      "executionRiskScore": 4,
+      "convergenceRiskScore": 3,
+      "selectionDecision": "preserved alternative"
+    },
+    {
+      "id": "direction-2",
+      "structuralThesis": "modular workspace",
+      "focalMechanism": "live task canvas",
+      "regionRhythm": "dense-sparse-dense",
+      "signatureTechnique": "spatial zoom",
+      "heroWorkspaceArchitecture": "command workspace",
+      "shapeLanguage": "nested rails",
+      "briefFitScore": 6,
+      "executionRiskScore": 5,
+      "convergenceRiskScore": 4,
+      "selectionDecision": "preserved alternative"
+    }
+  ],
+  "selectedDirectionId": "direction-0",
+  "visualSystem": {
+    "typography": "fluid sans scale with 45-68 character measure",
+    "palette": "neutral field with one cyan accent locked page-wide",
+    "spacingCadence": "4, 8, 12, 20, 32, 52, 84 pixel scale",
+    "grid": "12-column maximum 1440 pixel content grid",
+    "shapeGrammar": "16 pixel regions, pill controls only",
+    "depthMaterial": "tinted ambient shadows only at hierarchy changes",
+    "mediaGrade": "high-key imagery with protected focal areas",
+    "iconFamily": "phosphor",
+    "controlGarment": "custom controls with tactile active state",
+    "motionCharacter": "gentle reveal for hierarchy and state feedback",
+    "themeBehavior": "system theme using semantic tokens"
+  },
+  "regions": [
+    {
+      "id": "capture",
+      "purpose": "Resolve capture",
+      "role": "establish product outcome",
+      "entryState": "cold arrival",
+      "exitState": "next question prepared",
+      "contentDependency": "approved capture content and evidence",
+      "layoutModel": "asymmetric outcome stage",
+      "compositionAnchor": "content edge",
+      "hierarchyEvent": "one dominant transition tied to the region job",
+      "alignmentKeylines": "page grid, readable copy line, media focal line",
+      "contentMeasure": "45-68 characters",
+      "groupingModel": "proximity and one meaningful boundary",
+      "interaction": "visible focus, feedback, loading, empty, error, and success",
+      "responsiveTransformation": "release split and preserve semantic source order at content failure",
+      "memorableDetail": "topic-coupled capture transition",
+      "antiPattern": "interchangeable cards or decorative timeline",
+      "craftInvestment": "signature",
+      "visualType": "generated-image",
+      "visualRationale": "section-specific imagery supplies product or material evidence",
+      "assetId": "asset-capture"
+    },
+    {
+      "id": "decode",
+      "purpose": "Resolve decode",
+      "role": "advance evidence",
+      "entryState": "prior claim established",
+      "exitState": "next question prepared",
+      "contentDependency": "approved decode content and evidence",
+      "layoutModel": "pinned evidence sequence",
+      "compositionAnchor": "evidence focal line",
+      "hierarchyEvent": "one dominant transition tied to the region job",
+      "alignmentKeylines": "page grid, readable copy line, media focal line",
+      "contentMeasure": "45-68 characters",
+      "groupingModel": "proximity and one meaningful boundary",
+      "interaction": "visible focus, feedback, loading, empty, error, and success",
+      "responsiveTransformation": "release split and preserve semantic source order at content failure",
+      "memorableDetail": "topic-coupled decode transition",
+      "antiPattern": "interchangeable cards or decorative timeline",
+      "craftInvestment": "production",
+      "visualType": "typography",
+      "visualRationale": "live content and behavior communicate this region more clearly than decorative imagery"
+    },
+    {
+      "id": "day-context",
+      "purpose": "Resolve day context",
+      "role": "advance evidence",
+      "entryState": "prior claim established",
+      "exitState": "next question prepared",
+      "contentDependency": "approved day-context content and evidence",
+      "layoutModel": "horizontal proof field",
+      "compositionAnchor": "content edge",
+      "hierarchyEvent": "one dominant transition tied to the region job",
+      "alignmentKeylines": "page grid, readable copy line, media focal line",
+      "contentMeasure": "45-68 characters",
+      "groupingModel": "proximity and one meaningful boundary",
+      "interaction": "visible focus, feedback, loading, empty, error, and success",
+      "responsiveTransformation": "release split and preserve semantic source order at content failure",
+      "memorableDetail": "topic-coupled day-context transition",
+      "antiPattern": "interchangeable cards or decorative timeline",
+      "craftInvestment": "production",
+      "visualType": "generated-image",
+      "visualRationale": "section-specific imagery supplies product or material evidence",
+      "assetId": "asset-day-context"
+    },
+    {
+      "id": "recommendation",
+      "purpose": "Resolve recommendation",
+      "role": "advance evidence",
+      "entryState": "prior claim established",
+      "exitState": "next question prepared",
+      "contentDependency": "approved recommendation content and evidence",
+      "layoutModel": "interactive process rail",
+      "compositionAnchor": "evidence focal line",
+      "hierarchyEvent": "one dominant transition tied to the region job",
+      "alignmentKeylines": "page grid, readable copy line, media focal line",
+      "contentMeasure": "45-68 characters",
+      "groupingModel": "proximity and one meaningful boundary",
+      "interaction": "visible focus, feedback, loading, empty, error, and success",
+      "responsiveTransformation": "release split and preserve semantic source order at content failure",
+      "memorableDetail": "topic-coupled recommendation transition",
+      "antiPattern": "interchangeable cards or decorative timeline",
+      "craftInvestment": "production",
+      "visualType": "interaction",
+      "visualRationale": "live content and behavior communicate this region more clearly than decorative imagery"
+    },
+    {
+      "id": "next-action",
+      "purpose": "Resolve next action",
+      "role": "convert accumulated proof into one action",
+      "entryState": "prior claim established",
+      "exitState": "primary action understood",
+      "contentDependency": "approved next-action content and evidence",
+      "layoutModel": "focused action conclusion",
+      "compositionAnchor": "content edge",
+      "hierarchyEvent": "one dominant transition tied to the region job",
+      "alignmentKeylines": "page grid, readable copy line, media focal line",
+      "contentMeasure": "45-68 characters",
+      "groupingModel": "proximity and one meaningful boundary",
+      "interaction": "visible focus, feedback, loading, empty, error, and success",
+      "responsiveTransformation": "release split and preserve semantic source order at content failure",
+      "memorableDetail": "topic-coupled next-action transition",
+      "antiPattern": "interchangeable cards or decorative timeline",
+      "craftInvestment": "signature",
+      "visualType": "typography",
+      "visualRationale": "live content and behavior communicate this region more clearly than decorative imagery"
+    }
+  ],
+  "proportionCandidates": [
+    {
+      "id": "proportion-content-led",
+      "mode": "content-led",
+      "pageGrid": {
+        "maxWidth": 1440,
+        "columns": [
+          4,
+          8,
+          12
+        ],
+        "gutters": [
+          16,
+          24,
+          32
+        ]
+      },
+      "alignmentKeylines": [
+        "container",
+        "copy",
+        "media"
+      ],
+      "spacingScale": [
+        4,
+        8,
+        12,
+        20,
+        32,
+        52,
+        84
+      ],
+      "typeScale": [
+        14,
+        16,
+        24,
+        40,
+        64
+      ],
+      "textMeasure": "45-68 characters",
+      "breakpoints": [
+        {
+          "width": 390,
+          "reason": "content collision"
+        },
+        {
+          "width": 768,
+          "reason": "two-column fit"
+        },
+        {
+          "width": 1440,
+          "reason": "maximum composition"
+        }
+      ],
+      "regionGeometry": [
+        "capture: content minimums determine measure and span",
+        "decode: content minimums determine measure and span",
+        "day-context: content minimums determine measure and span",
+        "recommendation: content minimums determine measure and span",
+        "next-action: content minimums determine measure and span"
+      ],
+      "ratioApplications": [],
+      "responsiveReleaseRules": [
+        "release ratio when copy or focal-safe area fails"
+      ]
+    },
+    {
+      "id": "proportion-golden",
+      "mode": "golden",
+      "pageGrid": {
+        "maxWidth": 1440,
+        "columns": [
+          4,
+          8,
+          12
+        ],
+        "gutters": [
+          16,
+          24,
+          32
+        ]
+      },
+      "alignmentKeylines": [
+        "container",
+        "copy",
+        "media"
+      ],
+      "spacingScale": [
+        4,
+        8,
+        12,
+        20,
+        32,
+        52,
+        84
+      ],
+      "typeScale": [
+        14,
+        16,
+        24,
+        40,
+        64
+      ],
+      "textMeasure": "45-68 characters",
+      "breakpoints": [
+        {
+          "width": 390,
+          "reason": "content collision"
+        },
+        {
+          "width": 768,
+          "reason": "two-column fit"
+        },
+        {
+          "width": 1440,
+          "reason": "maximum composition"
+        }
+      ],
+      "regionGeometry": [
+        "capture: phi candidate",
+        "decode: phi candidate",
+        "day-context: content-led release",
+        "recommendation: content-led release",
+        "next-action: content-led release"
+      ],
+      "ratioApplications": [
+        {
+          "regionId": "capture",
+          "target": "primary copy and media span",
+          "ratio": 1.618,
+          "contentRationale": "headline measure and focal-safe media both remain within minimums",
+          "fallback": "release to content-led split, then semantic stack",
+          "nestingDepth": 1,
+          "applicationsInRegion": 1
+        }
+      ],
+      "responsiveReleaseRules": [
+        "release ratio when copy or focal-safe area fails"
+      ]
+    }
+  ],
+  "deliveryPlan": {
+    "assets": [
+      {
+        "id": "asset-capture",
+        "source": "imagegen",
+        "provenance": "generated",
+        "subject": "section-specific capture visual",
+        "narrativeJob": "establish context and outcome",
+        "aspectRatio": "4:5",
+        "focalSafeArea": "subject remains clear of live copy and controls",
+        "cropBehavior": "preserve semantic focal point from 390-1440 pixels",
+        "altText": "Visual evidence for capture",
+        "loadingPriority": "eager above the fold",
+        "mobileTransformation": "stack in source order with protected focal crop",
+        "usedIn": [
+          "capture"
+        ]
+      },
+      {
+        "id": "asset-day-context",
+        "source": "imagegen",
+        "provenance": "generated",
+        "subject": "section-specific day context visual",
+        "narrativeJob": "supply concrete proof",
+        "aspectRatio": "3:4",
+        "focalSafeArea": "subject remains clear of live copy and controls",
+        "cropBehavior": "preserve semantic focal point from 390-1440 pixels",
+        "altText": "Visual evidence for day context",
+        "loadingPriority": "lazy below the fold",
+        "mobileTransformation": "stack in source order with protected focal crop",
+        "usedIn": [
+          "day-context"
+        ]
+      }
+    ],
+    "viewports": [
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "states": "loading, empty, error, success",
+    "motion": "motivated transform and opacity",
+    "reducedMotion": "static hierarchy",
+    "javascriptFailure": "content and actions remain usable"
+  },
+  "preflight": {
+    "checks": [
+      {
+        "id": "group-brief-source-binding",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "group-direction-divergence",
+        "group": "direction-divergence",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "group-region-architecture",
+        "group": "region-architecture",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "group-layout-proportion",
+        "group": "layout-proportion",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "group-asset-claims",
+        "group": "asset-claims",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "group-accessibility-states",
+        "group": "accessibility-states",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "group-responsive-runtime",
+        "group": "responsive-runtime",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "missing-facet-source-coverage",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "unresolved-decision-changing-ambiguity",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "insufficient-direction-divergence",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "missing-region-coverage",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "missing-region-visual-strategy",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "missing-region-visual-asset",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "same-layout-different-copy",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "unresolved-grid-contract",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "missing-responsive-transformation",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "ratio-without-rationale",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "phi-everywhere",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "responsive-ratio-preservation",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "unsupported-claims",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "invalid-asset-provenance",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "invalid-visual-asset-contract",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "fake-asset-evidence",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "inaccessible-required-state",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "builder-packet-over-budget",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "placeholder-primary-visual",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "generated-fake-product-preview",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "hero-viewport-overflow",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "missing-decision-ids",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "conflicting-requirements",
+        "group": "brief-source-binding",
+        "severity": "hard",
+        "passed": true
+      },
+      {
+        "id": "eyebrow-overuse",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "centered-hero-convergence",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "serif-default-risk",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "premium-palette-convergence",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "weak-image-strategy",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "excessive-card-containment",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "unplanned-image-opportunity",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "underpowered-hero-demonstration",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "unmotivated-advanced-motion",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "visual-system-drift",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "depth-quality-decay-risk",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "afterthought-conclusion-risk",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      },
+      {
+        "id": "generated-copy-tells",
+        "group": "taste-risk",
+        "severity": "contextual",
+        "passed": true
+      }
+    ]
+  },
+  "builderPacket": {
+    "ref": "builder-packets/d02-nutrition.md",
+    "tokenCount": 5200
+  }
+}

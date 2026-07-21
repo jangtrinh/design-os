@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Relay keeps outcomes, owners, signals, and reasoning connected from planning through execution.">
+  <title>Relay — Decisions that survive execution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <style>
+    :root{--ink:#17221c;--paper:#f1f0e8;--lime:#c8ff62;--mint:#c5f6df;--orange:#ff875c;--blue:#7db9ff;--line:rgba(23,34,28,.15);--muted:#66716a;--white:#fff;--serif:Georgia,serif}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Manrope,Arial,sans-serif;overflow-x:hidden}
+    button,a{font:inherit}a{color:inherit;text-decoration:none}button{color:inherit}.wrap{width:min(1240px,calc(100% - 48px));margin:auto}
+    .nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-weight:800;font-size:21px;letter-spacing:-.05em}.brand i{display:inline-block;width:12px;height:12px;background:var(--lime);border-radius:50%}
+    .navlinks{display:flex;gap:30px;align-items:center;font-size:14px;font-weight:600}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 18px;border:1px solid var(--ink);border-radius:99px;background:transparent;font-size:14px;font-weight:700;cursor:pointer}.btn.dark{background:var(--ink);color:white}.btn.lime{background:var(--lime);color:var(--ink)}
+    .hero{min-height:calc(100vh - 76px);padding:58px 0 40px;display:grid;grid-template-columns:.88fr 1.12fr;gap:58px;align-items:center}.eyebrow{font:500 11px DM Mono,monospace;text-transform:uppercase;letter-spacing:.14em;display:flex;align-items:center;gap:10px}.eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange)}
+    h1{font-size:clamp(58px,6.4vw,94px);line-height:.93;letter-spacing:-.065em;margin:24px 0 28px;font-weight:600}.hero h1 em{font-family:var(--serif);font-weight:400}.lead{font-size:18px;line-height:1.55;color:#4e5b53;max-width:520px}.actions{display:flex;align-items:center;gap:12px;margin-top:34px}.micro{font:400 11px DM Mono,monospace;color:var(--muted);margin-top:16px}
+    .product{background:#141c17;color:#eef4ee;border-radius:24px;padding:16px;box-shadow:0 28px 70px rgba(20,28,23,.2);transform:rotate(1deg)}.appbar{display:flex;align-items:center;justify-content:space-between;padding:4px 5px 15px}.appbar b{font-size:13px}.appbar span{font:11px DM Mono;color:#a3ada6}.avatars{display:flex}.avatar{width:24px;height:24px;border:2px solid #141c17;border-radius:50%;display:grid;place-items:center;font-size:8px;color:#162019;margin-left:-6px;background:var(--mint)}
+    .canvas{height:480px;border-radius:14px;background-color:#202923;background-image:radial-gradient(#526058 1px,transparent 1px);background-size:19px 19px;position:relative;overflow:hidden}.connector{position:absolute;height:1px;background:#65736a;transform-origin:left center}.c1{width:155px;left:118px;top:142px;transform:rotate(16deg)}.c2{width:160px;left:260px;top:185px;transform:rotate(-24deg)}.c3{width:125px;left:265px;top:188px;transform:rotate(39deg)}.c4{width:147px;left:411px;top:128px;transform:rotate(50deg)}
+    .node{position:absolute;width:150px;text-align:left;padding:12px;border-radius:10px;border:1px solid #56635a;background:#2b352e;color:white;cursor:pointer;transition:.2s transform,.2s border-color}.node:hover,.node.active{transform:translateY(-4px);border-color:var(--lime)}.node small{font:9px DM Mono;color:#aebaaf;text-transform:uppercase;letter-spacing:.08em}.node strong{display:block;font-size:12px;margin-top:6px;line-height:1.35}.node i{float:right;color:var(--lime);font-size:15px}.outcome{left:30px;top:84px}.reason{left:215px;top:151px}.owner{right:22px;top:55px}.signal{right:40px;top:257px}
+    .impact{position:absolute;left:30px;right:30px;bottom:24px;background:#f7f8f4;color:var(--ink);border-radius:12px;padding:15px 18px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}.impact small{font:9px DM Mono;text-transform:uppercase;color:var(--muted)}.impact b{display:block;font-size:13px;margin-top:4px}.impact .state{font:10px DM Mono;background:var(--lime);padding:7px 9px;border-radius:99px}
+    .proof{background:var(--ink);color:#eaf0eb;padding:28px 0}.proof .wrap{display:flex;align-items:center;justify-content:space-between;gap:30px}.proof p{margin:0;font-family:var(--serif);font-size:21px;font-style:italic}.proof ul{display:flex;gap:34px;list-style:none;margin:0;padding:0}.proof li{font:10px DM Mono;text-transform:uppercase;color:#a9b3ac;display:flex;gap:8px;align-items:center}.proof i{color:var(--lime);font-size:17px}
+    section{padding:120px 0}.section-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:64px}.kicker{font:11px DM Mono;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}h2{font-size:clamp(42px,5vw,70px);line-height:1;letter-spacing:-.055em;margin:12px 0 0;font-weight:600}.section-head p{max-width:500px;font-size:17px;line-height:1.6;color:var(--muted);margin:0}
+    .context-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}.context-card{border:1px solid var(--line);border-radius:20px;padding:28px;background:rgba(255,255,255,.35);min-height:360px}.context-card h3{font-size:25px;letter-spacing:-.04em;margin:0 0 8px}.context-card>p{color:var(--muted);font-size:14px;margin:0}.decision-log{margin-top:35px}.log{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}.log-icon{width:40px;height:40px;border-radius:12px;background:var(--mint);display:grid;place-items:center;font-size:19px}.log b{display:block;font-size:13px}.log span{font-size:11px;color:var(--muted)}.log time{font:10px DM Mono;color:var(--muted)}
+    .signal-card{background:var(--blue);position:relative;overflow:hidden}.signal-card .trend{margin-top:58px;height:150px;position:relative;border-bottom:1px solid rgba(23,34,28,.2)}.trend svg{width:100%;height:100%;overflow:visible}.metric{font:600 54px/1 var(--serif);margin-top:24px}.metric small{font:11px DM Mono;font-family:DM Mono}.note{position:absolute;right:20px;top:145px;background:var(--paper);padding:10px 12px;border-radius:8px;font-size:11px;transform:rotate(3deg)}
+    .flow-section{background:#dfe1d4}.flow{display:grid;grid-template-columns:repeat(4,1fr);position:relative}.flow:before{content:"";position:absolute;left:12%;right:12%;top:31px;border-top:1px dashed #859087}.step{padding-right:30px;position:relative}.step-num{width:62px;height:62px;display:grid;place-items:center;border-radius:50%;border:1px solid #8b968e;background:#dfe1d4;font:11px DM Mono;margin-bottom:34px}.step:nth-child(2) .step-num{background:var(--orange);border-color:var(--ink)}.step:nth-child(3) .step-num{background:var(--mint)}.step:nth-child(4) .step-num{background:var(--lime)}.step h3{font-size:19px;margin:0 0 10px}.step p{font-size:13px;color:#657168;line-height:1.6}
+    .quote-section{padding-bottom:40px}.quote-card{background:var(--orange);border-radius:26px;padding:70px;position:relative;overflow:hidden}.quote-card:after{content:"";width:310px;height:310px;border:55px solid rgba(23,34,28,.07);border-radius:50%;position:absolute;right:-90px;bottom:-150px}.quote{font-family:var(--serif);font-size:clamp(36px,4.7vw,66px);line-height:1.08;letter-spacing:-.04em;max-width:940px;margin:0}.quote-meta{display:flex;justify-content:space-between;align-items:end;margin-top:58px;position:relative;z-index:1}.quote-meta p{font:11px DM Mono;line-height:1.6;text-transform:uppercase}
+    .final{padding:100px 0 60px;text-align:center}.final h2{max-width:900px;margin:0 auto 30px}.final h2 em{font-family:var(--serif);font-weight:400}.final p{color:var(--muted);font-size:17px}.final .btn{margin-top:20px;padding:15px 24px}.footer{margin-top:90px;border-top:1px solid var(--line);padding-top:28px;display:flex;justify-content:space-between;font:10px DM Mono;text-transform:uppercase;color:var(--muted)}
+    .modal{border:0;border-radius:20px;padding:0;max-width:520px;width:calc(100% - 32px);background:var(--paper);color:var(--ink);box-shadow:0 30px 90px #0006}.modal::backdrop{background:#111a15cc}.modal-inner{padding:30px}.modal-head{display:flex;justify-content:space-between}.modal h3{font-size:30px;letter-spacing:-.04em;margin:18px 0 8px}.modal p{color:var(--muted);line-height:1.5}.close{border:0;background:transparent;font-size:24px;cursor:pointer}.fields{display:grid;gap:10px;margin-top:24px}.fields input{padding:14px;border:1px solid var(--line);background:white;border-radius:10px;font:inherit}.fields button{border:0;padding:14px;border-radius:10px;background:var(--ink);color:white;font-weight:700;cursor:pointer}.success{display:none;padding:20px 0}
+    @media(max-width:800px){.wrap{width:min(100% - 28px,600px)}.nav{height:66px}.navlinks a:not(.btn){display:none}.navlinks{gap:8px}.hero{display:block;padding:44px 0 54px;min-height:auto}.hero h1{font-size:58px}.lead{font-size:16px}.product{margin-top:50px;transform:none;padding:10px}.canvas{height:450px}.node{width:132px}.outcome{left:12px;top:60px}.reason{left:98px;top:157px}.owner{right:10px;top:55px}.signal{right:14px;top:252px}.c1{left:90px;top:130px}.c2{left:205px;top:180px;width:90px}.c3{left:192px;top:200px}.impact{left:12px;right:12px;bottom:12px}.proof .wrap,.proof ul{align-items:flex-start;flex-direction:column}.proof ul{gap:13px}.proof p{font-size:18px}section{padding:80px 0}.section-head{grid-template-columns:1fr;gap:22px;margin-bottom:40px}.context-grid{grid-template-columns:1fr}.context-card{min-height:auto}.flow{grid-template-columns:1fr 1fr;gap:42px 14px}.flow:before{display:none}.step{padding-right:8px}.step-num{margin-bottom:20px}.quote-card{padding:40px 24px}.quote-meta{align-items:flex-start;flex-direction:column;gap:12px}.final{padding-top:80px}.footer{gap:20px;text-align:left}.note{top:130px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <header class="wrap nav">
+    <a class="brand" href="#">relay<i></i></a>
+    <nav class="navlinks" aria-label="Main navigation"><a href="#context">Why Relay</a><a href="#method">How it works</a><button class="btn dark demo-open">Get a demo <i class="ph ph-calendar-blank"></i></button></nav>
+  </header>
+  <main>
+    <div class="wrap hero">
+      <div>
+        <div class="eyebrow">Decision context, intact</div>
+        <h1>Plans change.<br><em>Reasoning</em> shouldn’t vanish.</h1>
+        <p class="lead">Relay keeps the outcome, owner, signals, and “why” connected—so teams can execute without losing the decision behind the work.</p>
+        <div class="actions"><button class="btn lime demo-open">Get a demo <i class="ph ph-calendar-blank"></i></button><a class="btn" href="#context">See the model <i class="ph ph-arrow-down"></i></a></div>
+        <div class="micro">Built for consequential, cross-functional plans.</div>
+      </div>
+      <div class="product" aria-label="Interactive Relay product demonstration">
+        <div class="appbar"><b>Q3 Expansion Plan</b><span>LIVE CONTEXT · 4 LINKED ITEMS</span><div class="avatars"><div class="avatar">AL</div><div class="avatar" style="background:var(--blue)">MK</div></div></div>
+        <div class="canvas">
+          <span class="connector c1"></span><span class="connector c2"></span><span class="connector c3"></span><span class="connector c4"></span>
+          <button class="node outcome active" data-title="Outcome stays measurable" data-state="On track"><i class="ph ph-flag"></i><small>Outcome</small><strong>Increase qualified adoption in the EU</strong></button>
+          <button class="node reason" data-title="Reasoning stays reviewable" data-state="2 assumptions"><i class="ph ph-lightbulb"></i><small>Reasoning</small><strong>Start with teams already using SSO</strong></button>
+          <button class="node owner" data-title="Ownership stays explicit" data-state="Alex owns"><i class="ph ph-user-circle"></i><small>Owner</small><strong>Alex · Market lead</strong></button>
+          <button class="node signal" data-title="Signals challenge the plan" data-state="Watch weekly"><i class="ph ph-activity"></i><small>Signal</small><strong>Activation by market</strong></button>
+          <div class="impact" aria-live="polite"><div><small>What this connection protects</small><b id="impact-title">Outcome stays measurable</b></div><span class="state" id="impact-state">On track</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="proof"><div class="wrap"><p>A shared plan is useful. A connected one is durable.</p><ul><li><i class="ph ph-link"></i> Traceable reasoning</li><li><i class="ph ph-user-focus"></i> Visible ownership</li><li><i class="ph ph-waveform"></i> Live signals</li></ul></div></div>
+
+    <section id="context"><div class="wrap">
+      <div class="section-head"><div><div class="kicker">Context is the work</div><h2>One place for the decision and its wake.</h2></div><p>Plans rarely fail because a task went missing. They drift when the assumptions, tradeoffs, and signals that shaped the task become detached from it.</p></div>
+      <div class="context-grid">
+        <article class="context-card"><h3>The decision log writes itself.</h3><p>Every material change is attached to the plan it affects.</p><div class="decision-log">
+          <div class="log"><span class="log-icon"><i class="ph ph-arrows-clockwise"></i></span><div><b>Launch sequence updated</b><span>Linked to: EU adoption outcome</span></div><time>09:42</time></div>
+          <div class="log"><span class="log-icon" style="background:var(--orange)"><i class="ph ph-chat-circle-dots"></i></span><div><b>Assumption challenged</b><span>Maya added evidence from research</span></div><time>MON</time></div>
+          <div class="log"><span class="log-icon" style="background:var(--lime)"><i class="ph ph-check"></i></span><div><b>Owner confirmed</b><span>Alex accepted the next checkpoint</span></div><time>FRI</time></div>
+        </div></article>
+        <article class="context-card signal-card"><h3>Signals stay near the choice.</h3><p>See when evidence supports—or challenges—the plan.</p><div class="trend"><svg viewBox="0 0 400 140" role="img" aria-label="Activation trend rises and then stabilizes"><path d="M0 118 C55 108 65 80 112 88 S185 35 230 50 S310 60 400 12" fill="none" stroke="#17221c" stroke-width="3"/><path d="M0 118 C55 108 65 80 112 88 S185 35 230 50 S310 60 400 12 L400 140 L0 140Z" fill="rgba(197,246,223,.35)"/></svg></div><div class="note"><i class="ph ph-sparkle"></i> Evidence supports sequence</div><div class="metric">+ trend <small>ACTIVATION · WEEKLY</small></div></article>
+      </div>
+    </div></section>
+
+    <section class="flow-section" id="method"><div class="wrap">
+      <div class="section-head"><div><div class="kicker">From intent to action</div><h2>Trace the path. Change it with care.</h2></div><p>Relay gives every part of a plan a clear role. When one changes, the right people can see what else deserves attention.</p></div>
+      <div class="flow"><article class="step"><div class="step-num">01</div><h3>Name the outcome</h3><p>Define the change you want to see, beyond the list of work.</p></article><article class="step"><div class="step-num">02</div><h3>Capture the why</h3><p>Attach assumptions, evidence, and tradeoffs while they’re fresh.</p></article><article class="step"><div class="step-num">03</div><h3>Connect the owner</h3><p>Make accountability visible at each consequential junction.</p></article><article class="step"><div class="step-num">04</div><h3>Watch the signals</h3><p>Bring new evidence back to the decision it can change.</p></article></div>
+    </div></section>
+
+    <section class="quote-section"><div class="wrap"><div class="quote-card">
+      <p class="quote">The meeting ends. The plan changes. The context remains.</p>
+      <div class="quote-meta"><p>Relay’s operating principle<br>Decisions are living systems</p><button class="btn demo-open">See Relay with your plan <i class="ph ph-calendar-blank"></i></button></div>
+    </div></div></section>
+    <section class="final"><div class="wrap"><div class="kicker">Make the next decision durable</div><h2>Give execution the <em>context</em> it deserves.</h2><p>Bring a real planning challenge. We’ll show you how it connects in Relay.</p><button class="btn dark demo-open">Get a demo <i class="ph ph-calendar-blank"></i></button><footer class="footer"><span>© 2026 Relay Planning Systems</span><span>Decide together · Execute with context</span></footer></div></section>
+  </main>
+  <dialog class="modal" id="demo-modal"><div class="modal-inner"><div class="modal-head"><span class="brand">relay<i></i></span><button class="close" aria-label="Close demo form"><i class="ph ph-x"></i></button></div><div class="form-content"><h3>Bring us a real decision.</h3><p>Tell us where planning context gets lost. We’ll shape the demo around your workflow.</p><form class="fields"><input required aria-label="Work email" type="email" placeholder="Work email"><input required aria-label="Team" placeholder="Team or company"><button type="submit">Request my demo</button></form></div><div class="success"><i class="ph ph-check-circle" style="font-size:38px"></i><h3>You’re on the list.</h3><p>Thanks—we’ll follow up to shape a useful conversation.</p></div></div></dialog>
+  <script>
+    const nodes=document.querySelectorAll('.node'),title=document.querySelector('#impact-title'),state=document.querySelector('#impact-state');
+    nodes.forEach(n=>n.addEventListener('click',()=>{nodes.forEach(x=>x.classList.remove('active'));n.classList.add('active');title.textContent=n.dataset.title;state.textContent=n.dataset.state}));
+    const modal=document.querySelector('#demo-modal');document.querySelectorAll('.demo-open').forEach(b=>b.addEventListener('click',()=>modal.showModal()));document.querySelector('.close').addEventListener('click',()=>modal.close());modal.addEventListener('click',e=>{if(e.target===modal)modal.close()});
+    document.querySelector('.fields').addEventListener('submit',e=>{e.preventDefault();document.querySelector('.form-content').style.display='none';document.querySelector('.success').style.display='block'});
+  </script>
+</body>
+</html>

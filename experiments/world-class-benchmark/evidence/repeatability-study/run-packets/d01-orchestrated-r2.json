@@ -1,0 +1,76 @@
+{
+  "kind": "repeatability-run",
+  "version": 1,
+  "runId": "d01-orchestrated-r2",
+  "caseId": "d01",
+  "workflow": "orchestrated",
+  "repeat": 2,
+  "brief": {
+    "request": "Build a premium site-specific residential architecture landing page.",
+    "audience": "homeowners evaluating an architect for a mountain site",
+    "outcome": "understand how land and daily rituals become a buildable home",
+    "action": "start a project"
+  },
+  "floors": [
+    "responsive at 390 and 1440",
+    "Phosphor icons, no text glyph arrows",
+    "live product UI instead of generated fake screenshots",
+    "reduced motion support",
+    "no unsupported claims or metrics"
+  ],
+  "generationBrief": {
+    "prompt": "Build a premium site-specific residential architecture landing page.",
+    "audience": "homeowners evaluating an architect for a mountain site",
+    "outcome": "understand how land and daily rituals become a buildable home",
+    "action": "start a project",
+    "orchestration": {
+      "directions": 3,
+      "selectBy": "topic fit, evidence strength, execution and convergence risk",
+      "regions": [
+        "hero",
+        "proof",
+        "context",
+        "process or connection",
+        "conclusion"
+      ],
+      "regionContract": [
+        "purpose and narrative role",
+        "distinct layout family",
+        "composition anchor and hierarchy event",
+        "visual type and rationale",
+        "responsive transformation",
+        "craft investment"
+      ],
+      "imagery": [
+        "plan section-specific image prompts before implementation",
+        "generate or source purposeful evidence where CSS would become a placeholder",
+        "keep labels, controls, data, and product state as live HTML",
+        "record focal-safe crop and mobile behavior"
+      ],
+      "hero": [
+        "fit headline, copy, action, and primary demonstration in initial desktop viewport",
+        "make product demonstrations show hierarchy, state, and consequence"
+      ],
+      "depth": "preserve design investment and topic specificity through the conclusion",
+      "composition": "test content-led and golden candidates, release ratios when content fails",
+      "preflight": [
+        "no placeholder primary visual",
+        "no generated fake product screenshot",
+        "no section-shell repetition without rationale",
+        "no quality decline toward footer"
+      ]
+    }
+  },
+  "isolation": {
+    "inspectOtherRuns": false,
+    "manualRepairBeforeCapture": false,
+    "outputDirectory": "runs/d01-orchestrated-r2"
+  },
+  "capture": {
+    "viewports": [
+      390,
+      1440
+    ],
+    "reducedMotion": true
+  }
+}

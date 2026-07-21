@@ -1,0 +1,25 @@
+{
+  "revealedAfterCuration": true,
+  "mapping": {
+    "d01": {
+      "A": "enhanced",
+      "B": "orchestrated-selected",
+      "C": "raw"
+    },
+    "d02": {
+      "A": "raw",
+      "B": "orchestrated-selected",
+      "C": "enhanced"
+    },
+    "d03": {
+      "A": "orchestrated-selected",
+      "B": "raw",
+      "C": "enhanced"
+    }
+  },
+  "winnerReveal": {
+    "d01": "orchestrated-selected",
+    "d02": "orchestrated-selected",
+    "d03": "orchestrated-selected"
+  }
+}

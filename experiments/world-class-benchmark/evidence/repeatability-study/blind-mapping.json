@@ -1,0 +1,17 @@
+{
+  "architecture": {
+    "A": "d01-orchestrated-r2",
+    "B": "d01-orchestrated-r3",
+    "C": "d01-orchestrated-r1"
+  },
+  "nutrition": {
+    "A": "d02-orchestrated-r3",
+    "B": "d02-orchestrated-r1",
+    "C": "d02-orchestrated-r2"
+  },
+  "planning": {
+    "A": "d03-orchestrated-r1",
+    "B": "d03-orchestrated-r3",
+    "C": "d03-orchestrated-r2"
+  }
+}

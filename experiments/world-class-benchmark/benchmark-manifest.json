@@ -1,0 +1,32 @@
+{
+  "benchmarkId": "world-class-four-way-2026-07-19",
+  "purpose": "Compare raw, enhanced, qualified, and art-directed UI workflows without collapsing delivery-floor compliance into ceiling quality.",
+  "cases": ["d01-architecture", "d02-nutrition", "d03-planning"],
+  "variants": [
+    "raw",
+    "enhanced",
+    "qualified",
+    "orchestrated-content-led",
+    "orchestrated-golden",
+    "orchestrated-selected",
+    "art-directed"
+  ],
+  "viewports": [
+    { "width": 390, "height": 844, "label": "mobile" },
+    { "width": 768, "height": 1024, "label": "tablet" },
+    { "width": 1440, "height": 1000, "label": "desktop" }
+  ],
+  "sharedConstraints": {
+    "icons": "Phosphor Icons",
+    "logos": "SVGL",
+    "generatedImagery": "Codex imagegen 2 section boards",
+    "responsive": true,
+    "reducedMotion": true,
+    "customControls": true
+  },
+  "evaluation": {
+    "status": "d01-orchestration-maker-preview",
+    "promotionEligible": false,
+    "reason": "The maker cannot honestly provide the required blind evaluation. Randomized external scoring remains required."
+  }
+}

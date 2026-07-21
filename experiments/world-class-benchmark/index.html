@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="Controlled ease-design orchestration benchmark" />
+    <title>ease-design world-class benchmark</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="./styles/base.css" />
+    <link rel="stylesheet" href="./styles/variants.css" />
+    <link rel="stylesheet" href="./styles/cases.css" />
+    <link rel="stylesheet" href="./styles/orchestration.css" />
+  </head>
+  <body>
+    <div id="ambient" aria-hidden="true"></div>
+    <header class="benchmark-bar">
+      <a class="benchmark-brand" href="./">ease/design lab</a>
+      <div class="benchmark-switches">
+        <label>Case <select id="case-select"><option value="d01">D01 Architecture</option><option value="d02">D02 Nutrition</option><option value="d03">D03 Planning</option></select></label>
+        <label>Workflow <select id="variant-select"><option value="raw">Raw</option><option value="enhanced">Enhanced</option><option value="qualified">Qualified</option><option value="orchestrated-content-led">Orchestrated content-led</option><option value="orchestrated-golden">Orchestrated golden</option><option value="orchestrated-selected">Orchestrated selected</option><option value="art-directed">Art-directed</option></select></label>
+      </div>
+    </header>
+    <noscript>
+      <main class="no-script-fallback">
+        <h1>Home, shaped by land.</h1>
+        <p>Site-specific residences shaped by mountain light, durable material, and daily life.</p>
+        <h2>Read the land</h2><p>Light, slope, wind, and memory set the first lines.</p>
+        <h2>Choose materials for time</h2><p>Timber, stone, and mineral plaster gain character through use.</p>
+        <h2>Build as a sequence</h2><p>Read the land, frame daily rituals, resolve material, and build with the site.</p>
+        <a class="button" href="mailto:hello@example.com">Start a project</a>
+      </main>
+    </noscript>
+    <main id="app" tabindex="-1"></main>
+    <script type="module" src="./scripts/render.js"></script>
+  </body>
+</html>
