@@ -15,6 +15,15 @@ This journey does not re-explain what a persona is, what a token means, or desig
 that lives in `knowledge/`. It only teaches sequencing, disambiguation, and the gotchas
 that cost a real dogfood session each.
 
+## 0. Run `ui onboard` first
+
+Run `ui onboard` before picking an entry road below — it prints this project's setup
+checklist and the exact next command for each gap, so you don't have to guess which
+situation applies from scratch. It reads the filesystem only: it never installs or runs
+anything on its own, it only reports. For every pending step, ask the user's approval
+before running the suggested setup/install command — never install silently on their
+behalf. Once oriented, run `ui guide` to see the full range of what design:os can do.
+
 ## 1. Entry-point router — which of the six roads in
 
 The fork below lives in exactly one other place today (the README's "journeys" mermaid

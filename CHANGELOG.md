@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-21 - Onboarding first-run (Spec 019 P1)
+
+- Added `ui onboard` — a deterministic, read-only readiness checklist over a project:
+  runtime adapters, git, design system, design soul, and the learning loop (heartbeat),
+  plus the optional project-agents and Figma steps. Reports what's missing and the exact
+  fix command; never installs anything itself. Always exits 0.
+- Added the shared style-A report renderer (`src/core/report-style.ts`) — the wordmark
+  banner, a rule-line header with a right-aligned verdict, and a static `[✓]/[ ]/[!]`
+  checklist row builder. ASCII-safe, no color/Rich/ANSI.
+- `ui init` now opens its success output with the DESIGN:OS wordmark banner and closes
+  with an explicit chain to `ui onboard` and `ui guide`.
+- The `/ui:init` wrapper (Claude Code + Antigravity) now instructs the host agent to walk
+  `ui onboard`'s checklist with the user afterward, asking approval before running any
+  suggested setup/install command — `ui` only reports, the host acts. The `onboard`
+  journey skill now points at `ui onboard` first, with the same approval discipline.
+
 ## 2026-07-21 - Suite-level IMPROVING graduation gate
 
 - Changed: the living-agent proof grants `IMPROVING` only from a preregistered suite —
