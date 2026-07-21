@@ -82,9 +82,9 @@ Three later treatments test different surfaces with the GSAP motion-direction la
     <th>DESIGN:OS product</th><th>Nutrition native mobile</th><th>Architecture service</th>
   </tr>
   <tr>
-    <td><a href="specs/018-improving-proof-benchmark/runs/design-os-promotion/index.html"><img src="specs/018-improving-proof-benchmark/runs/design-os-promotion/renders/index.png" alt="DESIGN OS promotional experience with an intent compiler and controlled design comparison" /></a></td>
-    <td><a href="specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/index.html"><img src="specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/renders/index.png" alt="Nouri native mobile nutrition interface showing daily context, meal capture, and adaptive planning" /></a></td>
-    <td><a href="specs/018-improving-proof-benchmark/runs/architecture-premium-service/index.html"><img src="specs/018-improving-proof-benchmark/runs/architecture-premium-service/renders/index.png" alt="Rill Architecture site-led residential experience with spatial narrative and material study" /></a></td>
+    <td><a href="specs/018-improving-proof-benchmark/runs/design-os-promotion/index.html"><img src="specs/018-improving-proof-benchmark/runs/design-os-promotion/demo/design-os-promotion.gif" alt="Animated DESIGN OS promotional experience with an intent compiler and controlled design comparison" /></a></td>
+    <td><a href="specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/index.html"><img src="specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/demo/nutrition-native-mobile.gif" alt="Animated Nouri native mobile nutrition interface showing daily context, meal capture, and adaptive planning" /></a></td>
+    <td><a href="specs/018-improving-proof-benchmark/runs/architecture-premium-service/index.html"><img src="specs/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.gif" alt="Animated Rill Architecture site-led residential experience with spatial narrative and material study" /></a></td>
   </tr>
 </table>
 
@@ -93,6 +93,9 @@ These are runnable treatments, not static mockups. Review them from the
 [rendered critique](specs/018-improving-proof-benchmark/review-report.md). The benchmark
 proves differentiated delivery across product marketing, native-mobile UI, and premium service;
 it does not claim world-class superiority until matched controls receive blind scores.
+Full-quality recordings: [DESIGN:OS](specs/018-improving-proof-benchmark/runs/design-os-promotion/demo/design-os-promotion.mp4),
+[Nouri](specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/demo/nutrition-native-mobile.mp4),
+and [Rill Architecture](specs/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.mp4).
 
 ### The actual prompts
 
