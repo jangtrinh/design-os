@@ -5,6 +5,13 @@ coverage/
 *.log
 .DS_Store
 
+# Secrets / local credentials — never tracked. npm auth lives in ~/.npmrc (outside
+# the repo); these guard any local env file that may hold tokens.
+.env
+.env.*
+.npmrc
+*.npmrc
+
 # recall workspace: the vector index is a rebuildable cache over the JSONL ledger,
 # never a source of truth — `recall index` regenerates it from scratch.
 *.vec.db
