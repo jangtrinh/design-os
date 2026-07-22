@@ -17,9 +17,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jangtrinh/ease-design.git"
+    "url": "git+https://github.com/jangtrinh/design-os.git"
   },
-  "homepage": "https://github.com/jangtrinh/ease-design#readme",
+  "homepage": "https://github.com/jangtrinh/design-os#readme",
   "bin": {
     "ui": "./dist/cli.js"
   },
