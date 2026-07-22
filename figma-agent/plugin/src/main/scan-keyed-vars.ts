@@ -52,17 +52,21 @@ function collectInnerOverrideIds(instance: SceneNode, into: Set<string>): void {
 
 /** Every bound variable id in the subtree. Sync + mirrors nodeToSpec's recursion:
  * it does NOT descend into an INSTANCE, whose inner tree the spec never captures —
- * except for that instance's OVERRIDDEN children, which the spec does capture (P15). */
-function collectBoundVariableIds(root: SceneNode): Set<string> {
+ * except for that instance's OVERRIDDEN children, which the spec does capture (P15).
+ * `maxDepth` bounds it to the SAME subtree nodeToSpec emits (inspect --depth): a
+ * descendant past the budget contributes no id, so a bounded inspect never resolves
+ * variables it will prune. OMIT it (undefined) for a complete pre-pass. */
+function collectBoundVariableIds(root: SceneNode, maxDepth?: number): Set<string> {
   const ids = new Set<string>();
-  const visit = (node: SceneNode): void => {
+  const visit = (node: SceneNode, depth?: number): void => {
     for (const id of Object.values(readBindings(node as unknown as Record<string, unknown>))) ids.add(id);
     if (node.type === 'INSTANCE') { collectInnerOverrideIds(node, ids); return; }
-    if ('children' in node) {
-      for (const child of (node as SceneNode & ChildrenMixin).children) visit(child as SceneNode);
+    if ('children' in node && (depth === undefined || depth > 0)) {
+      const nextDepth = depth === undefined ? undefined : depth - 1;
+      for (const child of (node as SceneNode & ChildrenMixin).children) visit(child as SceneNode, nextDepth);
     }
   };
-  visit(root);
+  visit(root, maxDepth);
   return ids;
 }
 
@@ -82,10 +86,13 @@ function collectBoundVariableIds(root: SceneNode): Set<string> {
  *
  * Never throws: a Variables API that refuses simply yields an empty map, and the
  * scan degrades to the pre-P7 behaviour.
+ *
+ * `maxDepth` bounds the id collection to the subtree nodeToSpec emits (inspect
+ * --depth); OMIT it for a complete pre-pass (scan-node / mirror-verify).
  */
-export async function readKeyedVariableMap(root: SceneNode): Promise<Map<string, FigmaKeyedBinding>> {
+export async function readKeyedVariableMap(root: SceneNode, maxDepth?: number): Promise<Map<string, FigmaKeyedBinding>> {
   const map = new Map<string, FigmaKeyedBinding>();
-  for (const id of collectBoundVariableIds(root)) {
+  for (const id of collectBoundVariableIds(root, maxDepth)) {
     try {
       const v = await figma.variables.getVariableByIdAsync(id);
       if (!v || typeof v.key !== 'string' || !v.key) continue;

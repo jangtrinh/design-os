@@ -65,10 +65,10 @@ const HELP = `figma-agent — CLI bridge to the Figma plugin (via a local WS bro
 Usage: figma-agent <command> [options]
 
 Commands:
-  status               Broker + plugin connection info
+  status               Broker + plugin connection info [--timeout 2000 bounds live enrichment]
   seat                 Probe seat → {seat, bridge, reason} [--seat free|paid skips the probe]
   get-selection        Serialize the current selection [--depth 1]
-  inspect              [nodeId|--node id] [--out file.png --scale 1 --timeout ms]
+  inspect              [nodeId|--node id] [--depth 1 --out file.png --scale 1 --timeout ms]
   scan-design-system   Components/variables/styles registry [--out file.json --timeout ms]
   scan-node            [SPIKE] Reverse-walk one node → FigmaExportNode spec <nodeId> [--timeout ms]
   mirror-verify        Prove one node round-trips: scan → rebuild → scan → diff <nodeId> [--parent id --keep --timeout ms]
@@ -110,8 +110,7 @@ async function main(): Promise<void> {
   }
   try {
     const result = await command.run(parseArgs(argv.slice(1)));
-    printJson(result);
-    process.exit(0);
+    printJson(result); // validates bytes, then exits 0 AFTER stdout drains
   } catch (err) {
     printErrorJson(err);
   }

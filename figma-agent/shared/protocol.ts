@@ -153,7 +153,11 @@ export type ErrorCode =
   | 'E_CHUNK_LOST'
   // audit-ds v2: captured facts carry a `schema`; a mismatch (stale plugin sandbox, or a
   // v1 --from-facts file) is refused BEFORE detect with this code (see cli/.../audit-ds.ts §5).
-  | 'E_PLUGIN_STALE';
+  | 'E_PLUGIN_STALE'
+  // The serialized stdout bytes did not round-trip as valid JSON (a truncated or
+  // corrupt response). Transport exit 0 is NOT evidence of a complete payload, so the
+  // CLI fails closed here rather than let a consumer parse a partial object as success.
+  | 'E_RESPONSE_INTEGRITY';
 
 // ── Timeouts (ms) ───────────────────────────────────────────────────
 export const DEFAULT_TIMEOUT_MS = 15_000;

@@ -23,6 +23,11 @@ export interface ScanExtensions {
   // as raw ids; this names them so the loss reads as Figma's limit rather than
   // ours, and so the mirror can tell the two apart (spec-005 P9).
   figmaScanUnbindable?: string[];
+  // Set when a bounded walk (nodeToSpec's `maxDepth`, used only by `inspect`)
+  // reached its depth budget on a node that DOES have children: the subtree was
+  // cut here, so `children` is absent by choice, not because the node is a leaf.
+  // Unbounded scans (scan-node, mirror-verify) pass no bound and never set this.
+  childrenTruncated?: boolean;
 }
 
 export type ScannedNode = FigmaExportNode & ScanExtensions;

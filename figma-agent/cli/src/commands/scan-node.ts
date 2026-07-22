@@ -79,14 +79,22 @@ export async function scanNodeSpec(
   timeoutMs: number,
   run: Runner = runCommand,
   activity = `Scan · ${nodeId}`,
+  depth?: number,
 ): Promise<ScannedSpec> {
+  // depth === undefined → complete walk (scan-node, mirror-verify); a number bounds
+  // the walker (inspect --depth). Serialized into the injected code as a JS literal:
+  // `undefined` keeps the walker's default unbounded arm, a number prunes at the budget.
+  // The SAME bound goes to both async pre-passes so a bounded inspect makes no
+  // main-component / keyed-variable round-trips for descendants it will prune — the
+  // pruning must reach the transport, not just the output tree.
+  const depthLiteral = depth === undefined ? 'undefined' : JSON.stringify(depth);
   const code = `${SCAN_NODE_WALKER_BUNDLE}
 const node = await figma.getNodeByIdAsync(${JSON.stringify(nodeId)});
 if (!node) throw new Error('node not found: ' + ${JSON.stringify(nodeId)});
 const tokenNames = await __scan.readTokenNameMap();
-const mainComps = await __scan.readMainComponentMap(node);
-const keyedVars = await __scan.readKeyedVariableMap(node);
-return __scan.nodeToSpec(node, tokenNames, mainComps, keyedVars);`;
+const mainComps = await __scan.readMainComponentMap(node, ${depthLiteral});
+const keyedVars = await __scan.readKeyedVariableMap(node, ${depthLiteral});
+return __scan.nodeToSpec(node, tokenNames, mainComps, keyedVars, ${depthLiteral});`;
   // The label is the caller's, because EXEC_JS says nothing: this same walker runs
   // as a bare `scan-node`, as mirror-verify's "scan original" and as its "scan
   // rebuild" — three different waits the panel must be able to tell apart.

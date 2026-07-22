@@ -107,8 +107,15 @@ async function readOverriddenInnerMains(
  * stops there. It does resolve the mains of the inner children Figma itself named as
  * overridden (see readOverriddenInnerMains): those are refs, not structure.
  * Never throws: an unreachable main just contributes no entry.
+ *
+ * `maxDepth` bounds the walk to the SAME subtree nodeToSpec emits (progressive
+ * disclosure — inspect --depth): a descendant past the budget is neither visited nor
+ * async-resolved, so a bounded inspect makes no round-trips for nodes it will prune.
+ * OMIT it (undefined) for a complete pre-pass — scan-node and mirror-verify pass no
+ * bound. The gate is identical to nodeToSpec's child recursion (depth counts levels of
+ * children below this node; an INSTANCE is never descended regardless of depth).
  */
-export async function readMainComponentMap(root: SceneNode): Promise<Map<string, MainComponentRef>> {
+export async function readMainComponentMap(root: SceneNode, maxDepth?: number): Promise<Map<string, MainComponentRef>> {
   const map = new Map<string, MainComponentRef>();
   const resolve = async (node: SceneNode): Promise<void> => {
     try {
@@ -124,17 +131,18 @@ export async function readMainComponentMap(root: SceneNode): Promise<Map<string,
       // Main in an unloaded library / deleted → no ref (the documented P2 edge).
     }
   };
-  const visit = async (node: SceneNode): Promise<void> => {
+  const visit = async (node: SceneNode, depth?: number): Promise<void> => {
     if (node.type === 'INSTANCE') {
       await resolve(node);
       await readOverriddenInnerMains(node as InstanceNode, resolve);
       return; // an instance's composition is the main's — nothing below to map
     }
-    if ('children' in node) {
-      for (const child of (node as SceneNode & ChildrenMixin).children) await visit(child as SceneNode);
+    if ('children' in node && (depth === undefined || depth > 0)) {
+      const nextDepth = depth === undefined ? undefined : depth - 1;
+      for (const child of (node as SceneNode & ChildrenMixin).children) await visit(child as SceneNode, nextDepth);
     }
   };
-  await visit(root);
+  await visit(root, maxDepth);
   return map;
 }
 
@@ -193,12 +201,21 @@ function readFrameVisuals(n: Record<string, unknown>, out: ScannedNode): void {
  * INSTANCE composition is NOT recursed: an instance is captured as a reference to
  * its main component plus its overrides (spec-005 P2) — the inner tree is the
  * component's definition, and the builder rebuilds it via createInstance().
+ *
+ * `maxDepth` bounds the recursion (progressive disclosure — `inspect --depth`).
+ * OMIT it (undefined) for a complete walk: scan-node and mirror-verify pass no
+ * bound and MUST stay deep so `node → spec → node` remains a fixed point. With a
+ * bound, `maxDepth` counts levels of children below this node: 0 stops here (no
+ * `children`), 1 keeps direct children but stops below them, and so on. A node cut
+ * at the budget that still HAS children is flagged `childrenTruncated: true`, so a
+ * consumer can tell a pruned branch from a genuine leaf.
  */
 export function nodeToSpec(
   node: SceneNode,
   tokenNames?: Map<string, string>,
   mainComps?: Map<string, MainComponentRef>,
   keyedVars?: ReadonlyMap<string, FigmaKeyedBinding>,
+  maxDepth?: number,
 ): ScannedNode {
   const n = node as unknown as Record<string, unknown>;
   const type = node.type;
@@ -233,7 +250,15 @@ export function nodeToSpec(
   // Children — recurse, EXCEPT into an instance (composition is the component's).
   if (type !== 'INSTANCE' && 'children' in node) {
     const kids = (node as SceneNode & ChildrenMixin).children;
-    if (kids.length) out.children = kids.map((c) => nodeToSpec(c as SceneNode, tokenNames, mainComps, keyedVars));
+    if (kids.length) {
+      if (maxDepth !== undefined && maxDepth <= 0) {
+        // Depth budget spent on a node that has children → mark the cut, don't recurse.
+        out.childrenTruncated = true;
+      } else {
+        const nextDepth = maxDepth === undefined ? undefined : maxDepth - 1;
+        out.children = kids.map((c) => nodeToSpec(c as SceneNode, tokenNames, mainComps, keyedVars, nextDepth));
+      }
+    }
   }
 
   return out;
