@@ -52,7 +52,7 @@ Deterministic readiness inspector over a project dir. Signature mirrors `doctor`
 | `soul` | `design/soul.md` | missing → pending; exists but not `status: ratified` → warn; ratified → done | `run \`ui ds soul\` to declare your design stance` |
 | `heartbeat` | `design/heartbeat.json` | exists → done else pending | `wired automatically by \`ui ds init\`/\`ui ds import\`` |
 | `agents` | any `.claude/agents/*.md` | exists → done else pending (OPTIONAL) | `run \`ui agents init\` for soul-bound project agents (Claude Code)` |
-| `figma` | env `FIGMA_AGENT_FILE` set, OR `design/ds.manifest.json` contains a figma file/node ref | set → done else pending (OPTIONAL) | `open the Figma Design Agent plugin, then \`figma-agent status\`` |
+| `figma` | env `FIGMA_AGENT_FILE` set, OR `design/ds.manifest.json` contains a figma file/node ref | set → done else pending (OPTIONAL) | capability-aware: `figma-agent` on PATH → `open the Figma Design Agent plugin, then \`figma-agent status\``; absent (npm-install norm) → `optional Figma track — clone the ease-design repo and run \`./setup.sh\` to enable it` |
 
 `ready` = all of {adapters, git, ds, soul(done|warn), heartbeat} are non-pending. agents/figma are
 optional and never block `ready`.

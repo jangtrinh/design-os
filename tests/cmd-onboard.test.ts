@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, delimiter } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
+import { figmaAgentOnPath } from "../src/commands/onboard.js";
 
 // In-process CLI capture (mirrors cmd-doctor.test.ts / cmd-guide.test.ts).
 function captureRun(args: string[]): { code: number; out: string; err: string } {
@@ -30,7 +31,11 @@ function tmp(): string {
 
 interface OnboardJson {
   ok: boolean;
-  data: { steps: { id: string; state: string; optional: boolean }[]; ready: boolean };
+  data: {
+    steps: { id: string; state: string; optional: boolean }[];
+    capabilities?: { figmaAgent: boolean };
+    ready: boolean;
+  };
 }
 
 describe("ui onboard — empty project", () => {
@@ -137,5 +142,48 @@ describe("ui onboard — exit code", () => {
     const dir = tmp();
     expect(captureRun(["onboard", "--cwd", dir]).code).toBe(0);
     expect(captureRun(["onboard", "--cwd", dir, "--json"]).code).toBe(0);
+  });
+});
+
+describe("figmaAgentOnPath — optional Figma-track capability probe", () => {
+  it("is true when a `figma-agent` bin exists in a PATH dir", () => {
+    const dir = tmp();
+    writeFileSync(join(dir, "figma-agent"), "#!/bin/sh\n", "utf8");
+    expect(figmaAgentOnPath(`/nonexistent-a${delimiter}${dir}`)).toBe(true);
+  });
+
+  it("is false when no PATH dir holds the bin (the npm-install norm)", () => {
+    const dir = tmp(); // empty dir, no figma-agent
+    expect(figmaAgentOnPath(`/nonexistent-a${delimiter}${dir}`)).toBe(false);
+  });
+
+  it("is false for an empty or undefined PATH (never throws)", () => {
+    expect(figmaAgentOnPath("")).toBe(false);
+    expect(figmaAgentOnPath(undefined)).toBe(false);
+  });
+});
+
+describe("ui onboard — JSON exposes the figma-agent capability", () => {
+  it("emits capabilities.figmaAgent as a boolean matching the PATH probe", () => {
+    const dir = tmp();
+    const { out } = captureRun(["onboard", "--cwd", dir, "--json"]);
+    const json = JSON.parse(out) as OnboardJson;
+    expect(typeof json.data.capabilities?.figmaAgent).toBe("boolean");
+    // Deterministic: the envelope reads the same PATH the probe does.
+    expect(json.data.capabilities?.figmaAgent).toBe(figmaAgentOnPath(process.env.PATH));
+  });
+});
+
+describe("ui onboard — figma step is optional and hint is capability-aware", () => {
+  it("never blocks READY and carries a hint (install-track or open-plugin)", () => {
+    const dir = tmp();
+    const { out } = captureRun(["onboard", "--cwd", dir, "--json"]);
+    const json = JSON.parse(out) as OnboardJson;
+    const figma = json.data.steps.find((s) => s.id === "figma");
+    expect(figma?.optional).toBe(true);
+    // The text checklist shows the figma line; the hint is one of the two branches.
+    const text = captureRun(["onboard", "--cwd", dir]).out;
+    expect(text).toContain("figma design agent");
+    expect(/figma-agent status|run `\.\/setup\.sh`/.test(text)).toBe(true);
   });
 });

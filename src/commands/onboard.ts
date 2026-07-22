@@ -10,7 +10,7 @@
  * like `design-os evolution`).
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
 import { env, cwd as processCwd } from "node:process";
 import type { ParsedArgs } from "../core/cli-args.js";
@@ -59,6 +59,7 @@ const HINTS = {
   heartbeat: "wired automatically by `ui ds init`/`ui ds import`",
   agents: "run `ui agents init` for soul-bound project agents (Claude Code)",
   figma: "open the Figma Design Agent plugin, then `figma-agent status`",
+  figmaInstall: "optional Figma track — clone the ease-design repo and run `./setup.sh` to enable it",
 } as const;
 
 /** `design/soul.md`'s frontmatter `status:` value, or null if unreadable/absent.
@@ -98,6 +99,32 @@ function hasFigmaRef(): boolean {
   return (env["FIGMA_AGENT_FILE"] ?? "").length > 0;
 }
 
+/**
+ * Is the OPTIONAL `figma-agent` binary reachable on PATH?
+ *
+ * The Figma Design Agent is a studio-clone add-on: `setup.sh` links its bin, and it
+ * is deliberately NOT in the npm package (root `files` omits it; the workspace is
+ * `private`). So most installs never have it, and its absence is the norm, not a
+ * fault. Onboarding uses this only to pick the right HINT — install the track vs.
+ * open the plugin — while the step stays optional and never blocks `ready`.
+ *
+ * Pure fs+env scan, no subprocess, so the `ui` binary stays deterministic. Exported
+ * so the branch is unit-testable against a controlled PATH.
+ */
+export function figmaAgentOnPath(pathVar: string | undefined): boolean {
+  const names = ["figma-agent", "figma-agent.cmd", "figma-agent.exe"];
+  return (pathVar ?? "")
+    .split(delimiter)
+    .filter((d) => d.length > 0)
+    .some((dir) => {
+      try {
+        return names.some((n) => existsSync(join(dir, n)));
+      } catch {
+        return false;
+      }
+    });
+}
+
 function detectSteps(cwd: string): Step[] {
   const hasAdapters = RUNTIME_REGISTRY.filter((r) => r.native).some((r) =>
     existsSync(r.manifestPath(cwd)),
@@ -108,6 +135,9 @@ function detectSteps(cwd: string): Step[] {
   const hasHeartbeat = existsSync(join(cwd, "design", "heartbeat.json"));
   const hasAgents = hasAgentFiles(cwd);
   const hasFigma = hasFigmaRef();
+  // Configured but the binary isn't linked → the next step is installing the track,
+  // not opening the plugin. A `command not found` is a worse dead end than a hint.
+  const figmaHint = figmaAgentOnPath(env["PATH"]) ? HINTS.figma : HINTS.figmaInstall;
 
   const soulState: StepState = soulStatus === null ? "pending" : soulStatus === "ratified" ? "done" : "warn";
 
@@ -118,7 +148,7 @@ function detectSteps(cwd: string): Step[] {
     { id: "soul", label: "design soul", state: soulState, optional: false, hint: HINTS.soul },
     { id: "heartbeat", label: "learning loop (soul · heartbeat · harvest)", state: hasHeartbeat ? "done" : "pending", optional: false, hint: HINTS.heartbeat },
     { id: "agents", label: "project agents      (optional)", state: hasAgents ? "done" : "pending", optional: true, hint: HINTS.agents },
-    { id: "figma", label: "figma design agent  (optional)", state: hasFigma ? "done" : "pending", optional: true, hint: HINTS.figma },
+    { id: "figma", label: "figma design agent  (optional)", state: hasFigma ? "done" : "pending", optional: true, hint: figmaHint },
   ];
 }
 
@@ -174,6 +204,11 @@ export const onboardCommand = {
     if (useJson) {
       return okJson(CMD, {
         steps: steps.map((s) => ({ id: s.id, state: s.state, optional: s.optional })),
+        // Machine-readable capability signal for a host router (e.g. es-figma-smart):
+        // `figmaAgent` distinguishes "track not installed" from "installed but the
+        // plugin is disconnected" — the same split the figma step's hint encodes for
+        // humans. Additive; strict consumers may ignore it.
+        capabilities: { figmaAgent: figmaAgentOnPath(env["PATH"]) },
         ready,
       });
     }
