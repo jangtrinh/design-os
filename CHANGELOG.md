@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-22 - Full-studio one-command setup (Spec 020)
+
+- Added `setup.sh` at the repo root — a single idempotent bootstrap that takes a fresh
+  `jangtrinh/design-os` clone to a working full studio in one command: prereqs (node
+  >=22, npm, git, uv) → `npm install` → build (`ui` then the figma-agent/recall/a11y
+  workspaces, a11y last) → link all 5 bins (`ui`, `figma-agent`, `recall`, `a11y-audit`,
+  `page-shot`) → `uv tool install --force -e ./design-os --with-editable
+  ./design-os/plugins/figma` → verify via `ui doctor` + `design-os doctor` → a style-A
+  success report. Every build/link/install line is reused verbatim from
+  `design-os/src/design_os/commands/update.py`'s `_BUILD_STEPS` and its editable-reinstall
+  hint — none invented. `--check` reports prereqs + what's linked with no mutation;
+  `--skip-python` builds the kernel + hands only. Re-run-safe on an already-linked machine.
+- README: replaced the spec-019 one-line dev note with a "Full studio (clone)"
+  subsection pointing at `./setup.sh`; `npm i -g ease-design` stays the primary
+  quick-start.
+
 ## 2026-07-22 - Published to npm — `ease-design@0.1.0`
 
 - The `ui` kernel is now installable with `npm install -g ease-design` (zero runtime

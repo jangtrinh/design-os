@@ -324,9 +324,17 @@ Then open your agent CLI in that project and type:
 That's the whole loop: **describe → compile → qualify.** Have an existing app? Run
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
-> Working on DESIGN:OS itself? Clone `jangtrinh/design-os`, then `npm install && npm run
-> build && npm link` for a repo-linked `ui`. The optional Figma/recall/a11y hands live in
-> that repo and are not part of the published kernel.
+### Full studio (clone)
+
+```sh
+git clone https://github.com/jangtrinh/design-os.git && cd design-os && ./setup.sh
+```
+
+One idempotent script builds and links the whole studio, not just the kernel: the Figma
+1:1 mirror, semantic recall, the living-agent evolution/heartbeat/harvest loop, and
+rendered accessibility audits — all repo-only hands the npm kernel doesn't ship. Needs
+**Node ≥ 22** (the recall hand) and [`uv`](https://docs.astral.sh/uv/) for the `design-os`
+umbrella; `./setup.sh --check` verifies prerequisites without changing anything.
 
 ---
 
@@ -713,6 +721,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-07-22 | **Full-studio one-command setup (Spec 020)** — `./setup.sh`: prereqs → `npm install` → build (ui + figma-agent/recall/a11y, a11y last) → link all 5 bins → `uv tool install` the design-os umbrella → verify (`ui doctor` + `design-os doctor`) → style-A report; idempotent, `--check`/`--skip-python` flags. README swaps the old dev note for a "Full studio (clone)" subsection | *(pending)* |
 | 2026-07-22 | **Published to npm** — `npm i -g ease-design` (v0.1.0, MIT, zero deps); first public release from CI with sigstore provenance. Kernel-only; Figma/recall/a11y hands ship separately later | `281fc55` |
 | 2026-07-21 | **Report renderer + preview links (Spec 019 P2)** — style-A (`ruleHeader`/`checkItem`/`kv`) adopted in `ui doctor`, `ui ds preview`, `ui designmd audit`, `design-os doctor`, `design-os evolution`; new OSC-8-safe `previewLink`/`figmaNote` convention (bare `file://` paths, never markdown links); Python mirror `report_style.py`. `--json`/exit codes unchanged | `7ea1429` |
 | 2026-07-21 | **Onboarding first-run (Spec 019 P1)** — `ui onboard` readiness checklist (adapters, git, DS, soul, learning loop + optional agents/Figma), a shared style-A report renderer, `ui init` chaining to `onboard`/`guide`, and host-approval-before-install discipline wired into the `/ui:init` wrapper + onboard journey | `61f35a7` |
