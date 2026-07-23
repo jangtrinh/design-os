@@ -1,0 +1,17 @@
+# Heavy binary artifacts — regenerable from the committed scripts/prompts, derived from the film,
+# or already deployed to the demo repo (jangtrinh/aura-scrollcinema-demo). Keep the repo's source
+# of truth (spec, docs, scripts, page HTML/JS/CSS); leave the gigabytes of gen output out of git.
+source/
+product-slice/source/
+product-slice/refs/
+**/assets/seq/
+**/assets/vid/
+renders/
+lint/
+Drone demo/
+*.webm
+*.mp4
+*.png
+*.jpg
+.DS_Store
+_rec/
