@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AURA — exploded view (scroll-cinema · product)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== design:os persona · LIQUID GLASS ★ (material-surface) ================================
+     Apple's Liquid Glass: translucent panels that refract the environment; depth via transparency.
+     The scroll film IS the rich background bleeding through the glass.
+     3 signature moves — (1) 2-tier blur (copy 12px over nav 20px), (2) 1px specular top-edge
+     highlight on every panel, (3) saturated ember glow behind primary CTA + color-tinted shadows.
+     ========================================================================================== */
+  :root{--sw-bg:#0a0908;--sw-ink:#F6F2EE;--sw-ink-soft:#A59D95;--sw-accent:#FF6A2B;
+    --glass-lo:rgba(18,17,20,.42);--glass-hi:rgba(14,13,16,.62);--edge:rgba(255,255,255,.22);
+    --sw-font-display:"Be Vietnam Pro",system-ui,sans-serif;--sw-font-body:"Be Vietnam Pro",system-ui,sans-serif;}
+  html,body{background:#0a0908;}
+  #world{--sw-bg:#0a0908;--sw-ink:#F6F2EE;--sw-ink-soft:#A59D95;--sw-accent:#FF6A2B;
+    --sw-font-display:"Be Vietnam Pro",system-ui,sans-serif;--sw-font-body:"Be Vietnam Pro",system-ui,sans-serif;}
+  #world .sw-copylayer::before{display:none;}
+  /* MOVE 1 (tier A) + MOVE 2 — copy card: translucent glass, 12px blur, 1px specular top-edge */
+  #world .sw-copy{width:min(38vw,430px);background:linear-gradient(158deg,var(--glass-lo),var(--glass-hi));
+    border:1px solid rgba(255,255,255,.10);border-top-color:var(--edge);border-radius:22px;padding:26px 30px;
+    -webkit-backdrop-filter:blur(10px) saturate(1.12);backdrop-filter:blur(10px) saturate(1.12);
+    box-shadow:0 30px 70px -28px rgba(8,4,2,.9),inset 0 1px 0 rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.02);}
+  #world .sw-copy__num{display:block;font-family:var(--sw-font-body);color:var(--sw-ink-soft);font-weight:500;opacity:.75;letter-spacing:.14em;font-size:.72rem;}
+  #world .sw-copy__eyebrow{display:inline-block;margin-top:10px;font-family:var(--sw-font-display);font-weight:600;
+    font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--sw-accent);}
+  #world .sw-copy__title{font-family:var(--sw-font-display);font-weight:600;color:var(--sw-ink);
+    font-size:clamp(2rem,3.8vw,2.9rem);line-height:1.08;letter-spacing:-.02em;margin:12px 0 0;text-shadow:0 2px 20px rgba(0,0,0,.5);}
+  #world .sw-copy__body{font-family:var(--sw-font-body);margin-top:14px;font-weight:300;
+    color:color-mix(in srgb,var(--sw-ink) 74%,var(--sw-ink-soft));font-size:1.02rem;line-height:1.62;max-width:36ch;}
+  /* MOVE 2 — glass spec pills with top-edge highlight */
+  #world .sw-copy__tags li{font-family:var(--sw-font-body);font-weight:500;font-size:.78rem;color:var(--sw-ink);
+    border:1px solid rgba(255,255,255,.12);border-top-color:var(--edge);background:rgba(30,27,24,.7);padding:8px 15px;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.2);}
+  #world .sw-brand__name{font-family:var(--sw-font-display);font-weight:700;letter-spacing:.02em;color:#fff;text-shadow:0 1px 14px rgba(0,0,0,.8);}
+  /* MOVE 1 (tier B) — top bar as a stronger-blur glass overlay */
+  #world .sw-topbar{background:linear-gradient(180deg,rgba(10,8,7,.5),rgba(10,8,7,.06) 78%,transparent);
+    -webkit-backdrop-filter:blur(8px) saturate(1.08);backdrop-filter:blur(8px) saturate(1.08);
+    -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent);}
+  /* MOVE 3 — primary CTAs: ember fill + saturated ember glow + tinted shadow (never gray) */
+  #world .sw-topcta{font-family:var(--sw-font-display);font-weight:600;background:var(--sw-accent);color:#160a04;border-radius:12px;
+    padding:11px 22px;text-decoration:none;box-shadow:0 8px 26px -8px rgba(255,106,43,.7),inset 0 1px 0 rgba(255,255,255,.4);}
+  #world .sw-copy__cta a{font-family:var(--sw-font-display);font-weight:600;padding:12px 24px;border-radius:12px;text-decoration:none;}
+  #world .sw-copy__cta a:first-child{background:var(--sw-accent);color:#160a04;box-shadow:0 10px 30px -8px rgba(255,106,43,.75),inset 0 1px 0 rgba(255,255,255,.4);}
+  #world .sw-copy__cta a:last-child{background:rgba(255,255,255,.06);color:var(--sw-ink);border:1px solid rgba(255,255,255,.16);
+    border-top-color:var(--edge);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);}
+  /* MOVE 2 — badge as glass with top-edge highlight */
+  .dos-badge{position:fixed;left:22px;bottom:20px;z-index:70;display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+    font-family:"Be Vietnam Pro",sans-serif;font-weight:500;font-size:.75rem;color:#fff;background:rgba(18,15,13,.82);padding:8px 14px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);border-top-color:var(--edge);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 8px 24px -12px rgba(0,0,0,.7);}
+  .dos-badge b{font-family:"Be Vietnam Pro",sans-serif;font-weight:700;}
+  .dos-badge__dot{width:8px;height:8px;border-radius:50%;background:var(--sw-accent);box-shadow:0 0 12px rgba(255,106,43,.9);}
+  /* animate-ui STARS — multi-layer white starfield, slow drift + pointer parallax; screen-blend so
+     stars only surface in the film's dark voids (never wash the bright softbox/product) */
+  #stars{position:fixed;inset:0;z-index:15;pointer-events:none;mix-blend-mode:screen;opacity:.9;}
+  /* text-only wordmark — hide the engine's default orange brand square */
+  #world .sw-brand__mark{display:none;}
+  /* ROUTE NODES — always-visible glass title pills (page override; engine default is hover-only) */
+  #world .sw-route__label{opacity:1 !important;transform:translateY(-50%) !important;
+    background:rgba(18,15,13,.82);color:var(--sw-ink);font-weight:500;border:1px solid rgba(255,255,255,.12);border-top-color:var(--edge);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 8px 22px -12px rgba(0,0,0,.6);}
+  #world .sw-route__dot.is-active .sw-route__label{color:#fff;border-color:color-mix(in srgb,var(--sw-accent) 40%,transparent);}
+  @media (max-width:760px){ #world .sw-route__label{display:none;} }
+  /* STAR-THIS-REPO — glass pill, GitHub mark + ember star (self-contained, links to repo) */
+  .star-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Be Vietnam Pro",sans-serif;
+    font-weight:600;font-size:.82rem;color:#F6F2EE;padding:9px 15px;border-radius:12px;margin-right:12px;
+    background:rgba(18,15,13,.82);border:1px solid rgba(255,255,255,.14);border-top-color:rgba(255,255,255,.28);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 8px 22px -12px rgba(0,0,0,.6);transition:transform .2s,box-shadow .2s;}
+  .star-btn:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 12px 28px -12px rgba(255,106,43,.5);}
+  .star-btn svg.gh{width:16px;height:16px;fill:#F6F2EE;}
+  .star-btn .star{color:#FF6A2B;filter:drop-shadow(0 0 6px rgba(255,106,43,.7));}
+</style></head>
+<body>
+<canvas id="stars"></canvas>
+<div id="top"></div><div id="world"></div>
+<a class="dos-badge" href="https://github.com/jangtrinh/design-os" target="_blank" rel="noopener">
+  <span class="dos-badge__dot"></span>Generated by <b>DESIGN:OS</b></a>
+<script src="scrub-engine.js"></script>
+<script>
+  // One 169-frame film (dark anchored orbit + crisp Codex stills-morph explode); 3 beats via `range`.
+  var SEQ='assets/seq/aura/', LQ='assets/seq/aura-lq/', N=289, A='#FF6A2B';
+  mountScrollWorld(document.getElementById('world'), {
+    brand:{name:'AURA', href:'#top'}, cta:{label:'Buy now', href:'https://github.com/jangtrinh/design-os'},
+    nav:false, atmosphere:true,
+    // 6 beats on the film's natural legs — finer nodes + short lingers keep the scrub in continuous motion
+    sections:[
+      { id:'overview', renderer:'imageseq', frames:SEQ, framesLQ:LQ, frameCount:N, range:[0,58], label:'Overview', accent:A,
+        eyebrow:'AURA Studio One', title:'Designed\nfrom every angle.',
+        body:'Crafted for light. Machined aluminium and full-grain leather, floating in the dark.',
+        scroll:2.2, linger:0.14 },
+      { id:'xray', renderer:'imageseq', frames:SEQ, framesLQ:LQ, frameCount:N, range:[58,104], label:'X-ray', accent:A,
+        eyebrow:'Anatomy', title:'The shell\nturns to glass.',
+        body:'The outer cap dissolves — grille, driver and acoustic board revealed beneath.',
+        scroll:2.0, linger:0.14 },
+      { id:'ignition', renderer:'imageseq', frames:SEQ, framesLQ:LQ, frameCount:N, range:[104,150], label:'Ignition', accent:A,
+        eyebrow:'The core', title:'A core\nthat ignites.',
+        body:'The copper voice-coil and ANC board glow to life — the heart of AURA.',
+        scroll:2.0, linger:0.14 },
+      { id:'exploded', renderer:'imageseq', frames:SEQ, framesLQ:LQ, frameCount:N, range:[150,202], label:'Exploded', accent:A,
+        eyebrow:'Every layer', title:'Every layer,\nlifted apart.',
+        body:'40mm driver, acoustic baffle, damping ring, circuit — each part suspended in its own space.',
+        tags:['40mm Driver','ANC','Baffle'], scroll:2.4, linger:0.16 },
+      { id:'reassembly', renderer:'imageseq', frames:SEQ, framesLQ:LQ, frameCount:N, range:[202,242], label:'Reassembly', accent:A,
+        eyebrow:'Precision', title:'Back together,\nin order.',
+        body:'Every component seats home with micron precision.',
+        scroll:2.0, linger:0.14 },
+      { id:'finish', renderer:'imageseq', frames:SEQ, framesLQ:LQ, frameCount:N, range:[242,288], label:'Finish', accent:A,
+        eyebrow:'Engineering', title:'Reassembled,\nflawless.',
+        body:'Studio sound. Built to last.',
+        scroll:2.0, linger:0.16,
+        cta:{primary:{label:'Buy now', href:'https://github.com/jangtrinh/design-os'},
+             secondary:{label:'Specs', href:'https://github.com/jangtrinh/design-os'}} },
+    ],
+    connectors:[null,null,null,null,null], crossfade:0.04,
+  });
+  setTimeout(()=>document.querySelectorAll('a.sw-topcta,.sw-copy__cta a').forEach(a=>{if((a.href||'').includes('github.com')){a.target='_blank';a.rel='noopener';}}),400);
+
+  // ---- STAR THIS REPO button in the top bar (left of "Mua ngay") ----
+  setTimeout(()=>{
+    var cta=document.querySelector('.sw-topcta'); if(!cta||document.querySelector('.star-btn')) return;
+    var a=document.createElement('a'); a.className='star-btn'; a.href='https://github.com/jangtrinh/design-os';
+    a.target='_blank'; a.rel='noopener';
+    a.innerHTML='<svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span class="star">★</span>Star';
+    // group Star + "Mua ngay" together on the right (topbar is space-between)
+    var grp=document.createElement('div'); grp.style.cssText='display:inline-flex;align-items:center;';
+    cta.parentNode.insertBefore(grp, cta); grp.appendChild(a); grp.appendChild(cta);
+  },430);
+
+  // ---- animate-ui STARS: multi-layer parallax starfield (factor .05, spring stiffness 50/damping 20) ----
+  (function(){
+    var cv=document.getElementById('stars'), ctx=cv.getContext('2d');
+    var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var DPR=Math.min(devicePixelRatio||1,2), W=0,H=0, layers=[], px=0,py=0, tx=0,ty=0;
+    // 3 depth layers: near/mid/far — bigger+faster+more-parallax = nearer
+    var SPEC=[{n:22,r:[1.1,1.9],sp:14,par:1.0},{n:38,r:[.7,1.3],sp:8,par:.55},{n:58,r:[.4,.9],sp:4,par:.28}];
+    function seed(x){ // deterministic PRNG (no Math.random in scope needed, but fine here)
+      x=Math.sin(x)*43758.5453; return x-Math.floor(x); }
+    function build(){
+      W=cv.width=innerWidth*DPR; H=cv.height=innerHeight*DPR;
+      cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+      layers=SPEC.map(function(s,li){
+        var arr=[]; for(var i=0;i<s.n;i++){var k=li*1000+i;
+          arr.push({x:seed(k*1.7)*W, y:seed(k*2.3)*H, r:(s.r[0]+seed(k*3.1)*(s.r[1]-s.r[0]))*DPR,
+                    ph:seed(k*4.9)*6.28, tw:.6+seed(k*5.7)*.8});}
+        return {stars:arr, sp:s.sp*DPR, par:s.par};
+      });
+    }
+    build(); addEventListener('resize',build,{passive:true});
+    addEventListener('pointermove',function(e){ // parallax target = pointer offset from center * factor .05
+      tx=(e.clientX/innerWidth-.5)*2*DPR*40*.05*20; ty=(e.clientY/innerHeight-.5)*2*DPR*40*.05*20;
+    },{passive:true});
+    var t=0, last=0, hidden=false;
+    document.addEventListener('visibilitychange',function(){hidden=document.hidden;});
+    function frame(now){
+      requestAnimationFrame(frame);
+      if(hidden) return;
+      if(now-last<32) return;            // cap ~30fps — starfield needs no more, saves main-thread + GPU composite
+      last=now;
+      px+=(tx-px)*.12; py+=(ty-py)*.12; t+=1;
+      ctx.clearRect(0,0,W,H); ctx.fillStyle='#fff';
+      for(var li=0;li<layers.length;li++){var L=layers[li];
+        for(var i=0;i<L.stars.length;i++){var st=L.stars[i];
+          if(!reduce){st.y-=L.sp*0.033; if(st.y<-2){st.y=H+2; st.x=seed((li*1000+i)*7.3+t)*W;}}
+          var a=0.35+0.5*Math.abs(Math.sin(st.ph+t*0.04*st.tw)); // twinkle
+          var X=st.x+px*L.par, Y=st.y+py*L.par;
+          ctx.globalAlpha=a; ctx.beginPath(); ctx.arc(X,Y,st.r,0,6.2832); ctx.fill();
+        }
+      }
+      ctx.globalAlpha=1;
+    }
+    requestAnimationFrame(frame);
+  })();
+</script></body></html>

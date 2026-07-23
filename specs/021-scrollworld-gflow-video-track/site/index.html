@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SoDeal — bay vào thế giới ưu đãi</title>
+  <meta name="description" content="Cuộn để bay xuyên khu chợ ưu đãi của người Việt — hàng nghìn deal mỗi ngày trên SoDeal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+  /* ── Design:OS — persona: HAPTIC CLAYMORPHISM · duel: vn-market + notion warm-neutral
+     Tokens are warm-neutral (never cold gray); one action color = SoDeal red (Von Restorff).
+     Signature moves: (1) double-shadow clay pillow on every surface, (2) zero borders + radius≥16 +
+     fat squeezable pill CTA, (3) warm/red inner-shadows (not gray), squish on press. ── */
+  :root{
+    --sw-bg:#F4E7D2; --sw-ink:#3D3229; --sw-ink-soft:#8A7B68; --sw-accent:#E0282E;
+    --sw-font-display:"Nunito",system-ui,sans-serif;
+    --sw-font-body:"Be Vietnam Pro",system-ui,sans-serif;
+    /* clay tokens */
+    --clay-surface:#FBF4E7; --clay-radius:26px;
+    --clay-out:0 18px 42px -14px rgba(93,58,33,.42), 0 4px 12px -6px rgba(93,58,33,.28);
+    --clay-in:inset 0 2px 2px rgba(255,255,255,.9), inset 0 -6px 14px rgba(180,120,60,.20);
+  }
+  html,body{background:var(--sw-bg);}
+  /* ID-scoped so these win over the engine's runtime-injected stylesheet */
+  #world{--sw-bg:#F4E7D2; --sw-ink:#3D3229; --sw-ink-soft:#8A7B68;
+    --sw-font-display:"Nunito",system-ui,sans-serif; --sw-font-body:"Be Vietnam Pro",system-ui,sans-serif;}
+
+  /* Copy is a warm CLAY PILLOW — doubles as the legibility scrim over the busy diorama (Figure/Ground) */
+  #world .sw-copylayer::before{display:none;}           /* drop the flat side-gradient; the card is the scrim */
+  #world .sw-copy{width:min(43vw,486px);
+    background:linear-gradient(168deg,#FEFAF2,var(--clay-surface));
+    border:0; border-radius:var(--clay-radius);
+    padding:30px 32px 32px; box-shadow:var(--clay-out),var(--clay-in);
+    backdrop-filter:none;}
+  #world .sw-copy__num{display:block;font-family:var(--sw-font-body);color:var(--sw-ink-soft);font-weight:600;opacity:.65;letter-spacing:.1em;}
+  /* eyebrow = a little red DEAL-TAG pill (echoes the diorama's % tags) */
+  #world .sw-copy__eyebrow{display:inline-block;margin-top:12px;padding:6px 13px 6px 12px;
+    font-family:var(--sw-font-display);font-weight:800;font-size:.72rem;letter-spacing:.13em;
+    color:#fff;background:var(--sw-accent);border-radius:8px 13px 13px 8px;
+    box-shadow:0 6px 14px -5px color-mix(in srgb,var(--sw-accent) 60%,transparent),inset 0 1px 1px rgba(255,255,255,.35);
+    text-transform:uppercase;}
+  #world .sw-copy__title{font-family:var(--sw-font-display);font-weight:900;color:var(--sw-ink);
+    font-size:clamp(2.1rem,4.3vw,3.4rem);line-height:1.04;letter-spacing:-.02em;margin:16px 0 0;text-shadow:none;}
+  #world .sw-copy__body{font-family:var(--sw-font-body);margin-top:14px;color:color-mix(in srgb,var(--sw-ink) 82%,var(--sw-ink-soft));
+    font-size:clamp(1rem,1.15vw,1.1rem);line-height:1.6;max-width:38ch;text-shadow:none;}
+  /* tags = clay mini-pills: no border, warm inner shadow, squish on press */
+  #world .sw-copy__tags{margin-top:22px;gap:9px;}
+  #world .sw-copy__tags li{font-family:var(--sw-font-body);font-weight:700;font-size:.8rem;border:0;
+    color:color-mix(in srgb,var(--sw-accent) 82%,#000);background:#fff;padding:8px 15px;border-radius:14px;
+    box-shadow:0 5px 12px -6px rgba(93,58,33,.35),inset 0 1px 1px #fff,inset 0 -4px 9px color-mix(in srgb,var(--sw-accent) 12%,transparent);}
+  /* finale CTA cluster */
+  #world .sw-copy__cta{margin-top:26px;gap:12px;}
+
+  /* Topbar brand mark = a red DEAL-TAG (notch + eyelet), not a generic blob */
+  #world .sw-brand__mark{width:30px;height:26px;border-radius:6px 11px 11px 6px;
+    background:linear-gradient(155deg,#F0434A,#E0282E);
+    box-shadow:0 7px 15px -5px rgba(224,40,46,.55),inset 0 1px 1px rgba(255,255,255,.4);
+    position:relative;}
+  #world .sw-brand__mark::after{content:"";position:absolute;left:6px;top:9px;width:6px;height:6px;border-radius:50%;
+    background:var(--sw-bg);box-shadow:inset 0 1px 2px rgba(0,0,0,.3);}
+  #world .sw-brand__name{font-family:var(--sw-font-display);font-weight:900;letter-spacing:-.01em;font-size:1.16rem;
+    color:#fff;text-shadow:0 1px 10px rgba(48,30,14,.6),0 1px 3px rgba(48,30,14,.45);}
+  /* soft top scrim so brand + nav + CTA stay legible over the busy diorama */
+  #world .sw-topbar{background:linear-gradient(180deg,rgba(40,27,14,.42) 0%,rgba(40,27,14,.16) 52%,transparent 100%);}
+
+  /* Right route rail — was faint red dots + hidden labels; make it a legible clay chip */
+  #world .sw-route{background:color-mix(in srgb,var(--clay-surface) 90%,transparent);border-radius:999px;
+    align-items:center;padding:16px 12px;backdrop-filter:blur(7px);
+    box-shadow:0 12px 28px -14px rgba(93,58,33,.55),inset 0 1px 1px #fff,inset 0 -3px 8px rgba(180,120,60,.12);}
+  #world .sw-route::before{opacity:.4;background:color-mix(in srgb,var(--sw-ink-soft) 55%,transparent);}
+  #world .sw-route__dot{display:flex;align-items:center;justify-content:center;width:14px;}
+  #world .sw-route__dot i{width:9px;height:9px;flex:0 0 9px;background:color-mix(in srgb,var(--sw-ink-soft) 60%,#fff);
+    box-shadow:0 1px 2px rgba(93,58,33,.3);}
+  #world .sw-route__dot.is-active i{background:var(--sw-accent);
+    box-shadow:0 0 0 5px color-mix(in srgb,var(--sw-accent) 26%,transparent),0 2px 5px rgba(224,40,46,.4);}
+  #world .sw-route__label{color:var(--sw-ink);font-family:var(--sw-font-body);font-weight:700;background:#FBF4E7;
+    border:0;box-shadow:0 8px 18px -8px rgba(93,58,33,.5),inset 0 1px 1px #fff;}
+
+  /* Nav = warm clay segmented control (no glass/border) */
+  #world .sw-nav{background:var(--clay-surface);border:0;padding:5px;
+    box-shadow:0 10px 24px -12px rgba(93,58,33,.4),inset 0 1px 1px #fff,inset 0 -3px 8px rgba(180,120,60,.14);}
+  #world .sw-nav__item{font-family:var(--sw-font-body);font-weight:600;color:var(--sw-ink-soft);}
+  #world .sw-nav__item:hover{color:var(--sw-ink);}
+  #world .sw-nav__item.is-active{color:#fff;background:var(--sw-accent);
+    box-shadow:0 6px 13px -5px color-mix(in srgb,var(--sw-accent) 55%,transparent),inset 0 1px 1px rgba(255,255,255,.3);}
+
+  /* Primary CTA = fat SoDeal-red CLAY pill, squeezable (Fitts: big; Von Restorff: the one action color) */
+  #world .sw-topcta{font-family:var(--sw-font-display);font-weight:800;font-size:.92rem;color:#fff;
+    background:linear-gradient(168deg,#F0434A,#E0282E);padding:12px 24px;border-radius:16px;
+    box-shadow:0 12px 24px -8px rgba(224,40,46,.5),inset 0 1px 1px rgba(255,255,255,.4),inset 0 -4px 10px rgba(122,15,20,.4);
+    transition:transform .12s ease, box-shadow .12s ease;}
+  #world .sw-topcta:hover{transform:translateY(-1px) scale(1.02);}
+  #world .sw-topcta:active{transform:scale(.96);
+    box-shadow:inset 0 3px 8px color-mix(in srgb,#7a0f14 50%,transparent),inset 0 1px 1px rgba(255,255,255,.2);}
+  /* finale primary/secondary buttons inherit the clay pill; secondary = warm ghost */
+  #world .sw-copy__cta a{font-family:var(--sw-font-display);font-weight:800;padding:13px 26px;border-radius:16px;text-decoration:none;font-size:.98rem;transition:transform .12s ease;}
+  #world .sw-copy__cta a:active{transform:scale(.96);}
+  #world .sw-copy__cta a:first-child{color:#fff;background:linear-gradient(168deg,#F0434A,#E0282E);
+    box-shadow:0 12px 24px -8px rgba(224,40,46,.5),inset 0 1px 1px rgba(255,255,255,.4),inset 0 -4px 10px rgba(122,15,20,.4);}
+  #world .sw-copy__cta a:last-child{color:var(--sw-ink);background:#fff;
+    box-shadow:0 8px 18px -8px rgba(93,58,33,.4),inset 0 1px 1px #fff,inset 0 -4px 9px rgba(180,120,60,.14);}
+
+  /* "Generated by DESIGN:OS" brandmark — fixed, unobtrusive, links to the repo */
+  .dos-badge{position:fixed;left:clamp(14px,3vw,28px);bottom:clamp(14px,3vh,26px);z-index:70;
+    display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+    font-family:"Be Vietnam Pro",system-ui,sans-serif;font-weight:600;font-size:.76rem;color:#fff;
+    background:rgba(38,26,14,.55);backdrop-filter:blur(9px);padding:8px 14px;border-radius:999px;
+    box-shadow:0 10px 24px -10px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.16);
+    transition:transform .16s ease, background .16s ease;}
+  .dos-badge:hover{transform:translateY(-1px);background:rgba(38,26,14,.72);}
+  .dos-badge__dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(155deg,#F0434A,#E0282E);
+    box-shadow:0 0 8px rgba(224,40,46,.7);}
+  .dos-badge b{font-family:"Nunito",sans-serif;font-weight:900;letter-spacing:.02em;}
+  .dos-badge span{opacity:.82;}
+
+  @media (max-width:820px){
+    #world .sw-copy{width:auto;max-width:none;padding:24px 24px 26px;}
+    .dos-badge{font-size:.7rem;padding:7px 12px;}
+  }
+  </style>
+</head>
+<body>
+  <div id="top"></div>
+  <div id="world"></div>
+  <a class="dos-badge" href="https://github.com/jangtrinh/design-os" target="_blank" rel="noopener">
+    <span class="dos-badge__dot"></span><span>Generated by</span> <b>DESIGN:OS</b>
+  </a>
+
+  <script src="scrub-engine.js"></script>
+  <script>
+    mountScrollWorld(document.getElementById('world'), {
+      brand: { name: 'SoDeal', href: '#top' },
+      cta: { label: 'Tải app', href: 'https://github.com/jangtrinh/design-os' },
+      hint: 'cuộn để bay vào',
+      diveScroll: 1.25, connScroll: 0.9, nav: true, atmosphere: true,
+      sections: [
+        { id: 'the-gioi', label: 'Thế giới', accent: '#C25A2B',
+          still: 'assets/s0.webp', clip: 'assets/vid/s0.mp4',
+          eyebrow: 'SoDeal', title: 'Chợ ưu đãi của người Việt.',
+          body: 'Cuộn để bay vào — cả một khu chợ ưu đãi mở ra dưới chân bạn, sống động từng con phố.',
+          tags: ['Giá thật', 'Mỗi ngày', 'Khắp cả nước'], scroll: 0.7, linger: 0.10 },
+        { id: 'cho', label: 'Khu chợ', accent: '#E0A43A',
+          still: 'assets/s1.webp', clip: 'assets/vid/s1.mp4',
+          eyebrow: 'Khu chợ', title: 'Nơi mọi món hời tụ về.',
+          body: 'Ẩm thực, làm đẹp, mua sắm — hàng nghìn cửa hàng, ưu đãi phủ kín từng ngõ nhỏ.',
+          tags: ['Ẩm thực', 'Làm đẹp', 'Mua sắm'], scroll: 1.6, linger: 0.45 },
+        { id: 'san-deal', label: 'Săn deal', accent: '#E0282E',
+          still: 'assets/s2.webp', clip: 'assets/vid/s2.mp4',
+          eyebrow: 'Săn deal', title: 'Săn deal mỗi ngày.',
+          body: 'Giá rớt theo giờ, thẻ giảm treo khắp nơi — bạn chỉ việc chọn món mình thích.',
+          tags: ['−50%', '−70%', 'Flash sale'], scroll: 1.1, linger: 0.25 },
+        { id: 'cua-hang', label: 'Cửa hàng', accent: '#C4212A',
+          still: 'assets/s3.webp', clip: 'assets/vid/s3.mp4',
+          eyebrow: 'Cửa hàng SoDeal', title: 'Thương hiệu bạn yêu,\ngiá bạn thích.',
+          body: 'Đặt trước, dùng ngay tại cửa hàng — ưu đãi độc quyền chỉ có trên SoDeal.',
+          tags: ['Đặt là dùng', 'Độc quyền', 'Hoàn tiền'], scroll: 2.0, linger: 0.55 },
+        { id: 'finale', label: 'Tải app', accent: '#E0282E',
+          still: 'assets/s4.webp', clip: null,
+          eyebrow: 'Sẵn sàng?', title: 'Tải SoDeal,\nbắt đầu săn.',
+          body: 'Cả thế giới ưu đãi gọn trong túi bạn. 2 triệu+ người Việt đã bắt đầu.',
+          cta: {
+            primary: { label: 'Tải SoDeal', href: 'https://github.com/jangtrinh/design-os' },
+            secondary: { label: 'Xem deal hot', href: 'https://github.com/jangtrinh/design-os' },
+          }, scroll: 1.5, linger: 0.4 },
+      ],
+      connectors: [null, null, null, null],
+      crossfade: 0.08,
+    });
+    // all repo CTAs (Tải app / Tải SoDeal / Xem deal hot) open the Design:OS repo in a new tab
+    setTimeout(() => document.querySelectorAll('a.sw-topcta, .sw-copy__cta a, .sw-brand')
+      .forEach(a => { if ((a.href||'').includes('github.com')) { a.target = '_blank'; a.rel = 'noopener'; } }), 400);
+  </script>
+</body>
+</html>
