@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-25 - Tenant contract: embeddable motion sections (`ui tenant-lint` + `ui tenant-scaffold`)
+
+- New `ui tenant-lint <file.html>` — the deterministic linter for the **Tenant Law**: an embedded
+  interactive block (scroll-scrub cinema, parallax, exploded-view, canvas hero) must READ the host
+  page only through its own bounding box and WRITE only inside its own subtree. It fails a section that
+  does a global write (`window.scrollTo`/`scrollY`, document/body height mutation, `:root` write,
+  `position:fixed`, a private animation-frame loop), AND fails a host layout whose ancestor sets
+  `overflow`/`transform`/`filter`/`contain` — which silently kills the section's `position:sticky`. It
+  follows local `<script src>` / `<link href>` to their files (not inline-only). Regex/string-level;
+  the real limitations (bracket-notation/alias evasion, inline-style-only ancestor check) are documented
+  in-source. Joins the full linter set (`a11y-lint`, `layout-lint`, `taste-lint`, …).
+- New `ui tenant-scaffold <dir>` — emits the canonical tenant scrub engine (`scrub-section.js` + `.css`
+  + a self-testing Playwright harness) **verbatim** into a target directory, so a page drops it in and
+  writes a config instead of reinventing the engine. Refuses to overwrite without `--force`.
+- `knowledge/motion-craft.md` gains a **Tenant contract** section (the law + the 4-clause coexistence
+  contract + the sticky-killer ancestor rule + the frame-sequence-default media call);
+  `knowledge/generation-craft-defaults.md` gains a canvas backing-store-aspect floor (caught in the wild:
+  a scrub canvas stretched by being sized to its tall section instead of its 100dvh stage).
+- `CONTEXT.md`: canonical terms **Tenant section**, **Scrub section**, **tenant-lint**.
+
 ## 2026-07-22 - Full-studio one-command setup (Spec 020)
 
 - Added `setup.sh` at the repo root — a single idempotent bootstrap that takes a fresh
