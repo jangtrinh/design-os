@@ -1,0 +1,79 @@
+{
+  "build": "a1-haven",
+  "brief": "Build a landing page for Haven, a secrets vault. Light.",
+  "role_note": "This arm ran the director and the judge as the same actor (self-critique), per the benchmark instructions — no second model was consulted for critique.",
+
+  "gates": {
+    "validate-layout": { "run": true, "command": "node dist/cli.js validate-layout index.html", "result": "PASS", "detail": "0 error(s), 0 warning(s). First pass surfaced 1 warning (img-no-dimensions on the hero background image); fixed by adding explicit width/height attributes matching the compressed asset's intrinsic size. Re-ran clean." },
+    "a11y-lint": { "run": true, "command": "node dist/cli.js a11y-lint index.html", "result": "PASS", "detail": "0 static findings (not a full conformance claim; supplemented with live-browser verification — see self_critique.verification_beyond_gates)." },
+    "taste-lint": { "run": true, "command": "node dist/cli.js taste-lint index.html", "result": "PASS", "detail": "0 violations. First pass surfaced 13 container-nesting-depth (Layout, warning) findings — decorative div wrappers 3-6 levels deep (every '.wrap' div nested inside its section, the hero record-card's value row, the CTA band's text block). Fixed by merging the '.wrap' max-width container directly onto each '<section>' element (removing one wrapper layer sitewide), converting the 3-step mechanism and the 3-item principles band to semantic '<ol>'/'<ul>' lists (exempt as lists), unwrapping a redundant div around the hero card's value row and giving it role=\"group\" (a genuine semantic fit — it groups a value display with its control), merging the CTA band's two nested wrapper divs into one, and wrapping the hero stage in a '<figure>'. Re-ran clean after two iterations." },
+    "content-lint": { "run": true, "command": "node dist/cli.js content-lint index.html", "result": "PASS", "detail": "0 findings (no lorem ipsum, no placeholder copy, no placeholder-name fills; access-log entries and the specimen secret value are clearly-labelled illustrative product content, not fabricated marketing claims)." },
+    "ds-usage-lint": { "run": false, "result": "N/A", "detail": "Requires a compiled project design system (tokens.json / registry). This is the first generation in an empty benchmark workspace with no design system to enforce against, so the gate does not apply — recorded as not-applicable rather than forced or silently skipped." }
+  },
+
+  "imagery": {
+    "policy_applied": "generation-craft-defaults.md asset ladder — project asset → approved source → generated asset → intentional no-image. No project asset or approved third-party source exists for a fictional product's vault materiality, so the generated-asset rung was used, exactly once.",
+    "assets": [
+      {
+        "role": "atmospheric hero background texture (decorative only, no essential copy or controls baked in)",
+        "prompt": "A macro, atmospheric close-up photograph of a brushed brass vault-dial mechanism — warm brushed metal texture with soft directional studio light raking across concentric circular tick marks (like a bank vault combination dial), shallow depth of field, warm ivory-to-brass tonal range, no text, no numerals, no logos, no letters, no illustration style, photoreal material texture only, cinematic and premium, slightly desaturated warm palette, 3:2 aspect.",
+        "generator": "Codex native image_gen (GPT Image 2), via one `codex exec` call",
+        "raw_dimensions": "1536x1024 PNG (~2.4MB)",
+        "delivered_dimensions": "1200x800 JPEG, quality 68 (~172KB) — downsized/compressed with `sips` before use; the oversized raw PNG was discarded after conversion",
+        "placement": "confined to the hero's right-column stage, behind the vault-record specimen card, at 34% opacity under a dark scrim gradient — no page text sits directly on the image; the card itself has a solid white background",
+        "output_path": "images/vault-dial.jpg",
+        "alt_text": "empty string + aria-hidden=\"true\" (purely decorative, conveys no information not already in the surrounding text/markup)"
+      }
+    ],
+    "count": 1,
+    "no_logos_generated": true,
+    "total_page_weight": "~232KB (index.html 15KB + styles.css 17KB + script.js 4KB + vault-dial.jpg 172KB) — well under a few MB"
+  },
+
+  "self_critique": {
+    "method": "Scored the rendered artifact against knowledge/taste-rubric.md's 6+1 axes (pass threshold >=7/10; Consistency not scorable — first generation in an empty workspace). Verified live in a browser (not static code review alone): served the file over a local static server (this session's browser tool could not navigate file:// directly), exercised the Reveal/Hide control, read the console for errors, used a headless-iframe harness at the three canonical widths (390/768/1440) to measure real DOM overflow and confirm structural responsive transformations, and checked HTML tag-balance programmatically after multiple rounds of markup edits.",
+
+    "verification_beyond_gates": [
+      "Computed WCAG contrast for every text/background pairing via `ui color contrast`: ink-on-paper 15.31:1 (AAA), muted-on-paper 5.26:1 (AA), muted-on-white 5.83:1 (AA), brass-accent-on-paper 6.29:1 (AA), brass-on-white 6.96:1 (AA), white-on-brass 6.96:1 (AA, CTA button text), rust-status-on-paper 6.85:1 (AA), white-on-dark-overlay 17.68:1 (AAA), ink-on-recessed 13.89:1 (AAA), accent-strong-on-paper 8.60:1 (AAA). Every pairing clears AA; most clear AAA.",
+      "Live-tested the vault-record card's Reveal/Hide control: click toggles the masked value to the specimen plaintext and back, updates aria-pressed and the visually-hidden label, no console errors.",
+      "Built an iframe-based width harness (390/768/1440px, independent of this session's fixed browser viewport) and confirmed document.documentElement.scrollWidth === clientWidth at all three widths (no horizontal overflow), and that the hero grid, mechanism steps, and integrations grid each genuinely change track count at each width (1-col/1-col/2-col nav-links-hidden at 390 -> 1-col/2-col/links-visible at 768 -> 2-col/3-col/4-col at 1440) rather than proportionally shrinking.",
+      "Verified HTML tag balance programmatically after the taste-lint markup rewrite (section/wrap merges, ol/ul conversions, figure wrapping) — 0 mismatched or unclosed tags.",
+      "Confirmed zero console errors on load and after interaction."
+    ],
+
+    "issues_found_and_fixed": [
+      {
+        "issue": "Real bug, not a taste issue — an animation-visibility-gate: the scroll-entrance CSS set every [data-reveal] element to opacity:0 by default, relying entirely on an IntersectionObserver callback to add .is-visible. In this session's browser-automation environment, the observer never fired even for elements already in the initial viewport, leaving the entire hero section permanently invisible on load. Caught only by loading the rendered page in a live browser and reading computed opacity — invisible in a static read of the markup/CSS, since the code *looks* correct (matches the standard IntersectionObserver pattern).",
+        "fix": "Inverted the default: [data-reveal] is now opacity:1/visible in plain CSS with no JavaScript dependency (per generation-craft-defaults.md — 'author visible final CSS state and progressively enhance motion'). A '.motion-ready' class, added by script.js only after confirming reduced-motion is off, is what opts an element INTO the pre-animation hidden state. Reveal timing itself was also changed from IntersectionObserver to a direct getBoundingClientRect check re-run on scroll/resize/load (rAF-throttled), since it does not depend on a browser API that silently failed to report in this environment. A last-resort 4-second timeout still forces every group visible as a final safety net. Verified after the fix: the hero group reveals immediately on load (no scroll needed, since it's already in view), lower sections stay correctly un-revealed until scrolled near, and nothing can remain permanently hidden.",
+        "axis": "Motion / correctness"
+      },
+      {
+        "issue": "taste-lint container-nesting-depth: 13 warnings (Layout axis) — decorative div wrappers 3-6 levels deep, the deepest chain being the hero record-card's masked-value row (section > wrap-div > stage-div > article > div > div, 6 levels).",
+        "fix": "Merged each section's '.wrap' max-width container directly onto the '<section>' element (removing a redundant div sitewide — a genuine simplification, not a lint workaround); converted the 3-step mechanism and 3-item principles band to semantic '<ol>'/'<ul>' lists, which are exempt and also a better semantic fit (an ordered process, a set of named principles); wrapped the hero stage (image + specimen card) in a '<figure>'; removed a purely-decorative div around the hero card's masked-label/value-row pair and gave the value-row role=\"group\" (it genuinely is one — a value display paired with its toggle control); merged the CTA band's two nested wrapper divs into a single element. Re-ran clean after two iterations (13 -> 1 -> 0).",
+        "axis": "Layout"
+      },
+      {
+        "issue": "validate-layout: img-no-dimensions warning on the hero background image (missing width/height, a CLS risk).",
+        "fix": "Added explicit width=\"1200\" height=\"800\" matching the delivered asset's intrinsic size.",
+        "axis": "correctness"
+      }
+    ],
+
+    "rubric_scores": {
+      "layout": { "score": 8, "note": "Four distinct layout models across six main-content sections: hero's asymmetric 55/45 grid over a textured stage; mechanism's 3-step ordered flow with a dial-arc connector instead of a plain line; audit's full-bleed dense log specimen; principles' offset 3-column band (staggered vertical start via nth-child, avoiding the 'three identical cards' tell); integrations' dense equal-weight catalogue grid. Clear single focal point per viewport." },
+      "typography": { "score": 8, "note": "One 1.25 modular scale (7 sizes via CSS custom properties), roman-only display, tight negative tracking on display sizes, open 1.6 body leading, mono reserved for secret/log/credential content. Weight kept to 600 (not 800/black) — deliberately calmer than a consumer-marketing scale, matching a credential store's 'exact, not loud' target." },
+      "spacing": { "score": 8, "note": "One 4/8px base unit throughout; airy gallery rhythm (64-112px section gaps) in marketing bands collapsing to a dense 4/8px rhythm inside the vault-record card and the access-log specimen — the declared density exception is visible, not just asserted. All interactive controls (buttons, the dial reveal button) are >=44px." },
+      "motion": { "score": 7, "note": "Restrained-to-mid: scroll-position-driven fade+rise entrance (staggered ~50ms per child), 150-200ms hover/focus feedback on transform/opacity/color only, reduced-motion fully collapses entrance and shortens hover, no overshoot/linear easing, no animated layout properties. The dial-ring Reveal control doubles as the signature device's third appearance. Kept deliberately lower than a consumer-marketing page per the brief's 'steady, not showy' security-surface target. (See issues_found_and_fixed for the visibility-gate bug this axis's implementation had and how it was corrected.)" },
+      "iconography": { "score": 8, "note": "One hand-authored line-icon family, 24x24, uniform 1.5px stroke, round joins. Distinct silhouettes for key/eye-off/request/grant/rotate; the log-status ring and the principle mark are the same glyph reused deliberately (a status indicator repeated per row; a recurring signature device across three principles) rather than a collision." },
+      "depth": { "score": 8, "note": "Mostly flat with hairline borders; the one raised state (the vault-record card) is the only element carrying a shadow, and it is background-tinted (warm brass-grey), never pure black, never doubled with a heavy border. No glass/backdrop-blur anywhere; the sticky nav and CTA band use near-solid dark/paper tints instead." },
+      "consistency": { "score": null, "note": "Not scorable per the rubric — first generation in an empty benchmark workspace with no established design system to inherit or diverge from." }
+    },
+
+    "signature_device_check": "The vault-dial motif (a partial tick-marked ring) recurs three times as the contract declared: the hero card's Reveal control (a ring that turns 90deg and cross-fades the masked value), the mechanism section's dashed quarter-turn arc connecting the three steps, and the principle marks' partial-ring glyph. One motif, three jobs, tying the thesis ('visible shape, hidden value') together end to end rather than stacking unrelated decorative flourishes."
+  },
+
+  "verdict": {
+    "status": "QUALIFIED",
+    "summary": "All four applicable deterministic gates pass at 0 findings after fix iterations. All 6 scorable taste-rubric axes clear the >=7/10 floor. One genuine correctness bug — an animation-visibility-gate where content depended on an IntersectionObserver callback that silently never fired in this session's browser environment — was found only through live-browser verification, not static review, and is fixed with a CSS-default-visible + scroll-position fallback + timeout safety net, then re-verified live. ds-usage-lint is correctly recorded as not-applicable rather than skipped. One generated image asset (a decorative hero texture) was produced and compressed per the asset policy; no logos or fabricated brand marks were generated."
+  }
+}

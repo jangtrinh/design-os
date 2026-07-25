@@ -1,0 +1,107 @@
+{
+  "macrostructure": {
+    "name": "Specimen",
+    "reason": "Per page-structures.md §1, the brief's centre of gravity is an artifact to inspect — a vault record, a grant, a log line — not a claim to read. A skeptical, workflow-literal engineering audience trusts a real specimen over a padlock illustration or a 'bank-grade encryption' claim, so the page shape follows the product rather than the generic security-marketing template."
+  },
+  "thesis": "A vault is not a lock you trust once — it's a dial you can watch turn. Haven never shows you a secret's value by default, only its shape (owner, scope, expiry) and a ring that reads how much of its life is left. Access is a request that opens the ring; time closes it again on its own. Every section re-enters the same dial device from a different angle: as a reveal control in the hero, as a step-connector in the mechanism section, and as a status ring on every row of the access log.",
+  "signature_spatial_move": "A partial tick-marked ring — the vault-dial motif — recurs three times: (1) the hero's secret-record card uses it as the Reveal control (a ring that sweeps closed while the masked value cross-fades to plaintext, then reopens on Hide); (2) the mechanism section's three steps are connected by the same ring drawn as a quarter-turn arc instead of a straight line or numbered circles; (3) the audit-log specimen gives every row a small ring glyph indicating active / rotated / revoked. One motif, three jobs — visible shape, hidden value, told three ways.",
+  "whitespace_strategy": "Gallery-mode airiness (64–112px section gaps) in the marketing bands; the vault-record card and the access-log block collapse to a dense 4/8px internal rhythm — the declared exception argues 'the marketing breathes, the product is exact', not an oversight.",
+  "avoided_template": "The default SaaS attractor (centered hero, gradient blob, three identical feature cards, four-column footer) and the security-product cliché (a stock padlock/shield hero photo or icon). Rejected in favor of an asymmetric hero built around a real vault-record specimen, a genuine dense access-log instead of a marketing screenshot, and section-to-section layout variation (see section_architecture).",
+  "type_system": {
+    "families": {
+      "display_and_body": "system-ui sans stack (no remote fonts permitted, per offline constraint)",
+      "mono": "ui-monospace / SFMono stack — used for secret keys/values, the access-log specimen, and expiry timestamps"
+    },
+    "ratio": "1.25 (major third), base 16px body, moderate 600-weight headings (not 800/black) — calmer than a consumer-marketing scale because a credential store should read exact, not loud",
+    "scale_px": [16, 20, 25, 31, 39, 49, 61],
+    "rules": "roman display only (no italic headings); tight negative tracking (~-0.02em) on display sizes; open 1.6 leading on body, 1.1 on display; short uppercase labels only, tracked +0.05em, never running text; body never below 16px (14px reserved for chip/metadata micro-labels only)"
+  },
+  "spacing_system": {
+    "base_unit": 8,
+    "scale": [4, 8, 16, 24, 32, 48, 64, 96, 112],
+    "density_by_zone": "airy (mid, 64–112px gaps) for marketing bands; dense (4/8px) inside the vault-record card and the access-log specimen — a declared Axis-3 exception, not an inconsistency"
+  },
+  "color_system": {
+    "background_paper": "#f7f3ea warm ivory, not pure #ffffff",
+    "surface_ramp": ["#f7f3ea flat/paper", "#ffffff card", "#efe8d8 recessed (log rows, code/mono blocks)", "#1c1810 overlay-on-dark (sticky nav after scroll, CTA band)"],
+    "accent": "#7a5115 deep brass/gold (~40° hue) — a physical-vault metallic, chosen outside the indigo/violet 270–330° band taste-lint's ai-cliche-gradient flags, and away from the generic security-product blue. Contrast-checked: 6.29:1 on paper, 6.96:1 on white, 6.96:1 reversed (white-on-brass) — all AA+.",
+    "accent_tint": "#f1e2bd pale brass wash — background-only (chips, hover fills), never used for text",
+    "status_secondary": "#8a3d1e muted rust, used only for a 'rotating soon' status ring/chip, never as a second brand color (6.85:1 on paper)",
+    "text": "#201c15 near-black warm ink primary (15.31:1 on paper), #6d6455 muted secondary (5.26:1 on paper, 5.83:1 on white)"
+  },
+  "depth_system": {
+    "ramp": ["flat (paper background)", "card (hairline border, no shadow)", "raised (soft brass-tinted shadow, no border — reserved for exactly one element: the hero card's revealed secret-value state)", "overlay (near-solid dark tint + hairline, sticky nav only after scroll, and the CTA band)"],
+    "shadow_recipe": "background-tinted (warm brass-grey, never pure black), single soft stop, never doubled with a heavy border on the same surface",
+    "z_scale": [1, 10, 100],
+    "no_glass": "no backdrop-blur anywhere; the sticky nav gains a near-solid paper tint + hairline border on scroll, so legibility never depends on blur"
+  },
+  "motion_system": {
+    "entrance": "sections fade+rise 8px on scroll-into-view via IntersectionObserver, staggered ~50ms per child, ease-out cubic-bezier(0.16,1,0.3,1), 300–380ms; content is the real final CSS state and only animates if JS runs (never a visibility gate)",
+    "interactive": "hover/focus transitions 150–200ms ease-out on transform/opacity/color only, never width/height; the hero card's Reveal control sweeps the dial ring closed and cross-fades the masked value to plaintext with no layout shift",
+    "reduced_motion": "prefers-reduced-motion collapses all entrance motion to an instant static state; hover/focus transitions shorten to ~80ms but are not removed (still needed for state feedback); the reveal cross-fade becomes an instant swap",
+    "forbidden": "no overshoot/bounce easing, no linear easing, no animated layout properties, no animating-in focus rings"
+  },
+  "icon_system": {
+    "policy_note": "generation-craft-defaults.md prescribes the official Phosphor package for the runtime; this is a single offline static HTML file with no build step or network access, so no package can be fetched. Deviation: hand-authored inline SVG line icons, 24x24 viewBox, uniform 1.5px stroke, round joins — matching Phosphor Regular's visual weight and grammar without the literal dependency.",
+    "count": 7,
+    "concepts": ["vault/lock", "key", "grant (handshake-like)", "rotate/clock", "eye-off (masked)", "activity/log", "plug (integration)"]
+  },
+  "imagery_plan": {
+    "asset_role": "atmospheric hero background texture, decorative only",
+    "prompt_intent": "macro brushed-brass vault-dial texture with soft directional light and faint circular tick marks; no text, no logo, no literal padlock icon — materiality, not illustration",
+    "placement": "confined to the hero's right-column stage, behind the vault-record specimen card, at reduced opacity so it never carries copy or reduces text contrast — all text sits on solid paper/white/ink surfaces, never directly on the image",
+    "essential_copy_rule": "no copy or controls are baked into the image; the card and its text are live HTML layered above it"
+  },
+  "section_architecture": [
+    {
+      "id": "nav",
+      "role": "wayfinding + primary CTA anchor",
+      "layout_model": "sticky minimal bar: wordmark left, 3 links, CTA button right; hairline bottom border only, gains a near-solid paper tint after scroll"
+    },
+    {
+      "id": "hero",
+      "role": "state the mechanism (a scoped, self-expiring grant) rather than a generic 'keep secrets safe' claim",
+      "layout_model": "asymmetric 2-column (55/45): headline + lede + dual CTA left; a vault-record specimen card right (masked value, owner, scope, expiry ring, Reveal control) sitting over the brass-dial texture image on a raised stage",
+      "composition_anchor": "the vault-record card and its dial-ring Reveal control, whose motif recurs in the next two sections",
+      "content_dependency": "a secrets vault's hero has to show an actual record, not an abstract padlock — the shape follows the product"
+    },
+    {
+      "id": "mechanism",
+      "role": "narrative walkthrough of one grant's lifecycle",
+      "layout_model": "Narrative Workflow — 3-step flow (Request / Grant / Rotate) connected by a quarter-turn dial arc instead of a straight line or numbered circles; each step card a distinct width, not a repeated equal grid",
+      "content_dependency": "continues the hero specimen's story (what happens to that exact secret); distinct from the hero via a horizontal stepped rhythm instead of the hero's 2-column split"
+    },
+    {
+      "id": "audit-specimen",
+      "role": "prove every read is logged by showing a real log, not a claim",
+      "layout_model": "Specimen — a single full-width dense access-log block (monospace timestamps, actor, secret name, action, dial-ring status glyph) with tight line-height on a recessed surface",
+      "content_dependency": "a security-audience trusts a real log line over a claim; genuine product surface, not decorative window chrome"
+    },
+    {
+      "id": "principles",
+      "role": "state the product's stance without fabricating evidence",
+      "layout_model": "honest, non-Stat-Led band — three named principles ('Scoped, not standing' / 'Expires by default' / 'Every read is attributable'), each with a short rationale, arranged as an offset 3-column band with varied vertical start to avoid the 'three identical cards' anti-pattern",
+      "content_dependency": "replaces a fabricated-metrics stat band with honest, sourceable claims about the product's own design, per page-structures.md §3"
+    },
+    {
+      "id": "integrations",
+      "role": "show what it plugs into",
+      "layout_model": "Catalogue — dense equal-weight grid of 8 named integration targets (source control, CI, cloud KMS, chat/on-call, infra-as-code) each with a small hand-authored glyph; explicitly NOT a customer logo wall",
+      "content_dependency": "a set of like items reads correctly as a catalogue, not a stat"
+    },
+    {
+      "id": "cta",
+      "role": "close the page",
+      "layout_model": "one large statement + dual CTA on a dark overlay band, asymmetric left-aligned, echoing the hero's alignment rather than a centered close band"
+    },
+    {
+      "id": "footer",
+      "role": "minimal wayfinding, deliberately not the four-column 'AI footer' tell",
+      "layout_model": "single row: wordmark + 4 links + copyright, no social row, no link columns"
+    }
+  ],
+  "structural_fingerprint_note": "macrostructure=Specimen, 8 sections, focal viewport=hero (asymmetric split, vault-record specimen over brass-dial imagery), reveal=scroll-staggered entrance, nav=minimal-sticky, footer=single-row-minimal. Recorded for future-generation diversification per page-structures.md §2 even though this benchmark workspace has no prior-surface memory to diff against.",
+  "self_declared_deviations": [
+    "Icon set is hand-authored inline SVG rather than the literal Phosphor package (no network/build step available to fetch it) — matches Phosphor Regular's stroke grammar. See icon_system.policy_note."
+  ]
+}
