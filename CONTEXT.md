@@ -85,3 +85,22 @@ _Avoid_: foreground/background (name the axis, not one value)
 A canonical role with no token recognized for it — surfaced as a help-grow list, never
 auto-filled. The user adds it in their own name via `ui ds change-token`.
 _Avoid_: missing token, hole
+
+**Tenant section**:
+An embedded interactive block (scrub cinema, parallax, exploded-view, canvas hero) that lives inside a
+larger page it does not own. It READS the host only through its own bounding box and WRITES only inside
+its own subtree — zero global writes (no `window.scrollTo`, document-height mutation, `:root` writes,
+`position:fixed`, or private ticker). The class-level law for all embeddable motion sections.
+_Avoid_: widget, embed, island (island implies iframe/JS isolation — a tenant is same-DOM)
+
+**Scrub section**:
+The first Tenant section — a scroll-scrubbed camera cinema emitted as one section among many, pinned by
+CSS `position:sticky` (the browser owns the pin), progress derived from `getBoundingClientRect`, media
+driven frame-by-frame. NOT the standalone scrub page (that architecture assumes it owns the document).
+_Avoid_: scrub page, scroll-world page (reserve those for the standalone deliverable)
+
+**tenant-lint**:
+The linter shipped with the Tenant-section emitter that fails any emitted section containing a global
+write, AND fails a host layout that puts `overflow`/`transform`/`filter`/`contain` on a sticky-pin
+ancestor (silently kills `position:sticky`). Emitter + linter, same commit.
+_Avoid_: embed-check, section-validator
