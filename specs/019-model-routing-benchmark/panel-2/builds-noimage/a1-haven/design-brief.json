@@ -1,0 +1,46 @@
+{
+  "raw_brief": "Build a landing page for Haven, a secrets vault. Light.",
+  "surface": {
+    "type": "marketing-landing",
+    "scope": "single standalone page, offline-renderable from file://",
+    "canonical_widths": [390, 768, 1440]
+  },
+  "product": {
+    "name": "Haven",
+    "category": "secrets vault — credential and secret management for engineering teams",
+    "working_definition": "Haven stores API keys, database credentials, certificates, and environment variables encrypted at rest, hands them out to people and services on request through short-lived, scoped grants instead of standing plaintext access, and logs every read so a team can answer 'who touched this secret, and when' without guessing.",
+    "rationale": "The brief names only 'a secrets vault' with no further spec. A landing page cannot be built around an empty abstraction, so the director (this arm) fixed one concrete, plausible product identity consistent with the category (secret/credential management, the space HashiCorp Vault / Doppler / 1Password Secrets occupy) and held it fixed for every section. This is a creative decision, not a brief requirement — recorded here so it reads as intentional, not guessed mid-build."
+  },
+  "audience": {
+    "primary": "engineers, SREs, and security leads at small-to-mid engineering orgs who currently pass secrets through .env files, Slack messages, or a shared password doc",
+    "mindset_on_arrival": "wary of another dashboard to babysit; wants to see exactly what changes about their daily workflow (request a secret, get a scoped grant, rotate) before trusting a vendor with credentials"
+  },
+  "outcome": {
+    "primary_action": "start a vault (primary CTA: get started / create a vault)",
+    "secondary_action": "see how access works (secondary CTA + concrete product specimen: a real secret record and an access-log entry)",
+    "page_job": "in one scroll, show what goes into Haven, how a person or service gets a secret out of it (a scoped, time-boxed grant, not a shared password), and what it refuses to do (no standing plaintext access, no silent reads) — enough for a wary engineer to trust the mechanism before creating an account"
+  },
+  "mode": {
+    "theme": "light",
+    "taste_profile": {
+      "layout": "mid-high — mostly grid-aligned with deliberate breaks (asymmetric hero, offset principle band); editorial enough for a marketing surface but never loose, because a vault's layout should read as precise, not playful",
+      "typography": "mid-high — a considered modular scale with real weight contrast; restrained compared to a flashier consumer brand, because a security product's type should read calm and exact, not loud",
+      "spacing": "mid — comfortable gallery rhythm in marketing bands, tight/dense inside the secret-record and access-log specimens (density argues 'the product is precise even where the marketing is spacious')",
+      "motion": "mid — standard entrance and hover feedback only; deliberately not expressive/orchestrated, because a security surface earning trust should feel steady, not showy",
+      "iconography": "mid — one consistent hand-authored line-icon set, single stroke weight, used for lock/key/grant/audit concepts",
+      "depth": "low-mid — mostly flat with hairline borders; shadow reserved for exactly one raised state (the unlocked secret card) so elevation still means something",
+      "consistency": "not scorable — first generation in an empty project workspace (spec 019 benchmark build), no established design system to inherit"
+    },
+    "brand_accent": "deep forest/pine green (~160-165° hue) as the signal color against a warm off-white paper background — chosen specifically outside the indigo/violet 'AI-glow' band per taste-rubric Axis 6 anti-pattern, and away from the generic security-product blue"
+  },
+  "constraints": {
+    "offline": "no CDN, no remote fonts, no remote images, no network requests — inline SVG / CSS / data URIs only, system font stack",
+    "effort": "a complete, real landing page — genuine effort, not a stub",
+    "blinding": "index.html must contain no comment, meta tag, footer credit, class name, or copy naming any model, vendor, tool, generator, 'DESIGN:OS', or 'AI'"
+  },
+  "out_of_scope": [
+    "multi-page site / routing",
+    "working backend, auth, or a live vault (CTAs are static anchors; the secret record and access log shown are labelled specimens)",
+    "fabricated customer logos, testimonials, or metrics (per page-structures.md §3 honest copy)"
+  ]
+}

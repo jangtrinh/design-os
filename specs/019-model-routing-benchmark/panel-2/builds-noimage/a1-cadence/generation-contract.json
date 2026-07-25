@@ -1,0 +1,100 @@
+{
+  "thesis": "Cadence turns a release into something you can watch move — the page's one idea is a staged pipeline (Plan → Gate → Ship → Observe) shown as a real, legible diagram, not a stock hero illustration. Every section re-enters that same rhythm from a different angle: the mechanism, the command, the network it plugs into, the story of one release.",
+  "macrostructure": {
+    "name": "Workbench",
+    "reason": "Brief targets a developer tool for a skeptical, domain-fluent audience. A live control-surface hero (the pipeline diagram as an operable-looking artifact) earns trust faster than a claim-led hero. Per page-structures.md, the shape is picked from the brief's center of gravity — a tool the reader would operate."
+  },
+  "signature_spatial_move": "The pipeline diagram in the hero is not contained in a card — it bleeds past the right edge of its column and re-appears, cropped and continued, as the visual spine of the 'How a release moves' section below. One diagram, two viewports, reinforcing that it is one continuous rhythm, not a decorative graphic.",
+  "whitespace_strategy": "Gallery-mode airiness (96–128px section gaps) except inside the terminal specimen and the integrations catalogue, which run tight (8/16px) — spacing itself argues 'marketing breathes, tool output is dense', reinforcing the product's own claim.",
+  "avoided_template": "The default SaaS attractor: centered hero + gradient blob + three identical feature cards + four-column footer. Rejected in favor of an asymmetric hero, a real terminal specimen instead of a screenshot-in-a-fake-browser-window, and section-to-section layout variation (see section_architecture).",
+  "type_system": {
+    "families": {
+      "display_and_body": "system-ui sans stack (no remote fonts permitted)",
+      "mono": "ui-monospace / SFMono stack — used for the product name lockup accents, the terminal specimen, and inline command copy, reinforcing 'developer tool'"
+    },
+    "ratio": "1.333 (perfect fourth), base 17px body",
+    "scale_px": [14, 17, 23, 31, 41, 55, 76],
+    "scale_note": "14 (label/kicker/eyebrow, one deliberate off-ratio chrome step per taste-rubric's allowance for short uppercase labels) then 17→23→31→41→55→76 on the 1.333 ratio (17, 55 and the 76px hero-display step are all reachable rounded steps; 76 is the clamp() ceiling for the fluid hero h1). All referenced via CSS custom properties (--fs-*), never hand-picked literals, so the implementation is immune to font-scale-sprawl by construction, not just by count.",
+    "rules": "roman display only (no italic headings); tight negative tracking on display sizes; open 1.6 leading on body; short uppercase labels only, tracked +0.04em, never running text"
+  },
+  "spacing_system": {
+    "base_unit": 8,
+    "scale": [8, 16, 24, 32, 48, 64, 96, 128],
+    "density_by_zone": "airy (mid/high) for marketing bands, dense (low) inside the terminal specimen and integrations catalogue — a deliberate, declared exception per taste-rubric Axis 3"
+  },
+  "color_system": {
+    "background_ink": "#0a0b0d near-black, not pure #000",
+    "surface_ramp": ["#0a0b0d flat", "#121317 card", "#191b20 raised", "#20232a overlay"],
+    "accent": "#f5b135 warm amber (signal/gate color) — chosen specifically outside the indigo/violet 270-330deg band flagged by taste-lint's ai-cliche-gradient / Axis 6 anti-pattern",
+    "accent_secondary": "#5fead1 teal, used only for 'passed gate' / success states, never as a second brand color",
+    "text": "#f3f1ea warm-white primary, #9a9c a4 muted secondary (both checked ≥4.5:1 on the darkest surface used)"
+  },
+  "depth_system": {
+    "ramp": ["flat (bg only)", "card (hairline border, no shadow)", "raised (soft tinted shadow, no border)", "overlay (border + shadow, sticky nav only)"],
+    "shadow_recipe": "background-tinted (warm near-black, not pure black), soft multi-stop, never doubled with a heavy border on the same surface",
+    "z_scale": [1, 10, 100],
+    "no_glass": "no backdrop-blur is used anywhere except the sticky nav on scroll, and it sits over a near-solid tint so text contrast never depends on blur"
+  },
+  "motion_system": {
+    "entrance": "sections fade+rise 12px on scroll-into-view, staggered ~60ms per child, ease-out cubic-bezier(0.16,1,0.3,1), 400-600ms",
+    "interactive": "hover/focus transitions 150-200ms ease-out on transform/opacity/color only, never width/height",
+    "reduced_motion": "prefers-reduced-motion collapses all entrance motion to an instant static state; hover transitions shorten but are not removed (still needed for state feedback)",
+    "forbidden": "no overshoot/bounce easing, no linear easing, no animated layout properties, no animating-in focus rings"
+  },
+  "icon_system": {
+    "policy_note": "generation-craft-defaults.md prescribes the official Phosphor package for the runtime; this is a single offline static HTML file with no build step or network access, so no package can be fetched. Deviation: hand-authored inline SVG line icons, 24x24 viewBox, uniform 1.5px stroke, round joins — matching Phosphor Regular's visual weight and grammar without the literal dependency. One family, one weight, used consistently.",
+    "count": 6
+  },
+  "section_architecture": [
+    {
+      "id": "nav",
+      "role": "wayfinding + primary CTA anchor",
+      "layout_model": "sticky minimal bar: wordmark left, 3 links, CTA button right; hairline bottom border only, background tint gains a slight backdrop tint after scroll (no blur-heavy glass)"
+    },
+    {
+      "id": "hero",
+      "role": "state the mechanism, not just the claim",
+      "layout_model": "asymmetric 2-column (55/45): headline+lede+dual CTA left, live-looking pipeline diagram (4 nodes, animated progress dot) right, bleeding past the column edge",
+      "composition_anchor": "the pipeline diagram, continued below in the 'how it works' section",
+      "content_dependency": "a release-orchestration tool's hero has to show a pipeline, not an abstract illustration — the shape follows the product"
+    },
+    {
+      "id": "how-it-works",
+      "role": "narrative walkthrough of one release",
+      "layout_model": "Narrative Workflow — 4-step horizontal stepper (Plan / Gate / Ship / Observe) that continues the hero's diagram; each step is a distinct card width, not a repeated equal grid",
+      "content_dependency": "continues the diagram thesis; distinct from the hero via a horizontal stepped rhythm instead of the hero's 2-column split"
+    },
+    {
+      "id": "terminal-specimen",
+      "role": "prove the tool is real by showing its actual surface",
+      "layout_model": "Specimen — a single full-width dense terminal block showing `cadence deploy` output with staged, colorized status lines; monospace, tight line-height, dark-on-darker surface",
+      "content_dependency": "a developer-tool audience trusts a real command over a claim; per generation-craft-defaults this is genuine product surface, not a decorative window chrome"
+    },
+    {
+      "id": "integrations",
+      "role": "show what it plugs into",
+      "layout_model": "Catalogue — dense equal-weight grid of 8 named integration targets (source control, CI, chat, on-call, infra) each with a small hand-authored glyph; explicitly NOT a customer logo wall (page-structures.md §3 — these are integration targets, not implied customers)",
+      "content_dependency": "a set of like items reads correctly as a catalogue, not a stat"
+    },
+    {
+      "id": "principles",
+      "role": "state the product's stance without fabricating evidence",
+      "layout_model": "Stat-Led-adjacent but honest — three named engineering principles (no invented metrics), each with a short rationale, arranged as an offset 3-column band with varied vertical start to avoid the 'three identical cards' anti-pattern",
+      "content_dependency": "replaces a fabricated-metrics stat band with honest, sourceable claims about the product's own design, per page-structures.md §3"
+    },
+    {
+      "id": "cta",
+      "role": "close the page",
+      "layout_model": "Marquee-adjacent close: one large statement + dual CTA, asymmetric not centered, echoing the hero's left-alignment rather than defaulting to a centered close band"
+    },
+    {
+      "id": "footer",
+      "role": "minimal wayfinding, deliberately not the four-column 'AI footer' tell",
+      "layout_model": "single row: wordmark + 4 links + copyright, no social row, no link columns"
+    }
+  ],
+  "structural_fingerprint_note": "macrostructure=Workbench, 8 sections, focal viewport=hero (asymmetric split, right-bled diagram), reveal=scroll-staggered entrance, nav=minimal-sticky, footer=single-row-minimal. Recorded for future-generation diversification per page-structures.md §2 even though this benchmark workspace has no prior-surface memory to diff against.",
+  "self_declared_deviations": [
+    "Icon set is hand-authored inline SVG rather than the literal Phosphor package (no network/build step available to fetch it) — matches Phosphor Regular's stroke grammar. See icon_system.policy_note."
+  ]
+}

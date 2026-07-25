@@ -1,0 +1,44 @@
+{
+  "raw_brief": "Build a landing page for Haven, a secrets vault. Light.",
+  "surface": {
+    "type": "marketing-landing-page",
+    "page_count": 1,
+    "rendering": "static HTML/CSS/vanilla JS, offline file:// only, no CDN, no remote fonts/images, no network calls"
+  },
+  "product": {
+    "name": "Haven",
+    "category": "secrets vault — credential and secret management for engineering teams",
+    "concept": "Haven stores API keys, database credentials, certificates, and tokens encrypted at rest, and never hands the value itself to a person or service directly. Instead it issues short leases — scoped, time-boxed grants that expire on their own — and logs every one. A secret is always visible in shape (who owns it, when it expires, who last touched it); its value is only ever visible for the length of a lease.",
+    "why_this_reading": "The brief supplies only a name and category, so a concrete identity has to be fixed to build a real page instead of an abstraction. 'Haven' denotes a place of shelter, not a padlock — that reading is honored by making the mechanism a lease you borrow and return, rather than a vault door you unlock and leave open. This is the director's decision, recorded here so it reads as intentional."
+  },
+  "audience": {
+    "primary": "engineers, SREs, and security leads at small-to-mid engineering orgs currently passing secrets through .env files, Slack DMs, or a shared password doc",
+    "mindset_on_arrival": "wary of another dashboard to babysit; needs to see the actual mechanism (how a lease is requested, granted, and expired) before trusting a vendor with credentials",
+    "technical_fluency": "high — comfortable with CLI, env vars, IAM/role terminology; copy can assume this"
+  },
+  "outcome": {
+    "business_goal": "drive self-serve signups for a security/infra product",
+    "primary_action": "Create a vault (no-card, self-serve)",
+    "secondary_action": "See a lease in the docs"
+  },
+  "action": {
+    "cta_primary_label": "Create a vault",
+    "cta_secondary_label": "See a lease",
+    "conversion_shape": "single above-the-fold CTA pair, restated once at page end; no pricing page in scope (out of scope per brief brevity)"
+  },
+  "taste_targets": {
+    "layout": "mid-high — mostly grid-aligned with deliberate breaks (asymmetric hero, offset principle band); precise, not playful — a vault's composition should read exact",
+    "typography": "mid-high — one modular scale (ratio 1.333), system-ui sans for display/body (no remote fonts permitted), mono reserved for secret values, lease IDs, and the access-log specimen",
+    "spacing": "mid, airy on marketing bands (base unit 8px) collapsing to tight/dense inside the lease-card and access-log specimens — the marketing breathes, the product is exact",
+    "motion": "mid — restrained entrance and hover feedback only, plus one purposeful device: a countdown ring that visibly depletes on the hero specimen; no orchestrated/expressive motion; full prefers-reduced-motion fallback",
+    "iconography": "mid — one hand-authored line-icon family, 24px grid, 1.75px stroke, used sparingly for lock/key/lease/audit concepts",
+    "depth": "low-mid — mostly flat light surfaces with a small elevation ramp (paper / card / raised), tinted soft shadows, no glass",
+    "consistency": "not scorable — first generation, no established project design system to inherit from"
+  },
+  "out_of_scope": [
+    "pricing page / pricing table",
+    "auth flows (sign in / sign up forms beyond the CTA)",
+    "blog, changelog, or docs content beyond a single illustrative specimen",
+    "real third-party logos or named customers (would require unverifiable brand/identity claims)"
+  ]
+}

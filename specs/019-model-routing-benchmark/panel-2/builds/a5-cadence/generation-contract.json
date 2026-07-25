@@ -1,0 +1,124 @@
+{
+  "thesis": "The pipeline IS the hero. Instead of a stock screenshot or an abstract gradient, the fold shows a real, live-looking terminal running an actual Cadence pipeline file — stage by stage, with a status column that updates. The rest of the page is the same idea zoomed out: each feature band is one stage of 'how a deploy actually gets safer', paced like a pipeline itself (define → watch → gate → ship).",
+  "macrostructure": {
+    "name": "Workbench",
+    "reason": "brief's centre of gravity is a tool the reader will run, not a story to read — the page should look and feel like the product before a word is read"
+  },
+  "signature_devices": {
+    "primary": {
+      "device": "Simulated browser/OS chrome (terminal window)",
+      "application": "the hero's control surface is a framed terminal (traffic-light dots + tab title, all aria-hidden, non-focusable) running `cadence run deploy.yaml`; stage rows populate with a status glyph (queued → running → passed) via CSS/JS state classes, degrades to fully-passed static state with no JS and under reduced-motion"
+    },
+    "supporting": {
+      "device": "Light-leak background",
+      "application": "one large, heavily-blurred amber bloom behind the hero terminal on a near-black base, low opacity, kept clear of the fold's headline text so worst-pixel contrast is never at risk; absent in lower sections to keep it a single fold-level moment, not a page-wide wash"
+    },
+    "count_check": "2 devices total (1 primary + 1 supporting) — within the 'one or two' ceiling"
+  },
+  "palette": {
+    "mode": "dark",
+    "base": "near-black surfaces, three elevation steps (base #0a0b0d / raised #121317 / overlay #1a1c21)",
+    "foreground": "off-white #eef0f2 primary text, muted #9aa0aa secondary text",
+    "accent_primary": "amber/copper (~45° hue) — the 'cadence/metronome pulse' signal color, used for the primary CTA, running-stage glyphs, and the light-leak bloom",
+    "accent_secondary": "desaturated teal (~185° hue) — used only for 'passed' status glyphs, i.e. a semantic success color distinct from the brand accent",
+    "why_not_violet": "explicitly avoided the indigo/violet/magenta AI-glow band (taste-rubric ai-cliche-gradient territory); amber was chosen for its tempo/pulse connotation and because it reads as a terminal/signal color, not a SaaS-default one"
+  },
+  "typography": {
+    "target": "high (expressive) — marketing surface",
+    "ratio": "1.333 (perfect fourth)",
+    "base_px": 16,
+    "families": {
+      "display_and_body": "system sans stack (-apple-system, 'Segoe UI', 'Inter', system-ui, sans-serif) — no remote font fetch permitted under the file:// / offline constraint, so the scale and weight contrast carry the expressiveness instead of a custom face",
+      "mono": "system mono stack (ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', monospace) for the terminal, code snippets, and stage labels — reinforces the dev-tool register"
+    },
+    "notes": "tight negative tracking on display sizes, roman only (no italic headings), body 1.6 leading / display 1.05-1.15, uppercase reserved for short mono labels only"
+  },
+  "spacing": {
+    "target": "high (airy/gallery) — base unit 8px, section gaps scale up substantially between Workbench hero and feature bands to let each stage of the narrative breathe"
+  },
+  "motion": {
+    "target": "mid-to-high — orchestrated but restrained",
+    "specifics": [
+      "hero terminal: staged reveal of pipeline rows (queued->running->passed), a blinking block cursor on the prompt line, all via CSS animation + prefers-reduced-motion:reduce fallback to the fully-passed static frame",
+      "section entrances: small opacity/translateY reveal on scroll, staggered per item, ease-out, ~200-300ms",
+      "hover: buttons and cards get a short transform/opacity feedback, ease-out ~180ms, no overshoot",
+      "focus rings appear instantly, never transitioned"
+    ]
+  },
+  "depth": {
+    "target": "mid, tipping rich only in the hero — a 3-step elevation ramp (base/raised/overlay), soft background-tinted shadows, the terminal window is the one 'raised' object competing with the light-leak for attention"
+  },
+  "iconography": {
+    "policy_resolution": "asset policy calls for the official Phosphor package; this is a single static offline file with no build/package step, so Phosphor's npm package cannot be vendored in. Resolution: hand-authored inline SVG line icons, ONE family, ONE stroke weight (1.75px), sized on a 16/20/24 ramp, functioning as a deliberate offline substitution for Phosphor — recorded here per generation-craft-defaults.md's exception rule ('name the rule, reason, and evidence reference')",
+      "set": ["stage/check (passed)", "stage/dot (queued)", "stage/spinner (running, decorative+aria-hidden, static fallback)", "arrow-right (CTA)", "terminal", "gate/shield", "webhook/link", "docs/file"]
+  },
+  "section_architecture": [
+    {
+      "id": "nav",
+      "purpose": "wayfinding + secondary access to docs",
+      "layout_model": "fixed hairline-bottom bar, wordmark left, 3 links + CTA right",
+      "composition_anchor": "amber underline tick under the active/hover link, echoing the metronome-pulse motif in miniature",
+      "content_dependency": "minimal — this is a tool, not a marketing site with deep IA",
+      "responsive_transform": "links collapse to a single 'Docs' link + CTA under 640px; wordmark stays"
+    },
+    {
+      "id": "hero",
+      "purpose": "state what Cadence is and prove it in the same glance",
+      "layout_model": "Workbench split — headline/lede/CTA column left, live terminal window right, light-leak bloom behind the terminal",
+      "composition_anchor": "the terminal window itself — first thing the eye lands on because it is the only object with real elevation + motion on load",
+      "content_dependency": "the terminal runs a real, readable deploy.yaml-shaped pipeline (build -> test -> gate:approval -> deploy) so the product is legible without prose",
+      "responsive_transform": "stacks to single column under 768px, terminal moves below the copy and drops to a shorter 4-row view so it still fits without scroll-jacking"
+    },
+    {
+      "id": "context",
+      "purpose": "name the problem in one honest sentence before pitching the fix",
+      "layout_model": "Long-Document single column, generous measure, no card",
+      "composition_anchor": "one short paragraph set larger than body copy, acting as a pull-quote without needing a fabricated quote",
+      "content_dependency": "directly names the 'chat pings and tribal knowledge' pain from the audience state in the brief",
+      "responsive_transform": "measure narrows proportionally, no structural change needed at this simplicity"
+    },
+    {
+      "id": "feature-define",
+      "purpose": "stage 1 of the narrative — pipelines are defined as code",
+      "layout_model": "Feature Stack band #1 — code panel left, copy right",
+      "composition_anchor": "a syntax-colored YAML snippet (not a screenshot) as the proof object",
+      "content_dependency": "the YAML shown here is the same pipeline shape referenced in the hero terminal, so the two sections visually rhyme",
+      "responsive_transform": "code panel stacks above copy under 768px, font-size steps down one notch, horizontal scroll container for long lines instead of wrap"
+    },
+    {
+      "id": "feature-watch",
+      "purpose": "stage 2 — live status while it runs",
+      "layout_model": "Feature Stack band #2, mirrored — copy left, status-list mock right",
+      "composition_anchor": "a compact vertical stage list with glyphs (reuses the icon set, teal for passed) instead of a repeated code panel — deliberate layout variation, not a recolor of band #1",
+      "content_dependency": "shows the same 4 stages from the hero/code example progressing, tying the three sections into one thread",
+      "responsive_transform": "band mirrors to copy-first order on narrow widths (reading order beats visual mirroring) and the status list becomes full width"
+    },
+    {
+      "id": "feature-gate",
+      "purpose": "stage 3 — the risky step waits for a human",
+      "layout_model": "Feature Stack band #3 — centered single card, full width either side, distinct from the two-column bands above",
+      "composition_anchor": "a single 'awaiting approval' card with a shield glyph and two disabled-look decorative action buttons (not real controls, marked appropriately) — the odd-one-out composition signals 'this step is different in kind', not just content",
+      "content_dependency": "directly answers 'what stops an unreviewed deploy' — the feature the audience is most skeptical will exist",
+      "responsive_transform": "card width caps and centers at all sizes; padding compresses on narrow viewports rather than the card losing its centered composition"
+    },
+    {
+      "id": "install",
+      "purpose": "the actual CTA moment — respects a developer audience by giving them a command, not a form",
+      "layout_model": "Stat-led-adjacent but honest: one large mono command line is the composition anchor, no fabricated number attached to it",
+      "composition_anchor": "an oversized copyable command in a raised panel with a copy-to-clipboard control",
+      "content_dependency": "the command matches the CLI implied by the hero terminal ('cadence run …' family)",
+      "responsive_transform": "command panel scales font down and allows horizontal scroll rather than wrapping a shell command, at all widths"
+    },
+    {
+      "id": "footer",
+      "purpose": "close the page, minimal legal/nav residue",
+      "layout_model": "single hairline-top row, wordmark + 3 links + one line, no four-column link farm (deliberately not the 'AI footer' default)",
+      "composition_anchor": "restraint itself is the composition choice here",
+      "content_dependency": "none beyond wayfinding",
+      "responsive_transform": "row wraps to two lines under 480px, no structural change"
+    }
+  ],
+  "layout_model_count_check": "distinct layout models used: fixed-bar nav, Workbench split, Long-Document paragraph, Feature-Stack two-col (x2, mirrored), single centered card, command panel, footer row — well over the 'two layout models minimum for 3+ sections' floor",
+  "responsive_canonical_widths": [390, 768, 1440],
+  "consistency_axis": "not applicable — first generation in this output directory, no established design system/token registry to inherit from"
+}

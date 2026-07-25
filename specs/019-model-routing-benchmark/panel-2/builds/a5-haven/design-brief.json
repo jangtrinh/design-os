@@ -1,0 +1,51 @@
+{
+  "raw_brief": "Build a landing page for Haven, a secrets vault. Light.",
+  "surface": {
+    "type": "marketing-landing",
+    "scope": "single standalone page, offline-renderable from file://",
+    "canonical_widths": [390, 768, 1440]
+  },
+  "product": {
+    "name": "Haven",
+    "category": "secrets vault — credential and secret management for engineering teams",
+    "working_definition": "Haven is where a team's API keys, database credentials, and certificates live. Instead of a shared .env file or a password doc, a teammate requests one and is issued a claim ticket: a scoped, time-boxed right to read one secret once, torn from a ledger that never forgets who asked. The ticket expires on its own; the ledger keeps the stub.",
+    "rationale": "The brief names only 'a secrets vault' with no further spec. The director fixed one concrete, physical framing distinct from a generic padlock/dashboard pitch: a coat-check counter, not a bank vault — you don't get the object, you get a numbered ticket that is good for one collection, for a limited time, and the counter keeps a carbon-copy stub of every ticket it has ever issued. This framing is a creative decision, not a brief requirement, held fixed across every section so the page argues one idea end to end instead of a generic 'security product' pitch.",
+    "prior_art_note": "A sibling build in this same benchmark workspace (arm A1, same brief) used a bank-vault-dial framing (a rotating combination-lock ring as the recurring device). This build deliberately picks a different concrete object — a torn ticket stub, not a dial — so the two independent directions do not converge on the same metaphor."
+  },
+  "audience": {
+    "primary": "engineers and security-minded leads at small-to-mid engineering teams currently keeping secrets in .env files, a shared password doc, or scattered CI variables",
+    "mindset_on_arrival": "skeptical of a new tool to babysit; will only trust Haven with real credentials after seeing the actual mechanics of a request — who gets what, for how long, and what gets logged — not a marketing claim about 'bank-grade encryption'"
+  },
+  "outcome": {
+    "primary_action": "open a vault (primary CTA)",
+    "secondary_action": "see a live ledger entry — a concrete specimen of a claim ticket and its stub, not a demo video",
+    "page_job": "walk a skeptical engineer through one ticket's whole life in a single scroll — request it, use it once, watch it expire on its own, see the stub still sitting in the ledger — so the mechanism earns trust before the visitor is asked to create an account"
+  },
+  "mode": {
+    "theme": "light",
+    "taste_profile": {
+      "layout": "mid-high — an asymmetric hero built around one ticket specimen, an alternating narrative walk for the lifecycle, an offset manifesto band; editorial enough to read as authored, restrained enough to read as a serious credential store rather than a playful consumer product",
+      "typography": "high — an editorial pairing (serif display, sans body, mono data) on a 1.333 modular scale with real weight contrast and tight display tracking; a ledger/document register that a plain security-SaaS scale would not carry",
+      "spacing": "mid, zone-dependent — airy gallery rhythm (64–112px) in the marketing bands, collapsing to a dense 4/8px rhythm inside the ticket specimen and the ledger-log block, arguing 'the marketing breathes, the record is exact'",
+      "motion": "mid — standard scroll entrance and hover/focus feedback only, plus one signature interaction (tearing the ticket stub); no orchestrated choreography — a credential store earning trust should feel steady, not showy",
+      "iconography": "mid — one hand-authored line-icon set, single stroke weight, used for lock / ticket / clock / eye-off / log / plug concepts",
+      "depth": "low-mid — mostly flat with hairline and perforated-dash borders; shadow reserved for exactly one raised state (the hero ticket card) so elevation still signals something",
+      "consistency": "not scorable — first generation in an empty project workspace (spec 019 benchmark build), no established design system to inherit"
+    },
+    "brand_accent": "deep oxblood/ticket-red (~10° hue, dark and desaturated) on warm cream paper with graphite ink — a ledger-and-ticket-stub palette, chosen specifically outside the indigo/violet 270–330° 'AI-glow' band (taste-rubric Axis 6) and away from the generic security-product blue, and away from arm A1's brass/gold accent"
+  },
+  "constraints": {
+    "offline": "no CDN, no remote fonts, no remote images, no network requests — inline SVG / CSS / local image assets only, system font stack",
+    "effort": "a complete, real landing page — genuine effort on visual craft and fine detail, not a stub",
+    "blinding": "index.html and its CSS/JS must contain no comment, meta tag, footer credit, class name, or copy naming any model, vendor, tool, generator, 'DESIGN:OS', or 'AI'"
+  },
+  "imagery": {
+    "policy": "generation-craft-defaults.md asset ladder — project asset → approved source → generated asset → intentional no-image. No project asset or approved third-party source exists for a fictional product's ledger/ticket materiality, so the director uses ONE generated asset: an atmospheric macro texture (aged cream ledger paper with a torn perforated ticket edge and a faded ink stamp), decorative/atmospheric only, no essential copy or controls baked into it.",
+    "forbidden": "no logos, no fabricated brand marks, no imagery added merely to satisfy a quota"
+  },
+  "out_of_scope": [
+    "multi-page site / routing",
+    "working backend, auth, or a live vault (CTAs are static anchors; the ticket and ledger log shown are labelled specimens)",
+    "fabricated customer logos, testimonials, or metrics (per page-structures.md §3 honest copy)"
+  ]
+}
