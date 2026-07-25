@@ -31,10 +31,12 @@
  *                   keyframes-layout-props
  *   Motion        → overshoot-easing, focus-ring-animates-in
  *   Consistency   → raw-hex-when-token-exists (needs DS token set)
+ *   Consistency   → radius-sprawl            (> 4 distinct border-radius values; warning-only)
+ *   Layout        → container-nesting-depth  (≥ 3 nested purely-presentational wrappers; warning)
  *
- * Axes intentionally NOT covered (subjective — left to the model): Layout in
- * full, plus the qualitative dimensions of every axis (is the scale on one
- * ratio? is the composition authored? is the elevation ramp coherent?).
+ * Axes intentionally NOT covered (subjective — left to the model): the
+ * qualitative dimensions of every axis (is the scale on one ratio? is the
+ * composition authored? is the elevation ramp coherent?).
  */
 import {
   checkTinyBodyText,
@@ -56,6 +58,8 @@ import { checkTapTargetUndersized } from "./taste-checks-tap-target.js";
 import { checkAiClicheGradient } from "./taste-checks-gradient.js";
 import { checkFontScaleSprawl } from "./taste-checks-font-scale.js";
 import { checkModeInvisibleSurface } from "./taste-checks-invisible-surface.js";
+import { checkContainerNestingDepth } from "./taste-checks-nesting.js";
+import { checkRadiusSprawl } from "./taste-checks-radius.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -149,6 +153,9 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     // (font-scale escalates to error past 10 sizes); mode-invisible-surface is an error.
     ...checkFontScaleSprawl(stripped),
     ...checkModeInvisibleSurface(stripped),
+    // Craft-lint graduation (spec CRAFT-LINT). Both new checks default warning.
+    ...checkContainerNestingDepth(stripped),
+    ...checkRadiusSprawl(stripped),
   ];
 
   // Sort by rubric axis order, then by line (undefined lines last).
