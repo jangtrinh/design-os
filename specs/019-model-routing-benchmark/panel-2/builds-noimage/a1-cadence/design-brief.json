@@ -1,0 +1,46 @@
+{
+  "raw_brief": "Build a landing page for Cadence, a developer tool. Dark.",
+  "surface": {
+    "type": "marketing-landing",
+    "scope": "single standalone page, offline-renderable from file://",
+    "canonical_widths": [390, 768, 1440]
+  },
+  "product": {
+    "name": "Cadence",
+    "category": "developer tool — release orchestration",
+    "working_definition": "Cadence plans, gates, and ships releases for engineering teams: it turns a merged branch into a staged, observable rollout with explicit approval gates, instead of a single risky deploy button.",
+    "rationale": "The brief names only 'a developer tool' with no further spec. A landing page cannot be built around an empty abstraction, so the director (this arm) fixed one concrete, plausible product identity consistent with the name 'Cadence' (rhythm / pacing of releases) and held it fixed for every section. This is a creative decision, not a brief requirement — recorded here so it reads as intentional, not guessed mid-build."
+  },
+  "audience": {
+    "primary": "engineers and release managers at small-to-mid engineering orgs who currently ship via ad hoc scripts or a bare CI 'deploy' button",
+    "mindset_on_arrival": "skeptical of marketing, fluent in the domain, wants to see the actual mechanism (a real command, a real pipeline shape) before reading claims"
+  },
+  "outcome": {
+    "primary_action": "start using Cadence (primary CTA: install / get started)",
+    "secondary_action": "read the docs / see it work (secondary CTA + concrete product specimen)",
+    "page_job": "in one scroll, show what Cadence is (a staged release pipeline with gates), how a release moves through it, and what it plugs into — enough for a skeptical engineer to trust the mechanism before signing up"
+  },
+  "mode": {
+    "theme": "dark",
+    "taste_profile": {
+      "layout": "high — asymmetric, editorial; landing/marketing surface",
+      "typography": "high — expressive scale, confident weight contrast",
+      "spacing": "high — airy, gallery-mode rhythm for a marketing surface",
+      "motion": "mid-high — orchestrated entrance + hover feedback, restrained enough for a technical audience (no bounce, no gratuitous looping)",
+      "iconography": "mid — one consistent hand-authored line-icon set, single weight",
+      "depth": "mid — small named elevation ramp, hairline borders over heavy shadow, dark-mode tinted shadows",
+      "consistency": "not scorable — first generation in an empty project workspace (spec 019 benchmark build), no established design system to inherit"
+    },
+    "brand_accent": "warm amber/gold signal color against a near-black ink background — deliberately avoids the indigo/violet 'AI-glow' band per taste-rubric Axis 6 anti-pattern"
+  },
+  "constraints": {
+    "offline": "no CDN, no remote fonts, no remote images, no network requests — inline SVG / CSS / data URIs only, system font stack",
+    "effort": "a complete, real landing page — genuine effort, not a stub",
+    "blinding": "index.html must contain no comment, meta tag, footer credit, class name, or copy naming any model, vendor, tool, generator, 'DESIGN:OS', or 'AI'"
+  },
+  "out_of_scope": [
+    "multi-page site / routing",
+    "working backend, auth, or live install flow (CTAs are static anchors)",
+    "fabricated customer logos, testimonials, or metrics (per page-structures.md §3 honest copy)"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "raw_brief": "Build a landing page for Cadence, a developer tool. Dark.",
+  "surface": {
+    "type": "marketing-landing",
+    "scope": "single standalone page, offline-renderable from file://",
+    "canonical_widths": [390, 768, 1440]
+  },
+  "product": {
+    "name": "Cadence",
+    "category": "developer tool — pipeline health / delivery rhythm monitor",
+    "working_definition": "Cadence watches a team's build-test-deploy pipeline as one continuous signal instead of a wall of dashboards: every commit produces a pulse, and a broken or slowing pulse is the alert — not a form you fill in after an incident.",
+    "rationale": "The brief names only 'a developer tool' with no further spec. The director fixed one concrete, plausible identity that the name itself suggests — 'Cadence' as rhythm/pulse of shipping, not a release-approval workflow — and held it fixed for every section, copy line, and the generated hero artwork. This is a creative decision, not a brief requirement, recorded here so it reads as intentional."
+  },
+  "audience": {
+    "primary": "engineers and eng leads at small-to-mid teams who currently learn about a broken pipeline from a teammate, not from a system",
+    "mindset_on_arrival": "skeptical of another dashboard to check; wants to see the actual signal shape (a real trace, a real command) before believing a claim about visibility"
+  },
+  "outcome": {
+    "primary_action": "start watching a pipeline (primary CTA: install / get started)",
+    "secondary_action": "see the live trace / read the docs (secondary CTA + concrete product specimen)",
+    "page_job": "in one scroll, make the reader feel the idea of a 'pulse' (a continuous signal, not a dashboard), show how one commit becomes a pulse, prove the tool is real with an actual command's output, and state honestly what it plugs into"
+  },
+  "mode": {
+    "theme": "dark",
+    "taste_profile": {
+      "layout": "high — asymmetric, editorial marquee hero; landing/marketing surface",
+      "typography": "high — expressive 1.5 ratio scale, large display sizes, strong weight contrast",
+      "spacing": "high — airy gallery-mode rhythm for marketing bands, deliberately dense inside the terminal specimen and integrations grid",
+      "motion": "mid-high — orchestrated scroll entrance + hover feedback, restrained for a technical audience (no bounce, no gratuitous looping)",
+      "iconography": "mid — one consistent hand-authored line-icon set, single weight",
+      "depth": "mid — small named elevation ramp, hairline borders over heavy shadow, dark-mode tinted shadows",
+      "consistency": "not scorable — first generation in an empty project workspace (spec 019 benchmark build), no established design system to inherit"
+    },
+    "brand_accent": "warm amber/gold pulse-line signal against a near-black ink background, with a muted teal harmonic as the only secondary accent — deliberately avoids the indigo/violet 'AI-glow' band per taste-rubric Axis 6 anti-pattern"
+  },
+  "constraints": {
+    "offline": "no CDN, no remote fonts, no remote images, no network requests at runtime — system font stack, inline SVG, one locally generated + compressed JPEG asset",
+    "effort": "a complete, real landing page — genuine effort, not a stub",
+    "blinding": "index.html and its assets must contain no comment, meta tag, footer credit, class name, or copy naming any model, vendor, tool, generator, 'DESIGN:OS', or 'AI'"
+  },
+  "out_of_scope": [
+    "multi-page site / routing",
+    "working backend, auth, or live install flow (CTAs are static anchors)",
+    "fabricated customer logos, testimonials, or metrics (per page-structures.md §3 honest copy)"
+  ]
+}
