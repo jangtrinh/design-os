@@ -1,6 +1,6 @@
 # 021 — Scroll-world × gflow video track (DESIGN:OS)
 
-**Status:** pilot proven, pre-integration · **Date:** 260722 · **Owner:** Jang
+**Status:** split — **tenant half SHIPPED** (PR #95 `a394230`: `ui tenant-lint` + `ui tenant-scaffold` live in the kernel, embedding law in `knowledge/motion-craft.md`) · **asset half pre-integration** (the gflow hand is not registered in `design-os doctor` / `setup.sh` — issue #97) · **Date:** 260722, status revised 260725 · **Owner:** Jang
 
 ## What
 A new DESIGN:OS **deliverable track**: immersive scroll-scrubbed "fly-through" landing pages (Apple-style), where scroll drives a continuous camera flight through generated scenes. Assets come from **gflow** (Google Flow Veo/Imagen, Ultra sub) instead of Higgsfield.
@@ -19,11 +19,31 @@ Two upstream repos:
 ## Pilot result
 SoDeal 4-beat fly-through (chợ VN → shop SoDeal-red → plaza deal → hero). 4/4 clips, seams continuous, page serves 200. See `web/`, `clips/` (gitignored, regenerable).
 
+## Canonical terms (from `CONTEXT.md`, added by PR #95 — use these, not synonyms)
+**Tenant section** · **Scrub section** · **tenant-lint**. `_Avoid_`: **"island"** — it implies
+iframe/JS isolation, and a tenant is same-DOM. Any new 021 work names things this way.
+
 ## Integration into design:os (deferred — after retro + more runs)
-- **gflow = new "hand"**: envelope adapter wrapping `gflow … --json` → `{ok,command,data}` + exit codes; register in `doctor.sh`. **MUST use the i2v+ffmpeg path, not `chain`.** Preflight deps (pillow, ffmpeg, cwebp).
+- **gflow = new "hand"** (issue #97): envelope adapter wrapping `gflow … --json` → `{ok,command,data}` + exit codes. **MUST use the i2v+ffmpeg path, not `chain`.** ✅ *Registration DONE 260725* — `gflow`/`ffmpeg`/`cwebp` are optional checks in `design-os doctor` (`doctor.py`), which `setup.sh` § verify already runs, so absence is reported at bootstrap instead of mid-generation. `setup.sh` deliberately does NOT auto-install gflow (unofficial Playwright automation → account risk; installing it is the owner's call). Pillow is not checked here: it is gflow's own dependency inside gflow's interpreter.
 - **scroll-world = new track** under the conductor: brief → manifest → gen (gflow hand) → build → serve/export.
 
-## LOCKED DIRECTION (Fable 5, 260722) — supersedes the pilot pipeline above
+## ~~LOCKED DIRECTION (Fable 5, 260722)~~ — **SUPERSEDED 260725 by Architecture A. Kept as history.**
+
+> **Read this block as rationale, not as the build order.** `GOALS.md` Phase 1 (lines 8–9) mandates
+> **Architecture A** — forward seed-chain, each leg's `--initial-frame` = the previous leg's ACTUAL
+> last frame, **no `--end-frame`** — and records it as a **direct owner order explicitly reversing
+> Fable**. Reason on record: keyframe-anchored (both endpoints fixed) makes seam *velocity*
+> discontinuous even when the frames match — the "lạc quẻ" the owner kept reporting. The shipped
+> pilot used Arch A and `docs/RETRO.md` called its seams continuous.
+>
+> What survives from this block and still binds: **stills are the backbone** (Imagen owns art
+> direction), the **storyboard-approval gate before any video credit**, the 3 consistency layers,
+> the model recipe (**omni-flash OUT**), and the submit/collect client-driver decision below. What
+> does NOT bind: killing the seed-chain, and `--end-frame` as the segment architecture.
+>
+> The drift concern is real and unretired — Arch A trades drift-control for smoothness by owner
+> choice. Mitigate with the master-reference still + frozen prompt scaffold, not with `--end-frame`.
+
 
 **Stills are the backbone. Imagen owns art direction; Veo is only a camera interpolating between approved stills.** Kill the last-frame seed-chain — it's an error integrator (drift compounds with scene count, structural not fixable by prompting).
 
