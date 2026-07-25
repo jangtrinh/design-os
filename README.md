@@ -336,6 +336,13 @@ rendered accessibility audits — all repo-only hands the npm kernel doesn't shi
 **Node ≥ 22** (the recall hand) and [`uv`](https://docs.astral.sh/uv/) for the `design-os`
 umbrella; `./setup.sh --check` verifies prerequisites without changing anything.
 
+One hand is **opt-in, never silent**: `gflow` (Google Flow — the scroll-cinema asset
+generator). An interactive run explains what it is, that it needs a paid AI Ultra/Pro
+subscription, and that it automates a real browser session on *your* Google account — then
+asks. A non-interactive run skips it. `--with-gflow` / `--no-gflow` answer ahead of time.
+Skipping costs nothing but the ability to generate *new* footage, and `design-os doctor`
+reports the gap up front instead of failing mid-generation.
+
 ---
 
 ## Qualified Delivery
@@ -721,6 +728,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-07-25 | **Scroll-cinema toolchain is now visible at bootstrap** — `design-os doctor` checks `gflow`/`ffmpeg`/`cwebp` as optional hands (absence reported up front, not discovered mid-generation after credits are spent), and `setup.sh` gained an **opt-in** gflow step that explains the account risk and asks (`--with-gflow`/`--no-gflow`; non-interactive runs skip). `_probe_version` keeps the first line only, so `ffmpeg`'s multi-line build banner can't flood the envelope. Spec 021's `SPEC.md` reconciled: Architecture A confirmed as the owner's order, LOCKED DIRECTION marked superseded, status split (tenant half shipped / asset half pre-integration) | `0039975` |
 | 2026-07-25 | **Tenant contract — embeddable motion sections** — `ui tenant-lint <page>` enforces the Tenant Law (a scroll-scrub/parallax/exploded-view section READS the host only via its own bounding box, WRITES only its own subtree; fails global writes + sticky-killer ancestors, follows linked `src`/`href` files); `ui tenant-scaffold <dir>` emits the canonical scrub engine verbatim. `knowledge/motion-craft.md` gains the contract, `generation-craft-defaults.md` a canvas-aspect floor | `a394230` |
 | 2026-07-22 | **Full-studio one-command setup (Spec 020)** — `./setup.sh`: prereqs → `npm install` → build (ui + figma-agent/recall/a11y, a11y last) → link all 5 bins → `uv tool install` the design-os umbrella → verify (`ui doctor` + `design-os doctor`) → style-A report; idempotent, `--check`/`--skip-python` flags. README swaps the old dev note for a "Full studio (clone)" subsection | `7132637` |
 | 2026-07-22 | **Published to npm** — `npm i -g ease-design` (v0.1.0, MIT, zero deps); first public release from CI with sigstore provenance. Kernel-only; Figma/recall/a11y hands ship separately later | `281fc55` |

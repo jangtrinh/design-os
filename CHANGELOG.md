@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-07-25 - Scroll-cinema asset toolchain: reported by `doctor`, opt-in in `setup.sh`
+
+### Added
+- `design-os doctor` now checks the **scroll-cinema asset toolchain** — `gflow`, `ffmpeg`, `cwebp` —
+  as optional hands alongside the existing ones. Spec 021's asset path was reproducible only on the
+  machine that ran the pilot; absence surfaced *mid-generation*, after video credits were spent.
+  `setup.sh` § verify already runs `design-os doctor`, so a fresh clone now learns about the gap at
+  bootstrap. Health stays neutral: the studio ships fine without it.
+- `setup.sh` gained an **opt-in** gflow step (`--with-gflow` / `--no-gflow`; prompts when interactive,
+  skips when not). It is never installed silently and the prompt says why: gflow is unofficial, it
+  automates a real Chrome session on the user's own Google account, and it needs a paid AI Ultra/Pro
+  subscription. A failed install warns and lets the studio setup finish. `--check` and the success
+  report both list gflow as optional. Install line is verbatim from the es-gflow skill, including
+  `--with pillow` (gflow does not declare Pillow; frame ops crash without it).
+
+### Changed
+- `_probe_version` keeps the **first line only**. Real `ffmpeg --version` prints a build banner
+  (version + compiler + configure flags); the whole blob would otherwise land in the JSON envelope
+  and in doctor's one-line-per-check render.
+- `specs/021-.../SPEC.md` reconciled with the rest of the repo: § LOCKED DIRECTION marked
+  **superseded by Architecture A** (forward seed-chain, no `--end-frame`) — recorded in `GOALS.md` as
+  a direct owner order, and what the shipped pilot actually used — while keeping the Fable text as
+  history for the parts that still bind (stills as backbone, storyboard-approval gate before any
+  video credit, omni-flash out). Status header corrected to the real split: tenant half shipped
+  (PR #95), asset half pre-integration.
+
+### Notes
+- Pillow is deliberately *not* a doctor check: it lives inside gflow's own interpreter, so probing it
+  from design-os's interpreter would report a different environment's truth.
+- Known degrade, pinned by test: `cwebp --version` is an invalid option (exit 1; the real form is
+  `-version`), so cwebp reports found-without-version. Presence is what the preflight needs.
+
 ## 2026-07-25 - Tenant contract: embeddable motion sections (`ui tenant-lint` + `ui tenant-scaffold`)
 
 - New `ui tenant-lint <file.html>` — the deterministic linter for the **Tenant Law**: an embedded
