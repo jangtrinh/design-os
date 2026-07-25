@@ -23,10 +23,12 @@ def test_doctor_healthy_json(runner: CliRunner, fake_bin) -> None:
     assert checks[0]["name"] == "ui"
     assert checks[0]["found"] is True
     assert checks[0]["version"] == "0.9.9"  # from the stub `ui --version`
-    # Optional hands (figma-agent/recall/pixelshot/a11y-audit/page-shot) are absent but must not fail health.
+    # Optional hands (figma-agent/recall/pixelshot/a11y-audit/page-shot) and the
+    # scroll-cinema asset toolchain (gflow/ffmpeg/cwebp) are absent but must not fail health.
     assert env["data"]["ok"] is True
     assert {c["name"] for c in checks} == {
         "ui", "node", "figma-agent", "recall", "pixelshot", "a11y-audit", "page-shot",
+        "gflow", "ffmpeg", "cwebp",
     }
 
 
@@ -99,6 +101,67 @@ def test_doctor_without_versions_flag_stays_null(runner: CliRunner, fake_bin) ->
     fa = next(c for c in json.loads(res.stdout)["data"]["checks"] if c["name"] == "figma-agent")
     assert fa["found"] is True
     assert fa["version"] is None
+
+
+# --- scroll-cinema asset toolchain (spec 021, issue #97) --------------------------------
+# The 021 asset path (gflow → ffmpeg → cwebp) was reproducible only on the machine that ran
+# the pilot; absence surfaced mid-generation, after video credits were spent. These pin that
+# absence is REPORTED (health-neutral, like any optional hand) and that a found toolchain
+# reports its real version.
+
+
+def test_doctor_asset_toolchain_absent_is_health_neutral(runner: CliRunner, fake_bin) -> None:
+    res = runner.invoke(app, ["doctor", "--json"])
+    assert res.exit_code == 0
+    env = json.loads(res.stdout)
+    assert env["data"]["ok"] is True  # missing asset toolchain never fails the studio
+    tools = {c["name"]: c for c in env["data"]["checks"] if c["name"] in {"gflow", "ffmpeg", "cwebp"}}
+    assert set(tools) == {"gflow", "ffmpeg", "cwebp"}
+    assert all(t["found"] is False and t["required"] is False for t in tools.values())
+
+    text_res = runner.invoke(app, ["doctor"])
+    # `pending` glyph + the "optional" tag — discovered up front, not mid-run.
+    assert "gflow — optional" in text_res.stdout
+
+
+def test_doctor_gflow_present_reports_version(runner: CliRunner, fake_bin) -> None:
+    fake_bin.make_stub(
+        "gflow", 'if [ "$1" = "--version" ]; then\n  echo "gflow, version 0.42.0"\n  exit 0\nfi\nexit 0\n'
+    )
+    res = runner.invoke(app, ["doctor", "--versions", "--json"])
+    assert res.exit_code == 0
+    gf = next(c for c in json.loads(res.stdout)["data"]["checks"] if c["name"] == "gflow")
+    assert gf["found"] is True
+    assert gf["version"] == "gflow, version 0.42.0"
+
+
+def test_doctor_multiline_version_banner_keeps_first_line_only(runner: CliRunner, fake_bin) -> None:
+    # Real `ffmpeg --version` prints a build banner: version line + compiler + configure
+    # flags. Only the first line may reach the envelope or the one-line-per-check render.
+    fake_bin.make_stub(
+        "ffmpeg",
+        'if [ "$1" = "--version" ]; then\n'
+        '  echo "ffmpeg version 8.0.1 Copyright (c) 2000-2025"\n'
+        '  echo "  built with Apple clang version 17.0.0"\n'
+        '  echo "  configuration: --prefix=/opt/homebrew"\n'
+        "  exit 0\nfi\nexit 0\n",
+    )
+    res = runner.invoke(app, ["doctor", "--versions", "--json"])
+    ff = next(c for c in json.loads(res.stdout)["data"]["checks"] if c["name"] == "ffmpeg")
+    assert ff["version"] == "ffmpeg version 8.0.1 Copyright (c) 2000-2025"
+    assert "\n" not in ff["version"]
+    assert "configuration" not in runner.invoke(app, ["doctor", "--versions"]).stdout
+
+
+def test_doctor_cwebp_without_version_flag_still_reports_found(runner: CliRunner, fake_bin) -> None:
+    # `cwebp --version` is an invalid option (exit 1; the real form is `-version`), so the
+    # probe degrades to version=None. Presence is what the preflight needs.
+    fake_bin.make_stub("cwebp", 'echo "Error! Unknown option \'--version\'" >&2\nexit 1\n')
+    res = runner.invoke(app, ["doctor", "--versions", "--json"])
+    assert res.exit_code == 0
+    cw = next(c for c in json.loads(res.stdout)["data"]["checks"] if c["name"] == "cwebp")
+    assert cw["found"] is True
+    assert cw["version"] is None
 
 
 # --- ui version-gate (spec 019 phase 3) ------------------------------------------------

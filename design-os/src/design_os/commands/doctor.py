@@ -2,7 +2,7 @@
 
 Deterministic composition check (no model/network): locates the ``ui`` kernel and
 ``node`` (required) plus the optional Node/Python hands (figma-agent, recall, pixelshot,
-a11y-audit, page-shot).
+a11y-audit, page-shot) and the scroll-cinema asset toolchain (gflow, ffmpeg, cwebp).
 The envelope always carries the full ``checks`` list; the top-level ``ok`` and the exit
 code both mirror health (0 healthy / 1 a required dependency is missing).
 """
@@ -36,7 +36,11 @@ def _probe_version(cmd: list[str], *, timeout: float = 10.0) -> str | None:
         return None
     if proc.returncode != 0:
         return None
-    return proc.stdout.strip() or None
+    # FIRST LINE ONLY. Most probes print one line, but ffmpeg prints a multi-line build
+    # banner (`ffmpeg version 8.0.1 …` + compiler + configure flags) — carrying that whole
+    # blob into the envelope and the one-line-per-check text render is worse than useless.
+    first, _, _ = proc.stdout.strip().partition("\n")
+    return first.strip() or None
 
 
 def _check_ui() -> dict[str, Any]:
@@ -80,6 +84,8 @@ def _check_optional(name: str, probe: bool) -> dict[str, Any]:
     path = shutil.which(name)
     # T0: optional hands report presence only by default. T1: `--versions` opts into probing
     # each found hand's `--version` (degrades to None on any failure — see _probe_version).
+    # Known degrade: `cwebp --version` is not a valid option (exit 1; its form is `-version`),
+    # so cwebp reports found-without-version. Presence is what the preflight needs.
     version = _probe_version([path, "--version"]) if (path is not None and probe) else None
     return {
         "name": name,
@@ -132,6 +138,16 @@ def doctor(
         _check_optional("pixelshot", versions),
         _check_optional("a11y-audit", versions),
         _check_optional("page-shot", versions),
+        # Scroll-cinema asset toolchain (spec 021, issue #97). Optional — the studio ships
+        # without it and committed renders still serve — but absence must be REPORTED here
+        # rather than discovered mid-generation, after video credits are already spent.
+        # `gflow` carries no `--version`-safe stdout contract beyond its Click default, so it
+        # rides the same probe as the hands. Pillow is deliberately NOT checked: it is
+        # gflow's own dependency inside gflow's interpreter, and probing it from design-os's
+        # interpreter would report a different environment's truth.
+        _check_optional("gflow", versions),
+        _check_optional("ffmpeg", versions),
+        _check_optional("cwebp", versions),
     ]
     ok = all(c["found"] for c in checks if c["required"])
     data = {"checks": checks, "ok": ok}
