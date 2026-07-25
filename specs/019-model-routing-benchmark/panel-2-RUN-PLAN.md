@@ -125,6 +125,24 @@ as *"imagery-confounded"*; this reintroduced the confound from the opposite dire
 second for critique. Builders therefore run **two at a time** (2 builders + 2 Codex = 4) rather
 than three, to stay inside the 4-agent ceiling.
 
+### A2 — Codex Stage-5 findings (2026-07-25)
+
+Cross-model review returned `VERDICT: BLOCKER`; verbatim output and full reconciliation in
+`.orchestration/handoffs/019-critic-divergence/05-codex-review.md`.
+
+- **BLOCKER (confirmed, unfixable retroactively):** the preregistration is **attested, not
+  auditable** — plan, candidates, amendment, result and secret map all first entered git in one
+  commit. The claim in this plan's header must be read as author-attested. **Preventive rule, now
+  binding on future panels: commit the preregistration in its own commit before generating the first
+  candidate.**
+- **Fixed:** "replicated" downgraded to an explicitly post-hoc observation (the plan defined no
+  two-brief criterion); A5-Cadence warning count scoped to 8 `taste-lint` + 1 `validate-layout` = 9
+  advisory; blinding restated as procedural-only.
+- **Independently verified (finding 6):** no `knowledge/`, schema, workflow, routing-default, taste-
+  profile or deterministic-threshold file changed anywhere in the diff.
+- **Recorded, non-blocking hardening** if this harness is reused: add `sandbox="allow-scripts"` to
+  candidate iframes; move `secret-map.json` outside the panel tree or hash-seal it.
+
 ## Gate this feeds
 
 The residual clause of `benchmark-result.md` § Blocking gate — the ordinal ranking the owner still

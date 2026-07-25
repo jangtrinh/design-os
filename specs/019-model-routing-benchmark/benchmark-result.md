@@ -103,14 +103,18 @@ beating a full pipeline arm — the third case.
   beat bare, because A1 lost to A0 on Haven. Per the preregistration this records as *no
   owner-grounded separation*; the question stays open. It is **not** a win for DESIGN:OS-vs-bare and
   must not be reported as one.
-- **What replicated: A5 first on both briefs (2/2).** The plan pre-committed to dismissing a
-  *one-brief* A1/A5 difference as noise. Two of two is outside that caveat, so it is recorded — as a
-  directional signal, still not a rule.
+- **Observed: A5 first on both briefs (2/2).** The plan pre-committed to dismissing a *one-brief*
+  A1/A5 difference as noise; two of two falls outside that caveat, so it is recorded rather than
+  discarded. **But the plan did not pre-define any criterion for a two-brief lead**, so this is a
+  post-hoc observation, not a preregistered finding — it is deliberately *not* called "replication",
+  which would grant a favourable secondary result weight the preregistration never authorised.
+  Directional only, still not a rule. (Codex Stage-5 finding 2.)
 
 ### The load-bearing finding
 
 **A1 held a perfect machine floor on both briefs — `taste-lint` 0, every gate clean — and was ranked
-2nd and 3rd. A5 shipped 8 advisory warnings on Cadence and won it.**
+2nd and 3rd. A5 shipped 8 `taste-lint` warnings on Cadence (plus 1 `validate-layout`
+`absolute-without-relative` warning; 9 advisory total, 0 errors) and won it.**
 
 This is the first **owner-grounded** support for Demonstrated finding 1 (*a deterministic floor is
 not a quality verdict*), which until now rested on proxy judgments. It matches a behavioural split
@@ -130,7 +134,22 @@ set, 8 / 0 here) and instead fixes what another model family flags — dead CTAs
 ### Limits
 
 n = 2 briefs, 1 build per arm, single owner session, reconstructed briefs, judged on craft/detail per
-the 2026-07-24 basis. Directional owner-taste evidence only. **No routing default, no durable model
+the 2026-07-24 basis. Directional owner-taste evidence only.
+
+**Preregistration is attested, not auditable (Codex Stage-5 BLOCKER, confirmed).** The run plan was
+authored before any builder was spawned, but the plan, the candidates, Amendment A1, the result and
+the secret map all entered git in a **single commit** (`11c6d5f`), so the repository cannot prove the
+ordering — and the plan's mtime postdates the first build set (innocently: A1 was appended per the
+plan's own no-edit rule, but an innocent cause is not an audit trail). Read the preregistration as
+**author-attested**. On an evidence record this matters, because "trust the author" is exactly what
+preregistration exists to remove.
+**Rule for every future panel: commit the preregistration in its own commit before generating the
+first candidate.** A plan not committed first is not preregistered in any auditable sense.
+
+**Blinding was procedural, not enforced.** The label→arm map was protected by the owner not opening
+it. Verified narrowing: the static server was rooted at `panel-2/viewer/` and `secret-map.json` sits
+in its parent, so it was never reachable over the panel URL — but no access control, sealed custody,
+or access log existed. Claim procedural blinding only. (Codex Stage-5 finding 3.) **No routing default, no durable model
 winner, and no knowledge change is authorized by this record.** Promotion still passes the librarian
 veto chain + human merge. No deterministic gate threshold is changed here.
 

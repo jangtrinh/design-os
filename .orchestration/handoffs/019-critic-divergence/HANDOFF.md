@@ -1,7 +1,7 @@
 ---
 id: 019-critic-divergence
 title: Critic divergence evidence staging + owner blind ordinal ranking (Panel 2)
-stage: 6-final
+stage: 5-crosscheck
 created: 2026-07-24
 base_commit: 7132637        # HEAD on 2026-07-24 when the task was created
 panel2_base_commit: 0a56699 # HEAD when Panel 2 was built (2026-07-25, after the #94/#95 merges)
@@ -62,6 +62,8 @@ Peak concurrency 3 in set 1, 2 in set 2 (imagery makes every builder a potential
 | 5-crosscheck (sub) | Fable | `VERDICT: CONCERNS` → `PASS` | 1 | two framing concerns reconciled |
 | 4-validate | Opus | `VERDICT: YES` | 2 | Panel 2: 6/6 builds gate-verified independently, blinding clean, panel leak-check clean |
 | owner | human | **ordinal ranking recorded** | 2 | A5 first on both briefs; primary question unresolved |
+| 5-crosscheck | Codex | `VERDICT: BLOCKER` | 2 | preregistration attested-not-auditable; + 2 MEDIUM, 1 LOW, 1 OWASP. `05-codex-review.md` |
+| 5-settlement | Opus | `CONCERNS-RESOLVED` | 2 | BLOCKER confirmed real, discharged by claim-correction (not rebuild); 2/3/4 fixed; `e20` |
 
 # Handoff 019 — Critic divergence evidence staging
 
@@ -157,15 +159,23 @@ criteria 1–3 and 5 are unchanged and still hold.
 
 ## Next stage / re-entry
 
-**Stage 6 is NOT yet run for iteration 2, and Stage 5 was never satisfied for iteration 1**
-(`SKIPPED-ERROR`, Codex 401 — Codex is now reachable again, verified 2026-07-25). Before this task
-can reach `done`:
+**Stage 5 is now SATISFIED** (2026-07-25, `05-codex-review.md`), discharging the iteration-1
+`SKIPPED-ERROR`. Codex returned `BLOCKER`; Opus confirmed it real and settled it by correcting the
+overstated claim rather than rebuilding candidates — the defect was in the record's epistemics, not
+in the artifacts.
 
-1. Codex Stage-5 cross-check on the Panel-2 evidence record (the iteration-1 skip is still owed).
-2. Fable Stage-6 final review — this route fired Stage 1 in the original benchmark design, so
-   Fable holds the last word.
-3. Only then the librarian veto chain + human merge for the first eligible topic,
-   **critic disagreement handling and verdict confidence** — which Panel 2 has made materially more
-   interesting: the cross-family judge won both briefs while the perfect-machine-floor arm did not.
+**Stage 6 does NOT fire on this route.** `domain: complicated` runs 2→3→4→5 only, and
+ORCHESTRATION.md § Depth Routing states *Stage 6 fires iff Stage 1 fired*. Per § "Settlement without
+Stage 6", **Opus is the settler and its written rationale is final**. (An earlier revision of this
+handoff wrongly claimed Fable holds the last word here — corrected.) Fable's iteration-1 review was a
+review-only audit, not a Stage-6 gate.
+
+Remaining before `done`:
+
+1. **Librarian veto chain + human merge** for the first eligible topic, **critic disagreement
+   handling and verdict confidence** — which Panel 2 has made materially more interesting: the
+   cross-family judge won both briefs while the perfect-machine-floor arm did not. 10 open gaps are
+   visible to `design-os librarian collect`.
+2. Merge `spec/019-panel-2` when the owner chooses.
 
 **Nothing here authorizes a routing default, a model winner, or a knowledge edit.**
