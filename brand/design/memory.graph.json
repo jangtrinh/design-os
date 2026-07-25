@@ -1,12 +1,75 @@
 {
   "v": 1,
-  "compiledAt": "2026-07-16T04:30:47.970Z",
-  "eventCount": 10,
+  "compiledAt": "2026-07-25T13:11:31.283Z",
+  "eventCount": 19,
   "halfLifeDays": 30,
   "personas": {},
   "axes": {},
   "vibes": [],
   "tokens": {},
   "designs": {},
-  "insights": []
+  "insights": [
+    {
+      "id": "e16",
+      "t": "2026-07-24T15:16:56.409Z",
+      "text": "Owner blind verdict (spec 019, 2026-07-24): the owner blind-ranked 2 briefs x 7 arms (Cadence dark dev-tool, Haven light secrets-vault), rendered live and anonymized, Approve/Reject per candidate, de-anonymized after. Approve/Reject was perfectly separated by ONE variable: whether Fable set the creative direction. Approved on BOTH briefs: A0 bare, A1 all-Sonnet (Sonnet direction), A5 Sonnet-direction+cross-judge. Rejected on BOTH briefs: A2/A3/A4/A6 = every Fable-directed arm, across Sonnet, Opus, and Codex coders (coder tier/family did not rescue). This supplies the blind-owner provenance the e15 guardrail required, so the anti-Fable-direction signal is now owner-grounded, not proxy; it corroborates the pilot. DESIGN:OS itself is not implicated (2 of 3 approved arms run the full pipeline with Sonnet direction). Scope limits: n=2 briefs, 1 judged run per arm, single owner session, Approve/Reject only. Directional owner-taste evidence, NOT a promoted routing rule: any de-prioritization of Fable direction or promotion of Sonnet direction still requires the librarian veto chain + human merge. No deterministic gate threshold changed. Provenance: specs/019-model-routing-benchmark/benchmark-result.md#owner-blind-verdict-2026-07-24.",
+      "refs": [
+        "e11",
+        "e12",
+        "e13",
+        "e14",
+        "e15"
+      ],
+      "seen": 1,
+      "upvotes": 0,
+      "downvotes": 0,
+      "lastSeenAt": "2026-07-24T15:16:56.409Z"
+    },
+    {
+      "id": "e17",
+      "t": "2026-07-24T15:19:32.784Z",
+      "text": "Owner feedback on the spec-019 blind benchmark (2026-07-24), verbatim: 'I blindly check the design, but im voting based on the carefully implement and keen on detail, not just the layout alone. I think some of them still to simple. But it show huge potential that design os work on almost every model.' Interpretation (owner-stated, do not overread): (1) the blind Approve/Reject (e16) was judged on CAREFUL IMPLEMENTATION and keen fine detail = craft, NOT layout alone; read e16 as a craft/detail judgment, not a layout verdict and not a pro/anti-direction routing verdict. (2) Several outputs still read as too simple. (3) The cross-model baseline shows strong potential that DESIGN:OS works across almost every tested model (robustness signal). Boundaries: no top-2/bottom-2 ranking is implied, no arm is de-anonymized by this note, and NO routing winner is graduated from it. Provenance: specs/019-model-routing-benchmark/benchmark-result.md#owner-feedback-on-evaluation-basis-2026-07-24.",
+      "refs": [
+        "e11",
+        "e12",
+        "e13",
+        "e14",
+        "e15",
+        "e16"
+      ],
+      "seen": 1,
+      "upvotes": 0,
+      "downvotes": 0,
+      "lastSeenAt": "2026-07-24T15:19:32.784Z"
+    },
+    {
+      "id": "e18",
+      "t": "2026-07-25T13:10:44.738Z",
+      "text": "Owner blind ORDINAL ranking (spec 019 Panel 2, 2026-07-25) — a NEW run, does NOT pool with panel-1/e16 (different builds, reconstructed briefs, ordinal not Approve/Reject, 3 arms not 7). Preregistered in panel-2-RUN-PLAN.md before any candidate existed. 3 arms x 2 briefs, rendered live at desktop width, anonymized C1-C3/H1-H3, de-anonymized after voting. RESULT: Cadence A5>A1>A0; Haven A5>A0>A1. A5 (Sonnet direction + CROSS-FAMILY Codex judge) first on BOTH briefs. PRIMARY QUESTION UNRESOLVED: does DESIGN:OS beat bare? A0 bare came 3rd on Cadence but 2nd on Haven, beating full-pipeline A1 — per the preregistered reading this is the split case, recorded as NO owner-grounded separation, NOT a pipeline win. LOAD-BEARING FINDING: A1 held a perfect machine floor on both briefs (taste-lint 0, all gates clean) and ranked 2nd and 3rd, while A5 shipped 8 advisory warnings on Cadence and won it — the first OWNER-GROUNDED support for finding 1, a deterministic floor is not a quality verdict. Behavioural split measured across both build sets: self-judge zeroes the machine floor (0/0), cross-judge leaves advisory warnings standing (13/20 control, 8/0 here) and instead fixes what another family flags (dead CTAs, sub-AA contrast, 390px overlap, unmanaged focus). Owner preferred the latter twice. Imagery is NOT a craft proxy: the Cadence winner generated ZERO images (intentional no-image on the asset ladder, reasoned) and beat two arms that each shipped one. LIMITS: n=2 briefs, 1 build/arm, single session, reconstructed briefs, judged on craft/detail per the 2026-07-24 basis. No routing default, no model winner, no knowledge change authorized; librarian veto chain + human merge still gate promotion.",
+      "refs": [
+        "[\"e15\"",
+        "\"e16\"",
+        "\"e17\"]"
+      ],
+      "seen": 1,
+      "upvotes": 0,
+      "downvotes": 0,
+      "lastSeenAt": "2026-07-25T13:10:44.738Z"
+    },
+    {
+      "id": "e19",
+      "t": "2026-07-25T13:11:31.282Z",
+      "text": "PROVENANCE CORRECTION for e18. e18 (owner blind ordinal ranking, spec 019 Panel 2, 2026-07-25) was recorded with malformed refs — a JSON array string was passed to --refs, which takes COMMA-SEPARATED ids, so its provenance stored as [\"[\\\"e15\\\"\",\"\\\"e16\\\"\",\"\\\"e17\\\"]\"] instead of e15,e16,e17. The ledger is append-only and never hand-edited, so e18 stands as written and THIS event carries its correct provenance: e18 draws from e15 (the blind-owner guardrail), e16 (the panel-1 Approve/Reject verdict) and e17 (the owner too-simple craft feedback). e18 content is unchanged and remains valid; only its refs edge was broken. Flag note for future use: ui memory record --refs is comma-separated; only ui memory consolidate --refs takes JSON.",
+      "refs": [
+        "e15",
+        "e16",
+        "e17",
+        "e18"
+      ],
+      "seen": 1,
+      "upvotes": 0,
+      "downvotes": 0,
+      "lastSeenAt": "2026-07-25T13:11:31.282Z"
+    }
+  ]
 }

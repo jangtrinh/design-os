@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haven — a secrets vault for engineering teams</title>
+<meta name="description" content="Haven stores API keys, database credentials, and certificates behind scoped, time-boxed grants — never a shared password.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap site-nav__row">
+    <span class="wordmark">Haven</span>
+    <nav class="site-nav__links" aria-label="Primary">
+      <a href="#mechanism">Mechanism</a>
+      <a href="#principles">Security</a>
+      <a href="#integrations">Integrations</a>
+    </nav>
+    <div class="site-nav__actions">
+      <a class="btn btn-primary btn-small" href="#hero">Open a vault</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section id="hero" class="hero wrap hero__grid" style="display:grid" data-reveal-group>
+      <div class="hero__copy">
+        <p class="eyebrow" data-reveal>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="3"></circle><path d="M9.1 9.1 19 19M15 15l2.5-2.5M12.5 12.5 14 11"></path></svg>
+          Secrets vault for engineering teams
+        </p>
+        <h1 data-reveal>Every secret has a shape. Only a grant gives it a value.</h1>
+        <p class="lede" data-reveal>Haven stores API keys, database credentials, and certificates behind scoped, time-boxed grants — so nobody holds a password longer than the task needs it, and every read is on the record.</p>
+        <ul class="hero__actions" data-reveal>
+          <li><a class="btn btn-primary" href="#principles">Open a vault</a></li>
+          <li><a class="btn btn-secondary" href="#audit">See a live grant</a></li>
+        </ul>
+        <p class="hero__note" data-reveal>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" width="16" height="16"><path d="M3 3l18 18"></path><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c5 0 9 4 10 7-.4 1.1-1.2 2.4-2.3 3.6M6.5 6.7C4.6 8 3.2 9.9 2 12c1 3 5 7 10 7 1.2 0 2.4-.2 3.5-.6"></path><path d="M9.9 10a3 3 0 0 0 4.1 4.1"></path></svg>
+          No standing access. Every grant expires on its own.
+        </p>
+      </div>
+
+      <figure class="hero__stage" data-reveal>
+        <img class="hero__stage-image" src="images/vault-dial.jpg" alt="" aria-hidden="true" width="1200" height="800">
+        <div class="hero__stage-scrim" aria-hidden="true"></div>
+        <article class="record-card">
+          <header class="record-card__header">
+            <hgroup>
+              <p class="record-card__label">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" width="14" height="14"><circle cx="7" cy="7" r="3"></circle><path d="M9.1 9.1 19 19M15 15l2.5-2.5M12.5 12.5 14 11"></path></svg>
+                Secret
+              </p>
+              <p class="record-card__name">prod/postgres/primary</p>
+            </hgroup>
+            <span class="chip chip-warn">TTL 15m</span>
+          </header>
+
+          <dl class="record-card__rows">
+            <div class="record-card__row">
+              <dt>Owner</dt>
+              <dd>payments&#8209;service</dd>
+            </div>
+            <div class="record-card__row">
+              <dt>Scope</dt>
+              <dd>read&#8209;only, single use</dd>
+            </div>
+          </dl>
+
+          <p class="record-card__masked-label">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" width="14" height="14"><path d="M3 3l18 18"></path><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c5 0 9 4 10 7-.4 1.1-1.2 2.4-2.3 3.6M6.5 6.7C4.6 8 3.2 9.9 2 12c1 3 5 7 10 7 1.2 0 2.4-.2 3.5-.6"></path><path d="M9.9 10a3 3 0 0 0 4.1 4.1"></path></svg>
+            Value hidden until requested
+          </p>
+          <div class="record-card__value-row" role="group" aria-label="Secret value control">
+            <span class="record-card__value" data-secret-value data-masked="•••• •••• •••• ••••" data-revealed="pk_live_4f2a9d…c81e0b">•••• •••• •••• ••••</span>
+            <button class="dial-btn" type="button" data-reveal-toggle aria-pressed="false" aria-label="Reveal secret value">
+              <svg class="icon dial-btn__ring" viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+                <circle cx="12" cy="12" r="8"></circle>
+                <path d="M12 4v3"></path>
+                <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle>
+              </svg>
+              <span class="visually-hidden" data-reveal-label>Reveal</span>
+            </button>
+          </div>
+        </article>
+      </figure>
+  </section>
+
+  <!-- MECHANISM -->
+  <section id="mechanism" class="wrap" data-reveal-group>
+      <div class="section-head" data-reveal>
+        <h2>How a grant moves</h2>
+        <p>One secret, one scope, one duration — followed end to end.</p>
+      </div>
+
+      <div class="mechanism__connector" aria-hidden="true" data-reveal>
+        <svg viewBox="0 0 800 40" preserveAspectRatio="none">
+          <path d="M0 22 Q400 -6 800 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 9" stroke-linecap="round"></path>
+        </svg>
+      </div>
+
+      <ol class="mechanism__steps">
+        <li class="step-card" data-reveal>
+          <span class="step-card__index" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" width="18" height="18"><path d="M12 3v12M7 11l5 5 5-5"></path><path d="M4 21h16"></path></svg>
+          </span>
+          <h3>Request</h3>
+          <p>A service or person asks for exactly what it needs — one secret, one scope, one duration.</p>
+        </li>
+
+        <li class="step-card" data-reveal>
+          <span class="step-card__index" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" width="18" height="18"><path d="M3 12h7M17 12h4"></path><path d="M8 7l3 5-3 5"></path><path d="M16 7l-3 5 3 5"></path></svg>
+          </span>
+          <h3>Grant</h3>
+          <p>Haven opens a scoped, time-boxed lease. No standing access, no shared password to remember.</p>
+        </li>
+
+        <li class="step-card" data-reveal>
+          <span class="step-card__index" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" width="18" height="18"><path d="M4 12a8 8 0 1 1 2.3 5.6"></path><path d="M4 12v5h5"></path></svg>
+          </span>
+          <h3>Rotate</h3>
+          <p>When the lease closes, Haven rotates the credential on its own. Nothing left over to forget about.</p>
+        </li>
+      </ol>
+  </section>
+
+  <!-- AUDIT SPECIMEN -->
+  <section id="audit" class="audit wrap" data-reveal-group>
+      <div class="section-head" data-reveal>
+        <h2>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" width="28" height="28" style="vertical-align:-5px;margin-right:8px;"><path d="M3 12h4l2-7 4 14 2-7h6"></path></svg>
+          Every read is on the record
+        </h2>
+        <p>A specimen of Haven's access log — who touched what, and what happened to it.</p>
+      </div>
+
+      <figure class="audit__frame" data-reveal>
+        <figcaption class="audit__caption">access-log · prod-vault-01</figcaption>
+        <ul>
+          <li class="log-row"><span class="log-row__time">09:14:02</span><span>payments-service</span><span>prod/postgres/primary</span><span>read · scoped</span><span class="log-status log-status--active"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>active</span></li>
+          <li class="log-row"><span class="log-row__time">09:12:47</span><span>jordan.k</span><span>stripe/webhook-secret</span><span>read · scoped</span><span class="log-status log-status--active"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>active</span></li>
+          <li class="log-row"><span class="log-row__time">09:06:15</span><span>ci-pipeline</span><span>github/deploy-token</span><span>rotate</span><span class="log-status log-status--rotated"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>rotated</span></li>
+          <li class="log-row"><span class="log-row__time">08:58:30</span><span>on-call-bot</span><span>pagerduty/integration-key</span><span>read · scoped</span><span class="log-status log-status--active"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>active</span></li>
+          <li class="log-row"><span class="log-row__time">08:47:33</span><span>jordan.k</span><span>prod/postgres/primary</span><span>request · scope mismatch</span><span class="log-status log-status--revoked"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>denied</span></li>
+          <li class="log-row"><span class="log-row__time">08:41:02</span><span>checkout-service</span><span>stripe/webhook-secret</span><span>rotate</span><span class="log-status log-status--rotated"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>rotated</span></li>
+          <li class="log-row"><span class="log-row__time">08:22:19</span><span>infra-bot</span><span>terraform/cloud-kms-key</span><span>read · scoped</span><span class="log-status log-status--active"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>active</span></li>
+          <li class="log-row"><span class="log-row__time">08:05:44</span><span>morgan.t</span><span>github/deploy-token</span><span>read · scoped</span><span class="log-status log-status--active"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"></circle></svg>active</span></li>
+        </ul>
+      </figure>
+  </section>
+
+  <!-- PRINCIPLES -->
+  <section id="principles" class="wrap" data-reveal-group>
+      <div class="section-head" data-reveal>
+        <h2>What Haven refuses to do</h2>
+        <p>No invented guarantees — just the design decisions that make standing access impossible.</p>
+      </div>
+      <ul class="principles__grid">
+        <li class="principle" data-reveal>
+          <svg class="icon principle__mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"></path><path d="M12 3v3"></path></svg>
+          <h3>Scoped, not standing</h3>
+          <p>A grant names exactly one secret and one action. Nothing is handed out "just in case."</p>
+        </li>
+        <li class="principle" data-reveal>
+          <svg class="icon principle__mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"></path><path d="M12 3v3"></path></svg>
+          <h3>Expires by default</h3>
+          <p>Every grant carries a duration. If nobody renews it, Haven closes it — nobody has to remember to.</p>
+        </li>
+        <li class="principle" data-reveal>
+          <svg class="icon principle__mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"></path><path d="M12 3v3"></path></svg>
+          <h3>Every read is attributable</h3>
+          <p>Each access ties back to a person or a service identity. A shared password is never in the picture.</p>
+        </li>
+      </ul>
+  </section>
+
+  <!-- INTEGRATIONS -->
+  <section id="integrations" class="wrap" data-reveal-group>
+      <div class="section-head" data-reveal>
+        <h2>Plugs into what you already run</h2>
+        <p>Haven sits next to your existing toolchain — it doesn't ask you to replace it.</p>
+      </div>
+      <ul class="integrations__grid" data-reveal>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Source control</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>CI / CD</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Cloud KMS</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Chat &amp; on-call</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Infra as code</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Container runtime</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Env injection</span></li>
+        <li class="integration"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v4M15 3v4"></path><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"></path><path d="M12 17v4"></path></svg><span>Webhooks</span></li>
+      </ul>
+  </section>
+
+  <!-- CTA -->
+  <section class="wrap" data-reveal-group>
+      <div class="cta-band cta-band__inner" data-reveal>
+        <hgroup>
+          <h2>Stop passing secrets by hand.</h2>
+          <p>Open a vault, define your first scoped grant, and retire the shared password doc for good.</p>
+        </hgroup>
+        <ul class="cta-band__actions">
+          <li><a class="btn btn-primary" href="#principles">Open a vault</a></li>
+          <li><a class="btn btn-ghost-inverse" href="#audit">See a live grant</a></li>
+        </ul>
+      </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="site-footer__row">
+      <span class="wordmark" style="font-size:1.25rem;">Haven</span>
+      <nav class="site-footer__links" aria-label="Footer">
+        <a href="#mechanism">Mechanism</a>
+        <a href="#principles">Security</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#audit">Status</a>
+      </nav>
+      <span>© 2026 Haven. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
