@@ -180,6 +180,37 @@ Stage 6", **Opus is the settler and its written rationale is final**. (An earlie
 handoff wrongly claimed Fable holds the last word here — corrected.) Fable's iteration-1 review was a
 review-only audit, not a Stage-6 gate.
 
+## ⏸ PARKED by owner 2026-07-25
+
+Owner: *"Cứ tạm vậy là đủ. Chúng ta sẽ quay lại sau."* — stop here, resume later. Nothing below is
+abandoned; it is paused with state on disk.
+
+**Resume by reading, in this order:** `specs/019-model-routing-benchmark/benchmark-result.md`
+(the absolute-quality verdict box comes before the ranking, deliberately) → this handoff →
+`05-codex-review.md`.
+
+**The one thing to carry forward:** the owner rates the whole field ~5/10, not polished (`e27`),
+*after* imagery was enabled. The floor works; the ceiling does not exist yet. That is a bigger
+finding than anything about routing arms, and it is where the next real work is.
+
+**Librarian graduation is PARKED MID-CHAIN, not failed:**
+- Branch `librarian/260725-critic-divergence` @ `dce69a9` — +81/−0 in
+  `knowledge/world-class-learning-loop.md`, unpushed, unmerged.
+- Codex judge: `VERDICT: REJECT` — 1 BLOCKER + 3 HIGH, all verified real (see below).
+- Fable judge: **no verdict delivered** — went idle twice, once after an explicit request. Treat as
+  absent, **never as a pass**.
+- Five concrete fixes are known and listed in the session record: scope `NOT ALLOWED at any n`;
+  soften `never to another proxy`; reconcile line 47 with `## Learning classes:227-232`; ship a lint
+  for the git-ordering observable (constitution **Article II** — prose-only standards are forbidden)
+  or drop that clause; add a pointer from `design-review.md`.
+- The edit's *content* held the hard line: it refused "use a cross-family judge" despite A5 winning
+  both briefs. Revise, do not scrap.
+
+**Gaps still owed a run:** `e21` (refs collision silently closes cited gaps — the reason the queue
+read 10 instead of 15), plus two the librarian surfaced and could not record itself: discharge
+bookkeeping (`e24`/`e26` substance merged, target files untouched, so they will re-surface as open)
+and `max_chars_per_file: 12000` being unenforced while 9 knowledge files already exceed it.
+
 Remaining before `done`:
 
 1. **Librarian veto chain + human merge** for the first eligible topic, **critic disagreement
