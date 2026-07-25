@@ -12,8 +12,10 @@
 #                     "npm link" pattern, extended per-workspace with the subshell-cd form so a
 #                     failure can't strand the cwd
 #   - uv install   : update.py's `_NOT_EDITABLE_HINT` reinstall command
+#   - gflow install: ~/.claude/skills/es-gflow/SKILL.md §1 (verbatim, incl. the --with pillow
+#                    workaround for gflow's undeclared Pillow dependency)
 #
-# Usage: ./setup.sh [--check] [--skip-python] [-h|--help]
+# Usage: ./setup.sh [--check] [--skip-python] [--with-gflow|--no-gflow] [-h|--help]
 
 set -euo pipefail
 
@@ -22,17 +24,27 @@ cd "$REPO_ROOT"
 
 CHECK_ONLY=0
 SKIP_PYTHON=0
+# ask (default, interactive) | yes (--with-gflow) | no (--no-gflow). NEVER install unasked:
+# gflow drives Google Flow by automating a real browser session on the user's own Google
+# account, so consent is the whole point of this step. See run_gflow_optin().
+GFLOW_MODE="ask"
 
 usage() {
   cat <<'EOF'
-Usage: ./setup.sh [--check] [--skip-python] [-h|--help]
+Usage: ./setup.sh [--check] [--skip-python] [--with-gflow|--no-gflow] [-h|--help]
 
 Idempotent full-studio bootstrap for ease-design (DESIGN:OS): fresh clone -> complete
 kernel + 5 hand-bins + the design-os python umbrella, verified.
 
   --check         Prereqs + "what's linked now" report only. No install/build/link/mutation.
   --skip-python   Kernel + hands only; skip the uv / design-os python umbrella steps.
+  --with-gflow    Install the optional gflow scroll-cinema asset hand without asking.
+  --no-gflow      Skip gflow without asking (what a non-interactive run does anyway).
   -h, --help      Show this help.
+
+gflow is OPTIONAL and never installed silently: an interactive run explains it and asks,
+a non-interactive run (CI, piped stdin) skips it. Everything else in the studio works
+without it; only generating NEW scroll-cinema footage needs it.
 EOF
 }
 
@@ -40,6 +52,8 @@ for arg in "$@"; do
   case "$arg" in
     --check) CHECK_ONLY=1 ;;
     --skip-python) SKIP_PYTHON=1 ;;
+    --with-gflow) GFLOW_MODE="yes" ;;
+    --no-gflow) GFLOW_MODE="no" ;;
     -h|--help) usage; exit 0 ;;
     *)
       echo "setup.sh: unknown flag: $arg" >&2
@@ -183,6 +197,12 @@ print_linked_state() {
   else
     echo "  [ ] design-os  not installed — run ./setup.sh"
   fi
+  # Optional, opt-in only: absent is a normal state, so it never reads as broken here.
+  if path="$(command -v gflow 2>/dev/null)"; then
+    echo "  [✓] gflow      $path  (optional — scroll-cinema assets)"
+  else
+    echo "  [ ] gflow      not installed — optional; ./setup.sh --with-gflow"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -240,6 +260,98 @@ run_python_install() {
   uv tool install --force -e ./design-os --with-editable ./design-os/plugins/figma
 }
 
+# ---------------------------------------------------------------------------
+# Step 5b — OPTIONAL gflow asset hand (spec 021, issue #97). Explain, then ask.
+#
+# Why this is opt-in and not a default: gflow is unofficial (it drives Google Flow by
+# automating a real Chrome session signed into the user's own Google account) and it needs
+# a paid AI Ultra/Pro subscription. Installing that on someone's machine without saying so
+# is not a bootstrap detail — it's a consent question. Skipping breaks nothing: committed
+# renders still serve, and `design-os doctor` reports the absence as an optional gap.
+# ---------------------------------------------------------------------------
+
+explain_gflow() {
+  echo ""
+  echo "optional — gflow (scroll-cinema asset hand, spec 021)"
+  echo ""
+  echo "  What it is    Google Flow CLI (Veo video + Imagen stills). The 021 track uses it to"
+  echo "                GENERATE new fly-through footage; nothing else in the studio needs it."
+  echo "  What you need A paid Google AI Ultra/Pro subscription (flat credits, not API billing)."
+  echo "  The catch     Unofficial: it automates a real Chrome session on YOUR Google account."
+  echo "                That carries account risk, which is why this is never installed silently."
+  echo "  If you skip   Everything else works. Committed renders still serve; only generating"
+  echo "                NEW frames is unavailable. \`design-os doctor\` will list gflow as an"
+  echo "                optional gap, so you find out here rather than mid-generation."
+  echo "  Installs      uv tool install gflow-cli --with pillow  ->  ~/.local/bin/{gflow,flow}"
+  echo "                (no login happens now; auth is a separate interactive step you run)"
+  echo ""
+}
+
+install_gflow() {
+  CURRENT_STEP="uv tool install gflow-cli"
+  # Optional step: a failure must NOT abort the studio setup, so the ERR trap is bypassed
+  # by testing the command instead of letting it exit. Command verbatim from es-gflow §1 —
+  # `--with pillow` is load-bearing (gflow forgets to declare Pillow; frame ops crash with
+  # ModuleNotFoundError: PIL without it).
+  if uv tool install gflow-cli --with pillow --force; then
+    echo "  [✓] gflow installed"
+    echo ""
+    echo "  next, once (interactive — signs YOU in, opens real Chrome):"
+    echo "    GFLOW_CLI_AUTH_LOGIN_TIMEOUT=1200 gflow auth login --profile ultra --browser chrome"
+    echo "  reach the Flow EDITOR, then close the browser; gflow verifies + saves on close."
+  else
+    echo "  [!] gflow install failed — studio setup continues without it (it is optional)."
+    echo "      retry later: uv tool install gflow-cli --with pillow --force"
+  fi
+}
+
+run_gflow_optin() {
+  # Already installed → nothing to ask.
+  if command -v gflow >/dev/null 2>&1; then
+    echo ""
+    echo "optional — gflow already installed ($(command -v gflow))"
+    return
+  fi
+  # Needs uv, same as the python umbrella.
+  if ! command -v uv >/dev/null 2>&1; then
+    echo ""
+    echo "optional — gflow skipped: needs uv (install uv, then: uv tool install gflow-cli --with pillow)"
+    return
+  fi
+
+  case "$GFLOW_MODE" in
+    no)
+      echo ""
+      echo "optional — gflow skipped (--no-gflow)"
+      return
+      ;;
+    yes)
+      explain_gflow
+      echo "  --with-gflow given → installing without asking."
+      install_gflow
+      return
+      ;;
+  esac
+
+  # ask: only when there is a human on the other end. A CI/piped run must never hang on
+  # a prompt, so no TTY = skip, with the command printed so it stays discoverable.
+  if [ ! -t 0 ]; then
+    echo ""
+    echo "optional — gflow skipped: non-interactive run (no TTY), and it is never installed unasked."
+    echo "  to install: ./setup.sh --with-gflow   (or: uv tool install gflow-cli --with pillow)"
+    return
+  fi
+
+  explain_gflow
+  local reply=""
+  # `|| true`: a read that fails (EOF/interrupt) must not trip `set -e` — it means "no".
+  read -r -p "  Install gflow now? [y/N] " reply || true
+  case "$reply" in
+    [yY] | [yY][eE][sS]) install_gflow ;;
+    *) echo "  [ ] gflow skipped — re-run anytime with ./setup.sh --with-gflow" ;;
+  esac
+}
+
 run_verify() {
   echo ""
   echo "verify"
@@ -269,6 +381,11 @@ print_success_report() {
   else
     echo "  [ ] design-os     skipped (--skip-python)"
   fi
+  if command -v gflow >/dev/null 2>&1; then
+    echo "  [✓] gflow         scroll-cinema assets (optional) — needs \`gflow auth login\` once"
+  else
+    echo "  [ ] gflow         scroll-cinema assets (optional, not installed)"
+  fi
   echo ""
   echo "next: run \`ui onboard\` inside the project you want to design for."
 }
@@ -294,5 +411,6 @@ run_link
 if [ "$SKIP_PYTHON" -eq 0 ]; then
   run_python_install
 fi
+run_gflow_optin
 run_verify
 print_success_report
