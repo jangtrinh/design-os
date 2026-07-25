@@ -304,6 +304,26 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "tenant-lint": {
+    summary: "Deterministic Tenant-contract floor for an embeddable motion section's markup",
+    signature: {
+      summary: "Check the Tenant Law (section-body + host-ancestor rules); exit 1 on violations",
+      positionals: [htmlFile("HTML file to check")],
+      flags: [],
+      errorCodes: [...IO_CODES],
+    },
+  },
+
+  "tenant-scaffold": {
+    summary: "Emit the canonical Tenant-compliant scrub-section engine verbatim into a target directory",
+    signature: {
+      summary: "Write scrub-section.js/.css/test-tenant.mjs verbatim to <target-dir>",
+      positionals: [{ name: "<target-dir>", required: true, summary: "Directory to write the 3 engine files into" }],
+      flags: [{ name: "force", type: "boolean", summary: "Overwrite existing files at the target" }],
+      errorCodes: ["BAD_ARG", "EXISTS", "WRITE_ERROR"],
+    },
+  },
+
   audit: {
     summary: "Deterministic DS-violation audit of a structured node export",
     signature: {
