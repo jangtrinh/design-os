@@ -1,0 +1,28 @@
+{
+  "stills": [
+    "source/stills/K0-169.png",
+    "source/stills/K1-169.png",
+    "source/stills/K2-169.png",
+    "source/stills/K3-169.png"
+  ],
+  "segments": [
+    {
+      "prompt": "Single continuous locked-camera product shot, no camera movement. The outer shell cap of the front earcup transitions smoothly into transparent smoked glass, revealing the driver, baffle and circuit board inside. Nothing else moves — the product stays perfectly still, the studio lighting and warm-grey background are unchanged. No rotation, no deformation, no text.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "Single continuous locked-camera product shot, no camera movement. The glass shell cap and the internal components of the front earcup glide straight outward along the earcup's horizontal axis, separating into an exploded line with small even gaps, each part moving in a rigid straight line, no rotation, no morphing, no deformation. The rest of the headphone stays perfectly still, lighting and warm-grey background unchanged. No text.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "Single continuous locked-camera product shot, no camera movement. The separated components of the front earcup continue gliding apart to full even spacing and come to rest, floating perfectly still in a clean technical exploded view. Rigid straight-line motion only, no rotation, no deformation. The rest of the headphone stays still, lighting and warm-grey background unchanged. No text.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    }
+  ]
+}

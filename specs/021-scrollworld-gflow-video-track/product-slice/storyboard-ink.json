@@ -1,0 +1,77 @@
+{
+  "stills": [
+    "refs/K01-169.png",
+    "refs/K02-169.png",
+    "refs/K03-169.png",
+    "refs/K04-169.png",
+    "refs/K05-169.png",
+    "refs/K06-169.png",
+    "refs/K07-169.png",
+    "refs/K08-169.png",
+    "refs/K09-169.png",
+    "refs/K10-169.png",
+    "refs/K11-169.png"
+  ],
+  "segments": [
+    {
+      "prompt": "The camera slowly orbits about 25 degrees toward a three-quarter-front view with a gentle push-in, and the soft overhead key light blooms up to reveal the leather grain and the brushed-metal streak. The headphone stays fully assembled. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The camera continues orbiting about 15 degrees, moving medium-close onto the front earcup as the background light pool centres behind it to halo the cup. The headphone stays fully assembled. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "A small push closer and a few degrees higher looking into the front earcup; the outer shell cap smoothly turns to transparent smoked glass, revealing the cold internals. The camera is nearly still. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The camera holds perfectly still; inside the transparent shell the copper voice coil and circuit board ignite into a warm orange ember glow while the exterior of the product darkens by one stop. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The camera pulls back and rises toward a high three-quarter angle while the leather cushion and fabric ring begin to peel outward from the earcup along a diagonal; the ember stays lit. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The camera continues rising to a high angle while all of the front earcups components glide apart into a full exploded line along a lower-left to upper-right diagonal, the ember-lit driver at the centre; the headband and far earcup stay assembled. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The exploded parts hold perfectly still while the camera drifts laterally and orbits about 10 degrees, a gentle parallax move that reveals the depth; nothing else changes. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The camera descends and orbits back toward three-quarter-front while the separated components glide back home into a tighter cluster; the ember dims. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The remaining components finish seating and the shell seals shut, the ember is swallowed to darkness, and the camera settles to a three-quarter-front view of the whole headphone. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    },
+    {
+      "prompt": "The camera descends to a low near-profile monument angle as the whole headphone floats, still and cold, in the dark. Single continuous cinematic move on a locked dark studio set, the blade rim light direction fixed, the product and its parts rigid — only the described motion, no morphing, no melting, no new parts, smooth slow premium motion, 85mm telephoto, crushed blacks. No text, no captions.",
+      "model": "veo-quality",
+      "duration": 4,
+      "aspect": "16:9"
+    }
+  ]
+}

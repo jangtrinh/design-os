@@ -74,6 +74,9 @@ Use the lowest sufficient tier in `motion-craft.md`.
 - Loading-to-content transitions remain layout-stable.
 - Content is visible when JavaScript fails; entrance animation must never be a visibility gate.
 - `prefers-reduced-motion` produces a complete static experience.
+- Canvas that displays media: the backing store aspect (canvas.width/height) MUST equal the display-box
+  aspect (getBoundingClientRect) — measure it; a mismatch stretches the frame. (Caught in the wild: a
+  scrub canvas sized to its tall section, not its 100dvh stage.)
 
 Motion must serve hierarchy, causality, feedback, or atmosphere. Animation quantity is never a
 quality metric.

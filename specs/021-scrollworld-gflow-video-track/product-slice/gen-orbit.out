@@ -1,0 +1,40 @@
+2026-07-23 10:01:53 [info     ] browser.engine_selected        engine=playwright
+2026-07-23 10:01:53 [info     ] cookie_decryption_failed_falling_back_to_playwright profile='/Users/jang/Library/Application Support/gflow-cli/profile_ultra'
+2026-07-23 10:02:00 [info     ] playwright_cookie_read         all_cookies=7 flow_domain=5 flow_path_root=5
+2026-07-23 10:02:00 [info     ] client.preread_flow_cookies    preread_count=5 preread_session=True
+2026-07-23 10:02:00 [info     ] client.persistent_context_launch channel=chrome chrome_executable='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' chrome_strategy_requested=True cookies_db_path='/Users/jang/Library/Application Support/gflow-cli/profile_ultra/Default/Cookies' cookies_db_present=True ignore_default_args=['--enable-automation', '--no-sandbox'] launch_args=['--password-store=basic', '--disable-blink-features=AutomationControlled', '--disable-dev-shm-usage'] password_store_basic=True platform=darwin user_data_dir='/Users/jang/Library/Application Support/gflow-cli/profile_ultra'
+2026-07-23 10:02:01 [info     ] client.context_cookie_state    context_cookie_count=7 flow_session_cookie_expired=False flow_session_cookie_present=True google_sapisid_present=False
+2026-07-23 10:02:03 [info     ] ui_automation.setup_shared_page
+2026-07-23 10:02:06 [info     ] ui_automation.clicking_new_project selector="button:has(i.google-symbols:text('add_2'))"
+2026-07-23 10:02:07 [info     ] ui_automation.entered_editor   url='https://labs.google/fx/vi/tools/flow/project/be6076f8-780a-4db4-a288-6b37562b32c3?hl=en'
+2026-07-23 10:02:09 [info     ] ui_automation_video.editor_ready
+2026-07-23 10:02:09 [info     ] ui_automation_video.selector_matched probe=mode_switch_trigger selector="button[aria-haspopup='menu']:has(i.google-symbols:text('crop_16_9'))"
+2026-07-23 10:02:10 [info     ] ui_automation_video.selector_matched probe=video_mode_tab selector="[role='tab'][id$='-trigger-VIDEO']"
+2026-07-23 10:02:11 [info     ] ui_automation_video.video_mode_entered
+2026-07-23 10:02:11 [info     ] ui_automation_video.selector_matched probe=model_picker_trigger selector="button[aria-haspopup='menu']:has(i.google-symbols:text-is('arrow_drop_down'))"
+2026-07-23 10:02:12 [info     ] ui_automation_video.selector_matched probe=model_option selector="[role='menuitem']:has-text('Veo 3.1 - Fast')"
+2026-07-23 10:02:13 [info     ] ui_automation_video.model_selected model=veo_3_1_fast
+2026-07-23 10:02:13 [info     ] ui_automation_video.selector_matched probe=video_submode_frames selector="[role='tab'][id$='-trigger-VIDEO_FRAMES']"
+2026-07-23 10:02:14 [info     ] ui_automation_video.video_submode_entered sub=frames
+2026-07-23 10:02:14 [info     ] ui_automation_video.selector_matched probe=video_aspect_tab selector="[role='tab'][id$='-trigger-LANDSCAPE']"
+2026-07-23 10:02:14 [info     ] ui_automation_video.aspect_set aspect=landscape
+2026-07-23 10:02:14 [info     ] ui_automation_video.selector_matched probe=count_tab selector="[role='tab']:text-is('1x')"
+2026-07-23 10:02:15 [info     ] ui_automation_video.output_count_set count=1
+2026-07-23 10:02:15 [info     ] ui_automation_video.selector_matched probe=duration_tab selector="[role='tab']:text-is('8s')"
+2026-07-23 10:02:15 [info     ] ui_automation_video.duration_set seconds=8
+2026-07-23 10:02:31 [info     ] ui_automation_video.image_uploaded status=200 target=Start
+2026-07-23 10:02:32 [info     ] ui_automation_video.frame_attached slot=Start
+2026-07-23 10:02:46 [info     ] ui_automation_video.image_uploaded status=200 target=End
+2026-07-23 10:02:48 [info     ] ui_automation_video.frame_attached slot=End
+2026-07-23 10:02:48 [info     ] ui_automation.prompt_input_found selector='div[role="textbox"][data-slate-editor="true"]'
+2026-07-23 10:02:48 [info     ] ui_automation.prompt_submitted via="button:has(i.google-symbols:text('arrow_forward'))"
+2026-07-23 10:03:03 [info     ] ui_automation_video.generate_captured image_inputs={'parsed': True, 'startImage': '1d38c451', 'endImage': 'a2533c05', 'referenceCount': 0, 'referenceIds': []} status=200 url=https://aisandbox-pa.googleapis.com/v1/video:batchAsyncGenerateVideoStartAndEndImage
+2026-07-23 10:03:49 [info     ] ui_automation_video.poll_terminal media_name=fce3ae04-321c-479c-9166-bbd6211537ed status=MEDIA_GENERATION_STATUS_SUCCESSFUL
+2026-07-23 10:03:50 [info     ] browser.engine_selected        engine=playwright
+2026-07-23 10:03:50 [info     ] cookie_decryption_failed_falling_back_to_playwright profile='/Users/jang/Library/Application Support/gflow-cli/profile_ultra'
+2026-07-23 10:03:52 [info     ] playwright_cookie_read         all_cookies=7 flow_domain=5 flow_path_root=5
+2026-07-23 10:03:52 [info     ] client.preread_flow_cookies    preread_count=5 preread_session=True
+2026-07-23 10:03:52 [info     ] client.persistent_context_launch channel=chrome chrome_executable='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' chrome_strategy_requested=True cookies_db_path='/Users/jang/Library/Application Support/gflow-cli/profile_ultra/Default/Cookies' cookies_db_present=True ignore_default_args=['--enable-automation', '--no-sandbox'] launch_args=['--password-store=basic', '--disable-blink-features=AutomationControlled', '--disable-dev-shm-usage'] password_store_basic=True platform=darwin user_data_dir='/Users/jang/Library/Application Support/gflow-cli/profile_ultra'
+2026-07-23 10:03:53 [info     ] client.context_cookie_state    context_cookie_count=7 flow_session_cookie_expired=False flow_session_cookie_present=True google_sapisid_present=False
+2026-07-23 10:03:54 [info     ] ui_automation.setup_shared_page
+{"ok": true, "media_id": "fce3ae04-321c-479c-9166-bbd6211537ed", "mp4": "/Users/jang/Products/ease-design/specs/021-scrollworld-gflow-video-track/product-slice/source/orbit.mp4", "bytes": 1567281}

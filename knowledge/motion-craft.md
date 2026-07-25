@@ -313,3 +313,49 @@ facts here are what keep that path from silently producing dead animation.
   caught by `animation-no-reduced-motion`.
 - **WebGL for content 2D handles** — a shader for what a gradient, an SVG, or a T1 fade
   would express. Reserve WebGL for genuinely 3D/ambient work, and verify it visually.
+
+---
+
+## Tenant contract — embeddable motion sections
+
+A scroll-scrub cinema, a parallax band, an exploded-view scrub, a canvas hero — every
+**embeddable motion section** is one section inside a page the user also builds, never
+the whole page. It must be built as a **guest**, not an owner.
+
+**THE TENANT LAW (one sentence):** an embedded interactive block is a guest — it READS
+the host page only through its own bounding box, and WRITES only inside its own subtree;
+zero global writes (`window.scrollTo`, document/body height mutation, a `:root` write,
+`position: fixed`, a private per-section animation-frame loop).
+
+**The 4-clause coexistence contract** (what makes 2+ sections safe on one page):
+1. **One page-level ticker; sections SUBSCRIBE.** The page is the conductor, a section is
+   a player — never a per-section `requestAnimationFrame` loop fighting the frame budget.
+2. **IntersectionObserver = ARM/DISARM.** Only the on-screen section holds its decoder +
+   rAF subscription; an offscreen section releases its cache. This is also the answer to
+   "scrub between two heavy-motion neighbours."
+3. **All state — including a `--progress` custom property — lives on the section ROOT
+   element**, never on `documentElement`/`:root`. Namespace every class and id.
+4. **`position: fixed` is host-only.** A section may never overlay its siblings; pin with
+   `position: sticky` (browser-owned, section-scoped) instead.
+
+**The sticky-killer ancestor rule:** `overflow: hidden|clip|auto`, `transform`, `filter`,
+`perspective`, or a layout/paint/strict `contain` on ANY ancestor of a pinned section
+silently kills its `position: sticky` — this is a host-layout responsibility, not just the
+section's, so it must be checked at both ends (`ui tenant-lint` checks it).
+
+**The owner-resolved media default:** frame-sequence (WebP + canvas) is the default for
+scrub-style random-access media — deterministic, O(1) seek, no codec keyframe stutter; an
+MP4 is the explicit low-budget fallback tier, never the default.
+
+**Emitter/linter (repo law — a standard needs both, same commit):** the canonical engine
+is emitted verbatim by `ui tenant-scaffold <target>`; the Tenant Law is enforced
+mechanically by `ui tenant-lint <file.html>` (src/core/tenant-lint.ts) — section-body
+global-write rules plus the host-ancestor sticky-killer rule.
+
+**es-debt:** the shipped engine's page ticker is a `window.__scrubTicker` global
+singleton (not yet host-owned) — fine for a single tenant type; upgrade trigger: a
+**second tenant kind** lands and needs to share that ticker via an explicit host API
+instead of a bare global. The host-ancestor sticky-killer check is inline-style-only
+(regex/string-level, not a CSSOM) — upgrade trigger: a real ancestor-class-driven kill is
+caught in the wild that the inline-style check misses, at which point a computed-style
+lint (needing a real DOM) is worth its cost.
