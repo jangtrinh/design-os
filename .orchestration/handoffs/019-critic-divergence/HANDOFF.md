@@ -7,7 +7,7 @@ base_commit: 7132637        # HEAD on 2026-07-24 when the task was created
 panel2_base_commit: 0a56699 # HEAD when Panel 2 was built (2026-07-25, after the #94/#95 merges)
 task_branch: main
 cap_exception: none
-domain: complicated
+domain: clear               # as recorded in § Classification; see "Route note" below
 feature: 019-model-routing-benchmark
 ck_kit: absent
 ---
@@ -25,6 +25,16 @@ ck_kit: absent
 Iteration 2 of spec/build/validate is Panel 2 (2026-07-25): a preregistered ordinal re-run after
 Panel 1's Approve/Reject proved unable to order the three arms it approved. No stage is at 3; no
 escalation is owed.
+
+**Route note.** § Classification records **CLEAR**, whose stage set is 2(micro-spec) → 3 → 4-lite —
+it fires neither Stage 5 nor Stage 6. Both iterations nevertheless ran a Codex Stage-5 cross-check.
+That is **over-delivery, not a route violation**: running more gates than the domain requires only
+adds assurance, and CLEAR's accepted trade-off (logic/security handled by a Stage-4-lite spot-check)
+was upgraded to a real cross-family review with an explicit OWASP pass. No reclassification was
+triggered — that needs 2× `VERDICT: NO` at Stage 4, and neither iteration produced one.
+
+Settlement is unaffected: CLEAR fires no Stage 6, so **Opus is the settler** either way
+(ORCHESTRATION.md § "Settlement without Stage 6").
 
 ## Builders
 
@@ -164,7 +174,7 @@ criteria 1–3 and 5 are unchanged and still hold.
 overstated claim rather than rebuilding candidates — the defect was in the record's epistemics, not
 in the artifacts.
 
-**Stage 6 does NOT fire on this route.** `domain: complicated` runs 2→3→4→5 only, and
+**Stage 6 does NOT fire on this route.** `domain: clear` runs 2→3→4-lite only, and
 ORCHESTRATION.md § Depth Routing states *Stage 6 fires iff Stage 1 fired*. Per § "Settlement without
 Stage 6", **Opus is the settler and its written rationale is final**. (An earlier revision of this
 handoff wrongly claimed Fable holds the last word here — corrected.) Fable's iteration-1 review was a
