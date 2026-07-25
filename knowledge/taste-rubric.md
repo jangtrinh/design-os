@@ -36,7 +36,13 @@ composition feels *authored*, not auto-arranged.
 | **High** | Asymmetric, editorial composition. Fractional widths, overlapping elements, intentional negative space as a design element. Strong single focal point per viewport. Right for landing pages, portfolios, marketing. |
 
 **Anti-patterns:** 50/50 hero splits with no reason; three identical cards as the only
-composition idea; every section the same width and rhythm; no clear focal point.
+composition idea; every section the same width and rhythm; no clear focal point;
+"container soup" — decorative wrapper nesting three-plus levels deep with no semantic
+payload at any level (section > card > pill > tag). *Machine floor:* `taste-lint`'s
+`container-nesting-depth` (warning) tag-stack-scans purely-presentational containers
+(`div`/`section`/`article`/`aside`/`main` or a card/panel/rounded-*/border class signal)
+and flags a chain ≥3 deep; landmarks, lists/tables/forms, elements carrying a semantic
+role/aria, and a grid/flex parent's direct track children are exempt.
 
 ### Scoring 0–10
 
@@ -312,6 +318,12 @@ once tokens and components exist, every subsequent generation is held to it.
 **Score against:** Does every color/spacing/type value resolve to an existing token?
 Were registered components reused rather than re-built? Do all names match the project's
 canonical vocabulary? Are new additions deliberate and named, or accidental drift?
+
+*Machine floor:* `taste-lint`'s `radius-sprawl` (warning at > 4 distinct non-zero
+border-radius values — a drift signal, warning-only, not a hard ceiling and never an
+error) counts distinct corner radii across `<style>`/inline CSS and Tailwind
+`rounded-*` scale steps; `50%`/`9999px`/`rounded-full` pill radii collapse into one
+bucket regardless of how many elements use them.
 
 ---
 
