@@ -23,7 +23,7 @@ VERDICT: BLOCKER
 
 ## Opus reconciliation
 
-**Route note.** `domain: complicated` does not fire Stage 6, so per ORCHESTRATION.md
+**Route note.** `domain: clear` (per § Classification) does not fire Stage 6, so per ORCHESTRATION.md
 § "Settlement without Stage 6" **Opus is the settler** here. (An earlier line in HANDOFF.md
 asserted Fable holds the last word; that was wrong for this domain and is corrected below.)
 
