@@ -110,6 +110,25 @@ beating a full pipeline arm — the third case.
   which would grant a favourable secondary result weight the preregistration never authorised.
   Directional only, still not a rule. (Codex Stage-5 finding 2.)
 
+### ⚠️ Absolute-quality verdict — read BEFORE the ranking (owner, 2026-07-25)
+
+Verbatim: *"Thực tế ra chất lượng design mới ở tầm 5/10 điểm. Chưa đủ polished đối với tôi."*
+
+The ranking above is **relative only**. The owner separately rates the absolute quality of the whole
+field at roughly **5/10, not polished** — bare, self-judge and cross-judge alike, with imagery
+enabled and every deterministic gate clean.
+
+**A5 placed first in a field where nothing was good enough.** Do not cite the ranking as evidence
+that any arm produces owner-shippable work. Anyone reading "A5 first on both briefs" without this
+paragraph will draw the wrong conclusion.
+
+This corroborates and sharpens `e17` ("some of them still to simple") — that note could be read as
+about a subset; this is about the entire field *after* a rebuild that added generated imagery, so
+**imagery did not close the gap**. Together with the load-bearing finding below, it points one way:
+the deterministic **floor** works (0 errors everywhere), the **ceiling** is unaddressed, and the
+distance between gate-clean and owner-shippable is about 5 points wide with **no current mechanism
+measuring it**. Ledger `e27`.
+
 ### The load-bearing finding
 
 **A1 held a perfect machine floor on both briefs — `taste-lint` 0, every gate clean — and was ranked
