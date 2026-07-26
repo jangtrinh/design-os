@@ -77,13 +77,41 @@ function readCommitmentSchema(specDir: string): object {
   return JSON.parse(readFileSync(join(specDir, "schemas", "randomization-commitment.schema.json"), "utf8"));
 }
 
+/**
+ * A fingerprint of the REAL owner secret map taken by `stat` ALONE.
+ *
+ * POST-FREEZE REPOSITORY STATE (r5): this suite originally asserted the real map
+ * must NOT exist. That was correct only before the freeze. The owner has since
+ * run the one-shot generator, so the real map legitimately EXISTS and the public
+ * `randomization-commitment.json` is committed — an absence assertion is now
+ * permanently false and says nothing about safety.
+ *
+ * The property actually worth guarding is unchanged and stronger: this suite must
+ * never CREATE, MODIFY, or DELETE the real map. Comparing a before/after
+ * fingerprint proves exactly that, and it holds in both states (absent stays
+ * absent; present stays byte-size/mode/mtime identical).
+ *
+ * Deliberately `stat` only — size, mode and mtime. The secret map's CONTENTS are
+ * never read, printed, or hashed by this suite.
+ */
+function realSecretMapFingerprint(): string {
+  if (!existsSync(REAL_SECRET_MAP_PATH)) return "absent";
+  const s = statSync(REAL_SECRET_MAP_PATH);
+  return `present size=${s.size} mode=${(s.mode & 0o777).toString(8)} mtimeMs=${s.mtimeMs}`;
+}
+
 describe("R8 — safe commitment-tooling proof (sandbox only)", () => {
+  let realSecretMapBefore = "";
+
   beforeAll(() => {
-    expect(existsSync(REAL_SECRET_MAP_PATH), `the REAL owner secret map must not exist before this suite runs: ${REAL_SECRET_MAP_PATH}`).toBe(false);
+    realSecretMapBefore = realSecretMapFingerprint();
   });
 
   afterAll(() => {
-    expect(existsSync(REAL_SECRET_MAP_PATH), `this suite must never create the REAL owner secret map: ${REAL_SECRET_MAP_PATH}`).toBe(false);
+    expect(
+      realSecretMapFingerprint(),
+      `this suite must never create, modify, or delete the REAL owner secret map: ${REAL_SECRET_MAP_PATH}`,
+    ).toBe(realSecretMapBefore);
   });
 
   it("first run produces a schema-valid commitment + a 0600 secret file with the correct hash/counts; second run refuses and writes nothing new", () => {

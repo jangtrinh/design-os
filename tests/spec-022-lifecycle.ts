@@ -278,6 +278,21 @@ export function buildLifecycle(options: LifecycleOptions): Fixture {
   try {
     mkdirSync(join(root, "specs"), { recursive: true });
     cpSync(SPEC_SRC, specDir, { recursive: true });
+    // POST-FREEZE REPOSITORY STATE (r5).
+    //
+    // The repository now carries the REAL, one-shot `randomization-commitment.json`,
+    // which `cpSync` drags into this synthetic repo. This fixture models the
+    // TWO-COMMIT choreography from scratch: the freeze commit below must NOT
+    // contain a commitment, and the fixture then writes its own synthetic one and
+    // commits it second. Leaving the copied file in place put it in the freeze
+    // commit as revision 1, so the fixture's own commitment became revision 2 and
+    // PR-017 correctly failed with "randomization-commitment.json has 2 revisions
+    // on record — it must never change after the commitment commit".
+    //
+    // Delete the copy so the synthetic history starts pre-commitment. This touches
+    // ONLY the throwaway copy under $TMPDIR — never the committed file, and never
+    // the real secret map at ~/.design-os/prereg-022/.
+    rmSync(join(specDir, "randomization-commitment.json"), { force: true });
 
     git(root, ["init", "-q", "-b", "main"]);
     git(root, ["config", "user.email", "fixture@example.invalid"]);
