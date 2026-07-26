@@ -349,6 +349,20 @@ function recomputeOne(ctx, checkId, rel, result, deps) {
   if (duplicateConsistent === false) failClosed.push("the duplicated presentation is not self-consistent");
 
   // --- curator scores -------------------------------------------------------
+  //
+  // r4 — EXACT identity coverage, not merely "two entries that each verify".
+  //
+  // The bypass this closes (Codex Stage-5 BLOCKER on adeec3a): `curator_scores`
+  // could repeat the SAME valid codename twice. The array length stayed 2, both
+  // entries resolved to real hash-valid files, the schema passed, and the missing
+  // opposite arm only appended a fail-closed REASON at the end. On a
+  // NON-CONFIRMATORY result a fail-closed reason is expected and absorbed by the
+  // truth table — so a forged result was accepted while the treatment score was
+  // never read, hiding its veto and contradiction evidence.
+  //
+  // Every identity defect below is therefore a deterministic ERROR, not only a
+  // fail-closed reason. The reasons are kept as well, because they still feed
+  // PR-028's truth table.
   const scoresByArm = { control: null, treatment: null };
   if (endpoint) {
     const codeArm = codenameToArm(endpoint.presentation);
@@ -358,12 +372,29 @@ function recomputeOne(ctx, checkId, rel, result, deps) {
       fail(`expected exactly 2 curator scores, found ${recordedScores.length}`);
       failClosed.push("curator scores are incomplete");
     }
+    // Uniqueness is enforced HERE rather than with a schema `uniqueItems` keyword:
+    // schema.mjs implements no such keyword (see its supported-keyword list), so
+    // adding one would be a vacuous contract that reads as enforcement.
+    const seenCodenames = new Set();
+    const seenPaths = new Set();
     for (const rs of recordedScores) {
       if (!expectedCodes.has(rs?.codename)) {
         fail(`curator score codename ${JSON.stringify(rs?.codename)} is not one of this pair's endpoint-primary codenames`);
         failClosed.push("a curator score names an unexpected codename");
         continue;
       }
+      if (seenCodenames.has(rs.codename)) {
+        fail(`curator score codename ${JSON.stringify(rs.codename)} is referenced twice — each endpoint codename must appear exactly once`);
+        failClosed.push("a curator score codename is referenced twice");
+        continue;
+      }
+      seenCodenames.add(rs.codename);
+      if (typeof rs.path === "string" && seenPaths.has(rs.path)) {
+        fail(`curator score path ${JSON.stringify(rs.path)} is referenced twice — one score file cannot stand in for both arms`);
+        failClosed.push("one curator score file is referenced for both arms");
+        continue;
+      }
+      if (typeof rs.path === "string") seenPaths.add(rs.path);
       const verified = verifyEvidenceFile(ctx, "runs/curator", rs.path, rs.sha256);
       if (!verified.ok) {
         fail(`curator score for ${rs.codename} — ${verified.error}`);
@@ -384,9 +415,30 @@ function recomputeOne(ctx, checkId, rel, result, deps) {
         failClosed.push("a curator score names a different codename");
         continue;
       }
-      scoresByArm[codeArm.get(rs.codename)] = scoreRes.data;
+      const arm = codeArm.get(rs.codename);
+      if (arm !== "control" && arm !== "treatment") {
+        fail(`curator score ${JSON.stringify(rs.codename)} does not resolve to an arm of this pair`);
+        failClosed.push("a curator score does not resolve to an arm");
+        continue;
+      }
+      if (scoresByArm[arm]) {
+        fail(`two verified curator scores both resolve to the ${arm} arm — each arm must be covered exactly once`);
+        failClosed.push("two curator scores resolve to the same arm");
+        continue;
+      }
+      scoresByArm[arm] = scoreRes.data;
     }
-    if (!scoresByArm.control || !scoresByArm.treatment) failClosed.push("a curator score is missing for one arm");
+    // Set equality: exactly the two expected endpoint codenames, each once.
+    for (const code of expectedCodes) {
+      if (!seenCodenames.has(code)) {
+        fail(`no curator score references endpoint codename ${JSON.stringify(code)} — its evidence would go unread`);
+      }
+    }
+    if (!scoresByArm.control || !scoresByArm.treatment) {
+      const missing = !scoresByArm.control ? "control" : "treatment";
+      fail(`no verified curator score resolves to the ${missing} arm — that arm's veto and contradiction evidence is unread`);
+      failClosed.push("a curator score is missing for one arm");
+    }
   }
 
   const vetoReasons = curatorVeto(scoresByArm);
