@@ -907,6 +907,88 @@ describe("PR-027 result recomputation", () => {
   });
 });
 
+// ===========================================================================
+// r4 — exact curator-score identity coverage (Codex Stage-5 BLOCKER on adeec3a)
+//
+// The bypass: `curator_scores` could carry the SAME valid codename twice. The
+// array length stayed 2, every file/hash/schema check passed, and the missing
+// opposite arm only appended a fail-closed REASON — never an error. So a forged
+// non-confirmatory result could be accepted while never referencing the
+// treatment score, hiding its veto or contradiction evidence.
+//
+// Every test below keeps the result plausible and non-confirmatory, so what
+// fires is the identity-coverage rule itself, not a malformed fixture.
+// ===========================================================================
+
+describe("PR-027 exact curator-score identity coverage (r4)", () => {
+  // PA-MOT-1 is NON-CONFIRMATORY in the fixture (treatment_win=false with a
+  // recorded reason). That is what makes the bypass reachable: on a
+  // non-confirmatory result a fail-closed reason is EXPECTED, so the
+  // "a curator score is missing for one arm" reason is absorbed and the truth
+  // table stays satisfied. On a confirmatory pair the same mutation would fire
+  // PR-027/PR-028 incidentally via treatment_win, which proves nothing about
+  // identity coverage.
+  it("a duplicated curator-score codename that hides the opposite arm errors", () => {
+    const result = withMutation("post-phase-a", (f) => {
+      editResult(f, "PA-MOT-1", (r) => {
+        // Both entries now point at the FIRST arm's real, hash-valid score file.
+        // Length is still 2, both verify, schema passes — only the coverage rule
+        // can catch it. The treatment score is never read, so its veto and
+        // contradiction evidence is hidden.
+        r.curator_scores[1] = { ...must(r.curator_scores[0], "curator score") };
+      });
+    });
+    expectCheckError(result, "PR-027");
+  });
+
+  it("two curator-score entries sharing one evidence path errors", () => {
+    const result = withMutation("post-phase-a", (f) => {
+      editResult(f, "PA-MOT-1", (r) => {
+        const first = must(r.curator_scores[0], "curator score");
+        const second = must(r.curator_scores[1], "curator score");
+        // Distinct declared codenames, one shared evidence file — one score file
+        // standing in for both arms.
+        second.path = first.path;
+        second.sha256 = first.sha256;
+      });
+    });
+    expectCheckError(result, "PR-027");
+  });
+
+  it("a third curator-score entry errors", () => {
+    const result = withMutation("post-phase-a", (f) => {
+      editResult(f, "PA-MOT-1", (r) => {
+        r.curator_scores.push({ ...must(r.curator_scores[0], "curator score") });
+      });
+    });
+    expectCheckError(result, "PR-027");
+  });
+
+  it("a curator-score entry naming a codename from another pair errors", () => {
+    const result = withMutation("post-phase-a", (f) => {
+      const other = must(
+        f.presentations.find((p) => p.pair_id === "PA-DEV-2" && p.endpoint_primary),
+        "other presentation",
+      );
+      editResult(f, "PA-MOT-1", (r) => {
+        must(r.curator_scores[1], "curator score").codename = other.left_code;
+      });
+    });
+    expectCheckError(result, "PR-027");
+  });
+
+  it("the canonical non-confirmatory pair with two distinct endpoint codenames stays green", () => {
+    // Regression guard: the fix must not make a legitimately complete result red.
+    const f = fixture("post-phase-a");
+    const res = readSpecJson<ResultFile>(f.root, "runs/results/PA-MOT-1.json");
+    expect(new Set(res.curator_scores.map((s) => s.codename)).size).toBe(2);
+    expect(new Set(res.curator_scores.map((s) => s.path)).size).toBe(2);
+    const result = runValidator(f.root, "post-phase-a", undefined, f.secretDir);
+    expect(errorsOf(result)).toBe("[]");
+    expect(result.status).toBe(0);
+  });
+});
+
 describe("PR-028 truth table", () => {
   it("a fail-closed condition with treatment_win=true fires the truth-table check", () => {
     const result = withMutation("post-phase-a", (f) => {
