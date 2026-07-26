@@ -271,8 +271,12 @@ export function buildLifecycle(options: LifecycleOptions): Fixture {
   const secretDir = realpathSync(mkdtempSync(join(tmpdir(), "spec-022-secret-")));
   const specDir = join(root, SPEC_REL);
   const cleanup = () => {
-    rmSync(root, { recursive: true, force: true });
-    rmSync(secretDir, { recursive: true, force: true });
+    // Linux CI can transiently report ENOTEMPTY while recursive deletion walks
+    // the synthetic Git repository. fs.rmSync retries that documented class of
+    // filesystem race only when maxRetries is non-zero; keep the retry bounded.
+    const options = { recursive: true, force: true, maxRetries: 5, retryDelay: 50 } as const;
+    rmSync(root, options);
+    rmSync(secretDir, options);
   };
 
   try {
