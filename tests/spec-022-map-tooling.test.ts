@@ -64,6 +64,20 @@ function makeSandbox(): Sandbox {
   const specDir = join(root, SPEC_REL);
   mkdirSync(join(root, "specs"), { recursive: true });
   cpSync(SPEC_SRC, specDir, { recursive: true });
+  // POST-FREEZE REPOSITORY STATE (r5).
+  //
+  // The repository now carries the REAL, one-shot `randomization-commitment.json`
+  // — it was generated once and committed, and it must never be regenerated or
+  // overwritten. `cpSync` above copies the whole spec dir, so that committed file
+  // lands in this sandbox too, and every test here needs a PRE-commitment tree:
+  // the generator opens the commitment with `wx` and correctly aborts with
+  // "already exists — refusing to overwrite the commitment".
+  //
+  // So delete the copy inside the temp sandbox. This touches ONLY the throwaway
+  // copy under $TMPDIR — never the committed file, never the real secret map at
+  // ~/.design-os/prereg-022/. Tests that need a commitment (e.g. the
+  // refuse-on-rerun case) mint their own by running the generator in-sandbox.
+  rmSync(join(specDir, "randomization-commitment.json"), { force: true });
   return {
     root,
     home,

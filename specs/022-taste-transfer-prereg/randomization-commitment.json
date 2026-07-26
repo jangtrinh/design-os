@@ -1,0 +1,14 @@
+{
+  "version": "1",
+  "created_at": "2026-07-26T06:07:46.111Z",
+  "csprng": "node:crypto.randomBytes",
+  "secret_map_location": "/Users/jangtrinh/.design-os/prereg-022/randomization-map.secret.json",
+  "secret_map_sha256": "9d264014c8dc7c22f4f9ba0f90c873537fbe9874fe212c4772cfed736cc064c9",
+  "phase_a_pairs": 16,
+  "phase_a_presentations": 20,
+  "phase_b_pairs": 36,
+  "phase_b_presentations": 36,
+  "codename_format": "8-hex-lowercase",
+  "presentation_id_format": "PR-8hex",
+  "committed_before_render": true
+}
