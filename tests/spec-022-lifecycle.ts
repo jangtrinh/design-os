@@ -272,9 +272,10 @@ export function buildLifecycle(options: LifecycleOptions): Fixture {
   const specDir = join(root, SPEC_REL);
   const cleanup = () => {
     // Linux CI can transiently report ENOTEMPTY while recursive deletion walks
-    // the synthetic Git repository. fs.rmSync retries that documented class of
-    // filesystem race only when maxRetries is non-zero; keep the retry bounded.
-    const options = { recursive: true, force: true, maxRetries: 5, retryDelay: 50 } as const;
+    // the synthetic Git repository under heavy parallel I/O. fs.rmSync retries
+    // that documented class of filesystem race only when maxRetries is non-zero;
+    // keep the whole-walk retry bounded (5.5s worst case with linear backoff).
+    const options = { recursive: true, force: true, maxRetries: 10, retryDelay: 100 } as const;
     rmSync(root, options);
     rmSync(secretDir, options);
   };
