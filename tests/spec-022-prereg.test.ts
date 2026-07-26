@@ -195,6 +195,18 @@ function makeCopy(): string {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "spec-022-prereg-")));
   mkdirSync(join(root, "specs"), { recursive: true });
   cpSync(SPEC_SRC, join(root, SPEC_REL), { recursive: true });
+  // POST-FREEZE REPOSITORY STATE (r5).
+  //
+  // The repository now carries the REAL, one-shot `randomization-commitment.json`,
+  // which `cpSync` copies in. These fixtures model the PRE-commitment tree: the
+  // baseline case asserts PR-016 errors when the commitment is ABSENT, and the
+  // tests that need one write their own synthetic commitment. Inheriting the
+  // committed file silently voided that baseline's premise.
+  //
+  // Delete the copy so each fixture starts pre-commitment. This touches ONLY the
+  // throwaway copy under $TMPDIR — never the committed file, and never the real
+  // secret map at ~/.design-os/prereg-022/.
+  rmSync(join(root, SPEC_REL, "randomization-commitment.json"), { force: true });
   return root;
 }
 
