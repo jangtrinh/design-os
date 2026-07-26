@@ -68,6 +68,25 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  gflow: {
+    summary: "Run the safe gflow i2v + ffmpeg Architecture-A asset path",
+    subcommands: {
+      i2v: {
+        summary: "Generate one i2v leg and extract its actual last frame as the next seed",
+        positionals: [{ name: "<prompt>", required: true, summary: "Motion-handoff prompt for this leg" }],
+        flags: [
+          { name: "initial-frame", type: "string", required: true, summary: "Seed image for this leg" },
+          { name: "out-dir", type: "string", required: true, summary: "Directory where gflow downloads the MP4" },
+          { name: "seed-out", type: "string", summary: "Output PNG for the next leg's initial frame" },
+          { name: "model", type: "string", values: ["veo-fast", "veo-quality"], summary: "gflow model (default veo-fast)" },
+          { name: "aspect", type: "string", values: ["16:9", "9:16"], summary: "Video aspect ratio (default 16:9)" },
+          { name: "duration", type: "string", summary: "Video duration in seconds (default 6)" },
+          { name: "profile", type: "string", summary: "Optional gflow auth profile" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "DEPENDENCY_MISSING", "UPSTREAM_FAILED", "BAD_UPSTREAM_JSON", "DOWNLOAD_MISSING", "FILE_IO_FAILED", "FFMPEG_FAILED"],
+      },
+    },
+  },
   "prompt-plan": {
     summary: "Validate design prompt orchestration plans",
     subcommands: {
