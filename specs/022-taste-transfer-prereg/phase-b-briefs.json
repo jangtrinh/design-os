@@ -1,0 +1,3311 @@
+{
+  "version": "1",
+  "briefs": [
+    {
+      "brief_id": "PB-A1-1",
+      "candidate_id": "A1",
+      "family": "aesthetics",
+      "ordinal": 1,
+      "title": "Quartz Auth",
+      "product": {
+        "name": "Quartz Auth",
+        "facts": [
+          "Quartz Auth ships SDKs for Web, iOS, and Android.",
+          "Install command: `npm install quartz-auth`.",
+          "Quickstart sample: `import { QuartzAuth } from \"quartz-auth\"; const auth = new QuartzAuth({ appId: \"qa_7f2c1\" }); await auth.sendMagicLink(\"user@example.com\");`",
+          "Pricing: Free tier 10,000 monthly active users; Team tier $39/month for 50,000 MAU; Scale tier $199/month for 500,000 MAU.",
+          "Trailing 90-day uptime: 99.982%.",
+          "Trailing 90-day incident list: 3 incidents, each resolved in under 12 minutes."
+        ]
+      },
+      "primary_surface": {
+        "description": "A developer-facing landing and documentation surface for a passwordless authentication SDK, presenting a runnable-looking quickstart code sample and a clear installation path, built with confident asymmetric composition and precise technical detailing.",
+        "requirements": [
+          "Present the quickstart code sample exactly as supplied, inside a code block.",
+          "Present the install command exactly as supplied.",
+          "Present both paid pricing tiers with their exact prices and user limits.",
+          "Provide at least three documentation entry points (e.g. quickstart, API reference, migration guide) as linkable list items."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "a live system-status panel showing trailing uptime, a latency figure, and a short incident list",
+        "inactive_requirement": "the status panel stays plain-functional: a conventional table or list only, with no asymmetric composition, no narrative media bands, and no decorative accent markers",
+        "leak_definition": "asymmetric composition, narrative media bands, or decorative accent markers applied inside the status panel constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "selector-exists",
+          "target": "pre code",
+          "description": "the quickstart code sample is rendered in a code block"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "npm install quartz-auth",
+          "description": "the install command appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "99.982%",
+          "description": "the uptime figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the status panel data is rendered as a table"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "$39",
+          "description": "the Team tier price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC6",
+          "type": "text-present",
+          "target": "$199",
+          "description": "the Scale tier price appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A1-2",
+      "candidate_id": "A1",
+      "family": "aesthetics",
+      "ordinal": 2,
+      "title": "Evidence Commons",
+      "product": {
+        "name": "Evidence Commons",
+        "facts": [
+          "Evidence Commons indexes 8 fixed entries: (1) \"Delta-7 dosing tolerance\" — reviewed; (2) \"Cohort retention at 18 months\" — reviewed; (3) \"Adjunct therapy pilot\" — preprint; (4) \"Cross-site variance audit\" — preprint; (5) \"Pediatric dosing note\" — working note; (6) \"Long-term follow-up protocol\" — reviewed; (7) \"Adverse-event coding update\" — working note; (8) \"Comparator arm summary\" — preprint.",
+          "Status labels used: reviewed, preprint, working note.",
+          "Download table formats: CSV and PDF.",
+          "Download file sizes range from 40 KB to 3.1 MB."
+        ]
+      },
+      "primary_surface": {
+        "description": "An index of clinical-trials evidence entries, built with asymmetric composition and precise technical structure, presenting each entry's phase and review status.",
+        "requirements": [
+          "List all eight evidence entries with their fixed title and status.",
+          "Group or otherwise distinguish entries by status (reviewed / preprint / working note).",
+          "Provide a brief methodology note describing how entries are catalogued."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded dataset download table listing each entry's downloadable file, format, and file size",
+        "inactive_requirement": "the download table stays unstyled-tabular: a conventional table, no asymmetric column treatment, no narrative media band, no accent color beyond a default link color",
+        "leak_definition": "asymmetric column treatment, a narrative media band, or accent styling beyond a default link color applied to the download table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Delta-7 dosing tolerance",
+          "description": "entry 1 title appears verbatim"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Comparator arm summary",
+          "description": "entry 8 title appears verbatim"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the dataset download table is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "reviewed",
+          "description": "the status label appears as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "preprint",
+          "description": "the status label appears as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A1-3",
+      "candidate_id": "A1",
+      "family": "aesthetics",
+      "ordinal": 3,
+      "title": "Municipal fiber build 2026",
+      "product": {
+        "name": "Municipal fiber build 2026",
+        "facts": [
+          "Total project budget: $18.4 million.",
+          "Route length: 62 miles of fiber trunk.",
+          "Prime vendor: Coastline Infrastructure Partners (invented, fixed).",
+          "Build timeline: 2026 Q1 survey, Q2–Q3 trenching, Q4 splicing and turn-up.",
+          "Compliance requirements: (1) right-of-way permits — approved; (2) environmental review — approved; (3) utility coordination — in progress; (4) ADA sidewalk restoration standard — pending."
+        ]
+      },
+      "primary_surface": {
+        "description": "A technical procurement report narrative for a municipal fiber-optic build, combining confident narrative composition with precise technical detailing.",
+        "requirements": [
+          "Present the project narrative with the fixed budget, timeline, and vendor facts.",
+          "Present a technical specification section stating the route length.",
+          "Present the build timeline as an ordered sequence of milestones."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded compliance requirements table listing each regulatory requirement and its status",
+        "inactive_requirement": "the compliance table stays plain: a conventional table, no offset alignment, no decorative markers, no narrative media band inside the table",
+        "leak_definition": "offset alignment, decorative markers, or a narrative media band inside the compliance requirements table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "$18.4 million",
+          "description": "the budget figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "62 miles",
+          "description": "the route length appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the compliance requirements table is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Coastline Infrastructure Partners",
+          "description": "the vendor name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "in progress",
+          "description": "the compliance status label appears as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A2-1",
+      "candidate_id": "A2",
+      "family": "aesthetics",
+      "ordinal": 1,
+      "title": "Interior heat-safety memo",
+      "product": {
+        "name": "Interior heat-safety memo",
+        "facts": [
+          "Effective date: March 1, 2026.",
+          "Recommended maximum indoor temperature: 80°F (26.7°C).",
+          "Applies to all agency-managed multi-family buildings over 3 stories.",
+          "Cited regulations: Housing Code §14-220 (mandatory cooling-device access); Housing Code §14-231 (tenant notice requirement, 48 hours); Building Safety Ordinance §9.4 (ventilation minimums)."
+        ]
+      },
+      "primary_surface": {
+        "description": "A policy memo presented in a warm-toned, technically structured register, communicating interior heat-safety guidance to a housing agency's property managers.",
+        "requirements": [
+          "Present the memo body with the fixed guidance points and effective date.",
+          "Present the recommended maximum indoor temperature threshold.",
+          "Present a short summary of who the memo applies to."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded statutory citation table listing each cited regulation, its section number, and its requirement summary",
+        "inactive_requirement": "the citation table gets no surface texture, no tinted contrast loss, and no bracket ornament — a conventional high-contrast table only",
+        "leak_definition": "surface texture, tinted contrast loss, or bracket ornament applied to the statutory citation table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "80°F",
+          "description": "the temperature threshold appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "March 1, 2026",
+          "description": "the effective date appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the statutory citation table is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "§14-220",
+          "description": "the citation section number appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "§14-231",
+          "description": "the citation section number appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A2-2",
+      "candidate_id": "A2",
+      "family": "aesthetics",
+      "ordinal": 2,
+      "title": "Foundry",
+      "product": {
+        "name": "Foundry",
+        "facts": [
+          "Materials: Harbor Felt (density 0.28 g/cm³, thickness 4mm); Kettle Cork (density 0.16 g/cm³, thickness 6mm); Milled Felt Grey (density 0.31 g/cm³, thickness 3mm); Baltic Cork Weave (density 0.18 g/cm³, thickness 8mm).",
+          "Fire rating for all four materials: Class B.",
+          "All materials are available in 3 stock widths: 500mm, 1000mm, 1500mm.",
+          "Lead time: 4 weeks for stock widths, 8 weeks for custom cuts."
+        ]
+      },
+      "primary_surface": {
+        "description": "A materials catalogue browsing surface in a warm-toned technical register, presenting felt and cork material swatches with their properties.",
+        "requirements": [
+          "Present all four fixed materials with their names and densities.",
+          "Present each material's thickness figure."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded specification data sheet grid listing numeric specs (density, thickness, fire rating) per material",
+        "inactive_requirement": "the spec sheet grid stays high-contrast plain: no surface texture, no tinted contrast loss, no bracket ornament",
+        "leak_definition": "surface texture, tinted contrast loss, or bracket ornament applied to the specification data sheet grid constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Harbor Felt",
+          "description": "the material name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Kettle Cork",
+          "description": "the material name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Class B",
+          "description": "the fire rating appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the specification data sheet grid is rendered as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A2-3",
+      "candidate_id": "A2",
+      "family": "aesthetics",
+      "ordinal": 3,
+      "title": "Cable labeling standard v3",
+      "product": {
+        "name": "Cable labeling standard v3",
+        "facts": [
+          "Standard version: v3.0, effective 2026-02-14.",
+          "Scope: all field-installed copper and fiber cabling.",
+          "Label format rules: two-letter site code + three-digit run number (example \"HB-014\"); color band indicates circuit class; QR tag required on runs over 50 meters.",
+          "Conformance test matrix: label legibility at 1 meter — pass; QR tag scan rate — pass; label adhesion at 60°C — pass."
+        ]
+      },
+      "primary_surface": {
+        "description": "A documentation reading surface in a warm-toned technical register, presenting a cable labeling standard for field technicians.",
+        "requirements": [
+          "Present the standard's scope statement and version number.",
+          "Present the three labeling format rules with the supplied example."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded conformance test-matrix table listing each test case, its expected result, and pass/fail status",
+        "inactive_requirement": "the conformance test-matrix stays plain: no surface texture, no tinted contrast loss, no bracket ornament",
+        "leak_definition": "surface texture, tinted contrast loss, or bracket ornament applied to the conformance test-matrix table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "v3.0",
+          "description": "the standard version appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "HB-014",
+          "description": "the label format example appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the conformance test-matrix is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "QR tag",
+          "description": "the labeling rule text appears as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A3-1",
+      "candidate_id": "A3",
+      "family": "aesthetics",
+      "ordinal": 1,
+      "title": "Ochre — Harbor Museum identity",
+      "product": {
+        "name": "Ochre — Harbor Museum identity",
+        "facts": [
+          "Client: Harbor Museum (invented, fixed).",
+          "Project timeline: 14 weeks.",
+          "Deliverables: wordmark, wayfinding system, exhibition signage kit.",
+          "Chapters: \"Survey\", \"Mark\", \"Signage\".",
+          "Inquiry form project-type options: Identity, Wayfinding, Exhibition Design."
+        ]
+      },
+      "primary_surface": {
+        "description": "A chaptered documentary case study narrating an identity project for a harbor museum.",
+        "requirements": [
+          "Present the case study in at least three chapters with the fixed chapter titles.",
+          "Present the fixed project facts (client, timeline, deliverables)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded project inquiry form with name, email, and project-type fields",
+        "inactive_requirement": "the inquiry form gets no billboard-scale display type and no hard chapter-cut treatment — standard calm form styling with normal-weight labels",
+        "leak_definition": "billboard-scale display type or a hard chapter-cut treatment applied to the project inquiry form constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Survey",
+          "description": "chapter 1 title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Signage",
+          "description": "chapter 3 title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the project inquiry form is rendered as a form element"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "14 weeks",
+          "description": "the project timeline appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A3-2",
+      "candidate_id": "A3",
+      "family": "aesthetics",
+      "ordinal": 2,
+      "title": "City Opera community report",
+      "product": {
+        "name": "City Opera community report",
+        "facts": [
+          "Community reach: 24,600 attendees across the season.",
+          "Outreach programs: 3 — school matinees, open rehearsals, accessible performances.",
+          "Membership tiers: \"Friend\" $75/year; \"Patron\" $250/year; \"Circle\" $1,000/year.",
+          "Season runs September through May."
+        ]
+      },
+      "primary_surface": {
+        "description": "A chaptered documentary report presenting a cultural institution's community-engagement program.",
+        "requirements": [
+          "Present the report in fixed chapters covering reach, programs, and outcomes.",
+          "Present the fixed attendance and outreach figures."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded membership pricing and checkout section with three membership tiers",
+        "inactive_requirement": "the membership pricing/checkout section stays calm: no billboard-scale display type, no hard chapter-cut treatment, conventional pricing-card styling",
+        "leak_definition": "billboard-scale display type or a hard chapter-cut treatment applied to the membership pricing/checkout section constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "24,600",
+          "description": "the attendance figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "$75",
+          "description": "the membership tier price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "$1,000",
+          "description": "the membership tier price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the membership checkout is rendered with a form element and tier-selection controls"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-A3-3",
+      "candidate_id": "A3",
+      "family": "aesthetics",
+      "ordinal": 3,
+      "title": "Where the buses stop short",
+      "product": {
+        "name": "Where the buses stop short",
+        "facts": [
+          "Key finding: 31% of stops citywide lack a paved boarding pad.",
+          "Key finding: average wait time in underserved zones is 22 minutes.",
+          "Data sources: transit agency stop inventory, 2025; rider survey (n=1,240).",
+          "Sample size: 1,240 riders surveyed across 6 districts."
+        ]
+      },
+      "primary_surface": {
+        "description": "A chaptered documentary investigation into transit-equity gaps in bus-stop coverage.",
+        "requirements": [
+          "Present the investigation in chapters covering findings, method, and response.",
+          "Present the fixed key-findings figures."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded methodology and data appendix listing the data sources and sample size",
+        "inactive_requirement": "the methodology/data appendix stays plain and quiet: no billboard-scale display type, no hard chapter-cut treatment",
+        "leak_definition": "billboard-scale display type or a hard chapter-cut treatment applied to the methodology/data appendix constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "31%",
+          "description": "the key finding figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "22 minutes",
+          "description": "the key finding figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "1,240",
+          "description": "the sample size appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the data appendix sources are rendered as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M1-1",
+      "candidate_id": "M1",
+      "family": "motion",
+      "ordinal": 1,
+      "title": "Kiln",
+      "product": {
+        "name": "Kiln",
+        "facts": [
+          "Sintering temperature: 1,220°C.",
+          "Tile sizes: 200×200mm, 300×300mm, 600×300mm.",
+          "Available finishes: matte, honed, textured.",
+          "Sample-order form fields: name, shipping address, tile selection (finish + size)."
+        ]
+      },
+      "primary_surface": {
+        "description": "An industrial-design launch narrative for sintered ceramic tiles, using masked entrance choreography in the primary material and process narrative.",
+        "requirements": [
+          "Present the material and process narrative with the fixed facts (sintering temperature, tile sizes).",
+          "Present a specification table with the fixed tile dimensions."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded sample-order form with name, address, and tile-selection fields",
+        "inactive_requirement": "the sample-order form answers with control feedback at or under 220ms and carries zero entrance masks on its fields",
+        "leak_definition": "masked entrance animation or control feedback slower than 220ms applied to the sample-order form's fields constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "form [class*='animate'], form [style*='animation'], form [class*='mask'], form [class*='reveal']",
+            "description": "no animation, mask, or reveal styling classes or inline animation styles are present on any element inside the sample-order form"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "1,220°C",
+          "description": "the sintering temperature appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "600×300mm",
+          "description": "the tile size appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the sample-order form is rendered as a form element"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "matte",
+          "description": "a finish option appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the tile specification data is rendered as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M1-2",
+      "candidate_id": "M1",
+      "family": "motion",
+      "ordinal": 2,
+      "title": "Static/Signal festival",
+      "product": {
+        "name": "Static/Signal festival",
+        "facts": [
+          "Festival dates: September 12–13, 2026.",
+          "Venue: Pierhead Warehouse (invented, fixed).",
+          "Lineup: Lumen Static, Coast Drift, Half Signal, Nightcopper.",
+          "Ticket tiers: Day Pass $65; Weekend Pass $110."
+        ]
+      },
+      "primary_surface": {
+        "description": "A live-event identity and narrative surface for a two-day experimental music festival, using masked entrance choreography in the identity narrative.",
+        "requirements": [
+          "Present the festival name, dates, and venue as fixed facts.",
+          "Present the lineup as an ordered list of the fixed artist names."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded schedule table and ticket form with date, time, and ticket-tier fields",
+        "inactive_requirement": "the schedule table and ticket form answer with control feedback at or under 220ms and carry zero entrance masks on their rows or fields",
+        "leak_definition": "masked entrance animation or control feedback slower than 220ms applied to the schedule-table rows or the ticket form's fields constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "table tr[class*='animate'], form [class*='animate'], form [style*='animation']",
+            "description": "no animation classes or inline animation styles on schedule-table rows or ticket-form fields"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "September 12–13, 2026",
+          "description": "the festival dates appear exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Pierhead Warehouse",
+          "description": "the venue name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the schedule table is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the ticket form is rendered as a form element"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "$110",
+          "description": "the weekend pass price appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M1-3",
+      "candidate_id": "M1",
+      "family": "motion",
+      "ordinal": 3,
+      "title": "Studio Vane kinetic façade",
+      "product": {
+        "name": "Studio Vane kinetic façade",
+        "facts": [
+          "Panel count: 412 kinetic panels.",
+          "Actuation mechanism: pneumatic, wind-responsive.",
+          "Project phases: concept, prototype, install.",
+          "Client: a regional arts trust (invented, fixed)."
+        ]
+      },
+      "primary_surface": {
+        "description": "An experimental-studio case study narrating a kinetic façade installation, using masked entrance choreography in the narrative.",
+        "requirements": [
+          "Present the case study with the fixed project facts (panel count, actuation mechanism).",
+          "Present a process section describing the fixed three project phases."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded contact/commission form with name, email, and project-brief fields",
+        "inactive_requirement": "the contact/commission form answers with control feedback at or under 220ms and carries zero entrance masks on its fields",
+        "leak_definition": "masked entrance animation or control feedback slower than 220ms applied to the contact/commission form's fields constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "form [class*='animate'], form [style*='animation'], form [class*='mask']",
+            "description": "no animation or mask classes, or inline animation styles, on the contact/commission form fields"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "412 kinetic panels",
+          "description": "the panel count appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "pneumatic",
+          "description": "the actuation mechanism appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the contact/commission form is rendered as a form element"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "prototype",
+          "description": "the process phase label appears as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M2-1",
+      "candidate_id": "M2",
+      "family": "motion",
+      "ordinal": 1,
+      "title": "Docket",
+      "product": {
+        "name": "Docket",
+        "facts": [
+          "Proof sequence states: Intake, Review, Approval.",
+          "Average intake time reduction: 61%.",
+          "Certifications: SOC 2 Type II, ISO 27001.",
+          "Data retention: contract documents retained 7 years, access-logged."
+        ]
+      },
+      "primary_surface": {
+        "description": "A B2B workflow-proof landing page for contract-intake automation software, demonstrating a state-transition proof sequence (intake, review, approval).",
+        "requirements": [
+          "Present the three-state proof sequence with the fixed state labels.",
+          "Present the fixed customer-facing metric (average intake time reduction)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded security/compliance reference section listing certifications and data-handling facts",
+        "inactive_requirement": "the security/compliance reference section shows no staggered entrances and no state-transition theater on its list items",
+        "leak_definition": "staggered entrance animation or state-transition theater applied to the security/compliance reference list constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "61%",
+          "description": "the intake-time reduction figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "SOC 2 Type II",
+          "description": "the certification appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "ISO 27001",
+          "description": "the certification appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "ul, ol",
+          "description": "the security/compliance reference is rendered as a list"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M2-2",
+      "candidate_id": "M2",
+      "family": "motion",
+      "ordinal": 2,
+      "title": "Sightline",
+      "product": {
+        "name": "Sightline",
+        "facts": [
+          "Dashboard states shown: raw events, funnels, cohorts.",
+          "Median time-to-first-dashboard: 4 minutes.",
+          "API endpoints: `GET /v1/events` (600/min); `POST /v1/track` (1200/min); `GET /v1/cohorts` (300/min).",
+          "Free trial length: 14 days."
+        ]
+      },
+      "primary_surface": {
+        "description": "A product-analytics launch page demonstrating a proof tour of the dashboard states.",
+        "requirements": [
+          "Present the proof tour with the fixed dashboard states (raw events, funnels, cohorts).",
+          "Present the fixed onboarding-time metric."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded API reference table listing endpoints, methods, and rate limits",
+        "inactive_requirement": "the API reference table is static: no staggered entrances, no state-transition theater on its rows",
+        "leak_definition": "staggered entrance animation or state-transition theater applied to the API reference table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "4 minutes",
+          "description": "the onboarding metric appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "GET /v1/events",
+          "description": "an API endpoint appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the API reference is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "600/min",
+          "description": "a rate limit appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M2-3",
+      "candidate_id": "M2",
+      "family": "motion",
+      "ordinal": 3,
+      "title": "Ferrite",
+      "product": {
+        "name": "Ferrite",
+        "facts": [
+          "Mechanism states shown: publish, replicate, consume.",
+          "Throughput: 2.1 million messages/second (benchmark figure, fixed).",
+          "p99 latency: 4.8ms.",
+          "Plan limits: Free — 1 million messages/month, 24-hour retention; Pro — 50 million messages/month, 7-day retention."
+        ]
+      },
+      "primary_surface": {
+        "description": "An infrastructure product-tour page for an edge message queue, showing one handoff animation at a time across mechanism states.",
+        "requirements": [
+          "Present the mechanism tour with the fixed states (publish, replicate, consume).",
+          "Present the fixed throughput and latency figures."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded limits/quotas table listing per-plan message limits and retention windows",
+        "inactive_requirement": "the limits/quotas table is static: no staggered entrances, no state-transition theater on its rows",
+        "leak_definition": "staggered entrance animation or state-transition theater applied to the limits/quotas table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "2.1 million messages/second",
+          "description": "the throughput figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "4.8ms",
+          "description": "the latency figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the limits/quotas table is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "7-day retention",
+          "description": "the plan retention window appears as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M3-1",
+      "candidate_id": "M3",
+      "family": "motion",
+      "ordinal": 1,
+      "title": "Ice Cores: ten thousand winters",
+      "product": {
+        "name": "Ice Cores: ten thousand winters",
+        "facts": [
+          "Chapters: \"Surface\" (core depth 0m, age 0 years); \"Firn\" (60m, 200 years); \"Deep ice\" (1,800m, 60,000 years); \"Bedrock\" (3,200m, 800,000 years).",
+          "Visit hours: Tuesday–Sunday, 10am–5pm.",
+          "Ticket price: $18 adult, $9 student.",
+          "The core sample on display is 3,200 meters long, drilled over 4 field seasons."
+        ]
+      },
+      "primary_surface": {
+        "description": "A museum-exhibition cinematic scroll narrative telling the story of ice-core climate records across geological time.",
+        "requirements": [
+          "Present the narrative in the fixed chapter sequence.",
+          "Present the fixed core-depth and age figures at their corresponding chapters."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded visit-info block listing hours, ticket prices, and access information",
+        "inactive_requirement": "the visit-info block uses native scrolling with no scroll-scrub effect and no smooth-scroll capture; its anchor links jump natively",
+        "leak_definition": "a scroll-scrub effect, smooth-scroll capture, or hijacked anchor-jump behavior applied to the visit-info block constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "html[style*='overflow: hidden'], body[style*='overflow: hidden']",
+            "description": "no inline overflow:hidden on the html or body element — a common global scroll-hijack signal — is present"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "800,000 years",
+          "description": "the chapter age figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "3,200m",
+          "description": "the chapter depth figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "10am–5pm",
+          "description": "the visit hours appear exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "$18",
+          "description": "the ticket price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the visit-info block presents hours/tickets/access as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M3-2",
+      "candidate_id": "M3",
+      "family": "motion",
+      "ordinal": 2,
+      "title": "The Salt Route",
+      "product": {
+        "name": "The Salt Route",
+        "facts": [
+          "Route length: 96 miles over 5 days.",
+          "Maximum elevation: 7,400 feet.",
+          "Water-resupply points: 3.",
+          "Difficulty rating: strenuous.",
+          "Permit required: yes, backcountry travel permit."
+        ]
+      },
+      "primary_surface": {
+        "description": "A destination-story cinematic scroll narrative following a multi-day high-desert route.",
+        "requirements": [
+          "Present the narrative across the fixed multi-day itinerary stages.",
+          "Present the fixed elevation and distance figures."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded practical-logistics table listing permit requirements, water-resupply points, and difficulty rating",
+        "inactive_requirement": "the logistics table uses native scrolling with no scroll-scrub effect and no smooth-scroll capture",
+        "leak_definition": "a scroll-scrub effect or smooth-scroll capture applied to the practical-logistics table constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "html[style*='overflow: hidden'], body[style*='overflow: hidden']",
+            "description": "no inline overflow:hidden on the html or body element is present"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "96 miles",
+          "description": "the route length appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "7,400 feet",
+          "description": "the elevation figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "strenuous",
+          "description": "the difficulty rating appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the practical-logistics table is rendered as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-M3-3",
+      "candidate_id": "M3",
+      "family": "motion",
+      "ordinal": 3,
+      "title": "Signal Decay: broadcast archive",
+      "product": {
+        "name": "Signal Decay: broadcast archive",
+        "facts": [
+          "Formats covered: 2-inch quad, U-matic, Betacam.",
+          "Tapes digitized to date: 4,120.",
+          "Chapters: \"Quad era\" (1956–1970); \"U-matic era\" (1971–1985); \"Betacam era\" (1986–1998).",
+          "Average digitization time per tape: 40 minutes."
+        ]
+      },
+      "primary_surface": {
+        "description": "A film-archive exhibition cinematic scroll narrative tracing the decay and preservation of broadcast tape formats.",
+        "requirements": [
+          "Present the narrative across the fixed format-era chapters.",
+          "Present the fixed preservation figures (tapes digitized, formats covered)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded archive search index listing searchable entries with format, year, and condition",
+        "inactive_requirement": "the archive search index is instant and unanimated, using native scrolling with no scroll-scrub effect and no smooth-scroll capture",
+        "leak_definition": "a scroll-scrub effect or smooth-scroll capture applied to the archive search index constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "html[style*='overflow: hidden'], body[style*='overflow: hidden']",
+            "description": "no inline overflow:hidden on the html or body element is present"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "4,120",
+          "description": "the tapes-digitized figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "2-inch quad",
+          "description": "a format label appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "1971–1985",
+          "description": "a chapter date range appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "input[type='search'], form",
+          "description": "the archive search index provides a search input or form"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D1-1",
+      "candidate_id": "D1",
+      "family": "devices",
+      "ordinal": 1,
+      "title": "Harbor Trust FY26",
+      "product": {
+        "name": "Harbor Trust FY26",
+        "facts": [
+          "Total assets, FY26: $412.6 million.",
+          "Chronology: Q1 new endowment fund opened; Q2 grant program expanded to 3 new regions; Q3 audit committee restructured; Q4 annual distribution of $9.2 million approved.",
+          "Balance-sheet line items: cash and equivalents, investments, grants payable, net assets.",
+          "Grant program regions served: 9 total after Q2 expansion."
+        ]
+      },
+      "primary_surface": {
+        "description": "An annual report presenting a charitable trust's fiscal-year narrative with numbered chronology and process sections.",
+        "requirements": [
+          "Present the fixed chronology of four fiscal-year events in numbered order.",
+          "Present the fixed total-assets figure."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded audited financial statements table listing balance-sheet line items",
+        "inactive_requirement": "the financial statements table carries no decorative numbering and no numeric ornament — line items use their standard accounting labels only",
+        "leak_definition": "decorative two-digit numbering or numeric ornament markers applied inside the audited financial statements table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "$412.6 million",
+          "description": "the total-assets figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "$9.2 million",
+          "description": "the annual distribution figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the audited financial statements are rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "net assets",
+          "description": "the balance-sheet line-item label appears as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D1-2",
+      "candidate_id": "D1",
+      "family": "devices",
+      "ordinal": 2,
+      "title": "Reef survey 2026",
+      "product": {
+        "name": "Reef survey 2026",
+        "facts": [
+          "Survey sites: 14.",
+          "Average live coral cover: 27.4%.",
+          "Survey method steps: transect placement; photo-quadrat capture; species identification; cover-percentage calculation.",
+          "Survey conducted over 6 weeks in Q1 2026."
+        ]
+      },
+      "primary_surface": {
+        "description": "A scientific metrics story presenting a coral-reef survey through numbered survey-method steps.",
+        "requirements": [
+          "Present the fixed four-step survey method in numbered order.",
+          "Present the fixed coral-cover figure and survey-site count."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded raw-data appendix listing per-site transect readings",
+        "inactive_requirement": "the raw-data appendix stays unnumbered — no decorative marker ornament; entries keep only their own site identifiers",
+        "leak_definition": "decorative two-digit numbering applied to the raw-data appendix constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "27.4%",
+          "description": "the coral-cover figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "photo-quadrat capture",
+          "description": "a method-step label appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the raw-data appendix is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "14",
+          "description": "the survey-site count appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D1-3",
+      "candidate_id": "D1",
+      "family": "devices",
+      "ordinal": 3,
+      "title": "Coldchain Q2",
+      "product": {
+        "name": "Coldchain Q2",
+        "facts": [
+          "On-time delivery rate, Q2: 96.1%.",
+          "Route stages: pickup (average dwell 22 minutes); transit (average duration 14 hours); delivery (average dwell 18 minutes).",
+          "Incident IDs use the format \"INC-2026-###\" (example: INC-2026-014).",
+          "Temperature-excursion incidents logged in Q2: 6."
+        ]
+      },
+      "primary_surface": {
+        "description": "A logistics-performance report presenting a numbered route-performance narrative for temperature-controlled shipping.",
+        "requirements": [
+          "Present the fixed route-performance narrative across three numbered stages (pickup, transit, delivery).",
+          "Present the fixed on-time delivery rate."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded incident log table listing temperature-excursion incidents with their own incident IDs",
+        "inactive_requirement": "the incident log table adds no decorative two-digit ornament numbering — log entries keep only their own incident IDs",
+        "leak_definition": "decorative two-digit ornament numbering applied inside the incident log table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "96.1%",
+          "description": "the on-time delivery rate appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "INC-2026-014",
+          "description": "the incident ID example appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the incident log is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "14 hours",
+          "description": "the transit duration appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D2-1",
+      "candidate_id": "D2",
+      "family": "devices",
+      "ordinal": 1,
+      "title": "Atelier Brandt",
+      "product": {
+        "name": "Atelier Brandt",
+        "facts": [
+          "Projects: \"Ridge House\" (Bellmont, 2022); \"Foundry Loft\" (Kessler, 2023); \"Canal Pavilion\" (Denholt, 2024); \"Marrow Library\" (Ashgrove, 2026).",
+          "Ridge House: 4,200 sq ft, budget $2.1 million.",
+          "Marrow Library: 18,000 sq ft, budget $14.6 million.",
+          "The firm was founded in 2011."
+        ]
+      },
+      "primary_surface": {
+        "description": "An architecture-firm portfolio presenting four fixed projects, built with container guide-line structure across the layout.",
+        "requirements": [
+          "Present the fixed four projects with name, location, and completion year."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded project data sheet listing area, budget, and structural-system figures per project",
+        "inactive_requirement": "the project data sheet carries no guide lines and no corner marks — a clean, guide-free surface",
+        "leak_definition": "container guide lines or corner marks applied inside the project data sheet constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Ridge House",
+          "description": "a project name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Marrow Library",
+          "description": "a project name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "$14.6 million",
+          "description": "a project budget appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the project data sheet is rendered as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D2-2",
+      "candidate_id": "D2",
+      "family": "devices",
+      "ordinal": 2,
+      "title": "Mole & Partners",
+      "product": {
+        "name": "Mole & Partners",
+        "facts": [
+          "Service lines: site investigation; foundation design review; slope-stability assessment.",
+          "Rate, principal engineer: $240/hour.",
+          "Rate, staff engineer: $145/hour.",
+          "The firm employs 22 licensed engineers."
+        ]
+      },
+      "primary_surface": {
+        "description": "A geotechnics-consultancy services and identity surface using container guide-line structure.",
+        "requirements": [
+          "Present the fixed three service lines with one-line descriptions."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded rate/services table listing hourly rates by discipline",
+        "inactive_requirement": "the rate/services table carries no guide lines and no corner marks — a clean surface",
+        "leak_definition": "container guide lines or corner marks applied inside the rate/services table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "site investigation",
+          "description": "a service line appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "$240/hour",
+          "description": "a rate figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the rate/services table is rendered as a table"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "slope-stability assessment",
+          "description": "a service line appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D2-3",
+      "candidate_id": "D2",
+      "family": "devices",
+      "ordinal": 3,
+      "title": "Concrete Poetry, 1962–1979",
+      "product": {
+        "name": "Concrete Poetry, 1962–1979",
+        "facts": [
+          "Exhibition years covered: 1962–1979.",
+          "Loaned works: \"Grid Verse\" (Aldergate Print Archive); \"Vowel Field\" (Kestrel Collection); \"Static Verse\" (Corrow Foundation).",
+          "Exhibition run: April–August 2026.",
+          "Total works on display: 42, including the 3 loans."
+        ]
+      },
+      "primary_surface": {
+        "description": "An exhibition-catalogue essay surface using container guide-line structure, covering a concrete-poetry survey.",
+        "requirements": [
+          "Present the fixed catalogue essay sections (introduction plus three period chapters)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded checklist/loan table listing each loaned work's artist, title, and lending institution",
+        "inactive_requirement": "the checklist/loan table carries no guide lines and no corner marks — a clean surface",
+        "leak_definition": "container guide lines or corner marks applied inside the checklist/loan table constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Grid Verse",
+          "description": "a loaned-work title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Aldergate Print Archive",
+          "description": "a lending institution appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "1962–1979",
+          "description": "the exhibition years appear exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the checklist/loan table is rendered as a table"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D3-1",
+      "candidate_id": "D3",
+      "family": "devices",
+      "ordinal": 1,
+      "title": "Attention and the eight-second myth",
+      "product": {
+        "name": "Attention and the eight-second myth",
+        "facts": [
+          "Citation count: 34.",
+          "Publication year: 2026.",
+          "Findings: sustained-attention duration held steady across the studied decade; self-reported distraction increased 18 percentage points; task-switching frequency correlated weakly with completion time.",
+          "Study sample size: 2,400 participants."
+        ]
+      },
+      "primary_surface": {
+        "description": "A long-form research reading surface on attention-span research, using an edge-blur band at the viewport top or bottom.",
+        "requirements": [
+          "Present the fixed article body sections (introduction, three findings, conclusion).",
+          "Present the fixed citation count and publication year."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded footnote/reference pane and in-article controls (font-size toggle, share button)",
+        "inactive_requirement": "the edge-blur band must not overlay the footnote/reference pane, the in-article controls, or the reading measure — it stays pointer-transparent and confined to the viewport edge",
+        "leak_definition": "the edge-blur band overlapping focusable controls or the article's reading measure constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "[style*='backdrop-filter'] button, [style*='backdrop-filter'] a[href]",
+            "description": "no blur-styled element directly contains a focusable control"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "34",
+          "description": "the citation count appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "18 percentage points",
+          "description": "a finding figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "button",
+          "description": "the in-article controls are rendered as buttons"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "2,400 participants",
+          "description": "the sample size appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D3-2",
+      "candidate_id": "D3",
+      "family": "devices",
+      "ordinal": 2,
+      "title": "The last lighthouse keepers",
+      "product": {
+        "name": "The last lighthouse keepers",
+        "facts": [
+          "Keeper tenures: 1958–1989; 1971–1998; 1980–2003 (three fixed, invented individuals).",
+          "Final staffed lighthouse decommissioned: 2003.",
+          "Total staffed lighthouses covered in the feature: 3.",
+          "Newsletter cadence: monthly."
+        ]
+      },
+      "primary_surface": {
+        "description": "An editorial feature reading surface profiling the final generation of staffed lighthouse keepers, using an edge-blur band.",
+        "requirements": [
+          "Present the fixed feature sections (three keeper profiles).",
+          "Present the fixed decommission-year figure."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded newsletter signup form with an email field and a subscribe button",
+        "inactive_requirement": "the edge-blur band must not overlay the newsletter form — it stays pointer-transparent and confined to the viewport edge",
+        "leak_definition": "the edge-blur band overlapping the newsletter form constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "[style*='backdrop-filter'] form, [style*='backdrop-filter'] input",
+            "description": "no blur-styled element directly contains the newsletter form or its input"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "1958–1989",
+          "description": "a keeper tenure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "2003",
+          "description": "the decommission year appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the newsletter signup is rendered as a form element"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "input[type='email']",
+          "description": "the newsletter form includes an email input"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D3-3",
+      "candidate_id": "D3",
+      "family": "devices",
+      "ordinal": 3,
+      "title": "Bog oak: thousand-year timber",
+      "product": {
+        "name": "Bog oak: thousand-year timber",
+        "facts": [
+          "Bog oak age range: 3,000–5,500 years.",
+          "Moisture content at harvest: approximately 90%.",
+          "Board dimensions offered: 8ft × 10in × 2in.",
+          "Price: $180 per board-foot."
+        ]
+      },
+      "primary_surface": {
+        "description": "A premium-material story about bog oak timber, using an edge-blur band on its long-form reading surface.",
+        "requirements": [
+          "Present the fixed material story sections (formation, harvest, use).",
+          "Present the fixed age-range and moisture-content figures."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded spec/purchase panel listing board dimensions and price per board-foot",
+        "inactive_requirement": "the edge-blur band must not overlay the spec/purchase panel — it stays pointer-transparent and confined to the viewport edge",
+        "leak_definition": "the edge-blur band overlapping the spec/purchase panel constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "[style*='backdrop-filter'] button, [style*='backdrop-filter'] [class*='purchase']",
+            "description": "no blur-styled element directly contains the purchase panel's controls"
+          }
+        ]
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "3,000–5,500 years",
+          "description": "the age range appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "$180",
+          "description": "the price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "button",
+          "description": "the spec/purchase panel provides a purchase action as a button"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "8ft × 10in × 2in",
+          "description": "the board dimensions appear exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D4-1",
+      "candidate_id": "D4",
+      "family": "devices",
+      "ordinal": 1,
+      "title": "Accessible kiosk standard: implementation guide",
+      "product": {
+        "name": "Accessible kiosk standard: implementation guide",
+        "facts": [
+          "Implementation steps: reach range 15–48 inches; minimum tactile target size 0.75 inches; audio-output jack required; screen contrast ratio 7:1 minimum; closed-caption support for video content.",
+          "Standard applies to all newly installed public-facing kiosks.",
+          "Compliance deadline: January 2027.",
+          "Total requirements in the standard: 5."
+        ]
+      },
+      "primary_surface": {
+        "description": "A standards guide presenting a multi-step implementation sequence as an ordered list, with a scroll-tracked progress indicator alongside it.",
+        "requirements": [
+          "Present the fixed five-step implementation sequence as a semantic ordered list with real headings."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded single-screen quick-reference summary listing the five requirements at a glance",
+        "inactive_requirement": "the quick-reference summary carries no progress indicator and no progress-line ornament",
+        "leak_definition": "a progress indicator or progress-line ornament applied to the quick-reference summary constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "7:1",
+          "description": "the contrast-ratio requirement appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "0.75 inches",
+          "description": "the tactile target size appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "ol",
+          "description": "the implementation sequence is rendered as a semantic ordered list"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "15–48 inches",
+          "description": "the reach range appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D4-2",
+      "candidate_id": "D4",
+      "family": "devices",
+      "ordinal": 2,
+      "title": "Congestion pricing, explained",
+      "product": {
+        "name": "Congestion pricing, explained",
+        "facts": [
+          "Chapters: \"Why price the road\"; \"How the zone works\"; \"Who pays what\"; \"Where the revenue goes\".",
+          "Base toll: $9 during peak hours.",
+          "FAQ: \"Does the toll apply on weekends?\" — \"No.\"",
+          "Peak hours: 6am–10am and 4pm–8pm on weekdays."
+        ]
+      },
+      "primary_surface": {
+        "description": "A chaptered policy explainer on congestion pricing, presented as an ordered sequence with a scroll-tracked progress indicator.",
+        "requirements": [
+          "Present the fixed four-chapter explainer sequence as a semantic ordered structure with real headings."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded FAQ section with five fixed question/answer pairs",
+        "inactive_requirement": "the FAQ section uses native disclosure controls and carries no progress indicator",
+        "leak_definition": "a progress indicator applied to the FAQ section constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "$9",
+          "description": "the base toll appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Where the revenue goes",
+          "description": "a chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "details, [aria-expanded]",
+          "description": "the FAQ uses native or accessible disclosure controls"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Does the toll apply on weekends?",
+          "description": "a FAQ question appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-D4-3",
+      "candidate_id": "D4",
+      "family": "devices",
+      "ordinal": 3,
+      "title": "Rail signal modernization",
+      "product": {
+        "name": "Rail signal modernization",
+        "facts": [
+          "Chapters: \"Legacy system\"; \"Cutover plan\"; \"Results\".",
+          "Route-miles modernized: 118.",
+          "Signal incidents reduced: 42% year-over-year.",
+          "Program duration: 3 years."
+        ]
+      },
+      "primary_surface": {
+        "description": "A multi-chapter case study on a rail-signal modernization program, presented as an ordered sequence with a scroll-tracked progress indicator.",
+        "requirements": [
+          "Present the fixed three-chapter case study sequence as a semantic ordered structure with real headings."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded contact section with a program-office email and phone number",
+        "inactive_requirement": "the contact section carries no progress indicator",
+        "leak_definition": "a progress indicator applied to the contact section constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "118",
+          "description": "the route-miles figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "42%",
+          "description": "the incident-reduction figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "ol",
+          "description": "the case-study chapter sequence is rendered as a semantic ordered structure"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Cutover plan",
+          "description": "a chapter title appears exactly as supplied"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-P1-1",
+      "candidate_id": "P1",
+      "family": "media",
+      "ordinal": 1,
+      "title": "Headwaters",
+      "product": {
+        "name": "Headwaters",
+        "facts": [
+          "Campaign message: \"Every mile of river we restore holds water longer.\"",
+          "Sub-message: \"12 dams removed since 2019.\"",
+          "Restoration miles to date: 84.",
+          "Total funds raised to date: $6.3 million.",
+          "Donation tiers: $25, $100, $500."
+        ]
+      },
+      "primary_surface": {
+        "description": "A climate-campaign hero and story surface for a river-restoration initiative, applying a role-based ratio and text-reserve contract to the three supplied wide images.",
+        "requirements": [
+          "Use the three supplied wide images with role-appropriate crops and a calm text reserve for the campaign message.",
+          "Present the fixed campaign message and sub-message exactly as supplied."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded donation form and financial-disclosure table",
+        "inactive_requirement": "the donation form and financial-disclosure table are imagery-free — no decorative photography on either",
+        "leak_definition": "decorative imagery placed on the donation form or the financial-disclosure table constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "form img, form picture, form [style*='background-image'], table img, table picture, table [style*='background-image']",
+            "description": "no image elements or CSS background-images appear inside the donation form or the financial-disclosure table"
+          }
+        ]
+      },
+      "supplied_assets": [
+        {
+          "asset_id": "PB-P1-1-wide-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-1-wide-1"
+        },
+        {
+          "asset_id": "PB-P1-1-wide-2",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-1-wide-2"
+        },
+        {
+          "asset_id": "PB-P1-1-wide-3",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-1-wide-3"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Every mile of river we restore holds water longer.",
+          "description": "the campaign message appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "12 dams removed since 2019.",
+          "description": "the campaign sub-message appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "$6.3 million",
+          "description": "the funds-raised figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "form",
+          "description": "the donation form is rendered as a form element"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the financial-disclosure information is rendered as a table"
+        },
+        {
+          "check_id": "AC6",
+          "type": "selector-exists",
+          "target": "img, picture",
+          "description": "at least one of the three supplied wide images is rendered on the primary hero/story surface"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-P1-2",
+      "candidate_id": "P1",
+      "family": "media",
+      "ordinal": 2,
+      "title": "Overland: the high passes",
+      "product": {
+        "name": "Overland: the high passes",
+        "facts": [
+          "Passes crossed: 4.",
+          "Total elevation gain: 11,200 feet.",
+          "Trip duration: 9 days.",
+          "Fare legs: overnight rail $140; mountain bus transfer $35."
+        ]
+      },
+      "primary_surface": {
+        "description": "A travel-editorial spread for a high-mountain-pass journey, applying a role-based ratio and text-reserve contract to the three supplied wide images.",
+        "requirements": [
+          "Use the three supplied wide images with role-appropriate crops and text reserve for pull-quotes.",
+          "Present the fixed route facts (passes crossed, total elevation gain)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded fares/logistics table listing transport legs and prices",
+        "inactive_requirement": "the fares/logistics table is imagery-free — no decorative photography",
+        "leak_definition": "decorative imagery placed on the fares/logistics table constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "table img, table picture, table [style*='background-image']",
+            "description": "no image elements or CSS background-images appear inside the fares/logistics table"
+          }
+        ]
+      },
+      "supplied_assets": [
+        {
+          "asset_id": "PB-P1-2-wide-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-2-wide-1"
+        },
+        {
+          "asset_id": "PB-P1-2-wide-2",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-2-wide-2"
+        },
+        {
+          "asset_id": "PB-P1-2-wide-3",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-2-wide-3"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "11,200 feet",
+          "description": "the elevation-gain figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "9 days",
+          "description": "the trip duration appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "$140",
+          "description": "a fare-leg price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the fares/logistics table is rendered as a table"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "img, picture",
+          "description": "at least one of the three supplied wide images is rendered on the primary editorial spread"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-P1-3",
+      "candidate_id": "P1",
+      "family": "media",
+      "ordinal": 3,
+      "title": "Strata field watch",
+      "product": {
+        "name": "Strata field watch",
+        "facts": [
+          "Case diameter: 40mm.",
+          "Water resistance: 200m.",
+          "Movement type: mechanical automatic.",
+          "Warranty term: 5 years.",
+          "Price: $890."
+        ]
+      },
+      "primary_surface": {
+        "description": "A premium-product launch page for a field watch, applying a ratio ladder and text-reserve contract to the three supplied macro product images.",
+        "requirements": [
+          "Use the three supplied macro images with role-appropriate crops.",
+          "Present the fixed spec facts (case diameter, water resistance, movement type)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded warranty and legal section listing warranty terms and legal disclaimers",
+        "inactive_requirement": "the warranty/legal section is imagery-free — no decorative photography",
+        "leak_definition": "decorative imagery placed on the warranty/legal section constitutes a leak",
+        "deterministic_leak_checks": [
+          {
+            "check_id": "LEAK1",
+            "type": "selector-absent",
+            "target": "[class*='warranty'] img, [class*='warranty'] picture, [class*='legal'] img, [class*='legal'] picture",
+            "description": "no image elements appear inside the warranty/legal section"
+          }
+        ]
+      },
+      "supplied_assets": [
+        {
+          "asset_id": "PB-P1-3-macro-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-3-macro-1"
+        },
+        {
+          "asset_id": "PB-P1-3-macro-2",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-3-macro-2"
+        },
+        {
+          "asset_id": "PB-P1-3-macro-3",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P1-3-macro-3"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "40mm",
+          "description": "the case diameter appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "200m",
+          "description": "the water-resistance figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "5 years",
+          "description": "the warranty term appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "$890",
+          "description": "the price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "img, picture",
+          "description": "at least one of the three supplied macro images is rendered on the launch page"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-P2-1",
+      "candidate_id": "P2",
+      "family": "media",
+      "ordinal": 1,
+      "title": "Jonas Idris, port authority director",
+      "product": {
+        "name": "Jonas Idris, port authority director",
+        "facts": [
+          "Title: Port Authority Director.",
+          "Years in role: 6.",
+          "Prior role: Deputy Harbor Master.",
+          "Board members: Priya Nandan, Owen Faraday, Ines Vercelli, Marcus Todhill, Renata Kwan, Devon Achterberg."
+        ]
+      },
+      "primary_surface": {
+        "description": "An executive profile page choosing between a formal headshot and an editorial portrait per context.",
+        "requirements": [
+          "Use the supplied formal headshot in the profile header context.",
+          "Use the supplied editorial portrait in a narrative/story context.",
+          "Present the fixed biographical facts."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded board directory grid listing six board members with headshot slots",
+        "inactive_requirement": "the board directory grid uses a uniform functional headshot register only — no editorial-candid treatment",
+        "leak_definition": "editorial-candid portrait treatment applied inside the board directory grid constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [
+        {
+          "asset_id": "PB-P2-1-headshot-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-headshot-1"
+        },
+        {
+          "asset_id": "PB-P2-1-portrait-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-portrait-1"
+        },
+        {
+          "asset_id": "PB-P2-1-directory-headshot-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-directory-headshot-1"
+        },
+        {
+          "asset_id": "PB-P2-1-directory-headshot-2",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-directory-headshot-2"
+        },
+        {
+          "asset_id": "PB-P2-1-directory-headshot-3",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-directory-headshot-3"
+        },
+        {
+          "asset_id": "PB-P2-1-directory-headshot-4",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-directory-headshot-4"
+        },
+        {
+          "asset_id": "PB-P2-1-directory-headshot-5",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-directory-headshot-5"
+        },
+        {
+          "asset_id": "PB-P2-1-directory-headshot-6",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-1-directory-headshot-6"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Port Authority Director",
+          "description": "the title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Deputy Harbor Master",
+          "description": "the prior role appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Priya Nandan",
+          "description": "a board member name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Devon Achterberg",
+          "description": "a board member name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "img",
+          "description": "the supplied headshot and portrait images are rendered on the page"
+        },
+        {
+          "check_id": "AC6",
+          "type": "selector-exists",
+          "target": "ul, ol, [role='list']",
+          "description": "the board directory grid is rendered as a list of member entries"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-P2-2",
+      "candidate_id": "P2",
+      "family": "media",
+      "ordinal": 2,
+      "title": "Dr. Anselm Roy, glaciologist",
+      "product": {
+        "name": "Dr. Anselm Roy, glaciologist",
+        "facts": [
+          "Field: glaciology, alpine ice-core research.",
+          "Years active: 19.",
+          "Field seasons logged: 27.",
+          "Publications: \"Firn densification rates at high elevation\" (2019); \"Isotopic dating of alpine cores\" (2021); \"Meltwater percolation modeling\" (2023); \"Accumulation-rate trends, 1980–2020\" (2024); \"Core contamination controls\" (2026)."
+        ]
+      },
+      "primary_surface": {
+        "description": "A researcher biography page choosing between a formal headshot and an editorial portrait per context.",
+        "requirements": [
+          "Use the supplied formal headshot in the biography header.",
+          "Use the supplied editorial portrait in a field-narrative context.",
+          "Present the fixed research facts."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded publications index listing five fixed publication entries",
+        "inactive_requirement": "the publications index carries no portrait ornament — functional register only where any imagery appears",
+        "leak_definition": "portrait imagery or editorial ornament applied inside the publications index constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [
+        {
+          "asset_id": "PB-P2-2-headshot-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-2-headshot-1"
+        },
+        {
+          "asset_id": "PB-P2-2-portrait-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-2-portrait-1"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Firn densification rates at high elevation",
+          "description": "a publication title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Meltwater percolation modeling",
+          "description": "a publication title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "27",
+          "description": "the field-seasons figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "ol, ul",
+          "description": "the publications index is rendered as a list"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "img",
+          "description": "the supplied headshot and portrait images are rendered on the page"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    },
+    {
+      "brief_id": "PB-P2-3",
+      "candidate_id": "P2",
+      "family": "media",
+      "ordinal": 3,
+      "title": "Yun Bae, ceramicist",
+      "product": {
+        "name": "Yun Bae, ceramicist",
+        "facts": [
+          "Medium: wood-fired stoneware.",
+          "Studio location: Kessler River Valley (invented, fixed).",
+          "Years practicing: 22.",
+          "Exhibitions: \"Ash and Ember\" (2021); \"Salt Kiln Survey\" (2023); \"Firing Line\" (2026)."
+        ]
+      },
+      "primary_surface": {
+        "description": "An artist interview feature using an editorial portrait register, with a press-kit slot requiring the functional headshot register.",
+        "requirements": [
+          "Use the supplied editorial portrait as the primary interview-feature image.",
+          "Present the fixed interview facts (medium, studio location, years practicing)."
+        ]
+      },
+      "anti_context": {
+        "embedded_state": "an embedded exhibition-history table with a press-kit headshot slot",
+        "inactive_requirement": "the press-kit headshot slot uses the functional headshot register — editorial-candid treatment is not permitted there",
+        "leak_definition": "editorial-candid portrait treatment applied inside the press-kit headshot slot constitutes a leak",
+        "deterministic_leak_checks": []
+      },
+      "supplied_assets": [
+        {
+          "asset_id": "PB-P2-3-headshot-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-3-headshot-1"
+        },
+        {
+          "asset_id": "PB-P2-3-portrait-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-3-portrait-1"
+        },
+        {
+          "asset_id": "PB-P2-3-presskit-headshot-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PB-P2-3-presskit-headshot-1"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "wood-fired stoneware",
+          "description": "the medium appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Ash and Ember",
+          "description": "an exhibition title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Firing Line",
+          "description": "an exhibition title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-exists",
+          "target": "table",
+          "description": "the exhibition-history table is rendered as a table"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "img",
+          "description": "the supplied editorial portrait and press-kit headshot are rendered on the page"
+        }
+      ],
+      "gate_set": [
+        "build",
+        "console",
+        "layout",
+        "a11y",
+        "content",
+        "taste",
+        "ds-usage",
+        "reduced-motion"
+      ],
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [
+        390,
+        768,
+        1440
+      ],
+      "reduced_motion_required": true
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "$comment": "spec 022 — schema for candidate-manifest.json. The 12 frozen pilot candidates; exact ID set, exact count.",
+  "type": "object",
+  "properties": {
+    "upstream_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "const": "21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49"
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "enum": ["A1", "A2", "A3", "M1", "M2", "M3", "D1", "D2", "D3", "D4", "P1", "P2"]
+          },
+          "family": {
+            "type": "string",
+            "enum": ["aesthetics", "motion", "devices", "media"]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "one_line_contract": {
+            "type": "string",
+            "minLength": 1
+          },
+          "portable_contract": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context_boundary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "anti_context": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^agent-skills/[^/]+/[^/]+/SKILL\\.md$"
+            }
+          },
+          "source_sha256": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "inclusion_reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "patch_path": {
+            "type": "string",
+            "pattern": "^patches/phase-b/(A[123]|M[123]|D[1-4]|P[12])\\.md$"
+          },
+          "patch_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "family",
+          "title",
+          "one_line_contract",
+          "portable_contract",
+          "context_boundary",
+          "anti_context",
+          "source_paths",
+          "source_sha256",
+          "inclusion_reason",
+          "patch_path",
+          "patch_sha256"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["upstream_commit", "candidates"],
+  "additionalProperties": false
+}
