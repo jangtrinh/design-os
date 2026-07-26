@@ -1,0 +1,47 @@
+{
+  "$comment": "spec 022 — schema for runs/votes/FREEZE.json and runs/curator/FREEZE.json. Replaces the earlier loose {file: hash} object map, which could silently omit files and carried no commit identity (Codex Stage-5 BLOCKER #6). `files` is the EXACT, complete list for its directory: PR-025 requires set equality with the directory's actual contents, so an omission is now a gate failure rather than an invisible gap. A commit cannot name its own SHA, so custody is anchored by `evidence_commit` (the commit whose tree the frozen evidence was read at, which must be an ancestor of the freeze commit git derives) rather than by a self-referential field.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["votes", "curator"]
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["A", "B"]
+    },
+    "evidence_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.json$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": ["file", "sha256"],
+        "additionalProperties": false
+      }
+    },
+    "frozen_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": ["version", "kind", "phase", "evidence_commit", "files", "frozen_at"],
+  "additionalProperties": false
+}

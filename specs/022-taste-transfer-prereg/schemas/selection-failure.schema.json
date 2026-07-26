@@ -1,0 +1,35 @@
+{
+  "$comment": "spec 022 — schema for selection-failures.json. Expected empty at freeze (all 121 sources readable); the protocol forbids silent substitution of a missing source.",
+  "type": "object",
+  "properties": {
+    "pinned_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "const": "21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49"
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "error": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attempted_at": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["path", "error", "attempted_at"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["pinned_commit", "failures"],
+  "additionalProperties": false
+}

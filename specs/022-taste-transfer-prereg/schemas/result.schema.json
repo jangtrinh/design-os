@@ -1,0 +1,140 @@
+{
+  "$comment": "spec 022 — schema for a result.json (one per pair, written post-reveal). Not produced in this build stage.",
+  "type": "object",
+  "properties": {
+    "pair_id": {
+      "type": "string",
+      "pattern": "^(PA-(AES|MOT|DEV|MED)-[1-4]|PB-(A[123]|M[123]|D[1-4]|P[12])-[1-3])$"
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["A", "B"]
+    },
+    "family": {
+      "type": "string",
+      "enum": ["aesthetics", "motion", "devices", "media"]
+    },
+    "candidate_id": {
+      "type": ["string", "null"],
+      "enum": ["A1", "A2", "A3", "M1", "M2", "M3", "D1", "D2", "D3", "D4", "P1", "P2", null]
+    },
+    "brief_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "arms": {
+      "type": "object",
+      "properties": {
+        "control": {
+          "type": "object",
+          "properties": {
+            "run_id": { "type": "string", "pattern": "^(PA|PB)-[A-Z0-9-]+-(control|treatment)$" },
+            "primary_artifact_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "eligible": { "type": "boolean" },
+            "initial_pass": { "type": "boolean" },
+            "post_repair_pass": { "type": ["boolean", "null"] }
+          },
+          "required": ["run_id", "primary_artifact_sha256", "eligible", "initial_pass", "post_repair_pass"],
+          "additionalProperties": false
+        },
+        "treatment": {
+          "type": "object",
+          "properties": {
+            "run_id": { "type": "string", "pattern": "^(PA|PB)-[A-Z0-9-]+-(control|treatment)$" },
+            "primary_artifact_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "eligible": { "type": "boolean" },
+            "initial_pass": { "type": "boolean" },
+            "post_repair_pass": { "type": ["boolean", "null"] }
+          },
+          "required": ["run_id", "primary_artifact_sha256", "eligible", "initial_pass", "post_repair_pass"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["control", "treatment"],
+      "additionalProperties": false
+    },
+    "presentations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "presentation_id": { "type": "string", "pattern": "^PR-[0-9a-f]{8}$" },
+          "owner_vote_path": { "type": "string", "minLength": 1 },
+          "owner_vote_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "endpoint_primary": { "type": "boolean" }
+        },
+        "required": ["presentation_id", "owner_vote_path", "owner_vote_sha256", "endpoint_primary"],
+        "additionalProperties": false
+      }
+    },
+    "curator_scores": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "codename": { "type": "string", "pattern": "^[0-9a-f]{8}$" },
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        },
+        "required": ["codename", "path", "sha256"],
+        "additionalProperties": false
+      }
+    },
+    "contradiction_result": {
+      "type": "string",
+      "enum": ["none", "leak", "not-applicable"]
+    },
+    "duplicate_consistent": {
+      "type": ["boolean", "null"]
+    },
+    "repair_reduction": {
+      "type": ["number", "null"]
+    },
+    "randomization_commitment_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "revealed_assignment": {
+      "type": "object",
+      "properties": {
+        "left": { "type": "string", "enum": ["control", "treatment"] },
+        "right": { "type": "string", "enum": ["control", "treatment"] }
+      },
+      "required": ["left", "right"],
+      "additionalProperties": false
+    },
+    "treatment_win": {
+      "type": ["boolean", "null"]
+    },
+    "non_confirmatory_reason": {
+      "type": ["string", "null"]
+    },
+    "finalized_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "pair_id",
+    "phase",
+    "family",
+    "candidate_id",
+    "brief_hash",
+    "arms",
+    "presentations",
+    "curator_scores",
+    "contradiction_result",
+    "duplicate_consistent",
+    "repair_reduction",
+    "randomization_commitment_sha256",
+    "revealed_assignment",
+    "treatment_win",
+    "non_confirmatory_reason",
+    "finalized_at"
+  ],
+  "additionalProperties": false
+}

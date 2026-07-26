@@ -1,0 +1,1121 @@
+{
+  "pinned_commit": "21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49",
+  "enumeration_command": "node specs/022-taste-transfer-prereg/scripts/enumerate-selection.mjs --corpus /private/tmp/mengto-skills",
+  "record_count": 121,
+  "records": [
+    {
+      "path": "agent-skills/codex/article-prompts-to-skills/SKILL.md",
+      "sha256": "566c5bd361aa738d40843e647d73b8867dbc6825818b0ad9d67f7e5c23b8ee62",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/audit-reference-originality/SKILL.md",
+      "sha256": "8b8b5e6c6174ff790f08541e444fe64b48f8d078b1f5783b36c3204a690616b6",
+      "licence_disposition": "mit-root",
+      "classification": "qa-verification",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/audit-verify-explain-grade-5/SKILL.md",
+      "sha256": "d4b5ce0ccda298b75fc7927f88a67dd5528693085ee52fa92b0623544665ba32",
+      "licence_disposition": "mit-root",
+      "classification": "qa-verification",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/browser-video-recording/SKILL.md",
+      "sha256": "9c9aa4307a6d7bac1bc7dad29cc68468d22be35f9ad5b7b5f48522b1070a4c64",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/build-daily-inspiration-sites/SKILL.md",
+      "sha256": "ba888108ec029d796484d8f18f600763bbf18d9313f1da2a48b5031a944d429c",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/customer-email-draft-threads/SKILL.md",
+      "sha256": "149abdb6601dfece10f8d529163285ed9adfc9a5429778324d20da6184761f9a",
+      "licence_disposition": "mit-root",
+      "classification": "communication-voice",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "communication/packaging mechanism, not taste"
+    },
+    {
+      "path": "agent-skills/codex/customer-support-verification/SKILL.md",
+      "sha256": "2a16b608feccb10a6e0a02f4c8ee3eb531c3121864c3a8d931a914100715f64e",
+      "licence_disposition": "mit-root",
+      "classification": "qa-verification",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/daily-ui-inspiration-capture/SKILL.md",
+      "sha256": "26f316421cbb18f24a3aba96ff5d064b0f62f1ca74a6fa86160643a2f21460e0",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/elevenlabs-tts/SKILL.md",
+      "sha256": "066b56c8711ebf935222b4f02f7c67485e88299574a5dc6f1d4347cfefb86196",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "engineering",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/generate-reference-inspired-brand-worlds/SKILL.md",
+      "sha256": "ac378caa7a2093d1f34c0d96b0e21739b6826526ce58b0afe57adebc888fd363",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/html-to-interaction-prompts/SKILL.md",
+      "sha256": "59b800616a70b89b2d5b3d85b8b138c3d22afc83a23fe7e565e08bd1610a8999",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/implement-fog-of-war/SKILL.md",
+      "sha256": "9b425e603f3328877c38649645052f4a13222f350796d329b59bb8804a4e6965",
+      "licence_disposition": "mit-root",
+      "classification": "engineering",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/optimize-web-animations/SKILL.md",
+      "sha256": "37a8f512bb22a4f2112e4ed388068c0cd184d312d64ee00a993da5bf04ded947",
+      "licence_disposition": "mit-root",
+      "classification": "engineering",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/performance-profiling/SKILL.md",
+      "sha256": "e2301598090cf01a0d3b726a039ef4c5c9b05f64d20fb17f52a2271994945c5a",
+      "licence_disposition": "mit-root",
+      "classification": "qa-verification",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/stitched-full-page-capture/SKILL.md",
+      "sha256": "0ff78c19ffd8162e4cb3c44d5e225ab570c55082d2098a73ffb7dad8d295ed01",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/video-to-superprompt/SKILL.md",
+      "sha256": "2b0db0096fb715f9e5c6be419f2be5caf0df5e1991ac019308185e2d72c2f950",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/codex/write-like-meng-on-x/SKILL.md",
+      "sha256": "5675889197ebb5c819f3fa7f3f3172312b958c907e9020955db94bdb61258bcd",
+      "licence_disposition": "reject-identity",
+      "classification": "communication-voice",
+      "selected_candidate_ids": [],
+      "disposition": "rejected-from-study",
+      "reason": "personal authored voice of a named individual; identity/provenance boundary (protocol L50)"
+    },
+    {
+      "path": "agent-skills/codex/x-bookmark-quote-posts/SKILL.md",
+      "sha256": "d3f625cc3bb87dd8cfb41b70abb2d3e3f145f69642d260b681395abd2ed8a586",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "communication-voice",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "communication/packaging mechanism, not taste"
+    },
+    {
+      "path": "agent-skills/customer-support/handle-saas-account-cases/SKILL.md",
+      "sha256": "2d7b9c33acc44d1df15cf7f96396d0825224191c40810997bf8536eb157eb985",
+      "licence_disposition": "mit-root",
+      "classification": "customer-support",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "customer-support content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/customer-support/handle-saas-billing-cases/SKILL.md",
+      "sha256": "ef844094d5a857ed18c291254d5707f84b0eaa92ef925463b1205dc513229e9a",
+      "licence_disposition": "mit-root",
+      "classification": "customer-support",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "customer-support content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/author-game-levels/SKILL.md",
+      "sha256": "df8da94bf505ed20f3d9062151354a5c6901ca4dc3d5b0c6f493a700277c3644",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-game-audio-feedback/SKILL.md",
+      "sha256": "f547a7f1941e254852ad64418d0fadf47308d434fb808897e87e70dcbe012cfc",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-game-camera-controls/SKILL.md",
+      "sha256": "9a9f5765d410bde6280a4fd35b0210e593b9c5729689dd1f0abd0edc84604fdf",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-game-changelog/SKILL.md",
+      "sha256": "02cae71e942ccd8eab6ec84b7e0a990cb079155ec459bad71bff83f6464827fa",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-game-inventory/SKILL.md",
+      "sha256": "361fed9d464173899301651ea3e1313ce17f28472a236edcb0e022763bb945ee",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-game-map-editor/SKILL.md",
+      "sha256": "fd45a877e4477dedeb553318eb030b80eb9ec3bb048dd7378e5a61e39c41149c",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-game-monster-system/SKILL.md",
+      "sha256": "e3e50af4a34f5e2d446c66ddb39cbb8de46b974d92f88e90d985baa595e5930d",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-hybrid-game-assets/SKILL.md",
+      "sha256": "bb64cbecfd06fdc3376323d4f5b4ef2c6e987442f8adcc3b9ddd7015a79cabf6",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-isometric-arpg/SKILL.md",
+      "sha256": "ddcb64e5b9fb5b3ae7df2f3cc157c45768e359903840440d97ed69c22881d189",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-mobile-threejs-games/SKILL.md",
+      "sha256": "7c38939b8b919f8cac1ca2f7040b35a5c05ae43adcd9c4c143184180bc7b007a",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-threejs-enemy-systems/SKILL.md",
+      "sha256": "b33c08b3296ea1a39d37705be29d773db428ef8a337a92f3640eb2cb6792bbb8",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/build-vesperfall-review-assets/SKILL.md",
+      "sha256": "4fd07049c2c0ce6bd27c1288e30d88bb5e2d8443dbadb87f625dd76b8f025597",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/create-game-vfx/SKILL.md",
+      "sha256": "14579867468da3b065d1b8c9644f4e9a8cea552526936c2518f3c150e049b9b0",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/design-action-combat/SKILL.md",
+      "sha256": "0b6289f0c651987554e2c82dda45e18582eb2a21412672778ed76cd1a214df17",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/design-game-encounters/SKILL.md",
+      "sha256": "0cb2da5d4fbc25815fbd57b4627b9fafb1b3cc050712e7103476b214f7514a61",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/optimize-threejs-games/SKILL.md",
+      "sha256": "d50e8c26ae8130b5cb37da32835024ab281090f107bd52caa476b80a60f2e2b5",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/ship-web-games/SKILL.md",
+      "sha256": "519256cb8d557d77a1a4368b8fb120ff0add8de3a56469accd6405fa717d511d",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/test-playable-web-games/SKILL.md",
+      "sha256": "4e22866b1eae238420d48de06ba1df11e70e033a02097575acde827a94d25f9a",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/game-development/tune-enemy-ai/SKILL.md",
+      "sha256": "13bcd0294240d0520bb1e132871ffe6f1ab36ff7c00868483f2f3490dab4e360",
+      "licence_disposition": "mit-root",
+      "classification": "game-development",
+      "selected_candidate_ids": [],
+      "disposition": "out-of-scope",
+      "reason": "game-development content — outside the taste-transfer scope of this pilot, not a judgment of its value"
+    },
+    {
+      "path": "agent-skills/media/aura-asset-images/SKILL.md",
+      "sha256": "c902c2b2b8182b4738c7e6a93d5a33fe62a495844c2e0b4a7b0152812b93cd76",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "media-art-direction",
+      "selected_candidate_ids": [
+        "P1",
+        "P2"
+      ],
+      "disposition": "selected",
+      "reason": "Role-to-ratio media contract with 30-50% text-reserve on wide imagery and focal-safety rules, plus portrait narrative register choosing functional-headshot vs editorial-portrait per context (feeds P1 and P2)."
+    },
+    {
+      "path": "agent-skills/media/unsplash-asset-images/SKILL.md",
+      "sha256": "cd057d9a7dcaf2de444aec22c1f3277392aab85b9a296beabc20ba3a7b48950c",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "media-art-direction",
+      "selected_candidate_ids": [
+        "P1",
+        "P2"
+      ],
+      "disposition": "selected",
+      "reason": "Role-to-ratio media contract with 30-50% text-reserve on wide imagery and focal-safety rules, plus portrait narrative register choosing functional-headshot vs editorial-portrait per context (feeds P1 and P2)."
+    },
+    {
+      "path": "agent-skills/ui/design-first-ui-prompting/SKILL.md",
+      "sha256": "5e3d4db0eb0ea983f2bedb90f28f358901c292388a7889e2f66ac133ceff743c",
+      "licence_disposition": "mit-root",
+      "classification": "workflow-pipeline",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "workflow/QA mechanism — out of taste-transfer scope, tracked by other specs"
+    },
+    {
+      "path": "agent-skills/web-design/add-shader-cursor-trail/SKILL.md",
+      "sha256": "b2d32575e2a433145200c3f466d46aa4692f726efbfe32db39c0524caa7e107d",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/agency-grid-layout-minimal/SKILL.md",
+      "sha256": "1787eba87fef34cf72219d0016de89910e19e383f6b01d250a11e9490a93018e",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/ambient-section-particles/SKILL.md",
+      "sha256": "b6fcbde40049c0bae9a8b0e5a9249717b828bb7d64b816fd4ac1d29c5318bb48",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/animation-on-scroll/SKILL.md",
+      "sha256": "4c9c795a9d5d8f7baf0b141394ebc0a4fd30e22234b37ff63fbf38e7cceefadf",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/animation-systems/SKILL.md",
+      "sha256": "ae1e51b8eede6f4d05fda5388f61bbc1d29ea88b7a5d7a488c3ecfed5f18e262",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/atmosphere-background/SKILL.md",
+      "sha256": "ded4a155cf5676f2aab3f1873634e08766ad31aa6ae1107e5a29c114dc1cf213",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/background-grid-webgl/SKILL.md",
+      "sha256": "07c155855b67a96cbb4d51d82696fe9550c2670a13a30fb6b71506d5c0685457",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/beam-glow-states/SKILL.md",
+      "sha256": "64f45d22ad8288e2716fddc4375df9f34e9655a26e3cbb3d1ed6da3fd25d3f49",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/beautiful-shadows/SKILL.md",
+      "sha256": "10b6cc0964919118218ffe0845e4a00954f39788d89d4ec29827d100f254e135",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/blue-cloudy-clean-modern/SKILL.md",
+      "sha256": "212618080012349f13e1c8819048e62e9c6193b8b2d2a5e33d219ce487c5e305",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/blue-laser-clean-glass-layout/SKILL.md",
+      "sha256": "63cbabae394a24c1b8c4cc98dafc3bfe8c045652b20713f8a3d8edc1061530e0",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/book-serif-index/SKILL.md",
+      "sha256": "d53a95a47bb0fc7b047445a15e59a2b4bb126d6c8d9caac163378b19bf3948be",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/bright-green-tech-system-webgl/SKILL.md",
+      "sha256": "ba4cf84328189502dbd9c95f42bba68346d303f9b3f41cbc6c922f52fdec2fbf",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/build-awwwards-quality-sites/SKILL.md",
+      "sha256": "1568e003d112e72df0ea2ec925829a5039b762c27174e063c192d7ccf7f4f9e6",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/cinematic-gsap-lenis-motion-system/SKILL.md",
+      "sha256": "7b8f5745f34ef4ba507e19fabd6acf9cd3b8d70efda81746d0f4090af0f84e06",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [
+        "M3"
+      ],
+      "disposition": "selected",
+      "reason": "Cinematic scrub calibration: scrub 0.8-1.4, reveal at ~82% viewport, smooth-scroll lerp ~0.08, word stagger 35-70 ms (feeds M3)."
+    },
+    {
+      "path": "agent-skills/web-design/cinematic-scroll-storytelling/SKILL.md",
+      "sha256": "3e203d1a38917004396f07b5887418e9e13dc832506754f5a4ad6303525b1572",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/clean-minimal-beige-light-mode/SKILL.md",
+      "sha256": "675e5d268ae36ae4aa59ff06cdaf19f67169defedc7a2cf5e7ca03a8f3eadb05",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/cobejs/SKILL.md",
+      "sha256": "4f050b7495a5b19d05fb89736c6c61df4feacab07f23aae20cf8a8a79a53bbef",
+      "licence_disposition": "mit-root",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/company-logos/SKILL.md",
+      "sha256": "d089dd870e8f4012acc3bc1bf55855346a7e39fa4e975868f6ed2d495eb82729",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/container-lines/SKILL.md",
+      "sha256": "b2eb19356c14c034d8e077452ede319835b841b7aa046ec3cd0a4460cc7911b6",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [
+        "D2"
+      ],
+      "disposition": "selected",
+      "reason": "Container guide lines: 1 px low-opacity vertical edges plus small corner squares, consistent per page (feeds D2)."
+    },
+    {
+      "path": "agent-skills/web-design/corner-diagonals/SKILL.md",
+      "sha256": "ffb61cc0a8fae762d6ff59e526aa26e7b18349ae040f125502811b63c289a310",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/corner-lasers/SKILL.md",
+      "sha256": "7a6766480ca8f5aa98d7f8dd92ccd378c8b32db139cb5ef0f3fd1c9930aee565",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/css-alpha-masking/SKILL.md",
+      "sha256": "049241d4c086b0f95af2ab68857435f604fee07e5744a856b385e3c212a638e1",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/css-border-gradient/SKILL.md",
+      "sha256": "6c5e1924a7ec55044aca52801cd30efb06cb922fa47e4c4b85d16b39471c922a",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/dark-blue-contrasting-clean/SKILL.md",
+      "sha256": "d92603c74fc0835e1ca4ed1c8b367ea453e67c5f4c990e60d3e2c3178c341aeb",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/dark-glass-clean-layout/SKILL.md",
+      "sha256": "e51661080ce76a5386f2490406c95d5ad8e50f0d44ef55b0d972fb87a0baa560",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/dither-background/SKILL.md",
+      "sha256": "aa6520dc7dcb8dc3dc9a382a4363b57cad01a6745fbc05ce609539d38663c40b",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/dither-laser-dark-mode/SKILL.md",
+      "sha256": "afbf1b3161ea8c5b92f69fef0abdeb299f128aaa055730998cae32d1896d7e57",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/documentary-brutalist-agency/SKILL.md",
+      "sha256": "0659ce40f776437f419ed66506e318c38ac8003bb735cfaff12664899dfa903b",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [
+        "A3",
+        "M1"
+      ],
+      "disposition": "selected",
+      "reason": "Documentary-brutalist genre playbook plus its brutalist contextual motion band: billboard type, black/white chapters, documentary collage, accessible disclosure controls, and 160-220 ms controls / 500-760 ms masks / under 5% parallax (feeds A3 and M1)."
+    },
+    {
+      "path": "agent-skills/web-design/editorial-portfolio-chapters/SKILL.md",
+      "sha256": "763b2eb851228aee7af65914b2f45f062677e03a17f8d2dd50441bdd733b5d8e",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/editorial-service-booking/SKILL.md",
+      "sha256": "a02695cff83e0c419f17a9ace237ac543f677a75e3242c51ce9f16c801eccbd2",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/editorial-tech/SKILL.md",
+      "sha256": "9f032de321c81b2e7ae7fa451d6b3c7bdb7dfbf082ff735e5af4868e3a0b9300",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [
+        "A1"
+      ],
+      "disposition": "selected",
+      "reason": "Editorial-technical register: asymmetric editorial composition fused with precise product-tech detailing, one restrained accent (feeds A1)."
+    },
+    {
+      "path": "agent-skills/web-design/framed-grid-layout/SKILL.md",
+      "sha256": "0888e311ada1a4d8967a26a3650b5a521cce54bb2aad627f6c32ff12b3b03da9",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/framed-tech-dark-border-gradient/SKILL.md",
+      "sha256": "ab553a6dceadfc4b391d4e3927a64b9c408eb60f41468d02d0d153902295c154",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/funky-purple-container-tech/SKILL.md",
+      "sha256": "101e990d553e0cb13c6aeb485865e706e5fa7456a105a039f2439554b0a31dae",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/glass-dark-mode-clock/SKILL.md",
+      "sha256": "7be1a8d076cd1e940f33ae6a6f5b9aaaa91c1078c15b511623a38da30b3397ce",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/glass-dark-ui/SKILL.md",
+      "sha256": "ff607716e434e6aecb53e738122d28cd149034f51ff35c4e3bf4690d7b69c9d3",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/globe-gl/SKILL.md",
+      "sha256": "e2739e1f035f78aba3268ff2ce2a5b0b13fa33422781071f94c22e87a58de912",
+      "licence_disposition": "mit-root",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/globe-particles/SKILL.md",
+      "sha256": "b29b372a1790954ea97746dc1ca62d82cc605c00ba4b88d95c3a1f0dcba4e171",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/gooey-blob-system/SKILL.md",
+      "sha256": "48cef691946621cb90b0891a19b9bf9076fddfe54961847f78223515475894bd",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/gsap-scrolltrigger-storytelling/SKILL.md",
+      "sha256": "c388738853064f4bbb4293b910efc0fb82f957298a49c94214c2522b138ae939",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/gsap/SKILL.md",
+      "sha256": "eb9a0a84f0747fa19ce693cf776328945aebee1205ddc42c518c133c2ab6cb42",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/high-contrast-skeuomorphic-clean/SKILL.md",
+      "sha256": "6381a8257a1a42df490a12ce0902fb7b70acd50c8d231e86aaaed29d33fdee81",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/image-first-grid-layout/SKILL.md",
+      "sha256": "76aa7e263f9c5b81920622c6c9e175a09eef10bf3d8c11a7d3edf5c95fe58abf",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/landing-page/SKILL.md",
+      "sha256": "6ad9965bc6b8f682340998ddd17c7700f5529ae40603d47c3b4610892c459cad",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/light-mode-paper-technical/SKILL.md",
+      "sha256": "f09d5b7cb8263b19d0aecc2e305a4d5f249a71187004860b8ff72272026a3f31",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [
+        "A2"
+      ],
+      "disposition": "selected",
+      "reason": "Paper-technical light register: warm paper surfaces in a dark outer frame with bracketed technical geometry (feeds A2)."
+    },
+    {
+      "path": "agent-skills/web-design/liquid-metal-border/SKILL.md",
+      "sha256": "2dfe245bebc1d87a74030cf361480300785c86022b696eacdd0fcc8316875bec",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/marquee-loop/SKILL.md",
+      "sha256": "53f705e5f245f414d4e88b88e5f997b3201d8f782d407a2f2b5794e7b2aea8ed",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/masked-reveal/SKILL.md",
+      "sha256": "a3e4fb96f6092ac382530db24fdd15da559e959c5b7e02d0503918c1358dcf03",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/matterjs/SKILL.md",
+      "sha256": "eeb1d2f6521e337dd5a5f0743ba00c00dd81f6e22b22a6f26c5d77fc44f16be4",
+      "licence_disposition": "mit-root",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/mesh-gradient-dark-blue-clean/SKILL.md",
+      "sha256": "4c91c0ba4ccd73389f6bd0fc15b5065dc6c64866ee829249f98fb669c152ce33",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/nested-container-clean-agency/SKILL.md",
+      "sha256": "99a761f4c95316a649b54782bbb23666882c98ec2eddce393f86a5601c270e23",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/nested-container-frames/SKILL.md",
+      "sha256": "02fde1df60f9d13015a4a25a2d935831da78f665c263b5d166117e1889c151b0",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/number-details/SKILL.md",
+      "sha256": "bd526d953244b8f05a578892640a86e550d062094866e4d9958b538313ef271a",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [
+        "D1"
+      ],
+      "disposition": "selected",
+      "reason": "Two-digit numeric detail markers as quiet secondary structure on ordered content (feeds D1)."
+    },
+    {
+      "path": "agent-skills/web-design/operational-enterprise-ai/SKILL.md",
+      "sha256": "fbbf4387d16cfb23c95eec0caacb4f204e51ad9fcc2bf2c9e9db9dd451fec566",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/orange-clean-paper-saas/SKILL.md",
+      "sha256": "4f532470971c92edd7407dfba5ec6656e0377c213903bd68bd82281b7ea39788",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/pricing-page/SKILL.md",
+      "sha256": "9b3af6174e379042ea1579f5d62b6fb0030fe6298d35b417488ac1e5ef8159db",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/product-proof-saas/SKILL.md",
+      "sha256": "eb033e97a506e6a1155c98c861efc4bc99aa0f1afd33d99105d091f3e4b3d801",
+      "licence_disposition": "mit-root",
+      "classification": "genre-playbook",
+      "selected_candidate_ids": [
+        "M2"
+      ],
+      "disposition": "selected",
+      "reason": "Product-proof motion band: 160-220 ms controls, 420-700 ms state changes, 45-70 ms card stagger, one handoff at a time (feeds M2)."
+    },
+    {
+      "path": "agent-skills/web-design/progressive-blur/SKILL.md",
+      "sha256": "202004db5ff37fb8add044cf00288d984c9a680c2fb07e4bb2dacc3df90ac2a1",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "micro-device",
+      "selected_candidate_ids": [
+        "D3"
+      ],
+      "disposition": "selected",
+      "reason": "Progressive edge blur: stepped backdrop blur bands masked from a viewport edge, pointer-transparent (feeds D3)."
+    },
+    {
+      "path": "agent-skills/web-design/reveal-hover-effect/SKILL.md",
+      "sha256": "08650ccaa54b30d3d58dbdae4dfb4dab2ef1820a16a2e4c8973428be977debd8",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/scroll-progress-timeline/SKILL.md",
+      "sha256": "9f8b01bd025609b33f14a9b77a012f5e1019fa17e646a3899723aa941d539403",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [
+        "D4"
+      ],
+      "disposition": "selected",
+      "reason": "Scroll-progress timeline: semantic ordered steps with compositor-scaled progress line and active-step state (feeds D4)."
+    },
+    {
+      "path": "agent-skills/web-design/scroll-scrubbed-visual-sequence/SKILL.md",
+      "sha256": "a98df66caf5861caf04ccd109dae86d45f7b4aa280540dac4827a7081630cd5a",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/scroll-scrubbed-word-reveal/SKILL.md",
+      "sha256": "40b48acaf16b5da6413b48d70f064c488c7bb33252bb934b743450f4f11b537e",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/scroll-world-storytelling/SKILL.md",
+      "sha256": "505caf90b92ac6d9e6aecda1d79df36adc96fe5cbeb8eaac5c45b6cdefee7eab",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/shaders-cursor-ripples/SKILL.md",
+      "sha256": "a5b7c4d290707f7fb1f59f8dd99aa1f3b8ae1b32b919da07a9b1c128ac2129bb",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/skeuomorphic-ui/SKILL.md",
+      "sha256": "2de1673864f136b05b10a17fcf987f39864f30a716250b98e09ce669525292e4",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/solar-duotone-bold/SKILL.md",
+      "sha256": "fd99604acf317b21dea735558e3ac9ae98ab5751d4addbffe640bde79da41b51",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/split-layout-technical/SKILL.md",
+      "sha256": "ae8e02a4461773e0d4c04a3ef367cad1a7b6933565549d3296e4a0e54a8b1c0b",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/staggered-word-reveal/SKILL.md",
+      "sha256": "79061529376810788b1d824e0f16a18c048d1c426d6909442888c9507ead08c9",
+      "licence_disposition": "mit-root",
+      "classification": "motion-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/tailwindcss/SKILL.md",
+      "sha256": "90d2150c24c7453d3f75914791d5356c87606a7c1b933d3371a6120624720c4e",
+      "licence_disposition": "mit-root",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/tech-green-dark-mode-modern/SKILL.md",
+      "sha256": "9c47f3929ebd3c3290b6d759f39a32a5ceada51f1a75404d90c391da862b9403",
+      "licence_disposition": "mit-root",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/technical-wireframe-info-layout/SKILL.md",
+      "sha256": "1960e7805000cece8f3d5edd87d89232e31caa5d43a9000842bb29cad4de5597",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "aesthetic-system",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "aesthetic register overlapping a selected candidate's family but not chosen for the frozen 12"
+    },
+    {
+      "path": "agent-skills/web-design/thinking-orbs/SKILL.md",
+      "sha256": "6c24fc7f6582d636e45394f5d27ee6360c5ac55b03775e6d939847aefe2d20d4",
+      "licence_disposition": "mit-root",
+      "classification": "micro-device",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "micro-device not among the four frozen device candidates"
+    },
+    {
+      "path": "agent-skills/web-design/threejs/SKILL.md",
+      "sha256": "e6ebd6e0354b7d05fbfb87a63403b6c2a8c62450f86ff7a9316d55283d586813",
+      "licence_disposition": "mit-root",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/unicorn-studio/SKILL.md",
+      "sha256": "580b4ff727af5aa3d3909ee5e8cfe8e955949df597769a141b7548e8cd9f089c",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/vantajs/SKILL.md",
+      "sha256": "eeacf653ac518fccf3102d85cffb4002ecc2b0b8a4238757b2945a354b9afea0",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/webgl-3d-object/SKILL.md",
+      "sha256": "8b4c8fca568309a6156389bb21b7077a27abe24213789d7f1b2c7d5ab79f3e45",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/webgl-landing-steering/SKILL.md",
+      "sha256": "a5310ca2912c1c5ae8eb38f14284e5876da88bdbb9ee8034838aafba462a5127",
+      "licence_disposition": "mit-root",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    },
+    {
+      "path": "agent-skills/web-design/webgl-laser/SKILL.md",
+      "sha256": "da5aef6c1b15ae0a98b545a5d51ac323c4614484e7faaa2346ec15d2b76dc21e",
+      "licence_disposition": "mit-root-third-party-refs",
+      "classification": "library-recipe",
+      "selected_candidate_ids": [],
+      "disposition": "not-selected",
+      "reason": "library/engine recipe — implementation coupling, not portable taste"
+    }
+  ]
+}

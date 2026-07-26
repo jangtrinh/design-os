@@ -1,0 +1,15 @@
+# Spec 022 — Stage-6 amendment to Stage-2 r2 fix specification
+
+Authority: Fable 5 Stage-6 `VERDICT: REJECT`, `/private/tmp/fable-prereg-stage6-review.md`.
+This amendment adds requirements not already explicit in `02-spec-r2.md`.
+
+1. **P7 media identity neutrality.** The arm-visible projection must replace `supplied_assets` identity-bearing `asset_id` and `manifest_ref` values with deterministic role-indexed neutral aliases identical across both arms. It must retain enough role/content facts to build the brief without exposing Phase-B candidate IDs or Phase-A family/brief IDs. The canonical prompt assembler and PR-020 recomputation must implement and test this exact transform.
+2. **Bundle asset neutrality.** Judging bundles must rewrite/copy every embedded supplied asset under codename-neutral filenames and rewrite HTML references. No frozen asset ID, manifest path, candidate ID, family ID, arm label, or source identity may survive in HTML, URLs, filenames, metadata, or `brief-facts.md`.
+3. **Frozen documentation truth.** Update `spec.md`, the media-manifest note/status wording, test headers/titles, `roles.md`, and other frozen prose so no line claims the media pack is absent, expected-red, owner-pending, or blocking. Record that the owner/coordinator supplied a Wikimedia Commons-derived licence-cleared pack as an explicit amendment to the earlier local-assets pin.
+4. **Boundary-safe judging scan.** PR-023 must not use bare substring matching for short candidate IDs or control/treatment terms. Use boundary-aware identity matching that does not false-positive on codenames, CSS colors, or ordinary words such as controls. Centralize the matcher where practical and add regressions.
+5. **Real brief facts.** Replace placeholder `brief-facts.md` generation with a codename-neutral projection of the frozen brief facts sufficient for owner judging. PR-023 scans it and tests prove no identity leakage.
+6. **Complete frozen set.** `FROZEN_FILES` must include every production script and `scripts/lib/*.mjs` module, every schema including newly added freeze/survival schemas, and all other prereg inputs needed to reproduce the gate. Tests fail if a production module is omitted.
+7. **Pinned custody path.** PR-016 requires the expanded absolute owner custody path for `~/.design-os/prereg-022/randomization-map.secret.json`, not merely any location outside the repo.
+8. **Safe commitment tooling proof.** Add a sandbox-copy test with temporary `HOME` that runs commitment tooling twice: first run proves schema-valid commitment, external secret file mode 0600, correct hash/counts; second run exits 1 and writes nothing new. Delete sandbox in `finally`. Never run tooling against the real tree/home, never create a real commitment/map during this fix.
+9. **Later-mode evidence absence.** In modes where run/reveal/result evidence is required, absence is an error, not a warning.
+10. **Stage process.** B0 is resolved only by finishing one stable builder snapshot, then rerunning Stage 4 → Stage 5 → Stage 6 sequentially. No approval from the rejected moving-tree review carries forward.

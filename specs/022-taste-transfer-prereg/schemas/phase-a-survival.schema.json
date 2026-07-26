@@ -1,0 +1,56 @@
+{
+  "$comment": "spec 022 — schema for runs/results/phase-a-survival.json, the recorded Phase-A gate outcome that decides which families enter Phase B. PREREGISTRATION.md L70: a family survives only if treatment wins all THREE ORDINARY owner votes, every arm stays eligible, no contradiction leakage occurs, the curator veto does not fire, and its duplicate response is self-consistent. The ordinal-4 contradiction brief is diagnostic and never counts toward the three-ordinary-wins endpoint. This file is recorded evidence, never authority: PR-031 recomputes survival from the primary evidence and requires exact agreement, so a hand-edited survivor cannot admit a family to Phase B.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "type": "string",
+      "const": "A"
+    },
+    "families": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "properties": {
+          "family": {
+            "type": "string",
+            "enum": ["aesthetics", "motion", "devices", "media"]
+          },
+          "ordinary_pair_ids": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "pattern": "^PA-(AES|MOT|DEV|MED)-[1-3]$"
+            }
+          },
+          "ordinary_treatment_wins": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "survives": {
+            "type": "boolean"
+          },
+          "stop_reason": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": ["family", "ordinary_pair_ids", "ordinary_treatment_wins", "survives", "stop_reason"],
+        "additionalProperties": false
+      }
+    },
+    "finalized_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": ["version", "phase", "families", "finalized_at"],
+  "additionalProperties": false
+}
