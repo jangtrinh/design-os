@@ -271,18 +271,44 @@ export function buildLifecycle(options: LifecycleOptions): Fixture {
   const secretDir = realpathSync(mkdtempSync(join(tmpdir(), "spec-022-secret-")));
   const specDir = join(root, SPEC_REL);
   const cleanup = () => {
-    rmSync(root, { recursive: true, force: true });
-    rmSync(secretDir, { recursive: true, force: true });
+    // Linux CI can transiently report ENOTEMPTY while recursive deletion walks
+    // the synthetic Git repository under heavy parallel I/O. fs.rmSync retries
+    // that documented class of filesystem race only when maxRetries is non-zero;
+    // keep the whole-walk retry bounded (5.5s worst case with linear backoff).
+    const options = { recursive: true, force: true, maxRetries: 10, retryDelay: 100 } as const;
+    rmSync(root, options);
+    rmSync(secretDir, options);
   };
 
   try {
     mkdirSync(join(root, "specs"), { recursive: true });
     cpSync(SPEC_SRC, specDir, { recursive: true });
+    // POST-FREEZE REPOSITORY STATE (r5).
+    //
+    // The repository now carries the REAL, one-shot `randomization-commitment.json`,
+    // which `cpSync` drags into this synthetic repo. This fixture models the
+    // TWO-COMMIT choreography from scratch: the freeze commit below must NOT
+    // contain a commitment, and the fixture then writes its own synthetic one and
+    // commits it second. Leaving the copied file in place put it in the freeze
+    // commit as revision 1, so the fixture's own commitment became revision 2 and
+    // PR-017 correctly failed with "randomization-commitment.json has 2 revisions
+    // on record — it must never change after the commitment commit".
+    //
+    // Delete the copy so the synthetic history starts pre-commitment. This touches
+    // ONLY the throwaway copy under $TMPDIR — never the committed file, and never
+    // the real secret map at ~/.design-os/prereg-022/.
+    rmSync(join(specDir, "randomization-commitment.json"), { force: true });
 
     git(root, ["init", "-q", "-b", "main"]);
     git(root, ["config", "user.email", "fixture@example.invalid"]);
     git(root, ["config", "user.name", "Spec 022 Fixture"]);
     git(root, ["config", "commit.gpgsign", "false"]);
+    // The fixture creates many synthetic commits across the suite. On Linux,
+    // Git's auto-maintenance may detach and keep repopulating .git while the
+    // test's finally block removes the temp repo. Disable it in this disposable
+    // repository so cleanup owns the directory lifecycle deterministically.
+    git(root, ["config", "gc.auto", "0"]);
+    git(root, ["config", "maintenance.auto", "false"]);
 
     // ---- 1. freeze commit -------------------------------------------------
     commit(root, "freeze");
