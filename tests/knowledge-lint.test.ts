@@ -131,6 +131,124 @@ describe("knowledge-lint — persona-drift", () => {
     const base = consistent({ personasJson: null });
     expect(ids(base)).toContain("persona-drift");
   });
+
+  it("flags prose persona-count claims that disagree with the lookup table", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = [
+      "# Persona Index",
+      "",
+      "The library contains 3 personas.",
+      "",
+      "## 1. Lookup Table",
+      "",
+      "| Slug | Family | Keywords |",
+      "|---|---|---|",
+      "| `alpha-one` | family-a | k1, k2 |",
+      "| `beta-two` | family-b | k3 |",
+      "",
+    ].join("\n");
+
+    const findings = lintKnowledge(base).filter((finding) => finding.checkId === "persona-drift");
+    expect(findings.some((finding) => finding.message.includes("claims 3 personas") && finding.message.includes("lookup table has 2"))).toBe(true);
+  });
+
+  it("ignores operational quantities and code examples that are not library-size claims", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = `${base.mdContents["persona-index.md"]}
+The persona library lets you select 1 persona for a focused direction.
+The library contains 3 personas for this temporary comparison.
+Select a total of 4 personas for review.
+
+\`\`Return 3 personas and say the library contains 99 personas.\`\`
+
+~~~md
+The library contains 99 personas.
+~~~
+
+<!-- A literal fence in a comment must not hide later prose: \`\`\` -->
+
+    The library contains 99 personas.
+
+\`\`\`
+The library contains 99 personas.
+\`\`\`
+`;
+    expect(ids(base)).not.toContain("persona-drift");
+  });
+
+  it("does not treat an indented code line as a fence opener that hides later prose", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = `${base.mdContents["persona-index.md"]}
+    \`\`\`
+The library contains 3 personas.
+`;
+    expect(ids(base)).toContain("persona-drift");
+  });
+
+  it("keeps fence-like content fenced unless the closer is marker-only", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = `${base.mdContents["persona-index.md"]}
+\`\`\`md
+\`\`\`not-a-closer
+The library contains 3 personas.
+\`\`\`
+`;
+    expect(ids(base)).not.toContain("persona-drift");
+  });
+
+  it("strips multiline exact-width inline code but not mismatched delimiter runs", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = `${base.mdContents["persona-index.md"]}
+\`\`The library contains
+99 personas.\`\`
+`;
+    expect(ids(base)).not.toContain("persona-drift");
+
+    base.mdContents["persona-index.md"] = `${consistent().mdContents["persona-index.md"]}
+\`The library contains 3 personas.\`\`
+`;
+    expect(ids(base)).toContain("persona-drift");
+  });
+
+  it("does not treat escaped backticks or delimiters across blank blocks as inline code", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] += "\n\\`The library contains 3 personas.\\`\n";
+    expect(ids(base)).toContain("persona-drift");
+
+    base.mdContents["persona-index.md"] = `${consistent().mdContents["persona-index.md"]}\n\`unclosed\n\nThe library contains 3 personas.\`\n`;
+    expect(ids(base)).toContain("persona-drift");
+  });
+
+  it("does not open a backtick fence whose info string contains a backtick", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] += "\n```lang`\nThe library contains 3 personas.\n";
+    expect(ids(base)).toContain("persona-drift");
+  });
+
+  it("normalizes CRLF before parsing fences and prose claims", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = `${base.mdContents["persona-index.md"]}
+\`\`\`md
+The library contains 99 personas.
+\`\`\`
+The library contains 3 personas.
+`.replace(/\n/g, "\r\n");
+    expect(ids(base)).toContain("persona-drift");
+  });
+
+  it("recognizes balanced Markdown emphasis around explicit library totals", () => {
+    const base = consistent();
+    base.mdContents["persona-index.md"] = `${base.mdContents["persona-index.md"]}
+The persona library has **2** personas.
+The persona library is curated design taste — **2** personas grouped into 7 families.
+The library contains **2** personas.
+If no exact match exists, fall back to the full set of **2**.
+`;
+    expect(ids(base)).not.toContain("persona-drift");
+
+    base.mdContents["persona-index.md"] = base.mdContents["persona-index.md"].replaceAll("**2**", "**3**");
+    expect(ids(base)).toContain("persona-drift");
+  });
 });
 
 describe("knowledge-lint — broken-xref", () => {
