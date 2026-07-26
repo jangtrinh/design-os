@@ -1,0 +1,40 @@
+{
+  "$comment": "spec 022 — schema for owner-vote.json (one per presentation). No arm names anywhere — votes are in codename space until reveal.",
+  "type": "object",
+  "properties": {
+    "presentation_id": {
+      "type": "string",
+      "pattern": "^PR-[0-9a-f]{8}$"
+    },
+    "left_code": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$"
+    },
+    "right_code": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$"
+    },
+    "forced_preference": {
+      "type": "string",
+      "enum": ["left", "right"]
+    },
+    "both_fail": {
+      "type": "boolean"
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "voted_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": ["presentation_id", "left_code", "right_code", "forced_preference", "both_fail", "confidence", "reason", "voted_at"],
+  "additionalProperties": false
+}

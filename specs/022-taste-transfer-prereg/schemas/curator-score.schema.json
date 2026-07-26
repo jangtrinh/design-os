@@ -1,0 +1,103 @@
+{
+  "$comment": "spec 022 — schema for curator-score.json (one per codename, scored blind). additionalProperties:false keeps assignment/source/patch fields structurally impossible (PR-030).",
+  "type": "object",
+  "properties": {
+    "codename": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$"
+    },
+    "axes": {
+      "type": "object",
+      "properties": {
+        "authored_detail": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "hierarchy_composition": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "typography_content_fit": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "interaction_completeness": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "responsive_craft": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "brief_fidelity": { "type": "integer", "minimum": 1, "maximum": 5 }
+      },
+      "required": [
+        "authored_detail",
+        "hierarchy_composition",
+        "typography_content_fit",
+        "interaction_completeness",
+        "responsive_craft",
+        "brief_fidelity"
+      ],
+      "additionalProperties": false
+    },
+    "critical_regressions": {
+      "type": "object",
+      "properties": {
+        "accessibility_behavior": {
+          "type": "object",
+          "properties": {
+            "fired": { "type": "boolean" },
+            "note": { "type": "string" }
+          },
+          "required": ["fired", "note"],
+          "additionalProperties": false
+        },
+        "interaction_coherence": {
+          "type": "object",
+          "properties": {
+            "fired": { "type": "boolean" },
+            "note": { "type": "string" }
+          },
+          "required": ["fired", "note"],
+          "additionalProperties": false
+        },
+        "responsive_integrity": {
+          "type": "object",
+          "properties": {
+            "fired": { "type": "boolean" },
+            "note": { "type": "string" }
+          },
+          "required": ["fired", "note"],
+          "additionalProperties": false
+        },
+        "content_fidelity": {
+          "type": "object",
+          "properties": {
+            "fired": { "type": "boolean" },
+            "note": { "type": "string" }
+          },
+          "required": ["fired", "note"],
+          "additionalProperties": false
+        },
+        "contradiction_leakage": {
+          "type": "object",
+          "properties": {
+            "fired": { "type": "boolean" },
+            "note": { "type": "string" }
+          },
+          "required": ["fired", "note"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "accessibility_behavior",
+        "interaction_coherence",
+        "responsive_integrity",
+        "content_fidelity",
+        "contradiction_leakage"
+      ],
+      "additionalProperties": false
+    },
+    "anti_context_leak": {
+      "type": ["object", "null"],
+      "properties": {
+        "fired": { "type": "boolean" },
+        "note": { "type": "string" }
+      },
+      "required": ["fired", "note"],
+      "additionalProperties": false
+    },
+    "scored_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": ["codename", "axes", "critical_regressions", "anti_context_leak", "scored_at"],
+  "additionalProperties": false
+}

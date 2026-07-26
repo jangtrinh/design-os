@@ -1,0 +1,1259 @@
+{
+  "version": "1",
+  "briefs": [
+    {
+      "brief_id": "PA-AES-1",
+      "family": "aesthetics",
+      "role": "ordinary",
+      "ordinal": 1,
+      "title": "Privacy-first map SDK — Meridian Maps",
+      "product": {
+        "name": "Meridian Maps",
+        "facts": [
+          "Meridian Maps renders map tiles on-device — tiles are rendered locally on the user's device.",
+          "Zero location telemetry leaves the device: no location data is transmitted to Meridian Maps or any third party.",
+          "SDKs are available for Web, iOS, and Android.",
+          "The free tier includes 50,000 tile loads per month.",
+          "The Studio paid tier costs $49 per month.",
+          "The Fleet paid tier costs $290 per month.",
+          "Code sample (must appear verbatim in the artifact, in a code block):\nimport { MeridianMap } from '@meridian/maps-sdk';\n\nconst map = new MeridianMap({\n  container: '#map',\n  style: 'default',\n  telemetry: false,\n});\n\nmap.on('ready', () => {\n  map.setView({ lat: 40.7128, lng: -74.006, zoom: 11 });\n});"
+        ]
+      },
+      "content_requirements": [
+        "Render an API proof section that includes the supplied code sample exactly as given, character-for-character, inside a code block.",
+        "Include an installation path for adding the SDK to a project.",
+        "Present a pricing transition from the free tier to the two paid tiers, showing all three tier names and their monthly costs exactly as supplied.",
+        "Provide clear entry points into reference documentation.",
+        "State the on-device rendering and zero-location-telemetry facts exactly as supplied, without adding claims beyond them."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "const map = new MeridianMap({",
+          "description": "the supplied code sample appears verbatim inside a code block"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "$49",
+          "description": "the Studio tier price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "$290",
+          "description": "the Fleet tier price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "50,000",
+          "description": "the free-tier tile-load limit appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "Enterprise",
+          "description": "no additional invented pricing tier (for example an 'Enterprise' tier) appears beyond the two supplied tiers"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Developer-facing product marketing and documentation surface for a software SDK; the audience is engineers evaluating and integrating a mapping SDK.",
+      "anti_context_condition": "Whichever overall visual treatment is chosen for this surface, it must not be carried onto caregiver- or health-context surfaces, urgent task flows, or operational/status and dense-data-table content — those areas must stay plain, calm, and highly legible regardless of the treatment used elsewhere.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-AES-2",
+      "family": "aesthetics",
+      "role": "ordinary",
+      "ordinal": 2,
+      "title": "Climate research archive — Ledger of Rain",
+      "product": {
+        "name": "Ledger of Rain",
+        "facts": [
+          "Ledger of Rain is a climate research archive presenting 142 datasets.",
+          "The archive spans a 12-year continuous observation record.",
+          "Data collection covers four regions: delta, highland, coastal, and urban.",
+          "Each dataset carries one of three peer-review status labels: reviewed, preprint, or working note.",
+          "Six researchers are profiled: Dr. Naledi Osei, Dr. Farrukh Aslanov, Dr. Ilse Brandsma, Dr. Corin Achebe-Voss, Dr. Priya Ramanathan, and Dr. Tomas Eiríksson.",
+          "Each researcher profile states their region of focus and their years of contribution to the archive."
+        ]
+      },
+      "content_requirements": [
+        "Provide a reports/data index section listing the datasets.",
+        "Include a methodology section describing observation methods.",
+        "Include data notes distinguishing the four supplied regions.",
+        "Render all six supplied researcher profiles by name.",
+        "Render each dataset's peer-review status using exactly the three supplied labels — reviewed, preprint, working note — with no additional or renamed status labels."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "142",
+          "description": "the dataset count appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "12-year",
+          "description": "the observation-record length appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "reviewed, preprint, working note",
+          "description": "all three peer-review status labels appear, unmodified"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Dr. Naledi Osei, Dr. Farrukh Aslanov, Dr. Ilse Brandsma, Dr. Corin Achebe-Voss, Dr. Priya Ramanathan, Dr. Tomas Eiríksson",
+          "description": "all six supplied researcher names appear in the artifact"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "under review",
+          "description": "no invented peer-review status label such as 'under review' appears — only the three supplied labels are used"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Public-facing evidence-archive and index surface for climate research data, intended for researchers, journalists, and policy readers.",
+      "anti_context_condition": "Whichever overall visual treatment is chosen for this surface, it must not be carried onto caregiver- or health-context surfaces, urgent task flows, or operational/status and dense-data-table content — those areas must stay plain, calm, and highly legible regardless of the treatment used elsewhere.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": true
+    },
+    {
+      "brief_id": "PA-AES-3",
+      "family": "aesthetics",
+      "role": "ordinary",
+      "ordinal": 3,
+      "title": "Creative-technology case study — Fieldwork / Tidal Clock",
+      "product": {
+        "name": "Tidal Clock",
+        "facts": [
+          "Fieldwork is a creative-technology studio; this case study covers Tidal Clock, a public interactive installation.",
+          "Tidal Clock ran for 6 weeks.",
+          "The installation drew 48,000 visitors during its run.",
+          "The project moved through three phases: survey, prototype, and install.",
+          "The client was the Port Meridian Cultural Office, a harbor city's public cultural office.",
+          "Inquiry email (use verbatim): hello@fieldworkstudio.example"
+        ]
+      },
+      "content_requirements": [
+        "Present the three supplied process phases — survey, prototype, install — as distinct case-study sections or artifacts.",
+        "State the outcome figures (6-week run, 48,000 visitors) exactly as supplied.",
+        "Name the client exactly as supplied.",
+        "Provide the inquiry-path email exactly as supplied.",
+        "Do not invent additional awards, press mentions, or clients beyond what is supplied."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "48,000",
+          "description": "the visitor outcome figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "6 weeks",
+          "description": "the run-length figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Port Meridian Cultural Office",
+          "description": "the client name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "hello@fieldworkstudio.example",
+          "description": "the inquiry email appears verbatim"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "award",
+          "description": "no invented award or press mention appears anywhere in the artifact"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Creative-technology agency case-study surface presenting a completed public installation project to prospective clients.",
+      "anti_context_condition": "Whichever overall visual treatment is chosen for this surface, it must not be carried onto caregiver- or health-context surfaces, urgent task flows, or operational/status and dense-data-table content — those areas must stay plain, calm, and highly legible regardless of the treatment used elsewhere.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-AES-4",
+      "family": "aesthetics",
+      "role": "contradiction",
+      "ordinal": 4,
+      "title": "Contradiction: calm pediatric appointment flow — Bluebird Clinic",
+      "product": {
+        "name": "Bluebird Clinic",
+        "facts": [
+          "Bluebird Clinic is a pediatric care practice offering scheduled and same-week appointments for children.",
+          "Caregivers can schedule a new visit or reschedule an existing visit for their child.",
+          "Before booking is confirmed, the flow checks whether the caregiver's insurance plan is accepted.",
+          "A short pre-visit checklist reminds caregivers to bring the child's insurance card, a list of current medications, and any recent symptom notes.",
+          "Confirmation microcopy (use verbatim): \"You're all set — we'll see you and your little one soon.\"",
+          "Reschedule microcopy (use verbatim): \"Plans change — let's find a new time that works better for you.\"",
+          "Insurance-check microcopy (use verbatim): \"Just checking — we want your visit to go smoothly.\""
+        ]
+      },
+      "content_requirements": [
+        "Provide a flow to schedule a new visit and a flow to reschedule an existing visit for a child.",
+        "Include an insurance-acceptance check step before booking is confirmed.",
+        "Present the pre-visit checklist exactly as supplied.",
+        "Use the three supplied caregiver-facing microcopy strings exactly, in their corresponding steps.",
+        "Keep the entire flow calm, plain, and highly legible — no display-scale typography, no hard black/white chapter-style cuts, and no confrontational visual treatment anywhere in the flow."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "insurance card, a list of current medications, and any recent symptom notes",
+          "description": "the pre-visit checklist items appear as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "You're all set — we'll see you and your little one soon.",
+          "description": "the confirmation microcopy appears verbatim"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Plans change — let's find a new time that works better for you.",
+          "description": "the reschedule microcopy appears verbatim"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Just checking — we want your visit to go smoothly.",
+          "description": "the insurance-check microcopy appears verbatim"
+        },
+        {
+          "check_id": "AC5",
+          "type": "attr-check",
+          "target": "form h1, form h2, .form-heading, .form-label",
+          "description": "no heading or label within the scheduling form exceeds a small, non-billboard display font-size cap"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Consumer/caregiver-facing pediatric healthcare scheduling surface; needs calm, legible, and reassuring design throughout.",
+      "anti_context_condition": "A leak occurs if the flow is given editorial or brutalist styling — confrontational display typography, billboard-scale type, hard black-and-white chapter cuts, mono-ornament instrumentation, or anything that reduces legibility or calm.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-MOT-1",
+      "family": "motion",
+      "role": "ordinary",
+      "ordinal": 1,
+      "title": "Industrial-design launch — Halde modular desk system",
+      "product": {
+        "name": "Halde",
+        "facts": [
+          "Halde is a modular desk system with a recycled-aluminum frame.",
+          "Desktop surfaces are available in ash veneer.",
+          "The system uses tool-free joinery for assembly.",
+          "The spec table lists three frame heights: 68 cm, 73 cm, and 78 cm.",
+          "The spec table lists two desktop widths: 140 cm and 180 cm.",
+          "Halde ships in 2–4 weeks depending on configuration.",
+          "An order call-to-action lets customers configure and order a desk directly."
+        ]
+      },
+      "content_requirements": [
+        "Provide an entrance/reveal sequence introducing the product.",
+        "Include one narrative reveal sequence describing the material and process story (recycled-aluminum frame, ash veneer, tool-free joinery) exactly as supplied.",
+        "Render a spec table with the supplied frame heights and desktop widths exactly.",
+        "Provide an order call-to-action.",
+        "Ensure the reveal sequence has a reduced-motion equivalent that renders the settled, final state immediately."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "recycled-aluminum",
+          "description": "the frame-material fact appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "ash veneer",
+          "description": "the desktop-material fact appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "tool-free",
+          "description": "the joinery fact appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "140 cm",
+          "description": "a supplied desktop width appears in the spec table"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "a[href], button",
+          "description": "a primary order/configure call-to-action control exists on the page"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Industrial-design product-launch surface introducing a physical furniture product to prospective buyers.",
+      "anti_context_condition": "Whichever pacing or choreography is chosen for this surface, forms and dense data-entry surfaces must always get instant feedback with no entrance choreography, regardless of the overall motion treatment used elsewhere on the page.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-MOT-2",
+      "family": "motion",
+      "role": "ordinary",
+      "ordinal": 2,
+      "title": "B2B product-proof page — Relay Ops",
+      "product": {
+        "name": "Relay Ops",
+        "facts": [
+          "Relay Ops is an incident-automation tool for engineering teams.",
+          "The product-proof section shows three interface states in sequence: alert, triage, resolution.",
+          "Alert-state copy (use verbatim): \"New alert detected — awaiting triage.\"",
+          "Triage-state copy (use verbatim): \"Assigned to on-call — investigating root cause.\"",
+          "Resolution-state copy (use verbatim): \"Incident resolved — postmortem scheduled.\"",
+          "A pricing footer lists two plans: Team at $89/month and Org at $340/month."
+        ]
+      },
+      "content_requirements": [
+        "Render at least three distinct interface states — alert, triage, resolution — using the supplied copy exactly.",
+        "Include one handoff animation showing the transition from one state to the next.",
+        "Include a pricing footer with both supplied plan names and prices exactly.",
+        "Ensure state transitions behave correctly and remain legible across all three viewports."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "New alert detected — awaiting triage.",
+          "description": "the alert-state copy appears verbatim"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Assigned to on-call — investigating root cause.",
+          "description": "the triage-state copy appears verbatim"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Incident resolved — postmortem scheduled.",
+          "description": "the resolution-state copy appears verbatim"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "$89",
+          "description": "the Team plan price appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "$340",
+          "description": "the Org plan price appears exactly as supplied"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "B2B software product-proof marketing surface demonstrating a workflow tool's states to a technical buyer.",
+      "anti_context_condition": "Whichever pacing or choreography is chosen for this surface, forms and dense data-entry surfaces must always get instant feedback with no entrance choreography, regardless of the overall motion treatment used elsewhere on the page.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": true
+    },
+    {
+      "brief_id": "PA-MOT-3",
+      "family": "motion",
+      "role": "ordinary",
+      "ordinal": 3,
+      "title": "Museum exhibition story — The Glass Room: A Century of Signal",
+      "product": {
+        "name": "The Glass Room: A Century of Signal",
+        "facts": [
+          "This is a museum exhibition story told as a scroll narrative with five chapters.",
+          "The five chapters, in order, are titled: Silence; First Transmission; Interference; The Long Relay; Afterimage.",
+          "The story must tolerate a visitor entering mid-scroll without breaking chapter state.",
+          "Under reduced motion, each chapter renders its settled final state immediately, without a scroll-triggered build-up.",
+          "Chapter imagery is drawn from supplied assets where available; where no image is supplied, an intentional no-image treatment is the correct outcome — imagery must never be invented."
+        ]
+      },
+      "content_requirements": [
+        "Structure the narrative into exactly the five supplied chapters, in the supplied order, with the supplied titles.",
+        "Support entry at any scroll position mid-story without breaking the chapter/caption state.",
+        "Render settled, final-state chapters under reduced motion, with no scroll-triggered animation.",
+        "Leave any unsupplied imagery slot intentionally empty rather than inventing an image."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Silence",
+          "description": "the first chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "First Transmission",
+          "description": "the second chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Interference",
+          "description": "the third chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "The Long Relay",
+          "description": "the fourth chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "Afterimage",
+          "description": "the fifth and final chapter title appears exactly as supplied"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Museum/cultural exhibition storytelling surface presented as a long-form scroll narrative to museum visitors and online audiences.",
+      "anti_context_condition": "Whichever pacing or choreography is chosen for this surface, forms and dense data-entry surfaces must always get instant feedback with no entrance choreography, regardless of the overall motion treatment used elsewhere on the page.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-MOT-4",
+      "family": "motion",
+      "role": "contradiction",
+      "ordinal": 4,
+      "title": "Contradiction: dense financial-operations form — Treasury reconciliation console",
+      "product": {
+        "name": "Treasury reconciliation console",
+        "facts": [
+          "This is a dense financial-operations console for batch approval of ledger reconciliation entries.",
+          "Entry is keyboard-first: every row must be selectable, editable, and approvable using the keyboard alone.",
+          "The ledger table contains exactly 20 fixed rows, each with an account code, an amount, and a status of pending or approved.",
+          "Ledger rows (account code — amount — status), in order: Ops-4410 — $12,480.00 — pending; Ops-4411 — $3,220.50 — approved; Ops-4412 — $8,905.75 — pending; Ops-4413 — $610.00 — approved; Ops-4414 — $22,340.10 — pending; Ops-4415 — $1,150.25 — approved; Ops-4416 — $9,875.60 — pending; Ops-4417 — $4,400.00 — approved; Ops-4418 — $15,200.35 — pending; Ops-4419 — $2,075.90 — approved; Ops-4420 — $6,340.00 — pending; Ops-4421 — $780.45 — approved; Ops-4422 — $19,050.00 — pending; Ops-4423 — $3,990.20 — approved; Ops-4424 — $11,225.75 — pending; Ops-4425 — $525.00 — approved; Ops-4426 — $17,660.30 — pending; Ops-4427 — $2,840.00 — approved; Ops-4428 — $13,410.85 — pending; Ops-4429 — $960.00 — approved.",
+          "A batch-approval control allows approving all currently selected pending rows at once."
+        ]
+      },
+      "content_requirements": [
+        "Render the ledger table with exactly the 20 supplied rows, in the supplied order, with each account code, amount, and status shown.",
+        "Support keyboard-first entry: every row is reachable, selectable, and approvable using the keyboard alone, with visible focus states.",
+        "Provide a batch-approval control for approving selected pending rows.",
+        "Keep all feedback instant — no long entrance animations, no smooth-scroll capture, no decorative stagger on rows or controls, and no delayed input feedback."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Ops-4410",
+          "description": "the first ledger row's account code appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Ops-4429",
+          "description": "the last ledger row's account code appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "$12,480.00",
+          "description": "the first row's amount appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-absent",
+          "target": "tbody tr[class*='stagger'], tbody tr[class*='animate']",
+          "description": "no animation or stagger classes are applied to ledger table rows"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "smooth-scroll",
+          "description": "no smooth-scroll or scroll-hijack library reference appears in the artifact's script"
+        },
+        {
+          "check_id": "AC6",
+          "type": "text-absent",
+          "target": "scrollTo({ behavior: 'smooth'",
+          "description": "no programmatic smooth-scroll hijack call is present"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Internal, keyboard-first financial back-office console for reconciling and batch-approving ledger entries; used by trained operators under time pressure.",
+      "anti_context_condition": "A leak occurs if the console shows long entrance animations, smooth-scroll capture or hijacking of the page, decorative staggered animation on table rows or form controls, or delayed input feedback.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-DEV-1",
+      "family": "devices",
+      "role": "ordinary",
+      "ordinal": 1,
+      "title": "Annual-report data story — Arden Water Cooperative FY2025",
+      "product": {
+        "name": "Arden Water Cooperative FY2025 Annual Report",
+        "facts": [
+          "Households served in FY2025: 42,300.",
+          "Water delivered in FY2025: 6.1 billion liters.",
+          "Leak-reduction rate achieved: 18%.",
+          "Share of pumping powered by renewables: 61%.",
+          "Member cooperative accounts at year end: 3,120.",
+          "Operating reserve at year end: $4.85M.",
+          "Customer satisfaction score: 4.6 out of 5.",
+          "Six-event chronology, in order: Jan 2025 — new reservoir monitoring system online; Mar 2025 — leak-detection pilot completed in the north district; Jun 2025 — cooperative membership surpassed 3,000 accounts; Aug 2025 — solar pumping station commissioned; Oct 2025 — emergency reserve fund reached target level; Dec 2025 — FY2025 audit completed with no findings.",
+          "Board letter (use verbatim): \"This year, Arden Water Cooperative strengthened the systems our members rely on every day. We reduced leaks, expanded renewable-powered pumping, and closed the year with a stronger reserve. Thank you for your continued trust in this cooperative.\" — signed, the Arden Water Cooperative Board",
+          "Source note (use verbatim): \"Figures are drawn from Arden Water Cooperative's internal FY2025 operations and finance systems.\""
+        ]
+      },
+      "content_requirements": [
+        "Render all seven supplied metric figures exactly as supplied.",
+        "Present the six-event chronology in the supplied order with the supplied dates and descriptions.",
+        "Include the board letter exactly as supplied, attributed as supplied.",
+        "Include the source note exactly as supplied, near the figures it supports.",
+        "Use ordering/numbering only where content is genuinely ordered, such as the chronology; do not add numbering ornament elsewhere."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "42,300",
+          "description": "the households-served figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "6.1 billion liters",
+          "description": "the water-delivered figure appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "4.6 out of 5",
+          "description": "the customer-satisfaction score appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "This year, Arden Water Cooperative strengthened the systems our members rely on every day.",
+          "description": "the board letter's opening sentence appears verbatim"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "Figures are drawn from Arden Water Cooperative's internal FY2025 operations and finance systems.",
+          "description": "the source note appears verbatim"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Annual-report / data-story surface presenting a cooperative utility's yearly performance to members and the public.",
+      "anti_context_condition": "Any secondary structural device used elsewhere on this surface must not appear inside dense data tables, reading panes, forms, or urgent flows — those areas must stay free of ornamental secondary structure.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-DEV-2",
+      "family": "devices",
+      "role": "ordinary",
+      "ordinal": 2,
+      "title": "Architecture portfolio — Atelier Nord",
+      "product": {
+        "name": "Atelier Nord",
+        "facts": [
+          "Atelier Nord is an architecture practice; the portfolio presents five completed projects.",
+          "Project 1: Fjord Reading Room, located in Alsvik; primary material: black-stained timber.",
+          "Project 2: Timber Bridge House, located in Kessund; primary material: laminated spruce beams.",
+          "Project 3: Harbor Market Pavilion, located in Nordholm; primary material: galvanized steel and glass.",
+          "Project 4: Quarry Guest House, located in Berghavn; primary material: local granite.",
+          "Project 5: Glasswork Studio Extension, located in Sorenvik; primary material: cast glass block.",
+          "Plan drawings and site imagery are supplied only where a pack asset exists for a project; where none is supplied, an intentional no-image placeholder is the correct outcome — imagery must never be invented.",
+          "Inquiry path (use verbatim): \"To discuss a project, write to inquiries@ateliernord.example.\""
+        ]
+      },
+      "content_requirements": [
+        "Present a project index listing all five supplied projects by name and location.",
+        "Give each project a detail view stating its supplied primary material.",
+        "Leave any unsupplied plan-drawing or site-image slot intentionally empty rather than inventing imagery.",
+        "Include the inquiry path exactly as supplied."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Fjord Reading Room",
+          "description": "the first project's name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Glasswork Studio Extension",
+          "description": "the fifth project's name appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Alsvik",
+          "description": "the first project's location appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "inquiries@ateliernord.example",
+          "description": "the inquiry email appears verbatim"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "Quarry Guest House",
+          "description": "the fourth project's name appears exactly as supplied"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Architecture-practice portfolio surface presenting completed projects to prospective clients and press.",
+      "anti_context_condition": "Any secondary structural device used elsewhere on this surface must not appear inside dense data tables, reading panes, forms, or urgent flows — those areas must stay free of ornamental secondary structure.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": true
+    },
+    {
+      "brief_id": "PA-DEV-3",
+      "family": "devices",
+      "role": "ordinary",
+      "ordinal": 3,
+      "title": "Long research article — Soil carbon at the field margin",
+      "product": {
+        "name": "Soil carbon at the field margin",
+        "facts": [
+          "This is a long-form research article about soil carbon accumulation at field margins, structured into eight chapters.",
+          "The eight chapter titles, in order, are: Why the Margin Matters; Measuring What's Underground; A Decade of Field Samples; What the Numbers Show; Where Carbon Accumulates; Limits of the Method; Policy Implications; Open Questions.",
+          "The article cites exactly twelve sources (a fixed, fictitious citation set authored for this brief; not real literature): [1] Okafor & Lindqvist (2019), Journal of Field Soil Studies; [2] Petrov et al. (2020), Agricultural Systems Review; [3] Hallström (2018), Soil & Margin Quarterly; [4] Nakamura & Bello (2021), Environmental Carbon Letters; [5] Ferreira (2017), Field Ecology Notes; [6] Anwar et al. (2022), Journal of Applied Land Use; [7] Dubois & Okoro (2019), Carbon Cycling Annual; [8] Kowalska (2020), Margin Studies Bulletin; [9] Reyes & Lindqvist (2021), Soil Science Working Papers; [10] Haile (2016), Journal of Agroecology; [11] Voss et al. (2023), Field Margin Review; [12] Tanaka & Ferreira (2018), Environmental Carbon Letters.",
+          "A progress affordance (for example a reading-progress indicator) is allowed for this genuinely chaptered, ordered content.",
+          "Figure slots are supplied only where a pack asset exists; where none is supplied, an intentional no-image placeholder is the correct outcome — imagery must never be invented."
+        ]
+      },
+      "content_requirements": [
+        "Structure the article into exactly the eight supplied chapters, in the supplied order and titles.",
+        "Render a citation list containing exactly the twelve supplied citations.",
+        "A chapter-progress affordance may be included, since this content is genuinely ordered and chaptered.",
+        "Leave any unsupplied figure slot intentionally empty rather than inventing imagery."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Why the Margin Matters",
+          "description": "the first chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Open Questions",
+          "description": "the eighth and final chapter title appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Okafor & Lindqvist (2019)",
+          "description": "the first citation appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "Tanaka & Ferreira (2018)",
+          "description": "the twelfth citation appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-present",
+          "target": "Limits of the Method",
+          "description": "the sixth chapter title appears exactly as supplied"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Long-form chaptered research-article reading surface aimed at researchers and practitioners.",
+      "anti_context_condition": "Any secondary structural device used elsewhere on this surface must not appear inside dense data tables, reading panes, forms, or urgent flows — those areas must stay free of ornamental secondary structure.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-DEV-4",
+      "family": "devices",
+      "role": "contradiction",
+      "ordinal": 4,
+      "title": "Contradiction: urgent account-recovery flow",
+      "product": {
+        "name": "Harrow Account Recovery",
+        "facts": [
+          "This is an urgent account-recovery flow for a locked-out user, consisting of exactly three steps: verify identity, reset credential, confirmation.",
+          "Step 1 microcopy (use verbatim): \"Let's verify it's you. Enter the email or phone number on your account.\"",
+          "Step 2 microcopy (use verbatim): \"Choose a new password. Make it at least 12 characters.\"",
+          "Step 3 microcopy (use verbatim): \"Your account is secure. You can sign in now.\"",
+          "The flow must be fast to complete — no unnecessary steps beyond the three supplied."
+        ]
+      },
+      "content_requirements": [
+        "Implement exactly the three supplied steps — verify identity, reset credential, confirmation — using the supplied microcopy verbatim.",
+        "Keep the flow short, direct, and free of any content beyond the three supplied steps.",
+        "Show no decorative frames, guide lines, edge-blur effects, animated counters, numeric ornamentation, or a scroll-progress rail on this short, urgent flow."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Let's verify it's you. Enter the email or phone number on your account.",
+          "description": "step 1 microcopy appears verbatim"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Choose a new password. Make it at least 12 characters.",
+          "description": "step 2 microcopy appears verbatim"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Your account is secure. You can sign in now.",
+          "description": "step 3 microcopy appears verbatim"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-absent",
+          "target": "[class*='progress-rail'], [class*='scroll-progress']",
+          "description": "no scroll-progress rail element is present on this short flow"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "backdrop-filter",
+          "description": "no backdrop-filter (edge-blur) is declared on non-modal layers in the artifact's styles"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Short, urgent, self-service account-recovery flow for a locked-out user who needs to regain access quickly.",
+      "anti_context_condition": "A leak occurs if the flow shows decorative frames or guide lines, edge-blur effects, animated counters or numeric ornamentation, or a scroll-progress rail on this short, urgent flow.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-MED-1",
+      "family": "media",
+      "role": "ordinary",
+      "ordinal": 1,
+      "title": "Climate campaign hero — Shorelines 2030",
+      "product": {
+        "name": "Shorelines 2030",
+        "facts": [
+          "Shorelines 2030 is a climate-restoration campaign with a hero built from supplied wide landscape imagery.",
+          "Campaign message (use verbatim): \"The tide is turning.\"",
+          "Campaign sub-message (use verbatim): \"Join the coastal restoration campaign reaching 40 communities by 2030.\"",
+          "Three supplied wide (16:9) images are available for the hero and supporting sections; each carries a calm text reserve for the campaign message.",
+          "The hero and supporting imagery must remain focal-safe and legible at all three viewports: 390, 768, and 1440 CSS pixels."
+        ]
+      },
+      "content_requirements": [
+        "Use the supplied wide images for the hero and any supporting image sections; do not substitute or invent imagery.",
+        "Render the campaign message and sub-message exactly as supplied.",
+        "Preserve focal safety and the text reserve on the wide imagery at all three viewports, cropping responsively rather than distorting or losing the message reserve."
+      ],
+      "supplied_assets": [
+        {
+          "asset_id": "PA-MED-1-wide-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-1-wide-1"
+        },
+        {
+          "asset_id": "PA-MED-1-wide-2",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-1-wide-2"
+        },
+        {
+          "asset_id": "PA-MED-1-wide-3",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-1-wide-3"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "The tide is turning.",
+          "description": "the campaign message appears verbatim"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Join the coastal restoration campaign reaching 40 communities by 2030.",
+          "description": "the campaign sub-message appears verbatim"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "img, picture, [style*='background-image']",
+          "description": "at least one instance of the supplied imagery is rendered"
+        },
+        {
+          "check_id": "AC4",
+          "type": "attr-check",
+          "target": "img[src], picture source[srcset]",
+          "description": "responsive image sources are declared for use across the three viewports"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "stock-fallback",
+          "description": "no fallback stock-imagery placeholder text or marker appears"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Public climate-campaign marketing surface using supplied landscape photography to build an emotional, place-based appeal.",
+      "anti_context_condition": "Imagery decisions on this surface must never be used to justify inventing pictures that were not supplied or approved; on data, legal, console, and form surfaces, no decorative imagery should appear at all, and an intentionally empty image slot is a correct, acceptable outcome.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-MED-2",
+      "family": "media",
+      "role": "ordinary",
+      "ordinal": 2,
+      "title": "Executive profile — Mara Ellison, Freight Cooperative COO",
+      "product": {
+        "name": "Mara Ellison",
+        "facts": [
+          "Mara Ellison is the Chief Operating Officer of a freight cooperative.",
+          "She has 14 years of experience in cooperative logistics.",
+          "She led the cooperative's transition to a member-owned regional freight network.",
+          "A supplied formal headshot is available for functional, directory-style contexts.",
+          "A supplied editorial portrait is available for narrative, story-driven contexts.",
+          "The page must place each supplied image in the context matching its register — the functional headshot in functional contexts, the editorial portrait in narrative contexts — and never mix registers within one context."
+        ]
+      },
+      "content_requirements": [
+        "Include a profile header using the register-appropriate supplied image.",
+        "Include a story or narrative section using the other supplied image in its appropriate register.",
+        "State the bio facts exactly as supplied, without inventing additional biographical claims.",
+        "Choose image placement deliberately per context; do not use the editorial portrait where a uniform, functional presentation is required, and do not use the functional headshot where a narrative, editorial context is intended."
+      ],
+      "supplied_assets": [
+        {
+          "asset_id": "PA-MED-2-headshot-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-2-headshot-1"
+        },
+        {
+          "asset_id": "PA-MED-2-portrait-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-2-portrait-1"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Chief Operating Officer",
+          "description": "the role fact appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "14 years",
+          "description": "the experience fact appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "selector-exists",
+          "target": "img, picture",
+          "description": "at least one of the two supplied images is rendered"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "freight cooperative",
+          "description": "the organization-type fact appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "text-absent",
+          "target": "stock photo",
+          "description": "no additional invented or stock imagery beyond the two supplied images is referenced"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Executive-profile surface presenting a cooperative's COO across both a functional directory-style header and a narrative story context.",
+      "anti_context_condition": "Imagery decisions on this surface must never be used to justify inventing pictures that were not supplied or approved; on data, legal, console, and form surfaces, no decorative imagery should appear at all, and an intentionally empty image slot is a correct, acceptable outcome.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": true
+    },
+    {
+      "brief_id": "PA-MED-3",
+      "family": "media",
+      "role": "ordinary",
+      "ordinal": 3,
+      "title": "Material product launch — Grain hardwood speaker",
+      "product": {
+        "name": "Grain",
+        "facts": [
+          "Grain is a hardwood speaker product; three supplied macro product images are available.",
+          "Cabinet material: solid walnut, hand-finished.",
+          "Driver: a 5-inch full-range driver with a passive radiator.",
+          "Amplifier power: 60W Class-D.",
+          "Connectivity: Bluetooth 5.3 and a 3.5 mm analog input.",
+          "Battery life: 14 hours at moderate volume.",
+          "Weight: 1.8 kg."
+        ]
+      },
+      "content_requirements": [
+        "Use the three supplied macro images to art-direct focal hierarchy across all three viewports; do not invent or substitute imagery.",
+        "Render a spec section listing all six supplied specs exactly.",
+        "Vary the imagery's focal crop and hierarchy appropriately per viewport while keeping the product's key materials and details in focus."
+      ],
+      "supplied_assets": [
+        {
+          "asset_id": "PA-MED-3-macro-1",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-3-macro-1"
+        },
+        {
+          "asset_id": "PA-MED-3-macro-2",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-3-macro-2"
+        },
+        {
+          "asset_id": "PA-MED-3-macro-3",
+          "manifest_ref": "assets/brief-media-manifest.json#/assets/PA-MED-3-macro-3"
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "solid walnut",
+          "description": "the cabinet-material spec appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "60W Class-D",
+          "description": "the amplifier-power spec appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Bluetooth 5.3",
+          "description": "the connectivity spec appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "text-present",
+          "target": "14 hours",
+          "description": "the battery-life spec appears exactly as supplied"
+        },
+        {
+          "check_id": "AC5",
+          "type": "selector-exists",
+          "target": "img, picture",
+          "description": "at least one supplied macro image is rendered"
+        },
+        {
+          "check_id": "AC6",
+          "type": "text-present",
+          "target": "1.8 kg",
+          "description": "the weight spec appears exactly as supplied"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Material-led product-launch surface for a physical audio product, using close product photography to convey craft and materials.",
+      "anti_context_condition": "Imagery decisions on this surface must never be used to justify inventing pictures that were not supplied or approved; on data, legal, console, and form surfaces, no decorative imagery should appear at all, and an intentionally empty image slot is a correct, acceptable outcome.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    },
+    {
+      "brief_id": "PA-MED-4",
+      "family": "media",
+      "role": "contradiction",
+      "ordinal": 4,
+      "title": "Contradiction: authenticated admin console, no approved imagery",
+      "product": {
+        "name": "Fleet Admin Console",
+        "facts": [
+          "This is an authenticated internal admin console with three surfaces: user administration, session administration, and queue administration.",
+          "The navigation labels are fixed and must be used exactly: Users, Sessions, Queue.",
+          "Zero approved imagery exists for this console — no stock photography, no generated imagery, no decorative photography, and no background imagery may be used.",
+          "A small functional logo mark is the only visual mark permitted; it is not decorative photography.",
+          "Each admin surface (Users, Sessions, Queue) presents a data table appropriate to its domain."
+        ]
+      },
+      "content_requirements": [
+        "Implement exactly the three admin surfaces — Users, Sessions, Queue — using the fixed navigation labels exactly.",
+        "Include zero photographic or decorative imagery anywhere on the console; render only functional UI, data, and, if present, a single small logo mark.",
+        "Render each surface's core data table appropriate to a user, session, or queue administration context.",
+        "Treat the absence of any photograph or illustration as the correct, expected outcome — do not add imagery to make the surfaces feel more polished."
+      ],
+      "supplied_assets": [],
+      "acceptance_checks": [
+        {
+          "check_id": "AC1",
+          "type": "text-present",
+          "target": "Users",
+          "description": "the Users navigation label appears exactly as supplied"
+        },
+        {
+          "check_id": "AC2",
+          "type": "text-present",
+          "target": "Sessions",
+          "description": "the Sessions navigation label appears exactly as supplied"
+        },
+        {
+          "check_id": "AC3",
+          "type": "text-present",
+          "target": "Queue",
+          "description": "the Queue navigation label appears exactly as supplied"
+        },
+        {
+          "check_id": "AC4",
+          "type": "selector-absent",
+          "target": "img, picture",
+          "description": "no img or picture element exists anywhere in the artifact"
+        },
+        {
+          "check_id": "AC5",
+          "type": "attr-check",
+          "target": "[style*='background-image'], [class*='bg-image']",
+          "description": "no CSS background-image is applied anywhere beyond a single allowed logo-mark element"
+        }
+      ],
+      "gate_set": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"],
+      "context_boundary": "Internal, authenticated administrative console for operators managing users, sessions, and a processing queue; strictly functional, with no marketing imagery.",
+      "anti_context_condition": "A leak occurs if any media is inserted at all — stock photography, generated imagery, decorative photography, or background imagery of any kind.",
+      "identical_across_arms": [
+        "product.facts",
+        "supplied_assets",
+        "provider_identity",
+        "environment",
+        "orchestration",
+        "token_ceiling",
+        "repair_protocol",
+        "viewports",
+        "acceptance_checks",
+        "gate_set"
+      ],
+      "viewports": [390, 768, 1440],
+      "reduced_motion_required": true,
+      "is_duplicate_source": false
+    }
+  ]
+}

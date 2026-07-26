@@ -1,0 +1,78 @@
+{
+  "$comment": "spec 022 — schema for selection-manifest.json. D12 draft subset only (see BUILD-CONTRACT). One record per upstream SKILL.md at the pinned commit; exactly 121 records.",
+  "type": "object",
+  "properties": {
+    "pinned_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "const": "21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49"
+    },
+    "enumeration_command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "record_count": {
+      "type": "integer",
+      "const": 121
+    },
+    "records": {
+      "type": "array",
+      "minItems": 121,
+      "maxItems": 121,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^agent-skills/[^/]+/[^/]+/SKILL\\.md$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "licence_disposition": {
+            "type": "string",
+            "enum": ["mit-root", "mit-root-third-party-refs", "observe-only", "reject-identity"]
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "aesthetic-system",
+              "micro-device",
+              "genre-playbook",
+              "motion-system",
+              "library-recipe",
+              "media-art-direction",
+              "workflow-pipeline",
+              "qa-verification",
+              "engineering",
+              "game-development",
+              "customer-support",
+              "communication-voice",
+              "other"
+            ]
+          },
+          "selected_candidate_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["A1", "A2", "A3", "M1", "M2", "M3", "D1", "D2", "D3", "D4", "P1", "P2"]
+            }
+          },
+          "disposition": {
+            "type": "string",
+            "enum": ["selected", "not-selected", "rejected-from-study", "out-of-scope"]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["path", "sha256", "licence_disposition", "classification", "selected_candidate_ids", "disposition", "reason"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["pinned_commit", "enumeration_command", "record_count", "records"],
+  "additionalProperties": false
+}
