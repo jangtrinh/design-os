@@ -1,0 +1,185 @@
+{
+  "upstream_commit": "21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49",
+  "candidates": [
+    {
+      "candidate_id": "A1",
+      "family": "aesthetics",
+      "title": "Editorial-technical register",
+      "one_line_contract": "Editorial-technical register: asymmetric editorial composition fused with precise product-tech detailing, one restrained accent",
+      "portable_contract": "compose asymmetrically with strong column structure, deliberate negative space, and offset alignment — never a centered generic hero stack; two typographic voices — one expressive display voice for headline moments, one quiet utility voice (clean sans or mono) for labels, steps, timestamps, and metadata; engineer the surface with fine rules, grid traces, thin borders, and small technical markers; treat media as narrative bands — wide strips or inset panels crossing the grid in controlled ways; one restrained accent used only to punctuate (active states, key figures, current step, primary action); hold the register midpoint — more narrative than a dashboard, more precise than a magazine. Tuning axes (vocabulary, never lint): composition drama · instrumentation density · accent sparsity · media weight.",
+      "context_boundary": "developer/technical products, research and documentation, editorially presented case studies, restrained light or dark neutral surfaces.",
+      "anti_context": "care/health and consumer-warm surfaces; urgent task flows; operational/status panels and dense data tables — these stay plain.",
+      "source_paths": ["agent-skills/web-design/editorial-tech/SKILL.md"],
+      "source_sha256": ["9f032de321c81b2e7ae7fa451d6b3c7bdb7dfbf082ff735e5af4868e3a0b9300"],
+      "inclusion_reason": "persona breadth; light/tech register",
+      "patch_path": "patches/phase-b/A1.md",
+      "patch_sha256": "9a87959ac442bc2c6b8dbfa55c5f3bec352d3d532d2f76cfe21bca1810625dd8"
+    },
+    {
+      "candidate_id": "A2",
+      "family": "aesthetics",
+      "title": "Paper-technical light register",
+      "one_line_contract": "Paper-technical light register: warm paper surfaces in a dark outer frame with bracketed technical geometry",
+      "portable_contract": "build primary surfaces on warm off-white paper tones, never stark white; frame the light interior in a darker outer shell so content reads placed and intentional; add quiet technical structure — thin borders, inset rules, small corner brackets, restrained fine diagonal texture on large fields; one crisp accent for active states and focal details while warm neutrals carry the interface; keep outer shells softly rounded but inner layout logic crisp; calm motion only. Tuning axes: paper warmth · framing strength · roundness · accent intensity · texture amount.",
+      "context_boundary": "light-mode technical/product surfaces wanting warmth and tactility — memos, catalogues, documentation.",
+      "anti_context": "dense data tables and statutory/spec surfaces (no texture, no warm-tint contrast loss, no bracket ornament there); urgent flows; any surface where texture threatens legibility.",
+      "source_paths": ["agent-skills/web-design/light-mode-paper-technical/SKILL.md"],
+      "source_sha256": ["f09d5b7cb8263b19d0aecc2e305a4d5f249a71187004860b8ff72272026a3f31"],
+      "inclusion_reason": "light-mode technical register",
+      "patch_path": "patches/phase-b/A2.md",
+      "patch_sha256": "31841ca13140cababe44f9a302333b8cf32a715b188f1751ec1cc5bcbbef8798"
+    },
+    {
+      "candidate_id": "A3",
+      "family": "aesthetics",
+      "title": "Documentary-brutalist genre playbook",
+      "one_line_contract": "Documentary-brutalist genre playbook: billboard type, black/white chapters, documentary collage, accessible disclosure controls",
+      "portable_contract": "open with a billboard-scale positioning line and minimal navigation; alternate hard black chapters (large titles, role labels, documentary media) with sparse warm-white thinking chapters; one compressed display face paired with one neutral grotesk; exposed grid, square corners; no glass, glow, or decorative gradients; line breaks are composition — verify at every breakpoint; one documentary collage as a paced process story: reserve every image box before load, keep DOM order narrative even when the visual grid is irregular, cap parallax below 5%, captions on hover AND focus, grid survives failed media; pale proof surfaces only for verified quotes; disclosure controls semantic and accessible (aria-expanded, no focus traps outside true modals); oversized footer wordmark.",
+      "context_boundary": "agencies, studios, cultural institutions, portfolios, investigations — surfaces earning a strong point of view.",
+      "anti_context": "forms, checkout, help, appendices, and any care/consumer-warm or urgent surface — calm, legible, conventional treatment there.",
+      "source_paths": ["agent-skills/web-design/documentary-brutalist-agency/SKILL.md"],
+      "source_sha256": ["0659ce40f776437f419ed66506e318c38ac8003bb735cfaff12664899dfa903b"],
+      "inclusion_reason": "per-genre vertical integration shape",
+      "patch_path": "patches/phase-b/A3.md",
+      "patch_sha256": "82480d84e96988e801965bda2e41f831b0bc74b760756d8cc1a3466ecdfc97e3"
+    },
+    {
+      "candidate_id": "M1",
+      "family": "motion",
+      "title": "Brutalist contextual motion band",
+      "one_line_contract": "Brutalist contextual band: 160–220 ms controls, 500–760 ms masks/entrances, parallax <5%, one transition at a time",
+      "portable_contract": "controls answer in 160–220 ms; masks and section entrances take 500–760 ms; animate one reading transition at a time; slow collage parallax capped below 5%; prefer decisive cuts over floating; pause offscreen observers and media, clean up route timelines; never smooth-scroll theater or scroll hijack.",
+      "context_boundary": "documentary/brutalist narrative surfaces.",
+      "anti_context": "forms and dense operational surfaces — instant feedback only, zero entrance choreography.",
+      "source_paths": ["agent-skills/web-design/documentary-brutalist-agency/SKILL.md"],
+      "source_sha256": ["0659ce40f776437f419ed66506e318c38ac8003bb735cfaff12664899dfa903b"],
+      "inclusion_reason": "personas carry zero numeric timing DNA",
+      "patch_path": "patches/phase-b/M1.md",
+      "patch_sha256": "10cb9cc8182bc409aeafa1ad30f063ede6eeaa095181a7c4dbf0725da3bbad7b"
+    },
+    {
+      "candidate_id": "M2",
+      "family": "motion",
+      "title": "Product-proof state band",
+      "one_line_contract": "Product-proof band: 160–220 ms controls, 420–700 ms state changes, 45–70 ms card stagger, one handoff at a time",
+      "portable_contract": "control feedback 160–220 ms; interface state changes 420–700 ms; card stagger 45–70 ms; animate one handoff at a time; background drift slow, optional, offscreen-paused; no fake typing, perpetual floating, or decorative loops; render settled UI immediately under reduced motion.",
+      "context_boundary": "product-proof, workflow, and demo surfaces.",
+      "anti_context": "reference/data sections and forms — static.",
+      "source_paths": ["agent-skills/web-design/product-proof-saas/SKILL.md"],
+      "source_sha256": ["eb033e97a506e6a1155c98c861efc4bc99aa0f1afd33d99105d091f3e4b3d801"],
+      "inclusion_reason": "personas carry zero numeric timing DNA",
+      "patch_path": "patches/phase-b/M2.md",
+      "patch_sha256": "fde3d784e938f8825a11c00e98f2540e2575295e99a6c0f882abf66482d3f24b"
+    },
+    {
+      "candidate_id": "M3",
+      "family": "motion",
+      "title": "Cinematic scrub calibration",
+      "one_line_contract": "Cinematic scrub calibration: scrub 0.8–1.4, reveal at ~82% viewport, smooth-scroll lerp ~0.08, word stagger 35–70 ms",
+      "portable_contract": "scroll-scrub factor 0.8–1.4 for cinematic delay; reveals trigger when an element's top crosses roughly 82% of the viewport; smooth-scroll interpolation around 0.08; word stagger 35–70 ms, line stagger 80–140 ms, card stagger 60–100 ms; staggered motion guides reading order, never decorates it.",
+      "context_boundary": "long-form cinematic scroll narratives.",
+      "anti_context": "utility blocks, search/index surfaces, tables, forms — native scrolling, instant anchors, no scrub; reduced motion renders the settled story.",
+      "source_paths": ["agent-skills/web-design/cinematic-gsap-lenis-motion-system/SKILL.md"],
+      "source_sha256": ["7b8f5745f34ef4ba507e19fabd6acf9cd3b8d70efda81746d0f4090af0f84e06"],
+      "inclusion_reason": "Lenis = 0 hits; limited GSAP calibration",
+      "patch_path": "patches/phase-b/M3.md",
+      "patch_sha256": "3fda43547d49fe399a3bdf6294e8837bdcdf0bf906e652ae1759ceee563e3a35"
+    },
+    {
+      "candidate_id": "D1",
+      "family": "devices",
+      "title": "Number details",
+      "one_line_contract": "Two-digit numeric detail markers as quiet secondary structure on ordered content",
+      "portable_contract": "two-digit markers (01, 02, 03) as secondary architecture on genuinely ordered content; predictable positions — card corners, section gutters, timeline rails, beside headings; quiet mono or narrow uppercase at low contrast; consistent spacing and alignment across all marks; one numbering style per section; markers never compete with headings or actions.",
+      "context_boundary": "ordered narrative sections — processes, chapters, chronologies.",
+      "anti_context": "unordered content, statements/appendices/logs (which keep their own identifiers), urgent flows, error and legal surfaces.",
+      "source_paths": ["agent-skills/web-design/number-details/SKILL.md"],
+      "source_sha256": ["bd526d953244b8f05a578892640a86e550d062094866e4d9958b538313ef271a"],
+      "inclusion_reason": "9 house devices vs ~30 candidates",
+      "patch_path": "patches/phase-b/D1.md",
+      "patch_sha256": "8df857cf7eca1c2e6450908b94c48ea0f7b75c32decb1dc0b0d61c2e3d7ee2f8"
+    },
+    {
+      "candidate_id": "D2",
+      "family": "devices",
+      "title": "Container lines and corner marks",
+      "one_line_contract": "Container guide lines: 1 px low-opacity vertical edges + small corner squares, consistent per page",
+      "portable_contract": "1 px low-opacity vertical guides at the exact content-container edges; small square marks (~6 px) at corners or section intersections; one consistent container width per page; guides behind content, above background, pointer-transparent; strong-opacity variant reserved for deliberate emphasis.",
+      "context_boundary": "structured editorial/technical layouts needing quiet measurement tension.",
+      "anti_context": "inside dense data tables, reading panes, forms; urgent flows.",
+      "source_paths": ["agent-skills/web-design/container-lines/SKILL.md"],
+      "source_sha256": ["b2eb19356c14c034d8e077452ede319835b841b7aa046ec3cd0a4460cc7911b6"],
+      "inclusion_reason": "device menu breadth",
+      "patch_path": "patches/phase-b/D2.md",
+      "patch_sha256": "ae67f9586a4980c602f831da844f98122f0b973836bac5eb90583720f2181bd5"
+    },
+    {
+      "candidate_id": "D3",
+      "family": "devices",
+      "title": "Progressive edge blur",
+      "one_line_contract": "Progressive edge blur: stepped backdrop blur bands masked from a viewport edge, pointer-transparent",
+      "portable_contract": "a stepped blur band fixed at one viewport edge (top or bottom), built from layered backdrop blurs with graduated masks so blur strength ramps smoothly; band height ~10–15% of viewport; pointer-transparent; above content, below modals; requires real content behind it to blur.",
+      "context_boundary": "long reading or narrative surfaces where edge softening aids focus.",
+      "anti_context": "must never overlay focusable controls, forms, or the reading measure; not on urgent flows; drop the device entirely rather than compromise legibility.",
+      "source_paths": ["agent-skills/web-design/progressive-blur/SKILL.md"],
+      "source_sha256": ["202004db5ff37fb8add044cf00288d984c9a680c2fb07e4bb2dacc3df90ac2a1"],
+      "inclusion_reason": "device menu breadth",
+      "patch_path": "patches/phase-b/D3.md",
+      "patch_sha256": "881af23b565fe0a93b73a6ff96758d822412a655db37b6f07039e641d0a9fa38"
+    },
+    {
+      "candidate_id": "D4",
+      "family": "devices",
+      "title": "Scroll-progress timeline",
+      "one_line_contract": "Scroll-progress timeline: semantic ordered steps with compositor-scaled progress line and active-step state",
+      "portable_contract": "the sequence is a semantic ordered list with real headings first — line, dots, and active states only enhance it; quiet base line behind all points, one progress line scaled on the compositor (scaleY/scaleX, transform-origin at start); measure from first to last step centers and normalize scroll between them; recalc geometry after fonts, images, resize, orientation, mutation; mark the active step (aria-current=\"step\" only when meaningful; never announce every scroll tick); alternate layout only with balanced width, left rail for long copy, horizontal only for short keyboard-safe sequences; collapse to a left rail on small screens preserving reading order.",
+      "context_boundary": "genuinely ordered multi-step content — guides, explainers, chaptered studies.",
+      "anti_context": "short single-screen sections, FAQs, contact blocks, non-sequential content — no rail, no progress ornament.",
+      "source_paths": ["agent-skills/web-design/scroll-progress-timeline/SKILL.md"],
+      "source_sha256": ["9f8b01bd025609b33f14a9b77a012f5e1019fa17e646a3899723aa941d539403"],
+      "inclusion_reason": "device menu breadth",
+      "patch_path": "patches/phase-b/D4.md",
+      "patch_sha256": "64427b609fa48884dbe62ddb203079c28b0fe993799476081e2d308dfeefe9ce"
+    },
+    {
+      "candidate_id": "P1",
+      "family": "media",
+      "title": "Role-to-ratio and text-reserve media contract",
+      "one_line_contract": "Role→ratio media contract with 30–50% text-reserve on wide imagery and focal-safety rules",
+      "portable_contract": "declare a role for every image before selection, and let role fix ratio — avatar 1:1 (256/512/1024 square exports); headshot 4:5 or 3:4, shoulders-up, faces centered; wide hero/background 16:9 with calm negative space; story/mobile 9:16; on wide imagery carrying text, reserve 30–50% of the frame as calm space for the message; keep faces' eyes in the upper third, never crop chin or forehead, preserve horizon lines; verify focal and text safety at 390/768/1440, not by file ratio alone; provide resolution variants per role.",
+      "context_boundary": "surfaces with supplied or role-approved imagery — campaigns, editorial, product launches.",
+      "anti_context": "data, legal, console, and form surfaces get no decorative imagery; the contract never justifies inventing an image — intentional no-image is a first-class outcome.",
+      "source_paths": [
+        "agent-skills/media/unsplash-asset-images/SKILL.md",
+        "agent-skills/media/aura-asset-images/SKILL.md"
+      ],
+      "source_sha256": [
+        "cd057d9a7dcaf2de444aec22c1f3277392aab85b9a296beabc20ba3a7b48950c",
+        "c902c2b2b8182b4738c7e6a93d5a33fe62a495844c2e0b4a7b0152812b93cd76"
+      ],
+      "inclusion_reason": "zero role→aspect-ratio media contracts",
+      "patch_path": "patches/phase-b/P1.md",
+      "patch_sha256": "05ec3d2e95c6f8174163e980554d948ac37a3e4fb6c3fc8b1737e3a95a5e5b4e"
+    },
+    {
+      "candidate_id": "P2",
+      "family": "media",
+      "title": "Portrait narrative register",
+      "one_line_contract": "Portrait narrative register: deliberate functional-headshot vs editorial-portrait choice per context",
+      "portable_contract": "choose deliberately between two portrait registers and state the choice per context — functional headshot (neutral background, shoulders-up, professional-warm; for org, directory, executive contexts) versus editorial portrait (environmental, candid, narrative; for story and interview contexts); one register per context, never mixed within one; register choice is content design, not decoration.",
+      "context_boundary": "people-centered surfaces — profiles, biographies, interviews, teams.",
+      "anti_context": "compliance/ID/verification and uniform directory or press-kit contexts require the functional register; editorial treatment there is a leak.",
+      "source_paths": [
+        "agent-skills/media/unsplash-asset-images/SKILL.md",
+        "agent-skills/media/aura-asset-images/SKILL.md"
+      ],
+      "source_sha256": [
+        "cd057d9a7dcaf2de444aec22c1f3277392aab85b9a296beabc20ba3a7b48950c",
+        "c902c2b2b8182b4738c7e6a93d5a33fe62a495844c2e0b4a7b0152812b93cd76"
+      ],
+      "inclusion_reason": "personas cannot demand a photo register",
+      "patch_path": "patches/phase-b/P2.md",
+      "patch_sha256": "43a8ed28082c452f72957521a823fdcfea7bdade89bf6e24978e46f73714a871"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "$comment": "spec 022 — schema for randomization-commitment.json. Public commitment only; the secret map itself is never schema'd here (its shape is documented in spec.md) and is never read by the validator (PR-016 checks location + hash only).",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "csprng": {
+      "type": "string",
+      "const": "node:crypto.randomBytes"
+    },
+    "secret_map_location": {
+      "type": "string",
+      "minLength": 1
+    },
+    "secret_map_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "phase_a_pairs": {
+      "type": "integer",
+      "const": 16
+    },
+    "phase_a_presentations": {
+      "type": "integer",
+      "const": 20
+    },
+    "phase_b_pairs": {
+      "type": "integer",
+      "const": 36
+    },
+    "phase_b_presentations": {
+      "type": "integer",
+      "const": 36
+    },
+    "codename_format": {
+      "type": "string",
+      "const": "8-hex-lowercase"
+    },
+    "presentation_id_format": {
+      "type": "string",
+      "const": "PR-8hex"
+    },
+    "committed_before_render": {
+      "type": "boolean",
+      "const": true
+    }
+  },
+  "required": [
+    "version",
+    "created_at",
+    "csprng",
+    "secret_map_location",
+    "secret_map_sha256",
+    "phase_a_pairs",
+    "phase_a_presentations",
+    "phase_b_pairs",
+    "phase_b_presentations",
+    "codename_format",
+    "presentation_id_format",
+    "committed_before_render"
+  ],
+  "additionalProperties": false
+}

@@ -44,6 +44,7 @@
     "lint": "eslint src tests",
     "test": "vitest run",
     "personas:verify": "node scripts/derive-personas-json.mjs",
+    "prereg:022": "node specs/022-taste-transfer-prereg/scripts/validate-prereg.mjs",
     "prepublishOnly": "npm run typecheck && npm run lint && npm run build && npm test"
   },
   "license": "MIT",

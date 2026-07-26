@@ -1,0 +1,171 @@
+{
+  "$comment": "spec 022 — schema for phase-b-briefs.json. Exactly 36 briefs (12 candidates x 3). Phase-B contrast rule (control=core only, treatment=core+exactly one phase-b patch, phase-a patches never referenced) is enforced by validate-prereg.mjs against run manifests, not by this schema.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "briefs": {
+      "type": "array",
+      "minItems": 36,
+      "maxItems": 36,
+      "items": {
+        "type": "object",
+        "properties": {
+          "brief_id": {
+            "type": "string",
+            "pattern": "^PB-(A[123]|M[123]|D[1-4]|P[12])-[1-3]$"
+          },
+          "candidate_id": {
+            "type": "string",
+            "enum": ["A1", "A2", "A3", "M1", "M2", "M3", "D1", "D2", "D3", "D4", "P1", "P2"]
+          },
+          "family": {
+            "type": "string",
+            "enum": ["aesthetics", "motion", "devices", "media"]
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "product": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "facts": {
+                "type": "array",
+                "minItems": 3,
+                "items": { "type": "string", "minLength": 1 }
+              }
+            },
+            "required": ["name", "facts"],
+            "additionalProperties": false
+          },
+          "primary_surface": {
+            "type": "object",
+            "properties": {
+              "description": { "type": "string", "minLength": 1 },
+              "requirements": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string", "minLength": 1 }
+              }
+            },
+            "required": ["description", "requirements"],
+            "additionalProperties": false
+          },
+          "anti_context": {
+            "type": "object",
+            "properties": {
+              "embedded_state": { "type": "string", "minLength": 1 },
+              "inactive_requirement": { "type": "string", "minLength": 1 },
+              "leak_definition": { "type": "string", "minLength": 1 },
+              "deterministic_leak_checks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "check_id": { "type": "string", "minLength": 1 },
+                    "type": {
+                      "type": "string",
+                      "enum": ["selector-exists", "selector-absent", "text-present", "text-absent", "attr-check"]
+                    },
+                    "target": { "type": "string", "minLength": 1 },
+                    "description": { "type": "string", "minLength": 1 }
+                  },
+                  "required": ["check_id", "type", "target", "description"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["embedded_state", "inactive_requirement", "leak_definition", "deterministic_leak_checks"],
+            "additionalProperties": false
+          },
+          "supplied_assets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "asset_id": { "type": "string", "minLength": 1 },
+                "manifest_ref": { "type": "string", "minLength": 1 }
+              },
+              "required": ["asset_id", "manifest_ref"],
+              "additionalProperties": false
+            }
+          },
+          "acceptance_checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "check_id": { "type": "string", "minLength": 1 },
+                "type": {
+                  "type": "string",
+                  "enum": ["selector-exists", "selector-absent", "text-present", "text-absent", "attr-check"]
+                },
+                "target": { "type": "string", "minLength": 1 },
+                "description": { "type": "string", "minLength": 1 }
+              },
+              "required": ["check_id", "type", "target", "description"],
+              "additionalProperties": false
+            }
+          },
+          "gate_set": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["build", "console", "layout", "a11y", "content", "taste", "ds-usage", "reduced-motion"]
+            }
+          },
+          "identical_across_arms": {
+            "type": "array",
+            "const": [
+              "product.facts",
+              "supplied_assets",
+              "provider_identity",
+              "environment",
+              "orchestration",
+              "token_ceiling",
+              "repair_protocol",
+              "viewports",
+              "acceptance_checks",
+              "gate_set"
+            ]
+          },
+          "viewports": {
+            "type": "array",
+            "const": [390, 768, 1440]
+          },
+          "reduced_motion_required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "brief_id",
+          "candidate_id",
+          "family",
+          "ordinal",
+          "title",
+          "product",
+          "primary_surface",
+          "anti_context",
+          "supplied_assets",
+          "acceptance_checks",
+          "gate_set",
+          "identical_across_arms",
+          "viewports",
+          "reduced_motion_required"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["version", "briefs"],
+  "additionalProperties": false
+}
