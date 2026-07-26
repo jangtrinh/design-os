@@ -50,8 +50,8 @@ persona is selected.
 | `floating-composition` | product-marketing | landing, portfolio | spacious | both | — | floating, launch, startup, mockup, device, innovation, space, modern |
 
 **Family counts:** material-surface 7 · product-marketing 4 · functional-saas 3 ·
-immersive-cinematic 3 · editorial-minimal 2 · graphic-modernist 2 · retro-digital 2.
-Total **23 personas / 7 families**.
+immersive-cinematic 3 · editorial-minimal 4 · graphic-modernist 3 · retro-digital 2.
+Total **26 personas / 7 families**.
 
 **Legacy name:** "Ambient Glassmorphism" is a rename → resolves to `liquid-glass`.
 
@@ -76,7 +76,7 @@ without the binary.
 
 Keep only personas whose `ui_types` includes the requested UI type. If the requested
 UI type defaults and is `landing`, that is the default. **If the filter yields zero
-personas, fall back to the full set of 23.**
+personas, fall back to the full set of 26.**
 
 ### Stage 2 — Score each persona in the pool
 

@@ -11,6 +11,46 @@ surprising choice).
 Each mode carries a recommended **creativity setting** — how much latitude the model
 should take. Lower means stay literal; higher means be inventive.
 
+## Reference-led originality boundary
+
+<!-- ease:source ref="references/mengto-skills/generate-reference-inspired-brand-worlds.md" captured="202607" url="https://github.com/MengTo/Skills/tree/21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49/agent-skills/codex/generate-reference-inspired-brand-worlds" -->
+
+When a task uses a reference to create a **new** visual identity or art direction, decide
+what may transfer before writing the build prompt:
+
+1. **Reusable visual grammar** — abstract relationships such as density, depth, palette
+   relationships, material, lighting temperature, type-scale contrast, human presence, and
+   spatial rhythm. These may inform a new result.
+2. **Protected signature elements** — distinctive composition, poses or choreography,
+   motif arrangement, negative-space shape, marks, slogans, proprietary names, wordmark
+   construction, and recognizable pixel-level arrangement. These must not be reproduced.
+
+Use the following proximity language only to communicate intent between people and the host
+model. The bands are **not measured similarity scores**:
+
+- **Distant inspiration** — retain only abstract mood, density, or contrast principles.
+- **Recognizable influence** — a medium or emotional register may carry over, while palette,
+  composition, subject, and type system materially change.
+- **Adjacent family** — composition logic and material relationships may remain legible, but
+  subjects, actions, arrangement, identity, and letterforms must be independently authored.
+- **Close art-direction neighbor** — preserve high-level grammar while changing several
+  identity-bearing dimensions and reviewing the whole result for recognizability.
+
+As a human review heuristic, change **at least four signature dimensions**—for example identity,
+subject, choreography, environment, motif, composition, negative-space shape, or letterform
+construction. Four superficial substitutions do not pass when the overall artifact remains
+recognizable as the source. This heuristic is non-normative guidance: it is not a linter rule,
+not a numerical originality claim, and not legal assurance.
+
+For every reference-led new work, state one **invariant/variant sentence**: name the abstract
+mechanism that may remain, then name the identity, subject, palette, composition, and signature
+details that must vary. Preserve accessibility, responsive behavior, and performance contracts
+regardless of visual proximity.
+
+This boundary governs reference-inspired **new work** under Enhance and relevant Adapt tasks.
+An expressly authorized Replicate task retains its fidelity contract; do not silently relabel a
+requested reconstruction as an originality exercise.
+
 ---
 
 ## Replicate
