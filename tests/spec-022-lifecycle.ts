@@ -303,6 +303,12 @@ export function buildLifecycle(options: LifecycleOptions): Fixture {
     git(root, ["config", "user.email", "fixture@example.invalid"]);
     git(root, ["config", "user.name", "Spec 022 Fixture"]);
     git(root, ["config", "commit.gpgsign", "false"]);
+    // The fixture creates many synthetic commits across the suite. On Linux,
+    // Git's auto-maintenance may detach and keep repopulating .git while the
+    // test's finally block removes the temp repo. Disable it in this disposable
+    // repository so cleanup owns the directory lifecycle deterministically.
+    git(root, ["config", "gc.auto", "0"]);
+    git(root, ["config", "maintenance.auto", "false"]);
 
     // ---- 1. freeze commit -------------------------------------------------
     commit(root, "freeze");
