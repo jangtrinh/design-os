@@ -2060,7 +2060,7 @@
     const h = Number(params.height ?? params.h) || 100;
     frame.resize(w, h);
     await appendToParent(frame, params);
-    return { id: frame.id };
+    return { id: frame.id, name: frame.name };
   }
   async function opCreateInstance(params) {
     const ref = params.component ?? params.key ?? params.id;
@@ -2082,7 +2082,11 @@
     if (!component) throw withCode(new Error(`component not found: ${ref}`), "E_INVALID_ARGS");
     const instance = component.createInstance();
     await appendToParent(instance, params);
-    return { id: instance.id, mainComponent: { id: component.id, key: component.key, name: component.name } };
+    return {
+      id: instance.id,
+      name: instance.name,
+      mainComponent: { id: component.id, key: component.key, name: component.name }
+    };
   }
   async function opSetVariant(params) {
     const node = await getSceneNode(params.nodeId ?? params.node);
@@ -2139,7 +2143,7 @@
     }
     if (typeof params.characters === "string") node.characters = params.characters;
     if (typeof reqSize === "number") node.fontSize = reqSize;
-    return { id: node.id };
+    return { id: node.id, name: node.name };
   }
   async function opExportPng(params) {
     const id = params.nodeId ?? params.node;
@@ -2706,20 +2710,30 @@
 
   // plugin/src/ui/panel-model.ts
   var PANEL_WIDTH = 300;
-  var PANEL_HEIGHT = { compact: 170, expanded: 460 };
+  var PANEL_HEIGHT = 420;
 
   // plugin/src/main/main.ts
-  figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
+  figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT });
+  function selectionSummary() {
+    const sel = figma.currentPage.selection;
+    return { selectionName: sel.length > 0 ? sel[0].name : null, selectionCount: sel.length };
+  }
   var announcedFileName = "";
   function announceFileInfo() {
     announcedFileName = figma.root.name;
     figma.ui.postMessage({
       type: "FILE_INFO",
-      data: { fileName: figma.root.name, page: figma.currentPage.name, fileKey: figma.fileKey ?? null }
+      data: {
+        fileName: figma.root.name,
+        page: figma.currentPage.name,
+        fileKey: figma.fileKey ?? null,
+        ...selectionSummary()
+      }
     });
   }
   announceFileInfo();
   figma.on("currentpagechange", announceFileInfo);
+  figma.on("selectionchange", announceFileInfo);
   function fileContext() {
     const ctx = { fileName: figma.root.name, fileKey: figma.fileKey ?? null };
     if (ctx.fileName !== announcedFileName) announceFileInfo();
@@ -2793,11 +2807,6 @@
   figma.loadAllPagesAsync().then(() => figma.on("documentchange", onDocumentChange)).catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
   figma.ui.onmessage = async (msg) => {
     const chrome = msg;
-    if (chrome && chrome.type === "PANEL_RESIZE") {
-      const raw = typeof chrome.h === "number" && Number.isFinite(chrome.h) ? chrome.h : PANEL_HEIGHT.compact;
-      figma.ui.resize(PANEL_WIDTH, Math.round(Math.min(PANEL_HEIGHT.expanded, Math.max(PANEL_HEIGHT.compact, raw))));
-      return;
-    }
     if (chrome && chrome.type === "SYNC_CONFIG") {
       const raw = chrome.data?.idleMs;
       if (typeof raw === "number" && Number.isFinite(raw)) idleMs = Math.max(MIN_IDLE_MS, Math.floor(raw));

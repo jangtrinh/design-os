@@ -1,8 +1,9 @@
-// P2 panel — the thin DOM controller. It CONSUMES the P1 connection state machine
-// (the `figma-agent:conn-state` CustomEvent) and the new `figma-agent:activity`
-// event (both dispatched by ui-relay.ts) and renders the panel.html chrome. No
-// framework, no Figma API, no WebSocket — all protocol/connection logic stays in
-// the relay; all pure formatting stays in panel-model.ts. This file is glue.
+// Panel IA v2 — the thin DOM controller. It CONSUMES the P1 connection state machine
+// (the `figma-agent:conn-state` CustomEvent), the `figma-agent:activity` event, and the
+// new `figma-agent:peers` event (all dispatched by ui-relay.ts) and renders the panel.html
+// chrome: three blocks (Status / Context / Activity) + the sync prompt. No framework, no
+// Figma API, no WebSocket — all protocol/connection logic stays in the relay; all pure
+// formatting stays in panel-model.ts / activity-sentence.ts. This file is glue.
 //
 // Load order matters: ui-relay.ts imports this module FIRST, so these listeners
 // are attached before the relay fires its first transition (a fresh subscriber
@@ -10,16 +11,14 @@
 import { PORT_RANGE_START } from '../../../shared/protocol';
 import type { ConnectionState, ConnectionStatePayload } from '../../../shared/protocol';
 import {
-  stateView, formatAge, troubleshootHint, showOnboarding,
-  togglePanelMode, detailsLabel, compactMeta, PANEL_HEIGHT,
+  statusSentence, showOnboarding, fileNote, PANEL_HEIGHT,
   syncPromptLabel, syncResultLabel,
-  type PanelMode,
 } from './panel-model';
 import {
-  activityLabel, activityMeta, formatTimestamp,
   toActivityRecord, toActivityResult, pushActivity, resolveActivity,
   type ActivityRecord,
 } from './activity-feed';
+import { activitySentence } from './activity-sentence';
 
 // Injected by scripts/build.mjs via esbuild `define` — a content hash of the
 // code.js this UI bundle shipped alongside, so a reload can be verified as the
@@ -29,113 +28,139 @@ declare const __BUILD_ID__: string;
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
-const panelRoot = el('fga-panel');
-const versionEl = el('fga-version');
 const dot = el('fga-dot');
-const pill = el('fga-pill');
 const sentence = el('fga-sentence');
-const meta = el('fga-meta');
 const onboarding = el('fga-onboarding');
-const hint = el('fga-hint');
+const ctxFile = el('fga-ctx-file');
+const ctxFileNote = el('fga-ctx-file-note');
+const ctxPage = el('fga-ctx-page');
+const ctxSelection = el('fga-ctx-selection');
 const activityList = el('fga-activity');
-const expandedZone = el('fga-expanded');
-const toggleBtn = el('fga-toggle');
-const toggleLabel = el('fga-toggle-label');
-const dPort = el('fga-d-port');
-const dProto = el('fga-d-proto');
-const dHeartbeat = el('fga-d-heartbeat');
-const dAttempts = el('fga-d-attempts');
-const dFile = el('fga-d-file');
-const dPage = el('fga-d-page');
-const copyBtn = el('fga-copy');
+const versionEl = el('fga-version');
 const syncPrompt = el('fga-sync');
 const syncMsg = el('fga-sync-msg');
 const syncNowBtn = el('fga-sync-now');
 const syncLaterBtn = el('fga-sync-later');
 
 let payload: ConnectionStatePayload | null = null;
-let hadConnection = false; // ever reached `connected` — flips onboarding off + drop-hint on
-let probeAttempts = 0; // full broker scans since load (one per scan cycle)
+let hadConnection = false; // ever reached `connected` — flips onboarding off forever
 let activity: ActivityRecord[] = []; // newest-first, capped at 50 by pushActivity
 let sceneFile = '';
 let scenePage = '';
-let mode: PanelMode = 'compact'; // ALWAYS compact on open (spec P5.1 — no persistence)
+let selectionName: string | null = null;
+let selectionCount = 0;
+let peersCount = 1;
+let peersIsActiveTarget = true; // sole plugin ⇒ trivially the target until PEERS says otherwise
 
-// ─── Rendering ──────────────────────────────────────────────────────────────
-function metaLine(state: ConnectionState, now: number): string {
-  if (mode === 'compact') {
-    const compact = compactMeta(state);
-    if (compact !== null) return compact; // disconnected compact still communicates
-  }
-  if (!payload) return '';
-  const age = now - payload.since;
-  if (state === 'connected') {
-    return `${payload.port ? `Port ${payload.port}` : 'Connected'} · up ${formatAge(age)}`;
-  }
-  if (state === 'probing') {
-    return `Attempt ${Math.max(1, probeAttempts)} · retrying (${formatAge(age)})`;
-  }
-  return '';
+// ─── Icons (Phosphor inline SVG — no text glyphs anywhere, §1) ───────────────
+// Official @phosphor-icons/core v2 path data, "regular" weight, 256x256 viewBox, MIT —
+// check-circle / x-circle / circle-notch, matching the family the existing footer caret
+// already uses. Injected via createElementNS (never innerHTML). Each icon is
+// `aria-hidden` — the ACCESSIBLE label lives on the wrapping element the icon sits in
+// (`.log-icon-wrap[aria-label]` below), so the glyph itself never needs to speak for
+// itself. Only the three states the activity feed actually renders: done, failed,
+// in-flight (spins; stops under prefers-reduced-motion — see panel.html).
+const SVG_NS = 'http://www.w3.org/2000/svg';
+type IconName = 'check' | 'x' | 'notch';
+const ICONS: Record<IconName, string> = {
+  // check-circle, regular — the wrapper's aria-label carries the state; colour (via
+  // CSS) carries "success" visually.
+  check: 'M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z',
+  // x-circle, regular.
+  x: 'M165.66,101.66,139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z',
+  // circle-notch, regular — CSS rotates it (fga-spin).
+  notch: 'M232,128a104,104,0,0,1-208,0c0-41,23.81-78.36,60.66-95.27a8,8,0,0,1,6.68,14.54C60.15,61.59,40,93.27,40,128a88,88,0,0,0,176,0c0-34.73-20.15-66.41-51.34-80.73a8,8,0,0,1,6.68-14.54C208.19,49.64,232,87,232,128Z',
+};
+
+function makeIcon(name: IconName): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 256 256');
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'log-icon');
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', ICONS[name]);
+  svg.appendChild(path);
+  return svg;
 }
 
-function renderDetails(): void {
-  const port = payload?.port;
-  const pong = payload?.lastPongAge;
-  dPort.textContent = port ? String(port) : '—';
-  dProto.textContent = payload ? `v${payload.protocolVersion}` : '—';
-  dHeartbeat.textContent = pong != null ? `${formatAge(pong)} ago` : '—';
-  dAttempts.textContent = String(probeAttempts);
-  dFile.textContent = sceneFile || '—';
-  dPage.textContent = scenePage || '—';
+// ─── Rendering ──────────────────────────────────────────────────────────────
+
+/** Block 2 — CONTEXT: File (+ command-target/peers note) / Page / Selection. */
+function renderContext(): void {
+  ctxFile.textContent = sceneFile || '—';
+  ctxFile.title = sceneFile || ''; // the row ellipsises — hover still tells the truth
+  ctxFileNote.textContent = fileNote(peersCount, peersIsActiveTarget);
+  ctxPage.textContent = scenePage || '—';
+  ctxPage.title = scenePage || '';
+  ctxSelection.textContent = selectionText();
+}
+
+/** "Nothing selected" / "Hero card" / "Hero card +2 more". Never fabricates a name. */
+function selectionText(): string {
+  if (selectionCount <= 0) return 'Nothing selected';
+  const first = selectionName ?? '(unnamed)';
+  return selectionCount > 1 ? `${first} +${selectionCount - 1} more` : first;
 }
 
 /** How many of the buffered rows the feed shows (the band scrolls past this). */
 const ACTIVITY_ROWS = 20;
 
 /**
- * One feed row — the LABEL is the hero, the timing is footnote:
- *   ● Mirror-verify · rebuild
- *     → Hero card · 2 warnings · 1.2s · 16s
- * The priority is deliberate. The old row laid time/label/duration out on ONE flex
- * line, so on a ~300px panel the two fixed-width footnotes ate the width and the
- * label — the only part that says WHAT is happening — ellipsised down to "R".
- *
- * `stale` dims every row but the newest (recency, at zero vertical cost). The mark's
- * SHAPE carries the state (filled / hollow / ✗) because colour alone is not a channel
- * every eye has, and its aria-label carries it again because neither is a channel a
- * screen reader has.
+ * One feed row: [icon][sentence] + a caption line with relative time. The sentence
+ * (activity-sentence.ts) says what the agent DID, in English, with a node name when the
+ * reply carried one — never a command name, never a wire error code.
  */
 function activityRow(r: ActivityRecord, now: number, stale: boolean): HTMLElement {
   const li = document.createElement('li');
-  li.className = stale ? 'activity-row is-stale' : 'activity-row';
+  li.className = stale ? 'activity-row fga-row is-stale' : 'activity-row fga-row';
 
-  const dot = document.createElement('span');
-  dot.className = 'log-dot';
-  dot.dataset.ok = String(r.ok);
-  dot.dataset.pending = String(r.pending);
   const state = r.pending ? 'running' : (r.ok ? 'ok' : 'failed');
-  dot.setAttribute('aria-label', state);
-  // A failure IS the ✗ (CSS drops the square for it); the other two are the square.
-  dot.textContent = state === 'failed' ? '✗' : '';
-
-  const label = document.createElement('div');
-  label.className = 'log-label';
-  label.textContent = activityLabel(r);
-  label.title = activityLabel(r); // the row ellipsises — hover still tells the truth
-
-  // One muted line: outcome (if any) + duration (or "running…") + compact age.
-  const m = document.createElement('div');
-  m.className = 'log-meta';
-  m.dataset.ok = String(r.ok);
-  m.textContent = activityMeta(r, now);
-  m.title = formatTimestamp(r.at); // the compact age never says WHEN; this does
+  const iconName: IconName = r.pending ? 'notch' : (r.ok ? 'check' : 'x');
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'log-icon-wrap fga-icon';
+  iconWrap.dataset.state = state;
+  iconWrap.setAttribute('aria-label', state); // the accessible label; the svg inside is aria-hidden
+  iconWrap.appendChild(makeIcon(iconName));
 
   const body = document.createElement('div');
   body.className = 'log-body';
-  body.append(label, m);
 
-  li.append(dot, body);
+  const text = document.createElement('div');
+  text.className = 'log-label';
+  const line = activitySentence({
+    tool: r.tool, label: r.label, result: r.result, errorCode: r.errorCode,
+    errorMessage: !r.ok ? r.result : undefined, nodeName: r.nodeName,
+    pending: r.pending, ok: r.ok,
+  });
+  text.textContent = line;
+  text.title = line; // the row ellipsises — hover still tells the truth
+
+  const caption = document.createElement('div');
+  caption.className = 'log-meta';
+  caption.textContent = r.pending ? 'running' : timeAgoCaption(now, r.at);
+  caption.title = formatTimestampCaption(r.at);
+
+  body.append(text, caption);
+  li.append(iconWrap, body);
   return li;
+}
+
+// Small local wrappers so this module only imports what it uses from activity-feed.ts's
+// formatting helpers, without re-exporting them under new names there.
+function timeAgoCaption(now: number, at: number): string {
+  const s = Math.floor((now - at) / 1000);
+  if (s < 1) return 'now';
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+}
+function formatTimestampCaption(at: number): string {
+  if (!Number.isFinite(at)) return '—';
+  const d = new Date(at);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 function renderActivity(now: number): void {
@@ -148,17 +173,14 @@ function renderActivity(now: number): void {
 function render(): void {
   const now = Date.now();
   const state: ConnectionState = payload?.state ?? 'disconnected';
-  const view = stateView(state);
+  const view = statusSentence(state, payload ? now - payload.since : 0, hadConnection);
 
   dot.dataset.tone = view.tone;
-  dot.classList.toggle('is-pulsing', view.pulse);
-  pill.textContent = view.pill;
-  pill.dataset.tone = view.tone;
-  sentence.textContent = view.sentence;
-  meta.textContent = metaLine(state, now);
+  dot.classList.toggle('is-pulsing', state === 'probing');
+  sentence.textContent = view.text;
+  sentence.dataset.tone = view.tone; // the pill is gone — the sentence itself is now the tone-carrying text
   onboarding.hidden = !showOnboarding(state, hadConnection);
-  hint.textContent = troubleshootHint(state, payload ? now - payload.since : 0, hadConnection) ?? '';
-  renderDetails();
+  renderContext();
   renderActivity(now);
 }
 
@@ -167,13 +189,12 @@ window.addEventListener('figma-agent:conn-state', (ev) => {
   const p = (ev as CustomEvent).detail as ConnectionStatePayload | undefined;
   if (!p || typeof p.state !== 'string') return;
   if (p.state === 'connected') hadConnection = true;
-  if (p.state === 'probing' && p.port === PORT_RANGE_START) probeAttempts++;
   payload = p;
   render();
 });
 
 // The relay announces each request twice: `start` opens the row (so the panel shows
-// what is running while it runs), `done` lands the outcome onto that same row, by id.
+// what is running WHILE the user waits), `done` lands the outcome onto that same row, by id.
 window.addEventListener('figma-agent:activity', (ev) => {
   const detail = (ev as CustomEvent).detail as { phase?: unknown } | undefined;
   if (detail?.phase === 'done') {
@@ -188,8 +209,16 @@ window.addEventListener('figma-agent:activity', (ev) => {
   renderActivity(Date.now());
 });
 
-// Scene identity for the details panel — main announces it (FILE_INFO); ui-relay
-// also forwards it to the broker. This listener is read-only and independent.
+// Peers (panel IA v2): the broker's honest answer to "which file will my command hit?".
+window.addEventListener('figma-agent:peers', (ev) => {
+  const d = (ev as CustomEvent).detail as { count?: unknown; isActiveTarget?: unknown } | undefined;
+  if (typeof d?.count === 'number' && Number.isFinite(d.count)) peersCount = d.count;
+  if (typeof d?.isActiveTarget === 'boolean') peersIsActiveTarget = d.isActiveTarget;
+  renderContext();
+});
+
+// Scene identity for Block 2 — main announces it (FILE_INFO, now carrying selection
+// too); ui-relay also forwards it to the broker. This listener is read-only and independent.
 window.addEventListener('message', (ev: MessageEvent) => {
   const pm = (ev.data as { pluginMessage?: { type?: string; data?: Record<string, unknown> } } | null)?.pluginMessage;
   if (!pm) return;
@@ -203,7 +232,9 @@ window.addEventListener('message', (ev: MessageEvent) => {
   if (pm.type !== 'FILE_INFO' || !pm.data) return;
   if (typeof pm.data.fileName === 'string') sceneFile = pm.data.fileName;
   if (typeof pm.data.page === 'string') scenePage = pm.data.page;
-  renderDetails();
+  selectionName = typeof pm.data.selectionName === 'string' ? pm.data.selectionName : null;
+  selectionCount = typeof pm.data.selectionCount === 'number' ? pm.data.selectionCount : 0;
+  renderContext();
 });
 
 // ─── Idle-commit prompt actions (spec 004 P4) ─────────────────────────────────
@@ -217,7 +248,7 @@ window.addEventListener('message', (ev: MessageEvent) => {
 let reconcileRun: { id: string; at: number } | null = null;
 
 syncNowBtn.addEventListener('click', () => {
-  syncMsg.textContent = 'Syncing…';
+  syncMsg.textContent = 'Syncing';
   const at = Date.now();
   reconcileRun = { id: `reconcile_${at}`, at };
   activity = pushActivity(activity, {
@@ -255,63 +286,16 @@ window.addEventListener('figma-agent:sync-result', (ev) => {
   setTimeout(() => { syncPrompt.hidden = true; }, 4000); // auto-dismiss the confirmation
 });
 
-// ─── Copy status (support hand-off) ───────────────────────────────────────────
-function fallbackCopy(text: string, done: () => void): void {
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    done();
-  } catch { /* clipboard unavailable in this iframe — no-op */ }
-}
-
-copyBtn.addEventListener('click', () => {
-  const snapshot = {
-    state: payload?.state ?? 'disconnected',
-    port: payload?.port ?? null,
-    protocolVersion: payload?.protocolVersion ?? null,
-    lastPongAge: payload?.lastPongAge ?? null,
-    reconnectAttempts: probeAttempts,
-    file: sceneFile || null,
-    page: scenePage || null,
-    recentActivity: activity.slice(0, 8),
-  };
-  const text = JSON.stringify(snapshot, null, 2);
-  const done = (): void => {
-    copyBtn.textContent = 'Copied';
-    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
-  };
-  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
-  else fallbackCopy(text, done);
-});
-
-// ─── Compact ⇄ expanded (P5.1) ───────────────────────────────────────────────
-// The DETAILS footer cell toggles the expanded zone and asks main to resize the
-// iframe to the mode's height (main owns figma.ui.resize; resize is instant, no
-// animation). Default is always compact on open — mode is never persisted.
-function applyMode(): void {
-  panelRoot.dataset.mode = mode;
-  expandedZone.hidden = mode !== 'expanded';
-  toggleLabel.textContent = detailsLabel(mode);
-  toggleBtn.setAttribute('aria-expanded', String(mode === 'expanded'));
-}
-
-toggleBtn.addEventListener('click', () => {
-  mode = togglePanelMode(mode);
-  applyMode();
-  parent.postMessage({ pluginMessage: { type: 'PANEL_RESIZE', h: PANEL_HEIGHT[mode] } }, '*');
-  render(); // the meta line is mode-dependent (compact disconnected override)
-});
-
 versionEl.textContent = `v0.1.0 · ${typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}`;
 
 // A 1s heartbeat keeps the live ages (uptime, retry elapsed, time-ago) fresh
 // between transitions.
 setInterval(render, 1000);
-applyMode();
 render();
+
+// probeAttempts / PORT_RANGE_START were the old meta-line's "Attempt N" counter — IA v2's
+// statusSentence carries no attempt count, so nothing here needs it; the import stays
+// only because `figma-agent:conn-state`'s payload shape is still typed against it
+// upstream. Referencing it directly would be dead code, so it is deliberately unused.
+void PORT_RANGE_START;
+void PANEL_HEIGHT;

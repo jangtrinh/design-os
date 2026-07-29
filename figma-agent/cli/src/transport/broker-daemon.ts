@@ -167,6 +167,26 @@ export async function runBrokerDaemon(): Promise<void> {
     catch { /* socket already gone */ }
   };
 
+  // PEERS (panel IA v2): the target is RECENCY-based, so registration and disconnection
+  // are not the only things that move it — a scene update or a reply landing both bump
+  // `lastActiveAt` too. Broadcasting only on register/remove would leave a panel claiming
+  // "command target" after the target has actually moved. De-duplicated by signature so a
+  // busy command stream does not spam the socket.
+  let lastPeersSig = '';
+  const broadcastPeers = (): void => {
+    const target = st.registry.selectTarget(currentFilter());
+    const entries = st.registry.liveEntries();
+    const sig = `${entries.length}|${target?.instanceId ?? ''}`;
+    if (sig === lastPeersSig) return; // nothing a panel would render differently
+    lastPeersSig = sig;
+    for (const entry of entries) {
+      sendEvent(entry.ws, 'PEERS', {
+        count: entries.length,
+        isActiveTarget: target?.instanceId === entry.instanceId,
+      });
+    }
+  };
+
   // SYNC_REQUEST → run the deterministic kernel apply, then report SYNC_RESULT back to
   // the requesting plugin. Registry-write logic stays in `ui` (Art I) — the broker only
   // spawns it. Debounced: a click mid-apply is ignored (the panel just waits).
@@ -299,6 +319,7 @@ export async function runBrokerDaemon(): Promise<void> {
       // Only announce PLUGIN_GONE when the LAST plugin leaves — a CLI waiting on a
       // still-connected file must not be told the bridge is gone.
       if (remaining === 0) broadcastToClients(JSON.stringify({ type: 'PLUGIN_GONE', data: {} } satisfies EventMsg));
+      broadcastPeers(); // a surviving panel's peer count/target may have just changed (no-op if none left)
       return;
     }
     // A CLI client.
@@ -323,7 +344,7 @@ export async function runBrokerDaemon(): Promise<void> {
       if (isPlugin) { st.registry.touchActive(ws); routeFromPlugin(msg.id, text, msg.last); }
       else forwardToPlugin(ws, msg.id, text);
     } else if (isReplyMsg(msg)) {
-      if (isPlugin) { st.registry.touchActive(ws); routeFromPlugin(msg.id, text, true); }
+      if (isPlugin) { st.registry.touchActive(ws); broadcastPeers(); routeFromPlugin(msg.id, text, true); }
     } else if (isRequestMsg(msg)) {
       forwardToPlugin(ws, msg.id, text, msg.cmd, msg.expectedFile);
     } else if (isEventMsg(msg)) {
@@ -340,6 +361,7 @@ export async function runBrokerDaemon(): Promise<void> {
         // timer matches the project's design/figma-sync.json.
         sendEvent(ws, 'SYNC_CONFIG', { idleMs });
         flushWaiting(); // deliver any requests parked during the reconnect gap
+        broadcastPeers();
       } else if (msg.type === 'PING') {
         // App-level heartbeat from the plugin — answer so it knows the socket lives.
         if (isPlugin) {
@@ -347,7 +369,9 @@ export async function runBrokerDaemon(): Promise<void> {
           catch { /* plugin vanished */ }
         }
       } else if (msg.type === 'FILE_INFO') {
-        if (isPlugin) { st.registry.updateScene(ws, msg.data); broadcastToClients(text); } // page change → refresh scene + fan out
+        // page change → refresh scene + fan out; the scene update can also move the
+        // routing target (recency-based), so peers must be told too.
+        if (isPlugin) { st.registry.updateScene(ws, msg.data); broadcastToClients(text); broadcastPeers(); }
       } else if (msg.type === 'DOC_CHANGE') {
         // Live-sync capture: append the plugin's coalesced batch to the change log.
         // Broker-side append (not CLI) because the broker is the long-lived process —

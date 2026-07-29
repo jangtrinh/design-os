@@ -120,9 +120,13 @@ export interface EventMsg {
   //   SYNC_RESULT   broker → plugin: { ok, summary } of that apply, for the panel to confirm.
   // (IDLE_READY / SYNC_DONE are plugin-INTERNAL postMessage types between the main
   // thread and its iframe — they never cross this wire, so they are not listed here.)
+  //
+  // PEERS (panel IA v2): broker → every connected plugin, whenever the live registry
+  // changes (register/disconnect/scene update) or a reply lands. { count, isActiveTarget }
+  // — additive and ignorable by an older plugin bundle.
   type:
     | 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG'
-    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT';
+    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS';
   data: Record<string, unknown>;
 }
 
