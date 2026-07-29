@@ -40,9 +40,15 @@ export function figmaUndoBracket(): UndoBracket {
   let sentinel: SceneNode | null = null;
   return {
     begin() {
+      // Captured once: a script run with --undo-group might navigate to a different page
+      // mid-run (setCurrentPageAsync), and the sweep/create/append below must stay anchored to
+      // the page this group actually started on — never chase `figma.currentPage` across a
+      // navigation. A sentinel stranded on another page by that navigation is reclaimed the
+      // next time a group starts on THAT page (the sweep below matches by plugin data, not name).
+      const page = figma.currentPage;
       // Identify strays by OUR plugin data, never by name: a user frame that happens to be called
       // "[figma-agent] undo sentinel" must not be deleted by a tool sweep.
-      for (const n of figma.currentPage.findChildren((c) => c.getPluginData(SENTINEL_KEY) === '1')) n.remove();
+      for (const n of page.findChildren((c) => c.getPluginData(SENTINEL_KEY) === '1')) n.remove();
       figma.commitUndo();
       const f = figma.createFrame();
       f.name = SENTINEL_NAME;
@@ -50,10 +56,17 @@ export function figmaUndoBracket(): UndoBracket {
       f.resize(1, 1);
       f.x = -1e6; f.y = -1e6;
       f.visible = false;
-      figma.currentPage.appendChild(f);
+      page.appendChild(f);
       sentinel = f;
     },
-    commit() { if (sentinel) sentinel.remove(); figma.commitUndo(); },
+    commit() {
+      // A script that swept `currentPage` (e.g. deleted everything on it) may have already
+      // removed the sentinel itself — `.removed` is the honest check, not a stale local
+      // reference. Swallowed: the undo step may end up unsealed, but that is a far smaller
+      // consequence than the alternative (see runInUndoGroup below).
+      try { if (sentinel && !sentinel.removed) sentinel.remove(); } catch { /* already gone */ }
+      figma.commitUndo();
+    },
     rollback() { figma.commitUndo(); figma.triggerUndo(); },  // sentinel is reverted BY the undo
   };
 }
@@ -63,15 +76,20 @@ export function figmaUndoBracket(): UndoBracket {
  * On failure it tags the ORIGINAL error: `rolledBack` only when rollback actually completed,
  * `rollbackFailed` when the undo API itself threw. Reporting "changes rolled back" because a
  * bracket merely existed would be a lie the caller acts on.
+ *
+ * `commit()` runs OUTSIDE the try/catch that guards the script itself: a commit-phase failure
+ * (the sentinel already gone, `figma.commitUndo()` itself throwing) must NEVER be mistaken for
+ * the script failing — that would trigger `rollback()` and destroy a script that actually
+ * succeeded, tagging its destruction `rolledBack: true`. Swallowed best-effort instead: the
+ * script's real result is still returned even if the undo step never got sealed.
  */
 export async function runInUndoGroup<T>(bracket: UndoBracket | null, run: () => Promise<T>): Promise<T> {
   bracket?.begin();
+  let out: T;
   try {
-    const out = await run();
-    bracket?.commit();
-    return out;
+    out = await run();
   } catch (err) {
-    // Codex round 1, finding 2: `throw "boom"` (a primitive) can't carry a property tag — an
+    // `throw "boom"` (a primitive) can't carry a property tag — an
     // assignment on it either throws (strict mode) or silently drops the tag (sloppy). Normalize
     // ONCE, here, into an Error carrying the original value, so the tag always lands and the
     // caller always sees an Error, primitive throw or not.
@@ -89,6 +107,8 @@ export async function runInUndoGroup<T>(bracket: UndoBracket | null, run: () => 
     }
     throw carrier;   // always the script's own error (normalized) — never the undo API's
   }
+  try { bracket?.commit(); } catch { /* commit-phase failure on an ALREADY-SUCCESSFUL script — never rollback */ }
+  return out;
 }
 
 /**
@@ -100,6 +120,10 @@ export async function runInUndoGroup<T>(bracket: UndoBracket | null, run: () => 
  *   rollback then reverts only the last sub-group while still reporting `rolledBack: true`.
  *   Contract: scripts run with `--undo-group` must not call the undo API. Not detectable
  *   in-sandbox.
+ * - The sentinel is a real (if invisible) child of `figma.currentPage` for the run's duration:
+ *   a script that enumerates or counts the page's children under `--undo-group` sees one extra.
+ *   Not hideable further without losing the property that makes the undo group provably
+ *   non-empty (see `figmaUndoBracket` above).
  * - `console` and `ui` are wrapper parameters, so a script cannot declare its own
  *   (`const ui = …` at top level is `SyntaxError: Identifier 'ui' has already been declared`,
  *   and the statement form is the last fallback — it surfaces as `E_EVAL syntax error`). Both

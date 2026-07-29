@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   compile, expressionCandidates, resultWarning, summarize,
-} from '../plugin/src/main/executor-exec-js.ts';
+} from '../plugin/src/main/exec-js-normalize.ts';
 
 describe('expressionCandidates / compile — mode selection', () => {
   it('an IIFE with a trailing `;` still compiles as an expression (the 2.5 regression, locked)', async () => {
@@ -35,13 +35,13 @@ describe('expressionCandidates / compile — mode selection', () => {
     await expect(fn(consoleStub(), undefined as never)).resolves.toBe('https://x//');
   });
 
-  it('Codex round 1 finding 1: an IIFE whose string body ends in `//` before a trailing `;` must not be comment-mangled', async () => {
+  it('an IIFE whose string body ends in `//` before a trailing `;` must not be comment-mangled', async () => {
     const { fn, mode } = compile('(async () => "https://x//")();');
     expect(mode).toBe('expression');
     await expect(fn(consoleStub(), undefined as never)).resolves.toBe('https://x//');
   });
 
-  it('Codex round 1 finding 1: a genuine trailing `// comment` on its own line still normalizes (multiline)', async () => {
+  it('a genuine trailing `// comment` on its own line still normalizes (multiline)', async () => {
     const { fn, mode } = compile('(async () => "https://x//")();\n// trailing comment');
     expect(mode).toBe('expression');
     await expect(fn(consoleStub(), undefined as never)).resolves.toBe('https://x//');
@@ -70,6 +70,17 @@ describe('resultWarning', () => {
     expect(resultWarning(false, 'expression')).toBeUndefined();
     expect(resultWarning('', 'expression')).toBeUndefined();
     expect(resultWarning({ a: 1 }, 'expression')).toBeUndefined();
+  });
+
+  it('a null-prototype record with no own keys still warns — it is just as "plain" as {}', () => {
+    expect(resultWarning(Object.create(null), 'expression')).toMatch(/empty object/);
+  });
+
+  it('a Date/Map/class instance with zero OWN keys does NOT warn — not a plain empty record', () => {
+    class Empty {}
+    expect(resultWarning(new Date(), 'expression')).toBeUndefined();
+    expect(resultWarning(new Map(), 'expression')).toBeUndefined();
+    expect(resultWarning(new Empty(), 'expression')).toBeUndefined();
   });
 });
 

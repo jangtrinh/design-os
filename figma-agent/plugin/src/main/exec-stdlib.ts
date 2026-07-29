@@ -9,13 +9,14 @@
 // through serializeNode/jsonSafe. setProps/swapInstance (INSTANCE-shaped) live in
 // exec-stdlib-instance.ts — this file crossed the repo's 200-line cap with them inline.
 import { resolveVariable, bindVariableToField } from './executor-variables';
-import { serializeNode, jsonSafe, type SerializedNode } from './serialize-node';
+import {
+  serializeNode, jsonSafe, SERIALIZED_NODE_FIELDS, type SerializedNode,
+} from './serialize-node';
 import { withCode } from './executor-styles';
+import { readBindings } from './scan-node-utils';
 import { resolvePropKey, setProps, swapInstance } from './exec-stdlib-instance';
 
 export { resolvePropKey };
-
-const SERIALIZED_FIELDS = new Set(['id', 'name', 'type', 'x', 'y', 'width', 'height', 'children']);
 
 export interface ExecStdlib {
   setProps(inst: InstanceNode, props: Record<string, string | boolean>): Promise<Record<string, unknown>>;
@@ -25,13 +26,20 @@ export interface ExecStdlib {
   q(target: SceneNode | string, opts?: { depth?: number; fields?: string[] }): Promise<unknown>;
 }
 
-// Codex round 1, finding 3: Figma re-keys SOME bindings under a different boundVariables key
-// than the field name asked for (cornerRadius → the four per-corner *Radius fields) — but that
-// re-keying is a KNOWN, closed set, never "any other field on the node". Searching every key in
-// boundVariables (the previous behaviour) let a variable already bound to an UNRELATED field
-// (e.g. strokes, when the caller asked for fills) false-verify a bind that never actually took.
+// Figma re-keys SOME bindings under a different boundVariables key than the field name asked
+// for (cornerRadius → the four per-corner *Radius fields, VERIFIED on canvas) — but that
+// re-keying is a KNOWN, closed set, never "any other field on the node". Searching every key
+// a node carries would let a variable already bound to an UNRELATED field (e.g. strokes, when
+// the caller asked for fills) false-verify a bind that never actually took.
+//
+// strokeWeight is UNVERIFIED — a guess that Figma splits it the same way cornerRadius splits,
+// not yet confirmed live. TODO-canvas-check: bind a variable to `strokeWeight` on a real node,
+// read back `node.boundVariables`'s keys, and confirm whether it re-keys to
+// strokeTopWeight/strokeRightWeight/strokeBottomWeight/strokeLeftWeight or stays under
+// `strokeWeight` itself. Until that probe runs, treat this row as provisional.
 const BOUND_FIELD_EXPANSIONS: Record<string, readonly string[]> = {
   cornerRadius: ['cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
+  strokeWeight: ['strokeWeight', 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight'],
 };
 
 function expansionKeysFor(field: string): readonly string[] {
@@ -45,18 +53,16 @@ async function boundFill(
 ): Promise<{ id: string; field: string; variable: string }> {
   const variable = await resolveVariable(varName);
   bindVariableToField(node, field, variable);
-  // Assert by searching boundVariables for the variable id, scoped to the requested field's own
-  // re-keyed expansion set — never every key on the node (see the comment above).
-  const bv = (node as unknown as { boundVariables?: Record<string, unknown> }).boundVariables ?? {};
-  const hit = expansionKeysFor(field).some((k) => {
-    const entry = bv[k];
-    if (entry === undefined) return false;
-    const list = Array.isArray(entry) ? entry : [entry];
-    return list.some((a) => (a as { id?: string } | null)?.id === variable.id);
-  });
+  // Verify through readBindings (scan-node-utils.ts) — the ONE shared field→variable-id reader
+  // three other callers already depend on (the node-level join, the publish-key pre-pass, an
+  // inner child's visual override). A binding this reader cannot see is a binding the reverse
+  // walker cannot reattach either, so the "same eyes" rule applies here too: verifying through
+  // a second, ad-hoc reader could pass a bind the walker would still call lost.
+  const bindings = readBindings(node as unknown as Record<string, unknown>);
+  const hit = expansionKeysFor(field).some((k) => bindings[k] === variable.id);
   if (!hit) {
     throw withCode(
-      new Error(`bind of "${varName}" to ${field} did not take on "${node.name}" — boundVariables: ${JSON.stringify(bv)}`),
+      new Error(`bind of "${varName}" to ${field} did not take on "${node.name}" — bindings: ${JSON.stringify(bindings)}`),
       'E_EVAL',
     );
   }
@@ -126,8 +132,11 @@ async function q(target: SceneNode | string, opts: { depth?: number; fields?: st
   }
   if (fields) {
     for (const f of fields) {
-      if (!SERIALIZED_FIELDS.has(f)) {
-        throw withCode(new Error(`q: unknown field "${f}" — available: name, type, x, y, width, height, children`), 'E_EVAL');
+      if (!SERIALIZED_NODE_FIELDS.has(f)) {
+        throw withCode(
+          new Error(`q: unknown field "${f}" on "${node.id}" — available: ${[...SERIALIZED_NODE_FIELDS].join(', ')}`),
+          'E_EVAL',
+        );
       }
     }
   }

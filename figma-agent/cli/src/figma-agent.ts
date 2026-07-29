@@ -4,7 +4,8 @@
 import { runBrokerDaemon } from './transport/broker-daemon.ts';
 import { parseArgs, type CommandArgs } from './arg-parse.ts';
 import { CliError } from './transport/protocol-helpers.ts';
-import { printErrorJson, printJson } from './util/json-out.ts';
+import { getLastFileContext, setExpectedFile } from './transport/broker-client.ts';
+import { printErrorJson, printJson, withFileContext } from './util/json-out.ts';
 import * as batch from './commands/batch.ts';
 import * as bindVariable from './commands/bind-variable.ts';
 import * as capture from './commands/capture.ts';
@@ -89,10 +90,16 @@ Commands:
   exec-js              <file|-> [--timeout ms (cap 120000)] [--undo-group]
                        --undo-group brackets the script in ONE undo step and reverts it on error;
                        the script must not call figma.commitUndo/triggerUndo itself, and a timeout
-                       cannot stop a running script (the plugin has no cancellation).
+                       cannot stop a running script (the plugin has no cancellation). While it runs,
+                       figma.currentPage carries one extra invisible child (the undo sentinel) —
+                       a script that enumerates or counts the page's children will see it.
                        \`console\` and \`ui\` are injected — a script cannot declare its own.
   capture              <url> [--out dir --headless --channel chrome --width 1440 --timeout ms --carousel-window ms]
   batch                <file.json> [--stop-on-error]
+
+Global: --file "<exact file name>"   route to that file's plugin AND refuse to run anywhere else
+                                     (exact, case-insensitive; beats FIGMA_AGENT_FILE; payloads
+                                      >512KB route by the env pin but are still guarded)
 
 All commands print one JSON object to stdout and exit 0, or {error:{code,message}} and exit 1.`;
 
@@ -112,12 +119,19 @@ async function main(): Promise<void> {
   if (!command) {
     printErrorJson(new CliError('E_INVALID_ARGS', `unknown command "${name}" — run figma-agent --help`));
   }
+  const args = parseArgs(argv.slice(1));
+  // `--file` with no value parses as boolean true and str() then returns undefined
+  // (arg-parse.ts:27-34) — a typo would run UNGUARDED, so refuse instead.
+  if (args.bool('file') && (args.str('file') ?? '').trim() === '') {
+    printErrorJson(new CliError('E_INVALID_ARGS', '--file needs a file name, e.g. --file "VSF - PCP"'));
+  }
+  setExpectedFile(args.str('file'));   // global flag — verified: no command reads --file today
   try {
-    const result = await command.run(parseArgs(argv.slice(1)));
-    printJson(result);
+    const result = await command.run(args);
+    printJson(withFileContext(result));
     process.exit(0);
   } catch (err) {
-    printErrorJson(err);
+    printErrorJson(err, getLastFileContext());
   }
 }
 

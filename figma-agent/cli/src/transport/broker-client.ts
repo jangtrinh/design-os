@@ -11,6 +11,7 @@ import {
   makeRequestFrame,
   makeRequestId,
   type CommandName,
+  type FileContext,
   type WireError,
 } from '../../../shared/protocol.ts';
 import { ensureBroker } from './broker-discovery.ts';
@@ -27,6 +28,13 @@ import {
 
 const CONNECT_TIMEOUT_MS = 4_000;
 let requestCounter = 0;
+
+let expectedFile: string | undefined;
+let lastFileContext: FileContext | undefined;
+
+/** Set once per CLI invocation from the global --file flag; stamped on every request envelope. */
+export function setExpectedFile(name: string | undefined): void { expectedFile = name; }
+export function getLastFileContext(): FileContext | undefined { return lastFileContext; }
 
 function connectWs(port: number): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
@@ -93,6 +101,7 @@ function exchange(
       }
       if (isReplyMsg(msg) && msg.id === id) {
         const reply = msg;
+        if (reply.fileContext) lastFileContext = reply.fileContext;
         finish(() => {
           if (reply.ok) resolve(reply.result);
           else reject(new CliError(reply.error.code, reply.error.message, { rolledBack: (reply.error as WireError).rolledBack }));
@@ -103,7 +112,7 @@ function exchange(
     ws.on('error', (err) => finish(() => reject(new CliError('E_NO_BROKER', `broker socket error: ${err.message}`))));
 
     try {
-      sendWireMsg(ws, makeRequestFrame(id, cmd, params, activity));
+      sendWireMsg(ws, makeRequestFrame(id, cmd, params, activity, expectedFile));
     } catch (err) {
       finish(() => reject(new CliError('E_NO_BROKER', `failed to send request: ${(err as Error).message}`)));
     }

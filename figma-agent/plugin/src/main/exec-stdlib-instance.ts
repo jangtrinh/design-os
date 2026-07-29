@@ -65,7 +65,7 @@ export async function setProps(
   // fail to "take" (e.g. a stale key) — compare against the RESOLVED value, never the
   // caller's original, since a key→id swap makes that comparison always fail.
   //
-  // Codex round 1, finding 4: `String(actual) !== String(value)` coerces both sides to text
+  // `String(actual) !== String(value)` coerces both sides to text
   // first, so a re-read that comes back as the STRING "true" for a requested BOOLEAN `true`
   // would stringify equal and false-verify a type-mismatched write. `Object.is` compares the
   // re-read value as-is — the values in play are homogeneous per prop kind (string/boolean for

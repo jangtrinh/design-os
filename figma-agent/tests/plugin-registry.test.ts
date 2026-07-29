@@ -181,6 +181,43 @@ describe('selectTarget(filter) — FIGMA_AGENT_FILE substring match', () => {
   });
 });
 
+describe('matching(filter, {exact}) — exact mode + the ambiguity input', () => {
+  it('selectTarget(filter) unchanged: substring + most-recently-active', () => {
+    const { reg, tick } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design System' });
+    tick(5);
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design' });
+    expect(reg.selectTarget('design')?.instanceId).toBe('b'); // most-recently-active of the substring matches
+  });
+
+  it('selectTarget(filter, {exact:true}) → only the exact-named one', () => {
+    const { reg, tick } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design System' });
+    tick(5);
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design' });
+    expect(reg.selectTarget('design', { exact: true })?.instanceId).toBe('b');
+    expect(reg.selectTarget('Design System', { exact: true })?.instanceId).toBe('a');
+  });
+
+  it('matching(filter, {exact:true}).length === 2 for a duplicate-named pair — the ambiguity input', () => {
+    const { reg, tick } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design' });
+    tick(5);
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design' });
+    reg.register(sock(), { instanceId: 'c', fileName: 'Design System' });
+    const hits = reg.matching('Design', { exact: true });
+    expect(hits.length).toBe(2);
+    expect(hits.map((h) => h.instanceId).sort()).toEqual(['a', 'b']);
+  });
+
+  it('a filter matching nothing → [] / null (the park path)', () => {
+    const { reg } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design' });
+    expect(reg.matching('nope', { exact: true })).toEqual([]);
+    expect(reg.selectTarget('nope', { exact: true })).toBeNull();
+  });
+});
+
 describe('park → flush decision (what the daemon keys off)', () => {
   it('filter set + only a NON-matching file → no target (park); matching file appears → target (flush)', () => {
     const { reg, tick } = makeReg();

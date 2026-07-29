@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { PluginRegistry, WS_OPEN, type RegistrySocket } from '../cli/src/transport/plugin-registry.ts';
 import { buildBrokerHelloData, noPluginMessage, type BrokerMeta } from '../cli/src/transport/broker-status.ts';
+import type { RouteFilter } from '../cli/src/transport/route-filter.ts';
 
 const sock = (): RegistrySocket => ({ readyState: WS_OPEN });
 const META: BrokerMeta = { port: 9410, pid: 4242, protocolV: 1, buildMtime: 111, uptimeMs: 5000 };
@@ -68,24 +69,39 @@ describe('buildBrokerHelloData — plugins list + activePlugin', () => {
 });
 
 describe('noPluginMessage', () => {
+  const envFilter = (value: string): RouteFilter => ({ value, exact: false, source: 'env' });
+  const flagFilter = (value: string): RouteFilter => ({ value, exact: true, source: 'flag' });
+
   it('no filter → the plain nudge', () => {
     const { reg } = seed();
     expect(noPluginMessage(reg, null)).toBe('no Figma plugin connected — open the figma-agent plugin in Figma');
   });
 
-  it('filter + other files connected → names the filter and lists the files', () => {
+  it('env filter + other files connected → names FIGMA_AGENT_FILE and lists the files', () => {
     const { reg } = seed();
     reg.register(sock(), { instanceId: 'a', fileName: 'Design system' });
     reg.register(sock(), { instanceId: 'b', fileName: 'Marketing site' });
-    const msg = noPluginMessage(reg, 'vsf');
+    const msg = noPluginMessage(reg, envFilter('vsf'));
     expect(msg).toContain('FIGMA_AGENT_FILE="vsf"');
     expect(msg).toContain('Design system');
     expect(msg).toContain('Marketing site');
     expect(msg).toContain('unset FIGMA_AGENT_FILE');
   });
 
+  it('--file filter + other files connected → names --file, lists the files, suggests dropping --file', () => {
+    const { reg } = seed();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design system' });
+    reg.register(sock(), { instanceId: 'b', fileName: 'Marketing site' });
+    const msg = noPluginMessage(reg, flagFilter('Definitely Not A File'));
+    expect(msg).toContain('--file "Definitely Not A File"');
+    expect(msg).toContain('Design system');
+    expect(msg).toContain('Marketing site');
+    expect(msg).toContain('drop --file');
+    expect(msg).not.toContain('FIGMA_AGENT_FILE');
+  });
+
   it('filter but nothing connected → falls back to the plain nudge', () => {
     const { reg } = seed();
-    expect(noPluginMessage(reg, 'vsf')).toBe('no Figma plugin connected — open the figma-agent plugin in Figma');
+    expect(noPluginMessage(reg, envFilter('vsf'))).toBe('no Figma plugin connected — open the figma-agent plugin in Figma');
   });
 });

@@ -1,5 +1,5 @@
 // Pure EXEC_JS script normalization — split out of executor-exec-js.ts to stay under the
-// repo's 200-line module cap once the Codex round 1 fixes landed. No `figma` global access:
+// repo's 200-line module cap. No `figma` global access:
 // expression-vs-statement compilation, node-ish result summarization, and the empty/null/
 // undefined result classification are all pure functions of their input, so a plain import
 // works without a Figma sandbox (the exec-js-normalize.test.ts suite relies on exactly this).
@@ -15,7 +15,7 @@ export type ExecFn = (console: ConsoleProxy, ui: ReturnType<typeof createExecStd
  * a wrong strip fails to parse and the next candidate runs, and the statement fallback always gets
  * the ORIGINAL source, so normalization can never change what executes.
  *
- * SEMICOLON-FIRST ordering (Codex round 1, finding 1): the comment-strip regex has no notion of
+ * SEMICOLON-FIRST ordering: the comment-strip regex has no notion of
  * string-literal context, so on a script whose only line ends `)();` after a string containing
  * `//` (e.g. a URL — `(async () => "https://x//")();`), stripping the comment BEFORE the semicolon
  * would eat into the string literal itself. Trying the semicolon-only strips first means the safe,
@@ -69,6 +69,18 @@ export function summarize(value: unknown): unknown {
   return jsonSafe(value);
 }
 
+/**
+ * PURE. A "plain" object — `{}`, `Object.create(null)`, or a spread/JSON-shaped record — as
+ * opposed to a `Date`, `Map`, or class instance. Those carry zero OWN enumerable keys just as
+ * often as a genuinely empty plain object does (`Object.keys(new Date())` is also `[]`), so
+ * `Object.keys().length === 0` alone cannot tell "empty record" from "a real value of some
+ * other shape" — only the prototype can.
+ */
+function isPlainObject(value: object): boolean {
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
 /** PURE. Computed on the RAW value — jsonSafe turns `undefined` into `null` and erases the signal. */
 export function resultWarning(result: unknown, mode: 'expression' | 'statement'): string | undefined {
   if (result === undefined) {
@@ -78,7 +90,7 @@ export function resultWarning(result: unknown, mode: 'expression' | 'statement')
   }
   if (result === null) return 'returned null — the node or resource may not exist';
   if (Array.isArray(result) && result.length === 0) return 'returned an empty array — the search matched nothing';
-  if (typeof result === 'object' && Object.keys(result as object).length === 0) {
+  if (typeof result === 'object' && isPlainObject(result) && Object.keys(result).length === 0) {
     return 'returned an empty object — the operation may have matched nothing';
   }
   return undefined;
