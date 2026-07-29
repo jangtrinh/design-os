@@ -288,9 +288,8 @@ function teardown(socket: WebSocket, reason: string): void {
 }
 
 // ─── Broker discovery: probe each port until BROKER_HELLO ───────────
-// The broker binds 127.0.0.1 (IPv4). Chromium may resolve `localhost` to ::1
-// (IPv6) first, which refuses — so the broker listens on both loopback families
-// and we probe ws://localhost:PORT (allowedDomains accepts only hostnames).
+// Use a dedicated `.localhost` hostname. Figma Desktop can fail bare
+// `ws://localhost`, while its manifest rejects literal IP-address domains.
 function probePort(port: number, host: string): Promise<WebSocket | null> {
   return new Promise((resolve) => {
     let settled = false;
@@ -324,8 +323,8 @@ function probePort(port: number, host: string): Promise<WebSocket | null> {
 
 async function scanForBroker(): Promise<WebSocket | null> {
   for (let port = PORT_RANGE_START; port <= PORT_RANGE_END; port++) {
-    transition('PROBE', { detail: `probing localhost:${port}…`, port });
-    const socket = await probePort(port, 'localhost');
+    transition('PROBE', { detail: `probing figma-agent.localhost:${port}…`, port });
+    const socket = await probePort(port, 'figma-agent.localhost');
     if (socket) return socket;
   }
   return null;

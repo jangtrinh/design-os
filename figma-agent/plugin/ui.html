@@ -2814,8 +2814,8 @@ code {
   }
   async function scanForBroker() {
     for (let port = PORT_RANGE_START; port <= PORT_RANGE_END; port++) {
-      transition("PROBE", { detail: `probing localhost:${port}\u2026`, port });
-      const socket = await probePort(port, "localhost");
+      transition("PROBE", { detail: `probing figma-agent.localhost:${port}\u2026`, port });
+      const socket = await probePort(port, "figma-agent.localhost");
       if (socket) return socket;
     }
     return null;
