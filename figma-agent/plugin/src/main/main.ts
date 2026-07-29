@@ -5,8 +5,9 @@
 // Orchestration handlers that need the dispatch itself (IMPORT_PAYLOAD, BATCH)
 // live here; single-command executors live in executor-*.ts.
 
-import type { CommandName, ErrorCode, WireError } from '../../../shared/protocol';
+import type { CommandName, ErrorCode, FileContext, WireError } from '../../../shared/protocol';
 import { DEFAULT_IDLE_MS, MIN_IDLE_MS } from '../../../shared/protocol';
+import { fileMatches } from '../../../shared/file-match';
 import type { FigmaExportPayload } from '../../../shared/figma-payload-types';
 import {
   coalesceChanges, mapChangeType,
@@ -28,6 +29,7 @@ import {
 } from './executor-ops';
 import { opExecJs } from './executor-exec-js';
 import { opCloneTraits } from './executor-clone-traits';
+import { MUTATING_COMMANDS } from './mutating-commands';
 import {
   beginAgentMutation,
   readEdgeCorrections,
@@ -45,14 +47,31 @@ figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT
 // Announce scene identity to the UI iframe so the P2 panel's Connection details can
 // show File/Page; ui-relay also forwards this to the broker (enriches PLUGIN_HELLO /
 // `figma-agent status`). Re-announce on page change so the panel stays current.
+let announcedFileName = '';
+
 function announceFileInfo(): void {
+  announcedFileName = figma.root.name;
   figma.ui.postMessage({
     type: 'FILE_INFO',
-    data: { fileName: figma.root.name, page: figma.currentPage.name },
+    data: { fileName: figma.root.name, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
   });
 }
 announceFileInfo();
 figma.on('currentpagechange', announceFileInfo);
+
+/**
+ * The file identity read at every request, with a rename self-heal: sync getters only,
+ * safe under dynamic-page and cheap enough to call per request. `announceFileInfo` fires
+ * only at startup and on `currentpagechange`; renaming the Figma FILE fires neither event,
+ * so the broker's registry would keep routing the old name (and the guard below would then
+ * refuse the new one). Re-announcing whenever `figma.root.name` drifts lets routing and the
+ * guard converge within one round-trip instead of staying stale until the panel reloads.
+ */
+function fileContext(): FileContext {
+  const ctx = { fileName: figma.root.name, fileKey: figma.fileKey ?? null };
+  if (ctx.fileName !== announcedFileName) announceFileInfo();
+  return ctx;
+}
 
 // ─── Live-sync capture (spec 004 P1) ────────────────────────────────
 // Watch whole-document edits, coalesce to the component level, and post the batch
@@ -165,7 +184,7 @@ figma.loadAllPagesAsync()
 
 type Params = Record<string, unknown>;
 
-interface UiRequest { requestId: string; cmd: CommandName; params?: Params }
+interface UiRequest { requestId: string; cmd: CommandName; params?: Params; expectedFile?: string }
 
 figma.ui.onmessage = async (msg: unknown) => {
   // P5.1 panel chrome: the DETAILS toggle asks for an iframe resize. Height is
@@ -188,41 +207,37 @@ figma.ui.onmessage = async (msg: unknown) => {
     changesSinceCommit = 0;
     return;
   }
+  // The relay boots before main's first FILE_INFO push can possibly have arrived — an
+  // iframe-originated error raised in that window would otherwise have no identity to
+  // attach to its reply. Re-announcing on demand closes that race.
+  if (chrome && chrome.type === 'UI_READY') { announceFileInfo(); return; }
   const req = msg as Partial<UiRequest> | null;
   if (!req || typeof req.requestId !== 'string' || typeof req.cmd !== 'string') return; // relay chatter, not a command
+  const ctx = fileContext();
   try {
+    if (typeof req.expectedFile === 'string' && req.expectedFile.trim() !== ''
+        && !fileMatches(ctx.fileName, req.expectedFile, true)) {
+      // Guard runs at the wire boundary, BEFORE any executor: a wrong-file command must not
+      // touch the scene, and must not be recorded as an agent mutation either.
+      throw withCode(new Error(
+        `this plugin is connected to file "${ctx.fileName}", command expected "${req.expectedFile}" — nothing was executed`,
+      ), 'E_WRONG_FILE');
+    }
     const targetIds = mutationTargetIds(req.cmd as CommandName, req.params ?? {});
     beginAgentMutation(targetIds);
     const result = await dispatch(req.cmd, req.params ?? {});
     const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
     for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
     commitIfMutating(req.cmd as CommandName);
-    figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
+    figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
   } catch (err) {
     // Commit on failure too, so a half-applied mutation (e.g. IMPORT_PAYLOAD styles/
     // variables created before the throw) owns its own undo step instead of being
     // swallowed into the next command's.
     commitIfMutating(req.cmd as CommandName);
-    figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
+    figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err), fileContext: ctx });
   }
 };
-
-// Each successful mutating command becomes its own undo step. Without commitUndo, Figma's
-// default makes an entire agent session ONE ⌘Z. BATCH is absent deliberately: its children
-// commit individually, which is the granularity a user wants. Read-only commands never commit.
-const MUTATING_COMMANDS: readonly CommandName[] = [
-  'CREATE_FRAME', 'CREATE_INSTANCE', 'SET_VARIANT', 'CREATE_VARIABLE', 'BIND_VARIABLE',
-  'SET_AUTOLAYOUT', 'SET_CONSTRAINTS', 'SET_TEXT', 'CLONE_TRAITS', 'SET_CORRECTION_MEMORY',
-  'EXEC_JS', 'IMPORT_PAYLOAD',
-];
-// Not in the set (nothing to seal into an undo step): STATUS, GET_SELECTION,
-// SCAN_DESIGN_SYSTEM, AUDIT_DS, GET_CORRECTION_MEMORY, EXPORT_PNG.
-// AUDIT_DS does move the user's current page (executor-audit.ts walks pages via
-// setCurrentPageAsync and does not restore the original) — page navigation is not
-// undoable, so a commit would do nothing. Excluded on that basis, not on innocence.
-// SET_CORRECTION_MEMORY IS in the set — it writes figma.root.setSharedPluginData
-// (correction-edge-store.ts:28-31). HTML_TO_FIGMA never reaches main (it arrives as
-// IMPORT_PAYLOAD).
 
 /** Commit AFTER the correction-memory bookkeeping so a command and its bookkeeping share one step. */
 function commitIfMutating(cmd: CommandName): void {

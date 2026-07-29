@@ -60,7 +60,7 @@ describe('setProps — INSTANCE_SWAP by component key (integration, strict mock)
   });
 });
 
-describe('setProps — re-read assertion (Codex round 1, finding 4)', () => {
+describe('setProps — re-read assertion rejects type-coerced equality', () => {
   it('a BOOLEAN re-read as the string "true" must throw — Object.is catches the type mismatch', async () => {
     // A minimal instance-shaped stand-in, not the mock-figma FakeNode: this reproduces a host
     // that stores booleans as strings internally on re-read, which `String(actual) !== String(value)`

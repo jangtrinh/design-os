@@ -3,6 +3,7 @@
 // broker-daemon.ts so both are unit-testable without a live socket.
 import type { PluginRegistry, RegistrySocket } from './plugin-registry.ts';
 import type { PluginStatusEntry } from '../../../shared/protocol.ts';
+import type { RouteFilter } from './route-filter.ts';
 
 /** Daemon-owned fields the registry can't know (identity + uptime). */
 export interface BrokerMeta {
@@ -47,16 +48,22 @@ export function buildBrokerHelloData(
 }
 
 /**
- * The E_NO_PLUGIN message. With a FIGMA_AGENT_FILE filter set AND other files
- * connected, name the requested filter and list the connected files (so the user
- * sees why routing refused); otherwise the plain "no plugin connected" nudge.
+ * The E_NO_PLUGIN message. With a routing filter set (`--file` or FIGMA_AGENT_FILE) AND
+ * other files connected, name the KNOB THE CALLER ACTUALLY USED and list the connected
+ * files (so the user sees why routing refused); otherwise the plain "no plugin connected"
+ * nudge. Naming FIGMA_AGENT_FILE for a `--file` miss would be wrong advice — the caller
+ * never set that env var.
  */
-export function noPluginMessage(registry: PluginRegistry<RegistrySocket>, filter?: string | null): string {
-  const f = filter?.trim();
+export function noPluginMessage(registry: PluginRegistry<RegistrySocket>, filter?: RouteFilter | null): string {
+  const f = filter?.value?.trim();
   const live = registry.statusList();
   if (f && live.length > 0) {
     const names = live.map((p) => p.fileName ?? '(unnamed)').join(', ');
-    return `no Figma plugin matching FIGMA_AGENT_FILE="${f}" — connected files: [${names}]. Open that file's panel, or unset FIGMA_AGENT_FILE.`;
+    const knob = filter?.source === 'flag' ? `--file "${f}"` : `FIGMA_AGENT_FILE="${f}"`;
+    const fix = filter?.source === 'flag'
+      ? 'Open that file\'s panel, or drop --file.'
+      : 'Open that file\'s panel, or unset FIGMA_AGENT_FILE.';
+    return `no Figma plugin matching ${knob} — connected files: [${names}]. ${fix}`;
   }
   return 'no Figma plugin connected — open the figma-agent plugin in Figma';
 }

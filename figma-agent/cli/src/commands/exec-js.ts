@@ -33,9 +33,11 @@ export async function run(args: CommandArgs): Promise<unknown> {
   // scan/mirror-verify/build runs label themselves and never reach this line.
   const activity = !fileArg || fileArg === '-' ? 'Run script' : `Run script · ${fileArg}`;
   const undoGroup = args.bool('undo-group');
+  // Additive-wire rule: send `undoGroup` only when true, exactly like `activity`/`expectedFile`
+  // — an unset flag must serialize byte-identically to what a pre-flag CLI sent.
   const out = await runCommand(
     'EXEC_JS',
-    { code, timeoutMs, undoGroup },
+    { code, timeoutMs, ...(undoGroup ? { undoGroup: true } : {}) },
     { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity },
   );
   // stdout stays exactly one JSON object (the CLI contract); the human warning goes to stderr.

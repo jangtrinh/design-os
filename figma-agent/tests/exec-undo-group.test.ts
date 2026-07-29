@@ -54,7 +54,7 @@ describe('runInUndoGroup', () => {
     expect((boom as Error & { rolledBack?: boolean }).rolledBack).toBeUndefined();
   });
 
-  it('Codex round 1 finding 2: a primitive throw is normalized into an Error and tagged rolledBack on rollback', async () => {
+  it('a primitive throw is normalized into an Error and tagged rolledBack on rollback', async () => {
     const { bracket, calls } = recordingBracket();
     const rejection = runInUndoGroup(bracket, async () => { throw 'boom'; });
     await expect(rejection).rejects.toBeInstanceOf(Error);
@@ -62,10 +62,21 @@ describe('runInUndoGroup', () => {
     expect(calls).toEqual(['begin', 'rollback']);
   });
 
-  it('Codex round 1 finding 2: a primitive throw with no bracket still passes through as a plain Error', async () => {
+  it('a primitive throw with no bracket still passes through as a plain Error', async () => {
     const rejection = runInUndoGroup(null, async () => { throw 'boom'; });
     await expect(rejection).rejects.toBeInstanceOf(Error);
     await expect(rejection).rejects.toThrow('boom');
     await expect(rejection).rejects.not.toMatchObject({ rolledBack: true });
+  });
+
+  it('a bracket whose commit() throws (script SUCCEEDED) never rolls back — the result still returns', async () => {
+    const calls: string[] = [];
+    const bracket: UndoBracket = {
+      begin: () => calls.push('begin'),
+      commit: () => { calls.push('commit'); throw new Error('sentinel already gone'); },
+      rollback: () => calls.push('rollback'),
+    };
+    await expect(runInUndoGroup(bracket, async () => 'ok')).resolves.toBe('ok');
+    expect(calls).toEqual(['begin', 'commit']); // rollback NEVER called after a successful script
   });
 });

@@ -6,6 +6,13 @@
   var CHUNK_LIMIT = 512 * 1024;
   var BROKER_IDLE_SHUTDOWN_MS = 30 * 6e4;
 
+  // shared/file-match.ts
+  function fileMatches(actual, filter, exact) {
+    const a = (actual ?? "").trim().toLowerCase();
+    const f = filter.trim().toLowerCase();
+    return exact ? a === f : a.includes(f);
+  }
+
   // shared/figma-changes.ts
   function mapChangeType(type) {
     switch (type) {
@@ -818,6 +825,32 @@
       return void 0;
     }
   }
+  function aliasId(val) {
+    const alias = Array.isArray(val) ? val[0] : val;
+    return alias?.id;
+  }
+  function readBindings(n) {
+    const rec = {};
+    const bound = safe(() => n.boundVariables);
+    if (bound && typeof bound === "object") {
+      for (const [field, val] of Object.entries(bound)) {
+        const id = aliasId(val);
+        if (id) rec[field] = id;
+      }
+    }
+    for (const field of ["fills", "strokes"]) {
+      const paints = safe(() => n[field]);
+      if (!Array.isArray(paints)) continue;
+      for (const p of paints) {
+        const id = aliasId(p.boundVariables?.color);
+        if (id) {
+          rec[field] = id;
+          break;
+        }
+      }
+    }
+    return rec;
+  }
 
   // plugin/src/main/instance-inner-override-keys.ts
   var INNER_OVERRIDE_FIELDS = [
@@ -1589,6 +1622,7 @@
   }
 
   // plugin/src/main/serialize-node.ts
+  var SERIALIZED_NODE_FIELDS = /* @__PURE__ */ new Set(["id", "name", "type", "x", "y", "width", "height", "children"]);
   function serializeNode(node, depth = 1) {
     const out = {
       id: node.id,
@@ -2188,9 +2222,9 @@
   }
 
   // plugin/src/main/exec-stdlib.ts
-  var SERIALIZED_FIELDS = /* @__PURE__ */ new Set(["id", "name", "type", "x", "y", "width", "height", "children"]);
   var BOUND_FIELD_EXPANSIONS = {
-    cornerRadius: ["cornerRadius", "topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]
+    cornerRadius: ["cornerRadius", "topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"],
+    strokeWeight: ["strokeWeight", "strokeTopWeight", "strokeRightWeight", "strokeBottomWeight", "strokeLeftWeight"]
   };
   function expansionKeysFor(field) {
     return BOUND_FIELD_EXPANSIONS[field] ?? [field];
@@ -2198,16 +2232,11 @@
   async function boundFill(node, varName, field = "fills") {
     const variable = await resolveVariable(varName);
     bindVariableToField(node, field, variable);
-    const bv = node.boundVariables ?? {};
-    const hit = expansionKeysFor(field).some((k) => {
-      const entry = bv[k];
-      if (entry === void 0) return false;
-      const list = Array.isArray(entry) ? entry : [entry];
-      return list.some((a) => a?.id === variable.id);
-    });
+    const bindings = readBindings(node);
+    const hit = expansionKeysFor(field).some((k) => bindings[k] === variable.id);
     if (!hit) {
       throw withCode(
-        new Error(`bind of "${varName}" to ${field} did not take on "${node.name}" \u2014 boundVariables: ${JSON.stringify(bv)}`),
+        new Error(`bind of "${varName}" to ${field} did not take on "${node.name}" \u2014 bindings: ${JSON.stringify(bindings)}`),
         "E_EVAL"
       );
     }
@@ -2269,8 +2298,11 @@
     }
     if (fields) {
       for (const f of fields) {
-        if (!SERIALIZED_FIELDS.has(f)) {
-          throw withCode(new Error(`q: unknown field "${f}" \u2014 available: name, type, x, y, width, height, children`), "E_EVAL");
+        if (!SERIALIZED_NODE_FIELDS.has(f)) {
+          throw withCode(
+            new Error(`q: unknown field "${f}" on "${node.id}" \u2014 available: ${[...SERIALIZED_NODE_FIELDS].join(", ")}`),
+            "E_EVAL"
+          );
         }
       }
     }
@@ -2320,13 +2352,17 @@
     if (Array.isArray(value)) return value.map(summarize);
     return jsonSafe(value);
   }
+  function isPlainObject(value) {
+    const proto = Object.getPrototypeOf(value);
+    return proto === Object.prototype || proto === null;
+  }
   function resultWarning(result, mode) {
     if (result === void 0) {
       return mode === "statement" ? "no explicit return \u2014 the script ran to completion but returned nothing; side effects may still have applied" : "the expression evaluated to undefined";
     }
     if (result === null) return "returned null \u2014 the node or resource may not exist";
     if (Array.isArray(result) && result.length === 0) return "returned an empty array \u2014 the search matched nothing";
-    if (typeof result === "object" && Object.keys(result).length === 0) {
+    if (typeof result === "object" && isPlainObject(result) && Object.keys(result).length === 0) {
       return "returned an empty object \u2014 the operation may have matched nothing";
     }
     return void 0;
@@ -2339,7 +2375,8 @@
     let sentinel = null;
     return {
       begin() {
-        for (const n of figma.currentPage.findChildren((c) => c.getPluginData(SENTINEL_KEY) === "1")) n.remove();
+        const page = figma.currentPage;
+        for (const n of page.findChildren((c) => c.getPluginData(SENTINEL_KEY) === "1")) n.remove();
         figma.commitUndo();
         const f = figma.createFrame();
         f.name = SENTINEL_NAME;
@@ -2348,11 +2385,14 @@
         f.x = -1e6;
         f.y = -1e6;
         f.visible = false;
-        figma.currentPage.appendChild(f);
+        page.appendChild(f);
         sentinel = f;
       },
       commit() {
-        if (sentinel) sentinel.remove();
+        try {
+          if (sentinel && !sentinel.removed) sentinel.remove();
+        } catch {
+        }
         figma.commitUndo();
       },
       rollback() {
@@ -2364,10 +2404,9 @@
   }
   async function runInUndoGroup(bracket, run) {
     bracket?.begin();
+    let out;
     try {
-      const out = await run();
-      bracket?.commit();
-      return out;
+      out = await run();
     } catch (err) {
       const carrier = typeof err === "object" && err !== null ? err : Object.assign(new Error(String(err)), { originalPrimitive: err });
       if (bracket) {
@@ -2380,6 +2419,11 @@
       }
       throw carrier;
     }
+    try {
+      bracket?.commit();
+    } catch {
+    }
+    return out;
   }
   async function opExecJs(params) {
     const code = params.code ?? params.js;
@@ -2538,6 +2582,22 @@
     return { sourceId: source.id, targetId: target.id, traits, applied, skipped };
   }
 
+  // plugin/src/main/mutating-commands.ts
+  var MUTATING_COMMANDS = [
+    "CREATE_FRAME",
+    "CREATE_INSTANCE",
+    "SET_VARIANT",
+    "CREATE_VARIABLE",
+    "BIND_VARIABLE",
+    "SET_AUTOLAYOUT",
+    "SET_CONSTRAINTS",
+    "SET_TEXT",
+    "CLONE_TRAITS",
+    "SET_CORRECTION_MEMORY",
+    "EXEC_JS",
+    "IMPORT_PAYLOAD"
+  ];
+
   // shared/supervised-memory.ts
   var CORRECTION_SCHEMA_VERSION = 1;
   var EDGE_RAW_LIMIT = 250;
@@ -2650,14 +2710,21 @@
 
   // plugin/src/main/main.ts
   figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
+  var announcedFileName = "";
   function announceFileInfo() {
+    announcedFileName = figma.root.name;
     figma.ui.postMessage({
       type: "FILE_INFO",
-      data: { fileName: figma.root.name, page: figma.currentPage.name }
+      data: { fileName: figma.root.name, page: figma.currentPage.name, fileKey: figma.fileKey ?? null }
     });
   }
   announceFileInfo();
   figma.on("currentpagechange", announceFileInfo);
+  function fileContext() {
+    const ctx = { fileName: figma.root.name, fileKey: figma.fileKey ?? null };
+    if (ctx.fileName !== announcedFileName) announceFileInfo();
+    return ctx;
+  }
   function resolveComponentIdentity(node) {
     if ("removed" in node && node.removed) {
       if (node.type === "COMPONENT" || node.type === "COMPONENT_SET") {
@@ -2740,35 +2807,31 @@
       changesSinceCommit = 0;
       return;
     }
+    if (chrome && chrome.type === "UI_READY") {
+      announceFileInfo();
+      return;
+    }
     const req = msg;
     if (!req || typeof req.requestId !== "string" || typeof req.cmd !== "string") return;
+    const ctx = fileContext();
     try {
+      if (typeof req.expectedFile === "string" && req.expectedFile.trim() !== "" && !fileMatches(ctx.fileName, req.expectedFile, true)) {
+        throw withCode(new Error(
+          `this plugin is connected to file "${ctx.fileName}", command expected "${req.expectedFile}" \u2014 nothing was executed`
+        ), "E_WRONG_FILE");
+      }
       const targetIds = mutationTargetIds(req.cmd, req.params ?? {});
       beginAgentMutation(targetIds);
       const result = await dispatch(req.cmd, req.params ?? {});
       const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
       for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
       commitIfMutating(req.cmd);
-      figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
+      figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
     } catch (err) {
       commitIfMutating(req.cmd);
-      figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
+      figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err), fileContext: ctx });
     }
   };
-  var MUTATING_COMMANDS = [
-    "CREATE_FRAME",
-    "CREATE_INSTANCE",
-    "SET_VARIANT",
-    "CREATE_VARIABLE",
-    "BIND_VARIABLE",
-    "SET_AUTOLAYOUT",
-    "SET_CONSTRAINTS",
-    "SET_TEXT",
-    "CLONE_TRAITS",
-    "SET_CORRECTION_MEMORY",
-    "EXEC_JS",
-    "IMPORT_PAYLOAD"
-  ];
   function commitIfMutating(cmd) {
     if (MUTATING_COMMANDS.indexOf(cmd) !== -1) figma.commitUndo();
   }

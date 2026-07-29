@@ -17,7 +17,7 @@ import {
   RECONNECT_BACKOFF_MAX_MS, RECONNECT_BACKOFF_MIN_MS,
   makeStatePayload, nextBackoff, reduceConnState,
   type ChunkMsg, type CommandName, type ConnectionEvent, type ConnectionState, type ConnectionStatePayload,
-  type ErrorCode, type ReplyMsg, type RequestMsg,
+  type ErrorCode, type FileContext, type ReplyMsg, type RequestMsg, type WireError,
 } from '../../../shared/protocol';
 import { renderHtmlToPayload } from './render-host';
 import { summarizeError, summarizeResult } from './activity-summary';
@@ -130,8 +130,19 @@ function wsSend(msg: ReplyMsg | { type: string; data: Record<string, unknown> })
   }
 }
 
+/** The cached identity from main's last FILE_INFO push — undefined until the first one lands. */
+function localFileContext(): FileContext | undefined {
+  const name = fileInfo.fileName;
+  return typeof name === 'string' && name
+    ? { fileName: name, fileKey: (fileInfo.fileKey as string | null | undefined) ?? null }
+    : undefined;
+}
+
+// Iframe-originated failures (E_CHUNK_LOST, missing HTML, render errors) never reach main, so
+// they attach the cached identity themselves — otherwise "every reply carries fileContext" would
+// be false for exactly the replies that matter most.
 function sendErr(id: string, code: ErrorCode, message: string): void {
-  wsSend({ id, ok: false, error: { code, message } });
+  wsSend({ id, ok: false, error: { code, message }, fileContext: localFileContext() });
 }
 
 // ─── Inbound WS: chunk reassembly + routing ─────────────────────────
@@ -200,16 +211,21 @@ async function handleRequest(req: RequestMsg): Promise<void> {
       setStatusText('rendering html…', 'ok');
       const payload = await renderHtmlToPayload(p.html, p.width ?? 1280, p.name ?? 'HTML Import');
       setStatusText('connected', 'ok');
+      // The HTML render above still runs before main can refuse a wrong-file HTML_TO_FIGMA —
+      // wasted work only; the iframe cannot touch the scene, and main's guard still fires here.
       parent.postMessage({
         pluginMessage: {
           requestId: req.id,
           cmd: 'IMPORT_PAYLOAD',
+          expectedFile: req.expectedFile,
           params: { payload, x: p.x, y: p.y, parentId: p.parentId, replaceId: p.replaceId },
         },
       }, '*');
     } else {
       // Everything else is a main-thread op — forward unchanged
-      parent.postMessage({ pluginMessage: { requestId: req.id, cmd: req.cmd, params: req.params } }, '*');
+      parent.postMessage({
+        pluginMessage: { requestId: req.id, cmd: req.cmd, params: req.params, expectedFile: req.expectedFile },
+      }, '*');
     }
   } catch (err) {
     setStatusText('connected', 'ok');
@@ -238,15 +254,17 @@ window.addEventListener('message', (ev: MessageEvent) => {
     return;
   }
 
-  // Command reply from main → back over the wire
+  // Command reply from main → back over the wire, carrying main's file identity.
   if (typeof pm.requestId === 'string') {
+    const ctx = pm.fileContext as FileContext | undefined;
     const reply: ReplyMsg = pm.ok
-      ? { id: pm.requestId, ok: true, result: pm.result }
+      ? { id: pm.requestId, ok: true, result: pm.result, fileContext: ctx }
       : {
           id: pm.requestId,
           ok: false,
-          error: (pm.error as { code: ErrorCode; message: string } | undefined)
+          error: (pm.error as WireError | undefined)
             ?? { code: 'E_PLUGIN_ERROR', message: 'main thread returned no error detail' },
+          fileContext: ctx,
         };
     wsSend(reply);
     // Round-trip completed — the feed's outcome line is derived from this same
@@ -345,8 +363,14 @@ function adoptSocket(socket: WebSocket): void {
 
   // Register plugin identity (fileName merged in once main sends FILE_INFO).
   // instanceId is stable across reconnects so the broker updates this file's slot
-  // instead of spawning a duplicate.
-  wsSend({ type: 'PLUGIN_HELLO', data: { ...fileInfo, instanceId: INSTANCE_ID, pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
+  // instead of spawning a duplicate. `caps` advertises the guards this bundle honours —
+  // the broker refuses to route a `--file` request to a plugin that predates `fileGuard`.
+  wsSend({ type: 'PLUGIN_HELLO', data: { ...fileInfo, instanceId: INSTANCE_ID, caps: ['fileGuard'],
+                                          pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
+  // `fileInfo` is normally populated by main's own FILE_INFO push, but that race is not
+  // guaranteed to have landed yet — ask explicitly so an iframe-originated error raised
+  // before the first push still has an identity to attach (see localFileContext above).
+  if (Object.keys(fileInfo).length === 0) parent.postMessage({ pluginMessage: { type: 'UI_READY' } }, '*');
   startHeartbeat(socket);
   transition('READY', { detail: `broker at ${url} · protocol v${PROTOCOL_VERSION}`, brokerUrl: url, port });
 }

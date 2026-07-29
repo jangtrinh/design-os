@@ -66,12 +66,25 @@ export interface RequestMsg {
    * still interoperate — the feed is just less specific.
    */
   activity?: string;
+  /**
+   * The file this command is FOR (`--file`). Envelope-level, exactly like `activity`, so the
+   * broker can route on it without parsing `params`. Omitted entirely when unset — an unguarded
+   * frame must serialize byte-identically to what a pre-flag CLI sent.
+   */
+  expectedFile?: string;
+}
+
+/** Which file answered. Echoed on every reply so a caller can prove where a command landed. */
+export interface FileContext {
+  fileName: string;
+  fileKey?: string | null;   // null for non-org plugins — carried, never used for routing
 }
 
 export interface ReplyOk {
   id: string;
   ok: true;
   result: unknown;
+  fileContext?: FileContext;
 }
 
 /** Reply error payload. `rolledBack` is set by EXEC_JS --undo-group. */
@@ -85,6 +98,7 @@ export interface ReplyErr {
   id: string;
   ok: false;
   error: WireError;
+  fileContext?: FileContext;
 }
 export type ReplyMsg = ReplyOk | ReplyErr;
 
@@ -160,7 +174,11 @@ export type ErrorCode =
   | 'E_CHUNK_LOST'
   // audit-ds v2: captured facts carry a `schema`; a mismatch (stale plugin sandbox, or a
   // v1 --from-facts file) is refused BEFORE detect with this code (see cli/.../audit-ds.ts §5).
-  | 'E_PLUGIN_STALE';
+  | 'E_PLUGIN_STALE'
+  // `--file` routed to a live plugin whose scene no longer matches (or a plugin predating
+  // the guard was refused forwarding before this could even be reached) — the plugin-side
+  // guard refused to run a command meant for a different file.
+  | 'E_WRONG_FILE';
 
 // ── Timeouts (ms) ───────────────────────────────────────────────────
 export const DEFAULT_TIMEOUT_MS = 15_000;
@@ -216,9 +234,11 @@ export function makeRequestFrame(
   cmd: CommandName,
   params: unknown,
   activity?: string,
+  expectedFile?: string,
 ): RequestMsg {
   const frame: RequestMsg = { id, cmd, params, v: PROTOCOL_VERSION };
   if (typeof activity === 'string' && activity.trim() !== '') frame.activity = activity;
+  if (typeof expectedFile === 'string' && expectedFile.trim() !== '') frame.expectedFile = expectedFile;
   return frame;
 }
 

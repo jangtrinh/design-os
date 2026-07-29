@@ -16,8 +16,9 @@ import {
 } from '../../../shared/protocol.ts';
 import { isPidAlive, readAdvertisement, selfBuildMtime, writeAdvertisement } from './broker-discovery.ts';
 import { isChunkMsg, isEventMsg, isReplyMsg, isRequestMsg, parseWireMsg, rawToString } from './protocol-helpers.ts';
-import { PluginRegistry } from './plugin-registry.ts';
+import { PluginRegistry, type PluginEntry } from './plugin-registry.ts';
 import { buildBrokerHelloData, noPluginMessage } from './broker-status.ts';
+import { resolveRouteFilter, type RouteFilter } from './route-filter.ts';
 import { appendChangeFrames, changeLogPath } from './change-log.ts';
 import { projectDir as syncProjectDir, readIdleMs } from './figma-sync-config.ts';
 import { spawnReconcileApply } from './figma-sync-apply.ts';
@@ -51,6 +52,12 @@ function currentFilter(): string | null {
   return raw ? raw : null;
 }
 
+/** A plugin advertises the guard it honours; absence means "older bundle, cannot be trusted with --file". */
+function pluginSupportsFileGuard(entry: PluginEntry<WebSocket>): boolean {
+  const caps = entry.scene.caps;
+  return Array.isArray(caps) && caps.includes('fileGuard');
+}
+
 type TrackedWs = WebSocket & { isAlive?: boolean };
 
 /** A request parked until a plugin (re)connects or the wait window elapses. */
@@ -59,6 +66,7 @@ interface ParkedRequest {
   from: WebSocket;
   rawText: string;
   deadline: number;
+  filter: RouteFilter;
 }
 
 interface BrokerState {
@@ -192,13 +200,34 @@ export async function runBrokerDaemon(): Promise<void> {
     }
   };
 
-  const forwardToPlugin = (from: WebSocket, id: string, rawText: string, cmd?: string): void => {
-    const filter = currentFilter();
+  const forwardToPlugin = (from: WebSocket, id: string, rawText: string, cmd?: string, expectedFile?: string): void => {
+    const filter = resolveRouteFilter(expectedFile, currentFilter());
     // Pin a multi-chunk request to the plugin its first frame went to: selecting
     // "most-recent" per chunk could split one payload across two files.
     let targetWs = st.dispatchedTo.get(id);
     if (targetWs && targetWs.readyState !== WebSocket.OPEN) targetWs = undefined;
-    if (!targetWs) targetWs = st.registry.selectTarget(filter)?.ws;
+    let target: PluginEntry<WebSocket> | null = null;
+    if (!targetWs) {
+      const hits = st.registry.matching(filter.value, { exact: filter.exact });
+      // An explicit --file that matches two open files is AMBIGUOUS: same-named files are
+      // indistinguishable here (fileKey is null for a non-org plugin), and guessing by recency
+      // is how a command lands in the file the caller did not name.
+      if (filter.source === 'flag' && hits.length > 1) {
+        const ids = hits.map((e) => `${e.scene.fileName ?? '(unnamed)'}#${e.instanceId}`).join(', ');
+        sendReplyErr(from, id, 'E_INVALID_ARGS',
+          `--file "${filter.value}" matches ${hits.length} connected files [${ids}] — close one panel, or rename the files apart`);
+        return;
+      }
+      target = hits[0] ?? null;
+      targetWs = target?.ws;
+      // A plugin that predates the guard would ignore expectedFile and run anyway; refuse BEFORE
+      // forwarding rather than discovering it from a reply that has already mutated a file.
+      if (filter.source === 'flag' && target && !pluginSupportsFileGuard(target)) {
+        sendReplyErr(from, id, 'E_PLUGIN_STALE',
+          `the plugin open in "${target.scene.fileName ?? '?'}" predates --file support — rebuild (npm run build) and reopen the panel`);
+        return;
+      }
+    }
 
     if (!targetWs) {
       // No (matching) plugin. Park the request (bounded) so a just-respawned broker
@@ -211,8 +240,8 @@ export async function runBrokerDaemon(): Promise<void> {
         sendReplyErr(from, id, 'E_NO_PLUGIN', noPluginMessage(st.registry, filter));
         return;
       }
-      st.waiting.push({ id, from, rawText, deadline: Date.now() + PLUGIN_WAIT_TIMEOUT_MS });
-      log(`parked ${id}${cmd ? ` (${cmd})` : ''}${filter ? ` [filter="${filter}"]` : ''} — awaiting ${filter ? 'matching ' : ''}plugin (${st.waiting.length} queued)`);
+      st.waiting.push({ id, from, rawText, deadline: Date.now() + PLUGIN_WAIT_TIMEOUT_MS, filter });
+      log(`parked ${id}${cmd ? ` (${cmd})` : ''}${filter.value ? ` [${filter.source}="${filter.value}"]` : ''} — awaiting ${filter.value ? 'matching ' : ''}plugin (${st.waiting.length} queued)`);
       return;
     }
     st.pending.set(id, from);
@@ -235,8 +264,8 @@ export async function runBrokerDaemon(): Promise<void> {
     let delivered = 0;
     for (const req of queued) {
       if (req.from.readyState !== WebSocket.OPEN) continue; // CLI gone — drop silently
-      if (st.registry.selectTarget(currentFilter())) {
-        forwardToPlugin(req.from, req.id, req.rawText);
+      if (st.registry.selectTarget(req.filter.value, { exact: req.filter.exact })) {
+        forwardToPlugin(req.from, req.id, req.rawText, undefined, req.filter.source === 'flag' ? req.filter.value ?? undefined : undefined);
         delivered++;
       } else {
         st.waiting.push(req); // still no matching plugin — keep parked, deadline intact
@@ -285,13 +314,18 @@ export async function runBrokerDaemon(): Promise<void> {
     if ((msg as { type?: string }).type === 'BROKER_SHUTDOWN_REQUEST') shutdown(0, 'BROKER_SHUTDOWN_REQUEST');
     const isPlugin = st.registry.touch(ws); // any plugin frame = LIVENESS (heartbeat cull)
     if (isChunkMsg(msg)) {
-      // Pass-through both ways — the broker never reassembles chunks.
+      // Pass-through both ways — the broker never reassembles chunks. KNOWN LIMIT: a
+      // request larger than CHUNK_LIMIT (IMPORT_PAYLOAD, big HTML_TO_FIGMA) arrives here
+      // as ChunkMsg frames, which carry no `expectedFile` — those route by env pin /
+      // most-recent as today. The plugin-side guard still fires after ui-relay
+      // reassembles and forwards `expectedFile` to main, so the worst case is
+      // E_WRONG_FILE instead of correct routing, never a silent wrong-file mutation.
       if (isPlugin) { st.registry.touchActive(ws); routeFromPlugin(msg.id, text, msg.last); }
       else forwardToPlugin(ws, msg.id, text);
     } else if (isReplyMsg(msg)) {
       if (isPlugin) { st.registry.touchActive(ws); routeFromPlugin(msg.id, text, true); }
     } else if (isRequestMsg(msg)) {
-      forwardToPlugin(ws, msg.id, text, msg.cmd);
+      forwardToPlugin(ws, msg.id, text, msg.cmd, msg.expectedFile);
     } else if (isEventMsg(msg)) {
       if (msg.type === 'PLUGIN_HELLO') {
         // Multi-plugin: register this instance in its OWN slot — never evict another
@@ -383,9 +417,10 @@ export async function runBrokerDaemon(): Promise<void> {
     for (const req of st.waiting) {
       if (req.from.readyState !== WebSocket.OPEN) continue; // CLI gone — drop silently
       if (now >= req.deadline) {
-        // Same filter-aware message as the immediate-fail path: names FIGMA_AGENT_FILE
-        // and lists connected files when a pin matched nothing in the wait window.
-        sendReplyErr(req.from, req.id, 'E_NO_PLUGIN', noPluginMessage(st.registry, currentFilter()));
+        // The request's OWN filter, not the env pin — otherwise a timed-out --file
+        // request blames FIGMA_AGENT_FILE (or prints the generic message) instead of
+        // naming the flag the caller actually used.
+        sendReplyErr(req.from, req.id, 'E_NO_PLUGIN', noPluginMessage(st.registry, req.filter));
       } else {
         survivors.push(req);
       }
