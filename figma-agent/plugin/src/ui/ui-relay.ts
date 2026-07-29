@@ -64,6 +64,16 @@ function startActivity(req: RequestMsg): void {
   dispatchActivity({ phase: 'start', id: req.id, tool: req.cmd, label: req.activity, at });
 }
 
+/** A reply's own `name`, when it carried one (CREATE_FRAME/CREATE_INSTANCE/SET_TEXT/
+ *  IMPORT_PAYLOAD all return `{..., name}` at the TOP level of the result) — lets the
+ *  activity sentence say `Created frame "Hero card"` instead of fabricating an object
+ *  no reply named. EXEC_JS's envelope (`{result, console, ms, ...}`) never has a
+ *  top-level `name`, so a scan never false-triggers this. */
+function replyNodeName(payload: unknown): string | undefined {
+  const name = (payload as { name?: unknown } | null)?.name;
+  return typeof name === 'string' && name !== '' ? name : undefined;
+}
+
 /**
  * Announce a completed request. `payload` is main's reply — the result on success,
  * the error on failure — from which the outcome line is derived plugin-side.
@@ -73,7 +83,15 @@ function emitActivity(id: string, ok: boolean, payload?: unknown): void {
   if (!started) return;
   activityStart.delete(id);
   const result = ok ? summarizeResult(started.cmd, payload) : summarizeError(payload);
-  dispatchActivity({ phase: 'done', id, ok, ms: Date.now() - started.at, result: result ?? undefined });
+  // Panel IA v2: the activity sentence needs the wire error CODE (never shown raw, only
+  // mapped to a reason) and, on success, the reply's own node name — both additive.
+  const code = !ok ? (payload as { code?: unknown } | null)?.code : undefined;
+  const nodeName = ok ? replyNodeName(payload) : undefined;
+  dispatchActivity({
+    phase: 'done', id, ok, ms: Date.now() - started.at, result: result ?? undefined,
+    ...(typeof code === 'string' ? { code } : {}),
+    ...(nodeName ? { nodeName } : {}),
+  });
 }
 
 // ─── Connection state machine → UI ──────────────────────────────────
@@ -161,6 +179,14 @@ function handleWireData(raw: string): void {
   }
   if (msg.type === 'SYNC_RESULT') {
     try { window.dispatchEvent(new CustomEvent('figma-agent:sync-result', { detail: msg.data ?? {} })); }
+    catch { /* no DOM event support */ }
+    return;
+  }
+  // Panel IA v2 — PEERS: broker → every connected plugin, count + isActiveTarget. A
+  // CustomEvent on the IFRAME'S OWN window, not parent.postMessage: postMessage goes
+  // iframe → plugin main, and the panel listens on the iframe window (panel-ui.ts).
+  if (msg.type === 'PEERS') {
+    try { window.dispatchEvent(new CustomEvent('figma-agent:peers', { detail: msg.data ?? {} })); }
     catch { /* no DOM event support */ }
     return;
   }

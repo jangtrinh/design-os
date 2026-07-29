@@ -1,40 +1,41 @@
-// P2 panel view-model — the pure layer under the DOM controller (panel-ui.ts).
-// Everything the panel decides (which pill/tone/sentence per state, how ages
-// format, onboarding + troubleshoot gating) lives here so it is unit-testable
-// without a DOM, mirroring the connection-state machine's own pure tests.
-// The activity feed's own model has moved to activity-feed.ts — see
-// activity-feed.test.ts.
+// Panel view-model — the pure layer under the DOM controller (panel-ui.ts).
+// IA v2: statusSentence (Block 1) replaces stateView/troubleshootHint/compactMeta;
+// fileNote (Block 2) is new. The activity feed's own model lives in activity-feed.ts,
+// and its SENTENCE mapping in activity-sentence.ts — see their own test files.
 import { describe, it, expect } from 'vitest';
 import {
-  stateView, formatAge, troubleshootHint, showOnboarding,
-  togglePanelMode, detailsLabel, compactMeta, PANEL_WIDTH, PANEL_HEIGHT,
+  statusSentence, formatAge, showOnboarding, fileNote, PANEL_WIDTH, PANEL_HEIGHT,
   syncPromptLabel, syncResultLabel,
 } from '../plugin/src/ui/panel-model.ts';
-import type { ConnectionState } from '../shared/protocol.ts';
 
-describe('stateView — the four P1 states each map to one view', () => {
-  it('connected is a success pill with the ready sentence, no pulse', () => {
-    const v = stateView('connected');
-    expect(v).toEqual({ pill: 'Connected', tone: 'success', pulse: false, sentence: 'Ready — the CLI can drive this file.' });
+describe('statusSentence — Block 1: the problem and the next action, six branches', () => {
+  it('connected — success tone', () => {
+    expect(statusSentence('connected', 0, true)).toEqual({
+      text: 'Connected — the CLI can drive this file.', tone: 'success',
+    });
   });
-  it('probing is a warning pill that pulses (reduced-motion-guarded in CSS)', () => {
-    const v = stateView('probing');
-    expect(v.tone).toBe('warning');
-    expect(v.pulse).toBe(true);
-    expect(v.pill).toContain('Looking for broker');
+  it('probing under 10s — "looking", warning tone', () => {
+    expect(statusSentence('probing', 9_000, false)).toEqual({
+      text: 'Looking for the broker', tone: 'warning',
+    });
   });
-  it('handshake is an info pill, still', () => {
-    expect(stateView('handshake')).toMatchObject({ tone: 'info', pulse: false });
+  it('probing at/after 10s — names the fix', () => {
+    expect(statusSentence('probing', 10_000, false)).toEqual({
+      text: 'Broker not running — run figma-agent status in a terminal.', tone: 'warning',
+    });
   });
-  it('disconnected is MUTED, not red — the normal wait — with the auto-start sentence', () => {
-    const v = stateView('disconnected');
-    expect(v.tone).toBe('muted');
-    expect(v.sentence).toBe('The broker starts automatically on your first CLI command.');
+  it('handshake — info tone', () => {
+    expect(statusSentence('handshake', 0, false)).toEqual({ text: 'Connecting', tone: 'info' });
   });
-  it('covers every ConnectionState', () => {
-    for (const s of ['connected', 'probing', 'handshake', 'disconnected'] as ConnectionState[]) {
-      expect(stateView(s).pill.length).toBeGreaterThan(0);
-    }
+  it('disconnected, never connected — first-run wait, muted', () => {
+    expect(statusSentence('disconnected', 0, false)).toEqual({
+      text: 'Not connected yet — your first CLI command starts the broker.', tone: 'muted',
+    });
+  });
+  it('disconnected, was connected — names the drop, muted', () => {
+    expect(statusSentence('disconnected', 0, true)).toEqual({
+      text: 'Connection lost — reconnecting automatically.', tone: 'muted',
+    });
   });
 });
 
@@ -49,21 +50,7 @@ describe('formatAge', () => {
   });
 });
 
-describe('troubleshootHint (spec §6)', () => {
-  it('nudges toward `figma-agent status` after 10s of probing', () => {
-    expect(troubleshootHint('probing', 9_000, false)).toBeNull();
-    expect(troubleshootHint('probing', 10_000, false)).toContain('figma-agent status');
-  });
-  it('says "retrying" only after a real drop (was connected), not on first-run wait', () => {
-    expect(troubleshootHint('disconnected', 0, false)).toBeNull();
-    expect(troubleshootHint('disconnected', 0, true)).toContain('retrying');
-  });
-  it('is silent when connected', () => {
-    expect(troubleshootHint('connected', 999_999, true)).toBeNull();
-  });
-});
-
-describe('showOnboarding — first-run only', () => {
+describe('showOnboarding — first-run only (survives the IA v2 cut, priority-1 content)', () => {
   it('shows while waiting and never connected', () => {
     expect(showOnboarding('disconnected', false)).toBe(true);
     expect(showOnboarding('probing', false)).toBe(true);
@@ -75,26 +62,27 @@ describe('showOnboarding — first-run only', () => {
   });
 });
 
-describe('panel mode (P5.1) — compact-first, expand on demand', () => {
-  it('the iframe geometry is 300 wide, 170 compact / 460 expanded', () => {
+describe('fileNote — Block 2: honest answer to "which file will my command hit?"', () => {
+  it('single file, this one is the target → "command target"', () => {
+    expect(fileNote(1, true)).toBe('command target');
+  });
+  it('single file, not the target → empty (cannot happen today; never guess)', () => {
+    expect(fileNote(1, false)).toBe('');
+  });
+  it('multiple files, this one is the target → target + peer count', () => {
+    expect(fileNote(3, true)).toBe('command target · 2 other files connected');
+    expect(fileNote(2, true)).toBe('command target · 1 other file connected');
+  });
+  it('multiple files, another is the target → says where commands go', () => {
+    expect(fileNote(3, false)).toBe('2 other files connected — commands go to another file');
+    expect(fileNote(2, false)).toBe('1 other file connected — commands go to another file');
+  });
+});
+
+describe('panel geometry (IA v2 — one opening size, no compact/expanded split)', () => {
+  it('the iframe opens 300×420', () => {
     expect(PANEL_WIDTH).toBe(300);
-    expect(PANEL_HEIGHT.compact).toBe(170);
-    expect(PANEL_HEIGHT.expanded).toBe(460);
-  });
-  it('togglePanelMode flips and round-trips', () => {
-    expect(togglePanelMode('compact')).toBe('expanded');
-    expect(togglePanelMode('expanded')).toBe('compact');
-    expect(togglePanelMode(togglePanelMode('compact'))).toBe('compact');
-  });
-  it('detailsLabel stays textual while the Phosphor caret communicates state', () => {
-    expect(detailsLabel('compact')).toBe('Details');
-    expect(detailsLabel('expanded')).toBe('Details');
-  });
-  it('compactMeta covers ONLY the disconnected wait — next-step copy, no pill echo', () => {
-    expect(compactMeta('disconnected')).toBe('First CLI command starts it');
-    expect(compactMeta('connected')).toBeNull();
-    expect(compactMeta('probing')).toBeNull();
-    expect(compactMeta('handshake')).toBeNull();
+    expect(PANEL_HEIGHT).toBe(420);
   });
 });
 
@@ -106,11 +94,11 @@ describe('idle-commit prompt labels (spec 004 P4)', () => {
     expect(syncPromptLabel(2.9)).toBe('2 changes ready'); // floored
     expect(syncPromptLabel(Number.NaN)).toBe('1 change ready');
   });
-  it('syncResultLabel marks success with ✓ and surfaces the failure reason', () => {
+  it('syncResultLabel marks success and surfaces the failure reason — no glyph, the icon carries the mark', () => {
     expect(syncResultLabel(true, 'synced — 2 updated, 1 deprecated, 0 pending'))
-      .toBe('Synced ✓ — synced — 2 updated, 1 deprecated, 0 pending');
+      .toBe('Synced — synced — 2 updated, 1 deprecated, 0 pending');
     expect(syncResultLabel(false, 'ui not runnable')).toBe('Sync failed — ui not runnable');
-    expect(syncResultLabel(true, '')).toBe('Synced ✓ — done'); // empty summary → sane default
+    expect(syncResultLabel(true, '')).toBe('Synced — done'); // empty summary → sane default
     expect(syncResultLabel(false, '   ')).toBe('Sync failed — failed');
   });
 });

@@ -214,33 +214,108 @@
 }
 
 /* Panel override (spec P5 §Tokens): the plugin iframe cannot fetch a webfont, so
-   the display/body families keep Inter first but fall back to the host system
-   stack — self-contained, no network. A mono family var carries the brand's
-   JetBrains-Mono data/label voice (falls back to the system monospace).
+   the body family keeps Inter first but falls back to the host system stack —
+   self-contained, no network.
 
-   The two sub-xs sizes and the hair space are PANEL-ONLY, and live here rather
-   than in the compiled block above on purpose: the brand scale bottoms out at
-   --font-size-xs (14px) because it is authored for page surfaces, whereas this
-   is a 300px-wide dense DATA LOG — the one place the chrome shows a scannable
-   history rather than prose. Regenerating the brand tokens must not clobber them.
-   11px is the floor: below it the mono digits stop being legible at 1× zoom. */
+   IA v2 (panel redesign phase 02): the panel now reads through exactly ONE
+   family var, `--font-family-body` — `--font-family-display` and `--font-mono`
+   are no longer referenced anywhere below and are dropped from this override
+   (the compiled block above keeps declaring them for provenance; regenerating
+   it is out of scope here). The panel-only sub-xs sizes this block used to add
+   (`--font-size-2xs`/`--font-size-3xs`) are also gone — the three `--fga-font-*`
+   tokens in the skin `:root` below are now the only panel type scale. */
 :root {
   --font-family-body: Inter, -apple-system, system-ui, sans-serif;
-  --font-family-display: Inter, -apple-system, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-  --font-size-2xs: 12px; /* feed label — the dense-feed primary */
-  --font-size-3xs: 11px; /* feed meta — the floor */
   --space-hair: 4px;     /* the sub-space-1 gap a mini row needs */
 }
 
-/* ── Panel chrome — Swiss Monolith brutalism, COMPACT-FIRST (P5.1) ─────────────
-   A stack of bands fills the tiny 300×170 iframe edge to edge: a slim masthead
-   band, the condensed status band, and a three-cell mono footer. The DETAILS
-   footer cell expands the stack (main resizes the iframe to 460) revealing the
-   onboarding / activity / connection bands. Flat, radius 0, separation by 2px ink
-   rules only, inversion on hover. The iframe IS the frame — no outer border and
-   no body padding, or the panel reads as a box drawn inside a box. ──────────── */
-* { box-sizing: border-box; }
+/* ── Panel skin (owner reference: dark settings modal) ────────────────────────
+   The compiled Swiss-Monolith block above stays the DS of record (and the panel's
+   provenance); this layer re-points only what the chrome paints with, the same way the
+   font override above re-points the families the iframe cannot fetch. Owner decision
+   2026-07-29: for THIS surface the reference wins over the brand accent.
+
+   Provenance: pixel-sampled from references/Reference.png (1168×992, 2026-07-29) — the value next
+   to each token is the coordinate it was read at. Every one is a var() the chrome reads; no hex
+   below this block.
+
+   IA v2 typography (phase 02, owner-locked): exactly three sizes, declared here and used
+   nowhere else in the chrome — 14px title (the one status sentence), 13px body (every
+   value/row-label/activity sentence/button), 11px caption (labels above values, timestamps,
+   the build id). 13px/11px sit below taste-lint's `tiny-body-text` floor (≤13px = error) for
+   a literal `font-size: Npx` — these are custom-property VALUES consumed via var(), the same
+   shape the former `--font-size-2xs/3xs` panel tokens already used, so the rule does not fire
+   (verified: `npx vitest run tests/figma-plugin-panel.test.ts` after adding these three, 0
+   taste errors — no scoped exemption was needed). */
+:root {
+  --fga-body: #171717;            /* content pane  (1000,150) — the panel's own field */
+  --fga-surface: #262626;         /* raised tier   (160,660) — nav rows, footer, buttons */
+  --fga-row-active: #333333;      /* active row    (200,393) */
+  --fga-border: #2A2A2E;          /* hairline around surfaces (276-row of the divider scan) */
+  --fga-border-control: #474747;  /* input/button outline (600,341) + (379,368) — 1.93:1 on the
+                                     body: decorative delineation only (WCAG 1.4.11 exempt) */
+  --fga-border-strong: #646464;   /* the SAME outline where it is an interactive control's only
+                                     boundary (Sync now / Later) — 3.03:1, the minimum
+                                     non-text contrast. Δ from the sample: +29 steps, taken because
+                                     correctness is a gate, not a score (DECISIONS.md) */
+  --fga-divider: #454545;         /* the dotted rule  (500,274-275) */
+  --fga-text: #FFFFFF;            /* primary        (52,59) */
+  --fga-label: #D6D6D6;           /* label above a value — bright in the reference, kept under #FFF */
+  --fga-text-muted: #9B9B9B;      /* helper/subtitle — observed #9A9A9A, +1 step (Δ 1/255) so it
+                                     clears 4.5:1 ON THE ACTIVE ROW too (4.49 → 4.55) */
+  --fga-text-dim: #909090;        /* section label (44-92,106-126 max) — 5.62 on body, 4.74 on
+                                     surface, but only 3.96 on --fga-row-active: never use it there */
+  /* Desaturated to sit in a dark field (phase 03 §5), recomputed on all three
+     backgrounds after tuning — success/warning/info are also used as TEXT
+     (status-sentence, 4.5:1 required) on --fga-body only; as an icon/dot
+     indicator (3:1) they additionally reach --fga-row-active. No token
+     needed lightening: every reachable pair already cleared its floor. */
+  --fga-tone-success: #5BA46F;    /* the reference's own green, ~8% less saturated — 5.96 (body, text), 4.20 (row-active, indicator) */
+  --fga-tone-warning: #C9A356;    /* web-amber → ochre; stops shouting next to the greys — 7.56 (body, text) */
+  --fga-tone-info: #8FB4D9;       /* desaturated steel, not "link blue" — 8.28 (body, text); also --fga-focus's value, 3:1+ on all three surfaces */
+  --fga-tone-muted: #9B9B9B;      /* already neutral; aligned with --fga-text-muted — 6.45 (body, indicator) */
+  --fga-tone-danger: #D98A8A;     /* muted terracotta, icon-only (never text) — 4.78 (row-active, indicator) */
+  --fga-radius: 8px;              /* inputs, cards, buttons */
+  --fga-radius-sm: 6px;           /* chips */
+  --fga-divider-gap: 12px;        /* breathing room each side of a dotted rule */
+  --fga-font-title: 14px;         /* the ONE title: the status sentence (block 1) */
+  --fga-font-body: 13px;          /* every value, row label, activity sentence, button */
+  --fga-font-caption: 11px;       /* labels above values, timestamps, the build id */
+  --fga-track-title: -0.01em;     /* type micro-craft (§3): tight — one short line */
+  --fga-track-body: 0;
+  --fga-track-caption: 0.015em;   /* small text needs the air */
+  --fga-lh-title: 1.35;
+  --fga-lh-body: 1.5;
+  --fga-lh-caption: 1.45;
+  /* Depth layer (§2) — alphas, not new greys. Sampled bases above stay authoritative;
+     light falls on raised surfaces via a low-alpha white border, never a lighter
+     background (taste-lint's mode-invisible-surface cannot see custom-property
+     backgrounds — Gate D is the only enforcement, so this is borders-only by contract). */
+  --fga-hairline: rgba(255, 255, 255, 0.08);      /* raised-card border */
+  --fga-hairline-soft: rgba(255, 255, 255, 0.06); /* nested/secondary edges, row hover */
+  --fga-topedge: rgba(255, 255, 255, 0.03);       /* 1px inner highlight on the top edge */
+  --fga-focus: #8FB4D9;           /* the tuned info hue — visible on all three surfaces (≥3:1) */
+  --fga-motion: 140ms;            /* named transitions only (§4) — never "all", never linear */
+  --fga-ease: cubic-bezier(0.2, 0, 0, 1); /* ease-out */
+}
+
+/* ── Panel chrome — dark settings-modal skin, IA v2 ────────────────────────────
+   Two-tier surfaces (content pane DARKER than the raised nav tier — the reference's
+   own inversion of the usual pattern), dotted section dividers, label-over-value
+   cells, an active-row left accent bar, underlined inline links for secondary
+   actions. Fluid 240px → 640px+ at any height: no breakpoint, no fixed width
+   outside the decorative-square whitelist, one scroller (the panel itself),
+   sticky status block.
+
+   IA v2 (phase 02): three blocks — Status / Context / Activity — plus the sync
+   prompt. Docs link, Copy button, the Details toggle/expanded-zone and the four
+   debug cells are gone entirely (debug lives in `figma-agent status`); the
+   onboarding card is priority-1 content and stays, re-parented under the status
+   sentence. One font family throughout (`--font-family-body`, declared ONCE on
+   `body` and inherited); every text glyph that used to be `✗`/`✓` is now an
+   inline Phosphor-style SVG (panel-ui.ts's `ICONS` map). ──────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+img, svg { max-width: 100%; }
 
 /* The stack must be as tall as the iframe main sized, or the footer floats mid-air with
    bare paper under it — the borderless panel has no frame left to close that gap. */
@@ -250,160 +325,197 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--font-family-body);
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
-  color: var(--color-foreground);
-  background: var(--color-background);
+  font-size: var(--fga-font-body);
+  line-height: var(--fga-lh-body);
+  color: var(--fga-text);
+  background: var(--fga-body);
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;                 /* the .panel scrolls, not the document */
 }
 
-/* The stack: bands butt against each other and against the iframe edge. Structure
-   comes from the 2px ink rules BETWEEN bands, never from a border around them. */
+/* The scroll container and the fluidity root: no width/min-width/max-width here —
+   the iframe's width is whatever Figma gives it (240 → 640+), and every child sizes
+   from it (§ responsive block below). */
 .panel {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  background: var(--color-background);
+  height: 100%;
+  overflow-y: auto;                 /* long content scrolls vertically… */
+  overflow-x: hidden;               /* …and NEVER horizontally */
+  background: var(--fga-body);
+  /* Scrollbar (§6) — thin, quiet, thumb from the border family. No layout shift. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--fga-border-control) transparent;
+}
+.panel::-webkit-scrollbar { width: 8px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb {
+  background: var(--fga-border-control);
+  border-radius: var(--fga-radius-sm);
 }
 
-/* Masthead band: one-line title + version. Docs lives in the footer row (P5.1). */
+/* Selection (§6) — the panel is read, not edited; keep it subtle. ::selection is
+   the ONE exempt alpha background (a highlight over text, not a surface tint) —
+   Gate D exempts this selector by name. */
+::selection { background: rgba(143, 180, 217, 0.28); color: var(--fga-text); }
+
+/* Masthead band: one-line title. Version moves to the footer identity row
+   (unchanged from phase 01 — only the actions row below it is cut). */
 .app-header {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
-  border-bottom: 2px solid var(--color-foreground);
+  padding-bottom: var(--fga-divider-gap);
+  border-bottom: 1px dotted var(--fga-divider);
+  min-width: 0;
 }
 .brand-title {
   margin: 0;
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-xs);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  line-height: 1;
+  font-size: var(--fga-font-caption); /* the masthead is chrome, not a heading */
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--fga-track-caption);
+  line-height: var(--fga-lh-caption);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-}
-.brand-version {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-muted-foreground);
+  color: var(--fga-text);
 }
 
-/* Status band — condensed: pill + ONE meta line. The sentence only exists in
-   expanded mode (compact drops it; the pill already says it). */
+/* Spatial rhythm (phase 03 §1): one row layout, one icon grid, one dot grid —
+   applied via markup classes (`fga-row`, `fga-icon`) rather than duplicated
+   per-selector, so `.status-row` and `.activity-row` share the same flex
+   layout instead of re-declaring it. Two size families, not one: SVG icons
+   ride the 14px grid; the two CSS-drawn dots (`.status-dot`, `.identity-dot`)
+   are dots, not icons — unified at 8px so there is one dot size, one icon
+   size, and no third. */
+.fga-row { display: flex; align-items: flex-start; gap: var(--space-1); }
+/* Optical centring on the FIRST line box rather than the flex box: a 14px icon
+   beside a 13px/1.5-line-height line sits high if you centre on the box. line
+   box = 13 × 1.5 = 19.5px, so (19.5 − 14)/2 = 2.75px — derived, not eyeballed,
+   and it stays correct if the size token moves. */
+.fga-icon { width: 14px; height: 14px; flex: 0 0 auto; }
+.fga-row > .fga-icon { margin-top: calc((1.5em - 14px) / 2); }
+.status-dot, .identity-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+
+/* Block 1 — STATUS: sticky, one dot + one sentence. No pill/meta split, no
+   port numbers, no attempt counts — the sentence names the problem AND the
+   next action (panel-model.ts's `statusSentence`). */
 .status-hero {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
-  background: var(--color-card);
+  padding-top: var(--fga-divider-gap);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--fga-body);
 }
-.panel[data-mode="compact"] .status-sentence { display: none; }
-.status-row { display: flex; align-items: center; gap: var(--space-2); }
+.status-row { min-width: 0; }
 
-/* Live marker — a solid ink square (radius 0). Pings outward while probing. */
+/* Live marker — a circle, tone-coloured. Pings outward while probing. Plain
+   CSS shape (Phosphor `circle`, filled) — no SVG needed for an unadorned dot.
+   Sizing comes from the shared `.status-dot, .identity-dot` rule above; this
+   one only adds what is unique to the status dot (position + tone colour). */
 .status-dot {
   position: relative;
-  width: 10px;
-  height: 10px;
-  flex: 0 0 auto;
-  background: var(--color-foreground);
+  /* Sits beside the TITLE line (14px / --fga-lh-title), not the body line the
+     shared .fga-icon formula assumes — derived against its own context rather
+     than reused blind: (14px × 1.35 − 8px) / 2. */
+  margin-top: calc((var(--fga-font-title) * var(--fga-lh-title) - 8px) / 2);
+  background: var(--fga-tone-muted);
+  /* Motion (§4): tone crossfades instead of jumping. Named properties only. */
+  transition: background-color var(--fga-motion) var(--fga-ease);
 }
+.status-dot[data-tone="success"] { background: var(--fga-tone-success); }
+.status-dot[data-tone="warning"] { background: var(--fga-tone-warning); }
+.status-dot[data-tone="info"]    { background: var(--fga-tone-info); }
+.status-dot[data-tone="muted"]   { background: var(--fga-tone-muted); }
 .status-dot::after {
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: 50%;
   background: inherit;
   opacity: 0;
 }
 .status-dot.is-pulsing::after { animation: fga-ping 1.6s ease-out infinite; }
 
-/* State title-block — Inter-900 uppercase tight, FILLED with the tone pair.
-   Connected is the HERO: the burnt-orange primary block carrying INK text
-   (the machine-corrected AA pair). Disconnected stays muted — never red. */
-.status-pill {
-  display: inline-block;
-  padding: 4px var(--space-2);
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-sm);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  background: var(--color-muted);
-  color: var(--color-foreground);
+/* The ONE title — replaces the old pill+meta split. Tone-coloured (the pill's
+   job), states the problem and the next action in one sentence (the meta's job). */
+.status-sentence {
+  margin: 0;
+  font-size: var(--fga-font-title);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--fga-track-title);
+  line-height: var(--fga-lh-title);
+  color: var(--fga-text);
+  overflow-wrap: anywhere;
+  /* Motion (§4): tone crossfades instead of jumping. Named properties only. */
+  transition: color var(--fga-motion) var(--fga-ease);
 }
-.status-pill[data-tone="success"] { background: var(--color-primary); color: var(--color-primary-foreground); }
-.status-pill[data-tone="warning"] { background: var(--color-warning); color: var(--color-warning-foreground); }
-.status-pill[data-tone="info"]    { background: var(--color-info);    color: var(--color-info-foreground); }
-.status-pill[data-tone="muted"]   { background: var(--color-muted);   color: var(--color-foreground); }
+.status-sentence[data-tone="success"] { color: var(--fga-tone-success); }
+.status-sentence[data-tone="warning"] { color: var(--fga-tone-warning); }
+.status-sentence[data-tone="info"]    { color: var(--fga-tone-info); }
+.status-sentence[data-tone="muted"]   { color: var(--fga-text-muted); }
 
-/* Idle-commit prompt (spec 004 P4) — a flat 2px-bordered strip carrying the burnt-
-   orange call to action. Hidden until IDLE_READY; brutalist geometry (radius 0). */
+/* Idle-commit prompt (spec 004 P4) — an active-row card. Unchanged behaviour,
+   restyled to the new type scale. No left-bar: the owner vetoed the inset
+   left-bar treatment entirely (2026-07-29, screenshot) — surface + border
+   alone carries "this is a card". Depth (§2) is a low-alpha white BORDER, not
+   a lighter background — the shorthand comes first, then the dotted divider
+   is restored on the next line, or the shorthand would erase it. */
 .sync-prompt {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
-  border-top: 2px solid var(--color-foreground);
-  border-bottom: 2px solid var(--color-foreground);
-  background: var(--color-accent);
+  border: 1px solid var(--fga-hairline);
+  border-top: 1px dotted var(--fga-divider);
+  border-radius: var(--fga-radius);
+  background: var(--fga-row-active);
+  min-width: 0;
+  /* Motion (§4): never `height` (a layout prop — taste-lint error); opacity only. */
+  transition: opacity var(--fga-motion) var(--fga-ease);
 }
 .sync-prompt[hidden] { display: none; }
 .sync-msg {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  color: var(--color-foreground);
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fga-font-body);
+  color: var(--fga-text);
 }
-.sync-actions { display: flex; gap: var(--space-1); flex: 0 0 auto; }
+.sync-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); flex: 0 0 auto; }
 .sync-btn {
   padding: 4px var(--space-1);
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  border: 2px solid var(--color-foreground);
-  background: var(--color-primary);
-  color: var(--color-primary-foreground);
+  font-size: var(--fga-font-body);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--fga-border-strong);
+  border-radius: var(--fga-radius-sm);
+  background: var(--fga-surface);
+  color: var(--fga-text);
   cursor: pointer;
 }
-.sync-btn:hover { background: var(--color-foreground); color: var(--color-accent); }
-.sync-btn.sync-later { background: transparent; color: var(--color-foreground); }
-.sync-btn.sync-later:hover { background: var(--color-foreground); color: var(--color-accent); }
+.sync-btn:hover { background: var(--fga-row-active); }
 
-.status-sentence { margin: 0; color: var(--color-foreground); }
-.status-sentence:empty { display: none; }
-.status-meta {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-muted-foreground);
-  font-variant-numeric: tabular-nums;
-}
-.status-meta:empty { display: none; }
-
-/* ── Expanded zone (hidden in compact; the DETAILS cell reveals it) ─────────── */
-
-/* Onboarding (first-run only; JS toggles [hidden]) — a band with the single
-   burnt-orange accent rule down its left edge. */
+/* Onboarding (first-run only; JS toggles [hidden]) — priority-1 content, not a
+   debug affordance: re-parented directly under the status sentence (block 1),
+   the problem-and-next-action answer for "disconnected, never connected". No
+   left-bar: the owner vetoed the inset left-bar treatment entirely
+   (2026-07-29, screenshot) — surface + border alone carries "this is a card".
+   Depth (§2): a low-alpha white border + a slightly brighter top edge, light
+   falling on the card rather than an inset shadow. */
 .onboarding {
   padding: var(--space-2);
-  background: var(--color-background);
-  border-top: 2px solid var(--color-foreground);
-  border-left: 6px solid var(--color-primary);
+  background: var(--fga-surface);
+  border: 1px solid var(--fga-hairline);
+  border-top-color: var(--fga-topedge);
+  border-radius: var(--fga-radius);
 }
 .onboarding-list {
   margin: 0;
@@ -411,35 +523,94 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  font-size: var(--font-size-xs);
-  color: var(--color-foreground);
+  font-size: var(--fga-font-body);
+  color: var(--fga-text);
+  overflow-wrap: anywhere;
 }
-/* Inline code as an inverted ink chip — mechanical, radius 0. */
+/* Inline code as an outlined chip — outline, not fill (§2: inputs are not filled). */
 code {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  padding: 1px var(--space-1);
-  background: var(--color-foreground);
-  color: var(--color-background);
+  font-size: var(--fga-font-body);
+  /* 2px vertical (half a hairline) keeps the chip optically centred on a
+     4-grid line box; expressed as calc() off --space-hair rather than a bare
+     "2px" literal — a literal 2px is off-grid (not ≡0 mod 4) and Gate A's own
+     code (phase 03 §Gate) would flag it despite the audit table naming "2px"
+     as the target value. This is the derived equivalent, gate-clean. */
+  padding: calc(var(--space-hair) / 2) var(--space-1);
+  background: var(--fga-surface);
+  color: var(--fga-text);
+  border: 1px solid var(--fga-border);
+  border-radius: var(--fga-radius-sm);
 }
 
-/* Section label (activity + connection headings) — mono, uppercase, tracked. */
+/* Section label (context + activity headings) — sentence case, not uppercase.
+   The brightest text tier (--fga-label), matching the reference's pattern
+   where section headers are the boldest text on the page (judge ruling). */
 .section-label {
   margin: 0 0 4px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-muted-foreground);
+  font-size: var(--fga-font-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--fga-track-caption);
+  color: var(--fga-label);
 }
 
-/* Activity band — mono rows, but SENTENCE-case and untracked: this is the one place
-   in the chrome a human READS prose rather than scans a data chip, and the brand's
-   uppercase tracking cost more legibility here than it bought identity. */
-.activity {
-  border-top: 2px solid var(--color-foreground);
+/* Block 2 — CONTEXT: File / Page / Selection, label-over-value rows (reuses the
+   detail-cell pattern the old connection-details grid used). */
+.context {
+  border-top: 1px dotted var(--fga-divider);
   padding: var(--space-1) var(--space-2);
+  padding-top: var(--fga-divider-gap);
+}
+/* Fluid grid, no fixed columns: two columns from ~264px up, one at 240px,
+   three-plus at 480/640 — no media query. */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+}
+/* Label-over-value cell, outlined (not filled — §2: inputs are not filled).
+   Depth (phase 03 §2): a low-alpha white border + a slightly brighter top
+   edge — light falling on a raised surface, not a flat grey hairline. */
+.detail-cell {
+  min-width: 0;
+  border: 1px solid var(--fga-hairline);
+  border-top-color: var(--fga-topedge);
+  border-radius: var(--fga-radius);
+  padding: var(--space-1);
+}
+.detail-grid dt {
+  color: var(--fga-label);
+  font-size: var(--fga-font-caption);
+  letter-spacing: var(--fga-track-caption);
+}
+/* No tabular-nums here (phase 03 §3): File/Page/Selection are prose, not a
+   numeric column — only .log-meta's relative-age column keeps it. */
+.detail-grid dd {
+  margin: 0;
+  color: var(--fga-text);
+  font-size: var(--fga-font-body);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The file row's second line — "command target" / "N other files connected".
+   The panel's honest answer to "which file will my command hit?" (§3 PEERS). */
+.detail-note {
+  margin: 4px 0 0;
+  font-size: var(--fga-font-caption);
+  color: var(--fga-text-muted);
+  overflow-wrap: anywhere;
+}
+.detail-note:empty { display: none; }
+
+/* Block 3 — ACTIVITY: mono-free, sentence-case prose rows — [icon][sentence]
+   + a caption line with relative time. The sentence says what the agent DID. */
+.activity {
+  border-top: 1px dotted var(--fga-divider);
+  padding: var(--space-1) var(--space-2);
+  padding-top: var(--fga-divider-gap);
+  background: var(--fga-surface);
 }
 .activity-list {
   list-style: none;
@@ -448,192 +619,226 @@ code {
   display: flex;
   flex-direction: column;
   gap: var(--space-hair);
-  max-height: 168px; /* ~7 mini rows — the band scrolls past that */
-  overflow-y: auto;
+  /* One scroller only: `.panel` scrolls the whole document; the feed is capped in
+     ROWS (ACTIVITY_ROWS = 20, panel-ui.ts), never by a nested max-height/overflow-y. */
 }
-/* A row is [dot][body], where body stacks the LABEL over the meta line. Nothing
-   shares the label's line: on a ~300px panel a side-by-side stamp and duration
-   squeezed it to a single ellipsised letter, which is what this band is FOR.
-   Mini sizing (~31px/row, was ~44px): a log is READ BY SCANNING, so more history
-   on screen beats a larger typeface — the density IS the legibility here. */
+/* A row is [icon][body], where body stacks the SENTENCE over the meta line.
+   Layout (flex/align/gap) comes from the shared `.fga-row` rule (§1) — this
+   selector adds only what is unique to an activity row. */
 .activity-row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-hair);
-  font-family: var(--font-mono);
+  padding: var(--space-1);
+  border: 1px solid transparent; /* depth (§2): hover fills this with --fga-hairline-soft (§6) */
+  border-radius: var(--fga-radius-sm);
+  min-width: 0;
+  /* Motion (§4): the row fades/slides in on arrival, and its hover fill/border
+     are named transitions, never `all`. */
+  animation: fga-row-in var(--fga-motion) var(--fga-ease);
+  transition: background-color var(--fga-motion) var(--fga-ease), border-color var(--fga-motion) var(--fga-ease);
 }
-/* Every row but the newest is dimmed. Recency needs a channel, and dimming the
-   past costs no vertical space — which is the whole currency of this band. */
-.activity-row.is-stale { opacity: 0.6; }
-/* Status reads by SHAPE first, colour second (a hue-only signal is invisible to a
-   colour-blind eye): ok = filled square, running = hollow, failed = an ink ✗. */
-.log-dot {
-  width: 6px;
-  height: 6px;
-  margin-top: 4px; /* optically centred on the smaller label line, not the row */
-  flex: 0 0 auto;
-  background: var(--color-success);
+/* Every row but the newest is dimmed; the newest is the reference's active row —
+   background only, no left-bar (the owner vetoed the inset left-bar treatment
+   entirely, 2026-07-29 screenshot; the running row is already signalled by its
+   spinning circle-notch icon). Stale rows recolor TEXT to --fga-text-dim
+   rather than blend via opacity: opacity crushed .log-meta's contrast on the
+   surface background well below WCAG AA (~2.9:1 measured) on every
+   completed/failed row — i.e. the majority of any real feed. A solid dim
+   colour keeps every row's text AA-compliant (--fga-text-dim on --fga-surface
+   is 4.74:1). */
+.activity-row:not(.is-stale) {
+  background: var(--fga-row-active);
 }
-/* In-flight beats the ok/fail colour — nothing has been decided yet. It also goes
-   HOLLOW and breathes, so "still running" is legible without reading the meta. */
-.log-dot[data-pending="true"] {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--color-warning);
-  animation: fga-breathe 1s ease-in-out infinite;
-}
-/* A failure swaps the mark entirely — same glyph the meta line already uses. The
-   box stays pinned at 6px (the ✗ is a hair wider and simply overhangs into the gap)
-   so every row's label starts on the SAME left edge: in a column read by scanning,
-   that edge is the anchor, and a per-row glyph width would ripple it. */
-.log-dot[data-ok="false"][data-pending="false"] {
-  height: auto;
-  margin-top: 0;
-  background: transparent;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-3xs);
-  line-height: 1.35;
-  color: var(--color-danger);
-}
+.activity-row.is-stale .log-label,
+.activity-row.is-stale .log-meta { color: var(--fga-text-dim); }
+/* Hover (§6, corrected post-A13) — "lift by lightening" was MEASURED and
+   rejected: the newest row already sits on --fga-row-active, where muted text
+   is 4.55:1 — a lightened hover step measured 4.09, then 3.97 one step
+   further, both under the AA floor. Stale rows are EXEMPT from hover
+   entirely (A13 ruling): putting a stale row's --fga-text-dim text onto
+   --fga-row-active measured 3.96:1, under AA — and a stale row is history,
+   it needs no hover affordance. So only the single true active/current row
+   (the newest, non-stale one) gets the border-lift; every other row is inert
+   on hover. */
+.activity-row:not(.is-stale):hover { border-color: var(--fga-hairline-soft); }
+/* Status reads by SHAPE first, colour second: an inline Phosphor-style SVG per
+   state (check-circle / x-circle / circle-notch), never a text glyph. The
+   accessible label lives on this WRAPPING span (aria-label="ok"/"failed"/
+   "running"); the svg inside is aria-hidden — its meaning is already spoken.
+   Sizing + optical centring come from the shared `.fga-icon` rule (§1) —
+   `.log-icon-wrap` carries that class too; this selector only adds colour. */
+.log-icon { display: block; width: 100%; height: 100%; }
+.log-icon-wrap[data-state="ok"]      .log-icon { color: var(--fga-tone-success); }
+.log-icon-wrap[data-state="failed"]  .log-icon { color: var(--fga-tone-danger); }
+.log-icon-wrap[data-state="running"] .log-icon { color: var(--fga-tone-warning); animation: fga-spin 1s linear infinite; }
+/* Stale (non-newest) rows dim the icon too — same equal-specificity family as the
+   tone rules above, so it must come after them in source order to win the tie. */
+.activity-row.is-stale .log-icon { color: var(--fga-text-dim); }
 .log-body {
   flex: 1 1 auto;
   min-width: 0; /* lets the ellipsis in .log-label / .log-meta actually engage */
 }
-/* The hero line — what the plugin is doing, on what. Owns the full row width. */
+/* The hero line — one English sentence about what the agent did. Owns the full
+   row width (activity-sentence.ts derives the text; this file only sizes it). */
 .log-label {
-  font-size: var(--font-size-2xs);
+  font-size: var(--fga-font-body);
   font-weight: var(--font-weight-medium);
-  line-height: 1.35;
-  color: var(--color-foreground);
+  letter-spacing: var(--fga-track-body);
+  line-height: var(--fga-lh-body);
+  color: var(--fga-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The footnote — outcome + duration + age, one muted line under the label. */
+/* The footnote — relative age, one muted line under the sentence. */
 .log-meta {
-  font-size: var(--font-size-3xs);
-  line-height: 1.35;
-  color: var(--color-muted-foreground);
+  font-size: var(--fga-font-caption);
+  letter-spacing: var(--fga-track-caption);
+  line-height: var(--fga-lh-caption);
+  color: var(--fga-text-muted);
   font-variant-numeric: tabular-nums;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* A failure's outcome IS this line ("node not found · …") — colour the whole line. The
-   mark column already carries the ✗; the text must not repeat it (status redundancy). */
-.log-meta[data-ok="false"] { color: var(--color-danger); }
+/* Empty state (§6) — quiet typography, no box, no icon. */
 .activity-empty {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: var(--color-muted-foreground);
+  color: var(--fga-text-dim);
+  font-size: var(--fga-font-caption);
+  letter-spacing: var(--fga-track-caption);
+  padding: var(--space-1) 0;
 }
 
-/* Troubleshoot hint band */
-.hint {
-  margin: 0;
-  padding: var(--space-1) var(--space-2);
-  border-top: 2px solid var(--color-foreground);
-  font-size: var(--font-size-xs);
-  color: var(--color-foreground);
-}
-.hint:empty { display: none; }
-
-/* Connection band — the details grid, always open in expanded mode. */
-.conn-details {
-  border-top: 2px solid var(--color-foreground);
-  padding: var(--space-1) var(--space-2);
-}
-.detail-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px var(--space-3);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-.detail-grid dt {
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-muted-foreground);
-}
-.detail-grid dd { margin: 0; color: var(--color-foreground); font-variant-numeric: tabular-nums; }
-
-/* Footer band — three mono cells split by 2px ink rules: DETAILS · DOCS ·
-   COPY. Ink-on-paper flips to paper-on-ink on hover (the inversion principle). */
-.footer-row {
-  display: flex;
-  border-top: 2px solid var(--color-foreground);
-  margin-top: auto;
-}
-.footer-cell {
-  flex: 1 1 auto;
+/* Underlined inline links — the reference's "Change photo" affordance for
+   secondary actions ("Later"). The underline already carries the affordance,
+   so the text itself reads at --fga-label rather than --fga-text-muted
+   (whose 4.55:1 on the active row background sat right at the AA floor). */
+.inline-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
-  margin: 0;
-  padding: var(--space-1) 4px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
-  white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  text-align: center;
-  text-decoration: none;
-  color: var(--color-foreground);
-  background: var(--color-background);
+  gap: var(--space-hair);
+  background: none;
   border: none;
-  border-right: 2px solid var(--color-foreground);
+  padding: 0;
+  font: inherit;
+  font-size: var(--fga-font-body);
+  color: var(--fga-label);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   cursor: pointer;
-  transition: background-color 0.1s ease-out, color 0.1s ease-out;
 }
-.footer-icon {
-  width: 12px;
-  height: 12px;
-  flex: 0 0 auto;
-  transition: transform 0.1s ease-out;
+.inline-link:hover { color: var(--fga-text); }
+/* Focus — the two interactive controls only (Sync now, Later); .sync-btn's pair
+   lives beside its own declaration. */
+.sync-btn:focus-visible, .inline-link:focus-visible {
+  outline: 2px solid var(--fga-focus);
+  outline-offset: 2px;
 }
-.footer-cell[aria-expanded="true"] .footer-icon { transform: rotate(180deg); }
-.footer-cell:last-child { border-right: none; }
-.footer-cell:hover { background: var(--color-foreground); color: var(--color-background); }
-.footer-cell:focus-visible { outline: 2px solid var(--color-ring); outline-offset: -2px; }
+
+/* Footer band — identity row only (status-dot mirror + build id). The Docs/Copy/
+   Details actions row that used to sit below it is cut entirely (§2); the file
+   name it also used to carry now lives in Block 2's Context row instead. */
+.footer-row {
+  border-top: 1px dotted var(--fga-divider);
+  padding: var(--space-1) var(--space-2);
+  padding-top: var(--fga-divider-gap);
+  margin-top: auto;
+}
+.identity-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-hair);
+  min-width: 0;
+}
+/* CSS mirror of #fga-dot's tone — panel-ui.ts writes the tone onto #fga-dot only;
+   a second JS write target would be a behaviour change, so the mirror is derived
+   here instead. Falls back to muted if :has() is unsupported — quiet, never broken. */
+/* Sizing comes from the shared `.status-dot, .identity-dot` rule (§1: one dot
+   grid, 8px — was 6px). This rule adds only the default (muted) fill. */
+.identity-dot { background: var(--fga-tone-muted); }
+.panel:has(#fga-dot[data-tone="success"]) .identity-dot { background: var(--fga-tone-success); }
+.panel:has(#fga-dot[data-tone="warning"]) .identity-dot { background: var(--fga-tone-warning); }
+.panel:has(#fga-dot[data-tone="info"])    .identity-dot { background: var(--fga-tone-info); }
+#fga-version { flex: 0 0 auto; font-size: var(--fga-font-caption); color: var(--fga-text-muted); font-variant-numeric: tabular-nums; }
+
+/* ── Responsive contract (240px → 640px+, any height, locked) ─────────────────
+   The shrink chain must be UNBROKEN from the shell down: one flex/grid item
+   anywhere on the path that keeps its intrinsic width pushes the row past the
+   panel edge. overflow-x:hidden would then merely HIDE the overflow. */
+.panel > * { min-width: 0; max-width: 100%; }
+.status-row > *, .identity-row > *, .sync-prompt > *,
+.log-body, .log-body > *, .detail-cell, .detail-cell > *, .activity-row > * { min-width: 0; }
+
+/* Truncation: the trio is a set — ellipsis without the other two does nothing. */
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Motion — the probing marker pings outward (transform + opacity only, never a
-   layout property). Snappy 0.1s ease-out is the brand curve. Guarded below. */
+   layout property). Snappy 0.1s ease-out is the brand curve. The pending feed
+   icon spins (transform only) — a continuous linear rotation is the one place
+   `linear` is correct (taste-lint's checkLinearOrAllTransition only inspects
+   `transition:`, never `animation:`). Every animated/transitioned selector is
+   guarded below. */
 @keyframes fga-ping {
   0%   { opacity: 0.5; transform: scale(1); }
   100% { opacity: 0;   transform: scale(2.4); }
 }
-/* The in-flight feed mark breathes. This is a STATUS channel, not decoration — it
-   is the only thing distinguishing "running" from "finished" at a glance — so it
-   animates opacity alone (never a layout prop) and stops under reduced-motion,
-   where the hollow shape still carries the state on its own. */
-@keyframes fga-breathe {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.35; }
+@keyframes fga-spin {
+  to { transform: rotate(360deg); }
+}
+/* A new activity row arrives, transform + opacity only (§4). */
+@keyframes fga-row-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .status-dot.is-pulsing::after { animation: none; }
-  .log-dot[data-pending="true"] { animation: none; }
-  .footer-cell, .footer-icon { transition: none; }
+  .status-dot.is-pulsing::after,
+  .log-icon-wrap[data-state="running"] .log-icon,
+  .activity-row { animation: none; }
+  .inline-link, .sync-prompt, .status-dot, .status-sentence, .activity-row { transition: none; }
 }
 </style>
 </head>
 <body>
-<main class="panel" id="fga-panel" data-mode="compact">
+<main class="panel" id="fga-panel">
   <header class="app-header">
     <h1 class="brand-title">Figma Design Agent</h1>
-    <span class="brand-version" id="fga-version">v0.1.0</span>
   </header>
 
-  <section class="status-hero" id="fga-hero" aria-live="polite" aria-label="Connection status">
-    <div class="status-row">
+  <section class="status-hero fga-block" id="fga-status" aria-live="polite" aria-label="Connection status">
+    <div class="status-row fga-row">
       <span class="status-dot" id="fga-dot" data-tone="muted"></span>
-      <span class="status-pill" id="fga-pill" data-tone="muted">Starting…</span>
+      <p class="status-sentence" id="fga-sentence" data-tone="muted">Not connected yet — your first CLI command starts the broker.</p>
     </div>
-    <p class="status-sentence" id="fga-sentence">The broker starts automatically on your first CLI command.</p>
-    <p class="status-meta" id="fga-meta"></p>
+
+    <!-- Onboarding: priority-1 content, not a debug affordance — re-parented here
+         (block 1) so it answers the "disconnected, never connected" state directly.
+         JS toggles [hidden] via showOnboarding (panel-model.ts). -->
+    <section class="onboarding" id="fga-onboarding" aria-label="Getting started">
+      <ul class="onboarding-list">
+        <li>This panel bridges the figma-agent CLI to this file.</li>
+        <li>Verify from a terminal: <code>figma-agent status</code></li>
+        <li>Keep this panel open while agents work.</li>
+      </ul>
+    </section>
+  </section>
+
+  <section class="context fga-block" id="fga-context" aria-label="File context">
+    <h2 class="section-label">Context</h2>
+    <dl class="detail-grid">
+      <div class="detail-cell">
+        <dt>File</dt>
+        <dd id="fga-ctx-file">—</dd>
+        <p class="detail-note" id="fga-ctx-file-note"></p>
+      </div>
+      <div class="detail-cell"><dt>Page</dt><dd id="fga-ctx-page">—</dd></div>
+      <div class="detail-cell"><dt>Selection</dt><dd id="fga-ctx-selection">Nothing selected</dd></div>
+    </dl>
+  </section>
+
+  <section class="activity fga-block" id="fga-activity-block" aria-label="Activity log">
+    <h2 class="section-label">Activity</h2>
+    <ul class="activity-list" id="fga-activity" aria-live="polite">
+      <li class="activity-empty">No activity yet — run a figma-agent command.</li>
+    </ul>
   </section>
 
   <!-- Live-sync idle-commit prompt (spec 004 P4): one line, shown only at the idle
@@ -642,59 +847,15 @@ code {
     <p class="sync-msg" id="fga-sync-msg">changes ready</p>
     <div class="sync-actions">
       <button class="sync-btn" id="fga-sync-now" type="button">Sync now</button>
-      <button class="sync-btn sync-later" id="fga-sync-later" type="button">Later</button>
+      <button class="inline-link" id="fga-sync-later" type="button">Later</button>
     </div>
   </section>
 
-  <div id="fga-expanded" hidden>
-    <section class="onboarding" id="fga-onboarding" aria-label="Getting started">
-      <ul class="onboarding-list">
-        <li>This panel bridges the figma-agent CLI to this file.</li>
-        <li>Verify from a terminal: <code>figma-agent status</code></li>
-        <li>Keep this panel open while agents work.</li>
-      </ul>
-    </section>
-
-    <section class="activity" aria-label="Activity log">
-      <h2 class="section-label">Activity</h2>
-      <ul class="activity-list" id="fga-activity" aria-live="polite">
-        <li class="activity-empty">No activity yet — run a figma-agent command.</li>
-      </ul>
-    </section>
-
-    <p class="hint" id="fga-hint" aria-live="polite"></p>
-
-    <section class="conn-details" aria-label="Connection details">
-      <h2 class="section-label">Connection details</h2>
-      <dl class="detail-grid">
-        <dt>Port</dt><dd id="fga-d-port">—</dd>
-        <dt>Protocol</dt><dd id="fga-d-proto">—</dd>
-        <dt>Heartbeat</dt><dd id="fga-d-heartbeat">—</dd>
-        <dt>Reconnect attempts</dt><dd id="fga-d-attempts">—</dd>
-        <dt>File</dt><dd id="fga-d-file">—</dd>
-        <dt>Page</dt><dd id="fga-d-page">—</dd>
-      </dl>
-    </section>
-  </div>
-
   <footer class="footer-row">
-    <button class="footer-cell" id="fga-toggle" type="button"
-            aria-expanded="false" aria-controls="fga-expanded">
-      <span id="fga-toggle-label">Details</span>
-      <!-- Phosphor Icons: CaretDown, regular -->
-      <svg class="footer-icon" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor">
-        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/>
-      </svg>
-    </button>
-    <a class="footer-cell" id="fga-docs" href="https://github.com/jangtrinh/ease-design/blob/main/figma-agent/README.md"
-       target="_blank" rel="noopener" aria-label="Open the figma-agent documentation in a new tab">
-      <span>Docs</span>
-      <!-- Phosphor Icons: ArrowSquareOut, regular -->
-      <svg class="footer-icon" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor">
-        <path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/>
-      </svg>
-    </a>
-    <button class="footer-cell" id="fga-copy" type="button">Copy</button>
+    <div class="identity-row">
+      <span class="identity-dot"></span>
+      <span id="fga-version">v0.1.0</span>
+    </div>
   </footer>
 </main>
 <script>

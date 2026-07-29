@@ -98,14 +98,14 @@ export function opGetSelection(params: Params): Record<string, unknown> {
   return { selection: figma.currentPage.selection.map((n) => serializeNode(n, depth)) };
 }
 
-export async function opCreateFrame(params: Params): Promise<{ id: string }> {
+export async function opCreateFrame(params: Params): Promise<{ id: string; name: string }> {
   const frame = figma.createFrame();
   frame.name = typeof params.name === 'string' && params.name ? params.name : 'Frame';
   const w = Number(params.width ?? params.w) || 100;
   const h = Number(params.height ?? params.h) || 100;
   frame.resize(w, h);
   await appendToParent(frame, params);
-  return { id: frame.id };
+  return { id: frame.id, name: frame.name };
 }
 
 export async function opCreateInstance(params: Params): Promise<Record<string, unknown>> {
@@ -126,7 +126,10 @@ export async function opCreateInstance(params: Params): Promise<Record<string, u
   if (!component) throw withCode(new Error(`component not found: ${ref}`), 'E_INVALID_ARGS');
   const instance = component.createInstance();
   await appendToParent(instance, params);
-  return { id: instance.id, mainComponent: { id: component.id, key: component.key, name: component.name } };
+  return {
+    id: instance.id, name: instance.name,
+    mainComponent: { id: component.id, key: component.key, name: component.name },
+  };
 }
 
 export async function opSetVariant(params: Params): Promise<Record<string, unknown>> {
@@ -166,7 +169,7 @@ export async function opSetConstraints(params: Params): Promise<{ id: string }> 
   return { id: node.id };
 }
 
-export async function opSetText(params: Params): Promise<{ id: string }> {
+export async function opSetText(params: Params): Promise<{ id: string; name: string }> {
   const node = await getSceneNode(params.nodeId ?? params.node);
   if (node.type !== 'TEXT') {
     throw withCode(new Error(`SET_TEXT target must be TEXT, got ${node.type}`), 'E_INVALID_ARGS');
@@ -191,7 +194,7 @@ export async function opSetText(params: Params): Promise<{ id: string }> {
   }
   if (typeof params.characters === 'string') node.characters = params.characters;
   if (typeof reqSize === 'number') node.fontSize = reqSize;
-  return { id: node.id };
+  return { id: node.id, name: node.name };
 }
 
 export async function opExportPng(params: Params): Promise<{ base64: string; w: number; h: number }> {

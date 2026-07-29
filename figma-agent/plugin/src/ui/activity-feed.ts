@@ -1,23 +1,18 @@
 // Pure view-model for the panel's ACTIVITY FEED — no DOM, no WebSocket, no Figma
 // API. Split out of panel-model.ts (which owns the connection chrome) when the feed
 // grew a per-operation vocabulary of its own; panel-ui.ts is the DOM glue and
-// ui-relay.ts feeds it. The rows' OUTCOME lines are derived in ./activity-summary.ts
-// (the relay's half). Every branch here is unit-tested in
-// figma-agent/tests/activity-feed.test.ts.
-//
-// WHY A LABEL AT ALL: the wire `cmd` is opaque about intent. EXEC_JS is injected
-// code — a scan, a mirror-verify rebuild and an ad-hoc script are the same `cmd`,
-// so a cmd-only feed can only ever say "exec js" while the user waits. The CLI
-// therefore states its intent on the request (RequestMsg.activity) and we render
-// THAT, falling back to a humanized `cmd` when it is absent (an older CLI).
+// ui-relay.ts feeds it. IA v2: each row renders ONE English sentence via
+// ./activity-sentence.ts (which consumes this module's record shape, unchanged) —
+// the row-level `activityLabel`/`activityMeta` split moved there. Every branch
+// still here is unit-tested in figma-agent/tests/activity-feed.test.ts.
 
 /** One row of the feed: a request from the moment it starts until its reply lands. */
 export interface ActivityRecord {
   /** Wire request id — the join between the start event and its result. */
   id: string;
-  /** Wire command name (EXEC_JS, IMPORT_PAYLOAD…) — the label's fallback. */
+  /** Wire command name (EXEC_JS, IMPORT_PAYLOAD…) — the sentence's fallback stem. */
   tool: string;
-  /** The CLI's intent label ("Scan · 1:23"); absent ⇒ fall back to `tool`. */
+  /** The CLI's intent label ("Scan · 1:23"); absent ⇒ fall back to a humanized `tool`. */
   label?: string;
   /** Result summary once done ("→ 42 nodes", "node not found"); absent while pending. */
   result?: string;
@@ -28,17 +23,12 @@ export interface ActivityRecord {
   ms: number;
   /** Epoch ms the request started — the row renders a clock time from it. */
   at: number;
-}
-
-/** Readable log label for a wire command: "CREATE_FRAME" → "create frame". */
-export function humanizeTool(tool: string): string {
-  return tool.toLowerCase().replace(/_/g, ' ');
-}
-
-/** What the row's headline reads: the CLI's intent, else the humanized command. */
-export function activityLabel(rec: ActivityRecord): string {
-  const label = typeof rec.label === 'string' ? rec.label.trim() : '';
-  return label !== '' ? label : humanizeTool(rec.tool);
+  /** Wire ErrorCode, present only on a failed reply — never shown raw, only mapped to a reason. */
+  errorCode?: string;
+  /** The reply's own `name`, when it carried one (CREATE_FRAME/CREATE_INSTANCE/SET_TEXT/
+   *  IMPORT_PAYLOAD/a scan) — lets the sentence say `Created frame "Hero card"` instead of
+   *  fabricating an object no reply ever named. */
+  nodeName?: string;
 }
 
 /** Wall-clock stamp for a row: "14:32:07" (local time, zero-padded). Kept for the status snapshot. */
@@ -85,26 +75,6 @@ export function timeAgo(nowMs: number, atMs: number): string {
 }
 
 /**
- * The row's SECOND line — outcome and timing folded into ONE muted sentence:
- *   "→ 42 nodes · 173ms · 2m" | "running… · now" | "node not found · 8ms · 3s"
- * Deliberately carries no wall-clock stamp: the relative age already answers "when",
- * and the absolute time is what used to crowd the label — the only line that says WHAT
- * the plugin is doing — off the row entirely on a narrow panel. It survives in the
- * row's `title` instead (panel-ui.ts).
- *
- * Part ORDER is outcome-first on purpose: the parts are ellipsised from the right, so
- * the least-durable fact (the age, which the 1s heartbeat re-renders anyway) is the
- * one truncation eats, and the outcome — the reason to read the row — never is.
- */
-export function activityMeta(rec: ActivityRecord, now: number): string {
-  const parts: string[] = [];
-  if (rec.result) parts.push(rec.result);
-  parts.push(rec.pending ? 'running…' : formatDuration(rec.ms));
-  parts.push(timeAgo(now, rec.at));
-  return parts.join(' · ');
-}
-
-/**
  * Coerce a raw `figma-agent:activity` start-event detail (typed `unknown`) into a
  * pending record, or null if the shape is wrong. Defensive: the event crosses an
  * untyped DOM boundary.
@@ -132,6 +102,10 @@ export interface ActivityResult {
   ok: boolean;
   ms: number;
   result?: string;
+  /** Wire ErrorCode, present only on a failure — ui-relay.ts's emitActivity adds it. */
+  code?: string;
+  /** The reply's own `name`, when it carried one — ui-relay.ts's emitActivity extracts it. */
+  nodeName?: string;
 }
 
 /** Coerce a done-event detail into a result patch, or null if the shape is wrong. */
@@ -145,6 +119,8 @@ export function toActivityResult(detail: unknown): ActivityResult | null {
     ms: typeof d.ms === 'number' && Number.isFinite(d.ms) && d.ms >= 0 ? d.ms : 0,
   };
   if (typeof d.result === 'string' && d.result !== '') patch.result = d.result;
+  if (typeof d.code === 'string' && d.code !== '') patch.code = d.code;
+  if (typeof d.nodeName === 'string' && d.nodeName !== '') patch.nodeName = d.nodeName;
   return patch;
 }
 
@@ -172,6 +148,8 @@ export function resolveActivity(
     if (rec.id !== patch.id) return rec;
     const next: ActivityRecord = { ...rec, pending: false, ok: patch.ok, ms: patch.ms };
     if (patch.result !== undefined) next.result = patch.result;
+    if (patch.code !== undefined) next.errorCode = patch.code;
+    if (patch.nodeName !== undefined) next.nodeName = patch.nodeName;
     return next;
   });
 }

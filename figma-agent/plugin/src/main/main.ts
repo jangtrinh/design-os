@@ -40,24 +40,38 @@ import {
 import type { CorrectionEvent } from '../../../shared/supervised-memory';
 import { PANEL_WIDTH, PANEL_HEIGHT } from '../ui/panel-model';
 
-// P5.1: the panel opens COMPACT (small + minimal on the canvas — owner decree);
-// the UI's DETAILS toggle posts PANEL_RESIZE to grow/shrink it on demand.
-figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
+// Panel IA v2: one opening size — no compact/expanded split, no user-resizable
+// Details toggle left to preserve (the whole PANEL_RESIZE path is gone below).
+figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT });
 
-// Announce scene identity to the UI iframe so the P2 panel's Connection details can
-// show File/Page; ui-relay also forwards this to the broker (enriches PLUGIN_HELLO /
-// `figma-agent status`). Re-announce on page change so the panel stays current.
+/** Block 2's Selection row: the first selected node's name (if any) + the count. */
+function selectionSummary(): { selectionName: string | null; selectionCount: number } {
+  const sel = figma.currentPage.selection; // sync getter, allowed under dynamic-page
+  return { selectionName: sel.length > 0 ? sel[0].name : null, selectionCount: sel.length };
+}
+
+// Announce scene identity to the UI iframe so the panel's Context block can show
+// File/Page/Selection; ui-relay also forwards this to the broker (enriches
+// PLUGIN_HELLO / `figma-agent status`). Re-announce on page change AND selection
+// change so the panel stays current.
 let announcedFileName = '';
 
 function announceFileInfo(): void {
   announcedFileName = figma.root.name;
   figma.ui.postMessage({
     type: 'FILE_INFO',
-    data: { fileName: figma.root.name, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
+    data: {
+      fileName: figma.root.name, page: figma.currentPage.name, fileKey: figma.fileKey ?? null,
+      ...selectionSummary(),
+    },
   });
 }
 announceFileInfo();
 figma.on('currentpagechange', announceFileInfo);
+// `selectionchange` fires on every click — the handler posts five-ish scalars with no
+// scene traversal and no await, so it is cheap enough to leave undebounced; debouncing
+// would delay the panel behind the user's own click.
+figma.on('selectionchange', announceFileInfo);
 
 /**
  * The file identity read at every request, with a rename self-heal: sync getters only,
@@ -187,14 +201,10 @@ type Params = Record<string, unknown>;
 interface UiRequest { requestId: string; cmd: CommandName; params?: Params; expectedFile?: string }
 
 figma.ui.onmessage = async (msg: unknown) => {
-  // P5.1 panel chrome: the DETAILS toggle asks for an iframe resize. Height is
-  // clamped to the mode range so a malformed message can never blow up the panel.
-  const chrome = msg as { type?: unknown; h?: unknown; data?: unknown } | null;
-  if (chrome && chrome.type === 'PANEL_RESIZE') {
-    const raw = typeof chrome.h === 'number' && Number.isFinite(chrome.h) ? chrome.h : PANEL_HEIGHT.compact;
-    figma.ui.resize(PANEL_WIDTH, Math.round(Math.min(PANEL_HEIGHT.expanded, Math.max(PANEL_HEIGHT.compact, raw))));
-    return;
-  }
+  // Panel IA v2 removed the Details toggle — its PANEL_RESIZE message was the only
+  // emitter, so the handler that used to live here (and phase-01's width-preserving
+  // resize on top of it) is gone with it. One opening size, never resized again.
+  const chrome = msg as { type?: unknown; data?: unknown } | null;
   // Live-sync (spec 004 P4): the broker's idle window, relayed by the iframe.
   if (chrome && chrome.type === 'SYNC_CONFIG') {
     const raw = (chrome.data as { idleMs?: unknown } | undefined)?.idleMs;
