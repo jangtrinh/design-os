@@ -13,6 +13,10 @@ import {
   coalesceChanges, mapChangeType,
   type ChangeOrigin, type ComponentChange,
 } from '../../../shared/figma-changes';
+import { coalesceEdits, type EditInput, type EditOrigin } from '../../../shared/edit-feed';
+import {
+  classifyActor, pruneDeclaredIds, pruneLastAgentAt, AGENT_ECHO_MS, type ActorState,
+} from './edit-actor';
 import {
   createColorStyles, createTextStyles, createEffectStyles,
   resetImportWarnings, getImportWarnings, withCode,
@@ -134,6 +138,77 @@ function resolveComponentIdentity(node: SceneNode | RemovedNode): ComponentIdent
   return null;
 }
 
+// ─── Widened capture (wave 4.4 phase 01) ─────────────────────────────
+// The component branch above stays exactly as it was (figma.changes.jsonl / kernel
+// reconcile, spec A6, untouched). This is a SECOND, wider collection alongside it —
+// every node, not just components — feeding its own per-file feed (shared/edit-feed.ts).
+
+/** Best-effort identity, remembered so a DELETE (which arrives as id+type only) can
+ *  still be described. Capped with oldest-out eviction — a long session must not leak. */
+interface CachedIdentity { name: string; type: string; parentName: string | null; page: string }
+const EDIT_IDENTITY_CACHE_CAP = 2_000;
+const identityCache = new Map<string, CachedIdentity>();
+
+function rememberIdentity(id: string, value: CachedIdentity): void {
+  identityCache.set(id, value);
+  if (identityCache.size > EDIT_IDENTITY_CACHE_CAP) {
+    const oldestKey = identityCache.keys().next().value;
+    if (oldestKey !== undefined) identityCache.delete(oldestKey);
+  }
+}
+
+const ENCLOSING_NAME_HOP_CAP = 20;
+
+/** Nearest enclosing FRAME/SECTION/COMPONENT/COMPONENT_SET above `node` — "where" the
+ *  owner was working. Walks UP (not down), so it is O(depth), not O(tree). Null past
+ *  the hop cap or when there is none (e.g. a direct child of the page). */
+function enclosingName(node: SceneNode): string | null {
+  let n: BaseNode | null = node.parent;
+  let hops = 0;
+  while (n && hops < ENCLOSING_NAME_HOP_CAP) {
+    if (n.type === 'FRAME' || n.type === 'SECTION' || n.type === 'COMPONENT' || n.type === 'COMPONENT_SET') {
+      return n.name;
+    }
+    n = n.parent;
+    hops += 1;
+  }
+  return null;
+}
+
+/** The PAGE a node lives on. `documentchange` is document-wide (loadAllPagesAsync at
+ *  boot), so a single batch can span pages — this must be resolved PER NODE, never
+ *  stamped from `figma.currentPage` at the batch level, or cross-page edits would file
+ *  under the wrong page. */
+function pageNameOf(node: SceneNode): string {
+  let n: BaseNode | null = node;
+  while (n) {
+    if (n.type === 'PAGE') return n.name;
+    n = n.parent;
+  }
+  return figma.currentPage.name; // defensive: an orphaned/detached node
+}
+
+// ─── Actor classification state (wave 4.4 phase 01) ──────────────────
+// Post-review fix (Codex P1, round 1): concurrent overlapping dispatches to the same
+// plugin instance are real (two CLI invocations racing the same file), so this is a
+// COUNTER — not a single scalar "busy until" that one dispatch finishing would clobber
+// for another still in flight.
+//
+// Post-review fix (Codex P1, round 2): `declaredIds` gets the SAME per-id lifecycle as
+// `lastAgentAt`, not a blanket add-only union cleared in one sweep — that version grew
+// unboundedly under continuous traffic and let a long-finished request's ids keep
+// mislabelling a much-later owner edit as `agent`. Now nodeId → expiresAt: `Infinity`
+// while the declaring dispatch is active, stamped to `now + AGENT_ECHO_MS` in THAT
+// dispatch's own `finally`, then pruned per-id (not blanket-cleared).
+let activeCount = 0;
+let lastDrainAt = 0; // epoch ms the count last returned to 0 (0 = never has)
+const declaredIds = new Map<string, number>();
+const lastAgentAt = new Map<string, number>();
+
+function actorState(): ActorState {
+  return { activeCount, lastDrainAt, declared: declaredIds, lastAgentAt };
+}
+
 // ─── Idle-commit timer (spec 004 P4) ────────────────────────────────
 // Every captured documentchange resets a debounce; after IDLE_MS of quiet the plugin
 // posts IDLE_READY {count} to its iframe, which shows the "N changes — Sync now /
@@ -159,36 +234,82 @@ function fireIdle(): void {
 }
 
 function onDocumentChange(event: DocumentChangeEvent): void {
+  pruneDeclaredIds(declaredIds, Date.now()); // once per batch — nothing reads `declared` between batches
   const raw: ComponentChange[] = [];
+  const edits: EditInput[] = [];
   for (const dc of event.documentChanges) {
-    const changedNode = (dc as { node: SceneNode | RemovedNode }).node;
-    if (!('removed' in changedNode) || !changedNode.removed) {
-      recordDesignerCorrection(changedNode.id, {
+    // Filter the TYPE first — before any node dereference. A StyleChange payload
+    // carries `style`, not `node`; casting every DocumentChange to `{ node }` and
+    // testing `'removed' in changedNode` BEFORE this filter throws on `undefined`
+    // for a STYLE_* change — a latent crash this wave would otherwise inherit
+    // (one style edit away from killing capture entirely).
+    const op = mapChangeType(dc.type);
+    if (op === null) continue; // STYLE_* — filtered before any node dereference
+    const node = (dc as { node?: SceneNode | RemovedNode }).node;
+    if (!node) continue; // defensive: a node-less change type
+
+    if (!('removed' in node) || !node.removed) {
+      recordDesignerCorrection(node.id, {
         changeType: dc.type,
         properties: dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [],
       });
     }
-    const op = mapChangeType(dc.type);
-    if (op === null) continue; // STYLE_* — components only in P1
-    const identity = resolveComponentIdentity((dc as { node: SceneNode | RemovedNode }).node);
-    if (!identity) continue; // change not under any component — filtered out
-    raw.push({
+    const changedProps = dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [];
+
+    // ── Component-scoped capture (unchanged behaviour — figma.changes.jsonl, spec A6) ──
+    const identity = resolveComponentIdentity(node);
+    if (identity) {
+      raw.push({
+        op,
+        nodeId: identity.id,
+        nodeName: identity.name,
+        nodeType: identity.type,
+        changedProps,
+        origin: dc.origin as ChangeOrigin,
+      });
+    }
+
+    // ── Widened capture (wave 4.4 phase 01) — every node, not just components ──
+    const removed = 'removed' in node && node.removed;
+    const known = identityCache.get(node.id);
+    // A RemovedNode carries ONLY id + type — no name, no parent, no page — so a delete
+    // reads from the identity cache; a node the session never saw degrades honestly to
+    // null (the sentence layer says "Deleted a TEXT node" rather than inventing a name).
+    const parentName = removed ? known?.parentName ?? null : enclosingName(node);
+    const page = removed ? known?.page ?? figma.currentPage.name : pageNameOf(node);
+    edits.push({
       op,
-      nodeId: identity.id,
-      nodeName: identity.name,
-      nodeType: identity.type,
-      changedProps: dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [],
-      origin: dc.origin as ChangeOrigin,
+      nodeId: node.id,
+      nodeName: removed ? known?.name ?? null : node.name,
+      nodeType: node.type,
+      parentName,
+      page,
+      changedProps,
+      origin: dc.origin as EditOrigin,
+      actor: classifyActor(node.id, op, Date.now(), actorState()),
+    });
+    if (!removed) rememberIdentity(node.id, { name: node.name, type: node.type, parentName, page });
+  }
+
+  const changes = coalesceChanges(raw);
+  if (changes.length > 0) {
+    figma.ui.postMessage({
+      type: 'DOC_CHANGE',
+      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
+    });
+    changesSinceCommit += changes.length;
+    resetIdleTimer(); // each edit pushes the idle-commit prompt further out
+  }
+
+  if (edits.length > 0) {
+    figma.ui.postMessage({
+      type: 'EDIT_FEED',
+      data: {
+        edits: coalesceEdits(edits), fileKey: figma.fileKey ?? null,
+        fileName: figma.root.name, source: 'live',
+      },
     });
   }
-  const changes = coalesceChanges(raw);
-  if (changes.length === 0) return;
-  figma.ui.postMessage({
-    type: 'DOC_CHANGE',
-    data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
-  });
-  changesSinceCommit += changes.length;
-  resetIdleTimer(); // each edit pushes the idle-commit prompt further out
 }
 
 // Subscribe only after all pages are loaded (dynamic-page requirement).
@@ -235,15 +356,46 @@ figma.ui.onmessage = async (msg: unknown) => {
     }
     const targetIds = mutationTargetIds(req.cmd as CommandName, req.params ?? {});
     beginAgentMutation(targetIds);
-    const result = await dispatch(req.cmd, req.params ?? {});
-    const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
-    for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
-    commitIfMutating(req.cmd as CommandName);
-    figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
+    // Actor classification (wave 4.4 P1, post-review counter fix): increment on entry,
+    // decrement in `finally` so a THROW still balances the count — two commands
+    // overlapping in flight to this plugin instance must not clobber each other's window.
+    // Round 2: this dispatch's OWN target ids go in as `Infinity` (still active) and get
+    // stamped to a real expiry in ITS OWN finally below — never a blanket union that
+    // another still-active dispatch's ids could be cleared alongside.
+    activeCount += 1;
+    for (const id of targetIds) declaredIds.set(id, Infinity);
+    try {
+      const result = await dispatch(req.cmd, req.params ?? {});
+      const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
+      const completedAt = Date.now();
+      for (const nodeId of changedIds) {
+        recordAgentMutation(nodeId, { command: req.cmd });
+        lastAgentAt.set(nodeId, completedAt);
+      }
+      pruneLastAgentAt(lastAgentAt, completedAt);
+      commitIfMutating(req.cmd as CommandName);
+      figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
+    } finally {
+      // Known, accepted edge case (not asked to be solved here): if TWO overlapping
+      // dispatches happen to declare the SAME nodeId, this one finishing downgrades it
+      // to a real expiry even though the other dispatch may still be active and still
+      // consider it `Infinity`-declared from its own perspective — a shared id could
+      // therefore start counting down early. Rare (two concurrent commands targeting the
+      // exact same node) and fails toward `ambiguous`, never a false `agent`, so it is
+      // safe to leave unsolved rather than adding per-id refcounting for it.
+      const finishedAt = Date.now();
+      const expiresAt = finishedAt + AGENT_ECHO_MS;
+      for (const id of targetIds) declaredIds.set(id, expiresAt);
+      activeCount -= 1;
+      if (activeCount === 0) lastDrainAt = finishedAt;
+    }
   } catch (err) {
     // Commit on failure too, so a half-applied mutation (e.g. IMPORT_PAYLOAD styles/
     // variables created before the throw) owns its own undo step instead of being
-    // swallowed into the next command's.
+    // swallowed into the next command's. Known limit (not silently improved here): a
+    // command that throws mid-way mutated nodes it never recorded, so those writes are
+    // NOT added to lastAgentAt — they fall back to the busy-window `ambiguous` rule
+    // instead of a false `agent`, which is the honest side to be wrong on.
     commitIfMutating(req.cmd as CommandName);
     figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err), fileContext: ctx });
   }

@@ -53,6 +53,74 @@
     return out;
   }
 
+  // shared/edit-feed.ts
+  function coalesceEdits(raw) {
+    const byId = /* @__PURE__ */ new Map();
+    const propSets = /* @__PURE__ */ new Map();
+    for (const e of raw) {
+      const props = propSets.get(e.nodeId) ?? /* @__PURE__ */ new Set();
+      for (const p of e.changedProps) props.add(p);
+      propSets.set(e.nodeId, props);
+      const prev = byId.get(e.nodeId);
+      if (!prev) {
+        byId.set(e.nodeId, { ...e, changedProps: [] });
+        continue;
+      }
+      prev.op = e.op;
+      if (prev.nodeName === null && e.nodeName !== null) prev.nodeName = e.nodeName;
+      if (prev.parentName === null && e.parentName !== null) prev.parentName = e.parentName;
+      if (!prev.nodeType && e.nodeType) prev.nodeType = e.nodeType;
+      if (e.origin === "REMOTE") prev.origin = "REMOTE";
+      prev.actor = e.actor;
+    }
+    const out = [];
+    for (const [id, e] of byId) {
+      e.changedProps = [...propSets.get(id) ?? /* @__PURE__ */ new Set()].sort();
+      out.push(e);
+    }
+    out.sort((a, b) => a.nodeId < b.nodeId ? -1 : a.nodeId > b.nodeId ? 1 : 0);
+    return out;
+  }
+
+  // plugin/src/main/edit-actor.ts
+  var AGENT_ECHO_MS = 1e4;
+  function isDeclaredNow(declared, nodeId, now) {
+    const expiresAt = declared.get(nodeId);
+    return expiresAt !== void 0 && (expiresAt === Infinity || now < expiresAt);
+  }
+  function classifyActor(nodeId, _op, now, s) {
+    const busy = s.activeCount > 0 || s.lastDrainAt > 0 && now - s.lastDrainAt < AGENT_ECHO_MS;
+    if (busy) {
+      return isDeclaredNow(s.declared, nodeId, now) ? "agent" : "ambiguous";
+    }
+    const lastAgentAt2 = s.lastAgentAt.get(nodeId);
+    if (lastAgentAt2 !== void 0 && now - lastAgentAt2 < AGENT_ECHO_MS) return "ambiguous";
+    return "owner";
+  }
+  var DECLARED_IDS_CAP = 2e3;
+  var LAST_AGENT_AT_CAP = 2e3;
+  function enforceCap(map, cap) {
+    if (map.size <= cap) return;
+    let excess = map.size - cap;
+    for (const id of map.keys()) {
+      if (excess <= 0) break;
+      map.delete(id);
+      excess -= 1;
+    }
+  }
+  function pruneDeclaredIds(declared, now, cap = DECLARED_IDS_CAP) {
+    for (const [id, expiresAt] of declared) {
+      if (expiresAt !== Infinity && now >= expiresAt) declared.delete(id);
+    }
+    enforceCap(declared, cap);
+  }
+  function pruneLastAgentAt(lastAgentAt2, now, echoMs = AGENT_ECHO_MS, cap = LAST_AGENT_AT_CAP) {
+    for (const [id, at] of lastAgentAt2) {
+      if (now - at >= echoMs) lastAgentAt2.delete(id);
+    }
+    enforceCap(lastAgentAt2, cap);
+  }
+
   // plugin/src/main/font-match.ts
   var GENERIC_FAMILIES = /* @__PURE__ */ new Set([
     "serif",
@@ -2759,6 +2827,43 @@
     }
     return null;
   }
+  var EDIT_IDENTITY_CACHE_CAP = 2e3;
+  var identityCache = /* @__PURE__ */ new Map();
+  function rememberIdentity(id, value) {
+    identityCache.set(id, value);
+    if (identityCache.size > EDIT_IDENTITY_CACHE_CAP) {
+      const oldestKey = identityCache.keys().next().value;
+      if (oldestKey !== void 0) identityCache.delete(oldestKey);
+    }
+  }
+  var ENCLOSING_NAME_HOP_CAP = 20;
+  function enclosingName(node) {
+    let n = node.parent;
+    let hops = 0;
+    while (n && hops < ENCLOSING_NAME_HOP_CAP) {
+      if (n.type === "FRAME" || n.type === "SECTION" || n.type === "COMPONENT" || n.type === "COMPONENT_SET") {
+        return n.name;
+      }
+      n = n.parent;
+      hops += 1;
+    }
+    return null;
+  }
+  function pageNameOf(node) {
+    let n = node;
+    while (n) {
+      if (n.type === "PAGE") return n.name;
+      n = n.parent;
+    }
+    return figma.currentPage.name;
+  }
+  var activeCount = 0;
+  var lastDrainAt = 0;
+  var declaredIds = /* @__PURE__ */ new Map();
+  var lastAgentAt = /* @__PURE__ */ new Map();
+  function actorState() {
+    return { activeCount, lastDrainAt, declared: declaredIds, lastAgentAt };
+  }
   var idleMs = DEFAULT_IDLE_MS;
   var idleTimer = null;
   var changesSinceCommit = 0;
@@ -2773,36 +2878,69 @@
     changesSinceCommit = 0;
   }
   function onDocumentChange(event) {
+    pruneDeclaredIds(declaredIds, Date.now());
     const raw = [];
+    const edits = [];
     for (const dc of event.documentChanges) {
-      const changedNode = dc.node;
-      if (!("removed" in changedNode) || !changedNode.removed) {
-        recordDesignerCorrection(changedNode.id, {
+      const op = mapChangeType(dc.type);
+      if (op === null) continue;
+      const node = dc.node;
+      if (!node) continue;
+      if (!("removed" in node) || !node.removed) {
+        recordDesignerCorrection(node.id, {
           changeType: dc.type,
           properties: dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : []
         });
       }
-      const op = mapChangeType(dc.type);
-      if (op === null) continue;
-      const identity = resolveComponentIdentity(dc.node);
-      if (!identity) continue;
-      raw.push({
+      const changedProps = dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : [];
+      const identity = resolveComponentIdentity(node);
+      if (identity) {
+        raw.push({
+          op,
+          nodeId: identity.id,
+          nodeName: identity.name,
+          nodeType: identity.type,
+          changedProps,
+          origin: dc.origin
+        });
+      }
+      const removed = "removed" in node && node.removed;
+      const known = identityCache.get(node.id);
+      const parentName = removed ? known?.parentName ?? null : enclosingName(node);
+      const page = removed ? known?.page ?? figma.currentPage.name : pageNameOf(node);
+      edits.push({
         op,
-        nodeId: identity.id,
-        nodeName: identity.name,
-        nodeType: identity.type,
-        changedProps: dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : [],
-        origin: dc.origin
+        nodeId: node.id,
+        nodeName: removed ? known?.name ?? null : node.name,
+        nodeType: node.type,
+        parentName,
+        page,
+        changedProps,
+        origin: dc.origin,
+        actor: classifyActor(node.id, op, Date.now(), actorState())
       });
+      if (!removed) rememberIdentity(node.id, { name: node.name, type: node.type, parentName, page });
     }
     const changes = coalesceChanges(raw);
-    if (changes.length === 0) return;
-    figma.ui.postMessage({
-      type: "DOC_CHANGE",
-      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null }
-    });
-    changesSinceCommit += changes.length;
-    resetIdleTimer();
+    if (changes.length > 0) {
+      figma.ui.postMessage({
+        type: "DOC_CHANGE",
+        data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null }
+      });
+      changesSinceCommit += changes.length;
+      resetIdleTimer();
+    }
+    if (edits.length > 0) {
+      figma.ui.postMessage({
+        type: "EDIT_FEED",
+        data: {
+          edits: coalesceEdits(edits),
+          fileKey: figma.fileKey ?? null,
+          fileName: figma.root.name,
+          source: "live"
+        }
+      });
+    }
   }
   figma.loadAllPagesAsync().then(() => figma.on("documentchange", onDocumentChange)).catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
   figma.ui.onmessage = async (msg) => {
@@ -2831,11 +2969,26 @@
       }
       const targetIds = mutationTargetIds(req.cmd, req.params ?? {});
       beginAgentMutation(targetIds);
-      const result = await dispatch(req.cmd, req.params ?? {});
-      const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
-      for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
-      commitIfMutating(req.cmd);
-      figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
+      activeCount += 1;
+      for (const id of targetIds) declaredIds.set(id, Infinity);
+      try {
+        const result = await dispatch(req.cmd, req.params ?? {});
+        const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
+        const completedAt = Date.now();
+        for (const nodeId of changedIds) {
+          recordAgentMutation(nodeId, { command: req.cmd });
+          lastAgentAt.set(nodeId, completedAt);
+        }
+        pruneLastAgentAt(lastAgentAt, completedAt);
+        commitIfMutating(req.cmd);
+        figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
+      } finally {
+        const finishedAt = Date.now();
+        const expiresAt = finishedAt + AGENT_ECHO_MS;
+        for (const id of targetIds) declaredIds.set(id, expiresAt);
+        activeCount -= 1;
+        if (activeCount === 0) lastDrainAt = finishedAt;
+      }
     } catch (err) {
       commitIfMutating(req.cmd);
       figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err), fileContext: ctx });
