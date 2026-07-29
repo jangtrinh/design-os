@@ -32,11 +32,9 @@ export interface ExecStdlib {
 // a node carries would let a variable already bound to an UNRELATED field (e.g. strokes, when
 // the caller asked for fills) false-verify a bind that never actually took.
 //
-// strokeWeight is UNVERIFIED — a guess that Figma splits it the same way cornerRadius splits,
-// not yet confirmed live. TODO-canvas-check: bind a variable to `strokeWeight` on a real node,
-// read back `node.boundVariables`'s keys, and confirm whether it re-keys to
-// strokeTopWeight/strokeRightWeight/strokeBottomWeight/strokeLeftWeight or stays under
-// `strokeWeight` itself. Until that probe runs, treat this row as provisional.
+// strokeWeight VERIFIED on canvas (2026-07-29): `setBoundVariable('strokeWeight', v)` surfaces
+// as strokeTopWeight/strokeBottomWeight/strokeLeftWeight/strokeRightWeight in
+// `node.boundVariables` — same per-side split as cornerRadius, so the row below is exact.
 const BOUND_FIELD_EXPANSIONS: Record<string, readonly string[]> = {
   cornerRadius: ['cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
   strokeWeight: ['strokeWeight', 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight'],
