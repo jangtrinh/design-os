@@ -184,7 +184,7 @@ export async function opCreateVariable(params: Record<string, unknown>): Promise
   return { id: variable.id, name: variable.name, reused };
 }
 
-async function resolveVariable(ref: string): Promise<Variable> {
+export async function resolveVariable(ref: string): Promise<Variable> {
   if (ref.startsWith('VariableID:')) {
     const byId = await figma.variables.getVariableByIdAsync(ref);
     if (byId) return byId;

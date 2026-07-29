@@ -2119,6 +2119,268 @@
       h: Math.round(target.height * scale)
     };
   }
+
+  // plugin/src/main/exec-stdlib-instance.ts
+  function resolvePropKey(keys, name) {
+    if (keys.includes(name)) return name;
+    const matches = keys.filter((k) => k.startsWith(`${name}#`));
+    if (matches.length === 0) {
+      throw new Error(`property "${name}" not found \u2014 available: ${keys.join(", ")}`);
+    }
+    if (matches.length > 1) {
+      throw new Error(`property "${name}" is ambiguous: ${matches.join(", ")}`);
+    }
+    return matches[0];
+  }
+  async function setProps(inst, props) {
+    if (inst.type !== "INSTANCE") {
+      throw withCode(new Error(`setProps expects an INSTANCE, got ${inst.type}`), "E_EVAL");
+    }
+    const current = inst.componentProperties;
+    const keys = Object.keys(current);
+    const resolved = {};
+    for (const [name, rawValue] of Object.entries(props)) {
+      let key;
+      try {
+        key = resolvePropKey(keys, name);
+      } catch (err) {
+        throw withCode(new Error(`${err instanceof Error ? err.message : String(err)} on "${inst.name}"`), "E_EVAL");
+      }
+      if (typeof rawValue !== "string" && typeof rawValue !== "boolean") {
+        throw withCode(new Error(`property "${key}" needs a string or boolean, got ${typeof rawValue}`), "E_EVAL");
+      }
+      let value = rawValue;
+      if (current[key]?.type === "INSTANCE_SWAP" && typeof value === "string" && !/^\d+:\d+$/.test(value)) {
+        const c = await resolveMainComponent({ componentKey: value });
+        if (!c) throw withCode(new Error(`component not found for property "${key}": ${value}`), "E_EVAL");
+        value = c.id;
+      }
+      resolved[key] = value;
+    }
+    try {
+      inst.setProperties(resolved);
+    } catch (err) {
+      throw withCode(
+        new Error(`setProps ${JSON.stringify(resolved)} failed: ${err instanceof Error ? err.message : String(err)}`),
+        "E_EVAL"
+      );
+    }
+    const reread = inst.componentProperties;
+    const out = {};
+    for (const [key, value] of Object.entries(resolved)) {
+      const actual = reread[key]?.value;
+      if (!Object.is(actual, value)) {
+        throw withCode(new Error(`setProps applied but "${key}" is still ${String(actual)}`), "E_EVAL");
+      }
+      out[key] = actual;
+    }
+    return out;
+  }
+  async function swapInstance(inst, ref) {
+    const component = ref.includes(":") ? await resolveMainComponent({ componentId: ref }) : await resolveMainComponent({ componentKey: ref });
+    if (!component) throw withCode(new Error(`component not found: ${ref}`), "E_EVAL");
+    inst.swapComponent(component);
+    const main = await inst.getMainComponentAsync();
+    if (!main || main.id !== component.id) {
+      throw withCode(new Error(`swapInstance applied but main is still "${main?.id ?? "unknown"}"`), "E_EVAL");
+    }
+    return { id: inst.id, mainComponent: { id: component.id, name: component.name } };
+  }
+
+  // plugin/src/main/exec-stdlib.ts
+  var SERIALIZED_FIELDS = /* @__PURE__ */ new Set(["id", "name", "type", "x", "y", "width", "height", "children"]);
+  var BOUND_FIELD_EXPANSIONS = {
+    cornerRadius: ["cornerRadius", "topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]
+  };
+  function expansionKeysFor(field) {
+    return BOUND_FIELD_EXPANSIONS[field] ?? [field];
+  }
+  async function boundFill(node, varName, field = "fills") {
+    const variable = await resolveVariable(varName);
+    bindVariableToField(node, field, variable);
+    const bv = node.boundVariables ?? {};
+    const hit = expansionKeysFor(field).some((k) => {
+      const entry = bv[k];
+      if (entry === void 0) return false;
+      const list = Array.isArray(entry) ? entry : [entry];
+      return list.some((a) => a?.id === variable.id);
+    });
+    if (!hit) {
+      throw withCode(
+        new Error(`bind of "${varName}" to ${field} did not take on "${node.name}" \u2014 boundVariables: ${JSON.stringify(bv)}`),
+        "E_EVAL"
+      );
+    }
+    return { id: node.id, field, variable: variable.name };
+  }
+  async function byPath(rootId, names) {
+    if (names.length === 0) throw withCode(new Error("byPath needs at least one name"), "E_EVAL");
+    const root = await figma.getNodeByIdAsync(rootId);
+    if (!root || root.type === "DOCUMENT" || root.type === "PAGE") {
+      throw withCode(new Error(`byPath root not found: ${rootId}`), "E_EVAL");
+    }
+    let n = root;
+    while (n && n.type !== "PAGE") n = n.parent;
+    const page = n;
+    if (page && page !== figma.currentPage) await page.loadAsync();
+    let cur = root;
+    for (const name of names) {
+      if (!("children" in cur)) {
+        throw withCode(new Error(`"${cur.name}" (${cur.type}) has no children`), "E_EVAL");
+      }
+      const children = cur.children;
+      const hits = children.filter((c) => c.name === name);
+      if (hits.length === 0) {
+        const names20 = children.slice(0, 20).map((c) => c.name).join(", ");
+        throw withCode(new Error(`byPath: "${name}" not found under "${cur.name}" \u2014 children: ${names20}`), "E_EVAL");
+      }
+      if (hits.length > 1) {
+        throw withCode(
+          new Error(`byPath: "${name}" is ambiguous under "${cur.name}" \u2014 ${hits.length} matches: ${hits.map((h) => h.id).join(", ")}`),
+          "E_EVAL"
+        );
+      }
+      cur = hits[0];
+    }
+    return cur;
+  }
+  function projectSerialized(node, fields) {
+    const out = { id: node.id };
+    for (const f of fields) {
+      if (f === "children") {
+        if (node.children) out.children = node.children.map((c) => projectSerialized(c, fields));
+      } else {
+        out[f] = node[f];
+      }
+    }
+    return out;
+  }
+  async function q(target, opts = {}) {
+    const { depth = 1, fields } = opts;
+    let node;
+    if (typeof target === "string") {
+      const found = await figma.getNodeByIdAsync(target);
+      if (!found || found.type === "DOCUMENT" || found.type === "PAGE") {
+        throw withCode(new Error(`q: node not found: ${target}`), "E_EVAL");
+      }
+      node = found;
+    } else {
+      node = target;
+    }
+    if (fields) {
+      for (const f of fields) {
+        if (!SERIALIZED_FIELDS.has(f)) {
+          throw withCode(new Error(`q: unknown field "${f}" \u2014 available: name, type, x, y, width, height, children`), "E_EVAL");
+        }
+      }
+    }
+    const full = serializeNode(node, depth);
+    return jsonSafe(fields ? projectSerialized(full, fields) : full);
+  }
+  function createExecStdlib() {
+    return { setProps, swapInstance, boundFill, byPath, q };
+  }
+
+  // plugin/src/main/exec-js-normalize.ts
+  function expressionCandidates(source) {
+    const out = [source];
+    let semi = source;
+    for (let i = 0; i < 4; i++) {
+      const stripped = semi.replace(/;+\s*$/, "").trimEnd();
+      if (stripped === semi) break;
+      semi = stripped;
+      out.push(semi);
+    }
+    let s = semi;
+    for (let i = 0; i < 4; i++) {
+      const stripped = s.replace(/(?:\/\/[^\n]*|\/\*[\s\S]*?\*\/)\s*$/, "").replace(/;+\s*$/, "").trimEnd();
+      if (stripped === s) break;
+      s = stripped;
+      out.push(s);
+    }
+    return out;
+  }
+  function compile(code) {
+    const source = code.trim();
+    for (const candidate of expressionCandidates(source)) {
+      try {
+        return { fn: (0, eval)(`(async (console, ui) => (${candidate}
+))`), mode: "expression" };
+      } catch {
+      }
+    }
+    return { fn: (0, eval)(`(async (console, ui) => { ${source}
+ })`), mode: "statement" };
+  }
+  function summarize(value) {
+    const n = value;
+    if (n && typeof n.id === "string" && typeof n.type === "string" && typeof n.remove === "function") {
+      return { id: n.id, name: String(n.name ?? ""), type: n.type };
+    }
+    if (Array.isArray(value)) return value.map(summarize);
+    return jsonSafe(value);
+  }
+  function resultWarning(result, mode) {
+    if (result === void 0) {
+      return mode === "statement" ? "no explicit return \u2014 the script ran to completion but returned nothing; side effects may still have applied" : "the expression evaluated to undefined";
+    }
+    if (result === null) return "returned null \u2014 the node or resource may not exist";
+    if (Array.isArray(result) && result.length === 0) return "returned an empty array \u2014 the search matched nothing";
+    if (typeof result === "object" && Object.keys(result).length === 0) {
+      return "returned an empty object \u2014 the operation may have matched nothing";
+    }
+    return void 0;
+  }
+
+  // plugin/src/main/executor-exec-js.ts
+  var SENTINEL_NAME = "[figma-agent] undo sentinel";
+  var SENTINEL_KEY = "figmaAgentUndoSentinel";
+  function figmaUndoBracket() {
+    let sentinel = null;
+    return {
+      begin() {
+        for (const n of figma.currentPage.findChildren((c) => c.getPluginData(SENTINEL_KEY) === "1")) n.remove();
+        figma.commitUndo();
+        const f = figma.createFrame();
+        f.name = SENTINEL_NAME;
+        f.setPluginData(SENTINEL_KEY, "1");
+        f.resize(1, 1);
+        f.x = -1e6;
+        f.y = -1e6;
+        f.visible = false;
+        figma.currentPage.appendChild(f);
+        sentinel = f;
+      },
+      commit() {
+        if (sentinel) sentinel.remove();
+        figma.commitUndo();
+      },
+      rollback() {
+        figma.commitUndo();
+        figma.triggerUndo();
+      }
+      // sentinel is reverted BY the undo
+    };
+  }
+  async function runInUndoGroup(bracket, run) {
+    bracket?.begin();
+    try {
+      const out = await run();
+      bracket?.commit();
+      return out;
+    } catch (err) {
+      const carrier = typeof err === "object" && err !== null ? err : Object.assign(new Error(String(err)), { originalPrimitive: err });
+      if (bracket) {
+        try {
+          bracket.rollback();
+          carrier.rolledBack = true;
+        } catch (undoErr) {
+          carrier.rollbackFailed = undoErr instanceof Error ? undoErr.message : String(undoErr);
+        }
+      }
+      throw carrier;
+    }
+  }
   async function opExecJs(params) {
     const code = params.code ?? params.js;
     if (typeof code !== "string" || !code.trim()) {
@@ -2128,25 +2390,39 @@
     const capture = (level) => (...args) => {
       logs.push(`[${level}] ${args.map(safeStringify).join(" ")}`);
     };
-    const consoleProxy = { log: capture("log"), info: capture("info"), warn: capture("warn"), error: capture("error") };
-    const t0 = Date.now();
-    let fn;
+    const consoleProxy = {
+      log: capture("log"),
+      info: capture("info"),
+      warn: capture("warn"),
+      error: capture("error")
+    };
+    let compiled;
     try {
-      try {
-        fn = (0, eval)(`(async (console) => (${code}
-))`);
-      } catch {
-        fn = (0, eval)(`(async (console) => { ${code}
- })`);
-      }
+      compiled = compile(code);
     } catch (err) {
       throw withCode(new Error(`syntax error: ${err instanceof Error ? err.message : String(err)}`), "E_EVAL");
     }
+    const bracket = params.undoGroup === true ? figmaUndoBracket() : null;
+    const t0 = Date.now();
     try {
-      const result = await fn(consoleProxy);
-      return { result: jsonSafe(result), console: logs, ms: Date.now() - t0 };
+      const raw = await runInUndoGroup(bracket, () => compiled.fn(consoleProxy, createExecStdlib()));
+      const warning = resultWarning(raw, compiled.mode);
+      return {
+        result: summarize(raw),
+        console: logs,
+        ms: Date.now() - t0,
+        executed: true,
+        mode: compiled.mode,
+        ...warning ? { warning } : {}
+      };
     } catch (err) {
-      throw withCode(new Error(`runtime error: ${err instanceof Error ? err.message : String(err)}`), "E_EVAL");
+      const rolledBack = err?.rolledBack === true;
+      const rollbackFailed = err?.rollbackFailed;
+      const base = `runtime error: ${err instanceof Error ? err.message : String(err)}`;
+      const suffix = rolledBack ? " \u2014 changes rolled back" : rollbackFailed ? ` \u2014 ROLLBACK FAILED (${rollbackFailed}); the canvas may be half-changed` : "";
+      const wrapped = withCode(new Error(`${base}${suffix}`), "E_EVAL");
+      if (rolledBack) wrapped.rolledBack = true;
+      throw wrapped;
     }
   }
 
@@ -2472,15 +2748,35 @@
       const result = await dispatch(req.cmd, req.params ?? {});
       const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
       for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
+      commitIfMutating(req.cmd);
       figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
     } catch (err) {
+      commitIfMutating(req.cmd);
       figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
     }
   };
+  var MUTATING_COMMANDS = [
+    "CREATE_FRAME",
+    "CREATE_INSTANCE",
+    "SET_VARIANT",
+    "CREATE_VARIABLE",
+    "BIND_VARIABLE",
+    "SET_AUTOLAYOUT",
+    "SET_CONSTRAINTS",
+    "SET_TEXT",
+    "CLONE_TRAITS",
+    "SET_CORRECTION_MEMORY",
+    "EXEC_JS",
+    "IMPORT_PAYLOAD"
+  ];
+  function commitIfMutating(cmd) {
+    if (MUTATING_COMMANDS.indexOf(cmd) !== -1) figma.commitUndo();
+  }
   function shapeError(err) {
     const code = err?.code ?? "E_PLUGIN_ERROR";
     const message = err instanceof Error ? err.message : String(err);
-    return { code, message };
+    const rolledBack = err?.rolledBack;
+    return rolledBack ? { code, message, rolledBack } : { code, message };
   }
   function resultMutationIds(cmd, result) {
     const creating = [
@@ -2607,7 +2903,9 @@
     for (const op of ops) {
       try {
         results.push({ ok: true, cmd: op.cmd, result: await dispatch(op.cmd, op.params ?? {}) });
+        commitIfMutating(op.cmd);
       } catch (err) {
+        commitIfMutating(op.cmd);
         results.push({ ok: false, cmd: op.cmd, error: shapeError(err) });
         if (stopOnError) break;
       }

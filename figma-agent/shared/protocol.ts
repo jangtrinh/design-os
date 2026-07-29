@@ -74,10 +74,17 @@ export interface ReplyOk {
   result: unknown;
 }
 
+/** Reply error payload. `rolledBack` is set by EXEC_JS --undo-group. */
+export interface WireError {
+  code: ErrorCode;
+  message: string;
+  rolledBack?: boolean;
+}
+
 export interface ReplyErr {
   id: string;
   ok: false;
-  error: { code: ErrorCode; message: string };
+  error: WireError;
 }
 export type ReplyMsg = ReplyOk | ReplyErr;
 

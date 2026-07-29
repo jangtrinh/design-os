@@ -1,14 +1,15 @@
 // Read/write scene operations for the CLI command set (phase-1 plan §3):
 // STATUS, GET_SELECTION, CREATE_FRAME, CREATE_INSTANCE, SET_VARIANT,
-// SET_AUTOLAYOUT, SET_CONSTRAINTS, SET_TEXT, EXPORT_PNG, EXEC_JS.
+// SET_AUTOLAYOUT, SET_CONSTRAINTS, SET_TEXT, EXPORT_PNG.
 // (CREATE_VARIABLE / BIND_VARIABLE live in executor-variables.ts;
-// SCAN_DESIGN_SYSTEM in serialize-node.ts; IMPORT_PAYLOAD / BATCH in main.ts.)
+// SCAN_DESIGN_SYSTEM in serialize-node.ts; IMPORT_PAYLOAD / BATCH in main.ts;
+// EXEC_JS in executor-exec-js.ts.)
 
 import type { FigmaExportNode } from '../../../shared/figma-payload-types';
 import { loadBestFont } from './executor-fonts';
 import { withCode } from './executor-styles';
 import { applyAutoLayout } from './executor-frame';
-import { serializeNode, jsonSafe, safeStringify } from './serialize-node';
+import { serializeNode } from './serialize-node';
 
 export const PLUGIN_VERSION = '0.1.0';
 
@@ -208,35 +209,5 @@ export async function opExportPng(params: Params): Promise<{ base64: string; w: 
   };
 }
 
-/** EXEC_JS: eval arbitrary Plugin-API code with console capture → {result, console, ms}. */
-export async function opExecJs(params: Params): Promise<{ result: unknown; console: string[]; ms: number }> {
-  const code = params.code ?? params.js;
-  if (typeof code !== 'string' || !code.trim()) {
-    throw withCode(new Error('EXEC_JS requires params.code (string)'), 'E_INVALID_ARGS');
-  }
-  const logs: string[] = [];
-  const capture = (level: string) => (...args: unknown[]) => {
-    logs.push(`[${level}] ${args.map(safeStringify).join(' ')}`);
-  };
-  const consoleProxy = { log: capture('log'), info: capture('info'), warn: capture('warn'), error: capture('error') };
-
-  const t0 = Date.now();
-  let fn: (c: typeof consoleProxy) => Promise<unknown>;
-  try {
-    // Expression-wrap first (REPL semantics: `figma.currentPage.name` returns a value),
-    // then statement-wrap (scripts that use `return`). Indirect eval = global scope.
-    try {
-      fn = (0, eval)(`(async (console) => (${code}\n))`);
-    } catch {
-      fn = (0, eval)(`(async (console) => { ${code}\n })`);
-    }
-  } catch (err) {
-    throw withCode(new Error(`syntax error: ${err instanceof Error ? err.message : String(err)}`), 'E_EVAL');
-  }
-  try {
-    const result = await fn(consoleProxy);
-    return { result: jsonSafe(result), console: logs, ms: Date.now() - t0 };
-  } catch (err) {
-    throw withCode(new Error(`runtime error: ${err instanceof Error ? err.message : String(err)}`), 'E_EVAL');
-  }
-}
+// EXEC_JS (opExecJs) lives in executor-exec-js.ts — its own concern: script
+// normalization, the undo bracket, and the injected ui.* stdlib.

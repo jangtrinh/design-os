@@ -6,11 +6,13 @@ export function printJson(value: unknown): void {
   process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
 }
 
-/** Print {error:{code,message}} and exit 1. Unknown errors map to E_INTERNAL. */
+/** Print {error:{code,message}} and exit 1. Unknown errors map to E_INTERNAL.
+ * `rolledBack` is included only when set — an absent field keeps today's output
+ * byte-identical for every error that never carried it. */
 export function printErrorJson(err: unknown): never {
   const error =
     err instanceof CliError
-      ? { code: err.code, message: err.message }
+      ? { code: err.code, message: err.message, ...(err.rolledBack ? { rolledBack: true } : {}) }
       : { code: 'E_INTERNAL', message: err instanceof Error ? err.message : String(err) };
   process.stdout.write(`${JSON.stringify({ error })}\n`);
   process.exit(1);

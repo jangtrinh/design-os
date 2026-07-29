@@ -11,6 +11,7 @@ import {
   makeRequestFrame,
   makeRequestId,
   type CommandName,
+  type WireError,
 } from '../../../shared/protocol.ts';
 import { ensureBroker } from './broker-discovery.ts';
 import {
@@ -94,7 +95,7 @@ function exchange(
         const reply = msg;
         finish(() => {
           if (reply.ok) resolve(reply.result);
-          else reject(new CliError(reply.error.code, reply.error.message));
+          else reject(new CliError(reply.error.code, reply.error.message, { rolledBack: (reply.error as WireError).rolledBack }));
         });
       }
     });
