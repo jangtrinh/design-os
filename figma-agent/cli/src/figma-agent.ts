@@ -86,7 +86,11 @@ Commands:
   sync-corrections     [--dir project] sync Figma edge memory with design/memory
   export-png           --node <id|selection> --out file.png [--scale 2]
   html-to-figma        --html <file|-> [--width 1280 --x --y --parent id --replace id]
-  exec-js              <file|-> [--timeout ms (cap 120000)]
+  exec-js              <file|-> [--timeout ms (cap 120000)] [--undo-group]
+                       --undo-group brackets the script in ONE undo step and reverts it on error;
+                       the script must not call figma.commitUndo/triggerUndo itself, and a timeout
+                       cannot stop a running script (the plugin has no cancellation).
+                       \`console\` and \`ui\` are injected — a script cannot declare its own.
   capture              <url> [--out dir --headless --channel chrome --width 1440 --timeout ms --carousel-window ms]
   batch                <file.json> [--stop-on-error]
 

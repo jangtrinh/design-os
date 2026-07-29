@@ -5,7 +5,7 @@
 // Orchestration handlers that need the dispatch itself (IMPORT_PAYLOAD, BATCH)
 // live here; single-command executors live in executor-*.ts.
 
-import type { CommandName, ErrorCode } from '../../../shared/protocol';
+import type { CommandName, ErrorCode, WireError } from '../../../shared/protocol';
 import { DEFAULT_IDLE_MS, MIN_IDLE_MS } from '../../../shared/protocol';
 import type { FigmaExportPayload } from '../../../shared/figma-payload-types';
 import {
@@ -24,8 +24,9 @@ import { serializeDesignSystem } from './serialize-node';
 import { auditDs } from './executor-audit';
 import {
   opStatus, opGetSelection, opCreateFrame, opCreateInstance, opSetVariant,
-  opSetAutoLayout, opSetConstraints, opSetText, opExportPng, opExecJs,
+  opSetAutoLayout, opSetConstraints, opSetText, opExportPng,
 } from './executor-ops';
+import { opExecJs } from './executor-exec-js';
 import { opCloneTraits } from './executor-clone-traits';
 import {
   beginAgentMutation,
@@ -195,16 +196,44 @@ figma.ui.onmessage = async (msg: unknown) => {
     const result = await dispatch(req.cmd, req.params ?? {});
     const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
     for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
+    commitIfMutating(req.cmd as CommandName);
     figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
   } catch (err) {
+    // Commit on failure too, so a half-applied mutation (e.g. IMPORT_PAYLOAD styles/
+    // variables created before the throw) owns its own undo step instead of being
+    // swallowed into the next command's.
+    commitIfMutating(req.cmd as CommandName);
     figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
   }
 };
 
-function shapeError(err: unknown): { code: ErrorCode; message: string } {
+// Each successful mutating command becomes its own undo step. Without commitUndo, Figma's
+// default makes an entire agent session ONE ⌘Z. BATCH is absent deliberately: its children
+// commit individually, which is the granularity a user wants. Read-only commands never commit.
+const MUTATING_COMMANDS: readonly CommandName[] = [
+  'CREATE_FRAME', 'CREATE_INSTANCE', 'SET_VARIANT', 'CREATE_VARIABLE', 'BIND_VARIABLE',
+  'SET_AUTOLAYOUT', 'SET_CONSTRAINTS', 'SET_TEXT', 'CLONE_TRAITS', 'SET_CORRECTION_MEMORY',
+  'EXEC_JS', 'IMPORT_PAYLOAD',
+];
+// Not in the set (nothing to seal into an undo step): STATUS, GET_SELECTION,
+// SCAN_DESIGN_SYSTEM, AUDIT_DS, GET_CORRECTION_MEMORY, EXPORT_PNG.
+// AUDIT_DS does move the user's current page (executor-audit.ts walks pages via
+// setCurrentPageAsync and does not restore the original) — page navigation is not
+// undoable, so a commit would do nothing. Excluded on that basis, not on innocence.
+// SET_CORRECTION_MEMORY IS in the set — it writes figma.root.setSharedPluginData
+// (correction-edge-store.ts:28-31). HTML_TO_FIGMA never reaches main (it arrives as
+// IMPORT_PAYLOAD).
+
+/** Commit AFTER the correction-memory bookkeeping so a command and its bookkeeping share one step. */
+function commitIfMutating(cmd: CommandName): void {
+  if (MUTATING_COMMANDS.indexOf(cmd) !== -1) figma.commitUndo();
+}
+
+function shapeError(err: unknown): WireError {
   const code = ((err as { code?: string } | null)?.code ?? 'E_PLUGIN_ERROR') as ErrorCode;
   const message = err instanceof Error ? err.message : String(err);
-  return { code, message };
+  const rolledBack = (err as { rolledBack?: boolean } | null)?.rolledBack;
+  return rolledBack ? { code, message, rolledBack } : { code, message };
 }
 
 function resultMutationIds(cmd: CommandName, result: unknown): string[] {
@@ -328,9 +357,17 @@ async function runBatch(params: Params): Promise<{ results: unknown[] }> {
   const stopOnError = (params as Params).stopOnError === true;
   const results: unknown[] = [];
   for (const op of ops) {
+    // Scope note (verified, do not "fix" here): batch children go straight to dispatch
+    // and never touch mutationTargetIds/beginAgentMutation/resultMutationIds/
+    // recordAgentMutation — that bookkeeping runs only for the top-level request, and
+    // BATCH itself yields no target ids. So batch children have no correction-memory
+    // record today; per-child commits therefore cannot split a command from bookkeeping
+    // that does not exist. Pre-existing gap, out of scope for this wave.
     try {
       results.push({ ok: true, cmd: op.cmd, result: await dispatch(op.cmd, op.params ?? {}) });
+      commitIfMutating(op.cmd);
     } catch (err) {
+      commitIfMutating(op.cmd);
       results.push({ ok: false, cmd: op.cmd, error: shapeError(err) });
       if (stopOnError) break;
     }

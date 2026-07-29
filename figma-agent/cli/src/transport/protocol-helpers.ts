@@ -14,10 +14,13 @@ import {
 /** Error carrying a protocol error code; the CLI prints it as {error:{code,message}}. */
 export class CliError extends Error {
   readonly code: ErrorCode;
-  constructor(code: ErrorCode, message: string) {
+  /** Set when EXEC_JS --undo-group rolled the script's changes back (WireError.rolledBack). */
+  readonly rolledBack?: boolean;
+  constructor(code: ErrorCode, message: string, opts?: { rolledBack?: boolean }) {
     super(message);
     this.name = 'CliError';
     this.code = code;
+    if (opts?.rolledBack) this.rolledBack = opts.rolledBack;
   }
 }
 
