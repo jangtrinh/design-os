@@ -20,9 +20,11 @@ import { PluginRegistry, type PluginEntry } from './plugin-registry.ts';
 import { buildBrokerHelloData, noPluginMessage } from './broker-status.ts';
 import { resolveRouteFilter, type RouteFilter } from './route-filter.ts';
 import { appendChangeFrames, changeLogPath } from './change-log.ts';
+import { appendEditFrames, editFeedPath } from './edit-feed-log.ts';
 import { projectDir as syncProjectDir, readIdleMs } from './figma-sync-config.ts';
 import { spawnReconcileApply } from './figma-sync-apply.ts';
 import type { ComponentChange } from '../../../shared/figma-changes.ts';
+import type { EditInput, EditSource } from '../../../shared/edit-feed.ts';
 
 const LOG_FILE = '/tmp/figma-agent-broker.log';
 
@@ -114,6 +116,32 @@ function appendDocChange(changesPath: string, data: Record<string, unknown>): vo
     if (written > 0) log(`DOC_CHANGE: appended ${written} change frame(s) → ${changesPath}`);
   } catch (err) {
     log(`DOC_CHANGE append failed: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * Owner-edit change feed (wave 4.4 P1): append the plugin's widened, actor-labelled
+ * batch to its OWN per-file feed — never figma.changes.jsonl (spec A6). Best-effort,
+ * same contract as appendDocChange: a log failure must never disrupt the relay. Unlike
+ * the component log's single fixed path, this one is resolved PER BATCH (one file per
+ * fileKey/fileName slug), so there is no startup-time equivalent of `changesPath`.
+ */
+function appendEditFeed(data: Record<string, unknown>): void {
+  try {
+    const edits = Array.isArray(data.edits) ? (data.edits as EditInput[]) : [];
+    if (edits.length === 0) return;
+    const fileKey = typeof data.fileKey === 'string' ? data.fileKey : null;
+    const fileName = typeof data.fileName === 'string' ? data.fileName : null;
+    const source: EditSource = data.source === 'gapfill' ? 'gapfill' : 'live';
+    const path = editFeedPath(fileKey, fileName);
+    const { written, droppedInvalid } = appendEditFrames(path, edits, { fileKey, fileName: fileName ?? '', source }, Date.now());
+    // droppedInvalid is logged even at 0 alongside a non-zero write, and always when
+    // itself non-zero, so a malformed batch never disappears silently (post-review fix).
+    if (written > 0 || droppedInvalid > 0) {
+      log(`EDIT_FEED: appended ${written} edit frame(s), dropped ${droppedInvalid} invalid → ${path}`);
+    }
+  } catch (err) {
+    log(`EDIT_FEED append failed: ${(err as Error).message}`);
   }
 }
 
@@ -378,6 +406,10 @@ export async function runBrokerDaemon(): Promise<void> {
         // it catches edits even when no CLI command is running. Best-effort: a log
         // write failure must never disrupt the relay.
         if (isPlugin) appendDocChange(changesPath, msg.data);
+      } else if (msg.type === 'EDIT_FEED') {
+        // Owner-edit change feed (wave 4.4 P1): same broker-side, best-effort append,
+        // to its own per-file feed — see appendEditFeed.
+        if (isPlugin) appendEditFeed(msg.data);
       } else if (msg.type === 'SYNC_REQUEST') {
         // Live-sync commit (spec 004 P4): the panel's "Sync now" click → run the
         // deterministic kernel apply and report the result back to this plugin.

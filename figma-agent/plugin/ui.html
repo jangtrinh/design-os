@@ -1258,7 +1258,7 @@ code {
       syncPrompt.hidden = true;
     }, 4e3);
   });
-  versionEl.textContent = `v0.1.0 \xB7 ${true ? "204bfd9" : "dev"}`;
+  versionEl.textContent = `v0.1.0 \xB7 ${true ? "c16feba" : "dev"}`;
   setInterval(render, 1e3);
   render();
 
@@ -2902,6 +2902,10 @@ code {
     }
     if (pm.type === "DOC_CHANGE") {
       wsSend({ type: "DOC_CHANGE", data: pm.data ?? {} });
+      return;
+    }
+    if (pm.type === "EDIT_FEED") {
+      wsSend({ type: "EDIT_FEED", data: pm.data ?? {} });
       return;
     }
     if (typeof pm.requestId === "string") {

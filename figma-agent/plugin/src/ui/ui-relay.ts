@@ -280,6 +280,16 @@ window.addEventListener('message', (ev: MessageEvent) => {
     return;
   }
 
+  // Owner-edit change feed (wave 4.4 P1): main's widened, actor-labelled batch →
+  // straight over the wire so the broker can append it to its own per-file feed.
+  // Panel rows are deferred out of this wave (no `figma-agent:edit-feed` listener yet,
+  // and activity-sentence.ts's verb table is command vocabulary, not scene-edit verbs) —
+  // this forward is still additive so that consumer is a pure addition later.
+  if (pm.type === 'EDIT_FEED') {
+    wsSend({ type: 'EDIT_FEED', data: (pm.data as Record<string, unknown>) ?? {} });
+    return;
+  }
+
   // Command reply from main → back over the wire, carrying main's file identity.
   if (typeof pm.requestId === 'string') {
     const ctx = pm.fileContext as FileContext | undefined;

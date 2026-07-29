@@ -124,9 +124,14 @@ export interface EventMsg {
   // PEERS (panel IA v2): broker → every connected plugin, whenever the live registry
   // changes (register/disconnect/scene update) or a reply lands. { count, isActiveTarget }
   // — additive and ignorable by an older plugin bundle.
+  //
+  // EDIT_FEED (wave 4.4 P1): the plugin's widened, actor-labelled documentchange batch —
+  // plugin → broker; the broker appends it to its own per-file feed
+  // (design/changes/<slug>.jsonl), separate from figma.changes.jsonl (spec A6). Payload
+  // shape: { edits: EditInput[], fileKey: string|null, fileName: string, source: 'live'|'gapfill' }.
   type:
     | 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG'
-    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS';
+    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS' | 'EDIT_FEED';
   data: Record<string, unknown>;
 }
 
