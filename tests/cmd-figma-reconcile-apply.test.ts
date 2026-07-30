@@ -201,7 +201,12 @@ describe("ui figma reconcile --apply — command", () => {
     const env = JSON.parse(out);
     expect(env.data.apply.pending.map((p: { name: string }) => p.name)).toEqual(["Badge/New"]);
     expect(readReg().components.length).toBe(0);
-    expect(readCursor(syncStatePath(dir))).toBe(1); // cursor still advances (change was seen)
+    // Registry-integrity phase 02 (5.3): a component that stays pending is UNFINISHED —
+    // the cursor must not walk past it (it used to, silently losing the retry signal).
+    // It shows up in the retry queue instead, and the next apply re-derives it from the log.
+    expect(readCursor(syncStatePath(dir))).toBe(0);
+    expect(env.data.pending).toHaveLength(1);
+    expect(env.data.pending[0]).toMatchObject({ nodeId: "n", name: "Badge/New" });
   });
 
   it("rejects --apply combined with --dry-run (BAD_ARG)", () => {
@@ -220,9 +225,14 @@ describe("ui figma reconcile --apply — command", () => {
     const { out } = capture(["figma", "reconcile", "--dir", dir, "--apply", "--since", "0", "--json"]);
     const env = JSON.parse(out);
     expect(env.data.cursor_from).toBe(0);
-    expect(env.data.cursor_to).toBe(2);
+    // Registry-integrity phase 02 (5.3): "Two/B" has no capture (no --mirror-file) and
+    // stays pending, so it BLOCKS — the cursor stops at its own frame (index 1), not the
+    // log's end. The DELETE at frame 0 still lands regardless (a DELETE is never blocking).
+    expect(env.data.cursor_to).toBe(1);
     expect(env.data.apply.deprecated).toEqual(["One/A"]);
-    expect(readCursor(syncStatePath(dir))).toBe(2); // advanced to end after replay
+    expect(readCursor(syncStatePath(dir))).toBe(1);
+    expect(env.data.pending).toHaveLength(1);
+    expect(env.data.pending[0]).toMatchObject({ nodeId: "b", name: "Two/B" });
   });
 });
 

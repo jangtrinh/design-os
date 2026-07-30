@@ -273,6 +273,52 @@ describe("parseMirrorCapture", () => {
     const raw = JSON.stringify({ v: 1, captured: [], failed: [{ nodeId: "1:1", name: "A/B" }] });
     expect(() => parseMirrorCapture(raw, "t")).toThrow(/failed\[0\]\.reason/);
   });
+
+  // Registry-integrity phase 02 (5.3), §3 — MIRROR_CAPTURE_VERSION 1→2, `dropped` added.
+  describe("dropped — version bump + back-compat", () => {
+    it("a v1 capture (no `dropped` field) parses as 'nothing dropped'", () => {
+      const cap = parseMirrorCapture(JSON.stringify({ v: 1, captured: [], failed: [] }), "t");
+      expect(cap.dropped).toEqual([]);
+      const idx = indexCaptures(cap);
+      expect(idx.dropped.size).toBe(0);
+    });
+
+    it("a v2 capture's dropped list parses and indexes by nodeId", () => {
+      const raw = JSON.stringify({
+        v: 2, captured: [], failed: [],
+        dropped: [{ nodeId: "9:1", name: "Comp/A" }, { nodeId: "9:2", name: "Comp/B" }],
+      });
+      const cap = parseMirrorCapture(raw, "t");
+      expect(cap.dropped).toEqual([{ nodeId: "9:1", name: "Comp/A" }, { nodeId: "9:2", name: "Comp/B" }]);
+      const idx = indexCaptures(cap);
+      expect(idx.dropped.has("9:1")).toBe(true);
+      expect(idx.dropped.has("9:2")).toBe(true);
+      expect(idx.dropped.size).toBe(2);
+    });
+
+    it("a subsequent successful capture of the same node supersedes its drop", () => {
+      const raw = JSON.stringify({
+        v: 2,
+        captured: [{ nodeId: "9:1", name: "Comp/A", node: node() }],
+        failed: [],
+        dropped: [{ nodeId: "9:1", name: "Comp/A" }], // stale — a re-scan landed it
+      });
+      const idx = indexCaptures(parseMirrorCapture(raw, "t"));
+      expect(idx.specs.has("9:1")).toBe(true);
+      expect(idx.dropped.has("9:1")).toBe(false);
+    });
+
+    it("rejects a malformed dropped entry the same way as captured/failed", () => {
+      const raw = JSON.stringify({ v: 2, captured: [], failed: [], dropped: [{ nodeId: "9:1" }] });
+      expect(() => parseMirrorCapture(raw, "t")).toThrow(/dropped\[0\]\.name/);
+    });
+
+    it("still rejects a genuinely unsupported version", () => {
+      expect(() => parseMirrorCapture(JSON.stringify({ v: 3, captured: [], failed: [] }), "t")).toThrow(
+        /unsupported version 3/,
+      );
+    });
+  });
 });
 
 // ─── the command (IO: sidecar file, registry, cursor) ──────────────────────────

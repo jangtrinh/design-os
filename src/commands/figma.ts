@@ -51,6 +51,11 @@ Options:
                    un-mirrored component is named in the report. 'ui' never calls Figma
                    itself — the capture happens outside the kernel, by constitution.
   --dir <path>     Project directory holding design/ (default: current directory)
+  --skip <nodeId>  Acknowledge a pending retry-queue target so the cursor may pass it —
+                   CLI-only, audited (design/figma-sync.state.json), standalone: cannot
+                   combine with --apply/--dry-run. No timeout ever sets this.
+  --force          With --apply --since: bypass the refusal to run --since while the
+                   retry queue is non-empty. Recorded in the state file (auditable).
   --json           Emit a JSON envelope instead of human-readable text
   -h, --help       Show this help
 
