@@ -53,6 +53,15 @@ export interface CoalescedComponent {
   scopeHint: ScopeHint;
   page: string;
   latestTs: number;
+  /**
+   * Registry-integrity phase 02 (5.3, additive): index of the FIRST frame (ABSOLUTE —
+   * into the whole parsed log, never relative to a resumed slice) that produced this
+   * target. The cursor may not advance past this index until the target is fully
+   * processed (captured/failed/pending are all "not done").
+   */
+  firstFrameIndex: number;
+  /** Index of the LAST frame (also absolute) that produced this target. */
+  lastFrameIndex: number;
 }
 
 /** Minimal registry projection reconcile needs (built by the command from the registry). */
@@ -176,12 +185,19 @@ const OP_RANK: Record<ChangeOp, number> = { deleted: 3, created: 2, updated: 1 }
  * Deterministic: frames are processed oldest→newest so "last non-null name / latest
  * page" is stable; the highest-ranked op wins; changedProps are unioned + sorted; any
  * REMOTE-derived `global` hint promotes the coalesced hint. Output sorted by nodeId.
+ *
+ * `baseIndex` (registry-integrity phase 02, additive) is the ABSOLUTE log index of
+ * `frames[0]` — the caller passes `cursorFrom` when `frames` is a resumed slice
+ * (`frames.slice(cursorFrom)`), so `firstFrameIndex`/`lastFrameIndex` always index the
+ * WHOLE log, never the slice. Zipped BEFORE the `ts` sort below (which reorders), so a
+ * frame's absolute position survives regardless of where it lands in `ts` order.
  */
-export function coalesceFrames(frames: readonly ChangeFrame[]): CoalescedComponent[] {
+export function coalesceFrames(frames: readonly ChangeFrame[], baseIndex = 0): CoalescedComponent[] {
   const byId = new Map<string, CoalescedComponent>();
   const propSets = new Map<string, Set<string>>();
-  const ordered = [...frames].sort((a, b) => a.ts - b.ts || cmp(a.nodeId, b.nodeId));
-  for (const fr of ordered) {
+  const indexed = frames.map((fr, i) => ({ fr, idx: baseIndex + i }));
+  const ordered = indexed.sort((a, b) => a.fr.ts - b.fr.ts || cmp(a.fr.nodeId, b.fr.nodeId));
+  for (const { fr, idx } of ordered) {
     const props = propSets.get(fr.nodeId) ?? new Set<string>();
     for (const p of fr.changedProps) props.add(p);
     propSets.set(fr.nodeId, props);
@@ -197,6 +213,8 @@ export function coalesceFrames(frames: readonly ChangeFrame[]): CoalescedCompone
         scopeHint: fr.scopeHint,
         page: fr.page,
         latestTs: fr.ts,
+        firstFrameIndex: idx,
+        lastFrameIndex: idx,
       });
       continue;
     }
@@ -208,6 +226,10 @@ export function coalesceFrames(frames: readonly ChangeFrame[]): CoalescedCompone
       prev.latestTs = fr.ts;
       prev.page = fr.page;
     }
+    // Independent of ts order (the interleaved case: A's frames at log lines 0 and 9,
+    // B's at 3-4 — the `ts` sort can place them in any relative order).
+    if (idx < prev.firstFrameIndex) prev.firstFrameIndex = idx;
+    if (idx > prev.lastFrameIndex) prev.lastFrameIndex = idx;
   }
   const out: CoalescedComponent[] = [];
   for (const [id, c] of byId) {

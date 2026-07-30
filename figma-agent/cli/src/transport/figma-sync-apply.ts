@@ -26,7 +26,9 @@ import {
   syncSummary,
   type AppliedCounts,
 } from '../../../shared/figma-sync-summary.ts';
-import { captureMirror, targetsFromDelta } from './figma-mirror-capture-run.ts';
+import {
+  captureMirror, mergeTargetsPendingFirst, pendingTargetsFromEnvelope, targetsFromDelta,
+} from './figma-mirror-capture-run.ts';
 
 /** Outcome the broker sends back to the plugin as SYNC_RESULT.data. */
 export interface SyncApplyResult {
@@ -103,7 +105,11 @@ export function spawnReconcileApply(projectDir: string, done: (r: SyncApplyResul
       done(envelopeFailure(env, err, exit));
       return;
     }
-    const targets = targetsFromDelta(data);
+    // Registry-integrity phase 02 (5.3), §4: the kernel's retry queue (`pending`) is
+    // captured FIRST, or the same MAX_SCANS names win every run and the queue never
+    // drains. Read from the SAME dry-run envelope `targetsFromDelta` already reads.
+    const pendingFirst = pendingTargetsFromEnvelope(data);
+    const targets = mergeTargetsPendingFirst(pendingFirst, targetsFromDelta(data));
     void captureMirror(targets).then((cap) => {
       const extra = ['--apply', ...(cap.file !== undefined ? ['--mirror-file', cap.file] : [])];
       runReconcile(projectDir, extra, (aEnv, aErr, aExit) => {

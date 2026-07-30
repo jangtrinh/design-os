@@ -31,12 +31,15 @@ import {
   computePreviewDelta,
   parseChangeLog,
   scopeSummary,
+  type CoalescedComponent,
 } from "../core/figma-reconcile.js";
 import type { RegistryView } from "../core/figma-reconcile.js";
 import { applyDelta, type SidecarWrite } from "../core/figma-apply.js";
 import { indexCaptures, parseMirrorCapture, type MirrorIndex } from "../core/figma-mirror-capture.js";
 import { writeFigmaNode } from "../core/figma-node-reader.js";
-import { readCursor, syncStatePath, writeCursor } from "../core/figma-sync-state.js";
+import {
+  readSyncState, syncStatePath, writeSyncState, type PendingTarget, type SkipRecord,
+} from "../core/figma-sync-state.js";
 import { renderApply, renderDryRun } from "./figma-reconcile-render.js";
 import { withOutcome } from "../core/memory-autorecord.js";
 import { pathsForDir } from "../core/design-system.js";
@@ -72,6 +75,37 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   const useJson = parsed.json;
   const apply = parsed.flags["apply"] === true;
   const dryRunFlag = parsed.flags["dry-run"] === true;
+  const force = parsed.flags["force"] === true;
+  const skipNodeId = flagString(parsed, "skip");
+
+  // ── --skip: an operator's acknowledged skip (registry-integrity phase 02, §4) ────────
+  // RULED CLI-only (lead): a skip is a decision that must leave an audit trail, never a
+  // panel button, and no timeout ever sets it — an unattended skip would be exactly the
+  // silent loss this phase removes. Standalone: it only touches the state file, never the
+  // change log or the registry, so it cannot be combined with --apply/--dry-run.
+  if (skipNodeId !== undefined) {
+    if (apply || dryRunFlag) {
+      const msg = "--skip cannot be combined with --apply or --dry-run";
+      return useJson ? errJson(SUB, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+    }
+    const dir = projectDir(parsed);
+    const statePath = syncStatePath(dir);
+    const state = readSyncState(statePath);
+    const pending = state.pending ?? [];
+    const idx = pending.findIndex((t) => t.nodeId === skipNodeId);
+    if (idx < 0) {
+      const msg = `no pending target with nodeId "${skipNodeId}" — nothing to skip`;
+      return useJson ? errJson(SUB, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+    }
+    const nextPending = pending.map((t, i) => (i === idx ? { ...t, skipped: true as const } : t));
+    writeSyncState(statePath, {
+      cursor: state.cursor, pending: nextPending, forced: state.forced, skipHistory: state.skipHistory,
+    });
+    const data = { skipped: skipNodeId, pending: nextPending };
+    return useJson
+      ? okJson(SUB, data)
+      : { exitCode: 0, stdout: `ui: acknowledged skip for ${skipNodeId} — the cursor may now pass it\n` };
+  }
 
   if (apply && dryRunFlag) {
     const msg = "--apply cannot be combined with --dry-run";
@@ -96,6 +130,19 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   const logPath = join(dir, ...CHANGE_LOG_RELPATH);
   const registryPath = join(dir, ...REGISTRY_RELPATH);
   const statePath = syncStatePath(dir);
+  const priorState = readSyncState(statePath);
+  const priorPending = priorState.pending ?? [];
+  const blockingPrior = priorPending.filter((t) => t.skipped !== true);
+
+  // `--since` must not be a back door around an un-acknowledged queue (§4): it would let
+  // `--apply --since <later>` skip the queue without acknowledging anything.
+  if (apply && sinceGiven && blockingPrior.length > 0 && !force) {
+    const msg =
+      `--since is refused while ${blockingPrior.length} target(s) are pending — run ` +
+      "`ui figma reconcile --skip <nodeId>` to acknowledge each one, or pass --force to " +
+      "bypass (recorded in the state file)";
+    return useJson ? errJson(SUB, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+  }
 
   // Parse the whole change-log (absent → empty). A corrupt line fails hard.
   let frames;
@@ -126,10 +173,14 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   const cursorTo = frames.length;
   // dry-run defaults the cursor to 0 (preview whole log); apply defaults it to the
   // persisted apply cursor (resume where the last commit stopped). --since overrides both.
-  const cursorFrom0 = sinceGiven ? (since as number) : apply ? readCursor(statePath) : 0;
+  const cursorFrom0 = sinceGiven ? (since as number) : apply ? priorState.cursor : 0;
   const cursorFrom = Math.min(cursorFrom0, cursorTo);
   const slice = frames.slice(cursorFrom);
-  const delta = computePreviewDelta(coalesceFrames(slice), existing);
+  // ABSOLUTE indices (registry-integrity phase 02): `slice` is resumed from `cursorFrom`,
+  // so `coalesceFrames` must be told the offset — otherwise firstFrameIndex/lastFrameIndex
+  // would number a resumed run from 0 while the persisted cursor indexes the whole log.
+  const coalesced = coalesceFrames(slice, cursorFrom);
+  const delta = computePreviewDelta(coalesced, existing);
   const scope = scopeSummary(delta);
 
   const base = {
@@ -138,6 +189,10 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     delta: { added: delta.added, updated: delta.updated, deprecated: delta.deprecated },
     scope_summary: scope,
     ...(delta.unresolved.length > 0 && { caps: { unresolved: delta.unresolved } }),
+    // Informational passthrough of the PERSISTED queue — a dry-run runs no capture, so it
+    // cannot discover anything new; the apply branch below overrides this with the freshly
+    // recomputed queue.
+    pending: priorPending,
   };
 
   if (!apply) {
@@ -165,6 +220,101 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
 
   const { registry: next, report, sidecarWrites, changed } = applyDelta(registry, delta, mirror);
 
+  // ── Registry-integrity phase 02 (5.3), §4: the safe cursor + retry queue ────────────
+  // "Unfinished" is wider than dropped-or-failed: an ADD `applyDelta` could not
+  // materialize (`report.pending` — captured-but-unregistrable, or no capture at all) and
+  // a DELETE that lost its identity (`delta.unresolved`) are both work that did not land,
+  // so both join the blocking set alongside a mirror drop/failure.
+  const byNodeId = new Map(coalesced.map((c) => [c.nodeId, c]));
+  const byName = new Map<string, CoalescedComponent>();
+  for (const c of coalesced) if (c.nodeName !== null) byName.set(c.nodeName, c);
+
+  interface UnfinishedThisRun { nodeId: string; name: string; firstFrameIndex: number; reason: string; attempted: boolean }
+  const thisRun = new Map<string, UnfinishedThisRun>();
+  const noteUnfinished = (
+    nodeId: string, name: string, c: CoalescedComponent | undefined, reason: string, attempted: boolean,
+  ): void => {
+    if (c === undefined || thisRun.has(nodeId)) return; // first reason wins; a target only needs ONE
+    thisRun.set(nodeId, { nodeId, name, firstFrameIndex: c.firstFrameIndex, reason, attempted });
+  };
+  if (mirror) {
+    for (const c of coalesced) {
+      // Dropped by the cap: never reached the scanner — NOT an attempt (fix round finding 1).
+      if (mirror.dropped.has(c.nodeId)) {
+        noteUnfinished(c.nodeId, c.nodeName ?? c.nodeId, c, "dropped by the batch cap (MAX_SCANS) — not attempted this run", false);
+      }
+      // Scanned and failed — a REAL attempt.
+      const failReason = mirror.failures.get(c.nodeId);
+      if (failReason !== undefined) noteUnfinished(c.nodeId, c.nodeName ?? c.nodeId, c, failReason, true);
+    }
+  }
+  // By the time a nodeId reaches here, the mirror loop above has already claimed anything
+  // that was genuinely scanned-and-failed (`mirror.failures`) — so a `report.pending` entry
+  // reaching this point never had a real attempt this run (no mirror at all, or the target
+  // simply was not in this batch): NOT an attempt.
+  for (const p of report.pending) {
+    const c = byName.get(p.name);
+    noteUnfinished(c?.nodeId ?? p.name, p.name, c, p.reason, false);
+  }
+  // A DELETE that lost its identity never goes through mirror capture at all — never an attempt.
+  for (const u of delta.unresolved) noteUnfinished(u.nodeId, u.nodeId, byNodeId.get(u.nodeId), u.reason, false);
+
+  // Fix round (finding 3 precursor is below; this is findings 1+2): positive evidence that
+  // a target's OWN content actually landed this run — a record was added/updated, or its
+  // sidecar/mirror was replaced (an unchanged record can still get a fresh sidecar; see
+  // figma-apply.ts's "an unchanged record still re-writes the sidecar" case).
+  const landedNames = new Set<string>([...report.added, ...report.updated, ...report.mirrored]);
+
+  // Merge with the PRIOR run's queue: a skipped entry is carried as-is (no re-evaluation —
+  // an acknowledged skip is final); a still-unfinished entry gets its attempt count bumped,
+  // its reason refreshed, and `lastAttemptedAt` stamped ONLY when actually attempted this
+  // run (fix round finding 1 — a merely-dropped-again entry must not look "just tried").
+  // Fix round (finding 2): absence from `thisRun` is NOT positive evidence of resolution —
+  // it can simply mean this run ran no mirror at all, or never re-touched this specific
+  // target for an unrelated reason. An entry leaves pending ONLY on `landedNames` evidence
+  // or an explicit skip; otherwise it carries forward completely unchanged (attempts too).
+  const now = Date.now();
+  const merged = new Map<string, PendingTarget>();
+  for (const p of priorPending) {
+    if (p.skipped === true) { merged.set(p.nodeId, p); continue; }
+    const u = thisRun.get(p.nodeId);
+    if (u !== undefined) {
+      merged.set(p.nodeId, {
+        ...p, attempts: p.attempts + 1, lastReason: u.reason,
+        lastAttemptedAt: u.attempted ? now : p.lastAttemptedAt,
+      });
+    } else if (!landedNames.has(p.name)) {
+      merged.set(p.nodeId, p); // no evidence either way — carried forward completely unchanged
+    }
+    // else: landedNames has it → genuinely resolved this run — drop it (do not re-add)
+  }
+  for (const [nodeId, u] of thisRun) {
+    if (merged.has(nodeId)) continue; // already carried forward above with an incremented count
+    merged.set(nodeId, {
+      nodeId, name: u.name, firstFrameIndex: u.firstFrameIndex, attempts: 1, lastReason: u.reason,
+      firstSeenTs: now, ...(u.attempted ? { lastAttemptedAt: now } : {}),
+    });
+  }
+
+  // The cursor may advance only to the earliest frame that produced a still-blocking
+  // (non-skipped) target — records AFTER a blocked one still applied above (the whole
+  // slice already ran through `applyDelta`); only the CURSOR stops early, so the next run
+  // re-derives the blocked target from the log (a small re-processed overlap, not a skip).
+  // Re-application is idempotent: `registerComponent` upserts by name.
+  const blocking = [...merged.values()].filter((t) => t.skipped !== true);
+  const safeCursorTo = blocking.length === 0 ? frames.length : Math.min(...blocking.map((t) => t.firstFrameIndex));
+  // Invariant: `pending` only ever holds entries the cursor has NOT yet passed — a skip or
+  // a resolution behind the new cursor is pruned here, not carried forever.
+  const nextPending = [...merged.values()].filter((t) => t.firstFrameIndex >= safeCursorTo);
+  // Fix round (finding 4): a PRUNED skipped entry loses its only trace the instant it drops
+  // out of `pending` — durably record it (never itself pruned) before it's gone.
+  const newlyPrunedSkips: SkipRecord[] = [...merged.values()]
+    .filter((t) => t.skipped === true && t.firstFrameIndex < safeCursorTo)
+    .map((t) => ({ nodeId: t.nodeId, name: t.name, at: now }));
+  const skipHistory = newlyPrunedSkips.length > 0
+    ? [...(priorState.skipHistory ?? []), ...newlyPrunedSkips]
+    : priorState.skipHistory;
+
   // Snapshot the DS *before* any write this apply might make (spec 009 P1, Art IV) —
   // reseal needs the pre-mutation manifest to bump generation from, and a DS_TAMPERED
   // load must refuse before anything (sidecars included) is written — never heal on top
@@ -181,8 +331,9 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     }
   }
 
+  let sidecarsWritten = false;
   try {
-    writeSidecars(join(dir, DESIGN_DIR), sidecarWrites);
+    sidecarsWritten = writeSidecars(join(dir, DESIGN_DIR), sidecarWrites);
     if (changed) saveRegistry(registryPath, next);
     if (changed && ds !== undefined) {
       reseal({
@@ -193,7 +344,12 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
         },
       });
     }
-    writeCursor(statePath, cursorTo);
+    // A REAL --force bypass (one that actually skipped a non-empty blocking queue) is
+    // recorded so it is auditable rather than invisible — never silently dropped.
+    const forced = sinceGiven && force && blockingPrior.length > 0
+      ? [...(priorState.forced ?? []), { at: now, since: since as number }]
+      : priorState.forced;
+    writeSyncState(statePath, { cursor: safeCursorTo, pending: nextPending, forced, skipHistory });
   } catch (e) {
     if (e instanceof RegistryError) {
       return useJson ? errJson(SUB, e.code, e.message) : errText(`ui: ${e.message}\n`);
@@ -202,9 +358,17 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     return useJson ? errJson(SUB, "WRITE_ERROR", msg) : errText(`ui: ${msg}\n`);
   }
 
-  const data = { ...base, dry_run: false as const, applied: true as const, apply: report };
+  const data = {
+    ...base, cursor_to: safeCursorTo, dry_run: false as const, applied: true as const,
+    apply: report, pending: nextPending,
+  };
   const out = useJson ? okJson(SUB, data) : { exitCode: 0, stdout: renderApply(data, report) };
-  const recordable = changed || sidecarWrites.length > 0;
+  // Fix round (finding 3): `sidecarWrites.length > 0` counted CANDIDATE writes, not actual
+  // ones — a content-guarded rewrite of byte-identical sidecar content (re-applying the
+  // overlap behind a blocked target, e.g.) still "candidates" every run, so this recorded a
+  // duplicate `reconcile_applied` memory event every single re-apply even when nothing on
+  // disk changed. `sidecarsWritten` reflects `writeFigmaNode`'s own `written` flag instead.
+  const recordable = changed || sidecarsWritten;
   if (!recordable) return out;
   return withOutcome(out, parsed, {
     type: "reconcile_applied",
@@ -212,12 +376,18 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     projectDir: dir,
     data: {
       added: report.added, updated: report.updated, deprecated: report.deprecated,
-      mirrored: report.mirrored.length, cursorFrom, cursorTo,
+      mirrored: report.mirrored.length, cursorFrom, cursorTo: safeCursorTo,
     },
   });
 }
 
-/** Write every captured sidecar (content-guarded by writeFigmaNode). Throws RegistryError. */
-function writeSidecars(designDir: string, writes: readonly SidecarWrite[]): void {
-  for (const w of writes) writeFigmaNode(designDir, w.name, w.node);
+/** Write every captured sidecar (content-guarded by writeFigmaNode). Throws RegistryError.
+ *  Returns whether ANY sidecar was actually written — a content-guarded skip (byte-identical
+ *  rewrite) does not count (fix round, finding 3). */
+function writeSidecars(designDir: string, writes: readonly SidecarWrite[]): boolean {
+  let anyWritten = false;
+  for (const w of writes) {
+    if (writeFigmaNode(designDir, w.name, w.node).written) anyWritten = true;
+  }
+  return anyWritten;
 }

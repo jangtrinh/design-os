@@ -111,6 +111,48 @@ describe("figma-reconcile — coalesceFrames (cross-batch)", () => {
     const out = coalesceFrames([frame({ nodeId: "9:9" }), frame({ nodeId: "1:1" })]);
     expect(out.map((c) => c.nodeId)).toEqual(["1:1", "9:9"]);
   });
+
+  // Registry-integrity phase 02 (5.3), §2 — additive frame-span tracking.
+  describe("firstFrameIndex / lastFrameIndex (additive, absolute)", () => {
+    it("the interleaved case: A's frames at lines 0 and 9, B's at 3-4 — a naive 'last index wins' would get this wrong", () => {
+      const frames: ChangeFrame[] = [
+        frame({ nodeId: "A", ts: 0 }),   // line 0
+        frame({ nodeId: "X", ts: 1 }),   // line 1 (filler, not asserted)
+        frame({ nodeId: "X", ts: 2 }),   // line 2
+        frame({ nodeId: "B", ts: 3 }),   // line 3
+        frame({ nodeId: "B", ts: 4 }),   // line 4
+        frame({ nodeId: "X", ts: 5 }),   // line 5
+        frame({ nodeId: "X", ts: 6 }),   // line 6
+        frame({ nodeId: "X", ts: 7 }),   // line 7
+        frame({ nodeId: "X", ts: 8 }),   // line 8
+        frame({ nodeId: "A", ts: 9 }),   // line 9
+      ];
+      const out = coalesceFrames(frames);
+      const a = out.find((c) => c.nodeId === "A")!;
+      const b = out.find((c) => c.nodeId === "B")!;
+      expect(a.firstFrameIndex).toBe(0);
+      expect(a.lastFrameIndex).toBe(9);
+      expect(b.firstFrameIndex).toBe(3);
+      expect(b.lastFrameIndex).toBe(4);
+    });
+
+    it("a run resumed at cursor 100: firstFrameIndex/lastFrameIndex are absolute, never rewind below the offset", () => {
+      const frames: ChangeFrame[] = [
+        frame({ nodeId: "C", ts: 0 }), // slice-relative index 0 → absolute 100
+        frame({ nodeId: "C", ts: 1 }), // slice-relative index 1 → absolute 101
+      ];
+      const out = coalesceFrames(frames, 100);
+      expect(out[0]!.firstFrameIndex).toBeGreaterThanOrEqual(100);
+      expect(out[0]!.firstFrameIndex).toBe(100);
+      expect(out[0]!.lastFrameIndex).toBe(101);
+    });
+
+    it("defaults baseIndex to 0 for a caller that never resumes (back-compat call shape)", () => {
+      const out = coalesceFrames([frame({ nodeId: "D" })]);
+      expect(out[0]!.firstFrameIndex).toBe(0);
+      expect(out[0]!.lastFrameIndex).toBe(0);
+    });
+  });
 });
 
 // ─── pure: computePreviewDelta + scope ───────────────────────────────────────

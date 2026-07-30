@@ -7,6 +7,7 @@
  * (Art VIII): the applied line counts records that CHANGED, never raw log events.
  */
 import type { ApplyReport } from "../core/figma-apply.js";
+import type { PendingTarget } from "../core/figma-sync-state.js";
 
 /** The shared preview fields both renders read (a projection of the JSON envelope). */
 export interface DeltaText {
@@ -19,6 +20,20 @@ export interface DeltaText {
   };
   scope_summary: { local: number; global: number };
   caps?: { unresolved: { nodeId: string; reason: string }[] };
+  /** The retry queue (registry-integrity phase 02, §4) — the cursor stopped short of the
+   *  log's end exactly when this is non-empty. */
+  pending?: PendingTarget[];
+}
+
+/** "3 targets waiting, 1 skipped — see `ui figma reconcile --skip <nodeId>`". */
+function pendingSummaryLine(pending: readonly PendingTarget[]): string | null {
+  if (pending.length === 0) return null;
+  const blocking = pending.filter((t) => t.skipped !== true);
+  const skipped = pending.length - blocking.length;
+  const parts = [`${pending.length} target${pending.length === 1 ? "" : "s"} waiting`];
+  if (skipped > 0) parts.push(`${skipped} skipped`);
+  const hint = blocking.length > 0 ? " — see `ui figma reconcile --skip <nodeId>`" : "";
+  return `  · ${parts.join(", ")}${hint}`;
 }
 
 /** Strip control chars / collapse newlines so untrusted node names can't spoof text output. */
@@ -42,6 +57,8 @@ function renderDeltaLines(data: DeltaText, header: string): string[] {
   }
   for (const e of data.delta.deprecated) lines.push(`  - ${safeText(e.name)} (${e.scope}) deprecated`);
   if (data.caps !== undefined) lines.push(`  ! ${data.caps.unresolved.length} unresolved (no component name)`);
+  const pendingLine = data.pending !== undefined ? pendingSummaryLine(data.pending) : null;
+  if (pendingLine !== null) lines.push(pendingLine);
   return lines;
 }
 

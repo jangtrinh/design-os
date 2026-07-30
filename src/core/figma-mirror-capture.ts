@@ -19,8 +19,16 @@ import { ReconcileError } from "./figma-reconcile.js";
 import { RegistryError } from "./registry-store.js";
 import { validateFigmaNodeSpec, type FigmaNodeSpec } from "./figma-node-reader.js";
 
-/** Must equal the writer's version (figma-agent mirror-capture-run). */
-export const MIRROR_CAPTURE_VERSION = 1;
+/**
+ * Must equal the writer's version (figma-agent mirror-capture-run). Bumped to 2
+ * (registry-integrity phase 02, §3) when the payload gained `dropped` — the reader
+ * accepts BOTH 1 and 2 (see `ACCEPTED_VERSIONS`) so a stale broker/kernel pair still
+ * works: a v1 capture has no `dropped` list, parsed as "nothing dropped".
+ */
+export const MIRROR_CAPTURE_VERSION = 2;
+
+/** Versions this reader accepts (both, so a stale broker/kernel pair still interoperates). */
+const ACCEPTED_VERSIONS = new Set([1, 2]);
 
 /** One successfully scanned component. */
 export interface MirrorCaptureEntry {
@@ -36,20 +44,36 @@ export interface MirrorCaptureFailure {
   reason: string;
 }
 
-/** The on-disk `--mirror-file` payload. */
+/**
+ * One component the capture pass never even ATTEMPTED — cut by `MAX_SCANS` before a scan
+ * was ever tried (registry-integrity phase 02, §3). Distinct from `failed`: a failure
+ * tried and lost; a drop was never in the running this batch. Both are "unfinished" for
+ * the cursor's purposes (§4), but the reason differs, so they stay separate lists.
+ */
+export interface MirrorCaptureDrop {
+  nodeId: string;
+  name: string;
+}
+
+/** The on-disk `--mirror-file` payload. `dropped` is optional on read (absent = a v1
+ *  capture, "nothing dropped") but always present on write from v2 onward. */
 export interface MirrorCapture {
   v: number;
   captured: MirrorCaptureEntry[];
   failed: MirrorCaptureFailure[];
+  dropped: MirrorCaptureDrop[];
 }
 
 /**
  * Captures indexed by the change-log `nodeId` — the key apply joins the delta on.
- * A node id appearing in neither map means the capture pass never targeted it.
+ * A node id appearing in NONE of the three sets means the capture pass never targeted it
+ * at all (e.g. no capture ran — the plugin was down).
  */
 export interface MirrorIndex {
   specs: ReadonlyMap<string, FigmaNodeSpec>;
   failures: ReadonlyMap<string, string>;
+  /** nodeIds cut by MAX_SCANS this batch — never attempted, not merely failed. */
+  dropped: ReadonlySet<string>;
 }
 
 /**
@@ -76,11 +100,16 @@ export function parseMirrorCapture(raw: string, source: string): MirrorCapture {
     return bad("root must be an object");
   }
   const root = parsed as Record<string, unknown>;
-  if (root["v"] !== MIRROR_CAPTURE_VERSION) {
-    return bad(`unsupported version ${String(root["v"])} (expected ${MIRROR_CAPTURE_VERSION})`);
+  if (typeof root["v"] !== "number" || !ACCEPTED_VERSIONS.has(root["v"])) {
+    return bad(`unsupported version ${String(root["v"])} (expected one of ${[...ACCEPTED_VERSIONS].join(", ")})`);
   }
   if (!Array.isArray(root["captured"])) return bad("'captured' must be an array");
   if (!Array.isArray(root["failed"])) return bad("'failed' must be an array");
+  // `dropped` is optional on read: absent (a v1 capture) means "nothing dropped" —
+  // present must still be an array, never a malformed non-array value.
+  if (root["dropped"] !== undefined && !Array.isArray(root["dropped"])) {
+    return bad("'dropped' must be an array");
+  }
 
   const captured: MirrorCaptureEntry[] = [];
   for (const [i, item] of (root["captured"] as unknown[]).entries()) {
@@ -105,7 +134,13 @@ export function parseMirrorCapture(raw: string, source: string): MirrorCapture {
     failed.push({ nodeId: e["nodeId"] as string, name: e["name"] as string, reason: e["reason"] });
   }
 
-  return { v: MIRROR_CAPTURE_VERSION, captured, failed };
+  const dropped: MirrorCaptureDrop[] = [];
+  for (const [i, item] of ((root["dropped"] as unknown[] | undefined) ?? []).entries()) {
+    const e = requireEntry(item, `dropped[${i}]`, bad);
+    dropped.push({ nodeId: e["nodeId"] as string, name: e["name"] as string });
+  }
+
+  return { v: root["v"], captured, failed, dropped };
 }
 
 /** Shared shape floor for both arrays: an object carrying `nodeId` + `name`. */
@@ -137,5 +172,9 @@ export function indexCaptures(capture: MirrorCapture): MirrorIndex {
   for (const f of capture.failed) {
     if (!specs.has(f.nodeId)) failures.set(f.nodeId, f.reason);
   }
-  return { specs, failures };
+  const dropped = new Set<string>();
+  for (const d of capture.dropped) {
+    if (!specs.has(d.nodeId)) dropped.add(d.nodeId); // a captured re-scan supersedes a drop too
+  }
+  return { specs, failures, dropped };
 }
