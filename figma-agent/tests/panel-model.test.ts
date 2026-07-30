@@ -73,12 +73,12 @@ describe('fileNote — Block 2: honest answer to "which file will my command hit
     expect(fileNote(1, false)).toBe('');
   });
   it('multiple files, this one is the target → target + peer count', () => {
-    expect(fileNote(3, true)).toBe('command target · 2 other files connected');
-    expect(fileNote(2, true)).toBe('command target · 1 other file connected');
+    expect(fileNote(3, true)).toBe('command target · 2 other files');
+    expect(fileNote(2, true)).toBe('command target · 1 other file');
   });
   it('multiple files, another is the target → says where commands go', () => {
-    expect(fileNote(3, false)).toBe('2 other files connected — commands go to another file');
-    expect(fileNote(2, false)).toBe('1 other file connected — commands go to another file');
+    expect(fileNote(3, false)).toBe('2 other files — commands go elsewhere');
+    expect(fileNote(2, false)).toBe('1 other file — commands go elsewhere');
   });
 });
 
@@ -115,7 +115,7 @@ describe('idle-commit prompt labels (spec 004 P4)', () => {
 
   it('syncNowLabel — swaps to the bind hint on E_UNBOUND, reverts once bound (fix round, finding 2)', () => {
     expect(syncNowLabel(false)).toBe('Sync now');
-    expect(syncNowLabel(true)).toBe('Bind, then retry');
+    expect(syncNowLabel(true)).toBe('Bind & retry');
     expect(syncNowLabel(true)).not.toBe(syncNowLabel(false)); // the state machine's two branches
   });
 

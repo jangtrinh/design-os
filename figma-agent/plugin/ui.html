@@ -884,9 +884,9 @@ code {
          JS toggles [hidden] via showOnboarding (panel-model.ts). -->
     <section class="onboarding" id="fga-onboarding" aria-label="Getting started">
       <ul class="onboarding-list">
-        <li>This panel bridges the figma-agent CLI to this file.</li>
-        <li>Verify from a terminal: <code>figma-agent status</code></li>
-        <li>Keep this panel open while agents work.</li>
+        <li>Bridges the figma-agent CLI to this file.</li>
+        <li>Verify: <code>figma-agent status</code></li>
+        <li>Keep this panel open.</li>
       </ul>
     </section>
   </section>
@@ -900,14 +900,14 @@ code {
         <p class="detail-note" id="fga-ctx-file-note"></p>
       </div>
       <div class="detail-cell"><dt>Page</dt><dd id="fga-ctx-page">—</dd></div>
-      <div class="detail-cell"><dt>Selection</dt><dd id="fga-ctx-selection">Nothing selected</dd></div>
+      <div class="detail-cell"><dt>Selection</dt><dd id="fga-ctx-selection">None</dd></div>
     </dl>
   </section>
 
   <section class="activity fga-block" id="fga-activity-block" aria-label="Activity log">
     <h2 class="section-label">Activity</h2>
     <ul class="activity-list" id="fga-activity" aria-live="polite">
-      <li class="activity-empty">No activity yet — run a figma-agent command.</li>
+      <li class="activity-empty">No activity yet</li>
     </ul>
   </section>
 
@@ -995,7 +995,7 @@ code {
     if (count <= 1) return isActiveTarget ? "command target" : "";
     const others = count - 1;
     const files = others === 1 ? "file" : "files";
-    return isActiveTarget ? `command target \xB7 ${others} other ${files} connected` : `${others} other ${files} connected \u2014 commands go to another file`;
+    return isActiveTarget ? `command target \xB7 ${others} other ${files}` : `${others} other ${files} \u2014 commands go elsewhere`;
   }
   function syncPromptLabel(count) {
     const n = Number.isFinite(count) && count > 0 ? Math.floor(count) : 1;
@@ -1008,7 +1008,7 @@ code {
     return landed ? `Synced \u2014 ${clean}` : `Nothing synced \u2014 ${clean}`;
   }
   function syncNowLabel(unbound) {
-    return unbound ? "Bind, then retry" : "Sync now";
+    return unbound ? "Bind & retry" : "Sync now";
   }
   function shouldClearPendingCount(ok) {
     return ok === true;
@@ -1178,7 +1178,7 @@ code {
     ctxSelection.textContent = selectionText();
   }
   function selectionText() {
-    if (selectionCount <= 0) return "Nothing selected";
+    if (selectionCount <= 0) return "None";
     const first = selectionName ?? "(unnamed)";
     return selectionCount > 1 ? `${first} +${selectionCount - 1} more` : first;
   }
