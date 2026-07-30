@@ -99,6 +99,16 @@ export interface ReplyErr {
   ok: false;
   error: WireError;
   fileContext?: FileContext;
+  /**
+   * Error log writer (backlog 4.6), additive: the failed command + its intent label,
+   * echoed back by ui-relay.ts from the SAME `RequestMsg.cmd`/`.activity` it already
+   * tracks for the activity feed (`activityStart`) — never re-derived or guessed by the
+   * broker, which still never parses `cmd` for a ROUTING decision; it only forwards a
+   * value the request already carried. Optional so an older relay build (no cmd/activity
+   * echo) still interoperates — the error just logs with `cmd: null`.
+   */
+  cmd?: CommandName;
+  activity?: string;
 }
 export type ReplyMsg = ReplyOk | ReplyErr;
 
