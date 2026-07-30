@@ -46,16 +46,92 @@ export function profilePath(): string {
 
 // ─── Ledger ─────────────────────────────────────────────────────────────────────
 
-/** Count non-blank ledger lines (→ next event id). 0 when the ledger is absent. */
-export function ledgerLineCount(paths: MemoryPaths): number {
-  if (!existsSync(paths.ledger)) return 0;
-  return readFileSync(paths.ledger, "utf8").split("\n").filter((l) => l.trim().length > 0).length;
+/**
+ * Registry-integrity phase 04 (5.4), §5 — `ledgerLineCount` used to re-read the WHOLE
+ * ledger on every call (O(E) per event, O(E²) cumulative over a project's lifetime, just
+ * to pick the next id). A small counter file persisted BESIDE the ledger makes it O(1):
+ * `appendEvent` increments it after every write; `ledgerLineCount` trusts it when present
+ * and self-heals with exactly ONE real count (the same O(E) scan as before, but only ever
+ * once) when it is absent — a fresh project, or a pre-phase-04 one that has never
+ * appended since this landed. No new concurrency guarantee is introduced or assumed
+ * beyond what the ledger itself already had (single-writer CLI invocations; the
+ * Concurrency & Jobs wave, a separate track, owns any real locking).
+ *
+ * Stage-4 MAJOR8 — the plan required this counter be VERIFIED on open, not trusted
+ * blindly forever: anything that touches the ledger OUTSIDE `appendEvent` (a hand-edit, a
+ * restore from backup, a corrupted write, or a future writer that forgets to bump the
+ * counter) would otherwise silently diverge from reality — permanently, since nothing
+ * ever re-checked it — and a wrong next-id from `ledgerLineCount` risks a colliding or
+ * gapped event id. The counter now also persists the ledger's own byte size at the
+ * instant it was last verified (`bytes`); every read compares that against the ledger's
+ * CURRENT size (`statSync`, O(1) — no full read) and only trusts the cached count when
+ * they still agree, re-scanning (and re-persisting both) the moment they do not.
+ *
+ * Known, accepted gap (deliberate, not fixed here): a byte-size match is not a content
+ * hash — an out-of-band edit that happens to leave the file the SAME total size (e.g. one
+ * line shortened by exactly as many bytes as another grew) would go undetected. Hashing
+ * the whole ledger on every read would defeat the O(1) goal this fix exists for; a
+ * same-size silent corruption is judged rare enough that the O(1)-size check is the right
+ * trade-off, not a full-content verification.
+ */
+const LEDGER_COUNTER_FILENAME = "memory.events.count.json";
+
+interface LedgerCounter {
+  count: number;
+  bytes: number;
 }
 
-/** Append one serialised event line, creating design/ if needed. */
+function ledgerCounterPath(paths: MemoryPaths): string {
+  return join(paths.dir, LEDGER_COUNTER_FILENAME);
+}
+
+/** The persisted counter, or undefined when absent/malformed (never trusted blindly —
+ *  same "reject, never clamp" doctrine as every other small state file in this wave). A
+ *  pre-MAJOR8 counter file (`{count}` alone, no `bytes`) reads as undefined too — it
+ *  cannot be verified, so it is treated exactly like "no counter yet" (one self-healing
+ *  rescan, same as always), never trusted on faith. */
+function readLedgerCounter(paths: MemoryPaths): LedgerCounter | undefined {
+  const p = ledgerCounterPath(paths);
+  if (!existsSync(p)) return undefined;
+  try {
+    const parsed = JSON.parse(readFileSync(p, "utf8")) as { count?: unknown; bytes?: unknown };
+    return typeof parsed?.count === "number" && Number.isInteger(parsed.count) && parsed.count >= 0
+      && typeof parsed?.bytes === "number" && Number.isInteger(parsed.bytes) && parsed.bytes >= 0
+      ? { count: parsed.count, bytes: parsed.bytes }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeLedgerCounter(paths: MemoryPaths, counter: LedgerCounter): void {
+  mkdirSync(paths.dir, { recursive: true });
+  writeFileSync(ledgerCounterPath(paths), JSON.stringify(counter) + "\n", "utf8");
+}
+
+/** Count non-blank ledger lines (→ next event id). 0 when the ledger is absent. O(1) once
+ *  a counter exists AND its recorded byte size still matches the live ledger (one cheap
+ *  `statSync`, not a full read); a missing/malformed counter, or one whose `bytes` no
+ *  longer matches the ledger's current size, triggers exactly one real scan, which then
+ *  persists a fresh `{count, bytes}` pair so every subsequent call is O(1) again. */
+export function ledgerLineCount(paths: MemoryPaths): number {
+  if (!existsSync(paths.ledger)) return 0;
+  const liveBytes = statSync(paths.ledger).size;
+  const cached = readLedgerCounter(paths);
+  if (cached !== undefined && cached.bytes === liveBytes) return cached.count;
+  const count = readFileSync(paths.ledger, "utf8").split("\n").filter((l) => l.trim().length > 0).length;
+  writeLedgerCounter(paths, { count, bytes: liveBytes });
+  return count;
+}
+
+/** Append one serialised event line, creating design/ if needed, and advance the
+ *  persisted counter by exactly one (self-healing via `ledgerLineCount` when it does not
+ *  exist yet, or is stale — see MAJOR8 above). */
 export function appendEvent(paths: MemoryPaths, event: MemoryEvent): void {
+  const priorCount = ledgerLineCount(paths);
   mkdirSync(paths.dir, { recursive: true });
   appendFileSync(paths.ledger, serializeEvent(event) + "\n", "utf8");
+  writeLedgerCounter(paths, { count: priorCount + 1, bytes: statSync(paths.ledger).size });
 }
 
 export function readEvents(paths: MemoryPaths): MemoryEvent[] {

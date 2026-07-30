@@ -2700,15 +2700,25 @@
   }
   function retainCorrectionEvents(events, now, limit, maxAgeDays = RAW_RETENTION_DAYS) {
     const cutoff = now.getTime() - maxAgeDays * 864e5;
-    const protectedEvents = events.filter((event) => event.unresolved === true);
-    const candidates = events.filter((event) => event.unresolved !== true && Date.parse(event.timestamp) >= cutoff).sort(byTimeThenId);
-    const kept = candidates.slice(Math.max(0, candidates.length - Math.max(0, limit - protectedEvents.length)));
-    return [...new Map([...protectedEvents, ...kept].map((event) => [event.eventId, event])).values()].sort(byTimeThenId);
+    const unresolved = events.filter((event) => event.unresolved === true).sort(byTimeThenId);
+    const resolvedFresh = events.filter((event) => event.unresolved !== true && Date.parse(event.timestamp) >= cutoff).sort(byTimeThenId);
+    const overBudget = Math.max(0, resolvedFresh.length + unresolved.length - Math.max(0, limit));
+    const resolvedEvictCount = Math.min(overBudget, resolvedFresh.length);
+    const keptResolved = resolvedFresh.slice(resolvedEvictCount);
+    const stillOverBudget = overBudget - resolvedEvictCount;
+    const evictedUnresolved = stillOverBudget > 0 ? unresolved.slice(0, stillOverBudget) : [];
+    const keptUnresolved = stillOverBudget > 0 ? unresolved.slice(stillOverBudget) : unresolved;
+    const kept = [...new Map([...keptResolved, ...keptUnresolved].map((event) => [event.eventId, event])).values()].sort(byTimeThenId);
+    return { kept, evictedUnresolved };
   }
 
   // plugin/src/main/correction-edge-store.ts
   var NAMESPACE = "ease_design";
-  var KEY = "figma-corrections-v1";
+  var KEY_V1 = "figma-corrections-v1";
+  var MANIFEST_KEY = "figma-corrections-v2-manifest";
+  var CHUNK_PREFIX = "figma-corrections-v2-";
+  var CHUNK_BYTE_BUDGET = 64e3;
+  var FIGMA_ENTRY_BYTE_CAP = 1e5;
   var suppressedUntil = /* @__PURE__ */ new Map();
   var eventSequence = 0;
   function parseEvents(text) {
@@ -2720,13 +2730,97 @@
       return [];
     }
   }
+  function utf8ByteLength(str) {
+    let bytes = 0;
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      if (code < 128) bytes += 1;
+      else if (code < 2048) bytes += 2;
+      else if (code >= 55296 && code <= 56319) {
+        bytes += 4;
+        i += 1;
+      } else bytes += 3;
+    }
+    return bytes;
+  }
+  function chunkKey(i) {
+    return `${CHUNK_PREFIX}${i}`;
+  }
+  function readManifest() {
+    const raw = figma.root.getSharedPluginData(NAMESPACE, MANIFEST_KEY);
+    if (!raw) return void 0;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.v === 2 && typeof parsed.chunks === "number" && Number.isInteger(parsed.chunks) && parsed.chunks >= 0) {
+        const evictedUnresolved = typeof parsed.evictedUnresolved === "number" && Number.isInteger(parsed.evictedUnresolved) && parsed.evictedUnresolved >= 0 ? parsed.evictedUnresolved : 0;
+        return { v: 2, chunks: parsed.chunks, evictedUnresolved };
+      }
+      return void 0;
+    } catch {
+      return void 0;
+    }
+  }
+  function readEvictedUnresolvedCount() {
+    return readManifest()?.evictedUnresolved ?? 0;
+  }
+  function splitIntoChunks(events) {
+    const chunks = [];
+    let current = [];
+    let currentBytes = 2;
+    for (const event of events) {
+      const eventBytes = utf8ByteLength(JSON.stringify(event));
+      const commaBeforeAdd = current.length > 0 ? 1 : 0;
+      if (current.length > 0 && currentBytes + commaBeforeAdd + eventBytes > CHUNK_BYTE_BUDGET) {
+        chunks.push(JSON.stringify(current));
+        current = [];
+        currentBytes = 2;
+      }
+      const comma = current.length > 0 ? 1 : 0;
+      current.push(event);
+      currentBytes += comma + eventBytes;
+    }
+    if (current.length > 0) chunks.push(JSON.stringify(current));
+    return chunks;
+  }
+  function readChunked(manifest) {
+    const events = [];
+    for (let i = 0; i < manifest.chunks; i++) {
+      events.push(...parseEvents(figma.root.getSharedPluginData(NAMESPACE, chunkKey(i))));
+    }
+    return events;
+  }
+  function clearChunkRange(startInclusive, endExclusive) {
+    for (let i = startInclusive; i < endExclusive; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey(i), "");
+  }
   function readEdgeCorrections() {
-    return parseEvents(figma.root.getSharedPluginData(NAMESPACE, KEY));
+    const manifest = readManifest();
+    if (manifest !== void 0) return readChunked(manifest);
+    return parseEvents(figma.root.getSharedPluginData(NAMESPACE, KEY_V1));
   }
   function writeEdgeCorrections(events) {
-    const retained = retainCorrectionEvents(events, /* @__PURE__ */ new Date(), EDGE_RAW_LIMIT);
-    figma.root.setSharedPluginData(NAMESPACE, KEY, JSON.stringify(retained));
-    return retained;
+    const priorManifest = readManifest();
+    let { kept, evictedUnresolved } = retainCorrectionEvents(events, /* @__PURE__ */ new Date(), EDGE_RAW_LIMIT);
+    let chunks = splitIntoChunks(kept);
+    let byteCapEvictedUnresolved = 0;
+    while (kept.length > 0 && chunks.some((c) => utf8ByteLength(c) > FIGMA_ENTRY_BYTE_CAP)) {
+      if (kept[0].unresolved === true) byteCapEvictedUnresolved += 1;
+      kept = kept.slice(1);
+      chunks = splitIntoChunks(kept);
+    }
+    for (let i = 0; i < chunks.length; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey(i), chunks[i]);
+    if (priorManifest !== void 0 && priorManifest.chunks > chunks.length) {
+      clearChunkRange(chunks.length, priorManifest.chunks);
+    }
+    const totalEvictedUnresolved = (priorManifest?.evictedUnresolved ?? 0) + evictedUnresolved.length + byteCapEvictedUnresolved;
+    figma.root.setSharedPluginData(
+      NAMESPACE,
+      MANIFEST_KEY,
+      JSON.stringify({ v: 2, chunks: chunks.length, evictedUnresolved: totalEvictedUnresolved })
+    );
+    if (figma.root.getSharedPluginData(NAMESPACE, KEY_V1) !== "") {
+      figma.root.setSharedPluginData(NAMESPACE, KEY_V1, "");
+    }
+    return kept;
   }
   function eventId(prefix, nodeId) {
     eventSequence += 1;
@@ -3064,8 +3158,12 @@
         return opSetText(params);
       case "CLONE_TRAITS":
         return opCloneTraits(params);
+      // Stage-4 MAJOR7 — `evictedUnresolved` surfaces the edge cache's own eviction count
+      // (never a panel UI, just an audit signal `sync-corrections` reports on) so an event
+      // dropped here before it was ever synced project-side leaves at least a count, not
+      // zero trace.
       case "GET_CORRECTION_MEMORY":
-        return { events: readEdgeCorrections() };
+        return { events: readEdgeCorrections(), evictedUnresolved: readEvictedUnresolvedCount() };
       case "SET_CORRECTION_MEMORY": {
         const events = params.events;
         if (!Array.isArray(events)) throw withCode(new Error("SET_CORRECTION_MEMORY requires events[]"), "E_INVALID_ARGS");

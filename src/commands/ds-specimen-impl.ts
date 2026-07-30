@@ -11,6 +11,7 @@ import { resolve, join } from "node:path";
 import { errJson, errText, ok, okJsonWithExit } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { checkSpecimen } from "../core/specimen-check.js";
+import { registryFileForDir } from "../core/design-system.js";
 import type { SpecimenComponent } from "../core/specimen-check.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
@@ -27,7 +28,9 @@ export function runSpecimen(parsed: ParsedArgs): CommandResult {
 
   const dirFlag = parsed.flags["dir"];
   const designDir = join(typeof dirFlag === "string" ? resolve(dirFlag) : process.cwd(), "design");
-  const regPath = join(designDir, "component-registry.json");
+  // Stage-4 N6 — shared resolver, so this agrees with figma reconcile/ds init/ds docs on
+  // which file is "the registry" when a foreign artifact occupies the default name.
+  const regPath = registryFileForDir(designDir).path;
   if (!existsSync(regPath)) return err("DS_NOT_FOUND", `no component-registry.json under '${designDir}' — run 'ui ds init' or 'ui ingest-figma-ds' first`);
 
   let components: SpecimenComponent[];

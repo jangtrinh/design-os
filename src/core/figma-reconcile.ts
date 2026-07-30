@@ -131,6 +131,23 @@ export class ReconcileError extends Error {
 // ─── Change-log parse ─────────────────────────────────────────────────────────
 
 /**
+ * Parse ONE change-log line into a validated frame. Extracted from `parseChangeLog`
+ * (registry-integrity phase 04, §1) so the streamed reader (`change-log-stream.ts`) shares
+ * the EXACT same per-line validation as the whole-file parse — streaming changes *when*
+ * lines are read, never *whether* they are validated. `lineNumber` is 1-based, used only
+ * in the thrown error's message.
+ */
+export function parseChangeLogLine(line: string, lineNumber: number): ChangeFrame {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(line);
+  } catch {
+    throw new ReconcileError("BAD_CHANGE_LOG", `change-log line ${lineNumber} is not valid JSON`);
+  }
+  return validateFrame(parsed, lineNumber);
+}
+
+/**
  * Parse the WHOLE change-log into validated frames. Any malformed line (bad JSON,
  * missing field, wrong `v`) throws BAD_CHANGE_LOG — an append-only ledger the broker
  * owns should never be corrupt, so a single bad line fails the reconcile loudly
@@ -142,13 +159,7 @@ export function parseChangeLog(raw: string): ChangeFrame[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (line === undefined || line.trim().length === 0) continue;
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(line);
-    } catch {
-      throw new ReconcileError("BAD_CHANGE_LOG", `change-log line ${i + 1} is not valid JSON`);
-    }
-    frames.push(validateFrame(parsed, i + 1));
+    frames.push(parseChangeLogLine(line, i + 1));
   }
   return frames;
 }
@@ -347,10 +358,41 @@ export function computePreviewDelta(
   const deprecated: DeltaEntry[] = [];
   const unresolved: UnresolvedEntry[] = [];
 
+  // Registry-integrity phase 03 fix round (F4) — an UNFILTERED run's `components` may span
+  // more than one file (that is the whole point of the escape hatch), so two coalesced
+  // targets from DIFFERENT files can resolve to the SAME registry name. The apply layer
+  // keys its Map by name alone, so letting both through would resolve via silent
+  // last-write-wins; route every colliding target to `unresolved` with a named reason
+  // instead — `--file-slug` is the deliberate way to apply one of them at a time.
+  //
+  // Scoped to a genuine CROSS-FILE collision (>1 DISTINCT fileSlug sharing the name), not
+  // merely >1 coalesced entries sharing it: a delete-then-recreate of the same name within
+  // ONE file (two different nodeIds, one file) is an ordinary, legitimate lifecycle
+  // sequence within a single batch — not an ambiguity to route away.
+  const targetsByName = new Map<string, CoalescedComponent[]>();
+  for (const c of components) {
+    if (c.nodeName === null || c.nodeName.length === 0) continue;
+    const list = targetsByName.get(c.nodeName);
+    if (list !== undefined) list.push(c);
+    else targetsByName.set(c.nodeName, [c]);
+  }
+  const colliding = new Set<CoalescedComponent>();
+  for (const list of targetsByName.values()) {
+    const distinctFiles = new Set(list.map((c) => c.fileSlug));
+    if (distinctFiles.size > 1) for (const c of list) colliding.add(c);
+  }
+
   for (const c of components) {
     const name = c.nodeName;
     if (name === null || name.length === 0) {
       unresolved.push({ nodeId: c.nodeId, op: c.op, reason: "no resolvable component name (DELETE lost identity)" });
+      continue;
+    }
+    if (colliding.has(c)) {
+      unresolved.push({
+        nodeId: c.nodeId, op: c.op,
+        reason: `name collision: '${name}' resolves to more than one target in this batch (likely two different files sharing a name) — apply with --file-slug to resolve one at a time`,
+      });
       continue;
     }
     const prior = existing.get(name);

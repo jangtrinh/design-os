@@ -24,12 +24,12 @@ import {
   listComponents,
   statesToVariants,
 } from "../core/registry-store.js";
-import { pathsForDir } from "../core/design-system.js";
+import { pathsForDir, registryFileForDir } from "../core/design-system.js";
 import { reseal, loadDesignSystemForReseal } from "../core/ds-reseal.js";
 import { assertTokensExist } from "../core/registry-token-check.js";
 
 const CMD = "registry";
-const DEFAULT_REGISTRY_PATH = "./design/component-registry.json";
+const DEFAULT_REGISTRY_DIR = "./design";
 
 export const REGISTRY_HELP = `ui registry — component registry store
 
@@ -78,14 +78,24 @@ Notes:
   - register auto-creates the registry file if it does not exist.
   - Components are sorted by name on every write (deterministic output).
   - Concurrent invocations are not protected against races (single-shot CLI).
+  - If design/component-registry.json exists but is a FOREIGN file (not this kernel's
+    shape), the default path resolves to design/figma-component-registry.json instead —
+    the foreign file is never read or overwritten. --file always overrides this.
 `;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Stage-4 N6 — an explicit `--file` always wins outright (an explicit user path is never
+ * second-guessed by the foreign-registry resolver); with no flag, delegate to the shared
+ * `registryFileForDir` (design-system.ts) so this command agrees with every other consumer
+ * (figma reconcile, ds init, ds diff/docs/specimen) on which file is "the registry" for a
+ * given project — never a second, independently-resolved path.
+ */
 function resolveRegistryPath(parsed: ParsedArgs): string {
   const f = parsed.flags["file"];
-  const raw = typeof f === "string" ? f : DEFAULT_REGISTRY_PATH;
-  return resolve(raw);
+  if (typeof f === "string") return resolve(f);
+  return registryFileForDir(resolve(DEFAULT_REGISTRY_DIR)).path;
 }
 
 function flagString(parsed: ParsedArgs, key: string): string | undefined {
@@ -193,7 +203,13 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   // Save — reseal on a sealed DS, else the plain unsealed write (spec 009 P1). DS present ->
   // tokensUsed must also resolve in its compiled tree, not just match the format regex
   // (spec 009 P4 owner-correction — BAD_TOKEN was format-only; see registry-token-check.ts).
-  const dsPaths = pathsForDir(dirname(registryPath));
+  // Stage-4 N6 — an explicit --file must win here too: override `dsPaths.registry` with the
+  // exact requested path rather than letting pathsForDir re-derive (possibly different) one,
+  // so reseal never hashes a different file than the one --file pointed to.
+  const explicitFile = flagString(parsed, "file");
+  const dsPaths = explicitFile !== undefined
+    ? { ...pathsForDir(dirname(registryPath)), registry: registryPath }
+    : pathsForDir(dirname(registryPath));
   try {
     const ds = loadDesignSystemForReseal(dsPaths);
     assertTokensExist(record.tokensUsed, ds?.tokens);

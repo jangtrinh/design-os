@@ -19,6 +19,7 @@ import {
   type ChangeFrame,
   type ComponentChange,
 } from '../../../shared/figma-changes.ts';
+import { rotateIfNeeded } from './log-rotate.ts';
 
 export const CHANGE_LOG_FILENAME = 'figma.changes.jsonl';
 
@@ -181,10 +182,15 @@ export function changeLogLineCount(path: string): number {
 /**
  * Append one ChangeFrame line, creating the design/ dir if needed. Kept separate
  * from the batch helper so a caller can stream frames without re-resolving paths.
+ *
+ * Registry-integrity phase 04 (5.4), §2 — rotation runs AFTER the append, on the broker's
+ * own write path (no daemon timer): the freshly-appended line is what typically pushes
+ * the file over `maxBytes`, so checking post-write catches it the moment it happens.
  */
 export function appendChangeFrame(path: string, frame: ChangeFrame): void {
   mkdirSync(resolveDir(path), { recursive: true });
   appendFileSync(path, JSON.stringify(frame) + '\n', 'utf8');
+  rotateIfNeeded(path);
 }
 
 /**

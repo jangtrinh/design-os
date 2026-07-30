@@ -37,7 +37,12 @@ function writeTokens(dir: string, tree: unknown): string {
 }
 function writeRegistry(dir: string, components: unknown[]): string {
   const p = join(dir, "component-registry.json");
-  writeFileSync(p, JSON.stringify({ components }), "utf8");
+  // Stage-4 N6 — a real kernel registry (what `git show REF:design/component-registry.json`
+  // actually extracts in production) always carries `version`; without it the shared
+  // resolver correctly treats the file as foreign and routes around it. Keep this fixture
+  // faithful to a real kernel registry rather than the looser shape ds-diff's own parser
+  // would tolerate on its own.
+  writeFileSync(p, JSON.stringify({ version: "0.1.0", components }), "utf8");
   return p;
 }
 
@@ -163,9 +168,25 @@ describe("ui ds diff — error paths", () => {
     expect(envelope.error.code).toBe("BAD_JSON");
   });
 
-  it("bad JSON in component-registry.json → BAD_JSON", () => {
+  // Stage-4 N6 trade-off: the shared foreign-registry resolver's shallow check can't tell
+  // "corrupt JSON" from "foreign shape" apart (both fail the same parse/shape test) — by
+  // design, so a write-consumer (figma reconcile, registry register) redirects to the
+  // alt path rather than crashing on either. For this READ-ONLY comparison, that means a
+  // component-registry.json that fails to parse at all is now treated the same as no
+  // registry present (silently skipped, not surfaced as BAD_JSON) — never a data-loss risk
+  // here (ds diff writes nothing), but a real drop in error granularity for a corrupt file
+  // specifically. Flagged in the N6 report; kept as-is to match the ruling's shared check.
+  it("bad (unparseable) JSON at the default registry name is treated as absent, not BAD_JSON", () => {
     writeTokens(base, BASE_TOKENS);
     writeFileSync(join(base, "component-registry.json"), "{not valid json", "utf8");
+    writeTokens(head, BASE_TOKENS);
+    const r = capture(["ds", "diff", base, head, "--json"]);
+    expect(r.code).toBe(0);
+  });
+
+  it("bad JSON at an EXPLICIT alt-path registry still surfaces BAD_JSON (resolver only guards the default name)", () => {
+    writeTokens(base, BASE_TOKENS);
+    writeFileSync(join(base, "figma-component-registry.json"), "{not valid json", "utf8");
     writeTokens(head, BASE_TOKENS);
     const r = capture(["ds", "diff", base, head, "--json"]);
     expect(r.code).toBe(1);
@@ -197,5 +218,35 @@ describe("ui ds diff — error paths", () => {
     expect(r.code).toBe(1);
     const envelope = JSON.parse(r.out) as { error: { code: string } };
     expect(envelope.error.code).toBe("BAD_ARG");
+  });
+});
+
+// ─── Stage-4 N6 — foreign registry file at the default path ────────────────────────────
+
+describe("ui ds diff — foreign registry file (Stage-4 N6)", () => {
+  it("a foreign component-registry.json is never read — treated as no components, not BAD_JSON", () => {
+    writeTokens(base, BASE_TOKENS);
+    writeTokens(head, BASE_TOKENS);
+    // A foreign artifact (no 'components' array) at the default name in `head`.
+    writeFileSync(join(head, "component-registry.json"), JSON.stringify({ generatedFrom: "apps/web/src" }), "utf8");
+    const r = capture(["ds", "diff", base, head, "--json"]);
+    // No crash on the foreign shape — the resolver routed past it entirely (same as no
+    // registry present at all), agreeing with figma reconcile/ds docs/ds specimen.
+    expect(r.code).toBe(0);
+  });
+
+  it("agrees with `ui registry` on the alternate path when the default name is foreign", () => {
+    writeTokens(head, BASE_TOKENS);
+    writeFileSync(join(head, "component-registry.json"), JSON.stringify({ generatedFrom: "apps/web/src" }), "utf8");
+    const altPath = join(head, "figma-component-registry.json");
+    writeFileSync(altPath, JSON.stringify({ version: "0.1.0", components: [{ name: "Button", category: "action", tokensUsed: [] }] }), "utf8");
+    writeTokens(base, BASE_TOKENS);
+    const r = capture(["ds", "diff", base, head, "--json"]);
+    expect(r.code).toBe(0);
+    // If `ds diff` had bypassed the resolver, the additive "Button" component (present only
+    // at the alt path) would be invisible; it's present, so it read the SAME file `ui
+    // registry --file <altPath>` would agree on.
+    const envelope = JSON.parse(r.out) as { data: { classification: string } };
+    expect(envelope.data.classification).toBe("additive");
   });
 });

@@ -68,7 +68,7 @@ describe("figmaNodeRelPath", () => {
   // Registry-integrity phase 03 (5.2), §3 — the file slug kills a cross-file name collision.
   describe("with fileSlug (additive — kills a cross-file name collision)", () => {
     it("nests under components/<file-slug>/ instead of the flat layout", () => {
-      expect(figmaNodeRelPath("Button/Primary", "fileA")).toBe("components/filea/button-primary.figma.json");
+      expect(figmaNodeRelPath("Button/Primary", "fileA")).toBe("components/fileA/button-primary.figma.json");
     });
 
     it("two files' SAME name never collide on disk", () => {
@@ -77,16 +77,46 @@ describe("figmaNodeRelPath", () => {
       expect(a).not.toBe(b);
     });
 
-    it("the fileSlug segment is itself sanitized (defense in depth, not trusted verbatim)", () => {
-      expect(figmaNodeRelPath("Button/Primary", "File With Spaces!")).toBe(
-        "components/file-with-spaces/button-primary.figma.json",
-      );
+    // Registry-integrity phase 03 fix round (F5) — a safe (`[A-Za-z0-9_-]+`) fileSlug
+    // must pass through CASE-PRESERVING: two real Figma file identities differing only by
+    // case ("fileA" vs "filea") are DISTINCT and must never be lowercased onto the same
+    // directory — the exact collision this finding exists to close.
+    it("a safe fileSlug is never lowercased — case-differing slugs stay distinct", () => {
+      const upper = figmaNodeRelPath("Button/Primary", "fileA");
+      const lower = figmaNodeRelPath("Button/Primary", "filea");
+      expect(upper).toBe("components/fileA/button-primary.figma.json");
+      expect(lower).toBe("components/filea/button-primary.figma.json");
+      expect(upper).not.toBe(lower);
+    });
+
+    it("the fileSlug segment is itself sanitized (defense in depth, not trusted verbatim) — safe form + short hash, never a lossy lowercase", () => {
+      const relPath = figmaNodeRelPath("Button/Primary", "File With Spaces!");
+      // Stage-4 MINOR13 — `--` (double dash) separates the safe form from the hash,
+      // reserved so the hashed namespace can never collide with a safe-passthrough one.
+      expect(relPath).toMatch(/^components\/file-with-spaces--[0-9a-f]{8}\/button-primary\.figma\.json$/);
+      // deterministic — the same raw slug always derives the same hashed directory
+      expect(figmaNodeRelPath("Button/Primary", "File With Spaces!")).toBe(relPath);
+      // round-trips distinctly from a DIFFERENT unsafe slug that strips to the same safe form
+      const other = figmaNodeRelPath("Button/Primary", "File With Spaces?");
+      expect(other).not.toBe(relPath);
+    });
+
+    // Stage-4 MINOR13 — a SAFE slug that happens to already contain the reserved `--`
+    // marker must route through the hash path too, so a passthrough segment NEVER
+    // contains `--` and a hashed one ALWAYS does — the two namespaces stay disjoint.
+    it("a safe slug containing the reserved `--` marker is routed through the hash path, not passed through raw", () => {
+      const relPath = figmaNodeRelPath("Button/Primary", "my--file");
+      expect(relPath).not.toBe("components/my--file/button-primary.figma.json");
+      // `toSafeFilename` collapses the "--" run to a single dash ("my-file"), so the
+      // hashed form is `my-file--<hash>` — still unambiguously distinguishable (via the
+      // reserved `--` before the hash) from any safe-passthrough segment.
+      expect(relPath).toMatch(/^components\/my-file--[0-9a-f]{8}\/button-primary\.figma\.json$/);
     });
 
     it("still produces a pointer the registry validator accepts", async () => {
       const { validateFigmaNodePointer } = await import("../src/core/registry-store.js");
       expect(validateFigmaNodePointer(figmaNodeRelPath("Button/Primary", "fileA"))).toBe(
-        "components/filea/button-primary.figma.json",
+        "components/fileA/button-primary.figma.json",
       );
     });
   });
@@ -138,8 +168,8 @@ describe("writeFigmaNode → readFigmaNode round-trip", () => {
     const node = sampleNode();
     const res = writeFigmaNode(dir, "Button/Primary", node, "fileA");
     expect(res.written).toBe(true);
-    expect(res.relPath).toBe("components/filea/button-primary.figma.json");
-    expect(statSync(join(dir, "components", "filea")).isDirectory()).toBe(true);
+    expect(res.relPath).toBe("components/fileA/button-primary.figma.json");
+    expect(statSync(join(dir, "components", "fileA")).isDirectory()).toBe(true);
     expect(readFigmaNode(dir, res.relPath)).toEqual(node);
   });
 

@@ -10,7 +10,7 @@ import { dirname, resolve } from "node:path";
 
 import { parseTokenFile } from "./token-model.js";
 import { resolveTokens } from "./token-resolve.js";
-import { loadRegistry } from "./registry-store.js";
+import { loadRegistry, looksLikeKernelRegistryRoot } from "./registry-store.js";
 import { loadManifest, canonicalHash, DSManifestError } from "./ds-manifest.js";
 import type { DSManifest } from "./ds-manifest.js";
 import type { TokenTree, ResolvedMap } from "./token-model.js";
@@ -21,8 +21,12 @@ import type { Registry } from "./registry-store.js";
 export interface DesignSystemPaths {
   dir: string;       // absolute resolved design/ directory
   tokens: string;    // <dir>/design.tokens.json
-  registry: string;  // <dir>/component-registry.json
+  registry: string;  // <dir>/component-registry.json OR figma-component-registry.json (N6)
   manifest: string;  // <dir>/ds.manifest.json
+  /** Stage-4 N6 — true only when a FOREIGN (non-kernel-shaped) file occupies the default
+   *  `component-registry.json` name and the kernel is using the alternate path instead.
+   *  Never true for a fresh project or one whose registry already validates. */
+  foreignRegistryAtDefaultPath: boolean;
 }
 
 export interface DesignSystem {
@@ -46,14 +50,53 @@ export class DSError extends Error {
 
 // ─── Path helpers ─────────────────────────────────────────────────────────────
 
+/** Stage-4 N6 — the kernel's OWN registry filename when the conventional
+ *  `component-registry.json` name is occupied by a foreign artifact. */
+const KERNEL_REGISTRY_ALT_FILENAME = "figma-component-registry.json";
+
+/**
+ * Stage-4 N6 — resolve the ACTUAL registry file for an absolute `design/`-equivalent
+ * `dir`, respecting a foreign artifact that may already occupy the conventional
+ * `component-registry.json` name (e.g. a project's own generated component registry,
+ * totally unrelated to this kernel — reproduced live: a React codegen registry with no
+ * `version` field at all). This is THE shared resolver every consumer of the registry
+ * path routes through (figma-reconcile-run.ts, `ui registry`, `ds init`,
+ * `ingest-figma-ds`, `ds diff`/`docs`/`specimen` via `pathsForDir` below) — a
+ * half-converted consumer would recreate exactly the split-brain this whole wave exists
+ * to kill (one command silently writing/reading a different file than another).
+ *
+ * Branches, in order:
+ *   1. `<dir>/figma-component-registry.json` exists → that IS the kernel registry
+ *      (read+write) — once created, it always wins, regardless of the default path.
+ *   2. Else `<dir>/component-registry.json` exists AND looks kernel-shaped (the SAME
+ *      shallow check `loadRegistry` itself validates against) → use it — every existing
+ *      kernel-format project is completely unaffected.
+ *   3. Else `<dir>/component-registry.json` exists but is FOREIGN (fails that shallow
+ *      check) → the kernel uses the alternate path (created on first write), NEVER
+ *      touching the foreign file — `foreignRegistryAtDefaultPath: true` flags the
+ *      divergence so callers can surface it, never silently.
+ *   4. Else (neither exists) → the default path, unchanged behavior for a fresh project.
+ */
+export function registryFileForDir(dir: string): { path: string; foreignRegistryAtDefaultPath: boolean } {
+  const absDir = resolve(dir);
+  const altPath = resolve(absDir, KERNEL_REGISTRY_ALT_FILENAME);
+  const defaultPath = resolve(absDir, "component-registry.json");
+  if (existsSync(altPath)) return { path: altPath, foreignRegistryAtDefaultPath: false };
+  if (!existsSync(defaultPath)) return { path: defaultPath, foreignRegistryAtDefaultPath: false };
+  if (looksLikeKernelRegistryRoot(defaultPath)) return { path: defaultPath, foreignRegistryAtDefaultPath: false };
+  return { path: altPath, foreignRegistryAtDefaultPath: true };
+}
+
 /** Build the three artifact paths from an absolute design/ directory. */
 export function pathsForDir(dir: string): DesignSystemPaths {
   const absDir = resolve(dir);
+  const { path: registryPath, foreignRegistryAtDefaultPath } = registryFileForDir(absDir);
   return {
     dir: absDir,
     tokens:   resolve(absDir, "design.tokens.json"),
-    registry: resolve(absDir, "component-registry.json"),
+    registry: registryPath,
     manifest: resolve(absDir, "ds.manifest.json"),
+    foreignRegistryAtDefaultPath,
   };
 }
 

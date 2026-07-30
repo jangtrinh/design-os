@@ -8,7 +8,8 @@
  */
 import { describe, expect, it, beforeEach } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
 import { coalesceFrames, computePreviewDelta } from "../src/core/figma-reconcile.js";
@@ -19,6 +20,8 @@ import { createEmptyRegistry, type ComponentRecord, type Registry } from "../src
 import { pathsForDir, loadDesignSystem } from "../src/core/design-system.js";
 
 const PERSONA_DATA = new URL("../knowledge/personas/personas.json", import.meta.url).pathname;
+const HERE = dirname(fileURLToPath(import.meta.url));
+const MARKUP_FIXTURE = join(HERE, "fixtures", "registry-markup.html");
 
 // ─── fixture builders ──────────────────────────────────────────────────────────
 
@@ -124,6 +127,36 @@ describe("figma-apply — applyDelta", () => {
       viewOf(del),
     )).registry;
     expect(back.components[0]!.deprecated).toBeUndefined(); // replayed re-touch un-deprecates
+  });
+
+  // Registry-integrity phase 03 fix round (F4) — an unfiltered run's log can carry frames
+  // from two different files. If both resolve to the same registry name, the apply
+  // layer's name-keyed Map would silently let the SECOND one processed win — route both to
+  // `unresolved` instead.
+  it("F4: same name from two DIFFERENT files (unfiltered) → both route to unresolved, never last-write-wins", () => {
+    const reg = createEmptyRegistry();
+    const delta = deltaOf(reg, [
+      frame({ op: "created", nodeName: "Nav/Bar", nodeId: "1:1", fileKey: "fileA" }),
+      frame({ op: "created", nodeName: "Nav/Bar", nodeId: "1:2", fileKey: "fileB" }),
+    ]);
+    expect(delta.added).toEqual([]);
+    expect(delta.unresolved.length).toBe(2);
+    expect(delta.unresolved.map((u) => u.nodeId).sort()).toEqual(["1:1", "1:2"]);
+    for (const u of delta.unresolved) expect(u.reason).toMatch(/name collision/);
+
+    const { registry: next, report, changed } = applyDelta(reg, delta);
+    expect(changed).toBe(false);
+    expect(next.components.length).toBe(0); // neither silently materialized
+    expect(report.added).toEqual([]);
+  });
+
+  it("F4: same name, same file, delete-then-recreate (two nodeIds) is NOT a collision — ordinary lifecycle", () => {
+    const reg = registry([rec({ name: "Nav/Bar" })]);
+    const delta = deltaOf(reg, [
+      frame({ ts: 1, op: "deleted", nodeName: "Nav/Bar", nodeId: "n", fileKey: "fileA" }),
+      frame({ ts: 2, op: "updated", nodeName: "Nav/Bar", nodeId: "n2", scopeHint: "global", origin: "REMOTE", fileKey: "fileA" }),
+    ]);
+    expect(delta.unresolved).toEqual([]); // same file — a legitimate rename/recreate, not ambiguous
   });
 });
 
@@ -276,5 +309,75 @@ describe("ui figma reconcile --apply — sealed DS integration (spec 009 P1)", (
     const applyResult = capture(["figma", "reconcile", "--dir", tmp, "--apply", "--json"]);
     expect(applyResult.code).toBe(0);
     expect(JSON.parse(applyResult.out).data.apply.deprecated).toEqual(["Card/Basic"]);
+  });
+});
+
+// ─── Stage-4 N6 — foreign registry file at the default path ────────────────────────────
+
+describe("ui figma reconcile --apply — foreign registry file (Stage-4 N6)", () => {
+  const FOREIGN_REGISTRY = JSON.stringify({
+    generatedFrom: "apps/web/src",
+    tiers: ["kit", "shared", "route"],
+  }) + "\n";
+
+  it("writes the alternate path, never touching the foreign file (byte-identical)", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-fig-apply-foreign-"));
+    mkdirSync(join(tmp, "design"), { recursive: true });
+    const foreignPath = join(tmp, "design", "component-registry.json");
+    writeFileSync(foreignPath, FOREIGN_REGISTRY, "utf8");
+    writeFileSync(
+      join(tmp, "design", "figma.changes.jsonl"),
+      jsonl([frame({ op: "created", nodeName: "Badge/New", nodeId: "n" })]),
+      "utf8",
+    );
+
+    const applyResult = capture(["figma", "reconcile", "--dir", tmp, "--apply", "--json"]);
+    expect(applyResult.code).toBe(0);
+    const env = JSON.parse(applyResult.out);
+    const altPath = join(tmp, "design", "figma-component-registry.json");
+    expect(env.data.foreign_registry_at_default_path).toBe(true);
+    expect(env.data.registry_path).toBe(altPath);
+
+    // The foreign file is untouched — byte-identical to what was written before apply.
+    expect(readFileSync(foreignPath, "utf8")).toBe(FOREIGN_REGISTRY);
+  });
+
+  it("one path, every consumer: figma reconcile mutates it, ds docs + ds specimen read the same file back", () => {
+    // Steady state on a foreign-file project: the FIRST apply already redirected to the
+    // alt path (proven by the test above); this covers every apply AFTER that — the
+    // foreign default keeps sitting there untouched while every consumer keeps agreeing
+    // on the alt path.
+    const tmp = mkdtempSync(join(tmpdir(), "ease-fig-apply-foreign-multi-"));
+    mkdirSync(join(tmp, "design"), { recursive: true });
+    const foreignPath = join(tmp, "design", "component-registry.json");
+    writeFileSync(foreignPath, FOREIGN_REGISTRY, "utf8");
+    const altPath = join(tmp, "design", "figma-component-registry.json");
+    capture([
+      "registry", "register", "Badge/New",
+      "--category", "badge", "--markup", MARKUP_FIXTURE, "--file", altPath,
+    ]);
+
+    // A DELETE of that already-registered name is a real mutation (soft-deprecate),
+    // landing back on the same alt path the registry command just wrote to.
+    writeFileSync(
+      join(tmp, "design", "figma.changes.jsonl"),
+      jsonl([frame({ op: "deleted", nodeName: "Badge/New", nodeId: "n" })]),
+      "utf8",
+    );
+    const applyResult = capture(["figma", "reconcile", "--dir", tmp, "--apply", "--json"]);
+    expect(applyResult.code).toBe(0);
+    expect(JSON.parse(applyResult.out).data.apply.deprecated).toEqual(["Badge/New"]);
+    expect(JSON.parse(readFileSync(altPath, "utf8")).components[0].deprecated).toBe(true);
+
+    const docs = capture(["ds", "docs", "--dir", tmp, "--json"]);
+    expect(docs.code).toBe(0);
+    expect(JSON.parse(docs.out).data.componentCount).toBe(1);
+
+    const specimen = capture(["ds", "specimen", "--dir", tmp, "--json"]);
+    expect(specimen.code).toBe(0);
+    expect(JSON.parse(specimen.out).data.total).toBe(1);
+
+    // The foreign default file was never touched by any of the three commands above.
+    expect(readFileSync(foreignPath, "utf8")).toBe(FOREIGN_REGISTRY);
   });
 });

@@ -25,6 +25,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import { saveRegistry } from "../core/registry-store.js";
+import { registryFileForDir } from "../core/design-system.js";
 import { parseDsFile, ingestDesignSystem, DsIngestError } from "../core/figma-ds-ingest.js";
 import {
   buildEvent,
@@ -164,7 +165,11 @@ function runIngest(parsed: ParsedArgs): CommandResult {
   // 5. Write the portable stores
   const { outDir } = result;
   const tokensPath = join(outDir, "tokens.json");
-  const registryPath = join(outDir, "component-registry.json");
+  // Stage-4 N6 — route through the shared resolver so a foreign artifact (e.g. a project's
+  // own generated component registry) already occupying `component-registry.json` is never
+  // overwritten; the kernel writes `figma-component-registry.json` instead. Every other
+  // registry consumer (figma reconcile, ds diff/docs/specimen) resolves the same way.
+  const { path: registryPath, foreignRegistryAtDefaultPath } = registryFileForDir(outDir);
   const designMdPath = join(outDir, "DESIGN.md");
   try {
     mkdirSync(outDir, { recursive: true });
@@ -190,6 +195,7 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     icons: result.icons.count,
     screens: result.screens.length,
     memorySeeded: parsed.flags["seed-memory"] === true,
+    ...(foreignRegistryAtDefaultPath && { foreignRegistryAtDefaultPath }),
   };
   if (useJson) return okJson(CMD, data);
   const classifiedNote = [
@@ -202,6 +208,9 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     `  component-registry.json ${result.componentNames.length} components${classifiedNote.length > 0 ? ` (${classifiedNote.join(" · ")} classified out)` : ""}`,
     `  DESIGN.md              ${result.counts.styles} styles documented`,
     ...(data.memorySeeded ? ["  design/memory.events.jsonl  seeded"] : []),
+    ...(foreignRegistryAtDefaultPath
+      ? [`  ! component-registry.json is a FOREIGN file — wrote ${registryPath} instead`]
+      : []),
   ];
   return { exitCode: 0, stdout: lines.join("\n") + "\n" };
 }
