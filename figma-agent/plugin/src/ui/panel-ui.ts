@@ -96,9 +96,10 @@ function renderContext(): void {
   ctxSelection.textContent = selectionText();
 }
 
-/** "Nothing selected" / "Hero card" / "Hero card +2 more". Never fabricates a name. */
+/** "None" / "Hero card" / "Hero card +2 more". Never fabricates a name. The <dt>
+ *  "Selection" label already frames this — "None" reads as "Selection: None". */
 function selectionText(): string {
-  if (selectionCount <= 0) return 'Nothing selected';
+  if (selectionCount <= 0) return 'None';
   const first = selectionName ?? '(unnamed)';
   return selectionCount > 1 ? `${first} +${selectionCount - 1} more` : first;
 }

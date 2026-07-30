@@ -78,9 +78,12 @@ export function fileNote(count: number, isActiveTarget: boolean): string {
   if (count <= 1) return isActiveTarget ? 'command target' : ''; // count<=1 && !isActiveTarget cannot happen today
   const others = count - 1;
   const files = others === 1 ? 'file' : 'files';
+  // Wording pass (owner directive 2026-07-30): "connected" is redundant here — the whole
+  // Context block only ever shows OTHER connected files — and "commands go to another
+  // file" trims to "elsewhere" without losing the honest claim.
   return isActiveTarget
-    ? `command target · ${others} other ${files} connected`
-    : `${others} other ${files} connected — commands go to another file`;
+    ? `command target · ${others} other ${files}`
+    : `${others} other ${files} — commands go elsewhere`;
 }
 
 // ─── Idle-commit sync prompt (spec 004 P4) ────────────────────────────────────
@@ -122,7 +125,7 @@ export function syncResultLabel(ok: boolean, summary: string, landed = true, unb
  * stops lying about what that click will do until then.
  */
 export function syncNowLabel(unbound: boolean): string {
-  return unbound ? 'Bind, then retry' : 'Sync now';
+  return unbound ? 'Bind & retry' : 'Sync now';
 }
 
 /**
