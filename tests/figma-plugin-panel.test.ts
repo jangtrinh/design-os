@@ -164,7 +164,7 @@ const chrome = html
   .replace(/\/\*[\s\S]*?\*\//g, "");
 /** [selectorList, declarations] for every rule in the chrome. */
 const rules: [string, string][] = [...chrome.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-  .map((m) => [m[1].trim(), m[2]]);
+  .map((m): [string, string] => [(m[1] ?? "").trim(), m[2] ?? ""]);
 /** The declarations of the first rule whose selector list contains `sel`. */
 const declsFor = (sel: string): string =>
   rules.filter(([s]) => s.split(",").some((one) => one.trim() === sel)).map(([, d]) => d).join(";");
@@ -224,7 +224,7 @@ describe("figma-agent panel — system/Figma appearance (html.figma-light theme 
   const rootBlocks = [...html.matchAll(/:root\s*\{([\s\S]*?)\}/g)].map((m) => m[1]);
   const darkBlock = rootBlocks.at(-1) ?? "";
   const lightBlock = /html\.figma-light\s*\{([\s\S]*?)\}/.exec(html)?.[1] ?? "";
-  const tokensOf = (block: string): string[] => [...block.matchAll(/(--fga-[a-z0-9-]+)\s*:/g)].map((m) => m[1]);
+  const tokensOf = (block: string): string[] => [...block.matchAll(/(--fga-[a-z0-9-]+)\s*:/g)].map((m) => m[1] ?? "");
 
   it("declares the html.figma-light override block, after the dark skin block", () => {
     expect(lightBlock, "html.figma-light block must exist").not.toBe("");
@@ -261,7 +261,7 @@ describe("figma-agent panel — system/Figma appearance (html.figma-light theme 
 
 describe("figma-agent panel — typography contract (owner-locked)", () => {
   it("uses exactly one font family, through the single body var", () => {
-    const families = [...chrome.matchAll(/font-family:\s*([^;]+);/g)].map((m) => m[1].trim());
+    const families = [...chrome.matchAll(/font-family:\s*([^;]+);/g)].map((m) => (m[1] ?? "").trim());
     expect([...new Set(families)]).toEqual(["var(--font-family-body)"]);
   });
 
@@ -269,7 +269,7 @@ describe("figma-agent panel — typography contract (owner-locked)", () => {
     const skin = [...html.matchAll(/:root\s*\{([\s\S]*?)\}/g)].at(-1)?.[1] ?? "";
     const declared = [...skin.matchAll(/(--fga-font-[a-z]+)\s*:/g)].map((m) => m[1]).sort();
     expect(declared).toEqual(["--fga-font-body", "--fga-font-caption", "--fga-font-title"]);
-    const sizes = [...chrome.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1].trim());
+    const sizes = [...chrome.matchAll(/font-size:\s*([^;]+);/g)].map((m) => (m[1] ?? "").trim());
     const bad = sizes.filter((v) => !/^var\(--fga-font-(title|body|caption)\)$/.test(v));
     expect(bad, `font-size values outside the three tokens: ${bad.join(" | ")}`).toEqual([]);
   });
@@ -277,7 +277,7 @@ describe("figma-agent panel — typography contract (owner-locked)", () => {
   it("draws every mark as an SVG — no text glyphs in markup or CSS content", () => {
     const GLYPHS = /[✗✓⟳•✕×↻●○◆▪…]/u;
     expect(GLYPHS.test(chrome), "glyph in CSS/markup").toBe(false);
-    const contents = [...chrome.matchAll(/content:\s*(["'])(.*?)\1/g)].map((m) => m[2]);
+    const contents = [...chrome.matchAll(/content:\s*(["'])(.*?)\1/g)].map((m) => m[2] ?? "");
     expect(contents.filter((c) => c.trim() !== ""), "content: must stay decorative-empty").toEqual([]);
   });
 
@@ -403,7 +403,7 @@ describe("figma-agent panel — craft floor (phase 03)", () => {
     const offenders: string[] = [];
     for (const [sel, decls] of rules) {
       for (const m of decls.matchAll(/(?:^|;)\s*(padding|margin|gap|row-gap|column-gap|padding-block|padding-inline)\s*:\s*([^;]+)/g)) {
-        for (const part of m[2].trim().split(/\s+(?![^(]*\))/)) {
+        for (const part of (m[2] ?? "").trim().split(/\s+(?![^(]*\))/)) {
           if (ALLOWED.test(part)) continue;
           const px = /^(\d+)px$/.exec(part);
           if (px && Number(px[1]) % 4 === 0) continue;      // a literal multiple of 4 is fine
@@ -422,7 +422,7 @@ describe("figma-agent panel — craft floor (phase 03)", () => {
   // or this assertion would fail despite the class being live on every real activity row.
   it("sizes every icon on the 14px grid and every dot at 8px", () => {
     const sizesOf = (sel: string) => [...declsFor(sel).matchAll(/(?:width|height):\s*([^;]+)/g)]
-      .map((d) => d[1].trim());
+      .map((d) => (d[1] ?? "").trim());
     expect([...new Set(sizesOf(".fga-icon"))]).toEqual(["14px"]);
     expect([...new Set([...sizesOf(".status-dot"), ...sizesOf(".identity-dot")])]).toEqual(["8px"]);
     const iconApplied = /class="[^"]*\bfga-icon\b/.test(html)
@@ -504,10 +504,10 @@ describe("figma-agent panel — craft floor (phase 03)", () => {
       expect(html, `missing ${t}`).toContain(t);
     }
     const rawTrack = [...chrome.matchAll(/letter-spacing:\s*([^;]+)/g)]
-      .map((m) => m[1].trim()).filter((v) => !v.startsWith("var(--fga-track-"));
+      .map((m) => (m[1] ?? "").trim()).filter((v) => !v.startsWith("var(--fga-track-"));
     expect(rawTrack, `raw letter-spacing: ${rawTrack.join(" | ")}`).toEqual([]);
     const rawLh = [...chrome.matchAll(/(?:^|;)\s*line-height:\s*([^;]+)/g)]
-      .map((m) => m[1].trim()).filter((v) => !v.startsWith("var(--fga-lh-"));
+      .map((m) => (m[1] ?? "").trim()).filter((v) => !v.startsWith("var(--fga-lh-"));
     expect(rawLh, `raw line-height: ${rawLh.join(" | ")}`).toEqual([]);
   });
 });
