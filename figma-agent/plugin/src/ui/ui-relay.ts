@@ -51,16 +51,19 @@ const chunkBuffers = new Map<string, string[]>(); // requestId → chunk slices
 // carrying the outcome. Lives here (not in main) because the relay owns the request
 // lifecycle on the UI side — same place conn-state is emitted — and it sees both
 // halves: the CLI's intent label on the way in, and main's result on the way out.
-const activityStart = new Map<string, { cmd: CommandName; at: number }>();
+const activityStart = new Map<string, { cmd: CommandName; label?: string; at: number }>();
 
 function dispatchActivity(detail: Record<string, unknown>): void {
   try { window.dispatchEvent(new CustomEvent('figma-agent:activity', { detail })); } catch { /* no DOM event support */ }
 }
 
-/** Announce an arriving request, carrying the CLI's intent label when it sent one. */
+/** Announce an arriving request, carrying the CLI's intent label when it sent one. Also
+ *  the ONLY place `cmd`/`activity` are known client-side once a reply comes back — the
+ *  error-log writer (backlog 4.6) reads this same map to echo them onto a failed
+ *  request's outgoing ReplyErr, below. */
 function startActivity(req: RequestMsg): void {
   const at = Date.now();
-  activityStart.set(req.id, { cmd: req.cmd, at });
+  activityStart.set(req.id, { cmd: req.cmd, label: req.activity, at });
   dispatchActivity({ phase: 'start', id: req.id, tool: req.cmd, label: req.activity, at });
 }
 
@@ -293,6 +296,10 @@ window.addEventListener('message', (ev: MessageEvent) => {
   // Command reply from main → back over the wire, carrying main's file identity.
   if (typeof pm.requestId === 'string') {
     const ctx = pm.fileContext as FileContext | undefined;
+    // Error log writer (backlog 4.6): grab this request's cmd/label from the SAME map
+    // `emitActivity` below is about to delete from — this is the only client-side place
+    // that still knows them once a reply comes back.
+    const started = activityStart.get(pm.requestId);
     const reply: ReplyMsg = pm.ok
       ? { id: pm.requestId, ok: true, result: pm.result, fileContext: ctx }
       : {
@@ -301,6 +308,8 @@ window.addEventListener('message', (ev: MessageEvent) => {
           error: (pm.error as WireError | undefined)
             ?? { code: 'E_PLUGIN_ERROR', message: 'main thread returned no error detail' },
           fileContext: ctx,
+          ...(started?.cmd ? { cmd: started.cmd } : {}),
+          ...(started?.label ? { activity: started.label } : {}),
         };
     wsSend(reply);
     // Round-trip completed — the feed's outcome line is derived from this same

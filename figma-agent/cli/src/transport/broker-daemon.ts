@@ -21,6 +21,7 @@ import { buildBrokerHelloData, noPluginMessage } from './broker-status.ts';
 import { resolveRouteFilter, type RouteFilter } from './route-filter.ts';
 import { appendChangeFrames, changeLogPath } from './change-log.ts';
 import { appendEditFrames, editFeedPath } from './edit-feed-log.ts';
+import { appendErrorFrame, buildErrorLogFrame, errorLogPath } from './error-log.ts';
 import { projectDir as syncProjectDir, readIdleMs } from './figma-sync-config.ts';
 import { spawnReconcileApply } from './figma-sync-apply.ts';
 import type { ComponentChange } from '../../../shared/figma-changes.ts';
@@ -145,6 +146,29 @@ function appendEditFeed(data: Record<string, unknown>): void {
   }
 }
 
+/** Count of `appendErrorLog` failures since the broker started — logged alongside every
+ *  failure (not just the latest one) so a repeatedly-failing write (e.g. a read-only
+ *  design/ dir) is visible as a trend, not a single easy-to-miss line. */
+let errorLogAppendFailures = 0;
+
+/**
+ * Append one relayed `ReplyErr` to the error log (backlog 4.6). Best-effort, same
+ * contract as appendDocChange/appendEditFeed: a log failure must never disrupt the
+ * relay. Still a pure relay — this reads the reply envelope the broker already parsed
+ * (`isReplyMsg`), never `cmd`/`params` semantics; `cmd`/`activity` on the envelope are
+ * values ui-relay.ts already had and chose to echo back, not something the broker
+ * derives or interprets for a routing decision.
+ */
+function appendErrorLog(errorsPath: string, reply: ReplyErr, fallbackFileName: string | null): void {
+  try {
+    const frame = buildErrorLogFrame(reply, fallbackFileName, Date.now());
+    appendErrorFrame(errorsPath, frame);
+  } catch (err) {
+    errorLogAppendFailures += 1;
+    log(`ERROR_LOG append failed (${errorLogAppendFailures} total): ${(err as Error).message}`);
+  }
+}
+
 export async function runBrokerDaemon(): Promise<void> {
   // Refuse to double-start when a live same-or-newer broker already advertises.
   const existing = readAdvertisement();
@@ -181,6 +205,10 @@ export async function runBrokerDaemon(): Promise<void> {
   // FIGMA_AGENT_CHANGES_DIR). Each DOC_CHANGE batch is appended here; reconcile
   // (P2/P4) walks it. Path fixed for the daemon's life — cwd never changes.
   const changesPath = changeLogPath();
+
+  // Error log writer (backlog 4.6): a SIBLING fixed path, resolved once, same as
+  // changesPath — one line per ReplyErr the broker relays.
+  const errorsPath = errorLogPath();
 
   // Live-sync idle-commit (spec 004 P4): the idle window sent to each plugin, and a
   // debounce so a double-click never launches two overlapping `ui figma reconcile
@@ -372,7 +400,17 @@ export async function runBrokerDaemon(): Promise<void> {
       if (isPlugin) { st.registry.touchActive(ws); routeFromPlugin(msg.id, text, msg.last); }
       else forwardToPlugin(ws, msg.id, text);
     } else if (isReplyMsg(msg)) {
-      if (isPlugin) { st.registry.touchActive(ws); broadcastPeers(); routeFromPlugin(msg.id, text, true); }
+      if (isPlugin) {
+        st.registry.touchActive(ws);
+        broadcastPeers();
+        routeFromPlugin(msg.id, text, true);
+        // Error log writer (backlog 4.6): every FAILED reply the broker relays, logged
+        // regardless of whether a CLI is still around to read it live.
+        if (!msg.ok) {
+          const fallbackFileName = (st.registry.getByWs(ws)?.scene.fileName as string | undefined) ?? null;
+          appendErrorLog(errorsPath, msg, fallbackFileName);
+        }
+      }
     } else if (isRequestMsg(msg)) {
       forwardToPlugin(ws, msg.id, text, msg.cmd, msg.expectedFile);
     } else if (isEventMsg(msg)) {
