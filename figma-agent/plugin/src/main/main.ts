@@ -49,12 +49,18 @@ import { PANEL_WIDTH, PANEL_HEIGHT } from '../ui/panel-model';
 //
 // Owner decree 2026-07-30: the plugin window's own (host-drawn) title bar cannot be
 // removed and duplicated the panel's internal masthead, which is now gone (panel.html) —
-// this is the other half of that fix. `title: ""` asks Figma for a blank title bar;
-// untestable in this loop (no live Figma session), so the fallback is a documented
-// one-line swap: IF Figma instead falls back to showing the plugin's manifest name when
-// given an empty string (rather than actually rendering blank), change the string below
-// to `"Ease"` — do not leave the redundant "Figma Design Agent" text as the fallback.
-figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT, title: ' ' });
+// this is the other half of that fix. Confirmed live: a blank title DOES render (the
+// owner's screenshot showed it working) — this is now the owner's exact wording for the
+// title bar's live text, not a placeholder.
+//
+// `themeColors: true` (owner requirement, system/Figma appearance): Figma stamps
+// `figma-dark`/`figma-light` onto the iframe document's <html> element to match the
+// user's current Figma appearance — documented `showUI` behavior. panel.html's
+// `html.figma-light { ... }` override block (a sibling of the default dark :root) is
+// what actually repaints every color token; this flag is what makes that class exist.
+figma.showUI(__html__, {
+  visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT, title: 'design:os by JANG', themeColors: true,
+});
 
 /** Block 2's Selection row: the first selected node's name (if any) + the count. */
 function selectionSummary(): { selectionName: string | null; selectionCount: number } {
