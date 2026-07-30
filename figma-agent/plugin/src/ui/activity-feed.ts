@@ -153,3 +153,18 @@ export function resolveActivity(
     return next;
   });
 }
+
+/**
+ * Which of `nextIds` were NOT present in `prevIds` — the rows genuinely NEW since the
+ * last render (backlog 4.7). `renderActivity` (panel-ui.ts) used to rebuild every row's
+ * DOM node from scratch on every render — including the 1s heartbeat tick that only
+ * refreshes relative ages — so `.activity-row`'s CSS entrance animation replayed on
+ * every tick for every row, worst when a failing command kept re-rendering the same
+ * handful of rows. Row identity is the request/activity id, matched by position order
+ * (both arrays are newest-first, mirroring the buffer) — the DOM diff only needs to know
+ * "was this id visible last time", not track full row content. Pure, order-preserving.
+ */
+export function diffRowKeys(prevIds: readonly string[], nextIds: readonly string[]): string[] {
+  const prevSet = new Set(prevIds);
+  return nextIds.filter((id) => !prevSet.has(id));
+}

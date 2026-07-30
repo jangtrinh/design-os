@@ -420,6 +420,21 @@ describe("figma-agent panel — craft floor (phase 03)", () => {
     }
   });
 
+  // Backlog 4.7 — the activity row's entrance animation must be scoped to `.is-new`
+  // ONLY, never the bare `.activity-row` class every row carries: panel-ui.ts rebuilds
+  // every row's DOM node on each render (including the 1s heartbeat tick), so an
+  // animation on the base class replays on every tick for every row, worst when a
+  // failing command keeps re-rendering the same rows. This is the paired gate for that
+  // fix — it fails if a future change moves the animation back onto the base selector.
+  it("scopes the activity row's entrance animation to .is-new, not every row", () => {
+    expect(declsFor(".activity-row")).not.toMatch(/animation:/);
+    expect(declsFor(".activity-row.is-new")).toMatch(/animation:\s*fga-row-in/);
+    // The reduced-motion guard must match (or exceed) that selector's specificity, or
+    // its `animation: none` loses the cascade to `.is-new`'s own animation declaration.
+    const guard = /@media\s*\(prefers-reduced-motion[^{]*\{([\s\S]*?)\}\s*\}/.exec(html)?.[1] ?? "";
+    expect(guard, "the guard must target .activity-row.is-new specifically").toContain(".activity-row.is-new");
+  });
+
   // G. Type micro-craft is tokenized, not sprinkled — BOTH axes. Raw line-heights currently
   // survive at panel.html:309, :343, :398, :600; they must move to the tokens too, or "deliberate
   // line-heights" is a claim with nothing enforcing it.

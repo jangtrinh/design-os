@@ -15,7 +15,7 @@ import {
   syncPromptLabel, syncResultLabel,
 } from './panel-model';
 import {
-  toActivityRecord, toActivityResult, pushActivity, resolveActivity,
+  toActivityRecord, toActivityResult, pushActivity, resolveActivity, diffRowKeys,
   type ActivityRecord,
 } from './activity-feed';
 import { activitySentence } from './activity-sentence';
@@ -110,10 +110,19 @@ const ACTIVITY_ROWS = 20;
  * One feed row: [icon][sentence] + a caption line with relative time. The sentence
  * (activity-sentence.ts) says what the agent DID, in English, with a node name when the
  * reply carried one — never a command name, never a wire error code.
+ *
+ * `isNew` (backlog 4.7): only a row whose key was NOT in the previous render gets the
+ * `.is-new` class, which is the ONLY thing the entrance animation is now scoped to
+ * (panel.html) — every row is still rebuilt each render (simplest fix within this
+ * file's existing full-rebuild structure), but a rebuilt-yet-unchanged row is visually
+ * inert instead of replaying its arrival animation on every 1s heartbeat tick.
  */
-function activityRow(r: ActivityRecord, now: number, stale: boolean): HTMLElement {
+function activityRow(r: ActivityRecord, now: number, stale: boolean, isNew: boolean): HTMLElement {
   const li = document.createElement('li');
-  li.className = stale ? 'activity-row fga-row is-stale' : 'activity-row fga-row';
+  const classes = ['activity-row', 'fga-row'];
+  if (stale) classes.push('is-stale');
+  if (isNew) classes.push('is-new');
+  li.className = classes.join(' ');
 
   const state = r.pending ? 'running' : (r.ok ? 'ok' : 'failed');
   const iconName: IconName = r.pending ? 'notch' : (r.ok ? 'check' : 'x');
@@ -163,11 +172,21 @@ function formatTimestampCaption(at: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+// The ids shown in the PREVIOUS renderActivity() call — diffed against the next render
+// so an unchanged row doesn't replay its entrance animation on every 1s heartbeat tick
+// (backlog 4.7). Starts empty: the very first render's rows are all "new", which is
+// correct — nothing has ever been shown before.
+let previousRowKeys: string[] = [];
+
 function renderActivity(now: number): void {
-  if (activity.length === 0) return; // leave the static "No activity yet" empty-state row
+  if (activity.length === 0) { previousRowKeys = []; return; } // leave the static "No activity yet" empty-state row
+  const shown = activity.slice(0, ACTIVITY_ROWS);
+  const nextKeys = shown.map((r) => r.id);
+  const newKeys = new Set(diffRowKeys(previousRowKeys, nextKeys));
   activityList.replaceChildren(
-    ...activity.slice(0, ACTIVITY_ROWS).map((r, i) => activityRow(r, now, i > 0)),
+    ...shown.map((r, i) => activityRow(r, now, i > 0, newKeys.has(r.id))),
   );
+  previousRowKeys = nextKeys;
 }
 
 function render(): void {
