@@ -297,6 +297,87 @@
   --fga-focus: #8FB4D9;           /* the tuned info hue — visible on all three surfaces (≥3:1) */
   --fga-motion: 140ms;            /* named transitions only (§4) — never "all", never linear */
   --fga-ease: cubic-bezier(0.2, 0, 0, 1); /* ease-out */
+  /* Figma dark chrome, matched by eye/official UI3 dark surface. The plugin window's
+     own (host-drawn) title bar cannot be repainted, so this blends the panel's FIRST
+     block into it instead — the window bar and the sticky status row read as one
+     continuous surface. Content below the status block keeps --fga-body; recomputed
+     all 4 tones + --fga-text-muted against this value (owner ask, 2026-07-30) — every
+     pair clears its floor, tightest is --fga-tone-success at 4.64:1 (text floor 4.5:1).
+     (This block is the DARK value — see the `html.figma-light` override below for the
+     light-theme repaint; "single-theme" is no longer true as of the system-appearance
+     requirement in the same commit as this comment's edit.) */
+  --fga-chrome: #2C2C2C;
+}
+
+/* ── System/Figma appearance (owner requirement, 2026-07-30) ───────────────────────
+   `figma.showUI({ themeColors: true })` (main.ts) makes Figma stamp `figma-dark` or
+   `figma-light` onto the iframe document's <html> element to match the user's CURRENT
+   Figma appearance — documented `showUI` behavior, not something this file detects
+   itself. The dark `:root` block above stays the DEFAULT (dark is the design of
+   record; an iframe with neither class, or an older host, renders dark) — this block
+   is the ONLY override, re-pointing every COLOR token for `html.figma-light`. Radii,
+   spacing, and type tokens are theme-invariant (unaffected by appearance) and are
+   deliberately NOT repeated here — only colors override.
+
+   Light derivation rules (owner-locked, 2026-07-30): body #F7F7F7, surface #FFFFFF,
+   row-active #ECECEC, chrome #FFFFFF (Figma light UI surface), text #1A1A1A, label
+   #3D3D3D, muted #6B6B6B, hairlines flip to low-alpha BLACK, topedge becomes a subtle
+   darker top edge, dotted divider #C9C9C9, tones re-derived for light. Full AA table
+   computed against EVERY surface each token actually reaches (not assumed from the
+   dark table) — see below; two owner-given values needed adjusting from their
+   as-given hex to clear a floor, both reported with the delta.
+
+   Full recompute (WCAG 2.1, text 4.5:1 / non-text-indicator 3:1), against every
+   surface a token is REACHABLE on in this file's actual markup (status-sentence and
+   status-dot sit on --fga-chrome, which equals --fga-surface's hex here; activity-row
+   icons sit on --fga-row-active when fresh, --fga-surface when stale; section-label
+   and .activity-empty reach --fga-body via the Context block / plain body):
+     --fga-text     (#1A1A1A) vs body 16.25, surface/chrome 17.40, row-active 14.73 — PASS everywhere
+     --fga-label    (#3D3D3D) vs body 10.14, surface/chrome 10.86, row-active  9.19 — PASS everywhere
+     --fga-text-muted (#6B6B6B, AS GIVEN — owner requires 4.5 on ALL its surfaces):
+                    vs body  4.97, surface/chrome 5.33, row-active 4.51 — PASS everywhere
+                    (row-active clears by only 0.01 — tight but a genuine pass; not altered,
+                    since only FAILING values were adjusted, per instruction)
+     --fga-text-dim (owner-given #757575 vs body = 4.30 — FAILS the 4.5 floor; section-label
+                    reaches plain body via the Context block, so this pair IS reachable, not
+                    theoretical). ADJUSTED to #707070: vs body 4.62, surface 4.95, row-active
+                    4.19 (row-active fails, but --fga-text-dim is never used on row-active by
+                    construction — same restriction the dark twin documents; the only OTHER
+                    reachable surface, body, now passes with a real margin instead of failing)
+     --fga-tone-success (#1F7A3D) vs chrome 5.37 (text) · vs row-active 4.55 (indicator, 3:1 floor) — PASS
+     --fga-tone-warning (#8A6A1F) vs chrome 5.05 (text) · vs row-active 4.27 (indicator) — PASS
+     --fga-tone-info    (#2B5E8C) vs chrome 6.81 (text) · vs row-active 5.77 (indicator);
+                    also --fga-focus's value — vs body 6.36, surface/chrome 6.81, row-active 5.77,
+                    all far past the 3:1 focus-ring floor — PASS
+     --fga-tone-danger  (#B3372F) — icon-only, never text — vs row-active 5.07 (indicator) — PASS
+     --fga-tone-muted   (#6B6B6B, = text-muted) vs chrome/body — PASS (see text-muted above)
+     --fga-border-strong (#767676, decorative-boundary token, not owner-specified — derived)
+                    vs surface (sync-btn's own bg) 4.54, vs row-active (hover) 3.84 — both
+                    clear the 3:1 non-text floor
+   No token needed lightening beyond the two above; both deltas are recorded next to
+   the failing value, exactly as phase 01/03 did for the dark values. */
+html.figma-light {
+  --fga-body: #F7F7F7;
+  --fga-surface: #FFFFFF;
+  --fga-row-active: #ECECEC;
+  --fga-border: #D9D9D9;          /* code chip border — decorative, WCAG-exempt, no floor */
+  --fga-border-control: #B0B0B0;  /* scrollbar thumb — decorative chrome, no floor */
+  --fga-border-strong: #767676;   /* sync-btn's own boundary — 4.54:1 on --fga-surface, 3.84:1 on hover */
+  --fga-divider: #C9C9C9;         /* the dotted rule */
+  --fga-text: #1A1A1A;
+  --fga-label: #3D3D3D;
+  --fga-text-muted: #6B6B6B;      /* owner-given, as-is: 4.51:1 on row-active (tight but real) */
+  --fga-text-dim: #707070;        /* ADJUSTED from owner's #757575 (4.30 on body, failed) → 4.62 */
+  --fga-tone-success: #1F7A3D;
+  --fga-tone-warning: #8A6A1F;
+  --fga-tone-info: #2B5E8C;
+  --fga-tone-muted: #6B6B6B;
+  --fga-tone-danger: #B3372F;
+  --fga-hairline: rgba(0, 0, 0, 0.12);       /* raised-card border — black flip of the dark 0.08 */
+  --fga-hairline-soft: rgba(0, 0, 0, 0.08);  /* nested/secondary edges, row hover — black flip of 0.06 */
+  --fga-topedge: rgba(0, 0, 0, 0.04);        /* a subtle DARKER top edge, not a highlight */
+  --fga-focus: #2B5E8C;           /* = --fga-tone-info; ≥3:1 on all four surfaces */
+  --fga-chrome: #FFFFFF;          /* Figma light UI surface */
 }
 
 /* ── Panel chrome — dark settings-modal skin, IA v2 ────────────────────────────
@@ -388,7 +469,10 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--fga-body);
+  /* Owner ask 2026-07-30: blend this first block into the (unpaintable) plugin window
+     chrome above it — --fga-chrome, not --fga-body. Everything below the status block
+     keeps --fga-body; only this sticky row matches the window bar. */
+  background: var(--fga-chrome);
 }
 .status-row { min-width: 0; }
 
@@ -792,7 +876,7 @@ code {
   <section class="status-hero fga-block" id="fga-status" aria-live="polite" aria-label="Connection status">
     <div class="status-row fga-row">
       <span class="status-dot" id="fga-dot" data-tone="muted"></span>
-      <p class="status-sentence" id="fga-sentence" data-tone="muted">Not connected yet — your first CLI command starts the broker.</p>
+      <p class="status-sentence" id="fga-sentence" data-tone="muted">Not connected — your first command starts the broker.</p>
     </div>
 
     <!-- Onboarding: priority-1 content, not a debug affordance — re-parented here

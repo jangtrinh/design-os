@@ -9,9 +9,12 @@ import {
 } from '../plugin/src/ui/panel-model.ts';
 
 describe('statusSentence — Block 1: the problem and the next action, six branches', () => {
-  it('connected — success tone', () => {
+  // Owner addendum 2026-07-30: success states are minimal (the tone dot already signals
+  // state); problem states keep problem + next action, trimmed to the shortest honest
+  // sentence, no filler words, no text glyphs (the … ban covers "Connecting…" too).
+  it('connected — success tone, minimal (the dot already signals it)', () => {
     expect(statusSentence('connected', 0, true)).toEqual({
-      text: 'Connected — the CLI can drive this file.', tone: 'success',
+      text: 'Connected', tone: 'success',
     });
   });
   it('probing under 10s — "looking", warning tone', () => {
@@ -19,22 +22,22 @@ describe('statusSentence — Block 1: the problem and the next action, six branc
       text: 'Looking for the broker', tone: 'warning',
     });
   });
-  it('probing at/after 10s — names the fix', () => {
+  it('probing at/after 10s — names the fix, trimmed (no "in a terminal" filler)', () => {
     expect(statusSentence('probing', 10_000, false)).toEqual({
-      text: 'Broker not running — run figma-agent status in a terminal.', tone: 'warning',
+      text: 'Broker not running — run figma-agent status.', tone: 'warning',
     });
   });
-  it('handshake — info tone', () => {
+  it('handshake — info tone, no ellipsis', () => {
     expect(statusSentence('handshake', 0, false)).toEqual({ text: 'Connecting', tone: 'info' });
   });
-  it('disconnected, never connected — first-run wait, muted', () => {
+  it('disconnected, never connected — first-run wait, muted, trimmed', () => {
     expect(statusSentence('disconnected', 0, false)).toEqual({
-      text: 'Not connected yet — your first CLI command starts the broker.', tone: 'muted',
+      text: 'Not connected — your first command starts the broker.', tone: 'muted',
     });
   });
-  it('disconnected, was connected — names the drop, muted', () => {
+  it('disconnected, was connected — names the drop, muted, trimmed', () => {
     expect(statusSentence('disconnected', 0, true)).toEqual({
-      text: 'Connection lost — reconnecting automatically.', tone: 'muted',
+      text: 'Connection lost — reconnecting.', tone: 'muted',
     });
   });
 });

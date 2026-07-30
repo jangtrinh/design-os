@@ -31,6 +31,11 @@ const PANEL_UI = fileURLToPath(new URL("../figma-agent/plugin/src/ui/panel-ui.ts
 
 const html = readFileSync(PANEL, "utf8");
 const model = readFileSync(MODEL, "utf8");
+
+/** Matches a `:root { ... }` block OR the `html.figma-light { ... }` system-appearance
+ *  theme-override block (added 2026-07-30) — both are token-DECLARATION zones, so every
+ *  "chrome must use vars only" / "no raw hex" check strips both the same way. */
+const THEME_BLOCK_RE = /(?::root|html\.figma-light)\s*\{[\s\S]*?\}/g;
 const feed = readFileSync(FEED, "utf8");
 const summary = readFileSync(SUMMARY, "utf8");
 const sentenceSrc = readFileSync(SENTENCE, "utf8");
@@ -78,9 +83,13 @@ describe("figma-agent P2 panel — dogfood tokens + provenance", () => {
     expect(html.lastIndexOf("--font-family-body")).toBeGreaterThan(html.indexOf("Inter, sans-serif"));
   });
 
-  it("uses no raw hex outside the pasted :root blocks (every chrome color via var())", () => {
-    // Strip the two :root{…} blocks, then assert no #RRGGBB / #RGB survives in the chrome/markup.
-    const withoutRoot = html.replace(/:root\s*\{[\s\S]*?\}/g, "");
+  it("uses no raw hex outside the pasted :root blocks or the html.figma-light theme block (every chrome color via var())", () => {
+    // Strip the :root{…} blocks AND the html.figma-light theme-override block (added
+    // 2026-07-30 for system/Figma appearance) — both are token-declaration zones, same
+    // as :root structurally — plus CSS comments (the light block's own doc comment
+    // quotes hex values in prose, same reason the sibling check below uses `chrome`),
+    // then assert no #RRGGBB / #RGB survives in the chrome/markup.
+    const withoutRoot = html.replace(THEME_BLOCK_RE, "").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(withoutRoot).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 });
@@ -93,13 +102,15 @@ describe("figma-agent P2 panel — states, a11y live regions, motion", () => {
     // disconnected-was). Assert the export exists and every branch's copy is verbatim —
     // these are the owner-approved problem-and-next-action sentences (§2).
     expect(model).toContain("export function statusSentence");
+    // Owner addendum 2026-07-30: shortened — success states are minimal (the tone dot
+    // already signals state), problem states keep problem + next action trimmed of filler.
     for (const sentence of [
-      "Connected — the CLI can drive this file.",
+      "Connected",
       "Looking for the broker",
-      "Broker not running — run figma-agent status in a terminal.",
+      "Broker not running — run figma-agent status.",
       "Connecting",
-      "Not connected yet — your first CLI command starts the broker.",
-      "Connection lost — reconnecting automatically.",
+      "Not connected — your first command starts the broker.",
+      "Connection lost — reconnecting.",
     ]) {
       expect(model, `missing sentence: ${sentence}`).toContain(sentence);
     }
@@ -146,9 +157,10 @@ describe("figma-agent P2 panel — states, a11y live regions, motion", () => {
 // Both blocks share one helper — comments must be stripped before any selector/declaration
 // scan, or a sentence like `/* …the ~300px panel… */` or a comment above `.status-dot`
 // poisons the match.
-/** The chrome, with :root blocks and CSS comments removed — the only safe scan surface. */
+/** The chrome, with :root blocks (+ the html.figma-light theme block) and CSS comments
+ *  removed — the only safe scan surface. */
 const chrome = html
-  .replace(/:root\s*\{[\s\S]*?\}/g, "")
+  .replace(THEME_BLOCK_RE, "")
   .replace(/\/\*[\s\S]*?\*\//g, "");
 /** [selectorList, declarations] for every rule in the chrome. */
 const rules: [string, string][] = [...chrome.matchAll(/([^{}]+)\{([^}]*)\}/g)]
@@ -198,6 +210,54 @@ describe("figma-agent panel — the dark skin layer", () => {
 });
 // (Note the hex assertion now runs on the comment-stripped `chrome`, so the sampling
 // coordinates in the `:root` provenance comment cannot trip it.)
+
+describe("figma-agent panel — system/Figma appearance (html.figma-light theme override)", () => {
+  // Radii, spacing, and type tokens are theme-invariant by design (owner-locked) — only
+  // COLOR tokens are expected to repeat in the light override.
+  const THEME_INVARIANT = new Set([
+    "--fga-radius", "--fga-radius-sm", "--fga-divider-gap",
+    "--fga-font-title", "--fga-font-body", "--fga-font-caption",
+    "--fga-track-title", "--fga-track-body", "--fga-track-caption",
+    "--fga-lh-title", "--fga-lh-body", "--fga-lh-caption",
+    "--fga-motion", "--fga-ease",
+  ]);
+  const rootBlocks = [...html.matchAll(/:root\s*\{([\s\S]*?)\}/g)].map((m) => m[1]);
+  const darkBlock = rootBlocks.at(-1) ?? "";
+  const lightBlock = /html\.figma-light\s*\{([\s\S]*?)\}/.exec(html)?.[1] ?? "";
+  const tokensOf = (block: string): string[] => [...block.matchAll(/(--fga-[a-z0-9-]+)\s*:/g)].map((m) => m[1]);
+
+  it("declares the html.figma-light override block, after the dark skin block", () => {
+    expect(lightBlock, "html.figma-light block must exist").not.toBe("");
+    // Anchor on the ACTUAL rule opening (`html.figma-light {`), not a bare substring
+    // match — the dark block's own doc comment mentions "html.figma-light" in prose,
+    // which sits BEFORE the dark block's last declaration and would otherwise poison
+    // a plain indexOf/lastIndexOf comparison either direction.
+    const lightRuleIndex = /html\.figma-light\s*\{/.exec(html)?.index ?? -1;
+    expect(lightRuleIndex).toBeGreaterThan(-1);
+    expect(lightRuleIndex).toBeGreaterThan(html.lastIndexOf("--fga-chrome: #2C2C2C"));
+  });
+
+  it("covers the SAME set of color tokens as the dark block — no token left dark-only", () => {
+    const darkColorTokens = tokensOf(darkBlock).filter((t) => !THEME_INVARIANT.has(t));
+    const lightTokens = new Set(tokensOf(lightBlock));
+    const missing = darkColorTokens.filter((t) => !lightTokens.has(t));
+    expect(missing, `color tokens missing from html.figma-light: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("declares no theme-invariant (radius/spacing/type) token in the light override", () => {
+    const leaked = tokensOf(lightBlock).filter((t) => THEME_INVARIANT.has(t));
+    expect(leaked, `theme-invariant tokens should not repeat in html.figma-light: ${leaked.join(", ")}`).toEqual([]);
+  });
+
+  it("uses only var()-wrapped hex inside the light block itself — no undeclared or dead token", () => {
+    // The light block's OWN declared tokens must be exactly the dark color-token set
+    // (already asserted above); this guards the inverse — nothing declared in light that
+    // dark never declared (a typo'd token name would otherwise silently do nothing).
+    const darkTokenSet = new Set(tokensOf(darkBlock));
+    const extra = tokensOf(lightBlock).filter((t) => !darkTokenSet.has(t));
+    expect(extra, `html.figma-light declares a token the dark block never does: ${extra.join(", ")}`).toEqual([]);
+  });
+});
 
 describe("figma-agent panel — typography contract (owner-locked)", () => {
   it("uses exactly one font family, through the single body var", () => {

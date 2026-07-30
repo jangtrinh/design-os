@@ -24,18 +24,22 @@ export function statusSentence(
 ): { text: string; tone: Tone } {
   switch (state) {
     case 'connected':
-      return { text: 'Connected — the CLI can drive this file.', tone: 'success' };
+      // Owner addendum 2026-07-30: success states are minimal — the tone dot already
+      // signals "connected", so the sentence doesn't need to re-explain what that means.
+      return { text: 'Connected', tone: 'success' };
     case 'probing':
       return ageMs >= PROBE_TROUBLESHOOT_MS
-        ? { text: 'Broker not running — run figma-agent status in a terminal.', tone: 'warning' }
+        // Problem states keep problem + next action, trimmed to the shortest honest
+        // sentence — "in a terminal" was filler (the command IS the terminal instruction).
+        ? { text: 'Broker not running — run figma-agent status.', tone: 'warning' }
         : { text: 'Looking for the broker', tone: 'warning' };
     case 'handshake':
       return { text: 'Connecting', tone: 'info' };
     case 'disconnected':
     default:
       return hadConnection
-        ? { text: 'Connection lost — reconnecting automatically.', tone: 'muted' }
-        : { text: 'Not connected yet — your first CLI command starts the broker.', tone: 'muted' };
+        ? { text: 'Connection lost — reconnecting.', tone: 'muted' }
+        : { text: 'Not connected — your first command starts the broker.', tone: 'muted' };
   }
 }
 
