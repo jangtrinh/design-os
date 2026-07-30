@@ -2781,7 +2781,7 @@
   var PANEL_HEIGHT = 420;
 
   // plugin/src/main/main.ts
-  figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT });
+  figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT, title: " " });
   function selectionSummary() {
     const sel = figma.currentPage.selection;
     return { selectionName: sel.length > 0 ? sel[0].name : null, selectionCount: sel.length };

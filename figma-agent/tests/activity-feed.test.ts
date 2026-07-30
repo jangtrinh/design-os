@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatClock, formatTimestamp, formatDuration, timeAgo,
-  toActivityRecord, toActivityResult, pushActivity, resolveActivity,
+  toActivityRecord, toActivityResult, pushActivity, resolveActivity, diffRowKeys,
   type ActivityRecord,
 } from '../plugin/src/ui/activity-feed.ts';
 
@@ -140,5 +140,45 @@ describe('resolveActivity — a reply lands on ITS OWN row, by id', () => {
     const buf2 = pushActivity([], rec({ id: 'c_2' }));
     const [row2] = resolveActivity(buf2, { id: 'c_2', ok: true, ms: 8, nodeName: 'Hero card' });
     expect(row2.nodeName).toBe('Hero card');
+  });
+});
+
+describe('diffRowKeys — which rows are genuinely new since the last render (backlog 4.7)', () => {
+  it('every key is new on the very first render (empty prev)', () => {
+    expect(diffRowKeys([], ['a', 'b'])).toEqual(['a', 'b']);
+  });
+
+  it('no keys are new when the render is identical to the last one', () => {
+    expect(diffRowKeys(['a', 'b'], ['a', 'b'])).toEqual([]);
+  });
+
+  it('only the keys absent from prev are reported, order preserved from next', () => {
+    expect(diffRowKeys(['a'], ['b', 'a', 'c'])).toEqual(['b', 'c']);
+  });
+
+  it('a key that DISAPPEARS (evicted by the cap) is simply absent from the result, not an error', () => {
+    expect(diffRowKeys(['a', 'b', 'c'], ['b'])).toEqual([]);
+  });
+
+  it('a pending row that later resolves keeps the SAME id, so it is never "new" twice', () => {
+    // Simulates: render 1 shows the row pending (new); render 2 shows the same id
+    // resolved to done — same key, so it must NOT be reported as new again (this is
+    // what stops the flash on error resolution, not just the 1s heartbeat tick).
+    const render1Keys = diffRowKeys([], ['req-1']);
+    expect(render1Keys).toEqual(['req-1']);
+    const render2Keys = diffRowKeys(['req-1'], ['req-1']);
+    expect(render2Keys).toEqual([]);
+  });
+
+  it('an empty next list yields no new keys, regardless of prev', () => {
+    expect(diffRowKeys(['a', 'b'], [])).toEqual([]);
+  });
+
+  it('is pure — does not mutate either input array', () => {
+    const prev = ['a'];
+    const next = ['a', 'b'];
+    diffRowKeys(prev, next);
+    expect(prev).toEqual(['a']);
+    expect(next).toEqual(['a', 'b']);
   });
 });

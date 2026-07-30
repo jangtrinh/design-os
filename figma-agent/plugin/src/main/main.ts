@@ -46,7 +46,15 @@ import { PANEL_WIDTH, PANEL_HEIGHT } from '../ui/panel-model';
 
 // Panel IA v2: one opening size — no compact/expanded split, no user-resizable
 // Details toggle left to preserve (the whole PANEL_RESIZE path is gone below).
-figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT });
+//
+// Owner decree 2026-07-30: the plugin window's own (host-drawn) title bar cannot be
+// removed and duplicated the panel's internal masthead, which is now gone (panel.html) —
+// this is the other half of that fix. `title: ""` asks Figma for a blank title bar;
+// untestable in this loop (no live Figma session), so the fallback is a documented
+// one-line swap: IF Figma instead falls back to showing the plugin's manifest name when
+// given an empty string (rather than actually rendering blank), change the string below
+// to `"Ease"` — do not leave the redundant "Figma Design Agent" text as the fallback.
+figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT, title: ' ' });
 
 /** Block 2's Selection row: the first selected node's name (if any) + the count. */
 function selectionSummary(): { selectionName: string | null; selectionCount: number } {

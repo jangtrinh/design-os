@@ -359,30 +359,6 @@ body {
    Gate D exempts this selector by name. */
 ::selection { background: rgba(143, 180, 217, 0.28); color: var(--fga-text); }
 
-/* Masthead band: one-line title. Version moves to the footer identity row
-   (unchanged from phase 01 — only the actions row below it is cut). */
-.app-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2);
-  padding-bottom: var(--fga-divider-gap);
-  border-bottom: 1px dotted var(--fga-divider);
-  min-width: 0;
-}
-.brand-title {
-  margin: 0;
-  font-size: var(--fga-font-caption); /* the masthead is chrome, not a heading */
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--fga-track-caption);
-  line-height: var(--fga-lh-caption);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--fga-text);
-}
-
 /* Spatial rhythm (phase 03 §1): one row layout, one icon grid, one dot grid —
    applied via markup classes (`fga-row`, `fga-icon`) rather than duplicated
    per-selector, so `.status-row` and `.activity-row` share the same flex
@@ -406,8 +382,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  /* No special-cased padding-top here anymore (masthead removed, this is now the
+     panel's first row) — the shorthand's --space-1 applies uniformly on every edge. */
   padding: var(--space-1) var(--space-2);
-  padding-top: var(--fga-divider-gap);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -630,10 +607,17 @@ code {
   border: 1px solid transparent; /* depth (§2): hover fills this with --fga-hairline-soft (§6) */
   border-radius: var(--fga-radius-sm);
   min-width: 0;
-  /* Motion (§4): the row fades/slides in on arrival, and its hover fill/border
-     are named transitions, never `all`. */
-  animation: fga-row-in var(--fga-motion) var(--fga-ease);
+  /* Motion (§4): hover fill/border are named transitions, never `all`. The entrance
+     animation itself lives on `.is-new` only (below) — every render rebuilds every row's
+     DOM node (panel-ui.ts's simplest fix within its existing full-rebuild structure), so
+     animating the base class replayed it on every 1s heartbeat tick even for rows that
+     never changed (backlog 4.7, worst when a failing command kept re-rendering). */
   transition: background-color var(--fga-motion) var(--fga-ease), border-color var(--fga-motion) var(--fga-ease);
+}
+/* Only a row whose key was NOT in the previous render gets this — a rebuilt-but-
+   unchanged row is visually inert. */
+.activity-row.is-new {
+  animation: fga-row-in var(--fga-motion) var(--fga-ease);
 }
 /* Every row but the newest is dimmed; the newest is the reference's active row —
    background only, no left-bar (the owner vetoed the inset left-bar treatment
@@ -792,17 +776,19 @@ code {
 @media (prefers-reduced-motion: reduce) {
   .status-dot.is-pulsing::after,
   .log-icon-wrap[data-state="running"] .log-icon,
-  .activity-row { animation: none; }
+  .activity-row.is-new { animation: none; } /* .is-new, not bare .activity-row — the
+    entrance animation lives on the two-class selector, so the guard must match its
+    specificity or `animation: none` here would lose the cascade to `.is-new`'s rule. */
   .inline-link, .sync-prompt, .status-dot, .status-sentence, .activity-row { transition: none; }
 }
 </style>
 </head>
 <body>
 <main class="panel" id="fga-panel">
-  <header class="app-header">
-    <h1 class="brand-title">Figma Design Agent</h1>
-  </header>
-
+  <!-- Owner decree 2026-07-30: the internal masthead ("Figma Design Agent") is removed —
+       it duplicated the Figma plugin window's own chrome title directly above it, and
+       that OS/host-drawn title bar cannot be removed (verified against showUI docs). The
+       sticky status block is now the panel's first visible row. -->
   <section class="status-hero fga-block" id="fga-status" aria-live="polite" aria-label="Connection status">
     <div class="status-row fga-row">
       <span class="status-dot" id="fga-dot" data-tone="muted"></span>
@@ -981,6 +967,10 @@ code {
       return next;
     });
   }
+  function diffRowKeys(prevIds, nextIds) {
+    const prevSet = new Set(prevIds);
+    return nextIds.filter((id) => !prevSet.has(id));
+  }
 
   // plugin/src/ui/activity-sentence.ts
   function humanizeTool(tool) {
@@ -1102,9 +1092,12 @@ code {
     return selectionCount > 1 ? `${first} +${selectionCount - 1} more` : first;
   }
   var ACTIVITY_ROWS = 20;
-  function activityRow(r, now, stale) {
+  function activityRow(r, now, stale, isNew) {
     const li = document.createElement("li");
-    li.className = stale ? "activity-row fga-row is-stale" : "activity-row fga-row";
+    const classes = ["activity-row", "fga-row"];
+    if (stale) classes.push("is-stale");
+    if (isNew) classes.push("is-new");
+    li.className = classes.join(" ");
     const state = r.pending ? "running" : r.ok ? "ok" : "failed";
     const iconName = r.pending ? "notch" : r.ok ? "check" : "x";
     const iconWrap = document.createElement("span");
@@ -1150,11 +1143,19 @@ code {
     const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
+  var previousRowKeys = [];
   function renderActivity(now) {
-    if (activity.length === 0) return;
+    if (activity.length === 0) {
+      previousRowKeys = [];
+      return;
+    }
+    const shown = activity.slice(0, ACTIVITY_ROWS);
+    const nextKeys = shown.map((r) => r.id);
+    const newKeys = new Set(diffRowKeys(previousRowKeys, nextKeys));
     activityList.replaceChildren(
-      ...activity.slice(0, ACTIVITY_ROWS).map((r, i) => activityRow(r, now, i > 0))
+      ...shown.map((r, i) => activityRow(r, now, i > 0, newKeys.has(r.id)))
     );
+    previousRowKeys = nextKeys;
   }
   function render() {
     const now = Date.now();
@@ -1258,7 +1259,7 @@ code {
       syncPrompt.hidden = true;
     }, 4e3);
   });
-  versionEl.textContent = `v0.1.0 \xB7 ${true ? "c16feba" : "dev"}`;
+  versionEl.textContent = `v0.1.0 \xB7 ${true ? "2f0764f" : "dev"}`;
   setInterval(render, 1e3);
   render();
 
@@ -2724,7 +2725,7 @@ code {
   }
   function startActivity(req) {
     const at = Date.now();
-    activityStart.set(req.id, { cmd: req.cmd, at });
+    activityStart.set(req.id, { cmd: req.cmd, label: req.activity, at });
     dispatchActivity({ phase: "start", id: req.id, tool: req.cmd, label: req.activity, at });
   }
   function replyNodeName(payload2) {
@@ -2910,11 +2911,14 @@ code {
     }
     if (typeof pm.requestId === "string") {
       const ctx = pm.fileContext;
+      const started = activityStart.get(pm.requestId);
       const reply = pm.ok ? { id: pm.requestId, ok: true, result: pm.result, fileContext: ctx } : {
         id: pm.requestId,
         ok: false,
         error: pm.error ?? { code: "E_PLUGIN_ERROR", message: "main thread returned no error detail" },
-        fileContext: ctx
+        fileContext: ctx,
+        ...started?.cmd ? { cmd: started.cmd } : {},
+        ...started?.label ? { activity: started.label } : {}
       };
       wsSend(reply);
       emitActivity(pm.requestId, pm.ok === true, pm.ok === true ? pm.result : pm.error);
