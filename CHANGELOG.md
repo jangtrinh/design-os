@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-07-30 - Registry Integrity wave: per-file registries, cursor safety, scale hardening
+
+### Added
+- **Explicit file↔project binding** (`figma-agent bind --file "<name>" --dir <project>`): a Figma
+  file's changes land in ITS project's registry/feeds, never in whichever directory the broker
+  happened to be spawned from. Unbound files stage safely and migrate once on bind.
+- **Per-file change partitioning**: change frames carry the file identity; reconcile filters to the
+  bound file with a per-file `{line, byte}` cursor; sidecars nest under `components/<file-slug>/`.
+- **Streaming reconcile + log rotation**: the change log is read from a persisted byte cursor
+  (large-log cost is proportional to what's new), and the change/edit feeds rotate at 8 MiB
+  (keep 3 generations, marker written before truncation). A truncated or rotated log is never a
+  silent cursor advance — `rotated_away_lines` / `history_gap_lines` are reported.
+- **Sharded registry storage** (`design/registry/` index + per-component shards) with
+  content-guarded writes; the contract file `design/component-registry.json` stays byte-identical.
+- **Foreign-registry protection**: when `design/component-registry.json` is a project's OWN
+  generated artifact (not ours), the kernel yields to `design/figma-component-registry.json` —
+  their file is never touched, every consumer agrees on one path, and the envelope says so
+  (`foreign_registry_at_default_path`, `registry_path`).
+- **Nothing vanishes untraced**: evicted unresolved corrections archive to
+  `figma-corrections.overflow.jsonl`; plugin-side eviction counts surface as
+  `edgeEvictedUnresolved`; pruned legacy pending entries leave audit records; audit-cap
+  truncation reports `skip_history_truncated`; legacy 'unknown'-file frames count as
+  `skipped_legacy_frames` with a named manual drain (`--file-slug unknown`).
+
+### Changed
+- Apply is map-based and writes only touched records (measured: 200-target apply into 10k
+  records ~1 ms). Correction memory has a true hard cap; plugin storage is chunked
+  (sharedPluginData v2, lazy v1 migration).
+
+### Fixed
+- Cursor-safety: unfiltered applies advance every per-file cursor (no re-apply on the next
+  filtered run); `--skip` no longer erases per-file cursors; a byte hint can never pair with the
+  wrong line; a legacy untagged pending entry no longer wedges every file's cursor.
+- Write-ordering crash windows: rotation marker before truncate, overflow archive before prune,
+  orphan sidecar deletion only after the registry save succeeds (with a same-inode guard so
+  case-insensitive filesystems never delete a freshly written file).
+
 ## 2026-07-25 - Scroll-cinema asset toolchain: reported by `doctor`, opt-in in `setup.sh`
 
 ### Added
