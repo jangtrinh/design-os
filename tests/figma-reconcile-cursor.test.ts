@@ -165,6 +165,46 @@ describe("ui figma reconcile --apply — the cursor and a dropped target (5.3)",
     expect(readState().pending).toBeUndefined(); // fully behind the cursor now — pruned
   });
 
+  it("stage-4 MAJOR10: --skip preserves byFile/cursorByte — a per-file cursor must never be silently wiped by an unrelated --skip call", () => {
+    // A --file-slug run populates byFile (all fixture frames carry fileKey: 'abc').
+    applyJson(["--file-slug", "abc", "--mirror-file", captureFile({ captured: Array.from({ length: 44 }, (_, i) => i), failed: [44] })]);
+    const before = readState();
+    expect(before.byFile?.["abc"]).toBeDefined();
+    expect(typeof before.byFile?.["abc"]?.line).toBe("number");
+    expect(typeof before.byFile?.["abc"]?.byte).toBe("number");
+
+    const skipEnv = JSON.parse(capture(["figma", "reconcile", "--dir", dir, "--skip", "n44", "--json"]).out);
+    expect(skipEnv.ok).toBe(true);
+
+    // The per-file cursor must survive completely untouched — --skip only ever changes
+    // `pending`.
+    const after = readState();
+    expect(after.byFile?.["abc"]).toEqual(before.byFile?.["abc"]);
+    expect(after.pending!.find((p) => p.nodeId === "n44")).toMatchObject({ skipped: true });
+  });
+
+  it("stage-4 N4: skip_history_truncated surfaces in the reconcile envelope once the 500-cap actually evicts a record", () => {
+    applyJson(["--mirror-file", captureFile({ captured: Array.from({ length: 44 }, (_, i) => i), failed: [44] })]);
+    capture(["figma", "reconcile", "--dir", dir, "--skip", "n44", "--json"]); // acknowledge
+
+    // Seed a large pre-existing skipHistory (simulating a long-lived project) directly —
+    // exactly at the cap, so ONE more pruned skip pushes it over.
+    const existing = JSON.parse(readFileSync(syncStatePath(dir), "utf8")) as SyncState;
+    const seededSkipHistory = Array.from({ length: 500 }, (_, i) => ({ nodeId: `old${i}`, name: "Comp/A", at: i }));
+    writeFileSync(syncStatePath(dir), JSON.stringify({ ...existing, skipHistory: seededSkipHistory }));
+
+    // The subsequent apply prunes n44's acknowledged skip into skipHistory (501 total),
+    // pushing it 1 over the 500-cap — exactly one eviction.
+    const env = applyJson([]);
+    expect(env.ok).toBe(true);
+    expect(env.data.skip_history_truncated).toBe(1);
+    expect(readState().skipHistoryTruncated).toBe(1);
+    // The record for n44 itself (the newest) must have survived the eviction — only the
+    // OLDEST seeded record was dropped.
+    expect(readState().skipHistory!.some((s) => s.nodeId === "n44")).toBe(true);
+    expect(readState().skipHistory!.some((s) => s.nodeId === "old0")).toBe(false); // oldest, evicted
+  });
+
   it("--skip on an unknown nodeId is refused (BAD_ARG)", () => {
     const env = JSON.parse(capture(["figma", "reconcile", "--dir", dir, "--skip", "nope", "--json"]).out);
     expect(env.ok).toBe(false);
@@ -182,6 +222,31 @@ describe("ui figma reconcile --apply — the cursor and a dropped target (5.3)",
     expect(forced.ok).toBe(true); // --force bypasses the refusal
     expect(readState().forced).toHaveLength(1);
     expect(readState().forced![0]).toMatchObject({ since: 0 });
+  });
+
+  it("BLOCKER2 (stage-4): --since past a stale blocking target never persists a byte hint for the WRONG line — a rewind must self-heal via 0, never skip real content", () => {
+    // Run 1: 40 captured, 5 (n40..n44) dropped/pending — cursor stops at 40.
+    applyJson(["--mirror-file", cappedCaptureFile()]);
+    expect(readState().cursor).toBe(MAX_SCANS);
+
+    // Run 2: --since 44 --force bypasses the refusal but does NOT resolve n40..n43 (this
+    // run only re-touches frame 44, no mirror). `merged` still carries n40..n43 at their
+    // OWN (much earlier) firstFrameIndex, so `safeCursorTo` clamps back down to 40 — the
+    // resulting `target` (40) is LESS than this run's own `from` (44): the persisted byte
+    // hint must NEVER be `sliceStartByte` (that points at frame 44's own byte position, a
+    // WRONG line for cursor 40) — it must self-heal to 0 so the NEXT run does a full scan
+    // rather than silently trust a byte offset that would skip frames 40-43's real bytes
+    // forever (the exact "frames 3-7 permanently unreachable" class of bug).
+    applyJson(["--since", String(MAX_SCANS + 4), "--force"]);
+    expect(readState().cursor).toBe(MAX_SCANS); // safeCursorTo clamps back to the real blocker (BLOCKER1)
+    expect(readState().cursorByte).toBe(0); // never a byte hint for the wrong line
+
+    // Proof of the whole point: a THIRD run (now trusting byte 0 → an honest full scan)
+    // can still fully resolve n40..n44 — nothing was permanently skipped.
+    const env3 = applyJson(["--mirror-file", captureFile({ captured: [40, 41, 42, 43, 44] })]);
+    expect(env3.ok).toBe(true);
+    expect(env3.data.cursor_to).toBe(TOTAL);
+    expect(readState().pending).toBeUndefined();
   });
 
   it("a pre-existing {cursor}-only state file loads with pending undefined (migration)", () => {

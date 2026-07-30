@@ -15,6 +15,7 @@ import { join } from 'node:path';
 
 import { changeLogDir } from './change-log.ts';
 import { fileIdentity, safeSlug } from './file-identity.ts';
+import { rotateIfNeeded } from './log-rotate.ts';
 import {
   buildEditFrame, isValidEditInput,
   type EditBatchMeta, type EditFrame, type EditInput,
@@ -68,9 +69,12 @@ function resolveDir(filePath: string): string {
 }
 
 /** Append one EditFrame line, creating the design/changes/ dir if needed. */
+/** Registry-integrity phase 04 (5.4), §2 — rotation runs AFTER the append, on the
+ *  broker's own write path, same as change-log.ts's appendChangeFrame. */
 export function appendEditFrame(path: string, frame: EditFrame): void {
   mkdirSync(resolveDir(path), { recursive: true });
   appendFileSync(path, JSON.stringify(frame) + '\n', 'utf8');
+  rotateIfNeeded(path);
 }
 
 /** Outcome of one `appendEditFrames` call — `droppedInvalid` makes a silently-skipped

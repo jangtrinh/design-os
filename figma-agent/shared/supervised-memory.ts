@@ -116,18 +116,50 @@ export function mergeCorrectionStores(
   };
 }
 
+/**
+ * Registry-integrity phase 04 (5.4), §3 — the result of a retention pass. `evictedUnresolved`
+ * makes the "immortal" bug's fix honest: an unresolved event the hard cap could not make
+ * room for is NOT silently kept forever (today's bug) and NOT silently discarded either —
+ * the caller exports it (project-side: `design/memory/figma-corrections.overflow.jsonl`;
+ * `sync-corrections` reports the count) before it drops out of `kept`.
+ */
+export interface RetentionResult {
+  kept: CorrectionEvent[];
+  evictedUnresolved: CorrectionEvent[];
+}
+
+/**
+ * Enforce a TRUE hard total (`limit`) — unresolved entries can no longer escape it (the
+ * "immortality" bug this phase fixes: today, once `unresolved` events alone exceed
+ * `limit`, EVERY resolved event is dropped and the store still grows past `limit`
+ * unboundedly). Eviction order, per the phase: resolved-and-past-`maxAgeDays` first
+ * (unconditional expiry — unchanged from before, never itself an "eviction" the caller
+ * needs to export), then resolved (oldest first, competing for the remaining budget),
+ * then — ONLY once every resolved event is gone and the cap still isn't met — the
+ * OLDEST unresolved events. Unresolved events are never subject to the AGE cutoff (a
+ * designer correction awaiting resolution does not expire by the calendar), only to the
+ * hard cap once nothing resolved is left to make room.
+ */
 export function retainCorrectionEvents(
   events: readonly CorrectionEvent[],
   now: Date,
   limit: number,
   maxAgeDays = RAW_RETENTION_DAYS,
-): CorrectionEvent[] {
+): RetentionResult {
   const cutoff = now.getTime() - maxAgeDays * 86_400_000;
-  const protectedEvents = events.filter((event) => event.unresolved === true);
-  const candidates = events
+  const unresolved = events.filter((event) => event.unresolved === true).sort(byTimeThenId);
+  const resolvedFresh = events
     .filter((event) => event.unresolved !== true && Date.parse(event.timestamp) >= cutoff)
     .sort(byTimeThenId);
-  const kept = candidates.slice(Math.max(0, candidates.length - Math.max(0, limit - protectedEvents.length)));
-  return [...new Map([...protectedEvents, ...kept].map((event) => [event.eventId, event])).values()]
+
+  const overBudget = Math.max(0, resolvedFresh.length + unresolved.length - Math.max(0, limit));
+  const resolvedEvictCount = Math.min(overBudget, resolvedFresh.length);
+  const keptResolved = resolvedFresh.slice(resolvedEvictCount);
+  const stillOverBudget = overBudget - resolvedEvictCount;
+  const evictedUnresolved = stillOverBudget > 0 ? unresolved.slice(0, stillOverBudget) : [];
+  const keptUnresolved = stillOverBudget > 0 ? unresolved.slice(stillOverBudget) : unresolved;
+
+  const kept = [...new Map([...keptResolved, ...keptUnresolved].map((event) => [event.eventId, event])).values()]
     .sort(byTimeThenId);
+  return { kept, evictedUnresolved };
 }

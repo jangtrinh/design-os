@@ -37,6 +37,7 @@ import { MUTATING_COMMANDS } from './mutating-commands';
 import {
   beginAgentMutation,
   readEdgeCorrections,
+  readEvictedUnresolvedCount,
   recordAgentMutation,
   recordDesignerCorrection,
   writeEdgeCorrections,
@@ -468,7 +469,11 @@ async function dispatch(cmd: CommandName, params: Params): Promise<unknown> {
     case 'SET_CONSTRAINTS': return opSetConstraints(params);
     case 'SET_TEXT': return opSetText(params);
     case 'CLONE_TRAITS': return opCloneTraits(params);
-    case 'GET_CORRECTION_MEMORY': return { events: readEdgeCorrections() };
+    // Stage-4 MAJOR7 — `evictedUnresolved` surfaces the edge cache's own eviction count
+    // (never a panel UI, just an audit signal `sync-corrections` reports on) so an event
+    // dropped here before it was ever synced project-side leaves at least a count, not
+    // zero trace.
+    case 'GET_CORRECTION_MEMORY': return { events: readEdgeCorrections(), evictedUnresolved: readEvictedUnresolvedCount() };
     case 'SET_CORRECTION_MEMORY': {
       const events = params.events;
       if (!Array.isArray(events)) throw withCode(new Error('SET_CORRECTION_MEMORY requires events[]'), 'E_INVALID_ARGS');

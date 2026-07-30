@@ -34,7 +34,6 @@
  */
 import {
   RegistryError,
-  registerComponent,
   type ComponentRecord,
   type ComponentScope,
   type Registry,
@@ -66,11 +65,20 @@ export interface ApplyReport {
   pending: { name: string; reason: string }[];
   /** A deprecate/update whose target name is not in the registry — nothing to write. */
   skipped: { name: string; reason: string }[];
+  /** Registry-integrity phase 03 fix round (F6) — an orphaned flat sidecar the command
+   *  layer tried and failed to delete after its flat→nested move (permissions, already
+   *  gone, etc). Always empty from `applyDelta` itself (pure, no fs); the command layer
+   *  fills this in as an honest record of a best-effort cleanup that did not land — never
+   *  a reason to fail the apply that already committed. */
+  cleanupFailed: { path: string; reason: string }[];
 }
 
 /** Empty apply report (also the "nothing changed" shape). */
 function emptyReport(): ApplyReport {
-  return { added: [], deprecated: [], updated: [], mirrored: [], mirrorSkipped: [], pending: [], skipped: [] };
+  return {
+    added: [], deprecated: [], updated: [], mirrored: [], mirrorSkipped: [], pending: [], skipped: [],
+    cleanupFailed: [],
+  };
 }
 
 /** Count of registry records this report actually changed — the honest "synced" number. */
@@ -80,10 +88,25 @@ export function landedCount(r: ApplyReport): number {
 
 /**
  * Apply a preview-delta to a registry, returning the next registry, the sidecars to
- * write, and a report. Pure: the input registry is never mutated (registerComponent
- * returns a fresh copy each call). Idempotent — re-applying the same delta over the
- * result is a no-op (an unchanged record short-circuits; an identical sidecar is
- * content-guarded by the writer).
+ * write, and a report. Pure: the input registry is never mutated. Idempotent —
+ * re-applying the same delta over the result is a no-op (an unchanged record
+ * short-circuits; an identical sidecar is content-guarded by the writer).
+ *
+ * Registry-integrity phase 04 (5.4), §5 — every lookup and upsert goes through ONE
+ * `Map<name, ComponentRecord>` built once (O(N)), replacing the old per-target
+ * `findByName` (a linear scan) + `registerComponent` (ANOTHER linear scan, plus a full
+ * array copy) round trip. The registry is reconstructed from the map's values exactly
+ * once, at the end (O(N) total, not O(N) per target) — turning a 200-target apply into a
+ * 10k-record registry from the old O(delta × N) cost into O(N + delta). `touched` names
+ * every record this call actually added/updated/deprecated, so the caller
+ * (`figma-reconcile-run.ts`) can hand it straight to `saveRegistry`'s optional touched-set
+ * parameter — §4's shards then skip diffing anything NOT in this set, rather than
+ * content-guard-diffing all 10k on every save.
+ *
+ * A `Map` preserves EXISTING keys' iteration position on `.set()` (only a brand-new key is
+ * appended at the end) — the exact same ordering `registerComponent` always produced
+ * (replace in place / append new), so this refactor changes no observable output shape,
+ * only how it gets there (the golden test in `tests/figma-apply-map.test.ts` proves it).
  *
  * @param mirror Captured node specs keyed by change-log nodeId. Omitted = the capture
  *               pass did not run (no plugin / a plain CLI apply) → mirror-less degrade.
@@ -100,28 +123,45 @@ export function applyDelta(
   delta: PreviewDelta,
   mirror?: MirrorIndex,
   fileSlug?: string,
-): { registry: Registry; report: ApplyReport; sidecarWrites: SidecarWrite[]; changed: boolean } {
-  let registry = reg;
+): {
+  registry: Registry;
+  report: ApplyReport;
+  sidecarWrites: SidecarWrite[];
+  /** Registry-integrity phase 03 fix round (F6, generalized MINOR12) — a sidecar pointer
+   *  made obsolete by a repartitioning move THIS call (a corresponding write for the SAME
+   *  name is always present in `sidecarWrites`). Stage-4 N1 — carries BOTH the old and
+   *  the NEW path (not just the old) so the command layer can guard against deleting a
+   *  path that turns out to be the SAME PHYSICAL FILE as the one just written (a
+   *  case-insensitive filesystem can make a pre-F5 lowercased dir and F5's new
+   *  case-preserving dir the same inode) before removing anything. */
+  orphanedSidecarPaths: { oldPath: string; newPath: string }[];
+  changed: boolean;
+  touched: Set<string>;
+} {
+  const byName = new Map(reg.components.map((c) => [c.name, c] as const));
   let changed = false;
   const report = emptyReport();
   const sidecarWrites: SidecarWrite[] = [];
+  const orphanedSidecarPaths: { oldPath: string; newPath: string }[] = [];
+  const touched = new Set<string>();
 
   // ── DELETE → soft-deprecate the existing record (never mirrored: it is gone) ──
   for (const e of delta.deprecated) {
-    const existing = findByName(registry, e.name);
+    const existing = byName.get(e.name);
     if (existing === undefined) {
       report.skipped.push({ name: e.name, reason: "delete of a component not in the registry" });
       continue;
     }
     if (existing.deprecated === true) continue; // already deprecated — idempotent no-op
-    registry = registerComponent(registry, { ...existing, deprecated: true }, true).registry;
+    byName.set(e.name, { ...existing, deprecated: true });
+    touched.add(e.name);
     report.deprecated.push(e.name);
     changed = true;
   }
 
   // ── UPDATE → refresh scope, clear deprecation, replace the sidecar from the capture ──
   for (const e of delta.updated) {
-    const existing = findByName(registry, e.name);
+    const existing = byName.get(e.name);
     if (existing === undefined) {
       // Should not happen (updated ⇒ prior existed), but stay defensive.
       report.skipped.push({ name: e.name, reason: "update of a component not in the registry" });
@@ -140,12 +180,22 @@ export function applyDelta(
       // (padding, fills…) — that is exactly the mirror this phase exists to keep 1:1.
       sidecarWrites.push({ name: e.name, node });
       report.mirrored.push(e.name);
+      // F6 (generalized, stage-4 MINOR12) — ANY time this capture's write repartitions
+      // the pointer to a DIFFERENT path (flat→nested, nested→flat via the unfiltered
+      // escape hatch, or nested→nested on a file re-identification), the OLD file is dead
+      // weight, never read again (the record's pointer no longer names it) — schedule it
+      // for deletion once the new write above lands. Originally scoped to flat→nested
+      // only; there is no reason the OTHER pointer-move shapes should leak the same way.
+      if (existing.figmaNode !== undefined && pointer !== undefined && pointer !== existing.figmaNode) {
+        orphanedSidecarPaths.push({ oldPath: existing.figmaNode, newPath: pointer });
+      }
     }
     if (!recordChanged) continue; // nothing the log + capture can faithfully change on the record
     const next: ComponentRecord = { ...existing, scope: nextScope };
     delete next.deprecated; // un-deprecate — Figma still has (and just touched) it
     if (pointer !== undefined) next.figmaNode = pointer;
-    registry = registerComponent(registry, next, true).registry;
+    byName.set(e.name, next);
+    touched.add(e.name);
     report.updated.push(e.name);
     changed = true;
   }
@@ -170,16 +220,14 @@ export function applyDelta(
       report.pending.push({ name: e.name, reason: `captured but not registrable — ${err.message}` });
       continue;
     }
-    registry = registerComponent(registry, rec, true).registry;
+    byName.set(rec.name, rec);
+    touched.add(rec.name);
     sidecarWrites.push({ name: e.name, node });
     report.added.push(e.name);
     report.mirrored.push(e.name);
     changed = true;
   }
 
-  return { registry, report, sidecarWrites, changed };
-}
-
-function findByName(reg: Registry, name: string): ComponentRecord | undefined {
-  return reg.components.find((c) => c.name === name);
+  const registry: Registry = { version: reg.version, components: [...byName.values()] };
+  return { registry, report, sidecarWrites, orphanedSidecarPaths, changed, touched };
 }
