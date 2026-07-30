@@ -87,11 +87,19 @@ export function landedCount(r: ApplyReport): number {
  *
  * @param mirror Captured node specs keyed by change-log nodeId. Omitted = the capture
  *               pass did not run (no plugin / a plain CLI apply) → mirror-less degrade.
+ * @param fileSlug Registry-integrity phase 03 (5.2), §3 — the bound file's identity, when
+ *               this apply came from a `--file-slug`-filtered run (every entry in `delta`
+ *               already belongs to it, by construction). Threaded to every new sidecar
+ *               pointer so it lands in that file's own partitioned path. Omitted = the
+ *               unfiltered, whole-log escape hatch — sidecars keep today's flat layout
+ *               exactly (partitioning only ever applies to a run that actually resolved
+ *               one bound file's identity).
  */
 export function applyDelta(
   reg: Registry,
   delta: PreviewDelta,
   mirror?: MirrorIndex,
+  fileSlug?: string,
 ): { registry: Registry; report: ApplyReport; sidecarWrites: SidecarWrite[]; changed: boolean } {
   let registry = reg;
   let changed = false;
@@ -121,7 +129,7 @@ export function applyDelta(
     }
     const node = captureFor(e, mirror, report.mirrorSkipped);
     const nextScope = e.scope as ComponentScope;
-    const pointer = node === undefined ? existing.figmaNode : figmaNodeRelPath(e.name);
+    const pointer = node === undefined ? existing.figmaNode : figmaNodeRelPath(e.name, fileSlug);
     const recordChanged =
       (existing.scope ?? "local") !== nextScope ||
       existing.deprecated === true ||
@@ -154,7 +162,7 @@ export function applyDelta(
     }
     let rec: ComponentRecord;
     try {
-      rec = materialize(e);
+      rec = materialize(e, fileSlug);
     } catch (err) {
       // A Figma node name the registry cannot key (not `Category/Variant`) — say so and
       // stay pending rather than inventing a name the designer never chose.

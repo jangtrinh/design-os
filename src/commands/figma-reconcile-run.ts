@@ -11,6 +11,13 @@
  *                          no capture ran → the log-only commit still lands, every
  *                          un-mirrored component named in the report. The live scan never
  *                          happens here: the kernel stays pure (Art I.2).
+ *   --file-slug <slug>   → (registry-integrity phase 03, §2) narrow the delta/apply/cursor
+ *                          to one Figma file's identity in a change-log that may carry more
+ *                          than one file's frames — a foreign frame is FILTERED and counted
+ *                          (skipped_foreign_frames), never rejected. The cursor becomes
+ *                          per-file (SyncState.byFile); the global `cursor` field is left
+ *                          untouched by a filtered run. Absent = the whole-log escape hatch
+ *                          for a manual, unfiltered run.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -29,6 +36,7 @@ import {
   ReconcileError,
   coalesceFrames,
   computePreviewDelta,
+  fileSlugOf,
   parseChangeLog,
   scopeSummary,
   type CoalescedComponent,
@@ -118,6 +126,19 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     return useJson ? errJson(SUB, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
   }
 
+  const fileSlug = flagString(parsed, "file-slug");
+  if (fileSlug !== undefined && fileSlug.trim().length === 0) {
+    const msg = "--file-slug must be a non-empty string";
+    return useJson ? errJson(SUB, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+  }
+  // A pending entry not known to belong to THIS run's bound file cannot be gated on it: a
+  // different real fileSlug belongs to a file this run never touched, so it must neither
+  // block this file's cursor nor get pruned by a threshold that isn't its own. An untagged
+  // legacy entry (pre-dating this field) is conservatively treated as relevant to every
+  // file until it is itself resolved or explicitly skipped — "never silently lose track."
+  const isBoundToRun = (t: { fileSlug?: string }): boolean =>
+    fileSlug === undefined || t.fileSlug === undefined || t.fileSlug === fileSlug;
+
   const sinceRaw = flagString(parsed, "since");
   const sinceGiven = sinceRaw !== undefined;
   const since = parseSince(sinceRaw);
@@ -132,7 +153,7 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   const statePath = syncStatePath(dir);
   const priorState = readSyncState(statePath);
   const priorPending = priorState.pending ?? [];
-  const blockingPrior = priorPending.filter((t) => t.skipped !== true);
+  const blockingPrior = priorPending.filter((t) => t.skipped !== true && isBoundToRun(t));
 
   // `--since` must not be a back door around an un-acknowledged queue (§4): it would let
   // `--apply --since <later>` skip the queue without acknowledging anything.
@@ -172,20 +193,39 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
 
   const cursorTo = frames.length;
   // dry-run defaults the cursor to 0 (preview whole log); apply defaults it to the
-  // persisted apply cursor (resume where the last commit stopped). --since overrides both.
-  const cursorFrom0 = sinceGiven ? (since as number) : apply ? priorState.cursor : 0;
+  // persisted apply cursor — the per-file one (SyncState.byFile) when --file-slug is given
+  // (resume where THIS file's last filtered commit stopped), else the global one. --since
+  // overrides both.
+  const cursorFrom0 = sinceGiven
+    ? (since as number)
+    : apply
+      ? (fileSlug !== undefined ? (priorState.byFile?.[fileSlug] ?? priorState.cursor) : priorState.cursor)
+      : 0;
   const cursorFrom = Math.min(cursorFrom0, cursorTo);
   const slice = frames.slice(cursorFrom);
   // ABSOLUTE indices (registry-integrity phase 02): `slice` is resumed from `cursorFrom`,
   // so `coalesceFrames` must be told the offset — otherwise firstFrameIndex/lastFrameIndex
   // would number a resumed run from 0 while the persisted cursor indexes the whole log.
   const coalesced = coalesceFrames(slice, cursorFrom);
-  const delta = computePreviewDelta(coalesced, existing);
+  // Registry-integrity phase 03 (5.2), §2 — filter POST-coalesce (on the resolved
+  // fileSlug), never pre-coalesce on raw frames: `coalesceFrames`'s absolute-index math
+  // (`baseIndex + i`) depends on every frame in `slice` keeping its true array position,
+  // so filtering frames out BEFORE coalescing would corrupt the very index math phase 02
+  // relies on for cursor safety.
+  const scoped = fileSlug === undefined ? coalesced : coalesced.filter((c) => c.fileSlug === fileSlug);
+  // Frame-level count of what got filtered out, independent of the coalesce-and-filter
+  // mechanism above (a foreign frame may coalesce into a target already excluded above,
+  // but this counts the raw frames themselves — what the phase asked to be reported).
+  const skippedForeignFrames = fileSlug === undefined
+    ? 0
+    : slice.filter((f) => fileSlugOf(f.fileKey, f.fileName) !== fileSlug).length;
+  const delta = computePreviewDelta(scoped, existing);
   const scope = scopeSummary(delta);
 
   const base = {
     cursor_from: cursorFrom,
     cursor_to: cursorTo,
+    ...(fileSlug !== undefined && { file_slug: fileSlug, skipped_foreign_frames: skippedForeignFrames }),
     delta: { added: delta.added, updated: delta.updated, deprecated: delta.deprecated },
     scope_summary: scope,
     ...(delta.unresolved.length > 0 && { caps: { unresolved: delta.unresolved } }),
@@ -218,27 +258,31 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     }
   }
 
-  const { registry: next, report, sidecarWrites, changed } = applyDelta(registry, delta, mirror);
+  const { registry: next, report, sidecarWrites, changed } = applyDelta(registry, delta, mirror, fileSlug);
 
   // ── Registry-integrity phase 02 (5.3), §4: the safe cursor + retry queue ────────────
   // "Unfinished" is wider than dropped-or-failed: an ADD `applyDelta` could not
   // materialize (`report.pending` — captured-but-unregistrable, or no capture at all) and
   // a DELETE that lost its identity (`delta.unresolved`) are both work that did not land,
   // so both join the blocking set alongside a mirror drop/failure.
-  const byNodeId = new Map(coalesced.map((c) => [c.nodeId, c]));
+  // Registry-integrity phase 03 (5.2), §2 — built from `scoped`, NOT `coalesced`: a
+  // foreign file's dropped/failed target must never enter THIS project's pending retry
+  // queue, or the cross-file contamination this whole phase removes would re-enter
+  // through the P2 unfinished-tracking mechanism's back door.
+  const byNodeId = new Map(scoped.map((c) => [c.nodeId, c]));
   const byName = new Map<string, CoalescedComponent>();
-  for (const c of coalesced) if (c.nodeName !== null) byName.set(c.nodeName, c);
+  for (const c of scoped) if (c.nodeName !== null) byName.set(c.nodeName, c);
 
-  interface UnfinishedThisRun { nodeId: string; name: string; firstFrameIndex: number; reason: string; attempted: boolean }
+  interface UnfinishedThisRun { nodeId: string; name: string; firstFrameIndex: number; fileSlug: string; reason: string; attempted: boolean }
   const thisRun = new Map<string, UnfinishedThisRun>();
   const noteUnfinished = (
     nodeId: string, name: string, c: CoalescedComponent | undefined, reason: string, attempted: boolean,
   ): void => {
     if (c === undefined || thisRun.has(nodeId)) return; // first reason wins; a target only needs ONE
-    thisRun.set(nodeId, { nodeId, name, firstFrameIndex: c.firstFrameIndex, reason, attempted });
+    thisRun.set(nodeId, { nodeId, name, firstFrameIndex: c.firstFrameIndex, fileSlug: c.fileSlug, reason, attempted });
   };
   if (mirror) {
-    for (const c of coalesced) {
+    for (const c of scoped) {
       // Dropped by the cap: never reached the scanner — NOT an attempt (fix round finding 1).
       if (mirror.dropped.has(c.nodeId)) {
         noteUnfinished(c.nodeId, c.nodeName ?? c.nodeId, c, "dropped by the batch cap (MAX_SCANS) — not attempted this run", false);
@@ -279,8 +323,11 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     if (p.skipped === true) { merged.set(p.nodeId, p); continue; }
     const u = thisRun.get(p.nodeId);
     if (u !== undefined) {
+      // `fileSlug` is stamped opportunistically here even for a legacy (undefined) prior
+      // entry — `u.fileSlug` comes straight from the coalesced component's own real
+      // identity, never from whether `--file-slug` filtering happened to be active.
       merged.set(p.nodeId, {
-        ...p, attempts: p.attempts + 1, lastReason: u.reason,
+        ...p, fileSlug: p.fileSlug ?? u.fileSlug, attempts: p.attempts + 1, lastReason: u.reason,
         lastAttemptedAt: u.attempted ? now : p.lastAttemptedAt,
       });
     } else if (!landedNames.has(p.name)) {
@@ -291,8 +338,8 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   for (const [nodeId, u] of thisRun) {
     if (merged.has(nodeId)) continue; // already carried forward above with an incremented count
     merged.set(nodeId, {
-      nodeId, name: u.name, firstFrameIndex: u.firstFrameIndex, attempts: 1, lastReason: u.reason,
-      firstSeenTs: now, ...(u.attempted ? { lastAttemptedAt: now } : {}),
+      nodeId, name: u.name, firstFrameIndex: u.firstFrameIndex, fileSlug: u.fileSlug, attempts: 1,
+      lastReason: u.reason, firstSeenTs: now, ...(u.attempted ? { lastAttemptedAt: now } : {}),
     });
   }
 
@@ -301,15 +348,20 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   // slice already ran through `applyDelta`); only the CURSOR stops early, so the next run
   // re-derives the blocked target from the log (a small re-processed overlap, not a skip).
   // Re-application is idempotent: `registerComponent` upserts by name.
-  const blocking = [...merged.values()].filter((t) => t.skipped !== true);
+  // Registry-integrity phase 03 (5.2), §2 — `isBoundToRun` scopes both the blocking set
+  // (a foreign file's stuck target must not gate THIS file's cursor) and the prune (an
+  // entry irrelevant to this run is left untouched — its own file's cursor didn't move).
+  const blocking = [...merged.values()].filter((t) => t.skipped !== true && isBoundToRun(t));
   const safeCursorTo = blocking.length === 0 ? frames.length : Math.min(...blocking.map((t) => t.firstFrameIndex));
   // Invariant: `pending` only ever holds entries the cursor has NOT yet passed — a skip or
-  // a resolution behind the new cursor is pruned here, not carried forever.
-  const nextPending = [...merged.values()].filter((t) => t.firstFrameIndex >= safeCursorTo);
+  // a resolution behind the new cursor is pruned here, not carried forever. An entry
+  // irrelevant to this run's bound file always survives the prune untouched (`safeCursorTo`
+  // does not apply to it).
+  const nextPending = [...merged.values()].filter((t) => !isBoundToRun(t) || t.firstFrameIndex >= safeCursorTo);
   // Fix round (finding 4): a PRUNED skipped entry loses its only trace the instant it drops
   // out of `pending` — durably record it (never itself pruned) before it's gone.
   const newlyPrunedSkips: SkipRecord[] = [...merged.values()]
-    .filter((t) => t.skipped === true && t.firstFrameIndex < safeCursorTo)
+    .filter((t) => t.skipped === true && isBoundToRun(t) && t.firstFrameIndex < safeCursorTo)
     .map((t) => ({ nodeId: t.nodeId, name: t.name, at: now }));
   const skipHistory = newlyPrunedSkips.length > 0
     ? [...(priorState.skipHistory ?? []), ...newlyPrunedSkips]
@@ -333,7 +385,7 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
 
   let sidecarsWritten = false;
   try {
-    sidecarsWritten = writeSidecars(join(dir, DESIGN_DIR), sidecarWrites);
+    sidecarsWritten = writeSidecars(join(dir, DESIGN_DIR), sidecarWrites, fileSlug);
     if (changed) saveRegistry(registryPath, next);
     if (changed && ds !== undefined) {
       reseal({
@@ -349,7 +401,13 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
     const forced = sinceGiven && force && blockingPrior.length > 0
       ? [...(priorState.forced ?? []), { at: now, since: since as number }]
       : priorState.forced;
-    writeSyncState(statePath, { cursor: safeCursorTo, pending: nextPending, forced, skipHistory });
+    // Registry-integrity phase 03 (5.2), §2 — a `--file-slug`-filtered run advances ONLY
+    // its own entry in `byFile`; the global `cursor` (a shared, project-wide field with no
+    // per-file concept) is left exactly as it was. An unfiltered run keeps advancing
+    // `cursor` as before and leaves `byFile` untouched (it never resolved per-file work).
+    const nextCursor = fileSlug === undefined ? safeCursorTo : priorState.cursor;
+    const nextByFile = fileSlug === undefined ? priorState.byFile : { ...priorState.byFile, [fileSlug]: safeCursorTo };
+    writeSyncState(statePath, { cursor: nextCursor, byFile: nextByFile, pending: nextPending, forced, skipHistory });
   } catch (e) {
     if (e instanceof RegistryError) {
       return useJson ? errJson(SUB, e.code, e.message) : errText(`ui: ${e.message}\n`);
@@ -383,11 +441,13 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
 
 /** Write every captured sidecar (content-guarded by writeFigmaNode). Throws RegistryError.
  *  Returns whether ANY sidecar was actually written — a content-guarded skip (byte-identical
- *  rewrite) does not count (fix round, finding 3). */
-function writeSidecars(designDir: string, writes: readonly SidecarWrite[]): boolean {
+ *  rewrite) does not count (fix round, finding 3). `fileSlug` (registry-integrity phase 03,
+ *  §3) partitions the path exactly as `applyDelta` already partitioned the pointer stored on
+ *  the record — the two must always agree, or a pointer would outlive the file it names. */
+function writeSidecars(designDir: string, writes: readonly SidecarWrite[], fileSlug?: string): boolean {
   let anyWritten = false;
   for (const w of writes) {
-    if (writeFigmaNode(designDir, w.name, w.node).written) anyWritten = true;
+    if (writeFigmaNode(designDir, w.name, w.node, fileSlug).written) anyWritten = true;
   }
   return anyWritten;
 }

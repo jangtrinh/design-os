@@ -52,6 +52,28 @@ describe("readSyncState / writeSyncState — round trip", () => {
     expect(readSyncState(statePath)).toEqual({ cursor: 7 });
   });
 
+  // Registry-integrity phase 03 (5.2), §2 — per-file cursor.
+  it("byFile round-trips and an empty object normalizes away like the other collections", () => {
+    writeSyncState(statePath, { cursor: 5, byFile: { keyA: 10, keyB: 3 } });
+    expect(readSyncState(statePath)).toEqual({ cursor: 5, byFile: { keyA: 10, keyB: 3 } });
+
+    writeSyncState(statePath, { cursor: 5, byFile: {} });
+    expect(JSON.parse(readFileSync(statePath, "utf8"))).toEqual({ cursor: 5 });
+    expect(readSyncState(statePath)).toEqual({ cursor: 5 });
+  });
+
+  it("byFile rejects a negative/non-integer entry individually, keeping the valid ones", () => {
+    writeFileSync(statePath, JSON.stringify({ cursor: 0, byFile: { good: 5, bad: -1, alsoBad: 1.5 } }));
+    expect(readSyncState(statePath).byFile).toEqual({ good: 5 });
+  });
+
+  it("byFile is undefined (never {}) when absent or malformed at the root", () => {
+    writeFileSync(statePath, JSON.stringify({ cursor: 0, byFile: "nope" }));
+    expect(readSyncState(statePath).byFile).toBeUndefined();
+    writeFileSync(statePath, JSON.stringify({ cursor: 0, byFile: [1, 2] }));
+    expect(readSyncState(statePath).byFile).toBeUndefined();
+  });
+
   it("`lastAttemptedAt` is optional and round-trips when present", () => {
     const state = { cursor: 0, pending: [pendingTarget({ lastAttemptedAt: 555 })] };
     writeSyncState(statePath, state);

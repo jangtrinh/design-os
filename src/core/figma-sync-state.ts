@@ -59,6 +59,16 @@ export interface PendingTarget {
   name: string;
   /** Absolute frame index (CoalescedComponent.firstFrameIndex) the cursor must not pass. */
   firstFrameIndex: number;
+  /**
+   * Registry-integrity phase 03 (5.2), additive — the file (CoalescedComponent.fileSlug)
+   * this target actually belongs to, stamped from the coalesced component whether or not
+   * the run that created/touched it passed `--file-slug`. Undefined = a legacy entry from
+   * before this field existed. A `--file-slug`-filtered run's cursor/blocking computation
+   * treats an entry as relevant only when its own `fileSlug` matches (or is undefined,
+   * conservatively still-blocking until it resolves) — without this, a different file's
+   * stuck target would wrongly gate THIS file's per-file cursor advancement.
+   */
+  fileSlug?: string;
   /** Incremented once per apply run this target is STILL unfinished. */
   attempts: number;
   lastReason: string;
@@ -100,6 +110,16 @@ export interface SkipRecord {
 
 export interface SyncState {
   cursor: number;
+  /**
+   * Registry-integrity phase 03 (5.2), additive — one cursor PER FILE SLUG, used only by
+   * a `--file-slug`-filtered run. `cursor` stays authoritative for an unfiltered run (a
+   * shared broker cwd has no per-file concept); `byFile[slug]` is what a filtered run
+   * reads/advances instead, so filtering one file's frames out of a shared log can never
+   * strand another file's earlier, still-unapplied frames behind a single project-wide
+   * cursor. A legacy `{cursor}`-only file migrates by seeding `byFile[slug]` FROM `cursor`
+   * the first time that slug is filtered (see `figma-reconcile-run.ts`).
+   */
+  byFile?: Record<string, number>;
   /** Present only when non-empty (an empty/absent array mean the same thing — no queue). */
   pending?: PendingTarget[];
   forced?: ForcedBypass[];
@@ -126,6 +146,7 @@ function isValidPendingTarget(v: unknown): v is PendingTarget {
     typeof p["nodeId"] === "string" && p["nodeId"].length > 0 &&
     typeof p["name"] === "string" &&
     isNonNegativeInt(p["firstFrameIndex"]) &&
+    (p["fileSlug"] === undefined || (typeof p["fileSlug"] === "string" && p["fileSlug"].length > 0)) &&
     typeof p["attempts"] === "number" && Number.isInteger(p["attempts"]) && p["attempts"] >= 1 &&
     typeof p["lastReason"] === "string" &&
     isFiniteTimestamp(p["firstSeenTs"]) &&
@@ -150,21 +171,34 @@ function isValidSkipRecord(v: unknown): v is SkipRecord {
   );
 }
 
+/** A plain object mapping file slug → non-negative integer cursor. Any entry whose value
+ *  is out of range is dropped individually — same "reject, never clamp" doctrine as the
+ *  other stores here. */
+function sanitizeByFile(v: unknown): Record<string, number> | undefined {
+  if (v === null || typeof v !== "object" || Array.isArray(v)) return undefined;
+  const out: Record<string, number> = {};
+  for (const [slug, value] of Object.entries(v as Record<string, unknown>)) {
+    if (isNonNegativeInt(value)) out[slug] = value;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 /**
- * Read the FULL persisted state (cursor + pending queue + force log + skip history).
- * Absent file → `{cursor: 0}`. Malformed entries — including an out-of-range value
- * (a negative index, `attempts < 1`, a non-finite timestamp) — are REJECTED individually
- * (dropped, never clamped into looking valid) rather than failing the whole read: a
- * corrupt queue entry must not wedge the retry loop for every OTHER target, and the log
- * is still the source of truth for what is actually unfinished.
+ * Read the FULL persisted state (cursor + per-file cursors + pending queue + force log +
+ * skip history). Absent file → `{cursor: 0}`. Malformed entries — including an
+ * out-of-range value (a negative index, `attempts < 1`, a non-finite timestamp) — are
+ * REJECTED individually (dropped, never clamped into looking valid) rather than failing
+ * the whole read: a corrupt queue entry must not wedge the retry loop for every OTHER
+ * target, and the log is still the source of truth for what is actually unfinished.
  */
 export function readSyncState(path: string): SyncState {
   if (!existsSync(path)) return { cursor: 0 };
   try {
     const parsed = JSON.parse(readFileSync(path, "utf8")) as
-      { cursor?: unknown; pending?: unknown; forced?: unknown; skipHistory?: unknown };
+      { cursor?: unknown; byFile?: unknown; pending?: unknown; forced?: unknown; skipHistory?: unknown };
     const cursor = typeof parsed?.cursor === "number" && Number.isInteger(parsed.cursor) && parsed.cursor >= 0
       ? parsed.cursor : 0;
+    const byFile = sanitizeByFile(parsed?.byFile);
     const pending = Array.isArray(parsed?.pending)
       ? (parsed.pending as unknown[]).filter(isValidPendingTarget)
       : [];
@@ -176,6 +210,7 @@ export function readSyncState(path: string): SyncState {
       : [];
     return {
       cursor,
+      ...(byFile !== undefined && { byFile }),
       ...(pending.length > 0 && { pending }),
       ...(forced.length > 0 && { forced }),
       ...(skipHistory.length > 0 && { skipHistory }),
@@ -186,15 +221,16 @@ export function readSyncState(path: string): SyncState {
 }
 
 /**
- * Write the full state (cursor + pending + forced + skipHistory), deterministic (mirrors
- * `writeCursor`/`saveRegistry`). An empty array is normalized away (omitted, not stored
- * as `[]`) so a fully-resolved queue round-trips back to the exact `{cursor}`-only shape
- * a pre-existing project's state file already has.
+ * Write the full state (cursor + byFile + pending + forced + skipHistory), deterministic
+ * (mirrors `writeCursor`/`saveRegistry`). An empty array/object is normalized away
+ * (omitted, not stored as `[]`/`{}`) so a project untouched by filtering round-trips back
+ * to the exact `{cursor}`-only shape a pre-existing project's state file already has.
  */
 export function writeSyncState(path: string, state: SyncState): void {
   mkdirSync(dirname(path), { recursive: true });
   const payload: SyncState = {
     cursor: state.cursor,
+    ...(state.byFile && Object.keys(state.byFile).length > 0 && { byFile: state.byFile }),
     ...(state.pending && state.pending.length > 0 && { pending: state.pending }),
     ...(state.forced && state.forced.length > 0 && { forced: state.forced }),
     ...(state.skipHistory && state.skipHistory.length > 0 && { skipHistory: state.skipHistory }),

@@ -22,7 +22,7 @@ export const FIGMA_HELP = `ui figma — deterministic Figma live-sync (spec 004/
 
 Usage:
   ui figma reconcile [--since <n>] [--dry-run | --apply] [--mirror-file <f>]
-                     [--dir <project>] [--json]
+                     [--dir <project>] [--file-slug <s>] [--json]
 
 Subcommands:
   reconcile   Preview (--dry-run) or commit (--apply) the registry delta from the change-log
@@ -56,6 +56,12 @@ Options:
                    combine with --apply/--dry-run. No timeout ever sets this.
   --force          With --apply --since: bypass the refusal to run --since while the
                    retry queue is non-empty. Recorded in the state file (auditable).
+  --file-slug <s>  Narrow the delta/apply to one Figma file's identity (fileKey, or a
+                   slugged fileName fallback) in a change-log that may carry more than
+                   one file's frames. The cursor becomes per-file (design/figma-sync
+                   .state.json's byFile); a foreign frame is filtered and counted
+                   (skipped_foreign_frames), never rejected. Omit it to run the whole
+                   log unfiltered (the manual, single-project escape hatch).
   --json           Emit a JSON envelope instead of human-readable text
   -h, --help       Show this help
 

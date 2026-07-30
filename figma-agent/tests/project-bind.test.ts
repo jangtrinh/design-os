@@ -53,6 +53,27 @@ describe('fileIdentity — fileKey → slugged fileName → unknown', () => {
   });
 });
 
+// Review round, finding 1 — `fileIdentity` must agree with the kernel's OWN copy
+// (`fileSlugOf`, src/core/figma-reconcile.ts) on every fixture. THIS LIST IS DUPLICATED
+// VERBATIM in `tests/cmd-figma-reconcile.test.ts`'s "fileSlugOf — parity fixtures" describe
+// block (that file is the twin). Neither package can import the other's copy, so the
+// fixtures themselves are the cross-package drift lock — a comment claiming sameness
+// already failed once (editFeedPath used to slug the fileKey too).
+describe('fileIdentity — parity fixtures (twin: tests/cmd-figma-reconcile.test.ts)', () => {
+  const FIXTURES: { desc: string; fileKey: string | null; fileName: string | null; expect: string }[] = [
+    { desc: 'uppercase fileKey wins verbatim (never lowercased)', fileKey: 'AbC123XyZ', fileName: 'ignored', expect: 'AbC123XyZ' },
+    { desc: 'null fileKey, unicode/diacritic fileName', fileKey: null, fileName: 'Café Menú — Página', expect: 'caf-men-p-gina' },
+    { desc: 'null fileKey, fileName with spaces/dashes', fileKey: null, fileName: 'VSF - PCP', expect: 'vsf-pcp' },
+    { desc: 'both empty strings', fileKey: '', fileName: '', expect: 'unknown' },
+    { desc: 'both null', fileKey: null, fileName: null, expect: 'unknown' },
+  ];
+  for (const f of FIXTURES) {
+    it(f.desc, () => {
+      expect(fileIdentity(f.fileKey, f.fileName)).toBe(f.expect);
+    });
+  }
+});
+
 describe('isUsable — target must still look like a project', () => {
   it('true when <projectDir>/design exists', () => {
     mkdirSync(join(dirA, 'design'), { recursive: true });

@@ -51,12 +51,22 @@ export interface ChangeFrame {
   scopeHint: ScopeHint; // origin === 'REMOTE' → 'global', else 'local' (a hint, not a decision)
   page: string; // figma.currentPage.name at capture
   fileKey: string | null; // figma.fileKey (undefined on some free-tier contexts → null)
+  /**
+   * Registry-integrity phase 03 (5.2), additive — `CHANGE_LOG_SCHEMA_VERSION` stays 1.
+   * `figma.root.name` at capture. The file-identity chain (edit-feed-log.ts's
+   * `safeSlug`/project-bind.ts's `fileIdentity`) is fileKey → slugged fileName → 'unknown'
+   * — WITHOUT this second rung, every Figma-Free file (`fileKey === null`) collapses to
+   * 'unknown' and keeps coalescing together, silently un-partitioning exactly the tier
+   * this repo targets.
+   */
+  fileName?: string;
 }
 
 /** Per-batch metadata (same for every change in one documentchange event). */
 export interface ChangeBatchMeta {
   page: string;
   fileKey: string | null;
+  fileName?: string;
 }
 
 /**
@@ -134,5 +144,6 @@ export function buildChangeFrame(change: ComponentChange, meta: ChangeBatchMeta,
     scopeHint: deriveScopeHint(origin),
     page: meta.page,
     fileKey: meta.fileKey ?? null,
+    ...(typeof meta.fileName === 'string' && meta.fileName.length > 0 && { fileName: meta.fileName }),
   };
 }

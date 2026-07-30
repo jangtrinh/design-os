@@ -10,10 +10,11 @@
 // from its spawn cwd, same as changeLogDir(). A CLI run from project B can therefore read
 // a feed the broker wrote under project A. `FIGMA_AGENT_CHANGES_DIR` overrides both logs'
 // base directory together, so they always move as one unit — never independently.
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { changeLogDir } from './change-log.ts';
+import { fileIdentity, safeSlug } from './file-identity.ts';
 import {
   buildEditFrame, isValidEditInput,
   type EditBatchMeta, type EditFrame, type EditInput,
@@ -28,21 +29,34 @@ export function editFeedDir(): string {
   return join(changeLogDir(), EDIT_FEED_DIRNAME);
 }
 
-/** Lowercase, alnum + dash only, no leading/trailing dash. Never empty — falls back to
- *  'unknown' so a blank fileKey/fileName never produces a bare `.jsonl` or a path escape.
- *  Exported: project-bind.ts's `fileIdentity` reuses this exact chain (registry-integrity
- *  phase 01) so the two file-partitioning schemes can never silently drift apart. */
-export function safeSlug(raw: string): string {
-  const s = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  return s.length > 0 ? s : 'unknown';
-}
+/** Re-exported from `file-identity.ts` (fix round, finding 1) — kept as a named export
+ *  here too so every existing `import { safeSlug } from './edit-feed-log.ts'` call site
+ *  (broker-daemon.ts, this module's own tests) stays valid unchanged. */
+export { safeSlug };
 
-/** Per-file feed path: `design/changes/<slug>.jsonl`, slug = fileKey ?? slugified
- *  fileName ?? 'unknown' (spec's unresolved q1, resolved this way so a project keeps
- *  one directory rather than a `figma-agent-changes-<...>.jsonl` sibling of `design/`). */
+/**
+ * Per-file feed path: `design/changes/<identity>.jsonl`, identity = `fileIdentity(fileKey,
+ * fileName)` — the ONE canonical chain (`file-identity.ts`), also used by
+ * `project-bind.ts`. Fix round, finding 1: this used to derive its OWN slug — including
+ * running the fileKey itself through `safeSlug` (lowercasing it) — which silently drifted
+ * from `fileIdentity`'s raw-fileKey chain for any uppercase-bearing key. Legacy fallback:
+ * if a feed already exists on disk at the OLD (fileKey-slugged) path but nothing exists yet
+ * at the new canonical path, keep appending to the legacy file — a rename here would
+ * orphan real history for a project whose fileKey happens to contain uppercase. Cheap
+ * insurance: on this machine feeds are fileName-keyed (no real fileKey reaches this path
+ * yet), so the fallback is expected to be a no-op in practice.
+ */
 export function editFeedPath(fileKey: string | null, fileName: string | null): string {
-  const slug = fileKey && fileKey.trim() !== '' ? safeSlug(fileKey) : safeSlug(fileName ?? '');
-  return join(editFeedDir(), `${slug}.jsonl`);
+  const identity = fileIdentity(fileKey, fileName);
+  const canonicalPath = join(editFeedDir(), `${identity}.jsonl`);
+  if (typeof fileKey === 'string' && fileKey.trim() !== '') {
+    const legacySlug = safeSlug(fileKey);
+    if (legacySlug !== identity) {
+      const legacyPath = join(editFeedDir(), `${legacySlug}.jsonl`);
+      if (!existsSync(canonicalPath) && existsSync(legacyPath)) return legacyPath;
+    }
+  }
+  return canonicalPath;
 }
 
 /** Parent dir of a file path (avoids importing dirname just for one call — mirrors
