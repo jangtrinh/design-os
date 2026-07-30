@@ -12,7 +12,7 @@ import { PORT_RANGE_START } from '../../../shared/protocol';
 import type { ConnectionState, ConnectionStatePayload } from '../../../shared/protocol';
 import {
   statusSentence, showOnboarding, fileNote, PANEL_HEIGHT,
-  syncPromptLabel, syncResultLabel,
+  syncPromptLabel, syncResultLabel, syncNowLabel, shouldClearPendingCount,
 } from './panel-model';
 import {
   toActivityRecord, toActivityResult, pushActivity, resolveActivity, diffRowKeys,
@@ -245,6 +245,7 @@ window.addEventListener('message', (ev: MessageEvent) => {
   if (pm.type === 'IDLE_READY' && pm.data) {
     const count = typeof pm.data.count === 'number' ? pm.data.count : 1;
     syncMsg.textContent = syncPromptLabel(count);
+    syncNowBtn.textContent = syncNowLabel(false); // a fresh prompt is never mid-refusal
     syncPrompt.hidden = false;
     return;
   }
@@ -276,33 +277,46 @@ syncNowBtn.addEventListener('click', () => {
   });
   renderActivity(at);
   try { window.dispatchEvent(new CustomEvent('figma-agent:sync-request')); } catch { /* no DOM events */ }
-  parent.postMessage({ pluginMessage: { type: 'SYNC_DONE' } }, '*');
+  // Fix round (finding 2): SYNC_DONE (which resets main's pending-change counter) used to
+  // post HERE, on click — before the result is even known. An E_UNBOUND refusal applies
+  // NOTHING, so consuming the counter at click-time silently dropped the pending changes'
+  // one visible signal. It now posts from the sync-result listener below, once the
+  // outcome is known, carrying whether to actually reset.
 });
 
 syncLaterBtn.addEventListener('click', () => { syncPrompt.hidden = true; });
 
 window.addEventListener('figma-agent:sync-result', (ev) => {
-  const d = (ev as CustomEvent).detail as { ok?: boolean; summary?: string; landed?: boolean } | undefined;
+  const d = (ev as CustomEvent).detail as
+    { ok?: boolean; summary?: string; landed?: boolean; code?: string } | undefined;
   // `landed` absent (an older broker) → assume it landed; a present `false` is honoured.
-  const label = syncResultLabel(
-    d?.ok === true,
-    typeof d?.summary === 'string' ? d.summary : '',
-    d?.landed !== false,
-  );
+  // `code === 'E_UNBOUND'` (registry-integrity fix round, finding 2): the broker refused
+  // instead of guessing a project — renders the bind command, not a pass/fail verdict.
+  const unbound = d?.code === 'E_UNBOUND';
+  const ok = d?.ok === true;
+  const label = syncResultLabel(ok, typeof d?.summary === 'string' ? d.summary : '', d?.landed !== false, unbound);
   syncMsg.textContent = label;
-  // The prompt line auto-dismisses in 4s; the feed row is the durable record. It
+  syncNowBtn.textContent = syncNowLabel(unbound);
+  // The prompt line normally auto-dismisses in 4s; the feed row is the durable record. It
   // repeats the SAME sentence syncResultLabel just made — including "Nothing synced",
   // which a feed that only said "done" would quietly upgrade to a lie.
   if (reconcileRun) {
     const now = Date.now();
     activity = resolveActivity(activity, {
-      id: reconcileRun.id, ok: d?.ok === true, ms: now - reconcileRun.at, result: `→ ${label}`,
+      id: reconcileRun.id, ok, ms: now - reconcileRun.at, result: `→ ${label}`,
     });
     reconcileRun = null;
     renderActivity(now);
   }
+  // Closing review round, defect #2: ONLY a genuine success may clear main's pending-change
+  // counter — a real reconcile failure or "already running" applied nothing either, so
+  // clearing it there was just as dishonest as clearing it on an unbound refusal. Every
+  // failure (E_UNBOUND included) keeps both the counter and this prompt, so retry stays
+  // possible; only a success auto-dismisses.
+  const commit = shouldClearPendingCount(ok);
+  parent.postMessage({ pluginMessage: { type: 'SYNC_DONE', commit } }, '*');
   syncPrompt.hidden = false;
-  setTimeout(() => { syncPrompt.hidden = true; }, 4000); // auto-dismiss the confirmation
+  if (commit) setTimeout(() => { syncPrompt.hidden = true; }, 4000);
 });
 
 versionEl.textContent = `v0.1.0 · ${typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}`;

@@ -43,6 +43,13 @@ export const COMMANDS = [
   'IMPORT_PAYLOAD', // internal: ui → main with FigmaExportPayload
   'EXEC_JS',
   'BATCH',
+  // Registry-integrity phase 01 fix round: BROKER-LOCAL, never forwarded to a plugin
+  // (see broker-daemon.ts's `isRequestMsg` branch, which intercepts it before
+  // `forwardToPlugin`). Named PROJECT_BIND, not BIND, to stay unambiguous next to the
+  // unrelated Figma-variable `BIND_VARIABLE` command. Reuses the existing request/reply
+  // machinery so `figma-agent bind` gets a real answer (fileKey, pendingKey,
+  // migratedCount) instead of a fire-and-forget event with no way to report either.
+  'PROJECT_BIND',
 ] as const;
 export type CommandName = (typeof COMMANDS)[number];
 
@@ -72,6 +79,12 @@ export interface RequestMsg {
    * frame must serialize byte-identically to what a pre-flag CLI sent.
    */
   expectedFile?: string;
+  /**
+   * Absolute project root of the CALLER (its cwd, or --dir). The broker records
+   * fileIdentity → projectDir from this, so panel/idle sync can apply into the right project
+   * instead of the daemon's spawn cwd. Omitted only by a pre-binding CLI.
+   */
+  projectDir?: string;
 }
 
 /** Which file answered. Echoed on every reply so a caller can prove where a command landed. */
@@ -139,6 +152,10 @@ export interface EventMsg {
   // plugin → broker; the broker appends it to its own per-file feed
   // (design/changes/<slug>.jsonl), separate from figma.changes.jsonl (spec A6). Payload
   // shape: { edits: EditInput[], fileKey: string|null, fileName: string, source: 'live'|'gapfill' }.
+  //
+  // (`figma-agent bind` is a RequestMsg — cmd: 'PROJECT_BIND' — not an event: the fix
+  // round found a fire-and-forget event could never report migratedCount/fileKey back to
+  // the CLI. See broker-daemon.ts's broker-local PROJECT_BIND handler.)
   type:
     | 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG'
     | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS' | 'EDIT_FEED';
@@ -168,6 +185,13 @@ export interface PluginStatusEntry {
   state: 'connected';
   lastHeartbeatAge: number | null; // ms since the last frame/pong from this instance
   connectedAt: number; // ms epoch of this instance's first HELLO
+  /**
+   * Additive (registry-integrity phase 01, §2): `figma-agent bind` needs a connected
+   * file's fileKey to index BOTH aliases in its marker, without a dedicated round trip —
+   * carried here since it is already on the scene. null for a non-org plugin, same as
+   * FileContext.fileKey.
+   */
+  fileKey?: string | null;
 }
 
 // Chunked transport for payloads > CHUNK_LIMIT (both directions).
@@ -197,7 +221,13 @@ export type ErrorCode =
   // `--file` routed to a live plugin whose scene no longer matches (or a plugin predating
   // the guard was refused forwarding before this could even be reached) — the plugin-side
   // guard refused to run a command meant for a different file.
-  | 'E_WRONG_FILE';
+  | 'E_WRONG_FILE'
+  // Registry-integrity phase 01 fix round (finding 2): a live-sync apply refused because
+  // no project is bound for this file — carried on SYNC_RESULT (`{ok:false, code:
+  // 'E_UNBOUND', ...}`), NOT a ReplyErr (SYNC_RESULT has no request to reply to). A
+  // stable code, not an ad-hoc boolean, so the panel's state machine (and any future
+  // consumer) has one canonical thing to match instead of a field that could drift.
+  | 'E_UNBOUND';
 
 // ── Timeouts (ms) ───────────────────────────────────────────────────
 export const DEFAULT_TIMEOUT_MS = 15_000;
@@ -254,10 +284,12 @@ export function makeRequestFrame(
   params: unknown,
   activity?: string,
   expectedFile?: string,
+  projectDir?: string,
 ): RequestMsg {
   const frame: RequestMsg = { id, cmd, params, v: PROTOCOL_VERSION };
   if (typeof activity === 'string' && activity.trim() !== '') frame.activity = activity;
   if (typeof expectedFile === 'string' && expectedFile.trim() !== '') frame.expectedFile = expectedFile;
+  if (typeof projectDir === 'string' && projectDir.trim() !== '') frame.projectDir = projectDir;
   return frame;
 }
 

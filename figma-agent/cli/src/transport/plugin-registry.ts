@@ -175,6 +175,7 @@ export class PluginRegistry<S extends RegistrySocket = RegistrySocket> {
         state: 'connected' as const,
         lastHeartbeatAge: e.lastSeenAt ? now - e.lastSeenAt : null,
         connectedAt: e.connectedAt,
+        fileKey: (e.scene.fileKey as string | null | undefined) ?? null,
       }));
   }
 

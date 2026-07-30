@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   statusSentence, formatAge, showOnboarding, fileNote, PANEL_WIDTH, PANEL_HEIGHT,
-  syncPromptLabel, syncResultLabel,
+  syncPromptLabel, syncResultLabel, syncNowLabel, shouldClearPendingCount,
 } from '../plugin/src/ui/panel-model.ts';
 
 describe('statusSentence — Block 1: the problem and the next action, six branches', () => {
@@ -103,5 +103,27 @@ describe('idle-commit prompt labels (spec 004 P4)', () => {
     expect(syncResultLabel(false, 'ui not runnable')).toBe('Sync failed — ui not runnable');
     expect(syncResultLabel(true, '')).toBe('Synced — done'); // empty summary → sane default
     expect(syncResultLabel(false, '   ')).toBe('Sync failed — failed');
+  });
+
+  it('syncResultLabel — unbound renders the bind command bare, not under a failure verdict', () => {
+    const summary = 'No project bound for "VSF - PCP" — run: figma-agent bind --file "VSF - PCP" --dir <project>';
+    expect(syncResultLabel(false, summary, true, true)).toBe(summary);
+    // ok=false is what the broker actually sends for an unbound refusal — proves `unbound`
+    // takes precedence over the "Sync failed" branch rather than being unreachable dead code.
+    expect(syncResultLabel(false, summary, true, true)).not.toContain('Sync failed');
+  });
+
+  it('syncNowLabel — swaps to the bind hint on E_UNBOUND, reverts once bound (fix round, finding 2)', () => {
+    expect(syncNowLabel(false)).toBe('Sync now');
+    expect(syncNowLabel(true)).toBe('Bind, then retry');
+    expect(syncNowLabel(true)).not.toBe(syncNowLabel(false)); // the state machine's two branches
+  });
+
+  it('shouldClearPendingCount — ONLY a genuine success clears the pending counter (closing round, defect #2)', () => {
+    expect(shouldClearPendingCount(true)).toBe(true);
+    // false covers BOTH a real reconcile failure AND an E_UNBOUND refusal — either way,
+    // nothing applied, so retry must stay possible (the bug: it used to clear on any
+    // non-unbound outcome, including "a sync is already running").
+    expect(shouldClearPendingCount(false)).toBe(false);
   });
 });

@@ -1,12 +1,14 @@
 // figma-agent CLI entry: plain argv dispatch (no arg-parsing dependency).
 // Hidden subcommand `__broker` runs the persistent relay daemon in-process.
 // Every visible command prints exactly ONE JSON object and exits 0/1.
+import { resolve } from 'node:path';
 import { runBrokerDaemon } from './transport/broker-daemon.ts';
 import { parseArgs, type CommandArgs } from './arg-parse.ts';
 import { CliError } from './transport/protocol-helpers.ts';
-import { getLastFileContext, setExpectedFile } from './transport/broker-client.ts';
+import { getLastFileContext, setExpectedFile, setProjectDir } from './transport/broker-client.ts';
 import { printErrorJson, printJson, withFileContext } from './util/json-out.ts';
 import * as batch from './commands/batch.ts';
+import * as bind from './commands/bind.ts';
 import * as bindVariable from './commands/bind-variable.ts';
 import * as capture from './commands/capture.ts';
 import * as cloneTraits from './commands/clone-traits.ts';
@@ -37,6 +39,7 @@ export type { CommandArgs } from './arg-parse.ts';
 const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown> }> = {
   status,
   seat,
+  bind,
   'get-selection': getSelection,
   inspect,
   'scan-design-system': scanDesignSystem,
@@ -68,6 +71,8 @@ Usage: figma-agent <command> [options]
 Commands:
   status               Broker + plugin connection info
   seat                 Probe seat → {seat, bridge, reason} [--seat free|paid skips the probe]
+  bind                 --file "<name>" --dir <projectDir>   bind a file to a project for
+                       panel/idle sync (refuses to guess otherwise) [--list] [--unbind]
   get-selection        Serialize the current selection [--depth 1]
   inspect              [nodeId|--node id] [--out file.png --scale 1 --timeout ms]
   scan-design-system   Components/variables/styles registry [--out file.json --timeout ms]
@@ -100,6 +105,9 @@ Commands:
 Global: --file "<exact file name>"   route to that file's plugin AND refuse to run anywhere else
                                      (exact, case-insensitive; beats FIGMA_AGENT_FILE; payloads
                                       >512KB route by the env pin but are still guarded)
+        --dir <projectDir>          this invocation's project root (default: cwd); stamped on
+                                     every request so panel/idle sync can apply into the right
+                                     project once bound (\`figma-agent bind\`) — never a guess
 
 All commands print one JSON object to stdout and exit 0, or {error:{code,message}} and exit 1.`;
 
@@ -126,6 +134,7 @@ async function main(): Promise<void> {
     printErrorJson(new CliError('E_INVALID_ARGS', '--file needs a file name, e.g. --file "VSF - PCP"'));
   }
   setExpectedFile(args.str('file'));   // global flag — verified: no command reads --file today
+  setProjectDir(resolve(args.str('dir') ?? process.cwd())); // registry-integrity phase 01 §1
   try {
     const result = await command.run(args);
     printJson(withFileContext(result));

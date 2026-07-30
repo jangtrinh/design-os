@@ -9,10 +9,12 @@ import { MUTATING_COMMANDS } from '../plugin/src/main/mutating-commands.ts';
 
 // Nothing to seal into an undo step: STATUS/GET_SELECTION/SCAN_DESIGN_SYSTEM/AUDIT_DS/
 // GET_CORRECTION_MEMORY/EXPORT_PNG are read-only; HTML_TO_FIGMA never reaches main (arrives as
-// IMPORT_PAYLOAD); BATCH's children commit individually inside runBatch, never BATCH itself.
+// IMPORT_PAYLOAD); BATCH's children commit individually inside runBatch, never BATCH itself;
+// PROJECT_BIND is BROKER-LOCAL (registry-integrity fix round) — broker-daemon.ts intercepts it
+// before `forwardToPlugin`, so it never reaches main.ts / a Figma tab at all.
 const READ_ONLY_COMMANDS: readonly CommandName[] = [
   'STATUS', 'GET_SELECTION', 'SCAN_DESIGN_SYSTEM', 'AUDIT_DS',
-  'GET_CORRECTION_MEMORY', 'EXPORT_PNG', 'HTML_TO_FIGMA', 'BATCH',
+  'GET_CORRECTION_MEMORY', 'EXPORT_PNG', 'HTML_TO_FIGMA', 'BATCH', 'PROJECT_BIND',
 ];
 
 describe('command classification — every COMMANDS entry is MUTATING xor READ_ONLY', () => {
