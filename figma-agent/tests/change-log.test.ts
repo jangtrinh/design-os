@@ -66,6 +66,16 @@ describe('appendChangeFrames — one JSONL line per change', () => {
     expect(second).toMatchObject({ op: 'deleted', nodeId: 'b', origin: 'REMOTE', scopeHint: 'global', nodeName: null });
   });
 
+  it('threads fileName through when the batch meta carries one (registry-integrity phase 03 §1)', () => {
+    appendChangeFrames(path, [change({ nodeId: 'a' })], { page: 'P', fileKey: null, fileName: 'Free File' }, 1);
+    expect(JSON.parse(readLines()[0]!)).toMatchObject({ fileKey: null, fileName: 'Free File' });
+  });
+
+  it('omits fileName entirely when the batch meta has none (back-compat: byte-identical to a pre-phase-03 frame)', () => {
+    appendChangeFrames(path, [change({ nodeId: 'a' })], { page: 'P', fileKey: 'KEY1' }, 1);
+    expect(Object.keys(JSON.parse(readLines()[0]!))).not.toContain('fileName');
+  });
+
   it('appends across calls (append-only, never truncates)', () => {
     appendChangeFrames(path, [change({ nodeId: 'a' })], { page: 'P', fileKey: null }, 1);
     appendChangeFrames(path, [change({ nodeId: 'b' })], { page: 'P', fileKey: null }, 2);

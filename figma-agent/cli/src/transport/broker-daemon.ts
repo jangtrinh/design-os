@@ -130,7 +130,11 @@ function appendDocChange(changesPath: string, data: Record<string, unknown>): vo
     if (changes.length === 0) return;
     const page = typeof data.page === 'string' ? data.page : '';
     const fileKey = typeof data.fileKey === 'string' ? data.fileKey : null;
-    const written = appendChangeFrames(changesPath, changes, { page, fileKey }, Date.now());
+    // Registry-integrity phase 03, §1: carried through so a Figma-Free file (fileKey
+    // null) still has a second rung on the identity chain instead of collapsing to
+    // 'unknown'. Optional — an older plugin bundle omitting it degrades to today's shape.
+    const fileName = typeof data.fileName === 'string' ? data.fileName : undefined;
+    const written = appendChangeFrames(changesPath, changes, { page, fileKey, fileName }, Date.now());
     if (written > 0) log(`DOC_CHANGE: appended ${written} change frame(s) → ${changesPath}`);
   } catch (err) {
     log(`DOC_CHANGE append failed: ${(err as Error).message}`);
@@ -272,7 +276,8 @@ export async function runBrokerDaemon(): Promise<void> {
     const scene = st.registry.getByWs(ws)?.scene;
     const fileName = (scene?.fileName as string | undefined) ?? null;
     const fileKey = (scene?.fileKey as string | null | undefined) ?? null;
-    const bound = resolveProjectDir(fileIdentity(fileKey, fileName), st.bindIndex);
+    const slug = fileIdentity(fileKey, fileName);
+    const bound = resolveProjectDir(slug, st.bindIndex);
     if (bound === null) {
       const label = fileName ?? '(unnamed file)';
       const summary = `No project bound for "${label}" — run: figma-agent bind --file "${label}" --dir <project>`;
@@ -283,8 +288,11 @@ export async function runBrokerDaemon(): Promise<void> {
       return;
     }
     syncInFlight = true;
-    log(`SYNC_REQUEST → spawning: ui figma reconcile --apply --dir ${bound}`);
-    spawnReconcileApply(bound, (r) => {
+    log(`SYNC_REQUEST → spawning: ui figma reconcile --apply --file-slug ${slug} --dir ${bound}`);
+    // Registry-integrity phase 03 (5.2), §2 — `slug` narrows the kernel calls to THIS
+    // file's own targets in a change-log the project may share with another file; `fileName`
+    // (nullable → undefined) pins the live scan back to the SAME plugin instance.
+    spawnReconcileApply(bound, slug, fileName ?? undefined, (r) => {
       syncInFlight = false;
       log(`SYNC_RESULT ok=${r.ok} — ${r.summary}`);
       sendEvent(ws, 'SYNC_RESULT', { ...r });

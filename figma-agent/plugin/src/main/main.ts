@@ -308,8 +308,11 @@ function onDocumentChange(event: DocumentChangeEvent): void {
   const changes = coalesceChanges(raw);
   if (changes.length > 0) {
     figma.ui.postMessage({
+      // fileName rides alongside fileKey (registry-integrity phase 03, §1) — a Figma-Free
+      // file's fileKey is null, so without a name the slug chain collapses every such
+      // file to 'unknown' and keeps coalescing them together.
       type: 'DOC_CHANGE',
-      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
+      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null, fileName: figma.root.name },
     });
     changesSinceCommit += changes.length;
     resetIdleTimer(); // each edit pushes the idle-commit prompt further out

@@ -2,7 +2,7 @@
 // PROJECT FILE (fileKey|fileName slug), deliberately separate from change-log.ts so the
 // two logs can never converge (spec A6). Mirrors tests/change-log.test.ts's shape.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -37,8 +37,11 @@ describe('editFeedDir / editFeedPath — shares the change-log base dir + env ov
     expect(editFeedDir()).toBe(join(dir, EDIT_FEED_DIRNAME));
   });
 
-  it('slugs by fileKey when present', () => {
-    expect(editFeedPath('ABC123key', 'ignored')).toBe(join(dir, EDIT_FEED_DIRNAME, 'abc123key.jsonl'));
+  // Review round, finding 1: fileKey is used VERBATIM (never slugged) — this used to
+  // lowercase the key, silently drifting from `fileIdentity`/the kernel's `fileSlugOf`,
+  // which both already returned the key raw.
+  it('uses fileKey verbatim when present (never slugged/lowercased)', () => {
+    expect(editFeedPath('ABC123key', 'ignored')).toBe(join(dir, EDIT_FEED_DIRNAME, 'ABC123key.jsonl'));
   });
 
   it('slugs by fileName when fileKey is absent', () => {
@@ -48,6 +51,39 @@ describe('editFeedDir / editFeedPath — shares the change-log base dir + env ov
   it('falls back to "unknown" when neither fileKey nor fileName is usable', () => {
     expect(editFeedPath(null, null)).toBe(join(dir, EDIT_FEED_DIRNAME, 'unknown.jsonl'));
     expect(editFeedPath('', '')).toBe(join(dir, EDIT_FEED_DIRNAME, 'unknown.jsonl'));
+  });
+
+  // Review round, finding 1: a canonical-path switch must never orphan a feed that
+  // already exists on disk under the OLD (fileKey-slugged) name.
+  //
+  // Fixture uses a fileKey that differs from its slug by MORE than case ('.' → '-',
+  // not just upper/lower) — macOS's default case-insensitive filesystem would otherwise
+  // make `existsSync('ABC123key.jsonl')` resolve to an already-written 'abc123key.jsonl'
+  // and silently pass a case-only variant of this test for the wrong reason.
+  describe('legacy fallback — never orphans a feed already on disk under the old slugged name', () => {
+    it('keeps appending to the legacy path when only it exists', () => {
+      const legacyPath = join(dir, EDIT_FEED_DIRNAME, 'abc-123key.jsonl'); // safeSlug('AbC.123Key')
+      mkdirSync(join(dir, EDIT_FEED_DIRNAME), { recursive: true });
+      writeFileSync(legacyPath, '');
+      expect(editFeedPath('AbC.123Key', 'ignored')).toBe(legacyPath);
+    });
+
+    it('prefers the canonical path once it exists too', () => {
+      const legacyPath = join(dir, EDIT_FEED_DIRNAME, 'abc-123key.jsonl');
+      const canonicalPath = join(dir, EDIT_FEED_DIRNAME, 'AbC.123Key.jsonl');
+      mkdirSync(join(dir, EDIT_FEED_DIRNAME), { recursive: true });
+      writeFileSync(legacyPath, '');
+      writeFileSync(canonicalPath, '');
+      expect(editFeedPath('AbC.123Key', 'ignored')).toBe(canonicalPath);
+    });
+
+    it('a fresh project (neither path exists) goes straight to the canonical path', () => {
+      expect(editFeedPath('AbC.123Key', 'ignored')).toBe(join(dir, EDIT_FEED_DIRNAME, 'AbC.123Key.jsonl'));
+    });
+
+    it('a fileKey whose slug is identical to itself (already lowercase alnum) has no legacy branch to fall into', () => {
+      expect(editFeedPath('abc123key', 'ignored')).toBe(join(dir, EDIT_FEED_DIRNAME, 'abc123key.jsonl'));
+    });
   });
 });
 

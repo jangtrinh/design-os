@@ -118,12 +118,20 @@ export function mergeTargetsPendingFirst(
  * command is proven on — this code runs INSIDE the broker daemon, and a self-connection
  * would be a second, untested path to the plugin. Resolves `null` + a reason on any
  * failure; never rejects.
+ *
+ * `fileName` (registry-integrity phase 03, §2) pins the child to the BOUND file via the
+ * existing global `--file` flag (figma-agent.ts's `setExpectedFile`, wired since the
+ * routing wave — no new flag needed here): without it the broker may route the scan to
+ * whichever plugin instance is most recently active, silently undoing the file filter one
+ * layer down from `ui figma reconcile --file-slug`.
  */
-function scanNode(nodeId: string): Promise<{ node?: unknown; reason?: string }> {
+function scanNode(nodeId: string, fileName?: string): Promise<{ node?: unknown; reason?: string }> {
   return new Promise((resolve) => {
     let child;
     try {
-      child = spawn(process.execPath, [selfBundlePath(), 'scan-node', nodeId, '--timeout', String(SCAN_TIMEOUT_MS)], {
+      const args = [selfBundlePath(), 'scan-node', nodeId, '--timeout', String(SCAN_TIMEOUT_MS)];
+      if (fileName !== undefined) args.push('--file', fileName);
+      child = spawn(process.execPath, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     } catch (err) {
@@ -168,8 +176,16 @@ export function splitAtScanCap(
  * Scan every target and write the capture file. Sequential on purpose: the plugin main
  * thread is single-threaded, and a burst of parallel EXEC_JS would queue there anyway
  * while making a timeout impossible to attribute.
+ *
+ * `fileName` (registry-integrity phase 03, §2) — the bound file's own name, threaded to
+ * every scan so the broker routes each one to the RIGHT plugin instance rather than
+ * whichever is currently active. Undefined (a caller with no bound file yet) preserves
+ * today's behaviour exactly.
  */
-export async function captureMirror(targets: readonly MirrorTarget[]): Promise<MirrorCaptureResult> {
+export async function captureMirror(
+  targets: readonly MirrorTarget[],
+  fileName?: string,
+): Promise<MirrorCaptureResult> {
   const { scanned, dropped: droppedTargets } = splitAtScanCap(targets);
   const dropped = droppedTargets.length;
   if (scanned.length === 0) return { captured: 0, failed: 0, dropped, droppedTargets };
@@ -177,7 +193,7 @@ export async function captureMirror(targets: readonly MirrorTarget[]): Promise<M
   const captured: { nodeId: string; name: string; node: unknown }[] = [];
   const failed: { nodeId: string; name: string; reason: string }[] = [];
   for (const t of scanned) {
-    const r = await scanNode(t.nodeId);
+    const r = await scanNode(t.nodeId, fileName);
     if (r.node !== undefined) captured.push({ nodeId: t.nodeId, name: t.name, node: r.node });
     else failed.push({ nodeId: t.nodeId, name: t.name, reason: r.reason ?? 'scan failed' });
   }

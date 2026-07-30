@@ -13,7 +13,6 @@
 //     bind would silently stop working until the next CLI request re-teaches it.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { safeSlug } from './edit-feed-log.ts';
 
 export type BindSource = 'bind' | 'request';
 
@@ -25,14 +24,13 @@ export interface Binding {
 }
 
 /**
- * fileKey when present, else slugged fileName, else 'unknown' — the SAME chain the edit
- * feed already uses (edit-feed-log.ts's `editFeedPath`), reused via `safeSlug` so the two
- * file-partitioning schemes can never silently drift apart.
+ * fileKey when present (verbatim), else slugged fileName, else 'unknown' — re-exported
+ * from `file-identity.ts`, the ONE canonical helper `edit-feed-log.ts` ALSO imports (fix
+ * round, finding 1: the two used to each derive their own copy, and drifted). Kept as a
+ * named export here too — every existing `import { fileIdentity } from './project-bind.ts'`
+ * call site (broker-daemon.ts, this module's own tests) stays valid unchanged.
  */
-export function fileIdentity(fileKey: string | null | undefined, fileName: string | null | undefined): string {
-  if (typeof fileKey === 'string' && fileKey.trim() !== '') return fileKey;
-  return safeSlug(fileName ?? '');
-}
+export { fileIdentity } from './file-identity.ts';
 
 /** A binding is only usable if its target still exists and still looks like a project —
  *  a moved/deleted project must refuse, never silently fall through to somewhere else. */

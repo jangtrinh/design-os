@@ -13,6 +13,10 @@ import type { PendingTarget } from "../core/figma-sync-state.js";
 export interface DeltaText {
   cursor_from: number;
   cursor_to: number;
+  /** Registry-integrity phase 03 (5.2), §2 — present only when `--file-slug` narrowed the
+   *  run; `cursor_to` then reports THAT file's own per-file cursor, not the shared log's. */
+  file_slug?: string;
+  skipped_foreign_frames?: number;
   delta: {
     added: { name: string; scope: string }[];
     updated: { name: string; scope: string; fields: string[] }[];
@@ -46,6 +50,9 @@ export function safeText(s: string, max = 80): string {
 function renderDeltaLines(data: DeltaText, header: string): string[] {
   const lines: string[] = [];
   lines.push(header);
+  if (data.file_slug !== undefined) {
+    lines.push(`  · file ${safeText(data.file_slug)} — ${data.skipped_foreign_frames ?? 0} foreign frame(s) filtered`);
+  }
   lines.push(
     `  ${data.delta.added.length} added · ${data.delta.updated.length} updated · ${data.delta.deprecated.length} deprecated ` +
       `(scope: ${data.scope_summary.local} local, ${data.scope_summary.global} global)`,

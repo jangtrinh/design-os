@@ -65,15 +65,25 @@ const VALID_NODE_TYPES = new Set<string>(["FRAME", "TEXT", "RECTANGLE", "IMAGE",
 // ─── Pure: pointer + payload validation ───────────────────────────────────────
 
 /**
- * Derive the sidecar pointer for a component name: `components/<slug>.figma.json`.
+ * Derive the sidecar pointer for a component name: `components/<slug>.figma.json`, or
+ * `components/<file-slug>/<slug>.figma.json` when `fileSlug` is given.
  *
  * The slug reuses `toSafeFilename` (the existing kebab-case filename util), so
  * `Button/Primary` → `components/button-primary.figma.json`. Registry names are
  * `Category/Variant` in letters only, so slugs collide only for names differing by case
  * alone — which the registry already treats as two distinct records.
+ *
+ * Registry-integrity phase 03 (5.2), §3 — `fileSlug` (the SAME file identity a
+ * `--file-slug`-filtered reconcile run resolves) kills a cross-file name collision two
+ * different Figma files could otherwise produce for the same `Category/Variant` name.
+ * `fileSlug` is run through `toSafeFilename` too (defense in depth: a raw Figma fileKey is
+ * already filename-safe, but the directory segment must never trust that blindly). Absent
+ * = the legacy flat layout, unchanged — only a run that actually resolved a bound file's
+ * identity partitions its sidecars; a manual, unfiltered run keeps today's shape exactly.
  */
-export function figmaNodeRelPath(name: string): string {
-  return `${SIDECAR_DIR}/${toSafeFilename(name)}${FIGMA_NODE_SUFFIX}`;
+export function figmaNodeRelPath(name: string, fileSlug?: string): string {
+  const dir = fileSlug !== undefined ? `${SIDECAR_DIR}/${toSafeFilename(fileSlug)}` : SIDECAR_DIR;
+  return `${dir}/${toSafeFilename(name)}${FIGMA_NODE_SUFFIX}`;
 }
 
 function isObject(x: unknown): x is Record<string, unknown> {
@@ -153,8 +163,9 @@ export function writeFigmaNode(
   designDir: string,
   name: string,
   node: FigmaNodeSpec,
+  fileSlug?: string,
 ): FigmaNodeWriteResult {
-  const relPath = figmaNodeRelPath(name);
+  const relPath = figmaNodeRelPath(name, fileSlug);
   const path = resolve(join(designDir, relPath));
   const content = serialize(name, node);
 

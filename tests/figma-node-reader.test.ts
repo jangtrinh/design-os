@@ -64,6 +64,32 @@ describe("figmaNodeRelPath", () => {
       "components/button-primary.figma.json",
     );
   });
+
+  // Registry-integrity phase 03 (5.2), §3 — the file slug kills a cross-file name collision.
+  describe("with fileSlug (additive — kills a cross-file name collision)", () => {
+    it("nests under components/<file-slug>/ instead of the flat layout", () => {
+      expect(figmaNodeRelPath("Button/Primary", "fileA")).toBe("components/filea/button-primary.figma.json");
+    });
+
+    it("two files' SAME name never collide on disk", () => {
+      const a = figmaNodeRelPath("Button/Primary", "fileA");
+      const b = figmaNodeRelPath("Button/Primary", "fileB");
+      expect(a).not.toBe(b);
+    });
+
+    it("the fileSlug segment is itself sanitized (defense in depth, not trusted verbatim)", () => {
+      expect(figmaNodeRelPath("Button/Primary", "File With Spaces!")).toBe(
+        "components/file-with-spaces/button-primary.figma.json",
+      );
+    });
+
+    it("still produces a pointer the registry validator accepts", async () => {
+      const { validateFigmaNodePointer } = await import("../src/core/registry-store.js");
+      expect(validateFigmaNodePointer(figmaNodeRelPath("Button/Primary", "fileA"))).toBe(
+        "components/filea/button-primary.figma.json",
+      );
+    });
+  });
 });
 
 // ─── Round-trip ───────────────────────────────────────────────────────────────
@@ -105,6 +131,27 @@ describe("writeFigmaNode → readFigmaNode round-trip", () => {
     // The pointer is exactly what a ComponentRecord.figmaNode holds — reading it back
     // with only (designDir, pointer) is the whole P4 contract.
     expect(() => readFigmaNode(dir, relPath)).not.toThrow();
+  });
+
+  it("with a fileSlug, writes under components/<file-slug>/ and reads back identically", () => {
+    const dir = tmpDesignDir();
+    const node = sampleNode();
+    const res = writeFigmaNode(dir, "Button/Primary", node, "fileA");
+    expect(res.written).toBe(true);
+    expect(res.relPath).toBe("components/filea/button-primary.figma.json");
+    expect(statSync(join(dir, "components", "filea")).isDirectory()).toBe(true);
+    expect(readFigmaNode(dir, res.relPath)).toEqual(node);
+  });
+
+  it("two files' same-named component never collide on disk when fileSlug is given", () => {
+    const dir = tmpDesignDir();
+    const nodeA = { ...sampleNode(), itemSpacing: 1 };
+    const nodeB = { ...sampleNode(), itemSpacing: 2 };
+    const resA = writeFigmaNode(dir, "Button/Primary", nodeA, "fileA");
+    const resB = writeFigmaNode(dir, "Button/Primary", nodeB, "fileB");
+    expect(resA.relPath).not.toBe(resB.relPath);
+    expect(readFigmaNode(dir, resA.relPath)["itemSpacing"]).toBe(1);
+    expect(readFigmaNode(dir, resB.relPath)["itemSpacing"]).toBe(2); // ← would clobber without partitioning
   });
 });
 

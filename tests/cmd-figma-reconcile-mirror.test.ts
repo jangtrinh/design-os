@@ -175,6 +175,40 @@ describe("applyDelta with a mirror (spec 005 P4)", () => {
     expect(report.pending[0]?.reason).toMatch(/ingest-figma-ds/);
   });
 
+  // Registry-integrity phase 03 (5.2), §3 — sidecar paths carry the file slug.
+  describe("applyDelta with fileSlug — the sidecar pointer is partitioned", () => {
+    it("ADD: the new record's pointer nests under components/<file-slug>/", () => {
+      const reg = registry([]);
+      const delta = deltaOf([frame({ op: "created", nodeName: "Card/Compact", nodeId: "2:9" })], reg);
+      const mirror = mirrorOf([{ nodeId: "2:9", name: "Card/Compact", node: node({ name: "Card/Compact" }) }]);
+
+      const { registry: next, sidecarWrites } = applyDelta(reg, delta, mirror, "fileA");
+
+      expect(next.components[0]?.figmaNode).toBe("components/filea/card-compact.figma.json");
+      expect(sidecarWrites).toEqual([{ name: "Card/Compact", node: node({ name: "Card/Compact" }) }]);
+    });
+
+    it("EDIT: a captured re-touch re-points the record at the partitioned path", () => {
+      const reg = registry([rec({ name: "Button/Primary" })]);
+      const delta = deltaOf([frame({ op: "updated" })], reg);
+      const mirror = mirrorOf([{ nodeId: "1:1", name: "Button/Primary", node: node({ itemSpacing: 24 }) }]);
+
+      const { registry: next } = applyDelta(reg, delta, mirror, "fileB");
+
+      expect(next.components[0]?.figmaNode).toBe("components/fileb/button-primary.figma.json");
+    });
+
+    it("omitting fileSlug keeps the legacy flat layout exactly (the unfiltered escape hatch)", () => {
+      const reg = registry([]);
+      const delta = deltaOf([frame({ op: "created", nodeName: "Card/Compact", nodeId: "2:9" })], reg);
+      const mirror = mirrorOf([{ nodeId: "2:9", name: "Card/Compact", node: node({ name: "Card/Compact" }) }]);
+
+      const { registry: next } = applyDelta(reg, delta, mirror);
+
+      expect(next.components[0]?.figmaNode).toBe("components/card-compact.figma.json");
+    });
+  });
+
   it("DELETE is never mirrored — a deleted node has nothing to scan", () => {
     const reg = registry([rec({ name: "Button/Primary" })]);
     const delta = deltaOf([frame({ op: "deleted" })], reg);
@@ -351,6 +385,21 @@ describe("ui figma reconcile --apply --mirror-file", () => {
     expect(env.data.apply.added).toEqual(["Card/Compact"]);
     expect(existsSync(join(dir, "design", "components", "card-compact.figma.json"))).toBe(true);
     expect(readRegistry().components[0]?.figmaNode).toBe("components/card-compact.figma.json");
+  });
+
+  // Registry-integrity phase 03 (5.2), §3 — end to end: the sidecar physically lands
+  // under the partitioned path, and the pointer + the file agree.
+  it("--file-slug: the sidecar lands under components/<file-slug>/, on disk and in the pointer", () => {
+    project([frame({ op: "created", nodeName: "Card/Compact", nodeId: "2:9", fileKey: "fileA" })], registry([]));
+    const file = captureFile({ v: 1, captured: [{ nodeId: "2:9", name: "Card/Compact", node: node({ name: "Card/Compact" }) }], failed: [] });
+
+    const env = applyJson(["--file-slug", "fileA", "--mirror-file", file]);
+
+    expect(env.ok).toBe(true);
+    expect(env.data.apply.added).toEqual(["Card/Compact"]);
+    expect(existsSync(join(dir, "design", "components", "filea", "card-compact.figma.json"))).toBe(true);
+    expect(existsSync(join(dir, "design", "components", "card-compact.figma.json"))).toBe(false); // never the flat path too
+    expect(readRegistry().components[0]?.figmaNode).toBe("components/filea/card-compact.figma.json");
   });
 
   it("plugin down (no --mirror-file): commits the log-only half, does not crash, reports the skip", () => {
