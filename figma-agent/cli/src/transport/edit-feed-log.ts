@@ -29,8 +29,10 @@ export function editFeedDir(): string {
 }
 
 /** Lowercase, alnum + dash only, no leading/trailing dash. Never empty — falls back to
- *  'unknown' so a blank fileKey/fileName never produces a bare `.jsonl` or a path escape. */
-function safeSlug(raw: string): string {
+ *  'unknown' so a blank fileKey/fileName never produces a bare `.jsonl` or a path escape.
+ *  Exported: project-bind.ts's `fileIdentity` reuses this exact chain (registry-integrity
+ *  phase 01) so the two file-partitioning schemes can never silently drift apart. */
+export function safeSlug(raw: string): string {
   const s = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   return s.length > 0 ? s : 'unknown';
 }

@@ -241,9 +241,19 @@ describe('statusList — the per-file rows, most-recent first', () => {
       instanceId: 'b', fileName: 'B', page: 'P2', state: 'connected',
       lastHeartbeatAge: 0, // b was just registered at `now`
       connectedAt: bConnectedAt,
+      fileKey: null, // absent from the HELLO payload here — registry-integrity phase 01 §2
     });
     expect(list[1]).toMatchObject({ instanceId: 'a', fileName: 'A', page: 'P1', connectedAt: aConnectedAt });
     expect(list[1].lastHeartbeatAge).toBe(20); // a last seen 20ms ago
+  });
+
+  it('carries fileKey from the HELLO scene (registry-integrity phase 01 §2 — bind needs it)', () => {
+    const { reg } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'VSF - PCP', fileKey: 'abc123' });
+    reg.register(sock(), { instanceId: 'b', fileName: 'No Key Plugin' }); // non-org plugin
+    const list = reg.statusList();
+    expect(list.find((p) => p.instanceId === 'a')?.fileKey).toBe('abc123');
+    expect(list.find((p) => p.instanceId === 'b')?.fileKey).toBeNull();
   });
 
   it('lastHeartbeatAge = now − lastSeenAt; sorted newest-first; excludes closed', () => {

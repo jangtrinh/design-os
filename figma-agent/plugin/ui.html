@@ -1001,10 +1001,17 @@ code {
     const n = Number.isFinite(count) && count > 0 ? Math.floor(count) : 1;
     return `${n} change${n === 1 ? "" : "s"} ready`;
   }
-  function syncResultLabel(ok, summary, landed = true) {
+  function syncResultLabel(ok, summary, landed = true, unbound = false) {
     const clean = typeof summary === "string" && summary.trim().length > 0 ? summary.trim() : ok ? "done" : "failed";
+    if (unbound) return clean;
     if (!ok) return `Sync failed \u2014 ${clean}`;
     return landed ? `Synced \u2014 ${clean}` : `Nothing synced \u2014 ${clean}`;
+  }
+  function syncNowLabel(unbound) {
+    return unbound ? "Bind, then retry" : "Sync now";
+  }
+  function shouldClearPendingCount(ok) {
+    return ok === true;
   }
 
   // plugin/src/ui/activity-feed.ts
@@ -1285,6 +1292,7 @@ code {
     if (pm.type === "IDLE_READY" && pm.data) {
       const count = typeof pm.data.count === "number" ? pm.data.count : 1;
       syncMsg.textContent = syncPromptLabel(count);
+      syncNowBtn.textContent = syncNowLabel(false);
       syncPrompt.hidden = false;
       return;
     }
@@ -1314,36 +1322,36 @@ code {
       window.dispatchEvent(new CustomEvent("figma-agent:sync-request"));
     } catch {
     }
-    parent.postMessage({ pluginMessage: { type: "SYNC_DONE" } }, "*");
   });
   syncLaterBtn.addEventListener("click", () => {
     syncPrompt.hidden = true;
   });
   window.addEventListener("figma-agent:sync-result", (ev) => {
     const d = ev.detail;
-    const label = syncResultLabel(
-      d?.ok === true,
-      typeof d?.summary === "string" ? d.summary : "",
-      d?.landed !== false
-    );
+    const unbound = d?.code === "E_UNBOUND";
+    const ok = d?.ok === true;
+    const label = syncResultLabel(ok, typeof d?.summary === "string" ? d.summary : "", d?.landed !== false, unbound);
     syncMsg.textContent = label;
+    syncNowBtn.textContent = syncNowLabel(unbound);
     if (reconcileRun) {
       const now = Date.now();
       activity = resolveActivity(activity, {
         id: reconcileRun.id,
-        ok: d?.ok === true,
+        ok,
         ms: now - reconcileRun.at,
         result: `\u2192 ${label}`
       });
       reconcileRun = null;
       renderActivity(now);
     }
+    const commit = shouldClearPendingCount(ok);
+    parent.postMessage({ pluginMessage: { type: "SYNC_DONE", commit } }, "*");
     syncPrompt.hidden = false;
-    setTimeout(() => {
+    if (commit) setTimeout(() => {
       syncPrompt.hidden = true;
     }, 4e3);
   });
-  versionEl.textContent = `v0.1.0 \xB7 ${true ? "0abe7a3" : "dev"}`;
+  versionEl.textContent = `v0.1.0 \xB7 ${true ? "bf684ca" : "dev"}`;
   setInterval(render, 1e3);
   render();
 

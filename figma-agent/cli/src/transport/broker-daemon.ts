@@ -12,18 +12,24 @@ import WebSocket, { WebSocketServer } from 'ws';
 import {
   BROKER_FILE, BROKER_IDLE_SHUTDOWN_MS, HEARTBEAT_INTERVAL_MS, PLUGIN_WAIT_MS,
   PORT_RANGE_END, PORT_RANGE_START, PROTOCOL_VERSION,
-  type BrokerAdvertisement, type ErrorCode, type EventMsg, type ReplyErr,
+  type BrokerAdvertisement, type ErrorCode, type EventMsg, type ReplyErr, type ReplyOk, type RequestMsg,
 } from '../../../shared/protocol.ts';
 import { isPidAlive, readAdvertisement, selfBuildMtime, writeAdvertisement } from './broker-discovery.ts';
-import { isChunkMsg, isEventMsg, isReplyMsg, isRequestMsg, parseWireMsg, rawToString } from './protocol-helpers.ts';
+import {
+  isChunkMsg, isEventMsg, isReplyMsg, isRequestMsg, parseWireMsg, rawToString, sendWireMsg,
+} from './protocol-helpers.ts';
 import { PluginRegistry, type PluginEntry } from './plugin-registry.ts';
 import { buildBrokerHelloData, noPluginMessage } from './broker-status.ts';
 import { resolveRouteFilter, type RouteFilter } from './route-filter.ts';
-import { appendChangeFrames, changeLogPath } from './change-log.ts';
-import { appendEditFrames, editFeedPath } from './edit-feed-log.ts';
+import { appendChangeFrames, changeLogPathFor, migrateStagedChanges, unboundStagingPath } from './change-log.ts';
+import { appendEditFrames, editFeedPath, safeSlug } from './edit-feed-log.ts';
 import { appendErrorFrame, buildErrorLogFrame, errorLogPath } from './error-log.ts';
-import { projectDir as syncProjectDir, readIdleMs } from './figma-sync-config.ts';
+import { readIdleMs } from './figma-sync-config.ts';
 import { spawnReconcileApply } from './figma-sync-apply.ts';
+import {
+  fileIdentity, loadBindIndex, needsAliasPromotion, readBindMarker, recordBinding, removeBinding,
+  resolveProjectDir, writeBindCache, writeBindMarker, type Binding,
+} from './project-bind.ts';
 import type { ComponentChange } from '../../../shared/figma-changes.ts';
 import type { EditInput, EditSource } from '../../../shared/edit-feed.ts';
 
@@ -70,6 +76,11 @@ interface ParkedRequest {
   rawText: string;
   deadline: number;
   filter: RouteFilter;
+  // Registry-integrity fix round (finding 3): carried through to `forwardToPlugin`'s
+  // ADMISSION POINT at flush time — a parked request must teach the binding exactly like
+  // a direct one, not silently skip it because a plugin happened to be offline when it
+  // was first sent.
+  projectDir?: string;
 }
 
 interface BrokerState {
@@ -79,6 +90,12 @@ interface BrokerState {
   dispatchedTo: Map<string, WebSocket>; // request id → plugin ws (pins chunk streams to ONE plugin)
   waiting: ParkedRequest[]; // requests parked for a not-yet-connected plugin
   lastBusyAt: number;
+  // Registry-integrity phase 01 (5.1): fileIdentity → Binding, filled from `bind` (durable
+  // markers, loaded at startup) and from a live RequestMsg.projectDir (source: 'request').
+  bindIndex: Map<string, Binding>;
+  // Every project dir the broker has EVER learned a binding for — mirrors the /tmp cache
+  // 1:1, kept in memory so a repeat isn't a disk write every time.
+  knownProjectDirs: Set<string>;
 }
 
 function log(line: string): void {
@@ -194,27 +211,26 @@ export async function runBrokerDaemon(): Promise<void> {
   if (!wss6) log('IPv6 loopback (::1) bind unavailable — IPv4 only');
 
   const startedAt = Date.now();
+  // Registry-integrity phase 01: rebuild the binding index from the /tmp restart-survival
+  // cache + each survivor project's own marker, then immediately rewrite the cache with
+  // only the dirs that still look like projects — a stale entry is dropped, never trusted.
+  const { index: bindIndex, usableDirs } = loadBindIndex();
+  writeBindCache(usableDirs);
   const st: BrokerState = {
     registry: new PluginRegistry<WebSocket>(), cliClients: new Set(), pending: new Map(),
     dispatchedTo: new Map(), waiting: [], lastBusyAt: Date.now(),
+    bindIndex, knownProjectDirs: new Set(usableDirs),
   };
   writeAdvertisement(port, startedAt);
-  log(`broker listening on 127.0.0.1:${port}${wss6 ? ' + [::1]:' + port : ''}`);
+  log(`broker listening on 127.0.0.1:${port}${wss6 ? ' + [::1]:' + port : ''} (${bindIndex.size} project binding(s) loaded)`);
 
-  // Live-sync change log (spec 004 P1): resolved once from the broker's cwd (or
-  // FIGMA_AGENT_CHANGES_DIR). Each DOC_CHANGE batch is appended here; reconcile
-  // (P2/P4) walks it. Path fixed for the daemon's life — cwd never changes.
-  const changesPath = changeLogPath();
-
-  // Error log writer (backlog 4.6): a SIBLING fixed path, resolved once, same as
-  // changesPath — one line per ReplyErr the broker relays.
+  // Error log writer (backlog 4.6): resolved once, one line per ReplyErr the broker relays.
   const errorsPath = errorLogPath();
 
   // Live-sync idle-commit (spec 004 P4): the idle window sent to each plugin, and a
   // debounce so a double-click never launches two overlapping `ui figma reconcile
   // --apply` processes.
   const idleMs = readIdleMs();
-  const applyProjectDir = syncProjectDir();
   let syncInFlight = false;
 
   /** Send one unsolicited EventMsg to a single socket (best-effort). */
@@ -246,11 +262,29 @@ export async function runBrokerDaemon(): Promise<void> {
   // SYNC_REQUEST → run the deterministic kernel apply, then report SYNC_RESULT back to
   // the requesting plugin. Registry-write logic stays in `ui` (Art I) — the broker only
   // spawns it. Debounced: a click mid-apply is ignored (the panel just waits).
+  //
+  // Registry-integrity phase 01 (5.1), §3: the project comes from the FILE that triggered
+  // this sync (this plugin's own scene), never the broker's spawn cwd. Unbound → refuse
+  // loudly instead of guessing — applying into the wrong project silently corrupts a
+  // registry, which is worse than not applying at all. The feed keeps accruing either way.
   const handleSyncRequest = (ws: WebSocket): void => {
     if (syncInFlight) { sendEvent(ws, 'SYNC_RESULT', { ok: false, summary: 'a sync is already running' }); return; }
+    const scene = st.registry.getByWs(ws)?.scene;
+    const fileName = (scene?.fileName as string | undefined) ?? null;
+    const fileKey = (scene?.fileKey as string | null | undefined) ?? null;
+    const bound = resolveProjectDir(fileIdentity(fileKey, fileName), st.bindIndex);
+    if (bound === null) {
+      const label = fileName ?? '(unnamed file)';
+      const summary = `No project bound for "${label}" — run: figma-agent bind --file "${label}" --dir <project>`;
+      log(`SYNC_REQUEST refused — unbound: ${label}`);
+      // Fix round (finding 2): a stable `code` (E_UNBOUND), not an ad-hoc boolean — one
+      // canonical signal the panel's state machine (and any future consumer) matches on.
+      sendEvent(ws, 'SYNC_RESULT', { ok: false, code: 'E_UNBOUND', fileName: label, summary });
+      return;
+    }
     syncInFlight = true;
-    log(`SYNC_REQUEST → spawning: ui figma reconcile --apply --dir ${applyProjectDir}`);
-    spawnReconcileApply(applyProjectDir, (r) => {
+    log(`SYNC_REQUEST → spawning: ui figma reconcile --apply --dir ${bound}`);
+    spawnReconcileApply(bound, (r) => {
       syncInFlight = false;
       log(`SYNC_RESULT ok=${r.ok} — ${r.summary}`);
       sendEvent(ws, 'SYNC_RESULT', { ...r });
@@ -276,7 +310,112 @@ export async function runBrokerDaemon(): Promise<void> {
     }
   };
 
-  const forwardToPlugin = (from: WebSocket, id: string, rawText: string, cmd?: string, expectedFile?: string): void => {
+  // Registry-integrity phase 01 (5.1), §2: "bind must index both aliases." A bind made
+  // while the named file was NOT connected records the slug alone (`pendingKey: true`);
+  // the first FILE_INFO whose scene matches that slug fills in the real fileKey — both in
+  // the live index (so lookup-by-key starts working immediately) and in the project's own
+  // durable marker (so a restart doesn't lose the promotion). No-op when nothing is pending.
+  //
+  // Fix round (finding 4, part 1 — alias asymmetry): the guard used to bail whenever
+  // `fileKey` had ANY entry, including a weaker `source: 'request'` alias left over from
+  // an earlier unbound interaction with this same file. An explicit bind must ALWAYS win
+  // over that — "explicit > implicit, always" — so the only reason to skip is that this
+  // EXACT promotion (same projectDir, source:'bind') already happened.
+  const promotePendingBind = (ws: WebSocket): void => {
+    const scene = st.registry.getByWs(ws)?.scene;
+    const fileName = scene?.fileName as string | undefined;
+    const fileKey = scene?.fileKey as string | null | undefined;
+    if (!fileName || !fileKey) return;
+    const slug = fileIdentity(null, fileName);
+    const existing = st.bindIndex.get(slug);
+    if (!existing || existing.source !== 'bind') return; // only promote an EXPLICIT bind's slug
+    const target: Binding = { projectDir: existing.projectDir, source: 'bind', at: existing.at };
+    if (!needsAliasPromotion(st.bindIndex.get(fileKey), target)) return; // already promoted, no-op
+    recordBinding(st.bindIndex, fileKey, target);
+    const marker = readBindMarker(existing.projectDir);
+    const entry = marker?.bindings.find((b) => b.fileNameSlug === slug);
+    if (marker && entry && (entry.fileKey !== fileKey || entry.pendingKey === true)) {
+      entry.fileKey = fileKey;
+      delete entry.pendingKey;
+      writeBindMarker(existing.projectDir, marker);
+      log(`BIND promoted: "${fileName}" → ${existing.projectDir} (fileKey learned)`);
+    }
+  };
+
+  // Registry-integrity phase 01 (5.1), §2: a RequestMsg carrying `projectDir` teaches the
+  // broker fileIdentity → projectDir, but ONLY from the ROUTED plugin's own scene — never
+  // from the request's `expectedFile` guess (the risk register's exact mitigation: a
+  // request must never record a binding for the wrong file just because the broker routed
+  // elsewhere). `source: 'request'` so an explicit `bind` always outranks it.
+  const recordRequestBinding = (targetWs: WebSocket, projectDir?: string): void => {
+    if (!projectDir) return;
+    const scene = st.registry.getByWs(targetWs)?.scene;
+    if (!scene) return;
+    const identity = fileIdentity(
+      (scene.fileKey as string | null | undefined) ?? null,
+      (scene.fileName as string | undefined) ?? null,
+    );
+    recordBinding(st.bindIndex, identity, { projectDir, source: 'request', at: Date.now() });
+    if (!st.knownProjectDirs.has(projectDir)) {
+      st.knownProjectDirs.add(projectDir);
+      writeBindCache([...st.knownProjectDirs]);
+    }
+  };
+
+  // `figma-agent bind` (registry-integrity phase 01, fix round) — BROKER-LOCAL, never
+  // forwarded to a plugin (no file's Figma tab is involved), intercepted in `isRequestMsg`
+  // before `forwardToPlugin`. Answers directly with a ReplyOk carrying fileKey/pendingKey/
+  // migratedCount — the ORIGINAL fire-and-forget BIND event could never report any of
+  // that back to the CLI, which is the bug this conversion fixes.
+  const handleProjectBind = (ws: WebSocket, msg: RequestMsg): void => {
+    const params = msg.params as
+      { fileName?: unknown; projectDir?: unknown; unbind?: unknown; removedFileKeys?: unknown } | null;
+    const fileName = typeof params?.fileName === 'string' ? params.fileName : null;
+    const projectDir = typeof params?.projectDir === 'string' ? params.projectDir : null;
+    if (!fileName || !projectDir) {
+      sendReplyErr(ws, msg.id, 'E_INVALID_ARGS', 'PROJECT_BIND needs fileName and projectDir');
+      return;
+    }
+    const slug = fileIdentity(null, fileName);
+    const reply = (result: Record<string, unknown>): void => {
+      sendWireMsg(ws, { id: msg.id, ok: true, result } satisfies ReplyOk);
+    };
+
+    if (params?.unbind === true) {
+      // Fix round (finding 4, part 2 — alias asymmetry): walk by the binding's OWN
+      // identity, not just the one key (`slug`) the caller passed. `bind.ts` reads the
+      // marker BEFORE rewriting it and tells us every fileKey that entry carried, so a
+      // stale fileKey alias can never survive an unbind just because the caller only
+      // addressed the file by name.
+      const removedFileKeys = Array.isArray(params.removedFileKeys)
+        ? params.removedFileKeys.filter((k): k is string => typeof k === 'string')
+        : [];
+      removeBinding(st.bindIndex, [slug, ...removedFileKeys]);
+      log(`BIND removed: "${fileName}" (${projectDir})${removedFileKeys.length > 0 ? ` [+${removedFileKeys.length} alias(es)]` : ''}`);
+      reply({ fileName, projectDir, removed: true });
+      return;
+    }
+
+    const at = Date.now();
+    recordBinding(st.bindIndex, slug, { projectDir, source: 'bind', at });
+    const hit = st.registry.matching(fileName, { exact: true })[0];
+    const fileKey = (hit?.scene.fileKey as string | null | undefined) ?? null;
+    if (fileKey) recordBinding(st.bindIndex, fileKey, { projectDir, source: 'bind', at });
+    if (!st.knownProjectDirs.has(projectDir)) {
+      st.knownProjectDirs.add(projectDir);
+      writeBindCache([...st.knownProjectDirs]);
+    }
+    // Fix round (finding 1 — BLOCKER): migrate whatever staged while this file was
+    // unbound into the now-bound component log, exactly once — `migrateStagedChanges` is
+    // idempotent, so a re-bind of an already-migrated file finds nothing left staged.
+    const migratedCount = migrateStagedChanges(unboundStagingPath(slug), changeLogPathFor(projectDir));
+    log(`BIND recorded: "${fileName}" → ${projectDir}${fileKey ? ` (fileKey ${fileKey})` : ' (pending fileKey)'}${migratedCount > 0 ? `, migrated ${migratedCount} staged frame(s)` : ''}`);
+    reply({ fileName, projectDir, fileKey, pendingKey: fileKey === null, migratedCount });
+  };
+
+  const forwardToPlugin = (
+    from: WebSocket, id: string, rawText: string, cmd?: string, expectedFile?: string, projectDir?: string,
+  ): void => {
     const filter = resolveRouteFilter(expectedFile, currentFilter());
     // Pin a multi-chunk request to the plugin its first frame went to: selecting
     // "most-recent" per chunk could split one payload across two files.
@@ -316,10 +455,11 @@ export async function runBrokerDaemon(): Promise<void> {
         sendReplyErr(from, id, 'E_NO_PLUGIN', noPluginMessage(st.registry, filter));
         return;
       }
-      st.waiting.push({ id, from, rawText, deadline: Date.now() + PLUGIN_WAIT_TIMEOUT_MS, filter });
+      st.waiting.push({ id, from, rawText, deadline: Date.now() + PLUGIN_WAIT_TIMEOUT_MS, filter, projectDir });
       log(`parked ${id}${cmd ? ` (${cmd})` : ''}${filter.value ? ` [${filter.source}="${filter.value}"]` : ''} — awaiting ${filter.value ? 'matching ' : ''}plugin (${st.waiting.length} queued)`);
       return;
     }
+    recordRequestBinding(targetWs, projectDir);
     st.pending.set(id, from);
     st.dispatchedTo.set(id, targetWs);
     try { targetWs.send(rawText); }
@@ -341,7 +481,11 @@ export async function runBrokerDaemon(): Promise<void> {
     for (const req of queued) {
       if (req.from.readyState !== WebSocket.OPEN) continue; // CLI gone — drop silently
       if (st.registry.selectTarget(req.filter.value, { exact: req.filter.exact })) {
-        forwardToPlugin(req.from, req.id, req.rawText, undefined, req.filter.source === 'flag' ? req.filter.value ?? undefined : undefined);
+        forwardToPlugin(
+          req.from, req.id, req.rawText, undefined,
+          req.filter.source === 'flag' ? req.filter.value ?? undefined : undefined,
+          req.projectDir,
+        );
         delivered++;
       } else {
         st.waiting.push(req); // still no matching plugin — keep parked, deadline intact
@@ -397,6 +541,16 @@ export async function runBrokerDaemon(): Promise<void> {
       // most-recent as today. The plugin-side guard still fires after ui-relay
       // reassembles and forwards `expectedFile` to main, so the worst case is
       // E_WRONG_FILE instead of correct routing, never a silent wrong-file mutation.
+      //
+      // Registry-integrity fix round (finding 3, scoped decision — flagged, not silently
+      // dropped): the SAME structural gap means a chunked request's `projectDir` is
+      // equally unavailable here — `id,cmd,params,v` serialize BEFORE `projectDir` in
+      // `makeRequestFrame`, and `params` (the huge payload) dominates the string, so the
+      // field can land in ANY chunk, not reliably the first. Recovering it would mean the
+      // broker reassembling chunks, which this design deliberately does not do. A chunked
+      // request's binding is not recorded; the very next non-chunked request from the same
+      // CLI on the same file (nearly always seconds later) still teaches it normally via
+      // the direct-request path below.
       if (isPlugin) { st.registry.touchActive(ws); routeFromPlugin(msg.id, text, msg.last); }
       else forwardToPlugin(ws, msg.id, text);
     } else if (isReplyMsg(msg)) {
@@ -412,7 +566,8 @@ export async function runBrokerDaemon(): Promise<void> {
         }
       }
     } else if (isRequestMsg(msg)) {
-      forwardToPlugin(ws, msg.id, text, msg.cmd, msg.expectedFile);
+      if (msg.cmd === 'PROJECT_BIND') handleProjectBind(ws, msg);
+      else forwardToPlugin(ws, msg.id, text, msg.cmd, msg.expectedFile, msg.projectDir);
     } else if (isEventMsg(msg)) {
       if (msg.type === 'PLUGIN_HELLO') {
         // Multi-plugin: register this instance in its OWN slot — never evict another
@@ -437,13 +592,39 @@ export async function runBrokerDaemon(): Promise<void> {
       } else if (msg.type === 'FILE_INFO') {
         // page change → refresh scene + fan out; the scene update can also move the
         // routing target (recency-based), so peers must be told too.
-        if (isPlugin) { st.registry.updateScene(ws, msg.data); broadcastToClients(text); broadcastPeers(); }
+        if (isPlugin) {
+          st.registry.updateScene(ws, msg.data);
+          broadcastToClients(text);
+          broadcastPeers();
+          promotePendingBind(ws); // registry-integrity phase 01 §2 — fill a pending fileKey on first sight
+        }
       } else if (msg.type === 'DOC_CHANGE') {
         // Live-sync capture: append the plugin's coalesced batch to the change log.
         // Broker-side append (not CLI) because the broker is the long-lived process —
         // it catches edits even when no CLI command is running. Best-effort: a log
         // write failure must never disrupt the relay.
-        if (isPlugin) appendDocChange(changesPath, msg.data);
+        //
+        // Fix round (finding 1 — BLOCKER): an unbound batch used to fall into the
+        // broker's own cwd-derived change log, which the bound project's reconcile
+        // NEVER reads — that history was stranded forever the moment a bind eventually
+        // happened. It stages instead (never a project's design/) and `handleProjectBind`
+        // migrates it in, once, the moment this identity gets bound.
+        if (isPlugin) {
+          const scene = st.registry.getByWs(ws)?.scene;
+          const data = msg.data as Record<string, unknown>;
+          const fileName = (scene?.fileName as string | undefined) ?? null;
+          const identity = fileIdentity(typeof data.fileKey === 'string' ? data.fileKey : null, fileName);
+          const bound = resolveProjectDir(identity, st.bindIndex);
+          if (bound) {
+            appendDocChange(changeLogPathFor(bound), data);
+          } else {
+            // Staged by NAME slug specifically (not the fileKey-preferring `identity`
+            // above) — a file that connects mid-way through its unbound life must not
+            // split its staged history across two paths; `handleProjectBind` migrates
+            // by this exact same slug.
+            appendDocChange(unboundStagingPath(safeSlug(fileName ?? '')), data);
+          }
+        }
       } else if (msg.type === 'EDIT_FEED') {
         // Owner-edit change feed (wave 4.4 P1): same broker-side, best-effort append,
         // to its own per-file feed — see appendEditFeed.

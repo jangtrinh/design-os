@@ -104,8 +104,34 @@ export function syncPromptLabel(count: number): string {
  * shared/figma-sync-summary.ts, so the broker and this line make the same claim.
  * No glyph: the icon beside this line (a Phosphor check-circle) carries the mark instead.
  */
-export function syncResultLabel(ok: boolean, summary: string, landed = true): string {
+export function syncResultLabel(ok: boolean, summary: string, landed = true, unbound = false): string {
   const clean = typeof summary === 'string' && summary.trim().length > 0 ? summary.trim() : (ok ? 'done' : 'failed');
+  // Registry-integrity phase 01 (5.1), §3: an unbound file refused instead of guessing a
+  // project — the summary IS the fix ("run: figma-agent bind ..."), so it renders bare
+  // rather than under a "Sync failed" verdict the owner would read as a bug to retry.
+  if (unbound) return clean;
   if (!ok) return `Sync failed — ${clean}`;
   return landed ? `Synced — ${clean}` : `Nothing synced — ${clean}`;
+}
+
+/**
+ * The "Sync now" button's own label. Fix round (finding 2): an E_UNBOUND refusal must not
+ * read as "click again to retry the same failing thing" — the button itself says what to
+ * do first. A click still fires the identical SYNC_REQUEST regardless of label, so retry
+ * works the instant the owner runs `figma-agent bind` and clicks again; the label just
+ * stops lying about what that click will do until then.
+ */
+export function syncNowLabel(unbound: boolean): string {
+  return unbound ? 'Bind, then retry' : 'Sync now';
+}
+
+/**
+ * Whether a SYNC_RESULT outcome should clear main.ts's pending-change counter — closing
+ * review round, defect #2: it used to clear on ANY non-E_UNBOUND outcome, so a genuine
+ * reconcile failure or "a sync is already running" also silently zeroed it, even though
+ * nothing applied. Only a true success may clear it; every failure (E_UNBOUND included)
+ * must leave the counter and prompt intact so retry stays possible.
+ */
+export function shouldClearPendingCount(ok: boolean): boolean {
+  return ok === true;
 }

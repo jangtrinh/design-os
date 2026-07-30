@@ -2957,7 +2957,7 @@
       return;
     }
     if (chrome && chrome.type === "SYNC_DONE") {
-      changesSinceCommit = 0;
+      if (chrome.commit === true) changesSinceCommit = 0;
       return;
     }
     if (chrome && chrome.type === "UI_READY") {

@@ -31,10 +31,19 @@ let requestCounter = 0;
 
 let expectedFile: string | undefined;
 let lastFileContext: FileContext | undefined;
+let projectDir: string | undefined;
 
 /** Set once per CLI invocation from the global --file flag; stamped on every request envelope. */
 export function setExpectedFile(name: string | undefined): void { expectedFile = name; }
 export function getLastFileContext(): FileContext | undefined { return lastFileContext; }
+
+/**
+ * Set once per CLI invocation from `--dir` (or cwd); stamped on every request envelope —
+ * the SAME choke point `setExpectedFile` uses (registry-integrity phase 01, §1). The broker
+ * records fileIdentity → projectDir from this so panel/idle sync applies into the right
+ * project instead of the daemon's spawn cwd.
+ */
+export function setProjectDir(dir: string | undefined): void { projectDir = dir; }
 
 function connectWs(port: number): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
@@ -112,7 +121,7 @@ function exchange(
     ws.on('error', (err) => finish(() => reject(new CliError('E_NO_BROKER', `broker socket error: ${err.message}`))));
 
     try {
-      sendWireMsg(ws, makeRequestFrame(id, cmd, params, activity, expectedFile));
+      sendWireMsg(ws, makeRequestFrame(id, cmd, params, activity, expectedFile, projectDir));
     } catch (err) {
       finish(() => reject(new CliError('E_NO_BROKER', `failed to send request: ${(err as Error).message}`)));
     }

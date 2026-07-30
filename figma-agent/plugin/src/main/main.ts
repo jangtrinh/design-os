@@ -346,10 +346,14 @@ figma.ui.onmessage = async (msg: unknown) => {
     if (typeof raw === 'number' && Number.isFinite(raw)) idleMs = Math.max(MIN_IDLE_MS, Math.floor(raw));
     return;
   }
-  // The panel's "Sync now" click committed — reset the local counter (the log/cursor
-  // remain the real state). The iframe already forwarded SYNC_REQUEST to the broker.
+  // The panel's sync-result listener posts this ONCE THE OUTCOME IS KNOWN (fix round,
+  // finding 2 — it used to post on click, before any result existed), carrying `commit`
+  // (panel-model.ts's `shouldClearPendingCount` — true only for a genuine apply success).
+  // Closing review round, defect #2: a real reconcile failure or "already running" also
+  // applied nothing, so resetting the counter there was just as dishonest as resetting it
+  // on an E_UNBOUND refusal — every failure must leave the counter (and the prompt) intact.
   if (chrome && chrome.type === 'SYNC_DONE') {
-    changesSinceCommit = 0;
+    if ((chrome as { commit?: unknown }).commit === true) changesSinceCommit = 0;
     return;
   }
   // The relay boots before main's first FILE_INFO push can possibly have arrived — an
