@@ -31,7 +31,6 @@
   ],
   "workspaces": [
     "a11y",
-    "figma-agent",
     "recall"
   ],
   "engines": {

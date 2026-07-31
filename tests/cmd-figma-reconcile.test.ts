@@ -207,12 +207,14 @@ describe("figma-reconcile — coalesceFrames (cross-batch)", () => {
 
     // Review round, finding 1 — `fileSlugOf` (this kernel's copy of the chain) must agree
     // with figma-agent's `fileIdentity` on every fixture. THIS LIST IS DUPLICATED VERBATIM
-    // in `figma-agent/tests/project-bind.test.ts`'s "file-identity parity" describe block
-    // (that file is the twin — a manual edit to one fixture list without the other is
-    // exactly the drift this test exists to catch). The two packages cannot share an
-    // import (the kernel does not depend on figma-agent), so the fixtures themselves are
-    // the cross-package lock, not a prose comment.
-    describe("fileSlugOf — parity fixtures (twin: figma-agent/tests/project-bind.test.ts)", () => {
+    // in the figma-agent plugin's own "file-identity parity" describe block (now a separate
+    // repo: github.com/jangtrinh/design-os-figma-plugin, tests/project-bind.test.ts — a
+    // committed, pinned snapshot as of that repo's initial split commit `03497d7`, not a
+    // live import) — that file is the twin; a manual edit to one fixture list without the
+    // other is exactly the drift this test exists to catch. The two repos cannot share an
+    // import (the kernel does not depend on the plugin), so the fixtures themselves are
+    // the cross-repo lock, not a prose comment.
+    describe("fileSlugOf — parity fixtures (twin: design-os-figma-plugin's tests/project-bind.test.ts)", () => {
       const FIXTURES: { desc: string; fileKey: string | null; fileName: string | null; expect: string }[] = [
         { desc: "uppercase fileKey wins verbatim (never lowercased)", fileKey: "AbC123XyZ", fileName: "ignored", expect: "AbC123XyZ" },
         { desc: "null fileKey, unicode/diacritic fileName", fileKey: null, fileName: "Café Menú — Página", expect: "caf-men-p-gina" },

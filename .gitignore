@@ -18,12 +18,10 @@ coverage/
 *.vec.db-journal
 *.vec.db-wal
 
-# figma-agent workspace: probe/ scratch output (recon-site.mjs, network-capture.mjs, etc.)
-RECON/
-CLONE_AUDIT.md
-
-# figma-agent broker runtime scratch (change-log / sync-state when the broker runs from the repo)
-figma-agent/design/
+# figma-agent broker runtime scratch (change-log / sync-state / edit feed / memory
+# events) when the broker runs with this repo as cwd. figma-agent itself lives in its
+# own repo now (design-os-figma-plugin), but a broker on this machine can still be
+# pointed here — this stays live, gitignored scratch either way.
 /design/
 
 # Generated website-study workspaces and lossless capture scratch. Curated benchmark
