@@ -188,3 +188,14 @@ plugin context. The workaround ease-design already uses: the `html-to-figma` pat
 external images to `data:` URIs** before sending them to the plugin, so the bytes arrive
 with the payload instead of being fetched inside Figma. When writing raw exec-js that needs
 an image, pass bytes (`figma.createImage(uint8Array)`) or a `data:` URI, not a live URL.
+
+## More recipes (design-os-figma-plugin repo's own knowledge/)
+
+The plugin repo (github.com/jangtrinh/design-os-figma-plugin) carries its own
+`knowledge/` for capabilities added after the split — pointers only, read them there:
+
+- `knowledge/variables-and-modes.md` — the `ui.vars.*` exec-js stdlib: rename/remove/
+  describe a variable, add/rename/remove a mode, set a per-mode value.
+- `knowledge/component-sets.md` — `ui.componentSet(...)` (build a COMPONENT_SET from a
+  variant matrix or existing components) plus a compose-from-what-exists recipe for
+  analysing one (state→CSS-selector mapping, the case-sensitivity gotcha to avoid).
