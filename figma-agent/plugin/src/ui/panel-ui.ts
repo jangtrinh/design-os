@@ -13,6 +13,7 @@ import type { ConnectionState, ConnectionStatePayload } from '../../../shared/pr
 import {
   statusSentence, showOnboarding, fileNote, PANEL_HEIGHT,
   syncPromptLabel, syncResultLabel, syncNowLabel, shouldClearPendingCount,
+  syncStartSentence, syncResultSentence, syncStuckSentence, syncSupersededSentence, SYNC_STUCK_TIMEOUT_MS,
 } from './panel-model';
 import {
   toActivityRecord, toActivityResult, pushActivity, resolveActivity, diffRowKeys,
@@ -137,14 +138,24 @@ function activityRow(r: ActivityRecord, now: number, stale: boolean, isNew: bool
   body.className = 'log-body';
 
   const text = document.createElement('div');
-  text.className = 'log-label';
-  const line = activitySentence({
+  // Owner-observed (live screenshot): a failure's reason ("The script stopped: runtime
+  // error: <truncated>") was being clipped with an ellipsis character — Activity is the
+  // one surface exempt from the terse-truncate rule (wording-panel decision), so a
+  // failure reason must be readable without hovering. Only FAILED rows wrap
+  // (`.log-label--wrap`); ok/running rows keep the single-line ellipsis truncation —
+  // their sentences never carry this much text.
+  text.className = !r.pending && !r.ok ? 'log-label log-label--wrap' : 'log-label';
+  // A pre-composed sentence (sync results, job status) lands VERBATIM — the caller
+  // already holds the full human sentence, so the generic tool/count/name mapper below
+  // never runs for it (see ActivityRecord.sentence's own doc for why forcing either
+  // through that mapper was the bug).
+  const line = r.sentence ?? activitySentence({
     tool: r.tool, label: r.label, result: r.result, errorCode: r.errorCode,
     errorMessage: !r.ok ? r.result : undefined, nodeName: r.nodeName,
     pending: r.pending, ok: r.ok,
   });
   text.textContent = line;
-  text.title = line; // the row ellipsises — hover still tells the truth
+  text.title = line; // the row ellipsises (ok/running) — hover still tells the truth there
 
   const caption = document.createElement('div');
   caption.className = 'log-meta';
@@ -267,14 +278,34 @@ window.addEventListener('message', (ev: MessageEvent) => {
 // command through this relay. Its two ends ARE observable here though — the click and
 // the SYNC_RESULT — so the feed logs it from those, keyed by this id.
 let reconcileRun: { id: string; at: number } | null = null;
+// Live-observed durability gap (owner addendum, task #145): a SYNC_REQUEST can land on a
+// broker that gets hot-replaced before answering — the CLI-side retry succeeds on the new
+// broker, but this panel's own pending row never gets its SYNC_RESULT and would spin
+// "Syncing" forever without a bounded guard. Cleared the moment a real result lands.
+let reconcileStuckTimer: ReturnType<typeof setTimeout> | null = null;
 
 syncNowBtn.addEventListener('click', () => {
   syncMsg.textContent = 'Syncing';
   const at = Date.now();
-  reconcileRun = { id: `reconcile_${at}`, at };
+  const id = `reconcile_${at}`;
+  // Stage-4 fix round (minor 9) — a second click while the FIRST run is still pending
+  // (no SYNC_RESULT/timeout has landed yet) used to just overwrite `reconcileRun`,
+  // leaving that first row spinning "Syncing" forever: its own stuck-timer later finds
+  // `reconcileRun.id` has moved on and — correctly — refuses to touch a row a REAL
+  // result might still land on. Resolve it as superseded HERE instead, before the
+  // second run starts, so no row is ever left orphaned.
+  if (reconcileRun) {
+    if (reconcileStuckTimer !== null) { clearTimeout(reconcileStuckTimer); reconcileStuckTimer = null; }
+    activity = resolveActivity(activity, {
+      id: reconcileRun.id, ok: false, ms: at - reconcileRun.at, sentence: syncSupersededSentence(),
+    });
+  }
+  reconcileRun = { id, at };
+  const fileLabel = sceneFile ?? '(unnamed file)';
   activity = pushActivity(activity, {
-    id: reconcileRun.id, tool: 'RECONCILE', label: 'Reconcile · apply',
+    id, tool: 'RECONCILE', label: 'Reconcile · apply',
     pending: true, ok: true, ms: 0, at,
+    sentence: syncStartSentence('manual', fileLabel),
   });
   renderActivity(at);
   try { window.dispatchEvent(new CustomEvent('figma-agent:sync-request')); } catch { /* no DOM events */ }
@@ -283,6 +314,15 @@ syncNowBtn.addEventListener('click', () => {
   // NOTHING, so consuming the counter at click-time silently dropped the pending changes'
   // one visible signal. It now posts from the sync-result listener below, once the
   // outcome is known, carrying whether to actually reset.
+  if (reconcileStuckTimer !== null) clearTimeout(reconcileStuckTimer);
+  reconcileStuckTimer = setTimeout(() => {
+    if (reconcileRun?.id !== id) return; // already resolved (or superseded) by a real SYNC_RESULT
+    const now = Date.now();
+    activity = resolveActivity(activity, { id, ok: false, ms: now - at, sentence: syncStuckSentence() });
+    reconcileRun = null;
+    reconcileStuckTimer = null;
+    renderActivity(now);
+  }, SYNC_STUCK_TIMEOUT_MS);
 });
 
 syncLaterBtn.addEventListener('click', () => { syncPrompt.hidden = true; });
@@ -295,16 +335,21 @@ window.addEventListener('figma-agent:sync-result', (ev) => {
   // instead of guessing a project — renders the bind command, not a pass/fail verdict.
   const unbound = d?.code === 'E_UNBOUND';
   const ok = d?.ok === true;
-  const label = syncResultLabel(ok, typeof d?.summary === 'string' ? d.summary : '', d?.landed !== false, unbound);
+  const summary = typeof d?.summary === 'string' ? d.summary : '';
+  const landed = d?.landed !== false;
+  const label = syncResultLabel(ok, summary, landed, unbound);
   syncMsg.textContent = label;
   syncNowBtn.textContent = syncNowLabel(unbound);
-  // The prompt line normally auto-dismisses in 4s; the feed row is the durable record. It
-  // repeats the SAME sentence syncResultLabel just made — including "Nothing synced",
-  // which a feed that only said "done" would quietly upgrade to a lie.
+  // The prompt line normally auto-dismisses in 4s; the feed row is the durable record —
+  // it composes its OWN long-form sentence (task #145) rather than reusing the prompt's
+  // short label, naming the file and never collapsing to the bare word "Synced".
   if (reconcileRun) {
+    if (reconcileStuckTimer !== null) { clearTimeout(reconcileStuckTimer); reconcileStuckTimer = null; }
     const now = Date.now();
+    const fileLabel = sceneFile ?? '(unnamed file)';
     activity = resolveActivity(activity, {
-      id: reconcileRun.id, ok, ms: now - reconcileRun.at, result: `→ ${label}`,
+      id: reconcileRun.id, ok, ms: now - reconcileRun.at,
+      sentence: syncResultSentence(ok, summary, landed, unbound, fileLabel),
     });
     reconcileRun = null;
     renderActivity(now);

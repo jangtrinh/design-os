@@ -756,6 +756,18 @@ code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Owner-observed (live screenshot, concurrency & jobs addendum): a FAILED row's reason
+   ("The script stopped: runtime error: …") was clipped by the single-line ellipsis
+   above — Activity is the one surface exempt from the terse-truncate rule, and a
+   failure reason must be readable without hovering the row for its `title`. Only
+   `.log-label--wrap` (panel-ui.ts, failed rows only) overrides to full wrapping; ok/
+   running rows keep the single-line ellipsis unchanged. */
+.log-label--wrap {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+}
 /* The footnote — relative age, one muted line under the sentence. */
 .log-meta {
   font-size: var(--fga-font-caption);
@@ -1010,6 +1022,22 @@ code {
   function syncNowLabel(unbound) {
     return unbound ? "Bind & retry" : "Sync now";
   }
+  function syncStartSentence(source, fileLabel) {
+    return source === "auto" ? `Auto-sync started \u2014 ${fileLabel} went idle, applying its pending changes` : `Sync started \u2014 checking ${fileLabel} for pending Figma changes to apply`;
+  }
+  function syncResultSentence(ok, summary, landed, unbound, fileLabel) {
+    const clean = typeof summary === "string" && summary.trim().length > 0 ? summary.trim() : ok ? "done" : "failed";
+    if (unbound) return clean;
+    if (!ok) return `Sync failed for ${fileLabel} \u2014 ${clean}`;
+    return landed ? `Synced ${fileLabel} \u2014 ${clean}` : `Nothing synced for ${fileLabel} \u2014 ${clean}`;
+  }
+  var SYNC_STUCK_TIMEOUT_MS = 3e4;
+  function syncStuckSentence() {
+    return "Sync did not answer \u2014 the broker restarted mid-run; press Sync again";
+  }
+  function syncSupersededSentence() {
+    return "Superseded by a newer sync";
+  }
   function shouldClearPendingCount(ok) {
     return ok === true;
   }
@@ -1055,6 +1083,7 @@ code {
       if (patch.result !== void 0) next.result = patch.result;
       if (patch.code !== void 0) next.errorCode = patch.code;
       if (patch.nodeName !== void 0) next.nodeName = patch.nodeName;
+      if (patch.sentence !== void 0) next.sentence = patch.sentence;
       return next;
     });
   }
@@ -1199,8 +1228,8 @@ code {
     const body = document.createElement("div");
     body.className = "log-body";
     const text = document.createElement("div");
-    text.className = "log-label";
-    const line = activitySentence({
+    text.className = !r.pending && !r.ok ? "log-label log-label--wrap" : "log-label";
+    const line = r.sentence ?? activitySentence({
       tool: r.tool,
       label: r.label,
       result: r.result,
@@ -1304,24 +1333,49 @@ code {
     renderContext();
   });
   var reconcileRun = null;
+  var reconcileStuckTimer = null;
   syncNowBtn.addEventListener("click", () => {
     syncMsg.textContent = "Syncing";
     const at = Date.now();
-    reconcileRun = { id: `reconcile_${at}`, at };
+    const id = `reconcile_${at}`;
+    if (reconcileRun) {
+      if (reconcileStuckTimer !== null) {
+        clearTimeout(reconcileStuckTimer);
+        reconcileStuckTimer = null;
+      }
+      activity = resolveActivity(activity, {
+        id: reconcileRun.id,
+        ok: false,
+        ms: at - reconcileRun.at,
+        sentence: syncSupersededSentence()
+      });
+    }
+    reconcileRun = { id, at };
+    const fileLabel = sceneFile ?? "(unnamed file)";
     activity = pushActivity(activity, {
-      id: reconcileRun.id,
+      id,
       tool: "RECONCILE",
       label: "Reconcile \xB7 apply",
       pending: true,
       ok: true,
       ms: 0,
-      at
+      at,
+      sentence: syncStartSentence("manual", fileLabel)
     });
     renderActivity(at);
     try {
       window.dispatchEvent(new CustomEvent("figma-agent:sync-request"));
     } catch {
     }
+    if (reconcileStuckTimer !== null) clearTimeout(reconcileStuckTimer);
+    reconcileStuckTimer = setTimeout(() => {
+      if (reconcileRun?.id !== id) return;
+      const now = Date.now();
+      activity = resolveActivity(activity, { id, ok: false, ms: now - at, sentence: syncStuckSentence() });
+      reconcileRun = null;
+      reconcileStuckTimer = null;
+      renderActivity(now);
+    }, SYNC_STUCK_TIMEOUT_MS);
   });
   syncLaterBtn.addEventListener("click", () => {
     syncPrompt.hidden = true;
@@ -1330,16 +1384,23 @@ code {
     const d = ev.detail;
     const unbound = d?.code === "E_UNBOUND";
     const ok = d?.ok === true;
-    const label = syncResultLabel(ok, typeof d?.summary === "string" ? d.summary : "", d?.landed !== false, unbound);
+    const summary = typeof d?.summary === "string" ? d.summary : "";
+    const landed = d?.landed !== false;
+    const label = syncResultLabel(ok, summary, landed, unbound);
     syncMsg.textContent = label;
     syncNowBtn.textContent = syncNowLabel(unbound);
     if (reconcileRun) {
+      if (reconcileStuckTimer !== null) {
+        clearTimeout(reconcileStuckTimer);
+        reconcileStuckTimer = null;
+      }
       const now = Date.now();
+      const fileLabel = sceneFile ?? "(unnamed file)";
       activity = resolveActivity(activity, {
         id: reconcileRun.id,
         ok,
         ms: now - reconcileRun.at,
-        result: `\u2192 ${label}`
+        sentence: syncResultSentence(ok, summary, landed, unbound, fileLabel)
       });
       reconcileRun = null;
       renderActivity(now);
@@ -1351,7 +1412,7 @@ code {
       syncPrompt.hidden = true;
     }, 4e3);
   });
-  versionEl.textContent = `v0.1.0 \xB7 ${true ? "9d31068" : "dev"}`;
+  versionEl.textContent = `v0.1.0 \xB7 ${true ? "0e74451" : "dev"}`;
   setInterval(render, 1e3);
   render();
 

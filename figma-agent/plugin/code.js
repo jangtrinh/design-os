@@ -2654,7 +2654,7 @@
     return { sourceId: source.id, targetId: target.id, traits, applied, skipped };
   }
 
-  // plugin/src/main/mutating-commands.ts
+  // shared/mutating-commands.ts
   var MUTATING_COMMANDS = [
     "CREATE_FRAME",
     "CREATE_INSTANCE",

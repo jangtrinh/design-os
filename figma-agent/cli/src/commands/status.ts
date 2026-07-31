@@ -4,12 +4,18 @@
 // the ACTIVE plugin. Never throws E_NO_PLUGIN: an absent plugin is reported as
 // connected:false so `status` stays a diagnosis tool, not another command that
 // fails when nobody's listening.
-import { PROTOCOL_VERSION, type PluginStatusEntry } from '../../../shared/protocol.ts';
+import { PROTOCOL_VERSION } from '../../../shared/protocol.ts';
 import { fileMatches } from '../../../shared/file-match.ts';
 import type { CommandArgs } from '../figma-agent.ts';
 import { fetchBrokerHello, runCommand } from '../transport/broker-client.ts';
 import { ensureBroker } from '../transport/broker-discovery.ts';
 import { CliError } from '../transport/protocol-helpers.ts';
+// Concurrency & jobs (backlog 1.1+2.6+4.3), phase 02 §3 — each row now carries
+// `runningJob`/`queueDepth` (broker-status.ts's `buildBrokerHelloData`, given a
+// `jobStatusFor`). This CLI is JSON-only (no `--json` flag exists — figma-agent always
+// prints one JSON object; unlike the unrelated `ui` kernel CLI), so these fields reach
+// the caller simply by being present on `plugins[]` — no separate text renderer to update.
+import type { PluginStatusEntryWithJob } from '../transport/broker-status.ts';
 
 export async function run(args: CommandArgs): Promise<unknown> {
   const ad = await ensureBroker();
@@ -27,7 +33,7 @@ export async function run(args: CommandArgs): Promise<unknown> {
     uptimeMs: (hello.uptimeMs as number | undefined) ?? null,
     protocolVersion: (hello.protocolV as number | undefined) ?? PROTOCOL_VERSION,
   };
-  const all = Array.isArray(hello.plugins) ? (hello.plugins as PluginStatusEntry[]) : [];
+  const all = Array.isArray(hello.plugins) ? (hello.plugins as PluginStatusEntryWithJob[]) : [];
 
   // `--file` must not make the diagnosis self-contradictory: the BROKER_HELLO fields
   // below (activePlugin/pluginConnected/pluginInfo) are computed by the broker from

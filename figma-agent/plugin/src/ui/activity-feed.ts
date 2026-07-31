@@ -29,6 +29,15 @@ export interface ActivityRecord {
    *  IMPORT_PAYLOAD/a scan) — lets the sentence say `Created frame "Hero card"` instead of
    *  fabricating an object no reply ever named. */
   nodeName?: string;
+  /**
+   * A pre-composed FULL sentence, used VERBATIM by the renderer instead of running
+   * `activitySentence()`'s tool/count/name machinery. For callers that already hold the
+   * complete human sentence in hand (a sync result's kernel summary; a job's own state) —
+   * forcing either of those through the generic count-regex mapper is exactly the bug
+   * this field exists to stop (the sync row used to collapse to the bare word "Synced").
+   * Absent for every ordinary wire-command row, which is untouched by this field.
+   */
+  sentence?: string;
 }
 
 /** Wall-clock stamp for a row: "14:32:07" (local time, zero-padded). Kept for the status snapshot. */
@@ -106,6 +115,8 @@ export interface ActivityResult {
   code?: string;
   /** The reply's own `name`, when it carried one — ui-relay.ts's emitActivity extracts it. */
   nodeName?: string;
+  /** Pre-composed full sentence to land on the row verbatim — see `ActivityRecord.sentence`. */
+  sentence?: string;
 }
 
 /** Coerce a done-event detail into a result patch, or null if the shape is wrong. */
@@ -150,6 +161,7 @@ export function resolveActivity(
     if (patch.result !== undefined) next.result = patch.result;
     if (patch.code !== undefined) next.errorCode = patch.code;
     if (patch.nodeName !== undefined) next.nodeName = patch.nodeName;
+    if (patch.sentence !== undefined) next.sentence = patch.sentence;
     return next;
   });
 }

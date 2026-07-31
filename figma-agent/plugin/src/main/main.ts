@@ -33,7 +33,7 @@ import {
 } from './executor-ops';
 import { opExecJs } from './executor-exec-js';
 import { opCloneTraits } from './executor-clone-traits';
-import { MUTATING_COMMANDS } from './mutating-commands';
+import { MUTATING_COMMANDS } from '../../../shared/mutating-commands';
 import {
   beginAgentMutation,
   readEdgeCorrections,

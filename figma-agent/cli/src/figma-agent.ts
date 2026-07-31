@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { runBrokerDaemon } from './transport/broker-daemon.ts';
 import { parseArgs, type CommandArgs } from './arg-parse.ts';
 import { CliError } from './transport/protocol-helpers.ts';
-import { getLastFileContext, setExpectedFile, setProjectDir } from './transport/broker-client.ts';
+import { getLastFileContext, setExpectedFile, setProjectDir, setReadOnly } from './transport/broker-client.ts';
 import { printErrorJson, printJson, withFileContext } from './util/json-out.ts';
 import * as batch from './commands/batch.ts';
 import * as bind from './commands/bind.ts';
@@ -20,6 +20,7 @@ import * as exportPng from './commands/export-png.ts';
 import * as getSelection from './commands/get-selection.ts';
 import * as htmlToFigma from './commands/html-to-figma.ts';
 import * as inspect from './commands/inspect.ts';
+import * as job from './commands/job.ts';
 import * as mirrorVerify from './commands/mirror-verify.ts';
 import * as scanDesignSystem from './commands/scan-design-system.ts';
 import * as scanNode from './commands/scan-node.ts';
@@ -42,6 +43,7 @@ const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown>
   bind,
   'get-selection': getSelection,
   inspect,
+  job,
   'scan-design-system': scanDesignSystem,
   'scan-node': scanNode,
   'mirror-verify': mirrorVerify,
@@ -75,6 +77,9 @@ Commands:
                        panel/idle sync (refuses to guess otherwise) [--list] [--unbind]
   get-selection        Serialize the current selection [--depth 1]
   inspect              [nodeId|--node id] [--out file.png --scale 1 --timeout ms]
+  job                  <jobId> [--wait] [--wait-timeout 60000] | --list [--file name] |
+                       <jobId> --cancel (queued only) | <jobId> --force-release
+                       poll/wait/cancel/list a job the CLI stopped waiting for (backlog 1.1+2.6+4.3)
   scan-design-system   Components/variables/styles registry [--out file.json --timeout ms]
   scan-node            [SPIKE] Reverse-walk one node → FigmaExportNode spec <nodeId> [--timeout ms]
   mirror-verify        Prove one node round-trips: scan → rebuild → scan → diff <nodeId> [--parent id --keep --timeout ms]
@@ -108,6 +113,10 @@ Global: --file "<exact file name>"   route to that file's plugin AND refuse to r
         --dir <projectDir>          this invocation's project root (default: cwd); stamped on
                                      every request so panel/idle sync can apply into the right
                                      project once bound (\`figma-agent bind\`) — never a guess
+        --read-only                 declare that this command only READS. Skips the per-file
+                                     mutation queue (backlog 1.1+2.6+4.3). TRUSTED, NOT ENFORCED —
+                                     the plugin sandbox cannot verify it, so a mis-declared
+                                     mutation can interleave with another agent's work.
 
 All commands print one JSON object to stdout and exit 0, or {error:{code,message}} and exit 1.`;
 
@@ -135,6 +144,7 @@ async function main(): Promise<void> {
   }
   setExpectedFile(args.str('file'));   // global flag — verified: no command reads --file today
   setProjectDir(resolve(args.str('dir') ?? process.cwd())); // registry-integrity phase 01 §1
+  setReadOnly(args.bool('read-only')); // concurrency & jobs (backlog 1.1+2.6+4.3) — TRUSTED, not enforced
   try {
     const result = await command.run(args);
     printJson(withFileContext(result));

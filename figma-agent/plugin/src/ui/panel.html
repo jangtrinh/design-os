@@ -756,6 +756,18 @@ code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Owner-observed (live screenshot, concurrency & jobs addendum): a FAILED row's reason
+   ("The script stopped: runtime error: …") was clipped by the single-line ellipsis
+   above — Activity is the one surface exempt from the terse-truncate rule, and a
+   failure reason must be readable without hovering the row for its `title`. Only
+   `.log-label--wrap` (panel-ui.ts, failed rows only) overrides to full wrapping; ok/
+   running rows keep the single-line ellipsis unchanged. */
+.log-label--wrap {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+}
 /* The footnote — relative age, one muted line under the sentence. */
 .log-meta {
   font-size: var(--fga-font-caption);

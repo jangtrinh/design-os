@@ -68,6 +68,36 @@ describe('buildBrokerHelloData — plugins list + activePlugin', () => {
   });
 });
 
+describe('buildBrokerHelloData — jobStatusFor (concurrency & jobs, backlog 1.1+2.6+4.3)', () => {
+  it('omitting jobStatusFor keeps plugins[] byte-identical to before this wave (no runningJob/queueDepth keys)', () => {
+    const { reg, clock } = seed();
+    reg.register(sock(), { instanceId: 'a', fileName: 'VSF - PCP' });
+    const d = buildBrokerHelloData(reg, META, null, clock);
+    const [row] = d.plugins as Array<Record<string, unknown>>;
+    expect('runningJob' in row).toBe(false);
+    expect('queueDepth' in row).toBe(false);
+  });
+
+  it('given jobStatusFor, each row gets runningJob/queueDepth keyed by ITS OWN fileSlug', () => {
+    const { reg, clock } = seed();
+    reg.register(sock(), { instanceId: 'a', fileName: 'VSF - PCP' });
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design system' });
+    const jobStatusFor = (slug: string) =>
+      slug.includes('vsf')
+        ? { runningJob: { jobId: 'j_1_1', state: 'running' as const, cmd: 'EXEC_JS', fileSlug: slug }, queueDepth: 2 }
+        : { runningJob: null, queueDepth: 0 };
+    const d = buildBrokerHelloData(reg, META, null, clock, jobStatusFor);
+    const rows = d.plugins as Array<{ fileName: string | null; runningJob: unknown; queueDepth: number }>;
+    const vsf = rows.find((r) => r.fileName === 'VSF - PCP')!;
+    const ds = rows.find((r) => r.fileName === 'Design system')!;
+    expect(vsf.runningJob).toMatchObject({ jobId: 'j_1_1' });
+    expect(vsf.queueDepth).toBe(2);
+    // An idle file reports null + 0 explicitly — never an omitted key.
+    expect(ds.runningJob).toBeNull();
+    expect(ds.queueDepth).toBe(0);
+  });
+});
+
 describe('noPluginMessage', () => {
   const envFilter = (value: string): RouteFilter => ({ value, exact: false, source: 'env' });
   const flagFilter = (value: string): RouteFilter => ({ value, exact: true, source: 'flag' });

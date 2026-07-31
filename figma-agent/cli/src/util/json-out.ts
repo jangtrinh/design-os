@@ -32,7 +32,14 @@ export function withFileContext(result: unknown): unknown {
 export function printErrorJson(err: unknown, fileContext?: FileContext): never {
   const error =
     err instanceof CliError
-      ? { code: err.code, message: err.message, ...(err.rolledBack ? { rolledBack: true } : {}) }
+      ? {
+          code: err.code, message: err.message,
+          ...(err.rolledBack ? { rolledBack: true } : {}),
+          // Concurrency & jobs (backlog 1.1+2.6+4.3) — machine-readable jobId on an
+          // E_TIMEOUT that confirmed a real job exists, so a caller (or a script driving
+          // this CLI) can poll `figma-agent job <id>` without re-parsing the message.
+          ...(err.jobId !== undefined ? { jobId: err.jobId } : {}),
+        }
       : { code: 'E_INTERNAL', message: err instanceof Error ? err.message : String(err) };
   const payload = fileContext ? { error, fileContext } : { error };
   process.stdout.write(`${JSON.stringify(payload)}\n`);

@@ -106,6 +106,17 @@ export class PluginRegistry<S extends RegistrySocket = RegistrySocket> {
     return null;
   }
 
+  /**
+   * Concurrency & jobs (backlog 1.1+2.6+4.3) — resolve a job's PINNED `targetInstanceId`
+   * at dequeue time. Never re-resolves by filter/recency (a queued mutation must land in
+   * the SAME file it was admitted for, never whichever file became most-recent while it
+   * waited) — only whether that exact instance is still live. `null` (instance gone) or a
+   * closed socket both mean the same thing to a caller: the pinned target vanished.
+   */
+  getByInstanceId(instanceId: string): PluginEntry<S> | null {
+    return this.plugins.get(instanceId) ?? null;
+  }
+
   private instanceForWs(ws: S): string | null {
     return this.getByWs(ws)?.instanceId ?? null;
   }
