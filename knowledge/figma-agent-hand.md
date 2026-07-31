@@ -199,3 +199,14 @@ The plugin repo (github.com/jangtrinh/design-os-figma-plugin) carries its own
 - `knowledge/component-sets.md` — `ui.componentSet(...)` (build a COMPONENT_SET from a
   variant matrix or existing components) plus a compose-from-what-exists recipe for
   analysing one (state→CSS-selector mapping, the case-sensitivity gotcha to avoid).
+- `knowledge/slots.md` — `ui.slot.*` (create/list/append/reset/addProperty), Figma
+  Slots (GA June 2026): the raw-COMPONENT-append guard, the merge-not-assign rule for
+  `componentPropertyReferences`, and the stricter-than-upstream ambiguous-name throw.
+- `knowledge/annotations.md` — `ui.annotate.*` (get/set/categories): the closed
+  32-value property-type vocabulary, and the label/labelMarkdown append-mode merge
+  (Figma auto-populates both on read but rejects writing both).
+
+**`status` shape, additive field (absorption phase-02):** `plugin.editorType` —
+`'figma' | 'figjam' | 'slides' | 'dev' | null`, read directly off `figma.editorType`;
+`null` (never a silent `'figma'` default) when an older host reports nothing. Consumed
+by the plugin repo's `shared/editor-surface.ts` guard (phases 03/04: FigJam, Slides).
