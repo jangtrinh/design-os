@@ -578,6 +578,201 @@ semantic recall remain optional hands used by the host workflow, not hidden depe
 
 ---
 
+## The plugin — where the designer and the agent share one file
+
+Most design automation assumes the file is empty and the human is elsewhere. This one assumes
+the opposite: a designer is in the file *right now*, has opinions, and will drag something two
+pixels to the left the moment the agent stops typing. The plugin is the agent's end of that
+shared file — a 300×420 panel titled **design:os by JANG**, that says what is happening, and a
+loop that carries the designer's own edits back into the project the file belongs to.
+
+<img src="docs/images/plugin/panel-connected-dark.png" width="320" alt="The panel, connected — status, context, activity">
+
+The panel is the smallest honest surface we could build. It opens at one size — the
+compact/expanded split is gone, along with the Details toggle and the internal masthead (the
+wordmark lives in Figma's own host-drawn window title, so repeating it inside was noise). What
+is left reads top-to-bottom as four blocks: **status**, **context**, **activity**, and — only
+at the moment it matters — the **sync prompt**.
+
+It wears the studio's own design system, compiled rather than hand-picked: `ui tokens compile
+brand/design/design.tokens.json`, persona `kinetic-swiss-punk`, zero-radius geometry, flat
+bordered surfaces, mechanical data. The chrome reads through **exactly one type family** and
+**exactly three sizes** — 14px for the one status sentence, 13px for every value, row label,
+and activity line, 11px for captions and timestamps. Every icon is inline
+[Phosphor](https://phosphoricons.com/) (official `@phosphor-icons/core` v2 path data, regular
+weight, MIT); there is **no text glyph anywhere** — no ellipsis standing in for "working", no
+checkmark character standing in for "done". Dark is the design of record; `showUI({
+themeColors: true })` makes Figma stamp the iframe, and a single `html.figma-light` block
+re-points every color token when the user's appearance is light. Radii, spacing, and type are
+theme-invariant, so nothing moves when the theme flips — and both themes carry their own
+measured contrast table, with two light values lifted off the sampled reference because they
+did not clear the floor as given.
+
+<img src="docs/images/plugin/light-theme.png" width="320" alt="The same panel following a light system appearance">
+
+### The panel says one true thing at a time
+
+The status block is **one sentence** — the problem and the next action, never a code, never a
+port number, never a pill/label/meta split. Connected states are minimal, because the tone dot
+already carries the meaning: *"Connected."* Problem states name the fix instead of describing
+the symptom. Ten seconds of fruitless probing stops saying *"Looking for the broker"* and
+starts saying *"Broker not running — run `figma-agent status`."*
+
+The context block answers the one question a multi-file setup makes dangerous: **which file
+will my command hit?** It shows file, page, and selection — and when more than one file is
+connected, a note that refuses to flatter itself. It reads `command target · 2 other files` when
+this file is the routing target, and `3 other files — commands go elsewhere` when it is not. A
+panel that says "command target" while the broker routes elsewhere is the exact failure this
+line exists to prevent.
+
+<img src="docs/images/plugin/multi-file-peers.png" width="320" alt="Multiple files connected — the context block says which one commands hit">
+
+The activity feed is **one English sentence per operation, about what the agent did** — never a
+wire command, never an error code. *"Created frame "Pricing card""*, *"Scanned 129
+components"*, *"Bound a variable"*, *"The script stopped: cannot read property 'fills' of
+null"*. The mapping is tool-driven and reply-driven, which means it **cannot fabricate**: a name
+appears only when the reply actually carried one, a count only when the result actually parsed
+as one. Everything else falls back to a humanized verb rather than leaking `CREATE_VARIANT_SET`
+at a designer. Sync runs narrate themselves the same way — *"Synced VSF - PCP — 3 added, 1
+updated"*, *"Sync failed for VSF - PCP — …"* with the full untruncated reason wrapped across
+lines — and a sync row that never hears back resolves itself honestly after thirty seconds
+instead of spinning forever; a second click resolves the first row as superseded.
+
+<img src="docs/images/plugin/activity-feed.png" width="320" alt="The activity feed — one honest sentence per operation">
+
+### The loop — the designer edits, and the project finds out
+
+Authoring into Figma is the easy direction. The hard direction is the one where a human changes
+something and the code-side registry quietly goes stale.
+
+Every `documentchange` in the file appends to a ledger and resets a debounce. After five
+minutes of quiet — one line in the project changes it: `design/figma-sync.json` `{"idleMs":
+…}` — the panel surfaces a single row: **"N changes ready — Sync now / Later."** A click runs
+the deterministic kernel (`ui figma reconcile --apply`) over the ledger. The plugin observes and
+prompts; the kernel decides and writes. No model is in that path.
+
+<img src="docs/images/plugin/sync-prompt.png" width="320" alt="The sync prompt — N changes ready, Sync now / Later">
+
+Commands do not trample each other on the way in. Every mutation becomes a **job**: one
+mutation runs per Figma file at a time, the rest queue in arrival order, and separate files run
+in parallel. Read-only traffic — scans, status, exports — bypasses the queue entirely, and the
+broker refuses a read-only assertion on a command that is mutating by name. When a long script
+outlives the CLI's patience, the timeout is not a shrug: it names the job id, states plainly
+that the work was **not** cancelled, and `figma-agent job <id>` polls the real outcome. Cancel
+actually cancels — a dequeued job can never be resurrected by queue advancement — and a reply
+that arrives after a job was force-released is counted and discarded, never served as its
+result.
+
+The confirmation is the part worth reading closely, because it is where a sync loop usually
+starts lying. The panel says **"Synced — …"** only when the kernel reports records it actually
+wrote. An apply that succeeds and lands nothing — every changed component still awaiting
+re-ingest — says **"Nothing synced — …"**, which is the honest claim and the useless-sounding
+one. A genuine failure leaves the pending counter and the prompt intact, so the retry is still
+there; only a true success clears them.
+
+And a sync cannot guess where it goes. A Figma file's changes land in **its** project, declared
+once:
+
+```sh
+figma-agent bind --file "Design System v4" --dir ~/code/your-app
+```
+
+That writes the project's own durable marker (`design/figma-bind.json`), so it works with no
+broker running at all — a later broker picks the marker up on startup and fills in the file key
+once the file is open. Until a file is bound, its changes **stage** rather than scatter, and
+migrate once on bind. An unbound sync does not guess and does not fail obscurely: the prompt
+renders the fix as its own message, and the button itself stops lying — it reads **"Bind &
+retry"** until the binding exists.
+
+### One ⌘Z per operation, and a bracket around every script
+
+Figma's default is that an entire agent session collapses into a single undo step. Press ⌘Z once
+after twenty minutes of automated work and twenty minutes disappear. So every mutating command
+seals its own step — `CREATE_FRAME`, `CREATE_INSTANCE`, `SET_VARIANT`, `CREATE_VARIABLE`,
+`BIND_VARIABLE`, `SET_AUTOLAYOUT`, `SET_CONSTRAINTS`, `SET_TEXT`, `CLONE_TRAITS`, `EXEC_JS`,
+`IMPORT_PAYLOAD` — and a batch's children commit individually, because that is the granularity a
+human actually wants. Read-only commands seal nothing.
+
+Arbitrary Plugin-API JavaScript (`figma-agent exec-js`) is the sharpest tool in the set, so it
+gets a real harness. Run with `--undo-group`, the script is bracketed: seal everything that came
+before, run, seal again — and on a thrown error, **undo**. The order is load-bearing (the
+obvious `commit → mutate → trigger` was smoke-tested and does not roll back at all), and the
+group is kept provably non-empty by an invisible 1×1 sentinel frame, so a rollback can never
+consume the *caller's* previous undo step instead of the script's own work. The sweep that
+reclaims stray sentinels matches on our plugin data, never on the name — a user's frame that
+happens to be called `[figma-agent] undo sentinel` is not ours to delete.
+
+What it reports is as constrained as what it does. `rolledBack: true` appears only when the
+rollback actually completed, never because a bracket merely existed. When the undo API itself
+throws, the message says so in words a caller can act on: *"ROLLBACK FAILED (…); the canvas may
+be half-changed."* And the limits are documented next to the code rather than discovered later —
+a commit-phase failure never triggers a rollback of an already-successful script, a script that
+calls the undo API itself splits its own group, and a run that hits its timeout keeps its job id
+for polling but cannot be rescued by the bracket, because the plugin sandbox has no way to
+interrupt a running `eval`. Long scripts get split; the harness does not pretend otherwise.
+
+Every refusal along the way lands in an append-only log an agent can read and fix from:
+`design/figma-errors.jsonl`, one line per relayed error, carrying the command, the CLI's own
+intent label, the file that answered, the request id, the rollback flag, and the **full,
+untruncated** message. It is the one place the real reason lives — a diagnostic tail written for
+the machine that caused the error, not a toast that vanishes.
+
+### The registry survives the file getting big
+
+A design file grows and a change log grows faster. Per-file `{line, byte}` cursors let reconcile
+read only what is new, streaming from a persisted byte offset instead of re-parsing history.
+The change and edit feeds rotate at 8 MiB, keeping three generations, with the rotation marker
+written **before** the truncate — so a crash mid-rotation cannot make the rotation invisible,
+and a truncated log is never mistaken for a silent cursor advance (`rotated_away_lines`,
+`history_gap_lines`). Records live as per-component shards under `design/registry/` behind a
+compact index, written content-guarded so one changed record touches one shard; the contract
+file `design/component-registry.json` is still emitted, **byte-identical**, for every consumer
+that reads it. Apply is map-based: measured, a 200-target apply into a 10,000-record registry
+takes about a millisecond.
+
+Those are measurements, not adjectives. They run against a committed deterministic corpus —
+10,000 components and 50,000 change frames, including a Figma-Free file with a null file key and
+a deliberate case-only near-duplicate name — which regenerates byte-identically from one seed,
+so the baseline is a regression gate rather than a number someone once saw.
+
+### Nothing vanishes untraced, and their artifacts stay theirs
+
+The rule the whole wave was built around: **a design system may never lose something quietly.**
+Evicted unresolved corrections archive to `figma-corrections.overflow.jsonl` *before* the pruned
+store is rewritten. Plugin-side eviction surfaces as a cumulative `edgeEvictedUnresolved` count.
+Pruned legacy pending entries leave audit records; audit-cap truncation reports
+`skip_history_truncated`; legacy untagged frames count as `skipped_legacy_frames` and name the
+manual drain that recovers them. The ordering is the guarantee: the archive is written before the
+prune, the rotation marker before the truncate, an orphan sidecar deleted only after the registry
+save succeeds — so the crash window never falls on the side that loses the record.
+
+The same restraint applies to the project's own files. If `design/component-registry.json` is a
+file **the project generates itself**, the kernel does not co-opt it — it yields to
+`design/figma-component-registry.json`, tells you so in the envelope
+(`foreign_registry_at_default_path`, `registry_path`), and every consumer agrees on the one
+path. Their registry is theirs. That is not politeness; it is the same principle as `/ui:learn`
+compiling a design system from the project's own evidence instead of imposing a persona default.
+
+### What this cost, honestly
+
+None of the above came from a design document. Two waves — registry integrity, then the job
+model — went through four adversarial review rounds in which every blocker was **reproduced
+before it was believed**: a rotation-plus-pending interaction that leapt the cursor past a
+fresh file's end and lost new frames with no counter; a byte hint paired with a line from a
+different position that froze a cursor permanently; a cancel that reported success while the
+broker ran the job anyway. Tests that were supposed to guard this code were proven **phantom**
+(one asserted file contents where it claimed to assert write ordering; one fed a mock fresh
+arrays where the real caller mutates in place), so each fix shipped with a test that fails
+against the previous code — including an in-process daemon harness for the seams pure unit
+tests structurally could not see. The `figma-agent` hand now carries 839 tests across 72
+files; the studio suite above it, 2,700+.
+
+For what the hand does *with* the file once it is connected — the four moves, the 1:1 mirror,
+and why this is a CLI rather than (just) the Figma MCP — see [**The Figma
+hand**](#the-figma-hand) below.
+
+---
+
 ## The Figma hand
 
 `figma-agent` drives a Figma plugin over a local self-healing broker: reconnect back-off,
