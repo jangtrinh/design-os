@@ -5,13 +5,18 @@
 // Orchestration handlers that need the dispatch itself (IMPORT_PAYLOAD, BATCH)
 // live here; single-command executors live in executor-*.ts.
 
-import type { CommandName, ErrorCode } from '../../../shared/protocol';
+import type { CommandName, ErrorCode, FileContext, WireError } from '../../../shared/protocol';
 import { DEFAULT_IDLE_MS, MIN_IDLE_MS } from '../../../shared/protocol';
+import { fileMatches } from '../../../shared/file-match';
 import type { FigmaExportPayload } from '../../../shared/figma-payload-types';
 import {
   coalesceChanges, mapChangeType,
   type ChangeOrigin, type ComponentChange,
 } from '../../../shared/figma-changes';
+import { coalesceEdits, type EditInput, type EditOrigin } from '../../../shared/edit-feed';
+import {
+  classifyActor, pruneDeclaredIds, pruneLastAgentAt, AGENT_ECHO_MS, type ActorState,
+} from './edit-actor';
 import {
   createColorStyles, createTextStyles, createEffectStyles,
   resetImportWarnings, getImportWarnings, withCode,
@@ -24,12 +29,15 @@ import { serializeDesignSystem } from './serialize-node';
 import { auditDs } from './executor-audit';
 import {
   opStatus, opGetSelection, opCreateFrame, opCreateInstance, opSetVariant,
-  opSetAutoLayout, opSetConstraints, opSetText, opExportPng, opExecJs,
+  opSetAutoLayout, opSetConstraints, opSetText, opExportPng,
 } from './executor-ops';
+import { opExecJs } from './executor-exec-js';
 import { opCloneTraits } from './executor-clone-traits';
+import { MUTATING_COMMANDS } from '../../../shared/mutating-commands';
 import {
   beginAgentMutation,
   readEdgeCorrections,
+  readEvictedUnresolvedCount,
   recordAgentMutation,
   recordDesignerCorrection,
   writeEdgeCorrections,
@@ -37,21 +45,66 @@ import {
 import type { CorrectionEvent } from '../../../shared/supervised-memory';
 import { PANEL_WIDTH, PANEL_HEIGHT } from '../ui/panel-model';
 
-// P5.1: the panel opens COMPACT (small + minimal on the canvas — owner decree);
-// the UI's DETAILS toggle posts PANEL_RESIZE to grow/shrink it on demand.
-figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
+// Panel IA v2: one opening size — no compact/expanded split, no user-resizable
+// Details toggle left to preserve (the whole PANEL_RESIZE path is gone below).
+//
+// Owner decree 2026-07-30: the plugin window's own (host-drawn) title bar cannot be
+// removed and duplicated the panel's internal masthead, which is now gone (panel.html) —
+// this is the other half of that fix. Confirmed live: a blank title DOES render (the
+// owner's screenshot showed it working) — this is now the owner's exact wording for the
+// title bar's live text, not a placeholder.
+//
+// `themeColors: true` (owner requirement, system/Figma appearance): Figma stamps
+// `figma-dark`/`figma-light` onto the iframe document's <html> element to match the
+// user's current Figma appearance — documented `showUI` behavior. panel.html's
+// `html.figma-light { ... }` override block (a sibling of the default dark :root) is
+// what actually repaints every color token; this flag is what makes that class exist.
+figma.showUI(__html__, {
+  visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT, title: 'design:os by JANG', themeColors: true,
+});
 
-// Announce scene identity to the UI iframe so the P2 panel's Connection details can
-// show File/Page; ui-relay also forwards this to the broker (enriches PLUGIN_HELLO /
-// `figma-agent status`). Re-announce on page change so the panel stays current.
+/** Block 2's Selection row: the first selected node's name (if any) + the count. */
+function selectionSummary(): { selectionName: string | null; selectionCount: number } {
+  const sel = figma.currentPage.selection; // sync getter, allowed under dynamic-page
+  return { selectionName: sel.length > 0 ? sel[0].name : null, selectionCount: sel.length };
+}
+
+// Announce scene identity to the UI iframe so the panel's Context block can show
+// File/Page/Selection; ui-relay also forwards this to the broker (enriches
+// PLUGIN_HELLO / `figma-agent status`). Re-announce on page change AND selection
+// change so the panel stays current.
+let announcedFileName = '';
+
 function announceFileInfo(): void {
+  announcedFileName = figma.root.name;
   figma.ui.postMessage({
     type: 'FILE_INFO',
-    data: { fileName: figma.root.name, page: figma.currentPage.name },
+    data: {
+      fileName: figma.root.name, page: figma.currentPage.name, fileKey: figma.fileKey ?? null,
+      ...selectionSummary(),
+    },
   });
 }
 announceFileInfo();
 figma.on('currentpagechange', announceFileInfo);
+// `selectionchange` fires on every click — the handler posts five-ish scalars with no
+// scene traversal and no await, so it is cheap enough to leave undebounced; debouncing
+// would delay the panel behind the user's own click.
+figma.on('selectionchange', announceFileInfo);
+
+/**
+ * The file identity read at every request, with a rename self-heal: sync getters only,
+ * safe under dynamic-page and cheap enough to call per request. `announceFileInfo` fires
+ * only at startup and on `currentpagechange`; renaming the Figma FILE fires neither event,
+ * so the broker's registry would keep routing the old name (and the guard below would then
+ * refuse the new one). Re-announcing whenever `figma.root.name` drifts lets routing and the
+ * guard converge within one round-trip instead of staying stale until the panel reloads.
+ */
+function fileContext(): FileContext {
+  const ctx = { fileName: figma.root.name, fileKey: figma.fileKey ?? null };
+  if (ctx.fileName !== announcedFileName) announceFileInfo();
+  return ctx;
+}
 
 // ─── Live-sync capture (spec 004 P1) ────────────────────────────────
 // Watch whole-document edits, coalesce to the component level, and post the batch
@@ -100,6 +153,77 @@ function resolveComponentIdentity(node: SceneNode | RemovedNode): ComponentIdent
   return null;
 }
 
+// ─── Widened capture (wave 4.4 phase 01) ─────────────────────────────
+// The component branch above stays exactly as it was (figma.changes.jsonl / kernel
+// reconcile, spec A6, untouched). This is a SECOND, wider collection alongside it —
+// every node, not just components — feeding its own per-file feed (shared/edit-feed.ts).
+
+/** Best-effort identity, remembered so a DELETE (which arrives as id+type only) can
+ *  still be described. Capped with oldest-out eviction — a long session must not leak. */
+interface CachedIdentity { name: string; type: string; parentName: string | null; page: string }
+const EDIT_IDENTITY_CACHE_CAP = 2_000;
+const identityCache = new Map<string, CachedIdentity>();
+
+function rememberIdentity(id: string, value: CachedIdentity): void {
+  identityCache.set(id, value);
+  if (identityCache.size > EDIT_IDENTITY_CACHE_CAP) {
+    const oldestKey = identityCache.keys().next().value;
+    if (oldestKey !== undefined) identityCache.delete(oldestKey);
+  }
+}
+
+const ENCLOSING_NAME_HOP_CAP = 20;
+
+/** Nearest enclosing FRAME/SECTION/COMPONENT/COMPONENT_SET above `node` — "where" the
+ *  owner was working. Walks UP (not down), so it is O(depth), not O(tree). Null past
+ *  the hop cap or when there is none (e.g. a direct child of the page). */
+function enclosingName(node: SceneNode): string | null {
+  let n: BaseNode | null = node.parent;
+  let hops = 0;
+  while (n && hops < ENCLOSING_NAME_HOP_CAP) {
+    if (n.type === 'FRAME' || n.type === 'SECTION' || n.type === 'COMPONENT' || n.type === 'COMPONENT_SET') {
+      return n.name;
+    }
+    n = n.parent;
+    hops += 1;
+  }
+  return null;
+}
+
+/** The PAGE a node lives on. `documentchange` is document-wide (loadAllPagesAsync at
+ *  boot), so a single batch can span pages — this must be resolved PER NODE, never
+ *  stamped from `figma.currentPage` at the batch level, or cross-page edits would file
+ *  under the wrong page. */
+function pageNameOf(node: SceneNode): string {
+  let n: BaseNode | null = node;
+  while (n) {
+    if (n.type === 'PAGE') return n.name;
+    n = n.parent;
+  }
+  return figma.currentPage.name; // defensive: an orphaned/detached node
+}
+
+// ─── Actor classification state (wave 4.4 phase 01) ──────────────────
+// Post-review fix (Codex P1, round 1): concurrent overlapping dispatches to the same
+// plugin instance are real (two CLI invocations racing the same file), so this is a
+// COUNTER — not a single scalar "busy until" that one dispatch finishing would clobber
+// for another still in flight.
+//
+// Post-review fix (Codex P1, round 2): `declaredIds` gets the SAME per-id lifecycle as
+// `lastAgentAt`, not a blanket add-only union cleared in one sweep — that version grew
+// unboundedly under continuous traffic and let a long-finished request's ids keep
+// mislabelling a much-later owner edit as `agent`. Now nodeId → expiresAt: `Infinity`
+// while the declaring dispatch is active, stamped to `now + AGENT_ECHO_MS` in THAT
+// dispatch's own `finally`, then pruned per-id (not blanket-cleared).
+let activeCount = 0;
+let lastDrainAt = 0; // epoch ms the count last returned to 0 (0 = never has)
+const declaredIds = new Map<string, number>();
+const lastAgentAt = new Map<string, number>();
+
+function actorState(): ActorState {
+  return { activeCount, lastDrainAt, declared: declaredIds, lastAgentAt };
+}
+
 // ─── Idle-commit timer (spec 004 P4) ────────────────────────────────
 // Every captured documentchange resets a debounce; after IDLE_MS of quiet the plugin
 // posts IDLE_READY {count} to its iframe, which shows the "N changes — Sync now /
@@ -125,36 +249,85 @@ function fireIdle(): void {
 }
 
 function onDocumentChange(event: DocumentChangeEvent): void {
+  pruneDeclaredIds(declaredIds, Date.now()); // once per batch — nothing reads `declared` between batches
   const raw: ComponentChange[] = [];
+  const edits: EditInput[] = [];
   for (const dc of event.documentChanges) {
-    const changedNode = (dc as { node: SceneNode | RemovedNode }).node;
-    if (!('removed' in changedNode) || !changedNode.removed) {
-      recordDesignerCorrection(changedNode.id, {
+    // Filter the TYPE first — before any node dereference. A StyleChange payload
+    // carries `style`, not `node`; casting every DocumentChange to `{ node }` and
+    // testing `'removed' in changedNode` BEFORE this filter throws on `undefined`
+    // for a STYLE_* change — a latent crash this wave would otherwise inherit
+    // (one style edit away from killing capture entirely).
+    const op = mapChangeType(dc.type);
+    if (op === null) continue; // STYLE_* — filtered before any node dereference
+    const node = (dc as { node?: SceneNode | RemovedNode }).node;
+    if (!node) continue; // defensive: a node-less change type
+
+    if (!('removed' in node) || !node.removed) {
+      recordDesignerCorrection(node.id, {
         changeType: dc.type,
         properties: dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [],
       });
     }
-    const op = mapChangeType(dc.type);
-    if (op === null) continue; // STYLE_* — components only in P1
-    const identity = resolveComponentIdentity((dc as { node: SceneNode | RemovedNode }).node);
-    if (!identity) continue; // change not under any component — filtered out
-    raw.push({
+    const changedProps = dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [];
+
+    // ── Component-scoped capture (unchanged behaviour — figma.changes.jsonl, spec A6) ──
+    const identity = resolveComponentIdentity(node);
+    if (identity) {
+      raw.push({
+        op,
+        nodeId: identity.id,
+        nodeName: identity.name,
+        nodeType: identity.type,
+        changedProps,
+        origin: dc.origin as ChangeOrigin,
+      });
+    }
+
+    // ── Widened capture (wave 4.4 phase 01) — every node, not just components ──
+    const removed = 'removed' in node && node.removed;
+    const known = identityCache.get(node.id);
+    // A RemovedNode carries ONLY id + type — no name, no parent, no page — so a delete
+    // reads from the identity cache; a node the session never saw degrades honestly to
+    // null (the sentence layer says "Deleted a TEXT node" rather than inventing a name).
+    const parentName = removed ? known?.parentName ?? null : enclosingName(node);
+    const page = removed ? known?.page ?? figma.currentPage.name : pageNameOf(node);
+    edits.push({
       op,
-      nodeId: identity.id,
-      nodeName: identity.name,
-      nodeType: identity.type,
-      changedProps: dc.type === 'PROPERTY_CHANGE' ? [...dc.properties] : [],
-      origin: dc.origin as ChangeOrigin,
+      nodeId: node.id,
+      nodeName: removed ? known?.name ?? null : node.name,
+      nodeType: node.type,
+      parentName,
+      page,
+      changedProps,
+      origin: dc.origin as EditOrigin,
+      actor: classifyActor(node.id, op, Date.now(), actorState()),
+    });
+    if (!removed) rememberIdentity(node.id, { name: node.name, type: node.type, parentName, page });
+  }
+
+  const changes = coalesceChanges(raw);
+  if (changes.length > 0) {
+    figma.ui.postMessage({
+      // fileName rides alongside fileKey (registry-integrity phase 03, §1) — a Figma-Free
+      // file's fileKey is null, so without a name the slug chain collapses every such
+      // file to 'unknown' and keeps coalescing them together.
+      type: 'DOC_CHANGE',
+      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null, fileName: figma.root.name },
+    });
+    changesSinceCommit += changes.length;
+    resetIdleTimer(); // each edit pushes the idle-commit prompt further out
+  }
+
+  if (edits.length > 0) {
+    figma.ui.postMessage({
+      type: 'EDIT_FEED',
+      data: {
+        edits: coalesceEdits(edits), fileKey: figma.fileKey ?? null,
+        fileName: figma.root.name, source: 'live',
+      },
     });
   }
-  const changes = coalesceChanges(raw);
-  if (changes.length === 0) return;
-  figma.ui.postMessage({
-    type: 'DOC_CHANGE',
-    data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null },
-  });
-  changesSinceCommit += changes.length;
-  resetIdleTimer(); // each edit pushes the idle-commit prompt further out
 }
 
 // Subscribe only after all pages are loaded (dynamic-page requirement).
@@ -164,47 +337,102 @@ figma.loadAllPagesAsync()
 
 type Params = Record<string, unknown>;
 
-interface UiRequest { requestId: string; cmd: CommandName; params?: Params }
+interface UiRequest { requestId: string; cmd: CommandName; params?: Params; expectedFile?: string }
 
 figma.ui.onmessage = async (msg: unknown) => {
-  // P5.1 panel chrome: the DETAILS toggle asks for an iframe resize. Height is
-  // clamped to the mode range so a malformed message can never blow up the panel.
-  const chrome = msg as { type?: unknown; h?: unknown; data?: unknown } | null;
-  if (chrome && chrome.type === 'PANEL_RESIZE') {
-    const raw = typeof chrome.h === 'number' && Number.isFinite(chrome.h) ? chrome.h : PANEL_HEIGHT.compact;
-    figma.ui.resize(PANEL_WIDTH, Math.round(Math.min(PANEL_HEIGHT.expanded, Math.max(PANEL_HEIGHT.compact, raw))));
-    return;
-  }
+  // Panel IA v2 removed the Details toggle — its PANEL_RESIZE message was the only
+  // emitter, so the handler that used to live here (and phase-01's width-preserving
+  // resize on top of it) is gone with it. One opening size, never resized again.
+  const chrome = msg as { type?: unknown; data?: unknown } | null;
   // Live-sync (spec 004 P4): the broker's idle window, relayed by the iframe.
   if (chrome && chrome.type === 'SYNC_CONFIG') {
     const raw = (chrome.data as { idleMs?: unknown } | undefined)?.idleMs;
     if (typeof raw === 'number' && Number.isFinite(raw)) idleMs = Math.max(MIN_IDLE_MS, Math.floor(raw));
     return;
   }
-  // The panel's "Sync now" click committed — reset the local counter (the log/cursor
-  // remain the real state). The iframe already forwarded SYNC_REQUEST to the broker.
+  // The panel's sync-result listener posts this ONCE THE OUTCOME IS KNOWN (fix round,
+  // finding 2 — it used to post on click, before any result existed), carrying `commit`
+  // (panel-model.ts's `shouldClearPendingCount` — true only for a genuine apply success).
+  // Closing review round, defect #2: a real reconcile failure or "already running" also
+  // applied nothing, so resetting the counter there was just as dishonest as resetting it
+  // on an E_UNBOUND refusal — every failure must leave the counter (and the prompt) intact.
   if (chrome && chrome.type === 'SYNC_DONE') {
-    changesSinceCommit = 0;
+    if ((chrome as { commit?: unknown }).commit === true) changesSinceCommit = 0;
     return;
   }
+  // The relay boots before main's first FILE_INFO push can possibly have arrived — an
+  // iframe-originated error raised in that window would otherwise have no identity to
+  // attach to its reply. Re-announcing on demand closes that race.
+  if (chrome && chrome.type === 'UI_READY') { announceFileInfo(); return; }
   const req = msg as Partial<UiRequest> | null;
   if (!req || typeof req.requestId !== 'string' || typeof req.cmd !== 'string') return; // relay chatter, not a command
+  const ctx = fileContext();
   try {
+    if (typeof req.expectedFile === 'string' && req.expectedFile.trim() !== ''
+        && !fileMatches(ctx.fileName, req.expectedFile, true)) {
+      // Guard runs at the wire boundary, BEFORE any executor: a wrong-file command must not
+      // touch the scene, and must not be recorded as an agent mutation either.
+      throw withCode(new Error(
+        `this plugin is connected to file "${ctx.fileName}", command expected "${req.expectedFile}" — nothing was executed`,
+      ), 'E_WRONG_FILE');
+    }
     const targetIds = mutationTargetIds(req.cmd as CommandName, req.params ?? {});
     beginAgentMutation(targetIds);
-    const result = await dispatch(req.cmd, req.params ?? {});
-    const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
-    for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
-    figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
+    // Actor classification (wave 4.4 P1, post-review counter fix): increment on entry,
+    // decrement in `finally` so a THROW still balances the count — two commands
+    // overlapping in flight to this plugin instance must not clobber each other's window.
+    // Round 2: this dispatch's OWN target ids go in as `Infinity` (still active) and get
+    // stamped to a real expiry in ITS OWN finally below — never a blanket union that
+    // another still-active dispatch's ids could be cleared alongside.
+    activeCount += 1;
+    for (const id of targetIds) declaredIds.set(id, Infinity);
+    try {
+      const result = await dispatch(req.cmd, req.params ?? {});
+      const changedIds = [...new Set([...targetIds, ...resultMutationIds(req.cmd as CommandName, result)])];
+      const completedAt = Date.now();
+      for (const nodeId of changedIds) {
+        recordAgentMutation(nodeId, { command: req.cmd });
+        lastAgentAt.set(nodeId, completedAt);
+      }
+      pruneLastAgentAt(lastAgentAt, completedAt);
+      commitIfMutating(req.cmd as CommandName);
+      figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
+    } finally {
+      // Known, accepted edge case (not asked to be solved here): if TWO overlapping
+      // dispatches happen to declare the SAME nodeId, this one finishing downgrades it
+      // to a real expiry even though the other dispatch may still be active and still
+      // consider it `Infinity`-declared from its own perspective — a shared id could
+      // therefore start counting down early. Rare (two concurrent commands targeting the
+      // exact same node) and fails toward `ambiguous`, never a false `agent`, so it is
+      // safe to leave unsolved rather than adding per-id refcounting for it.
+      const finishedAt = Date.now();
+      const expiresAt = finishedAt + AGENT_ECHO_MS;
+      for (const id of targetIds) declaredIds.set(id, expiresAt);
+      activeCount -= 1;
+      if (activeCount === 0) lastDrainAt = finishedAt;
+    }
   } catch (err) {
-    figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
+    // Commit on failure too, so a half-applied mutation (e.g. IMPORT_PAYLOAD styles/
+    // variables created before the throw) owns its own undo step instead of being
+    // swallowed into the next command's. Known limit (not silently improved here): a
+    // command that throws mid-way mutated nodes it never recorded, so those writes are
+    // NOT added to lastAgentAt — they fall back to the busy-window `ambiguous` rule
+    // instead of a false `agent`, which is the honest side to be wrong on.
+    commitIfMutating(req.cmd as CommandName);
+    figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err), fileContext: ctx });
   }
 };
 
-function shapeError(err: unknown): { code: ErrorCode; message: string } {
+/** Commit AFTER the correction-memory bookkeeping so a command and its bookkeeping share one step. */
+function commitIfMutating(cmd: CommandName): void {
+  if (MUTATING_COMMANDS.indexOf(cmd) !== -1) figma.commitUndo();
+}
+
+function shapeError(err: unknown): WireError {
   const code = ((err as { code?: string } | null)?.code ?? 'E_PLUGIN_ERROR') as ErrorCode;
   const message = err instanceof Error ? err.message : String(err);
-  return { code, message };
+  const rolledBack = (err as { rolledBack?: boolean } | null)?.rolledBack;
+  return rolledBack ? { code, message, rolledBack } : { code, message };
 }
 
 function resultMutationIds(cmd: CommandName, result: unknown): string[] {
@@ -241,7 +469,11 @@ async function dispatch(cmd: CommandName, params: Params): Promise<unknown> {
     case 'SET_CONSTRAINTS': return opSetConstraints(params);
     case 'SET_TEXT': return opSetText(params);
     case 'CLONE_TRAITS': return opCloneTraits(params);
-    case 'GET_CORRECTION_MEMORY': return { events: readEdgeCorrections() };
+    // Stage-4 MAJOR7 — `evictedUnresolved` surfaces the edge cache's own eviction count
+    // (never a panel UI, just an audit signal `sync-corrections` reports on) so an event
+    // dropped here before it was ever synced project-side leaves at least a count, not
+    // zero trace.
+    case 'GET_CORRECTION_MEMORY': return { events: readEdgeCorrections(), evictedUnresolved: readEvictedUnresolvedCount() };
     case 'SET_CORRECTION_MEMORY': {
       const events = params.events;
       if (!Array.isArray(events)) throw withCode(new Error('SET_CORRECTION_MEMORY requires events[]'), 'E_INVALID_ARGS');
@@ -328,9 +560,17 @@ async function runBatch(params: Params): Promise<{ results: unknown[] }> {
   const stopOnError = (params as Params).stopOnError === true;
   const results: unknown[] = [];
   for (const op of ops) {
+    // Scope note (verified, do not "fix" here): batch children go straight to dispatch
+    // and never touch mutationTargetIds/beginAgentMutation/resultMutationIds/
+    // recordAgentMutation — that bookkeeping runs only for the top-level request, and
+    // BATCH itself yields no target ids. So batch children have no correction-memory
+    // record today; per-child commits therefore cannot split a command from bookkeeping
+    // that does not exist. Pre-existing gap, out of scope for this wave.
     try {
       results.push({ ok: true, cmd: op.cmd, result: await dispatch(op.cmd, op.params ?? {}) });
+      commitIfMutating(op.cmd);
     } catch (err) {
+      commitIfMutating(op.cmd);
       results.push({ ok: false, cmd: op.cmd, error: shapeError(err) });
       if (stopOnError) break;
     }

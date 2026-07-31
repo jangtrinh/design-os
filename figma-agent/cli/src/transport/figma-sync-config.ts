@@ -10,7 +10,17 @@ import { changeLogDir } from './change-log.ts';
 
 export const SYNC_CONFIG_FILENAME = 'figma-sync.json';
 
-/** Project dir holding `design/` — the parent of the change-log dir. */
+/**
+ * Project dir holding `design/` — the parent of the change-log dir (the broker's spawn
+ * cwd, or `FIGMA_AGENT_CHANGES_DIR`). Kept ONLY for `syncConfigPath()` below (a
+ * broker-local `figma-sync.json` read for the idle window).
+ *
+ * ⚠️ Registry-integrity phase 01 (5.1): do NOT import this into the apply path
+ * (figma-sync-apply.ts / broker-daemon.ts's `handleSyncRequest`) again. The apply target
+ * must come from `project-bind.ts`'s `resolveProjectDir`, resolved from the FILE that
+ * triggered the sync — never the daemon's spawn cwd. Re-wiring this back in silently
+ * reintroduces the cross-project write corruption this phase fixed.
+ */
 export function projectDir(): string {
   return dirname(changeLogDir());
 }

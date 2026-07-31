@@ -43,9 +43,15 @@ export function isPidAlive(pid: number): boolean {
   }
 }
 
-export function readAdvertisement(): BrokerAdvertisement | null {
+/**
+ * `path` defaults to the real, shared advertisement file for every production caller.
+ * Closing round (daemon harness ruling) — `runBrokerDaemon`'s own harness override is
+ * the ONLY caller that ever passes a different path (a tmpdir scratch file), so a test
+ * broker never touches this machine's real live-broker advertisement.
+ */
+export function readAdvertisement(path: string = BROKER_FILE): BrokerAdvertisement | null {
   try {
-    const ad = JSON.parse(readFileSync(BROKER_FILE, 'utf8')) as BrokerAdvertisement;
+    const ad = JSON.parse(readFileSync(path, 'utf8')) as BrokerAdvertisement;
     if (typeof ad?.port !== 'number' || typeof ad?.pid !== 'number') return null;
     return ad;
   } catch {
@@ -58,8 +64,9 @@ export function isAdvertisementLive(ad: BrokerAdvertisement): boolean {
   return isPidAlive(ad.pid) && Date.now() - ad.lastSeen < HEARTBEAT_STALE_MS + 30_000;
 }
 
-/** Write/refresh the daemon's advertisement (called from broker-daemon only). */
-export function writeAdvertisement(port: number, startedAt: number): void {
+/** Write/refresh the daemon's advertisement (called from broker-daemon only). `path`
+ *  defaults to the real shared file — see `readAdvertisement`'s doc for the harness override. */
+export function writeAdvertisement(port: number, startedAt: number, path: string = BROKER_FILE): void {
   const ad: BrokerAdvertisement = {
     port,
     pid: process.pid,
@@ -68,7 +75,7 @@ export function writeAdvertisement(port: number, startedAt: number): void {
     startedAt,
     lastSeen: Date.now(),
   };
-  writeFileSync(BROKER_FILE, JSON.stringify(ad));
+  writeFileSync(path, JSON.stringify(ad));
 }
 
 /** Ask a stale-but-alive broker to exit; escalate to SIGTERM if it lingers. */

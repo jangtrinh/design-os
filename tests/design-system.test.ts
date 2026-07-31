@@ -8,6 +8,7 @@ import {
   discoverDesignSystem,
   loadDesignSystem,
   pathsForDir,
+  registryFileForDir,
   countTokens,
   DSError,
 } from "../src/core/design-system.js";
@@ -226,6 +227,54 @@ describe("loadDesignSystem", () => {
     } catch (e) {
       expect(e instanceof DSError && e.code).toBe("DS_TAMPERED");
     }
+  });
+});
+
+// ─── registryFileForDir (Stage-4 N6) ──────────────────────────────────────────
+
+describe("registryFileForDir", () => {
+  it("branch 4 — neither file exists → default path, not foreign", () => {
+    const { designDir } = makeTmpDs();
+    const result = registryFileForDir(designDir);
+    expect(result.path).toBe(join(designDir, "component-registry.json"));
+    expect(result.foreignRegistryAtDefaultPath).toBe(false);
+  });
+
+  it("branch 2 — component-registry.json exists and is kernel-shaped → use it, not foreign", () => {
+    const { designDir } = makeTmpDs();
+    saveRegistry(join(designDir, "component-registry.json"), createEmptyRegistry());
+    const result = registryFileForDir(designDir);
+    expect(result.path).toBe(join(designDir, "component-registry.json"));
+    expect(result.foreignRegistryAtDefaultPath).toBe(false);
+  });
+
+  it("branch 3 — component-registry.json exists but is FOREIGN → alternate path, flagged", () => {
+    const { designDir } = makeTmpDs();
+    // A foreign artifact: no `version` field, project-owned shape.
+    writeFileSync(
+      join(designDir, "component-registry.json"),
+      JSON.stringify({ generatedFrom: "apps/web/src", tiers: ["kit", "shared", "route"] }),
+    );
+    const result = registryFileForDir(designDir);
+    expect(result.path).toBe(join(designDir, "figma-component-registry.json"));
+    expect(result.foreignRegistryAtDefaultPath).toBe(true);
+  });
+
+  it("branch 1 — figma-component-registry.json exists → always wins, even over a kernel-shaped default", () => {
+    const { designDir } = makeTmpDs();
+    saveRegistry(join(designDir, "component-registry.json"), createEmptyRegistry());
+    saveRegistry(join(designDir, "figma-component-registry.json"), createEmptyRegistry());
+    const result = registryFileForDir(designDir);
+    expect(result.path).toBe(join(designDir, "figma-component-registry.json"));
+    expect(result.foreignRegistryAtDefaultPath).toBe(false);
+  });
+
+  it("pathsForDir propagates foreignRegistryAtDefaultPath from the resolver", () => {
+    const { designDir } = makeTmpDs();
+    writeFileSync(join(designDir, "component-registry.json"), JSON.stringify({ notAKernelRegistry: true }));
+    const paths = pathsForDir(designDir);
+    expect(paths.registry).toBe(join(designDir, "figma-component-registry.json"));
+    expect(paths.foreignRegistryAtDefaultPath).toBe(true);
   });
 });
 

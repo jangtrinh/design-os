@@ -26,7 +26,9 @@ import {
   syncSummary,
   type AppliedCounts,
 } from '../../../shared/figma-sync-summary.ts';
-import { captureMirror, targetsFromDelta } from './figma-mirror-capture-run.ts';
+import {
+  captureMirror, mergeTargetsPendingFirst, pendingTargetsFromEnvelope, targetsFromDelta,
+} from './figma-mirror-capture-run.ts';
 
 /** Outcome the broker sends back to the plugin as SYNC_RESULT.data. */
 export interface SyncApplyResult {
@@ -95,17 +97,34 @@ function envelopeData(env: Record<string, unknown> | null): Record<string, unkno
 /**
  * Run the full sync: preview → scoped mirror capture → apply. `done` always receives a
  * result; every failure path degrades rather than throwing.
+ *
+ * `fileSlug`/`fileName` (registry-integrity phase 03, §2) — the bound file's own identity
+ * (`project-bind.ts`'s `fileIdentity`, the SAME chain the broker already uses to resolve
+ * `bound`). `fileSlug` narrows both kernel calls to that file's own targets in a shared
+ * change-log (`--file-slug`); `fileName` pins the live scan to that same plugin instance
+ * (`--file`, via `captureMirror`). Undefined for a caller with no bound-file identity yet
+ * — preserves today's whole-log, unfiltered behaviour exactly.
  */
-export function spawnReconcileApply(projectDir: string, done: (r: SyncApplyResult) => void): void {
-  runReconcile(projectDir, ['--dry-run'], (env, err, exit) => {
+export function spawnReconcileApply(
+  projectDir: string,
+  fileSlug: string | undefined,
+  fileName: string | undefined,
+  done: (r: SyncApplyResult) => void,
+): void {
+  const fileSlugArgs = fileSlug !== undefined ? ['--file-slug', fileSlug] : [];
+  runReconcile(projectDir, ['--dry-run', ...fileSlugArgs], (env, err, exit) => {
     const data = envelopeData(env);
     if (data === null) {
       done(envelopeFailure(env, err, exit));
       return;
     }
-    const targets = targetsFromDelta(data);
-    void captureMirror(targets).then((cap) => {
-      const extra = ['--apply', ...(cap.file !== undefined ? ['--mirror-file', cap.file] : [])];
+    // Registry-integrity phase 02 (5.3), §4: the kernel's retry queue (`pending`) is
+    // captured FIRST, or the same MAX_SCANS names win every run and the queue never
+    // drains. Read from the SAME dry-run envelope `targetsFromDelta` already reads.
+    const pendingFirst = pendingTargetsFromEnvelope(data);
+    const targets = mergeTargetsPendingFirst(pendingFirst, targetsFromDelta(data));
+    void captureMirror(targets, fileName).then((cap) => {
+      const extra = ['--apply', ...fileSlugArgs, ...(cap.file !== undefined ? ['--mirror-file', cap.file] : [])];
       runReconcile(projectDir, extra, (aEnv, aErr, aExit) => {
         if (cap.file !== undefined) {
           try { rmSync(dirname(cap.file), { recursive: true, force: true }); } catch { /* tmp — leave it */ }

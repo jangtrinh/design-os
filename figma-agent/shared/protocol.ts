@@ -43,6 +43,20 @@ export const COMMANDS = [
   'IMPORT_PAYLOAD', // internal: ui → main with FigmaExportPayload
   'EXEC_JS',
   'BATCH',
+  // Registry-integrity phase 01 fix round: BROKER-LOCAL, never forwarded to a plugin
+  // (see broker-daemon.ts's `isRequestMsg` branch, which intercepts it before
+  // `forwardToPlugin`). Named PROJECT_BIND, not BIND, to stay unambiguous next to the
+  // unrelated Figma-variable `BIND_VARIABLE` command. Reuses the existing request/reply
+  // machinery so `figma-agent bind` gets a real answer (fileKey, pendingKey,
+  // migratedCount) instead of a fire-and-forget event with no way to report either.
+  'PROJECT_BIND',
+  // Concurrency & jobs (backlog 1.1+2.6+4.3), phase 02 §2: BROKER-TERMINAL, same precedent
+  // as PROJECT_BIND — intercepted before `admitRequest`/`forwardToPlugin`, never reaches a
+  // plugin. Poll/list/cancel/force-release a job the CLI stopped waiting for. The one
+  // command whose params the broker DOES read (the jobId + mode) — see job.ts's own
+  // comment for why that does not violate the pure-relay rule (a request ADDRESSED TO the
+  // broker is not a request being RELAYED).
+  'JOB',
 ] as const;
 export type CommandName = (typeof COMMANDS)[number];
 
@@ -66,20 +80,85 @@ export interface RequestMsg {
    * still interoperate — the feed is just less specific.
    */
   activity?: string;
+  /**
+   * The file this command is FOR (`--file`). Envelope-level, exactly like `activity`, so the
+   * broker can route on it without parsing `params`. Omitted entirely when unset — an unguarded
+   * frame must serialize byte-identically to what a pre-flag CLI sent.
+   */
+  expectedFile?: string;
+  /**
+   * Absolute project root of the CALLER (its cwd, or --dir). The broker records
+   * fileIdentity → projectDir from this, so panel/idle sync can apply into the right project
+   * instead of the daemon's spawn cwd. Omitted only by a pre-binding CLI.
+   */
+  projectDir?: string;
+  /**
+   * Concurrency & jobs (backlog 1.1+2.6+4.3) — caller's DECLARATION that this command only
+   * reads. Skips the per-file mutation queue. TRUSTED, NOT ENFORCED: the plugin sandbox
+   * cannot prove a script is read-only (no reliable static parse), so a mis-declared
+   * mutation will interleave — `--help` says so in those words. Omitted entirely when
+   * unset, exactly like `activity`/`expectedFile`/`projectDir` — an unguarded frame must
+   * serialize byte-identically to what a pre-flag CLI sent.
+   */
+  readOnly?: boolean;
+}
+
+/** Which file answered. Echoed on every reply so a caller can prove where a command landed. */
+export interface FileContext {
+  fileName: string;
+  fileKey?: string | null;   // null for non-org plugins — carried, never used for routing
 }
 
 export interface ReplyOk {
   id: string;
   ok: true;
   result: unknown;
+  fileContext?: FileContext;
+}
+
+/** Reply error payload. `rolledBack` is set by EXEC_JS --undo-group. */
+export interface WireError {
+  code: ErrorCode;
+  message: string;
+  rolledBack?: boolean;
 }
 
 export interface ReplyErr {
   id: string;
   ok: false;
-  error: { code: ErrorCode; message: string };
+  error: WireError;
+  fileContext?: FileContext;
+  /**
+   * Error log writer (backlog 4.6), additive: the failed command + its intent label,
+   * echoed back by ui-relay.ts from the SAME `RequestMsg.cmd`/`.activity` it already
+   * tracks for the activity feed (`activityStart`) — never re-derived or guessed by the
+   * broker, which still never parses `cmd` for a ROUTING decision; it only forwards a
+   * value the request already carried. Optional so an older relay build (no cmd/activity
+   * echo) still interoperates — the error just logs with `cmd: null`.
+   */
+  cmd?: CommandName;
+  activity?: string;
 }
 export type ReplyMsg = ReplyOk | ReplyErr;
+
+// ── Jobs (concurrency & jobs, backlog 1.1+2.6+4.3) ───────────────────
+// A job outlives the CLI socket that opened it: `handleClose`'s CLI branch used to
+// delete `pending` when the caller hung up, so a reply that arrived after that point
+// (`routeFromPlugin`) found no client and was thrown away — the work completed, the
+// result evaporated. The job table (cli/src/transport/job-table.ts) is what catches
+// that reply instead, and JOB_STATE is how the CLI learns its own jobId before it can
+// even time out.
+export interface JobInfo {
+  jobId: string;
+  state: 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
+  cmd: string;
+  activity?: string;
+  fileSlug: string;       // which file's per-file FIFO queue it belongs to
+  queuePosition?: number; // 1-based, present only while `state === 'queued'`
+  queuedMs?: number;      // time spent waiting — the evidence for the subtree-lock upgrade trigger
+  startedAt?: number;
+  finishedAt?: number;
+}
 
 // Unsolicited broadcasts (no `id`).
 // PING/PONG are the APPLICATION-level heartbeat: the plugin iframe runs a browser
@@ -99,9 +178,28 @@ export interface EventMsg {
   //   SYNC_RESULT   broker → plugin: { ok, summary } of that apply, for the panel to confirm.
   // (IDLE_READY / SYNC_DONE are plugin-INTERNAL postMessage types between the main
   // thread and its iframe — they never cross this wire, so they are not listed here.)
+  //
+  // PEERS (panel IA v2): broker → every connected plugin, whenever the live registry
+  // changes (register/disconnect/scene update) or a reply lands. { count, isActiveTarget }
+  // — additive and ignorable by an older plugin bundle.
+  //
+  // EDIT_FEED (wave 4.4 P1): the plugin's widened, actor-labelled documentchange batch —
+  // plugin → broker; the broker appends it to its own per-file feed
+  // (design/changes/<slug>.jsonl), separate from figma.changes.jsonl (spec A6). Payload
+  // shape: { edits: EditInput[], fileKey: string|null, fileName: string, source: 'live'|'gapfill' }.
+  //
+  // (`figma-agent bind` is a RequestMsg — cmd: 'PROJECT_BIND' — not an event: the fix
+  // round found a fire-and-forget event could never report migratedCount/fileKey back to
+  // the CLI. See broker-daemon.ts's broker-local PROJECT_BIND handler.)
+  //
+  // JOB_STATE (concurrency & jobs, backlog 1.1+2.6+4.3): broker → the waiting CLI, sent the
+  // moment a mutating request is admitted ("your request is job X, currently queued at
+  // position N") — BEFORE any timeout can fire, so a CLI that gives up waiting still knows
+  // its own jobId. `data` is a `JobInfo`.
   type:
     | 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG'
-    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT';
+    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS' | 'EDIT_FEED'
+    | 'JOB_STATE';
   data: Record<string, unknown>;
 }
 
@@ -128,6 +226,13 @@ export interface PluginStatusEntry {
   state: 'connected';
   lastHeartbeatAge: number | null; // ms since the last frame/pong from this instance
   connectedAt: number; // ms epoch of this instance's first HELLO
+  /**
+   * Additive (registry-integrity phase 01, §2): `figma-agent bind` needs a connected
+   * file's fileKey to index BOTH aliases in its marker, without a dedicated round trip —
+   * carried here since it is already on the scene. null for a non-org plugin, same as
+   * FileContext.fileKey.
+   */
+  fileKey?: string | null;
 }
 
 // Chunked transport for payloads > CHUNK_LIMIT (both directions).
@@ -153,7 +258,25 @@ export type ErrorCode =
   | 'E_CHUNK_LOST'
   // audit-ds v2: captured facts carry a `schema`; a mismatch (stale plugin sandbox, or a
   // v1 --from-facts file) is refused BEFORE detect with this code (see cli/.../audit-ds.ts §5).
-  | 'E_PLUGIN_STALE';
+  | 'E_PLUGIN_STALE'
+  // `--file` routed to a live plugin whose scene no longer matches (or a plugin predating
+  // the guard was refused forwarding before this could even be reached) — the plugin-side
+  // guard refused to run a command meant for a different file.
+  | 'E_WRONG_FILE'
+  // Registry-integrity phase 01 fix round (finding 2): a live-sync apply refused because
+  // no project is bound for this file — carried on SYNC_RESULT (`{ok:false, code:
+  // 'E_UNBOUND', ...}`), NOT a ReplyErr (SYNC_RESULT has no request to reply to). A
+  // stable code, not an ad-hoc boolean, so the panel's state machine (and any future
+  // consumer) has one canonical thing to match instead of a field that could drift.
+  | 'E_UNBOUND'
+  // Concurrency & jobs (backlog 1.1+2.6+4.3) — `figma-agent job <id>` on an id the broker
+  // has never heard of. Three distinct not-found facts, never collapsed: an id that never
+  // existed, and a broker restart (jobs are in-memory) BOTH answer this code (the message
+  // distinguishes them — see job.ts) — while an id that finished and aged out of the TTL
+  // answers E_JOB_EXPIRED instead, because "aged out" and "the broker forgot everything"
+  // are different facts for the caller to act on.
+  | 'E_JOB_UNKNOWN'
+  | 'E_JOB_EXPIRED';
 
 // ── Timeouts (ms) ───────────────────────────────────────────────────
 export const DEFAULT_TIMEOUT_MS = 15_000;
@@ -209,9 +332,18 @@ export function makeRequestFrame(
   cmd: CommandName,
   params: unknown,
   activity?: string,
+  expectedFile?: string,
+  projectDir?: string,
+  readOnly?: boolean,
 ): RequestMsg {
   const frame: RequestMsg = { id, cmd, params, v: PROTOCOL_VERSION };
   if (typeof activity === 'string' && activity.trim() !== '') frame.activity = activity;
+  if (typeof expectedFile === 'string' && expectedFile.trim() !== '') frame.expectedFile = expectedFile;
+  if (typeof projectDir === 'string' && projectDir.trim() !== '') frame.projectDir = projectDir;
+  // Concurrency & jobs — omitted (never `readOnly: false`) when unset, exactly like the
+  // other optional envelope fields above: an unguarded frame must serialize
+  // byte-identically to what every pre-flag CLI sent.
+  if (readOnly === true) frame.readOnly = true;
   return frame;
 }
 

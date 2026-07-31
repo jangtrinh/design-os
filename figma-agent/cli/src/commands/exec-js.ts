@@ -32,5 +32,16 @@ export async function run(args: CommandArgs): Promise<unknown> {
   // Generic fallback: an ad-hoc script has no intent we can read off it. Named
   // scan/mirror-verify/build runs label themselves and never reach this line.
   const activity = !fileArg || fileArg === '-' ? 'Run script' : `Run script · ${fileArg}`;
-  return runCommand('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity });
+  const undoGroup = args.bool('undo-group');
+  // Additive-wire rule: send `undoGroup` only when true, exactly like `activity`/`expectedFile`
+  // — an unset flag must serialize byte-identically to what a pre-flag CLI sent.
+  const out = await runCommand(
+    'EXEC_JS',
+    { code, timeoutMs, ...(undoGroup ? { undoGroup: true } : {}) },
+    { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity },
+  );
+  // stdout stays exactly one JSON object (the CLI contract); the human warning goes to stderr.
+  const warning = (out as { warning?: unknown } | null)?.warning;
+  if (typeof warning === 'string') process.stderr.write(`warning: ${warning}\n`);
+  return out;
 }

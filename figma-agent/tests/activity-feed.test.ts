@@ -1,37 +1,17 @@
-// The panel activity feed's pure model — what each row SAYS the plugin is doing.
-// The contract under test: the CLI names the intent (RequestMsg.activity), the
-// plugin derives the outcome from the reply it already has, and a reply lands on
-// its own start-row by request id. Every claim here is one the panel makes to a
-// human watching the plugin work, so a wrong one is a lie, not a cosmetic bug.
+// The panel activity feed's pure record plumbing — start/land a row, keyed by request
+// id, never by position. IA v2 moved the row's rendered TEXT (label/meta → one sentence)
+// to activity-sentence.ts (see activity-sentence.test.ts); this file only tests the
+// plumbing that survives the cut: the record shape, formatting helpers, and the
+// start/land/push lifecycle.
 import { describe, it, expect } from 'vitest';
 import {
-  activityLabel, activityMeta, humanizeTool, formatClock, formatTimestamp, formatDuration, timeAgo,
-  toActivityRecord, toActivityResult, pushActivity, resolveActivity,
+  formatClock, formatTimestamp, formatDuration, timeAgo,
+  toActivityRecord, toActivityResult, pushActivity, resolveActivity, diffRowKeys,
   type ActivityRecord,
 } from '../plugin/src/ui/activity-feed.ts';
 
 const rec = (over: Partial<ActivityRecord> = {}): ActivityRecord => ({
   id: 'c_1', tool: 'EXEC_JS', pending: true, ok: true, ms: 0, at: 1_000, ...over,
-});
-
-describe('humanizeTool', () => {
-  it('lowercases and de-snakes the wire command', () => {
-    expect(humanizeTool('CREATE_FRAME')).toBe('create frame');
-    expect(humanizeTool('HTML_TO_FIGMA')).toBe('html to figma');
-    expect(humanizeTool('STATUS')).toBe('status');
-  });
-});
-
-describe('activityLabel — the CLI names the intent, the cmd is only the fallback', () => {
-  it('prefers the label the CLI sent', () => {
-    expect(activityLabel(rec({ label: 'Mirror-verify · rebuild' }))).toBe('Mirror-verify · rebuild');
-  });
-  it('falls back to the humanized cmd when no label came (an older CLI)', () => {
-    expect(activityLabel(rec({ tool: 'CREATE_FRAME' }))).toBe('create frame');
-  });
-  it('treats a blank/whitespace label as absent — never renders an empty row', () => {
-    expect(activityLabel(rec({ tool: 'STATUS', label: '   ' }))).toBe('status');
-  });
 });
 
 describe('formatClock / formatTimestamp / formatDuration / timeAgo', () => {
@@ -70,32 +50,6 @@ describe('formatClock / formatTimestamp / formatDuration / timeAgo', () => {
   });
 });
 
-describe('activityMeta — the row FOOTNOTE: outcome + timing on one line, never the label', () => {
-  it('folds outcome, duration and age into one sentence', () => {
-    const r = rec({ at: 1_000, ms: 173, pending: false, result: '→ 42 nodes' });
-    expect(activityMeta(r, 121_000)).toBe('→ 42 nodes · 173ms · 2m');
-  });
-  it('an in-flight row has no duration to report — it says so instead of "0ms"', () => {
-    expect(activityMeta(rec({ at: 1_000 }), 1_000)).toBe('running… · now');
-  });
-  it('a failure reads its own error, not a generic "failed"', () => {
-    const r = rec({ at: 1_000, ms: 8, pending: false, ok: false, result: 'node not found' });
-    expect(activityMeta(r, 4_000)).toBe('node not found · 8ms · 3s');
-  });
-  it('a command with nothing countable to report still times itself', () => {
-    expect(activityMeta(rec({ at: 1_000, ms: 40, pending: false }), 6_000)).toBe('40ms · 5s');
-  });
-  it('orders the parts outcome-FIRST so the age, not the outcome, is what truncation eats', () => {
-    const r = rec({ at: 1_000, ms: 173, pending: false, result: '→ 42 nodes' });
-    const parts = activityMeta(r, 121_000).split(' · ');
-    expect(parts).toEqual(['→ 42 nodes', '173ms', '2m']);
-  });
-  it('carries NO wall-clock stamp — the age already answers "when", and the stamp is what crowded out the label', () => {
-    const meta = activityMeta(rec({ at: new Date(2026, 6, 16, 9, 5, 3).getTime(), ms: 5, pending: false }), Date.now());
-    expect(meta).not.toContain('09:05:03');
-  });
-});
-
 describe('toActivityRecord — defensive coercion of the start-event detail', () => {
   it('opens a PENDING row carrying the id + label', () => {
     expect(toActivityRecord({ phase: 'start', id: 'c_7', tool: 'EXEC_JS', label: 'Scan · 1:23', at: 500 }))
@@ -107,10 +61,10 @@ describe('toActivityRecord — defensive coercion of the start-event detail', ()
     expect(toActivityRecord(null)).toBeNull();
     expect(toActivityRecord('nope')).toBeNull();
   });
-  it('BACKWARD-COMPAT: a detail with no label still opens a row (the cmd carries it)', () => {
+  it('BACKWARD-COMPAT: a detail with no label still opens a row (the sentence module falls back to the tool)', () => {
     const r = toActivityRecord({ id: 'c_1', tool: 'STATUS', at: 500 });
     expect(r?.label).toBeUndefined();
-    expect(activityLabel(r as ActivityRecord)).toBe('status');
+    expect(r?.tool).toBe('STATUS');
   });
   it('synthesises an id and defaults `at` rather than dropping the row', () => {
     const r = toActivityRecord({ tool: 'X' });
@@ -131,6 +85,12 @@ describe('toActivityResult — coercion of the done-event detail', () => {
   });
   it('coerces a bad ms and treats a non-true ok as failure', () => {
     expect(toActivityResult({ id: 'c_3', ms: -3 })).toEqual({ id: 'c_3', ok: false, ms: 0 });
+  });
+  it('carries the wire error code and a reply-provided node name, when present', () => {
+    expect(toActivityResult({ id: 'c_4', ok: false, ms: 8, result: 'x', code: 'E_EVAL' }))
+      .toEqual({ id: 'c_4', ok: false, ms: 8, result: 'x', code: 'E_EVAL' });
+    expect(toActivityResult({ id: 'c_5', ok: true, ms: 8, nodeName: 'Hero card' }))
+      .toEqual({ id: 'c_5', ok: true, ms: 8, nodeName: 'Hero card' });
   });
 });
 
@@ -170,7 +130,70 @@ describe('resolveActivity — a reply lands on ITS OWN row, by id', () => {
   });
   it('marks a failure without pretending it succeeded', () => {
     const buf = pushActivity([], rec({ id: 'c_1' }));
-    const [row] = resolveActivity(buf, { id: 'c_1', ok: false, ms: 8, result: '✗ node not found' });
-    expect(row).toMatchObject({ pending: false, ok: false, result: '✗ node not found' });
+    const [row] = resolveActivity(buf, { id: 'c_1', ok: false, ms: 8, result: 'node not found' });
+    expect(row).toMatchObject({ pending: false, ok: false, result: 'node not found' });
+  });
+  it('attaches the error code and node name onto the record when the patch carries them', () => {
+    const buf = pushActivity([], rec({ id: 'c_1' }));
+    const [row] = resolveActivity(buf, { id: 'c_1', ok: false, ms: 8, code: 'E_WRONG_FILE' });
+    expect(row.errorCode).toBe('E_WRONG_FILE');
+    const buf2 = pushActivity([], rec({ id: 'c_2' }));
+    const [row2] = resolveActivity(buf2, { id: 'c_2', ok: true, ms: 8, nodeName: 'Hero card' });
+    expect(row2.nodeName).toBe('Hero card');
+  });
+
+  // Owner addendum (task #145) — the pre-composed `sentence` a sync result / job status
+  // carries lands verbatim onto the row; an ordinary wire-command row (no `sentence` in
+  // the patch) is completely unaffected.
+  it('lands a pre-composed `sentence` onto the row when the patch carries one', () => {
+    const buf = pushActivity([], rec({ id: 'c_1', tool: 'RECONCILE' }));
+    const [row] = resolveActivity(buf, { id: 'c_1', ok: true, ms: 8, sentence: 'Synced VSF - PCP — 3 added' });
+    expect(row.sentence).toBe('Synced VSF - PCP — 3 added');
+  });
+
+  it('a patch with no `sentence` leaves an existing row without one (ordinary rows untouched)', () => {
+    const buf = pushActivity([], rec({ id: 'c_1', tool: 'EXEC_JS' }));
+    const [row] = resolveActivity(buf, { id: 'c_1', ok: true, ms: 8, result: '→ 3 nodes' });
+    expect(row.sentence).toBeUndefined();
+  });
+});
+
+describe('diffRowKeys — which rows are genuinely new since the last render (backlog 4.7)', () => {
+  it('every key is new on the very first render (empty prev)', () => {
+    expect(diffRowKeys([], ['a', 'b'])).toEqual(['a', 'b']);
+  });
+
+  it('no keys are new when the render is identical to the last one', () => {
+    expect(diffRowKeys(['a', 'b'], ['a', 'b'])).toEqual([]);
+  });
+
+  it('only the keys absent from prev are reported, order preserved from next', () => {
+    expect(diffRowKeys(['a'], ['b', 'a', 'c'])).toEqual(['b', 'c']);
+  });
+
+  it('a key that DISAPPEARS (evicted by the cap) is simply absent from the result, not an error', () => {
+    expect(diffRowKeys(['a', 'b', 'c'], ['b'])).toEqual([]);
+  });
+
+  it('a pending row that later resolves keeps the SAME id, so it is never "new" twice', () => {
+    // Simulates: render 1 shows the row pending (new); render 2 shows the same id
+    // resolved to done — same key, so it must NOT be reported as new again (this is
+    // what stops the flash on error resolution, not just the 1s heartbeat tick).
+    const render1Keys = diffRowKeys([], ['req-1']);
+    expect(render1Keys).toEqual(['req-1']);
+    const render2Keys = diffRowKeys(['req-1'], ['req-1']);
+    expect(render2Keys).toEqual([]);
+  });
+
+  it('an empty next list yields no new keys, regardless of prev', () => {
+    expect(diffRowKeys(['a', 'b'], [])).toEqual([]);
+  });
+
+  it('is pure — does not mutate either input array', () => {
+    const prev = ['a'];
+    const next = ['a', 'b'];
+    diffRowKeys(prev, next);
+    expect(prev).toEqual(['a']);
+    expect(next).toEqual(['a', 'b']);
   });
 });

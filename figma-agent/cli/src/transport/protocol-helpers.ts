@@ -14,10 +14,22 @@ import {
 /** Error carrying a protocol error code; the CLI prints it as {error:{code,message}}. */
 export class CliError extends Error {
   readonly code: ErrorCode;
-  constructor(code: ErrorCode, message: string) {
+  /** Set when EXEC_JS --undo-group rolled the script's changes back (WireError.rolledBack). */
+  readonly rolledBack?: boolean;
+  /**
+   * Concurrency & jobs (backlog 1.1+2.6+4.3) — set on an E_TIMEOUT once the broker has
+   * confirmed the request became a job (a JOB_STATE was seen before the timeout fired).
+   * The one signal `runWithWarmRetry` needs to stop retrying a timeout: the CLI never
+   * re-dispatches once a job exists, because the job survives and its result is
+   * retrievable (`figma-agent job <id>`) — retrying would double-dispatch instead.
+   */
+  readonly jobId?: string;
+  constructor(code: ErrorCode, message: string, opts?: { rolledBack?: boolean; jobId?: string }) {
     super(message);
     this.name = 'CliError';
     this.code = code;
+    if (opts?.rolledBack) this.rolledBack = opts.rolledBack;
+    if (opts?.jobId !== undefined) this.jobId = opts.jobId;
   }
 }
 
@@ -113,5 +125,68 @@ export class ChunkAssembler {
       throw new CliError('E_CHUNK_LOST', `chunked message ${msg.id}: reassembled JSON is invalid`);
     }
     return parsed;
+  }
+}
+
+/**
+ * Concurrency & jobs (backlog 1.1+2.6+4.3), stage-4 fold — a CLI-originated chunked
+ * request's frames are buffered (broker-daemon.ts's `admitChunk`) until `last` arrives;
+ * a CLI that dies mid-send must not leak that buffer forever. Pure: given each entry's
+ * `lastFrameAt` and `now`, which ids are abandoned (no frame in over `boundMs`) — the
+ * caller (the SAME park-sweeper interval, no new timer) does the actual `Map.delete`.
+ * A still-in-progress send keeps refreshing `lastFrameAt` on every frame and survives.
+ */
+export function abandonedChunkIds(
+  pendingChunks: ReadonlyMap<string, { lastFrameAt: number }>,
+  now: number,
+  boundMs: number,
+): string[] {
+  const ids: string[] = [];
+  for (const [id, entry] of pendingChunks) {
+    if (now - entry.lastFrameAt > boundMs) ids.push(id);
+  }
+  return ids;
+}
+
+/**
+ * Stage-4 fix round (minor 6) — chunk buffering keyed per CONNECTION (the socket in
+ * hand), not by the process-unique request id alone. Request ids are `c_<counter>_<ts>`,
+ * unique only WITHIN one CLI process — two simultaneous CLI processes could in principle
+ * mint the same id, and a flat `Map<string, ...>` keyed by that id alone would let their
+ * chunk payloads merge into one garbled reassembly. `Conn` is a type param (a real
+ * WebSocket in the broker, anything with reference identity in a test) so this stays
+ * pure and testable without a socket.
+ */
+export type ChunkBuffers<Conn> = Map<Conn, Map<string, { frames: string[]; lastFrameAt: number }>>;
+
+/** Get-or-create the per-connection inner buffer map. */
+export function getConnectionChunks<Conn>(
+  buffers: ChunkBuffers<Conn>,
+  conn: Conn,
+): Map<string, { frames: string[]; lastFrameAt: number }> {
+  let inner = buffers.get(conn);
+  if (!inner) {
+    inner = new Map();
+    buffers.set(conn, inner);
+  }
+  return inner;
+}
+
+/** Drop one id's buffer (fully reassembled, or explicitly abandoned) — and drop the
+ *  connection's own outer entry once it has nothing buffered left, so a closed
+ *  connection never leaves an empty inner Map sitting in the outer table forever. */
+export function deleteConnectionChunk<Conn>(buffers: ChunkBuffers<Conn>, conn: Conn, id: string): void {
+  const inner = buffers.get(conn);
+  if (!inner) return;
+  inner.delete(id);
+  if (inner.size === 0) buffers.delete(conn);
+}
+
+/** Sweep EVERY connection's own buffer for abandoned entries (reusing `abandonedChunkIds`
+ *  per inner map), then prune any connection left holding nothing. */
+export function sweepAbandonedChunks<Conn>(buffers: ChunkBuffers<Conn>, now: number, boundMs: number): void {
+  for (const [conn, inner] of buffers) {
+    for (const id of abandonedChunkIds(inner, now, boundMs)) inner.delete(id);
+    if (inner.size === 0) buffers.delete(conn);
   }
 }

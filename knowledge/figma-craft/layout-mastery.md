@@ -36,6 +36,17 @@ Contents: §1 core model · §2 layoutMode + construction order · §3 spacing/p
    bug applies (see §4).
 4. Prefer `layoutSizingHorizontal/Vertical` over `resize()` inside auto-layout — `resize()`
    on a HUG axis gets overridden on next reflow.
+5. **Set sizing modes AFTER `insertChild`/`appendChild` into the FINAL parent, never before
+   (canvas-verified 2026-07-29).** Cloning a node and immediately setting
+   `layoutSizingVertical`/`primaryAxisSizingMode` while it is still detached — or parented
+   somewhere other than its final auto-layout destination — does not throw, but Figma silently
+   reverts both properties the moment the node is reparented via `insertChild`/`appendChild`:
+   the node collapses to ~1px / default `FILL` and later siblings can overlap it. Worse: a
+   static node-read shows the property AS SET (the assignment succeeded — it just didn't
+   survive the reparent), so this never surfaces via `.layoutSizingVertical` dumps; verify with
+   a PNG or geometry re-read after reparenting, not a property read. Fix confirmed: re-apply
+   both sizing properties on the LIVE node **after** it lands in its destination parent
+   (verified: block 1px → 244px, card 170px → 414px, overlap gone).
 
 ```js
 // idiomatic frame construction, exec-js-ready

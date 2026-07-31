@@ -47,8 +47,12 @@ export function captureFor(
  * so a name the schema rejects surfaces here, not at save time.
  *
  * @throws RegistryError when the Figma node name is not a valid `Category/Variant` key.
+ *
+ * `fileSlug` (registry-integrity phase 03, §3) — threaded straight to `figmaNodeRelPath`
+ * so a new component's sidecar pointer lands in the SAME partitioned path its sidecar file
+ * is actually written to.
  */
-export function materialize(e: DeltaEntry): ComponentRecord {
+export function materialize(e: DeltaEntry, fileSlug?: string): ComponentRecord {
   // Category = the first "/" segment, the same rule figma-ds-registry.categoryOf applies.
   // A name with no "/" is rejected by the validator below before this value is read.
   const slash = e.name.indexOf("/");
@@ -59,6 +63,6 @@ export function materialize(e: DeltaEntry): ComponentRecord {
     tokensUsed: [],
     description: `Figma ${e.nodeType} · mirrored from Figma (spec 005)`,
     scope: e.scope,
-    figmaNode: figmaNodeRelPath(e.name),
+    figmaNode: figmaNodeRelPath(e.name, fileSlug),
   });
 }

@@ -15,6 +15,7 @@ import {
   parseChangeLog,
   coalesceFrames,
   computePreviewDelta,
+  fileSlugOf,
   scopeSummary,
   ReconcileError,
 } from "../src/core/figma-reconcile.js";
@@ -110,6 +111,121 @@ describe("figma-reconcile — coalesceFrames (cross-batch)", () => {
   it("is deterministic — output sorted by nodeId", () => {
     const out = coalesceFrames([frame({ nodeId: "9:9" }), frame({ nodeId: "1:1" })]);
     expect(out.map((c) => c.nodeId)).toEqual(["1:1", "9:9"]);
+  });
+
+  // Registry-integrity phase 02 (5.3), §2 — additive frame-span tracking.
+  describe("firstFrameIndex / lastFrameIndex (additive, absolute)", () => {
+    it("the interleaved case: A's frames at lines 0 and 9, B's at 3-4 — a naive 'last index wins' would get this wrong", () => {
+      const frames: ChangeFrame[] = [
+        frame({ nodeId: "A", ts: 0 }),   // line 0
+        frame({ nodeId: "X", ts: 1 }),   // line 1 (filler, not asserted)
+        frame({ nodeId: "X", ts: 2 }),   // line 2
+        frame({ nodeId: "B", ts: 3 }),   // line 3
+        frame({ nodeId: "B", ts: 4 }),   // line 4
+        frame({ nodeId: "X", ts: 5 }),   // line 5
+        frame({ nodeId: "X", ts: 6 }),   // line 6
+        frame({ nodeId: "X", ts: 7 }),   // line 7
+        frame({ nodeId: "X", ts: 8 }),   // line 8
+        frame({ nodeId: "A", ts: 9 }),   // line 9
+      ];
+      const out = coalesceFrames(frames);
+      const a = out.find((c) => c.nodeId === "A")!;
+      const b = out.find((c) => c.nodeId === "B")!;
+      expect(a.firstFrameIndex).toBe(0);
+      expect(a.lastFrameIndex).toBe(9);
+      expect(b.firstFrameIndex).toBe(3);
+      expect(b.lastFrameIndex).toBe(4);
+    });
+
+    it("a run resumed at cursor 100: firstFrameIndex/lastFrameIndex are absolute, never rewind below the offset", () => {
+      const frames: ChangeFrame[] = [
+        frame({ nodeId: "C", ts: 0 }), // slice-relative index 0 → absolute 100
+        frame({ nodeId: "C", ts: 1 }), // slice-relative index 1 → absolute 101
+      ];
+      const out = coalesceFrames(frames, 100);
+      expect(out[0]!.firstFrameIndex).toBeGreaterThanOrEqual(100);
+      expect(out[0]!.firstFrameIndex).toBe(100);
+      expect(out[0]!.lastFrameIndex).toBe(101);
+    });
+
+    it("defaults baseIndex to 0 for a caller that never resumes (back-compat call shape)", () => {
+      const out = coalesceFrames([frame({ nodeId: "D" })]);
+      expect(out[0]!.firstFrameIndex).toBe(0);
+      expect(out[0]!.lastFrameIndex).toBe(0);
+    });
+  });
+
+  // Registry-integrity phase 03 (5.2), §1 — file identity survives coalescing.
+  describe("file identity (additive: fileKey/fileSlug) — the silent cross-file merge bug", () => {
+    it("the SAME nodeId in two files yields TWO targets, never one merged record", () => {
+      const out = coalesceFrames([
+        frame({ nodeId: "1:1", fileKey: "keyA", nodeName: "Button/Primary", ts: 1 }),
+        frame({ nodeId: "1:1", fileKey: "keyB", nodeName: "Button/Primary", ts: 2 }),
+      ]);
+      expect(out).toHaveLength(2); // ← the bug this phase fixes would collapse these to 1
+      expect(out.map((c) => c.fileKey).sort()).toEqual(["keyA", "keyB"]);
+      expect(new Set(out.map((c) => c.fileSlug)).size).toBe(2);
+    });
+
+    it("changedProps/op precedence stay SCOPED per file — a delete in file A must not supersede an update in file B", () => {
+      const out = coalesceFrames([
+        frame({ nodeId: "1:1", fileKey: "keyA", op: "deleted", changedProps: [], ts: 1 }),
+        frame({ nodeId: "1:1", fileKey: "keyB", op: "updated", changedProps: ["fills"], ts: 2 }),
+      ]);
+      const a = out.find((c) => c.fileKey === "keyA")!;
+      const b = out.find((c) => c.fileKey === "keyB")!;
+      expect(a.op).toBe("deleted");
+      expect(b.op).toBe("updated"); // ← unaffected by A's higher-ranked delete
+      expect(b.changedProps).toEqual(["fills"]);
+    });
+
+    it("a Figma-Free file (fileKey null) slugs from fileName — distinct from another Free file with a different name", () => {
+      const out = coalesceFrames([
+        frame({ nodeId: "1:1", fileKey: null, fileName: "Free File One", ts: 1 }),
+        frame({ nodeId: "1:1", fileKey: null, fileName: "Free File Two", ts: 2 }),
+      ]);
+      expect(out).toHaveLength(2); // ← without fileName, BOTH would collapse to 'unknown'
+      expect(out.map((c) => c.fileSlug).sort()).toEqual(["free-file-one", "free-file-two"]);
+      expect(out.some((c) => c.fileSlug === "unknown")).toBe(false);
+    });
+
+    it("no fileKey AND no fileName (a pre-partitioning log line) slugs to 'unknown' — migration default", () => {
+      const out = coalesceFrames([frame({ nodeId: "1:1", fileKey: null })]);
+      expect(out[0]!.fileSlug).toBe("unknown");
+      expect(out[0]!.fileKey).toBeNull();
+    });
+
+    it("a single-file log behaves EXACTLY as before (the composite key is a prefix of the old behaviour)", () => {
+      const out = coalesceFrames([
+        frame({ nodeId: "1:1", ts: 100, op: "updated", changedProps: ["fills"] }),
+        frame({ nodeId: "1:1", ts: 200, op: "deleted", changedProps: [] }),
+      ]);
+      expect(out).toHaveLength(1);
+      expect(out[0]!.op).toBe("deleted");
+      expect(out[0]!.changedProps).toEqual(["fills"]);
+    });
+
+    // Review round, finding 1 — `fileSlugOf` (this kernel's copy of the chain) must agree
+    // with figma-agent's `fileIdentity` on every fixture. THIS LIST IS DUPLICATED VERBATIM
+    // in `figma-agent/tests/project-bind.test.ts`'s "file-identity parity" describe block
+    // (that file is the twin — a manual edit to one fixture list without the other is
+    // exactly the drift this test exists to catch). The two packages cannot share an
+    // import (the kernel does not depend on figma-agent), so the fixtures themselves are
+    // the cross-package lock, not a prose comment.
+    describe("fileSlugOf — parity fixtures (twin: figma-agent/tests/project-bind.test.ts)", () => {
+      const FIXTURES: { desc: string; fileKey: string | null; fileName: string | null; expect: string }[] = [
+        { desc: "uppercase fileKey wins verbatim (never lowercased)", fileKey: "AbC123XyZ", fileName: "ignored", expect: "AbC123XyZ" },
+        { desc: "null fileKey, unicode/diacritic fileName", fileKey: null, fileName: "Café Menú — Página", expect: "caf-men-p-gina" },
+        { desc: "null fileKey, fileName with spaces/dashes", fileKey: null, fileName: "VSF - PCP", expect: "vsf-pcp" },
+        { desc: "both empty strings", fileKey: "", fileName: "", expect: "unknown" },
+        { desc: "both null", fileKey: null, fileName: null, expect: "unknown" },
+      ];
+      for (const f of FIXTURES) {
+        it(f.desc, () => {
+          expect(fileSlugOf(f.fileKey, f.fileName ?? undefined)).toBe(f.expect);
+        });
+      }
+    });
   });
 });
 

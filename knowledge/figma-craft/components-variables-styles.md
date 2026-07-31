@@ -247,6 +247,16 @@ Provenance: https://developers.figma.com/docs/plugins/api/InstanceNode/#setprope
 - Overrides = per-instance deltas (text, fills, visibility…) recorded against layers of
   the main component. `inst.overrides` lists `{id, overriddenFields}`; `removeOverrides()`
   resets (the old `resetOverrides()` is deprecated).
+- **`resetOverrides()`/`removeOverrides()` reverts a `swapComponent` too, not just text/props
+  (canvas-verified 2026-07-29).** If a slot instance was swapped to a different component and
+  you reset it meaning to clear a stray text/variant delta, the reset ALSO reverts the swap
+  back to the instance's original `mainComponent` — the slot collapses to the generic
+  placeholder ("Slot / Page content"). The very next `setProperties({...})` then fails
+  confusingly because the placeholder's `componentPropertyDefinitions` is empty — reads like a
+  missing-variant bug, not a reset bug. There is no selective reset in the Plugin API (no
+  "keep the swap, clear the rest" option). **Rule: never call resetOverrides/removeOverrides on
+  a slot instance that has been swapped.** Clone a fresh instance from a source that already
+  has the correct swap + overrides instead of resetting one in place.
 - `inst.swapComponent(otherComponent)` **preserves overrides "using the same heuristics
   as instance swap in the Figma UI" — matching is by layer NAME (and structure)**. An
   override on a layer named `label` survives a swap only if the target component also

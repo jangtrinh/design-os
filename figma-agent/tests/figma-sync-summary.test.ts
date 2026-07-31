@@ -81,8 +81,8 @@ describe('applyResult (broker → SYNC_RESULT)', () => {
 });
 
 describe('syncResultLabel (the panel line)', () => {
-  it('says Synced only when something landed', () => {
-    expect(syncResultLabel(true, '1 added, 1 mirrored', true)).toBe('Synced ✓ — 1 added, 1 mirrored');
+  it('says Synced only when something landed — no glyph, the icon beside it carries the mark', () => {
+    expect(syncResultLabel(true, '1 added, 1 mirrored', true)).toBe('Synced — 1 added, 1 mirrored');
   });
 
   it('does NOT say Synced when nothing landed — the 004 gap event', () => {
@@ -96,6 +96,6 @@ describe('syncResultLabel (the panel line)', () => {
   });
 
   it('defaults to landed for an older broker that sends no flag', () => {
-    expect(syncResultLabel(true, 'done')).toBe('Synced ✓ — done');
+    expect(syncResultLabel(true, 'done')).toBe('Synced — done');
   });
 });

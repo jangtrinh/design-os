@@ -17,7 +17,7 @@ import {
   RECONNECT_BACKOFF_MAX_MS, RECONNECT_BACKOFF_MIN_MS,
   makeStatePayload, nextBackoff, reduceConnState,
   type ChunkMsg, type CommandName, type ConnectionEvent, type ConnectionState, type ConnectionStatePayload,
-  type ErrorCode, type ReplyMsg, type RequestMsg,
+  type ErrorCode, type FileContext, type ReplyMsg, type RequestMsg, type WireError,
 } from '../../../shared/protocol';
 import { renderHtmlToPayload } from './render-host';
 import { summarizeError, summarizeResult } from './activity-summary';
@@ -51,17 +51,30 @@ const chunkBuffers = new Map<string, string[]>(); // requestId → chunk slices
 // carrying the outcome. Lives here (not in main) because the relay owns the request
 // lifecycle on the UI side — same place conn-state is emitted — and it sees both
 // halves: the CLI's intent label on the way in, and main's result on the way out.
-const activityStart = new Map<string, { cmd: CommandName; at: number }>();
+const activityStart = new Map<string, { cmd: CommandName; label?: string; at: number }>();
 
 function dispatchActivity(detail: Record<string, unknown>): void {
   try { window.dispatchEvent(new CustomEvent('figma-agent:activity', { detail })); } catch { /* no DOM event support */ }
 }
 
-/** Announce an arriving request, carrying the CLI's intent label when it sent one. */
+/** Announce an arriving request, carrying the CLI's intent label when it sent one. Also
+ *  the ONLY place `cmd`/`activity` are known client-side once a reply comes back — the
+ *  error-log writer (backlog 4.6) reads this same map to echo them onto a failed
+ *  request's outgoing ReplyErr, below. */
 function startActivity(req: RequestMsg): void {
   const at = Date.now();
-  activityStart.set(req.id, { cmd: req.cmd, at });
+  activityStart.set(req.id, { cmd: req.cmd, label: req.activity, at });
   dispatchActivity({ phase: 'start', id: req.id, tool: req.cmd, label: req.activity, at });
+}
+
+/** A reply's own `name`, when it carried one (CREATE_FRAME/CREATE_INSTANCE/SET_TEXT/
+ *  IMPORT_PAYLOAD all return `{..., name}` at the TOP level of the result) — lets the
+ *  activity sentence say `Created frame "Hero card"` instead of fabricating an object
+ *  no reply named. EXEC_JS's envelope (`{result, console, ms, ...}`) never has a
+ *  top-level `name`, so a scan never false-triggers this. */
+function replyNodeName(payload: unknown): string | undefined {
+  const name = (payload as { name?: unknown } | null)?.name;
+  return typeof name === 'string' && name !== '' ? name : undefined;
 }
 
 /**
@@ -73,7 +86,15 @@ function emitActivity(id: string, ok: boolean, payload?: unknown): void {
   if (!started) return;
   activityStart.delete(id);
   const result = ok ? summarizeResult(started.cmd, payload) : summarizeError(payload);
-  dispatchActivity({ phase: 'done', id, ok, ms: Date.now() - started.at, result: result ?? undefined });
+  // Panel IA v2: the activity sentence needs the wire error CODE (never shown raw, only
+  // mapped to a reason) and, on success, the reply's own node name — both additive.
+  const code = !ok ? (payload as { code?: unknown } | null)?.code : undefined;
+  const nodeName = ok ? replyNodeName(payload) : undefined;
+  dispatchActivity({
+    phase: 'done', id, ok, ms: Date.now() - started.at, result: result ?? undefined,
+    ...(typeof code === 'string' ? { code } : {}),
+    ...(nodeName ? { nodeName } : {}),
+  });
 }
 
 // ─── Connection state machine → UI ──────────────────────────────────
@@ -130,8 +151,19 @@ function wsSend(msg: ReplyMsg | { type: string; data: Record<string, unknown> })
   }
 }
 
+/** The cached identity from main's last FILE_INFO push — undefined until the first one lands. */
+function localFileContext(): FileContext | undefined {
+  const name = fileInfo.fileName;
+  return typeof name === 'string' && name
+    ? { fileName: name, fileKey: (fileInfo.fileKey as string | null | undefined) ?? null }
+    : undefined;
+}
+
+// Iframe-originated failures (E_CHUNK_LOST, missing HTML, render errors) never reach main, so
+// they attach the cached identity themselves — otherwise "every reply carries fileContext" would
+// be false for exactly the replies that matter most.
 function sendErr(id: string, code: ErrorCode, message: string): void {
-  wsSend({ id, ok: false, error: { code, message } });
+  wsSend({ id, ok: false, error: { code, message }, fileContext: localFileContext() });
 }
 
 // ─── Inbound WS: chunk reassembly + routing ─────────────────────────
@@ -150,6 +182,14 @@ function handleWireData(raw: string): void {
   }
   if (msg.type === 'SYNC_RESULT') {
     try { window.dispatchEvent(new CustomEvent('figma-agent:sync-result', { detail: msg.data ?? {} })); }
+    catch { /* no DOM event support */ }
+    return;
+  }
+  // Panel IA v2 — PEERS: broker → every connected plugin, count + isActiveTarget. A
+  // CustomEvent on the IFRAME'S OWN window, not parent.postMessage: postMessage goes
+  // iframe → plugin main, and the panel listens on the iframe window (panel-ui.ts).
+  if (msg.type === 'PEERS') {
+    try { window.dispatchEvent(new CustomEvent('figma-agent:peers', { detail: msg.data ?? {} })); }
     catch { /* no DOM event support */ }
     return;
   }
@@ -200,16 +240,21 @@ async function handleRequest(req: RequestMsg): Promise<void> {
       setStatusText('rendering html…', 'ok');
       const payload = await renderHtmlToPayload(p.html, p.width ?? 1280, p.name ?? 'HTML Import');
       setStatusText('connected', 'ok');
+      // The HTML render above still runs before main can refuse a wrong-file HTML_TO_FIGMA —
+      // wasted work only; the iframe cannot touch the scene, and main's guard still fires here.
       parent.postMessage({
         pluginMessage: {
           requestId: req.id,
           cmd: 'IMPORT_PAYLOAD',
+          expectedFile: req.expectedFile,
           params: { payload, x: p.x, y: p.y, parentId: p.parentId, replaceId: p.replaceId },
         },
       }, '*');
     } else {
       // Everything else is a main-thread op — forward unchanged
-      parent.postMessage({ pluginMessage: { requestId: req.id, cmd: req.cmd, params: req.params } }, '*');
+      parent.postMessage({
+        pluginMessage: { requestId: req.id, cmd: req.cmd, params: req.params, expectedFile: req.expectedFile },
+      }, '*');
     }
   } catch (err) {
     setStatusText('connected', 'ok');
@@ -238,15 +283,33 @@ window.addEventListener('message', (ev: MessageEvent) => {
     return;
   }
 
-  // Command reply from main → back over the wire
+  // Owner-edit change feed (wave 4.4 P1): main's widened, actor-labelled batch →
+  // straight over the wire so the broker can append it to its own per-file feed.
+  // Panel rows are deferred out of this wave (no `figma-agent:edit-feed` listener yet,
+  // and activity-sentence.ts's verb table is command vocabulary, not scene-edit verbs) —
+  // this forward is still additive so that consumer is a pure addition later.
+  if (pm.type === 'EDIT_FEED') {
+    wsSend({ type: 'EDIT_FEED', data: (pm.data as Record<string, unknown>) ?? {} });
+    return;
+  }
+
+  // Command reply from main → back over the wire, carrying main's file identity.
   if (typeof pm.requestId === 'string') {
+    const ctx = pm.fileContext as FileContext | undefined;
+    // Error log writer (backlog 4.6): grab this request's cmd/label from the SAME map
+    // `emitActivity` below is about to delete from — this is the only client-side place
+    // that still knows them once a reply comes back.
+    const started = activityStart.get(pm.requestId);
     const reply: ReplyMsg = pm.ok
-      ? { id: pm.requestId, ok: true, result: pm.result }
+      ? { id: pm.requestId, ok: true, result: pm.result, fileContext: ctx }
       : {
           id: pm.requestId,
           ok: false,
-          error: (pm.error as { code: ErrorCode; message: string } | undefined)
+          error: (pm.error as WireError | undefined)
             ?? { code: 'E_PLUGIN_ERROR', message: 'main thread returned no error detail' },
+          fileContext: ctx,
+          ...(started?.cmd ? { cmd: started.cmd } : {}),
+          ...(started?.label ? { activity: started.label } : {}),
         };
     wsSend(reply);
     // Round-trip completed — the feed's outcome line is derived from this same
@@ -288,9 +351,8 @@ function teardown(socket: WebSocket, reason: string): void {
 }
 
 // ─── Broker discovery: probe each port until BROKER_HELLO ───────────
-// The broker binds 127.0.0.1 (IPv4). Chromium may resolve `localhost` to ::1
-// (IPv6) first, which refuses — so the broker listens on both loopback families
-// and we probe ws://localhost:PORT (allowedDomains accepts only hostnames).
+// Use a dedicated `.localhost` hostname. Figma Desktop can fail bare
+// `ws://localhost`, while its manifest rejects literal IP-address domains.
 function probePort(port: number, host: string): Promise<WebSocket | null> {
   return new Promise((resolve) => {
     let settled = false;
@@ -324,8 +386,8 @@ function probePort(port: number, host: string): Promise<WebSocket | null> {
 
 async function scanForBroker(): Promise<WebSocket | null> {
   for (let port = PORT_RANGE_START; port <= PORT_RANGE_END; port++) {
-    transition('PROBE', { detail: `probing localhost:${port}…`, port });
-    const socket = await probePort(port, 'localhost');
+    transition('PROBE', { detail: `probing figma-agent.localhost:${port}…`, port });
+    const socket = await probePort(port, 'figma-agent.localhost');
     if (socket) return socket;
   }
   return null;
@@ -346,8 +408,14 @@ function adoptSocket(socket: WebSocket): void {
 
   // Register plugin identity (fileName merged in once main sends FILE_INFO).
   // instanceId is stable across reconnects so the broker updates this file's slot
-  // instead of spawning a duplicate.
-  wsSend({ type: 'PLUGIN_HELLO', data: { ...fileInfo, instanceId: INSTANCE_ID, pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
+  // instead of spawning a duplicate. `caps` advertises the guards this bundle honours —
+  // the broker refuses to route a `--file` request to a plugin that predates `fileGuard`.
+  wsSend({ type: 'PLUGIN_HELLO', data: { ...fileInfo, instanceId: INSTANCE_ID, caps: ['fileGuard'],
+                                          pluginVersion: PLUGIN_VERSION, protocolV: PROTOCOL_VERSION } });
+  // `fileInfo` is normally populated by main's own FILE_INFO push, but that race is not
+  // guaranteed to have landed yet — ask explicitly so an iframe-originated error raised
+  // before the first push still has an identity to attach (see localFileContext above).
+  if (Object.keys(fileInfo).length === 0) parent.postMessage({ pluginMessage: { type: 'UI_READY' } }, '*');
   startHeartbeat(socket);
   transition('READY', { detail: `broker at ${url} · protocol v${PROTOCOL_VERSION}`, brokerUrl: url, port });
 }

@@ -5,6 +5,7 @@
 // Nothing here touches a socket beyond reading `readyState`, so the whole routing
 // / cull / status contract is pure and unit-testable with fake sockets.
 import type { PluginScene, PluginStatusEntry } from '../../../shared/protocol.ts';
+import { fileMatches } from '../../../shared/file-match.ts';
 
 /** WebSocket.OPEN — inlined so the registry needs no `ws` import (kept pure). */
 export const WS_OPEN = 1;
@@ -105,6 +106,17 @@ export class PluginRegistry<S extends RegistrySocket = RegistrySocket> {
     return null;
   }
 
+  /**
+   * Concurrency & jobs (backlog 1.1+2.6+4.3) — resolve a job's PINNED `targetInstanceId`
+   * at dequeue time. Never re-resolves by filter/recency (a queued mutation must land in
+   * the SAME file it was admitted for, never whichever file became most-recent while it
+   * waited) — only whether that exact instance is still live. `null` (instance gone) or a
+   * closed socket both mean the same thing to a caller: the pinned target vanished.
+   */
+  getByInstanceId(instanceId: string): PluginEntry<S> | null {
+    return this.plugins.get(instanceId) ?? null;
+  }
+
   private instanceForWs(ws: S): string | null {
     return this.getByWs(ws)?.instanceId ?? null;
   }
@@ -143,18 +155,23 @@ export class PluginRegistry<S extends RegistrySocket = RegistrySocket> {
     return this.liveEntries().length;
   }
 
+  /** Live entries whose fileName matches (unfiltered → all). Ordering: most-recently-active first. */
+  matching(filter?: string | null, opts?: { exact?: boolean }): PluginEntry<S>[] {
+    const f = filter?.trim();
+    const live = this.liveEntries();
+    const hits = f ? live.filter((e) => fileMatches(e.scene.fileName as string | undefined, f, opts?.exact === true)) : live;
+    return [...hits].sort((a, b) => b.lastActiveAt - a.lastActiveAt);
+  }
+
   /**
    * The routing target: the live plugin with the most-recent `lastSeenAt` — "the
-   * file the user touched last". An optional case-insensitive fileName-substring
-   * filter (FIGMA_AGENT_FILE) restricts candidates; no candidate matches → null.
-   * Ties keep the earliest-registered (deterministic insertion order).
+   * file the user touched last". An optional fileName filter (case-insensitive
+   * substring by default, or `opts.exact` for a whole-name match — see `matching`)
+   * restricts candidates; no candidate matches → null. Ties keep the most-recent
+   * (see `matching`'s sort).
    */
-  selectTarget(filter?: string | null): PluginEntry<S> | null {
-    let candidates = this.liveEntries();
-    const f = filter?.trim().toLowerCase();
-    if (f) candidates = candidates.filter((e) => String(e.scene.fileName ?? '').toLowerCase().includes(f));
-    if (candidates.length === 0) return null;
-    return candidates.reduce((best, e) => (e.lastActiveAt > best.lastActiveAt ? e : best));
+  selectTarget(filter?: string | null, opts?: { exact?: boolean }): PluginEntry<S> | null {
+    return this.matching(filter, opts)[0] ?? null;   // unchanged semantics for existing callers
   }
 
   /** The per-file list for BROKER_HELLO / `figma-agent status`, most-recent first. */
@@ -169,6 +186,7 @@ export class PluginRegistry<S extends RegistrySocket = RegistrySocket> {
         state: 'connected' as const,
         lastHeartbeatAge: e.lastSeenAt ? now - e.lastSeenAt : null,
         connectedAt: e.connectedAt,
+        fileKey: (e.scene.fileKey as string | null | undefined) ?? null,
       }));
   }
 
