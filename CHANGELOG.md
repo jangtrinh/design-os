@@ -1,6 +1,24 @@
 # Changelog
 
-## 2026-07-31 - Owner-change-feed readers, reconnect gap-fill, edit-feed binding (4.4 P2)
+## 2026-07-31 - figma-agent split into its own public repo
+
+### Changed
+- **The Figma plugin + CLI moved out of this monorepo** into its own public repo,
+  [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) — it can
+  now version, release, and take contributions independently of this kernel. Install,
+  build, and bind live in that repo's own README; this repo's README keeps the "why it
+  exists" introduction and points there for everything else.
+- `setup.sh` / `design-os update` / CI no longer build or link `figma-agent` as an
+  in-repo npm workspace — it ships and links from its own clone now. `design-os doctor`'s
+  PATH-based hand check is unaffected (source-location-independent).
+- The kernel's `fileSlugOf` parity-fixture test now names the plugin repo (pinned to its
+  split commit) as its twin instead of an in-repo sibling path — same cross-repo drift
+  lock, updated pointer.
+
+### Removed
+- `figma-agent/` (the workspace) and the root panel craft/taste/a11y gate test — both now
+  live in the plugin repo (`kernel/design-os` there is a pinned git submodule bridge back
+  to this kernel's linters until they publish as a real subpath export).
 
 ### Added
 - **`figma-agent changes`** — read the designer's own edit history per file

@@ -6,11 +6,12 @@ convert HTML to real auto-layout Figma (html-to-figma), and see results (export-
 Read). Works on Figma Free. Requires the Figma Design Agent plugin open in Figma
 Desktop.
 
-This CLI is an optional in-repo hand — like the `ui` binary it is driven over Bash, but
-it is NOT part of ease-design's deterministic `ui` binary, is not installed by
+This CLI is an optional hand — like the `ui` binary it is driven over Bash, but it is
+NOT part of ease-design's deterministic `ui` binary, is not installed by
 `npm install ease-design`, and is not published with the `ease-design` npm package.
-It lives at `figma-agent/` (an npm workspace inside this repo) and needs network
-access for its local broker plus the Figma plugin loaded — see `figma-agent/README.md`.
+It lives in its own repo, **[design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin)**
+(not an in-repo workspace here anymore), and needs network access for its local broker
+plus the Figma plugin loaded — see that repo's own README.
 
 Everything below was proven live (a canvas-proven smoke test + a real screen rebuild,
 2026-07-02).
@@ -18,12 +19,12 @@ Everything below was proven live (a canvas-proven smoke test + a real screen reb
 ## Setup & health
 
 ```bash
-# from the repo root: npm run build --workspace=figma-agent   (once, or after a source change)
-FA="node figma-agent/cli/dist/figma-agent.js"
+# from a clone of github.com/jangtrinh/design-os-figma-plugin: npm install && npm run build
+FA="node cli/dist/figma-agent.js"     # or the npm-linked global `figma-agent` bin
 $FA status   # spawns the broker if absent; needs the plugin open in Figma
 ```
 - Plugin: Figma Desktop → Plugins → Development → **Ease Design Figma Agent** (import
-  `figma-agent/plugin/manifest.json` once).
+  `plugin/manifest.json` from the design-os-figma-plugin clone once).
 - `E_NO_PLUGIN` right after a rebuild = broker hot-replace raced the plugin's
   auto-reconnect (<1s) — just retry.
 - ⚠️ Some workspace setups have a scout-block hook that blocks Bash commands containing

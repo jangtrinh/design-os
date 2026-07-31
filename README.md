@@ -606,8 +606,6 @@ The confirmation never flatters itself: *"Synced — 3 added, 1 updated"* only w
 actually written, *"Nothing synced"* when the run landed nothing, and a failure keeps the
 prompt alive so the retry is still there.
 
-<img src="docs/images/plugin/sync-prompt.png" width="320" alt="The sync prompt — N changes ready">
-
 ### The agent cannot wreck your file
 
 Every mutating operation seals **its own undo step** — ⌘Z rolls back one thing, not the whole
@@ -621,8 +619,6 @@ your project already owns a file the plugin wants (its own `component-registry.j
 kernel yields rather than co-opts. Every error lands in `design/figma-errors.jsonl` with its
 full untruncated reason — a log written for the agent that caused it, so it can read and fix.
 
-<img src="docs/images/plugin/activity-feed.png" width="320" alt="The activity feed — one honest sentence per operation">
-
 ### Why this beats a write-only bridge
 
 Most integrations write into Figma and stop. This one closes the loop in both directions — the
@@ -634,74 +630,48 @@ the activity feed only when the reply carried one, a count only when one parsed.
 thing shipped through four adversarial review rounds in which every blocker was reproduced
 before it was believed, and each fix carries a test that fails against the previous code.
 
-For the command surface behind all this — the four moves, the 1:1 mirror, and why it is a CLI
-rather than (just) the Figma MCP — see [**The Figma hand**](#the-figma-hand) below.
+This plugin now ships as its own repo — **[design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin)**
+— so it can version, release, and take contributions independently of this kernel. Install,
+build, and bind instructions live there; this section stays as the introduction to *why*
+it exists.
 
 ---
 
 ## The Figma hand
 
 `figma-agent` drives a Figma plugin over a local self-healing broker: reconnect back-off,
-heartbeats, a park queue that holds commands through a broker respawn, and a multi-file registry.
-Several open files stay connected at once; commands route to the most-recently-active one or to
-the file pinned with `FIGMA_AGENT_FILE`. Static panel screenshots are intentionally omitted here.
+heartbeats, a park queue that holds commands through a broker respawn, and a multi-file
+registry — full detail in the [plugin repo's own README](https://github.com/jangtrinh/design-os-figma-plugin).
 
 Four moves, both directions:
 
 - **Read** — `design-os figma scan` exports components/variables/styles;
   `ui ingest-figma-ds` turns them into tokens + registry + DESIGN.md.
 - **Audit** — `design-os figma audit` runs ten deterministic DS-hygiene detectors over
-  the open file's component library (unused · junk names · deprecated · duplicates by
-  name and by structure · dead variants · redundant families · empty sets · misfiled · unbound paints) —
-  a raw one-pass scan that survives 160k-instance files, judged entirely in
-  fixture-tested CLI code.
+  the open file's component library — a raw one-pass scan that survives 160k-instance
+  files, judged entirely in fixture-tested CLI code.
 - **Write** — `/ui:to-figma` authors idiomatic canvas: auto-layout, real instances,
   token-bound variables, drift-asserted geometry.
 - **Mirror** — `design-os figma reconcile --apply` keeps each component's registry record
-  a **1:1, rebuildable reflection** of its Figma node: the same buildable representation
-  the write path draws *from*. An AI reads the record and rebuilds the exact component —
-  read-and-execute, symmetric both ways. `figma-agent mirror-verify <nodeId>` proves it:
-  scan → rebuild → scan comes back a **fixed point** (`equal: true`), including auto-layout,
-  token bindings (local **and** published-library, by publish key), instances, variant
-  swaps, and inner-child overrides. What Figma's API genuinely won't let a rebuild carry (a
-  `maxWidth` binding on a text node, a "was-set" flag on a FILL child) is **recorded and
-  reported** in a `normalized` list, never silently dropped — `equal: true` is never a lie.
+  a **1:1, rebuildable reflection** of its Figma node — the same buildable representation
+  the write path draws *from*. `figma-agent mirror-verify <nodeId>` proves the round-trip
+  is a **fixed point** (`equal: true`); what Figma's API genuinely won't let a rebuild carry
+  is recorded and reported, never silently dropped. Verified live on a production 27-screen
+  design system: 9/9 diverse components round-trip to `equal: true`.
 
 That last move makes the whole thing a **verification loop for authoring**: any draw can be
 checked by round-trip — draw → scan → diff against intent — so "what I drew == what I meant"
-stops being a matter of eyeballing. Verified live on a production 27-screen design system:
-9/9 diverse components (screens, instances, nested instances, variant swaps) round-trip to
-`equal: true`.
+stops being a matter of eyeballing.
 
-Kept deliberately *out* of the `ui` binary (it needs a network and a live plugin); ships
-in-repo as the `figma-agent/` workspace. Fall back to `/ui:generate` (HTML) any time the
-hand is unavailable.
+Kept deliberately *out* of the `ui` binary (it needs a network and a live plugin, and now a
+separate install). Fall back to `/ui:generate` (HTML) any time the hand is unavailable.
 
-### Why a CLI hand, not (just) the Figma MCP
-
-The official Figma MCP is built to pull a design **into the conversation**; the hand is
-built to operate **on the file**. That difference is architectural, not cosmetic:
-
-- **Results are files, not context.** Every MCP tool result must pass through the model's
-  context window — a whole-file scan or a 160k-instance usage census doesn't fit, and what
-  does fit costs tokens again on every retry. The hand writes JSON to disk (`--out`); the
-  model reads the summary and queries the rest.
-- **Deterministic and scriptable.** One command → one JSON envelope → stable exit codes.
-  Pipe it to `jq`, gate CI on it, run it from cron, replay a captured scan offline. An MCP
-  call exists only inside a live model session.
-- **Engineered for heavy files.** Chunked transport, a park queue that holds commands
-  across broker respawns, warm retry, per-page representative resolution — the DS scan and
-  the hygiene audit finish on files that kill a single long round-trip.
-- **Multi-file and pinnable.** Several open files stay registered at once;
-  `FIGMA_AGENT_FILE` pins the target so a scan can't silently hit the wrong file.
-- **No seat, no OAuth, no rate limits.** A development plugin on Figma Free plus a local
-  broker.
-
-**When the Figma MCP is the right tool** — and we use it too: implementing a *selected
-frame* as code (`get_design_context` + Code Connect are built exactly for that), quick
-one-off reads (screenshot a node, list variables) with zero setup, and the richer
-paid-seat read surface. Rule of thumb: **MCP to bring a design to the model; the hand to
-bring changes, audits, and evidence to the file.**
+**Why a CLI hand, not (just) the Figma MCP, in one line:** the official MCP is built to pull
+a design *into the conversation*; the hand is built to operate *on the file* — deterministic
+and scriptable (one command → one JSON envelope → stable exit codes), engineered for heavy
+files (chunked transport, warm retry), multi-file and pinnable (`FIGMA_AGENT_FILE`), no seat
+or OAuth. The MCP is still the right tool for implementing a *selected frame* as code or a
+quick zero-setup read; full reasoning lives in the plugin repo's README.
 
 ---
 
@@ -711,7 +681,7 @@ bring changes, audits, and evidence to the file.**
 |---|---|---|---|
 | **`ui` kernel** | `src/` | 36 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 2,234 |
 | **`design-os` conductor** | `design-os/` | Python/Typer umbrella that composes everything: `doctor` · `audit` · `heartbeat` (deterministic design-health rhythm — due/compare/notify, zero model calls) · `reference` · `vr-matrix` · `figma status/scan/audit` · `update` (one-command toolchain refresh on any machine) · entry-point plugins. Re-emits every underlying envelope **verbatim** — one source of truth per verdict. | 148 |
-| **`figma-agent` hand** | `figma-agent/` | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 10-detector hygiene audit, exec-js, capture. | 453 |
+| **`figma-agent` hand** | [external repo](https://github.com/jangtrinh/design-os-figma-plugin) | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 10-detector hygiene audit, exec-js, capture. Split out so it can version independently of this kernel. | own suite |
 | **rendered-tier hands** | `a11y/` | `a11y-audit` (axe-core over installed Chrome — wording never claims "compliant") + `page-shot` (deterministic full-page PNG). | — |
 | **`recall` mind** | `recall/` | Optional semantic memory: local embeddings (MiniLM/ONNX, nothing leaves the machine), hybrid RRF ranking, `query → …work… → reflect` loop. The kernel never imports it — a test fails the build if it does. | — |
 | **`knowledge/` core** | `knowledge/` | The model-facing brain: 6+1-axis taste rubric, 26 personas / 7 families, page-structures (21 shapes + diversification + honest copy), two-tier a11y model, color science, token taxonomy, `figma-craft/` construction tree. | — |
@@ -789,6 +759,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-07-31 | **figma-agent split into its own public repo** — the Figma plugin + CLI now lives at [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin), versioned and released independently of this kernel; `setup.sh`/`design-os update`/CI no longer build or link it as an in-repo workspace, and this README's Figma-hand section collapses to an introduction + pointer | `ed33a22` |
 | 2026-07-31 | **The designer's edits become readable history** — `figma-agent changes` narrates the owner-edit feed per file in human sentences and `figma-agent errors` reads the error log without ever crashing on a bad line; reconnect gap-fill reports edits made while the plugin was closed (deleted pages get one honest notice; over-cap pages suppress their diff rather than emit false facts); the edit feed now routes through the file↔project binding so a file's history can never land in another project | `8902584` |
 | 2026-07-31 | **Concurrency & Jobs** — one mutation per Figma file at a time (broker-side per-file FIFO; read-only traffic bypasses), every mutation is a job with an id: a CLI timeout names the job and `figma-agent job <id>` polls the real outcome instead of blind re-dispatch; cancel actually cancels and a disconnect-failed job can never be resurrected; panel Activity now narrates sync runs in full sentences and stuck rows time out honestly. Proven by an in-process daemon harness over the seams unit tests could not see | `5f79672` |
 | 2026-07-30 | **Registry Integrity wave** — a Figma file's changes land in ITS bound project (`figma-agent bind`), never the broker's spawn directory; per-file `{line,byte}` cursors with streaming reconcile + 8 MiB log rotation (truncation is never a silent advance); sharded registry storage with a byte-identical contract file; map-based apply (~1 ms for a 200-target apply into 10k records); a project's own `component-registry.json` is never touched (kernel yields to `figma-component-registry.json`); every eviction/prune/rotation leaves a counter, archive, or audit record. Two empirical stage-4 review rounds, 86+ new tests | `c9ab3ff` |

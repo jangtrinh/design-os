@@ -24,20 +24,8 @@ jobs:
       # xref/provenance drift fails CI. Free, deterministic, no model call.
       - run: node dist/cli.js knowledge check
 
-  # figma-agent is an in-repo npm workspace (the optional Figma authoring "hands").
-  # Typecheck + build it on its own job so the workspace can't silently rot; the
-  # four `ui` gates in `check` above are left exactly as they were.
-  figma-agent:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run typecheck --workspace=figma-agent
-      - run: npm run build --workspace=figma-agent
+  # figma-agent moved to its own repo (github.com/jangtrinh/design-os-figma-plugin) — it
+  # is no longer an in-repo npm workspace, so it has no job here; its own CI gates it.
 
   # recall is the optional semantic-memory workspace (the "mind"). It needs Node 22
   # because it reads the ledger index through the built-in `node:sqlite`; the `ui`

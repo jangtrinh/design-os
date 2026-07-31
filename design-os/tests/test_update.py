@@ -17,8 +17,10 @@ from typer.testing import CliRunner
 from design_os.cli import app
 from design_os.commands import update as update_mod
 
-# The canonical section order for a clean default run (four builds + the version report).
-_STEPS = ["ui", "figma-agent", "recall", "a11y", "ui --version"]
+# The canonical section order for a clean default run (three builds + the version report).
+# figma-agent is no longer a workspace here (split into design-os-figma-plugin) — its
+# own repo owns its own build/link now, so it never appears in this sequence.
+_STEPS = ["ui", "recall", "a11y", "ui --version"]
 
 
 # ── A `git`/`npm` stub that appends the physical cwd then `$*` to a log, then exits. Lets a
@@ -71,7 +73,6 @@ def test_update_discovers_repo_via_env_override(
     # The exact canonical build lines, in order.
     assert _argv_lines(npm_log) == [
         "run build",
-        "run build --workspace=figma-agent",
         "run build --workspace=recall",
         "run build --workspace=a11y",
     ]
@@ -150,10 +151,9 @@ def test_update_build_failure_midsequence(
     assert env["error"]["code"] == "BUILD_FAILED"
     assert "recall" in env["error"]["message"]
     assert "TS2307 boom" in env["error"]["message"]  # the failing step's stderr tail
-    # ui + figma-agent + recall attempted; a11y (and the version report) NEVER ran.
+    # ui + recall attempted; a11y (and the version report) NEVER ran.
     assert npm_log.read_text().splitlines() == [
         "run build",
-        "run build --workspace=figma-agent",
         "run build --workspace=recall",
     ]
     assert "--workspace=a11y" not in npm_log.read_text()
