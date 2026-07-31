@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-07-31 - Concurrency & Jobs: one mutation per file, honest timeouts, sync in Activity
+
+### Added
+- **Broker job model**: every mutating request becomes a job; one mutation runs per Figma
+  file at a time (per-file FIFO), read-only traffic bypasses the queue. `figma-agent job
+  <id>` polls/waits/cancels/lists and `--force-release` frees a wedged slot (audited).
+- **Honest timeouts**: a CLI timeout now names the job id and says the work was NOT
+  cancelled — poll for the real outcome instead of re-dispatching (warm-retry refuses
+  job-tagged timeouts; the seat probe no longer mistakes a queue-induced timeout for a
+  view-only refusal).
+- **Panel Activity shows sync runs**: full human sentences for start/result/failure
+  ("Synced VSF - PCP — 3 added, 1 updated" / "Sync failed for … — <reason>"), failure rows
+  wrap instead of truncating, a stuck "Syncing" row times out honestly, and a second Sync
+  click resolves the first as superseded.
+- In-process daemon test harness (three end-to-end scenarios over the seams pure unit
+  tests could not see).
+
+### Fixed
+- Cancel actually cancels: a cancelled queued job is dequeued and can never be resurrected
+  by queue advancement; disconnect-failed queued jobs are dequeued, never re-dispatched
+  when the plugin reconnects; late replies to a finalized job are counted and discarded,
+  never served as its result.
+- Job retention (10-min TTL) and abandoned chunk-buffer cleanup now actually run (they sat
+  behind an early return); chunk buffers are keyed per connection so two CLIs can never
+  merge payloads.
+
 ## 2026-07-30 - Registry Integrity wave: per-file registries, cursor safety, scale hardening
 
 ### Added
