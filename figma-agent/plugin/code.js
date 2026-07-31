@@ -82,6 +82,226 @@
     return out;
   }
 
+  // plugin/src/main/edit-gapfill.ts
+  var SNAPSHOT_NS = "ease_design";
+  var SNAPSHOT_MANIFEST_KEY = "figma-edit-snapshot-v1";
+  var chunkKey = (pageId, i) => `figma-edit-snap-${pageId}-${i}`;
+  var SNAPSHOT_CHUNK_BYTES = 64e3;
+  var SNAPSHOT_NODE_CAP_PER_PAGE = 4e3;
+  function normalizeSnapshotCoord(n) {
+    return Math.round(n * 2) / 2;
+  }
+  function utf8ByteLength(s) {
+    return new TextEncoder().encode(s).length;
+  }
+  function splitSnapshotChunks(records) {
+    const chunks = [];
+    let current = [];
+    let currentBytes = 2;
+    for (const rec of records) {
+      const recBytes = utf8ByteLength(JSON.stringify(rec));
+      const commaBeforeAdd = current.length > 0 ? 1 : 0;
+      if (current.length > 0 && currentBytes + commaBeforeAdd + recBytes > SNAPSHOT_CHUNK_BYTES) {
+        chunks.push(JSON.stringify(current));
+        current = [];
+        currentBytes = 2;
+      }
+      currentBytes += (current.length > 0 ? 1 : 0) + recBytes;
+      current.push(rec);
+    }
+    if (current.length > 0) chunks.push(JSON.stringify(current));
+    return chunks;
+  }
+  var MOVE_EPSILON = 0.5;
+  function diffSnapshots(prev, next) {
+    const prevById = new Map(prev.map((n) => [n.id, n]));
+    const nextIds = new Set(next.map((n) => n.id));
+    const created = [];
+    const deleted = [];
+    const renamed = [];
+    const moved = [];
+    for (const n of next) {
+      const p = prevById.get(n.id);
+      if (!p) {
+        created.push(n);
+        continue;
+      }
+      if (p.name !== n.name) renamed.push({ prev: p, next: n });
+      if (Math.abs(p.x - n.x) > MOVE_EPSILON || Math.abs(p.y - n.y) > MOVE_EPSILON) moved.push({ prev: p, next: n });
+    }
+    for (const p of prev) {
+      if (!nextIds.has(p.id)) deleted.push(p);
+    }
+    return { created, deleted, renamed, moved };
+  }
+  function mergeUpdatedRecords(renamed, moved) {
+    const byId = /* @__PURE__ */ new Map();
+    for (const { next } of renamed) {
+      const entry = byId.get(next.id) ?? { rec: next, props: /* @__PURE__ */ new Set() };
+      entry.props.add("name");
+      byId.set(next.id, entry);
+    }
+    for (const { next } of moved) {
+      const entry = byId.get(next.id) ?? { rec: next, props: /* @__PURE__ */ new Set() };
+      entry.props.add("x");
+      entry.props.add("y");
+      byId.set(next.id, entry);
+    }
+    return [...byId.values()].map(({ rec, props }) => ({ rec, changedProps: [...props].sort() }));
+  }
+  function deletedPageIds(prevPageIds, currentPageIds) {
+    return prevPageIds.filter((id) => !currentPageIds.has(id));
+  }
+  function pageWasTruncated(prevTruncated, nextTruncated) {
+    return prevTruncated === true || nextTruncated;
+  }
+  function toGapfillEdit(op, rec, page, changedProps = []) {
+    return {
+      op,
+      nodeId: rec.id,
+      nodeName: rec.name,
+      nodeType: rec.type,
+      // Gap-fill is existence/name/position only (spec non-goal: no property-level diff for
+      // the offline window) — the snapshot itself never tracked a parent NAME (only a
+      // parent id, for a future use), so this is null rather than invented.
+      parentName: null,
+      page,
+      changedProps,
+      origin: "LOCAL",
+      // The agent cannot have acted while its bridge was down — every gap-fill frame is
+      // unambiguously the owner's (spec §2).
+      actor: "owner"
+    };
+  }
+  function gapfillEditsForPage(diff, pageName) {
+    const edits = [];
+    for (const rec of diff.created) edits.push(toGapfillEdit("created", rec, pageName));
+    for (const rec of diff.deleted) edits.push(toGapfillEdit("deleted", rec, pageName));
+    for (const { rec, changedProps } of mergeUpdatedRecords(diff.renamed, diff.moved)) {
+      edits.push(toGapfillEdit("updated", rec, pageName, changedProps));
+    }
+    return edits;
+  }
+  function snapshotPage(page) {
+    const all = page.findAll(() => true);
+    const truncated = all.length > SNAPSHOT_NODE_CAP_PER_PAGE;
+    const records = [];
+    for (const node of all) {
+      if (records.length >= SNAPSHOT_NODE_CAP_PER_PAGE) break;
+      const hasXY = "x" in node && "y" in node;
+      records.push({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        x: hasXY ? normalizeSnapshotCoord(node.x) : 0,
+        y: hasXY ? normalizeSnapshotCoord(node.y) : 0,
+        parent: node.parent ? node.parent.id : null
+      });
+    }
+    return { records, truncated };
+  }
+  function readManifest() {
+    const raw = figma.root.getSharedPluginData(SNAPSHOT_NS, SNAPSHOT_MANIFEST_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed?.v === 1 && Array.isArray(parsed.pages) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  function readPageChunks(entry) {
+    const records = [];
+    for (let i = 0; i < entry.chunks; i++) {
+      const raw = figma.root.getSharedPluginData(SNAPSHOT_NS, chunkKey(entry.pageId, i));
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) records.push(...parsed);
+      } catch {
+      }
+    }
+    return records;
+  }
+  function resolvePageWrite(page, prevEntry, snapshot) {
+    try {
+      const { records, truncated } = snapshot();
+      const chunks = splitSnapshotChunks(records);
+      return { entry: { pageId: page.id, pageName: page.name, chunks: chunks.length, truncated }, chunksToWrite: chunks };
+    } catch {
+      return prevEntry ? { entry: prevEntry, chunksToWrite: null } : null;
+    }
+  }
+  function writeSnapshot(pages) {
+    const prevManifest = readManifest();
+    const manifest = { v: 1, pages: [] };
+    const currentPageIds = new Set(pages.map((p) => p.id));
+    for (const page of pages) {
+      const prevEntry = prevManifest?.pages.find((p) => p.pageId === page.id);
+      const result = resolvePageWrite(page, prevEntry, () => snapshotPage(page));
+      if (!result) continue;
+      if (result.chunksToWrite === null) {
+        manifest.pages.push(result.entry);
+        continue;
+      }
+      try {
+        const prevChunkCount = prevEntry?.chunks ?? 0;
+        for (let i = 0; i < result.chunksToWrite.length; i++) {
+          figma.root.setSharedPluginData(SNAPSHOT_NS, chunkKey(page.id, i), result.chunksToWrite[i]);
+        }
+        for (let i = result.chunksToWrite.length; i < prevChunkCount; i++) figma.root.setSharedPluginData(SNAPSHOT_NS, chunkKey(page.id, i), "");
+        manifest.pages.push(result.entry);
+      } catch {
+        if (prevEntry) manifest.pages.push(prevEntry);
+      }
+    }
+    if (prevManifest) {
+      for (const prevEntry of prevManifest.pages) {
+        if (currentPageIds.has(prevEntry.pageId)) continue;
+        try {
+          for (let i = 0; i < prevEntry.chunks; i++) figma.root.setSharedPluginData(SNAPSHOT_NS, chunkKey(prevEntry.pageId, i), "");
+        } catch {
+        }
+      }
+    }
+    try {
+      figma.root.setSharedPluginData(SNAPSHOT_NS, SNAPSHOT_MANIFEST_KEY, JSON.stringify(manifest));
+    } catch {
+    }
+  }
+  function runGapfillDiff(pages) {
+    const prev = readManifest();
+    if (!prev) {
+      writeSnapshot(pages);
+      return [];
+    }
+    const edits = [];
+    const currentPageIds = new Set(pages.map((p) => p.id));
+    for (const deletedId of deletedPageIds(prev.pages.map((p) => p.pageId), currentPageIds)) {
+      const prevEntry = prev.pages.find((p) => p.pageId === deletedId);
+      const nodeCount = readPageChunks(prevEntry).length;
+      edits.push(toGapfillEdit(
+        "deleted",
+        { id: `page-deleted:${prevEntry.pageId}`, name: `${prevEntry.pageName} (${nodeCount} node(s))`, type: "PAGE", x: 0, y: 0, parent: null },
+        prevEntry.pageName,
+        ["page-deleted"]
+      ));
+    }
+    for (const page of pages) {
+      const prevEntry = prev.pages.find((p) => p.pageId === page.id);
+      const prevRecords = prevEntry ? readPageChunks(prevEntry) : [];
+      const { records: nextRecords, truncated: nextTruncated } = snapshotPage(page);
+      if (pageWasTruncated(prevEntry?.truncated, nextTruncated)) {
+        edits.push(toGapfillEdit("updated", { id: `truncated:${page.id}`, name: page.name, type: "PAGE", x: 0, y: 0, parent: null }, page.name, ["truncated"]));
+        continue;
+      }
+      const diff = diffSnapshots(prevRecords, nextRecords);
+      edits.push(...gapfillEditsForPage(diff, page.name));
+    }
+    writeSnapshot(pages);
+    return edits;
+  }
+
   // plugin/src/main/edit-actor.ts
   var AGENT_ECHO_MS = 1e4;
   function isDeclaredNow(declared, nodeId, now) {
@@ -2730,7 +2950,7 @@
       return [];
     }
   }
-  function utf8ByteLength(str) {
+  function utf8ByteLength2(str) {
     let bytes = 0;
     for (let i = 0; i < str.length; i++) {
       const code = str.charCodeAt(i);
@@ -2743,10 +2963,10 @@
     }
     return bytes;
   }
-  function chunkKey(i) {
+  function chunkKey2(i) {
     return `${CHUNK_PREFIX}${i}`;
   }
-  function readManifest() {
+  function readManifest2() {
     const raw = figma.root.getSharedPluginData(NAMESPACE, MANIFEST_KEY);
     if (!raw) return void 0;
     try {
@@ -2761,14 +2981,14 @@
     }
   }
   function readEvictedUnresolvedCount() {
-    return readManifest()?.evictedUnresolved ?? 0;
+    return readManifest2()?.evictedUnresolved ?? 0;
   }
   function splitIntoChunks(events) {
     const chunks = [];
     let current = [];
     let currentBytes = 2;
     for (const event of events) {
-      const eventBytes = utf8ByteLength(JSON.stringify(event));
+      const eventBytes = utf8ByteLength2(JSON.stringify(event));
       const commaBeforeAdd = current.length > 0 ? 1 : 0;
       if (current.length > 0 && currentBytes + commaBeforeAdd + eventBytes > CHUNK_BYTE_BUDGET) {
         chunks.push(JSON.stringify(current));
@@ -2785,29 +3005,29 @@
   function readChunked(manifest) {
     const events = [];
     for (let i = 0; i < manifest.chunks; i++) {
-      events.push(...parseEvents(figma.root.getSharedPluginData(NAMESPACE, chunkKey(i))));
+      events.push(...parseEvents(figma.root.getSharedPluginData(NAMESPACE, chunkKey2(i))));
     }
     return events;
   }
   function clearChunkRange(startInclusive, endExclusive) {
-    for (let i = startInclusive; i < endExclusive; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey(i), "");
+    for (let i = startInclusive; i < endExclusive; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey2(i), "");
   }
   function readEdgeCorrections() {
-    const manifest = readManifest();
+    const manifest = readManifest2();
     if (manifest !== void 0) return readChunked(manifest);
     return parseEvents(figma.root.getSharedPluginData(NAMESPACE, KEY_V1));
   }
   function writeEdgeCorrections(events) {
-    const priorManifest = readManifest();
+    const priorManifest = readManifest2();
     let { kept, evictedUnresolved } = retainCorrectionEvents(events, /* @__PURE__ */ new Date(), EDGE_RAW_LIMIT);
     let chunks = splitIntoChunks(kept);
     let byteCapEvictedUnresolved = 0;
-    while (kept.length > 0 && chunks.some((c) => utf8ByteLength(c) > FIGMA_ENTRY_BYTE_CAP)) {
+    while (kept.length > 0 && chunks.some((c) => utf8ByteLength2(c) > FIGMA_ENTRY_BYTE_CAP)) {
       if (kept[0].unresolved === true) byteCapEvictedUnresolved += 1;
       kept = kept.slice(1);
       chunks = splitIntoChunks(kept);
     }
-    for (let i = 0; i < chunks.length; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey(i), chunks[i]);
+    for (let i = 0; i < chunks.length; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey2(i), chunks[i]);
     if (priorManifest !== void 0 && priorManifest.chunks > chunks.length) {
       clearChunkRange(chunks.length, priorManifest.chunks);
     }
@@ -2967,12 +3187,17 @@
   var idleMs = DEFAULT_IDLE_MS;
   var idleTimer = null;
   var changesSinceCommit = 0;
+  var hasEditsSinceSnapshot = false;
   function resetIdleTimer() {
     if (idleTimer !== null) clearTimeout(idleTimer);
     idleTimer = setTimeout(fireIdle, idleMs);
   }
   function fireIdle() {
     idleTimer = null;
+    if (hasEditsSinceSnapshot) {
+      writeSnapshot(figma.root.children);
+      hasEditsSinceSnapshot = false;
+    }
     if (changesSinceCommit <= 0) return;
     figma.ui.postMessage({ type: "IDLE_READY", data: { count: changesSinceCommit } });
     changesSinceCommit = 0;
@@ -3031,7 +3256,6 @@
         data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null, fileName: figma.root.name }
       });
       changesSinceCommit += changes.length;
-      resetIdleTimer();
     }
     if (edits.length > 0) {
       figma.ui.postMessage({
@@ -3043,9 +3267,31 @@
           source: "live"
         }
       });
+      hasEditsSinceSnapshot = true;
     }
+    if (changes.length > 0 || edits.length > 0) resetIdleTimer();
   }
-  figma.loadAllPagesAsync().then(() => figma.on("documentchange", onDocumentChange)).catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
+  figma.loadAllPagesAsync().then(() => {
+    const gapfillEdits = runGapfillDiff(figma.root.children);
+    if (gapfillEdits.length > 0) {
+      figma.ui.postMessage({
+        type: "EDIT_FEED",
+        data: {
+          edits: gapfillEdits,
+          fileKey: figma.fileKey ?? null,
+          fileName: figma.root.name,
+          source: "gapfill"
+        }
+      });
+    }
+    figma.on("documentchange", onDocumentChange);
+  }).catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
+  figma.on("close", () => {
+    try {
+      writeSnapshot(figma.root.children);
+    } catch {
+    }
+  });
   figma.ui.onmessage = async (msg) => {
     const chrome = msg;
     if (chrome && chrome.type === "SYNC_CONFIG") {

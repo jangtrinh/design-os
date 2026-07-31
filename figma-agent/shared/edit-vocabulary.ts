@@ -74,6 +74,19 @@ export interface SceneEditSentenceInput {
  * than fabricating one: `Deleted a TEXT node`.
  */
 export function editSentence(frame: SceneEditSentenceInput): string {
+  // Stage-4 fix round (minor 9c) — the gap-fill truncation notice (edit-gapfill.ts) is an
+  // `op: 'updated'` frame with `changedProps: ['truncated']`; the generic verb mapping
+  // above falls through to `restyled` for it (nothing in POSITION_PROPS/NAME_PROP
+  // matches), producing the actively WRONG "Restyled page ...". This is a distinct kind
+  // of fact (a scan hit its node cap, not an edit at all) and gets its own sentence,
+  // checked BEFORE the normal verb path.
+  if (frame.changedProps.includes('truncated')) {
+    // Closing round (N5) — states the ACTUAL, current fact (gap-fill is off for this page
+    // right now) rather than a speculative one ("some deletions may be invisible" implies
+    // a specific past miss this session cannot actually name).
+    const label = frame.nodeName ?? frame.parentName ?? 'this page';
+    return `Gap-fill is disabled for "${label}" while it exceeds the scan cap`;
+  }
   const verb = sceneEditVerb(frame.op, frame.changedProps);
   const verbText = VERB_TEXT[verb];
   if (frame.nodeName === null || frame.nodeName === '') {

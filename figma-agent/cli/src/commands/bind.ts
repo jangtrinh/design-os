@@ -92,11 +92,15 @@ export async function run(args: CommandArgs): Promise<unknown> {
 
   let fileKey: string | null = null;
   let migratedCount = 0;
+  let migratedEditCount = 0;
   try {
     const result = await runCommand('PROJECT_BIND', { fileName, projectDir }) as
-      { fileKey?: string | null; migratedCount?: number };
+      { fileKey?: string | null; migratedCount?: number; migratedEditCount?: number };
     fileKey = result.fileKey ?? null;
     migratedCount = result.migratedCount ?? 0;
+    // Backlog 5.7 fold-in — the edit feed's own staged-frame migration count, surfaced
+    // alongside the component log's (an older broker build simply never sends it).
+    migratedEditCount = result.migratedEditCount ?? 0;
   } catch {
     // No live broker reachable — write the durable marker anyway (`pendingKey: true`); a
     // LATER broker's own startup scan (`loadBindIndex`) picks this marker up, and if the
@@ -114,6 +118,7 @@ export async function run(args: CommandArgs): Promise<unknown> {
     fileKey: entry.fileKey,
     pendingKey: entry.pendingKey === true,
     migratedCount,
+    migratedEditCount,
     marker: bindMarkerPath(projectDir),
   };
 }

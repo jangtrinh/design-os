@@ -8,6 +8,8 @@ import { CliError } from './transport/protocol-helpers.ts';
 import { getLastFileContext, setExpectedFile, setProjectDir, setReadOnly } from './transport/broker-client.ts';
 import { printErrorJson, printJson, withFileContext } from './util/json-out.ts';
 import * as batch from './commands/batch.ts';
+import * as changes from './commands/changes.ts';
+import * as errors from './commands/errors.ts';
 import * as bind from './commands/bind.ts';
 import * as bindVariable from './commands/bind-variable.ts';
 import * as capture from './commands/capture.ts';
@@ -64,6 +66,8 @@ const COMMAND_MODULES: Record<string, { run(args: CommandArgs): Promise<unknown>
   'exec-js': execJs,
   capture,
   batch,
+  changes,
+  errors,
 };
 
 const HELP = `figma-agent — CLI bridge to the Figma plugin (via a local WS broker)
@@ -106,6 +110,12 @@ Commands:
                        \`console\` and \`ui\` are injected — a script cannot declare its own.
   capture              <url> [--out dir --headless --channel chrome --width 1440 --timeout ms --carousel-window ms]
   batch                <file.json> [--stop-on-error]
+  changes              [--since ts|iso --owner-only --actor owner|agent|ambiguous --file name|slug
+                       --limit 50 --page name]  read the owner-edit feed (wave 4.4) — pure fs,
+                       works even with the plugin closed; --owner-only is sugar for --actor owner
+  errors               [--since ts|iso --file name --limit 50]  read the broker's error log
+                       (backlog 4.6) — full untruncated message + cmd/activity/code/fileName,
+                       for an agent to read-and-fix; --file filters by the entry's own fileName
 
 Global: --file "<exact file name>"   route to that file's plugin AND refuse to run anywhere else
                                      (exact, case-insensitive; beats FIGMA_AGENT_FILE; payloads
