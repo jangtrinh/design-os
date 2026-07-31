@@ -56,6 +56,26 @@ export function buildErrorLogFrame(
   return frame;
 }
 
+/**
+ * Stage-4 fix round (M1) — the READER's own shape guard (`readErrorLog`, errors.ts):
+ * a JSON-VALID but semantically-wrong line (missing `code`, a garbage `ts`) used to land
+ * in `frames` unchecked — this catches it, so the reader can skip-and-count it the same
+ * way a JSON.parse failure already is, never fatal, never silently admitted.
+ */
+export function isValidErrorLogFrame(v: unknown): v is ErrorLogFrame {
+  if (v === null || typeof v !== 'object') return false;
+  const r = v as Record<string, unknown>;
+  if (typeof r.ts !== 'number' || !Number.isFinite(r.ts)) return false;
+  if (r.cmd !== null && typeof r.cmd !== 'string') return false;
+  if (r.activity !== null && typeof r.activity !== 'string') return false;
+  if (typeof r.code !== 'string') return false;
+  if (typeof r.message !== 'string') return false;
+  if (r.rolledBack !== undefined && typeof r.rolledBack !== 'boolean') return false;
+  if (r.fileName !== null && typeof r.fileName !== 'string') return false;
+  if (typeof r.requestId !== 'string') return false;
+  return true;
+}
+
 /** Append one ErrorLogFrame line, creating the design/ dir if needed. */
 export function appendErrorFrame(path: string, frame: ErrorLogFrame): void {
   mkdirSync(resolveDir(path), { recursive: true });

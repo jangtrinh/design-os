@@ -61,6 +61,14 @@ export interface EditFrame {
   origin: EditOrigin;
   page: string;
   fileKey: string | null;
+  /**
+   * Phase 02 fix — mirrors `figma-changes.ts`'s `ChangeFrame.fileName` (added there in
+   * registry-integrity phase 03 §1, for the same reason): a Figma-Free file's `fileKey`
+   * is `null`, so `--file <name>` matching (phase 02 §1) needs the human name ON THE
+   * FRAME, not just baked into the feed's own on-disk slug. Optional/additive — an older
+   * frame on disk without it still parses; `EDIT_FEED_SCHEMA_VERSION` stays 1.
+   */
+  fileName?: string;
 }
 
 /**
@@ -121,7 +129,31 @@ export function buildEditFrame(e: EditInput, meta: EditBatchMeta, ts: number): E
     origin,
     page: e.page ?? '',
     fileKey: meta.fileKey ?? null,
+    ...(typeof meta.fileName === 'string' && meta.fileName.length > 0 && { fileName: meta.fileName }),
   };
+}
+
+const VALID_SOURCES: ReadonlySet<string> = new Set(['live', 'gapfill']);
+
+/**
+ * Stage-4 fix round (M1) — the READER's own shape guard: `readEditFeed` (changes.ts)
+ * only caught a JSON.parse failure, so a JSON-VALID but semantically-wrong line (a
+ * missing field, a garbage `actor`) still landed in `frames` and crashed downstream
+ * (`countByActor`'s `counts[f.actor]++`, `editSentence`'s field reads). Reuses
+ * `isValidEditInput` for the fields EditFrame shares with EditInput, then checks the
+ * frame-only fields (`v`, `ts`, `source`, `fileKey`, optional `fileName`). A bad line is
+ * skipped and counted (the reader's own `warnings`) — never fatal, never silently
+ * admitted either.
+ */
+export function isValidEditFrame(v: unknown): v is EditFrame {
+  if (!isValidEditInput(v)) return false;
+  const r = v as unknown as Record<string, unknown>;
+  if (typeof r.v !== 'number') return false;
+  if (typeof r.ts !== 'number' || !Number.isFinite(r.ts)) return false;
+  if (typeof r.source !== 'string' || !VALID_SOURCES.has(r.source)) return false;
+  if (r.fileKey !== null && typeof r.fileKey !== 'string') return false;
+  if (r.fileName !== undefined && typeof r.fileName !== 'string') return false;
+  return true;
 }
 
 /**

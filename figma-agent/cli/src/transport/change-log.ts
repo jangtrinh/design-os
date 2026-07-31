@@ -64,7 +64,15 @@ export const UNBOUND_STAGING_DIRNAME = 'unbound';
 /** `<changeLogDir()>/unbound/<slug>.jsonl` — beside the broker's own default change log,
  *  never a project's design/. Keyed by the SAME name-slug `figma-agent bind --file <name>`
  *  addresses (not fileKey — a file connecting mid-way through its unbound life must not
- *  split its staged history across two paths). */
+ *  split its staged history across two paths).
+ *
+ *  Known limitation, DEFERRED not fixed here (backlog 5.6): this root is `changeLogDir()`
+ *  — the broker's own spawn cwd — so a restart with a different cwd orphans whatever was
+ *  staged under the old one. Shared by BOTH feed types (this one and edit-feed-log.ts's
+ *  `unboundEditStagingPath`, backlog 5.7's fold-in) since both resolve through the same
+ *  `changeLogDir()`. Closing it means moving this root to a cwd-independent location — a
+ *  change to this already-shipped, review-verified mechanism (RI-P1 fix#1), not a rider on
+ *  whichever wave happens to touch this file next. */
 export function unboundStagingPath(slug: string): string {
   return join(changeLogDir(), UNBOUND_STAGING_DIRNAME, `${slug}.jsonl`);
 }
