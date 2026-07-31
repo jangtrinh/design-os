@@ -211,16 +211,25 @@ The plugin repo (github.com/jangtrinh/design-os-figma-plugin) carries its own
   `ui.componentSet`, …) refuse there** naming FigJam vs. the editor they need — the
   same `requireEditor` guard every `ui.figjam.*` helper carries in reverse; a design
   file behaves exactly as before this phase (regression-checked).
+- `knowledge/slides.md` — `ui.slides.*` (list/grid/content, create/remove/duplicate/
+  reorder, transitions, viewMode/focused/focus/skip, background, addText/addShape):
+  the Slides deck surface (`editorType` now widens to `["figma","figjam","slides"]`).
+  **Design-only commands refuse there too**, same reverse `requireEditor` guard as
+  FigJam — a design file and a FigJam board both behave exactly as before this phase
+  (regression-checked). Also documents that `viewMode`/`focus`'s view-change side
+  effect is NOT covered by `--undo-group` — a script that navigates and then throws
+  leaves the user on a different slide even though `rolledBack: true` covers content.
 
 **`status` shape, additive field (absorption phase-02):** `plugin.editorType` —
 `'figma' | 'figjam' | 'slides' | 'dev' | null`, read directly off `figma.editorType`;
 `null` (never a silent `'figma'` default) when an older host reports nothing. Consumed
 by the plugin repo's `shared/editor-surface.ts` guard (phase 03: FigJam, wired;
-phase 04: Slides, not yet).
+phase 04: Slides, wired — this absorption track's baskets A+B are now complete).
 
-**`status` shape, additive field (absorption phase-03):** `plugin.bootSkipped` — a
-string array naming which design-only boot capabilities this session consciously
-skipped (present only once non-empty, same contract as the broker's
-`senderMismatchCount`/`legacyMigrationDeferred`). Empty today: the phase-03 boot-path
-trace found nothing in the current boot sequence needs skipping in FigJam — the
-live-sync capture path already reports FigJam node types honestly by construction.
+**`status` shape, additive field (absorption phase-03, extended phase-04):**
+`plugin.bootSkipped` — a string array naming which design-only boot capabilities this
+session consciously skipped (present only once non-empty, same contract as the
+broker's `senderMismatchCount`/`legacyMigrationDeferred`). Empty today: neither the
+phase-03 (FigJam) nor phase-04 (Slides) boot-path trace found anything in the current
+boot sequence that needs skipping — the live-sync capture path reports both editors'
+native node types honestly by construction.
