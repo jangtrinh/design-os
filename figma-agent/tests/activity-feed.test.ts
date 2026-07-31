@@ -141,6 +141,21 @@ describe('resolveActivity — a reply lands on ITS OWN row, by id', () => {
     const [row2] = resolveActivity(buf2, { id: 'c_2', ok: true, ms: 8, nodeName: 'Hero card' });
     expect(row2.nodeName).toBe('Hero card');
   });
+
+  // Owner addendum (task #145) — the pre-composed `sentence` a sync result / job status
+  // carries lands verbatim onto the row; an ordinary wire-command row (no `sentence` in
+  // the patch) is completely unaffected.
+  it('lands a pre-composed `sentence` onto the row when the patch carries one', () => {
+    const buf = pushActivity([], rec({ id: 'c_1', tool: 'RECONCILE' }));
+    const [row] = resolveActivity(buf, { id: 'c_1', ok: true, ms: 8, sentence: 'Synced VSF - PCP — 3 added' });
+    expect(row.sentence).toBe('Synced VSF - PCP — 3 added');
+  });
+
+  it('a patch with no `sentence` leaves an existing row without one (ordinary rows untouched)', () => {
+    const buf = pushActivity([], rec({ id: 'c_1', tool: 'EXEC_JS' }));
+    const [row] = resolveActivity(buf, { id: 'c_1', ok: true, ms: 8, result: '→ 3 nodes' });
+    expect(row.sentence).toBeUndefined();
+  });
 });
 
 describe('diffRowKeys — which rows are genuinely new since the last render (backlog 4.7)', () => {

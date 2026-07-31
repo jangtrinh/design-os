@@ -273,6 +273,36 @@ describe('statusList — the per-file rows, most-recent first', () => {
   });
 });
 
+describe('getByInstanceId — pinned-target resolution (concurrency & jobs)', () => {
+  it('resolves a live instance by id, regardless of routing recency/filter', () => {
+    const { reg } = makeReg();
+    const { instanceId } = reg.register(sock(), { instanceId: 'p1', fileName: 'A' });
+    expect(reg.getByInstanceId(instanceId)?.scene.fileName).toBe('A');
+  });
+
+  it('returns null for an instance that never existed', () => {
+    const { reg } = makeReg();
+    expect(reg.getByInstanceId('nope')).toBeNull();
+  });
+
+  it('still finds a CLOSED socket\'s entry (the caller checks readyState itself)', () => {
+    const { reg } = makeReg();
+    const closed = sock(false);
+    reg.register(closed, { instanceId: 'p1', fileName: 'A' });
+    const found = reg.getByInstanceId('p1');
+    expect(found).not.toBeNull();
+    expect(found?.ws.readyState).toBe(CLOSED);
+  });
+
+  it('removeByWs makes the instance unresolvable', () => {
+    const { reg } = makeReg();
+    const ws = sock();
+    reg.register(ws, { instanceId: 'p1', fileName: 'A' });
+    reg.removeByWs(ws);
+    expect(reg.getByInstanceId('p1')).toBeNull();
+  });
+});
+
 describe('extractScene — drops protocol keys, keeps scene identity', () => {
   it('strips instanceId/pluginVersion/protocolV, keeps fileName/page/extras', () => {
     expect(extractScene({ instanceId: 'x', pluginVersion: '0.1.0', protocolV: 1, fileName: 'F', page: 'P', user: 'me' }))

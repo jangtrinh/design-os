@@ -1,7 +1,14 @@
 // Which CommandName values seal their own undo step (backlog 2.4). Pure — no `figma` access —
 // specifically so this classification is unit-testable in isolation: main.ts itself cannot be
 // imported outside a live plugin sandbox (it calls `figma.showUI(__html__, …)` at module load).
-import type { CommandName } from '../../../shared/protocol';
+//
+// Closing round (R3, stage-4 wave) — moved from plugin/src/main/mutating-commands.ts to
+// shared/: this IS a protocol-level CommandName classification, the natural home for it
+// alongside protocol.ts, and the CLI (broker-client.ts's --read-only hardening) needs it
+// too. Living under plugin/src/main previously meant the CLI reached across a cli→plugin
+// edge to import it — harmless today (this file has zero `figma` dependency) but an edge
+// that invites a non-pure import down the line. shared/ has no such boundary to cross.
+import type { CommandName } from './protocol';
 
 // Each successful mutating command becomes its own undo step. Without commitUndo, Figma's
 // default makes an entire agent session ONE ⌘Z. BATCH is absent deliberately: its children

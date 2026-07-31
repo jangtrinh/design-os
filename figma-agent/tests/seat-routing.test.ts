@@ -54,6 +54,16 @@ describe('classifySeat — pure classification', () => {
     expect(c.seat).toBe('free');
     expect(c.reason).toContain('refused');
   });
+
+  // Concurrency & jobs (backlog 1.1+2.6+4.3), phase 01 §3 — a timeout is INCONCLUSIVE,
+  // never the same fact as an explicit refusal; the queue can now genuinely make this
+  // mutating probe wait behind another agent's command.
+  it('reachable + write TIMED OUT (inconclusive) → free, reason says inconclusive, NOT refused', () => {
+    const c = classifySeat({ pluginReachable: true, writeOk: false, writeInconclusive: true });
+    expect(c.seat).toBe('free');
+    expect(c.reason).toContain('inconclusive');
+    expect(c.reason).not.toContain('refused');
+  });
 });
 
 describe('route — classification composed with the table', () => {
@@ -102,6 +112,26 @@ describe('probeSignals — the probe HAND (stubbed runner)', () => {
     const runner: Runner = async (cmd) => {
       if (cmd === 'STATUS') return { fileName: 'X' };
       throw new Error('E_EVAL');
+    };
+    expect(await probeSignals(runner)).toEqual({ pluginReachable: true, writeOk: false });
+  });
+
+  // Concurrency & jobs (backlog 1.1+2.6+4.3), phase 01 §3 — the pre-existing defect
+  // this wave's queue turns from latent into visible: a coded E_TIMEOUT must be
+  // reported as INCONCLUSIVE, never collapsed into the same "not an editor" signal an
+  // explicit refusal produces.
+  it('STATUS ok + EXEC_JS times out (coded E_TIMEOUT) → writeInconclusive: true, NOT a bare refusal', async () => {
+    const runner: Runner = async (cmd) => {
+      if (cmd === 'STATUS') return { fileName: 'X' };
+      throw Object.assign(new Error('timed out'), { code: 'E_TIMEOUT' });
+    };
+    expect(await probeSignals(runner)).toEqual({ pluginReachable: true, writeOk: false, writeInconclusive: true });
+  });
+
+  it('STATUS ok + EXEC_JS throws a DIFFERENT coded error → still a plain refusal (no writeInconclusive)', async () => {
+    const runner: Runner = async (cmd) => {
+      if (cmd === 'STATUS') return { fileName: 'X' };
+      throw Object.assign(new Error('boom'), { code: 'E_EVAL' });
     };
     expect(await probeSignals(runner)).toEqual({ pluginReachable: true, writeOk: false });
   });

@@ -50,6 +50,13 @@ export const COMMANDS = [
   // machinery so `figma-agent bind` gets a real answer (fileKey, pendingKey,
   // migratedCount) instead of a fire-and-forget event with no way to report either.
   'PROJECT_BIND',
+  // Concurrency & jobs (backlog 1.1+2.6+4.3), phase 02 §2: BROKER-TERMINAL, same precedent
+  // as PROJECT_BIND — intercepted before `admitRequest`/`forwardToPlugin`, never reaches a
+  // plugin. Poll/list/cancel/force-release a job the CLI stopped waiting for. The one
+  // command whose params the broker DOES read (the jobId + mode) — see job.ts's own
+  // comment for why that does not violate the pure-relay rule (a request ADDRESSED TO the
+  // broker is not a request being RELAYED).
+  'JOB',
 ] as const;
 export type CommandName = (typeof COMMANDS)[number];
 
@@ -85,6 +92,15 @@ export interface RequestMsg {
    * instead of the daemon's spawn cwd. Omitted only by a pre-binding CLI.
    */
   projectDir?: string;
+  /**
+   * Concurrency & jobs (backlog 1.1+2.6+4.3) — caller's DECLARATION that this command only
+   * reads. Skips the per-file mutation queue. TRUSTED, NOT ENFORCED: the plugin sandbox
+   * cannot prove a script is read-only (no reliable static parse), so a mis-declared
+   * mutation will interleave — `--help` says so in those words. Omitted entirely when
+   * unset, exactly like `activity`/`expectedFile`/`projectDir` — an unguarded frame must
+   * serialize byte-identically to what a pre-flag CLI sent.
+   */
+  readOnly?: boolean;
 }
 
 /** Which file answered. Echoed on every reply so a caller can prove where a command landed. */
@@ -125,6 +141,25 @@ export interface ReplyErr {
 }
 export type ReplyMsg = ReplyOk | ReplyErr;
 
+// ── Jobs (concurrency & jobs, backlog 1.1+2.6+4.3) ───────────────────
+// A job outlives the CLI socket that opened it: `handleClose`'s CLI branch used to
+// delete `pending` when the caller hung up, so a reply that arrived after that point
+// (`routeFromPlugin`) found no client and was thrown away — the work completed, the
+// result evaporated. The job table (cli/src/transport/job-table.ts) is what catches
+// that reply instead, and JOB_STATE is how the CLI learns its own jobId before it can
+// even time out.
+export interface JobInfo {
+  jobId: string;
+  state: 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
+  cmd: string;
+  activity?: string;
+  fileSlug: string;       // which file's per-file FIFO queue it belongs to
+  queuePosition?: number; // 1-based, present only while `state === 'queued'`
+  queuedMs?: number;      // time spent waiting — the evidence for the subtree-lock upgrade trigger
+  startedAt?: number;
+  finishedAt?: number;
+}
+
 // Unsolicited broadcasts (no `id`).
 // PING/PONG are the APPLICATION-level heartbeat: the plugin iframe runs a browser
 // WebSocket, whose API does NOT expose protocol-level ping() to JS — so the plugin
@@ -156,9 +191,15 @@ export interface EventMsg {
   // (`figma-agent bind` is a RequestMsg — cmd: 'PROJECT_BIND' — not an event: the fix
   // round found a fire-and-forget event could never report migratedCount/fileKey back to
   // the CLI. See broker-daemon.ts's broker-local PROJECT_BIND handler.)
+  //
+  // JOB_STATE (concurrency & jobs, backlog 1.1+2.6+4.3): broker → the waiting CLI, sent the
+  // moment a mutating request is admitted ("your request is job X, currently queued at
+  // position N") — BEFORE any timeout can fire, so a CLI that gives up waiting still knows
+  // its own jobId. `data` is a `JobInfo`.
   type:
     | 'BROKER_HELLO' | 'PLUGIN_HELLO' | 'FILE_INFO' | 'PLUGIN_GONE' | 'PING' | 'PONG'
-    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS' | 'EDIT_FEED';
+    | 'DOC_CHANGE' | 'SYNC_CONFIG' | 'SYNC_REQUEST' | 'SYNC_RESULT' | 'PEERS' | 'EDIT_FEED'
+    | 'JOB_STATE';
   data: Record<string, unknown>;
 }
 
@@ -227,7 +268,15 @@ export type ErrorCode =
   // 'E_UNBOUND', ...}`), NOT a ReplyErr (SYNC_RESULT has no request to reply to). A
   // stable code, not an ad-hoc boolean, so the panel's state machine (and any future
   // consumer) has one canonical thing to match instead of a field that could drift.
-  | 'E_UNBOUND';
+  | 'E_UNBOUND'
+  // Concurrency & jobs (backlog 1.1+2.6+4.3) — `figma-agent job <id>` on an id the broker
+  // has never heard of. Three distinct not-found facts, never collapsed: an id that never
+  // existed, and a broker restart (jobs are in-memory) BOTH answer this code (the message
+  // distinguishes them — see job.ts) — while an id that finished and aged out of the TTL
+  // answers E_JOB_EXPIRED instead, because "aged out" and "the broker forgot everything"
+  // are different facts for the caller to act on.
+  | 'E_JOB_UNKNOWN'
+  | 'E_JOB_EXPIRED';
 
 // ── Timeouts (ms) ───────────────────────────────────────────────────
 export const DEFAULT_TIMEOUT_MS = 15_000;
@@ -285,11 +334,16 @@ export function makeRequestFrame(
   activity?: string,
   expectedFile?: string,
   projectDir?: string,
+  readOnly?: boolean,
 ): RequestMsg {
   const frame: RequestMsg = { id, cmd, params, v: PROTOCOL_VERSION };
   if (typeof activity === 'string' && activity.trim() !== '') frame.activity = activity;
   if (typeof expectedFile === 'string' && expectedFile.trim() !== '') frame.expectedFile = expectedFile;
   if (typeof projectDir === 'string' && projectDir.trim() !== '') frame.projectDir = projectDir;
+  // Concurrency & jobs — omitted (never `readOnly: false`) when unset, exactly like the
+  // other optional envelope fields above: an unguarded frame must serialize
+  // byte-identically to what every pre-flag CLI sent.
+  if (readOnly === true) frame.readOnly = true;
   return frame;
 }
 

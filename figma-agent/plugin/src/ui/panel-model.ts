@@ -128,6 +128,69 @@ export function syncNowLabel(unbound: boolean): string {
   return unbound ? 'Bind & retry' : 'Sync now';
 }
 
+// ─── Activity feed sentences for sync runs (owner addendum, task #145) ─────────────────
+//
+// Scouted, not assumed: the manual "Sync now" click already pushed/resolved an Activity
+// row (panel-ui.ts), but its sentence came from activity-sentence.ts's generic
+// `RECONCILE` stem (continuous: 'Syncing', plain: 'Synced') — a bare word, because the
+// row's `result` string (`→ ${syncResultLabel(...)}`) never matched the count-regex
+// (starts with a WORD, not a digit) and a failure never even passed `errorMessage`. These
+// three functions compose the FULL sentence directly and land it on `ActivityRecord.sentence`
+// (used verbatim by the renderer) instead of forcing it through that generic mapper.
+//
+// "Auto" vs "manual": no auto-trigger exists in this tree today (verified — the only
+// `SYNC_REQUEST` dispatch site is this button's click handler); `source` is a plain
+// parameter here (not a stored field) so backlog 4.4 P3's future watcher-driven
+// auto-apply can call `syncStartSentence('auto', fileLabel)` the day it exists, with zero
+// further redesign.
+export type SyncSource = 'manual' | 'auto';
+
+/** Sync STARTED — the pending Activity row's sentence. Long, full-meaning (Activity is
+ *  the one surface exempt from the terse-truncate rule). */
+export function syncStartSentence(source: SyncSource, fileLabel: string): string {
+  return source === 'auto'
+    ? `Auto-sync started — ${fileLabel} went idle, applying its pending changes`
+    : `Sync started — checking ${fileLabel} for pending Figma changes to apply`;
+}
+
+/**
+ * Sync RESULT — the resolved Activity row's sentence, once the outcome is known.
+ * `unbound` keeps `syncResultLabel`'s own bare message unwrapped: it already reads as a
+ * full, actionable sentence ("No project bound for X — run: figma-agent bind --file ..."),
+ * and wrapping it in a "Sync failed for" verdict would bury the fix behind a message the
+ * owner would read as a bug to retry rather than a one-time setup step.
+ */
+export function syncResultSentence(ok: boolean, summary: string, landed: boolean, unbound: boolean, fileLabel: string): string {
+  const clean = typeof summary === 'string' && summary.trim().length > 0 ? summary.trim() : (ok ? 'done' : 'failed');
+  if (unbound) return clean;
+  if (!ok) return `Sync failed for ${fileLabel} — ${clean}`;
+  return landed ? `Synced ${fileLabel} — ${clean}` : `Nothing synced for ${fileLabel} — ${clean}`;
+}
+
+/**
+ * Live-observed durability gap (owner's screen): a SYNC_REQUEST landed on a broker that
+ * got hot-replaced before answering — the retry succeeded on the new broker, but the
+ * FIRST panel row never got its SYNC_RESULT and spun "Syncing" forever. This is the exact
+ * class concurrency & jobs (backlog 1.1+2.6+4.3) fixes for the CLI (timeout → poll); the
+ * panel needs its own bounded guard, since it has no job table to poll.
+ */
+export const SYNC_STUCK_TIMEOUT_MS = 30_000;
+export function syncStuckSentence(): string {
+  return 'Sync did not answer — the broker restarted mid-run; press Sync again';
+}
+
+/**
+ * Stage-4 fix round (minor 9) — a second "Sync now" click while the first run is still
+ * pending used to leave that FIRST row spinning "Syncing" forever: a new row started, the
+ * old row's own stuck-timer later found `reconcileRun.id` had already moved on to the
+ * second run and silently did nothing (by design — never resolve a row a REAL result may
+ * still land on). Never orphan it: the click handler now resolves the still-pending FIRST
+ * row with this sentence before starting the second run.
+ */
+export function syncSupersededSentence(): string {
+  return 'Superseded by a newer sync';
+}
+
 /**
  * Whether a SYNC_RESULT outcome should clear main.ts's pending-change counter — closing
  * review round, defect #2: it used to clear on ANY non-E_UNBOUND outcome, so a genuine
