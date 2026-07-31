@@ -6,8 +6,10 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  EDIT_FEED_DIRNAME, appendEditFrames, editFeedDir, editFeedPath,
+  EDIT_FEED_DIRNAME, EDIT_FEED_UNBOUND_STAGING_DIRNAME, appendEditFrames, editFeedDir, editFeedPath,
+  editFeedPathForIdentity, unboundEditStagingPath,
 } from '../cli/src/transport/edit-feed-log.ts';
+import { migrateStagedChanges } from '../cli/src/transport/change-log.ts';
 import { EDIT_FEED_SCHEMA_VERSION, type EditInput } from '../shared/edit-feed.ts';
 
 const edit = (over: Partial<EditInput> = {}): EditInput => ({
@@ -154,5 +156,60 @@ describe('appendEditFrames — one JSONL line per edit, own schema version', () 
     const path = editFeedPath('KEY1', null);
     appendEditFrames(path, [edit({ nodeId: 'a' })], { fileKey: 'KEY1', fileName: '', source: 'gapfill' }, 1);
     expect(JSON.parse(readLines(path)[0]).source).toBe('gapfill');
+  });
+});
+
+// Backlog 5.7 fold-in — the SAME binding-aware routing DOC_CHANGE already has
+// (change-log.ts's changeLogPathFor/unboundStagingPath), now mirrored here so EDIT_FEED
+// never falls into the broker's own cwd-derived default for a file with a REAL binding.
+describe('editFeedPathForIdentity — rooted at an explicit project, not the broker cwd', () => {
+  it('joins <projectDir>/design/changes/<identity>.jsonl', () => {
+    expect(editFeedPathForIdentity('/tmp/some-project', 'vsf-pcp')).toBe(
+      join('/tmp/some-project', 'design', EDIT_FEED_DIRNAME, 'vsf-pcp.jsonl'),
+    );
+  });
+
+  it('never reads changeLogDir()/FIGMA_AGENT_CHANGES_DIR — projectDir is the sole root', () => {
+    // `dir` (FIGMA_AGENT_CHANGES_DIR) is set in beforeEach; a DIFFERENT explicit project
+    // dir must produce a path that does NOT live under it.
+    const path = editFeedPathForIdentity('/tmp/other-project', 'vsf-pcp');
+    expect(path.startsWith(dir)).toBe(false);
+  });
+});
+
+describe('unboundEditStagingPath — mirrors change-log.ts\'s unboundStagingPath contract', () => {
+  it('lives under <editFeedDir()>/unbound/, its OWN subdir (never DOC_CHANGE\'s unbound/)', () => {
+    expect(unboundEditStagingPath('vsf-pcp')).toBe(
+      join(editFeedDir(), EDIT_FEED_UNBOUND_STAGING_DIRNAME, 'vsf-pcp.jsonl'),
+    );
+  });
+
+  it('is a DIFFERENT path from change-log.ts\'s own unbound staging for the same slug', () => {
+    // Never let an EditFrame and a ChangeFrame collide in the same staging file — proven
+    // structurally (different subdir), not just by convention/comment.
+    const editStaging = unboundEditStagingPath('vsf-pcp');
+    expect(editStaging).toContain(`${EDIT_FEED_DIRNAME}/${EDIT_FEED_UNBOUND_STAGING_DIRNAME}`);
+  });
+});
+
+describe('migrateStagedChanges reused as-is for the edit feed (schema-agnostic raw-line copy)', () => {
+  it('migrates staged EditFrame lines into the bound project\'s own edit feed, idempotently', () => {
+    const staging = unboundEditStagingPath('vsf-pcp');
+    const bound = editFeedPathForIdentity(join(dir, 'bound-project'), 'vsf-pcp');
+    mkdirSync(join(dir, EDIT_FEED_DIRNAME, EDIT_FEED_UNBOUND_STAGING_DIRNAME), { recursive: true });
+    appendEditFrames(staging, [edit({ nodeId: 'a' })], { fileKey: null, fileName: 'VSF - PCP', source: 'live' }, 1);
+
+    expect(migrateStagedChanges(staging, bound)).toBe(1);
+    expect(readLines(bound)).toHaveLength(1);
+    expect(JSON.parse(readLines(bound)[0]).nodeId).toBe('a');
+
+    // Idempotent: a re-migrate (e.g. a re-bind) finds nothing left staged.
+    expect(migrateStagedChanges(staging, bound)).toBe(0);
+  });
+
+  it('a fresh identity with nothing staged migrates 0, never throws', () => {
+    const staging = unboundEditStagingPath('never-staged');
+    const bound = editFeedPathForIdentity(join(dir, 'bound-project'), 'never-staged');
+    expect(migrateStagedChanges(staging, bound)).toBe(0);
   });
 });

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-07-31 - Owner-change-feed readers, reconnect gap-fill, edit-feed binding (4.4 P2)
+
+### Added
+- **`figma-agent changes`** — read the designer's own edit history per file
+  (--since/--file/--actor/--owner-only/--limit), rendered as human sentences; malformed and
+  shape-invalid lines are counted as warnings, never a crash.
+- **`figma-agent errors`** — same shape over `design/figma-errors.jsonl`; asking about a file
+  with zero errors answers `count: 0` instead of throwing.
+- **Reconnect gap-fill**: per-page snapshots let the plugin report edits made while it was
+  CLOSED as `gapfill` frames on the next boot. Deleted pages get one honest notice (plus
+  chunk cleanup); pages over the scan cap suppress their whole diff — a wrong fact is worse
+  than an absent one; a best-effort snapshot also runs on plugin close.
+
+### Fixed
+- The owner-edit feed now routes through the file↔project binding like the registry feed
+  (an edit in file A can no longer land in project B); unbound files stage and migrate on
+  bind; a fileKey learned later merges the split history; feed order is a reader guarantee.
+
 ## 2026-07-31 - Concurrency & Jobs: one mutation per file, honest timeouts, sync in Activity
 
 ### Added

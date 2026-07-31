@@ -24,7 +24,7 @@ import { PluginRegistry, type PluginEntry } from './plugin-registry.ts';
 import { buildBrokerHelloData, noPluginMessage } from './broker-status.ts';
 import { resolveRouteFilter, type RouteFilter } from './route-filter.ts';
 import { appendChangeFrames, changeLogPathFor, migrateStagedChanges, unboundStagingPath } from './change-log.ts';
-import { appendEditFrames, editFeedPath, safeSlug } from './edit-feed-log.ts';
+import { appendEditFrames, editFeedPathForIdentity, safeSlug, unboundEditStagingPath } from './edit-feed-log.ts';
 import { appendErrorFrame, buildErrorLogFrame, errorLogPath } from './error-log.ts';
 import { readIdleMs } from './figma-sync-config.ts';
 import { spawnReconcileApply } from './figma-sync-apply.ts';
@@ -244,18 +244,21 @@ function appendDocChange(changesPath: string, data: Record<string, unknown>): vo
 /**
  * Owner-edit change feed (wave 4.4 P1): append the plugin's widened, actor-labelled
  * batch to its OWN per-file feed — never figma.changes.jsonl (spec A6). Best-effort,
- * same contract as appendDocChange: a log failure must never disrupt the relay. Unlike
- * the component log's single fixed path, this one is resolved PER BATCH (one file per
- * fileKey/fileName slug), so there is no startup-time equivalent of `changesPath`.
+ * same contract as appendDocChange: a log failure must never disrupt the relay.
+ *
+ * Backlog 5.7 fold-in: `path` is now resolved by the CALLER (same shape as
+ * `appendDocChange`'s `changesPath`) via the SAME binding-index routing DOC_CHANGE
+ * already uses — bound → the project's own `design/changes/<identity>.jsonl`; unbound →
+ * staged, migrated in once a bind resolves this identity (`handleProjectBind`). This
+ * function no longer resolves the broker's own cwd-derived path itself.
  */
-function appendEditFeed(data: Record<string, unknown>): void {
+function appendEditFeed(path: string, data: Record<string, unknown>): void {
   try {
     const edits = Array.isArray(data.edits) ? (data.edits as EditInput[]) : [];
     if (edits.length === 0) return;
     const fileKey = typeof data.fileKey === 'string' ? data.fileKey : null;
     const fileName = typeof data.fileName === 'string' ? data.fileName : null;
     const source: EditSource = data.source === 'gapfill' ? 'gapfill' : 'live';
-    const path = editFeedPath(fileKey, fileName);
     const { written, droppedInvalid } = appendEditFrames(path, edits, { fileKey, fileName: fileName ?? '', source }, Date.now());
     // droppedInvalid is logged even at 0 alongside a non-zero write, and always when
     // itself non-zero, so a malformed batch never disappears silently (post-review fix).
@@ -473,6 +476,19 @@ export async function runBrokerDaemon(options?: BrokerDaemonOptions): Promise<vo
     const target: Binding = { projectDir: existing.projectDir, source: 'bind', at: existing.at };
     if (!needsAliasPromotion(st.bindIndex.get(fileKey), target)) return; // already promoted, no-op
     recordBinding(st.bindIndex, fileKey, target);
+    // Stage-4 fix round (M2) — from THIS moment, every future EDIT_FEED batch resolves via
+    // `fileIdentity(fileKey, fileName)` = fileKey (not the name-slug used before this
+    // promotion), so the feed would otherwise SPLIT across `<slug>.jsonl` (earlier
+    // batches) and `<fileKey>.jsonl` (later ones) forever. Merge the name-slug feed
+    // forward into the fileKey feed, once, reusing the SAME raw-line-copy protocol
+    // unbound staging already uses (schema-agnostic — no duplicate crash-safety logic).
+    const migratedEditCount = migrateStagedChanges(
+      editFeedPathForIdentity(existing.projectDir, slug),
+      editFeedPathForIdentity(existing.projectDir, fileKey),
+    );
+    if (migratedEditCount > 0) {
+      log(`BIND promoted: merged ${migratedEditCount} edit-feed frame(s) from ${slug}.jsonl into ${fileKey}.jsonl`);
+    }
     const marker = readBindMarker(existing.projectDir);
     const entry = marker?.bindings.find((b) => b.fileNameSlug === slug);
     if (marker && entry && (entry.fileKey !== fileKey || entry.pendingKey === true)) {
@@ -550,8 +566,17 @@ export async function runBrokerDaemon(options?: BrokerDaemonOptions): Promise<vo
     // unbound into the now-bound component log, exactly once — `migrateStagedChanges` is
     // idempotent, so a re-bind of an already-migrated file finds nothing left staged.
     const migratedCount = migrateStagedChanges(unboundStagingPath(slug), changeLogPathFor(projectDir));
-    log(`BIND recorded: "${fileName}" → ${projectDir}${fileKey ? ` (fileKey ${fileKey})` : ' (pending fileKey)'}${migratedCount > 0 ? `, migrated ${migratedCount} staged frame(s)` : ''}`);
-    reply({ fileName, projectDir, fileKey, pendingKey: fileKey === null, migratedCount });
+    // Backlog 5.7 fold-in — the SAME migration for the edit feed's own unbound staging.
+    // `migrateStagedChanges` is schema-agnostic (a raw-line copy), so it is reused as-is —
+    // `slug` is `fileIdentity(null, fileName)`, exactly the key the EDIT_FEED branch stages
+    // under; the bound TARGET identity prefers `fileKey` when known (matching what a live
+    // batch would resolve to right after this bind), else falls back to the same `slug`.
+    const migratedEditCount = migrateStagedChanges(
+      unboundEditStagingPath(slug),
+      editFeedPathForIdentity(projectDir, fileIdentity(fileKey, fileName)),
+    );
+    log(`BIND recorded: "${fileName}" → ${projectDir}${fileKey ? ` (fileKey ${fileKey})` : ' (pending fileKey)'}${migratedCount > 0 ? `, migrated ${migratedCount} staged change frame(s)` : ''}${migratedEditCount > 0 ? `, migrated ${migratedEditCount} staged edit frame(s)` : ''}`);
+    reply({ fileName, projectDir, fileKey, pendingKey: fileKey === null, migratedCount, migratedEditCount });
   };
 
   const errReplyFrame = (id: string, code: ErrorCode, message: string): string =>
@@ -1129,7 +1154,43 @@ export async function runBrokerDaemon(options?: BrokerDaemonOptions): Promise<vo
       } else if (msg.type === 'EDIT_FEED') {
         // Owner-edit change feed (wave 4.4 P1): same broker-side, best-effort append,
         // to its own per-file feed — see appendEditFeed.
-        if (isPlugin) appendEditFeed(msg.data);
+        //
+        // Backlog 5.7 fold-in — SAME binding-aware routing as DOC_CHANGE just above (this
+        // branch used to go straight to `editFeedPath`'s cwd-derived default, ignoring the
+        // binding index entirely — a live-traced misattribution: a Platform DS edit landed
+        // in VSF-PCP's tree because the broker happened to spawn there). `handleProjectBind`
+        // migrates whatever staged in once this identity gets bound.
+        //
+        // Stage-4 fix round (minor 10) — ONE identity source for the routing decision:
+        // `data.fileName` (the plugin's own `figma.root.name` at batch time) is now the
+        // PRIMARY, so the path resolution and the frame's own stamped `fileName` (already
+        // payload-sourced, via `appendEditFrames`' meta) agree whenever the payload
+        // actually carries one.
+        //
+        // Closing round (N4, ruling Q3) — but `data.fileName` alone, with no fallback, is
+        // a silent-loss class: a stale plugin build that doesn't yet send `fileName` in
+        // this payload (documented reality — this repo's own toolchain scars) would
+        // resolve `identity` to `safeSlug('')` = `'unknown'`, a bucket NO future bind can
+        // ever migrate out of (nothing ever resolves an identity of exactly `'unknown'`
+        // back to a real file). Falling back to the registry's own `scene.fileName`
+        // (reliably known from PLUGIN_HELLO/FILE_INFO regardless of this payload) avoids
+        // that permanent loss. The FRAME's own stamped `fileName` stays exactly what
+        // `data` carried, undefined included — `appendEditFrames`' meta reads `data`
+        // directly and is untouched by this fallback (honest provenance, per minor 9b).
+        if (isPlugin) {
+          const scene = st.registry.getByWs(ws)?.scene;
+          const data = msg.data as Record<string, unknown>;
+          const fileName = (typeof data.fileName === 'string' ? data.fileName : null) ?? ((scene?.fileName as string | undefined) ?? null);
+          const fileKey = typeof data.fileKey === 'string' ? data.fileKey : null;
+          const identity = fileIdentity(fileKey, fileName);
+          const bound = resolveProjectDir(identity, st.bindIndex);
+          const path = bound
+            ? editFeedPathForIdentity(bound, identity)
+            // Staged by NAME slug specifically (not the fileKey-preferring `identity`
+            // above) — same reasoning as DOC_CHANGE's own unbound staging just above.
+            : unboundEditStagingPath(safeSlug(fileName ?? ''));
+          appendEditFeed(path, data);
+        }
       } else if (msg.type === 'SYNC_REQUEST') {
         // Live-sync commit (spec 004 P4): the panel's "Sync now" click → run the
         // deterministic kernel apply and report the result back to this plugin.
