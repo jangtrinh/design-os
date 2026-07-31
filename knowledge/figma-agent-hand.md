@@ -205,8 +205,22 @@ The plugin repo (github.com/jangtrinh/design-os-figma-plugin) carries its own
 - `knowledge/annotations.md` — `ui.annotate.*` (get/set/categories): the closed
   32-value property-type vocabulary, and the label/labelMarkdown append-mode merge
   (Figma auto-populates both on read but rejects writing both).
+- `knowledge/figjam.md` — `ui.figjam.*` (sticky/stickies/connector/shape/section/
+  table/codeBlock/arrange/board/connections): the FigJam board surface (`editorType`
+  now widens to `["figma","figjam"]`). **Design-only commands (`ui.slot.*`,
+  `ui.componentSet`, …) refuse there** naming FigJam vs. the editor they need — the
+  same `requireEditor` guard every `ui.figjam.*` helper carries in reverse; a design
+  file behaves exactly as before this phase (regression-checked).
 
 **`status` shape, additive field (absorption phase-02):** `plugin.editorType` —
 `'figma' | 'figjam' | 'slides' | 'dev' | null`, read directly off `figma.editorType`;
 `null` (never a silent `'figma'` default) when an older host reports nothing. Consumed
-by the plugin repo's `shared/editor-surface.ts` guard (phases 03/04: FigJam, Slides).
+by the plugin repo's `shared/editor-surface.ts` guard (phase 03: FigJam, wired;
+phase 04: Slides, not yet).
+
+**`status` shape, additive field (absorption phase-03):** `plugin.bootSkipped` — a
+string array naming which design-only boot capabilities this session consciously
+skipped (present only once non-empty, same contract as the broker's
+`senderMismatchCount`/`legacyMigrationDeferred`). Empty today: the phase-03 boot-path
+trace found nothing in the current boot sequence needs skipping in FigJam — the
+live-sync capture path already reports FigJam node types honestly by construction.
