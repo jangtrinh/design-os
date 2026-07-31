@@ -36,6 +36,48 @@ export function editFeedDir(): string {
 export { safeSlug };
 
 /**
+ * The SAME per-file feed filename, rooted at an explicit project dir instead of the
+ * broker's spawn cwd (backlog 5.7 fold-in — mirrors `change-log.ts`'s `changeLogPathFor`:
+ * EDIT_FEED must route through the SAME binding DOC_CHANGE already does, or a bound
+ * project's `figma-agent changes` reader finds nothing while the broker keeps writing
+ * under whatever cwd it happened to spawn in). Unlike the single-file component log, this
+ * feed is one file PER Figma file, so the caller passes `identity` (its own
+ * `fileIdentity(fileKey, fileName)`) rather than this module recomputing it — a bind-time
+ * caller (fileKey not always known yet) and a live-batch caller (fileKey known) then
+ * always agree on the exact same filename for the exact same file.
+ */
+export function editFeedPathForIdentity(projectDir: string, identity: string): string {
+  return join(projectDir, 'design', EDIT_FEED_DIRNAME, `${identity}.jsonl`);
+}
+
+// ── Unbound staging (backlog 5.7 fold-in) ────────────────────────────────────────────
+// Mirrors change-log.ts's unboundStagingPath/migrateStagedChanges contract exactly: an
+// EDIT_FEED batch for a file with no resolved binding stages here (never a project's own
+// design/ — staging is by construction pre-commitment, nobody has said which project this
+// is yet) instead of falling into the broker's cwd-derived default, and `migrateStagedChanges`
+// (reused as-is from change-log.ts — it is schema-agnostic, a raw-line copy) moves it into
+// the bound feed the moment a bind resolves this identity. Kept in this feed's OWN
+// subdirectory (`changes/unbound/`, not change-log.ts's `unbound/`) so the two logs' staged
+// history can never cross-contaminate — DOC_CHANGE frames and EditFrames have different
+// shapes and must never land in the same staging file.
+export const EDIT_FEED_UNBOUND_STAGING_DIRNAME = 'unbound';
+
+/** `<changeLogDir()>/changes/unbound/<slug>.jsonl` — keyed by the SAME name-slug
+ *  (`fileIdentity(null, fileName)` === `safeSlug(fileName)`) `handleProjectBind` and
+ *  DOC_CHANGE's own unbound staging use — a file connecting mid-way through its unbound
+ *  life must not split its staged history across two different keys.
+ *
+ *  Known limitation, DEFERRED not fixed here (backlog 5.6, ruling: implement 5.7 mirroring
+ *  today's pattern exactly, don't fold 5.6 in): this root is `editFeedDir()` →
+ *  `changeLogDir()` — the broker's own spawn cwd — so a restart with a different cwd
+ *  orphans whatever was staged under the old one. Shared with change-log.ts's OWN
+ *  `unboundStagingPath` for the exact same reason. Closing it means moving both roots to a
+ *  cwd-independent location, its own small spec/review, not a rider on this wave. */
+export function unboundEditStagingPath(slug: string): string {
+  return join(editFeedDir(), EDIT_FEED_UNBOUND_STAGING_DIRNAME, `${slug}.jsonl`);
+}
+
+/**
  * Per-file feed path: `design/changes/<identity>.jsonl`, identity = `fileIdentity(fileKey,
  * fileName)` — the ONE canonical chain (`file-identity.ts`), also used by
  * `project-bind.ts`. Fix round, finding 1: this used to derive its OWN slug — including

@@ -44,7 +44,21 @@ describe('buildEditFrame', () => {
       origin: 'LOCAL',
       page: 'Page 1',
       fileKey: 'file-key-1',
+      fileName: 'VSF - PCP',
     });
+  });
+
+  // Phase 02 fix — mirrors figma-changes.ts's ChangeFrame.fileName: needed so `--file
+  // <name>` (phase 02 §1) can match a Figma-Free file (fileKey null) by its human name,
+  // not just the feed's own on-disk slug.
+  it('stamps fileName from the batch meta onto the frame', () => {
+    const frame = buildEditFrame(baseInput(), baseMeta({ fileName: 'Platform - Design System' }), 1);
+    expect(frame.fileName).toBe('Platform - Design System');
+  });
+
+  it('omits fileName entirely (not empty string) when the meta carries none', () => {
+    const frame = buildEditFrame(baseInput(), baseMeta({ fileName: '' }), 1);
+    expect(frame).not.toHaveProperty('fileName');
   });
 
   it('a delete carries null name/parent honestly rather than inventing one', () => {

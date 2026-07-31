@@ -89,4 +89,22 @@ describe('editSentence', () => {
     expect(editSentence(base({ nodeType: 'COMPONENT_SET', changedProps: ['name'], op: 'updated' })))
       .toBe('Renamed component set "Hero card"');
   });
+
+  // Stage-4 fix round (minor 9c) — the gap-fill truncation notice must never render as
+  // "Restyled page ..." (the generic verb mapper's fallback for an unrecognized prop).
+  describe('the gap-fill truncation notice gets its OWN sentence, never "Restyled"', () => {
+    it('changedProps ["truncated"] never falls through to the generic restyled verb', () => {
+      const sentence = editSentence(base({ nodeType: 'PAGE', changedProps: ['truncated'], op: 'updated' }));
+      expect(sentence).not.toContain('Restyled');
+      // Closing round (N5) — states the ACTUAL current fact (gap-fill is OFF for this
+      // page right now), never a speculative "some deletions may be invisible".
+      expect(sentence).toContain('disabled');
+      expect(sentence).toContain('scan cap');
+    });
+
+    it('names the page via nodeName when present', () => {
+      const sentence = editSentence(base({ nodeName: 'Screens', nodeType: 'PAGE', changedProps: ['truncated'], op: 'updated' }));
+      expect(sentence).toContain('"Screens"');
+    });
+  });
 });

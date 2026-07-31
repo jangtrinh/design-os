@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreCompact\",\"additionalContext\":\"OWNER STANDING RULE: context is about to be compacted (~95% full). In the compaction summary, include a section titled BRV-SAVE-PENDING containing a complete session-state digest: current wave/plan names and status, key decisions made, in-flight agents and their tasks, commits landed (shas), and open questions. The post-compaction assistant MUST immediately persist that digest with: brv curate \\\"<digest>\\\" before continuing any other work.\"}}'",
+            "statusMessage": "PreCompact: nhắc lưu session state vào ByteRover"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostCompact\",\"additionalContext\":\"OWNER STANDING RULE: compaction just happened. If the summary contains a BRV-SAVE-PENDING section (or any session-state digest), run now: brv curate \\\"<digest text>\\\" — then continue the interrupted work. Do this FIRST, before other tool calls.\"}}'",
+            "statusMessage": "PostCompact: lưu digest vào ByteRover"
+          }
+        ]
+      }
+    ]
+  }
+}

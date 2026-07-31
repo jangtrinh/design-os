@@ -20,7 +20,7 @@
 // fresh via `vi.resetModules()` + dynamic `import()` AFTER setting env vars, guaranteeing
 // the constants observe this test's own values regardless of import order across the suite.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import WebSocket from 'ws';
@@ -112,6 +112,15 @@ async function helloPlugin(ws: WebSocket, instanceId: string, fileName: string):
   await nextFrame(ws, (m) => (m as EventMsg).type === 'SYNC_CONFIG');
 }
 
+/** Sends FILE_INFO as the plugin — triggers `promotePendingBind` on the broker side when
+ *  a real fileKey shows up for the first time on an already-bound name-slug. */
+function sendFileInfo(ws: WebSocket, fileName: string, fileKey: string): void {
+  ws.send(JSON.stringify({
+    type: 'FILE_INFO',
+    data: { fileName, fileKey, page: 'Page 1', selectionName: null, selectionCount: 0 },
+  } satisfies EventMsg));
+}
+
 /** Send a mutating request and wait for its JOB_STATE — returns the minted jobId, whether
  *  it started running immediately or was queued behind another job on the same file. */
 async function sendMutatingJob(ws: WebSocket, reqId: string): Promise<string> {
@@ -125,6 +134,44 @@ async function pollJob(ws: WebSocket, jobId: string, reqId: string): Promise<{ j
   const reply = await nextFrame<ReplyOk | ReplyErr>(ws, (m) => (m as ReplyOk | ReplyErr).id === reqId);
   if (!reply.ok) throw new Error(`poll failed: ${JSON.stringify(reply.error)}`);
   return reply.result as { job: JobInfo; resultFrames?: string[]; resultDropped?: boolean; lateReplyCount?: number };
+}
+
+interface EditInputLike {
+  op: 'created' | 'updated' | 'deleted';
+  nodeId: string;
+  nodeName: string | null;
+  nodeType: string;
+  parentName: string | null;
+  changedProps: string[];
+  origin: 'LOCAL' | 'REMOTE';
+  page: string;
+  actor: 'owner' | 'agent' | 'ambiguous';
+}
+
+/** Sends an EDIT_FEED batch as the plugin — no reply is expected (best-effort append). */
+function sendEditFeed(
+  ws: WebSocket, edits: readonly EditInputLike[], meta: { fileKey: string | null; fileName: string; source?: 'live' | 'gapfill' },
+): void {
+  ws.send(JSON.stringify({
+    type: 'EDIT_FEED',
+    data: { edits, fileKey: meta.fileKey, fileName: meta.fileName, source: meta.source ?? 'live' },
+  } satisfies EventMsg));
+}
+
+/** Closing round (N4) — simulates a stale plugin build that doesn't yet send `fileName`
+ *  in this payload AT ALL (not even `undefined` — the key is simply absent), the way a
+ *  build predating this field would. */
+function sendEditFeedWithoutFileName(ws: WebSocket, edits: readonly EditInputLike[], fileKey: string | null): void {
+  ws.send(JSON.stringify({ type: 'EDIT_FEED', data: { edits, fileKey, source: 'live' } } satisfies EventMsg));
+}
+
+async function bindProject(
+  ws: WebSocket, fileName: string, projectDir: string, reqId: string,
+): Promise<{ migratedCount: number; migratedEditCount: number; fileKey: string | null }> {
+  ws.send(JSON.stringify(makeRequestFrame(reqId, 'PROJECT_BIND', { fileName, projectDir })));
+  const reply = await nextFrame<ReplyOk | ReplyErr>(ws, (m) => (m as ReplyOk | ReplyErr).id === reqId);
+  if (!reply.ok) throw new Error(`bind failed: ${JSON.stringify((reply as ReplyErr).error)}`);
+  return reply.result as { migratedCount: number; migratedEditCount: number; fileKey: string | null };
 }
 
 beforeEach(() => {
@@ -257,5 +304,132 @@ describe('daemon harness — a watchdog-failed job answered late returns the tim
     const parsed = JSON.parse(final.resultFrames![0]!) as ReplyErr;
     expect(parsed.ok).toBe(false);
     expect(parsed.error.code).toBe('E_TIMEOUT');
+  });
+});
+
+describe('daemon harness — EDIT_FEED routes through the binding index, never the broker\'s spawn cwd (backlog 5.7)', () => {
+  it('an unbound batch stages; PROJECT_BIND migrates it into the bound project\'s OWN edit feed; a later batch lands there directly', async () => {
+    const port = await startTestBroker();
+    const plugin = await connectSocket(port);
+    await helloPlugin(plugin, 'plugin-edit-1', 'Platform - Design System');
+
+    const slug = 'platform-design-system'; // safeSlug('Platform - Design System')
+    const stagingPath = join(scratchDir, 'changes', 'unbound', `${slug}.jsonl`);
+    // The broker's own cwd-derived default — a Platform DS edit landing HERE (VSF-PCP's
+    // tree, in the real live-traced incident) is the exact misattribution 5.7 fixes.
+    const cwdDefaultPath = join(scratchDir, 'changes', `${slug}.jsonl`);
+
+    // Unbound: sent before any bind exists for this identity.
+    sendEditFeed(plugin, [
+      { op: 'deleted', nodeId: 'n1', nodeName: 'Subtitle', nodeType: 'TEXT', parentName: 'Roles / Detail', changedProps: [], origin: 'LOCAL', page: 'Screens', actor: 'owner' },
+    ], { fileKey: null, fileName: 'Platform - Design System' });
+    await waitFor(() => existsSync(stagingPath));
+    expect(readFileSync(stagingPath, 'utf8').trim().split('\n')).toHaveLength(1);
+    expect(existsSync(cwdDefaultPath)).toBe(false); // never the broker's own cwd default
+
+    const boundProjectDir = mkdtempSync(join(tmpdir(), 'fa-bound-project-'));
+    try {
+      const cli = await connectSocket(port);
+      const bindResult = await bindProject(cli, 'Platform - Design System', boundProjectDir, 'req-bind-1');
+      expect(bindResult.migratedEditCount).toBe(1);
+
+      const boundFeedPath = join(boundProjectDir, 'design', 'changes', `${slug}.jsonl`);
+      expect(existsSync(boundFeedPath)).toBe(true); // migrated into the REAL bound project
+      expect(existsSync(stagingPath)).toBe(false); // staging cleaned up after migration
+
+      // A second, now-bound batch — lands DIRECTLY in the bound project, never staged,
+      // never the broker's cwd default.
+      sendEditFeed(plugin, [
+        { op: 'updated', nodeId: 'n2', nodeName: 'CTA', nodeType: 'TEXT', parentName: 'Hero', changedProps: ['characters'], origin: 'LOCAL', page: 'Screens', actor: 'owner' },
+      ], { fileKey: null, fileName: 'Platform - Design System' });
+      await waitFor(() => readFileSync(boundFeedPath, 'utf8').trim().split('\n').length === 2);
+      expect(existsSync(cwdDefaultPath)).toBe(false); // still never touches the cwd default
+      expect(existsSync(stagingPath)).toBe(false); // never re-created
+    } finally {
+      rmSync(boundProjectDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('daemon harness — pendingKey→fileKey promotion merges the edit feed, never splits it (stage-4 fix round, M2)', () => {
+  it('a name-slug-keyed feed migrates into the fileKey-keyed feed the moment FILE_INFO reveals a real fileKey', async () => {
+    const port = await startTestBroker();
+    const plugin = await connectSocket(port);
+    await helloPlugin(plugin, 'plugin-edit-2', 'Platform - Design System');
+
+    const slug = 'platform-design-system';
+    const realFileKey = 'REAL-FILE-KEY-123';
+    const boundProjectDir = mkdtempSync(join(tmpdir(), 'fa-bound-project-m2-'));
+    try {
+      // A real project always already has SOME design/ dir — resolveProjectDir's own
+      // isUsable() treats a project without one as "stopped looking like a project"
+      // (never a fallback guess), so the fixture pre-creates it the way a genuine bind
+      // target would already have one.
+      mkdirSync(join(boundProjectDir, 'design'), { recursive: true });
+      // Bind BY NAME while the plugin's own fileKey is still unknown (null) — the common
+      // "bind before the file has a real key" case (a Figma-Free file, or simply binding
+      // before this session ever sent FILE_INFO with one).
+      const cli = await connectSocket(port);
+      await bindProject(cli, 'Platform - Design System', boundProjectDir, 'req-bind-m2');
+
+      const slugFeedPath = join(boundProjectDir, 'design', 'changes', `${slug}.jsonl`);
+      const keyFeedPath = join(boundProjectDir, 'design', 'changes', `${realFileKey}.jsonl`);
+
+      // Still routes by name-slug — fileKey isn't known to this batch yet either.
+      sendEditFeed(plugin, [
+        { op: 'deleted', nodeId: 'n1', nodeName: 'Subtitle', nodeType: 'TEXT', parentName: 'Roles / Detail', changedProps: [], origin: 'LOCAL', page: 'Screens', actor: 'owner' },
+      ], { fileKey: null, fileName: 'Platform - Design System' });
+      await waitFor(() => existsSync(slugFeedPath));
+      expect(readFileSync(slugFeedPath, 'utf8').trim().split('\n')).toHaveLength(1);
+
+      // FILE_INFO reveals the real fileKey for the first time — triggers promotePendingBind.
+      sendFileInfo(plugin, 'Platform - Design System', realFileKey);
+      await waitFor(() => existsSync(keyFeedPath));
+
+      // The name-slug feed is GONE (migrated away), never left to silently diverge.
+      expect(existsSync(slugFeedPath)).toBe(false);
+      expect(readFileSync(keyFeedPath, 'utf8').trim().split('\n')).toHaveLength(1);
+
+      // A THIRD batch, now carrying the real fileKey (as a live plugin would from here on) —
+      // lands in the SAME fileKey feed, never re-creating the name-slug one.
+      sendEditFeed(plugin, [
+        { op: 'updated', nodeId: 'n2', nodeName: 'CTA', nodeType: 'TEXT', parentName: 'Hero', changedProps: ['characters'], origin: 'LOCAL', page: 'Screens', actor: 'owner' },
+      ], { fileKey: realFileKey, fileName: 'Platform - Design System' });
+      await waitFor(() => readFileSync(keyFeedPath, 'utf8').trim().split('\n').length === 2);
+      expect(existsSync(slugFeedPath)).toBe(false); // never re-created
+    } finally {
+      rmSync(boundProjectDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('daemon harness — EDIT_FEED with no data.fileName falls back to the registry scene, never "unknown" (closing round, N4)', () => {
+  it('a payload missing fileName entirely still routes to the bound project\'s real slug, not unknown.jsonl', async () => {
+    const port = await startTestBroker();
+    const plugin = await connectSocket(port);
+    // HELLO gives the registry a real fileName — this is what N4's fallback reads.
+    await helloPlugin(plugin, 'plugin-edit-n4', 'Platform - Design System');
+
+    const slug = 'platform-design-system';
+    const boundProjectDir = mkdtempSync(join(tmpdir(), 'fa-bound-project-n4-'));
+    mkdirSync(join(boundProjectDir, 'design'), { recursive: true });
+    try {
+      const cli = await connectSocket(port);
+      await bindProject(cli, 'Platform - Design System', boundProjectDir, 'req-bind-n4');
+
+      const boundFeedPath = join(boundProjectDir, 'design', 'changes', `${slug}.jsonl`);
+      const unknownFeedPath = join(boundProjectDir, 'design', 'changes', 'unknown.jsonl');
+
+      // The stale-build payload — no `fileName` key at all.
+      sendEditFeedWithoutFileName(plugin, [
+        { op: 'deleted', nodeId: 'n1', nodeName: 'Subtitle', nodeType: 'TEXT', parentName: 'Roles / Detail', changedProps: [], origin: 'LOCAL', page: 'Screens', actor: 'owner' },
+      ], null);
+      await waitFor(() => existsSync(boundFeedPath));
+
+      expect(readFileSync(boundFeedPath, 'utf8').trim().split('\n')).toHaveLength(1);
+      expect(existsSync(unknownFeedPath)).toBe(false); // never the permanent-loss bucket
+    } finally {
+      rmSync(boundProjectDir, { recursive: true, force: true });
+    }
   });
 });
