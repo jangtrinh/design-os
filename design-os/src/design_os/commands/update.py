@@ -1,10 +1,16 @@
 """``design-os update [--pull] [--check] [--json]`` — refresh the dev-linked toolchain.
 
 The toolchain is dev-repo-linked: ``ui`` (the repo-root ``dist/cli.js``) plus the
-``figma-agent`` / ``recall`` / ``a11y-audit`` / ``page-shot`` hands are npm-linked global
-bins that serve the repo's compiled TS output, and ``design-os`` itself is an EDITABLE
-uv-tool install (its Python tracks source live). So one refresh = recompile the TS the
-linked bins serve; nothing on the Python side to reinstall.
+``recall`` / ``a11y-audit`` / ``page-shot`` hands are npm-linked global bins that serve
+the repo's compiled TS output, and ``design-os`` itself is an EDITABLE uv-tool install
+(its Python tracks source live). So one refresh = recompile the TS the linked bins
+serve; nothing on the Python side to reinstall.
+
+``figma-agent`` moved out to its own repo (github.com/jangtrinh/design-os-figma-plugin)
+and is no longer one of this repo's npm workspaces — rebuild/relink it from ITS OWN
+clone (``npm run build && npm link`` there). ``design-os doctor`` still reports it as an
+optional hand (a PATH check, source-location-independent); this command's job is only
+the workspaces that still live in this monorepo.
 
 ``update`` recompiles them with the SAME lines CI runs — grounded in the repo-root
 ``package.json`` workspaces + ``.github/workflows/ci.yml`` (the root build for ``ui`` then
@@ -39,14 +45,15 @@ STEP_TIMEOUT = 300.0
 
 # The canonical dist-build lines — GROUNDED, not invented:
 #   • root ``npm run build`` (→ dist/cli.js = the ``ui`` bin) — ci.yml ``check`` + ``design-os``.
-#   • ``npm run build --workspace=<w>`` per workspace — ci.yml ``figma-agent``/``recall``/``a11y``
-#     jobs; the a11y workspace bin-emits BOTH ``a11y-audit`` and ``page-shot`` (a11y/package.json),
-#     and vr_matrix._HAND_MISSING_MSG names the same a11y line.
-# Order follows the linked-bin enumeration (ui → figma-agent → recall → a11y; a11y last as it
-# serves two hands). Each entry is (step-label, npm-args); run sequentially in the repo root.
+#   • ``npm run build --workspace=<w>`` per workspace — ci.yml ``recall``/``a11y`` jobs; the
+#     a11y workspace bin-emits BOTH ``a11y-audit`` and ``page-shot`` (a11y/package.json), and
+#     vr_matrix._HAND_MISSING_MSG names the same a11y line. ``figma-agent`` is no longer a
+#     workspace here (split into github.com/jangtrinh/design-os-figma-plugin) — its own repo
+#     owns its own build/link now.
+# Order follows the linked-bin enumeration (ui → recall → a11y; a11y last as it serves two
+# hands). Each entry is (step-label, npm-args); run sequentially in the repo root.
 _BUILD_STEPS: list[tuple[str, list[str]]] = [
     ("ui", ["run", "build"]),
-    ("figma-agent", ["run", "build", "--workspace=figma-agent"]),
     ("recall", ["run", "build", "--workspace=recall"]),
     ("a11y", ["run", "build", "--workspace=a11y"]),
 ]
@@ -214,8 +221,9 @@ def update(
 ) -> None:
     """Refresh the dev-linked toolchain so the global bins serve the repo's latest code.
 
-    Recompiles the TS the npm-linked bins serve (ui + the figma-agent/recall/a11y hands) with
-    the same lines CI runs; design-os itself is an editable install and needs no rebuild.
+    Recompiles the TS the npm-linked bins serve (ui + the recall/a11y hands) with the same
+    lines CI runs; design-os itself is an editable install and needs no rebuild. figma-agent
+    is a separate repo now — rebuild/relink it from its own clone.
     """
     repo = _discover_repo()
     if repo is None:

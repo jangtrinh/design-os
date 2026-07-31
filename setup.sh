@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # ease-design — full-studio one-command setup (Spec 020)
 #
-# Idempotent bootstrap: fresh clone -> npm install -> build (ui + 3 workspaces, a11y last)
-# -> link 5 bins -> `uv tool install` the design-os python umbrella -> verify -> report.
+# Idempotent bootstrap: fresh clone -> npm install -> build (ui + 2 workspaces, a11y last)
+# -> link 4 bins -> `uv tool install` the design-os python umbrella -> verify -> report.
+# figma-agent (the Figma hand) is now its own repo — github.com/jangtrinh/design-os-figma-plugin
+# — with its own install/build/link; this script no longer builds or links it.
 #
 # Every build/link/install line below is copied verbatim from the grounded sources — this
 # script invents none of them:
 #   - build steps  : design-os/src/design_os/commands/update.py  (_BUILD_STEPS)
-#   - build order  : .github/workflows/ci.yml                    (check/figma-agent/recall/a11y jobs)
+#   - build order  : .github/workflows/ci.yml                    (check/recall/a11y jobs)
 #   - link form    : .github/workflows/ci.yml design-os job (`npm link`) + update.py's
 #                     "npm link" pattern, extended per-workspace with the subshell-cd form so a
 #                     failure can't strand the cwd
@@ -183,13 +185,20 @@ print_linked_state() {
   echo ""
   echo "linked now"
   local name path
-  for name in ui figma-agent recall a11y-audit page-shot; do
+  for name in ui recall a11y-audit page-shot; do
     if path="$(command -v "$name" 2>/dev/null)"; then
       echo "  [✓] $name  $path"
     else
       echo "  [ ] $name  not linked — run ./setup.sh"
     fi
   done
+  # figma-agent is its own repo now (github.com/jangtrinh/design-os-figma-plugin) — this
+  # script no longer builds/links it, but still reports whether it happens to be on PATH.
+  if path="$(command -v figma-agent 2>/dev/null)"; then
+    echo "  [✓] figma-agent  $path"
+  else
+    echo "  [ ] figma-agent  not linked — install from github.com/jangtrinh/design-os-figma-plugin"
+  fi
   if [ "$SKIP_PYTHON" -eq 1 ]; then
     echo "  [ ] design-os  skipped (--skip-python)"
   elif path="$(command -v design-os 2>/dev/null)"; then
@@ -222,18 +231,16 @@ trap on_error ERR
 
 run_install() {
   echo ""
-  echo "install (npm install — root + the 3 workspaces)"
+  echo "install (npm install — root + the 2 workspaces)"
   CURRENT_STEP="npm install"
   npm install
 }
 
 run_build() {
   echo ""
-  echo "build (ui, then figma-agent / recall / a11y workspaces — a11y last, it emits 2 bins)"
+  echo "build (ui, then recall / a11y workspaces — a11y last, it emits 2 bins)"
   CURRENT_STEP="build: ui"
   npm run build
-  CURRENT_STEP="build: figma-agent"
-  npm run build --workspace=figma-agent
   CURRENT_STEP="build: recall"
   npm run build --workspace=recall
   CURRENT_STEP="build: a11y"
@@ -242,11 +249,9 @@ run_build() {
 
 run_link() {
   echo ""
-  echo "link (5 bins onto PATH — subshell-cd form so a failure can't strand the cwd)"
+  echo "link (4 bins onto PATH — subshell-cd form so a failure can't strand the cwd)"
   CURRENT_STEP="link: ui"
   npm link
-  CURRENT_STEP="link: figma-agent"
-  (cd figma-agent && npm link)
   CURRENT_STEP="link: recall"
   (cd recall && npm link)
   CURRENT_STEP="link: a11y"
@@ -372,7 +377,11 @@ print_success_report() {
   rule_header "ease-design full-studio setup" "DONE"
   echo ""
   echo "  [✓] ui            kernel — design tokens, layout, audits, registry"
-  echo "  [✓] figma-agent   Figma 1:1 mirror hand"
+  if command -v figma-agent >/dev/null 2>&1; then
+    echo "  [✓] figma-agent   Figma 1:1 mirror hand (github.com/jangtrinh/design-os-figma-plugin)"
+  else
+    echo "  [ ] figma-agent   not installed (optional) — github.com/jangtrinh/design-os-figma-plugin"
+  fi
   echo "  [✓] recall        semantic recall memory"
   echo "  [✓] a11y-audit    rendered accessibility audits"
   echo "  [✓] page-shot     rendered screenshots"
