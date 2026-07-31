@@ -23,7 +23,7 @@ const WIRE_MARGIN_MS = 2_000;
 export type Runner = (
   cmd: string,
   params: unknown,
-  opts?: { timeoutMs?: number; activity?: string },
+  opts?: { timeoutMs?: number; activity?: string; readOnly?: boolean },
 ) => Promise<unknown>;
 
 /** The walker's output, opaque to the CLI: plain JSON, compared structurally. */
@@ -74,11 +74,20 @@ export function resolveScanTimeout(requested?: number): number {
  * binding by when the tokenRefs name-join cannot carry it (a published variable has
  * no local name; a font field has no slot).
  */
+/**
+ * `readOnly` (concurrency & jobs, backlog 1.1+2.6+4.3) defaults to FALSE — EXEC_JS is
+ * mutating by default, and this same walker is shared by TWO very different callers:
+ * a bare `scan-node` (a pure read — declares `true`, see `run` below) and
+ * `mirror-verify`'s "scan original"/"scan rebuild" steps (part of a workflow that ALSO
+ * rebuilds and removes a node — left at the mutating default, consistent with the rest
+ * of that workflow; see mirror-verify.ts's own `readOnly: NO` classification).
+ */
 export async function scanNodeSpec(
   nodeId: string,
   timeoutMs: number,
   run: Runner = runCommand,
   activity = `Scan · ${nodeId}`,
+  readOnly = false,
 ): Promise<ScannedSpec> {
   const code = `${SCAN_NODE_WALKER_BUNDLE}
 const node = await figma.getNodeByIdAsync(${JSON.stringify(nodeId)});
@@ -90,12 +99,15 @@ return __scan.nodeToSpec(node, tokenNames, mainComps, keyedVars);`;
   // The label is the caller's, because EXEC_JS says nothing: this same walker runs
   // as a bare `scan-node`, as mirror-verify's "scan original" and as its "scan
   // rebuild" — three different waits the panel must be able to tell apart.
-  const reply = await run('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity });
+  const reply = await run('EXEC_JS', { code, timeoutMs }, { timeoutMs: timeoutMs + WIRE_MARGIN_MS, activity, readOnly });
   return unwrapExecJsReply(reply);
 }
 
 export async function run(args: CommandArgs): Promise<unknown> {
   const nodeId = args.positionals[0];
   if (!nodeId) throw new CliError('E_INVALID_ARGS', 'scan-node requires a <nodeId>');
-  return scanNodeSpec(nodeId, resolveScanTimeout(args.num('timeout')));
+  // A bare `scan-node` is a pure walker read — never queues, even while another mutation
+  // is running (mirror capture's own 40-sequential-child-process reconcile apply would
+  // otherwise stall behind any other agent's mutation — see figma-mirror-capture-run.ts).
+  return scanNodeSpec(nodeId, resolveScanTimeout(args.num('timeout')), runCommand, `Scan · ${nodeId}`, true);
 }

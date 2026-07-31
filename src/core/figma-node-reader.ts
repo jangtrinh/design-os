@@ -10,6 +10,7 @@
  * Storage only — no reconcile wiring (that is P4), no live Figma call. This is the IO
  * boundary for sidecars; `figmaNodeRelPath` / `validateFigmaNodeSidecar` are pure.
  */
+import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
@@ -61,19 +62,70 @@ export const SIDECAR_VERSION = "0.1.0";
 const SIDECAR_DIR = "components";
 /** Node types the sidecar accepts — must stay in sync with FigmaExportNode["type"]. */
 const VALID_NODE_TYPES = new Set<string>(["FRAME", "TEXT", "RECTANGLE", "IMAGE", "GROUP", "INSTANCE"]);
+/** A fileSlug matching this is already a safe, case-sensitive-unique directory segment. */
+const SAFE_FILE_SLUG_RE = /^[A-Za-z0-9_-]+$/;
+
+/**
+ * Registry-integrity phase 03 fix round (F5) — the sidecar dir segment for a `fileSlug`
+ * must never LOWERCASE it: `toSafeFilename` (built for registry-name slugs, which the
+ * registry already treats case-insensitively) would silently merge two real, distinct
+ * Figma file identities that differ only by case into one directory. A slug that is
+ * already a safe, case-sensitive directory segment (`[A-Za-z0-9_-]+`) passes through
+ * UNCHANGED; anything else falls back to `toSafeFilename` PLUS a short hash of the raw
+ * slug, so two different raw slugs that happen to strip to the same safe form still land
+ * in two different directories — the byFile cursor key and the sidecar dir stay in
+ * lock-step 1:1, never many-to-one.
+ *
+ * Stage-4 MINOR13 — the safe-passthrough and hashed-fallback outputs share the SAME
+ * character space (`[A-Za-z0-9_-]`), so a coincidental collision between them was
+ * theoretically possible (a legitimately-safe slug that happens to equal some OTHER raw
+ * slug's `<safe>-<hash>` form). `--` (double dash) is reserved as the one marker that can
+ * ONLY ever appear in a HASHED segment: `toSafeFilename` alone can never produce it
+ * (`[^a-z0-9]+` collapses any run of non-alnum chars to a SINGLE dash), so it is used as
+ * the separator here, AND a safe slug that happens to already contain `--` is routed
+ * through the hash path too — a passthrough segment therefore never contains `--`, a
+ * hashed one always does, so the two namespaces can never collide.
+ *
+ * Known caveat (stage-4 MINOR12, documented not fixed — out of this fix round's scope):
+ * this is a LOGICAL (string) distinctness guarantee only. On a case-INSENSITIVE
+ * filesystem (macOS APFS's default, and Windows) two distinct-by-this-function directory
+ * names that differ ONLY by case ("fileA" vs "filea") still resolve to the SAME physical
+ * directory on disk — the OS itself merges them regardless of what string this function
+ * returns. Detecting/working around filesystem case-sensitivity at runtime is a separate,
+ * larger decision (e.g. always hashing, or probing the FS) that the owner has not ruled
+ * on; this function's contract is "distinct case ⇒ distinct string," which is the most a
+ * pure, fs-free helper can promise.
+ */
+function sidecarFileSlugSegment(fileSlug: string): string {
+  if (SAFE_FILE_SLUG_RE.test(fileSlug) && !fileSlug.includes("--")) return fileSlug;
+  const hash = createHash("sha256").update(fileSlug, "utf8").digest("hex").slice(0, 8);
+  return `${toSafeFilename(fileSlug)}--${hash}`;
+}
 
 // ─── Pure: pointer + payload validation ───────────────────────────────────────
 
 /**
- * Derive the sidecar pointer for a component name: `components/<slug>.figma.json`.
+ * Derive the sidecar pointer for a component name: `components/<slug>.figma.json`, or
+ * `components/<file-slug>/<slug>.figma.json` when `fileSlug` is given.
  *
  * The slug reuses `toSafeFilename` (the existing kebab-case filename util), so
  * `Button/Primary` → `components/button-primary.figma.json`. Registry names are
  * `Category/Variant` in letters only, so slugs collide only for names differing by case
  * alone — which the registry already treats as two distinct records.
+ *
+ * Registry-integrity phase 03 (5.2), §3 — `fileSlug` (the SAME file identity a
+ * `--file-slug`-filtered reconcile run resolves) kills a cross-file name collision two
+ * different Figma files could otherwise produce for the same `Category/Variant` name. The
+ * directory segment is derived via {@link sidecarFileSlugSegment} (F5 fix round): a safe
+ * slug passes through case-PRESERVING (never lowercased — two file identities differing
+ * only by case must not collide), an unsafe one falls back to the safe form plus a short
+ * hash of the raw slug. Absent = the legacy flat layout, unchanged — only a run that
+ * actually resolved a bound file's identity partitions its sidecars; a manual, unfiltered
+ * run keeps today's shape exactly.
  */
-export function figmaNodeRelPath(name: string): string {
-  return `${SIDECAR_DIR}/${toSafeFilename(name)}${FIGMA_NODE_SUFFIX}`;
+export function figmaNodeRelPath(name: string, fileSlug?: string): string {
+  const dir = fileSlug !== undefined ? `${SIDECAR_DIR}/${sidecarFileSlugSegment(fileSlug)}` : SIDECAR_DIR;
+  return `${dir}/${toSafeFilename(name)}${FIGMA_NODE_SUFFIX}`;
 }
 
 function isObject(x: unknown): x is Record<string, unknown> {
@@ -153,8 +205,9 @@ export function writeFigmaNode(
   designDir: string,
   name: string,
   node: FigmaNodeSpec,
+  fileSlug?: string,
 ): FigmaNodeWriteResult {
-  const relPath = figmaNodeRelPath(name);
+  const relPath = figmaNodeRelPath(name, fileSlug);
   const path = resolve(join(designDir, relPath));
   const content = serialize(name, node);
 

@@ -32,7 +32,7 @@ const PROBE_KEY = '__easeSeatProbe';
  */
 export async function probeSignals(
   runner: Runner = runCommand,
-): Promise<{ pluginReachable: boolean; writeOk: boolean }> {
+): Promise<{ pluginReachable: boolean; writeOk: boolean; writeInconclusive?: boolean }> {
   // 1. Cheapest: connectivity.
   try {
     await runner('STATUS', {});
@@ -40,7 +40,10 @@ export async function probeSignals(
     return { pluginReachable: false, writeOk: false };
   }
 
-  // 2. Editor rights: a throwaway shared-plugin-data write, cleared right after.
+  // 2. Editor rights: a throwaway shared-plugin-data write, cleared right after. This
+  // probe WRITES (setSharedPluginData) — never declared read-only — so concurrency &
+  // jobs' per-file FIFO queue (backlog 1.1+2.6+4.3) can now make it wait behind another
+  // agent's mutation.
   const code = `
 const NS = ${JSON.stringify(PROBE_NAMESPACE)};
 const K = ${JSON.stringify(PROBE_KEY)};
@@ -53,8 +56,17 @@ return { wrote: readBack === stamp };
   try {
     const res = (await runner('EXEC_JS', { code, timeoutMs: 5_000 })) as { wrote?: unknown } | null;
     return { pluginReachable: true, writeOk: res?.wrote === true };
-  } catch {
-    return { pluginReachable: true, writeOk: false };
+  } catch (err) {
+    // Concurrency & jobs, phase 01 §3 — a pre-existing defect this wave's queue would
+    // otherwise turn from latent into a VISIBLE wrong answer: a TIMEOUT here is now a
+    // real possibility (queued behind another agent's mutation), and a timeout is
+    // INCONCLUSIVE, never a negative "not an editor" signal the way an explicit refusal
+    // is. `writeInconclusive` lets the classifier say so honestly instead of reporting a
+    // refusal that never happened.
+    const code2 = (err as { code?: string } | null)?.code;
+    return code2 === 'E_TIMEOUT'
+      ? { pluginReachable: true, writeOk: false, writeInconclusive: true }
+      : { pluginReachable: true, writeOk: false };
   }
 }
 

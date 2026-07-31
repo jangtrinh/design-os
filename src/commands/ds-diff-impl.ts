@@ -16,6 +16,7 @@ import { resolveTokens } from "../core/token-resolve.js";
 import { diffDesignSystem } from "../core/ds-diff.js";
 import type { DsState, DiffComponent } from "../core/ds-diff.js";
 import { formatMarkdown, formatPrComment } from "../core/ds-diff-format.js";
+import { registryFileForDir } from "../core/design-system.js";
 
 const CMD = "ds diff";
 
@@ -38,7 +39,10 @@ function loadState(dir: string): DsState {
   }
 
   const components: DiffComponent[] = [];
-  const regPath = join(dir, "component-registry.json");
+  // Stage-4 N6 — route through the shared resolver so this agrees with every other
+  // consumer (figma reconcile, ds init, ds docs/specimen) on which file is "the registry"
+  // when a foreign artifact occupies the conventional name.
+  const regPath = registryFileForDir(dir).path;
   if (existsSync(regPath)) {
     let regJson: { components?: unknown };
     try {

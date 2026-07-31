@@ -6,11 +6,24 @@
 // instead of surfacing a spurious failure the user must re-issue by hand.
 import { CliError } from './protocol-helpers.ts';
 
-/** True when a failed attempt should be retried once because it timed out cold. */
+/**
+ * True when a failed attempt should be retried once because it timed out cold.
+ *
+ * Concurrency & jobs (backlog 1.1+2.6+4.3) — "the CLI never re-dispatches" was FALSE in
+ * this tree until this guard existed: `runWithWarmRetry` retried the first E_TIMEOUT
+ * automatically, and with the broker now confirming a timed-out request became a real
+ * job (survives, retrievable via `figma-agent job <id>`), an unconditional retry would
+ * fire a SECOND request while the first job is still alive — a double-dispatch, exactly
+ * what backlog 2.6 exists to kill. So a timeout carrying a `jobId` is never retried here;
+ * the caller polls instead. A timeout with no `jobId` (an older broker that never sent
+ * JOB_STATE) keeps today's warm-retry behaviour unchanged.
+ */
 export function shouldWarmRetry(err: unknown, attempt: number): boolean {
   if (attempt !== 1) return false; // one warm retry only — never loop
   const code = (err as { code?: string } | null)?.code;
-  return code === 'E_TIMEOUT';
+  if (code !== 'E_TIMEOUT') return false;
+  if (err instanceof CliError && err.jobId !== undefined) return false;
+  return true;
 }
 
 export interface WarmRetryOpts {

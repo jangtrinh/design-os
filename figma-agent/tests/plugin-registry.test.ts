@@ -181,6 +181,43 @@ describe('selectTarget(filter) — FIGMA_AGENT_FILE substring match', () => {
   });
 });
 
+describe('matching(filter, {exact}) — exact mode + the ambiguity input', () => {
+  it('selectTarget(filter) unchanged: substring + most-recently-active', () => {
+    const { reg, tick } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design System' });
+    tick(5);
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design' });
+    expect(reg.selectTarget('design')?.instanceId).toBe('b'); // most-recently-active of the substring matches
+  });
+
+  it('selectTarget(filter, {exact:true}) → only the exact-named one', () => {
+    const { reg, tick } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design System' });
+    tick(5);
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design' });
+    expect(reg.selectTarget('design', { exact: true })?.instanceId).toBe('b');
+    expect(reg.selectTarget('Design System', { exact: true })?.instanceId).toBe('a');
+  });
+
+  it('matching(filter, {exact:true}).length === 2 for a duplicate-named pair — the ambiguity input', () => {
+    const { reg, tick } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design' });
+    tick(5);
+    reg.register(sock(), { instanceId: 'b', fileName: 'Design' });
+    reg.register(sock(), { instanceId: 'c', fileName: 'Design System' });
+    const hits = reg.matching('Design', { exact: true });
+    expect(hits.length).toBe(2);
+    expect(hits.map((h) => h.instanceId).sort()).toEqual(['a', 'b']);
+  });
+
+  it('a filter matching nothing → [] / null (the park path)', () => {
+    const { reg } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'Design' });
+    expect(reg.matching('nope', { exact: true })).toEqual([]);
+    expect(reg.selectTarget('nope', { exact: true })).toBeNull();
+  });
+});
+
 describe('park → flush decision (what the daemon keys off)', () => {
   it('filter set + only a NON-matching file → no target (park); matching file appears → target (flush)', () => {
     const { reg, tick } = makeReg();
@@ -204,9 +241,19 @@ describe('statusList — the per-file rows, most-recent first', () => {
       instanceId: 'b', fileName: 'B', page: 'P2', state: 'connected',
       lastHeartbeatAge: 0, // b was just registered at `now`
       connectedAt: bConnectedAt,
+      fileKey: null, // absent from the HELLO payload here — registry-integrity phase 01 §2
     });
     expect(list[1]).toMatchObject({ instanceId: 'a', fileName: 'A', page: 'P1', connectedAt: aConnectedAt });
     expect(list[1].lastHeartbeatAge).toBe(20); // a last seen 20ms ago
+  });
+
+  it('carries fileKey from the HELLO scene (registry-integrity phase 01 §2 — bind needs it)', () => {
+    const { reg } = makeReg();
+    reg.register(sock(), { instanceId: 'a', fileName: 'VSF - PCP', fileKey: 'abc123' });
+    reg.register(sock(), { instanceId: 'b', fileName: 'No Key Plugin' }); // non-org plugin
+    const list = reg.statusList();
+    expect(list.find((p) => p.instanceId === 'a')?.fileKey).toBe('abc123');
+    expect(list.find((p) => p.instanceId === 'b')?.fileKey).toBeNull();
   });
 
   it('lastHeartbeatAge = now − lastSeenAt; sorted newest-first; excludes closed', () => {
@@ -223,6 +270,36 @@ describe('statusList — the per-file rows, most-recent first', () => {
     expect(list[1].lastHeartbeatAge).toBe(40);
     a.readyState = CLOSED;
     expect(reg.statusList().map((p) => p.instanceId)).toEqual(['b']); // closed excluded
+  });
+});
+
+describe('getByInstanceId — pinned-target resolution (concurrency & jobs)', () => {
+  it('resolves a live instance by id, regardless of routing recency/filter', () => {
+    const { reg } = makeReg();
+    const { instanceId } = reg.register(sock(), { instanceId: 'p1', fileName: 'A' });
+    expect(reg.getByInstanceId(instanceId)?.scene.fileName).toBe('A');
+  });
+
+  it('returns null for an instance that never existed', () => {
+    const { reg } = makeReg();
+    expect(reg.getByInstanceId('nope')).toBeNull();
+  });
+
+  it('still finds a CLOSED socket\'s entry (the caller checks readyState itself)', () => {
+    const { reg } = makeReg();
+    const closed = sock(false);
+    reg.register(closed, { instanceId: 'p1', fileName: 'A' });
+    const found = reg.getByInstanceId('p1');
+    expect(found).not.toBeNull();
+    expect(found?.ws.readyState).toBe(CLOSED);
+  });
+
+  it('removeByWs makes the instance unresolvable', () => {
+    const { reg } = makeReg();
+    const ws = sock();
+    reg.register(ws, { instanceId: 'p1', fileName: 'A' });
+    reg.removeByWs(ws);
+    expect(reg.getByInstanceId('p1')).toBeNull();
   });
 });
 

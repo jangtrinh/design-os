@@ -6,6 +6,13 @@
   var CHUNK_LIMIT = 512 * 1024;
   var BROKER_IDLE_SHUTDOWN_MS = 30 * 6e4;
 
+  // shared/file-match.ts
+  function fileMatches(actual, filter, exact) {
+    const a = (actual ?? "").trim().toLowerCase();
+    const f = filter.trim().toLowerCase();
+    return exact ? a === f : a.includes(f);
+  }
+
   // shared/figma-changes.ts
   function mapChangeType(type) {
     switch (type) {
@@ -44,6 +51,74 @@
     }
     out.sort((a, b) => a.nodeId < b.nodeId ? -1 : a.nodeId > b.nodeId ? 1 : 0);
     return out;
+  }
+
+  // shared/edit-feed.ts
+  function coalesceEdits(raw) {
+    const byId = /* @__PURE__ */ new Map();
+    const propSets = /* @__PURE__ */ new Map();
+    for (const e of raw) {
+      const props = propSets.get(e.nodeId) ?? /* @__PURE__ */ new Set();
+      for (const p of e.changedProps) props.add(p);
+      propSets.set(e.nodeId, props);
+      const prev = byId.get(e.nodeId);
+      if (!prev) {
+        byId.set(e.nodeId, { ...e, changedProps: [] });
+        continue;
+      }
+      prev.op = e.op;
+      if (prev.nodeName === null && e.nodeName !== null) prev.nodeName = e.nodeName;
+      if (prev.parentName === null && e.parentName !== null) prev.parentName = e.parentName;
+      if (!prev.nodeType && e.nodeType) prev.nodeType = e.nodeType;
+      if (e.origin === "REMOTE") prev.origin = "REMOTE";
+      prev.actor = e.actor;
+    }
+    const out = [];
+    for (const [id, e] of byId) {
+      e.changedProps = [...propSets.get(id) ?? /* @__PURE__ */ new Set()].sort();
+      out.push(e);
+    }
+    out.sort((a, b) => a.nodeId < b.nodeId ? -1 : a.nodeId > b.nodeId ? 1 : 0);
+    return out;
+  }
+
+  // plugin/src/main/edit-actor.ts
+  var AGENT_ECHO_MS = 1e4;
+  function isDeclaredNow(declared, nodeId, now) {
+    const expiresAt = declared.get(nodeId);
+    return expiresAt !== void 0 && (expiresAt === Infinity || now < expiresAt);
+  }
+  function classifyActor(nodeId, _op, now, s) {
+    const busy = s.activeCount > 0 || s.lastDrainAt > 0 && now - s.lastDrainAt < AGENT_ECHO_MS;
+    if (busy) {
+      return isDeclaredNow(s.declared, nodeId, now) ? "agent" : "ambiguous";
+    }
+    const lastAgentAt2 = s.lastAgentAt.get(nodeId);
+    if (lastAgentAt2 !== void 0 && now - lastAgentAt2 < AGENT_ECHO_MS) return "ambiguous";
+    return "owner";
+  }
+  var DECLARED_IDS_CAP = 2e3;
+  var LAST_AGENT_AT_CAP = 2e3;
+  function enforceCap(map, cap) {
+    if (map.size <= cap) return;
+    let excess = map.size - cap;
+    for (const id of map.keys()) {
+      if (excess <= 0) break;
+      map.delete(id);
+      excess -= 1;
+    }
+  }
+  function pruneDeclaredIds(declared, now, cap = DECLARED_IDS_CAP) {
+    for (const [id, expiresAt] of declared) {
+      if (expiresAt !== Infinity && now >= expiresAt) declared.delete(id);
+    }
+    enforceCap(declared, cap);
+  }
+  function pruneLastAgentAt(lastAgentAt2, now, echoMs = AGENT_ECHO_MS, cap = LAST_AGENT_AT_CAP) {
+    for (const [id, at] of lastAgentAt2) {
+      if (now - at >= echoMs) lastAgentAt2.delete(id);
+    }
+    enforceCap(lastAgentAt2, cap);
   }
 
   // plugin/src/main/font-match.ts
@@ -818,6 +893,32 @@
       return void 0;
     }
   }
+  function aliasId(val) {
+    const alias = Array.isArray(val) ? val[0] : val;
+    return alias?.id;
+  }
+  function readBindings(n) {
+    const rec = {};
+    const bound = safe(() => n.boundVariables);
+    if (bound && typeof bound === "object") {
+      for (const [field, val] of Object.entries(bound)) {
+        const id = aliasId(val);
+        if (id) rec[field] = id;
+      }
+    }
+    for (const field of ["fills", "strokes"]) {
+      const paints = safe(() => n[field]);
+      if (!Array.isArray(paints)) continue;
+      for (const p of paints) {
+        const id = aliasId(p.boundVariables?.color);
+        if (id) {
+          rec[field] = id;
+          break;
+        }
+      }
+    }
+    return rec;
+  }
 
   // plugin/src/main/instance-inner-override-keys.ts
   var INNER_OVERRIDE_FIELDS = [
@@ -1589,6 +1690,7 @@
   }
 
   // plugin/src/main/serialize-node.ts
+  var SERIALIZED_NODE_FIELDS = /* @__PURE__ */ new Set(["id", "name", "type", "x", "y", "width", "height", "children"]);
   function serializeNode(node, depth = 1) {
     const out = {
       id: node.id,
@@ -2026,7 +2128,7 @@
     const h = Number(params.height ?? params.h) || 100;
     frame.resize(w, h);
     await appendToParent(frame, params);
-    return { id: frame.id };
+    return { id: frame.id, name: frame.name };
   }
   async function opCreateInstance(params) {
     const ref = params.component ?? params.key ?? params.id;
@@ -2048,7 +2150,11 @@
     if (!component) throw withCode(new Error(`component not found: ${ref}`), "E_INVALID_ARGS");
     const instance = component.createInstance();
     await appendToParent(instance, params);
-    return { id: instance.id, mainComponent: { id: component.id, key: component.key, name: component.name } };
+    return {
+      id: instance.id,
+      name: instance.name,
+      mainComponent: { id: component.id, key: component.key, name: component.name }
+    };
   }
   async function opSetVariant(params) {
     const node = await getSceneNode(params.nodeId ?? params.node);
@@ -2105,7 +2211,7 @@
     }
     if (typeof params.characters === "string") node.characters = params.characters;
     if (typeof reqSize === "number") node.fontSize = reqSize;
-    return { id: node.id };
+    return { id: node.id, name: node.name };
   }
   async function opExportPng(params) {
     const id = params.nodeId ?? params.node;
@@ -2119,6 +2225,278 @@
       h: Math.round(target.height * scale)
     };
   }
+
+  // plugin/src/main/exec-stdlib-instance.ts
+  function resolvePropKey(keys, name) {
+    if (keys.includes(name)) return name;
+    const matches = keys.filter((k) => k.startsWith(`${name}#`));
+    if (matches.length === 0) {
+      throw new Error(`property "${name}" not found \u2014 available: ${keys.join(", ")}`);
+    }
+    if (matches.length > 1) {
+      throw new Error(`property "${name}" is ambiguous: ${matches.join(", ")}`);
+    }
+    return matches[0];
+  }
+  async function setProps(inst, props) {
+    if (inst.type !== "INSTANCE") {
+      throw withCode(new Error(`setProps expects an INSTANCE, got ${inst.type}`), "E_EVAL");
+    }
+    const current = inst.componentProperties;
+    const keys = Object.keys(current);
+    const resolved = {};
+    for (const [name, rawValue] of Object.entries(props)) {
+      let key;
+      try {
+        key = resolvePropKey(keys, name);
+      } catch (err) {
+        throw withCode(new Error(`${err instanceof Error ? err.message : String(err)} on "${inst.name}"`), "E_EVAL");
+      }
+      if (typeof rawValue !== "string" && typeof rawValue !== "boolean") {
+        throw withCode(new Error(`property "${key}" needs a string or boolean, got ${typeof rawValue}`), "E_EVAL");
+      }
+      let value = rawValue;
+      if (current[key]?.type === "INSTANCE_SWAP" && typeof value === "string" && !/^\d+:\d+$/.test(value)) {
+        const c = await resolveMainComponent({ componentKey: value });
+        if (!c) throw withCode(new Error(`component not found for property "${key}": ${value}`), "E_EVAL");
+        value = c.id;
+      }
+      resolved[key] = value;
+    }
+    try {
+      inst.setProperties(resolved);
+    } catch (err) {
+      throw withCode(
+        new Error(`setProps ${JSON.stringify(resolved)} failed: ${err instanceof Error ? err.message : String(err)}`),
+        "E_EVAL"
+      );
+    }
+    const reread = inst.componentProperties;
+    const out = {};
+    for (const [key, value] of Object.entries(resolved)) {
+      const actual = reread[key]?.value;
+      if (!Object.is(actual, value)) {
+        throw withCode(new Error(`setProps applied but "${key}" is still ${String(actual)}`), "E_EVAL");
+      }
+      out[key] = actual;
+    }
+    return out;
+  }
+  async function swapInstance(inst, ref) {
+    const component = ref.includes(":") ? await resolveMainComponent({ componentId: ref }) : await resolveMainComponent({ componentKey: ref });
+    if (!component) throw withCode(new Error(`component not found: ${ref}`), "E_EVAL");
+    inst.swapComponent(component);
+    const main = await inst.getMainComponentAsync();
+    if (!main || main.id !== component.id) {
+      throw withCode(new Error(`swapInstance applied but main is still "${main?.id ?? "unknown"}"`), "E_EVAL");
+    }
+    return { id: inst.id, mainComponent: { id: component.id, name: component.name } };
+  }
+
+  // plugin/src/main/exec-stdlib.ts
+  var BOUND_FIELD_EXPANSIONS = {
+    cornerRadius: ["cornerRadius", "topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"],
+    strokeWeight: ["strokeWeight", "strokeTopWeight", "strokeRightWeight", "strokeBottomWeight", "strokeLeftWeight"]
+  };
+  function expansionKeysFor(field) {
+    return BOUND_FIELD_EXPANSIONS[field] ?? [field];
+  }
+  async function boundFill(node, varName, field = "fills") {
+    const variable = await resolveVariable(varName);
+    bindVariableToField(node, field, variable);
+    const bindings = readBindings(node);
+    const hit = expansionKeysFor(field).some((k) => bindings[k] === variable.id);
+    if (!hit) {
+      throw withCode(
+        new Error(`bind of "${varName}" to ${field} did not take on "${node.name}" \u2014 bindings: ${JSON.stringify(bindings)}`),
+        "E_EVAL"
+      );
+    }
+    return { id: node.id, field, variable: variable.name };
+  }
+  async function byPath(rootId, names) {
+    if (names.length === 0) throw withCode(new Error("byPath needs at least one name"), "E_EVAL");
+    const root = await figma.getNodeByIdAsync(rootId);
+    if (!root || root.type === "DOCUMENT" || root.type === "PAGE") {
+      throw withCode(new Error(`byPath root not found: ${rootId}`), "E_EVAL");
+    }
+    let n = root;
+    while (n && n.type !== "PAGE") n = n.parent;
+    const page = n;
+    if (page && page !== figma.currentPage) await page.loadAsync();
+    let cur = root;
+    for (const name of names) {
+      if (!("children" in cur)) {
+        throw withCode(new Error(`"${cur.name}" (${cur.type}) has no children`), "E_EVAL");
+      }
+      const children = cur.children;
+      const hits = children.filter((c) => c.name === name);
+      if (hits.length === 0) {
+        const names20 = children.slice(0, 20).map((c) => c.name).join(", ");
+        throw withCode(new Error(`byPath: "${name}" not found under "${cur.name}" \u2014 children: ${names20}`), "E_EVAL");
+      }
+      if (hits.length > 1) {
+        throw withCode(
+          new Error(`byPath: "${name}" is ambiguous under "${cur.name}" \u2014 ${hits.length} matches: ${hits.map((h) => h.id).join(", ")}`),
+          "E_EVAL"
+        );
+      }
+      cur = hits[0];
+    }
+    return cur;
+  }
+  function projectSerialized(node, fields) {
+    const out = { id: node.id };
+    for (const f of fields) {
+      if (f === "children") {
+        if (node.children) out.children = node.children.map((c) => projectSerialized(c, fields));
+      } else {
+        out[f] = node[f];
+      }
+    }
+    return out;
+  }
+  async function q(target, opts = {}) {
+    const { depth = 1, fields } = opts;
+    let node;
+    if (typeof target === "string") {
+      const found = await figma.getNodeByIdAsync(target);
+      if (!found || found.type === "DOCUMENT" || found.type === "PAGE") {
+        throw withCode(new Error(`q: node not found: ${target}`), "E_EVAL");
+      }
+      node = found;
+    } else {
+      node = target;
+    }
+    if (fields) {
+      for (const f of fields) {
+        if (!SERIALIZED_NODE_FIELDS.has(f)) {
+          throw withCode(
+            new Error(`q: unknown field "${f}" on "${node.id}" \u2014 available: ${[...SERIALIZED_NODE_FIELDS].join(", ")}`),
+            "E_EVAL"
+          );
+        }
+      }
+    }
+    const full = serializeNode(node, depth);
+    return jsonSafe(fields ? projectSerialized(full, fields) : full);
+  }
+  function createExecStdlib() {
+    return { setProps, swapInstance, boundFill, byPath, q };
+  }
+
+  // plugin/src/main/exec-js-normalize.ts
+  function expressionCandidates(source) {
+    const out = [source];
+    let semi = source;
+    for (let i = 0; i < 4; i++) {
+      const stripped = semi.replace(/;+\s*$/, "").trimEnd();
+      if (stripped === semi) break;
+      semi = stripped;
+      out.push(semi);
+    }
+    let s = semi;
+    for (let i = 0; i < 4; i++) {
+      const stripped = s.replace(/(?:\/\/[^\n]*|\/\*[\s\S]*?\*\/)\s*$/, "").replace(/;+\s*$/, "").trimEnd();
+      if (stripped === s) break;
+      s = stripped;
+      out.push(s);
+    }
+    return out;
+  }
+  function compile(code) {
+    const source = code.trim();
+    for (const candidate of expressionCandidates(source)) {
+      try {
+        return { fn: (0, eval)(`(async (console, ui) => (${candidate}
+))`), mode: "expression" };
+      } catch {
+      }
+    }
+    return { fn: (0, eval)(`(async (console, ui) => { ${source}
+ })`), mode: "statement" };
+  }
+  function summarize(value) {
+    const n = value;
+    if (n && typeof n.id === "string" && typeof n.type === "string" && typeof n.remove === "function") {
+      return { id: n.id, name: String(n.name ?? ""), type: n.type };
+    }
+    if (Array.isArray(value)) return value.map(summarize);
+    return jsonSafe(value);
+  }
+  function isPlainObject(value) {
+    const proto = Object.getPrototypeOf(value);
+    return proto === Object.prototype || proto === null;
+  }
+  function resultWarning(result, mode) {
+    if (result === void 0) {
+      return mode === "statement" ? "no explicit return \u2014 the script ran to completion but returned nothing; side effects may still have applied" : "the expression evaluated to undefined";
+    }
+    if (result === null) return "returned null \u2014 the node or resource may not exist";
+    if (Array.isArray(result) && result.length === 0) return "returned an empty array \u2014 the search matched nothing";
+    if (typeof result === "object" && isPlainObject(result) && Object.keys(result).length === 0) {
+      return "returned an empty object \u2014 the operation may have matched nothing";
+    }
+    return void 0;
+  }
+
+  // plugin/src/main/executor-exec-js.ts
+  var SENTINEL_NAME = "[figma-agent] undo sentinel";
+  var SENTINEL_KEY = "figmaAgentUndoSentinel";
+  function figmaUndoBracket() {
+    let sentinel = null;
+    return {
+      begin() {
+        const page = figma.currentPage;
+        for (const n of page.findChildren((c) => c.getPluginData(SENTINEL_KEY) === "1")) n.remove();
+        figma.commitUndo();
+        const f = figma.createFrame();
+        f.name = SENTINEL_NAME;
+        f.setPluginData(SENTINEL_KEY, "1");
+        f.resize(1, 1);
+        f.x = -1e6;
+        f.y = -1e6;
+        f.visible = false;
+        page.appendChild(f);
+        sentinel = f;
+      },
+      commit() {
+        try {
+          if (sentinel && !sentinel.removed) sentinel.remove();
+        } catch {
+        }
+        figma.commitUndo();
+      },
+      rollback() {
+        figma.commitUndo();
+        figma.triggerUndo();
+      }
+      // sentinel is reverted BY the undo
+    };
+  }
+  async function runInUndoGroup(bracket, run) {
+    bracket?.begin();
+    let out;
+    try {
+      out = await run();
+    } catch (err) {
+      const carrier = typeof err === "object" && err !== null ? err : Object.assign(new Error(String(err)), { originalPrimitive: err });
+      if (bracket) {
+        try {
+          bracket.rollback();
+          carrier.rolledBack = true;
+        } catch (undoErr) {
+          carrier.rollbackFailed = undoErr instanceof Error ? undoErr.message : String(undoErr);
+        }
+      }
+      throw carrier;
+    }
+    try {
+      bracket?.commit();
+    } catch {
+    }
+    return out;
+  }
   async function opExecJs(params) {
     const code = params.code ?? params.js;
     if (typeof code !== "string" || !code.trim()) {
@@ -2128,25 +2506,39 @@
     const capture = (level) => (...args) => {
       logs.push(`[${level}] ${args.map(safeStringify).join(" ")}`);
     };
-    const consoleProxy = { log: capture("log"), info: capture("info"), warn: capture("warn"), error: capture("error") };
-    const t0 = Date.now();
-    let fn;
+    const consoleProxy = {
+      log: capture("log"),
+      info: capture("info"),
+      warn: capture("warn"),
+      error: capture("error")
+    };
+    let compiled;
     try {
-      try {
-        fn = (0, eval)(`(async (console) => (${code}
-))`);
-      } catch {
-        fn = (0, eval)(`(async (console) => { ${code}
- })`);
-      }
+      compiled = compile(code);
     } catch (err) {
       throw withCode(new Error(`syntax error: ${err instanceof Error ? err.message : String(err)}`), "E_EVAL");
     }
+    const bracket = params.undoGroup === true ? figmaUndoBracket() : null;
+    const t0 = Date.now();
     try {
-      const result = await fn(consoleProxy);
-      return { result: jsonSafe(result), console: logs, ms: Date.now() - t0 };
+      const raw = await runInUndoGroup(bracket, () => compiled.fn(consoleProxy, createExecStdlib()));
+      const warning = resultWarning(raw, compiled.mode);
+      return {
+        result: summarize(raw),
+        console: logs,
+        ms: Date.now() - t0,
+        executed: true,
+        mode: compiled.mode,
+        ...warning ? { warning } : {}
+      };
     } catch (err) {
-      throw withCode(new Error(`runtime error: ${err instanceof Error ? err.message : String(err)}`), "E_EVAL");
+      const rolledBack = err?.rolledBack === true;
+      const rollbackFailed = err?.rollbackFailed;
+      const base = `runtime error: ${err instanceof Error ? err.message : String(err)}`;
+      const suffix = rolledBack ? " \u2014 changes rolled back" : rollbackFailed ? ` \u2014 ROLLBACK FAILED (${rollbackFailed}); the canvas may be half-changed` : "";
+      const wrapped = withCode(new Error(`${base}${suffix}`), "E_EVAL");
+      if (rolledBack) wrapped.rolledBack = true;
+      throw wrapped;
     }
   }
 
@@ -2262,6 +2654,22 @@
     return { sourceId: source.id, targetId: target.id, traits, applied, skipped };
   }
 
+  // shared/mutating-commands.ts
+  var MUTATING_COMMANDS = [
+    "CREATE_FRAME",
+    "CREATE_INSTANCE",
+    "SET_VARIANT",
+    "CREATE_VARIABLE",
+    "BIND_VARIABLE",
+    "SET_AUTOLAYOUT",
+    "SET_CONSTRAINTS",
+    "SET_TEXT",
+    "CLONE_TRAITS",
+    "SET_CORRECTION_MEMORY",
+    "EXEC_JS",
+    "IMPORT_PAYLOAD"
+  ];
+
   // shared/supervised-memory.ts
   var CORRECTION_SCHEMA_VERSION = 1;
   var EDGE_RAW_LIMIT = 250;
@@ -2292,15 +2700,25 @@
   }
   function retainCorrectionEvents(events, now, limit, maxAgeDays = RAW_RETENTION_DAYS) {
     const cutoff = now.getTime() - maxAgeDays * 864e5;
-    const protectedEvents = events.filter((event) => event.unresolved === true);
-    const candidates = events.filter((event) => event.unresolved !== true && Date.parse(event.timestamp) >= cutoff).sort(byTimeThenId);
-    const kept = candidates.slice(Math.max(0, candidates.length - Math.max(0, limit - protectedEvents.length)));
-    return [...new Map([...protectedEvents, ...kept].map((event) => [event.eventId, event])).values()].sort(byTimeThenId);
+    const unresolved = events.filter((event) => event.unresolved === true).sort(byTimeThenId);
+    const resolvedFresh = events.filter((event) => event.unresolved !== true && Date.parse(event.timestamp) >= cutoff).sort(byTimeThenId);
+    const overBudget = Math.max(0, resolvedFresh.length + unresolved.length - Math.max(0, limit));
+    const resolvedEvictCount = Math.min(overBudget, resolvedFresh.length);
+    const keptResolved = resolvedFresh.slice(resolvedEvictCount);
+    const stillOverBudget = overBudget - resolvedEvictCount;
+    const evictedUnresolved = stillOverBudget > 0 ? unresolved.slice(0, stillOverBudget) : [];
+    const keptUnresolved = stillOverBudget > 0 ? unresolved.slice(stillOverBudget) : unresolved;
+    const kept = [...new Map([...keptResolved, ...keptUnresolved].map((event) => [event.eventId, event])).values()].sort(byTimeThenId);
+    return { kept, evictedUnresolved };
   }
 
   // plugin/src/main/correction-edge-store.ts
   var NAMESPACE = "ease_design";
-  var KEY = "figma-corrections-v1";
+  var KEY_V1 = "figma-corrections-v1";
+  var MANIFEST_KEY = "figma-corrections-v2-manifest";
+  var CHUNK_PREFIX = "figma-corrections-v2-";
+  var CHUNK_BYTE_BUDGET = 64e3;
+  var FIGMA_ENTRY_BYTE_CAP = 1e5;
   var suppressedUntil = /* @__PURE__ */ new Map();
   var eventSequence = 0;
   function parseEvents(text) {
@@ -2312,13 +2730,97 @@
       return [];
     }
   }
+  function utf8ByteLength(str) {
+    let bytes = 0;
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      if (code < 128) bytes += 1;
+      else if (code < 2048) bytes += 2;
+      else if (code >= 55296 && code <= 56319) {
+        bytes += 4;
+        i += 1;
+      } else bytes += 3;
+    }
+    return bytes;
+  }
+  function chunkKey(i) {
+    return `${CHUNK_PREFIX}${i}`;
+  }
+  function readManifest() {
+    const raw = figma.root.getSharedPluginData(NAMESPACE, MANIFEST_KEY);
+    if (!raw) return void 0;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.v === 2 && typeof parsed.chunks === "number" && Number.isInteger(parsed.chunks) && parsed.chunks >= 0) {
+        const evictedUnresolved = typeof parsed.evictedUnresolved === "number" && Number.isInteger(parsed.evictedUnresolved) && parsed.evictedUnresolved >= 0 ? parsed.evictedUnresolved : 0;
+        return { v: 2, chunks: parsed.chunks, evictedUnresolved };
+      }
+      return void 0;
+    } catch {
+      return void 0;
+    }
+  }
+  function readEvictedUnresolvedCount() {
+    return readManifest()?.evictedUnresolved ?? 0;
+  }
+  function splitIntoChunks(events) {
+    const chunks = [];
+    let current = [];
+    let currentBytes = 2;
+    for (const event of events) {
+      const eventBytes = utf8ByteLength(JSON.stringify(event));
+      const commaBeforeAdd = current.length > 0 ? 1 : 0;
+      if (current.length > 0 && currentBytes + commaBeforeAdd + eventBytes > CHUNK_BYTE_BUDGET) {
+        chunks.push(JSON.stringify(current));
+        current = [];
+        currentBytes = 2;
+      }
+      const comma = current.length > 0 ? 1 : 0;
+      current.push(event);
+      currentBytes += comma + eventBytes;
+    }
+    if (current.length > 0) chunks.push(JSON.stringify(current));
+    return chunks;
+  }
+  function readChunked(manifest) {
+    const events = [];
+    for (let i = 0; i < manifest.chunks; i++) {
+      events.push(...parseEvents(figma.root.getSharedPluginData(NAMESPACE, chunkKey(i))));
+    }
+    return events;
+  }
+  function clearChunkRange(startInclusive, endExclusive) {
+    for (let i = startInclusive; i < endExclusive; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey(i), "");
+  }
   function readEdgeCorrections() {
-    return parseEvents(figma.root.getSharedPluginData(NAMESPACE, KEY));
+    const manifest = readManifest();
+    if (manifest !== void 0) return readChunked(manifest);
+    return parseEvents(figma.root.getSharedPluginData(NAMESPACE, KEY_V1));
   }
   function writeEdgeCorrections(events) {
-    const retained = retainCorrectionEvents(events, /* @__PURE__ */ new Date(), EDGE_RAW_LIMIT);
-    figma.root.setSharedPluginData(NAMESPACE, KEY, JSON.stringify(retained));
-    return retained;
+    const priorManifest = readManifest();
+    let { kept, evictedUnresolved } = retainCorrectionEvents(events, /* @__PURE__ */ new Date(), EDGE_RAW_LIMIT);
+    let chunks = splitIntoChunks(kept);
+    let byteCapEvictedUnresolved = 0;
+    while (kept.length > 0 && chunks.some((c) => utf8ByteLength(c) > FIGMA_ENTRY_BYTE_CAP)) {
+      if (kept[0].unresolved === true) byteCapEvictedUnresolved += 1;
+      kept = kept.slice(1);
+      chunks = splitIntoChunks(kept);
+    }
+    for (let i = 0; i < chunks.length; i++) figma.root.setSharedPluginData(NAMESPACE, chunkKey(i), chunks[i]);
+    if (priorManifest !== void 0 && priorManifest.chunks > chunks.length) {
+      clearChunkRange(chunks.length, priorManifest.chunks);
+    }
+    const totalEvictedUnresolved = (priorManifest?.evictedUnresolved ?? 0) + evictedUnresolved.length + byteCapEvictedUnresolved;
+    figma.root.setSharedPluginData(
+      NAMESPACE,
+      MANIFEST_KEY,
+      JSON.stringify({ v: 2, chunks: chunks.length, evictedUnresolved: totalEvictedUnresolved })
+    );
+    if (figma.root.getSharedPluginData(NAMESPACE, KEY_V1) !== "") {
+      figma.root.setSharedPluginData(NAMESPACE, KEY_V1, "");
+    }
+    return kept;
   }
   function eventId(prefix, nodeId) {
     eventSequence += 1;
@@ -2370,18 +2872,41 @@
 
   // plugin/src/ui/panel-model.ts
   var PANEL_WIDTH = 300;
-  var PANEL_HEIGHT = { compact: 170, expanded: 460 };
+  var PANEL_HEIGHT = 420;
 
   // plugin/src/main/main.ts
-  figma.showUI(__html__, { visible: true, width: PANEL_WIDTH, height: PANEL_HEIGHT.compact });
+  figma.showUI(__html__, {
+    visible: true,
+    width: PANEL_WIDTH,
+    height: PANEL_HEIGHT,
+    title: "design:os by JANG",
+    themeColors: true
+  });
+  function selectionSummary() {
+    const sel = figma.currentPage.selection;
+    return { selectionName: sel.length > 0 ? sel[0].name : null, selectionCount: sel.length };
+  }
+  var announcedFileName = "";
   function announceFileInfo() {
+    announcedFileName = figma.root.name;
     figma.ui.postMessage({
       type: "FILE_INFO",
-      data: { fileName: figma.root.name, page: figma.currentPage.name }
+      data: {
+        fileName: figma.root.name,
+        page: figma.currentPage.name,
+        fileKey: figma.fileKey ?? null,
+        ...selectionSummary()
+      }
     });
   }
   announceFileInfo();
   figma.on("currentpagechange", announceFileInfo);
+  figma.on("selectionchange", announceFileInfo);
+  function fileContext() {
+    const ctx = { fileName: figma.root.name, fileKey: figma.fileKey ?? null };
+    if (ctx.fileName !== announcedFileName) announceFileInfo();
+    return ctx;
+  }
   function resolveComponentIdentity(node) {
     if ("removed" in node && node.removed) {
       if (node.type === "COMPONENT" || node.type === "COMPONENT_SET") {
@@ -2402,6 +2927,43 @@
     }
     return null;
   }
+  var EDIT_IDENTITY_CACHE_CAP = 2e3;
+  var identityCache = /* @__PURE__ */ new Map();
+  function rememberIdentity(id, value) {
+    identityCache.set(id, value);
+    if (identityCache.size > EDIT_IDENTITY_CACHE_CAP) {
+      const oldestKey = identityCache.keys().next().value;
+      if (oldestKey !== void 0) identityCache.delete(oldestKey);
+    }
+  }
+  var ENCLOSING_NAME_HOP_CAP = 20;
+  function enclosingName(node) {
+    let n = node.parent;
+    let hops = 0;
+    while (n && hops < ENCLOSING_NAME_HOP_CAP) {
+      if (n.type === "FRAME" || n.type === "SECTION" || n.type === "COMPONENT" || n.type === "COMPONENT_SET") {
+        return n.name;
+      }
+      n = n.parent;
+      hops += 1;
+    }
+    return null;
+  }
+  function pageNameOf(node) {
+    let n = node;
+    while (n) {
+      if (n.type === "PAGE") return n.name;
+      n = n.parent;
+    }
+    return figma.currentPage.name;
+  }
+  var activeCount = 0;
+  var lastDrainAt = 0;
+  var declaredIds = /* @__PURE__ */ new Map();
+  var lastAgentAt = /* @__PURE__ */ new Map();
+  function actorState() {
+    return { activeCount, lastDrainAt, declared: declaredIds, lastAgentAt };
+  }
   var idleMs = DEFAULT_IDLE_MS;
   var idleTimer = null;
   var changesSinceCommit = 0;
@@ -2416,71 +2978,133 @@
     changesSinceCommit = 0;
   }
   function onDocumentChange(event) {
+    pruneDeclaredIds(declaredIds, Date.now());
     const raw = [];
+    const edits = [];
     for (const dc of event.documentChanges) {
-      const changedNode = dc.node;
-      if (!("removed" in changedNode) || !changedNode.removed) {
-        recordDesignerCorrection(changedNode.id, {
+      const op = mapChangeType(dc.type);
+      if (op === null) continue;
+      const node = dc.node;
+      if (!node) continue;
+      if (!("removed" in node) || !node.removed) {
+        recordDesignerCorrection(node.id, {
           changeType: dc.type,
           properties: dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : []
         });
       }
-      const op = mapChangeType(dc.type);
-      if (op === null) continue;
-      const identity = resolveComponentIdentity(dc.node);
-      if (!identity) continue;
-      raw.push({
+      const changedProps = dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : [];
+      const identity = resolveComponentIdentity(node);
+      if (identity) {
+        raw.push({
+          op,
+          nodeId: identity.id,
+          nodeName: identity.name,
+          nodeType: identity.type,
+          changedProps,
+          origin: dc.origin
+        });
+      }
+      const removed = "removed" in node && node.removed;
+      const known = identityCache.get(node.id);
+      const parentName = removed ? known?.parentName ?? null : enclosingName(node);
+      const page = removed ? known?.page ?? figma.currentPage.name : pageNameOf(node);
+      edits.push({
         op,
-        nodeId: identity.id,
-        nodeName: identity.name,
-        nodeType: identity.type,
-        changedProps: dc.type === "PROPERTY_CHANGE" ? [...dc.properties] : [],
-        origin: dc.origin
+        nodeId: node.id,
+        nodeName: removed ? known?.name ?? null : node.name,
+        nodeType: node.type,
+        parentName,
+        page,
+        changedProps,
+        origin: dc.origin,
+        actor: classifyActor(node.id, op, Date.now(), actorState())
       });
+      if (!removed) rememberIdentity(node.id, { name: node.name, type: node.type, parentName, page });
     }
     const changes = coalesceChanges(raw);
-    if (changes.length === 0) return;
-    figma.ui.postMessage({
-      type: "DOC_CHANGE",
-      data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null }
-    });
-    changesSinceCommit += changes.length;
-    resetIdleTimer();
+    if (changes.length > 0) {
+      figma.ui.postMessage({
+        // fileName rides alongside fileKey (registry-integrity phase 03, §1) — a Figma-Free
+        // file's fileKey is null, so without a name the slug chain collapses every such
+        // file to 'unknown' and keeps coalescing them together.
+        type: "DOC_CHANGE",
+        data: { changes, page: figma.currentPage.name, fileKey: figma.fileKey ?? null, fileName: figma.root.name }
+      });
+      changesSinceCommit += changes.length;
+      resetIdleTimer();
+    }
+    if (edits.length > 0) {
+      figma.ui.postMessage({
+        type: "EDIT_FEED",
+        data: {
+          edits: coalesceEdits(edits),
+          fileKey: figma.fileKey ?? null,
+          fileName: figma.root.name,
+          source: "live"
+        }
+      });
+    }
   }
   figma.loadAllPagesAsync().then(() => figma.on("documentchange", onDocumentChange)).catch((err) => figma.notify(`live-sync capture disabled: ${err instanceof Error ? err.message : String(err)}`));
   figma.ui.onmessage = async (msg) => {
     const chrome = msg;
-    if (chrome && chrome.type === "PANEL_RESIZE") {
-      const raw = typeof chrome.h === "number" && Number.isFinite(chrome.h) ? chrome.h : PANEL_HEIGHT.compact;
-      figma.ui.resize(PANEL_WIDTH, Math.round(Math.min(PANEL_HEIGHT.expanded, Math.max(PANEL_HEIGHT.compact, raw))));
-      return;
-    }
     if (chrome && chrome.type === "SYNC_CONFIG") {
       const raw = chrome.data?.idleMs;
       if (typeof raw === "number" && Number.isFinite(raw)) idleMs = Math.max(MIN_IDLE_MS, Math.floor(raw));
       return;
     }
     if (chrome && chrome.type === "SYNC_DONE") {
-      changesSinceCommit = 0;
+      if (chrome.commit === true) changesSinceCommit = 0;
+      return;
+    }
+    if (chrome && chrome.type === "UI_READY") {
+      announceFileInfo();
       return;
     }
     const req = msg;
     if (!req || typeof req.requestId !== "string" || typeof req.cmd !== "string") return;
+    const ctx = fileContext();
     try {
+      if (typeof req.expectedFile === "string" && req.expectedFile.trim() !== "" && !fileMatches(ctx.fileName, req.expectedFile, true)) {
+        throw withCode(new Error(
+          `this plugin is connected to file "${ctx.fileName}", command expected "${req.expectedFile}" \u2014 nothing was executed`
+        ), "E_WRONG_FILE");
+      }
       const targetIds = mutationTargetIds(req.cmd, req.params ?? {});
       beginAgentMutation(targetIds);
-      const result = await dispatch(req.cmd, req.params ?? {});
-      const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
-      for (const nodeId of changedIds) recordAgentMutation(nodeId, { command: req.cmd });
-      figma.ui.postMessage({ requestId: req.requestId, ok: true, result });
+      activeCount += 1;
+      for (const id of targetIds) declaredIds.set(id, Infinity);
+      try {
+        const result = await dispatch(req.cmd, req.params ?? {});
+        const changedIds = [.../* @__PURE__ */ new Set([...targetIds, ...resultMutationIds(req.cmd, result)])];
+        const completedAt = Date.now();
+        for (const nodeId of changedIds) {
+          recordAgentMutation(nodeId, { command: req.cmd });
+          lastAgentAt.set(nodeId, completedAt);
+        }
+        pruneLastAgentAt(lastAgentAt, completedAt);
+        commitIfMutating(req.cmd);
+        figma.ui.postMessage({ requestId: req.requestId, ok: true, result, fileContext: ctx });
+      } finally {
+        const finishedAt = Date.now();
+        const expiresAt = finishedAt + AGENT_ECHO_MS;
+        for (const id of targetIds) declaredIds.set(id, expiresAt);
+        activeCount -= 1;
+        if (activeCount === 0) lastDrainAt = finishedAt;
+      }
     } catch (err) {
-      figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err) });
+      commitIfMutating(req.cmd);
+      figma.ui.postMessage({ requestId: req.requestId, ok: false, error: shapeError(err), fileContext: ctx });
     }
   };
+  function commitIfMutating(cmd) {
+    if (MUTATING_COMMANDS.indexOf(cmd) !== -1) figma.commitUndo();
+  }
   function shapeError(err) {
     const code = err?.code ?? "E_PLUGIN_ERROR";
     const message = err instanceof Error ? err.message : String(err);
-    return { code, message };
+    const rolledBack = err?.rolledBack;
+    return rolledBack ? { code, message, rolledBack } : { code, message };
   }
   function resultMutationIds(cmd, result) {
     const creating = [
@@ -2534,8 +3158,12 @@
         return opSetText(params);
       case "CLONE_TRAITS":
         return opCloneTraits(params);
+      // Stage-4 MAJOR7 — `evictedUnresolved` surfaces the edge cache's own eviction count
+      // (never a panel UI, just an audit signal `sync-corrections` reports on) so an event
+      // dropped here before it was ever synced project-side leaves at least a count, not
+      // zero trace.
       case "GET_CORRECTION_MEMORY":
-        return { events: readEdgeCorrections() };
+        return { events: readEdgeCorrections(), evictedUnresolved: readEvictedUnresolvedCount() };
       case "SET_CORRECTION_MEMORY": {
         const events = params.events;
         if (!Array.isArray(events)) throw withCode(new Error("SET_CORRECTION_MEMORY requires events[]"), "E_INVALID_ARGS");
@@ -2607,7 +3235,9 @@
     for (const op of ops) {
       try {
         results.push({ ok: true, cmd: op.cmd, result: await dispatch(op.cmd, op.params ?? {}) });
+        commitIfMutating(op.cmd);
       } catch (err) {
+        commitIfMutating(op.cmd);
         results.push({ ok: false, cmd: op.cmd, error: shapeError(err) });
         if (stopOnError) break;
       }

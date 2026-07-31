@@ -12,6 +12,15 @@ export interface SerializedNode {
   children?: SerializedNode[];
 }
 
+/**
+ * The ONE list of `SerializedNode`'s own keys, kept beside the interface so a field added to
+ * one is never forgotten in the other. Consumers that validate a caller-supplied field list
+ * against "what serializeNode actually produces" (`ui.q` in exec-stdlib.ts) read this instead
+ * of hand-copying the key list a second place.
+ */
+export const SERIALIZED_NODE_FIELDS: ReadonlySet<string> =
+  new Set(['id', 'name', 'type', 'x', 'y', 'width', 'height', 'children']);
+
 /** Node → {id,name,type,x,y,width,height,children} down to `depth` levels. */
 export function serializeNode(node: SceneNode, depth = 1): SerializedNode {
   const out: SerializedNode = {

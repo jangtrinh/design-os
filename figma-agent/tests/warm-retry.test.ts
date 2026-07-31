@@ -18,6 +18,18 @@ describe('shouldWarmRetry — cold-timeout-only, once', () => {
       expect(shouldWarmRetry(new CliError(code, 'x'), 1)).toBe(false);
     }
   });
+
+  // Concurrency & jobs (backlog 1.1+2.6+4.3) — "the CLI never re-dispatches" was FALSE
+  // until this guard: a timeout that confirms a real job exists (JOB_STATE was seen)
+  // must NOT retry, or the automatic warm-retry fires a second request while the first
+  // job is still alive — a double-dispatch.
+  it('does NOT retry an E_TIMEOUT that carries a jobId', () => {
+    expect(shouldWarmRetry(new CliError('E_TIMEOUT', 'x', { jobId: 'j_1_123' }), 1)).toBe(false);
+  });
+
+  it('still retries an E_TIMEOUT with no jobId (an older broker that never sent JOB_STATE)', () => {
+    expect(shouldWarmRetry(new CliError('E_TIMEOUT', 'x'), 1)).toBe(true);
+  });
 });
 
 describe('runWithWarmRetry — behaviour', () => {
@@ -49,5 +61,17 @@ describe('runWithWarmRetry — behaviour', () => {
     const fn = vi.fn(async () => { throw new CliError('E_PLUGIN_ERROR', 'boom'); });
     await expect(runWithWarmRetry(fn)).rejects.toThrow(/boom/);
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('an E_TIMEOUT WITH a jobId results in exactly ONE dispatch (never double-dispatches)', async () => {
+    const fn = vi.fn(async () => { throw new CliError('E_TIMEOUT', 'still running', { jobId: 'j_1_123' }); });
+    await expect(runWithWarmRetry(fn)).rejects.toThrow(/still running/);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('an E_TIMEOUT with NO jobId still dispatches TWICE (older-broker compatibility)', async () => {
+    const fn = vi.fn(async () => { throw new CliError('E_TIMEOUT', 'cold, no job info'); });
+    await expect(runWithWarmRetry(fn)).rejects.toThrow(/cold, no job info/);
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });

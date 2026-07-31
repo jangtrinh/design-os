@@ -206,6 +206,16 @@ driven one step at a time WITH per-step verification (R10) before advancing. Par
 independent READ fan-out and to batching independent awaits *within* one script (R9) — never to
 concurrent writes on the shared file.
 
+### R16 — Proof of deletion is a fresh tree walk, never the `.removed` flag or id-resolution
+After `node.remove()`, the **same session** can still resolve the id: `getNodeByIdAsync(id)` returns
+the node, and `.removed` reads `false` — only `.parent === null` hints anything happened, and it's easy
+to miss if you don't specifically check it (sonnet-h2c, 2026-07-29). Do not trust `.removed` or a
+successful id-resolution as proof of deletion — both can lie in the same session that did the
+deleting. **Ground truth = a fresh page-tree walk that finds zero matches for the id**, never a
+re-resolve of the id itself. Same discipline as R12 (never assume a write's outcome — check), applied
+specifically to removal: prefer an `assertDeleted(id)` helper that walks `figma.currentPage` (or the
+relevant subtree) and asserts no node carries that id, over re-querying the id directly.
+
 ## Cross-bridge harness gotchas
 
 Facts that bite when driving *either* write bridge. Generic — they hold regardless of which

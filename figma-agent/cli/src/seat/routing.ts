@@ -39,6 +39,15 @@ export interface ProbeSignals {
   pluginReachable: boolean;
   /** A throwaway setSharedPluginData write round-tripped (editor rights). */
   writeOk: boolean;
+  /**
+   * Concurrency & jobs (backlog 1.1+2.6+4.3), phase 01 §3 — true when the write attempt
+   * TIMED OUT rather than being explicitly refused (a pre-existing seat.ts defect this
+   * wave's per-file queue would otherwise turn from latent into a visible wrong answer:
+   * a mutating probe can now genuinely wait behind another agent's mutation). A timeout
+   * is INCONCLUSIVE, never the same fact as a refusal — the reason string below must
+   * say so.
+   */
+  writeInconclusive?: boolean;
 }
 
 /** A classified seat plus the human-readable reason it was chosen. */
@@ -69,6 +78,12 @@ export function classifySeat(s: ProbeSignals): SeatClassification {
     return {
       seat: 'free',
       reason: `figma-agent plugin reachable and editable (throwaway setSharedPluginData write round-tripped) — Figma Free / editor rights confirmed. ${PAID_HINT}`,
+    };
+  }
+  if (s.writeInconclusive) {
+    return {
+      seat: 'free',
+      reason: `figma-agent plugin reachable but the throwaway write did not complete in time (likely queued behind another running command — inconclusive, NOT a refusal) — still routing to the figma-agent-cli bridge. ${PAID_HINT}`,
     };
   }
   return {

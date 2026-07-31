@@ -41,6 +41,14 @@ export interface ChangeFrame {
   scopeHint: ScopeHint;
   page: string;
   fileKey: string | null;
+  /**
+   * Registry-integrity phase 03 (5.2), additive — `CHANGE_LOG_SCHEMA_VERSION` stays 1
+   * (`validateFrame` ignores unknown/absent keys, so an older log line reads fine).
+   * `figma.root.name` at capture — the identity chain's SECOND rung: a Figma-Free file's
+   * `fileKey` is null, so without this every such file slugs to 'unknown' and keeps
+   * coalescing together.
+   */
+  fileName?: string;
 }
 
 /** A component's cross-batch coalesced state (highest-ranked op, unioned props). */
@@ -53,6 +61,23 @@ export interface CoalescedComponent {
   scopeHint: ScopeHint;
   page: string;
   latestTs: number;
+  /**
+   * Registry-integrity phase 02 (5.3, additive): index of the FIRST frame (ABSOLUTE —
+   * into the whole parsed log, never relative to a resumed slice) that produced this
+   * target. The cursor may not advance past this index until the target is fully
+   * processed (captured/failed/pending are all "not done").
+   */
+  firstFrameIndex: number;
+  /** Index of the LAST frame (also absolute) that produced this target. */
+  lastFrameIndex: number;
+  /**
+   * Registry-integrity phase 03 (5.2, additive): the file this target's frames came
+   * from. `null` = a pre-partitioning log line (migration) with no `fileKey` recorded.
+   */
+  fileKey: string | null;
+  /** Stable slug for the identity chain AND for paths: `fileKey`, else slugged
+   *  `fileName`, else 'unknown' — the SAME chain the edit feed / project binding use. */
+  fileSlug: string;
 }
 
 /** Minimal registry projection reconcile needs (built by the command from the registry). */
@@ -106,6 +131,23 @@ export class ReconcileError extends Error {
 // ─── Change-log parse ─────────────────────────────────────────────────────────
 
 /**
+ * Parse ONE change-log line into a validated frame. Extracted from `parseChangeLog`
+ * (registry-integrity phase 04, §1) so the streamed reader (`change-log-stream.ts`) shares
+ * the EXACT same per-line validation as the whole-file parse — streaming changes *when*
+ * lines are read, never *whether* they are validated. `lineNumber` is 1-based, used only
+ * in the thrown error's message.
+ */
+export function parseChangeLogLine(line: string, lineNumber: number): ChangeFrame {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(line);
+  } catch {
+    throw new ReconcileError("BAD_CHANGE_LOG", `change-log line ${lineNumber} is not valid JSON`);
+  }
+  return validateFrame(parsed, lineNumber);
+}
+
+/**
  * Parse the WHOLE change-log into validated frames. Any malformed line (bad JSON,
  * missing field, wrong `v`) throws BAD_CHANGE_LOG — an append-only ledger the broker
  * owns should never be corrupt, so a single bad line fails the reconcile loudly
@@ -117,13 +159,7 @@ export function parseChangeLog(raw: string): ChangeFrame[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (line === undefined || line.trim().length === 0) continue;
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(line);
-    } catch {
-      throw new ReconcileError("BAD_CHANGE_LOG", `change-log line ${i + 1} is not valid JSON`);
-    }
-    frames.push(validateFrame(parsed, i + 1));
+    frames.push(parseChangeLogLine(line, i + 1));
   }
   return frames;
 }
@@ -151,6 +187,11 @@ function validateFrame(v: unknown, line: number): ChangeFrame {
   if (f["scopeHint"] !== "local" && f["scopeHint"] !== "global") return bad(`invalid scopeHint '${String(f["scopeHint"])}'`);
   if (typeof f["page"] !== "string") return bad("page must be a string");
   if (f["fileKey"] !== null && typeof f["fileKey"] !== "string") return bad("fileKey must be a string or null");
+  // Optional (phase 03, additive): reject only a WRONG type, never merely absent — an
+  // older log line before this field existed must keep parsing.
+  if (f["fileName"] !== undefined && typeof f["fileName"] !== "string") {
+    return bad("fileName must be a string when present");
+  }
   return {
     v: EXPECTED_CHANGE_LOG_VERSION,
     ts: f["ts"],
@@ -163,6 +204,7 @@ function validateFrame(v: unknown, line: number): ChangeFrame {
     scopeHint: f["scopeHint"],
     page: f["page"],
     fileKey: f["fileKey"] as string | null,
+    ...(typeof f["fileName"] === "string" && { fileName: f["fileName"] }),
   };
 }
 
@@ -172,23 +214,68 @@ function validateFrame(v: unknown, line: number): ChangeFrame {
 const OP_RANK: Record<ChangeOp, number> = { deleted: 3, created: 2, updated: 1 };
 
 /**
- * Coalesce every frame in the slice to ONE state per node id (cross-batch).
+ * Lowercase, alnum + dash only, no leading/trailing dash — MIRRORS figma-agent's
+ * `file-identity.ts` `safeSlug` (the ONE canonical helper `edit-feed-log.ts` and
+ * `project-bind.ts` both import there). Duplicated, not imported: figma-agent is a
+ * separate package/bundle outside this tsconfig, the same reason `ChangeFrame` itself is
+ * re-declared here rather than imported (the log/wire IS the contract, not the type).
+ *
+ * A comment cannot catch drift between two copies in two packages — a test that runs on
+ * every change can: the parity fixture list in this file's own test
+ * (`tests/cmd-figma-reconcile.test.ts`) is duplicated verbatim in
+ * `figma-agent/tests/project-bind.test.ts` (each names the other as its twin), asserting
+ * this function and figma-agent's `fileIdentity` agree on every fixture. That test IS the
+ * enforcement; review round finding 1 found the two HAD already drifted once
+ * (`edit-feed-log.ts`'s old `editFeedPath` slugged the fileKey too) with only a prose
+ * claim standing guard.
+ */
+function safeSlug(raw: string): string {
+  const s = raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return s.length > 0 ? s : "unknown";
+}
+
+/**
+ * fileKey when present (verbatim, never slugged), else slugged fileName, else 'unknown'
+ * (registry-integrity phase 03, §1) — the SAME chain figma-agent's `fileIdentity` (raw
+ * fileKey wins; uniqueness over cosmetic lowercasing) resolves to, enforced by the parity
+ * test named on `safeSlug` above, not by this comment. Exported for the command layer
+ * (figma-reconcile-run.ts §2), which needs it to count/report frames filtered as foreign.
+ */
+export function fileSlugOf(fileKey: string | null, fileName: string | undefined): string {
+  if (typeof fileKey === "string" && fileKey.trim() !== "") return fileKey;
+  return safeSlug(fileName ?? "");
+}
+
+/**
+ * Coalesce every frame in the slice to ONE state per (file, node id) pair (cross-batch).
  * Deterministic: frames are processed oldest→newest so "last non-null name / latest
  * page" is stable; the highest-ranked op wins; changedProps are unioned + sorted; any
  * REMOTE-derived `global` hint promotes the coalesced hint. Output sorted by nodeId.
+ *
+ * Registry-integrity phase 03 (5.2): the map key is `` `${fileSlug} ${nodeId}` ``, not
+ * bare `nodeId` — node ids are only unique WITHIN a file, so the same id from two
+ * different files must never merge into one target (the silent cross-file merge bug).
+ *
+ * `baseIndex` (registry-integrity phase 02, additive) is the ABSOLUTE log index of
+ * `frames[0]` — the caller passes `cursorFrom` when `frames` is a resumed slice
+ * (`frames.slice(cursorFrom)`), so `firstFrameIndex`/`lastFrameIndex` always index the
+ * WHOLE log, never the slice. Zipped BEFORE the `ts` sort below (which reorders), so a
+ * frame's absolute position survives regardless of where it lands in `ts` order.
  */
-export function coalesceFrames(frames: readonly ChangeFrame[]): CoalescedComponent[] {
-  const byId = new Map<string, CoalescedComponent>();
+export function coalesceFrames(frames: readonly ChangeFrame[], baseIndex = 0): CoalescedComponent[] {
+  const byKey = new Map<string, CoalescedComponent>();
   const propSets = new Map<string, Set<string>>();
-  const ordered = [...frames].sort((a, b) => a.ts - b.ts || cmp(a.nodeId, b.nodeId));
-  for (const fr of ordered) {
-    const props = propSets.get(fr.nodeId) ?? new Set<string>();
+  const indexed = frames.map((fr, i) => ({ fr, idx: baseIndex + i, slug: fileSlugOf(fr.fileKey, fr.fileName) }));
+  const ordered = indexed.sort((a, b) => a.fr.ts - b.fr.ts || cmp(a.fr.nodeId, b.fr.nodeId));
+  for (const { fr, idx, slug } of ordered) {
+    const key = `${slug} ${fr.nodeId}`;
+    const props = propSets.get(key) ?? new Set<string>();
     for (const p of fr.changedProps) props.add(p);
-    propSets.set(fr.nodeId, props);
+    propSets.set(key, props);
 
-    const prev = byId.get(fr.nodeId);
+    const prev = byKey.get(key);
     if (prev === undefined) {
-      byId.set(fr.nodeId, {
+      byKey.set(key, {
         nodeId: fr.nodeId,
         nodeName: fr.nodeName,
         nodeType: fr.nodeType,
@@ -197,6 +284,10 @@ export function coalesceFrames(frames: readonly ChangeFrame[]): CoalescedCompone
         scopeHint: fr.scopeHint,
         page: fr.page,
         latestTs: fr.ts,
+        firstFrameIndex: idx,
+        lastFrameIndex: idx,
+        fileKey: fr.fileKey,
+        fileSlug: slug,
       });
       continue;
     }
@@ -208,13 +299,19 @@ export function coalesceFrames(frames: readonly ChangeFrame[]): CoalescedCompone
       prev.latestTs = fr.ts;
       prev.page = fr.page;
     }
+    // Independent of ts order (the interleaved case: A's frames at log lines 0 and 9,
+    // B's at 3-4 — the `ts` sort can place them in any relative order).
+    if (idx < prev.firstFrameIndex) prev.firstFrameIndex = idx;
+    if (idx > prev.lastFrameIndex) prev.lastFrameIndex = idx;
   }
   const out: CoalescedComponent[] = [];
-  for (const [id, c] of byId) {
-    c.changedProps = [...(propSets.get(id) ?? new Set<string>())].sort();
+  for (const [key, c] of byKey) {
+    c.changedProps = [...(propSets.get(key) ?? new Set<string>())].sort();
     out.push(c);
   }
-  out.sort((a, b) => cmp(a.nodeId, b.nodeId));
+  // Deterministic even across files: nodeId first (unchanged single-file ordering), then
+  // fileSlug breaks a tie when the SAME id appears in two files.
+  out.sort((a, b) => cmp(a.nodeId, b.nodeId) || cmp(a.fileSlug, b.fileSlug));
   return out;
 }
 
@@ -261,10 +358,41 @@ export function computePreviewDelta(
   const deprecated: DeltaEntry[] = [];
   const unresolved: UnresolvedEntry[] = [];
 
+  // Registry-integrity phase 03 fix round (F4) — an UNFILTERED run's `components` may span
+  // more than one file (that is the whole point of the escape hatch), so two coalesced
+  // targets from DIFFERENT files can resolve to the SAME registry name. The apply layer
+  // keys its Map by name alone, so letting both through would resolve via silent
+  // last-write-wins; route every colliding target to `unresolved` with a named reason
+  // instead — `--file-slug` is the deliberate way to apply one of them at a time.
+  //
+  // Scoped to a genuine CROSS-FILE collision (>1 DISTINCT fileSlug sharing the name), not
+  // merely >1 coalesced entries sharing it: a delete-then-recreate of the same name within
+  // ONE file (two different nodeIds, one file) is an ordinary, legitimate lifecycle
+  // sequence within a single batch — not an ambiguity to route away.
+  const targetsByName = new Map<string, CoalescedComponent[]>();
+  for (const c of components) {
+    if (c.nodeName === null || c.nodeName.length === 0) continue;
+    const list = targetsByName.get(c.nodeName);
+    if (list !== undefined) list.push(c);
+    else targetsByName.set(c.nodeName, [c]);
+  }
+  const colliding = new Set<CoalescedComponent>();
+  for (const list of targetsByName.values()) {
+    const distinctFiles = new Set(list.map((c) => c.fileSlug));
+    if (distinctFiles.size > 1) for (const c of list) colliding.add(c);
+  }
+
   for (const c of components) {
     const name = c.nodeName;
     if (name === null || name.length === 0) {
       unresolved.push({ nodeId: c.nodeId, op: c.op, reason: "no resolvable component name (DELETE lost identity)" });
+      continue;
+    }
+    if (colliding.has(c)) {
+      unresolved.push({
+        nodeId: c.nodeId, op: c.op,
+        reason: `name collision: '${name}' resolves to more than one target in this batch (likely two different files sharing a name) — apply with --file-slug to resolve one at a time`,
+      });
       continue;
     }
     const prior = existing.get(name);

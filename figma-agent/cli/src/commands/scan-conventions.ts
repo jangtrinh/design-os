@@ -33,7 +33,7 @@ export const DEFAULT_WALK_TIMEOUT_MS = 90_000;
 const WIRE_MARGIN_MS = 2_000;
 
 /** A command runner: the EXEC_JS transport call, injectable so the walk is testable. */
-export type Runner = (cmd: string, params: unknown, opts?: { timeoutMs?: number }) => Promise<unknown>;
+export type Runner = (cmd: string, params: unknown, opts?: { timeoutMs?: number; readOnly?: boolean }) => Promise<unknown>;
 
 /** One section's aggregated convention DNA (the usage-dna.json element shape). */
 export interface SectionDNA {
@@ -111,8 +111,11 @@ export async function scanConventions(
 ): Promise<SectionDNA[]> {
   const code = buildWalkCode(sectionIds, budget);
   // Cold big-file walks can exceed the timeout on the first pass; retry once warm.
+  // `readOnly: true` (concurrency & jobs, backlog 1.1+2.6+4.3) — an aggregate walk, no
+  // writes; EXEC_JS is mutating by default, so this declares itself explicitly rather
+  // than queueing behind another agent's mutation.
   const reply = (await runWithWarmRetry(() =>
-    runner('EXEC_JS', { code, timeoutMs: walkTimeoutMs }, { timeoutMs: walkTimeoutMs + WIRE_MARGIN_MS }),
+    runner('EXEC_JS', { code, timeoutMs: walkTimeoutMs }, { timeoutMs: walkTimeoutMs + WIRE_MARGIN_MS, readOnly: true }),
   )) as { result?: unknown } | null;
   const result = reply && typeof reply === 'object' ? (reply as { result?: unknown }).result : undefined;
   if (!Array.isArray(result)) {

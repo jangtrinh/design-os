@@ -12,6 +12,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import { parseTokenFile } from "../core/token-model.js";
 import { resolveTokens } from "../core/token-resolve.js";
 import { loadRegistry } from "../core/registry-store.js";
+import { registryFileForDir } from "../core/design-system.js";
 import { buildDocsModel, renderMarkdown } from "../core/ds-docs.js";
 
 const CMD = "ds docs";
@@ -39,7 +40,9 @@ export function runDocs(parsed: ParsedArgs): CommandResult {
   const dirFlag = parsed.flags["dir"];
   const projectDir = typeof dirFlag === "string" ? resolve(dirFlag) : process.cwd();
   const designDir = join(projectDir, "design");
-  const regPath = join(designDir, "component-registry.json");
+  // Stage-4 N6 — shared resolver, so this agrees with figma reconcile/ds init/ds specimen
+  // on which file is "the registry" when a foreign artifact occupies the default name.
+  const regPath = registryFileForDir(designDir).path;
   if (!existsSync(regPath)) {
     return err("REGISTRY_NOT_FOUND", `no component-registry.json under '${designDir}' — run 'ui ds init' or 'ui registry register' first`);
   }

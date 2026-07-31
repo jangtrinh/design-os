@@ -13,7 +13,9 @@
  * so the file is stable regardless of insert order.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { canonicalStringify } from "./ds-manifest.js";
+import { writeShards } from "./registry-shards.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,8 +100,10 @@ export function statesToVariants(states: string[]): string[] {
   });
 }
 
-/** Keys permitted at the registry root object (mirrors schema additionalProperties:false). */
-const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
+/** Keys permitted at the registry root object (mirrors schema additionalProperties:false).
+ *  Exported (stage-4 N6) so `design-system.ts`'s foreign-registry detection reuses this
+ *  EXACT set — never a second, independently-invented schema. */
+export const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
 
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([
@@ -286,6 +290,36 @@ export function createEmptyRegistry(): Registry {
 // ─── I/O boundary ─────────────────────────────────────────────────────────────
 
 /**
+ * Stage-4 N6 — a SHALLOW root-shape check (JSON parses + `version` is a string + every
+ * root key ⊆ `REGISTRY_ROOT_KEYS`), reusing the SAME constant `loadRegistry` validates
+ * against below — never a second, independently-invented schema. Exists to answer ONE
+ * cheap question — "is the file at `path` plausibly OUR registry, or something foreign
+ * (e.g. a project's own generated component registry with a totally different shape)?"
+ * — for `design-system.ts`'s registry-path resolution, BEFORE deciding which file to even
+ * hand to `loadRegistry`. Deliberately does NOT check `components` is an array or
+ * validate any component — that full validation stays exactly where it is, at actual load
+ * time; this never throws, it only ever returns true/false.
+ */
+export function looksLikeKernelRegistryRoot(path: string): boolean {
+  let raw: string;
+  try {
+    raw = readFileSync(path, "utf8");
+  } catch {
+    return false;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const obj = parsed as Record<string, unknown>;
+  if (typeof obj["version"] !== "string") return false;
+  return Object.keys(obj).every((k) => REGISTRY_ROOT_KEYS.has(k));
+}
+
+/**
  * Load and validate a registry file from disk.
  * Missing file → throws RegistryError("REGISTRY_NOT_FOUND").
  * Invalid JSON or wrong shape → throws RegistryError("BAD_REGISTRY").
@@ -351,12 +385,40 @@ export function loadRegistry(path: string): Registry {
  * Serialize and write a registry to disk.
  * Components are sorted by name before writing (deterministic output).
  * Throws RegistryError("WRITE_ERROR") on failure.
+ *
+ * Registry-integrity phase 04 (5.4), §4 — `component-registry.json` (this function's own
+ * write, below) is now a DERIVED artifact: shards + a compact index land FIRST
+ * (`design/registry/`, content-guarded — an unchanged record's shard is never rewritten),
+ * then the contract file is emitted exactly as before (same bytes, same sort, same
+ * canonicalStringify — zero shape/consumer change). Shards land before the contract file
+ * for the same reason a sidecar lands before its registry pointer elsewhere in this repo:
+ * a failed write aborts with nothing (further) committed.
+ *
+ * @param touched Registry-integrity phase 04 (5.4), §5 — the names `figma-apply.ts`'s own
+ *   `Map`-based apply actually changed this run. When given, shard writing skips even
+ *   DIFFING every other component (O(touched), not O(N)); every other caller (`ui registry
+ *   register`, `ds init`, …) omits it and gets §4's original full-diff behaviour, unchanged.
+ * @returns Stage-4 N2 — `orphanShards` (see `writeShards`'s own doc): detected ONLY when
+ *   the prior shard index was absent/corrupt (MAJOR9's recovery path), report-only, never
+ *   auto-deleted. Every existing caller that ignores this return value is unaffected
+ *   (TypeScript/JS never requires a return value to be consumed).
  */
-export function saveRegistry(path: string, reg: Registry): void {
+export function saveRegistry(
+  path: string, reg: Registry, touched?: ReadonlySet<string>,
+): { orphanShards: string[] } {
   const sorted: Registry = {
     version: reg.version,
     components: [...reg.components].sort((a, b) => a.name.localeCompare(b.name)),
   };
+  let orphanShards: string[];
+  try {
+    ({ orphanShards } = writeShards(dirname(path), sorted, touched));
+  } catch (e) {
+    throw new RegistryError(
+      "WRITE_ERROR",
+      `cannot write registry shards for '${path}': ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
   // D5 (spec 009 P1): canonicalStringify, never JSON.stringify — ds-manifest.ts's mandate.
   // A reseal hashes these bytes, so the write and the hash must agree byte-for-byte.
   const content = canonicalStringify(sorted);
@@ -368,6 +430,7 @@ export function saveRegistry(path: string, reg: Registry): void {
       `cannot write registry '${path}': ${e instanceof Error ? e.message : String(e)}`,
     );
   }
+  return { orphanShards };
 }
 
 // ─── Pure operations ──────────────────────────────────────────────────────────

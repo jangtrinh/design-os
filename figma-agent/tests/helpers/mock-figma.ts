@@ -267,6 +267,30 @@ export class FakeNode {
   }
   get effects(): unknown[] { return this._effects; }
 
+  /**
+   * fills/strokes: a bound PAINT's variable is the authoritative bind (lives on the paint's
+   * own `boundVariables.color`, written via `setBoundVariableForPaint`), but Figma ALSO
+   * mirrors it onto the node's OWN `boundVariables[field]` as a `VariableAlias[]` — a
+   * read-back convenience so a caller can tell "some paint on this field is bound" without
+   * walking the paint array (verified live + official Plugin API docs). The mirror is
+   * DERIVED here, never authoritative: it is recomputed from whichever paint sits at index 0
+   * every time the field is written, and cleared when nothing there is bound.
+   */
+  private _fills: unknown;
+  private _strokes: unknown;
+  private mirrorPaintBinding(field: 'fills' | 'strokes', paints: unknown): void {
+    const first = Array.isArray(paints)
+      ? (paints[0] as { boundVariables?: { color?: { id?: string } } } | undefined)
+      : undefined;
+    const id = first?.boundVariables?.color?.id;
+    if (id) this.boundVariables[field] = [{ type: 'VARIABLE_ALIAS', id }];
+    else delete this.boundVariables[field];
+  }
+  set fills(v: unknown) { this._fills = v; this.mirrorPaintBinding('fills', v); }
+  get fills(): unknown { return this._fills; }
+  set strokes(v: unknown) { this._strokes = v; this.mirrorPaintBinding('strokes', v); }
+  get strokes(): unknown { return this._strokes; }
+
   /** Figma REFUSES some fields outright, by node type — encode the refusal, not the
    * happy path: a permissive mock here is what let the P5 rebuild ship a bind that
    * could only ever throw on the live canvas. */

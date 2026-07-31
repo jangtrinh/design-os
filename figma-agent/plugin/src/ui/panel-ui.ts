@@ -1,8 +1,9 @@
-// P2 panel — the thin DOM controller. It CONSUMES the P1 connection state machine
-// (the `figma-agent:conn-state` CustomEvent) and the new `figma-agent:activity`
-// event (both dispatched by ui-relay.ts) and renders the panel.html chrome. No
-// framework, no Figma API, no WebSocket — all protocol/connection logic stays in
-// the relay; all pure formatting stays in panel-model.ts. This file is glue.
+// Panel IA v2 — the thin DOM controller. It CONSUMES the P1 connection state machine
+// (the `figma-agent:conn-state` CustomEvent), the `figma-agent:activity` event, and the
+// new `figma-agent:peers` event (all dispatched by ui-relay.ts) and renders the panel.html
+// chrome: three blocks (Status / Context / Activity) + the sync prompt. No framework, no
+// Figma API, no WebSocket — all protocol/connection logic stays in the relay; all pure
+// formatting stays in panel-model.ts / activity-sentence.ts. This file is glue.
 //
 // Load order matters: ui-relay.ts imports this module FIRST, so these listeners
 // are attached before the relay fires its first transition (a fresh subscriber
@@ -10,16 +11,15 @@
 import { PORT_RANGE_START } from '../../../shared/protocol';
 import type { ConnectionState, ConnectionStatePayload } from '../../../shared/protocol';
 import {
-  stateView, formatAge, troubleshootHint, showOnboarding,
-  togglePanelMode, detailsLabel, compactMeta, PANEL_HEIGHT,
-  syncPromptLabel, syncResultLabel,
-  type PanelMode,
+  statusSentence, showOnboarding, fileNote, PANEL_HEIGHT,
+  syncPromptLabel, syncResultLabel, syncNowLabel, shouldClearPendingCount,
+  syncStartSentence, syncResultSentence, syncStuckSentence, syncSupersededSentence, SYNC_STUCK_TIMEOUT_MS,
 } from './panel-model';
 import {
-  activityLabel, activityMeta, formatTimestamp,
-  toActivityRecord, toActivityResult, pushActivity, resolveActivity,
+  toActivityRecord, toActivityResult, pushActivity, resolveActivity, diffRowKeys,
   type ActivityRecord,
 } from './activity-feed';
+import { activitySentence } from './activity-sentence';
 
 // Injected by scripts/build.mjs via esbuild `define` — a content hash of the
 // code.js this UI bundle shipped alongside, so a reload can be verified as the
@@ -29,136 +29,189 @@ declare const __BUILD_ID__: string;
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
-const panelRoot = el('fga-panel');
-const versionEl = el('fga-version');
 const dot = el('fga-dot');
-const pill = el('fga-pill');
 const sentence = el('fga-sentence');
-const meta = el('fga-meta');
 const onboarding = el('fga-onboarding');
-const hint = el('fga-hint');
+const ctxFile = el('fga-ctx-file');
+const ctxFileNote = el('fga-ctx-file-note');
+const ctxPage = el('fga-ctx-page');
+const ctxSelection = el('fga-ctx-selection');
 const activityList = el('fga-activity');
-const expandedZone = el('fga-expanded');
-const toggleBtn = el('fga-toggle');
-const toggleLabel = el('fga-toggle-label');
-const dPort = el('fga-d-port');
-const dProto = el('fga-d-proto');
-const dHeartbeat = el('fga-d-heartbeat');
-const dAttempts = el('fga-d-attempts');
-const dFile = el('fga-d-file');
-const dPage = el('fga-d-page');
-const copyBtn = el('fga-copy');
+const versionEl = el('fga-version');
 const syncPrompt = el('fga-sync');
 const syncMsg = el('fga-sync-msg');
 const syncNowBtn = el('fga-sync-now');
 const syncLaterBtn = el('fga-sync-later');
 
 let payload: ConnectionStatePayload | null = null;
-let hadConnection = false; // ever reached `connected` — flips onboarding off + drop-hint on
-let probeAttempts = 0; // full broker scans since load (one per scan cycle)
+let hadConnection = false; // ever reached `connected` — flips onboarding off forever
 let activity: ActivityRecord[] = []; // newest-first, capped at 50 by pushActivity
 let sceneFile = '';
 let scenePage = '';
-let mode: PanelMode = 'compact'; // ALWAYS compact on open (spec P5.1 — no persistence)
+let selectionName: string | null = null;
+let selectionCount = 0;
+let peersCount = 1;
+let peersIsActiveTarget = true; // sole plugin ⇒ trivially the target until PEERS says otherwise
 
-// ─── Rendering ──────────────────────────────────────────────────────────────
-function metaLine(state: ConnectionState, now: number): string {
-  if (mode === 'compact') {
-    const compact = compactMeta(state);
-    if (compact !== null) return compact; // disconnected compact still communicates
-  }
-  if (!payload) return '';
-  const age = now - payload.since;
-  if (state === 'connected') {
-    return `${payload.port ? `Port ${payload.port}` : 'Connected'} · up ${formatAge(age)}`;
-  }
-  if (state === 'probing') {
-    return `Attempt ${Math.max(1, probeAttempts)} · retrying (${formatAge(age)})`;
-  }
-  return '';
+// ─── Icons (Phosphor inline SVG — no text glyphs anywhere, §1) ───────────────
+// Official @phosphor-icons/core v2 path data, "regular" weight, 256x256 viewBox, MIT —
+// check-circle / x-circle / circle-notch, matching the family the existing footer caret
+// already uses. Injected via createElementNS (never innerHTML). Each icon is
+// `aria-hidden` — the ACCESSIBLE label lives on the wrapping element the icon sits in
+// (`.log-icon-wrap[aria-label]` below), so the glyph itself never needs to speak for
+// itself. Only the three states the activity feed actually renders: done, failed,
+// in-flight (spins; stops under prefers-reduced-motion — see panel.html).
+const SVG_NS = 'http://www.w3.org/2000/svg';
+type IconName = 'check' | 'x' | 'notch';
+const ICONS: Record<IconName, string> = {
+  // check-circle, regular — the wrapper's aria-label carries the state; colour (via
+  // CSS) carries "success" visually.
+  check: 'M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z',
+  // x-circle, regular.
+  x: 'M165.66,101.66,139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z',
+  // circle-notch, regular — CSS rotates it (fga-spin).
+  notch: 'M232,128a104,104,0,0,1-208,0c0-41,23.81-78.36,60.66-95.27a8,8,0,0,1,6.68,14.54C60.15,61.59,40,93.27,40,128a88,88,0,0,0,176,0c0-34.73-20.15-66.41-51.34-80.73a8,8,0,0,1,6.68-14.54C208.19,49.64,232,87,232,128Z',
+};
+
+function makeIcon(name: IconName): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 256 256');
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'log-icon');
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', ICONS[name]);
+  svg.appendChild(path);
+  return svg;
 }
 
-function renderDetails(): void {
-  const port = payload?.port;
-  const pong = payload?.lastPongAge;
-  dPort.textContent = port ? String(port) : '—';
-  dProto.textContent = payload ? `v${payload.protocolVersion}` : '—';
-  dHeartbeat.textContent = pong != null ? `${formatAge(pong)} ago` : '—';
-  dAttempts.textContent = String(probeAttempts);
-  dFile.textContent = sceneFile || '—';
-  dPage.textContent = scenePage || '—';
+// ─── Rendering ──────────────────────────────────────────────────────────────
+
+/** Block 2 — CONTEXT: File (+ command-target/peers note) / Page / Selection. */
+function renderContext(): void {
+  ctxFile.textContent = sceneFile || '—';
+  ctxFile.title = sceneFile || ''; // the row ellipsises — hover still tells the truth
+  ctxFileNote.textContent = fileNote(peersCount, peersIsActiveTarget);
+  ctxPage.textContent = scenePage || '—';
+  ctxPage.title = scenePage || '';
+  ctxSelection.textContent = selectionText();
+}
+
+/** "None" / "Hero card" / "Hero card +2 more". Never fabricates a name. The <dt>
+ *  "Selection" label already frames this — "None" reads as "Selection: None". */
+function selectionText(): string {
+  if (selectionCount <= 0) return 'None';
+  const first = selectionName ?? '(unnamed)';
+  return selectionCount > 1 ? `${first} +${selectionCount - 1} more` : first;
 }
 
 /** How many of the buffered rows the feed shows (the band scrolls past this). */
 const ACTIVITY_ROWS = 20;
 
 /**
- * One feed row — the LABEL is the hero, the timing is footnote:
- *   ● Mirror-verify · rebuild
- *     → Hero card · 2 warnings · 1.2s · 16s
- * The priority is deliberate. The old row laid time/label/duration out on ONE flex
- * line, so on a ~300px panel the two fixed-width footnotes ate the width and the
- * label — the only part that says WHAT is happening — ellipsised down to "R".
+ * One feed row: [icon][sentence] + a caption line with relative time. The sentence
+ * (activity-sentence.ts) says what the agent DID, in English, with a node name when the
+ * reply carried one — never a command name, never a wire error code.
  *
- * `stale` dims every row but the newest (recency, at zero vertical cost). The mark's
- * SHAPE carries the state (filled / hollow / ✗) because colour alone is not a channel
- * every eye has, and its aria-label carries it again because neither is a channel a
- * screen reader has.
+ * `isNew` (backlog 4.7): only a row whose key was NOT in the previous render gets the
+ * `.is-new` class, which is the ONLY thing the entrance animation is now scoped to
+ * (panel.html) — every row is still rebuilt each render (simplest fix within this
+ * file's existing full-rebuild structure), but a rebuilt-yet-unchanged row is visually
+ * inert instead of replaying its arrival animation on every 1s heartbeat tick.
  */
-function activityRow(r: ActivityRecord, now: number, stale: boolean): HTMLElement {
+function activityRow(r: ActivityRecord, now: number, stale: boolean, isNew: boolean): HTMLElement {
   const li = document.createElement('li');
-  li.className = stale ? 'activity-row is-stale' : 'activity-row';
+  const classes = ['activity-row', 'fga-row'];
+  if (stale) classes.push('is-stale');
+  if (isNew) classes.push('is-new');
+  li.className = classes.join(' ');
 
-  const dot = document.createElement('span');
-  dot.className = 'log-dot';
-  dot.dataset.ok = String(r.ok);
-  dot.dataset.pending = String(r.pending);
   const state = r.pending ? 'running' : (r.ok ? 'ok' : 'failed');
-  dot.setAttribute('aria-label', state);
-  // A failure IS the ✗ (CSS drops the square for it); the other two are the square.
-  dot.textContent = state === 'failed' ? '✗' : '';
-
-  const label = document.createElement('div');
-  label.className = 'log-label';
-  label.textContent = activityLabel(r);
-  label.title = activityLabel(r); // the row ellipsises — hover still tells the truth
-
-  // One muted line: outcome (if any) + duration (or "running…") + compact age.
-  const m = document.createElement('div');
-  m.className = 'log-meta';
-  m.dataset.ok = String(r.ok);
-  m.textContent = activityMeta(r, now);
-  m.title = formatTimestamp(r.at); // the compact age never says WHEN; this does
+  const iconName: IconName = r.pending ? 'notch' : (r.ok ? 'check' : 'x');
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'log-icon-wrap fga-icon';
+  iconWrap.dataset.state = state;
+  iconWrap.setAttribute('aria-label', state); // the accessible label; the svg inside is aria-hidden
+  iconWrap.appendChild(makeIcon(iconName));
 
   const body = document.createElement('div');
   body.className = 'log-body';
-  body.append(label, m);
 
-  li.append(dot, body);
+  const text = document.createElement('div');
+  // Owner-observed (live screenshot): a failure's reason ("The script stopped: runtime
+  // error: <truncated>") was being clipped with an ellipsis character — Activity is the
+  // one surface exempt from the terse-truncate rule (wording-panel decision), so a
+  // failure reason must be readable without hovering. Only FAILED rows wrap
+  // (`.log-label--wrap`); ok/running rows keep the single-line ellipsis truncation —
+  // their sentences never carry this much text.
+  text.className = !r.pending && !r.ok ? 'log-label log-label--wrap' : 'log-label';
+  // A pre-composed sentence (sync results, job status) lands VERBATIM — the caller
+  // already holds the full human sentence, so the generic tool/count/name mapper below
+  // never runs for it (see ActivityRecord.sentence's own doc for why forcing either
+  // through that mapper was the bug).
+  const line = r.sentence ?? activitySentence({
+    tool: r.tool, label: r.label, result: r.result, errorCode: r.errorCode,
+    errorMessage: !r.ok ? r.result : undefined, nodeName: r.nodeName,
+    pending: r.pending, ok: r.ok,
+  });
+  text.textContent = line;
+  text.title = line; // the row ellipsises (ok/running) — hover still tells the truth there
+
+  const caption = document.createElement('div');
+  caption.className = 'log-meta';
+  caption.textContent = r.pending ? 'running' : timeAgoCaption(now, r.at);
+  caption.title = formatTimestampCaption(r.at);
+
+  body.append(text, caption);
+  li.append(iconWrap, body);
   return li;
 }
 
+// Small local wrappers so this module only imports what it uses from activity-feed.ts's
+// formatting helpers, without re-exporting them under new names there.
+function timeAgoCaption(now: number, at: number): string {
+  const s = Math.floor((now - at) / 1000);
+  if (s < 1) return 'now';
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+}
+function formatTimestampCaption(at: number): string {
+  if (!Number.isFinite(at)) return '—';
+  const d = new Date(at);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+// The ids shown in the PREVIOUS renderActivity() call — diffed against the next render
+// so an unchanged row doesn't replay its entrance animation on every 1s heartbeat tick
+// (backlog 4.7). Starts empty: the very first render's rows are all "new", which is
+// correct — nothing has ever been shown before.
+let previousRowKeys: string[] = [];
+
 function renderActivity(now: number): void {
-  if (activity.length === 0) return; // leave the static "No activity yet" empty-state row
+  if (activity.length === 0) { previousRowKeys = []; return; } // leave the static "No activity yet" empty-state row
+  const shown = activity.slice(0, ACTIVITY_ROWS);
+  const nextKeys = shown.map((r) => r.id);
+  const newKeys = new Set(diffRowKeys(previousRowKeys, nextKeys));
   activityList.replaceChildren(
-    ...activity.slice(0, ACTIVITY_ROWS).map((r, i) => activityRow(r, now, i > 0)),
+    ...shown.map((r, i) => activityRow(r, now, i > 0, newKeys.has(r.id))),
   );
+  previousRowKeys = nextKeys;
 }
 
 function render(): void {
   const now = Date.now();
   const state: ConnectionState = payload?.state ?? 'disconnected';
-  const view = stateView(state);
+  const view = statusSentence(state, payload ? now - payload.since : 0, hadConnection);
 
   dot.dataset.tone = view.tone;
-  dot.classList.toggle('is-pulsing', view.pulse);
-  pill.textContent = view.pill;
-  pill.dataset.tone = view.tone;
-  sentence.textContent = view.sentence;
-  meta.textContent = metaLine(state, now);
+  dot.classList.toggle('is-pulsing', state === 'probing');
+  sentence.textContent = view.text;
+  sentence.dataset.tone = view.tone; // the pill is gone — the sentence itself is now the tone-carrying text
   onboarding.hidden = !showOnboarding(state, hadConnection);
-  hint.textContent = troubleshootHint(state, payload ? now - payload.since : 0, hadConnection) ?? '';
-  renderDetails();
+  renderContext();
   renderActivity(now);
 }
 
@@ -167,13 +220,12 @@ window.addEventListener('figma-agent:conn-state', (ev) => {
   const p = (ev as CustomEvent).detail as ConnectionStatePayload | undefined;
   if (!p || typeof p.state !== 'string') return;
   if (p.state === 'connected') hadConnection = true;
-  if (p.state === 'probing' && p.port === PORT_RANGE_START) probeAttempts++;
   payload = p;
   render();
 });
 
 // The relay announces each request twice: `start` opens the row (so the panel shows
-// what is running while it runs), `done` lands the outcome onto that same row, by id.
+// what is running WHILE the user waits), `done` lands the outcome onto that same row, by id.
 window.addEventListener('figma-agent:activity', (ev) => {
   const detail = (ev as CustomEvent).detail as { phase?: unknown } | undefined;
   if (detail?.phase === 'done') {
@@ -188,8 +240,16 @@ window.addEventListener('figma-agent:activity', (ev) => {
   renderActivity(Date.now());
 });
 
-// Scene identity for the details panel — main announces it (FILE_INFO); ui-relay
-// also forwards it to the broker. This listener is read-only and independent.
+// Peers (panel IA v2): the broker's honest answer to "which file will my command hit?".
+window.addEventListener('figma-agent:peers', (ev) => {
+  const d = (ev as CustomEvent).detail as { count?: unknown; isActiveTarget?: unknown } | undefined;
+  if (typeof d?.count === 'number' && Number.isFinite(d.count)) peersCount = d.count;
+  if (typeof d?.isActiveTarget === 'boolean') peersIsActiveTarget = d.isActiveTarget;
+  renderContext();
+});
+
+// Scene identity for Block 2 — main announces it (FILE_INFO, now carrying selection
+// too); ui-relay also forwards it to the broker. This listener is read-only and independent.
 window.addEventListener('message', (ev: MessageEvent) => {
   const pm = (ev.data as { pluginMessage?: { type?: string; data?: Record<string, unknown> } } | null)?.pluginMessage;
   if (!pm) return;
@@ -197,13 +257,16 @@ window.addEventListener('message', (ev: MessageEvent) => {
   if (pm.type === 'IDLE_READY' && pm.data) {
     const count = typeof pm.data.count === 'number' ? pm.data.count : 1;
     syncMsg.textContent = syncPromptLabel(count);
+    syncNowBtn.textContent = syncNowLabel(false); // a fresh prompt is never mid-refusal
     syncPrompt.hidden = false;
     return;
   }
   if (pm.type !== 'FILE_INFO' || !pm.data) return;
   if (typeof pm.data.fileName === 'string') sceneFile = pm.data.fileName;
   if (typeof pm.data.page === 'string') scenePage = pm.data.page;
-  renderDetails();
+  selectionName = typeof pm.data.selectionName === 'string' ? pm.data.selectionName : null;
+  selectionCount = typeof pm.data.selectionCount === 'number' ? pm.data.selectionCount : 0;
+  renderContext();
 });
 
 // ─── Idle-commit prompt actions (spec 004 P4) ─────────────────────────────────
@@ -215,97 +278,91 @@ window.addEventListener('message', (ev: MessageEvent) => {
 // command through this relay. Its two ends ARE observable here though — the click and
 // the SYNC_RESULT — so the feed logs it from those, keyed by this id.
 let reconcileRun: { id: string; at: number } | null = null;
+// Live-observed durability gap (owner addendum, task #145): a SYNC_REQUEST can land on a
+// broker that gets hot-replaced before answering — the CLI-side retry succeeds on the new
+// broker, but this panel's own pending row never gets its SYNC_RESULT and would spin
+// "Syncing" forever without a bounded guard. Cleared the moment a real result lands.
+let reconcileStuckTimer: ReturnType<typeof setTimeout> | null = null;
 
 syncNowBtn.addEventListener('click', () => {
-  syncMsg.textContent = 'Syncing…';
+  syncMsg.textContent = 'Syncing';
   const at = Date.now();
-  reconcileRun = { id: `reconcile_${at}`, at };
+  const id = `reconcile_${at}`;
+  // Stage-4 fix round (minor 9) — a second click while the FIRST run is still pending
+  // (no SYNC_RESULT/timeout has landed yet) used to just overwrite `reconcileRun`,
+  // leaving that first row spinning "Syncing" forever: its own stuck-timer later finds
+  // `reconcileRun.id` has moved on and — correctly — refuses to touch a row a REAL
+  // result might still land on. Resolve it as superseded HERE instead, before the
+  // second run starts, so no row is ever left orphaned.
+  if (reconcileRun) {
+    if (reconcileStuckTimer !== null) { clearTimeout(reconcileStuckTimer); reconcileStuckTimer = null; }
+    activity = resolveActivity(activity, {
+      id: reconcileRun.id, ok: false, ms: at - reconcileRun.at, sentence: syncSupersededSentence(),
+    });
+  }
+  reconcileRun = { id, at };
+  const fileLabel = sceneFile ?? '(unnamed file)';
   activity = pushActivity(activity, {
-    id: reconcileRun.id, tool: 'RECONCILE', label: 'Reconcile · apply',
+    id, tool: 'RECONCILE', label: 'Reconcile · apply',
     pending: true, ok: true, ms: 0, at,
+    sentence: syncStartSentence('manual', fileLabel),
   });
   renderActivity(at);
   try { window.dispatchEvent(new CustomEvent('figma-agent:sync-request')); } catch { /* no DOM events */ }
-  parent.postMessage({ pluginMessage: { type: 'SYNC_DONE' } }, '*');
+  // Fix round (finding 2): SYNC_DONE (which resets main's pending-change counter) used to
+  // post HERE, on click — before the result is even known. An E_UNBOUND refusal applies
+  // NOTHING, so consuming the counter at click-time silently dropped the pending changes'
+  // one visible signal. It now posts from the sync-result listener below, once the
+  // outcome is known, carrying whether to actually reset.
+  if (reconcileStuckTimer !== null) clearTimeout(reconcileStuckTimer);
+  reconcileStuckTimer = setTimeout(() => {
+    if (reconcileRun?.id !== id) return; // already resolved (or superseded) by a real SYNC_RESULT
+    const now = Date.now();
+    activity = resolveActivity(activity, { id, ok: false, ms: now - at, sentence: syncStuckSentence() });
+    reconcileRun = null;
+    reconcileStuckTimer = null;
+    renderActivity(now);
+  }, SYNC_STUCK_TIMEOUT_MS);
 });
 
 syncLaterBtn.addEventListener('click', () => { syncPrompt.hidden = true; });
 
 window.addEventListener('figma-agent:sync-result', (ev) => {
-  const d = (ev as CustomEvent).detail as { ok?: boolean; summary?: string; landed?: boolean } | undefined;
+  const d = (ev as CustomEvent).detail as
+    { ok?: boolean; summary?: string; landed?: boolean; code?: string } | undefined;
   // `landed` absent (an older broker) → assume it landed; a present `false` is honoured.
-  const label = syncResultLabel(
-    d?.ok === true,
-    typeof d?.summary === 'string' ? d.summary : '',
-    d?.landed !== false,
-  );
+  // `code === 'E_UNBOUND'` (registry-integrity fix round, finding 2): the broker refused
+  // instead of guessing a project — renders the bind command, not a pass/fail verdict.
+  const unbound = d?.code === 'E_UNBOUND';
+  const ok = d?.ok === true;
+  const summary = typeof d?.summary === 'string' ? d.summary : '';
+  const landed = d?.landed !== false;
+  const label = syncResultLabel(ok, summary, landed, unbound);
   syncMsg.textContent = label;
-  // The prompt line auto-dismisses in 4s; the feed row is the durable record. It
-  // repeats the SAME sentence syncResultLabel just made — including "Nothing synced",
-  // which a feed that only said "done" would quietly upgrade to a lie.
+  syncNowBtn.textContent = syncNowLabel(unbound);
+  // The prompt line normally auto-dismisses in 4s; the feed row is the durable record —
+  // it composes its OWN long-form sentence (task #145) rather than reusing the prompt's
+  // short label, naming the file and never collapsing to the bare word "Synced".
   if (reconcileRun) {
+    if (reconcileStuckTimer !== null) { clearTimeout(reconcileStuckTimer); reconcileStuckTimer = null; }
     const now = Date.now();
+    const fileLabel = sceneFile ?? '(unnamed file)';
     activity = resolveActivity(activity, {
-      id: reconcileRun.id, ok: d?.ok === true, ms: now - reconcileRun.at, result: `→ ${label}`,
+      id: reconcileRun.id, ok, ms: now - reconcileRun.at,
+      sentence: syncResultSentence(ok, summary, landed, unbound, fileLabel),
     });
     reconcileRun = null;
     renderActivity(now);
   }
+  // Closing review round, defect #2: ONLY a genuine success may clear main's pending-change
+  // counter — a real reconcile failure or "already running" applied nothing either, so
+  // clearing it there was just as dishonest as clearing it on an unbound refusal. Every
+  // failure (E_UNBOUND included) keeps both the counter and this prompt, so retry stays
+  // possible; only a success auto-dismisses.
+  const commit = shouldClearPendingCount(ok);
+  parent.postMessage({ pluginMessage: { type: 'SYNC_DONE', commit } }, '*');
   syncPrompt.hidden = false;
-  setTimeout(() => { syncPrompt.hidden = true; }, 4000); // auto-dismiss the confirmation
-});
-
-// ─── Copy status (support hand-off) ───────────────────────────────────────────
-function fallbackCopy(text: string, done: () => void): void {
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    done();
-  } catch { /* clipboard unavailable in this iframe — no-op */ }
-}
-
-copyBtn.addEventListener('click', () => {
-  const snapshot = {
-    state: payload?.state ?? 'disconnected',
-    port: payload?.port ?? null,
-    protocolVersion: payload?.protocolVersion ?? null,
-    lastPongAge: payload?.lastPongAge ?? null,
-    reconnectAttempts: probeAttempts,
-    file: sceneFile || null,
-    page: scenePage || null,
-    recentActivity: activity.slice(0, 8),
-  };
-  const text = JSON.stringify(snapshot, null, 2);
-  const done = (): void => {
-    copyBtn.textContent = 'Copied';
-    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
-  };
-  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
-  else fallbackCopy(text, done);
-});
-
-// ─── Compact ⇄ expanded (P5.1) ───────────────────────────────────────────────
-// The DETAILS footer cell toggles the expanded zone and asks main to resize the
-// iframe to the mode's height (main owns figma.ui.resize; resize is instant, no
-// animation). Default is always compact on open — mode is never persisted.
-function applyMode(): void {
-  panelRoot.dataset.mode = mode;
-  expandedZone.hidden = mode !== 'expanded';
-  toggleLabel.textContent = detailsLabel(mode);
-  toggleBtn.setAttribute('aria-expanded', String(mode === 'expanded'));
-}
-
-toggleBtn.addEventListener('click', () => {
-  mode = togglePanelMode(mode);
-  applyMode();
-  parent.postMessage({ pluginMessage: { type: 'PANEL_RESIZE', h: PANEL_HEIGHT[mode] } }, '*');
-  render(); // the meta line is mode-dependent (compact disconnected override)
+  if (commit) setTimeout(() => { syncPrompt.hidden = true; }, 4000);
 });
 
 versionEl.textContent = `v0.1.0 · ${typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}`;
@@ -313,5 +370,11 @@ versionEl.textContent = `v0.1.0 · ${typeof __BUILD_ID__ === 'string' ? __BUILD_
 // A 1s heartbeat keeps the live ages (uptime, retry elapsed, time-ago) fresh
 // between transitions.
 setInterval(render, 1000);
-applyMode();
 render();
+
+// probeAttempts / PORT_RANGE_START were the old meta-line's "Attempt N" counter — IA v2's
+// statusSentence carries no attempt count, so nothing here needs it; the import stays
+// only because `figma-agent:conn-state`'s payload shape is still typed against it
+// upstream. Referencing it directly would be dead code, so it is deliberately unused.
+void PORT_RANGE_START;
+void PANEL_HEIGHT;
