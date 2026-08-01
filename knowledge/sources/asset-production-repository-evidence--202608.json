@@ -1,0 +1,32 @@
+{
+  "capturedAt": "2026-08-01T19:19:00+07:00",
+  "method": "Shallow source inspection; no Git LFS, model downloads, installation, or source copying",
+  "internalSourceHashes": {
+    "Repo-Pipeline-Tach-Layer-Landscape.md": "137bd59c63e79a64cfd760990e809aba2aaea197cac0117dd07ebcf440674794",
+    "layerkit.py": "238e40b764b338397946ba8a3d196338ff3fd7ad79f9b81851f20ee97598a1ae",
+    "DEMO-Celebi-Shrine-Prompt-Pack.md": "0a569a71ea24aee61b95371ff689d295a9a4b6c30b03a5469d9b0811c0c703ec"
+  },
+  "repositories": [
+    { "name": "agent-sprite-forge", "url": "https://github.com/anthropics/agent-sprite-forge", "commit": "64fd0b57", "date": "2026-07-13", "codeLicense": "MIT", "role": "master lock; raw/processed boundary; chroma, alignment, and provenance QA" },
+    { "name": "sprite-gen", "url": "https://github.com/egonelbre/sprite-gen", "commit": "f1731995", "date": "2026-07-30", "codeLicense": "Apache-2.0", "role": "numeric request truth; curation sidecar; atomic publish" },
+    { "name": "LayerD", "url": "https://github.com/layerd-ai/LayerD", "commit": "21aef937", "date": "2026-01-19", "codeLicense": "Apache-2.0", "role": "iterative extraction and inpaint; semantic layers" },
+    { "name": "Qwen-Image-Layered", "url": "https://github.com/QwenLM/Qwen-Image-Layered", "commit": "54c4fe47", "date": "2025-12-31", "codeLicense": "Apache-2.0", "role": "image-to-RGBA-layer decomposition and recomposition" },
+    { "name": "rembg", "url": "https://github.com/danielgatis/rembg", "commit": "684f8e9f", "date": "2026-07-18", "codeLicense": "MIT", "role": "operational background-removal fallback" },
+    { "name": "BiRefNet", "url": "https://github.com/ZhengPeng7/BiRefNet", "commit": "25cb9309", "date": "2026-07-24", "codeLicense": "MIT", "role": "specialized foreground and matting fallback" },
+    { "name": "transparent-background", "url": "https://github.com/plemeri/transparent-background", "commit": "6860e05c", "date": "2026-07-08", "codeLicense": "MIT", "role": "documented Apple MPS fallback" },
+    { "name": "PyMatting", "url": "https://github.com/pymatting/pymatting", "commit": "fcda1e52", "date": "2026-04-07", "codeLicense": "MIT", "role": "trimap-driven alpha refinement" },
+    { "name": "psd-tools", "url": "https://github.com/psd-tools/psd-tools", "commit": "ad89f315", "date": "2026-07-21", "codeLicense": "MIT", "role": "Python PSD assembly and compositing" },
+    { "name": "ag-psd", "url": "https://github.com/Agamnentzar/ag-psd", "commit": "38704967", "date": "2026-07-02", "codeLicense": "MIT", "role": "TypeScript PSD layer-tree serialization" },
+    { "name": "ComfyUI-RMBG", "url": "https://github.com/1038lab/ComfyUI-RMBG", "commit": "9edb2bec", "date": "2026-07-28", "codeLicense": "GPL-3.0", "role": "reference-only model and workflow comparison" },
+    { "name": "ComfyUI_LayerStyle", "url": "https://github.com/chflame163/ComfyUI_LayerStyle", "commit": "64f976fe", "date": "2026-08-01", "codeLicense": "MIT", "role": "optional visual workbench patterns" },
+    { "name": "ComfyUI-Image-Filters", "url": "https://github.com/spacepxl/ComfyUI-Image-Filters", "commit": "bbb3fb00", "date": "2025-12-14", "codeLicense": "MIT", "role": "deterministic filter vocabulary" },
+    { "name": "comfy_mtb", "url": "https://github.com/melMass/comfy_mtb", "commit": "b35b5d8a", "date": "2026-07-04", "codeLicense": "MIT", "role": "optional visual utility patterns" },
+    { "name": "SAM2", "url": "https://github.com/facebookresearch/sam2", "commit": "2b90b9f5", "date": "2024-12-15", "codeLicense": "Apache-2.0", "role": "point and box segmentation fallback" },
+    { "name": "Diffusers LayerDiffuse", "url": "https://github.com/huggingface/diffusers", "commit": "b4150c1e", "date": "2026-05-04", "codeLicense": "MIT", "role": "optional native-transparent GPU route" }
+  ],
+  "evidenceLimits": [
+    "A code license does not establish the license for model weights, training data, or outputs.",
+    "Repository activity is not evidence that a model or inspected implementation is current.",
+    "Repositories informed contracts and selection rules only; none was vendored."
+  ]
+}
