@@ -1,0 +1,8 @@
+# Trang đã dựng sống ở repo riêng: github.com/jangtrinh/design-os-drone-showcase
+# (nơi nó được GitHub Pages phục vụ). Không nhân bản 12 MB frame/font/GSAP vào đây —
+# hai bản sao của cùng một site sẽ trôi khỏi nhau, và repo này chỉ cần GIỮ SPEC.
+# Thứ ở lại: spec, pipeline trích frame + đo tải, và file token DTCG nguồn.
+site/
+
+# Ledger runtime của kernel `ui`, ghi lại mỗi lần chạy lệnh — máy trạng thái, không phải nguồn.
+design/memory.events.*
