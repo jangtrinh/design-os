@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Follow What Disappears</title>
+    <link rel="preload" as="image" type="image/webp" href="assets/production/far-world.webp">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#invitation">Skip forest encounter</a>
+    <main id="main-content">
+      <section class="unsupported" aria-labelledby="unsupported-title">
+        <h1 id="unsupported-title">This forest encounter is composed for a wider screen.</h1>
+        <p>Open it at 1024px wide or more to follow the spirit through the clearing.</p>
+      </section>
+
+      <section id="arrival" class="forest-hero" aria-labelledby="hero-title" data-hero>
+        <div class="forest-hero__stage" data-stage>
+          <div class="forest-hero__scene" aria-hidden="true">
+            <div class="scene-plane scene-plane--far" data-plane="far-world"><img src="assets/production/far-world.webp" alt=""></div>
+            <div class="scene-plane scene-plane--rear-atmosphere" data-plane="rear-atmosphere"><img src="assets/production/rear-atmosphere.webp" alt=""></div>
+            <div class="scene-plane scene-plane--focus" data-plane="focus-group">
+              <div class="semantic-layer" data-semantic="mid-terrain"><img src="assets/production/mid-terrain.webp" alt=""></div>
+              <div class="scene-plane scene-plane--spirit scene-plane--spirit-behind" data-plane="spirit-behind">
+                <img class="spirit-glow" src="assets/production/spirit-glow.webp" alt=""><img src="assets/production/spirit-core.webp" alt="">
+              </div>
+              <div class="semantic-layer" data-semantic="rooted-shrine"><img src="assets/production/rooted-shrine.webp" alt=""></div>
+              <div class="scene-plane scene-plane--spirit scene-plane--spirit-front" data-plane="spirit-front">
+                <img class="spirit-glow" src="assets/production/spirit-glow.webp" alt=""><img src="assets/production/spirit-core.webp" alt="">
+              </div>
+            </div>
+            <div class="scene-plane scene-plane--near-haze" data-plane="near-haze"><img src="assets/production/near-haze.webp" alt=""></div>
+            <div class="scene-plane scene-plane--canopy" data-plane="canopy-arch"><img src="assets/production/canopy-arch.webp" alt=""></div>
+            <div class="scene-plane scene-plane--obstruction" data-plane="right-obstruction"><img src="assets/production/right-obstruction.webp" alt=""></div>
+            <div class="scene-plane scene-plane--sill" data-plane="near-sill"><img src="assets/production/near-sill.webp" alt=""></div>
+            <img class="settled-preview" src="assets/production/settled-static.webp" alt="">
+          </div>
+
+          <div class="forest-hero__content">
+            <p class="forest-hero__eyebrow" data-beat="eyebrow">At the forest threshold</p>
+            <h1 id="hero-title"><span data-beat="title-one">Something in the quiet</span><span data-beat="title-two">has noticed you.</span></h1>
+            <div class="forest-hero__invitation-copy" data-beat="reveal-copy">
+              <p>Follow the lantern light. A small shrine keeps the path open for anyone willing to listen.</p>
+              <a class="forest-hero__cta" href="#invitation" data-beat="cta">Enter the clearing <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+          <aside class="motion-debug" data-debug hidden aria-label="Motion diagnostics"><strong>Follow What Disappears</strong><p>progress <output data-debug-progress>0.00</output></p><p>threshold · notice · crossing · absence · reveal · orbit · settle · release</p></aside>
+        </div>
+      </section>
+
+      <section id="invitation" class="invitation" aria-labelledby="invitation-title">
+        <p>Keep walking</p><h2 id="invitation-title">The clearing begins just beyond the gate.</h2>
+      </section>
+    </main>
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/ScrollTrigger.min.js"></script>
+    <script src="hero.js"></script>
+  </body>
+</html>
