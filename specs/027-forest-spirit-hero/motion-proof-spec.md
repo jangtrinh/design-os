@@ -1,6 +1,6 @@
 # Forest Spirit Hero — 12-Layer Motion Proof
 
-Status: approved for rough-mask prototype only. Final asset generation is out of scope until this proof passes.
+Status: superseded by the approved production in `site/`. This document preserves the earlier rough-mask proof contract.
 
 ## Outcome
 
