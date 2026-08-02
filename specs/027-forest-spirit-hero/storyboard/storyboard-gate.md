@@ -1,6 +1,6 @@
 # Desktop Storyboard Gate
 
-Status: `OWNER_APPROVAL_REQUIRED`
+Status: `APPROVED`
 
 This 960×540 rough storyboard is the production gate for the desktop-only forest-spirit hero. It validates narrative staging and occlusion before final 1920×1080 assets or GSAP implementation are produced.
 
@@ -24,4 +24,4 @@ This 960×540 rough storyboard is the production gate for the desktop-only fores
 
 ## Approval
 
-Approval authorizes final asset generation and desktop GSAP implementation. Any requested staging change returns this gate to draft.
+Owner approval authorized final asset generation and desktop GSAP implementation. The completed production passed Codex review and Fable's final direction audit.
