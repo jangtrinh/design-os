@@ -491,14 +491,29 @@ Grounds on BOTH onboarding halves: the registry (C0 vocabulary) for *what* to in
 
 ## 19. User flow / journey layout (C3)
 
-Lay N screens on a flow grid — named artboards, captions, connectors — so a journey reads at a glance. Proven live.
+Lay N screens on a flow grid — named artboards, captions, real connectors — so a journey reads at a
+glance and **stays true after the designer moves a screen**. Proven live.
 - Container = HORIZONTAL (or wrapped) auto-layout; each column = VERTICAL `[caption + screen frame]`.
-- Connectors: a `→` text glyph (or a line node) between columns; keep gaps consistent.
+- **Edges: `figma-agent draw-flow --flow flow.json --page <name>`.** Not a `→` glyph — a glyph knows
+  nothing about the transition it stands for and dies the moment a frame moves. Each edge is a real
+  connector carrying its `transitionId`, so the canvas is a **projection of the linted graph**, not a
+  second graph beside it. Screens resolve **by NAME** (ids drift); a name matching twice is refused,
+  never guessed. A screen whose frame is missing is reported, never silently skipped.
+  - Frames named for humans rather than by screen id declare the mapping in `flow.json`:
+    `{ "id": "checkout", "frame": "LLM Gateway · Consumer",
+       "stateFrames": { "loading": "LLM Gateway · Consumer (Loading)" } }`
+  - Return edges bow **below** the row on their own; a straight one would run through every screen
+    between its ends. Forward edges stay flat. Labels are the trigger only — a canvas of `!payment.ok`
+    stops reading as a flow.
+  - Connectors parent to the PAGE, so the auto-layout container cannot reflow them.
 - Screens: fixed-size frames (header bar + body); for REAL screens reference/clone the source at grid coords
   `ref_y + Δ` — never move the originals (resolve-by-NAME, `canvas-operations.md` R2 + clone-safety R5).
 - Caption per screen ("1 · List", "2 · Detail", …); optional thumbnail export.
-- Verify: export-png → Read the whole flow. Pairs with C6 (build each screen from real DS instances, Recipe 18)
-  and captured from-url flows (Track 5).
+- Verify: `figma-agent verify-connections --flow flow.json` — `parity` proves every transition is drawn
+  exactly once and nothing is drawn that the graph does not declare; `drift`/`orphan`/`desync` prove the
+  drawing still matches the canvas. Then export-png → Read the whole flow. `figma-agent reroute` repairs
+  what the live follow cannot see (a line dragged off its own endpoints). Pairs with C6 (build each screen
+  from real DS instances, Recipe 18) and captured from-url flows (Track 5).
 
 ## 20. Registry reconcile — keep the onboarded DS honest (C4)
 
