@@ -14,6 +14,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { lintKnowledge } from "../core/knowledge-lint.js";
 import type { KnowledgeFinding } from "../core/knowledge-lint.js";
+import { runEffectMatrix } from "./knowledge-effect-matrix.js";
 
 const CMD = "knowledge";
 
@@ -21,9 +22,13 @@ export const KNOWLEDGE_HELP = `ui knowledge — governance checks over the knowl
 
 Usage:
   ui knowledge check [--dir <repo-root>] [--as-of <YYYYMM>] [--json]
+  ui knowledge effect-matrix [--dir <repo-root>] [--json]
 
 Subcommands:
-  check   Findings-linter over knowledge/; exit 1 on error-severity findings
+  check          Findings-linter over knowledge/; exit 1 on error-severity findings
+  effect-matrix  Emit the Canvas UI effect matrix's machine columns (Effect/slug/family)
+                 from knowledge/canvas-ui/catalog.json to stdout — never writes into
+                 knowledge/canvas-effect-direction.md
 
 Checks:
   index-missing-row       (error)   a knowledge/*.md with no row in README '## The files'
@@ -32,6 +37,15 @@ Checks:
   broken-xref             (error)   a relative markdown link that does not resolve
   benchmark-stale         (warning) a benchmarks/*.dna.json older than 6 months
   provenance-bad-grammar  (error)   an ease:source marker missing ref= or with a dead ref
+  provenance-machine-local-ref   (error)   an ease:source ref into references/** or taste/**
+  effect-catalog-missing-ledger  (error)   knowledge file exists, knowledge/canvas-ui/catalog.json doesn't
+  effect-catalog-revision-drift  (error)   the knowledge file's pinned revision != the ledger's
+  effect-catalog-slug-unknown    (error)   a matrix row's slug is not in the ledger
+  effect-catalog-slug-missing    (error)   a ledger slug has no matrix row
+  effect-catalog-row-drift       (error)   a matrix row's Effect/family cell disagrees with its ledger entry
+  effect-catalog-field-empty     (error)   a matrix row's Narrative job/Anti-use/Required fallback is empty
+  effect-catalog-draco-missing   (error)   a ledger object-family row's fallback has no Draco clause
+  effect-catalog-stale           (warning) knowledge/canvas-ui/catalog.json captured > 6 months ago
 
 Options:
   --dir <path>     Repo root holding knowledge/ (default: current working directory)
@@ -41,12 +55,19 @@ Options:
   --json           Emit a JSON envelope
   -h, --help       Show this help
 
-Error codes:
+Error codes (check):
   BAD_ARG       Missing/unknown subcommand
   UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
   NO_KNOWLEDGE  No knowledge/ directory under --dir
   BAD_AS_OF     --as-of is not a YYYYMM month
   READ_ERROR    A knowledge file could not be read
+
+Error codes (effect-matrix):
+  BAD_ARG       Missing/unknown subcommand
+  UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
+  NO_LEDGER     No knowledge/canvas-ui/catalog.json under --dir
+  BAD_LEDGER    catalog.json is unparseable or violates the ledger shape
+  READ_ERROR    catalog.json could not be read
 `;
 
 /** Current month as YYYYMM — the sole non-deterministic input, only when --as-of is absent. */
@@ -101,14 +122,22 @@ function runCheck(parsed: ParsedArgs): CommandResult {
     try { personasJson = readFileSync(personasPath, "utf8"); } catch { personasJson = null; }
   }
 
-  // repoFiles — the subtrees an ease:source ref may target (knowledge/**, references/**).
+  // repoFiles — the subtree an ease:source ref may target: knowledge/** ONLY (D9, C5).
+  // references/** and taste/** are gitignored symlinks into a private repo — resolving
+  // through them here is exactly the bug provenance-machine-local-ref exists to catch;
+  // a tracked ref may never target either, even where this machine's symlink resolves it.
   const repoFiles = files.map((f) => `knowledge/${f}`);
-  const refsDir = join(repoRoot, "references");
-  if (existsSync(refsDir)) {
-    try { for (const f of walk(refsDir)) repoFiles.push(`references/${f}`); } catch { /* references/ optional */ }
+
+  // The Canvas UI ledger (spec 028) — read when present so effectCatalogChecks
+  // can compare it against knowledge/canvas-effect-direction.md's matrix. It lives
+  // inside knowledge/ (tracked, packaged) — never a references/ probe (B10).
+  let canvasCatalogJson: string | null = null;
+  const ledgerPath = join(knowledgeDir, "canvas-ui", "catalog.json");
+  if (existsSync(ledgerPath)) {
+    try { canvasCatalogJson = readFileSync(ledgerPath, "utf8"); } catch { canvasCatalogJson = null; }
   }
 
-  const findings: KnowledgeFinding[] = lintKnowledge({ files, mdContents, personasJson, repoFiles, asOf });
+  const findings: KnowledgeFinding[] = lintKnowledge({ files, mdContents, personasJson, repoFiles, asOf, canvasCatalogJson });
   const errorCount = findings.filter((f) => f.severity === "error").length;
   const warningCount = findings.length - errorCount;
   const exitCode = errorCount > 0 ? 1 : 0;
@@ -126,14 +155,15 @@ function runCheck(parsed: ParsedArgs): CommandResult {
 
 export const knowledgeCommand = {
   name: CMD,
-  summary: "Governance checks over the knowledge core (index / persona / xref / provenance drift)",
+  summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift)",
   hasSubcommands: true,
   help: KNOWLEDGE_HELP,
   run(parsed: ParsedArgs): CommandResult {
     switch (parsed.subcommand) {
       case "check": return runCheck(parsed);
+      case "effect-matrix": return runEffectMatrix(parsed);
       case undefined: {
-        const msg = "ui knowledge requires a subcommand (check). Run 'ui knowledge --help'.";
+        const msg = "ui knowledge requires a subcommand (check, effect-matrix). Run 'ui knowledge --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
       }
       default: {

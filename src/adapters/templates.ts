@@ -55,6 +55,7 @@ export const SKILL_NAMES = [
   "designmd-emit",
   "figma-craft",
   "gsap-motion",
+  "canvas-effect",
 ] as const satisfies readonly string[];
 
 export type SkillName = (typeof SKILL_NAMES)[number];
