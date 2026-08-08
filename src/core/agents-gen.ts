@@ -39,14 +39,14 @@ export function sanitizeAgentName(raw: string): string {
 
 /**
  * Role-first naming with a genealogy suffix (generic prefix, identity tail):
- *   with a studio soul (`name: JANG`, project `vsf-pcp`):
- *     designer   → designer-jang-vsf-pcp
- *     curator    → curator-jang-vsf-pcp
- *     figma-hand → figma-jang-vsf-pcp
+ *   with a studio soul (`name: MERIDIAN`, project `meridian-store`):
+ *     designer   → designer-meridian-meridian-store
+ *     curator    → curator-meridian-meridian-store
+ *     figma-hand → figma-meridian-meridian-store
  *   without a studio soul:
- *     designer   → designer-vsf-pcp      (+ the command layer hints at
- *     curator    → curator-vsf-pcp        creating a studio soul)
- *     figma-hand → figma-vsf-pcp
+ *     designer   → designer-meridian-store      (+ the command layer hints at
+ *     curator    → curator-meridian-store        creating a studio soul)
+ *     figma-hand → figma-meridian-store
  * The generic role prefix is what docs and delegation reach for ("the designer
  * agent"); the suffix keeps names unique across projects and carries the
  * studio×project identity. Sanitized as a whole (see sanitizeAgentName).

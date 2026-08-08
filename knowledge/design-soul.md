@@ -108,8 +108,8 @@ check explicitly means a soul is expected; everywhere else the soul stays option
 `$EASE_DESIGN_HOME/studio-soul.md` is the layer **above** every project soul — what
 stays true across ALL of a studio's products. `ui ds soul init/check --studio`
 scaffold and lint it exactly like a project soul, plus one field: frontmatter
-`name:` (e.g. `name: JANG`), which later genealogy tooling uses to name a studio's
-agents (`jang-<project>`); a missing or placeholder name is the error
+`name:` (e.g. `name: MERIDIAN`), which later genealogy tooling uses to name a studio's
+agents (`meridian-<project>`); a missing or placeholder name is the error
 `soul-missing-name`.
 
 `ui ds context` emits the studio section AFTER the project section — the project

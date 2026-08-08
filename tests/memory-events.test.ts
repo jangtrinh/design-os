@@ -109,13 +109,13 @@ describe("memory-events — build / serialize / nextEventId", () => {
       t: "2026-07-08T10:00:00Z",
       type: "variant_generated",
       data: { persona: "x", mode: "desktop" },
-      actor: "jang",
+      actor: "alex",
       medium: "html",
       designId: "d1",
       artifact: { fingerprint: "sha256:ab" },
       refs: ["e1"],
     });
-    expect(e.actor).toBe("jang");
+    expect(e.actor).toBe("alex");
     expect(e.artifact).toEqual({ fingerprint: "sha256:ab" });
     expect(e.refs).toEqual(["e1"]);
     const e3 = buildEvent({ id: "e3", t: "2026-07-08T11:00:00Z", type: "rendition_created", data: {}, artifact: {} });

@@ -9,8 +9,8 @@
  * Same shape as ds-soul.ts: emitter (scaffold + write) + linter (reuses the
  * P1 `checkSoul` against the STUDIO scaffold's own placeholder set, plus the
  * one thing a studio soul adds — a `name:` frontmatter value later genealogy
- * tooling uses to name a studio's agents, e.g. `name: JANG` → agent
- * `jang-<project>`) + the 150-line context cap.
+ * tooling uses to name a studio's agents, e.g. `name: MERIDIAN` → agent
+ * `meridian-<project>`) + the 150-line context cap.
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -30,7 +30,7 @@ name: <studio>
 
 _The layer ABOVE every project soul: what stays true across ALL your products.
 A project's design/soul.md inherits this and overrides on conflict.
-\`name:\` above names your agents (e.g. name: JANG → agent jang-<project>).
+\`name:\` above names your agents (e.g. name: MERIDIAN → agent meridian-<project>).
 Below both sits the factory baseline design:os ships ('ui ds soul factory')._
 
 ## Never
@@ -62,7 +62,7 @@ export function writeStudioSoulScaffold(homeDir: string, force = false): { path:
 // ─── name: frontmatter ────────────────────────────────────────────────────────
 
 /**
- * Parse the frontmatter `name:` value from a studio soul (e.g. "JANG") — the
+ * Parse the frontmatter `name:` value from a studio soul (e.g. "MERIDIAN") — the
  * name later genealogy tooling bakes into a studio's generated agents. Null
  * when there is no frontmatter block, no `name:` key, an empty value, or the
  * untouched scaffold placeholder `<studio>`.
@@ -85,7 +85,7 @@ const STUDIO_SCAFFOLD_PLACEHOLDERS: readonly string[] = derivePlaceholderComment
 const MISSING_NAME_FINDING: SoulFinding = {
   checkId: "soul-missing-name",
   severity: "error",
-  message: "studio soul needs frontmatter `name:` — it names your agents (e.g. name: JANG)",
+  message: "studio soul needs frontmatter `name:` — it names your agents (e.g. name: MERIDIAN)",
 };
 
 /** Same finding sort as checkSoul's, re-applied after inserting the studio-only finding. */
