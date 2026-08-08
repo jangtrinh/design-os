@@ -40,12 +40,12 @@ Subcommands:
   check   Findings-linter over the generated agents; exit 1 on error-severity findings
 
 Naming (genealogy — studio × project × role):
-  With a studio soul ($EASE_DESIGN_HOME/studio-soul.md, frontmatter name: JANG)
-  and project 'vsf-pcp' (design/ds.manifest.json name):
-    designer   → designer-jang-vsf-pcp
-    curator    → curator-jang-vsf-pcp
-    figma-hand → figma-jang-vsf-pcp
-  Without a studio soul: designer-vsf-pcp / curator-vsf-pcp / figma-vsf-pcp
+  With a studio soul ($EASE_DESIGN_HOME/studio-soul.md, frontmatter name: MERIDIAN)
+  and project 'meridian-store' (design/ds.manifest.json name):
+    designer   → designer-meridian-meridian-store
+    curator    → curator-meridian-meridian-store
+    figma-hand → figma-meridian-meridian-store
+  Without a studio soul: designer-meridian-store / curator-meridian-store / figma-meridian-store
   (and init hints at 'ui ds soul init --studio'). Names are sanitized to
   ^[a-z][a-z0-9-]*$, capped at 64 chars.
 
@@ -235,7 +235,7 @@ function runInit(parsed: ParsedArgs): CommandResult {
   }
   const lines = plan.map((p) => `agent written: ${p.path} (${p.role})`);
   if (studio === null) {
-    lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: JANG → jang-<project>)");
+    lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   }
   lines.push("agents are Claude Code subagents — delegate with their names.");
   return ok(lines.join("\n") + "\n");

@@ -218,7 +218,7 @@ describe("figma-reconcile — coalesceFrames (cross-batch)", () => {
       const FIXTURES: { desc: string; fileKey: string | null; fileName: string | null; expect: string }[] = [
         { desc: "uppercase fileKey wins verbatim (never lowercased)", fileKey: "AbC123XyZ", fileName: "ignored", expect: "AbC123XyZ" },
         { desc: "null fileKey, unicode/diacritic fileName", fileKey: null, fileName: "Café Menú — Página", expect: "caf-men-p-gina" },
-        { desc: "null fileKey, fileName with spaces/dashes", fileKey: null, fileName: "VSF - PCP", expect: "vsf-pcp" },
+        { desc: "null fileKey, fileName with spaces/dashes", fileKey: null, fileName: "Meridian - Store", expect: "meridian-store" },
         { desc: "both empty strings", fileKey: "", fileName: "", expect: "unknown" },
         { desc: "both null", fileKey: null, fileName: null, expect: "unknown" },
       ];

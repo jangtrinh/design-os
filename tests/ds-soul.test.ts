@@ -48,7 +48,7 @@ status: ratified
 /** A fully-edited, ratified, NAMED studio soul — the 0-findings fixture for checkStudioSoul. */
 const STUDIO_RATIFIED = `---
 status: ratified
-name: JANG
+name: MERIDIAN
 ---
 
 # Design Soul — studio
@@ -262,7 +262,7 @@ name: <studio>
 
 _The layer ABOVE every project soul: what stays true across ALL your products.
 A project's design/soul.md inherits this and overrides on conflict.
-\`name:\` above names your agents (e.g. name: JANG → agent jang-<project>).
+\`name:\` above names your agents (e.g. name: MERIDIAN → agent meridian-<project>).
 Below both sits the factory baseline design:os ships ('ui ds soul factory')._
 
 ## Never
@@ -284,7 +284,7 @@ Below both sits the factory baseline design:os ships ('ui ds soul factory')._
 
 describe("soulName", () => {
   it("parses a real name from frontmatter, trimmed", () => {
-    expect(soulName("---\nstatus: draft\nname:   JANG   \n---\n")).toBe("JANG");
+    expect(soulName("---\nstatus: draft\nname:   MERIDIAN   \n---\n")).toBe("MERIDIAN");
   });
 
   it("returns null when the name key is absent", () => {
@@ -304,7 +304,7 @@ describe("soulName", () => {
   });
 
   it("finds a real name on the ratified fixture", () => {
-    expect(soulName(STUDIO_RATIFIED)).toBe("JANG");
+    expect(soulName(STUDIO_RATIFIED)).toBe("MERIDIAN");
   });
 });
 
@@ -332,13 +332,13 @@ describe("checkStudioSoul", () => {
   });
 
   it("does not fire soul-missing-name once a real name is set", () => {
-    const named = STUDIO_SOUL_SCAFFOLD.replace("name: <studio>", "name: JANG");
+    const named = STUDIO_SOUL_SCAFFOLD.replace("name: <studio>", "name: MERIDIAN");
     const found = checkStudioSoul(named).findings.map((f) => f.checkId);
     expect(found).not.toContain("soul-missing-name");
   });
 
   it("fires soul-missing-name alone on an otherwise-ratified-but-unnamed soul", () => {
-    const unnamed = STUDIO_RATIFIED.replace("name: JANG\n", "");
+    const unnamed = STUDIO_RATIFIED.replace("name: MERIDIAN\n", "");
     const r = checkStudioSoul(unnamed);
     expect(r.findings).toHaveLength(1);
     expect(r.findings[0]?.checkId).toBe("soul-missing-name");

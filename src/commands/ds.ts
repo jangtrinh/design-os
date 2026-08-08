@@ -156,7 +156,7 @@ Subcommands:
   --force        'soul init' only: overwrite an existing soul.md
   --studio       Target $EASE_DESIGN_HOME/studio-soul.md instead — the
                  genealogy layer above every project soul (its 'name:'
-                 frontmatter later names a studio's agents, e.g. name: JANG).
+                 frontmatter later names a studio's agents, e.g. name: MERIDIAN).
                  Conflicts with --dir (BAD_ARG: a studio is user-scoped, not
                  per-project).
   Checks (structure only — content taste stays a model judgment):

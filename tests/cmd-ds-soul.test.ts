@@ -207,7 +207,7 @@ describe("ui ds soul — action routing", () => {
 
 const STUDIO_RATIFIED = `---
 status: ratified
-name: JANG
+name: MERIDIAN
 ---
 
 # Design Soul — studio

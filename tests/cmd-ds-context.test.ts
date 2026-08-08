@@ -243,7 +243,7 @@ describe("ui ds context — soul section", () => {
 
 const STUDIO_SOUL_TEXT = `---
 status: ratified
-name: JANG
+name: MERIDIAN
 ---
 
 # Design Soul — studio

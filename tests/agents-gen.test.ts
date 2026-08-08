@@ -25,23 +25,23 @@ const NAME_RE = /^[a-z][a-z0-9-]*$/;
 
 describe("agentName", () => {
   it("with a studio: generic role prefix + studio-project genealogy suffix", () => {
-    expect(agentName("designer", "vsf-pcp", "JANG")).toBe("designer-jang-vsf-pcp");
-    expect(agentName("curator", "vsf-pcp", "JANG")).toBe("curator-jang-vsf-pcp");
-    expect(agentName("figma-hand", "vsf-pcp", "JANG")).toBe("figma-jang-vsf-pcp");
+    expect(agentName("designer", "meridian-store", "MERIDIAN")).toBe("designer-meridian-meridian-store");
+    expect(agentName("curator", "meridian-store", "MERIDIAN")).toBe("curator-meridian-meridian-store");
+    expect(agentName("figma-hand", "meridian-store", "MERIDIAN")).toBe("figma-meridian-meridian-store");
   });
 
   it("without a studio: role prefix + project only", () => {
-    expect(agentName("designer", "vsf-pcp", null)).toBe("designer-vsf-pcp");
-    expect(agentName("curator", "vsf-pcp", null)).toBe("curator-vsf-pcp");
-    expect(agentName("figma-hand", "vsf-pcp", null)).toBe("figma-vsf-pcp");
+    expect(agentName("designer", "meridian-store", null)).toBe("designer-meridian-store");
+    expect(agentName("curator", "meridian-store", null)).toBe("curator-meridian-store");
+    expect(agentName("figma-hand", "meridian-store", null)).toBe("figma-meridian-store");
   });
 
   it("sanitizes a dirty studio name into the Claude subagent shape", () => {
     for (const role of ROSTER) {
-      const name = agentName(role, "vsf-pcp", "Jang Trịnh!");
+      const name = agentName(role, "meridian-store", "Meridián Studió!");
       expect(name).toMatch(NAME_RE);
     }
-    expect(agentName("designer", "vsf-pcp", "Jang Trịnh!")).toBe("designer-jang-tr-nh-vsf-pcp");
+    expect(agentName("designer", "meridian-store", "Meridián Studió!")).toBe("designer-meridi-n-studi-meridian-store");
   });
 
   it("caps the assembled name at 64 chars, still valid", () => {
@@ -53,7 +53,7 @@ describe("agentName", () => {
 
 describe("sanitizeAgentName", () => {
   it("lowercases, replaces junk, collapses runs, trims edges", () => {
-    expect(sanitizeAgentName("Jang Trịnh!")).toBe("jang-tr-nh");
+    expect(sanitizeAgentName("Meridián Studió!")).toBe("meridi-n-studi");
     expect(sanitizeAgentName("--A__B--")).toBe("a-b");
   });
 
@@ -101,19 +101,19 @@ You are {{NAME}}, an agent for **{{PROJECT}}**.{{STUDIO_LINE}}
 
 describe("renderAgent", () => {
   it("substitutes every placeholder — no '{{' survives", () => {
-    const out = renderAgent(TPL, { name: "jang-vsf-pcp", project: "vsf-pcp", studio: "JANG" });
+    const out = renderAgent(TPL, { name: "meridian-meridian-store", project: "meridian-store", studio: "MERIDIAN" });
     expect(out).not.toContain("{{");
-    expect(out).toContain("name: jang-vsf-pcp");
-    expect(out).toContain("You are jang-vsf-pcp, an agent for **vsf-pcp**.");
-    expect(out).toContain(" You carry the JANG studio's soul as your base identity.");
+    expect(out).toContain("name: meridian-meridian-store");
+    expect(out).toContain("You are meridian-meridian-store, an agent for **meridian-store**.");
+    expect(out).toContain(" You carry the MERIDIAN studio's soul as your base identity.");
     expect(out).toContain(`template-hash: ${templateHash(TPL)}`);
   });
 
   it("emits an empty STUDIO_LINE when there is no studio", () => {
-    const out = renderAgent(TPL, { name: "vsf-pcp-designer", project: "vsf-pcp", studio: null });
+    const out = renderAgent(TPL, { name: "meridian-store-designer", project: "meridian-store", studio: null });
     expect(out).not.toContain("{{");
     expect(out).not.toContain("studio's soul");
-    expect(out).toContain("an agent for **vsf-pcp**.\n");
+    expect(out).toContain("an agent for **meridian-store**.\n");
   });
 });
 
