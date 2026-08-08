@@ -110,6 +110,34 @@ a slow, taste-sensitive **marketing body** and a fast, mechanical **changelog** 
   round-trip. When you mock an external API, encode its refusals; a permissive mock is a green light
   that means nothing.
 
+- **A feature branch is a time machine. Anchor every measurement on `main`, and fetch first.**
+  A branch 59 commits behind reports a world that stopped existing weeks ago. In one session it
+  produced four wrong facts: the package version (`0.1.0`; `main` was at `0.2.0`), a dead
+  `figma-agent` reference in `setup.sh` (`main` had cleaned it up), a "complete precedent" that
+  turned out to live in **zero commits**, and a spec number (`022`) already taken on `main` by a
+  different feature. Read with `git ls-tree main <path>` / `git show main:<path>` /
+  `git grep <pat> main -- <path>`, never the working tree — and remember **local `main` itself
+  goes stale**: `git fetch` before you branch, or you build on a tip that moved yesterday.
+
+- **A zero is a claim. Prove it with a probe that CAN go red.** `git grep -E "\bvsf\b"` returned
+  nothing and "Ring 0 is clean" went into a design doc; POSIX ERE has no `\b`, so the pattern
+  matched an empty string. `git grep -P` found 21 hits. Same session, same class, second form:
+  zsh does not word-split an unquoted `$FILES`, so a rewrite loop silently received one giant
+  argument. **Before trusting an empty result, feed the probe an input you know should match.**
+  A search that has never returned anything has not been shown to work.
+
+- **Baseline before you blame your own change.** A full suite came back with 5 red files after a
+  port. Four of them were red on clean `origin/main` before the change, and the fifth passed
+  92/92 in isolation — it only timed out under full-suite parallel load. Cost of finding out: one
+  throwaway worktree at `origin/main` and one isolated re-run. **`main` is not assumed green**;
+  measure it, then diff against the measurement, and say which failures you inherited.
+
+- **A repo-wide rewrite needs an explicit file list, not a pattern.** A `perl -pi` renumbering
+  `spec 022 → spec 028` for one feature also edited `tests/spec-022-lifecycle.ts`, which belongs
+  to an unrelated spec that legitimately owns the number. Enumerate the files first, eyeball the
+  list, then rewrite — and re-audit every touched file afterwards, because the damage looks exactly
+  like the intended change.
+
 ## [IMPORTANT] ES Workflow (mandatory)
 
 - Every coding task: apply the `/es-lazy` ladder — reuse codebase → stdlib → native platform → installed dep → one line → only then minimum code. Deliberate corner-cuts carry an `es-debt: <ceiling>, <upgrade trigger>` comment.
