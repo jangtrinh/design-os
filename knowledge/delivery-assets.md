@@ -1,3 +1,9 @@
+---
+id: delivery-assets
+description: "Resolving reproduced images to originals — the ladder that ends at screenshot-crop as last resort."
+when: [asset, image-resolution, logo, screenshot-crop, asset-map, clone]
+---
+
 # Delivery Assets — resolve to originals, never screenshot crops
 
 ## Purpose

@@ -1,3 +1,9 @@
+---
+id: mode-constraints
+description: "The eight UI-mode constraint sets plus the universal hard style guide."
+when: [ui-mode, mobile, desktop, dashboard, slide, admin, ecommerce, constraints]
+---
+
 # Mode Constraints
 
 This file defines the **hard structural rules** for UI generation. Every design output

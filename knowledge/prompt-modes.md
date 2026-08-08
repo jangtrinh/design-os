@@ -1,3 +1,9 @@
+---
+id: prompt-modes
+description: "The replicate / enhance / adapt strategy modifiers for reference-driven generation."
+when: [prompt-mode, replicate, enhance, adapt, reference-driven]
+---
+
 # Prompt Modes
 
 When a design is being generated **from an input** — a screenshot, a Figma frame, or any

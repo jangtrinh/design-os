@@ -4,11 +4,13 @@
  * own IO (walk + read) is exercised end-to-end against the pure linter.
  */
 import { describe, expect, it, beforeEach } from "vitest";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { run } from "../src/cli.js";
+import { buildIndex, emitIndex } from "../src/core/knowledge-index-emit.js";
+import { topLevelMarkdown } from "../src/core/knowledge-frontmatter-check.js";
 
 function capture(args: string[]): { exitCode: number; stdout: string; stderr: string } {
   let stdout = "";
@@ -55,8 +57,8 @@ function scaffoldConsistent(): void {
     "| `benchmarks/*.dna.json` | Measured DNA |",
     "",
   ].join("\n"));
-  write("knowledge/taste-rubric.md", "# Taste\n");
-  write("knowledge/persona-index.md", [
+  write("knowledge/taste-rubric.md", fm("taste-rubric", "The taste model.", ["taste"]) + "# Taste\n");
+  write("knowledge/persona-index.md", fm("persona-index", "Persona lookup.", ["persona"]) + [
     "# Persona Index", "", "## 1. Lookup Table", "",
     "| Slug | Family |", "|---|---|",
     "| `alpha-one` | family-a |", "",
@@ -64,6 +66,27 @@ function scaffoldConsistent(): void {
   write("knowledge/personas/family-a.md", "# Family A\n\n## Alpha One\n\n- **Slug:** `alpha-one`\n- **Family:** family-a\n");
   write("knowledge/personas/personas.json", JSON.stringify([{ slug: "alpha-one", family: "family-a" }]));
   write("knowledge/benchmarks/stripe--202607.dna.json", "{}");
+  emitIndexInto(root);
+}
+
+/** A routing front-matter block, the shape authoring-standard.md specifies. */
+function fm(id: string, description: string, when: string[]): string {
+  return `---\nid: ${id}\ndescription: "${description}"\nwhen: [${when.join(", ")}]\n---\n\n`;
+}
+
+/**
+ * Compile knowledge/index.json from whatever the scaffold just wrote. Called after
+ * the last write, and again by any case that rewrites a top-level file — an
+ * out-of-date index is itself an error, so a case that skipped this would trip
+ * index-drift instead of exercising its own check.
+ */
+function emitIndexInto(repoRoot: string): void {
+  const dir = join(repoRoot, "knowledge");
+  const md: Record<string, string> = {};
+  for (const name of readdirSync(dir)) {
+    if (name.endsWith(".md")) md[name] = readFileSync(join(dir, name), "utf8");
+  }
+  writeFileSync(join(dir, "index.json"), emitIndex(buildIndex(topLevelMarkdown(md))), "utf8");
 }
 
 beforeEach(() => {
@@ -129,8 +152,12 @@ describe("ui knowledge check", () => {
 
   it("provenance: accepts a well-formed marker whose ref resolves", () => {
     scaffoldConsistent();
+    // Rewriting a top-level file drops its routing block, so restore it and
+    // re-emit — otherwise this case reports front-matter drift, not provenance.
     write("knowledge/taste-rubric.md",
+      fm("taste-rubric", "The taste model.", ["taste"]) +
       "# Taste\n\n<!-- ease:source ref=\"knowledge/benchmarks/stripe--202607.dna.json\" -->\n");
+    emitIndexInto(root);
     const r = capture(["knowledge", "check", "--dir", root, "--as-of", "202607", "--json"]);
     expect(r.exitCode).toBe(0);
     expect(checkIds(r)).not.toContain("provenance-bad-grammar");

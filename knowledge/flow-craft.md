@@ -1,3 +1,9 @@
+---
+id: flow-craft
+description: "Designing a multi-screen flow — the flow.json model and the deterministic flow lint."
+when: [flow, multi-screen, user-flow, screen-states, transition, journey]
+---
+
 # Flow craft — designing a multi-screen flow
 
 A single screen is a frame; a product is a **flow**. `flow.json` is the smallest true model of

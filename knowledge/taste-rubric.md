@@ -1,3 +1,9 @@
+---
+id: taste-rubric
+description: "The 6+1 axis taste model and the critique-gate pass thresholds."
+when: [taste, critique, score, rubric, quality-gate, axis]
+---
+
 # Taste Rubric — The 6+1 Axis Model
 
 This file is the design taste model the host model uses to **shape** a UI generation and

@@ -1,3 +1,9 @@
+---
+id: design-soul
+description: "The declared design stance — Never/Always/Voice and its place in the precedence chain."
+when: [soul, stance, brand-voice, never-always, design-principles]
+---
+
 # Design Soul — the declared stance
 
 `design/soul.md` is the project's **declared** design stance: a short, owner-ratified
