@@ -221,11 +221,11 @@ merely remembers or infers is GUESS-grade — exclude it and list it under
 #### Step 3d — Component record shape for a code source (D1/D2/D4)
 
 A code source needs three decisions an HTML page never raises, and they are
-RESOLVED — do not re-derive them (spec 009 D1/D2/D4, from measuring dana +
-platform-design-system + the `ds init` kit):
+RESOLVED — do not re-derive them (spec 009 D1/D2/D4, from measuring two real React
+kits + the `ds init` kit):
 
 1. **One record per component, not per variant** (D1). A component's variant ×
-   size × radius matrix is **one** registry entry — dana's `Button` (8 tones ×
+   size × radius matrix is **one** registry entry — a measured React kit's `Button` (8 tones ×
    3 sizes × 3 radii = 72 combinations) is `Control/Button`, not 72 records.
    The matrix lives inside that one record's `variants` array. Name it
    `Category/Component` (`registry-store.ts:74`'s `NAME_PATTERN`,
@@ -236,7 +236,7 @@ platform-design-system + the `ds init` kit):
 2. **Axis names are the source's own prop names, PascalCased** (D2). If the
    component declares a prop literally named `variant`, the axis is
    `Variant=` (`variant="primary"` → `Variant=Primary`); a `size` prop is
-   `Size=`. Do **not** re-interpret a prop name into a house term — dana's
+   `Size=`. Do **not** re-interpret a prop name into a house term — a source's
    `variant` stays `Variant`, it never becomes `Tone`. If a prop name collides
    with `State` (step 3b), the source's own name wins; record the collision
    in the summary.
@@ -246,10 +246,10 @@ platform-design-system + the `ds init` kit):
    it. A specimen sheet (kit-style: a wrapper + rows showing the variant
    matrix) is the honest equivalent for a code source, with one hard rule:
    every cell must trace to a class string the source actually declares —
-   dana's `variantClasses.primary` in `Button.tsx` is right there, copy it
+   a kit's `variantClasses.primary` in `Button.tsx` is right there, copy it
    verbatim. A cell you cannot trace, you do not draw; list it under
    "unverified" (step 3c). **Never render the component** to obtain markup —
-   no jsdom, no testing-library, no dev server, even though dana has the
+   no jsdom, no testing-library, no dev server, even though the source repo has the
    toolchain to do exactly that — rendering a user's code is a No-Go
    (`brainstorm.md` §7).
 

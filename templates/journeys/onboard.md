@@ -122,7 +122,7 @@ interchangeable:
 not touch any manifest. `ui ds import --name <slug>` is the one that seals
 `design/ds.manifest.json`'s `name` field — and if you omit it, the default is the **literal
 string `imported-ds`**. That string then becomes the identity `ui agents init` names every
-generated agent after (`designer-imported-ds` instead of `designer-vsf-pcp`). Always pass an
+generated agent after (`designer-imported-ds` instead of `designer-<your-ds>`). Always pass an
 explicit, real `--name` on whichever command seals the manifest, before running
 `ui agents init`.
 
@@ -196,7 +196,7 @@ Python source, so the schema below is the ground truth, verified against
     { "id": "preview-pages", "type": "audit-pages", "interval": "1d",
       "params": { "dir": "design/preview" } },
     { "id": "figma-hygiene", "type": "figma-audit", "interval": "7d",
-      "params": { "file": "VSF - PCP" } }
+      "params": { "file": "Design System" } }
   ]
 }
 ```
