@@ -151,7 +151,30 @@ event listeners alongside animation cleanup.
 - Delivery evidence includes normal-motion and reduced-motion captures, console cleanliness,
   cleanup verification, INP, CLS, and a frame-rate trace for the signature interaction.
 
-## 9. Benchmark boundary
+## 9. The machine floor — what `ui taste-lint` decides for you
+
+Six rules above are decidable from static source, so they are checks rather than advice.
+They run inside `ui taste-lint <file.html>` on the Motion axis, at error severity, and stay
+silent unless GSAP is actually present in the document.
+
+| checkId | Fails when | Rule it enforces |
+|---|---|---|
+| `gsap-dev-markers-shipped` | `markers: true` or `GSDevTools` survives into a delivered file | §5 "use markers during construction only" |
+| `gsap-scrub-and-toggle` | one `scrollTrigger` object sets both `scrub` and `toggleActions` | §5 "never both" |
+| `gsap-plugin-unregistered` | a plugin is used with no `gsap.registerPlugin()` for it | §7 plugin restraint |
+| `gsap-transforms-pinned-el` | the pinned selector is itself the target of a transform tween | §5 "pin the wrapper, animate a child" |
+| `gsap-no-reduced-motion` | GSAP animates and nothing in the document branches on `prefers-reduced-motion` | §8 accessibility floor |
+| `gsap-permanent-will-change` | `will-change` sits in a static CSS rule instead of being set and released around the animation | §8 performance |
+
+**What this floor CANNOT see.** `taste-lint` reads one HTML file. A production scene keeps
+its choreography in an external `hero.js`, and **none of these checks reach it** — measured:
+run against this repo's own GSAP pages, all six stay silent because every `gsap.*` call lives
+in a separate script. Treat a clean run as "nothing wrong in the markup", never as "the
+choreography is sound". The judgment this file actually asks for — does the scene earn its
+pin, does the motion carry meaning, does it stay comprehensible at rest — is not in scope for
+any static check and remains the reviewer's.
+
+## 10. Benchmark boundary
 
 For the DESIGN:OS promotion and Architecture web benchmarks, require one story-bearing GSAP
 signature interaction and restrained supporting choreography. For the Nutrition native-mobile
