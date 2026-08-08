@@ -1,3 +1,9 @@
+---
+id: ux-psychology
+description: "UX laws, Gestalt perception, cognitive biases, trust, and cognitive-load management."
+when: [ux-law, psychology, hicks-law, fitts-law, gestalt, cognitive-load, persuasion]
+---
+
 # UX Psychology Reference
 
 > Deep dive into UX laws, emotional design, trust building, and behavioral psychology.

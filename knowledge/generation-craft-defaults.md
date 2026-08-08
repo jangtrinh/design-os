@@ -1,3 +1,9 @@
+---
+id: generation-craft-defaults
+description: "Implementation-grade generation defaults — asset policy, responsive rules, motion and loading floors."
+when: [generation-defaults, responsive, icons, loading-state, custom-control]
+---
+
 # Generation Craft Defaults
 
 Read this with `qualified-delivery.md` when generating code. These defaults raise the

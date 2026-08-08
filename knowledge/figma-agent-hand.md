@@ -1,3 +1,9 @@
+---
+id: figma-agent-hand
+description: "Driving the figma-agent CLI — the optional Figma hand outside the deterministic binary."
+when: [figma-agent, figma-cli, figma-hand, plugin]
+---
+
 # figma-agent CLI — hands & eyes on the Figma canvas
 
 Drive Figma from Claude Code via the `figma-agent` CLI (no MCP) — create

@@ -1,3 +1,9 @@
+---
+id: versioning-semver
+description: "Semver for a design system — how a DS diff classifies breaking, additive, and patch changes."
+when: [semver, versioning, breaking-change, ds-diff, release]
+---
+
 # Versioning — semver for a design system
 
 `ui ds diff <base-dir> <head-dir>` classifies the change between two design-system states and

@@ -10,6 +10,8 @@ import { describe, expect, it } from "vitest";
 
 import { emitEffectMatrix } from "../src/core/knowledge-effect-matrix-emit.js";
 import { lintKnowledge } from "../src/core/knowledge-lint.js";
+import { buildIndex, emitIndex } from "../src/core/knowledge-index-emit.js";
+import { topLevelMarkdown } from "../src/core/knowledge-frontmatter-check.js";
 
 const REVISION = "728550d4523e1b8bef834b64b3e936c215cad630";
 
@@ -138,7 +140,12 @@ describe("emitEffectMatrix — M6 round-trip (pair-coherence proof)", () => {
     expect(emitted.ok).toBe(true);
     if (!emitted.ok) return;
 
+    // Top-level knowledge files carry routing front-matter (authoring-standard.md),
+    // and the committed index is compiled from it below — without both, this case
+    // would report index-drift instead of the pair-coherence it exists to prove.
     const canvasEffectDirection = [
+      fm("canvas-effect-direction", "The T6 external-effect direction.", ["canvas", "webgl"]).trimEnd(),
+      "",
       "# Canvas UI External-Effect Direction",
       "",
       `Pinned revision: \`${REVISION}\``,
@@ -158,17 +165,20 @@ describe("emitEffectMatrix — M6 round-trip (pair-coherence proof)", () => {
       "",
     ].join("\n");
 
-    const personaIndex = ["# Persona Index", "", "## 1. Lookup Table", "", "| Slug | Family |", "|---|---|", ""].join(
+    const personaIndex = [fm("persona-index", "Persona lookup.", ["persona"]).trimEnd(), "", "# Persona Index", "", "## 1. Lookup Table", "", "| Slug | Family |", "|---|---|", ""].join(
       "\n",
     );
 
+    const mdContents = {
+      "README.md": readme,
+      "persona-index.md": personaIndex,
+      "canvas-effect-direction.md": canvasEffectDirection,
+    };
+
     const findings = lintKnowledge({
       files: ["README.md", "persona-index.md", "canvas-effect-direction.md"],
-      mdContents: {
-        "README.md": readme,
-        "persona-index.md": personaIndex,
-        "canvas-effect-direction.md": canvasEffectDirection,
-      },
+      mdContents,
+      committedIndex: emitIndex(buildIndex(topLevelMarkdown(mdContents))),
       personasJson: "[]",
       repoFiles: [
         "knowledge/README.md",
@@ -187,3 +197,8 @@ describe("emitEffectMatrix — M6 round-trip (pair-coherence proof)", () => {
     expect(fieldEmpty.length).toBe(FIXTURE_CATALOG.effects.length);
   });
 });
+
+/** A routing front-matter block, the shape authoring-standard.md specifies. */
+function fm(id: string, description: string, when: string[]): string {
+  return `---\nid: ${id}\ndescription: "${description}"\nwhen: [${when.join(", ")}]\n---\n\n`;
+}

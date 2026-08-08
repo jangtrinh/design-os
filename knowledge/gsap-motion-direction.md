@@ -1,3 +1,9 @@
+---
+id: gsap-motion-direction
+description: "The T5 GSAP direction and implementation contract — timelines, ScrollTrigger, lifecycle, reduced motion."
+when: [gsap, scrolltrigger, timeline, scroll-animation, motion-t5, pin]
+---
+
 # GSAP Motion Direction
 
 > Adapted from the official [GreenSock GSAP Skills](https://github.com/greensock/gsap-skills)

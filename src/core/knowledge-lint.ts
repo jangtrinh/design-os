@@ -3,7 +3,7 @@
  * every commit, no model call. It answers one question deterministically: has
  * the knowledge core drifted from its own conventions?
  *
- * Eight checks (findings-linter shape, per constitution Art II):
+ * Eleven checks (findings-linter shape, per constitution Art II):
  *   index-missing-row             error    a knowledge/*.md with no README table row
  *   index-dead-row                 error    a table row pointing to a missing file
  *   persona-drift                   error    index ↔ family md ↔ personas.json disagree
@@ -14,6 +14,9 @@
  *                                             (fires on the ref prefix, never on resolution)
  *   effect-catalog-*                mixed    Canvas UI ledger↔matrix drift (see
  *                                             knowledge-effect-catalog-check.ts)
+ *   index-frontmatter-missing       error    a top-level knowledge/*.md with no routing block
+ *   index-frontmatter-bad           error    a routing block unparseable, or id != filename
+ *   index-drift                     error    knowledge/index.json != what the emitter produces
  *
  * This module is FS-FREE: it receives already-read content and returns findings,
  * so the command layer owns all IO and the checks stay pure and testable.
@@ -22,6 +25,7 @@ import { indexChecks } from "./knowledge-index-check.js";
 import { personaChecks } from "./knowledge-persona-check.js";
 import { xrefChecks, provenanceChecks } from "./knowledge-link-check.js";
 import { effectCatalogChecks } from "./knowledge-effect-catalog-check.js";
+import { frontMatterChecks } from "./knowledge-frontmatter-check.js";
 
 export interface KnowledgeFinding {
   checkId: string;
@@ -40,6 +44,8 @@ export interface KnowledgeLintInput {
   repoFiles: readonly string[];
   /** Staleness reference month, `YYYYMM`. */
   asOf: string;
+  /** Raw knowledge/index.json bytes, or null when the file is missing. */
+  committedIndex?: string | null;
   /** knowledge/canvas-ui/catalog.json content, or null/absent when missing.
    * Optional so existing fixtures that predate the Canvas UI adoption (spec 028)
    * keep typechecking without an edit — absent is treated identically to null. */
@@ -115,6 +121,7 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
       catalogJson: input.canvasCatalogJson ?? null,
       asOf: input.asOf,
     }),
+    ...frontMatterChecks(input.mdContents, input.committedIndex ?? null),
   ];
   return sortFindings(findings);
 }

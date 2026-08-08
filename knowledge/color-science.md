@@ -1,3 +1,9 @@
+---
+id: color-science
+description: "OKLCH reasoning, WCAG contrast targets, 11-stop scale generation, semantic role mapping."
+when: [color, palette, oklch, contrast, color-scale, hue, semantic-color]
+---
+
 # Color Science
 
 How to reason about color for UI design: which color space to think in, how

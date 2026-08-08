@@ -1,3 +1,9 @@
+---
+id: qualified-delivery
+description: "Weak prompt to evidence-qualified delivery — typed brief, generation contract, curator, honest statuses."
+when: [qualified-delivery, generation-contract, curator, repair, delivery-status]
+---
+
 # Qualified Delivery
 
 Read this before generating a marketing or landing-page design from a plain-language request.

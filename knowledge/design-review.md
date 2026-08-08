@@ -1,3 +1,9 @@
+---
+id: design-review
+description: "The git-native design review and engineering handoff flow."
+when: [review, design-pr, handoff, release-notes, diff]
+---
+
 # Design review & handoff — the git-native flow
 
 ease-design's artefacts are **text in git** — `design/design.tokens.json` (DTCG),

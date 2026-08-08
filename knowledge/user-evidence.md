@@ -1,3 +1,9 @@
+---
+id: user-evidence
+description: "Grounding design in real user evidence — the ledger and its anti-fabrication gate."
+when: [evidence, user-research, quote, metric, acceptance-criteria]
+---
+
 # User evidence — grounding design in what users actually said
 
 A design should be traceable to *evidence*, not assertion. "Users want a dashboard" is an

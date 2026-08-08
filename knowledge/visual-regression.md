@@ -1,3 +1,9 @@
+---
+id: visual-regression
+description: "The rendered-output floor — what a VR gate catches that a code diff cannot, and why it flakes."
+when: [visual-regression, vr, screenshot-diff, baseline, pixelmatch]
+---
+
 # Visual regression — catching the pixels a diff review misses
 
 A code diff shows *what the source changed*; it can't show that a token tweak three layers

@@ -1,3 +1,9 @@
+---
+id: content-design
+description: "Voice, tone, the error-message standard, i18n readiness, and the deterministic microcopy floor."
+when: [copy, microcopy, tone, voice, error-message, i18n, content]
+---
+
 # Content design — voice, tone, and the microcopy floor
 
 Copy is half the interface. This is the *thinking* (voice + tone + patterns); the deterministic floor

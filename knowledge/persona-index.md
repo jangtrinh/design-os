@@ -1,3 +1,9 @@
+---
+id: persona-index
+description: "Compact lookup for all personas plus the auto-selection algorithm."
+when: [persona, persona-pick, aesthetic, style-direction]
+---
+
 # Persona Index & Auto-Selection Rules
 
 The persona library is **curated design taste** — 26 personas grouped into 7 families.

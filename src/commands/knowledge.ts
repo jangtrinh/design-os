@@ -5,7 +5,7 @@
  * content to the linter, which returns findings. Free, no model call, runs on
  * every commit (CI). See knowledge/authoring-standard.md for the conventions.
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
@@ -13,6 +13,8 @@ import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { lintKnowledge } from "../core/knowledge-lint.js";
+import { buildIndex, emitIndex } from "../core/knowledge-index-emit.js";
+import { topLevelMarkdown } from "../core/knowledge-frontmatter-check.js";
 import type { KnowledgeFinding } from "../core/knowledge-lint.js";
 import { runEffectMatrix } from "./knowledge-effect-matrix.js";
 
@@ -23,9 +25,14 @@ export const KNOWLEDGE_HELP = `ui knowledge — governance checks over the knowl
 Usage:
   ui knowledge check [--dir <repo-root>] [--as-of <YYYYMM>] [--json]
   ui knowledge effect-matrix [--dir <repo-root>] [--json]
+  ui knowledge index [--dir <repo-root>] [--emit]
 
 Subcommands:
   check          Findings-linter over knowledge/; exit 1 on error-severity findings
+  index          Emit the routing index (id / description / when) over knowledge/*.md.
+                 Without --emit it prints to stdout; with --emit it writes
+                 knowledge/index.json — one small map an agent reads to pick a
+                 knowledge file, instead of loading README's prose table
   effect-matrix  Emit the Canvas UI effect matrix's machine columns (Effect/slug/family)
                  from knowledge/canvas-ui/catalog.json to stdout — never writes into
                  knowledge/canvas-effect-direction.md
@@ -46,6 +53,9 @@ Checks:
   effect-catalog-field-empty     (error)   a matrix row's Narrative job/Anti-use/Required fallback is empty
   effect-catalog-draco-missing   (error)   a ledger object-family row's fallback has no Draco clause
   effect-catalog-stale           (warning) knowledge/canvas-ui/catalog.json captured > 6 months ago
+  index-frontmatter-missing      (error)   a top-level knowledge/*.md with no routing front-matter
+  index-frontmatter-bad          (error)   a routing block unparseable, or whose id != filename
+  index-drift                    (error)   knowledge/index.json differs from the emitted index
 
 Options:
   --dir <path>     Repo root holding knowledge/ (default: current working directory)
@@ -61,6 +71,7 @@ Error codes (check):
   NO_KNOWLEDGE  No knowledge/ directory under --dir
   BAD_AS_OF     --as-of is not a YYYYMM month
   READ_ERROR    A knowledge file could not be read
+  WRITE_ERROR   knowledge/index.json could not be written (--emit)
 
 Error codes (effect-matrix):
   BAD_ARG       Missing/unknown subcommand
@@ -136,8 +147,13 @@ function runCheck(parsed: ParsedArgs): CommandResult {
   if (existsSync(ledgerPath)) {
     try { canvasCatalogJson = readFileSync(ledgerPath, "utf8"); } catch { canvasCatalogJson = null; }
   }
+  const indexPath = join(knowledgeDir, "index.json");
+  let committedIndex: string | null = null;
+  if (existsSync(indexPath)) {
+    try { committedIndex = readFileSync(indexPath, "utf8"); } catch { committedIndex = null; }
+  }
 
-  const findings: KnowledgeFinding[] = lintKnowledge({ files, mdContents, personasJson, repoFiles, asOf, canvasCatalogJson });
+  const findings: KnowledgeFinding[] = lintKnowledge({ files, mdContents, personasJson, repoFiles, asOf, canvasCatalogJson, committedIndex });
   const errorCount = findings.filter((f) => f.severity === "error").length;
   const warningCount = findings.length - errorCount;
   const exitCode = errorCount > 0 ? 1 : 0;
@@ -153,6 +169,42 @@ function runCheck(parsed: ParsedArgs): CommandResult {
   return { exitCode, stdout: lines.join("\n") + "\n" };
 }
 
+function runIndex(parsed: ParsedArgs): CommandResult {
+  const sub = "knowledge index";
+  const useJson = parsed.json;
+  const err = (code: string, msg: string): CommandResult =>
+    useJson ? errJson(sub, code, msg) : errText(`ui: ${msg}\n`);
+
+  const unknown = findUnknownFlag(parsed.flags, ["dir", "emit"]);
+  if (unknown !== null) return err("UNKNOWN_FLAG", unknownFlagMessage(unknown));
+
+  const repoRoot = typeof parsed.flags["dir"] === "string" ? resolve(parsed.flags["dir"]) : process.cwd();
+  const knowledgeDir = join(repoRoot, "knowledge");
+  if (!existsSync(knowledgeDir)) {
+    return err("NO_KNOWLEDGE", `no knowledge/ directory under '${repoRoot}' — run from a repo root, or pass --dir`);
+  }
+
+  const mdContents: Record<string, string> = {};
+  try {
+    for (const rel of walk(knowledgeDir)) {
+      if (rel.endsWith(".md")) mdContents[rel] = readFileSync(join(knowledgeDir, rel), "utf8");
+    }
+  } catch (e) {
+    return err("READ_ERROR", `cannot read knowledge/: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  const json = emitIndex(buildIndex(topLevelMarkdown(mdContents)));
+  if (parsed.flags["emit"] !== true) return { exitCode: 0, stdout: json };
+
+  const outPath = join(knowledgeDir, "index.json");
+  try {
+    writeFileSync(outPath, json, "utf8");
+  } catch (e) {
+    return err("WRITE_ERROR", `cannot write ${outPath}: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  return { exitCode: 0, stdout: `knowledge index: wrote ${outPath}\n` };
+}
+
 export const knowledgeCommand = {
   name: CMD,
   summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift)",
@@ -162,8 +214,9 @@ export const knowledgeCommand = {
     switch (parsed.subcommand) {
       case "check": return runCheck(parsed);
       case "effect-matrix": return runEffectMatrix(parsed);
+      case "index": return runIndex(parsed);
       case undefined: {
-        const msg = "ui knowledge requires a subcommand (check, effect-matrix). Run 'ui knowledge --help'.";
+        const msg = "ui knowledge requires a subcommand (check, effect-matrix, index). Run 'ui knowledge --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
       }
       default: {

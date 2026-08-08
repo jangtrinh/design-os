@@ -1,3 +1,9 @@
+---
+id: accessibility
+description: "The two-tier a11y model — what static checks can and cannot prove, and the never-claim-compliant rule."
+when: [accessibility, a11y, contrast, wcag, screen-reader, focus, aria]
+---
+
 # Accessibility — the two-tier model, and why neither tier is a conformance claim
 
 Accessibility is a property of a real person's *experience* of a UI — not a checkbox a tool

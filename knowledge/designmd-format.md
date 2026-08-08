@@ -1,3 +1,9 @@
+---
+id: designmd-format
+description: "The DESIGN.md contract — the YAML token front-matter plus the eight fixed sections."
+when: [designmd, design-md, token-frontmatter, google-labs]
+---
+
 # DESIGN.md format (Google Labs alpha)
 
 Pinned on-disk reference for the open-source DESIGN.md spec authored by
