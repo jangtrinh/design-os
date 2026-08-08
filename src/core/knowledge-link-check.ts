@@ -1,15 +1,25 @@
 /**
- * The two link-integrity checks over knowledge markdown:
+ * The link-integrity checks over knowledge markdown:
  *
- *   broken-xref            a relative markdown link `[t](path)` between knowledge
- *                          files that resolves to nothing
- *   provenance-bad-grammar an `<!-- ease:source … -->` marker missing `ref=` or
- *                          whose `ref` points to a non-existent repo file
+ *   broken-xref                  a relative markdown link `[t](path)` between
+ *                                 knowledge files that resolves to nothing
+ *   provenance-bad-grammar       an `<!-- ease:source … -->` marker missing
+ *                                 `ref=` or whose `ref` points to a non-existent
+ *                                 repo file
+ *   provenance-machine-local-ref an `ease:source` `ref` that starts with
+ *                                 `references/` or `taste/` — those are
+ *                                 gitignored symlinks into the private
+ *                                 design-os-hq corpus (.gitignore:66-69), so a
+ *                                 clean clone or CI can never resolve them even
+ *                                 though this machine's symlink makes them
+ *                                 resolve. Fires on the ref's PREFIX, never on
+ *                                 resolution — a resolution-based test is green
+ *                                 exactly where this bug lives.
  *
- * Both are pure transforms over already-read content. The provenance grammar is
- * defined in knowledge/authoring-standard.md; documentation examples of the
- * marker live inside ``` fences, which the scanner skips so a shown example is
- * never linted as a live marker.
+ * All three are pure transforms over already-read content. The provenance
+ * grammar is defined in knowledge/authoring-standard.md; documentation examples
+ * of the marker live inside ``` fences, which the scanner skips so a shown
+ * example is never linted as a live marker.
  */
 import type { KnowledgeFinding } from "./knowledge-lint.js";
 
@@ -95,7 +105,19 @@ export function provenanceChecks(
         continue;
       }
       const target = ref[1] ?? "";
-      if (target === "" || !known.has(target)) {
+      // Fires on the PREFIX, never on resolution (see file header) — even on a
+      // machine where references/ or taste/ resolve via the private symlink.
+      // One defect, one finding (D9c): repoFiles no longer carries references/**
+      // (knowledge.ts, C5), so a machine-local ref would ALSO look "dead" here —
+      // report machine-local-ref only, never both, for the same marker.
+      const isMachineLocal = target.startsWith("references/") || target.startsWith("taste/");
+      if (isMachineLocal) {
+        findings.push({
+          checkId: "provenance-machine-local-ref",
+          severity: "error",
+          message: `'${rel}' ease:source ref="${target}" points into a machine-local symlink (references/** or taste/**), which a clean clone or CI cannot resolve — distil the fact into knowledge/ and ref the tracked copy`,
+        });
+      } else if (target === "" || !known.has(target)) {
         findings.push({
           checkId: "provenance-bad-grammar",
           severity: "error",

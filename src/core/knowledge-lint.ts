@@ -3,13 +3,17 @@
  * every commit, no model call. It answers one question deterministically: has
  * the knowledge core drifted from its own conventions?
  *
- * Six checks (findings-linter shape, per constitution Art II):
- *   index-missing-row       error    a knowledge/*.md with no README table row
- *   index-dead-row          error    a table row pointing to a missing file
- *   persona-drift           error    index ↔ family md ↔ personas.json disagree
- *   broken-xref             error    a relative md link that doesn't resolve
- *   benchmark-stale         warning  a benchmark DNA file older than 6 months
- *   provenance-bad-grammar  error    an ease:source marker missing/with a dead ref
+ * Eight checks (findings-linter shape, per constitution Art II):
+ *   index-missing-row             error    a knowledge/*.md with no README table row
+ *   index-dead-row                 error    a table row pointing to a missing file
+ *   persona-drift                   error    index ↔ family md ↔ personas.json disagree
+ *   broken-xref                     error    a relative md link that doesn't resolve
+ *   benchmark-stale                 warning  a benchmark DNA file older than 6 months
+ *   provenance-bad-grammar          error    an ease:source marker missing/with a dead ref
+ *   provenance-machine-local-ref    error    an ease:source ref into references/** or taste/**
+ *                                             (fires on the ref prefix, never on resolution)
+ *   effect-catalog-*                mixed    Canvas UI ledger↔matrix drift (see
+ *                                             knowledge-effect-catalog-check.ts)
  *
  * This module is FS-FREE: it receives already-read content and returns findings,
  * so the command layer owns all IO and the checks stay pure and testable.
@@ -17,6 +21,7 @@
 import { indexChecks } from "./knowledge-index-check.js";
 import { personaChecks } from "./knowledge-persona-check.js";
 import { xrefChecks, provenanceChecks } from "./knowledge-link-check.js";
+import { effectCatalogChecks } from "./knowledge-effect-catalog-check.js";
 
 export interface KnowledgeFinding {
   checkId: string;
@@ -35,6 +40,10 @@ export interface KnowledgeLintInput {
   repoFiles: readonly string[];
   /** Staleness reference month, `YYYYMM`. */
   asOf: string;
+  /** knowledge/canvas-ui/catalog.json content, or null/absent when missing.
+   * Optional so existing fixtures that predate the Canvas UI adoption (spec 028)
+   * keep typechecking without an edit — absent is treated identically to null. */
+  canvasCatalogJson?: string | null;
 }
 
 /** Months from a `YYYYMM` string to the asOf month; null when either is malformed. */
@@ -92,7 +101,7 @@ function personaFiles(mdContents: Readonly<Record<string, string>>): Record<stri
   return out;
 }
 
-/** Run all six checks over pre-read knowledge content. */
+/** Run all seven checks over pre-read knowledge content. */
 export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
   const readme = input.mdContents["README.md"] ?? "";
   const findings: KnowledgeFinding[] = [
@@ -101,6 +110,11 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
     ...xrefChecks(input.mdContents, input.files),
     ...benchmarkChecks(input.files, input.asOf),
     ...provenanceChecks(input.mdContents, input.repoFiles),
+    ...effectCatalogChecks({
+      knowledgeFileContent: input.mdContents["canvas-effect-direction.md"] ?? null,
+      catalogJson: input.canvasCatalogJson ?? null,
+      asOf: input.asOf,
+    }),
   ];
   return sortFindings(findings);
 }

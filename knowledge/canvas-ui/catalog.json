@@ -1,0 +1,33 @@
+{
+  "upstream": "https://github.com/DavidHDev/canvas-ui",
+  "revision": "728550d4523e1b8bef834b64b3e936c215cad630",
+  "captured": "202607",
+  "license": "MIT + Commons Clause",
+  "effects": [
+    { "slug": "asciify", "name": "Asciify", "family": "live-html", "overlayFallback": true },
+    { "slug": "bend", "name": "Bend", "family": "live-html", "overlayFallback": true },
+    { "slug": "blaze", "name": "Blaze", "family": "live-html", "overlayFallback": true },
+    { "slug": "bubble", "name": "Bubble", "family": "live-html", "overlayFallback": true },
+    { "slug": "cloth", "name": "Cloth", "family": "live-html", "overlayFallback": true },
+    { "slug": "clouds", "name": "Clouds", "family": "live-html", "overlayFallback": true },
+    { "slug": "dithered-object", "name": "Dithered Object", "family": "object", "overlayFallback": false },
+    { "slug": "droplets", "name": "Droplets", "family": "live-html", "overlayFallback": true },
+    { "slug": "frost", "name": "Frost", "family": "live-html", "overlayFallback": true },
+    { "slug": "glass", "name": "Glass", "family": "live-html", "overlayFallback": true },
+    { "slug": "glass-object", "name": "Glass Object", "family": "object", "overlayFallback": false },
+    { "slug": "glitch", "name": "Glitch", "family": "live-html", "overlayFallback": true },
+    { "slug": "grid", "name": "Grid", "family": "live-html", "overlayFallback": true },
+    { "slug": "hex-float", "name": "Hex Float", "family": "live-html", "overlayFallback": true },
+    { "slug": "laser", "name": "Laser", "family": "live-html", "overlayFallback": true },
+    { "slug": "liquid", "name": "Liquid", "family": "live-html", "overlayFallback": true },
+    { "slug": "magnify", "name": "Magnify", "family": "live-html", "overlayFallback": true },
+    { "slug": "particle-object", "name": "Particle Object", "family": "object", "overlayFallback": false },
+    { "slug": "particle-reveal", "name": "Particle Reveal", "family": "live-html", "overlayFallback": true },
+    { "slug": "particle-scroll", "name": "Particle Scroll", "family": "live-html", "overlayFallback": true },
+    { "slug": "peel", "name": "Peel", "family": "live-html", "overlayFallback": true },
+    { "slug": "retro-dither", "name": "Retro Dither", "family": "live-html", "overlayFallback": true },
+    { "slug": "ripple", "name": "Ripple", "family": "live-html", "overlayFallback": true },
+    { "slug": "shatter", "name": "Shatter", "family": "live-html", "overlayFallback": true },
+    { "slug": "vhs", "name": "VHS", "family": "live-html", "overlayFallback": true }
+  ]
+}

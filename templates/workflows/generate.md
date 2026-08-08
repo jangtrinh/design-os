@@ -135,6 +135,10 @@ and again during motion review. The skill must produce the scene contract, respo
 reduced-motion branches, lifecycle ownership, and runtime evidence plan. Do not load GSAP merely
 to satisfy a motion-intensity number.
 
+When the ladder climbs to T6 (persona motion cap `High / expressive`), invoke
+`design-os-canvas-effect` only after the complete static baseline is built and verified — never
+to satisfy a motion-intensity number.
+
 Implement the declared section architecture, not a shared visual template with substituted copy.
 Related sections may share tokens and motifs; their spatial model must follow their content job.
 
