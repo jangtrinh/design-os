@@ -14,7 +14,17 @@
  * throwaway git repo built by `spec-022-lifecycle.ts`. Mutations are committed
  * before validation so the clean-tree check never masks the rule under test.
  */
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
+/**
+ * Each case here builds a git fixture and runs the validator over it, so a single
+ * test costs ~2.8s on its own — already past half of vitest's 5s default. Under a
+ * full-suite run the worker contends for CPU and the longest case tips over, which
+ * is how this file failed in CI while passing 92/92 in isolation. The work is the
+ * cost of a real fixture, not a hang, so the timeout is raised HERE rather than
+ * globally: a 5s default elsewhere still catches something genuinely stuck.
+ */
+vi.setConfig({ testTimeout: 20_000, hookTimeout: 20_000 });
 import { readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {

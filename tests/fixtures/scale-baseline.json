@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-07-30T07:08:00.081Z",
+  "corpus": {
+    "components": 10000,
+    "frames": 50000,
+    "seed": 42
+  },
+  "operations": {
+    "parseChangeLog": {
+      "ms": 30.876666999999998,
+      "heapUsedDelta": 17679152,
+      "note": "parseChangeLog over 50k frames"
+    },
+    "dryRun": {
+      "ms": 99.14524999999992,
+      "heapUsedDelta": 46480944,
+      "note": "parseChangeLog + coalesceFrames + computePreviewDelta, whole log, cursor 0"
+    },
+    "apply200": {
+      "ms": 47.678499999999985,
+      "heapUsedDelta": 22624712,
+      "note": "parseChangeLog + coalesce + delta + applyDelta over the tail 200 frames into a 10k-record registry"
+    },
+    "saveRegistry": {
+      "ms": 12.152207999999973,
+      "heapUsedDelta": 7892136,
+      "note": "saveRegistry over 10k records"
+    },
+    "ledgerLineCount": {
+      "ms": 0.5270409999999401,
+      "heapUsedDelta": 1013040,
+      "note": "ledgerLineCount (memory-store.ts:52) against a 5k-event ledger — the id-lookup cost appendEvent's caller pays"
+    }
+  },
+  "figmaAgent": {
+    "generatedAt": "2026-07-30T07:09:00.589Z",
+    "corpus": {
+      "events": 5000,
+      "unresolved": 1200,
+      "limit": 500
+    },
+    "operations": {
+      "retainCorrectionEvents": {
+        "ms": 0.8207500000000039,
+        "heapUsedDelta": 374328,
+        "keptCount": 1200,
+        "note": "retainCorrectionEvents over 5000 events (1200 unresolved) against a 500 hard limit — today keeps all 1200 unresolved regardless (§3's \"before\")"
+      }
+    }
+  }
+}

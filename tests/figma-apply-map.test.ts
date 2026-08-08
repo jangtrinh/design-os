@@ -124,10 +124,21 @@ function measure<T>(fn: () => T): { result: T; ms: number } {
   return { result, ms: performance.now() - t0 };
 }
 
-describe("applyDelta — measured against the committed 10k/50k baseline (§0)", () => {
+/**
+ * §0 compares a measurement taken HERE against numbers recorded on one machine on
+ * 2026-07-30. That is a cross-machine perf comparison, which this suite's own
+ * scale-baseline.test.ts calls out as "exactly the class of flake this repo's own
+ * retros warn about" — a CI runner slower than the recording laptop fails it while
+ * the code got faster. So it is opt-in: `SCALE_PERF=1 npm test` runs the discipline
+ * where the numbers mean something. Vitest prints the block as SKIPPED otherwise, so
+ * the gate is visibly parked rather than silently absent.
+ */
+const SCALE_PERF = process.env["SCALE_PERF"] === "1";
+
+describe.skipIf(!SCALE_PERF)("applyDelta — measured against the committed 10k/50k baseline (§0)", () => {
   it("a 200-target apply into 10k records is dramatically faster than the pre-Map baseline", () => {
     const testDir = dirname(fileURLToPath(import.meta.url));
-    const baselinePath = join(testDir, "..", "plans", "260730-0847-registry-integrity", "scale-baseline.json");
+    const baselinePath = join(testDir, "fixtures", "scale-baseline.json");
     const generator = join(testDir, "..", "scripts", "dev", "make-scale-corpus.mjs");
     const baseline = JSON.parse(readFileSync(baselinePath, "utf8")) as { operations: { apply200: { ms: number } } };
 
