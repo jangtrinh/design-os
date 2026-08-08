@@ -1,16 +1,22 @@
 /**
  * Registry-integrity phase 04 (5.4), §0 — the committed scale baseline. "A headline
  * number is a hypothesis until measured" (repo doctrine): every part of phase 04 states
- * its before/after against `plans/260730-0847-registry-integrity/scale-baseline.json`,
+ * its before/after against `tests/fixtures/scale-baseline.json`,
  * and a part that does not measurably beat its recorded number is reverted, not shipped.
  *
  * This file has two jobs, deliberately separated in time:
  *   1. RECORD (once, bootstrap-only): if the baseline file does not yet exist, generate
- *      the seeded 10k-component / 50k-frame corpus and measure TODAY's (pre-phase-04)
- *      implementation, then write it. Guarded so a later run — after §1/§5 have already
- *      changed the measured code paths — can never silently overwrite the "before"
- *      snapshot with an "after" number; that would erase the very reference the phase's
+ *      the seeded 10k-component / 50k-frame corpus and measure TODAY's implementation,
+ *      then write it. Guarded so a later run — after §1/§5 have already changed the
+ *      measured code paths — can never silently overwrite the "before" snapshot with an
+ *      "after" number; that would erase the very reference the phase's
  *      reverted-if-not-faster discipline depends on.
+ *
+ *      The recorded snapshot now lives at `tests/fixtures/`, which is TRACKED. It used to
+ *      live under `plans/`, and `.gitignore` ignores `plans/` — so the file this test calls
+ *      "committed" could never reach a clean clone or a CI runner, and the write itself hit
+ *      ENOENT because the directory did not exist there either. CI was red on that for over
+ *      a week (issue #122).
  *   2. VALIDATE (every run): regenerate the same seeded corpus and prove the real kernel
  *      functions still parse/load/apply it correctly at this scale — a genuine regression
  *      gate, not a perf assertion (perf assertions in a shared-CI environment are exactly
@@ -18,7 +24,7 @@
  *      where a before/after margin gets asserted, against this committed reference).
  */
 import { describe, expect, it, beforeAll } from "vitest";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync, appendFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync, appendFileSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -37,7 +43,7 @@ const APPLY_TAIL = 200; // "a 200-target delta" (spec §0) — the last 200 fram
 const LEDGER_SEED_EVENTS = 5_000;
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
-const BASELINE_PATH = join(TEST_DIR, "..", "plans", "260730-0847-registry-integrity", "scale-baseline.json");
+const BASELINE_PATH = join(TEST_DIR, "fixtures", "scale-baseline.json");
 const GENERATOR = join(TEST_DIR, "..", "scripts", "dev", "make-scale-corpus.mjs");
 
 interface BaselineEntry { ms: number; heapUsedDelta: number; note?: string }
@@ -192,6 +198,7 @@ describe("scale-baseline.json — recorded once, never silently overwritten", ()
           ledgerLineCount: { ms: ledgerLineCountM.ms, heapUsedDelta: ledgerLineCountM.heapUsedDelta, note: "ledgerLineCount (memory-store.ts:52) against a 5k-event ledger — the id-lookup cost appendEvent's caller pays" },
         },
       };
+      mkdirSync(dirname(BASELINE_PATH), { recursive: true });
       writeFileSync(BASELINE_PATH, JSON.stringify(baseline, null, 2) + "\n", "utf8");
     }
     expect(existsSync(BASELINE_PATH)).toBe(true);
@@ -202,7 +209,7 @@ describe("scale-baseline.json — recorded once, never silently overwritten", ()
     }
   });
 
-  it("is a real file on disk (committed, not a build artifact) with a stable mtime across runs once written", () => {
+  it("is a real file on disk under a TRACKED path, so a clean clone and CI both have it", () => {
     expect(statSync(BASELINE_PATH).isFile()).toBe(true);
   });
 });
