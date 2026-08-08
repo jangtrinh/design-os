@@ -50,7 +50,7 @@ Do **not** narrate from imagination. Read only what the ledger returns.
 Compose a short, direct answer that **traces the decision**:
 
 - Cite the event id(s), the date, and the actor for every factual claim
-  ("picked on 2026-07-08 (`e12`, by jang)…").
+  ("picked on 2026-07-08 (`e12`, by `<actor>`)…").
 - For a token question, quote the `from → to` and the recorded `reason`.
 - For a persona/variant question, use the `user_pick` (chosen vs rejected) and
   any `taste_verdict` that explains a rejection (its `lowestAxis`).
