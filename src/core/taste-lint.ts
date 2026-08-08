@@ -60,6 +60,7 @@ import { checkFontScaleSprawl } from "./taste-checks-font-scale.js";
 import { checkModeInvisibleSurface } from "./taste-checks-invisible-surface.js";
 import { checkContainerNestingDepth } from "./taste-checks-nesting.js";
 import { checkRadiusSprawl } from "./taste-checks-radius.js";
+import { gsapChecks } from "./taste-checks-gsap.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -156,6 +157,10 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     // Craft-lint graduation (spec CRAFT-LINT). Both new checks default warning.
     ...checkContainerNestingDepth(stripped),
     ...checkRadiusSprawl(stripped),
+    // Motion axis, GSAP subset — the machine-checkable half of
+    // knowledge/gsap-motion-direction.md, which shipped as prose with no linter.
+    // Every check is silent unless GSAP is actually present in the document.
+    ...gsapChecks(stripped),
   ];
 
   // Sort by rubric axis order, then by line (undefined lines last).
