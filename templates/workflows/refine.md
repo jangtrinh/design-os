@@ -69,6 +69,10 @@ a `## Never` clause; prefer choices that express `## Always`.
    `design-os-gsap-motion` before editing. Repair lifecycle, responsive behavior,
    interruption, reduced motion, or performance without inventing a new effect.
 
+   If the failing evidence belongs to an existing T6 Canvas UI effect, invoke
+   `design-os-canvas-effect` before editing. Repair the fallback, teardown, or tenant
+   contract without inventing a new effect.
+
    On pass 2, prepend a note to the analysis: "this is pass 2 — a previous pass already
    fixed some issues; focus on remaining or newly-introduced ones." Do not re-fix what
    pass 1 already fixed.

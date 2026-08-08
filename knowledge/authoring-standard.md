@@ -86,10 +86,18 @@ future reader can re-verify it. The grammar has four parts:
   <!-- ease:source ref="<repo-relative-path>" captured="YYYYMM" url="<origin>" -->
   ```
 
-  `ref` is REQUIRED and must point to a file that exists (usually a
-  `knowledge/benchmarks/*.dna.json` or something under `references/**`); `captured` and
-  `url` are optional. `ui knowledge check` (`provenance-bad-grammar`) fails a marker with no
-  `ref=` or a `ref` that points nowhere.
+  `ref` is REQUIRED and must point to a file **tracked in this repository** — usually a
+  `knowledge/benchmarks/*.dna.json` or another `knowledge/**` file; `captured` and `url` are
+  optional. `ui knowledge check` (`provenance-bad-grammar`) fails a marker with no `ref=` or a
+  `ref` that points nowhere.
+
+  **A `ref` into `references/**` or `taste/**` is invalid even when it resolves locally.**
+  Those are machine-local symlinks into the private `design-os-hq` corpus (`.gitignore:66-69`),
+  so a clean clone or CI cannot resolve them — a gate that reads through them passes on one
+  machine and is absent everywhere else. Distil the fact into `knowledge/` and ref the tracked
+  copy instead. `ui knowledge check` (`provenance-machine-local-ref`) fails such a ref on its
+  prefix, never on resolution, so it stays red on the very machine where the symlink would
+  otherwise hide the problem.
 - **Rules** — the marker sits directly beneath the heading whose fact it sources. A section
   with no distilled fact gets no marker. The marker is a machine-only comment; it never
   becomes a user-visible "Sources" section.

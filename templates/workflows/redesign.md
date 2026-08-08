@@ -163,6 +163,10 @@ When the visual transformation requires T5 web choreography, invoke `design-os-g
 declare one story-bearing signature interaction. Preserve the source IA without preserving its
 motion language. Simple transitions remain CSS; native mobile production motion remains native.
 
+When the visual transformation justifies climbing to T6 (persona motion cap `High /
+expressive`), invoke `design-os-canvas-effect` only after the complete static baseline is built
+and verified.
+
 If the project DS is rich enough to express the contra-persona (registered
 components exist that match the new visual language), reuse them via the
 component catalog naming. If not, generate the redesigned components inline —

@@ -886,16 +886,24 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   },
 
   knowledge: {
-    summary: "Governance checks over the knowledge core (index / persona / xref / provenance drift)",
+    summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift)",
     subcommands: {
       check: {
-        summary: "Findings-linter over knowledge/; exit 1 on error-severity findings",
+        summary: "Findings-linter over knowledge/; exit 1 on error-severity findings, including Canvas UI effect-catalog drift (ledger↔matrix row drift, Draco)",
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Repo root holding knowledge/ (default: current working directory)" },
           { name: "as-of", type: "string", summary: "Reference month YYYYMM for benchmark-stale (default: current month)" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_KNOWLEDGE", "BAD_AS_OF", "READ_ERROR"],
+      },
+      "effect-matrix": {
+        summary: "Emit the Canvas UI effect matrix's machine columns (Effect/slug/family) from knowledge/canvas-ui/catalog.json to stdout",
+        positionals: [],
+        flags: [
+          { name: "dir", type: "string", summary: "Repo root holding knowledge/canvas-ui/catalog.json (default: current working directory)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_LEDGER", "BAD_LEDGER", "READ_ERROR"],
       },
     },
   },

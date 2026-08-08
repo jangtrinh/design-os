@@ -13,7 +13,9 @@ should take. Lower means stay literal; higher means be inventive.
 
 ## Reference-led originality boundary
 
-<!-- ease:source ref="references/mengto-skills/generate-reference-inspired-brand-worlds.md" captured="202607" url="https://github.com/MengTo/Skills/tree/21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49/agent-skills/codex/generate-reference-inspired-brand-worlds" -->
+> Distilled from [MengTo/Skills — `generate-reference-inspired-brand-worlds`](https://github.com/MengTo/Skills/tree/21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49/agent-skills/codex/generate-reference-inspired-brand-worlds)
+> at commit `21b278c62f49f3ce3d8c8ecbcc84cbcd534f3e49` (captured 2026-07). The rules below are
+> the distilled fact; the upstream copy lives outside this repository.
 
 When a task uses a reference to create a **new** visual identity or art direction, decide
 what may transfer before writing the build prompt:
