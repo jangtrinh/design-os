@@ -21,12 +21,25 @@ import {
   rmSync,
   readFileSync,
   writeFileSync,
-  copyFileSync,
+  cpSync,
   symlinkSync,
 } from "node:fs";
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const DIST_CLI = join(REPO_ROOT, "dist", "cli.js");
+const DIST_DIR = join(REPO_ROOT, "dist");
+const DIST_CLI = join(DIST_DIR, "cli.js");
+
+/**
+ * Copy the WHOLE build directory, never `cli.js` alone. tsup code-splits: `cli.js`
+ * carries a bare `import "./chunk-<hash>.js"`, so a lone copy dies with
+ * ERR_MODULE_NOT_FOUND before it writes a byte to stdout — which reads here as
+ * "exit 1, empty output", i.e. a fake product bug. The npm package ships the same
+ * way (`files: ["dist"]`), so copying the directory is also the faithful shape.
+ */
+function copyBuiltCli(destDistDir: string): string {
+  cpSync(DIST_DIR, destDistDir, { recursive: true });
+  return join(destDistDir, "cli.js");
+}
 
 const tmpDirs: string[] = [];
 function makeTmpDir(): string {
@@ -198,7 +211,7 @@ describe("templates walk: sentinel sniff rejects decoy and finds real templates"
     const fakePkgDir = join(root, "fake-pkg");
     const fakeDistDir = join(fakePkgDir, "dist");
     mkdirSync(fakeDistDir, { recursive: true });
-    copyFileSync(DIST_CLI, join(fakeDistDir, "cli.js"));
+    copyBuiltCli(fakeDistDir);
 
     // Decoy templates inside fake-pkg/ — exists but lacks workflows/generate.md
     const decoyTemplates = join(fakePkgDir, "templates");
@@ -233,7 +246,7 @@ describe("templates walk: sentinel sniff rejects decoy and finds real templates"
     // fake-pkg/dist/cli.js — isolated binary with no real templates above it
     const fakeDistDir = join(root, "fake-pkg", "dist");
     mkdirSync(fakeDistDir, { recursive: true });
-    copyFileSync(DIST_CLI, join(fakeDistDir, "cli.js"));
+    copyBuiltCli(fakeDistDir);
 
     // Decoy only — no workflows/generate.md anywhere above the binary
     const decoy = join(root, "fake-pkg", "templates");
