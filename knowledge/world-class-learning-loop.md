@@ -1,3 +1,9 @@
+---
+id: world-class-learning-loop
+description: "Qualification, art direction, and reusable learning — controlled trials and anti-overfitting promotion."
+when: [learning-loop, trial, benchmark, art-direction, lesson]
+---
+
 # World-Class Learning Loop
 
 Read this after `qualified-delivery.md`. Qualification establishes the delivery floor. This loop

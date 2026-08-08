@@ -1,3 +1,9 @@
+---
+id: motion-craft
+description: "The animation decision ladder T1 CSS to T6 WebGL, persona tier caps, and the motion floors."
+when: [motion, animation, transition, reduced-motion, motion-tier, easing]
+---
+
 # Motion Craft — the animation decision ladder
 
 Motion is persona-led: a data tool wants near-instant feedback, a marketing hero wants

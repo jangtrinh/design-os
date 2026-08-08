@@ -5,7 +5,18 @@ deterministic `ui` binary). These are **plain-Markdown files the host AI model r
 directly** while designing UI — curated design taste that sets the quality floor.
 
 > **Selective reading.** Open only the file(s) a task needs — never load the whole core.
-> Each file is self-contained; the task map below routes you to the right one.
+> Each file is self-contained.
+
+## Routing — start at `index.json`, not at this table
+
+`knowledge/index.json` is the machine-read map: one entry per file with its `id`, `path`,
+a one-sentence `description`, and the `when` tags a task matches on. It is a few kilobytes
+— read it, pick the file, open that file. **Prefer it over the table below**, whose cells
+run past a thousand characters each and cost far more to load than the file they point to.
+
+The index is emitted from each file's front-matter by `ui knowledge index --emit`, and
+`ui knowledge check` fails if it drifts from the files it came from. The table below stays
+for a human reading top to bottom.
 
 ## The files
 

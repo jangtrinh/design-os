@@ -1,3 +1,9 @@
+---
+id: librarian-loop
+description: "The graduation procedure — the veto chain that turns a recorded gap into shared knowledge."
+when: [librarian, gap, graduate, knowledge-evolution, insight]
+---
+
 # The librarian loop — graduating gaps into knowledge
 
 ## Purpose

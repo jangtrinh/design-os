@@ -886,7 +886,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   },
 
   knowledge: {
-    summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift)",
+    summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift) + the routing index emitter",
     subcommands: {
       check: {
         summary: "Findings-linter over knowledge/; exit 1 on error-severity findings, including Canvas UI effect-catalog drift (ledger↔matrix row drift, Draco)",
@@ -904,6 +904,15 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "dir", type: "string", summary: "Repo root holding knowledge/canvas-ui/catalog.json (default: current working directory)" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_LEDGER", "BAD_LEDGER", "READ_ERROR"],
+      },
+      index: {
+        summary: "Emit the routing index (id / description / when) over knowledge/*.md — stdout, or knowledge/index.json with --emit",
+        positionals: [],
+        flags: [
+          { name: "dir", type: "string", summary: "Repo root holding knowledge/ (default: current working directory)" },
+          { name: "emit", type: "boolean", summary: "Write knowledge/index.json instead of printing to stdout" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_KNOWLEDGE", "READ_ERROR", "WRITE_ERROR"],
       },
     },
   },

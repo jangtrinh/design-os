@@ -1,3 +1,9 @@
+---
+id: authoring-standard
+description: "The meta-standard for writing knowledge/ files — file frame, constraint language, provenance grammar."
+when: [authoring, knowledge-file, writing-standard, provenance, ease-source]
+---
+
 # Authoring Standard — how to write a knowledge/ file
 
 ## Purpose
@@ -24,6 +30,43 @@ host model as its brain; they carry the quality floor.
 **Do NOT** apply it to code comments, to `plans/**`, to spec/PR prose, or to anything the
 model does not read as standing knowledge. Those have their own conventions; forcing this
 frame onto them adds ceremony without a reader who benefits.
+
+## Routing front-matter
+
+Every top-level `knowledge/*.md` opens with a three-key block. It is what makes the file
+**findable** — without it the file exists but no task can route to it:
+
+```markdown
+---
+id: motion-craft
+description: "The animation decision ladder T1 CSS to T6 WebGL, and the motion floors."
+when: [motion, animation, transition, reduced-motion, motion-tier, easing]
+---
+```
+
+- **`id`** MUST equal the filename without `.md`. That is how another file refers to this
+  one without hard-coding a path, so a later move does not break the reference.
+- **`description`** is ONE sentence — what a reader gets by opening the file. It is the
+  line a router shows next to the path, not a summary of the contents.
+- **`when`** is the routing signal: the words a *task* uses, not the words the file's own
+  headings use. Lowercase and hyphenated, so a match is exact and a diff is stable. Write
+  the terms a person would actually type ("scroll-animation", "contrast"), and include the
+  ones that should land here rather than somewhere adjacent.
+
+Three keys, no more. `tier`, `status`, `scope`, and `requires` were all considered and
+cut: each was a field a linter would have to keep honest, and none of them changed which
+file a task should open. Add a fourth key only when a routing decision cannot be made
+without it.
+
+`ui knowledge index --emit` compiles these blocks into `knowledge/index.json` — one small
+machine-read map, so an agent picks a file without loading the README's prose table. The
+emitter is deterministic; the checker (`index-frontmatter-missing`, `index-frontmatter-bad`,
+`index-drift`) fails the moment a block is absent, malformed, or the committed index stops
+matching the files it came from. **Edit a block, re-run `--emit`, commit both.**
+
+`personas/**`, `figma-craft/**`, `canvas-ui/**`, and `benchmarks/**` carry no block on
+purpose: they route through their own entry file or are data rather than prose. Tagging
+them individually would grow the index without giving a task a new place to land.
 
 ## The standard file frame
 

@@ -1,3 +1,9 @@
+---
+id: component-catalog
+description: "32 reusable components across 8 categories, with a generation spec for each."
+when: [component, catalog, button, form, navigation, card, table]
+---
+
 # Component Catalog
 
 A curated library of **32 reusable UI components** organized into **8 categories**. Each

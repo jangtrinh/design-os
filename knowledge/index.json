@@ -1,0 +1,420 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "accessibility",
+      "path": "knowledge/accessibility.md",
+      "description": "The two-tier a11y model — what static checks can and cannot prove, and the never-claim-compliant rule.",
+      "when": [
+        "accessibility",
+        "a11y",
+        "contrast",
+        "wcag",
+        "screen-reader",
+        "focus",
+        "aria"
+      ]
+    },
+    {
+      "id": "asset-production-orchestration",
+      "path": "knowledge/asset-production-orchestration.md",
+      "description": "Ordering and gating a multi-asset production run so generated media arrives usable.",
+      "when": [
+        "asset-production",
+        "media-pipeline",
+        "batch-generation",
+        "orchestration"
+      ]
+    },
+    {
+      "id": "authoring-standard",
+      "path": "knowledge/authoring-standard.md",
+      "description": "The meta-standard for writing knowledge/ files — file frame, constraint language, provenance grammar.",
+      "when": [
+        "authoring",
+        "knowledge-file",
+        "writing-standard",
+        "provenance",
+        "ease-source"
+      ]
+    },
+    {
+      "id": "canvas-effect-direction",
+      "path": "knowledge/canvas-effect-direction.md",
+      "description": "The T6 external-effect direction for Canvas UI — 25 named WebGL effects, the one-per-viewport cap, and the install handoff.",
+      "when": [
+        "canvas",
+        "webgl",
+        "shader",
+        "effect",
+        "t6",
+        "canvas-ui",
+        "external-effect"
+      ]
+    },
+    {
+      "id": "color-science",
+      "path": "knowledge/color-science.md",
+      "description": "OKLCH reasoning, WCAG contrast targets, 11-stop scale generation, semantic role mapping.",
+      "when": [
+        "color",
+        "palette",
+        "oklch",
+        "contrast",
+        "color-scale",
+        "hue",
+        "semantic-color"
+      ]
+    },
+    {
+      "id": "component-catalog",
+      "path": "knowledge/component-catalog.md",
+      "description": "32 reusable components across 8 categories, with a generation spec for each.",
+      "when": [
+        "component",
+        "catalog",
+        "button",
+        "form",
+        "navigation",
+        "card",
+        "table"
+      ]
+    },
+    {
+      "id": "content-design",
+      "path": "knowledge/content-design.md",
+      "description": "Voice, tone, the error-message standard, i18n readiness, and the deterministic microcopy floor.",
+      "when": [
+        "copy",
+        "microcopy",
+        "tone",
+        "voice",
+        "error-message",
+        "i18n",
+        "content"
+      ]
+    },
+    {
+      "id": "delivery-assets",
+      "path": "knowledge/delivery-assets.md",
+      "description": "Resolving reproduced images to originals — the ladder that ends at screenshot-crop as last resort.",
+      "when": [
+        "asset",
+        "image-resolution",
+        "logo",
+        "screenshot-crop",
+        "asset-map",
+        "clone"
+      ]
+    },
+    {
+      "id": "design-agents",
+      "path": "knowledge/design-agents.md",
+      "description": "Soul-bound, task-scoped project agents — roles, boundaries, naming, and the opt-in roster.",
+      "when": [
+        "agent",
+        "roster",
+        "designer-agent",
+        "curator-agent",
+        "figma-hand",
+        "agent-identity"
+      ]
+    },
+    {
+      "id": "design-review",
+      "path": "knowledge/design-review.md",
+      "description": "The git-native design review and engineering handoff flow.",
+      "when": [
+        "review",
+        "design-pr",
+        "handoff",
+        "release-notes",
+        "diff"
+      ]
+    },
+    {
+      "id": "design-soul",
+      "path": "knowledge/design-soul.md",
+      "description": "The declared design stance — Never/Always/Voice and its place in the precedence chain.",
+      "when": [
+        "soul",
+        "stance",
+        "brand-voice",
+        "never-always",
+        "design-principles"
+      ]
+    },
+    {
+      "id": "designmd-format",
+      "path": "knowledge/designmd-format.md",
+      "description": "The DESIGN.md contract — the YAML token front-matter plus the eight fixed sections.",
+      "when": [
+        "designmd",
+        "design-md",
+        "token-frontmatter",
+        "google-labs"
+      ]
+    },
+    {
+      "id": "figma-agent-hand",
+      "path": "knowledge/figma-agent-hand.md",
+      "description": "Driving the figma-agent CLI — the optional Figma hand outside the deterministic binary.",
+      "when": [
+        "figma-agent",
+        "figma-cli",
+        "figma-hand",
+        "plugin"
+      ]
+    },
+    {
+      "id": "flow-craft",
+      "path": "knowledge/flow-craft.md",
+      "description": "Designing a multi-screen flow — the flow.json model and the deterministic flow lint.",
+      "when": [
+        "flow",
+        "multi-screen",
+        "user-flow",
+        "screen-states",
+        "transition",
+        "journey"
+      ]
+    },
+    {
+      "id": "generation-craft-defaults",
+      "path": "knowledge/generation-craft-defaults.md",
+      "description": "Implementation-grade generation defaults — asset policy, responsive rules, motion and loading floors.",
+      "when": [
+        "generation-defaults",
+        "responsive",
+        "icons",
+        "loading-state",
+        "custom-control"
+      ]
+    },
+    {
+      "id": "gsap-motion-direction",
+      "path": "knowledge/gsap-motion-direction.md",
+      "description": "The T5 GSAP direction and implementation contract — timelines, ScrollTrigger, lifecycle, reduced motion.",
+      "when": [
+        "gsap",
+        "scrolltrigger",
+        "timeline",
+        "scroll-animation",
+        "motion-t5",
+        "pin"
+      ]
+    },
+    {
+      "id": "librarian-loop",
+      "path": "knowledge/librarian-loop.md",
+      "description": "The graduation procedure — the veto chain that turns a recorded gap into shared knowledge.",
+      "when": [
+        "librarian",
+        "gap",
+        "graduate",
+        "knowledge-evolution",
+        "insight"
+      ]
+    },
+    {
+      "id": "mode-constraints",
+      "path": "knowledge/mode-constraints.md",
+      "description": "The eight UI-mode constraint sets plus the universal hard style guide.",
+      "when": [
+        "ui-mode",
+        "mobile",
+        "desktop",
+        "dashboard",
+        "slide",
+        "admin",
+        "ecommerce",
+        "constraints"
+      ]
+    },
+    {
+      "id": "motion-craft",
+      "path": "knowledge/motion-craft.md",
+      "description": "The animation decision ladder T1 CSS to T6 WebGL, persona tier caps, and the motion floors.",
+      "when": [
+        "motion",
+        "animation",
+        "transition",
+        "reduced-motion",
+        "motion-tier",
+        "easing"
+      ]
+    },
+    {
+      "id": "page-structures",
+      "path": "knowledge/page-structures.md",
+      "description": "Shape before dress — the macrostructure catalog and the diversification rule.",
+      "when": [
+        "page-structure",
+        "layout-shape",
+        "landing-page",
+        "macrostructure",
+        "composition"
+      ]
+    },
+    {
+      "id": "persona-index",
+      "path": "knowledge/persona-index.md",
+      "description": "Compact lookup for all personas plus the auto-selection algorithm.",
+      "when": [
+        "persona",
+        "persona-pick",
+        "aesthetic",
+        "style-direction"
+      ]
+    },
+    {
+      "id": "prompt-modes",
+      "path": "knowledge/prompt-modes.md",
+      "description": "The replicate / enhance / adapt strategy modifiers for reference-driven generation.",
+      "when": [
+        "prompt-mode",
+        "replicate",
+        "enhance",
+        "adapt",
+        "reference-driven"
+      ]
+    },
+    {
+      "id": "prompt-plan-orchestration",
+      "path": "knowledge/prompt-plan-orchestration.md",
+      "description": "Weak request to production strategy — provenance-bound facets, structural directions, builder packet.",
+      "when": [
+        "prompt-plan",
+        "brief",
+        "facet",
+        "structural-direction",
+        "region-brief"
+      ]
+    },
+    {
+      "id": "qualified-delivery",
+      "path": "knowledge/qualified-delivery.md",
+      "description": "Weak prompt to evidence-qualified delivery — typed brief, generation contract, curator, honest statuses.",
+      "when": [
+        "qualified-delivery",
+        "generation-contract",
+        "curator",
+        "repair",
+        "delivery-status"
+      ]
+    },
+    {
+      "id": "recall-mind",
+      "path": "knowledge/recall-mind.md",
+      "description": "Driving the recall CLI — the semantic memory over the design ledger.",
+      "when": [
+        "recall",
+        "memory",
+        "semantic-search",
+        "ledger",
+        "rank"
+      ]
+    },
+    {
+      "id": "signature-devices",
+      "path": "knowledge/signature-devices.md",
+      "description": "The composable signature-move library — the one memorable gesture a persona layers on top.",
+      "when": [
+        "signature",
+        "signature-device",
+        "memorable",
+        "texture",
+        "marquee",
+        "grain"
+      ]
+    },
+    {
+      "id": "taste-rubric",
+      "path": "knowledge/taste-rubric.md",
+      "description": "The 6+1 axis taste model and the critique-gate pass thresholds.",
+      "when": [
+        "taste",
+        "critique",
+        "score",
+        "rubric",
+        "quality-gate",
+        "axis"
+      ]
+    },
+    {
+      "id": "token-taxonomy",
+      "path": "knowledge/token-taxonomy.md",
+      "description": "The DTCG token model — primitive vs semantic tiers, aliasing, and the paired role/foreground standard.",
+      "when": [
+        "token",
+        "design-token",
+        "semantic-token",
+        "alias",
+        "dtcg",
+        "token-naming"
+      ]
+    },
+    {
+      "id": "user-evidence",
+      "path": "knowledge/user-evidence.md",
+      "description": "Grounding design in real user evidence — the ledger and its anti-fabrication gate.",
+      "when": [
+        "evidence",
+        "user-research",
+        "quote",
+        "metric",
+        "acceptance-criteria"
+      ]
+    },
+    {
+      "id": "ux-psychology",
+      "path": "knowledge/ux-psychology.md",
+      "description": "UX laws, Gestalt perception, cognitive biases, trust, and cognitive-load management.",
+      "when": [
+        "ux-law",
+        "psychology",
+        "hicks-law",
+        "fitts-law",
+        "gestalt",
+        "cognitive-load",
+        "persuasion"
+      ]
+    },
+    {
+      "id": "versioning-semver",
+      "path": "knowledge/versioning-semver.md",
+      "description": "Semver for a design system — how a DS diff classifies breaking, additive, and patch changes.",
+      "when": [
+        "semver",
+        "versioning",
+        "breaking-change",
+        "ds-diff",
+        "release"
+      ]
+    },
+    {
+      "id": "visual-regression",
+      "path": "knowledge/visual-regression.md",
+      "description": "The rendered-output floor — what a VR gate catches that a code diff cannot, and why it flakes.",
+      "when": [
+        "visual-regression",
+        "vr",
+        "screenshot-diff",
+        "baseline",
+        "pixelmatch"
+      ]
+    },
+    {
+      "id": "world-class-learning-loop",
+      "path": "knowledge/world-class-learning-loop.md",
+      "description": "Qualification, art direction, and reusable learning — controlled trials and anti-overfitting promotion.",
+      "when": [
+        "learning-loop",
+        "trial",
+        "benchmark",
+        "art-direction",
+        "lesson"
+      ]
+    }
+  ]
+}

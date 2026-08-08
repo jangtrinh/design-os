@@ -1,3 +1,9 @@
+---
+id: page-structures
+description: "Shape before dress — the macrostructure catalog and the diversification rule."
+when: [page-structure, layout-shape, landing-page, macrostructure, composition]
+---
+
 # Page Structures — shape before dress
 
 A persona decides how a page *looks*; a macrostructure decides how it is *shaped*. Two

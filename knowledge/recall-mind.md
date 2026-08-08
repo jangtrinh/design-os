@@ -1,3 +1,9 @@
+---
+id: recall-mind
+description: "Driving the recall CLI — the semantic memory over the design ledger."
+when: [recall, memory, semantic-search, ledger, rank]
+---
+
 # recall — semantic memory over the design ledger
 
 Where `figma-agent` is the **hands**, `recall` is the **mind**: it makes the design memory

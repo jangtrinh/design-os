@@ -1,3 +1,9 @@
+---
+id: token-taxonomy
+description: "The DTCG token model — primitive vs semantic tiers, aliasing, and the paired role/foreground standard."
+when: [token, design-token, semantic-token, alias, dtcg, token-naming]
+---
+
 # Token Taxonomy — The Two-Tier DTCG Model
 
 This file is the **reasoning** the host model uses when working with design tokens:

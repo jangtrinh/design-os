@@ -1,3 +1,9 @@
+---
+id: canvas-effect-direction
+description: "The T6 external-effect direction for Canvas UI — 25 named WebGL effects, the one-per-viewport cap, and the install handoff."
+when: [canvas, webgl, shader, effect, t6, canvas-ui, external-effect]
+---
+
 # Canvas UI External-Effect Direction
 
 ## Purpose

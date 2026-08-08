@@ -1,3 +1,9 @@
+---
+id: asset-production-orchestration
+description: "Ordering and gating a multi-asset production run so generated media arrives usable."
+when: [asset-production, media-pipeline, batch-generation, orchestration]
+---
+
 # Asset Production Orchestration
 
 ## Purpose

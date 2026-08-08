@@ -1,3 +1,9 @@
+---
+id: design-agents
+description: "Soul-bound, task-scoped project agents — roles, boundaries, naming, and the opt-in roster."
+when: [agent, roster, designer-agent, curator-agent, figma-hand, agent-identity]
+---
+
 # Design Agents — soul-bound, task-scoped identities
 
 A design agent is a **soul-bound identity with a task scope**, generated as a real

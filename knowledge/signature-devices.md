@@ -1,3 +1,9 @@
+---
+id: signature-devices
+description: "The composable signature-move library — the one memorable gesture a persona layers on top."
+when: [signature, signature-device, memorable, texture, marquee, grain]
+---
+
 # Signature Devices
 
 ## Purpose

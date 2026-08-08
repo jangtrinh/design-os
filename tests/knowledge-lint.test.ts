@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 
 import { lintKnowledge } from "../src/core/knowledge-lint.js";
 import type { KnowledgeLintInput } from "../src/core/knowledge-lint.js";
+import { buildIndex, emitIndex } from "../src/core/knowledge-index-emit.js";
+import { topLevelMarkdown } from "../src/core/knowledge-frontmatter-check.js";
 
 /** A mutable view of the input so tests can tweak fixtures before linting. */
 type MutableInput = Omit<KnowledgeLintInput, "files" | "mdContents" | "repoFiles"> & {
@@ -48,8 +50,8 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
   ]);
   const mdContents: Record<string, string> = {
     "README.md": readme,
-    "taste-rubric.md": "# Taste\n",
-    "persona-index.md": personaIndex,
+    "taste-rubric.md": fm("taste-rubric", "The taste model.", ["taste"]) + "# Taste\n",
+    "persona-index.md": fm("persona-index", "Persona lookup.", ["persona"]) + personaIndex,
     "personas/family-a.md": familyA,
     "personas/family-b.md": familyB,
   };
@@ -62,7 +64,7 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
     "personas/personas.json",
     "benchmarks/stripe--202607.dna.json",
   ];
-  return {
+  const base = {
     files,
     mdContents,
     personasJson,
@@ -70,6 +72,14 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
     asOf: "202607",
     ...overrides,
   };
+  // The committed index must match whatever mdContents the caller ended up with,
+  // or every case would also trip index-drift and stop testing its own check.
+  return { ...base, committedIndex: emitIndex(buildIndex(topLevelMarkdown(base.mdContents))) };
+}
+
+/** A routing front-matter block, the shape authoring-standard.md specifies. */
+function fm(id: string, description: string, when: string[]): string {
+  return `---\nid: ${id}\ndescription: "${description}"\nwhen: [${when.join(", ")}]\n---\n\n`;
 }
 
 const ids = (input: KnowledgeLintInput): string[] => lintKnowledge(input).map((f) => f.checkId);
@@ -83,7 +93,7 @@ describe("knowledge-lint — passes on a consistent core", () => {
 describe("knowledge-lint — index checks", () => {
   it("index-missing-row: a knowledge md with no table row", () => {
     const base = consistent();
-    base.mdContents["orphan.md"] = "# Orphan\n";
+    base.mdContents["orphan.md"] = fm("orphan", "An orphan.", ["orphan"]) + "# Orphan\n";
     base.files.push("orphan.md");
     expect(ids(base)).toContain("index-missing-row");
   });

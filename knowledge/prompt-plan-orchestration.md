@@ -1,3 +1,9 @@
+---
+id: prompt-plan-orchestration
+description: "Weak request to production strategy — provenance-bound facets, structural directions, builder packet."
+when: [prompt-plan, brief, facet, structural-direction, region-brief]
+---
+
 # Prompt-plan orchestration
 
 ## Purpose
