@@ -13,7 +13,7 @@
  * that has only ever been run against an empty tree is not a gate.
  *
  * Two deliberate independence rules:
- *   1. Nothing here imports `specs/022-taste-transfer-prereg/scripts/**`. The P7
+ *   1. Nothing here imports `tests/fixtures/spec-022-prereg/scripts/**`. The P7
  *      arm-visible projection is RE-IMPLEMENTED below from the frozen prose in
  *      spec.md / arm-prompt-template.md. If the validator's assembler drifts from
  *      the spec, `prompt_hash` stops matching and the positive fixture goes red —
@@ -31,8 +31,18 @@ import { fileURLToPath } from "node:url";
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = resolve(TEST_DIR, "..");
+/**
+ * Two different paths, deliberately named apart (they used to be one constant):
+ *   FIXTURE_SRC — where the preregistration tree LIVES in this repo. It is a test
+ *                 fixture: nothing outside tests/ reads it.
+ *   SPEC_REL    — the layout the validator expects INSIDE a synthetic repo. The
+ *                 scripts derive their paths from it, so a temp tree must still be
+ *                 built at `<root>/specs/022-taste-transfer-prereg`.
+ * Collapsing them again would make the fixture unmovable.
+ */
 export const SPEC_REL = "specs/022-taste-transfer-prereg";
-export const SPEC_SRC = join(REPO_ROOT, SPEC_REL);
+export const FIXTURE_REL = "tests/fixtures/spec-022-prereg";
+export const SPEC_SRC = join(REPO_ROOT, FIXTURE_REL);
 
 // ---------------------------------------------------------------------------
 // Shapes (narrow on purpose — only what the fixture touches is typed)

@@ -41,8 +41,7 @@ import { fileURLToPath } from "node:url";
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(TEST_DIR, "..");
-const SPEC_REL = "specs/022-taste-transfer-prereg";
-const SPEC_SRC = join(REPO_ROOT, SPEC_REL);
+const SPEC_SRC = join(REPO_ROOT, "tests/fixtures/spec-022-prereg"); // where the fixture lives here
 const SCRIPT_PATH = join(SPEC_SRC, "scripts", "build-judging-bundle.mjs");
 
 // ---------------------------------------------------------------------------
