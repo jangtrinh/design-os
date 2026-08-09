@@ -26,14 +26,14 @@ import { createHash } from "node:crypto";
 // rather than reimplemented — not the module under test (make-randomization-
 // map.mjs, driven only as a CLI subprocess below).
 // @ts-expect-error — no .d.ts for this .mjs module
-import { validate } from "../specs/022-taste-transfer-prereg/scripts/lib/schema.mjs";
+import { validate } from "./fixtures/spec-022-prereg/scripts/lib/schema.mjs";
 // @ts-expect-error — no .d.ts for this .mjs module
-import { ownerSecretMapPath } from "../specs/022-taste-transfer-prereg/scripts/lib/constants.mjs";
+import { ownerSecretMapPath } from "./fixtures/spec-022-prereg/scripts/lib/constants.mjs";
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(TEST_DIR, "..");
-const SPEC_REL = "specs/022-taste-transfer-prereg";
-const SPEC_SRC = join(REPO_ROOT, SPEC_REL);
+const SPEC_REL = "specs/022-taste-transfer-prereg"; // layout inside the synthetic repo
+const SPEC_SRC = join(REPO_ROOT, "tests/fixtures/spec-022-prereg"); // where the fixture lives here
 
 // The REAL owner custody path — never touched, only ever asserted absent.
 const REAL_SECRET_MAP_PATH = ownerSecretMapPath(homedir());
