@@ -23,11 +23,11 @@ import { fileURLToPath } from "node:url";
 // the CLI surface has no way to introspect the intermediate projection object
 // these assertions need.
 // @ts-expect-error — no .d.ts for this .mjs module
-import { assembleArmPrompt, assetIdToNeutral, assetRoleMap, projectBrief, promptTextLeaks } from "../specs/022-taste-transfer-prereg/scripts/lib/prompt-assembler.mjs";
+import { assembleArmPrompt, assetIdToNeutral, assetRoleMap, projectBrief, promptTextLeaks } from "./fixtures/spec-022-prereg/scripts/lib/prompt-assembler.mjs";
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(TEST_DIR, "..");
-const SPEC_DIR = join(REPO_ROOT, "specs/022-taste-transfer-prereg");
+const SPEC_DIR = join(REPO_ROOT, "tests/fixtures/spec-022-prereg");
 
 interface Brief {
   brief_id: string;

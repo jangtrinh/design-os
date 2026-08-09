@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 // Plain .mjs, no ambient type declarations — this file unit-tests the shared
 // matcher module directly, which is exactly the module under test here.
 // @ts-expect-error — no .d.ts for this .mjs module
-import { boundaryTokenRegex, scanIdentityTokens } from "../specs/022-taste-transfer-prereg/scripts/lib/identity-tokens.mjs";
+import { boundaryTokenRegex, scanIdentityTokens } from "./fixtures/spec-022-prereg/scripts/lib/identity-tokens.mjs";
 
 describe("R4 — identity-tokens.mjs boundary matcher", () => {
   const boundaryTokens = ["control", "treatment", "A1", "P2"];

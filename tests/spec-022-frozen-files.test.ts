@@ -20,11 +20,12 @@ import { fileURLToPath } from "node:url";
 // the filesystem, not a validator-behavior test, so importing the constant
 // directly (rather than reimplementing it) is the right level of coupling.
 // @ts-expect-error — no .d.ts for this .mjs module
-import { FROZEN_FILES, SPEC_DIR_REL } from "../specs/022-taste-transfer-prereg/scripts/lib/constants.mjs";
+import { FROZEN_FILES } from "./fixtures/spec-022-prereg/scripts/lib/constants.mjs";
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(TEST_DIR, "..");
-const SPEC_DIR = join(REPO_ROOT, SPEC_DIR_REL);
+// SPEC_DIR_REL is the synthetic-repo layout; the fixture itself lives here.
+const SPEC_DIR = join(REPO_ROOT, "tests/fixtures/spec-022-prereg");
 
 function listFiles(absDir: string, extPattern: RegExp): string[] {
   return readdirSync(absDir, { withFileTypes: true })
