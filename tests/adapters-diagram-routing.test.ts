@@ -13,6 +13,16 @@ function readRepoFile(relPath: string): string {
 
 const SUPPORTED_GRAMMARS = ["architecture", "sequence", "product-flow"] as const;
 
+describe("diagram knowledge index", () => {
+  it("registers the top-level shared contract", () => {
+    const index = JSON.parse(readRepoFile("knowledge/index.json")) as {
+      entries: Array<{ path: string }>;
+    };
+    const paths = index.entries.map((entry) => entry.path);
+    expect(paths).toContain("knowledge/diagram-craft.md");
+  });
+});
+
 describe("diagram routing registries", () => {
   it("registers the diagram verb", () => {
     expect(WORKFLOW_VERBS).toContain("diagram");
