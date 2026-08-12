@@ -14,6 +14,9 @@
 - Current `main` is `cfcb690`; new authority is `specs/` plus `knowledge/index.json`, not the dirty caller worktree's historical `plans/` surface.
 - `plans/ease-design/brainstorm.md` named by inherited instructions is absent from current HEAD and available history; no locked §6 claim can be verified.
 - An archived design-os plan mentioned `ui flow render --html|--mermaid`, but current `src/commands/flow.ts` exposes only `lint`; no renderer contract or implementation exists to preserve.
+- No real committed `flow.json` exists on this branch. Product-flow semantics and refusal
+  paths are covered statically, but the planned real-data projection proof cannot be claimed
+  until a product repository supplies one.
 
 ## Source Anatomy
 
@@ -88,3 +91,14 @@ Abstract methods are independently re-expressed. No source sentences, SVG paths,
 - Upstream style guide, first-run mutation, Google-font assumptions, icon corpus, variants/gallery.
 - Universal diagram JSON schema, deterministic layout engine, Playwright/runtime browser dependency.
 - Claims that a source-text linter proves visual quality or accessibility compliance.
+
+## Deterministic Gate Boundaries
+
+- Exact shared attachment-point detection was omitted: without rendered node bounds, equal
+  endpoints can be intentional fan-in/fan-out and would create false positives.
+- Upstream skin/font residue was not encoded as a permanent name blacklist. The native
+  contract already rejects external runtime assets; styling provenance remains a review
+  concern unless a project declares a concrete forbidden token.
+- Accessible-name checks remain in `src/core/diagram-lint.ts` because the complete core stays
+  below the 200-line boundary and no reusable overlap with the generic HTML a11y parser was
+  proven.

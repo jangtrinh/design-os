@@ -1,0 +1,207 @@
+import { describe, it, expect } from 'vitest';
+import { lintDiagram } from '../src/core/diagram-lint.js';
+
+const DEFAULT_ATTRS: Record<string, string | null> = {
+  'data-diagram-owned': 'true',
+  role: 'img',
+  'aria-labelledby': 'dt dd',
+  'data-diagram-grammar': 'architecture',
+  'data-reading-order': 'left-to-right, top-to-bottom',
+  'data-focal-id': 'n1',
+  'data-source-kind': 'brief',
+};
+
+function attrsToStr(attrs: Record<string, string | null>): string {
+  return Object.entries(attrs)
+    .filter((e): e is [string, string] => e[1] !== null)
+    .map(([k, v]) => `${k}="${v}"`)
+    .join(' ');
+}
+
+function svgTag(inner: string, overrides: Record<string, string | null> = {}): string {
+  return `<svg ${attrsToStr({ ...DEFAULT_ATTRS, ...overrides })}>${inner}</svg>`;
+}
+
+function wrap(body: string): string {
+  return `<!doctype html><html><body>${body}</body></html>`;
+}
+
+function svgDoc(inner: string, overrides: Record<string, string | null> = {}): string {
+  return wrap(svgTag(inner, overrides));
+}
+
+const ARCH_INNER = [
+  '<title id="dt">Service Architecture</title>',
+  '<desc id="dd">Core services and their connections.</desc>',
+  '<g data-diagram-element="node" id="n1"><rect width="12" height="12"/></g>',
+  '<g data-diagram-element="node" id="n2"><rect width="12" height="12"/></g>',
+  '<line data-diagram-element="edge" id="e1" x1="0" y1="0" x2="0" y2="20"/>',
+].join('');
+
+const SECOND_ARCH_INNER = [
+  '<title id="dt2">Service Architecture 2</title>',
+  '<desc id="dd2">Secondary services.</desc>',
+  '<g data-diagram-element="node" id="n3"><rect width="12" height="12"/></g>',
+  '<line data-diagram-element="edge" id="e2" x1="0" y1="0" x2="0" y2="30"/>',
+].join('');
+
+const VALID_HTML = svgDoc(ARCH_INNER);
+
+describe('lintDiagram - valid artifact', () => {
+  it('reports zero findings for a fully valid architecture diagram', () => {
+    expect(lintDiagram(VALID_HTML)).toEqual({ findings: [], errorCount: 0, warningCount: 0 });
+  });
+
+  it('keeps a stylistically unusual but contract-valid diagram clean', () => {
+    const quirkyInner = [
+      '<title id="dt">Odd Palette Diagram</title>',
+      '<desc id="dd">Uses unconventional but valid styling.</desc>',
+      '<g data-diagram-element="node" id="n1" style="fill:#ABCDEF"><rect width="12" height="12" rx="6"/></g>',
+      '<g data-diagram-element="node" id="n2" class="totally-a-node-honestly"><rect width="8" height="40"/></g>',
+      '<line data-diagram-element="edge" id="e1" x1="0" y1="0" x2="0" y2="20" stroke-dasharray="2 2"/>',
+      '<line data-diagram-element="edge" id="e2" x1="5" y1="5" x2="5" y2="45" stroke-width="0.5"/>',
+    ].join('');
+    const result = lintDiagram(svgDoc(quirkyInner));
+    expect(result.findings).toEqual([]);
+  });
+});
+
+describe('lintDiagram - svg ownership and accessibility', () => {
+  it('flags zero svg elements marked data-diagram-owned', () => {
+    const html = wrap(svgTag(ARCH_INNER, { 'data-diagram-owned': null }));
+    const result = lintDiagram(html);
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'svg-owned-count', severity: 'error' });
+  });
+
+  it('flags more than one svg element marked data-diagram-owned', () => {
+    const html = wrap(
+      svgTag(ARCH_INNER) +
+        svgTag(SECOND_ARCH_INNER, { 'aria-labelledby': 'dt2 dd2', 'data-focal-id': 'n3' }),
+    );
+    const result = lintDiagram(html);
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'svg-owned-count', severity: 'error' });
+  });
+
+  it('flags a diagram svg missing role="img"', () => {
+    const result = lintDiagram(svgDoc(ARCH_INNER, { role: null }));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'svg-role-img', severity: 'error' });
+  });
+
+  it.each([
+    ['missing aria-labelledby', { 'aria-labelledby': null }],
+    ['dangling aria-labelledby reference', { 'aria-labelledby': 'dt missing-desc' }],
+  ])('flags %s', (_label, overrides) => {
+    const result = lintDiagram(svgDoc(ARCH_INNER, overrides));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'svg-labelledby', severity: 'error' });
+  });
+});
+
+describe('lintDiagram - content safety', () => {
+  it.each([
+    ['an unresolved template placeholder', ARCH_INNER + '<text>{{service_name}}</text>', 'no-placeholder'],
+    ['an embedded script tag', ARCH_INNER + '<script>alert(1)</script>', 'no-script'],
+    ['an external http href', ARCH_INNER + '<a href="http://example.com/x"><text>link</text></a>', 'no-external-ref'],
+    ['an external https image src', ARCH_INNER + '<image href="https://example.com/x.png"/>', 'no-external-ref'],
+  ])('flags %s', (_label, inner, checkId) => {
+    const result = lintDiagram(svgDoc(inner));
+    expect(result.findings.some((f) => f.checkId === checkId && f.severity === 'error')).toBe(true);
+  });
+});
+
+describe('lintDiagram - root metadata', () => {
+  it.each([
+    ['an invalid grammar value', { 'data-diagram-grammar': 'flowchart' }, 'grammar-value'],
+    ['an empty reading order', { 'data-reading-order': '' }, 'reading-order'],
+    ['a dangling focal id', { 'data-focal-id': 'does-not-exist' }, 'focal-id'],
+    ['an invalid source kind', { 'data-source-kind': 'yaml' }, 'source-kind'],
+  ])('flags %s', (_label, overrides, checkId) => {
+    const result = lintDiagram(svgDoc(ARCH_INNER, overrides));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId, severity: 'error' });
+  });
+});
+
+describe('lintDiagram - product-flow source ids', () => {
+  const FLOW_INNER = [
+    '<title id="dt">Signup Flow</title>',
+    '<desc id="dd">User signup funnel.</desc>',
+    '<g data-diagram-element="node" id="n1" data-source-id="step-1"><rect width="12" height="12"/></g>',
+    '<g data-diagram-element="node" id="n2"><rect width="12" height="12"/></g>',
+    '<line data-diagram-element="edge" id="e1" data-source-id="step-1-2" x1="0" y1="0" x2="0" y2="20"/>',
+  ].join('');
+  const flowOverrides = { 'data-diagram-grammar': 'product-flow', 'data-focal-id': 'n1' };
+
+  it('flags a product-flow node missing data-source-id', () => {
+    const result = lintDiagram(svgDoc(FLOW_INNER, flowOverrides));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({
+      checkId: 'product-flow-source-id',
+      severity: 'error',
+      elementId: 'n2',
+    });
+  });
+
+  it('passes when every product-flow node and edge has data-source-id', () => {
+    const validInner = FLOW_INNER.replace(
+      '<g data-diagram-element="node" id="n2"><rect width="12" height="12"/></g>',
+      '<g data-diagram-element="node" id="n2" data-source-id="step-2"><rect width="12" height="12"/></g>',
+    );
+    const result = lintDiagram(svgDoc(validInner, flowOverrides));
+    expect(result.findings).toEqual([]);
+  });
+});
+
+describe('lintDiagram - connector geometry', () => {
+  it('flags a connector line whose x and y both change', () => {
+    const diagonalInner = ARCH_INNER.replace(
+      '<line data-diagram-element="edge" id="e1" x1="0" y1="0" x2="0" y2="20"/>',
+      '<line data-diagram-element="edge" id="e1" x1="0" y1="0" x2="20" y2="20"/>',
+    );
+    const result = lintDiagram(svgDoc(diagonalInner));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'diagonal-line', severity: 'error', elementId: 'e1' });
+  });
+
+  it('flags exact duplicate connector geometry for two lines', () => {
+    const dupInner = ARCH_INNER + '<line data-diagram-element="edge" id="e2" x1="0" y1="0" x2="0" y2="20"/>';
+    const result = lintDiagram(svgDoc(dupInner));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'duplicate-connector', severity: 'error', elementId: 'e2' });
+  });
+
+  it('flags exact duplicate connector geometry for two paths', () => {
+    const pathInner = [
+      '<title id="dt">Path Diagram</title>',
+      '<desc id="dd">Two identical connectors.</desc>',
+      '<g data-diagram-element="node" id="n1"><rect width="12" height="12"/></g>',
+      '<g data-diagram-element="node" id="n2"><rect width="12" height="12"/></g>',
+      '<path data-diagram-element="edge" id="e1" d="M0,0 L20,0"/>',
+      '<path data-diagram-element="edge" id="e2" d="M0,0 L20,0"/>',
+    ].join('');
+    const result = lintDiagram(svgDoc(pathInner, { 'data-focal-id': 'n1' }));
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ checkId: 'duplicate-connector', severity: 'error', elementId: 'e2' });
+  });
+});
+
+describe('lintDiagram - finding order', () => {
+  it('returns findings in a stable, deterministic order across multiple violations', () => {
+    const brokenInner =
+      ARCH_INNER.replace(
+        '<line data-diagram-element="edge" id="e1" x1="0" y1="0" x2="0" y2="20"/>',
+        '<line data-diagram-element="edge" id="e1" x1="0" y1="0" x2="20" y2="20"/>',
+      ) + '<text>{{unresolved}}</text>';
+    const html = svgDoc(brokenInner, { 'data-diagram-grammar': 'not-a-grammar', 'data-reading-order': '' });
+    const first = lintDiagram(html);
+    const second = lintDiagram(html);
+    const ids = first.findings.map((f) => f.checkId);
+    expect(ids).toEqual(['no-placeholder', 'grammar-value', 'reading-order', 'diagonal-line']);
+    expect(second.findings.map((f) => f.checkId)).toEqual(ids);
+    expect(first.errorCount).toBe(4);
+    expect(first.warningCount).toBe(0);
+  });
+});

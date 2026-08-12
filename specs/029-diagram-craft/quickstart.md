@@ -23,6 +23,12 @@ Run `ui init` for each supported runtime in temporary directories. Confirm the g
 
 ## Real Product-flow Proof
 
+No committed `flow.json` exists at `cfcb690`, so the repository cannot honestly complete
+this proof in the current change. The capability therefore ships with product-flow contract
+tests, but the first real product-flow artifact remains a post-merge owner validation once a
+product repository supplies a committed source flow. Do not substitute a synthetic flow and
+label it real.
+
 1. Select a real committed `flow.json`; run `ui flow lint` until it is clean.
 2. Follow the generated diagram workflow to author a product-flow HTML artifact.
 3. Run `ui diagram lint`, existing applicable static gates, and host taste critique.
