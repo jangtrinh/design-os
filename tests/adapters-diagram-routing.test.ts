@@ -70,6 +70,28 @@ describe("templates/workflows/diagram.md", () => {
     expect(workflow).toMatch(/unsupported grammar/i);
     expect(workflow).toMatch(/reject/i);
   });
+
+  it("invokes ui taste-lint and the full 6+1 axis taste rubric with the >=7 gate", () => {
+    expect(workflow).toMatch(/ui taste-lint/);
+    expect(workflow).toMatch(/6\+1/);
+    expect(workflow).toMatch(/knowledge\/taste-rubric\.md/);
+    expect(workflow).toMatch(/(?:>=|≥)\s*7/);
+  });
+
+  it("does not run a parallel, diagram-only four-axis critique in place of the taste rubric", () => {
+    expect(workflow).not.toMatch(/\*\*Legibility\*\*/);
+    expect(workflow).not.toMatch(/\*\*Honesty\*\*/);
+    expect(workflow).not.toMatch(/\*\*Restraint\*\*/);
+  });
+
+  it("clarifies that ui diagram lint checks data-source-id presence, not flow.json resolution", () => {
+    expect(workflow).toMatch(/manual step/i);
+    expect(workflow).toMatch(/does not.*resolve|cannot confirm.*resolve/i);
+  });
+
+  it("states that ui flow lint never opens the diagram artifact", () => {
+    expect(workflow).toMatch(/never opens the diagram artifact/i);
+  });
 });
 
 describe("knowledge/diagram-grammars/product-flow.md contract", () => {
@@ -90,6 +112,51 @@ describe("knowledge/diagram-grammars/product-flow.md contract", () => {
   it("mandates read-only, non-mutating sourcing language", () => {
     expect(contract).toMatch(/read-only/i);
     expect(contract).toMatch(/no mutation|must not mutate|non-mutating/i);
+  });
+
+  it("scopes node identities to what the flow schema actually defines", () => {
+    expect(contract).toMatch(/screen-state/i);
+    expect(contract).toMatch(/entryPoints/);
+    expect(contract).toMatch(/screens\[\]/);
+    expect(contract).toMatch(/transitions\[\]/);
+  });
+
+  it("maps the screen-state node's data-source-id to screenId.stateId, not just the vocabulary string", () => {
+    const row = contract
+      .split("\n")
+      .find((line) => /^\|\s*`screen-state`\s*\|/.test(line));
+    expect(row, "expected a `screen-state` row in the node vocabulary table").toBeDefined();
+    const columns = row!.split("|").map((c) => c.trim()).filter(Boolean);
+    expect(columns[columns.length - 1]).toBe("`screenId.stateId`");
+  });
+
+  it("maps the transition edge's data-source-id to the transition's own id, not just the vocabulary string", () => {
+    const row = contract
+      .split("\n")
+      .find((line) => /^\|\s*`transition`\s*\|/.test(line));
+    expect(row, "expected a `transition` row in the edge vocabulary table").toBeDefined();
+    const columns = row!.split("|").map((c) => c.trim()).filter(Boolean);
+    expect(columns[columns.length - 1]).toBe("the transition's `id`");
+  });
+
+  it("does not list invented node kinds as vocabulary table rows", () => {
+    expect(contract).not.toMatch(/^\|\s*`decision`\s*\|/m);
+    expect(contract).not.toMatch(/^\|\s*`action`\s*\|/m);
+    expect(contract).not.toMatch(/^\|\s*`system-event`\s*\|/m);
+    expect(contract).not.toMatch(/^\|\s*`exit`\s*\|/m);
+    expect(contract).not.toMatch(/^\|\s*`terminal-error`\s*\|/m);
+  });
+
+  it("states that cross-artifact source-id resolution is a manual audit step", () => {
+    expect(contract).toMatch(/manual audit/i);
+  });
+
+  it("states that ui flow lint never opens a diagram artifact", () => {
+    expect(contract).toMatch(/never opens? a diagram/i);
+  });
+
+  it("states that ui diagram lint has no access to flow.json", () => {
+    expect(contract).toMatch(/no access to `?flow\.json`/i);
   });
 });
 

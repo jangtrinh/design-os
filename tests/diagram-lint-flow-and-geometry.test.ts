@@ -21,6 +21,14 @@ describe("product-flow source IDs", () => {
     expect(lintDiagram(svg(valid, "product-flow", "flow-json")).findings).toEqual([]);
   });
 
+  it("passes even when a data-source-id names no real entry in any flow.json — this lint never reads flow.json, by design", () => {
+    const nonexistent = flow
+      .replace('data-source-id="step-1"', 'data-source-id="no-such-screen-in-any-flow-json"')
+      .replace('data-source-id="transition-1"', 'data-source-id="no-such-transition-in-any-flow-json"')
+      .replace('id="n2"', 'id="n2" data-source-id="no-such-state-in-any-flow-json"');
+    expect(lintDiagram(svg(nonexistent, "product-flow", "flow-json")).findings).toEqual([]);
+  });
+
   it("requires flow-json provenance", () => {
     expect(lintDiagram(svg(flow, "product-flow", "brief")).findings.map((item) => item.checkId)).toContain("source-kind");
   });

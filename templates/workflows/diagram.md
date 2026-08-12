@@ -40,10 +40,10 @@ Produce one HTML file, self-contained and openable offline with no network calls
 
 Before drawing a product-flow diagram, run this preflight in order:
 
-1. **`ui flow lint`** — validate the flow definition itself (states reachable, transitions consistent, no orphaned steps) before any rendering begins.
-2. **Source IDs** — every screen/state node must cite the concrete source it came from (component id, route, screenshot ref, or spec section) — no invented screens.
-3. **Read-only source** — this workflow only *reads* product source (code, specs, screenshots) to build the diagram; it never edits, scaffolds, or mutates product files as a side effect.
-4. **Fidelity ledger** — maintain and surface a short ledger mapping each diagrammed step to its source and noting any place the diagram simplifies, infers, or diverges from that source. This ledger ships with the diagram (see Disclosure below), not buried in a side note.
+1. **`ui flow lint`** — validate the flow definition itself (states reachable, transitions consistent, no orphaned steps) before any rendering begins. This checks `flow.json` only; it never opens the diagram artifact.
+2. **Source IDs** — every `screen`/`screen-state`/`entry` node and every `transition` edge cites the concrete `flow.json` ID it came from — no invented screens, states, or decisions. `ui diagram lint` (§5) only confirms the `data-source-id` attribute is *present*; it does not read `flow.json` and cannot confirm the value actually resolves. Resolving each `data-source-id` against the real `flow.json` is a manual step you do here, not a lint gate.
+3. **Read-only source** — this workflow only *reads* product source (`flow.json`, code, specs, screenshots) to build the diagram; it never edits, scaffolds, or mutates product files as a side effect.
+4. **Fidelity ledger** — maintain and surface a short ledger mapping each diagrammed step to its source and noting any place the diagram simplifies, infers, or diverges from that source. Completeness of this ledger is verified manually, alongside the source-ID resolution in step 2 — no automated check owns it. This ledger ships with the diagram (see Disclosure below), not buried in a side note.
 
 Architecture and sequence diagrams skip this step entirely — it applies only to product-flow.
 
@@ -51,21 +51,28 @@ Architecture and sequence diagrams skip this step entirely — it applies only t
 
 Run gates in this order, and do not proceed past a failing gate without either fixing the diagram or disclosing why it can't pass:
 
-1. **`ui diagram lint`** — the diagram-specific check (grammar conformance, `data-*` completeness, valid owned-SVG structure, no forbidden external refs).
+1. **`ui diagram lint`** — the diagram-specific check (grammar conformance, `data-*` *presence* and shape, valid owned-SVG structure, no forbidden external refs). It proves the artifact is well-formed on its own; for product-flow it does **not** prove any `data-source-id` resolves against `flow.json` — that resolution stays a manual step (§4.2).
 2. **Existing generic a11y/layout gates** — whatever accessibility and layout checks already apply to shipped HTML in this repo. Reuse them; do not fork or reimplement a parallel a11y checker for diagrams.
 
-If a gate can't be satisfied (e.g. a required a11y check needs a runtime this workflow doesn't have), that is a substitution or a stop — handle it per §7, not by skipping silently.
+If a gate can't be satisfied (e.g. a required a11y check needs a runtime this workflow doesn't have), that is a substitution (disclose it per §7) or a stop (report it as a Gate stop per §9) — not something to skip silently.
 
-## 6. Critique taste axes and revise
+## 6. Critique against the taste rubric and revise
 
-Before calling the diagram done, critique it against these axes and revise anything that fails:
+A diagram is critiqued the same way as any other generation — there is no separate,
+diagram-only rubric:
 
-- **Legibility** — can a reader trace every edge and label at a glance without hunting?
-- **Honesty** — does the diagram show only what the source supports, with no invented boxes or smoothed-over gaps?
-- **Restraint** — is every node/edge earning its place, or is there decoration that adds noise without adding information?
-- **Consistency** — do stroke weight, spacing, and label style stay uniform across the whole diagram rather than drifting node to node?
+1. Run `ui taste-lint <file.html>` where applicable (the artifact is generated HTML with
+   inline CSS) and fix any findings it reports before scoring.
+2. Score every axis that applies from the full **6+1 axis taste rubric** in
+   `knowledge/taste-rubric.md` — Layout, Typography, Spacing, Motion, Iconography,
+   Depth/Surface, plus the systems axis Consistency — against the same **≥ 7/10 gate**
+   used everywhere else. Motion is rarely applicable to a static SVG; mark it
+   not-applicable rather than scoring it against a criterion it cannot meet.
+3. Apply the grammar's own invariants (product-flow fidelity, architecture reading
+   direction, sequence ordering — see the routed grammar file) as part of the Layout and
+   Consistency scores, not as separate ad hoc axes.
 
-Revise directly; don't ship a diagram you'd critique.
+Any axis below 7 gets a targeted revision, not a shipped exception. Don't ship a diagram you'd critique.
 
 ## 7. Disclosure
 
