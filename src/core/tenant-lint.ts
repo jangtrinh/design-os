@@ -6,7 +6,7 @@
  * (knowledge/motion-craft.md § Tenant contract): an embedded interactive block is a
  * GUEST — it reads the host page only through its own bounding box, and writes only
  * inside its own subtree. Ported (logic-preserving TS-ify) from
- * specs/021-scrollworld-gflow-video-track/embed-section/tenant-lint.mjs. The two rule
+ * studio repo: specs/021-scrollworld-gflow-video-track/embed-section/tenant-lint.mjs. The two rule
  * groups (section-body JS/CSS, host-ancestor sticky-killer) live in
  * tenant-lint-checks.ts — split out to stay under the repo's 200-line file guideline
  * (mirrors taste-lint.ts importing its checks from taste-checks*.ts).

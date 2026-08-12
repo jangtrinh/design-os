@@ -2,7 +2,7 @@
  * `ui onboard` command — this project's setup readiness checklist.
  *
  * The third leg of the doctor/onboard/guide triad (see
- * specs/019-onboarding-first-run/overview.md): `ui doctor` asks "is the tool
+ * studio repo: specs/019-onboarding-first-run/overview.md): `ui doctor` asks "is the tool
  * healthy?", `ui onboard` asks "is THIS project set up, and what's next?",
  * `ui guide` asks "what can I do?". Deterministic and read-only — it never
  * mutates the filesystem and never installs anything; it only reports what

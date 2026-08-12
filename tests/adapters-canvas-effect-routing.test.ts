@@ -19,7 +19,7 @@
  * (knowledge/, templates/, src/ — [R] "references/" REMOVED, spec 028 reopen §9: it is a
  * gitignored symlink into a private repo and a literal fourth root throws ENOENT on a clean
  * clone; the ledger now lives under knowledge/, so the coverage is retained) rather than the
- * literal repo root: specs/028-canvas-ui-effects/** necessarily quotes the exact marker syntax
+ * literal repo root: the spec tree (studio repo: specs/028-canvas-ui-effects/**) necessarily quotes the exact marker syntax
  * and (in places) the install command as part of SPECIFYING this feature — including it would
  * make the assertion permanently unsatisfiable against the spec's own contract text, and specs/
  * ships in none of package.json's `files` trees, so it carries none of the leakage risk these

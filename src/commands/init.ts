@@ -345,7 +345,7 @@ export const initCommand = {
           wrapper: modelWrapperRelPath(entry.runtime),
           mode: MODEL_ADAPTERS[entry.runtime].mode,
           // Date the invocations in model-adapter-registry.ts were live-probed
-          // (specs/013-host-model-fuel-line/plan.md's verified adapter table).
+          // (studio repo: specs/013-host-model-fuel-line/plan.md's verified adapter table).
           verifiedAt: "2026-07-18",
         },
       });

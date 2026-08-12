@@ -2,7 +2,7 @@
  * Model-adapter registry — spec 013 P1.
  *
  * Asserts MODEL_ADAPTERS transcribes the live-probed table in
- * specs/013-host-model-fuel-line/plan.md exactly, and that
+ * studio repo: specs/013-host-model-fuel-line/plan.md exactly, and that
  * buildModelWrapperScript / modelWrapperRelPath emit the correct shape per mode.
  */
 import { describe, expect, it } from "vitest";

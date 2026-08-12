@@ -1,7 +1,7 @@
 /**
  * Style-A report renderer — shared, pure string builders for the house
  * reporting aesthetic (rule lines + bold labels + glyph status; no boxes,
- * no color reliance — see specs/019-onboarding-first-run/overview.md).
+ * no color reliance — see studio repo: specs/019-onboarding-first-run/overview.md).
  *
  * Pure string builders only: no color, no Rich, no ANSI, ASCII-safe. The
  * single `─` rule in ruleHeader is the only box-drawing character used

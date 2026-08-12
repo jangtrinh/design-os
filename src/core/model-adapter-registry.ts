@@ -10,7 +10,7 @@
  * argv is static config, stdout is the model's text.
  *
  * The table below is transcribed EXACTLY from the live-probed table in
- * specs/013-host-model-fuel-line/plan.md ("Verified adapter table — probed live
+ * studio repo: specs/013-host-model-fuel-line/plan.md ("Verified adapter table — probed live
  * 2026-07-18") — counted, not guessed. Do not alter the invocations without a
  * fresh live probe.
  *

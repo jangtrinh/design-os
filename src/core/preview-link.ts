@@ -3,7 +3,7 @@
  * user at a generated file. No network, no path resolution here: callers pass an
  * already-resolved absolute path (`path.resolve`).
  *
- * Rationale (locked, see specs/019-onboarding-first-run/overview.md): a bare
+ * Rationale (locked, see studio repo: specs/019-onboarding-first-run/overview.md): a bare
  * `file://<abs>` / `https://<url>` is what the host terminal wraps in an OSC 8
  * clickable link. `[label](url)` markdown-link syntax is discarded by Claude Code's
  * channel-B renderer — never emit it. Never emit an inline image either.

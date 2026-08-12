@@ -36,19 +36,19 @@ design tokens to hand-edit, no taste vocabulary to learn.**
 
 ### Featured: Rill Architecture
 
-[![Animated walkthrough of the Rill Architecture premium-service experience, including the mountain-home hero, site analysis, lived sequence, and material study](specs/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.gif)](specs/018-improving-proof-benchmark/runs/architecture-premium-service/index.html)
+[![Animated walkthrough of the Rill Architecture premium-service experience, including the mountain-home hero, site analysis, lived sequence, and material study](showcase/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.gif)](showcase/018-improving-proof-benchmark/runs/architecture-premium-service/index.html)
 
 The featured benchmark uses an image-led spatial narrative, GSAP parallax, a sticky lived-sequence,
 responsive composition, and topic-specific material studies. Open the
-[interactive page](specs/018-improving-proof-benchmark/runs/architecture-premium-service/index.html)
-or watch the [full-quality video](specs/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.mp4).
+[interactive page](showcase/018-improving-proof-benchmark/runs/architecture-premium-service/index.html)
+or watch the [full-quality video](showcase/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.mp4).
 
 The earlier repeatability study remains available as evidence, but its nine static captures are
 temporarily removed from this README. Browse the runnable
-[Architecture](experiments/world-class-benchmark/evidence/repeatability-study/runs/d01-orchestrated-r1/index.html),
-[Nutrition](experiments/world-class-benchmark/evidence/repeatability-study/runs/d02-orchestrated-r1/index.html),
-and [Planning](experiments/world-class-benchmark/evidence/repeatability-study/runs/d03-orchestrated-r1/index.html)
-families or read the [repeatability result](experiments/world-class-benchmark/evidence/repeatability-study/result.md).
+[Architecture](showcase/world-class-benchmark/evidence/repeatability-study/runs/d01-orchestrated-r1/index.html),
+[Nutrition](showcase/world-class-benchmark/evidence/repeatability-study/runs/d02-orchestrated-r1/index.html),
+and [Planning](showcase/world-class-benchmark/evidence/repeatability-study/runs/d03-orchestrated-r1/index.html)
+families or read the [repeatability result](showcase/world-class-benchmark/evidence/repeatability-study/result.md).
 
 ### Interaction boundary benchmark
 
@@ -59,20 +59,20 @@ Three later treatments test different surfaces with the GSAP motion-direction la
     <th>DESIGN:OS product</th><th>Nutrition native mobile</th><th>Architecture service</th>
   </tr>
   <tr>
-    <td><a href="specs/018-improving-proof-benchmark/runs/design-os-promotion/index.html"><img src="specs/018-improving-proof-benchmark/runs/design-os-promotion/demo/design-os-promotion.gif" alt="Animated DESIGN OS promotional experience with an intent compiler and controlled design comparison" /></a></td>
-    <td><a href="specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/index.html"><img src="specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/demo/nutrition-native-mobile.gif" alt="Animated Nouri native mobile nutrition interface showing daily context, meal capture, and adaptive planning" /></a></td>
-    <td><a href="specs/018-improving-proof-benchmark/runs/architecture-premium-service/index.html"><img src="specs/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.gif" alt="Animated Rill Architecture site-led residential experience with spatial narrative and material study" /></a></td>
+    <td><a href="showcase/018-improving-proof-benchmark/runs/design-os-promotion/index.html"><img src="showcase/018-improving-proof-benchmark/runs/design-os-promotion/demo/design-os-promotion.gif" alt="Animated DESIGN OS promotional experience with an intent compiler and controlled design comparison" /></a></td>
+    <td><a href="showcase/018-improving-proof-benchmark/runs/nutrition-native-mobile/index.html"><img src="showcase/018-improving-proof-benchmark/runs/nutrition-native-mobile/demo/nutrition-native-mobile.gif" alt="Animated Nouri native mobile nutrition interface showing daily context, meal capture, and adaptive planning" /></a></td>
+    <td><a href="showcase/018-improving-proof-benchmark/runs/architecture-premium-service/index.html"><img src="showcase/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.gif" alt="Animated Rill Architecture site-led residential experience with spatial narrative and material study" /></a></td>
   </tr>
 </table>
 
 These are runnable treatments, not static mockups. Review them from the
-[benchmark index](specs/018-improving-proof-benchmark/runs/index.html) or read the
-[rendered critique](specs/018-improving-proof-benchmark/review-report.md). The benchmark
+[benchmark index](showcase/018-improving-proof-benchmark/runs/index.html) or read the
+[rendered critique](showcase/018-improving-proof-benchmark/review-report.md). The benchmark
 proves differentiated delivery across product marketing, native-mobile UI, and premium service;
 it does not claim world-class superiority until matched controls receive blind scores.
-Full-quality recordings: [DESIGN:OS](specs/018-improving-proof-benchmark/runs/design-os-promotion/demo/design-os-promotion.mp4),
-[Nouri](specs/018-improving-proof-benchmark/runs/nutrition-native-mobile/demo/nutrition-native-mobile.mp4),
-and [Rill Architecture](specs/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.mp4).
+Full-quality recordings: [DESIGN:OS](showcase/018-improving-proof-benchmark/runs/design-os-promotion/demo/design-os-promotion.mp4),
+[Nouri](showcase/018-improving-proof-benchmark/runs/nutrition-native-mobile/demo/nutrition-native-mobile.mp4),
+and [Rill Architecture](showcase/018-improving-proof-benchmark/runs/architecture-premium-service/demo/architecture-demo.mp4).
 
 ### Prompts used in the repeatability study
 
@@ -116,9 +116,9 @@ preflight:
 ```
 
 Nothing is hidden behind a marketing paraphrase. Read the exact historical packets for
-[Architecture](experiments/world-class-benchmark/evidence/repeatability-study/run-packets/d01-orchestrated-r1.json),
-[Nutrition](experiments/world-class-benchmark/evidence/repeatability-study/run-packets/d02-orchestrated-r1.json),
-and [Planning](experiments/world-class-benchmark/evidence/repeatability-study/run-packets/d03-orchestrated-r1.json).
+[Architecture](showcase/world-class-benchmark/evidence/repeatability-study/run-packets/d01-orchestrated-r1.json),
+[Nutrition](showcase/world-class-benchmark/evidence/repeatability-study/run-packets/d02-orchestrated-r1.json),
+and [Planning](showcase/world-class-benchmark/evidence/repeatability-study/run-packets/d03-orchestrated-r1.json).
 
 The current interaction-boundary benchmark deliberately changed two surfaces. Its raw requests
 were:
@@ -129,7 +129,7 @@ Nutrition: Build a native mobile nutrition interface, not a responsive website.
 Architecture: Build a premium site-specific residential architecture service page.
 ```
 
-The resulting [benchmark contract](specs/018-improving-proof-benchmark/benchmark-contract.md)
+The resulting [benchmark contract](showcase/018-improving-proof-benchmark/benchmark-contract.md)
 keeps the web and native claims separate: the Nouri browser prototype communicates native-mobile
 direction but does not count as native implementation evidence.
 
@@ -161,9 +161,9 @@ that DESIGN:OS is universally best. The same study exposed binary-rule misses an
 overflow failures. Those failures are public because the next product improvement is a
 deterministic repair gate, not a stronger adjective.
 
-Full evidence: [controlled comparison](experiments/world-class-benchmark/evidence/controlled-three-way-comparison.md),
-[repeatability result](experiments/world-class-benchmark/evidence/repeatability-study/result.md),
-and [blind curator report](experiments/world-class-benchmark/evidence/repeatability-study/blind-curation/report.md).
+Full evidence: [controlled comparison](showcase/world-class-benchmark/evidence/controlled-three-way-comparison.md),
+[repeatability result](showcase/world-class-benchmark/evidence/repeatability-study/result.md),
+and [blind curator report](showcase/world-class-benchmark/evidence/repeatability-study/blind-curation/report.md).
 
 ---
 
@@ -192,8 +192,8 @@ The first dogfood study used three real project histories:
 | platform-design-system | **APPLIED** | Escaped defects became executable gates with negative fixtures and later detections |
 
 The controlled Nutrition Planning run compared a
-[memory-disabled control](specs/017-living-agent-proof/benchmark/control/index.html) at 89/100
-against a [learning-enabled treatment](specs/017-living-agent-proof/benchmark/treatment/index.html)
+[memory-disabled control](showcase/017-living-agent-proof/benchmark/control/index.html) at 89/100
+against a [learning-enabled treatment](showcase/017-living-agent-proof/benchmark/treatment/index.html)
 at 94/100. Static comparison images are intentionally omitted from this README.
 
 The treatment eliminated prohibited text/Unicode interface glyphs **27 → 0**, added motivated
@@ -213,12 +213,12 @@ Run the evidence report:
 ```bash
 design-os evolution \
   --dir . \
-  --proof specs/017-living-agent-proof/evidence/ease-design-proof.json
+  --proof showcase/017-living-agent-proof/evidence/ease-design-proof.json
 ```
 
-Read the [controlled result](specs/017-living-agent-proof/benchmark/result.md),
-[forensic project comparison](specs/017-living-agent-proof/evidence/forensic-report.md), and
-[machine-readable proof](specs/017-living-agent-proof/evidence/ease-design-proof.json).
+Read the [controlled result](showcase/017-living-agent-proof/benchmark/result.md),
+[forensic project comparison](showcase/017-living-agent-proof/evidence/forensic-report.md), and
+[machine-readable proof](showcase/017-living-agent-proof/evidence/ease-design-proof.json).
 
 ---
 
