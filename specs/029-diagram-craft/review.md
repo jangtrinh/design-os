@@ -141,3 +141,16 @@ without sandbox override). All new/changed assertions were instead hand-traced a
 the exact current file contents (table row splitting, literal phrase matches) to confirm
 they pass. The controller then ran the focused suite outside that sandbox: both test
 files passed, 36 tests total, followed by clean typecheck, lint, and build gates.
+
+## Fable Re-audit
+
+Fable confirmed the three original contract blockers and both Opus important findings are
+closed at `031fcf1`. Architecture and sequence are release-ready. The combined change is
+still blocked from merge because runtime discovery exposes product-flow without the real
+committed `flow.json` proof required by T016/T025.
+
+The release gate remains explicit: either complete the owner-supplied real-flow projection
+and manual source-ID, ledger, reading-order, and rendered-quality audit, or remove
+product-flow from runtime discovery into a follow-up change. This branch keeps the approved
+three-grammar architecture intact and therefore remains a draft rather than silently
+shrinking scope or fabricating evidence.
