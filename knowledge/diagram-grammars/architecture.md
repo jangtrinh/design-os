@@ -64,7 +64,8 @@ Set on the root SVG element, per the shared metadata contract:
 
 - `data-diagram-grammar="architecture"`
 - `data-reading-order` — the chosen direction (`ltr`, `ttb`, or a named hub order) plus, where useful, the component id sequence it implies
-- `data-focal-id` — the id of the diagram's focal component, if one was established under Hierarchy; omit if the brief supports no single focal point
+- `data-focal-id` — the id of the component that best anchors the declared reading order;
+  every artifact must select one, even when several components have equal visual weight
 - `data-source-kind="brief"`
 
 ## Critique

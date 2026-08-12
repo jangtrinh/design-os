@@ -30,7 +30,7 @@ navigation, an API call sequence.
 
 **Do NOT** reach for a diagram when: the request has no spatial or sequential structure to
 show (a diagram of nothing but bullet points is a list wearing a costume); the content is a
-chart of quantities (`dataviz` skill owns that, not this one); the request wants an editable
+chart of quantities (outside this capability); the request wants an editable
 canvas file, an imported/converted diagram, or a rendered PNG/browser export — v1 ships none
 of those (see "What this is NOT").
 
@@ -122,13 +122,12 @@ reaches outside itself:
 - No imports, exports, DSL, browser renderer, or conversion step. The host authors the HTML
   directly; nothing in this capability parses or produces Mermaid, draw.io, or any other
   diagram interchange format.
-- The document declares, in inspectable metadata (inert `data-*` attributes or an inert JSON
-  block — never an executable script): the **grammar** used, the **reading order** in prose,
+- The document declares, in inspectable `data-*` metadata: the **grammar** used, the **reading order** in prose,
   the **focal element**'s ID, the **source kind** (`flow-json` or `brief`) and, when
   applicable, a **source reference**, plus whether a **token fallback** was used.
-- Run `ui diagram lint <file.html>` before treating the artifact as done — it is the
-  deterministic floor for the facts above (see `../specs/029-diagram-craft/contracts/diagram-lint-cli.md`
-  for the exact check list and envelope). A clean lint is necessary, never sufficient.
+- Run `ui diagram lint <file.html>` before treating the artifact as done; use
+  `ui diagram --help` for the current deterministic check contract. A clean lint is
+  necessary, never sufficient.
 
 ## Critique
 

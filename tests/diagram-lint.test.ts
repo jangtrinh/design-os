@@ -110,6 +110,39 @@ describe('lintDiagram - content safety', () => {
     const result = lintDiagram(svgDoc(inner));
     expect(result.findings.some((f) => f.checkId === checkId && f.severity === 'error')).toBe(true);
   });
+
+  it.each([
+    ['a placeholder outside the owned SVG', '<p>{{outside}}</p>', 'no-placeholder'],
+    ['a script outside the owned SVG', '<script>run()</script>', 'no-script'],
+    ['a relative asset outside the owned SVG', '<img src="./asset.png">', 'no-external-ref'],
+  ])('flags %s', (_label, outside, checkId) => {
+    const html = VALID_HTML.replace('</body>', `${outside}</body>`);
+    expect(lintDiagram(html).findings.some((item) => item.checkId === checkId)).toBe(true);
+  });
+
+  it('accepts equivalent single-quoted attributes', () => {
+    expect(lintDiagram(VALID_HTML.replaceAll('"', "'")).findings).toEqual([]);
+  });
+
+  it('accepts valid unquoted attributes and rejects an unquoted external reference', () => {
+    const valid = VALID_HTML
+      .replace('data-diagram-owned="true"', 'data-diagram-owned=true')
+      .replace('data-diagram-grammar="architecture"', 'data-diagram-grammar=architecture')
+      .replace('data-focal-id="n1"', 'data-focal-id=n1')
+      .replace('id="n1"', 'id=n1');
+    expect(lintDiagram(valid).findings).toEqual([]);
+    expect(lintDiagram(valid.replace('</svg>', '<image href=asset.png></svg>')).findings.map((item) => item.checkId)).toContain('no-external-ref');
+  });
+
+  it('ignores commented markup', () => {
+    const html = VALID_HTML.replace('</body>', '<!-- <script></script><line data-diagram-element="edge" x1="0" y1="0" x2="5" y2="5"/> --></body>');
+    expect(lintDiagram(html).findings).toEqual([]);
+  });
+
+  it('allows fragment and data references but rejects relative runtime references', () => {
+    expect(lintDiagram(VALID_HTML.replace('</svg>', '<use href="#api"/><image href="data:image/png;base64,AA=="/></svg>')).findings).toEqual([]);
+    expect(lintDiagram(VALID_HTML.replace('</svg>', '<image href="asset.png"/></svg>')).findings.map((item) => item.checkId)).toContain('no-external-ref');
+  });
 });
 
 describe('lintDiagram - root metadata', () => {
@@ -133,7 +166,11 @@ describe('lintDiagram - product-flow source ids', () => {
     '<g data-diagram-element="node" id="n2"><rect width="12" height="12"/></g>',
     '<line data-diagram-element="edge" id="e1" data-source-id="step-1-2" x1="0" y1="0" x2="0" y2="20"/>',
   ].join('');
-  const flowOverrides = { 'data-diagram-grammar': 'product-flow', 'data-focal-id': 'n1' };
+  const flowOverrides = {
+    'data-diagram-grammar': 'product-flow',
+    'data-focal-id': 'n1',
+    'data-source-kind': 'flow-json',
+  };
 
   it('flags a product-flow node missing data-source-id', () => {
     const result = lintDiagram(svgDoc(FLOW_INNER, flowOverrides));
@@ -153,6 +190,11 @@ describe('lintDiagram - product-flow source ids', () => {
     const result = lintDiagram(svgDoc(validInner, flowOverrides));
     expect(result.findings).toEqual([]);
   });
+
+  it('rejects brief provenance for product-flow projection', () => {
+    const result = lintDiagram(svgDoc(FLOW_INNER, { ...flowOverrides, 'data-source-kind': 'brief' }));
+    expect(result.findings.map((item) => item.checkId)).toContain('source-kind');
+  });
 });
 
 describe('lintDiagram - connector geometry', () => {
@@ -171,6 +213,12 @@ describe('lintDiagram - connector geometry', () => {
     const result = lintDiagram(svgDoc(dupInner));
     expect(result.findings).toHaveLength(1);
     expect(result.findings[0]).toMatchObject({ checkId: 'duplicate-connector', severity: 'error', elementId: 'e2' });
+  });
+
+  it('normalizes equivalent numeric line geometry before duplicate comparison', () => {
+    const inner = ARCH_INNER + '<line data-diagram-element="edge" id="e2" x1="0.0" y1="0" x2="0" y2="20.0"/>';
+    expect(lintDiagram(svgDoc(inner)).findings).toHaveLength(1);
+    expect(lintDiagram(svgDoc(inner)).findings[0]).toMatchObject({ checkId: 'duplicate-connector', elementId: 'e2' });
   });
 
   it('flags exact duplicate connector geometry for two paths', () => {

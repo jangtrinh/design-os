@@ -18,14 +18,20 @@ interface ElementInfo {
 
 const GRAMMARS = ["architecture", "sequence", "product-flow"];
 const SOURCE_KINDS = ["brief", "flow-json"];
-const ATTR_RE = /([a-zA-Z_:][-\w:.]*)\s*=\s*"([^"]*)"/g;
+const ATTR_RE = /([a-zA-Z_:][-\w:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>]+))/g;
 const TAG_RE = /<([a-zA-Z][\w:-]*)([^>]*)>/g;
+
+function stripCommentsAndCdata(source: string): string {
+  return source.replace(/<!--[\s\S]*?-->/g, "").replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "");
+}
 
 function parseAttrs(source: string): Record<string, string> {
   const attrs: Record<string, string> = {};
   ATTR_RE.lastIndex = 0;
   let match: RegExpExecArray | null;
-  while ((match = ATTR_RE.exec(source)) !== null) attrs[match[1]!] = match[2]!;
+  while ((match = ATTR_RE.exec(source)) !== null) {
+    attrs[match[1]!.toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? "";
+  }
   return attrs;
 }
 
@@ -44,7 +50,8 @@ function escapeRegExp(value: string): string {
 }
 
 function idCount(source: string, id: string): number {
-  return (source.match(new RegExp(`(?:\\s|<)id="${escapeRegExp(id)}"`, "g")) ?? []).length;
+  const escaped = escapeRegExp(id);
+  return (source.match(new RegExp(`(?:\\s|<)id=(?:"${escaped}"|'${escaped}'|${escaped}(?=\\s|/?>))`, "g")) ?? []).length;
 }
 
 function labelledbyIsValid(source: string, value: string | undefined): boolean {
@@ -52,13 +59,41 @@ function labelledbyIsValid(source: string, value: string | undefined): boolean {
   if (ids.length !== 2 || new Set(ids).size !== 2) return false;
   const matches = ids.map((id) => {
     if (idCount(source, id) !== 1) return "";
+    const escaped = escapeRegExp(id);
     const result = new RegExp(
-      `<(title|desc)\\b[^>]*\\bid="${escapeRegExp(id)}"[^>]*>([\\s\\S]*?)<\\/\\1>`,
+      `<(title|desc)\\b[^>]*\\bid=(?:"${escaped}"|'${escaped}'|${escaped}(?=\\s|/?>))[^>]*>([\\s\\S]*?)<\\/\\1>`,
       "i",
     ).exec(source);
     return result !== null && result[2]!.trim() !== "" ? result[1]!.toLowerCase() : "";
   });
   return matches.includes("title") && matches.includes("desc");
+}
+
+function isSafeReference(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.startsWith("#") || /^data:/i.test(trimmed);
+}
+
+function hasUnsafeReference(source: string): boolean {
+  const attribute = /\b(?:href|src|xlink:href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>]+))/gi;
+  let match: RegExpExecArray | null;
+  while ((match = attribute.exec(source)) !== null) {
+    const value = match[1] ?? match[2] ?? match[3] ?? "";
+    if (value.trim() !== "" && !isSafeReference(value)) return true;
+  }
+  const cssUrl = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi;
+  while ((match = cssUrl.exec(source)) !== null) {
+    const value = (match[1] ?? match[2] ?? match[3] ?? "").trim();
+    if (value !== "" && !isSafeReference(value)) return true;
+  }
+  return /@import\b/i.test(source);
+}
+
+function lineGeometry(attrs: Record<string, string>): readonly number[] | undefined {
+  const values = [attrs.x1, attrs.y1, attrs.x2, attrs.y2];
+  if (values.some((value) => value === undefined || value.trim() === "")) return undefined;
+  const numbers = values.map(Number);
+  return numbers.every(Number.isFinite) ? numbers : undefined;
 }
 
 function finding(checkId: string, message: string, elementId?: string): DiagramFinding {
@@ -68,7 +103,8 @@ function finding(checkId: string, message: string, elementId?: string): DiagramF
 }
 
 export function lintDiagram(html: string): DiagramLintResult {
-  const svgBlocks = html.match(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi) ?? [];
+  const cleaned = stripCommentsAndCdata(html);
+  const svgBlocks = cleaned.match(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi) ?? [];
   const owned = svgBlocks.filter((svg) => parseAttrs(svg.match(/<svg\b[^>]*>/i)![0])["data-diagram-owned"] === "true");
   if (owned.length !== 1) {
     const f = finding("svg-owned-count", `Expected exactly one owned SVG; found ${owned.length}. Mark one root data-diagram-owned="true".`);
@@ -87,9 +123,9 @@ export function lintDiagram(html: string): DiagramLintResult {
   if (!labelledbyIsValid(svg, root["aria-labelledby"])) {
     push("svg-labelledby", "aria-labelledby must resolve once to one nonempty title and one nonempty desc.");
   }
-  if (/\{\{[\s\S]*?\}\}/.test(svg)) push("no-placeholder", "Resolve template placeholders before delivery.");
-  if (/<script\b/i.test(svg)) push("no-script", "Remove script elements from the self-contained artifact.");
-  if (/\b(?:href|src|xlink:href)\s*=\s*"(?:https?:)?\/\//i.test(svg)) {
+  if (/\{\{[\s\S]*?\}\}/.test(cleaned)) push("no-placeholder", "Resolve template placeholders before delivery.");
+  if (/<script\b/i.test(cleaned)) push("no-script", "Remove script elements from the self-contained artifact.");
+  if (hasUnsafeReference(cleaned)) {
     push("no-external-ref", "Remove external runtime references; inline the required asset.");
   }
 
@@ -98,7 +134,12 @@ export function lintDiagram(html: string): DiagramLintResult {
   if ((root["data-reading-order"] ?? "").trim() === "") push("reading-order", "Declare a nonempty data-reading-order.");
   const focalId = root["data-focal-id"];
   if (!focalId || idCount(svg, focalId) !== 1) push("focal-id", "Set data-focal-id to one resolving element ID.");
-  if (!SOURCE_KINDS.includes(root["data-source-kind"] ?? "")) push("source-kind", "Set data-source-kind to brief or flow-json.");
+  const sourceKind = root["data-source-kind"];
+  if (!SOURCE_KINDS.includes(sourceKind ?? "") || (grammar === "product-flow" && sourceKind !== "flow-json")) {
+    push("source-kind", grammar === "product-flow"
+      ? "Set data-source-kind to flow-json for a product-flow projection."
+      : "Set data-source-kind to brief or flow-json.");
+  }
 
   if (grammar === "product-flow") {
     for (const element of elements) {
@@ -112,9 +153,8 @@ export function lintDiagram(html: string): DiagramLintResult {
   const edges = elements.filter((element) => element.attrs["data-diagram-element"] === "edge");
   for (const edge of edges) {
     if (edge.tag !== "line") continue;
-    const { x1, y1, x2, y2 } = edge.attrs;
-    if ([x1, y1, x2, y2].every((value) => value !== undefined && Number.isFinite(Number(value))) &&
-        Number(x1) !== Number(x2) && Number(y1) !== Number(y2)) {
+    const geometry = lineGeometry(edge.attrs);
+    if (geometry !== undefined && geometry[0] !== geometry[2] && geometry[1] !== geometry[3]) {
       push("diagonal-line", "Use an orthogonal line or an explicit path for this connector.", edge.attrs.id);
     }
   }
@@ -123,8 +163,8 @@ export function lintDiagram(html: string): DiagramLintResult {
   for (const edge of edges) {
     let geometry: string | undefined;
     if (edge.tag === "line") {
-      const { x1, y1, x2, y2 } = edge.attrs;
-      if ([x1, y1, x2, y2].every((value) => value !== undefined)) geometry = `line:${x1},${y1},${x2},${y2}`;
+      const values = lineGeometry(edge.attrs);
+      if (values !== undefined) geometry = `line:${values.join(",")}`;
     } else if (edge.tag === "path" && edge.attrs.d) {
       geometry = `path:${edge.attrs.d.trim().replace(/\s+/g, " ")}`;
     }

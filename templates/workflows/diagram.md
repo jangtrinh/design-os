@@ -21,9 +21,9 @@ Before authoring, size the input: how many nodes/edges/steps will this actually 
 
 Only three grammars exist. Pick exactly one per invocation; never mix or invent a fourth.
 
-- [**architecture**](../../knowledge/diagram-grammars/architecture.md) — components, boundaries, and the relationships/calls between them.
-- [**sequence**](../../knowledge/diagram-grammars/sequence.md) — participants and time-ordered messages between them.
-- [**product-flow**](../../knowledge/diagram-grammars/product-flow.md) — a user's path through real product screens/states, sourced from actual UI, not invented.
+- **architecture** — read `knowledge/diagram-grammars/architecture.md`; components, boundaries, and their relationships.
+- **sequence** — read `knowledge/diagram-grammars/sequence.md`; participants and time-ordered messages.
+- **product-flow** — read `knowledge/diagram-grammars/product-flow.md`; a derived view of an existing lint-clean `flow.json`.
 
 If the request doesn't cleanly map to one of the three (e.g. it wants a Gantt chart, a mind map, a generic flowchart of abstract logic), **reject unsupported grammar**: state plainly that this workflow supports only architecture, sequence, and product-flow, and ask which of the three (if any) actually fits, or suggest the request is better served another way.
 
