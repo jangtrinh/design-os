@@ -21,8 +21,12 @@ const SOURCE_KINDS = ["brief", "flow-json"];
 const ATTR_RE = /([a-zA-Z_:][-\w:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>]+))/g;
 const TAG_RE = /<([a-zA-Z][\w:-]*)([^>]*)>/g;
 
-function stripCommentsAndCdata(source: string): string {
-  return source.replace(/<!--[\s\S]*?-->/g, "").replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "");
+function stripComments(source: string): string {
+  return source.replace(/<!--[\s\S]*?-->/g, "");
+}
+
+function stripCdata(source: string): string {
+  return source.replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "");
 }
 
 function parseAttrs(source: string): Record<string, string> {
@@ -71,7 +75,8 @@ function labelledbyIsValid(source: string, value: string | undefined): boolean {
 
 function isSafeReference(value: string): boolean {
   const trimmed = value.trim();
-  return trimmed.startsWith("#") || /^data:/i.test(trimmed);
+  return trimmed.startsWith("#") ||
+    /^data:image\/(?:png|jpe?g|gif|webp|avif);base64,/i.test(trimmed);
 }
 
 function hasUnsafeReference(source: string): boolean {
@@ -103,7 +108,8 @@ function finding(checkId: string, message: string, elementId?: string): DiagramF
 }
 
 export function lintDiagram(html: string): DiagramLintResult {
-  const cleaned = stripCommentsAndCdata(html);
+  const commentFree = stripComments(html);
+  const cleaned = stripCdata(commentFree);
   const svgBlocks = cleaned.match(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi) ?? [];
   const owned = svgBlocks.filter((svg) => parseAttrs(svg.match(/<svg\b[^>]*>/i)![0])["data-diagram-owned"] === "true");
   if (owned.length !== 1) {
@@ -123,9 +129,9 @@ export function lintDiagram(html: string): DiagramLintResult {
   if (!labelledbyIsValid(svg, root["aria-labelledby"])) {
     push("svg-labelledby", "aria-labelledby must resolve once to one nonempty title and one nonempty desc.");
   }
-  if (/\{\{[\s\S]*?\}\}/.test(cleaned)) push("no-placeholder", "Resolve template placeholders before delivery.");
-  if (/<script\b/i.test(cleaned)) push("no-script", "Remove script elements from the self-contained artifact.");
-  if (hasUnsafeReference(cleaned)) {
+  if (/\{\{[\s\S]*?\}\}/.test(commentFree)) push("no-placeholder", "Resolve template placeholders before delivery.");
+  if (/<script\b/i.test(commentFree)) push("no-script", "Remove script elements from the self-contained artifact.");
+  if (hasUnsafeReference(commentFree)) {
     push("no-external-ref", "Remove external runtime references; inline the required asset.");
   }
 

@@ -143,6 +143,19 @@ describe('lintDiagram - content safety', () => {
     expect(lintDiagram(VALID_HTML.replace('</svg>', '<use href="#api"/><image href="data:image/png;base64,AA=="/></svg>')).findings).toEqual([]);
     expect(lintDiagram(VALID_HTML.replace('</svg>', '<image href="asset.png"/></svg>')).findings.map((item) => item.checkId)).toContain('no-external-ref');
   });
+
+  it('checks unsafe CSS references inside CDATA', () => {
+    const html = VALID_HTML.replace('</svg>', '<style><![CDATA[.node{fill:url(https://example.com/fill.svg)}]]></style></svg>');
+    expect(lintDiagram(html).findings.map((item) => item.checkId)).toContain('no-external-ref');
+  });
+
+  it.each([
+    'data:image/svg+xml;base64,PHN2Zz48c2NyaXB0Lz48L3N2Zz4=',
+    'data:text/html;base64,PHNjcmlwdD48L3NjcmlwdD4=',
+  ])('rejects active data URI %s', (uri) => {
+    const html = VALID_HTML.replace('</svg>', `<image href="${uri}"/></svg>`);
+    expect(lintDiagram(html).findings.map((item) => item.checkId)).toContain('no-external-ref');
+  });
 });
 
 describe('lintDiagram - root metadata', () => {
