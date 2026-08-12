@@ -12,7 +12,7 @@
  *  2. BEHAVIORAL — the three sanctioned writers (registry register, figma reconcile
  *     --apply, ds change-token), run against a real sealed fixture, must leave the DS
  *     loadable afterwards. This is the exact test whose absence let two writers drift
- *     (specs/009-code-road/reports/art-iv-seal-audit.md).
+ *     (studio repo: specs/009-code-road/reports/art-iv-seal-audit.md).
  */
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync, mkdtempSync, writeFileSync } from "node:fs";

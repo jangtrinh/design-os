@@ -8,7 +8,7 @@ three fresh isolated model sessions using the full DESIGN:OS prompt-plan orchest
 From the repository root:
 
 ```sh
-npx serve experiments/world-class-benchmark/evidence/repeatability-study/runs
+npx serve showcase/world-class-benchmark/evidence/repeatability-study/runs
 ```
 
 Open the printed local URL and select any `d01`, `d02`, or `d03` orchestrated run.

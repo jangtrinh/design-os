@@ -8,7 +8,7 @@
  * alias (`surface-content: '#FFFFFF'` is still background). Runs on every COLOR
  * token (`$type: "color"`); skips are a hue-scale name and a numbered scale STEP.
  * The synonym table is TRANSCRIBED from the counted dictionary —
- * specs/009-code-road/reports/role-synonym-dictionary.md (13 systems, cited).
+ * studio repo: specs/009-code-road/reports/role-synonym-dictionary.md (13 systems, cited).
  * Not a guess, unlike color-roles.ts's `ROLE_KEYWORDS` this replaces. */
 import { type TokenTree, type TokenGroup, type Token } from "./token-model.js";
 

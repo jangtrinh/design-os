@@ -6,7 +6,7 @@
  * Extracted from ds-change-token-impl.ts's inline A-F sequence — the ONLY writer that
  * resealed correctly before this phase. Two other writers (registry.ts, figma-reconcile-
  * run.ts) wrote a sealed artifact without ever touching the manifest — see
- * specs/009-code-road/reports/art-iv-seal-audit.md. Every command that writes
+ * studio repo: specs/009-code-road/reports/art-iv-seal-audit.md. Every command that writes
  * design.tokens.json or component-registry.json inside a DS-managed project MUST route
  * through here; enforced statically by tests/seal-invariant.test.ts (mirrors
  * tests/autorecord-wiring.test.ts, spec 006 P2's meta-linter precedent).
