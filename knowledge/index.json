@@ -192,6 +192,21 @@
       ]
     },
     {
+      "id": "gflow-hand",
+      "path": "knowledge/gflow-hand.md",
+      "description": "Driving Google Flow (Veo/Imagen) through the gflow hand — the golden path is `ui gflow i2v`, not raw chaining.",
+      "when": [
+        "gflow",
+        "veo",
+        "imagen",
+        "video-generation",
+        "i2v",
+        "flythrough",
+        "camera-flight",
+        "google-flow"
+      ]
+    },
+    {
       "id": "gsap-motion-direction",
       "path": "knowledge/gsap-motion-direction.md",
       "description": "The T5 GSAP direction and implementation contract — timelines, ScrollTrigger, lifecycle, reduced motion.",
