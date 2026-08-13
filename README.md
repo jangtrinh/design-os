@@ -39,7 +39,7 @@ command, how to reproduce it.
 
 ### AURA — a cinematic scroll-film product page
 
-[![Animated scroll-through of the AURA page: a dark exploded-view headphone film scrubbed by scroll under liquid-glass panels](https://raw.githubusercontent.com/jangtrinh/aura-scrollcinema-demo/master/docs/demo.gif)](https://jangtrinh.github.io/aura-scrollcinema-demo/)
+<a href="https://jangtrinh.github.io/aura-scrollcinema-demo/"><img src="https://raw.githubusercontent.com/jangtrinh/aura-scrollcinema-demo/master/docs/demo.gif" alt="Animated scroll-through of the AURA page: a dark exploded-view headphone film scrubbed by scroll under liquid-glass panels" width="100%" /></a>
 
 One scroll value scrubs a 289-frame exploded-view film — overview, X-ray, ignition, exploded,
 reassembly, finish — while the **Liquid Glass** persona carries the copy over the footage.
@@ -49,7 +49,7 @@ reassembly, finish — while the **Liquid Glass** persona carries the copy over 
 
 ### OPAH ONE — a scroll-scrub drone product page
 
-[![Animated scroll-through of the OPAH ONE drone page: film sequences scrubbed by scroll, an exploded-view annotation tour, and token-compiled sections](https://raw.githubusercontent.com/jangtrinh/design-os-drone-showcase/main/docs/demo.gif)](https://jangtrinh.github.io/design-os-drone-showcase/)
+<a href="https://jangtrinh.github.io/design-os-drone-showcase/"><img src="https://raw.githubusercontent.com/jangtrinh/design-os-drone-showcase/main/docs/demo.gif" alt="Animated scroll-through of the OPAH ONE drone page: film sequences scrubbed by scroll, an exploded-view annotation tour, and token-compiled sections" width="100%" /></a>
 
 343 WebP frames in two tiers, an accent scale derived from the footage by `ui color`, DTCG
 tokens compiled by `ui tokens compile`, the tenant scroll engine, and five lint gates green.
@@ -59,7 +59,7 @@ tokens compiled by `ui tokens compile`, the tenant scroll engine, and five lint 
 
 ### Robotic Arm — anime.js-style 3D scrollytelling
 
-[![Animated scroll-through of the Robotic Arm site: a Three.js arm assembles from wireframe, explodes into a labeled blueprint, and plays color-coded feature acts](https://raw.githubusercontent.com/jangtrinh/design-os-animejs/main/docs/demo.gif)](https://design-os-animejs.vercel.app)
+<a href="https://design-os-animejs.vercel.app"><img src="https://raw.githubusercontent.com/jangtrinh/design-os-animejs/main/docs/demo.gif" alt="Animated scroll-through of the Robotic Arm site: a Three.js arm assembles from wireframe, explodes into a labeled blueprint, and plays color-coded feature acts" width="100%" /></a>
 
 A Three.js robotic arm assembles itself from wireframe, explodes into a labeled blueprint, and
 plays color-coded feature acts — one scroll value, one RAF loop, every file under 200 lines.
