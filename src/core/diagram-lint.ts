@@ -1,3 +1,8 @@
+/**
+ * diagram-lint — deterministic checks for diagram-craft artifacts (the linter half
+ * of the emitter+linter pair behind `ui diagram`).
+ * Design record and final audit: studio repo: specs/029-diagram-craft/.
+ */
 export interface DiagramFinding {
   checkId: string;
   severity: "error";
