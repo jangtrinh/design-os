@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-13 - Three shipped sites lead the showcase
+
+### Added
+- The README showcase now opens with three public sites shipped end to end with the
+  toolchain, each as a full-width animated scroll-through:
+  [AURA](https://github.com/jangtrinh/aura-scrollcinema-demo) (cinematic 289-frame
+  scroll-film under the Liquid Glass persona),
+  [OPAH ONE](https://github.com/jangtrinh/design-os-drone-showcase) (scroll-scrub drone
+  page — DTCG tokens, tenant engine, five gates green), and
+  [Robotic Arm](https://github.com/jangtrinh/design-os-animejs) (anime.js-style Three.js
+  scrollytelling). Each repo carries a "Reproduce it with DESIGN:OS" guide
+  (install → `ui init` → `/ui:generate`) and its own deterministic scroll-through
+  recording (gif + mp4), captured headless frame-by-frame from the live site.
+
 ## 2026-07-31 - figma-agent split into its own public repo
 
 ### Changed
