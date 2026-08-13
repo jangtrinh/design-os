@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-08-13 - Three shipped sites lead the showcase
+## 2026-08-13 - Four shipped sites lead the showcase as a grid
 
 ### Added
 - The README showcase now opens with three public sites shipped end to end with the
@@ -13,6 +13,12 @@
   scrollytelling). Each repo carries a "Reproduce it with DESIGN:OS" guide
   (install → `ui init` → `/ui:generate`) and its own deterministic scroll-through
   recording (gif + mp4), captured headless frame-by-frame from the live site.
+- [Rill Architecture](https://github.com/jangtrinh/design-os-rill-architecture) extracted
+  into its own public repo (GitHub Pages live) with the same README treatment, and the
+  showcase restructured into a two-column grid — OPAH ONE first — that grows as new
+  demos ship. The in-README "Featured: Rill Architecture" block folded into the grid.
+- The OPAH ONE demo re-recorded with a fully warmed frame cache (one slow scroll down and
+  back up before capture) so every scrubbed scene shows real footage.
 
 ## 2026-07-31 - figma-agent split into its own public repo
 
