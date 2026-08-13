@@ -61,6 +61,7 @@ import { checkModeInvisibleSurface } from "./taste-checks-invisible-surface.js";
 import { checkContainerNestingDepth } from "./taste-checks-nesting.js";
 import { checkRadiusSprawl } from "./taste-checks-radius.js";
 import { gsapChecks } from "./taste-checks-gsap.js";
+import { videoScrubChecks } from "./taste-checks-video-scrub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -161,6 +162,10 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     // knowledge/gsap-motion-direction.md, which shipped as prose with no linter.
     // Every check is silent unless GSAP is actually present in the document.
     ...gsapChecks(stripped),
+    // Motion axis, scroll-scrub subset — the machine-checkable half of
+    // knowledge/scroll-cinema-direction.md. Each guards a failure only a real
+    // phone shows, so a desktop review cannot catch them.
+    ...videoScrubChecks(stripped),
   ];
 
   // Sort by rubric axis order, then by line (undefined lines last).

@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateClaudeAdapter", () => {
-  it("returns exactly 30 artifacts (16 commands + 11 craft skills + 3 journey skills)", () => {
+  it("returns exactly 31 artifacts (16 commands + 12 craft skills + 3 journey skills)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
-    expect(arts).toHaveLength(30);
+    expect(arts).toHaveLength(31);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -37,7 +37,7 @@ describe("generateClaudeAdapter", () => {
     expect(commands.some((c) => c.absPath.endsWith("/from-url.md"))).toBe(true);
   });
 
-  it("13 artifacts are skill paths under .claude/skills/design-os-*/SKILL.md (11 craft + 3 journey)", () => {
+  it("13 artifacts are skill paths under .claude/skills/design-os-*/SKILL.md (12 craft + 3 journey)", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".claude/skills/design-os-"),
     );
