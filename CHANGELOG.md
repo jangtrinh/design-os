@@ -19,6 +19,13 @@
   demos ship. The in-README "Featured: Rill Architecture" block folded into the grid.
 - The OPAH ONE demo re-recorded with a fully warmed frame cache (one slow scroll down and
   back up before capture) so every scrubbed scene shows real footage.
+- README accuracy pass after a three-reviewer audit (Fable direction + kongming + Codex):
+  every headline count re-measured and corrected (40 `ui` commands, 2,819 kernel tests,
+  283 conductor tests, 14 installed skills, 15 workflows + 1 internal gate, and the Figma
+  plugin's 1,548-test suite credited to its own repo); the plugin elevated to the header,
+  nav, and a stat line; benchmark prose folded behind its headline numbers (1.77 blind-review
+  lift, 8.96/10 repeatability); three self-contradictions fixed (native-mobile evidence
+  boundary, post-split `setup.sh` wording, the absolute no-drift claim).
 
 ## 2026-07-31 - figma-agent split into its own public repo
 
