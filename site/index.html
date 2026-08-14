@@ -1,0 +1,2257 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DESIGN:OS Masterclass — GSAP Keynote Deck</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Pure Black & White / High-Contrast Monochrome Palette (Swiss Keynote) */
+      --bg-base: #fafafa;
+      --bg-surface: #ffffff;
+      --bg-surface-raised: #f4f4f5;
+      --bg-surface-subtle: #f9f9fb;
+      
+      --border-subtle: #e4e4e7;
+      --border-medium: #a1a1aa;
+      --border-strong: #18181b;
+      --border-focus: #000000;
+      
+      --text-primary: #09090b;
+      --text-secondary: #3f3f46;
+      --text-muted: #71717a;
+      --text-inverse: #ffffff;
+      
+      --accent-primary: #18181b;
+      --accent-primary-subtle: rgba(0, 0, 0, 0.05);
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      --radius-full: 9999px;
+
+      --shadow-surface: 0 1px 3px rgba(9, 10, 15, 0.04), 0 8px 24px rgba(9, 10, 15, 0.04);
+      --shadow-stage: 0 20px 50px rgba(9, 10, 15, 0.06), 0 1px 2px rgba(9, 10, 15, 0.04);
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Modular type tokens */
+      --font-size-xs: 0.875rem; /* 14px */
+      --font-size-sm: 1.125rem; /* 18px */
+      --font-size-base: 1.375rem; /* 22px */
+      --font-size-lg: 1.75rem;  /* 28px */
+      --font-size-xl: 2.25rem;  /* 36px */
+      --font-size-2xl: 3rem;    /* 48px */
+      --font-size-3xl: 4.5rem;  /* 72px */
+
+      /* Named Z-Index scale */
+      --z-slide: 10;
+      --z-drawer: 40;
+      --z-nav: 50;
+      --z-modal: 100;
+    }
+
+    [data-theme="dark"] {
+      --bg-base: #000000;
+      --bg-surface: #09090b;
+      --bg-surface-raised: #18181b;
+      --bg-surface-subtle: #121215;
+      
+      --border-subtle: #27272a;
+      --border-medium: #52525b;
+      --border-strong: #f4f4f5;
+      --border-focus: #ffffff;
+      
+      --text-primary: #fafafa;
+      --text-secondary: #d4d4d8;
+      --text-muted: #a1a1aa;
+      --text-inverse: #000000;
+      
+      --accent-primary: #ffffff;
+      --accent-primary-subtle: rgba(255, 255, 255, 0.1);
+
+      --shadow-surface: 0 4px 12px rgba(0, 0, 0, 0.35);
+      --shadow-stage: 0 25px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      overflow-x: clip;
+      overflow-y: hidden;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* Deck Master Viewport Scaling (1920x1080 16:9) */
+    .deck-viewport {
+      width: 100%;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background-color: var(--bg-base);
+    }
+
+    .slide-stage {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      transform-origin: center center;
+      box-shadow: var(--shadow-stage);
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    /* Slide Item */
+    .slide-item {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 70px 100px 60px;
+      background-color: var(--bg-surface);
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .slide-item.active {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Shared Chrome */
+    .chrome-accent-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--text-primary);
+    }
+
+    .chrome-header {
+      position: absolute;
+      top: 28px;
+      left: 100px;
+      right: 100px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .chrome-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chrome-brand-badge {
+      background-color: var(--text-primary);
+      color: var(--text-inverse);
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .chrome-footer {
+      position: absolute;
+      bottom: 24px;
+      left: 100px;
+      right: 100px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
+
+    /* Slide Content Zones */
+    .slide-content-zone {
+      width: 100%;
+      height: 870px;
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide-heading-group {
+      margin-bottom: 24px;
+    }
+
+    .slide-eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slide-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--text-primary);
+      border-radius: 50%;
+    }
+
+    .slide-title-display {
+      font-size: var(--font-size-3xl);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.06;
+      color: var(--text-primary);
+    }
+
+    .slide-title-h1 {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+      color: var(--text-primary);
+    }
+
+    .slide-subtitle {
+      font-size: var(--font-size-lg);
+      color: var(--text-secondary);
+      margin-top: 10px;
+      line-height: 1.35;
+      max-width: 1400px;
+    }
+
+    /* Grid & Cards for Slides */
+    .slide-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .slide-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .slide-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+
+    .slide-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: var(--shadow-surface);
+      border-top: 4px solid var(--border-strong);
+      transition: transform 200ms ease, border-color 200ms ease;
+    }
+
+    .slide-card:hover {
+      transform: translateY(-2px);
+      border-top-color: var(--text-primary);
+    }
+
+    .stat-number {
+      font-family: var(--font-mono);
+      font-size: 3.4rem;
+      font-weight: 700;
+      line-height: 1;
+      margin: 12px 0;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+    }
+
+    .stat-label {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .stat-desc {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    /* Diagram Containers */
+    .diagram-container {
+      background-color: var(--bg-surface-raised);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .diagram-svg {
+      width: 100%;
+      height: 100%;
+      max-height: 560px;
+    }
+
+    /* Interactive Action Controls within Diagram */
+    .interactive-badge-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 150ms ease, transform 150ms ease;
+      z-index: 20;
+    }
+
+    .interactive-badge-btn:hover {
+      background: var(--text-primary);
+      color: var(--text-inverse);
+      transform: scale(1.03);
+    }
+
+    /* SVG Keyframe Animations */
+    @keyframes flowDashes {
+      from { stroke-dashoffset: 40; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes pulsePacket1 {
+      0% { transform: translateX(0px); opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateX(130px); opacity: 0; }
+    }
+
+    @keyframes pulsePacket2 {
+      0% { transform: translateX(0px); opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateX(130px); opacity: 0; }
+    }
+
+    @keyframes radarPulse {
+      0% { r: 4; opacity: 1; stroke-width: 2; }
+      50% { opacity: 0.6; }
+      100% { r: 28; opacity: 0; stroke-width: 1; }
+    }
+
+    .svg-flow-active {
+      stroke-dasharray: 8 6;
+      animation: flowDashes 1.2s linear infinite;
+    }
+
+    .svg-packet-1 {
+      animation: pulsePacket1 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .svg-packet-2 {
+      animation: pulsePacket2 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      animation-delay: 1.1s;
+    }
+
+    .svg-radar-ring {
+      animation: radarPulse 2.4s ease-out infinite;
+      transform-origin: center;
+    }
+
+    .matrix-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      border: 1px solid var(--border-medium);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+    }
+
+    /* Presenter Navigation Controls Overlay */
+    .nav-overlay {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      gap: 8px;
+      z-index: var(--z-nav);
+      background: var(--bg-surface);
+      padding: 6px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-medium);
+      box-shadow: 0 4px 16px rgba(9, 10, 15, 0.1);
+    }
+
+    .nav-btn {
+      min-height: 44px;
+      min-width: 44px;
+      height: 44px;
+      width: 44px;
+      padding: 10px;
+      border-radius: var(--radius-full);
+      background: transparent;
+      color: var(--text-secondary);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .nav-btn:hover {
+      background: var(--bg-surface-raised);
+      color: var(--text-primary);
+    }
+
+    .progress-bar-deck {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: var(--text-primary);
+      transition: width 200ms ease-out;
+      z-index: var(--z-nav);
+    }
+
+    /* Speaker Notes Drawer */
+    .speaker-notes-drawer {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 960px;
+      max-width: 90vw;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
+      box-shadow: 0 20px 40px rgba(9, 10, 15, 0.2);
+      color: var(--text-primary);
+      font-size: var(--font-size-base);
+      display: none;
+      z-index: var(--z-drawer);
+    }
+
+    .speaker-notes-drawer.open {
+      display: block;
+    }
+
+    .notes-tag {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    /* Overview Grid Modal */
+    .overview-modal {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-base);
+      z-index: var(--z-modal);
+      padding: 60px 80px;
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+      overflow-y: auto;
+    }
+
+    .overview-modal.open {
+      display: flex;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      padding-bottom: 60px;
+    }
+
+    .overview-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 150ms ease, border-color 150ms ease;
+    }
+
+    .overview-card:hover, .overview-card.current {
+      border-color: var(--border-strong);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-surface);
+    }
+
+    .icon {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .svg-flow-active, .svg-packet-1, .svg-packet-2, .svg-radar-ring {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="deck-viewport">
+    <div class="slide-stage" id="slideStage">
+
+      <!-- ========================================== -->
+      <!-- SLIDE 01: TITLE / COVER                    -->
+      <!-- ========================================== -->
+      <article class="slide-item active" id="slide-1" data-index="1">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand">
+            <span class="chrome-brand-badge">DESIGN:OS</span>
+            <span>Masterclass Architecture Deck</span>
+          </div>
+          <div>GSAP Keynote Edition • v0.1.0</div>
+        </header>
+
+        <section class="slide-content-zone" style="justify-content: center;">
+          <span class="slide-eyebrow gsap-reveal">Multi-Runtime Design CLI • Production Operating Manual</span>
+          <h1 class="slide-title-display gsap-reveal">
+            Làm chủ DESIGN:OS<br>Từ Onboard Đến Qualified Delivery.
+          </h1>
+          <p class="slide-subtitle gsap-reveal" style="font-size: var(--font-size-xl);">
+            Kiến trúc phân quyền AI Reasoning vs Deterministic Engine, 6 Cổng Onboarding (E1–E6), 4 Bề mặt Audit, Sàn chất lượng 6+1 và Pipeline Bàn giao chuẩn Production.
+          </p>
+          <div style="display: flex; gap: 16px; margin-top: 40px;" class="gsap-reveal">
+            <span class="matrix-badge">Claude Code</span>
+            <span class="matrix-badge">Codex CLI</span>
+            <span class="matrix-badge">Antigravity</span>
+            <span class="matrix-badge">100% Token-Bound</span>
+            <span class="matrix-badge">Zero Arbitrary Hex</span>
+            <span class="matrix-badge">14 Machine Floor Linters</span>
+          </div>
+        </section>
+
+        <footer class="chrome-footer">
+          <div>Nhấn [Phím Trái / Phải] hoặc [Space] để chuyển slide • [S] Ghi chú diễn giả • [O] Lưới tổng quan</div>
+          <div id="slideCounterDisplay">01 / 18</div>
+        </footer>
+        <div data-speaker-notes="Chào mừng đến với DESIGN:OS Masterclass. Đây là bộ slide kỹ thuật giải thích cách thức vận hành tối ưu của DESIGN:OS từ kiến trúc cốt lõi đến khi bàn giao giao diện hoàn chỉnh."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 02: 3 CHÂN LÝ TỐI THƯỢNG (SVG TRIAD) -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-2" data-index="2">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Triết Lý Cốt Lõi</span></div>
+          <div>01 • Core Foundations</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Triết Lý Cốt Lõi</span>
+            <h2 class="slide-title-h1 gsap-reveal">3 Chân Lý Tối Thượng Của DESIGN:OS</h2>
+            <p class="slide-subtitle gsap-reveal">Không dựa vào sự may rủi của mô hình LLM. Ép chất lượng bằng toán học màu sắc và sàn kiểm định tất định.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-triad-foundations">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Kích Hoạt Tam Giác Chân Lý</span>
+            </button>
+
+            <!-- Complete SVG Triad Diagram for 3 Core Foundations -->
+            <svg class="diagram-svg" id="svgFoundationsTriad" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Connecting Active Flow Paths -->
+              <path d="M 450 260 L 590 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 1050 260 L 1190 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              
+              <!-- Moving Animated Packets -->
+              <g transform="translate(450, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(1050, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Node 1: Zero Arbitrary Hex -->
+              <g transform="translate(50, 60)" id="nodePillar1" style="cursor: pointer;">
+                <rect width="400" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="400" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="350" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="350" cy="48" r="4" fill="var(--text-primary)"/>
+                
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">CHÂN LÝ 01</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Zero Arbitrary Hex</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">100% DTCG Token-Bound</text>
+                
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• 100% màu sắc ánh xạ Token</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Cấm hardcode class tùy tiện</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Cấm số pixel ngẫu nhiên</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Giữ tính nhất quán toàn diện</text>
+                
+                <rect x="32" y="340" width="336" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">ENFORCED: DTCG Tokens</text>
+              </g>
+
+              <!-- Node 2: Deterministic Quality Floor -->
+              <g transform="translate(590, 60)" id="nodePillar2" style="cursor: pointer;">
+                <rect width="460" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="460" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="410" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="410" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">CHÂN LÝ 02</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Sàn Kiểm Định Tất Định</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Deterministic Quality Floor</text>
+                
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Không phụ thuộc hy vọng LLM</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• 14 Luật kiểm định bằng mã máy</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• taste-lint &amp; validate-layout</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Vi phạm = Chặn phát hành (Exit 1)</text>
+                
+                <rect x="32" y="340" width="396" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">GATE: 0-Violation Required</text>
+              </g>
+
+              <!-- Node 3: Two Sources of Truth -->
+              <g transform="translate(1190, 60)" id="nodePillar3" style="cursor: pointer;">
+                <rect width="360" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="360" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="310" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="310" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">CHÂN LÝ 03</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Hai Nguồn Chân Lý</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Knowledge Core vs UI Binary</text>
+                
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• knowledge/: Tri thức cho AI</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• ui binary: Engine toán học màu</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Zero runtime dependency</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chạy offline, không gọi LLM</text>
+                
+                <rect x="32" y="340" width="296" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">SEPARATION: Pure Binary</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Core Philosophy</div><div>02 / 18</div></footer>
+        <div data-speaker-notes="3 chân lý tạo nên nền móng vững chắc của DESIGN:OS. Nhấn nút để xem luồng tương tác giữa 3 chân lý."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 03: SƠ ĐỒ PHÂN QUYỀN AI vs KERNEL    -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-3" data-index="3">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Kiến Trúc Phân Quyền</span></div>
+          <div>02 • Architecture Split</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Kiến Trúc Phân Quyền</span>
+            <h2 class="slide-title-h1 gsap-reveal">Sơ Đồ Phân Quyền: AI Reasoning vs UI Kernel</h2>
+            <p class="slide-subtitle gsap-reveal">Host AI Agent đóng vai trò sáng tạo (Reasoning), trong khi UI Kernel làm nhiệm vụ tính toán toán học và kiểm tra tuân thủ (Verification).</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-arch">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Mô Phỏng Dòng Dữ Liệu</span>
+            </button>
+
+            <!-- Complete Clean SVG Architecture Diagram for Slide 3 -->
+            <svg class="diagram-svg" id="svgArchSplit" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Active Connectors -->
+              <path d="M 370 260 L 500 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 1040 260 L 1170 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              
+              <!-- Moving Animated Packets -->
+              <g transform="translate(370, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(1040, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Left Node: User Intent -->
+              <g transform="translate(50, 60)" id="nodeUser" style="cursor: pointer;">
+                <rect width="320" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="320" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="270" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="270" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">INPUT TRIGGER</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">User Intent</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Natural Language Brief</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Yêu cầu tính năng &amp; bố cục</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Lựa chọn Persona thiết kế</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Đề bài phát triển giao diện</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Khởi động qua lệnh CLI</text>
+
+                <rect x="32" y="340" width="256" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CLI: /ui:generate</text>
+              </g>
+
+              <!-- Center Node: Host AI Agent + Knowledge -->
+              <g transform="translate(500, 60)" id="nodeAgent" style="cursor: pointer;">
+                <rect width="540" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="540" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="490" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="490" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">REASONING &amp; KNOWLEDGE</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Host AI Agent</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Claude Code / Gemini / Codex</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Suy luận thẩm mỹ &amp; Đọc knowledge/</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Áp dụng 26 Personas &amp; Motion T1-T6</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tuân thủ UX Laws (Fitts, Hick, Miller)</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Sinh candidate HTML/CSS gắn token</text>
+
+                <rect x="32" y="340" width="476" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">PAYLOAD: HTML Candidate with DTCG Tokens</text>
+              </g>
+
+              <!-- Right Node: UI Kernel -->
+              <g transform="translate(1170, 60)" id="nodeKernel" style="cursor: pointer;">
+                <rect width="380" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="380" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="330" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="330" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">DETERMINISTIC KERNEL</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">UI Kernel</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Zero-Dependency Binary</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Toán học màu OKLCH &amp; Delta EOK</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Biên dịch DTCG Tokens sang CSS</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• 14 Luật sàn thẩm mỹ taste-lint</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Sàn an toàn layout validate-layout</text>
+
+                <rect x="32" y="340" width="316" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">VERDICT: 0 Errors Required</text>
+              </g>
+
+              <!-- Feedback Arc -->
+              <path d="M 1360 460 C 1360 510, 770 510, 770 460" stroke="var(--border-medium)" stroke-width="2" stroke-dasharray="6 6"/>
+              <text x="1065" y="505" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" text-anchor="middle">Targeted Repair Loop (Nếu Linter trả về Exit 1)</text>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Architecture • System Division of Labor</div><div>03 / 18</div></footer>
+        <div data-speaker-notes="Nhấn nút Mô phỏng để xem dòng dữ liệu di chuyển từ Intent sang Agent và qua Kernel xác thực. Kernel chạy độc lập hoàn toàn không gọi API bên ngoài."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 04: HỆ SINH THÁI OPTIONAL HANDS       -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-4" data-index="4">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Optional Hands</span></div>
+          <div>03 • Specialized Modules</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Module Mở Rộng</span>
+            <h2 class="slide-title-h1 gsap-reveal">Hệ Sinh Thái Các "Bàn Tay" Chuyên Dụng (Optional Hands)</h2>
+            <p class="slide-subtitle gsap-reveal">Ngoài lõi kernel tất định, DESIGN:OS cung cấp các cánh tay chuyên trách cho Figma, Bộ nhớ vector và Visual Regression.</p>
+          </div>
+
+          <div class="slide-grid-4">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FIGMA 1:1 MIRROR</span>
+              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">figma-agent</div>
+              <p class="stat-desc">Kết nối trực tiếp Figma Desktop qua broker port 9410. Dựng auto-layout chuẩn xác, hoán đổi component và đồng bộ tokens 2 chiều.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">SEMANTIC MEMORY</span>
+              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">recall</div>
+              <p class="stat-desc">Bộ nhớ vector cục bộ chạy ONNX embeddings. Nạp bài học cũ khi bắt đầu tác vụ và đúc kết kinh nghiệm bền vững khi kết thúc.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">VISUAL REGRESSION</span>
+              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">page-shot &amp; vr</div>
+              <p class="stat-desc">Chụp render thực tế và so sánh pixel-level diff cho từng component (<code>vr-matrix</code>), chặn các lỗi dịch chuyển layout ngoài ý muốn.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">RENDERED A11Y</span>
+              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">a11y-audit</div>
+              <p class="stat-desc">Thực thi axe-core trên Chrome headless để kiểm tra độ tương phản thực tế và cây ngữ nghĩa ARIA ở trạng thái rendered (Tier-2 A11y).</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Toolchain • Optional Hands</div><div>04 / 18</div></footer>
+        <div data-speaker-notes="Mỗi bàn tay có cơ chế degrade thông minh: nếu thiếu recall hay figma-agent, hệ thống sẽ cảnh báo rõ ràng thay vì bị lỗi crash ngầm."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 05: HỆ THỐNG 3 TẦNG DESIGN SOUL      -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-5" data-index="5">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Bản Sắc Thiết Kế</span></div>
+          <div>04 • Design Soul Architecture</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Bản Sắc Thiết Kế</span>
+            <h2 class="slide-title-h1 gsap-reveal">Hệ Thống 3 Tầng Design Soul (Never / Always / Voice)</h2>
+            <p class="slide-subtitle gsap-reveal">Định hình lập trường thẩm mỹ và ngôn ngữ thiết kế nhất quán từ cấp Studio đến từng dự án cụ thể.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-soul">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Kiểm Tra Chuỗi Ưu Tiên</span>
+            </button>
+
+            <!-- Clean Complete SVG Soul Hierarchy Diagram -->
+            <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Active Flow Connectors -->
+              <path d="M 470 260 L 570 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 1030 260 L 1130 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+
+              <!-- Moving Animated Packets -->
+              <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Tier 1: Factory Soul -->
+              <g transform="translate(50, 60)" id="soulFactory" style="cursor: pointer;">
+                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="370" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="370" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">TẦNG 1: MẶC ĐỊNH</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Factory Soul</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Built-in Binary Default</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tiêu chuẩn thẩm mỹ toàn cầu</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Biên dịch sẵn trong mã nguồn</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Đảm bảo chất lượng ngày đầu</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tra cứu: ui ds soul factory</text>
+
+                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">READ-ONLY: Built-in Base</text>
+              </g>
+
+              <!-- Tier 2: Studio Soul -->
+              <g transform="translate(570, 60)" id="soulStudio" style="cursor: pointer;">
+                <rect width="460" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="460" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="410" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="410" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">TẦNG 2: CẤP MÁY / STUDIO</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Studio Soul</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">$EASE_DESIGN_HOME/studio-soul.md</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Khởi tạo 1 lần cho cả máy</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Trường name: định danh Agent</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Áp dụng cho mọi repo trên máy</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Lệnh: ui ds soul init --studio</text>
+
+                <rect x="32" y="340" width="396" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">PREFIX: designer-studio-*</text>
+              </g>
+
+              <!-- Tier 3: Project Soul -->
+              <g transform="translate(1130, 60)" id="soulProject" style="cursor: pointer;">
+                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="370" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="370" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">TẦNG 3: CẤP DỰ ÁN</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Project Soul</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">design/soul.md</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Quy tắc Never / Always / Voice</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Ghi đè ưu tiên cao nhất</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Kiểm tra: ui ds soul check</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chuyển draft sang ratified</text>
+
+                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">AUTHORITY: Project Overrides</text>
+              </g>
+
+              <!-- Bottom Precedence Legend -->
+              <text x="800" y="490" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" text-anchor="middle">
+                Chuỗi Ưu Tiên: Explicit Brief &gt; Project Soul &gt; Studio Soul &gt; Memory Prior &gt; Knowledge Floors
+              </text>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Architecture • Soul Precedence</div><div>05 / 18</div></footer>
+        <div data-speaker-notes="Lưu ý: Studio soul thiết lập 1 lần cho cả máy, còn Project soul thiết lập cho từng repo. Phải chuyển status sang ratified sau khi điền Never/Always/Voice."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 06: 6 CỔNG ONBOARDING (E1 - E6)       -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-6" data-index="6">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Onboarding Router</span></div>
+          <div>05 • The 6 Entry Roads</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Quy Trình Onboarding</span>
+            <h2 class="slide-title-h1 gsap-reveal">Router 6 Cổng Vào Onboarding (E1–E6)</h2>
+            <p class="slide-subtitle gsap-reveal">Chạy <code>ui scan --json</code> để tự động nhận diện tình trạng dự án và chọn đúng lộ trình khởi tạo.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">E1 • GREENFIELD</span>
+              <div class="stat-label" style="margin-top: 10px;">Dự án mới hoàn toàn</div>
+              <p class="stat-desc">Khởi tạo Design System từ 1 trong 26 Personas có sẵn.</p>
+              <div class="code-terminal" style="padding: 12px; margin-top: 14px; font-size: 13px;">
+                <code>ui ds init app --persona aurora-minimal</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">E2 • BROWNFIELD</span>
+              <div class="stat-label" style="margin-top: 10px;">Codebase có sẵn</div>
+              <p class="stat-desc">Quét mã nguồn hiện tại và biên dịch thành Design System.</p>
+              <div class="code-terminal" style="padding: 12px; margin-top: 14px; font-size: 13px;">
+                <code>ui scan --cwd . → /ui:learn</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">E3 • LIVE URL</span>
+              <div class="stat-label" style="margin-top: 10px;">Bóc tách từ URL</div>
+              <p class="stat-desc">Trích xuất màu sắc, typography từ website bạn thích.</p>
+              <div class="code-terminal" style="padding: 12px; margin-top: 14px; font-size: 13px;">
+                <code>/ui:from-url https://linear.app</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">E4 • FIGMA LIBRARY</span>
+              <div class="stat-label" style="margin-top: 10px;">Thư viện Figma</div>
+              <p class="stat-desc">Quét Figma file và chuyển thành bundle tokens + registry.</p>
+              <div class="code-terminal" style="padding: 12px; margin-top: 14px; font-size: 13px;">
+                <code>design-os figma scan → ui ingest-figma-ds</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">E5 • DTCG TOKENS</span>
+              <div class="stat-label" style="margin-top: 10px;">Token shadcn / DTCG</div>
+              <p class="stat-desc">Nạp file token JSON có sẵn vào kho Design System.</p>
+              <div class="code-terminal" style="padding: 12px; margin-top: 14px; font-size: 13px;">
+                <code>ui ds import tokens.json --name my-app</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">E6 • MOODBOARD</span>
+              <div class="stat-label" style="margin-top: 10px;">Ảnh mẫu &amp; Shots</div>
+              <p class="stat-desc">Nạp ảnh chụp màn hình để trích xuất hạt giống Persona.</p>
+              <div class="code-terminal" style="padding: 12px; margin-top: 14px; font-size: 13px;">
+                <code>design-os reference add ./shot.png</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Onboarding • Entry Roads E1-E6</div><div>06 / 18</div></footer>
+        <div data-speaker-notes="6 cổng vào này đảm bảo DESIGN:OS hòa nhập vào bất kỳ quy trình làm việc nào của team dù là vẽ Figma trước hay code trước."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 07: QUY TRÌNH ONBOARD 5 BƯỚC & STOP-GATES -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-7" data-index="7">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Onboarding Checklist</span></div>
+          <div>06 • Setup &amp; Stop-Gates</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Quy Trình Onboarding</span>
+            <h2 class="slide-title-h1 gsap-reveal">Quy Trình 5 Bước &amp; Các STOP-Gates Bắt Buộc</h2>
+            <p class="slide-subtitle gsap-reveal">Tuân thủ thứ tự thiết lập để không bao giờ gặp lỗi lệch mã băm hoặc sai danh tính Agent.</p>
+          </div>
+
+          <div class="slide-grid-2">
+            <div class="slide-card gsap-card">
+              <div class="stat-label">5 Bước Khởi Tạo Chuẩn Xác</div>
+              <ol style="padding-left: 24px; font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.8; margin-top: 16px;">
+                <li><strong>Bước 0:</strong> Chạy <code>ui onboard</code> xem checklist và <code>ui scan</code>.</li>
+                <li><strong>Bước 1:</strong> Chọn cổng (E1–E6) để seal kho <code>design/</code>.</li>
+                <li><strong>Bước 2:</strong> Chạy cả 2 lệnh Doctor: <code>ui doctor</code> và <code>design-os doctor --versions</code>.</li>
+                <li><strong>Bước 3:</strong> Điền Never/Always/Voice vào <code>design/soul.md</code> rồi chạy <code>ui ds soul check</code>.</li>
+                <li><strong>Bước 4:</strong> Khởi tạo đội ngũ Agent: <code>ui agents init</code>.</li>
+              </ol>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="slide-card gsap-card" style="border-top-color: var(--text-primary);">
+                <span class="matrix-badge">⚠️ STOP-GATE 1: NAMING HYGIENE</span>
+                <div class="stat-label" style="margin-top: 8px;">Luôn truyền --name khi import token</div>
+                <p class="stat-desc">Nếu bỏ qua <code>--name &lt;slug&gt;</code>, hệ thống mặc định đặt tên là <code>imported-ds</code> và sau này toàn bộ AI Agent sẽ bị đặt tên là <code>designer-imported-ds</code>.</p>
+              </div>
+
+              <div class="slide-card gsap-card" style="border-top-color: var(--text-primary);">
+                <span class="matrix-badge">🛑 STOP-GATE 2: GIT PREREQUISITE</span>
+                <div class="stat-label" style="margin-top: 8px;">Bắt buộc phải là Git Repository</div>
+                <p class="stat-desc">Dự án phải có <code>.git</code> (chạy <code>git init</code>). Nếu không có git, các lỗi lệch hash registry sau này sẽ không thể diff và truy vết.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Onboarding • Verification &amp; Stop-Gates</div><div>07 / 18</div></footer>
+        <div data-speaker-notes="Hai bác sĩ kiểm tra 2 việc khác nhau: ui doctor kiểm tra kernel, còn design-os doctor kiểm tra các optional hands như figma-agent và recall."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 08: ĐỘI NGŨ SUBAGENTS ẢO & HEARTBEAT -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-8" data-index="8">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Agent Staff</span></div>
+          <div>07 • Virtual Design Staff</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Đội Ngũ Agent</span>
+            <h2 class="slide-title-h1 gsap-reveal">Đội Ngũ Subagents Ảo &amp; Heartbeat Định Kỳ</h2>
+            <p class="slide-subtitle gsap-reveal">Một lệnh <code>ui agents init</code> cấp cho dự án một đội ngũ 3 chuyên gia AI với ranh giới trách nhiệm nghiêm ngặt.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">AI DESIGNER</span>
+              <div class="stat-label" style="font-size: var(--font-size-base); margin-top: 8px;">designer-&lt;studio&gt;-&lt;project&gt;</div>
+              <p class="stat-desc" style="margin-top: 14px;"><strong>Vai trò:</strong> Sinh giao diện, tinh chỉnh code HTML/CSS theo đúng Design Tokens.<br><br><strong style="color: var(--text-primary);">Ranh giới cấm:</strong> Không bao giờ được tự chấm điểm bài làm của chính mình.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">AI CURATOR</span>
+              <div class="stat-label" style="font-size: var(--font-size-base); margin-top: 8px;">curator-&lt;studio&gt;-&lt;project&gt;</div>
+              <p class="stat-desc" style="margin-top: 14px;"><strong>Vai trò:</strong> Thanh tra độc lập, phê bình thẩm mỹ 6+1 trục, đối chiếu spec và đưa ra phán quyết.<br><br><strong style="color: var(--text-primary);">Ranh giới cấm:</strong> Không bao giờ được trực tiếp sửa code.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FIGMA HAND</span>
+              <div class="stat-label" style="font-size: var(--font-size-base); margin-top: 8px;">figma-&lt;studio&gt;-&lt;project&gt;</div>
+              <p class="stat-desc" style="margin-top: 14px;"><strong>Vai trò:</strong> Thao tác trực tiếp trên canvas Figma qua broker port 9410.<br><br><strong style="color: var(--text-primary);">Ranh giới cấm:</strong> Không bao giờ giả lập thao tác khi plugin Figma đang tắt.</p>
+            </div>
+          </div>
+
+          <div class="slide-card gsap-card" style="margin-top: 24px; padding: 20px 28px; flex-direction: row; align-items: center; justify-content: space-between;">
+            <div>
+              <strong style="font-size: var(--font-size-base);">❤️ Recurring Heartbeat (<code>design-os heartbeat</code>)</strong>
+              <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: 4px;">Tự động quét định kỳ: <code>nightly-a11y</code>, <code>weekly-specimen</code>, <code>preview-pages</code>, <code>figma-hygiene</code>.</p>
+            </div>
+            <span class="matrix-badge">HEALTH CHECK CỤC BỘ</span>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Agents • Specialized Roles</div><div>08 / 18</div></footer>
+        <div data-speaker-notes="Điểm độc đáo: Designer không bao giờ tự chấm điểm; Curator luôn đóng vai trò thanh tra khó tính chấm độc lập để bảo đảm chất lượng."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 09: 6 ĐỘNG TỪ THƯỜNG NHẬT            -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-9" data-index="9">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Daily Verbs</span></div>
+          <div>08 • Everyday Workflow</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Công Việc Hàng Ngày</span>
+            <h2 class="slide-title-h1 gsap-reveal">6 Động Từ Thường Nhật (Daily Verbs)</h2>
+            <p class="slide-subtitle gsap-reveal">Tương tác bằng ngôn ngữ tự nhiên trong CLI. AI tự chuyển hóa thành kế hoạch và code chuẩn mực.</p>
+          </div>
+
+          <div class="slide-grid-2">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">1. TẠO GIAO DIỆN MỚI</span>
+              <div class="code-terminal" style="margin-top: 10px;">
+                <span class="code-prompt">&gt; </span><span class="code-keyword">/ui:generate</span> landing page for an AI developer tool, brutalist-editorial, dark theme
+              </div>
+              <p class="stat-desc" style="margin-top: 10px;">Biến yêu cầu sơ khai thành brief chuẩn, dựng layout gắn token, kiểm tra qua 6 linter.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">2. CHỈNH SỬA VI MÔ</span>
+              <div class="code-terminal" style="margin-top: 10px;">
+                <span class="code-prompt">&gt; </span><span class="code-keyword">/ui:iterate</span> make the hero headline larger and the CTA button warmer
+              </div>
+              <p class="stat-desc" style="margin-top: 10px;">Chỉnh sửa phẫu thuật từng dòng (line-diff) mà không làm vỡ cấu trúc của Design System.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">3. DỰNG LÊN FIGMA CANVAS</span>
+              <div class="code-terminal" style="margin-top: 10px;">
+                <span class="code-prompt">&gt; </span><span class="code-keyword">/ui:to-figma</span> 3-tier pricing card component with toggle
+              </div>
+              <p class="stat-desc" style="margin-top: 10px;">Vẽ trực tiếp lên Figma với cấu trúc auto-layout, instance component thật và biến màu token.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">4. TRUY VẤN BỘ NHỚ</span>
+              <div class="code-terminal" style="margin-top: 10px;">
+                <span class="code-prompt">&gt; </span><span class="code-keyword">/ui:why</span> why did we choose oklch(0.65 0.24 260) for primary CTA?
+              </div>
+              <p class="stat-desc" style="margin-top: 10px;">Truy vết nguồn gốc mọi quyết định thiết kế trong quá khứ từ Design Memory.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • Core Verbs</div><div>09 / 18</div></footer>
+        <div data-speaker-notes="Nhấn mạnh lệnh /ui:why giúp toàn bộ team hiểu rõ lý do đằng sau từng quyết định thiết kế thay vì phải đoán mò."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 10: BÓC TÁCH 4 BỀ MẶT AUDIT (SVG MATRIX) -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-10" data-index="10">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Audit Surfaces</span></div>
+          <div>09 • Audit Disambiguation</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Bề Mặt Kiểm Định</span>
+            <h2 class="slide-title-h1 gsap-reveal">Bóc Tách 4 Bề Mặt "Audit" Dễ Nhầm Lẫn</h2>
+            <p class="slide-subtitle gsap-reveal">4 công cụ khác nhau cùng mang từ khóa "Audit". Chọn đúng công cụ theo đúng đối tượng kiểm tra.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-audit-surfaces">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Mô Phỏng 4 Bề Mặt Audit</span>
+            </button>
+
+            <!-- 2x2 Matrix SVG Architecture Diagram -->
+            <svg class="diagram-svg" id="svgAuditSurfaces" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Quadrant 1: Top-Left (Figma Nodes JSON) -->
+              <g transform="translate(40, 40)" id="auditQuad1" style="cursor: pointer;">
+                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+
+                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 01 • FIGMA NODES JSON</text>
+                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">ui audit &lt;nodes.json&gt;</text>
+                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét báo cáo cấu trúc node xuất từ Figma</text>
+                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Bắt lỗi: raw-hex, detached-instance, off-grid spacing</text>
+                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Đã có file node JSON và cần báo cáo vi phạm Design System.</text>
+              </g>
+
+              <!-- Quadrant 2: Top-Right (Figma Live Canvas) -->
+              <g transform="translate(830, 40)" id="auditQuad2" style="cursor: pointer;">
+                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+
+                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 02 • LIVE FIGMA CANVAS</text>
+                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">/ui:audit</text>
+                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét frame Figma đang mở trên Desktop qua port 9410</text>
+                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Tự động CHUẨN HÓA: gán token, thay icon, re-instance component</text>
+                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Người dùng yêu cầu "Chuẩn hóa frame Figma này về đúng DS".</text>
+              </g>
+
+              <!-- Quadrant 3: Bottom-Left (HTML & Project Dir) -->
+              <g transform="translate(40, 270)" id="auditQuad3" style="cursor: pointer;">
+                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+
+                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 03 • HTML / PROJECT SWEEP</text>
+                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">design-os audit &lt;dir&gt;</text>
+                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét tĩnh toàn diện mã nguồn: validate-layout + a11y-lint + taste-lint</text>
+                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Bắt lỗi 14 luật máy, cấu trúc DOM, overflow, touch-target</text>
+                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Kiểm tra toàn bộ giao diện HTML trước khi đóng gói release.</text>
+              </g>
+
+              <!-- Quadrant 4: Bottom-Right (Compiled Token Contrast) -->
+              <g transform="translate(830, 270)" id="auditQuad4" style="cursor: pointer;">
+                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+
+                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 04 • TOKEN PAIRS WCAG</text>
+                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">ui ds a11y</text>
+                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Kiểm tra độ tương phản tĩnh của từng cặp màu (text × surface)</text>
+                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Xác minh tiêu chuẩn WCAG AA (4.5:1 text, 3:1 display / UI)</text>
+                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Muốn trả lời nhanh "Bảng màu token này có đạt chuẩn WCAG AA không?"</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • The 4 Audit Surfaces</div><div>10 / 18</div></footer>
+        <div data-speaker-notes="Bảng ma trận 2x2 trực quan hóa 4 bề mặt Audit: Node JSON vs Live Canvas vs HTML Sweep vs Token Pairs. Nhấn nút để xem mô phỏng."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 11: FINDING TRIAGE & 2 NGUYÊN TẮC VÀNG -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-11" data-index="11">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Finding Triage</span></div>
+          <div>10 • Triage &amp; Core Rules</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Quy Trình Xử Lý Lỗi</span>
+            <h2 class="slide-title-h1 gsap-reveal">Quy Trình Triage Lỗi &amp; 2 Nguyên Tắc Vàng</h2>
+            <p class="slide-subtitle gsap-reveal">Đọc kết quả linter một cách khoa học để đưa ra quyết định Iterate hay Escalate.</p>
+          </div>
+
+          <div class="slide-grid-2">
+            <div class="slide-card gsap-card">
+              <div class="stat-label">Quy Trình Triage 3 Bước</div>
+              <ul style="padding-left: 20px; font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.8; margin-top: 16px;">
+                <li><strong>1. Luôn đọc cờ --json:</strong> Exit code <code>1</code> có thể do gọi sai flag (<code>BAD_ARG</code>) hoặc lỗi thiết kế thực sự. Xem envelope trước khi sửa code.</li>
+                <li><strong>2. Exit 0:</strong> Không có lỗi severity error → Sẵn sàng phát hành (Ship).</li>
+                <li><strong>3. Exit 1:</strong> Có lỗi nghiêm trọng → Chọn <strong>Iterate</strong> (sửa code và quét lại) hoặc <strong>Escalate</strong> (báo cáo mâu thuẫn yêu cầu).</li>
+              </ul>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="slide-card gsap-card">
+                <span class="matrix-badge">NGUYÊN TẮC VÀNG 1</span>
+                <div class="stat-label" style="margin-top: 8px;">Xác Minh Trước Khi Sửa (Verify Before Fix)</div>
+                <p class="stat-desc">Kiểm tra xem cặp màu hoặc class bị linter bắt lỗi có thực sự được render trên màn hình không trước khi vội vàng sửa đổi file token gốc.</p>
+              </div>
+
+              <div class="slide-card gsap-card">
+                <span class="matrix-badge">NGUYÊN TẮC VÀNG 2</span>
+                <div class="stat-label" style="margin-top: 8px;">A11y Luôn Thắng Phong Cách (A11y Always Wins)</div>
+                <p class="stat-desc">Nếu màu sắc từ yêu cầu của người dùng vi phạm độ tương phản WCAG AA, bắt buộc phải ưu tiên sửa màu A11y và báo cáo minh bạch cho người dùng.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • Finding Triage</div><div>11 / 18</div></footer>
+        <div data-speaker-notes="A11y luôn là tiêu chuẩn cứng không thể thỏa hiệp trong DESIGN:OS."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 12: VÒNG LẶP BỘ NHỚ THIẾT KẾ         -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-12" data-index="12">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Design Memory</span></div>
+          <div>11 • Recall &amp; Reflect Loop</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Bộ Nhớ Thiết Kế</span>
+            <h2 class="slide-title-h1 gsap-reveal">Vòng Lặp Bộ Nhớ Thiết Kế (Recall &amp; Reflect)</h2>
+            <p class="slide-subtitle gsap-reveal">DESIGN:OS ghi nhớ mọi kinh nghiệm thành công và bài học thất bại để AI ngày càng hoàn thiện sau mỗi phiên làm việc.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-memory">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Kích Hoạt Vòng Lặp Học Tập</span>
+            </button>
+
+            <!-- Memory Loop SVG Diagram -->
+            <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Active Flow Connectors -->
+              <path d="M 480 260 L 560 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 980 260 L 1060 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+
+              <!-- Moving Animated Packets -->
+              <g transform="translate(480, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(980, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Step 1: Recall Query at Start -->
+              <g transform="translate(50, 60)" id="memRecall" style="cursor: pointer;">
+                <rect width="430" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="380" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="380" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">1. ĐẦU PHIÊN (JOB START)</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Recall Query</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Vector Embeddings (ONNX)</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Truy vấn bộ nhớ vector cục bộ</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tìm kiếm bài học kinh nghiệm cũ</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Nạp danh sách ID vào context</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chuẩn bị prompt prior chính xác</text>
+
+                <rect x="32" y="340" width="366" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CMD: recall query &lt;topic&gt;</text>
+              </g>
+
+              <!-- Step 2: Work in Progress -->
+              <g transform="translate(560, 60)" id="memWork" style="cursor: pointer;">
+                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="370" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="370" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">2. THỰC HIỆN CÔNG VIỆC</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Design &amp; Lint</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Execution &amp; Telemetry</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Sinh giao diện theo tokens</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chạy qua sàn linter tất định</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Thu thập telemetry &amp; events</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Ghi nhận tương tác thiết kế</text>
+
+                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">STATUS: job-events.json</text>
+              </g>
+
+              <!-- Step 3: Reflect at End -->
+              <g transform="translate(1060, 60)" id="memReflect" style="cursor: pointer;">
+                <rect width="490" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="490" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="440" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="440" cy="48" r="4" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">3. CUỐI PHIÊN (JOB END)</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Reflect &amp; Learn</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Knowledge Distillation</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• recall index --project .</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• recall reflect job-events.json</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Đúc kết bài học thành công/thất bại</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Cập nhật vĩnh viễn vào kho tri thức</text>
+
+                <rect x="32" y="340" width="426" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">RESULT: Permanent Memory Gain</text>
+              </g>
+
+              <!-- Elo Taste Note -->
+              <text x="800" y="490" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" text-anchor="middle">
+                🏆 Đấu Cặp Elo Thẩm Mỹ: ui taste next → ui taste record --winner a|b
+              </text>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Memory • Living Learning Loop</div><div>12 / 18</div></footer>
+        <div data-speaker-notes="Nhấn nút để kích hoạt hoạt ảnh dòng lưu chuyển của bộ nhớ thiết kế qua các giai đoạn Recall, Work và Reflect."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 13: MÔ HÌNH 6+1 TRỤC THẨM MỸ         -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-13" data-index="13">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Taste Rubric</span></div>
+          <div>12 • 6+1 Craft Axes</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Tiêu Chuẩn Thẩm Mỹ</span>
+            <h2 class="slide-title-h1 gsap-reveal">Mô Hình 6+1 Trục Thẩm Mỹ (Taste Rubric)</h2>
+            <p class="slide-subtitle gsap-reveal">Mỗi trục được chấm điểm từ 0 đến 10. AI định hình thiết kế theo tiêu chuẩn và Curator dùng để kiểm tra.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-taste-radar">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Quét Sàn 6+1 Trục Thẩm Mỹ (Score 8–10)</span>
+            </button>
+
+            <!-- Complete SVG Craft Matrix Diagram for Slide 13 -->
+            <svg class="diagram-svg" id="svgTasteRadar" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Active Flow Connectors to Satellite Cards -->
+              <path d="M 470 150 L 510 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 470 370 L 510 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 840 150 L 860 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 1190 150 L 1210 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 840 370 L 860 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 1190 370 L 1210 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+
+              <!-- LEFT MASTER CORE: Axis 7 (Consistency) -->
+              <g transform="translate(40, 50)" id="tasteCore7" style="cursor: pointer;">
+                <rect width="430" height="420" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
+                <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="380" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="380" cy="48" r="5" fill="var(--text-primary)"/>
+
+                <text x="28" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" letter-spacing="1">TRỤC 7 (TRỌNG TÂM CỐT LÕI)</text>
+                <text x="28" y="90" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="800">Consistency</text>
+                <text x="28" y="122" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">100% DTCG Token Reuse</text>
+
+                <text x="28" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 100% thuộc tính CSS dùng token</text>
+                <text x="28" y="212" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tái sử dụng component Registry</text>
+                <text x="28" y="249" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Triệt tiêu hoàn toàn mã màu Hex</text>
+                <text x="28" y="286" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Cấm tự viết component đã có</text>
+
+                <rect x="28" y="340" width="374" height="42" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+                <text x="44" y="366" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">FLOOR: Score 10/10 Mandatory</text>
+              </g>
+
+              <!-- SATELLITE 1: Layout -->
+              <g transform="translate(510, 50)" id="tasteAxis1" style="cursor: pointer;">
+                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
+                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">1. LAYOUT &amp; HIERARCHY</text>
+                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Bố Cục &amp; Tiêu Điểm</text>
+                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tiêu điểm duy nhất mỗi viewport</text>
+                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tỷ lệ khoảng trắng có chủ đích</text>
+                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm container soup &gt; 3 cấp</text>
+              </g>
+
+              <!-- SATELLITE 2: Typography -->
+              <g transform="translate(860, 50)" id="tasteAxis2" style="cursor: pointer;">
+                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
+                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">2. TYPOGRAPHY</text>
+                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Thang Bậc Font Chữ</text>
+                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tỷ lệ modular chuẩn xác</text>
+                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tracking âm ở display; leading thoáng</text>
+                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm body &lt; 16px, &gt; 7 cỡ font</text>
+              </g>
+
+              <!-- SATELLITE 3: Spacing -->
+              <g transform="translate(1210, 50)" id="tasteAxis3" style="cursor: pointer;">
+                <rect width="350" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="350" height="6" rx="3" fill="var(--text-primary)"/>
+                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">3. SPACING RHYTHM</text>
+                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Nhịp Điệu Không Gian</text>
+                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tuân thủ thang nhịp 4/8px token</text>
+                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Khoảng cách phản ánh quan hệ</text>
+                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm hardcode pixel rời rạc</text>
+              </g>
+
+              <!-- SATELLITE 4: Motion -->
+              <g transform="translate(510, 270)" id="tasteAxis4" style="cursor: pointer;">
+                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
+                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">4. MOTION LADDER</text>
+                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Bậc Chuyển Động T1–T6</text>
+                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Chuyển động có chủ đích &amp; ý nghĩa</text>
+                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• prefers-reduced-motion bắt buộc</text>
+                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm transition: all</text>
+              </g>
+
+              <!-- SATELLITE 5: Iconography -->
+              <g transform="translate(860, 270)" id="tasteAxis5" style="cursor: pointer;">
+                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
+                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">5. ICONOGRAPHY</text>
+                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Đồng Nhất Nét Vẽ</text>
+                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Dùng duy nhất bộ Phosphor Icons</text>
+                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Đồng bộ nét stroke và optical size</text>
+                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm trộn icon các bộ khác</text>
+              </g>
+
+              <!-- SATELLITE 6: Depth & Surfaces -->
+              <g transform="translate(1210, 270)" id="tasteAxis6" style="cursor: pointer;">
+                <rect width="350" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="350" height="6" rx="3" fill="var(--text-primary)"/>
+                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">6. DEPTH &amp; SURFACES</text>
+                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Phân Tầng Thị Giác</text>
+                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Bóng đổ đa tầng nhuộm màu nền</text>
+                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Viền bán trong suốt 1px tinh tế</text>
+                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm bóng đen xì #000000</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Quality Floor • The 6+1 Taste Rubric</div><div>13 / 18</div></footer>
+        <div data-speaker-notes="Mô hình 6+1 trục thẩm mỹ định lượng hóa tiêu chuẩn thiết kế: Trục 7 Consistency là hạt nhân, bao quanh là 6 trục thị giác vệ tinh."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 14: 14 LUẬT KIỂM ĐỊNH MÁY CỨNG       -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-14" data-index="14">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Machine Floor</span></div>
+          <div>13 • 14 Hard Linter Rules</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Sàn Chất Lượng Tất Định</span>
+            <h2 class="slide-title-h1 gsap-reveal">14 Luật Kiểm Định Máy Cứng (Machine Floor)</h2>
+            <p class="slide-subtitle gsap-reveal">Các linter <code>taste-lint</code>, <code>validate-layout</code>, <code>content-lint</code> tự động phát hiện và chặn đứng các lỗi AI code rác.</p>
+          </div>
+
+          <div class="slide-grid-2">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">CHUYỂN ĐỘNG &amp; LAYOUT SAFETY</span>
+              <ul style="padding-left: 20px; font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.8; margin-top: 14px;">
+                <li><code>no-transition-all</code>: Cấm dùng transition: all gây drop FPS.</li>
+                <li><code>no-layout-keyframes</code>: Cấm animate top, left, width, height.</li>
+                <li><code>require-reduced-motion</code>: Bắt buộc có media query giảm chuyển động.</li>
+                <li><code>no-100vw-scroll</code>: Cấm w-[100vw] gây thanh cuộn ngang khó chịu.</li>
+                <li><code>no-root-overflow-hidden</code>: Cấm overflow-x: hidden ở thẻ html/body làm liệt sticky.</li>
+              </ul>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">TYPOGRAPHY &amp; NỘI DUNG UX</span>
+              <ul style="padding-left: 20px; font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.8; margin-top: 14px;">
+                <li><code>min-body-font</code>: Cấm font chữ body nhỏ hơn 16px.</li>
+                <li><code>no-font-scale-sprawl</code>: Cảnh báo &gt; 7 cỡ font tự chế, chặn khi &gt; 10 cỡ.</li>
+                <li><code>no-italic-headings</code>: Cấm tiêu đề display dùng font chữ nghiêng.</li>
+                <li><code>no-pure-black-shadow</code>: Cấm bóng đổ đen tuyệt đối rgba(0,0,0,...).</li>
+                <li><code>no-placeholder-copy</code>: Cấm văn bản rác vô nghĩa, tên giả vô định, link rỗng.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Quality Floor • 14 Machine Rules</div><div>14 / 18</div></footer>
+        <div data-speaker-notes="14 luật máy này giải quyết triệt để các căn bệnh cố hữu của mã nguồn do AI tự động sinh."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 15: QUALIFIED DELIVERY v2            -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-15" data-index="15">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Qualified Delivery</span></div>
+          <div>14 • Release Verification</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Quy Trình Bàn Giao</span>
+            <h2 class="slide-title-h1 gsap-reveal">Hợp Đồng Qualified Delivery v2</h2>
+            <p class="slide-subtitle gsap-reveal">Biến việc sinh UI thành quy trình phát hành có bằng chứng kiểm định rõ ràng (Evidence-based release).</p>
+          </div>
+
+          <div class="slide-grid-4">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 1 • BRIEF</span>
+              <div class="stat-label" style="margin-top: 10px;">design-brief.json</div>
+              <p class="stat-desc">Biến yêu cầu sơ khai thành hợp đồng nghiệp vụ: đối tượng, mục tiêu, tuyên bố bị cấm.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 2 • CONTRACT</span>
+              <div class="stat-label" style="margin-top: 10px;">generation-contract.json</div>
+              <p class="stat-desc">Khai báo 3 hướng cấu trúc, nhiệm vụ từng vùng, hình ảnh và icon Phosphor bắt buộc.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 3 • EVIDENCE</span>
+              <div class="stat-label" style="margin-top: 10px;">Renders 1440 / 768 / 390</div>
+              <p class="stat-desc">Sinh candidate và chụp ảnh render thực tế ở cả 3 kích thước Desktop, Tablet và Mobile.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 4 • VERDICT</span>
+              <div class="stat-label" style="margin-top: 10px;">QUALIFIED</div>
+              <p class="stat-desc">Curator đối chiếu bằng chứng. Đạt 100% gates → Phát hành; Thiếu sót → DRAFT_WITH_CONCERNS.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Qualified Delivery v2</div><div>15 / 18</div></footer>
+        <div data-speaker-notes="Trạng thái QUALIFIED bắt buộc phải có bằng chứng render thực tế cả 3 viewport, không thể nói suông."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 16: THỨ TỰ 6 BƯỚC FULL-STACK AUDIT    -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-16" data-index="16">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Full-Stack Audit</span></div>
+          <div>15 • The 6-Step Audit Pipeline</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Quy Trình Bàn Giao</span>
+            <h2 class="slide-title-h1 gsap-reveal">Thứ Tự 6 Bước Full-Stack Audit Bắt Buộc</h2>
+            <p class="slide-subtitle gsap-reveal">Thứ tự thực thi mang tính quyết định: chạy sai thứ tự sẽ dẫn đến kết quả kiểm định sai lệch.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-run-delivery-pipeline">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Chạy Mô Phỏng 6 Bước Audit</span>
+            </button>
+
+            <!-- 6-Step Audit SVG Pipeline -->
+            <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Active Flow Connectors -->
+              <path d="M 255 260 L 290 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 515 260 L 550 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 775 260 L 810 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 1035 260 L 1070 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+              <path d="M 1295 260 L 1330 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+
+              <!-- Step 1 -->
+              <g transform="translate(30, 60)" id="pipeStep1" style="cursor: pointer;">
+                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 01</text>
+                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Flow First</text>
+                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">ui flow lint</text>
+                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét đồ thị IA flow</text>
+                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Bắt lỗi orphan views</text>
+                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Kiểm tra màn hình cụt</text>
+                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">flow.json CHECK</text>
+              </g>
+
+              <!-- Step 2 -->
+              <g transform="translate(290, 60)" id="pipeStep2" style="cursor: pointer;">
+                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 02</text>
+                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Evidence</text>
+                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">ui evidence verify</text>
+                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Xác minh trích dẫn</text>
+                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Đối chiếu file bằng chứng</text>
+                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Chống AI bịa bằng chứng</text>
+                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">EVIDENCE VALID</text>
+              </g>
+
+              <!-- Step 3 -->
+              <g transform="translate(550, 60)" id="pipeStep3" style="cursor: pointer;">
+                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 03</text>
+                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">VR Baseline</text>
+                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">page-shot &amp; ui vr</text>
+                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Chụp baseline TRƯỚC</text>
+                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Ghi nhận snapshot gốc</text>
+                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Đối chiếu diff sau sửa</text>
+                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">BASELINE ACCEPT</text>
+              </g>
+
+              <!-- Step 4 -->
+              <g transform="translate(810, 60)" id="pipeStep4" style="cursor: pointer;">
+                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 04</text>
+                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Paired Tokens</text>
+                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">ui ds a11y</text>
+                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Tương phản cặp token</text>
+                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Text trên từng Surface</text>
+                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Đảm bảo WCAG AA</text>
+                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">PAIRS CONTRAST OK</text>
+              </g>
+
+              <!-- Step 5 -->
+              <g transform="translate(1070, 60)" id="pipeStep5" style="cursor: pointer;">
+                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 05</text>
+                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Rendered A11y</text>
+                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">a11y-audit (axe-core)</text>
+                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét Chrome Headless</text>
+                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Kiểm tra computed CSS</text>
+                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Cây ngữ nghĩa ARIA thật</text>
+                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">AXE PASS</text>
+              </g>
+
+              <!-- Step 6 -->
+              <g transform="translate(1330, 60)" id="pipeStep6" style="cursor: pointer;">
+                <rect width="240" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
+                <rect x="0" y="0" width="240" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="120" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 06</text>
+                <text x="120" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Full Audit</text>
+                <text x="120" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">design-os audit</text>
+                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• taste-lint 6+1 trục</text>
+                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• validate-layout tĩnh</text>
+                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• content-lint &amp; a11y</text>
+                <rect x="16" y="340" width="208" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="120" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">0 ERRORS → SHIP</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Ordered 6-Step Audit</div><div>16 / 18</div></footer>
+        <div data-speaker-notes="Nhấn nút Mô phỏng để GSAP chạy quét tuần tự từng bước từ 1 đến 6. Bước 3 chụp baseline phải chạy trước khi sửa token ở bước 4."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 17: DELIVERY CHECKLIST & SEMVER      -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-17" data-index="17">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Release &amp; Semver</span></div>
+          <div>16 • Checklist &amp; PR Review</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Đóng Gói Bàn Giao</span>
+            <h2 class="slide-title-h1 gsap-reveal">Delivery Checklist &amp; Phân Loại Semver PR</h2>
+            <p class="slide-subtitle gsap-reveal">Tạo tài liệu component tự động, trang specimen độc lập và tự động tính toán mức độ breaking change cho Pull Request.</p>
+          </div>
+
+          <div class="slide-grid-2">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">5 LỆNH TRONG DELIVERY CHECKLIST</span>
+              <div class="code-terminal" style="font-size: 13px; margin-top: 12px; line-height: 1.6;">
+                <span class="code-comment"># 1. Kiểm tra thiếu trạng thái component</span><br>
+                <code>ui ds specimen --dir . --strict --json</code><br><br>
+                <span class="code-comment"># 2. Tái tạo tài liệu component từ Registry</span><br>
+                <code>ui ds docs --dir . --out docs/components.md</code><br><br>
+                <span class="code-comment"># 3. Tạo trang specimen HTML độc lập</span><br>
+                <code>ui ds preview --dir . --out preview.html</code><br><br>
+                <span class="code-comment"># 4. Quét Visual Regression component kit</span><br>
+                <code>design-os vr-matrix --project .</code><br><br>
+                <span class="code-comment"># 5. Xuất Changelog lịch sử thay đổi</span><br>
+                <code>ui changelog --dir . --format markdown</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">PHÂN LOẠI SEMVER (ui ds diff)</span>
+              <div class="code-terminal" style="font-size: 13px; margin-top: 12px;">
+                <code>ui ds diff base head --format pr-comment</code>
+              </div>
+              <ul style="padding-left: 20px; font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.7; margin-top: 14px;">
+                <li><strong>MAJOR (Breaking):</strong> Xóa token/component đang dùng; hoặc thay đổi màu sắc vượt ngưỡng Delta EOK.</li>
+                <li><strong>MINOR (Additive):</strong> Thêm mới token/component hoặc thêm variant mà không ảnh hưởng code cũ.</li>
+                <li><strong>PATCH:</strong> Sửa lỗi chính tả token, vi chỉnh không gây lệch thị giác.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Semver &amp; Handoff</div><div>17 / 18</div></footer>
+        <div data-speaker-notes="Lệnh ui ds diff tự động tính toán Delta EOK để biết thay đổi màu sắc có làm vỡ giao diện của người dùng hay không."></div>
+      </article>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 18: TỔNG KẾT & BẮT ĐẦU TRẢI NGHIỆM    -->
+      <!-- ========================================== -->
+      <article class="slide-item" id="slide-18" data-index="18">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Summary</span></div>
+          <div>17 • Start Designing</div>
+        </header>
+
+        <section class="slide-content-zone" style="justify-content: center;">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Tổng Kết &amp; Thực Hành</span>
+            <h2 class="slide-title-display gsap-reveal">Bắt Đầu Ngay Trong 60 Giây</h2>
+            <p class="slide-subtitle gsap-reveal">Hệ sinh thái DESIGN:OS đã được cấu hình hoàn chỉnh trong môi trường của bạn.</p>
+          </div>
+
+          <div class="slide-grid-3" style="margin-top: 20px;">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 1</span>
+              <div class="stat-label" style="margin-top: 10px;">Khám Sức Khỏe</div>
+              <div class="code-terminal" style="margin-top: 12px; font-size: 13px;">
+                <code>ui onboard &amp;&amp; ui doctor</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 2</span>
+              <div class="stat-label" style="margin-top: 10px;">Khởi Tạo Dự Án</div>
+              <div class="code-terminal" style="margin-top: 12px; font-size: 13px;">
+                <code>ui ds init my-app --persona aurora-minimal</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">BƯỚC 3</span>
+              <div class="stat-label" style="margin-top: 10px;">Sinh Giao Diện</div>
+              <div class="code-terminal" style="margin-top: 12px; font-size: 13px;">
+                <code>/ui:generate landing page for my next idea</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Ready for Production</div><div>18 / 18</div></footer>
+        <div data-speaker-notes="Cảm ơn bạn đã tham gia khóa học làm chủ DESIGN:OS. Bạn có thể mở terminal và bắt đầu sinh giao diện ngay bây giờ!"></div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- Presenter Floating Navigation Controls -->
+  <nav class="nav-overlay" aria-label="Deck Controls">
+    <button class="nav-btn" id="btn-prev" title="Slide trước (←)">
+      <svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button class="nav-btn" id="btn-next" title="Slide tiếp (→)">
+      <svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+    <button class="nav-btn" id="btn-overview" title="Tổng quan Slide (O)">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    </button>
+    <button class="nav-btn" id="btn-notes" title="Ghi chú diễn giả (S)">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+    <button class="nav-btn" id="btn-theme" title="Đổi Theme Sáng/Tối (T)">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
+    <button class="nav-btn" id="btn-fullscreen" title="Toàn màn hình (F)">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+    </button>
+  </nav>
+
+  <!-- Speaker Notes Drawer -->
+  <aside class="speaker-notes-drawer" id="speakerNotesDrawer" aria-label="Presenter Speaker Notes">
+    <div class="notes-tag">Ghi Chú Diễn Giả (Bấm phím 'S' để ẩn/hiện)</div>
+    <div id="speakerNotesText" style="line-height: 1.6;"></div>
+  </aside>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-deck" id="progressBarDeck"></div>
+
+  <!-- Overview Grid Modal -->
+  <div class="overview-modal" id="overviewModal">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 100%; margin: 0 auto; width: 100%;">
+      <h2 style="font-size: var(--font-size-xl); font-weight: 800;">Tổng Quan Các Slide</h2>
+      <button class="interactive-badge-btn" id="btnCloseOverview" style="position: static;">Đóng [ESC]</button>
+    </div>
+    <div class="overview-grid" id="overviewGrid" style="max-width: 100%; margin: 0 auto; width: 100%;">
+      <!-- Injected via JS -->
+    </div>
+  </div>
+
+  <!-- GSAP Core Library CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <!-- Deck Orchestration & GSAP Choreography Script -->
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll('.slide-item'));
+      const stage = document.getElementById('slideStage');
+      const progressBar = document.getElementById('progressBarDeck');
+      const notesDrawer = document.getElementById('speakerNotesDrawer');
+      const notesText = document.getElementById('speakerNotesText');
+      const counterDisplay = document.getElementById('slideCounterDisplay');
+      const overviewModal = document.getElementById('overviewModal');
+      const overviewGrid = document.getElementById('overviewGrid');
+      const totalSlides = slides.length;
+      let currentIndex = 0;
+      let isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // 1. Responsive Fit-to-Screen Stage Scaling (1920x1080)
+      function scaleStage() {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const targetWidth = 1920;
+        const targetHeight = 1080;
+
+        const scaleX = viewportWidth / targetWidth;
+        const scaleY = viewportHeight / targetHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        stage.style.transform = `scale(${scale})`;
+      }
+
+      window.addEventListener('resize', scaleStage);
+      scaleStage();
+
+      // 2. GSAP Slide Entrance Choreography Engine (T5 Motion Tier)
+      function animateSlideEntrance(slideEl) {
+        if (isReducedMotion || typeof gsap === 'undefined') {
+          return;
+        }
+
+        const reveals = slideEl.querySelectorAll('.gsap-reveal');
+        const cards = slideEl.querySelectorAll('.gsap-card');
+
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 0.6 } });
+
+        if (reveals.length > 0) {
+          tl.fromTo(reveals, 
+            { y: 24, autoAlpha: 0 }, 
+            { y: 0, autoAlpha: 1, stagger: 0.08, clearProps: 'transform' }
+          );
+        }
+
+        if (cards.length > 0) {
+          tl.fromTo(cards, 
+            { y: 32, autoAlpha: 0, scale: 0.98 }, 
+            { y: 0, autoAlpha: 1, scale: 1, stagger: 0.09, clearProps: 'transform,scale' }, 
+            "-=0.3"
+          );
+        }
+      }
+
+      // 3. Slide Navigation Logic
+      function updateSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= totalSlides) index = totalSlides - 1;
+        currentIndex = index;
+
+        slides.forEach((slide, idx) => {
+          if (idx === currentIndex) {
+            slide.classList.add('active');
+            // Update speaker notes
+            const notesEl = slide.querySelector('[data-speaker-notes]');
+            notesText.textContent = notesEl ? notesEl.getAttribute('data-speaker-notes') : 'Không có ghi chú diễn giả cho slide này.';
+            // Update counter display
+            if (counterDisplay) {
+              const currentPadded = String(currentIndex + 1).padStart(2, '0');
+              const totalPadded = String(totalSlides).padStart(2, '0');
+              counterDisplay.textContent = `${currentPadded} / ${totalPadded}`;
+            }
+            // Trigger GSAP entrance choreography
+            animateSlideEntrance(slide);
+          } else {
+            slide.classList.remove('active');
+          }
+        });
+
+        // Update progress bar
+        const progressPct = ((currentIndex + 1) / totalSlides) * 100;
+        progressBar.style.width = progressPct + '%';
+      }
+
+      function nextSlide() {
+        if (currentIndex < totalSlides - 1) updateSlide(currentIndex + 1);
+      }
+
+      function prevSlide() {
+        if (currentIndex > 0) updateSlide(currentIndex - 1);
+      }
+
+      function toggleNotes() {
+        notesDrawer.classList.toggle('open');
+      }
+
+      function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', nextTheme);
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      }
+
+      // Overview Grid
+      function renderOverview() {
+        overviewGrid.innerHTML = '';
+        slides.forEach((slide, idx) => {
+          const title = slide.querySelector('.slide-title-display, .slide-title-h1');
+          const eyebrow = slide.querySelector('.slide-eyebrow');
+          const card = document.createElement('div');
+          card.className = `overview-card ${idx === currentIndex ? 'current' : ''}`;
+          card.innerHTML = `
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); font-weight: 700;">SLIDE ${String(idx + 1).padStart(2, '0')}</div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3;">${title ? title.textContent.trim() : 'Slide ' + (idx + 1)}</div>
+            <div style="font-size: 13px; color: var(--text-muted);">${eyebrow ? eyebrow.textContent.trim() : ''}</div>
+          `;
+          card.addEventListener('click', () => {
+            updateSlide(idx);
+            closeOverview();
+          });
+          overviewGrid.appendChild(card);
+        });
+      }
+
+      function toggleOverview() {
+        if (overviewModal.classList.contains('open')) {
+          closeOverview();
+        } else {
+          renderOverview();
+          overviewModal.classList.add('open');
+        }
+      }
+
+      function closeOverview() {
+        overviewModal.classList.remove('open');
+      }
+
+      // 4. Interactive GSAP Micro-Choreography Triggers on Diagrams
+      // A: Slide 2 - Foundations Triad Trigger
+      const btnPulseFoundations = document.getElementById('btn-pulse-triad-foundations');
+      if (btnPulseFoundations) {
+        btnPulseFoundations.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline();
+          tl.to('#nodePillar1', { scale: 1.04, duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' })
+            .to('.svg-packet-1', { scale: 2.2, fill: 'var(--text-primary)', duration: 0.3, yoyo: true, repeat: 2 }, '-=0.1')
+            .to('#nodePillar2', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1')
+            .to('#nodePillar3', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1');
+        });
+      }
+
+      // B: Slide 3 - Architecture Data Flow
+      const btnPulseArch = document.getElementById('btn-pulse-arch');
+      if (btnPulseArch) {
+        btnPulseArch.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline();
+          tl.to('#nodeUser', { scale: 1.04, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' })
+            .to('#nodeAgent', { scale: 1.03, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1')
+            .to('#nodeKernel', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1');
+        });
+      }
+
+      // C: Slide 5 - Soul Hierarchy Precedence Trigger
+      const btnPulseSoul = document.getElementById('btn-pulse-soul');
+      if (btnPulseSoul) {
+        btnPulseSoul.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          tl.to('#soulFactory', { scale: 1.03, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' })
+            .to('#soulStudio', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1')
+            .to('#soulProject', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1');
+        });
+      }
+
+      // D: Slide 10 - 4 Audit Surfaces Matrix Trigger
+      const btnPulseAudit = document.getElementById('btn-pulse-audit-surfaces');
+      if (btnPulseAudit) {
+        btnPulseAudit.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          const quads = ['#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4'];
+          quads.forEach((quad, idx) => {
+            tl.fromTo(quad, 
+              { scale: 1 }, 
+              { scale: 1.03, duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
+              idx === 0 ? 0 : '+=0.08'
+            );
+          });
+        });
+      }
+
+      // E: Slide 12 - Memory Loop Simulation
+      const btnPulseMemory = document.getElementById('btn-pulse-memory');
+      if (btnPulseMemory) {
+        btnPulseMemory.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+          tl.to('#memRecall', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
+            .to('#memWork', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1')
+            .to('#memReflect', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1');
+        });
+      }
+
+      // F: Slide 13 - 6+1 Taste Rubric Craft Radar Runner
+      const btnPulseTaste = document.getElementById('btn-pulse-taste-radar');
+      if (btnPulseTaste) {
+        btnPulseTaste.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          tl.to('#tasteCore7', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' });
+          const axes = ['#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6'];
+          axes.forEach((axis, idx) => {
+            tl.fromTo(axis, 
+              { scale: 1 }, 
+              { scale: 1.04, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
+              idx === 0 ? '-=0.1' : '+=0.06'
+            );
+          });
+        });
+      }
+
+      // G: Slide 16 - 6-Step Delivery Pipeline Runner
+      const btnRunDelivery = document.getElementById('btn-run-delivery-pipeline');
+      if (btnRunDelivery) {
+        btnRunDelivery.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const steps = ['#pipeStep1', '#pipeStep2', '#pipeStep3', '#pipeStep4', '#pipeStep5', '#pipeStep6'];
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          steps.forEach((step, idx) => {
+            tl.fromTo(step, 
+              { scale: 1, stroke: 'var(--border-strong)' }, 
+              { scale: 1.05, stroke: 'var(--text-primary)', duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
+              idx === 0 ? 0 : '+=0.08'
+            );
+          });
+        });
+      }
+
+      // Hover feedback on diagram nodes
+      ['#nodePillar1', '#nodePillar2', '#nodePillar3', '#nodeUser', '#nodeAgent', '#nodeKernel', '#soulFactory', '#soulStudio', '#soulProject', '#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4', '#memRecall', '#memWork', '#memReflect', '#tasteCore7', '#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6'].forEach(id => {
+        const el = document.querySelector(id);
+        if (el) {
+          el.addEventListener('mouseenter', () => {
+            if (!isReducedMotion && typeof gsap !== 'undefined') {
+              gsap.to(el, { y: -4, duration: 0.2, ease: 'power2.out' });
+            }
+          });
+          el.addEventListener('mouseleave', () => {
+            if (!isReducedMotion && typeof gsap !== 'undefined') {
+              gsap.to(el, { y: 0, duration: 0.2, ease: 'power2.out' });
+            }
+          });
+        }
+      });
+
+      // 5. Event Listeners (Controls & Keyboard)
+      document.getElementById('btn-prev').addEventListener('click', nextSlide);
+      document.getElementById('btn-next').addEventListener('click', nextSlide);
+      document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+      document.getElementById('btn-notes').addEventListener('click', toggleNotes);
+      document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+      document.getElementById('btn-overview').addEventListener('click', toggleOverview);
+      document.getElementById('btnCloseOverview').addEventListener('click', closeOverview);
+
+      window.addEventListener('keydown', (e) => {
+        switch (e.key) {
+          case 'ArrowRight':
+          case 'ArrowDown':
+          case ' ':
+          case 'PageDown':
+            e.preventDefault();
+            nextSlide();
+            break;
+          case 'ArrowLeft':
+          case 'ArrowUp':
+          case 'PageUp':
+            e.preventDefault();
+            prevSlide();
+            break;
+          case 'Home':
+            e.preventDefault();
+            updateSlide(0);
+            break;
+          case 'End':
+            e.preventDefault();
+            updateSlide(totalSlides - 1);
+            break;
+          case 's':
+          case 'S':
+            toggleNotes();
+            break;
+          case 't':
+          case 'T':
+            toggleTheme();
+            break;
+          case 'f':
+          case 'F':
+            toggleFullscreen();
+            break;
+          case 'o':
+          case 'O':
+            toggleOverview();
+            break;
+          case 'Escape':
+            closeOverview();
+            break;
+        }
+      });
+
+      // Initial view setup
+      updateSlide(0);
+    })();
+  </script>
+</body>
+</html>
