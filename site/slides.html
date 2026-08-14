@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DESIGN:OS Masterclass — GSAP Keynote Deck</title>
+  <title>DESIGN:OS Masterclass — 28-Slide Complete Architecture Deck</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -419,6 +419,31 @@
       color: var(--text-primary);
     }
 
+    .code-terminal {
+      background: var(--bg-surface-raised);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .code-prompt {
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .code-keyword {
+      font-weight: 700;
+    }
+
+    .code-comment {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
     /* Presenter Navigation Controls Overlay */
     .nav-overlay {
       position: fixed;
@@ -568,52 +593,47 @@
   <main class="deck-viewport">
     <div class="slide-stage" id="slideStage">
 
-      <!-- ========================================== -->
-      <!-- SLIDE 01: TITLE / COVER                    -->
-      <!-- ========================================== -->
-      <article class="slide-item active" id="slide-1" data-index="1">
+
+<article class="slide-item active" id="slide-1" data-index="1">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand">
             <span class="chrome-brand-badge">DESIGN:OS</span>
             <span>Masterclass Architecture Deck</span>
           </div>
-          <div>GSAP Keynote Edition • v0.1.0</div>
+          <div>The Complete 28-Slide Operating Guide • v1.0.0</div>
         </header>
 
         <section class="slide-content-zone" style="justify-content: center;">
           <span class="slide-eyebrow gsap-reveal">Multi-Runtime Design CLI • Production Operating Manual</span>
           <h1 class="slide-title-display gsap-reveal">
-            Làm chủ DESIGN:OS<br>Từ Onboard Đến Qualified Delivery.
+            Làm chủ Toàn Năng DESIGN:OS<br>Từ AI Reasoning Đến Scroll-Cinema &amp; Figma.
           </h1>
           <p class="slide-subtitle gsap-reveal" style="font-size: var(--font-size-xl);">
-            Kiến trúc phân quyền AI Reasoning vs Deterministic Engine, 6 Cổng Onboarding (E1–E6), 4 Bề mặt Audit, Sàn chất lượng 6+1 và Pipeline Bàn giao chuẩn Production.
+            7 Hồi Chiến Lược: Kiến trúc phân quyền AI vs Kernel, 6 Cổng Onboard, Figma Live Bridge 9410, Vòng lặp Học tập Recall, Khoa học màu OKLCH, 3D GFlow &amp; Scroll-Cinema 2K, và Sàn Qualified Delivery.
           </p>
           <div style="display: flex; gap: 16px; margin-top: 40px;" class="gsap-reveal">
-            <span class="matrix-badge">Claude Code</span>
-            <span class="matrix-badge">Codex CLI</span>
-            <span class="matrix-badge">Antigravity</span>
-            <span class="matrix-badge">100% Token-Bound</span>
-            <span class="matrix-badge">Zero Arbitrary Hex</span>
-            <span class="matrix-badge">14 Machine Floor Linters</span>
+            <span class="matrix-badge">28 Master Slides</span>
+            <span class="matrix-badge">Figma Desktop Hand</span>
+            <span class="matrix-badge">GFlow &amp; Scroll-Cinema</span>
+            <span class="matrix-badge">OKLCH &amp; P3 Gamut</span>
+            <span class="matrix-badge">12 UX Laws</span>
+            <span class="matrix-badge">AK Fable Thinking</span>
           </div>
         </section>
 
         <footer class="chrome-footer">
           <div>Nhấn [Phím Trái / Phải] hoặc [Space] để chuyển slide • [S] Ghi chú diễn giả • [O] Lưới tổng quan</div>
-          <div id="slideCounterDisplay">01 / 18</div>
+          <div id="slideCounterDisplay">01 / 28</div>
         </footer>
-        <div data-speaker-notes="Chào mừng đến với DESIGN:OS Masterclass. Đây là bộ slide kỹ thuật giải thích cách thức vận hành tối ưu của DESIGN:OS từ kiến trúc cốt lõi đến khi bàn giao giao diện hoàn chỉnh."></div>
+        <div data-speaker-notes="Chào mừng đến với DESIGN:OS Masterclass mở rộng 28 slide. Đây là bộ cẩm nang hoàn chỉnh nhất, bao quát từ lõi toán học, cầu nối Figma, bộ nhớ vector đến điện ảnh cuộn trang 3D và 5 câu chuyện ngụ ngôn AK Fable."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 02: 3 CHÂN LÝ TỐI THƯỢNG (SVG TRIAD) -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-2" data-index="2">
+<article class="slide-item" id="slide-2" data-index="2">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Triết Lý Cốt Lõi</span></div>
-          <div>01 • Core Foundations</div>
+          <div>Hồi 1 • 01 • Core Foundations</div>
         </header>
 
         <section class="slide-content-zone">
@@ -629,17 +649,14 @@
               <span>Kích Hoạt Tam Giác Chân Lý</span>
             </button>
 
-            <!-- Complete SVG Triad Diagram for 3 Core Foundations -->
             <svg class="diagram-svg" id="svgFoundationsTriad" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Connecting Active Flow Paths -->
               <path d="M 450 260 L 590 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
               <path d="M 1050 260 L 1190 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
               
-              <!-- Moving Animated Packets -->
               <g transform="translate(450, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
               <g transform="translate(1050, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
 
-              <!-- Node 1: Zero Arbitrary Hex -->
+              <!-- Node 1 -->
               <g transform="translate(50, 60)" id="nodePillar1" style="cursor: pointer;">
                 <rect width="400" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="400" height="8" rx="4" fill="var(--text-primary)"/>
@@ -659,7 +676,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">ENFORCED: DTCG Tokens</text>
               </g>
 
-              <!-- Node 2: Deterministic Quality Floor -->
+              <!-- Node 2 -->
               <g transform="translate(590, 60)" id="nodePillar2" style="cursor: pointer;">
                 <rect width="460" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="460" height="8" rx="4" fill="var(--text-primary)"/>
@@ -679,7 +696,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">GATE: 0-Violation Required</text>
               </g>
 
-              <!-- Node 3: Two Sources of Truth -->
+              <!-- Node 3 -->
               <g transform="translate(1190, 60)" id="nodePillar3" style="cursor: pointer;">
                 <rect width="360" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="360" height="8" rx="4" fill="var(--text-primary)"/>
@@ -702,18 +719,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Core Philosophy</div><div>02 / 18</div></footer>
-        <div data-speaker-notes="3 chân lý tạo nên nền móng vững chắc của DESIGN:OS. Nhấn nút để xem luồng tương tác giữa 3 chân lý."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Core Philosophy</div><div>02 / 28</div></footer>
+        <div data-speaker-notes="3 chân lý tối thượng là kim chỉ nam: biến sự hỗn loạn của LLM thành kết quả tất định."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 03: SƠ ĐỒ PHÂN QUYỀN AI vs KERNEL    -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-3" data-index="3">
+<article class="slide-item" id="slide-3" data-index="3">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Kiến Trúc Phân Quyền</span></div>
-          <div>02 • Architecture Split</div>
+          <div>Hồi 1 • 02 • Architecture Split</div>
         </header>
 
         <section class="slide-content-zone">
@@ -729,17 +743,14 @@
               <span>Mô Phỏng Dòng Dữ Liệu</span>
             </button>
 
-            <!-- Complete Clean SVG Architecture Diagram for Slide 3 -->
             <svg class="diagram-svg" id="svgArchSplit" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Active Connectors -->
               <path d="M 370 260 L 500 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
               <path d="M 1040 260 L 1170 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
               
-              <!-- Moving Animated Packets -->
               <g transform="translate(370, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
               <g transform="translate(1040, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
 
-              <!-- Left Node: User Intent -->
+              <!-- Left Node -->
               <g transform="translate(50, 60)" id="nodeUser" style="cursor: pointer;">
                 <rect width="320" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="320" height="8" rx="4" fill="var(--text-primary)"/>
@@ -759,7 +770,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CLI: /ui:generate</text>
               </g>
 
-              <!-- Center Node: Host AI Agent + Knowledge -->
+              <!-- Center Node -->
               <g transform="translate(500, 60)" id="nodeAgent" style="cursor: pointer;">
                 <rect width="540" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="540" height="8" rx="4" fill="var(--text-primary)"/>
@@ -779,7 +790,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">PAYLOAD: HTML Candidate with DTCG Tokens</text>
               </g>
 
-              <!-- Right Node: UI Kernel -->
+              <!-- Right Node -->
               <g transform="translate(1170, 60)" id="nodeKernel" style="cursor: pointer;">
                 <rect width="380" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="380" height="8" rx="4" fill="var(--text-primary)"/>
@@ -806,66 +817,72 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Architecture • System Division of Labor</div><div>03 / 18</div></footer>
-        <div data-speaker-notes="Nhấn nút Mô phỏng để xem dòng dữ liệu di chuyển từ Intent sang Agent và qua Kernel xác thực. Kernel chạy độc lập hoàn toàn không gọi API bên ngoài."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Architecture • System Division of Labor</div><div>03 / 28</div></footer>
+        <div data-speaker-notes="AI Agent suy luận, UI Kernel kiểm định. Hai bán cầu kết hợp thành vòng lặp tự sửa lỗi hoàn hảo."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 04: HỆ SINH THÁI OPTIONAL HANDS       -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-4" data-index="4">
+<article class="slide-item" id="slide-4" data-index="4">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Optional Hands</span></div>
-          <div>03 • Specialized Modules</div>
+          <div>Hồi 1 • 03 • Specialized Modules</div>
         </header>
 
         <section class="slide-content-zone">
           <div class="slide-heading-group">
             <span class="slide-eyebrow gsap-reveal">Module Mở Rộng</span>
-            <h2 class="slide-title-h1 gsap-reveal">Hệ Sinh Thái Các "Bàn Tay" Chuyên Dụng (Optional Hands)</h2>
-            <p class="slide-subtitle gsap-reveal">Ngoài lõi kernel tất định, DESIGN:OS cung cấp các cánh tay chuyên trách cho Figma, Bộ nhớ vector và Visual Regression.</p>
+            <h2 class="slide-title-h1 gsap-reveal">Hệ Sinh Thái 6 "Cánh Tay" Chuyên Trách (Optional Hands)</h2>
+            <p class="slide-subtitle gsap-reveal">Các module chuyên trách mở rộng năng lực thiết kế đa chiều, tự suy giảm nhẹ nhàng khi vắng mặt (Graceful Degradation).</p>
           </div>
 
-          <div class="slide-grid-4">
+          <div class="slide-grid-3">
             <div class="slide-card gsap-card">
-              <span class="matrix-badge">FIGMA 1:1 MIRROR</span>
-              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">figma-agent</div>
-              <p class="stat-desc">Kết nối trực tiếp Figma Desktop qua broker port 9410. Dựng auto-layout chuẩn xác, hoán đổi component và đồng bộ tokens 2 chiều.</p>
+              <span class="matrix-badge">1. FIGMA 1:1 MIRROR</span>
+              <div class="stat-label" style="font-size: 20px; margin-top: 8px;">figma-agent</div>
+              <p class="stat-desc">Kết nối Figma Desktop qua port 9410. Dựng auto-layout chuẩn xác, hoán đổi component và đồng bộ tokens 2 chiều.</p>
             </div>
 
             <div class="slide-card gsap-card">
-              <span class="matrix-badge">SEMANTIC MEMORY</span>
-              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">recall</div>
-              <p class="stat-desc">Bộ nhớ vector cục bộ chạy ONNX embeddings. Nạp bài học cũ khi bắt đầu tác vụ và đúc kết kinh nghiệm bền vững khi kết thúc.</p>
+              <span class="matrix-badge">2. SEMANTIC MEMORY</span>
+              <div class="stat-label" style="font-size: 20px; margin-top: 8px;">recall (mind)</div>
+              <p class="stat-desc">Bộ nhớ vector cục bộ chạy ONNX embeddings. Nạp bài học cũ khi bắt đầu tác vụ và đúc kết kinh nghiệm khi kết thúc.</p>
             </div>
 
             <div class="slide-card gsap-card">
-              <span class="matrix-badge">VISUAL REGRESSION</span>
-              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">page-shot &amp; vr</div>
-              <p class="stat-desc">Chụp render thực tế và so sánh pixel-level diff cho từng component (<code>vr-matrix</code>), chặn các lỗi dịch chuyển layout ngoài ý muốn.</p>
+              <span class="matrix-badge">3. 3D &amp; SCROLL CINEMA</span>
+              <div class="stat-label" style="font-size: 20px; margin-top: 8px;">gflow &amp; scrub</div>
+              <p class="stat-desc">Điều khiển camera 3D và cuộn video không vết cắt (Seam Physics) thông qua Google Flow (Veo/Imagen).</p>
             </div>
 
             <div class="slide-card gsap-card">
-              <span class="matrix-badge">RENDERED A11Y</span>
-              <div class="stat-number" style="font-size: 2.2rem; margin: 8px 0;">a11y-audit</div>
-              <p class="stat-desc">Thực thi axe-core trên Chrome headless để kiểm tra độ tương phản thực tế và cây ngữ nghĩa ARIA ở trạng thái rendered (Tier-2 A11y).</p>
+              <span class="matrix-badge">4. VISUAL REGRESSION</span>
+              <div class="stat-label" style="font-size: 20px; margin-top: 8px;">page-shot &amp; vr</div>
+              <p class="stat-desc">Chụp render thực tế và so sánh pixel-level diff cho từng component (vr-matrix), ngăn chặn layout shift ngoài ý muốn.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">5. RENDERED A11Y</span>
+              <div class="stat-label" style="font-size: 20px; margin-top: 8px;">a11y-audit</div>
+              <p class="stat-desc">Thực thi axe-core trên Chrome headless để kiểm tra độ tương phản thực tế và cây ngữ nghĩa ARIA ở trạng thái render thật.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">6. CANVAS &amp; SHADERS</span>
+              <div class="stat-label" style="font-size: 20px; margin-top: 8px;">canvas-ui (T6)</div>
+              <p class="stat-desc">Mô phỏng chất liệu Liquid Glass, hạt 3D và WebGL shaders với hợp đồng dọn dẹp bộ nhớ (Teardown Contract).</p>
             </div>
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Toolchain • Optional Hands</div><div>04 / 18</div></footer>
-        <div data-speaker-notes="Mỗi bàn tay có cơ chế degrade thông minh: nếu thiếu recall hay figma-agent, hệ thống sẽ cảnh báo rõ ràng thay vì bị lỗi crash ngầm."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Toolchain • Optional Hands Ecosystem</div><div>04 / 28</div></footer>
+        <div data-speaker-notes="6 cánh tay này biến DESIGN:OS thành hệ điều hành thiết kế toàn năng từ giao diện web phẳng đến không gian 3D và canvas Figma."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 05: HỆ THỐNG 3 TẦNG DESIGN SOUL      -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-5" data-index="5">
+<article class="slide-item" id="slide-5" data-index="5">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Bản Sắc Thiết Kế</span></div>
-          <div>04 • Design Soul Architecture</div>
+          <div>Hồi 1 • 04 • Design Soul Architecture</div>
         </header>
 
         <section class="slide-content-zone">
@@ -881,17 +898,14 @@
               <span>Kiểm Tra Chuỗi Ưu Tiên</span>
             </button>
 
-            <!-- Clean Complete SVG Soul Hierarchy Diagram -->
             <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Active Flow Connectors -->
               <path d="M 470 260 L 570 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
               <path d="M 1030 260 L 1130 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
 
-              <!-- Moving Animated Packets -->
               <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
               <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
 
-              <!-- Tier 1: Factory Soul -->
+              <!-- Tier 1 -->
               <g transform="translate(50, 60)" id="soulFactory" style="cursor: pointer;">
                 <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
@@ -911,7 +925,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">READ-ONLY: Built-in Base</text>
               </g>
 
-              <!-- Tier 2: Studio Soul -->
+              <!-- Tier 2 -->
               <g transform="translate(570, 60)" id="soulStudio" style="cursor: pointer;">
                 <rect width="460" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="460" height="8" rx="4" fill="var(--text-primary)"/>
@@ -931,7 +945,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">PREFIX: designer-studio-*</text>
               </g>
 
-              <!-- Tier 3: Project Soul -->
+              <!-- Tier 3 -->
               <g transform="translate(1130, 60)" id="soulProject" style="cursor: pointer;">
                 <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
@@ -951,7 +965,6 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">AUTHORITY: Project Overrides</text>
               </g>
 
-              <!-- Bottom Precedence Legend -->
               <text x="800" y="490" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" text-anchor="middle">
                 Chuỗi Ưu Tiên: Explicit Brief &gt; Project Soul &gt; Studio Soul &gt; Memory Prior &gt; Knowledge Floors
               </text>
@@ -959,18 +972,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Architecture • Soul Precedence</div><div>05 / 18</div></footer>
-        <div data-speaker-notes="Lưu ý: Studio soul thiết lập 1 lần cho cả máy, còn Project soul thiết lập cho từng repo. Phải chuyển status sang ratified sau khi điền Never/Always/Voice."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Architecture • Soul Precedence</div><div>05 / 28</div></footer>
+        <div data-speaker-notes="Soul thiết lập lập trường thẩm mỹ. Explicit Brief từ user luôn có quyền ghi đè cao nhất."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 06: 6 CỔNG ONBOARDING (E1 - E6)       -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-6" data-index="6">
+<article class="slide-item" id="slide-6" data-index="6">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Onboarding Router</span></div>
-          <div>05 • The 6 Entry Roads</div>
+          <div>Hồi 2 • 05 • The 6 Entry Roads</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1037,18 +1047,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Onboarding • Entry Roads E1-E6</div><div>06 / 18</div></footer>
+        <footer class="chrome-footer"><div>DESIGN:OS Onboarding • Entry Roads E1-E6</div><div>06 / 28</div></footer>
         <div data-speaker-notes="6 cổng vào này đảm bảo DESIGN:OS hòa nhập vào bất kỳ quy trình làm việc nào của team dù là vẽ Figma trước hay code trước."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 07: QUY TRÌNH ONBOARD 5 BƯỚC & STOP-GATES -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-7" data-index="7">
+<article class="slide-item" id="slide-7" data-index="7">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Onboarding Checklist</span></div>
-          <div>06 • Setup &amp; Stop-Gates</div>
+          <div>Hồi 2 • 06 • Setup &amp; Stop-Gates</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1086,18 +1093,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Onboarding • Verification &amp; Stop-Gates</div><div>07 / 18</div></footer>
-        <div data-speaker-notes="Hai bác sĩ kiểm tra 2 việc khác nhau: ui doctor kiểm tra kernel, còn design-os doctor kiểm tra các optional hands như figma-agent và recall."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Onboarding • Verification &amp; Stop-Gates</div><div>07 / 28</div></footer>
+        <div data-speaker-notes="Hai bác sĩ kiểm tra 2 việc khác nhau: ui doctor kiểm tra kernel, còn design-os doctor kiểm tra các optional hands."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 08: ĐỘI NGŨ SUBAGENTS ẢO & HEARTBEAT -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-8" data-index="8">
+<article class="slide-item" id="slide-8" data-index="8">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Agent Staff</span></div>
-          <div>07 • Virtual Design Staff</div>
+          <div>Hồi 2 • 07 • Virtual Design Staff</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1136,18 +1140,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Agents • Specialized Roles</div><div>08 / 18</div></footer>
-        <div data-speaker-notes="Điểm độc đáo: Designer không bao giờ tự chấm điểm; Curator luôn đóng vai trò thanh tra khó tính chấm độc lập để bảo đảm chất lượng."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Agents • Specialized Roles</div><div>08 / 28</div></footer>
+        <div data-speaker-notes="Designer không bao giờ tự chấm điểm, Curator không bao giờ tự sửa code. Ranh giới trách nhiệm bảo đảm chất lượng khách quan."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 09: 6 ĐỘNG TỪ THƯỜNG NHẬT            -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-9" data-index="9">
+<article class="slide-item" id="slide-9" data-index="9">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Daily Verbs</span></div>
-          <div>08 • Everyday Workflow</div>
+          <div>Hồi 2 • 08 • Everyday Workflow</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1192,18 +1193,153 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • Core Verbs</div><div>09 / 18</div></footer>
-        <div data-speaker-notes="Nhấn mạnh lệnh /ui:why giúp toàn bộ team hiểu rõ lý do đằng sau từng quyết định thiết kế thay vì phải đoán mò."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • Core Verbs</div><div>09 / 28</div></footer>
+        <div data-speaker-notes="6 động từ thường nhật biến CLI thành bảng điều khiển trực quan cho designer và developer."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 10: BÓC TÁCH 4 BỀ MẶT AUDIT (SVG MATRIX) -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-10" data-index="10">
+<article class="slide-item" id="slide-10" data-index="10">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Figma Agent Hand</span></div>
+          <div>Hồi 3 • 09 • Real-Time Bridge</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Cầu Nối Hai Chiều</span>
+            <h2 class="slide-title-h1 gsap-reveal">Cây Cầu Figma Desktop: Broker Port 9410</h2>
+            <p class="slide-subtitle gsap-reveal">AI Agent và Designer cùng làm việc trên một file Figma thời gian thực với cơ chế khóa xung đột an toàn.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-figma-bridge">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Mô Phỏng Đồng Bộ 2 Chiều</span>
+            </button>
+
+            <svg class="diagram-svg" id="svgFigmaBridge" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 440 260 L 580 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 1020 260 L 1160 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+
+              <g transform="translate(440, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(1020, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Left Node: Codebase & Tokens -->
+              <g transform="translate(50, 60)" id="figmaNodeCode" style="cursor: pointer;">
+                <rect width="390" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="390" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700">CODE ENGINE</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">DTCG Tokens</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">design/tokens.json</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 100% định nghĩa màu sắc OKLCH</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Typography modular scales</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Component registry specs</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Lệnh: ui ds build --figma</text>
+
+                <rect x="32" y="340" width="326" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">INPUT: Pure Code Truth</text>
+              </g>
+
+              <!-- Center Node: Broker WebSocket Port 9410 -->
+              <g transform="translate(580, 60)" id="figmaNodeBroker" style="cursor: pointer;">
+                <rect width="440" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
+                <rect x="0" y="0" width="440" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="390" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="390" cy="48" r="5" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700">LOCAL BROKER</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">figma-agent (9410)</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">WebSocket IPC Protocol</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Giám sát trạng thái Plugin kết nối</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Biến đổi lệnh CLI thành Figma API</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Chặn xung đột khi designer thao tác</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tự ngắt kết nối an toàn (Fail Soft)</text>
+
+                <rect x="32" y="340" width="376" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">STATUS: WS://127.0.0.1:9410</text>
+              </g>
+
+              <!-- Right Node: Figma Desktop Canvas -->
+              <g transform="translate(1160, 60)" id="figmaNodeCanvas" style="cursor: pointer;">
+                <rect width="390" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="390" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700">CANVAS ENVIRONMENT</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Figma Desktop App</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Official Plugin Manifest v2</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Auto-Layout dựng động chính xác</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Hoán đổi Instance thật từ Library</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Gán Figma Variables chuẩn token</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Lệnh: /ui:to-figma &amp; /ui:audit</text>
+
+                <rect x="32" y="340" width="326" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CANVAS: 1:1 Live Sync</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Figma Hand • Real-Time Bridge Architecture</div><div>10 / 28</div></footer>
+        <div data-speaker-notes="Broker port 9410 kết nối trực tiếp với Figma Desktop Plugin, cho phép AI dựng layout và gán token tự động."></div>
+      </article>
+
+<article class="slide-item" id="slide-11" data-index="11">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Figma Craft</span></div>
+          <div>Hồi 3 • 10 • Auto-Layout &amp; Token Binding</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Chuẩn Mực Figma</span>
+            <h2 class="slide-title-h1 gsap-reveal">Nghệ Thuật Dựng Canvas: Auto-Layout &amp; Variables</h2>
+            <p class="slide-subtitle gsap-reveal">Không bao giờ vẽ hình chữ nhật tự do vô nghĩa. Mọi khung vẽ đều phải tuân thủ nghiêm ngặt Auto-Layout và Token Variables.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">1. AUTO-LAYOUT SÂU</span>
+              <div class="stat-label" style="margin-top: 8px;">Auto-Layout 100%</div>
+              <p class="stat-desc" style="margin-top: 10px;">100% frame đều có layoutMode (HORIZONTAL / VERTICAL), padding và itemSpacing chuẩn token 4/8px.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>node.layoutMode = 'VERTICAL';</code><br>
+                <code>node.itemSpacing = 16;</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">2. INSTANCE SWAPPING</span>
+              <div class="stat-label" style="margin-top: 8px;">Tái Dùng Component</div>
+              <p class="stat-desc" style="margin-top: 10px;">Không vẽ lại Button hay Input. Trỏ tìm Component trong Library và gọi <code>createInstance()</code> chuẩn xác.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>const inst = comp.createInstance();</code><br>
+                <code>parent.appendChild(inst);</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">3. VARIABLE BINDING</span>
+              <div class="stat-label" style="margin-top: 8px;">Gắn Token Variables</div>
+              <p class="stat-desc" style="margin-top: 10px;">Màu sắc không tô raw hex. Ánh xạ trực tiếp sang Figma Variable Collection đã nhập từ DTCG tokens.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>node.setBoundVariable('fills', vId);</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Figma Craft • Canonical Canvas Rules</div><div>11 / 28</div></footer>
+        <div data-speaker-notes="Canvas trên Figma được tạo ra có cấu trúc như mã nguồn thực tế: có auto-layout, instance component và variable tokens."></div>
+      </article>
+
+<article class="slide-item" id="slide-12" data-index="12">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Audit Surfaces</span></div>
-          <div>09 • Audit Disambiguation</div>
+          <div>Hồi 3 • 11 • Audit Disambiguation</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1219,9 +1355,8 @@
               <span>Mô Phỏng 4 Bề Mặt Audit</span>
             </button>
 
-            <!-- 2x2 Matrix SVG Architecture Diagram -->
             <svg class="diagram-svg" id="svgAuditSurfaces" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Quadrant 1: Top-Left (Figma Nodes JSON) -->
+              <!-- Quadrant 1 -->
               <g transform="translate(40, 40)" id="auditQuad1" style="cursor: pointer;">
                 <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1235,7 +1370,7 @@
                 <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Đã có file node JSON và cần báo cáo vi phạm Design System.</text>
               </g>
 
-              <!-- Quadrant 2: Top-Right (Figma Live Canvas) -->
+              <!-- Quadrant 2 -->
               <g transform="translate(830, 40)" id="auditQuad2" style="cursor: pointer;">
                 <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1249,7 +1384,7 @@
                 <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Người dùng yêu cầu "Chuẩn hóa frame Figma này về đúng DS".</text>
               </g>
 
-              <!-- Quadrant 3: Bottom-Left (HTML & Project Dir) -->
+              <!-- Quadrant 3 -->
               <g transform="translate(40, 270)" id="auditQuad3" style="cursor: pointer;">
                 <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1263,7 +1398,7 @@
                 <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Kiểm tra toàn bộ giao diện HTML trước khi đóng gói release.</text>
               </g>
 
-              <!-- Quadrant 4: Bottom-Right (Compiled Token Contrast) -->
+              <!-- Quadrant 4 -->
               <g transform="translate(830, 270)" id="auditQuad4" style="cursor: pointer;">
                 <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1280,18 +1415,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • The 4 Audit Surfaces</div><div>10 / 18</div></footer>
-        <div data-speaker-notes="Bảng ma trận 2x2 trực quan hóa 4 bề mặt Audit: Node JSON vs Live Canvas vs HTML Sweep vs Token Pairs. Nhấn nút để xem mô phỏng."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • The 4 Audit Surfaces</div><div>12 / 28</div></footer>
+        <div data-speaker-notes="Ma trận 2x2 giúp phân biệt rõ 4 loại lệnh audit để không bao giờ chạy nhầm đối tượng quét."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 11: FINDING TRIAGE & 2 NGUYÊN TẮC VÀNG -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-11" data-index="11">
+<article class="slide-item" id="slide-13" data-index="13">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Finding Triage</span></div>
-          <div>10 • Triage &amp; Core Rules</div>
+          <div>Hồi 3 • 12 • Triage &amp; Core Rules</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1327,18 +1459,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • Finding Triage</div><div>11 / 18</div></footer>
+        <footer class="chrome-footer"><div>DESIGN:OS Daily Workflow • Finding Triage</div><div>13 / 28</div></footer>
         <div data-speaker-notes="A11y luôn là tiêu chuẩn cứng không thể thỏa hiệp trong DESIGN:OS."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 12: VÒNG LẶP BỘ NHỚ THIẾT KẾ         -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-12" data-index="12">
+<article class="slide-item" id="slide-14" data-index="14">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Design Memory</span></div>
-          <div>11 • Recall &amp; Reflect Loop</div>
+          <div>Hồi 4 • 13 • Recall &amp; Reflect Loop</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1354,17 +1483,14 @@
               <span>Kích Hoạt Vòng Lặp Học Tập</span>
             </button>
 
-            <!-- Memory Loop SVG Diagram -->
             <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Active Flow Connectors -->
               <path d="M 480 260 L 560 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
               <path d="M 980 260 L 1060 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
 
-              <!-- Moving Animated Packets -->
               <g transform="translate(480, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
               <g transform="translate(980, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
 
-              <!-- Step 1: Recall Query at Start -->
+              <!-- Step 1 -->
               <g transform="translate(50, 60)" id="memRecall" style="cursor: pointer;">
                 <rect width="430" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1384,7 +1510,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CMD: recall query &lt;topic&gt;</text>
               </g>
 
-              <!-- Step 2: Work in Progress -->
+              <!-- Step 2 -->
               <g transform="translate(560, 60)" id="memWork" style="cursor: pointer;">
                 <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1404,7 +1530,7 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">STATUS: job-events.json</text>
               </g>
 
-              <!-- Step 3: Reflect at End -->
+              <!-- Step 3 -->
               <g transform="translate(1060, 60)" id="memReflect" style="cursor: pointer;">
                 <rect width="490" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="490" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1424,26 +1550,158 @@
                 <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">RESULT: Permanent Memory Gain</text>
               </g>
 
-              <!-- Elo Taste Note -->
               <text x="800" y="490" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" text-anchor="middle">
-                🏆 Đấu Cặp Elo Thẩm Mỹ: ui taste next → ui taste record --winner a|b
+                Hệ thống tự học hỏi: Càng làm việc, DESIGN:OS càng thấu hiểu phong cách của đội ngũ.
               </text>
             </svg>
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Memory • Living Learning Loop</div><div>12 / 18</div></footer>
-        <div data-speaker-notes="Nhấn nút để kích hoạt hoạt ảnh dòng lưu chuyển của bộ nhớ thiết kế qua các giai đoạn Recall, Work và Reflect."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Memory • Living Learning Loop</div><div>14 / 28</div></footer>
+        <div data-speaker-notes="Vòng lặp bộ nhớ đảm bảo AI không bao giờ lặp lại sai lầm trong quá khứ."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 13: MÔ HÌNH 6+1 TRỤC THẨM MỸ         -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-13" data-index="13">
+<article class="slide-item" id="slide-15" data-index="15">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Taste Voting</span></div>
+          <div>Hồi 4 • 14 • Elo Rating &amp; Corpus Curation</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Tiến Hóa Thẩm Mỹ</span>
+            <h2 class="slide-title-h1 gsap-reveal">Đấu Cặp Elo Thẩm Mỹ &amp; Curation Dữ Liệu Mẫu</h2>
+            <p class="slide-subtitle gsap-reveal">Cơ chế đấu cặp Blind A/B Comparison chấm điểm Elo giúp hệ thống tự động lọc ra các biến thể thiết kế xuất sắc nhất.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">1. BLIND A/B PAIRING</span>
+              <div class="stat-label" style="margin-top: 8px;">Đấu Cặp Ẩn Danh</div>
+              <p class="stat-desc" style="margin-top: 10px;">Hệ thống bốc ngẫu nhiên 2 biến thể ứng cử viên (Candidate A vs B) được sinh cùng một đề bài.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>ui taste next --domain landing</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">2. TASTE VOTING</span>
+              <div class="stat-label" style="margin-top: 8px;">Ghi Nhận Phán Quyết</div>
+              <p class="stat-desc" style="margin-top: 10px;">Designer hoặc Curator bình chọn biến thể chiến thắng dựa trên 6+1 trục thẩm mỹ.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>ui taste record --winner a</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">3. CORPUS ADMISSION</span>
+              <div class="stat-label" style="margin-top: 8px;">Nạp Kho Mẫu Vàng</div>
+              <p class="stat-desc" style="margin-top: 10px;">Các biến thể đạt Elo rating &gt; 1200 được tự động nạp vào corpus mẫu để huấn luyện và nạp prior cho AI.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>ui corpus promote --id cand-09</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Taste Evolution • Elo Rating Matrix</div><div>15 / 28</div></footer>
+        <div data-speaker-notes="Hệ thống Elo định lượng hóa gu thẩm mỹ, giúp kho mẫu thiết kế ngày càng tinh hoa."></div>
+      </article>
+
+<article class="slide-item" id="slide-16" data-index="16">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Color Science</span></div>
+          <div>Hồi 5 • 15 • OKLCH &amp; Perceptual Uniformity</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Khoa Học Màu Sắc</span>
+            <h2 class="slide-title-h1 gsap-reveal">Toán Học Màu OKLCH, Gamut P3 &amp; Delta EOK</h2>
+            <p class="slide-subtitle gsap-reveal">Tại sao DESIGN:OS cấm hoàn toàn HSL và sRGB cổ điển để chuyển sang không gian cảm nhận đồng đều OKLCH.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-color-gamut">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Kiểm Tra Gamut P3 &amp; Delta EOK</span>
+            </button>
+
+            <svg class="diagram-svg" id="svgColorGamut" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 470 260 L 550 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 1030 260 L 1110 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+
+              <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Node 1: HSL Flaw -->
+              <g transform="translate(40, 60)" id="colorHSL" style="cursor: pointer;">
+                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-muted)"/>
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">VẤN ĐỀ CỦA HSL CŨ</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">HSL / Hex Lệch Sáng</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Perceptual Non-uniformity</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Màu vàng hsl(60, 100%, 50%) chói lòa</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Màu xanh hsl(240, 100%, 50%) tối sầm</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Cùng độ sáng L=50% nhưng mắt thấy khác</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Khiến UI accessibility bị vỡ ngầm</text>
+
+                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">DEPRECATED: Raw Hex / HSL</text>
+              </g>
+
+              <!-- Node 2: OKLCH Math -->
+              <g transform="translate(550, 60)" id="colorOKLCH" style="cursor: pointer;">
+                <rect width="470" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
+                <rect x="0" y="0" width="470" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="420" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="420" cy="48" r="5" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">CHUẨN MỰC OKLCH</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Đồng Đều Cảm Nhận</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">oklch(L C H / alpha)</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• L (Lightness): Đo lường độ sáng thực mắt thấy</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• C (Chroma): Độ rực bão hòa màu</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• H (Hue): Góc sắc độ từ 0 đến 360</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Hỗ trợ chuẩn dải màu rộng Display P3</text>
+
+                <rect x="32" y="340" width="406" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">ENFORCED: ui color scale</text>
+              </g>
+
+              <!-- Node 3: Delta EOK Semver -->
+              <g transform="translate(1110, 60)" id="colorDelta" style="cursor: pointer;">
+                <rect width="450" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="450" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">NGƯỠNG LỆCH THẨM MỸ</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Delta EOK Semver</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Toán Học Đo Sai Khác Màu</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Delta EOK &lt; 0.02: Không thể nhận biết (PATCH)</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 0.02 - 0.08: Lệch tinh tế có chủ đích (MINOR)</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Delta EOK &gt; 0.08: Đổi màu breaking (MAJOR)</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tự động đánh giá Breaking trong PR diff</text>
+
+                <rect x="32" y="340" width="386" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">METRIC: ΔEOK &lt; 0.02 Safe</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Color Science • OKLCH Space &amp; Delta EOK</div><div>16 / 28</div></footer>
+        <div data-speaker-notes="Toán học màu OKLCH bảo đảm mọi thang bậc sáng đều có cùng độ tương phản mắt thấy."></div>
+      </article>
+
+<article class="slide-item" id="slide-17" data-index="17">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Taste Rubric</span></div>
-          <div>12 • 6+1 Craft Axes</div>
+          <div>Hồi 5 • 16 • 6+1 Craft Axes</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1459,9 +1717,7 @@
               <span>Quét Sàn 6+1 Trục Thẩm Mỹ (Score 8–10)</span>
             </button>
 
-            <!-- Complete SVG Craft Matrix Diagram for Slide 13 -->
             <svg class="diagram-svg" id="svgTasteRadar" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Active Flow Connectors to Satellite Cards -->
               <path d="M 470 150 L 510 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
               <path d="M 470 370 L 510 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
               <path d="M 840 150 L 860 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
@@ -1469,7 +1725,7 @@
               <path d="M 840 370 L 860 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
               <path d="M 1190 370 L 1210 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
 
-              <!-- LEFT MASTER CORE: Axis 7 (Consistency) -->
+              <!-- LEFT MASTER CORE -->
               <g transform="translate(40, 50)" id="tasteCore7" style="cursor: pointer;">
                 <rect width="430" height="420" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
                 <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
@@ -1489,7 +1745,7 @@
                 <text x="44" y="366" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">FLOOR: Score 10/10 Mandatory</text>
               </g>
 
-              <!-- SATELLITE 1: Layout -->
+              <!-- SATELLITE 1 -->
               <g transform="translate(510, 50)" id="tasteAxis1" style="cursor: pointer;">
                 <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
@@ -1500,7 +1756,7 @@
                 <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm container soup &gt; 3 cấp</text>
               </g>
 
-              <!-- SATELLITE 2: Typography -->
+              <!-- SATELLITE 2 -->
               <g transform="translate(860, 50)" id="tasteAxis2" style="cursor: pointer;">
                 <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
@@ -1511,7 +1767,7 @@
                 <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm body &lt; 16px, &gt; 7 cỡ font</text>
               </g>
 
-              <!-- SATELLITE 3: Spacing -->
+              <!-- SATELLITE 3 -->
               <g transform="translate(1210, 50)" id="tasteAxis3" style="cursor: pointer;">
                 <rect width="350" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="350" height="6" rx="3" fill="var(--text-primary)"/>
@@ -1522,7 +1778,7 @@
                 <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm hardcode pixel rời rạc</text>
               </g>
 
-              <!-- SATELLITE 4: Motion -->
+              <!-- SATELLITE 4 -->
               <g transform="translate(510, 270)" id="tasteAxis4" style="cursor: pointer;">
                 <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
@@ -1533,7 +1789,7 @@
                 <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm transition: all</text>
               </g>
 
-              <!-- SATELLITE 5: Iconography -->
+              <!-- SATELLITE 5 -->
               <g transform="translate(860, 270)" id="tasteAxis5" style="cursor: pointer;">
                 <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
@@ -1544,7 +1800,7 @@
                 <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm trộn icon các bộ khác</text>
               </g>
 
-              <!-- SATELLITE 6: Depth & Surfaces -->
+              <!-- SATELLITE 6 -->
               <g transform="translate(1210, 270)" id="tasteAxis6" style="cursor: pointer;">
                 <rect width="350" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
                 <rect x="0" y="0" width="350" height="6" rx="3" fill="var(--text-primary)"/>
@@ -1558,18 +1814,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Quality Floor • The 6+1 Taste Rubric</div><div>13 / 18</div></footer>
-        <div data-speaker-notes="Mô hình 6+1 trục thẩm mỹ định lượng hóa tiêu chuẩn thiết kế: Trục 7 Consistency là hạt nhân, bao quanh là 6 trục thị giác vệ tinh."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Quality Floor • The 6+1 Taste Rubric</div><div>17 / 28</div></footer>
+        <div data-speaker-notes="Mô hình 6+1 trục thẩm mỹ: Consistency là lõi bất biến, 6 trục vệ tinh định hình vẻ đẹp thị giác."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 14: 14 LUẬT KIỂM ĐỊNH MÁY CỨNG       -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-14" data-index="14">
+<article class="slide-item" id="slide-18" data-index="18">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Machine Floor</span></div>
-          <div>13 • 14 Hard Linter Rules</div>
+          <div>Hồi 5 • 17 • 14 Hard Linter Rules</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1604,18 +1857,316 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Quality Floor • 14 Machine Rules</div><div>14 / 18</div></footer>
-        <div data-speaker-notes="14 luật máy này giải quyết triệt để các căn bệnh cố hữu của mã nguồn do AI tự động sinh."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Quality Floor • 14 Machine Rules</div><div>18 / 28</div></footer>
+        <div data-speaker-notes="14 luật máy là sàn an toàn tuyệt đối, ngăn chặn hoàn toàn code rác từ LLM."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 15: QUALIFIED DELIVERY v2            -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-15" data-index="15">
+<article class="slide-item" id="slide-19" data-index="19">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>UX Psychology</span></div>
+          <div>Hồi 5 • 18 • 12 Cognitive Laws</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Tâm Lý Học Thiết Kế</span>
+            <h2 class="slide-title-h1 gsap-reveal">Bộ 12 Định Luật Tâm Lý Học UX Kinh Điển</h2>
+            <p class="slide-subtitle gsap-reveal">Giao diện đẹp phải đi đôi với sự thuận tự nhiên của não bộ. DESIGN:OS tích hợp trực tiếp các định luật nhận thức.</p>
+          </div>
+
+          <div class="slide-grid-4">
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">FITTS'S LAW</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Mục Tiêu &amp; Khoảng Cách</div>
+              <p class="stat-desc" style="font-size: 14px;">Touch target tối thiểu 44px; nút CTA chính đặt ở vị trí ngón tay chạm nhanh nhất.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">HICK'S LAW</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Thời Gian Ra Quyết Định</div>
+              <p class="stat-desc" style="font-size: 14px;">Giảm bớt tùy chọn để tăng tốc độ chọn lựa; gom nhóm hành vi theo từng cấp bậc.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">MILLER'S LAW</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Giới Hạn 7±2 Khối Nhớ</div>
+              <p class="stat-desc" style="font-size: 14px;">Phân đoạn thông tin thành các cụm (chunking) từ 5 đến 9 phần tử trong một tầm nhìn.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">DOHERTY THRESHOLD</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Ngưỡng Phản Hồi 400ms</div>
+              <p class="stat-desc" style="font-size: 14px;">Mọi tương tác click/hover phải phản hồi thị giác trong vòng dưới 400ms để giữ sự tập trung.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">ZEIGARNIK EFFECT</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Thanh Tiến Trình Dang Dở</div>
+              <p class="stat-desc" style="font-size: 14px;">Bộ não luôn bị thôi thúc hoàn thành các tác vụ dở dang; áp dụng cho onboarding steps.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">JAKOB'S LAW</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Kỳ Vọng Thói Quen Cũ</div>
+              <p class="stat-desc" style="font-size: 14px;">Người dùng dành phần lớn thời gian trên web khác; giữ nguyên các quy ước điều hướng quen thuộc.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">VON RESTORFF</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Hiệu Ứng Nổi Bật Độc Bản</div>
+              <p class="stat-desc" style="font-size: 14px;">Phần tử có hình dáng khác biệt nhất (như thẻ Pricing Recommended) sẽ được ghi nhớ sâu nhất.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="padding: 20px;">
+              <span class="matrix-badge">SERIAL POSITION</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 6px;">Hiệu Ứng Đầu &amp; Cuối</div>
+              <p class="stat-desc" style="font-size: 14px;">Người dùng nhớ nhất mục đầu tiên và mục cuối cùng của thanh menu hay danh sách tính năng.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS UX Psychology • Cognitive Design Laws</div><div>19 / 28</div></footer>
+        <div data-speaker-notes="12 định luật UX định hình cách tổ chức giao diện thuận theo tự nhiên của nhận thức con người."></div>
+      </article>
+
+<article class="slide-item" id="slide-20" data-index="20">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Motion Ladder</span></div>
+          <div>Hồi 6 • 19 • The 6 Motion Tiers</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Thang Bậc Chuyển Động</span>
+            <h2 class="slide-title-h1 gsap-reveal">Thang Bậc Chuyển Động 6 Tầng (Motion Ladder T1–T6)</h2>
+            <p class="slide-subtitle gsap-reveal">Chỉ nâng lên bậc chuyển động cao hơn khi câu chuyện thiết kế thực sự đòi hỏi và ngân sách hiệu năng cho phép.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">T1 • MICRO-FEEDBACK</span>
+              <div class="stat-label" style="margin-top: 8px;">Hover &amp; Active States</div>
+              <p class="stat-desc">CSS transition 150-200ms trên <code>transform</code> và <code>opacity</code>. Phản hồi bấm nút, hover thẻ. Zero bundle cost.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">T2 • STATE TRANSITION</span>
+              <div class="stat-label" style="margin-top: 8px;">Chuyển Đổi Trạng Thái</div>
+              <p class="stat-desc">Mở Modal, bung Accordion, hoán đổi Tabs. Sử dụng CSS transitions kết hợp ARIA expanded.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">T3 • ENTRANCE REVEAL</span>
+              <div class="stat-label" style="margin-top: 8px;">Scroll-Driven CSS</div>
+              <p class="stat-desc">Hiệu ứng xuất hiện khi cuộn trang bằng native CSS <code>animation-timeline: view()</code>. Không tốn Javascript.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">T4 • LAYOUT CHOREO</span>
+              <div class="stat-label" style="margin-top: 8px;">FLIP Layout Animation</div>
+              <p class="stat-desc">Tái sắp xếp lưới sản phẩm, mở rộng thẻ chi tiết bằng kỹ thuật FLIP không gây giật khung hình.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">T5 • GSAP SCROLLTRIGGER</span>
+              <div class="stat-label" style="margin-top: 8px;">Biên Đạo Thời Gian</div>
+              <p class="stat-desc">Ghim khung hình (Pinning), scrub tiến trình cuộn, phối hợp timeline đa tầng phức tạp cho landing page.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">T6 • AUTHORING &amp; 3D</span>
+              <div class="stat-label" style="margin-top: 8px;">Scroll-Cinema &amp; WebGL</div>
+              <p class="stat-desc">Cuộn phim 3D không gian, WebGL shaders, camera flight đa phân đoạn qua GFlow hand.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Motion Ladder • Tiered Kinetic Standards</div><div>20 / 28</div></footer>
+        <div data-speaker-notes="Thang bậc chuyển động giúp kiểm soát hiệu năng: chỉ leo lên T6 khi thực sự cần trải nghiệm điện ảnh."></div>
+      </article>
+
+<article class="slide-item" id="slide-21" data-index="21">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Scroll-Cinema</span></div>
+          <div>Hồi 6 • 20 • Seam Physics &amp; Continuous Take</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Điện Ảnh Cuộn Trang</span>
+            <h2 class="slide-title-h1 gsap-reveal">Scroll-Cinema: Nghệ Thuật Cuộn Phim Không Vết Cắt</h2>
+            <p class="slide-subtitle gsap-reveal">Kỹ thuật ráp nối các đoạn clip riêng lẻ thành một cú máy one-take duy nhất điều khiển trực tiếp bằng ngón tay cuộn chuột.</p>
+          </div>
+
+          <div class="diagram-container gsap-card">
+            <button class="interactive-badge-btn" id="btn-pulse-scroll-cinema">
+              <svg class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Mô Phỏng Cú Máy One-Take 3 Phân Đoạn</span>
+            </button>
+
+            <svg class="diagram-svg" id="svgScrollCinema" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 470 260 L 550 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+              <path d="M 1030 260 L 1110 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+
+              <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
+              <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+
+              <!-- Leg 1 -->
+              <g transform="translate(40, 60)" id="cinemaLeg1" style="cursor: pointer;">
+                <rect width="430" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">PHÂN ĐOẠN 01</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Leg 1: Hero Fly-In</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Initial Establishing Orbit</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Bay lượn nửa vòng quanh đối tượng</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tốc độ giảm dần về cuối clip</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Trích xuất Last Frame làm seed</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Khóa hướng chuyển động tiến thẳng</text>
+
+                <rect x="32" y="340" width="366" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">SEAM 1: Frame-Lock Exact</text>
+              </g>
+
+              <!-- Leg 2 -->
+              <g transform="translate(550, 60)" id="cinemaLeg2" style="cursor: pointer;">
+                <rect width="480" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
+                <rect x="0" y="0" width="480" height="8" rx="4" fill="var(--text-primary)"/>
+                <circle cx="430" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
+                <circle cx="430" cy="48" r="5" fill="var(--text-primary)"/>
+
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">PHÂN ĐOẠN 02</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Leg 2: Exploded View</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Continuous Forward Flight</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Bắt đầu từ Frame kết thúc của Leg 1</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Các linh kiện tách rời dạng 3D 2K</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Vận tốc góc máy (Velocity) liên tục</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Không bao giờ đảo chiều lùi góc máy</text>
+
+                <rect x="32" y="340" width="416" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">PHYSICS: Zero Rewind Stutter</text>
+              </g>
+
+              <!-- Leg 3 -->
+              <g transform="translate(1110, 60)" id="cinemaLeg3" style="cursor: pointer;">
+                <rect width="450" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+                <rect x="0" y="0" width="450" height="8" rx="4" fill="var(--text-primary)"/>
+                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">PHÂN ĐOẠN 03</text>
+                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Leg 3: Final Macro Core</text>
+                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Interior Immersion Landing</text>
+
+                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Bay xuyên qua kiến trúc vi mô bên trong</text>
+                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Dừng êm dịu tại bảng điều khiển</text>
+                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Nối liền mạch sang UI Controls</text>
+                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 343 WebP Frames kết xuất 60 FPS</text>
+
+                <rect x="32" y="340" width="386" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
+                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">DELIVERY: 2K WebP Scrub Canvas</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Scroll-Cinema • The Seam Physics Contract</div><div>21 / 28</div></footer>
+        <div data-speaker-notes="Mối nối (Seam) là sản phẩm: đảm bảo tính liên tục về vị trí và vận tốc để người xem cảm nhận như 1 cú máy one-take duy nhất."></div>
+      </article>
+
+<article class="slide-item" id="slide-22" data-index="22">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>GFlow Hand</span></div>
+          <div>Hồi 6 • 21 • Google Flow Automation</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Tự Động Hóa Video AI</span>
+            <h2 class="slide-title-h1 gsap-reveal">GFlow Hand: Tự Động Hóa Google Flow (Veo / Imagen)</h2>
+            <p class="slide-subtitle gsap-reveal">Điều khiển Google Flow qua Playwright với cơ chế an toàn <strong>Verify-then-Spend</strong> bảo vệ số dư tài khoản.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">1. THE GOLDEN PATH</span>
+              <div class="stat-label" style="margin-top: 8px;">ui gflow i2v</div>
+              <p class="stat-desc" style="margin-top: 10px;">Lệnh an toàn duy nhất: sinh video từ ảnh, kiểm tra tải file MP4 thật, tự trích xuất last frame qua ffmpeg.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>ui gflow i2v "flight..." --initial-frame seed.png</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">2. VERIFY-THEN-SPEND</span>
+              <div class="stat-label" style="margin-top: 8px;">Chống Rơi Render</div>
+              <p class="stat-desc" style="margin-top: 10px;">Không bao giờ gọi lệnh <code>chain</code> mù quáng. Mỗi phân đoạn phải tải về thành công trước khi sinh đoạn tiếp theo.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>DOWNLOAD_MISSING → Recovery Plan</code>
+              </div>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">3. WEBP CONVERSION</span>
+              <div class="stat-label" style="margin-top: 8px;">Trích Xuất Khung Hình</div>
+              <p class="stat-desc" style="margin-top: 10px;">Chuyển đổi MP4 thành chuỗi WebP nén chất lượng cao sẵn sàng cho Canvas Scrubbing mượt mà trên mobile.</p>
+              <div class="code-terminal" style="padding: 10px; margin-top: 12px; font-size: 13px;">
+                <code>ffmpeg -i clip.mp4 frame_%04d.webp</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS GFlow Hand • Automated Video Pipeline</div><div>22 / 28</div></footer>
+        <div data-speaker-notes="GFlow Hand tự động hóa quy trình sinh video phức tạp bằng phương pháp verify-then-spend an toàn."></div>
+      </article>
+
+<article class="slide-item" id="slide-23" data-index="23">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Canvas UI</span></div>
+          <div>Hồi 6 • 22 • Shaders &amp; Teardown Contract</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Đồ Họa Bậc Cao</span>
+            <h2 class="slide-title-h1 gsap-reveal">Canvas T6 &amp; WebGL Shaders: Liquid Glass &amp; Hợp Đồng Dọn Dẹp</h2>
+            <p class="slide-subtitle gsap-reveal">Hiệu ứng bề mặt chất liệu cao cấp nhưng tuyệt đối tuân thủ ngân sách hiệu năng 60 FPS và dọn dẹp bộ nhớ.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">1. ONE-EFFECT CAP</span>
+              <div class="stat-label" style="margin-top: 8px;">Giới Hạn 1 Hiệu Ứng</div>
+              <p class="stat-desc" style="margin-top: 10px;">Chỉ được phép có duy nhất 1 hiệu ứng Canvas T6 trên toàn trang (ví dụ: Liquid Glass hoặc Particle Mesh).</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">2. TEARDOWN CONTRACT</span>
+              <div class="stat-label" style="margin-top: 8px;">Hợp Đồng Dọn Dẹp</div>
+              <p class="stat-desc" style="margin-top: 10px;">Bắt buộc phải hủy <code>cancelAnimationFrame</code>, giải phóng WebGL contexts và dọn sạch Event Listeners khi unmount.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">3. 60 FPS PERFORMANCE FLOOR</span>
+              <div class="stat-label" style="margin-top: 8px;">Sàn Hiệu Năng 60 FPS</div>
+              <p class="stat-desc" style="margin-top: 10px;">Giới hạn kích thước render buffer theo DPR tối đa 2; tự động hạ cấp xuống ảnh tĩnh trên thiết bị yếu.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Canvas UI • T6 Engineering Standard</div><div>23 / 28</div></footer>
+        <div data-speaker-notes="Canvas T6 chỉ được kích hoạt khi có lý do chính đáng và bắt buộc phải có teardown function để tránh rò rỉ bộ nhớ."></div>
+      </article>
+
+<article class="slide-item" id="slide-24" data-index="24">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Qualified Delivery</span></div>
-          <div>14 • Release Verification</div>
+          <div>Hồi 7 • 23 • Release Verification</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1652,18 +2203,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Qualified Delivery v2</div><div>15 / 18</div></footer>
+        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Qualified Delivery v2</div><div>24 / 28</div></footer>
         <div data-speaker-notes="Trạng thái QUALIFIED bắt buộc phải có bằng chứng render thực tế cả 3 viewport, không thể nói suông."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 16: THỨ TỰ 6 BƯỚC FULL-STACK AUDIT    -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-16" data-index="16">
+<article class="slide-item" id="slide-25" data-index="25">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Full-Stack Audit</span></div>
-          <div>15 • The 6-Step Audit Pipeline</div>
+          <div>Hồi 7 • 24 • The 6-Step Audit Pipeline</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1679,9 +2227,7 @@
               <span>Chạy Mô Phỏng 6 Bước Audit</span>
             </button>
 
-            <!-- 6-Step Audit SVG Pipeline -->
             <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Active Flow Connectors -->
               <path d="M 255 260 L 290 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
               <path d="M 515 260 L 550 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
               <path d="M 775 260 L 810 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
@@ -1775,18 +2321,15 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Ordered 6-Step Audit</div><div>16 / 18</div></footer>
-        <div data-speaker-notes="Nhấn nút Mô phỏng để GSAP chạy quét tuần tự từng bước từ 1 đến 6. Bước 3 chụp baseline phải chạy trước khi sửa token ở bước 4."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Ordered 6-Step Audit</div><div>25 / 28</div></footer>
+        <div data-speaker-notes="Pipeline 6 bước bắt buộc chạy đúng thứ tự: Flow -> Evidence -> VR -> Pairs -> Rendered A11y -> Full Audit."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 17: DELIVERY CHECKLIST & SEMVER      -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-17" data-index="17">
+<article class="slide-item" id="slide-26" data-index="26">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Release &amp; Semver</span></div>
-          <div>16 • Checklist &amp; PR Review</div>
+          <div>Hồi 7 • 25 • Checklist &amp; PR Review</div>
         </header>
 
         <section class="slide-content-zone">
@@ -1827,25 +2370,79 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Semver &amp; Handoff</div><div>17 / 18</div></footer>
-        <div data-speaker-notes="Lệnh ui ds diff tự động tính toán Delta EOK để biết thay đổi màu sắc có làm vỡ giao diện của người dùng hay không."></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Delivery • Semver &amp; Handoff</div><div>26 / 28</div></footer>
+        <div data-speaker-notes="Checklist 5 bước và Semver Diff đảm bảo việc bàn giao sang cho đội ngũ Engineering diễn ra êm đẹp."></div>
       </article>
 
-      <!-- ========================================== -->
-      <!-- SLIDE 18: TỔNG KẾT & BẮT ĐẦU TRẢI NGHIỆM    -->
-      <!-- ========================================== -->
-      <article class="slide-item" id="slide-18" data-index="18">
+<article class="slide-item" id="slide-27" data-index="27">
+        <div class="chrome-accent-strip"></div>
+        <header class="chrome-header">
+          <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Fable Thinking</span></div>
+          <div>Hồi 7 • 26 • The 5 AK Fables</div>
+        </header>
+
+        <section class="slide-content-zone">
+          <div class="slide-heading-group">
+            <span class="slide-eyebrow gsap-reveal">Tư Duy Ngụ Ngôn</span>
+            <h2 class="slide-title-h1 gsap-reveal">5 Ngụ Ngôn AK Fable: Triết Lý Đằng Sau Thiết Kế</h2>
+            <p class="slide-subtitle gsap-reveal">Đúc kết những cơ chế kỹ thuật phức tạp thành các hình tượng ngụ ngôn trực quan dễ ghi nhớ.</p>
+          </div>
+
+          <div class="slide-grid-3">
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FABLE 1 • THE SEAMLESS FLIGHT</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 8px;">Cú Bay Không Vết Cắt</div>
+              <p class="stat-desc">"Một đường rách nhỏ làm tan biến cả giấc mơ". Vận tốc và vị trí tại mối nối clip phải tuyệt đối liên tục, không bao giờ được phép lùi bước.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FABLE 2 • THE TWO-WAY BRIDGE</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 8px;">Cây Cầu Hai Chiều</div>
+              <p class="stat-desc">"Sự thật không thuộc về riêng Mã hay Tranh". figma-agent nối nhịp hai bờ, biến Canvas thành thực thể sống động gắn liền với Token.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FABLE 3 • THE 14-PLANK FLOOR</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 8px;">Sàn Gỗ 14 Thanh Chắn</div>
+              <p class="stat-desc">"Đừng bao giờ tin vào lời hứa của AI". Hãy để 14 lưỡi cưa linter kiểm tra từng mối hàn code để bảo vệ chất lượng không tì vết.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FABLE 4 • THE MOTION LADDER</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 8px;">Thang Bậc Chuyển Động</div>
+              <p class="stat-desc">"Leo cao mà thiếu chân đế thì rơi". Chỉ leo từ T1 đến T6 khi câu chuyện đòi hỏi và người dùng cho phép qua reduced-motion.</p>
+            </div>
+
+            <div class="slide-card gsap-card">
+              <span class="matrix-badge">FABLE 5 • MEMORY DISTILLATION</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 8px;">Người Ghi Chép Cổ Xưa</div>
+              <p class="stat-desc">"Sau mỗi chuyến đi, hãy đúc kết vào đá tảng". Recall lưu giữ bài học và giải phóng context để tiếp tục bay xa mà không tốn triệu token.</p>
+            </div>
+
+            <div class="slide-card gsap-card" style="background: var(--bg-surface-raised);">
+              <span class="matrix-badge">CORE TAKEAWAY</span>
+              <div class="stat-label" style="font-size: 18px; margin-top: 8px;">Kỷ Luật Tạo Nên Đỉnh Cao</div>
+              <p class="stat-desc">DESIGN:OS không biến bạn thành nô lệ của công cụ, mà trao cho bạn sức mạnh của một xưởng thiết kế công nghiệp tự vận hành.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="chrome-footer"><div>DESIGN:OS Philosophy • AK Fable Thinking</div><div>27 / 28</div></footer>
+        <div data-speaker-notes="5 câu chuyện ngụ ngôn là tổng kết triết lý sâu sắc nhất đằng sau toàn bộ công nghệ của DESIGN:OS."></div>
+      </article>
+
+<article class="slide-item" id="slide-28" data-index="28">
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Summary</span></div>
-          <div>17 • Start Designing</div>
+          <div>Hồi 7 • 27 • Start Designing</div>
         </header>
 
         <section class="slide-content-zone" style="justify-content: center;">
           <div class="slide-heading-group">
             <span class="slide-eyebrow gsap-reveal">Tổng Kết &amp; Thực Hành</span>
             <h2 class="slide-title-display gsap-reveal">Bắt Đầu Ngay Trong 60 Giây</h2>
-            <p class="slide-subtitle gsap-reveal">Hệ sinh thái DESIGN:OS đã được cấu hình hoàn chỉnh trong môi trường của bạn.</p>
+            <p class="slide-subtitle gsap-reveal">Toàn bộ hệ sinh thái DESIGN:OS đã được cấu hình và kiểm định hoàn chỉnh trong môi trường của bạn.</p>
           </div>
 
           <div class="slide-grid-3" style="margin-top: 20px;">
@@ -1875,8 +2472,8 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Ready for Production</div><div>18 / 18</div></footer>
-        <div data-speaker-notes="Cảm ơn bạn đã tham gia khóa học làm chủ DESIGN:OS. Bạn có thể mở terminal và bắt đầu sinh giao diện ngay bây giờ!"></div>
+        <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Ready for Production</div><div>28 / 28</div></footer>
+        <div data-speaker-notes="Cảm ơn bạn đã hoàn thành khóa Masterclass 28 slide. Chúc bạn tạo nên những giao diện đỉnh cao cùng DESIGN:OS!"></div>
       </article>
 
     </div>
@@ -1916,7 +2513,7 @@
   <!-- Overview Grid Modal -->
   <div class="overview-modal" id="overviewModal">
     <div style="display: flex; justify-content: space-between; align-items: center; max-width: 100%; margin: 0 auto; width: 100%;">
-      <h2 style="font-size: var(--font-size-xl); font-weight: 800;">Tổng Quan Các Slide</h2>
+      <h2 style="font-size: var(--font-size-xl); font-weight: 800;">Tổng Quan 28 Slide Masterclass</h2>
       <button class="interactive-badge-btn" id="btnCloseOverview" style="position: static;">Đóng [ESC]</button>
     </div>
     <div class="overview-grid" id="overviewGrid" style="max-width: 100%; margin: 0 auto; width: 100%;">
@@ -1953,7 +2550,7 @@
         const scaleY = viewportHeight / targetHeight;
         const scale = Math.min(scaleX, scaleY);
 
-        stage.style.transform = `scale(${scale})`;
+        stage.style.transform = \`scale(\${scale})\`;
       }
 
       window.addEventListener('resize', scaleStage);
@@ -2002,7 +2599,7 @@
             if (counterDisplay) {
               const currentPadded = String(currentIndex + 1).padStart(2, '0');
               const totalPadded = String(totalSlides).padStart(2, '0');
-              counterDisplay.textContent = `${currentPadded} / ${totalPadded}`;
+              counterDisplay.textContent = \`\${currentPadded} / \${totalPadded}\`;
             }
             // Trigger GSAP entrance choreography
             animateSlideEntrance(slide);
@@ -2049,12 +2646,12 @@
           const title = slide.querySelector('.slide-title-display, .slide-title-h1');
           const eyebrow = slide.querySelector('.slide-eyebrow');
           const card = document.createElement('div');
-          card.className = `overview-card ${idx === currentIndex ? 'current' : ''}`;
-          card.innerHTML = `
-            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); font-weight: 700;">SLIDE ${String(idx + 1).padStart(2, '0')}</div>
-            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3;">${title ? title.textContent.trim() : 'Slide ' + (idx + 1)}</div>
-            <div style="font-size: 13px; color: var(--text-muted);">${eyebrow ? eyebrow.textContent.trim() : ''}</div>
-          `;
+          card.className = \`overview-card \${idx === currentIndex ? 'current' : ''}\`;
+          card.innerHTML = \`
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); font-weight: 700;">SLIDE \${String(idx + 1).padStart(2, '0')}</div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3;">\${title ? title.textContent.trim() : 'Slide ' + (idx + 1)}</div>
+            <div style="font-size: 13px; color: var(--text-muted);">\${eyebrow ? eyebrow.textContent.trim() : ''}</div>
+          \`;
           card.addEventListener('click', () => {
             updateSlide(idx);
             closeOverview();
@@ -2114,7 +2711,19 @@
         });
       }
 
-      // D: Slide 10 - 4 Audit Surfaces Matrix Trigger
+      // D: Slide 10 - Figma Bridge Bi-directional Trigger
+      const btnPulseFigma = document.getElementById('btn-pulse-figma-bridge');
+      if (btnPulseFigma) {
+        btnPulseFigma.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          tl.to('#figmaNodeCode', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
+            .to('#figmaNodeBroker', { scale: 1.06, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05')
+            .to('#figmaNodeCanvas', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05');
+        });
+      }
+
+      // E: Slide 12 - 4 Audit Surfaces Matrix Trigger
       const btnPulseAudit = document.getElementById('btn-pulse-audit-surfaces');
       if (btnPulseAudit) {
         btnPulseAudit.addEventListener('click', () => {
@@ -2131,7 +2740,7 @@
         });
       }
 
-      // E: Slide 12 - Memory Loop Simulation
+      // F: Slide 14 - Memory Loop Simulation
       const btnPulseMemory = document.getElementById('btn-pulse-memory');
       if (btnPulseMemory) {
         btnPulseMemory.addEventListener('click', () => {
@@ -2143,7 +2752,19 @@
         });
       }
 
-      // F: Slide 13 - 6+1 Taste Rubric Craft Radar Runner
+      // G: Slide 16 - Color Science Space Simulation
+      const btnPulseColor = document.getElementById('btn-pulse-color-gamut');
+      if (btnPulseColor) {
+        btnPulseColor.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          tl.to('#colorHSL', { opacity: 0.4, duration: 0.2, yoyo: true, repeat: 1 })
+            .to('#colorOKLCH', { scale: 1.05, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05')
+            .to('#colorDelta', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05');
+        });
+      }
+
+      // H: Slide 17 - 6+1 Taste Rubric Craft Radar Runner
       const btnPulseTaste = document.getElementById('btn-pulse-taste-radar');
       if (btnPulseTaste) {
         btnPulseTaste.addEventListener('click', () => {
@@ -2161,7 +2782,19 @@
         });
       }
 
-      // G: Slide 16 - 6-Step Delivery Pipeline Runner
+      // I: Slide 21 - Scroll-Cinema 3-Leg Simulation
+      const btnPulseCinema = document.getElementById('btn-pulse-scroll-cinema');
+      if (btnPulseCinema) {
+        btnPulseCinema.addEventListener('click', () => {
+          if (typeof gsap === 'undefined') return;
+          const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+          tl.to('#cinemaLeg1', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
+            .to('#cinemaLeg2', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.08')
+            .to('#cinemaLeg3', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.08');
+        });
+      }
+
+      // J: Slide 25 - 6-Step Delivery Pipeline Runner
       const btnRunDelivery = document.getElementById('btn-run-delivery-pipeline');
       if (btnRunDelivery) {
         btnRunDelivery.addEventListener('click', () => {
@@ -2179,7 +2812,15 @@
       }
 
       // Hover feedback on diagram nodes
-      ['#nodePillar1', '#nodePillar2', '#nodePillar3', '#nodeUser', '#nodeAgent', '#nodeKernel', '#soulFactory', '#soulStudio', '#soulProject', '#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4', '#memRecall', '#memWork', '#memReflect', '#tasteCore7', '#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6'].forEach(id => {
+      const interactiveNodes = [
+        '#nodePillar1', '#nodePillar2', '#nodePillar3', '#nodeUser', '#nodeAgent', '#nodeKernel',
+        '#soulFactory', '#soulStudio', '#soulProject', '#figmaNodeCode', '#figmaNodeBroker', '#figmaNodeCanvas',
+        '#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4', '#memRecall', '#memWork', '#memReflect',
+        '#colorHSL', '#colorOKLCH', '#colorDelta', '#tasteCore7', '#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6',
+        '#cinemaLeg1', '#cinemaLeg2', '#cinemaLeg3'
+      ];
+
+      interactiveNodes.forEach(id => {
         const el = document.querySelector(id);
         if (el) {
           el.addEventListener('mouseenter', () => {
@@ -2196,7 +2837,7 @@
       });
 
       // 5. Event Listeners (Controls & Keyboard)
-      document.getElementById('btn-prev').addEventListener('click', nextSlide);
+      document.getElementById('btn-prev').addEventListener('click', prevSlide);
       document.getElementById('btn-next').addEventListener('click', nextSlide);
       document.getElementById('btn-theme').addEventListener('click', toggleTheme);
       document.getElementById('btn-notes').addEventListener('click', toggleNotes);
