@@ -378,7 +378,159 @@
         break;
       case 'Home':
         e.preventDefault();
-        updateSlide(0);
+        
+  // =========================================================
+  // i18n INTERNATIONALIZATION ENGINE (7 LANGUAGES, DEFAULT: EN)
+  // =========================================================
+  const supportedLanguages = [
+    { code: 'en', label: 'English (Default)', flag: '🇺🇸' },
+    { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+    { code: 'ko', label: '한국어', flag: '🇰🇷' },
+    { code: 'ja', label: '日本語', flag: '🇯🇵' },
+    { code: 'es', label: 'Español', flag: '🇪🇸' },
+    { code: 'fr', label: 'Français', flag: '🇫🇷' },
+    { code: 'zh', label: '中文 (简体)', flag: '🇨🇳' }
+  ];
+
+  let currentLang = 'en';
+  try {
+    const savedLang = localStorage.getItem('deck_lang');
+    if (savedLang && supportedLanguages.some(l => l.code === savedLang)) {
+      currentLang = savedLang;
+    }
+  } catch (e) {}
+
+  const langModal = document.getElementById('langModal');
+  const langGrid = document.getElementById('langGrid');
+  const btnLang = document.getElementById('btn-lang');
+  const btnCloseLang = document.getElementById('btnCloseLang');
+
+  function renderLangGrid() {
+    if (!langGrid) return;
+    langGrid.innerHTML = '';
+    supportedLanguages.forEach(lang => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'lang-option ' + (lang.code === currentLang ? 'active' : '');
+      opt.setAttribute('data-lang', lang.code);
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'lang-name';
+      nameSpan.innerHTML = '<span style="font-size:18px;">' + lang.flag + '</span> <span>' + lang.label + '</span>';
+
+      const codeSpan = document.createElement('span');
+      codeSpan.className = 'lang-code';
+      codeSpan.textContent = lang.code.toUpperCase();
+
+      opt.appendChild(nameSpan);
+      opt.appendChild(codeSpan);
+
+      opt.addEventListener('click', () => {
+        setLanguage(lang.code);
+        closeLangModal();
+      });
+
+      langGrid.appendChild(opt);
+    });
+  }
+
+  function setLanguage(lang) {
+    if (!supportedLanguages.some(l => l.code === lang)) return;
+    currentLang = lang;
+    try {
+      localStorage.setItem('deck_lang', lang);
+    } catch (e) {}
+
+    document.documentElement.lang = lang;
+
+    // Update UI elements from translations if available
+    if (typeof DECK_I18N !== 'undefined') {
+      const uiStrings = (DECK_I18N.ui && DECK_I18N.ui[lang]) || (DECK_I18N.ui && DECK_I18N.ui.en);
+      if (uiStrings) {
+        // Update header & footer
+        const brandBadge = document.querySelector('.chrome-header span:first-child');
+        const headerVersion = document.querySelector('.chrome-header span:last-child');
+        const footerHint = document.querySelector('.chrome-footer span:first-child');
+
+        if (footerHint && uiStrings.footerHint) footerHint.textContent = uiStrings.footerHint;
+        if (headerVersion && uiStrings.headerVersion) headerVersion.textContent = uiStrings.headerVersion;
+
+        // Update interactive diagram trigger buttons
+        const btnPulseFoundations = document.getElementById('btn-pulse-triad-foundations');
+        if (btnPulseFoundations && uiStrings.actFoundations) btnPulseFoundations.textContent = '▷ ' + uiStrings.actFoundations;
+
+        const btnPulseArch = document.getElementById('btn-pulse-arch');
+        if (btnPulseArch && uiStrings.actArch) btnPulseArch.textContent = '▷ ' + uiStrings.actArch;
+
+        const btnPulseSoul = document.getElementById('btn-pulse-soul');
+        if (btnPulseSoul && uiStrings.actSoul) btnPulseSoul.textContent = '▷ ' + uiStrings.actSoul;
+
+        const btnPulseFigma = document.getElementById('btn-pulse-figma-bridge');
+        if (btnPulseFigma && uiStrings.actFigma) btnPulseFigma.textContent = '▷ ' + uiStrings.actFigma;
+
+        const btnPulseAudit = document.getElementById('btn-pulse-audit-surfaces');
+        if (btnPulseAudit && uiStrings.actAudit) btnPulseAudit.textContent = '▷ ' + uiStrings.actAudit;
+
+        const btnPulseMemory = document.getElementById('btn-pulse-memory');
+        if (btnPulseMemory && uiStrings.actMemory) btnPulseMemory.textContent = '▷ ' + uiStrings.actMemory;
+
+        const btnPulseColor = document.getElementById('btn-pulse-color-gamut');
+        if (btnPulseColor && uiStrings.actColor) btnPulseColor.textContent = '▷ ' + uiStrings.actColor;
+
+        const btnPulseTaste = document.getElementById('btn-pulse-taste-radar');
+        if (btnPulseTaste && uiStrings.actTaste) btnPulseTaste.textContent = '▷ ' + uiStrings.actTaste;
+
+        const btnPulseCinema = document.getElementById('btn-pulse-scroll-cinema');
+        if (btnPulseCinema && uiStrings.actCinema) btnPulseCinema.textContent = '▷ ' + uiStrings.actCinema;
+
+        const btnRunDelivery = document.getElementById('btn-run-delivery-pipeline');
+        if (btnRunDelivery && uiStrings.actDelivery) btnRunDelivery.textContent = '▷ ' + uiStrings.actDelivery;
+      }
+
+      // Update slide texts for all slides
+      if (DECK_I18N.slides) {
+        slides.forEach((slide, idx) => {
+          const slideNum = idx + 1;
+          const slideData = DECK_I18N.slides[slideNum] && (DECK_I18N.slides[slideNum][lang] || DECK_I18N.slides[slideNum].en);
+          if (slideData) {
+            const eyebrowEl = slide.querySelector('.slide-eyebrow');
+            const titleEl = slide.querySelector('.slide-title-display, .slide-title-h1');
+            const subtitleEl = slide.querySelector('.slide-subtitle');
+            const notesEl = slide.querySelector('[data-speaker-notes]');
+
+            if (eyebrowEl && slideData.eyebrow) eyebrowEl.innerHTML = '• ' + slideData.eyebrow;
+            if (titleEl && slideData.title) titleEl.innerHTML = slideData.title;
+            if (subtitleEl && slideData.subtitle) subtitleEl.innerHTML = slideData.subtitle;
+            if (notesEl && slideData.notes) notesEl.setAttribute('data-speaker-notes', slideData.notes);
+          }
+        });
+      }
+    }
+
+    // Refresh speaker notes and overview if opened
+    updateSlide(currentIndex);
+    renderLangGrid();
+  }
+
+  function toggleLangModal() {
+    if (!langModal) return;
+    if (langModal.classList.contains('open')) {
+      closeLangModal();
+    } else {
+      renderLangGrid();
+      langModal.classList.add('open');
+    }
+  }
+
+  function closeLangModal() {
+    if (langModal) langModal.classList.remove('open');
+  }
+
+  if (btnLang) btnLang.addEventListener('click', toggleLangModal);
+  if (btnCloseLang) btnCloseLang.addEventListener('click', closeLangModal);
+
+  setLanguage(currentLang);
+  updateSlide(0);
         break;
       case 'End':
         e.preventDefault();
@@ -399,6 +551,10 @@
       case 'o':
       case 'O':
         toggleOverview();
+        break;
+      case 'l':
+      case 'L':
+        toggleLangModal();
         break;
       case 'Escape':
         closeOverview();
