@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-15 - Native diagram craft
+
+### Added
+- `/ui:diagram` selects exactly one native grammar for architecture, sequence, or
+  product-flow diagrams and emits a self-contained offline HTML artifact with owned inline
+  SVG, accessible labels, explicit reading order, and inspectable source metadata.
+- `ui diagram lint` deterministically rejects malformed ownership, accessibility metadata,
+  unsafe references, missing product-flow source IDs, diagonal line connectors, and duplicate
+  connector geometry without pretending to validate subjective composition.
+- Product-flow guidance treats `flow.json` as read-only semantic authority, separates the
+  responsibilities of flow and diagram linting, and requires manual source-ID resolution plus
+  a fidelity ledger for every merge, collapse, or drop.
+- A pinned generic real-flow fixture and rendered product-flow artifact prove zero-finding
+  flow/diagram lint, complete source-ID parity, declared reading order, terminal treatment,
+  back-edge treatment, and full fidelity with an empty ledger.
+
+### Changed
+- Runtime adapters now install 17 workflows, 13 craft skills, and 3 journey skills. Adapter
+  counts, initialization help, generated-tree tests, and README discovery surfaces agree on
+  the 33 generated artifacts.
+
 ## 2026-08-13 - Four shipped sites lead the showcase as a grid
 
 ### Added
