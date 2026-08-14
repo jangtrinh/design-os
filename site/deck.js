@@ -11,7 +11,9 @@
   let currentIndex = 0;
   let isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // 1. Responsive Fit-to-Screen Stage Scaling (Only for Desktop / Presentation viewports >= 1024px)
+  // =========================================================
+  // 1. Responsive Fit-to-Screen Stage Scaling (Desktop >= 1024px)
+  // =========================================================
   function scaleStage() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -35,7 +37,9 @@
   window.addEventListener('resize', scaleStage);
   scaleStage();
 
+  // =========================================================
   // 2. GSAP Slide Entrance Choreography Engine (T5 Motion Tier)
+  // =========================================================
   function animateSlideEntrance(slideEl) {
     if (isReducedMotion || typeof gsap === 'undefined') {
       return;
@@ -62,7 +66,9 @@
     }
   }
 
+  // =========================================================
   // 3. Slide Navigation Logic
+  // =========================================================
   function updateSlide(index) {
     if (index < 0) index = 0;
     if (index >= totalSlides) index = totalSlides - 1;
@@ -74,7 +80,7 @@
         // Update speaker notes
         const notesEl = slide.querySelector('[data-speaker-notes]');
         if (notesText) {
-          notesText.textContent = notesEl ? notesEl.getAttribute('data-speaker-notes') : 'Không có ghi chú diễn giả cho slide này.';
+          notesText.textContent = notesEl ? notesEl.getAttribute('data-speaker-notes') : 'No speaker notes for this slide.';
         }
         // Update counter display
         if (counterDisplay) {
@@ -126,7 +132,9 @@
     }
   }
 
-  // Overview Grid
+  // =========================================================
+  // 4. Overview Grid Modal Logic
+  // =========================================================
   function renderOverview() {
     if (!overviewGrid) return;
     overviewGrid.innerHTML = '';
@@ -181,206 +189,8 @@
     if (overviewModal) overviewModal.classList.remove('open');
   }
 
-  // 4. Interactive GSAP Micro-Choreography Triggers on Diagrams
-  // A: Slide 2 - Foundations Triad Trigger
-  const btnPulseFoundations = document.getElementById('btn-pulse-triad-foundations');
-  if (btnPulseFoundations) {
-    btnPulseFoundations.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline();
-      tl.to('#nodePillar1', { scale: 1.04, duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' })
-        .to('.svg-packet-1', { scale: 2.2, fill: 'var(--text-primary)', duration: 0.3, yoyo: true, repeat: 2 }, '-=0.1')
-        .to('#nodePillar2', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1')
-        .to('#nodePillar3', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1');
-    });
-  }
-
-  // B: Slide 3 - Architecture Data Flow
-  const btnPulseArch = document.getElementById('btn-pulse-arch');
-  if (btnPulseArch) {
-    btnPulseArch.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline();
-      tl.to('#nodeUser', { scale: 1.04, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' })
-        .to('#nodeAgent', { scale: 1.03, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1')
-        .to('#nodeKernel', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1');
-    });
-  }
-
-  // C: Slide 5 - Soul Hierarchy Precedence Trigger
-  const btnPulseSoul = document.getElementById('btn-pulse-soul');
-  if (btnPulseSoul) {
-    btnPulseSoul.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      tl.to('#soulFactory', { scale: 1.03, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' })
-        .to('#soulStudio', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1')
-        .to('#soulProject', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1');
-    });
-  }
-
-  // D: Slide 10 - Figma Bridge Bi-directional Trigger
-  const btnPulseFigma = document.getElementById('btn-pulse-figma-bridge');
-  if (btnPulseFigma) {
-    btnPulseFigma.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      tl.to('#figmaNodeCode', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
-        .to('#figmaNodeBroker', { scale: 1.06, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05')
-        .to('#figmaNodeCanvas', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05');
-    });
-  }
-
-  // E: Slide 12 - 4 Audit Surfaces Matrix Trigger
-  const btnPulseAudit = document.getElementById('btn-pulse-audit-surfaces');
-  if (btnPulseAudit) {
-    btnPulseAudit.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      const quads = ['#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4'];
-      quads.forEach((quad, idx) => {
-        tl.fromTo(quad, 
-          { scale: 1 }, 
-          { scale: 1.03, duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
-          idx === 0 ? 0 : '+=0.08'
-        );
-      });
-    });
-  }
-
-  // F: Slide 14 - Memory Loop Simulation
-  const btnPulseMemory = document.getElementById('btn-pulse-memory');
-  if (btnPulseMemory) {
-    btnPulseMemory.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
-      tl.to('#memRecall', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
-        .to('#memWork', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1')
-        .to('#memReflect', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1');
-    });
-  }
-
-  // G: Slide 16 - Color Science Space Simulation
-  const btnPulseColor = document.getElementById('btn-pulse-color-gamut');
-  if (btnPulseColor) {
-    btnPulseColor.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      tl.to('#colorHSL', { opacity: 0.4, duration: 0.2, yoyo: true, repeat: 1 })
-        .to('#colorOKLCH', { scale: 1.05, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05')
-        .to('#colorDelta', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05');
-    });
-  }
-
-  // H: Slide 17 - 6+1 Taste Rubric Craft Radar Runner
-  const btnPulseTaste = document.getElementById('btn-pulse-taste-radar');
-  if (btnPulseTaste) {
-    btnPulseTaste.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      tl.to('#tasteCore7', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' });
-      const axes = ['#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6'];
-      axes.forEach((axis, idx) => {
-        tl.fromTo(axis, 
-          { scale: 1 }, 
-          { scale: 1.04, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
-          idx === 0 ? '-=0.1' : '+=0.06'
-        );
-      });
-    });
-  }
-
-  // I: Slide 21 - Scroll-Cinema 3-Leg Simulation
-  const btnPulseCinema = document.getElementById('btn-pulse-scroll-cinema');
-  if (btnPulseCinema) {
-    btnPulseCinema.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      tl.to('#cinemaLeg1', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
-        .to('#cinemaLeg2', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.08')
-        .to('#cinemaLeg3', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.08');
-    });
-  }
-
-  // J: Slide 25 - 6-Step Delivery Pipeline Runner
-  const btnRunDelivery = document.getElementById('btn-run-delivery-pipeline');
-  if (btnRunDelivery) {
-    btnRunDelivery.addEventListener('click', () => {
-      if (typeof gsap === 'undefined') return;
-      const steps = ['#pipeStep1', '#pipeStep2', '#pipeStep3', '#pipeStep4', '#pipeStep5', '#pipeStep6'];
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      steps.forEach((step, idx) => {
-        tl.fromTo(step, 
-          { scale: 1, stroke: 'var(--border-strong)' }, 
-          { scale: 1.05, stroke: 'var(--text-primary)', duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
-          idx === 0 ? 0 : '+=0.08'
-        );
-      });
-    });
-  }
-
-  // Hover feedback on diagram nodes
-  const interactiveNodes = [
-    '#nodePillar1', '#nodePillar2', '#nodePillar3', '#nodeUser', '#nodeAgent', '#nodeKernel',
-    '#soulFactory', '#soulStudio', '#soulProject', '#figmaNodeCode', '#figmaNodeBroker', '#figmaNodeCanvas',
-    '#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4', '#memRecall', '#memWork', '#memReflect',
-    '#colorHSL', '#colorOKLCH', '#colorDelta', '#tasteCore7', '#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6',
-    '#cinemaLeg1', '#cinemaLeg2', '#cinemaLeg3'
-  ];
-
-  interactiveNodes.forEach(id => {
-    const el = document.querySelector(id);
-    if (el) {
-      el.addEventListener('mouseenter', () => {
-        if (!isReducedMotion && typeof gsap !== 'undefined') {
-          gsap.to(el, { y: -4, duration: 0.2, ease: 'power2.out' });
-        }
-      });
-      el.addEventListener('mouseleave', () => {
-        if (!isReducedMotion && typeof gsap !== 'undefined') {
-          gsap.to(el, { y: 0, duration: 0.2, ease: 'power2.out' });
-        }
-      });
-    }
-  });
-
-  // 5. Event Listeners (Controls & Keyboard)
-  const btnPrev = document.getElementById('btn-prev');
-  const btnNext = document.getElementById('btn-next');
-  const btnTheme = document.getElementById('btn-theme');
-  const btnNotes = document.getElementById('btn-notes');
-  const btnFullscreen = document.getElementById('btn-fullscreen');
-  const btnOverview = document.getElementById('btn-overview');
-  const btnCloseOv = document.getElementById('btnCloseOverview');
-
-  if (btnPrev) btnPrev.addEventListener('click', prevSlide);
-  if (btnNext) btnNext.addEventListener('click', nextSlide);
-  if (btnTheme) btnTheme.addEventListener('click', toggleTheme);
-  if (btnNotes) btnNotes.addEventListener('click', toggleNotes);
-  if (btnFullscreen) btnFullscreen.addEventListener('click', toggleFullscreen);
-  if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
-  if (btnCloseOv) btnCloseOv.addEventListener('click', closeOverview);
-
-  window.addEventListener('keydown', (e) => {
-    switch (e.key) {
-      case 'ArrowRight':
-      case 'ArrowDown':
-      case ' ':
-      case 'PageDown':
-        e.preventDefault();
-        nextSlide();
-        break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
-      case 'PageUp':
-        e.preventDefault();
-        prevSlide();
-        break;
-      case 'Home':
-        e.preventDefault();
-        
   // =========================================================
-  // i18n INTERNATIONALIZATION ENGINE (7 LANGUAGES, DEFAULT: EN)
+  // 5. i18n Language Switcher Engine (7 Languages, Default: EN)
   // =========================================================
   const supportedLanguages = [
     { code: 'en', label: 'English (Default)', flag: '🇺🇸' },
@@ -443,11 +253,10 @@
 
     document.documentElement.lang = lang;
 
-    // Update UI elements from translations if available
+    // Update UI elements from translations dictionary
     if (typeof DECK_I18N !== 'undefined') {
       const uiStrings = (DECK_I18N.ui && DECK_I18N.ui[lang]) || (DECK_I18N.ui && DECK_I18N.ui.en);
       if (uiStrings) {
-        // Update header & footer
         const brandBadge = document.querySelector('.chrome-header span:first-child');
         const headerVersion = document.querySelector('.chrome-header span:last-child');
         const footerHint = document.querySelector('.chrome-footer span:first-child');
@@ -507,7 +316,6 @@
       }
     }
 
-    // Refresh speaker notes and overview if opened
     updateSlide(currentIndex);
     renderLangGrid();
   }
@@ -526,11 +334,200 @@
     if (langModal) langModal.classList.remove('open');
   }
 
+  // =========================================================
+  // 6. Interactive GSAP Micro-Choreography Triggers on Diagrams
+  // =========================================================
+  const btnPulseFoundations = document.getElementById('btn-pulse-triad-foundations');
+  if (btnPulseFoundations) {
+    btnPulseFoundations.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline();
+      tl.to('#nodePillar1', { scale: 1.04, duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' })
+        .to('.svg-packet-1', { scale: 2.2, fill: 'var(--text-primary)', duration: 0.3, yoyo: true, repeat: 2 }, '-=0.1')
+        .to('#nodePillar2', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1')
+        .to('#nodePillar3', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1');
+    });
+  }
+
+  const btnPulseArch = document.getElementById('btn-pulse-arch');
+  if (btnPulseArch) {
+    btnPulseArch.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline();
+      tl.to('#nodeUser', { scale: 1.04, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' })
+        .to('#nodeAgent', { scale: 1.03, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1')
+        .to('#nodeKernel', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '-=0.1');
+    });
+  }
+
+  const btnPulseSoul = document.getElementById('btn-pulse-soul');
+  if (btnPulseSoul) {
+    btnPulseSoul.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      tl.to('#soulFactory', { scale: 1.03, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' })
+        .to('#soulStudio', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1')
+        .to('#soulProject', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1');
+    });
+  }
+
+  const btnPulseFigma = document.getElementById('btn-pulse-figma-bridge');
+  if (btnPulseFigma) {
+    btnPulseFigma.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      tl.to('#figmaNodeCode', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
+        .to('#figmaNodeBroker', { scale: 1.06, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05')
+        .to('#figmaNodeCanvas', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05');
+    });
+  }
+
+  const btnPulseAudit = document.getElementById('btn-pulse-audit-surfaces');
+  if (btnPulseAudit) {
+    btnPulseAudit.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      const quads = ['#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4'];
+      quads.forEach((quad, idx) => {
+        tl.fromTo(quad, 
+          { scale: 1 }, 
+          { scale: 1.03, duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
+          idx === 0 ? 0 : '+=0.08'
+        );
+      });
+    });
+  }
+
+  const btnPulseMemory = document.getElementById('btn-pulse-memory');
+  if (btnPulseMemory) {
+    btnPulseMemory.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+      tl.to('#memRecall', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
+        .to('#memWork', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1')
+        .to('#memReflect', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.1');
+    });
+  }
+
+  const btnPulseColor = document.getElementById('btn-pulse-color-gamut');
+  if (btnPulseColor) {
+    btnPulseColor.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      tl.to('#colorHSL', { opacity: 0.4, duration: 0.2, yoyo: true, repeat: 1 })
+        .to('#colorOKLCH', { scale: 1.05, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05')
+        .to('#colorDelta', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.05');
+    });
+  }
+
+  const btnPulseTaste = document.getElementById('btn-pulse-taste-radar');
+  if (btnPulseTaste) {
+    btnPulseTaste.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      tl.to('#tasteCore7', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' });
+      const axes = ['#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6'];
+      axes.forEach((axis, idx) => {
+        tl.fromTo(axis, 
+          { scale: 1 }, 
+          { scale: 1.04, duration: 0.2, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
+          idx === 0 ? '-=0.1' : '+=0.06'
+        );
+      });
+    });
+  }
+
+  const btnPulseCinema = document.getElementById('btn-pulse-scroll-cinema');
+  if (btnPulseCinema) {
+    btnPulseCinema.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      tl.to('#cinemaLeg1', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' })
+        .to('#cinemaLeg2', { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.08')
+        .to('#cinemaLeg3', { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: 'center' }, '+=0.08');
+    });
+  }
+
+  const btnRunDelivery = document.getElementById('btn-run-delivery-pipeline');
+  if (btnRunDelivery) {
+    btnRunDelivery.addEventListener('click', () => {
+      if (typeof gsap === 'undefined') return;
+      const steps = ['#pipeStep1', '#pipeStep2', '#pipeStep3', '#pipeStep4', '#pipeStep5', '#pipeStep6'];
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      steps.forEach((step, idx) => {
+        tl.fromTo(step, 
+          { scale: 1, stroke: 'var(--border-strong)' }, 
+          { scale: 1.05, stroke: 'var(--text-primary)', duration: 0.22, yoyo: true, repeat: 1, transformOrigin: 'center' }, 
+          idx === 0 ? 0 : '+=0.08'
+        );
+      });
+    });
+  }
+
+  // Hover feedback on diagram nodes
+  const interactiveNodes = [
+    '#nodePillar1', '#nodePillar2', '#nodePillar3', '#nodeUser', '#nodeAgent', '#nodeKernel',
+    '#soulFactory', '#soulStudio', '#soulProject', '#figmaNodeCode', '#figmaNodeBroker', '#figmaNodeCanvas',
+    '#auditQuad1', '#auditQuad2', '#auditQuad3', '#auditQuad4', '#memRecall', '#memWork', '#memReflect',
+    '#colorHSL', '#colorOKLCH', '#colorDelta', '#tasteCore7', '#tasteAxis1', '#tasteAxis2', '#tasteAxis3', '#tasteAxis4', '#tasteAxis5', '#tasteAxis6',
+    '#cinemaLeg1', '#cinemaLeg2', '#cinemaLeg3'
+  ];
+
+  interactiveNodes.forEach(id => {
+    const el = document.querySelector(id);
+    if (el) {
+      el.addEventListener('mouseenter', () => {
+        if (!isReducedMotion && typeof gsap !== 'undefined') {
+          gsap.to(el, { y: -4, duration: 0.2, ease: 'power2.out' });
+        }
+      });
+      el.addEventListener('mouseleave', () => {
+        if (!isReducedMotion && typeof gsap !== 'undefined') {
+          gsap.to(el, { y: 0, duration: 0.2, ease: 'power2.out' });
+        }
+      });
+    }
+  });
+
+  // =========================================================
+  // 7. Event Listeners (Controls & Keyboard)
+  // =========================================================
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnTheme = document.getElementById('btn-theme');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnFullscreen = document.getElementById('btn-fullscreen');
+  const btnOverview = document.getElementById('btn-overview');
+  const btnCloseOv = document.getElementById('btnCloseOverview');
+
+  if (btnPrev) btnPrev.addEventListener('click', prevSlide);
+  if (btnNext) btnNext.addEventListener('click', nextSlide);
+  if (btnTheme) btnTheme.addEventListener('click', toggleTheme);
+  if (btnNotes) btnNotes.addEventListener('click', toggleNotes);
+  if (btnFullscreen) btnFullscreen.addEventListener('click', toggleFullscreen);
+  if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
+  if (btnCloseOv) btnCloseOv.addEventListener('click', closeOverview);
   if (btnLang) btnLang.addEventListener('click', toggleLangModal);
   if (btnCloseLang) btnCloseLang.addEventListener('click', closeLangModal);
 
-  setLanguage(currentLang);
-  updateSlide(0);
+  window.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case ' ':
+      case 'PageDown':
+        e.preventDefault();
+        nextSlide();
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+        e.preventDefault();
+        prevSlide();
+        break;
+      case 'Home':
+        e.preventDefault();
+        updateSlide(0);
         break;
       case 'End':
         e.preventDefault();
@@ -558,10 +555,14 @@
         break;
       case 'Escape':
         closeOverview();
+        closeLangModal();
         break;
     }
   });
 
-  // Initial view setup
+  // =========================================================
+  // 8. Initial Boot
+  // =========================================================
+  setLanguage(currentLang);
   updateSlide(0);
 })();
