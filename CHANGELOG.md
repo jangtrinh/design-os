@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-08-15 - Native diagram craft
+
+### Added
+- `/ui:diagram` selects exactly one native grammar for architecture, sequence, or
+  product-flow diagrams and emits a self-contained offline HTML artifact with owned inline
+  SVG, accessible labels, explicit reading order, and inspectable source metadata.
+- `ui diagram lint` deterministically rejects malformed ownership, accessibility metadata,
+  unsafe references, missing product-flow source IDs, diagonal line connectors, and duplicate
+  connector geometry without pretending to validate subjective composition.
+- Product-flow guidance treats `flow.json` as read-only semantic authority, separates the
+  responsibilities of flow and diagram linting, and requires manual source-ID resolution plus
+  a fidelity ledger for every merge, collapse, or drop.
+- A pinned generic real-flow fixture and rendered product-flow artifact prove zero-finding
+  flow/diagram lint, complete source-ID parity, declared reading order, terminal treatment,
+  back-edge treatment, and full fidelity with an empty ledger.
+
+### Changed
+- Runtime adapters now install 17 workflows, 13 craft skills, and 3 journey skills. Adapter
+  counts, initialization help, generated-tree tests, and README discovery surfaces agree on
+  the 33 generated artifacts.
+
+## 2026-08-13 - Four shipped sites lead the showcase as a grid
+
+### Added
+- The README showcase now opens with three public sites shipped end to end with the
+  toolchain, each as a full-width animated scroll-through:
+  [AURA](https://github.com/jangtrinh/aura-scrollcinema-demo) (cinematic 289-frame
+  scroll-film under the Liquid Glass persona),
+  [OPAH ONE](https://github.com/jangtrinh/design-os-drone-showcase) (scroll-scrub drone
+  page — DTCG tokens, tenant engine, five gates green), and
+  [Robotic Arm](https://github.com/jangtrinh/design-os-animejs) (anime.js-style Three.js
+  scrollytelling). Each repo carries a "Reproduce it with DESIGN:OS" guide
+  (install → `ui init` → `/ui:generate`) and its own deterministic scroll-through
+  recording (gif + mp4), captured headless frame-by-frame from the live site.
+- [Rill Architecture](https://github.com/jangtrinh/design-os-rill-architecture) extracted
+  into its own public repo (GitHub Pages live) with the same README treatment, and the
+  showcase restructured into a two-column grid — OPAH ONE first — that grows as new
+  demos ship. The in-README "Featured: Rill Architecture" block folded into the grid.
+- The OPAH ONE demo re-recorded with a fully warmed frame cache (one slow scroll down and
+  back up before capture) so every scrubbed scene shows real footage.
+- README accuracy pass after a three-reviewer audit (Fable direction + kongming + Codex):
+  every headline count re-measured and corrected (40 `ui` commands, 2,819 kernel tests,
+  283 conductor tests, 14 installed skills, 15 workflows + 1 internal gate, and the Figma
+  plugin's 1,548-test suite credited to its own repo); the plugin elevated to the header,
+  nav, and a stat line; benchmark prose folded behind its headline numbers (1.77 blind-review
+  lift, 8.96/10 repeatability); three self-contradictions fixed (native-mobile evidence
+  boundary, post-split `setup.sh` wording, the absolute no-drift claim).
+
 ## 2026-07-31 - figma-agent split into its own public repo
 
 ### Changed

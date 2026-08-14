@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review and publish product flow</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; padding: 32px; color: #172033; background: #f4f7fb; }
+    main { max-width: 1040px; margin: 0 auto; }
+    svg { width: 100%; height: auto; border: 1px solid #c8d2e3; border-radius: 16px; background: #fff; }
+    .screen rect { fill: #e8f0ff; stroke: #2457a7; stroke-width: 2; }
+    .entry rect { fill: #fff4d6; stroke: #8a5a00; stroke-width: 2; }
+    .terminal rect { fill: #e2f6e9; stroke: #176b3a; stroke-width: 3; }
+    .edge { fill: none; stroke: #52627a; stroke-width: 2; marker-end: url(#arrow); }
+    .back { stroke-dasharray: 7 5; }
+    .label { font-size: 14px; font-weight: 650; text-anchor: middle; }
+    .source-label { font-size: 12px; fill: #52627a; text-anchor: middle; }
+    .edge-label { font-size: 12px; fill: #33425a; }
+    section { margin-top: 24px; padding: 20px; border: 1px solid #c8d2e3; border-radius: 12px; background: #fff; }
+    h1, h2 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #d8e0ec; text-align: left; }
+    dl { display: grid; grid-template-columns: 160px 1fr; gap: 8px 16px; }
+    dt { font-weight: 700; }
+    dd { margin: 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Review and publish product flow</h1>
+  <p>Static SVG derived from the adjacent generic flow fixture. All source identities are preserved.</p>
+  <svg viewBox="0 0 960 520" data-diagram-owned="true" role="img"
+    aria-labelledby="diagram-title diagram-desc" data-diagram-grammar="product-flow"
+    data-reading-order="main-entry, start, review, published, edit"
+    data-focal-id="review" data-source-kind="flow-json"
+    data-source-file="product-flow-real.json" data-fidelity="full">
+    <title id="diagram-title">Review and publish product flow</title>
+    <desc id="diagram-desc">The main entry opens review. Review can publish, request an edit, or return to start. Saving an edit returns to review.</desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#52627a"/>
+      </marker>
+    </defs>
+
+    <g id="main-entry" class="entry" data-diagram-element="node" data-node-kind="entry"
+      data-source-id="main-entry" aria-label="Default entry, source ID main-entry">
+      <rect x="50" y="205" width="150" height="72" rx="36"/>
+      <text class="label" x="125" y="238">Default entry</text>
+      <text class="source-label" x="125" y="257">main-entry</text>
+    </g>
+    <g id="start" class="screen" data-diagram-element="node" data-node-kind="screen"
+      data-source-id="start" aria-label="Start review screen, source ID start">
+      <rect x="270" y="205" width="160" height="72" rx="12"/>
+      <text class="label" x="350" y="238">Start review</text>
+      <text class="source-label" x="350" y="257">start</text>
+    </g>
+    <g id="review" class="screen" data-diagram-element="node" data-node-kind="screen"
+      data-source-id="review" aria-label="Review draft screen, source ID review">
+      <rect x="520" y="205" width="160" height="72" rx="12"/>
+      <text class="label" x="600" y="238">Review draft</text>
+      <text class="source-label" x="600" y="257">review</text>
+    </g>
+    <g id="published" class="terminal" data-diagram-element="node" data-node-kind="screen"
+      data-source-id="published" aria-label="Published terminal screen, source ID published">
+      <rect x="760" y="90" width="160" height="72" rx="24"/>
+      <text class="label" x="840" y="123">Published ✓</text>
+      <text class="source-label" x="840" y="142">published · terminal</text>
+    </g>
+    <g id="edit" class="screen" data-diagram-element="node" data-node-kind="screen"
+      data-source-id="edit" aria-label="Edit draft screen, source ID edit">
+      <rect x="760" y="350" width="160" height="72" rx="12"/>
+      <text class="label" x="840" y="383">Edit draft</text>
+      <text class="source-label" x="840" y="402">edit</text>
+    </g>
+
+    <line id="open-review" class="edge" data-diagram-element="edge" data-source-id="open-review"
+      aria-label="Open review transition, source ID open-review" x1="200" y1="241" x2="270" y2="241"/>
+    <path id="publish" class="edge" data-diagram-element="edge" data-source-id="publish"
+      aria-label="Publish transition, source ID publish" d="M 680 225 H 720 V 126 H 760"/>
+    <path id="request-edit" class="edge" data-diagram-element="edge" data-source-id="request-edit"
+      aria-label="Request edit transition, source ID request-edit" d="M 680 257 H 700 V 386 H 760"/>
+    <path id="save-edit" class="edge back" data-diagram-element="edge" data-source-id="save-edit"
+      aria-label="Save edit back transition, source ID save-edit" d="M 760 370 H 730 V 310 H 680 V 277"/>
+    <path id="back-to-start" class="edge back" data-diagram-element="edge" data-source-id="back-to-start"
+      aria-label="Back to start transition, source ID back-to-start" d="M 520 221 H 470 V 185 H 350 V 205"/>
+    <text class="edge-label" x="218" y="230">open-review</text>
+    <text class="edge-label" x="704" y="160">publish</text>
+    <text class="edge-label" x="704" y="360">request-edit</text>
+    <text class="edge-label" x="702" y="300">save-edit ↩</text>
+    <text class="edge-label" x="402" y="175">back-to-start ↩</text>
+  </svg>
+
+  <section aria-labelledby="derived-heading">
+    <h2 id="derived-heading">Derived-view declaration</h2>
+    <dl>
+      <dt>Source</dt><dd><code>product-flow-real.json</code></dd>
+      <dt>Source reference</dt><dd><code>sha256:f7b1d062bc6512dfa8fdd01c1be7e5208752c3fceb9cf04996eb42441f958865</code></dd>
+      <dt>Flow lint</dt><dd>Passed with zero findings</dd>
+      <dt>Diagram lint</dt><dd>Passed with zero findings</dd>
+      <dt>Fidelity</dt><dd>Full</dd>
+    </dl>
+    <h2>Fidelity ledger</h2>
+    <table>
+      <thead><tr><th>Action</th><th>Affected IDs</th><th>Reason</th></tr></thead>
+      <tbody><tr><td colspan="3">Empty — no source screen, entry point, or transition is merged, collapsed, or dropped.</td></tr></tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

@@ -58,6 +58,8 @@ export const SKILL_NAMES = [
   "diagram-craft",
   "gsap-motion",
   "canvas-effect",
+  "gflow-flight",
+  "scroll-cinema",
 ] as const satisfies readonly string[];
 
 export type SkillName = (typeof SKILL_NAMES)[number];
