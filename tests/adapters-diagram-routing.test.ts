@@ -160,6 +160,17 @@ describe("knowledge/diagram-grammars/product-flow.md contract", () => {
   });
 });
 
+describe("knowledge/diagram-grammars/sequence.md contract", () => {
+  const contract = readRepoFile("knowledge/diagram-grammars/sequence.md");
+
+  it("requires a focal anchor even when the brief gives participants equal weight", () => {
+    expect(contract).toMatch(/data-focal-id/i);
+    expect(contract).toMatch(/when the brief gives equal weight, choose/i);
+    expect(contract).toMatch(/rather than omitting it/i);
+    expect(contract).not.toMatch(/when the brief singles one out/i);
+  });
+});
+
 describe("shared diagram-craft output contract", () => {
   const contract = readRepoFile("knowledge/diagram-craft.md");
 

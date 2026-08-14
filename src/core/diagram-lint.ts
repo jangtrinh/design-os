@@ -84,12 +84,33 @@ function isSafeReference(value: string): boolean {
     /^data:image\/(?:png|jpe?g|gif|webp|avif);base64,/i.test(trimmed);
 }
 
+function isSafeSourceSet(value: string): boolean {
+  const candidate = String.raw`data:image\/(?:png|jpe?g|gif|webp|avif);base64,[a-z0-9+/]+={0,2}(?:\s+(?:\d+(?:\.\d+)?x|\d+w))?`;
+  return new RegExp(`^${candidate}(?:,\\s*${candidate})*$`, "i").test(
+    value.trim(),
+  );
+}
+
 function hasUnsafeReference(source: string): boolean {
-  const attribute = /\b(?:href|src|xlink:href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>]+))/gi;
+  const attribute = /\b(?:href|src|xlink:href|poster|data|action|formaction|background|cite|longdesc|manifest|ping)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>]+))/gi;
   let match: RegExpExecArray | null;
   while ((match = attribute.exec(source)) !== null) {
     const value = match[1] ?? match[2] ?? match[3] ?? "";
     if (value.trim() !== "" && !isSafeReference(value)) return true;
+  }
+  const sourceSet = /\b(?:srcset|imagesrcset)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>]+))/gi;
+  while ((match = sourceSet.exec(source)) !== null) {
+    const value = match[1] ?? match[2] ?? match[3] ?? "";
+    if (value.trim() !== "" && !isSafeSourceSet(value)) return true;
+  }
+  const meta = /<meta\b[^>]*>/gi;
+  while ((match = meta.exec(source)) !== null) {
+    const attrs = parseAttrs(match[0]);
+    if (attrs["http-equiv"]?.trim().toLowerCase() !== "refresh") continue;
+    const target = /(?:^|;)\s*url\s*=\s*(.*)$/i.exec(attrs.content ?? "")?.[1]?.trim();
+    if (target !== undefined && target !== "" && !isSafeReference(target.replace(/^(?:"([\s\S]*)"|'([\s\S]*)')$/, "$1$2"))) {
+      return true;
+    }
   }
   const cssUrl = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi;
   while ((match = cssUrl.exec(source)) !== null) {

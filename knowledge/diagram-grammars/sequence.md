@@ -85,7 +85,7 @@ Use the shared color/stroke/type-scale tokens from `knowledge/diagram-craft.md`.
 Every rendered sequence diagram carries:
 - `data-diagram-grammar="sequence"`
 - `data-reading-order` — this diagram's position among the document's diagrams
-- `data-focal-id` — id of the participant or message the surrounding prose is actually about, when the brief singles one out
+- `data-focal-id` — id of the participant or message that anchors the explanation; when the brief gives equal weight, choose the first causally significant participant or message rather than omitting it
 - `data-source-kind="brief"`
 
 ## Critique

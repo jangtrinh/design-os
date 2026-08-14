@@ -106,6 +106,11 @@ describe('lintDiagram - content safety', () => {
     ['an embedded script tag', ARCH_INNER + '<script>alert(1)</script>', 'no-script'],
     ['an external http href', ARCH_INNER + '<a href="http://example.com/x"><text>link</text></a>', 'no-external-ref'],
     ['an external https image src', ARCH_INNER + '<image href="https://example.com/x.png"/>', 'no-external-ref'],
+    ['an external object data reference', ARCH_INNER + '<object data="https://example.com/payload"></object>', 'no-external-ref'],
+    ['a relative video poster', ARCH_INNER + '<video poster="./poster.jpg"></video>', 'no-external-ref'],
+    ['an external form action', ARCH_INNER + '<form action="https://example.com/submit"></form>', 'no-external-ref'],
+    ['an external link ping', ARCH_INNER + '<a href="#n1" ping="https://example.com/track"><text>link</text></a>', 'no-external-ref'],
+    ['an external source set', ARCH_INNER + '<source srcset="https://example.com/a.png 1x">', 'no-external-ref'],
   ])('flags %s', (_label, inner, checkId) => {
     const result = lintDiagram(svgDoc(inner));
     expect(result.findings.some((f) => f.checkId === checkId && f.severity === 'error')).toBe(true);
@@ -115,6 +120,7 @@ describe('lintDiagram - content safety', () => {
     ['a placeholder outside the owned SVG', '<p>{{outside}}</p>', 'no-placeholder'],
     ['a script outside the owned SVG', '<script>run()</script>', 'no-script'],
     ['a relative asset outside the owned SVG', '<img src="./asset.png">', 'no-external-ref'],
+    ['an external meta refresh', '<meta http-equiv="refresh" content="0;url=https://example.com/">', 'no-external-ref'],
   ])('flags %s', (_label, outside, checkId) => {
     const html = VALID_HTML.replace('</body>', `${outside}</body>`);
     expect(lintDiagram(html).findings.some((item) => item.checkId === checkId)).toBe(true);
@@ -141,6 +147,8 @@ describe('lintDiagram - content safety', () => {
 
   it('allows fragment and data references but rejects relative runtime references', () => {
     expect(lintDiagram(VALID_HTML.replace('</svg>', '<use href="#api"/><image href="data:image/png;base64,AA=="/></svg>')).findings).toEqual([]);
+    expect(lintDiagram(VALID_HTML.replace('</svg>', '<source srcset="data:image/png;base64,AA== 1x"></source></svg>')).findings).toEqual([]);
+    expect(lintDiagram(VALID_HTML.replace('</svg>', '<source srcset="data:image/png;base64,AA== 1x, data:image/png;base64,BB== 2x"></source></svg>')).findings).toEqual([]);
     expect(lintDiagram(VALID_HTML.replace('</svg>', '<image href="asset.png"/></svg>')).findings.map((item) => item.checkId)).toContain('no-external-ref');
   });
 
