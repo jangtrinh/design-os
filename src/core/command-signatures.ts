@@ -227,6 +227,18 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  diagram: {
+    summary: "Lint self-contained diagram artifacts deterministically",
+    subcommands: {
+      lint: {
+        summary: "Lint self-contained diagram HTML deterministically",
+        positionals: [htmlFile("Self-contained diagram HTML file to lint")],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR"],
+      },
+    },
+  },
+
   vr: {
     summary: "Deterministic visual-regression diff/gate for rendered screenshots",
     subcommands: {

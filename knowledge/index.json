@@ -156,6 +156,20 @@
       ]
     },
     {
+      "id": "diagram-craft",
+      "path": "knowledge/diagram-craft.md",
+      "description": "The shared diagram contract — grammar routing, selection/deletion, density, token inheritance, accessible inline SVG, output shape, and critique.",
+      "when": [
+        "diagram",
+        "diagram-craft",
+        "svg-diagram",
+        "architecture-diagram",
+        "sequence-diagram",
+        "product-flow-diagram",
+        "diagram-lint"
+      ]
+    },
+    {
       "id": "figma-agent-hand",
       "path": "knowledge/figma-agent-hand.md",
       "description": "Driving the figma-agent CLI — the optional Figma hand outside the deterministic binary.",

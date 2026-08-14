@@ -291,7 +291,7 @@ scanned, hygiene-audited, contrast-proven, and VR-baselined end to end.
 
 ## Six daily verbs
 
-These are the six common moves. The full adapter exposes 15 workflows (plus the internal critique gate) when the task needs more.
+These are the six common moves. The full adapter exposes 17 workflows (plus the internal critique gate) when the task needs more.
 
 | Verb | What it does |
 | --- | --- |
@@ -303,7 +303,7 @@ These are the six common moves. The full adapter exposes 15 workflows (plus the 
 | `/ui:why <question>` | Ask *why* a past design decision was made — answers with provenance from the project's design memory. |
 
 <details>
-<summary><b>All 15 workflows (+1 internal gate)</b> (audit · critique · design · evidence · extract · figma · from-ref · slides · redesign …)</summary>
+<summary><b>All 17 workflows (+1 internal gate)</b> (audit · critique · design · diagram · evidence · extract · figma · from-ref · slides · redesign …)</summary>
 
 | Command | What it does |
 |---|---|
@@ -319,12 +319,22 @@ These are the six common moves. The full adapter exposes 15 workflows (plus the 
 | `/ui:slides <intent>`   | Generate a token-bound slide deck. |
 | `/ui:learn`             | Compile the DS from the project's own evidence (code, URL, or Figma). |
 | `/ui:design <brief>`    | The AI-designer flow — scope-aware facet planning + curator scoring on a full brief. |
+| `/ui:diagram <intent>`  | Author an accessible offline architecture, sequence, or product-flow diagram as inspectable SVG; product-flow views preserve source IDs and disclose every fidelity trade-off. |
 | `/ui:audit <target>`    | Run the deterministic audit families against a produced design. |
 | `/ui:evidence`          | Intake user evidence (interviews, tickets, analytics) into the anti-fabrication ledger. |
 | `/ui:why <question>`    | Trace picks, edits, verdicts, and token changes from the design memory, with provenance. |
 | *(internal)* `/ui:critique` | The gate — runs inside every HTML-emitting flow. |
 
 </details>
+
+### Native diagrams without a diagram DSL
+
+`/ui:diagram` turns architecture boundaries, ordered interactions, or a lint-clean
+`flow.json` into one self-contained HTML artifact with owned inline SVG. Product-flow
+diagrams pin their source, preserve every screen/entry/transition identity, and ship a
+fidelity ledger beside the visual. The deterministic `ui diagram lint` gate checks the
+artifact shape and accessibility metadata; a paired source-ID proof keeps the rendered
+view honest about what it includes.
 
 ---
 
@@ -597,13 +607,13 @@ flowchart LR
       E5["Tokens / existing DS"]
       E6["Image reference"]
     end
-    E1 --> W["16 /ui:* workflows"]
+    E1 --> W["17 /ui:* workflows"]
     E2 --> W
     E3 --> W
     E4 --> W
     E5 --> W
     E6 --> W
-    W --> H["Host model + DESIGN:OS knowledge and 14 installed skills"]
+    W --> H["Host model + DESIGN:OS knowledge and 16 installed skills"]
     H --> K["40-command deterministic ui kernel"]
     H --> O1["Responsive production UI"]
     H --> O2["Idiomatic Figma canvas"]
@@ -805,6 +815,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-15 | **Native diagram craft** — `/ui:diagram` routes architecture, sequence, and product-flow intent into accessible offline SVG; `ui diagram lint` enforces owned-artifact structure and product-flow source metadata; a pinned real-flow proof verifies every source ID and an empty fidelity ledger before release | `#132` |
 | 2026-08-13 | **Four shipped sites lead the showcase as a grid** — [OPAH ONE](https://github.com/jangtrinh/design-os-drone-showcase), [AURA](https://github.com/jangtrinh/aura-scrollcinema-demo), [Robotic Arm](https://github.com/jangtrinh/design-os-animejs), and [Rill Architecture](https://github.com/jangtrinh/design-os-rill-architecture) (now its own public repo + Pages) open the README as a two-column grid of scroll-throughs; each repo documents how to reproduce it with DESIGN:OS and carries its own demo recording (gif + mp4) | `5e2e499` |
 | 2026-07-31 | **figma-agent split into its own public repo** — the Figma plugin + CLI now lives at [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin), versioned and released independently of this kernel; `setup.sh`/`design-os update`/CI no longer build or link it as an in-repo workspace, and this README's Figma-hand section collapses to an introduction + pointer | `ed33a22` |
 | 2026-07-31 | **The designer's edits become readable history** — `figma-agent changes` narrates the owner-edit feed per file in human sentences and `figma-agent errors` reads the error log without ever crashing on a bad line; reconnect gap-fill reports edits made while the plugin was closed (deleted pages get one honest notice; over-cap pages suppress their diff rather than emit false facts); the edit feed now routes through the file↔project binding so a file's history can never land in another project | `8902584` |

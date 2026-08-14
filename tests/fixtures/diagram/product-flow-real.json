@@ -1,0 +1,19 @@
+{
+  "name": "Review and publish",
+  "screens": [
+    { "id": "start", "name": "Start review" },
+    { "id": "review", "name": "Review draft" },
+    { "id": "edit", "name": "Edit draft" },
+    { "id": "published", "name": "Published", "terminal": true }
+  ],
+  "transitions": [
+    { "id": "open-review", "from": "start", "to": "review", "trigger": "ON_CLICK" },
+    { "id": "publish", "from": "review", "to": "published", "trigger": "ON_CLICK" },
+    { "id": "request-edit", "from": "review", "to": "edit", "trigger": "ON_CLICK" },
+    { "id": "save-edit", "from": "edit", "to": "review", "trigger": "ON_CLICK" },
+    { "id": "back-to-start", "from": "review", "to": "start", "trigger": "ON_CLICK" }
+  ],
+  "entryPoints": [
+    { "id": "main-entry", "screen": "start", "name": "Default entry" }
+  ]
+}

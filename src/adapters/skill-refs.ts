@@ -19,6 +19,7 @@ export const VERB_SKILL_REFS: Readonly<Record<string, readonly string[]>> = {
   figma:     ["apply-prompt-mode"],
   "to-figma":["figma-craft", "pick-persona", "score-taste"],
   design:    ["figma-craft", "pick-persona", "score-taste", "check-consistency"],
+  diagram:   ["diagram-craft"],
   slides:    ["pick-persona", "score-taste"],
   init:      [],
 };
