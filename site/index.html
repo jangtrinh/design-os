@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,7 +38,7 @@
             <span class="matrix-badge">GFlow &amp; Scroll-Cinema</span>
             <span class="matrix-badge">OKLCH &amp; P3 Gamut</span>
             <span class="matrix-badge">12 UX Laws</span>
-            <span class="matrix-badge">AK Fable Thinking</span>
+            <span class="matrix-badge">Fable Thinking</span>
           </div>
         </section>
 
@@ -46,7 +46,7 @@
           <div>Nhấn [Phím Trái / Phải] hoặc [Space] để chuyển slide • [S] Ghi chú diễn giả • [O] Lưới tổng quan</div>
           <div id="slideCounterDisplay">01 / 28</div>
         </footer>
-        <div data-speaker-notes="Chào mừng đến với DESIGN:OS Masterclass mở rộng 28 slide. Đây là bộ cẩm nang hoàn chỉnh nhất, bao quát từ lõi toán học, cầu nối Figma, bộ nhớ vector đến điện ảnh cuộn trang 3D và 5 câu chuyện ngụ ngôn AK Fable."></div>
+        <div data-speaker-notes="Chào mừng đến với DESIGN:OS Masterclass mở rộng 28 slide. Đây là bộ cẩm nang hoàn chỉnh nhất, bao quát từ lõi toán học, cầu nối Figma, bộ nhớ vector đến điện ảnh cuộn trang 3D và 5 câu chuyện ngụ ngôn triết lý thiết kế."></div>
       </article>
 
 <article class="slide-item" id="slide-2" data-index="2">
@@ -1798,13 +1798,13 @@
         <div class="chrome-accent-strip"></div>
         <header class="chrome-header">
           <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Fable Thinking</span></div>
-          <div>Hồi 7 • 26 • The 5 AK Fables</div>
+          <div>Hồi 7 • 26 • The 5 Design Fables</div>
         </header>
 
         <section class="slide-content-zone">
           <div class="slide-heading-group">
             <span class="slide-eyebrow gsap-reveal">Tư Duy Ngụ Ngôn</span>
-            <h2 class="slide-title-h1 gsap-reveal">5 Ngụ Ngôn AK Fable: Triết Lý Đằng Sau Thiết Kế</h2>
+            <h2 class="slide-title-h1 gsap-reveal">5 Ngụ Ngôn Triết Lý Thiết Kế (Design Fables)</h2>
             <p class="slide-subtitle gsap-reveal">Đúc kết những cơ chế kỹ thuật phức tạp thành các hình tượng ngụ ngôn trực quan dễ ghi nhớ.</p>
           </div>
 
@@ -1847,7 +1847,7 @@
           </div>
         </section>
 
-        <footer class="chrome-footer"><div>DESIGN:OS Philosophy • AK Fable Thinking</div><div>27 / 28</div></footer>
+        <footer class="chrome-footer"><div>DESIGN:OS Philosophy • Fable Thinking</div><div>27 / 28</div></footer>
         <div data-speaker-notes="5 câu chuyện ngụ ngôn là tổng kết triết lý sâu sắc nhất đằng sau toàn bộ công nghệ của DESIGN:OS."></div>
       </article>
 
@@ -1920,6 +1920,20 @@
       <svg class="icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
     </button>
   </nav>
+
+  
+  <!-- Language Selection Modal (i18n) -->
+  <div class="lang-modal" id="langModal" role="dialog" aria-modal="true" aria-labelledby="langModalTitle">
+    <div class="lang-dialog">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="langModalTitle" style="font-size:1.25rem; font-weight:700;">Select Language / 언어 선택 / 言語 / Idioma / Langue / 语言</h2>
+        <button type="button" class="nav-btn" id="btnCloseLang" title="Close" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="lang-grid" id="langGrid"></div>
+    </div>
+  </div>
 
   <!-- Speaker Notes Drawer -->
   <aside class="speaker-notes-drawer" id="speakerNotesDrawer" aria-label="Presenter Speaker Notes">
