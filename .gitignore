@@ -69,3 +69,6 @@ release-manifest.json
 # the same class as .claude/ above, which Art VII already calls per-machine.
 .agents/
 .codex/
+
+# Generated at deploy time from examples/ by scripts/build-examples-gallery.mjs
+site/examples/

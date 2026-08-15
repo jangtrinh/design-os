@@ -319,7 +319,8 @@ These are the six common moves. The full adapter exposes 18 workflows (plus the 
 | `/ui:slides <intent>`   | Generate a token-bound slide deck. |
 | `/ui:learn`             | Compile the DS from the project's own evidence (code, URL, or Figma). |
 | `/ui:design <brief>`    | The AI-designer flow — scope-aware facet planning + curator scoring on a full brief. |
-| `/ui:diagram <intent>`  | Author an accessible offline architecture, sequence, or product-flow diagram as inspectable SVG; product-flow views preserve source IDs and disclose every fidelity trade-off. |
+| `/ui:diagram <intent>`  | Author an accessible offline diagram as inspectable SVG across 19 grammars; product-flow views preserve source IDs and disclose every fidelity trade-off. |
+| `/ui:chart <intent>`    | Author a standalone chart of quantities across 9 grammars — zero baselines, declared truncation, no fabricated data. |
 | `/ui:audit <target>`    | Run the deterministic audit families against a produced design. |
 | `/ui:evidence`          | Intake user evidence (interviews, tickets, analytics) into the anti-fabrication ledger. |
 | `/ui:why <question>`    | Trace picks, edits, verdicts, and token changes from the design memory, with provenance. |
@@ -327,14 +328,48 @@ These are the six common moves. The full adapter exposes 18 workflows (plus the 
 
 </details>
 
-### Native diagrams without a diagram DSL
+### Native diagrams and charts without a DSL
 
-`/ui:diagram` turns architecture boundaries, ordered interactions, or a lint-clean
-`flow.json` into one self-contained HTML artifact with owned inline SVG. Product-flow
-diagrams pin their source, preserve every screen/entry/transition identity, and ship a
-fidelity ledger beside the visual. The deterministic `ui diagram lint` gate checks the
-artifact shape and accessibility metadata; a paired source-ID proof keeps the rendered
-view honest about what it includes.
+`/ui:diagram` covers **19 grammars** — architecture, sequence, product-flow, swimlane,
+data-flow, process, ER, state, flowchart, tree, org-chart, layers, nested, loop, and the
+platform family. `/ui:chart` is a sibling capability covering **9** — bar, line, scatter,
+radar, gantt, timeline, quadrant, venn, pyramid.
+
+Each invocation produces **one self-contained HTML file** with hand-authored inline SVG.
+No Mermaid, no PlantUML, no charting library, no headless browser, no network request at
+view time. Colours resolve to your project's design tokens and fall back to a documented
+neutral palette when there is no design system yet.
+
+**See all 28 →** [design:os example gallery](https://jangtrinh.github.io/design-os/examples/)
+
+#### What the gate actually proves
+
+`ui diagram lint` and `ui chart lint` are deterministic, and deliberately narrow — they
+check the facts a static reader can prove, never whether the picture is any good:
+
+| Check | Catches |
+| --- | --- |
+| `hardcoded-svg-color` | A colour in an SVG presentation attribute. `ds-usage-lint` reads CSS declarations only, so `fill="#eb6c36"` would otherwise bypass the design system while showing green. |
+| `diagonal-line` | A connector running off-axis in a grammar whose layout reads by alignment. Grammar-gated — radial and hierarchical shapes are exempt by construction, not by exception. |
+| `svg-labelledby` · `no-script` · `no-external-ref` | An artifact that is unreadable to a screen reader, or that reaches outside itself. |
+| `zero-baseline-required` · `baseline-declared` | A bar or pyramid whose length encoding starts anywhere but zero, and any chart that lets a reader *assume* zero without saying so. |
+| `series-label` · `no-dual-axis` | Series separated by colour alone, and two scales overlaid on one frame. |
+
+A clean lint means the contract holds. Whether the diagram is *right* is the taste rubric's
+job, and it runs afterwards at the same ≥ 7/10 gate every other surface meets.
+
+#### Routing across 28 grammars stays decidable
+
+Nineteen diagram grammars include deliberate near-neighbours — a swimlane, a data-flow, and
+a process diagram are the same grid at three levels of detail. Three mechanisms keep
+selection from collapsing into a coin flip: trigger tokens are **pairwise disjoint across
+both capabilities**, `diagram-craft.md` states **precedence once per collision family**, and
+a **golden corpus of briefs** asserts each resolves to exactly one grammar. The third is the
+only one that tests behaviour rather than shape.
+
+Diagrams can also be **redrawn from an existing source**: the drawio and Mermaid extractors
+emit a node/edge digest that a grammar is authored *from*, never converted into. Imported
+geometry never reaches the artifact, and the redraw carries a ledger of what it simplified.
 
 ---
 
