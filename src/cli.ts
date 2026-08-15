@@ -44,6 +44,7 @@ import { changelogCommand } from "./commands/changelog.js";
 import { a11yLintCommand } from "./commands/a11y-lint.js";
 import { dsUsageLintCommand } from "./commands/ds-usage-lint.js";
 import { flowCommand } from "./commands/flow.js";
+import { chartCommand } from "./commands/chart.js";
 import { diagramCommand } from "./commands/diagram.js";
 import { contentLintCommand } from "./commands/content-lint.js";
 import { vrCommand } from "./commands/vr.js";
@@ -60,7 +61,7 @@ import { promptPlanCommand } from "./commands/prompt-plan.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 
 // ─── Command registry ─────────────────────────────────────────────────────────
 
@@ -102,6 +103,7 @@ COMMANDS[changelogCommand.name] = changelogCommand;
 COMMANDS[a11yLintCommand.name] = a11yLintCommand;
 COMMANDS[dsUsageLintCommand.name] = dsUsageLintCommand;
 COMMANDS[flowCommand.name] = flowCommand;
+COMMANDS[chartCommand.name] = chartCommand;
 COMMANDS[diagramCommand.name] = diagramCommand;
 COMMANDS[contentLintCommand.name] = contentLintCommand;
 COMMANDS[vrCommand.name] = vrCommand;
