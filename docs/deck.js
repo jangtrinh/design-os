@@ -426,6 +426,84 @@
   setLanguage(currentLang);
   updateSlide(0);
 
+  
+  // =========================================================
+  // 12. Liquid Gooey Physics Engine (Inspired by Jakub Antalik)
+  // Cross-browser SVG filter morphing, elastic rubber physics & viscous UI
+  // =========================================================
+  const navOverlay = document.querySelector('.nav-overlay');
+  const navLiquidBlob = document.getElementById('navLiquidBlob');
+  const navButtons = document.querySelectorAll('.nav-btn');
+
+  if (navOverlay && navLiquidBlob) {
+    navButtons.forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        const btnRect = btn.getBoundingClientRect();
+        const navRect = navOverlay.getBoundingClientRect();
+        const relativeLeft = btnRect.left - navRect.left;
+        const relativeTop = btnRect.top - navRect.top;
+
+        navLiquidBlob.style.left = relativeLeft + 'px';
+        navLiquidBlob.style.top = relativeTop + 'px';
+        navLiquidBlob.style.width = btnRect.width + 'px';
+        navLiquidBlob.style.height = btnRect.height + 'px';
+        navLiquidBlob.classList.add('visible');
+
+        navButtons.forEach(b => b.classList.remove('gooey-active'));
+        btn.classList.add('gooey-active');
+      });
+    });
+
+    navOverlay.addEventListener('mouseleave', () => {
+      navLiquidBlob.classList.remove('visible');
+      navButtons.forEach(b => b.classList.remove('gooey-active'));
+    });
+  }
+
+  // Interactive Liquid Tabs & Satellite Widget Helpers
+  function initLiquidShowcase() {
+    const tabContainers = document.querySelectorAll('.liquid-tabs-wrap');
+    tabContainers.forEach(wrap => {
+      const pill = wrap.querySelector('.liquid-tab-pill');
+      const tabs = wrap.querySelectorAll('.liquid-tab-btn');
+      if (!pill || tabs.length === 0) return;
+
+      function updatePill(activeTab) {
+        const tabRect = activeTab.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        pill.style.left = (tabRect.left - wrapRect.left) + 'px';
+        pill.style.width = tabRect.width + 'px';
+      }
+
+      const initialActive = wrap.querySelector('.liquid-tab-btn.active') || tabs[0];
+      if (initialActive) {
+        initialActive.classList.add('active');
+        updatePill(initialActive);
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          updatePill(tab);
+        });
+      });
+    });
+
+    // Satellite Core Toggle
+    const satStages = document.querySelectorAll('.liquid-satellite-stage');
+    satStages.forEach(stage => {
+      const core = stage.querySelector('.liquid-sat-core');
+      if (core) {
+        core.addEventListener('click', () => {
+          stage.classList.toggle('open');
+        });
+      }
+    });
+  }
+
+  initLiquidShowcase();
+
   window.deck = {
     updateSlide,
     nextSlide,

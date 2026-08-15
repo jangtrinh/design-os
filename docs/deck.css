@@ -849,3 +849,310 @@
   .svg-packet-2,
   
 }
+
+
+/* =========================================================
+   LIQUID GOOEY ENGINE (Inspired by Jakub Antalik - gooey.jakubantalik.com)
+   Cross-browser SVG filter morphing, elastic rubber physics & viscous UI
+   ========================================================= */
+
+:root {
+  --gooey-ease: cubic-bezier(0.3, 1.05, 0.4, 1);
+  --gooey-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --gooey-dur: 0.32s;
+  --gooey-dur-long: 0.48s;
+  --gooey-blob-bg: var(--text-primary);
+  --gooey-track-bg: var(--bg-elevated);
+}
+
+/* Hidden SVG Defs */
+.gooey-filter-def {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* Liquid Gooey Navigation Bar */
+.nav-overlay {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: var(--z-nav);
+  background: var(--bg-surface);
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 8px 32px rgba(9, 10, 15, 0.12), 0 2px 6px rgba(9, 10, 15, 0.04);
+  isolation: isolate;
+}
+
+.nav-liquid-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  filter: url(#liquid-gooey-nav);
+  -webkit-filter: url(#liquid-gooey-nav);
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.nav-liquid-blob {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--text-primary);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: transform var(--gooey-dur) var(--gooey-spring),
+              opacity var(--gooey-dur) ease,
+              width var(--gooey-dur) var(--gooey-ease),
+              left var(--gooey-dur) var(--gooey-ease);
+  will-change: transform, left, width;
+}
+
+.nav-liquid-blob.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.nav-btn {
+  position: relative;
+  z-index: 2;
+  min-height: 44px;
+  min-width: 44px;
+  height: 44px;
+  width: 44px;
+  padding: 10px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color var(--gooey-dur) ease, transform 0.18s var(--gooey-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-btn:hover, .nav-btn.gooey-active {
+  color: var(--text-inverse) !important;
+  transform: scale(1.06);
+}
+.nav-btn:hover svg, .nav-btn.gooey-active svg {
+  color: var(--text-inverse) !important;
+}
+
+.nav-btn:active {
+  transform: scale(0.92);
+}
+
+.nav-btn.gooey-active {
+  color: var(--text-inverse) !important;
+}
+
+/* Liquid Gooey Modal & Tabs */
+.lang-liquid-track {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.lang-option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  transition: transform 0.2s var(--gooey-ease), border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.lang-option:hover {
+  transform: translateX(4px);
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
+}
+
+.lang-option.active {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+  font-weight: 700;
+  transform: translateX(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Liquid UI Interactive Showcase Widget (Jakub Antalik style) */
+.liquid-showcase-box {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.liquid-tabs-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  width: fit-content;
+}
+
+.liquid-tabs-filter-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  filter: url(#liquid-gooey-subtle);
+  -webkit-filter: url(#liquid-gooey-subtle);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.liquid-tab-pill {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--text-primary);
+  transition: left var(--gooey-dur) var(--gooey-ease), width var(--gooey-dur) var(--gooey-ease), transform var(--gooey-dur) var(--gooey-spring);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.liquid-tab-btn {
+  position: relative;
+  z-index: 2;
+  border: none;
+  background: transparent;
+  padding: 8px 18px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--gooey-dur) ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.liquid-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.liquid-tab-btn.active {
+  color: var(--text-inverse);
+}
+
+/* Liquid Gooey Satellite Action Component */
+.liquid-satellite-stage {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  display: grid;
+  place-items: center;
+}
+
+.liquid-satellite-track {
+  position: absolute;
+  inset: 0;
+  filter: url(#liquid-gooey-heavy);
+  -webkit-filter: url(#liquid-gooey-heavy);
+  pointer-events: none;
+}
+
+.liquid-sat-core {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  border: none;
+  color: var(--text-inverse);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+  transition: transform 0.28s var(--gooey-spring);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.liquid-sat-core:hover {
+  transform: scale(1.1);
+}
+
+.liquid-sat-item {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  display: grid;
+  place-items: center;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+  transform: translate(0, 0) scale(0.4);
+  opacity: 0;
+  transition: transform 0.4s var(--gooey-spring), opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.liquid-satellite-stage.open .liquid-sat-item {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.liquid-satellite-stage.open .liquid-sat-item:nth-child(2) {
+  transform: translate(-54px, -42px) scale(1);
+}
+
+.liquid-satellite-stage.open .liquid-sat-item:nth-child(3) {
+  transform: translate(0px, -64px) scale(1);
+}
+
+.liquid-satellite-stage.open .liquid-sat-item:nth-child(4) {
+  transform: translate(54px, -42px) scale(1);
+}
+
+/* Reduced Motion Fallback */
+@media (prefers-reduced-motion: reduce) {
+  .nav-liquid-track,
+  .liquid-tabs-filter-layer,
+  .liquid-satellite-track {
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+  .nav-liquid-blob,
+  .liquid-tab-pill,
+  .liquid-sat-item,
+  .lang-option {
+    transition: none !important;
+  }
+}

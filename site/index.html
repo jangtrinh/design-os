@@ -28,6 +28,28 @@
 </head>
 <body>
 
+  <!-- Liquid Gooey SVG Filter Engine (Jakub Antalik Liquid UI Spec) -->
+  <svg class="gooey-filter-def" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="liquid-gooey-heavy">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+      </filter>
+      <filter id="liquid-gooey-subtle">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+      </filter>
+      <filter id="liquid-gooey-nav">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+      </filter>
+    </defs>
+  </svg>
+
+
   <main class="deck-viewport">
     <div class="slide-stage" id="slideStage">
 
@@ -2137,6 +2159,10 @@
 
   <!-- Presenter Floating Navigation Controls -->
   <nav class="nav-overlay" aria-label="Deck Controls">
+    <div class="nav-liquid-track">
+      <div class="nav-liquid-blob" id="navLiquidBlob"></div>
+    </div>
+
     <button class="nav-btn" id="btn-prev" title="Slide trước (←)">
       <svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
     </button>
