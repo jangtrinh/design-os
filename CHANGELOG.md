@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-08-16 - ShaderGradient as a T6 gradient-field capability
+
+### Added
+- `/ui:generate`, `/ui:refine`, and `/ui:redesign` can now direct one animated 3D gradient
+  field through the `shader-gradient` skill, reachable only after the motion ladder selects
+  T6 and the persona's motion cap allows it — the same gate `canvas-effect` sits behind, and
+  the same single-effect budget, so a page gets one T6 surface, never one of each.
+- `knowledge/shader-gradient-direction.md` carries the preset matrix (Narrative job ·
+  Anti-use · Required fallback per slug), the T6 floor, the design-system colour binding, the
+  conditional peer-dependency handoff, and the surface matrix for hand-configured fields.
+- `knowledge/shader-gradient/` is a source-free reference ledger: preset slugs, display names,
+  the mechanically-derived mesh/light/grain axes, the shader-by-mesh surface set, and
+  provenance pinned to an upstream revision. It holds no GLSL and no parameter values.
+- `ui knowledge gradient-matrix` emits the preset matrix's machine columns from the ledger,
+  leaving the three prose columns empty for a human — an emitter that invented an `Anti-use`
+  would defeat the one column whose job is honest refusal.
+- `ui knowledge check` gains the `gradient-catalog-*` checks: ledger presence, revision drift,
+  slug membership in both directions, row drift, empty prose cells, and `fallback-thin` — the
+  refusal specific to this capability, which fails a fallback cell that never names the frozen
+  state, because shipping one of the two required fallbacks as though it were both is the
+  measured failure mode.
+
+### Changed
+- Runtime adapters now install one additional craft skill (`shader-gradient`), routed from the
+  three generation verbs that already route to `canvas-effect`.
+- `extractRevisionToken` and `monthsBetween` moved to `src/core/knowledge-ledger-provenance.ts`
+  and are shared by both ledger pairs and the knowledge linter, replacing three copies of the
+  same helper.
+
 ## 2026-08-15 - Native diagram craft
 
 ### Added

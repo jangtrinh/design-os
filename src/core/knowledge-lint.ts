@@ -14,6 +14,8 @@
  *                                             (fires on the ref prefix, never on resolution)
  *   effect-catalog-*                mixed    Canvas UI ledger↔matrix drift (see
  *                                             knowledge-effect-catalog-check.ts)
+ *   gradient-catalog-*              mixed    ShaderGradient ledger↔matrix drift (see
+ *                                             knowledge-gradient-catalog-check.ts)
  *   index-frontmatter-missing       error    a top-level knowledge/*.md with no routing block
  *   index-frontmatter-bad           error    a routing block unparseable, or id != filename
  *   index-drift                     error    knowledge/index.json != what the emitter produces
@@ -25,7 +27,12 @@ import { indexChecks } from "./knowledge-index-check.js";
 import { personaChecks } from "./knowledge-persona-check.js";
 import { xrefChecks, provenanceChecks } from "./knowledge-link-check.js";
 import { effectCatalogChecks } from "./knowledge-effect-catalog-check.js";
+import { gradientCatalogChecks } from "./knowledge-gradient-catalog-check.js";
 import { frontMatterChecks } from "./knowledge-frontmatter-check.js";
+// monthsBetween was a third local copy of the same 12-line helper (the other two were
+// in knowledge-effect-catalog-parse.ts). Shared-layer rule: one definition, three
+// consumers — a fix to the staleness arithmetic can no longer miss two of them.
+import { monthsBetween } from "./knowledge-ledger-provenance.js";
 
 export interface KnowledgeFinding {
   checkId: string;
@@ -50,22 +57,10 @@ export interface KnowledgeLintInput {
    * Optional so existing fixtures that predate the Canvas UI adoption (spec 028)
    * keep typechecking without an edit — absent is treated identically to null. */
   canvasCatalogJson?: string | null;
-}
-
-/** Months from a `YYYYMM` string to the asOf month; null when either is malformed. */
-function monthsBetween(fileYm: string, asOf: string): number | null {
-  const parse = (s: string): number | null => {
-    const m = /^(\d{4})(\d{2})$/.exec(s);
-    if (m === null) return null;
-    const y = Number(m[1]);
-    const mo = Number(m[2]);
-    if (mo < 1 || mo > 12) return null;
-    return y * 12 + (mo - 1);
-  };
-  const a = parse(fileYm);
-  const b = parse(asOf);
-  if (a === null || b === null) return null;
-  return b - a;
+  /** knowledge/shader-gradient/catalog.json content, or null/absent when missing.
+   * Optional for the same reason as canvasCatalogJson — fixtures that predate the
+   * ShaderGradient adoption keep typechecking, and absent is treated as null. */
+  gradientCatalogJson?: string | null;
 }
 
 const STALE_MONTHS = 6;
@@ -119,6 +114,11 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
     ...effectCatalogChecks({
       knowledgeFileContent: input.mdContents["canvas-effect-direction.md"] ?? null,
       catalogJson: input.canvasCatalogJson ?? null,
+      asOf: input.asOf,
+    }),
+    ...gradientCatalogChecks({
+      knowledgeFileContent: input.mdContents["shader-gradient-direction.md"] ?? null,
+      catalogJson: input.gradientCatalogJson ?? null,
       asOf: input.asOf,
     }),
     ...frontMatterChecks(input.mdContents, input.committedIndex ?? null),

@@ -360,6 +360,21 @@
       ]
     },
     {
+      "id": "shader-gradient-direction",
+      "path": "knowledge/shader-gradient-direction.md",
+      "description": "The T6 gradient-field direction for ShaderGradient — 10 named presets, 12 surfaces, the design-system colour binding, and the two mandatory fallbacks.",
+      "when": [
+        "gradient",
+        "shader-gradient",
+        "mesh-gradient",
+        "animated-background",
+        "hero-background",
+        "webgl",
+        "t6",
+        "gradient-field"
+      ]
+    },
+    {
       "id": "signature-devices",
       "path": "knowledge/signature-devices.md",
       "description": "The composable signature-move library — the one memorable gesture a persona layers on top.",
