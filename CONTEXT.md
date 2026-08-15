@@ -104,3 +104,12 @@ The linter shipped with the Tenant-section emitter that fails any emitted sectio
 write, AND fails a host layout that puts `overflow`/`transform`/`filter`/`contain` on a sticky-pin
 ancestor (silently kills `position:sticky`). Emitter + linter, same commit.
 _Avoid_: embed-check, section-validator
+
+**Plate**:
+A generated image placed BEHIND content to light a surface, never to carry it — the surface
+carries the text. Lives on its own layer (a masked pseudo-element) rather than as the host
+element's `background-image`, because a background drags the host's rectangle along with it and
+any image whose ground is not perfectly black then shows its bounding box. A plate is admitted
+only where the image IS the evidence for that surface's claim.
+_Avoid_: background image (that names the mechanism a plate deliberately avoids), hero image,
+texture, decoration
