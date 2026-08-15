@@ -1,3 +1,12 @@
+
+ul, ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+li {
+  list-style: none;
+}
 :root {
       /* Pure Black & White / High-Contrast Monochrome Palette (Swiss Keynote) */
       --bg-base: #fafafa;
@@ -1590,6 +1599,7 @@
 }
 
 
+
 /* =========================================================
    28 BESPOKE RADIANT LAYOUT ARCHETYPES
    ========================================================= */
@@ -2503,52 +2513,4 @@
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.12em;
-}
-
-
-/* Radiant Display Title contrast fix */
-.slide-item .radiant-display-title {
-  color: var(--text-obsidian-primary);
-}
-.radiant-master-card .radiant-display-title,
-.hero-main-card .radiant-display-title,
-.orbit-center-card .radiant-display-title,
-.radar-core-card .radiant-display-title,
-.launch-card .radiant-display-title {
-  color: var(--luminous-text-primary) !important;
-}
-
-/* Motion Step T6 Luminous Contrast Fix */
-.step-t6 strong,
-.step-t6 p,
-.step-t6 .m-tier {
-  color: #07080a !important;
-}
-
-/* Sieve Chamber 4 Luminous Contrast Fix */
-.chamber-4 h3,
-.chamber-4 p,
-.chamber-4 .sieve-badge,
-.chamber-4 .sieve-metric {
-  color: #07080a !important;
-}
-
-/* Semver Patch Luminous Contrast Fix */
-.semver-patch .semver-badge,
-.semver-patch .semver-scope,
-.semver-patch .semver-metric {
-  color: #07080a !important;
-}
-
-/* Fables F3 Luminous Contrast Fix */
-.f3 strong,
-.f3 span {
-  color: #07080a !important;
-}
-
-/* Refinery Step 6 Luminous Contrast Fix */
-.step-6 span,
-.step-6 strong,
-.step-6 small {
-  color: #07080a !important;
 }
