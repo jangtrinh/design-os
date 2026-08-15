@@ -15,16 +15,16 @@
    * consumer below must reference these vars and never a literal.
    */
   :root {
-    --diagram-paper:       var(--color-background);
-    --diagram-surface:     var(--color-card);
-    --diagram-ink:         var(--color-foreground);
-    --diagram-muted:       var(--color-muted-foreground);
-    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
-    --diagram-rule:        var(--color-border);
-    --diagram-rule-solid:  var(--color-input);
-    --diagram-accent:      var(--color-accent);
-    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
-    --diagram-link:        var(--color-primary);
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
 
     --diagram-hairline: 1px;
     --diagram-gap: 24px;
