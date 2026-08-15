@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order service request path</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * Every value resolves to an active design-system token. Four roles the DS has no
+   * token for (soft, rule-solid, accent-tint, link) are DERIVED here with color-mix
+   * rather than pinned to a literal, so a DS change still propagates. `:root` is a
+   * token-declaration block, so ds-usage-lint permits the definitions themselves; every
+   * consumer below must reference these vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /*
+   * The DS compiles a single palette, so dark values are authored here rather than
+   * emitted. Same var names, same roles — only the mix ratios shift to hold contrast
+   * against a dark ground.
+   */
+  :root[data-theme="dark"] {
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  /* Wide diagrams scroll in their own container; the page body never scrolls sideways. */
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-sublabel { fill: var(--diagram-soft); font-size: 11px; }
+  .zone { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .zone-label { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge--accent { stroke: var(--diagram-accent); }
+  .edge--link { stroke: var(--diagram-link); }
+  .edge-label { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture</p>
+    <h1>Order service request path</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 400" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="diagram-title diagram-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="architecture"
+           data-reading-order="left-to-right"
+           data-focal-id="node-orders"
+           data-source-kind="brief">
+        <title id="diagram-title">Order service request path</title>
+        <desc id="diagram-desc">A client calls the API gateway, which routes to the order service; the order service reads and writes the orders database and publishes to the event bus.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own color via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g data-diagram-element="zone" id="zone-platform">
+          <rect class="zone" x="240" y="48" width="480" height="304" rx="4"/>
+          <text class="zone-label" x="256" y="72">Platform</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-client">
+          <rect class="node-shape" x="48" y="168" width="144" height="64" rx="4"/>
+          <text class="node-label" x="120" y="196" text-anchor="middle">Client</text>
+          <text class="node-sublabel" x="120" y="214" text-anchor="middle">Web and mobile</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-gateway">
+          <rect class="node-shape" x="288" y="168" width="144" height="64" rx="4"/>
+          <text class="node-label" x="360" y="196" text-anchor="middle">API gateway</text>
+          <text class="node-sublabel" x="360" y="214" text-anchor="middle">Routing and auth</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-orders">
+          <rect class="node-shape node-shape--focal" x="528" y="168" width="144" height="64" rx="4"/>
+          <text class="node-label" x="600" y="196" text-anchor="middle">Order service</text>
+          <text class="node-sublabel" x="600" y="214" text-anchor="middle">Focal component</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-db">
+          <rect class="node-shape" x="528" y="272" width="144" height="56" rx="4"/>
+          <text class="node-label" x="600" y="304" text-anchor="middle">Orders database</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-bus">
+          <rect class="node-shape" x="528" y="72" width="144" height="56" rx="4"/>
+          <text class="node-label" x="600" y="104" text-anchor="middle">Event bus</text>
+        </g>
+
+        <!-- Edges are orthogonal: architecture is an orthogonal-required grammar. -->
+        <line class="edge" data-diagram-element="edge" id="edge-client-gateway"
+              x1="192" y1="200" x2="288" y2="200" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="240" y="192" text-anchor="middle">HTTPS</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-gateway-orders"
+              x1="432" y1="200" x2="528" y2="200" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="480" y="192" text-anchor="middle">routes to</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-orders-db"
+              x1="600" y1="232" x2="600" y2="272" marker-end="url(#arrowhead)"/>
+
+        <line class="edge edge--link" data-diagram-element="edge" id="edge-orders-bus"
+              x1="600" y1="168" x2="600" y2="128" marker-end="url(#arrowhead)"/>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
