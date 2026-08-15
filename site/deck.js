@@ -1,4 +1,5 @@
 (function () {
+  // 1. DOM Element Cache
   const slides = Array.from(document.querySelectorAll('.slide-item'));
   const stage = document.getElementById('slideStage');
   const progressBar = document.getElementById('progressBarDeck');
@@ -7,18 +8,30 @@
   const counterDisplay = document.getElementById('slideCounterDisplay');
   const overviewModal = document.getElementById('overviewModal');
   const overviewGrid = document.getElementById('overviewGrid');
+  const langModal = document.getElementById('langModal');
+  const langGrid = document.getElementById('langGrid');
+
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnOverview = document.getElementById('btn-overview');
+  const btnLang = document.getElementById('btn-lang');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnTheme = document.getElementById('btn-theme');
+  const btnFullscreen = document.getElementById('btn-fullscreen');
+  const btnCloseLang = document.getElementById('btnCloseLang');
+
   const totalSlides = slides.length;
   let currentIndex = 0;
 
   // =========================================================
-  // 1. Responsive Fit-to-Screen Stage Scaling (Desktop >= 1024px)
+  // 2. Responsive Fit-to-Screen Stage Scaling
   // =========================================================
   function scaleStage() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     if (viewportWidth < 1024) {
-      stage.style.transform = 'none';
+      if (stage) stage.style.transform = 'none';
       return;
     }
 
@@ -29,14 +42,14 @@
     const scaleY = viewportHeight / targetHeight;
     const scale = Math.min(scaleX, scaleY);
 
-    stage.style.transform = 'scale(' + scale + ')';
+    if (stage) stage.style.transform = 'scale(' + scale + ')';
   }
 
   window.addEventListener('resize', scaleStage);
   scaleStage();
 
   // =========================================================
-  // 2. Instant, Pure-Layout Slide Navigation (Zero Animation Lag)
+  // 3. Instant Slide Navigation (Zero Animation)
   // =========================================================
   function updateSlide(index) {
     if (index < 0) index = 0;
@@ -77,40 +90,173 @@
     if (currentIndex > 0) updateSlide(currentIndex - 1);
   }
 
+  // =========================================================
+  // 4. Speaker Notes Drawer
+  // =========================================================
   function toggleNotes() {
     if (notesDrawer) notesDrawer.classList.toggle('open');
   }
 
+  // =========================================================
+  // 5. Theme Toggle (Light / Dark)
+  // =========================================================
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    try {
+      localStorage.setItem('design-os-theme', newTheme);
+    } catch (e) {}
+  }
+
+  try {
+    const savedTheme = localStorage.getItem('design-os-theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  } catch (e) {}
+
+  // =========================================================
+  // 6. Fullscreen Toggle
+  // =========================================================
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  // =========================================================
+  // 7. Overview Modal Grid
+  // =========================================================
   function toggleOverview() {
     if (!overviewModal) return;
-    const isOpen = overviewModal.classList.contains('open');
-    if (isOpen) {
-      overviewModal.classList.remove('open');
+    if (overviewModal.classList.contains('open')) {
+      closeOverview();
     } else {
       renderOverviewGrid();
       overviewModal.classList.add('open');
     }
   }
 
+  function closeOverview() {
+    if (overviewModal) overviewModal.classList.remove('open');
+  }
+
   function renderOverviewGrid() {
     if (!overviewGrid) return;
     overviewGrid.innerHTML = '';
     slides.forEach((slide, index) => {
-      const titleEl = slide.querySelector('.slide-title-h1');
+      const titleEl = slide.querySelector('.slide-title-display, .slide-title-h1');
       const titleText = titleEl ? titleEl.textContent : 'Slide ' + (index + 1);
       const card = document.createElement('div');
       card.className = 'overview-card' + (index === currentIndex ? ' active' : '');
       card.innerHTML = '<div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">SLIDE ' + String(index + 1).padStart(2, '0') + '</div><div style="font-weight: 700; font-size: 14px; color: var(--text-primary); line-height: 1.3;">' + titleText + '</div>';
       card.addEventListener('click', () => {
         updateSlide(index);
-        overviewModal.classList.remove('open');
+        closeOverview();
       });
       overviewGrid.appendChild(card);
     });
   }
 
   // =========================================================
-  // 3. Meaningful Architecture Readout Panel Registry
+  // 8. i18n Multi-Language Engine (7 Languages, Default: EN)
+  // =========================================================
+  const supportedLanguages = [
+    { code: 'en', label: 'English (Default)', flag: '🇺🇸' },
+    { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+    { code: 'ko', label: '한국어', flag: '🇰🇷' },
+    { code: 'ja', label: '日本語', flag: '🇯🇵' },
+    { code: 'es', label: 'Español', flag: '🇪🇸' },
+    { code: 'fr', label: 'Français', flag: '🇫🇷' },
+    { code: 'zh', label: '中文 (简体)', flag: '🇨🇳' }
+  ];
+
+  let currentLang = 'en';
+  try {
+    const savedLang = localStorage.getItem('deck_lang');
+    if (savedLang && supportedLanguages.some(l => l.code === savedLang)) {
+      currentLang = savedLang;
+    }
+  } catch (e) {}
+
+  function renderLangGrid() {
+    if (!langGrid) return;
+    langGrid.innerHTML = '';
+    supportedLanguages.forEach(lang => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'lang-option' + (lang.code === currentLang ? ' active' : '');
+      opt.setAttribute('data-lang', lang.code);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'lang-name';
+      nameSpan.innerHTML = '<span style="font-size:18px;">' + lang.flag + '</span> <span>' + lang.label + '</span>';
+
+      const codeSpan = document.createElement('span');
+      codeSpan.className = 'lang-code';
+      codeSpan.textContent = lang.code.toUpperCase();
+
+      opt.appendChild(nameSpan);
+      opt.appendChild(codeSpan);
+
+      opt.addEventListener('click', () => {
+        setLanguage(lang.code);
+        closeLangModal();
+      });
+
+      langGrid.appendChild(opt);
+    });
+  }
+
+  function setLanguage(lang) {
+    if (!supportedLanguages.some(l => l.code === lang)) return;
+    currentLang = lang;
+    try {
+      localStorage.setItem('deck_lang', lang);
+    } catch (e) {}
+
+    document.documentElement.lang = lang;
+
+    if (typeof DECK_I18N !== 'undefined' && DECK_I18N.slides) {
+      slides.forEach((slide, idx) => {
+        const slideNum = String(idx + 1);
+        const slideData = DECK_I18N.slides[slideNum] && (DECK_I18N.slides[slideNum][lang] || DECK_I18N.slides[slideNum].en);
+        if (slideData) {
+          const eyebrowEl = slide.querySelector('.slide-eyebrow');
+          const titleEl = slide.querySelector('.slide-title-display, .slide-title-h1');
+          const subtitleEl = slide.querySelector('.slide-subtitle');
+          const notesEl = slide.querySelector('[data-speaker-notes]');
+
+          if (eyebrowEl && slideData.eyebrow) eyebrowEl.innerHTML = slideData.eyebrow;
+          if (titleEl && slideData.title) titleEl.innerHTML = slideData.title;
+          if (subtitleEl && slideData.subtitle) subtitleEl.innerHTML = slideData.subtitle;
+          if (notesEl && slideData.notes) notesEl.setAttribute('data-speaker-notes', slideData.notes);
+        }
+      });
+    }
+
+    updateSlide(currentIndex);
+  }
+
+  function toggleLangModal() {
+    if (!langModal) return;
+    if (langModal.classList.contains('open')) {
+      closeLangModal();
+    } else {
+      renderLangGrid();
+      langModal.classList.add('open');
+    }
+  }
+
+  function closeLangModal() {
+    if (langModal) langModal.classList.remove('open');
+  }
+
+  // =========================================================
+  // 9. Architecture Readout Panel Registry
   // =========================================================
   function setReadout(slideId, badgeText, descriptionText) {
     const slide = document.getElementById(slideId);
@@ -122,43 +268,43 @@
   }
 
   const nodeDetails = {
-    // Slide 2: Foundations Triad
+    // Slide 2
     'nodePillar1': { slide: 'slide-2', badge: 'TRUTH 1: OKLCH', text: 'OKLCH Color Math: Perceptual uniformity across all 360 hues in Display P3 gamut. Zero arbitrary hex.' },
     'nodePillar2': { slide: 'slide-2', badge: 'TRUTH 2: DIVISION', text: 'Division of Labor: AI Host Agent handles creative reasoning; deterministic UI Kernel compiles tokens & enforces linters.' },
     'nodePillar3': { slide: 'slide-2', badge: 'TRUTH 3: QUALITY FLOOR', text: 'Deterministic Machine Floor: 14 static linters verify layout, a11y, and taste. Exit 0 required to release.' },
 
-    // Slide 3: Division of Labor
+    // Slide 3
     'nodeUser': { slide: 'slide-3', badge: 'ORGAN 1: TRANSMITTER', text: 'Human Intent Beacon: Natural language prompt specifying brand, mood, and target audience.' },
     'nodeAgent': { slide: 'slide-3', badge: 'ORGAN 2: NEURAL PRISM', text: 'Host AI Agent: Creative synthesis reasoning, resolving persona families, and structuring semantic DOM.' },
     'nodeKernel': { slide: 'slide-3', badge: 'ORGAN 3: MONOLITH GATE', text: 'UI Kernel Engine: Deterministic execution of OKLCH math, DTCG tokens, and 14 linting suites with 0 stochastic code.' },
 
-    // Slide 5: Design Soul
+    // Slide 5
     'soulFactory': { slide: 'slide-5', badge: 'TIER 0: FACTORY (WT 0)', text: 'Factory Invariants (Immutable): Banned anti-patterns (no purple-on-dark, no container soup > 2). Absolute floor.' },
     'soulStudio': { slide: 'slide-5', badge: 'TIER 1: STUDIO (WT 50)', text: 'Studio Standards: Workspace shared conventions (8px spacing grid, default iconography, typography base).' },
     'soulProject': { slide: 'slide-5', badge: 'TIER 2: PROJECT (WT 75)', text: 'Project Soul (Highest Precedence): Bespoke brand persona and token overrides. Project brief wins.' },
 
-    // Slide 10: Figma Bridge
+    // Slide 10
     'figmaNodeCode': { slide: 'slide-10', badge: 'WEST BANK: CODE', text: 'Code Repository: Single source of truth in design/tokens.json compiled to CSS variables and semantic AST.' },
     'figmaNodeBroker': { slide: 'slide-10', badge: 'WS BROKER: 9410', text: 'figma-agent WebSocket Broker on 127.0.0.1:9410: Bi-directional synchronization with atomic mutex locking.' },
     'figmaNodeCanvas': { slide: 'slide-10', badge: 'EAST BANK: CANVAS', text: 'Live Figma Desktop Canvas: Native Figma Variables and Auto-Layout frames syncing in real time.' },
 
-    // Slide 12: 4 Audit Surfaces
+    // Slide 12
     'auditQuad1': { slide: 'slide-12', badge: 'SURFACE 1: TASTE LINT', text: 'ui taste-lint: Fast static check for 14 banned anti-patterns and 6-axis aesthetic rubric floor.' },
     'auditQuad2': { slide: 'slide-12', badge: 'SURFACE 2: LAYOUT', text: 'ui validate-layout: Structural analysis preventing container soup > 2 and horizontal overflow.' },
     'auditQuad3': { slide: 'slide-12', badge: 'SURFACE 3: A11Y', text: 'ui a11y-lint: Static WCAG 2.2 AA floor check for ARIA attributes, image alt tags, and focus order.' },
     'auditQuad4': { slide: 'slide-12', badge: 'SURFACE 4: FULL AUDIT', text: 'design-os audit: Comprehensive release gate combining all 10 tools and visual regression baselines.' },
 
-    // Slide 14: Design Memory Loop
+    // Slide 14
     'memRecall': { slide: 'slide-14', badge: 'STEP 1: VECTOR RECALL', text: 'Recall Query: Scans incoming brief against local ONNX vector space for cosine similarity >= 0.85.' },
     'memWork': { slide: 'slide-14', badge: 'STEP 2: WORK EXECUTION', text: 'Primed Synthesis: Host agent executes generation pass informed by distilled lessons, avoiding regressions.' },
     'memReflect': { slide: 'slide-14', badge: 'STEP 3: REFLECT & DISTILL', text: 'Crucible Distillation: Post-generation reflection freezes new lessons into .design/memory.json.' },
 
-    // Slide 16: Color Science
+    // Slide 16
     'colorHSL': { slide: 'slide-16', badge: 'LEGACY HSL FLAW', text: 'HSL Non-Linearity: Yellow at L=50% is 3x brighter than Blue at L=50%, distorting optical contrast.' },
     'colorOKLCH': { slide: 'slide-16', badge: 'OKLCH UNIFORMITY', text: 'OKLCH Standard: Constant perceived lightness across all hues in 100% Display P3 wide gamut.' },
     'colorDelta': { slide: 'slide-16', badge: 'DELTA E SEMVER', text: 'Delta EOK Precision: Math-backed Semver (Delta E > 0.05 Major, Delta E <= 0.02 Patch).' },
 
-    // Slide 17: Taste Radar
+    // Slide 17
     'tasteCore7': { slide: 'slide-17', badge: 'CORE: CONSISTENCY', text: 'Consistency Core 0: 100% design token binding and component registry reuse across all screens.' },
     'tasteAxis1': { slide: 'slide-17', badge: 'AXIS 1: LAYOUT', text: 'Layout & Hierarchy: Clear reading order, no container soup, fluid responsiveness across breakpoints.' },
     'tasteAxis2': { slide: 'slide-17', badge: 'AXIS 2: TYPOGRAPHY', text: 'Typography & Rhythm: Modular type scale, calibrated line-height, and precise tracking.' },
@@ -167,12 +313,12 @@
     'tasteAxis5': { slide: 'slide-17', badge: 'AXIS 5: MOTION', text: 'Motion Ladder: Purpose-driven choreography strictly bounded by reduced-motion accessibility.' },
     'tasteAxis6': { slide: 'slide-17', badge: 'AXIS 6: DEPTH', text: 'Depth & Surfaces: Tonal elevation and polarized optical contrast instead of muddy drop shadows.' },
 
-    // Slide 21: Scroll-Cinema
+    // Slide 21
     'cinemaLeg1': { slide: 'slide-21', badge: 'LEG 1: HERO ORBIT', text: 'Leg 1 (Hero Orbit): Spatial camera rotation around product geometry at 60fps.' },
     'cinemaLeg2': { slide: 'slide-21', badge: 'LEG 2: EXPLODED VIEW', text: 'Leg 2 (Exploded View): Internal component separation along Z-axis. Seam 1 locks position.' },
     'cinemaLeg3': { slide: 'slide-21', badge: 'LEG 3: MACRO 2K', text: 'Leg 3 (Macro Core): 2K sub-pixel texture dive. Seam 2 velocity vector match guarantees smooth handoff.' },
 
-    // Slide 25: Delivery Pipeline
+    // Slide 25
     'pipeStep1': { slide: 'slide-25', badge: 'STAGE 1: FLOW', text: 'ui flow lint: Multi-screen state machine validation catching dead ends and unhandled error states.' },
     'pipeStep2': { slide: 'slide-25', badge: 'STAGE 2: EVIDENCE', text: 'ui evidence: Verifies research grounding and user problem-solution alignment.' },
     'pipeStep3': { slide: 'slide-25', badge: 'STAGE 3: VR GATE', text: 'ui vr gate: Visual regression baseline verification across Desktop, Laptop, and Mobile viewports.' },
@@ -181,7 +327,6 @@
     'pipeStep6': { slide: 'slide-25', badge: 'STAGE 6: AUDIT', text: 'design-os audit: Full 10-tool release suite required to produce zero errors before merge.' }
   };
 
-  // Wire instant click on all interactive nodes
   Object.keys(nodeDetails).forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -199,88 +344,96 @@
   });
 
   // =========================================================
-  // 4. Keyboard Shortcuts
+  // 10. Event Listeners (Controls & Keyboard)
   // =========================================================
-  document.addEventListener('keydown', (e) => {
-    // Ignore if focus is in an input or modal
+  if (btnPrev) btnPrev.addEventListener('click', prevSlide);
+  if (btnNext) btnNext.addEventListener('click', nextSlide);
+  if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
+  if (btnLang) btnLang.addEventListener('click', toggleLangModal);
+  if (btnCloseLang) btnCloseLang.addEventListener('click', closeLangModal);
+  if (btnNotes) btnNotes.addEventListener('click', toggleNotes);
+  if (btnTheme) btnTheme.addEventListener('click', toggleTheme);
+  if (btnFullscreen) btnFullscreen.addEventListener('click', toggleFullscreen);
+
+  window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
-      e.preventDefault();
-      nextSlide();
-    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-      e.preventDefault();
-      prevSlide();
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      updateSlide(0);
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      updateSlide(totalSlides - 1);
-    } else if (e.key.toLowerCase() === 'n') {
-      toggleNotes();
-    } else if (e.key.toLowerCase() === 'o') {
-      toggleOverview();
-    } else if (e.key.toLowerCase() === 't') {
-      toggleTheme();
-    } else if (e.key.toLowerCase() === 'f') {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    } else if (e.key.toLowerCase() === 'l') {
-      if (typeof window.toggleLangMenu === 'function') window.toggleLangMenu();
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault();
+        nextSlide();
+        break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault();
+        prevSlide();
+        break;
+      case 'Home':
+        e.preventDefault();
+        updateSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        updateSlide(totalSlides - 1);
+        break;
+      case 's':
+      case 'S':
+      case 'n':
+      case 'N':
+        toggleNotes();
+        break;
+      case 'o':
+      case 'O':
+        toggleOverview();
+        break;
+      case 't':
+      case 'T':
+        toggleTheme();
+        break;
+      case 'l':
+      case 'L':
+        toggleLangModal();
+        break;
+      case 'f':
+      case 'F':
+        toggleFullscreen();
+        break;
+      case 'Escape':
+        closeOverview();
+        closeLangModal();
+        break;
     }
   });
 
-  // UI Control Buttons
-  const btnNext = document.getElementById('btnNextSlide');
-  const btnPrev = document.getElementById('btnPrevSlide');
-  const btnNotes = document.getElementById('btnToggleNotes');
-  const btnOverview = document.getElementById('btnToggleOverview');
-  const btnTheme = document.getElementById('btnToggleTheme');
-  const btnFullscreen = document.getElementById('btnToggleFullscreen');
-
-  if (btnNext) btnNext.addEventListener('click', nextSlide);
-  if (btnPrev) btnPrev.addEventListener('click', prevSlide);
-  if (btnNotes) btnNotes.addEventListener('click', toggleNotes);
-  if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
-  if (btnTheme) btnTheme.addEventListener('click', toggleTheme);
-  if (btnFullscreen) {
-    btnFullscreen.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
+  // Close modals on clicking backdrop
+  if (langModal) {
+    langModal.addEventListener('click', (e) => {
+      if (e.target === langModal) closeLangModal();
     });
   }
 
-  function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('design-os-theme', newTheme);
+  if (overviewModal) {
+    overviewModal.addEventListener('click', (e) => {
+      if (e.target === overviewModal) closeOverview();
+    });
   }
 
-  const savedTheme = localStorage.getItem('design-os-theme');
-  if (savedTheme) {
-    document.documentElement.setAttribute('data-theme', savedTheme);
-  }
-
-  // Initialize first slide
+  // =========================================================
+  // 11. Initial Boot & API Export
+  // =========================================================
+  setLanguage(currentLang);
   updateSlide(0);
 
-  // Exposed API
   window.deck = {
     updateSlide,
     nextSlide,
     prevSlide,
     toggleNotes,
     toggleTheme,
-    setLanguage: (lang) => {
-      if (typeof window.applyLanguage === 'function') window.applyLanguage(lang);
-    }
+    toggleOverview,
+    toggleLangModal,
+    setLanguage
   };
 })();
