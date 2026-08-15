@@ -895,3 +895,20 @@
   stroke: var(--text-primary) !important;
   stroke-width: 3px !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .svg-flow-active,
+  .svg-packet-1,
+  .svg-packet-2,
+  .svg-radar-ring {
+    animation: none !important;
+  }
+}
