@@ -77,24 +77,7 @@ export function parseMatrixRows(content: string): MatrixRow[] {
   return rows;
 }
 
-/** The first 40-hex-char git SHA found in the knowledge file's prose, or null. */
-export function extractRevisionToken(content: string): string | null {
-  const m = /\b[0-9a-f]{40}\b/.exec(content);
-  return m === null ? null : m[0];
-}
-
-/** Months from a `YYYYMM` string to the asOf month; null when either is malformed. */
-export function monthsBetween(fileYm: string, asOf: string): number | null {
-  const parse = (s: string): number | null => {
-    const m = /^(\d{4})(\d{2})$/.exec(s);
-    if (m === null) return null;
-    const y = Number(m[1]);
-    const mo = Number(m[2]);
-    if (mo < 1 || mo > 12) return null;
-    return y * 12 + (mo - 1);
-  };
-  const a = parse(fileYm);
-  const b = parse(asOf);
-  if (a === null || b === null) return null;
-  return b - a;
-}
+// extractRevisionToken / monthsBetween moved to knowledge-ledger-provenance.ts when the
+// ShaderGradient ledger arrived and needed the identical two helpers. Re-exported here so
+// this module's public surface is unchanged for every existing importer.
+export { extractRevisionToken, monthsBetween } from "./knowledge-ledger-provenance.js";

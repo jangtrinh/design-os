@@ -60,6 +60,7 @@ export const SKILL_NAMES = [
   "canvas-effect",
   "gflow-flight",
   "scroll-cinema",
+  "shader-gradient",
 ] as const satisfies readonly string[];
 
 export type SkillName = (typeof SKILL_NAMES)[number];

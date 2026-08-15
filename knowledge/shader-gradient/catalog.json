@@ -1,0 +1,35 @@
+{
+  "upstream": "https://github.com/ruucm/shadergradient",
+  "fork": "https://github.com/jangtrinh/shadergradient",
+  "revision": "974a230b1e6c3ec375fbe17a8ea1c89edbc48019",
+  "captured": "202606",
+  "license": "MIT",
+  "package": "@shadergradient/react",
+  "packageVersion": "2.4.24",
+  "presets": [
+    { "slug": "halo", "name": "Halo", "mesh": "plane", "light": "3d", "grain": true },
+    { "slug": "pensive", "name": "Pensive", "mesh": "sphere", "light": "3d", "grain": true },
+    { "slug": "mint", "name": "Mint", "mesh": "waterPlane", "light": "3d", "grain": false },
+    { "slug": "interstella", "name": "Interstella", "mesh": "sphere", "light": "env", "grain": true },
+    { "slug": "nighty-night", "name": "Nighty night", "mesh": "waterPlane", "light": "3d", "grain": true },
+    { "slug": "viola-orientalis", "name": "Viola", "mesh": "sphere", "light": "3d", "grain": false },
+    { "slug": "universe", "name": "Universe", "mesh": "waterPlane", "light": "3d", "grain": false },
+    { "slug": "sunset", "name": "Sunset", "mesh": "sphere", "light": "3d", "grain": false },
+    { "slug": "mandarin", "name": "Mandarin", "mesh": "waterPlane", "light": "3d", "grain": false },
+    { "slug": "cotton-candy", "name": "Cotton Candy", "mesh": "waterPlane", "light": "3d", "grain": false }
+  ],
+  "surfaces": [
+    { "shader": "defaults", "mesh": "plane" },
+    { "shader": "defaults", "mesh": "sphere" },
+    { "shader": "defaults", "mesh": "waterPlane" },
+    { "shader": "positionMix", "mesh": "plane" },
+    { "shader": "positionMix", "mesh": "sphere" },
+    { "shader": "positionMix", "mesh": "waterPlane" },
+    { "shader": "cosmic", "mesh": "plane" },
+    { "shader": "cosmic", "mesh": "sphere" },
+    { "shader": "cosmic", "mesh": "waterPlane" },
+    { "shader": "glass", "mesh": "plane" },
+    { "shader": "glass", "mesh": "sphere" },
+    { "shader": "glass", "mesh": "waterPlane" }
+  ]
+}

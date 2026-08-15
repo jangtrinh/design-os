@@ -17,6 +17,7 @@ import { buildIndex, emitIndex } from "../core/knowledge-index-emit.js";
 import { topLevelMarkdown } from "../core/knowledge-frontmatter-check.js";
 import type { KnowledgeFinding } from "../core/knowledge-lint.js";
 import { runEffectMatrix } from "./knowledge-effect-matrix.js";
+import { runGradientMatrix } from "./knowledge-gradient-matrix.js";
 
 const CMD = "knowledge";
 
@@ -25,6 +26,7 @@ export const KNOWLEDGE_HELP = `ui knowledge — governance checks over the knowl
 Usage:
   ui knowledge check [--dir <repo-root>] [--as-of <YYYYMM>] [--json]
   ui knowledge effect-matrix [--dir <repo-root>] [--json]
+  ui knowledge gradient-matrix [--dir <repo-root>] [--json]
   ui knowledge index [--dir <repo-root>] [--emit]
 
 Subcommands:
@@ -36,6 +38,9 @@ Subcommands:
   effect-matrix  Emit the Canvas UI effect matrix's machine columns (Effect/slug/family)
                  from knowledge/canvas-ui/catalog.json to stdout — never writes into
                  knowledge/canvas-effect-direction.md
+  gradient-matrix Emit the ShaderGradient preset matrix's machine columns (Preset/slug/mesh)
+                 from knowledge/shader-gradient/catalog.json to stdout — never writes into
+                 knowledge/shader-gradient-direction.md
 
 Checks:
   index-missing-row       (error)   a knowledge/*.md with no row in README '## The files'
@@ -53,6 +58,14 @@ Checks:
   effect-catalog-field-empty     (error)   a matrix row's Narrative job/Anti-use/Required fallback is empty
   effect-catalog-draco-missing   (error)   a ledger object-family row's fallback has no Draco clause
   effect-catalog-stale           (warning) knowledge/canvas-ui/catalog.json captured > 6 months ago
+  gradient-catalog-missing-ledger (error)  shader-gradient-direction.md exists, its ledger doesn't
+  gradient-catalog-revision-drift (error)  the direction file's pinned SHA != the ledger revision
+  gradient-catalog-slug-unknown  (error)   a preset-matrix row's slug is not in the ledger
+  gradient-catalog-slug-missing  (error)   a ledger preset has no matrix row
+  gradient-catalog-row-drift     (error)   a matrix row's Preset/mesh cell disagrees with its ledger entry
+  gradient-catalog-field-empty   (error)   a matrix row's Narrative job/Anti-use/Required fallback is empty
+  gradient-catalog-fallback-thin (error)   a Required fallback cell that never names the frozen state
+  gradient-catalog-stale         (warning) knowledge/shader-gradient/catalog.json captured > 6 months ago
   index-frontmatter-missing      (error)   a top-level knowledge/*.md with no routing front-matter
   index-frontmatter-bad          (error)   a routing block unparseable, or whose id != filename
   index-drift                    (error)   knowledge/index.json differs from the emitted index
@@ -73,10 +86,10 @@ Error codes (check):
   READ_ERROR    A knowledge file could not be read
   WRITE_ERROR   knowledge/index.json could not be written (--emit)
 
-Error codes (effect-matrix):
+Error codes (effect-matrix / gradient-matrix):
   BAD_ARG       Missing/unknown subcommand
   UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
-  NO_LEDGER     No knowledge/canvas-ui/catalog.json under --dir
+  NO_LEDGER     No catalog.json for that ledger under --dir
   BAD_LEDGER    catalog.json is unparseable or violates the ledger shape
   READ_ERROR    catalog.json could not be read
 `;
@@ -153,7 +166,15 @@ function runCheck(parsed: ParsedArgs): CommandResult {
     try { committedIndex = readFileSync(indexPath, "utf8"); } catch { committedIndex = null; }
   }
 
-  const findings: KnowledgeFinding[] = lintKnowledge({ files, mdContents, personasJson, repoFiles, asOf, canvasCatalogJson, committedIndex });
+  // The ShaderGradient ledger — same rule as the Canvas UI one above: it lives inside
+  // knowledge/ (tracked, packaged), never a references/ probe.
+  let gradientCatalogJson: string | null = null;
+  const gradientLedgerPath = join(knowledgeDir, "shader-gradient", "catalog.json");
+  if (existsSync(gradientLedgerPath)) {
+    try { gradientCatalogJson = readFileSync(gradientLedgerPath, "utf8"); } catch { gradientCatalogJson = null; }
+  }
+
+  const findings: KnowledgeFinding[] = lintKnowledge({ files, mdContents, personasJson, repoFiles, asOf, canvasCatalogJson, gradientCatalogJson, committedIndex });
   const errorCount = findings.filter((f) => f.severity === "error").length;
   const warningCount = findings.length - errorCount;
   const exitCode = errorCount > 0 ? 1 : 0;
@@ -207,16 +228,17 @@ function runIndex(parsed: ParsedArgs): CommandResult {
 
 export const knowledgeCommand = {
   name: CMD,
-  summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift)",
+  summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog / gradient-catalog drift)",
   hasSubcommands: true,
   help: KNOWLEDGE_HELP,
   run(parsed: ParsedArgs): CommandResult {
     switch (parsed.subcommand) {
       case "check": return runCheck(parsed);
       case "effect-matrix": return runEffectMatrix(parsed);
+      case "gradient-matrix": return runGradientMatrix(parsed);
       case "index": return runIndex(parsed);
       case undefined: {
-        const msg = "ui knowledge requires a subcommand (check, effect-matrix, index). Run 'ui knowledge --help'.";
+        const msg = "ui knowledge requires a subcommand (check, effect-matrix, gradient-matrix, index). Run 'ui knowledge --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
       }
       default: {
