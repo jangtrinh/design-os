@@ -334,3 +334,61 @@ The outline does not get re-planned to fix a styling drift.
 
 The deck is finished when every slide passes the per-slide gate and the deck-level
 Consistency check passes.
+
+### Machine-checkable deck gates
+
+Read-through review misses these; each one is a defect a real deck shipped with, and each
+is cheap to automate. Encode them as a runnable check rather than a checklist — a standard
+without a linter drifts.
+
+| Gate | Rule | The failure it catches |
+|---|---|---|
+| `type/tokenised` | every `font-size` resolves through a scale token | 19 hand-picked sizes with no ratio behind them |
+| `type/one-ratio` | the scale's steps hold one ratio | a step nudged in isolation |
+| `space/on-scale` | every gap/pad/margin on one base unit | off-grid values (`6px`, `13px`, `70px`) |
+| `grid/no-percent-columns` | no `N% M%` column pairs | `50%+50%+gap` overflowing every split slide |
+| `css/no-orphan-elements` | no element whose every class is unstyled | a whole slide rendering as a raw text dump |
+| `stage/exact-size` | each slide is exactly the board size | silent clipping |
+| `fit/no-container-spill` | nothing overflows its own padding box | copy running out of its card |
+| `rhythm/voids-agree` | large voids in one container must match | `justify-between` drift |
+| `contrast/wcag-aa` | 4.5:1 body / 3:1 large, against the real surface | a headline invisible on its own ground |
+| `i18n/fit-every-language` | the fit gate runs in **every** shipped language | a deck that clips the moment a viewer switches |
+
+Three traps worth stating outright, because each cost a full debugging pass:
+
+- **Composite before judging contrast.** A gate that reads `rgba(255,255,255,0.07)` as
+  opaque white invents failures; one that ignores gradient stops misses real ones. Take the
+  **worst stop** of a gradient and composite semi-transparent layers over what is beneath.
+  A gate that cries wolf gets ignored, which is worse than no gate.
+- **Measure the settled state.** Sampling a hover before its transition ends measures a
+  frame no user sees; reading the resting style of a control inside a *closed* overlay
+  reports a state that does not exist. Open it, wait for it, then measure.
+- **Prove each gate can fail.** Feed it a violation, confirm red; remove it, confirm green.
+  A gate that has never failed has not been shown to work.
+
+Also test the deck in **every language it ships**. A fit gate run only in the default
+language passes a deck that clips the moment a viewer switches — verbose languages run
+materially longer than the English a layout was tuned against. And an advertised language
+whose content is byte-identical to another is not translated: a picker that silently
+renders English is worse than offering fewer languages.
+
+### If the deck is one navigable page rather than N files
+
+A single-page deck that scales a fixed board with a CSS `transform` carries three extra
+rules, each of which silently breaks otherwise-correct work:
+
+- **Nothing may animate the stage or its ancestors** — it fights the inline scale. Animate
+  slide children only.
+- **Never re-declare type inside `@media`.** Viewport-conditional rules fire *inside* the
+  fixed board and are then scaled again; one deck set body copy to 15 px inside a 1920 px
+  stage, landing at roughly 7 px on a phone. The transform alone does the fitting.
+- Slides toggled `display:none` / `flex` cannot animate on exit — the element is gone.
+  **Enter-only is the correct architecture**, not a compromise. Bind entrance keyframes to
+  an attribute the navigation adds, never to the `active` class alone, or any check that
+  flips that class synchronously will sample a mid-flight frame.
+
+Motion for a deck lives at **T1** (`knowledge/motion-craft.md`): a direction-aware content
+cascade where the chrome stays fixed and only the content zone moves, with forward, back
+and jump visually distinct — a jump is a cut, not a step, because lateral motion implies
+adjacency. Reach past T1 only if the ladder genuinely selects it; shipping a library for a
+fade is the anti-pattern that ladder exists to prevent.
