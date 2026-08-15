@@ -166,87 +166,155 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-arch">
-              <svg role="img" aria-labelledby="titleArch descArch" data-diagram-grammar="architecture" data-reading-order="ltr" data-focal-id="nodeKernel" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
-              <title id="titleArch">Division of Labor: AI Reasoning vs UI Kernel Architecture</title>
-              <desc id="descArch">Left-to-right dataflow diagram from User Brief to AI Host Agent creative synthesis, verified by deterministic UI Kernel gates.</desc>
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-              <span>Simulate Data Flow</span>
-            </button>
+          <button class="interactive-badge-btn" id="btn-pulse-arch" style="position: absolute; top: 16px; right: 16px; z-index: 10;">▷ Kích Hoạt Luồng Năng Lượng</button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableArchTitle fableArchDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="ltr"
+            data-focal-id="kernelChamber"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableArchTitle">The Division of Labor: From Human Beacon to Neural Prism and Monolithic Kernel Gate</title>
+            <desc id="fableArchDesc">Aerodynamic structural diagram illustrating the living transformation of human intent through neural reasoning into deterministic, mathematically verified UI code.</desc>
 
-            <svg class="diagram-svg" id="svgArchSplit" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 370 260 L 500 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 1040 260 L 1170 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+            <defs>
+              <!-- Luminous Waveguide Gradients -->
+              <linearGradient id="beamGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="var(--text-muted)" stop-opacity="0.2"/>
+                <stop offset="50%" stop-color="var(--text-primary)" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="var(--text-primary)" stop-opacity="1"/>
+              </linearGradient>
+              <linearGradient id="beamGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="var(--text-primary)" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="var(--text-primary)" stop-opacity="1"/>
+              </linearGradient>
+              <filter id="glowFable" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            <!-- Background Atmospheric Energy Field -->
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--text-inverse)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE LIVING STREAM • BRAIN &amp; BODY DUALITY PIPELINE</text>
+
+            <!-- 1. Waveguide Conduit 1 (Human -> AI) -->
+            <path id="waveguide1" d="M 360 250 C 420 250, 440 250, 500 250" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 360 250 C 420 250, 440 250, 500 250" fill="none" stroke="url(#beamGradient1)" stroke-width="3" stroke-dasharray="10 8" class="svg-flow-active"/>
+
+            <!-- 2. Waveguide Conduit 2 (AI -> Kernel) -->
+            <path id="waveguide2" d="M 900 250 C 960 250, 980 250, 1040 250" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 900 250 C 960 250, 980 250, 1040 250" fill="none" stroke="url(#beamGradient2)" stroke-width="3" stroke-dasharray="10 8" class="svg-flow-active"/>
+
+            <!-- Photonic Packets (Data flow pulse) -->
+            <circle id="photonPacket1" cx="430" cy="250" r="7" fill="var(--text-primary)" class="svg-packet-1" filter="url(#glowFable)"/>
+            <circle id="photonPacket2" cx="970" cy="250" r="7" fill="var(--text-primary)" class="svg-packet-2" filter="url(#glowFable)"/>
+
+            <!-- Conduit Flow Status Badges -->
+            <rect x="395" y="210" width="70" height="22" rx="11" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="430" y="225" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-primary)" text-anchor="middle">PROMPT</text>
+
+            <rect x="935" y="210" width="70" height="22" rx="11" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="970" y="225" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-primary)" text-anchor="middle">AST / DTCG</text>
+
+            <!-- ======================================================== -->
+            <!-- ORGANISM 1: THE HUMAN BEACON (Intent Transmitter)        -->
+            <!-- ======================================================== -->
+            <g id="nodeUser" class="interactive-node" tabindex="0" role="button" aria-label="Organism 1: Human Intent Beacon" style="cursor: pointer;">
+              <!-- Outer Resonance Rings -->
+              <circle cx="200" cy="250" r="145" fill="none" stroke="var(--border-subtle)" stroke-width="1" stroke-dasharray="4 4"/>
+              <circle cx="200" cy="250" r="130" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
               
-              <g transform="translate(370, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(1040, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+              <!-- Core Capsule -->
+              <rect x="80" y="150" width="240" height="200" rx="16" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+              
+              <!-- Glowing Beacon Emitter -->
+              <circle cx="200" cy="180" r="22" fill="var(--text-inverse)" stroke="var(--text-primary)" stroke-width="2"/>
+              <circle cx="200" cy="180" r="8" fill="var(--text-primary)"/>
+              <circle cx="200" cy="180" r="28" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
 
-              <!-- Left Node -->
-              <g transform="translate(50, 60)" id="nodeUser" style="cursor: pointer;">
-                <rect width="320" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="320" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="270" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="270" cy="48" r="4" fill="var(--text-primary)"/>
+              <text x="200" y="228" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.1em" text-anchor="middle">ORGAN 01 • TRANSMITTER</text>
+              <text x="200" y="255" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Human Intent</text>
+              <text x="200" y="278" font-family="var(--font-mono)" font-size="12" fill="var(--text-secondary)" text-anchor="middle">Natural Language Brief</text>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">INPUT TRIGGER</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">User Intent</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Natural Language Brief</text>
+              <!-- Parametric Readout -->
+              <rect x="96" y="298" width="208" height="34" rx="8" fill="var(--bg-surface)" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="200" y="320" font-family="var(--font-mono)" font-size="11" font-weight="600" fill="var(--text-primary)" text-anchor="middle">INPUT: Brand • Mood • Target</text>
+            </g>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Yêu cầu tính năng &amp; bố cục</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Lựa chọn Persona thiết kế</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Đề bài phát triển giao diện</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Khởi động qua lệnh CLI</text>
+            <!-- ======================================================== -->
+            <!-- ORGANISM 2: THE NEURAL PRISM (Creative Reasoning Brain)  -->
+            <!-- ======================================================== -->
+            <g id="nodeAgent" class="interactive-node" tabindex="0" role="button" aria-label="Organism 2: Neural Synthesis Prism" style="cursor: pointer;">
+              <!-- Outer Prism Geometry (Hexagonal Resonator) -->
+              <polygon points="700,70 880,160 880,340 700,430 520,340 520,160" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              
+              <!-- Inner Refraction Core -->
+              <polygon points="700,100 850,175 850,325 700,400 550,325 550,175" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <rect x="32" y="340" width="256" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CLI: /ui:generate</text>
+              <!-- Central Synthesis Engine -->
+              <circle cx="700" cy="200" r="36" fill="var(--text-inverse)" stroke="var(--text-primary)" stroke-width="2.5"/>
+              <text x="700" y="195" font-family="'Inter'" font-size="22" font-weight="900" fill="var(--text-primary)" text-anchor="middle">AI</text>
+              <text x="700" y="215" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-muted)" text-anchor="middle">BRAIN</text>
+
+              <text x="700" y="260" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.1em" text-anchor="middle">ORGAN 02 • NEURAL PRISM</text>
+              <text x="700" y="285" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Host AI Agent</text>
+              <text x="700" y="308" font-family="var(--font-mono)" font-size="12" fill="var(--text-secondary)" text-anchor="middle">Creative Synthesis &amp; Persona</text>
+
+              <!-- Refraction Beams (Persona spectrum) -->
+              <line x1="600" y1="330" x2="800" y2="330" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="700" y="352" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)" text-anchor="middle">• Resolves Persona Family</text>
+              <text x="700" y="374" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)" text-anchor="middle">• Crafts Semantic DOM Tree</text>
+
+              <rect x="570" y="390" width="260" height="28" rx="6" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="700" y="408" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--text-primary)" text-anchor="middle">ROLE: Creative Reasoning</text>
+            </g>
+
+            <!-- ======================================================== -->
+            <!-- ORGANISM 3: THE MONOLITHIC KERNEL GATE (Deterministic)   -->
+            <!-- ======================================================== -->
+            <g id="nodeKernel" class="interactive-node" tabindex="0" role="button" aria-label="Organism 3: Monolithic Kernel Gate" style="cursor: pointer;">
+              <!-- Outer Monolith Boundary (Heavy Structural Armor) -->
+              <rect x="1040" y="70" width="350" height="360" rx="16" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              
+              <!-- Top Gate Header -->
+              <rect x="1040" y="70" width="350" height="50" rx="16" fill="var(--text-primary)"/>
+              <text x="1215" y="100" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.1em" text-anchor="middle">ORGAN 03 • MONOLITHIC GATE [FOCAL]</text>
+
+              <!-- Core Identity -->
+              <text x="1215" y="155" font-family="var(--font-sans)" font-size="22" font-weight="800" fill="var(--text-primary)" text-anchor="middle">UI Kernel Engine</text>
+              <text x="1215" y="178" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)" text-anchor="middle">Deterministic Color &amp; 14 Linters Floor</text>
+              <line x1="1070" y1="195" x2="1360" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <!-- 3 Gate Valves (The 3 Hard Machine Checks) -->
+              <g transform="translate(1065, 210)">
+                <rect width="300" height="36" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+                <circle cx="20" cy="18" r="5" fill="var(--text-primary)"/>
+                <text x="36" y="22" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)">1. OKLCH / P3 Color Math</text>
+                <text x="270" y="22" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--text-muted)" text-anchor="end">ΔEOK PASS</text>
               </g>
 
-              <!-- Center Node -->
-              <g transform="translate(500, 60)" id="nodeAgent" style="cursor: pointer;">
-                <rect width="540" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="540" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="490" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="490" cy="48" r="4" fill="var(--text-primary)"/>
-
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">REASONING &amp; KNOWLEDGE</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Host AI Agent</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Claude Code / Gemini / Codex</text>
-
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Suy luận thẩm mỹ &amp; Đọc knowledge/</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Áp dụng 26 Personas &amp; Motion T1-T6</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tuân thủ UX Laws (Fitts, Hick, Miller)</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Sinh candidate HTML/CSS gắn token</text>
-
-                <rect x="32" y="340" width="476" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">PAYLOAD: HTML Candidate with DTCG Tokens</text>
+              <g transform="translate(1065, 256)">
+                <rect width="300" height="36" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+                <circle cx="20" cy="18" r="5" fill="var(--text-primary)"/>
+                <text x="36" y="22" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)">2. DTCG Token Compiler</text>
+                <text x="270" y="22" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--text-muted)" text-anchor="end">100% BOUND</text>
               </g>
 
-              <!-- Right Node -->
-              <g transform="translate(1170, 60)" id="nodeKernel" style="cursor: pointer;">
-                <rect width="380" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="380" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="330" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="330" cy="48" r="4" fill="var(--text-primary)"/>
-
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">DETERMINISTIC KERNEL</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">UI Kernel</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Zero-Dependency Binary</text>
-
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• OKLCH Color Mathematics &amp; Delta EOK</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• DTCG Tokens Compilation sang CSS</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• 14 Luật sàn thẩm mỹ taste-lint</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Sàn an toàn layout validate-layout</text>
-
-                <rect x="32" y="340" width="316" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">VERDICT: 0 Errors Required</text>
+              <g transform="translate(1065, 302)">
+                <rect width="300" height="36" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+                <circle cx="20" cy="18" r="5" fill="var(--text-primary)"/>
+                <text x="36" y="22" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)">3. 14 Deterministic Linters</text>
+                <text x="270" y="22" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--text-muted)" text-anchor="end">EXIT 0</text>
               </g>
 
-              <!-- Feedback Arc -->
-              <path d="M 1360 460 C 1360 510, 770 510, 770 460" stroke="var(--border-medium)" stroke-width="2" stroke-dasharray="6 6"/>
-              <text x="1065" y="505" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" text-anchor="middle">Targeted Repair Loop (Nếu Linter trả về Exit 1)</text>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-3">
+              <!-- Qualified Delivery Seal -->
+              <rect x="1065" y="355" width="300" height="50" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="1215" y="385" font-family="var(--font-mono)" font-size="13" font-weight="800" fill="var(--text-primary)" letter-spacing="0.06em" text-anchor="middle">✓ ZERO-STOCHASTIC RELEASE</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-3">
               <span class="readout-badge">PIPELINE: ACTIVE</span>
               <span class="readout-text" id="readout-text-slide-3">Click any node or press 'Simulate Data Flow' to watch the prompt-to-kernel deterministic validation run.</span>
             </div>
