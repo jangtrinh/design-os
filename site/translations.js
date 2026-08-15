@@ -1,5 +1,4 @@
-// DESIGN:OS 28-Slide Masterclass Internationalization System (i18n)
-// Supported languages: English (Default), Tiếng Việt, 한국어, 日本語, Español, Français, 中文
+// DESIGN:OS 28-Slide Radiant Editorial Internationalization Dictionary
 const DECK_I18N = {
   "languages": [
     {
@@ -41,1234 +40,1430 @@ const DECK_I18N = {
   "slides": {
     "1": {
       "en": {
-        "eyebrow": "Multi-Runtime Design CLI • Production Operating Manual",
-        "title": "Mastering DESIGN:OS<br>From AI Reasoning to Scroll-Cinema &amp; Figma.",
-        "subtitle": "7 Strategic Acts: AI vs Kernel Division, 6 Onboarding Roads, Live Figma Bridge 9410, Recall Vector Memory, OKLCH Color Science, 3D GFlow &amp; 2K Scroll-Cinema, and Qualified Delivery Floor.",
-        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. This manual covers everything from core mathematical foundations, Figma live sync, vector memory, to 3D scroll-cinema flights and Fable thinking."
+        "title": "MASTERING<br>DESIGN:OS",
+        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
+        "heroNum": "0 %",
+        "heroLabel": "LLM Luck Required",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "vi": {
-        "eyebrow": "Multi-Runtime Design CLI • Cẩm Nang Vận Hành Sản Xuất",
-        "title": "Làm chủ Toàn Năng DESIGN:OS<br>Từ AI Reasoning Đến Scroll-Cinema &amp; Figma.",
-        "subtitle": "7 Hồi Chiến Lược: Kiến trúc phân quyền AI vs Kernel, 6 Cổng Onboard, Figma Live Bridge 9410, Vòng lặp Học tập Recall, Khoa học màu OKLCH, 3D GFlow &amp; Scroll-Cinema 2K, và Sàn Qualified Delivery.",
-        "notes": "Chào mừng đến với DESIGN:OS Masterclass 28 slide. Bộ cẩm nang bao quát từ lõi toán học, cầu nối Figma, bộ nhớ vector đến điện ảnh cuộn trang 3D và 5 câu chuyện ngụ ngôn triết lý thiết kế."
+        "title": "LÀM CHỦ<br>DESIGN:OS",
+        "body": "Cẩm nang vận hành đa runtime cho thiết kế AI hiện đại. Chuyển đổi từ sự may rủi của LLM sang toán học màu tất định, đồng bộ trực tiếp Figma Desktop, truy hồi bộ nhớ vector và sàn kiểm định xuất xưởng.",
+        "heroNum": "0 %",
+        "heroLabel": "Không Dựa May Rủi",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "ko": {
-        "eyebrow": "멀티 런타임 디자인 CLI • 프로덕션 운영 매뉴얼",
-        "title": "DESIGN:OS 마스터하기<br>AI 추론부터 스크롤 시네마 &amp; Figma까지.",
-        "subtitle": "7개 전략적 장: AI와 커널 분권 구조, 6개 온보딩 경로, 피그마 브릿지 9410, 벡터 메모리 리콜, OKLCH 색채 과학, 3D GFlow 및 2K 스크롤 시네마, 품질 보증 납품 기준.",
-        "notes": "DESIGN:OS 28개 슬라이드 마스터클래스에 오신 것을 환영합니다. 핵심 수학 기초부터 피그마 실시간 연동, 벡터 메모리, 3D 스크롤 시네마까지 완벽하게 다룹니다."
+        "title": "MASTERING<br>DESIGN:OS",
+        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
+        "heroNum": "0 %",
+        "heroLabel": "LLM Luck Required",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "ja": {
-        "eyebrow": "マルチランタイム デザインCLI • 本番運用マニュアル",
-        "title": "DESIGN:OS を完全マスター<br>AI推論からスクロールシネマ＆Figmaまで.",
-        "subtitle": "7つの戦略的幕: AI対カーネル分権構造、6つのオンボーディング経路、Figmaブリッジ9410、ベクトルメモリRecall、OKLCH色彩科学、3D GFlow＆2Kスクロールシネマ、品質保証デリバリー基準。",
-        "notes": "DESIGN:OS 28スライド マスタークラスへようこそ。数学的基礎からFigmaリアルタイム連携、ベクトルメモリ、3Dスクロールシネマまで網羅しています。"
+        "title": "MASTERING<br>DESIGN:OS",
+        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
+        "heroNum": "0 %",
+        "heroLabel": "LLM Luck Required",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "es": {
-        "eyebrow": "CLI de Diseño Multi-Runtime • Manual de Operación en Producción",
-        "title": "Dominando DESIGN:OS<br>Desde el Razonamiento AI hasta Scroll-Cinema y Figma.",
-        "subtitle": "7 Actos Estratégicos: División AI vs Kernel, 6 Vías de Onboarding, Figma Live Bridge 9410, Memoria Vectorial Recall, Ciencia del Color OKLCH, GFlow 3D y Scroll-Cinema 2K, y Entrega Calificada.",
-        "notes": "Bienvenidos a la Masterclass Completa de DESIGN:OS en 28 Diapositivas. Abarca desde fundamentos matemáticos hasta sincronización con Figma, memoria vectorial y vuelos 3D."
+        "title": "MASTERING<br>DESIGN:OS",
+        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
+        "heroNum": "0 %",
+        "heroLabel": "LLM Luck Required",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "fr": {
-        "eyebrow": "CLI de Design Multi-Runtime • Manuel d'Exploitation Production",
-        "title": "Maîtriser DESIGN:OS<br>Du Raisonnement IA au Scroll-Cinéma &amp; Figma.",
-        "subtitle": "7 Actes Stratégiques: Séparation IA vs Noyau, 6 Voies d'Intégration, Pont Figma 9410, Mémoire Vectorielle Recall, Science des Couleurs OKLCH, GFlow 3D &amp; Scroll-Cinéma 2K, et Livraison Qualifiée.",
-        "notes": "Bienvenue dans la Masterclass DESIGN:OS en 28 diapositives. Ce guide couvre des fondations mathématiques à la synchronisation Figma en direct, la mémoire vectorielle et le cinéma 3D."
+        "title": "MASTERING<br>DESIGN:OS",
+        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
+        "heroNum": "0 %",
+        "heroLabel": "LLM Luck Required",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "zh": {
-        "eyebrow": "多运行时设计CLI • 生产级系统操作手册",
-        "title": "全面掌握 DESIGN:OS<br>从 AI 推理到滚动电影与 Figma 实时画布.",
-        "subtitle": "7大核心篇章: AI与确定性内核分权架构、6大Onboarding入口、Figma桌面桥接9410、Recall向量记忆、OKLCH色彩科学、3D GFlow与2K滚动电影、Qualified Delivery交付底线。",
-        "notes": "欢迎来到 DESIGN:OS 28页大师课。涵盖从底层色彩数学、Figma实时桥接、向量记忆、到3D空间镜头控制与Design Fables哲学的全部核心体系。"
+        "title": "MASTERING<br>DESIGN:OS",
+        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
+        "heroNum": "0 %",
+        "heroLabel": "LLM Luck Required",
+        "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       }
     },
     "2": {
       "en": {
-        "eyebrow": "Core Philosophy",
-        "title": "The 3 Supreme Truths of DESIGN:OS",
-        "subtitle": "Eliminating reliance on LLM luck. Enforcing quality through color science and deterministic machine floors.",
-        "notes": "The 3 core truths form our compass: converting stochastic LLM chaos into reliable, deterministic code."
+        "title": "3 SUPREME<br>TRUTHS",
+        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "heroNum": "14",
+        "heroLabel": "Machine Floor Linters",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "vi": {
-        "eyebrow": "Triết Lý Cốt Lõi",
-        "title": "3 Chân Lý Tối Thượng Của DESIGN:OS",
-        "subtitle": "Không dựa vào sự may rủi của mô hình LLM. Ép chất lượng bằng toán học màu sắc và sàn kiểm định tất định.",
-        "notes": "3 chân lý tối thượng là kim chỉ nam: biến sự hỗn loạn của LLM thành kết quả tất định."
+        "title": "3 CHÂN LÝ<br>TỐI THƯỢNG",
+        "body": "Xóa bỏ sự phụ thuộc vào sự may rủi của AI. Mọi token hình ảnh đều bắt nguồn từ khoa học màu sắc OKLCH, phân định rõ ràng giữa AI reasoning và UI kernel, cùng sàn 14 linter kiểm định tất định.",
+        "heroNum": "14",
+        "heroLabel": "Linter Kiểm Định Máy",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "ko": {
-        "eyebrow": "핵심 원칙",
-        "title": "DESIGN:OS의 3대 핵심 공리",
-        "subtitle": "LLM의 운에 의존하지 않고, 색채 과학과 결정론적 검증 바닥을 통해 품질을 강제합니다.",
-        "notes": "3대 핵심 공리는 LLM의 무작위성을 결정론적 결과물로 전환하는 기준입니다."
+        "title": "3 SUPREME<br>TRUTHS",
+        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "heroNum": "14",
+        "heroLabel": "Machine Floor Linters",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "ja": {
-        "eyebrow": "コア哲学",
-        "title": "DESIGN:OS 3つの至高の真理",
-        "subtitle": "LLMの偶然性に頼らず、色彩科学と決定論的検証フロアによって品質を担保します。",
-        "notes": "3つの至高の真理は、LLMの不確実性を決定論的なコードへと変換するための羅針盤です。"
+        "title": "3 SUPREME<br>TRUTHS",
+        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "heroNum": "14",
+        "heroLabel": "Machine Floor Linters",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "es": {
-        "eyebrow": "Fundamentos Clave",
-        "title": "Las 3 Verdades Supremas de DESIGN:OS",
-        "subtitle": "Eliminando la suerte de los LLM. Garantizando calidad mediante ciencia del color y pisos deterministas.",
-        "notes": "Las 3 verdades supremas convierten el caos estocástico en código confiable y determinista."
+        "title": "3 SUPREME<br>TRUTHS",
+        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "heroNum": "14",
+        "heroLabel": "Machine Floor Linters",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "fr": {
-        "eyebrow": "Fondations Essentielles",
-        "title": "Les 3 Vérités Suprêmes de DESIGN:OS",
-        "subtitle": "Éliminer l'aléatoire des LLM. Forcer la qualité par la science des couleurs et des contrôles déterministes.",
-        "notes": "Ces 3 vérités transforment le chaos stochastique en code déterministe et fiable."
+        "title": "3 SUPREME<br>TRUTHS",
+        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "heroNum": "14",
+        "heroLabel": "Machine Floor Linters",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "zh": {
-        "eyebrow": "核心设计公理",
-        "title": "DESIGN:OS 的三大至高公理",
-        "subtitle": "告别对大模型运气的依赖，通过严密色彩数学与确定性机器底线死守品质。",
-        "notes": "三大公理是核心指南针：将大模型的随机混乱转化为确定性的工业级代码。"
+        "title": "3 SUPREME<br>TRUTHS",
+        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "heroNum": "14",
+        "heroLabel": "Machine Floor Linters",
+        "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       }
     },
     "3": {
       "en": {
-        "eyebrow": "Architecture Split",
-        "title": "Division of Labor: AI Reasoning vs UI Kernel",
-        "subtitle": "Host AI Agent handles creative reasoning, while the deterministic UI Kernel handles color mathematics, tokens compilation, and lint enforcement.",
-        "notes": "AI agents reason and generate; UI Kernel verifies and enforces. Together they create an error-free self-repairing loop."
+        "title": "DIVISION<br>OF LABOR",
+        "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
+        "heroNum": "100 %",
+        "heroLabel": "Deterministic Compile",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "vi": {
-        "eyebrow": "Kiến Trúc Phân Quyền",
-        "title": "Sơ Đồ Phân Quyền: AI Reasoning vs UI Kernel",
-        "subtitle": "Host AI Agent đóng vai trò sáng tạo (Reasoning), trong khi UI Kernel làm nhiệm vụ tính toán toán học và kiểm tra tuân thủ (Verification).",
-        "notes": "AI Agent suy luận, UI Kernel kiểm định. Hai bán cầu kết hợp thành vòng lặp tự sửa lỗi hoàn hảo."
+        "title": "PHÂN QUYỀN<br>KIẾN TRÚC",
+        "body": "Host AI Agent phụ trách tư duy sáng tạo bậc cao, giải quyết persona và cấu trúc DOM ngữ nghĩa. UI Kernel đảm bảo biên dịch DTCG, toán học màu và các cửa ải xuất xưởng không lỗi.",
+        "heroNum": "100 %",
+        "heroLabel": "Biên Dịch Tất Định",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "ko": {
-        "eyebrow": "역할 분권 아키텍처",
-        "title": "분권 구조: AI 추론 vs UI 커널",
-        "subtitle": "호스트 AI 에이전트는 창의적 추론을 담당하고, 결정론적 UI 커널은 색채 수학, 토큰 컴파일 및 린트 검증을 수행합니다.",
-        "notes": "AI 에이전트의 추론과 UI 커널의 결정론적 검증이 결합되어 완벽한 자동 복구 루프를 형성합니다."
+        "title": "DIVISION<br>OF LABOR",
+        "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
+        "heroNum": "100 %",
+        "heroLabel": "Deterministic Compile",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "ja": {
-        "eyebrow": "分権アーキテクチャ",
-        "title": "役割分担: AI推論 vs UIカーネル",
-        "subtitle": "ホストAIエージェントが創造的推論を担い、決定論的UIカーネルが色彩数学、トークン変換、Lint検証を実行します。",
-        "notes": "AIの柔軟な推論とカーネルの厳格な検証が組み合わさり、自動修復ループを実現します。"
+        "title": "DIVISION<br>OF LABOR",
+        "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
+        "heroNum": "100 %",
+        "heroLabel": "Deterministic Compile",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "es": {
-        "eyebrow": "División de Arquitectura",
-        "title": "División de Trabajo: Razonamiento AI vs UI Kernel",
-        "subtitle": "El agente AI maneja el razonamiento creativo, mientras que el Kernel UI ejecuta las matemáticas de color y las verificaciones.",
-        "notes": "El agente AI razona y el Kernel UI verifica, creando un bucle perfecto de auto-reparación."
+        "title": "DIVISION<br>OF LABOR",
+        "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
+        "heroNum": "100 %",
+        "heroLabel": "Deterministic Compile",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "fr": {
-        "eyebrow": "Séparation d'Architecture",
-        "title": "Division du Travail: Raisonnement IA vs Noyau UI",
-        "subtitle": "L'agent IA gère le raisonnement créatif, tandis que le Noyau UI déterministe assure les calculs mathématiques et la conformité.",
-        "notes": "L'IA raisonne et le Noyau vérifie, créant une boucle d'auto-correction robuste."
+        "title": "DIVISION<br>OF LABOR",
+        "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
+        "heroNum": "100 %",
+        "heroLabel": "Deterministic Compile",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "zh": {
-        "eyebrow": "分权架构设计",
-        "title": "分权体系: AI 空间推理 vs UI 确定性内核",
-        "subtitle": "Host AI Agent 负责美学推演与结构生成，UI Kernel 负责 OKLCH 色彩数学计算、Token 编译与 14 大机器红线裁决。",
-        "notes": "AI 大脑负责发散推理，UI 机器内核负责确定性判决，构成闭环的自愈修复系统。"
+        "title": "DIVISION<br>OF LABOR",
+        "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
+        "heroNum": "100 %",
+        "heroLabel": "Deterministic Compile",
+        "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       }
     },
     "4": {
       "en": {
-        "eyebrow": "Specialized Modules",
-        "title": "The 6 Specialized Optional Hands Ecosystem",
-        "subtitle": "Specialized modular hands extend multi-dimensional design capabilities, gracefully degrading when unconfigured.",
-        "notes": "These 6 optional hands transform DESIGN:OS into a complete design operating system from flat web to 3D and Figma."
+        "title": "OPTIONAL<br>HANDS",
+        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "heroNum": "6",
+        "heroLabel": "Multi-Runtime Engines",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "vi": {
-        "eyebrow": "Module Mở Rộng",
-        "title": "Hệ Sinh Thái 6 \"Cánh Tay\" Chuyên Trách (Optional Hands)",
-        "subtitle": "Các module chuyên trách mở rộng năng lực thiết kế đa chiều, tự suy giảm nhẹ nhàng khi vắng mặt (Graceful Degradation).",
-        "notes": "6 cánh tay này biến DESIGN:OS thành hệ điều hành thiết kế toàn năng từ giao diện web phẳng đến không gian 3D và canvas Figma."
+        "title": "6 ĐÔI TAY<br>MỞ RỘNG",
+        "body": "Hệ sinh thái tay chuyên biệt—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall và color science—tự động suy giảm nhẹ nhàng khi không cấu hình, giữ bundle siêu nhẹ.",
+        "heroNum": "6",
+        "heroLabel": "Module Đa Runtime",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "ko": {
-        "eyebrow": "특화 모듈",
-        "title": "6대 전문 옵셔널 핸즈(Optional Hands) 생태계",
-        "subtitle": "다차원 디자인 역량을 확장하며, 모듈 부재 시 우아한 기능 저하(Graceful Degradation)를 제공합니다.",
-        "notes": "이 6개의 핸즈는 DESIGN:OS를 평면 웹부터 3D, 피그마 캔버스까지 아우르는 완벽한 OS로 만듭니다."
+        "title": "OPTIONAL<br>HANDS",
+        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "heroNum": "6",
+        "heroLabel": "Multi-Runtime Engines",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "ja": {
-        "eyebrow": "専門モジュール",
-        "title": "6つの特化型オプショナル・ハンズ（Optional Hands）エコシステム",
-        "subtitle": "多次元のデザイン能力を拡張し、未設定時も安全にフォールバック（Graceful Degradation）します。",
-        "notes": "これら6つの拡張機能により、Webから3D、Figmaまで統一されたデザイン体験を提供します。"
+        "title": "OPTIONAL<br>HANDS",
+        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "heroNum": "6",
+        "heroLabel": "Multi-Runtime Engines",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "es": {
-        "eyebrow": "Módulos Especializados",
-        "title": "Ecosistema de 6 Manos Opcionales Especializadas",
-        "subtitle": "Módulos que expanden capacidades de diseño multidimensional, degradándose suavemente si no están presentes.",
-        "notes": "Estas 6 manos transforman a DESIGN:OS en un sistema operativo de diseño completo."
+        "title": "OPTIONAL<br>HANDS",
+        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "heroNum": "6",
+        "heroLabel": "Multi-Runtime Engines",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "fr": {
-        "eyebrow": "Modules Spécialisés",
-        "title": "L'Écosystème des 6 Mains Optionnelles Spécialisées",
-        "subtitle": "Des modules qui étendent les capacités de design multidimensionnel avec une dégradation élégante en cas d'absence.",
-        "notes": "Ces 6 modules font de DESIGN:OS un véritable système d'exploitation de design global."
+        "title": "OPTIONAL<br>HANDS",
+        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "heroNum": "6",
+        "heroLabel": "Multi-Runtime Engines",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "zh": {
-        "eyebrow": "扩展手柄体系",
-        "title": "6 大专业特化手柄生态 (Optional Hands)",
-        "subtitle": "高内聚的专业功能模块，拓展从矢量画布到 3D 电影的全部能力，缺失时自动优雅降级。",
-        "notes": "这 6 大专业手柄将 DESIGN:OS 从简单的代码生成器升维为全场景设计操作系统。"
+        "title": "OPTIONAL<br>HANDS",
+        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "heroNum": "6",
+        "heroLabel": "Multi-Runtime Engines",
+        "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       }
     },
     "5": {
       "en": {
-        "eyebrow": "Design Identity",
-        "title": "3-Tier Design Soul Hierarchy (Never / Always / Voice)",
-        "subtitle": "Establishing aesthetic stances and consistent design vocabulary from Studio level down to specific projects.",
-        "notes": "Design Soul defines aesthetic identity. The user's explicit brief always holds the highest precedence."
+        "title": "CASCADE OF<br>SOVEREIGNTY",
+        "body": "Strict 3-tier precedence guarantees aesthetic identity. Factory invariants establish the unbreakable floor, Studio conventions enforce consistency across workspaces, and Project Soul holds ultimate veto power.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Precedence Hierarchy",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       },
       "vi": {
-        "eyebrow": "Bản Sắc Thiết Kế",
-        "title": "Hệ Thống 3 Tầng Design Soul (Never / Always / Voice)",
-        "subtitle": "Định hình lập trường thẩm mỹ và ngôn ngữ thiết kế nhất quán từ cấp Studio đến từng dự án cụ thể.",
-        "notes": "Soul thiết lập lập trường thẩm mỹ. Explicit Brief từ user luôn có quyền ghi đè cao nhất."
+        "title": "THỨ BẬC<br>LINH HỒN",
+        "body": "Quy tắc ưu tiên 3 tầng bảo vệ bản sắc thẩm mỹ: Bất biến Factory làm nền tảng, quy ước Studio duy trì đồng bộ, và Linh hồn Project giữ quyền quyết định tối cao.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Cấp Độ Quyền Lực",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       },
       "ko": {
-        "eyebrow": "디자인 아이덴티티",
-        "title": "3계층 디자인 소울(Design Soul) 아키텍처",
-        "subtitle": "스튜디오 레벨부터 개별 프로젝트까지 일관된 미학적 입장과 디자인 어휘를 수립합니다.",
-        "notes": "디자인 소울은 미학적 기준을 세우며, 사용자의 명시적 지시가 항상 최우선 순위를 갖습니다."
+        "title": "CASCADE OF<br>SOVEREIGNTY",
+        "body": "Strict 3-tier precedence guarantees aesthetic identity. Factory invariants establish the unbreakable floor, Studio conventions enforce consistency across workspaces, and Project Soul holds ultimate veto power.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Precedence Hierarchy",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       },
       "ja": {
-        "eyebrow": "デザイン・アイデンティティ",
-        "title": "3層のデザインソウル（Design Soul）構造",
-        "subtitle": "スタジオ全体から個別プロジェクトに至るまで、一貫した美学方針と語彙を定義します。",
-        "notes": "ソウルは美学の規範を定義します。ユーザーの明示的な要求が常に最優先されます。"
+        "title": "CASCADE OF<br>SOVEREIGNTY",
+        "body": "Strict 3-tier precedence guarantees aesthetic identity. Factory invariants establish the unbreakable floor, Studio conventions enforce consistency across workspaces, and Project Soul holds ultimate veto power.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Precedence Hierarchy",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       },
       "es": {
-        "eyebrow": "Identidad de Diseño",
-        "title": "Jerarquía de 3 Niveles de Design Soul",
-        "subtitle": "Establece posturas estéticas y vocabulario consistente desde el estudio hasta proyectos individuales.",
-        "notes": "Soul define la postura estética. Las instrucciones explícitas del usuario siempre tienen máxima prioridad."
+        "title": "CASCADE OF<br>SOVEREIGNTY",
+        "body": "Strict 3-tier precedence guarantees aesthetic identity. Factory invariants establish the unbreakable floor, Studio conventions enforce consistency across workspaces, and Project Soul holds ultimate veto power.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Precedence Hierarchy",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       },
       "fr": {
-        "eyebrow": "Identité Visuelle",
-        "title": "Hiérarchie à 3 Niveaux du Design Soul",
-        "subtitle": "Établit les partis pris esthétiques et le vocabulaire de design du studio jusqu'au projet.",
-        "notes": "Le Soul définit l'identité visuelle. Les directives explicites priment toujours."
+        "title": "CASCADE OF<br>SOVEREIGNTY",
+        "body": "Strict 3-tier precedence guarantees aesthetic identity. Factory invariants establish the unbreakable floor, Studio conventions enforce consistency across workspaces, and Project Soul holds ultimate veto power.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Precedence Hierarchy",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       },
       "zh": {
-        "eyebrow": "设计美学灵魂",
-        "title": "3 级 Design Soul 美学灵魂体系",
-        "subtitle": "通过 Never / Always / Voice 规则建立从工作室全局到具体项目的统一美学立场。",
-        "notes": "Soul 定义团队的美学红线与设计语调，用户的 Explicit Brief 永远拥有最高覆盖权。"
+        "title": "CASCADE OF<br>SOVEREIGNTY",
+        "body": "Strict 3-tier precedence guarantees aesthetic identity. Factory invariants establish the unbreakable floor, Studio conventions enforce consistency across workspaces, and Project Soul holds ultimate veto power.",
+        "heroNum": "3 Tiers",
+        "heroLabel": "Precedence Hierarchy",
+        "notes": "Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."
       }
     },
     "6": {
       "en": {
-        "eyebrow": "Onboarding Matrix",
-        "title": "6 Entry Roads for Project Onboarding (E1–E6)",
-        "subtitle": "Seamlessly onboarding any project state: from zero codebase, existing repos, reference URLs, to Figma frames.",
-        "notes": "E1 to E6 provide deterministic routes for every project starting state."
+        "title": "6 ENTRY<br>ROADS",
+        "body": "Running ui scan inspects project state to route you into the optimal onboarding runway—whether starting from scratch (E1), existing codebase (E2), live URL extraction (E3), or Figma design tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Deterministic Gateways",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       },
       "vi": {
-        "eyebrow": "Ma Trận Tiếp Nhận",
-        "title": "Router 6 Cổng Vào Onboarding (E1–E6)",
-        "subtitle": "Tiếp nhận mọi hiện trạng dự án: từ con số 0, codebase có sẵn, URL tham chiếu, đến file Figma thực tế.",
-        "notes": "E1 đến E6 mở đường cho mọi trạng thái dự án bắt đầu với DESIGN:OS một cách tất định."
+        "title": "6 LỘ TRÌNH<br>ONBOARDING",
+        "body": "Lệnh ui scan tự động quét và phân tích trạng thái dự án để điều hướng vào đường băng tối ưu—từ dự án mới (E1), codebase có sẵn (E2), bóc tách URL (E3) hay Figma tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Cổng Khởi Tạo Chuẩn",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       },
       "ko": {
-        "eyebrow": "온보딩 라우터",
-        "title": "프로젝트 온보딩을 위한 6가지 진입 경로 (E1–E6)",
-        "subtitle": "완전한 제로 베이스, 기존 코드베이스, 참조 URL, 피그마 프레임까지 모든 프로젝트 상태를 원활하게 수용합니다.",
-        "notes": "E1부터 E6까지의 경로는 프로젝트의 시작 상태에 맞춰 최적의 온보딩 워크플로우를 제공합니다."
+        "title": "6 ENTRY<br>ROADS",
+        "body": "Running ui scan inspects project state to route you into the optimal onboarding runway—whether starting from scratch (E1), existing codebase (E2), live URL extraction (E3), or Figma design tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Deterministic Gateways",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       },
       "ja": {
-        "eyebrow": "オンボーディング・ルーター",
-        "title": "プロジェクト受入の6つの進入路 (E1–E6)",
-        "subtitle": "新規プロジェクト、既存コード、参照URL、Figmaフレームまで、あらゆる状態から即座に導入可能です。",
-        "notes": "E1からE6のルートにより、どのような初期状態のプロジェクトでも決定論的に統合できます。"
+        "title": "6 ENTRY<br>ROADS",
+        "body": "Running ui scan inspects project state to route you into the optimal onboarding runway—whether starting from scratch (E1), existing codebase (E2), live URL extraction (E3), or Figma design tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Deterministic Gateways",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       },
       "es": {
-        "eyebrow": "Matriz de Incorporación",
-        "title": "6 Vías de Entrada para Onboarding (E1–E6)",
-        "subtitle": "Integración fluida para cualquier estado: proyectos nuevos, código existente, URLs o Figma.",
-        "notes": "E1 a E6 proporcionan rutas deterministas para cada estado inicial."
+        "title": "6 ENTRY<br>ROADS",
+        "body": "Running ui scan inspects project state to route you into the optimal onboarding runway—whether starting from scratch (E1), existing codebase (E2), live URL extraction (E3), or Figma design tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Deterministic Gateways",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       },
       "fr": {
-        "eyebrow": "Matrice d'Intégration",
-        "title": "6 Voies d'Entrée pour l'Intégration (E1–E6)",
-        "subtitle": "Intégration sans couture pour tout projet: nouveau, existant, URL de référence ou Figma.",
-        "notes": "E1 à E6 assurent une transition fluide quel que soit le point de départ."
+        "title": "6 ENTRY<br>ROADS",
+        "body": "Running ui scan inspects project state to route you into the optimal onboarding runway—whether starting from scratch (E1), existing codebase (E2), live URL extraction (E3), or Figma design tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Deterministic Gateways",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       },
       "zh": {
-        "eyebrow": "Onboarding 路由体系",
-        "title": "6 大项目接入路由通道 (E1–E6)",
-        "subtitle": "无缝适配从零冷启动、已有工程改建、线上站点逆向、到 Figma 实时画板等任意初始状态。",
-        "notes": "E1 至 E6 构筑了覆盖全场景的精准接入流水线。"
+        "title": "6 ENTRY<br>ROADS",
+        "body": "Running ui scan inspects project state to route you into the optimal onboarding runway—whether starting from scratch (E1), existing codebase (E2), live URL extraction (E3), or Figma design tokens (E4).",
+        "heroNum": "E1-E6",
+        "heroLabel": "Deterministic Gateways",
+        "notes": "Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."
       }
     },
     "7": {
       "en": {
-        "eyebrow": "Workflow Discipline",
-        "title": "5-Step Setup Protocol &amp; Mandatory STOP-Gates",
-        "subtitle": "Strict discipline: never generate UI code without passing the prerequisite configuration gates.",
-        "notes": "STOP-Gates prevent premature code generation before tokens and design soul are compiled."
+        "title": "SETUP<br>PROTOCOL",
+        "body": "Sequential 5-step onboarding lifecycle guarded by mandatory STOP gates: Doctor verification, design system compilation, soul declaration, virtual staff wiring, and Figma bridge initialization.",
+        "heroNum": "5 / 5",
+        "heroLabel": "STOP-Gates Cleared",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       },
       "vi": {
-        "eyebrow": "Kỷ Luật Quy Trình",
-        "title": "Quy Trình 5 Bước &amp; Các STOP-Gates Bắt Buộc",
-        "subtitle": "Kỷ luật thép: không bao giờ sinh mã HTML/CSS khi chưa vượt qua các cổng kiểm tra cấu hình tiên quyết.",
-        "notes": "STOP-Gates ngăn chặn tình trạng sinh mã vô tội vạ khi chưa có token và design soul."
+        "title": "QUY TRÌNH<br>5 BƯỚC THIẾT LẬP",
+        "body": "Vòng đời thiết lập 5 bước tuần tự được bảo vệ bởi các cổng STOP bắt buộc: Kiểm tra Doctor, biên dịch Design System, khai báo Soul, kết nối AI staff và khởi tạo cầu nối Figma.",
+        "heroNum": "5 / 5",
+        "heroLabel": "Cửa Ải STOP Vượt Qua",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       },
       "ko": {
-        "eyebrow": "워크플로우 규율",
-        "title": "5단계 셋업 프로토콜 및 필수 STOP-Gates",
-        "subtitle": "철저한 규율: 선행 구성 게이트를 통과하기 전에는 절대 UI 코드를 생성하지 않습니다.",
-        "notes": "STOP-Gates는 토큰과 디자인 소울이 컴파일되기 전 불완전한 코드 생성을 엄격히 차단합니다."
+        "title": "SETUP<br>PROTOCOL",
+        "body": "Sequential 5-step onboarding lifecycle guarded by mandatory STOP gates: Doctor verification, design system compilation, soul declaration, virtual staff wiring, and Figma bridge initialization.",
+        "heroNum": "5 / 5",
+        "heroLabel": "STOP-Gates Cleared",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       },
       "ja": {
-        "eyebrow": "ワークフロー規律",
-        "title": "5段階セットアップ手順と必須 STOP-Gates",
-        "subtitle": "厳格な規律: 前提となる構成ゲートを通過するまで、UIコードの生成を行ってはなりません。",
-        "notes": "STOP-Gatesはトークンやデザインソウルが準備される前の早まったコード生成を防止します。"
+        "title": "SETUP<br>PROTOCOL",
+        "body": "Sequential 5-step onboarding lifecycle guarded by mandatory STOP gates: Doctor verification, design system compilation, soul declaration, virtual staff wiring, and Figma bridge initialization.",
+        "heroNum": "5 / 5",
+        "heroLabel": "STOP-Gates Cleared",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       },
       "es": {
-        "eyebrow": "Disciplina de Trabajo",
-        "title": "Protocolo de 5 Pasos y STOP-Gates Obligatorios",
-        "subtitle": "Disciplina estricta: nunca generar código UI sin superar las puertas de configuración previas.",
-        "notes": "Los STOP-Gates evitan la generación prematura de código sin tokens validados."
+        "title": "SETUP<br>PROTOCOL",
+        "body": "Sequential 5-step onboarding lifecycle guarded by mandatory STOP gates: Doctor verification, design system compilation, soul declaration, virtual staff wiring, and Figma bridge initialization.",
+        "heroNum": "5 / 5",
+        "heroLabel": "STOP-Gates Cleared",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       },
       "fr": {
-        "eyebrow": "Discipline de Flux",
-        "title": "Protocole en 5 Étapes &amp; STOP-Gates Obligatoires",
-        "subtitle": "Discipline stricte: ne jamais générer de code UI sans valider les étapes de configuration préalables.",
-        "notes": "Les STOP-Gates empêchent toute génération de code avant la validation des tokens."
+        "title": "SETUP<br>PROTOCOL",
+        "body": "Sequential 5-step onboarding lifecycle guarded by mandatory STOP gates: Doctor verification, design system compilation, soul declaration, virtual staff wiring, and Figma bridge initialization.",
+        "heroNum": "5 / 5",
+        "heroLabel": "STOP-Gates Cleared",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       },
       "zh": {
-        "eyebrow": "初始化铁律",
-        "title": "5 步初始化规程与强制 STOP-Gates 红线",
-        "subtitle": "绝对纪律：在未完成环境诊断、Token 编译与 Soul 声明前，严禁越级直接生成 UI 代码。",
-        "notes": "STOP-Gates 坚决杜绝在缺少设计地基时的盲目瞎写。"
+        "title": "SETUP<br>PROTOCOL",
+        "body": "Sequential 5-step onboarding lifecycle guarded by mandatory STOP gates: Doctor verification, design system compilation, soul declaration, virtual staff wiring, and Figma bridge initialization.",
+        "heroNum": "5 / 5",
+        "heroLabel": "STOP-Gates Cleared",
+        "notes": "Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."
       }
     },
     "8": {
       "en": {
-        "eyebrow": "Autonomous Collaboration",
-        "title": "Virtual Design Staff &amp; Periodic Heartbeat",
-        "subtitle": "Self-coordinating virtual agent team executing continuous tasks through the deterministic heartbeat daemon.",
-        "notes": "Designer, Curator, and Figma Hand work together under heartbeat supervision."
+        "title": "VIRTUAL<br>STAFF",
+        "body": "A single ui agents init command provisions a dedicated 3-expert team: System Architect for structural layout, Craft Stylist for aesthetic polish, and Release Auditor for quality gate enforcement.",
+        "heroNum": "3",
+        "heroLabel": "Specialized AI Roles",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       },
       "vi": {
-        "eyebrow": "Cộng Tác Tự Trị",
-        "title": "Đội Ngũ Subagents Ảo &amp; Heartbeat Định Kỳ",
-        "subtitle": "Bộ 3 nhân sự ảo tự phối hợp, chạy các tác vụ định kỳ qua cơ chế Heartbeat độc lập.",
-        "notes": "Designer, Curator, và Figma Hand phối hợp nhịp nhàng dưới sự điều phối của Heartbeat."
+        "title": "ĐỘI NGŨ<br>VIRTUAL STAFF",
+        "body": "Một lệnh ui agents init cấp cho dự án đội ngũ 3 chuyên gia: System Architect phụ trách cấu trúc, Craft Stylist trau chuốt thẩm mỹ và Release Auditor kiểm soát chất lượng.",
+        "heroNum": "3",
+        "heroLabel": "Vai Trò AI Chuyên Biệt",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       },
       "ko": {
-        "eyebrow": "자율 협업 팀",
-        "title": "가상 디자인 스태프 및 주기적 하트비트(Heartbeat)",
-        "subtitle": "결정론적 하트비트 데몬을 통해 지속적인 유지보수 작업을 수행하는 자율 협업 가상 에이전트 팀.",
-        "notes": "디자이너, 큐레이터, 피그마 핸드가 하트비트 감시 하에 완벽한 분업을 이룹니다."
+        "title": "VIRTUAL<br>STAFF",
+        "body": "A single ui agents init command provisions a dedicated 3-expert team: System Architect for structural layout, Craft Stylist for aesthetic polish, and Release Auditor for quality gate enforcement.",
+        "heroNum": "3",
+        "heroLabel": "Specialized AI Roles",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       },
       "ja": {
-        "eyebrow": "自律協調スタッフ",
-        "title": "仮想デザインチームと周期的ハートビート",
-        "subtitle": "決定論的ハートビートデーモンにより継続的なタスクを実行する自律型仮想エージェントチーム。",
-        "notes": "Designer、Curator、Figma Handがハートビート管理下で有機的に連携します。"
+        "title": "VIRTUAL<br>STAFF",
+        "body": "A single ui agents init command provisions a dedicated 3-expert team: System Architect for structural layout, Craft Stylist for aesthetic polish, and Release Auditor for quality gate enforcement.",
+        "heroNum": "3",
+        "heroLabel": "Specialized AI Roles",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       },
       "es": {
-        "eyebrow": "Colaboración Autónoma",
-        "title": "Equipo de Diseño Virtual y Heartbeat Periódico",
-        "subtitle": "Equipo de agentes virtuales autónomos que ejecutan tareas continuas mediante el demonio de heartbeat.",
-        "notes": "Designer, Curator y Figma Hand colaboran bajo la supervisión de Heartbeat."
+        "title": "VIRTUAL<br>STAFF",
+        "body": "A single ui agents init command provisions a dedicated 3-expert team: System Architect for structural layout, Craft Stylist for aesthetic polish, and Release Auditor for quality gate enforcement.",
+        "heroNum": "3",
+        "heroLabel": "Specialized AI Roles",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       },
       "fr": {
-        "eyebrow": "Collaboration Autonome",
-        "title": "Équipe de Design Virtuelle &amp; Heartbeat Périodique",
-        "subtitle": "Équipe d'agents virtuels autonomes exécutant des tâches continues via le démon heartbeat déterministe.",
-        "notes": "Le Designer, le Curateur et Figma Hand collaborent sous la régulation du heartbeat."
+        "title": "VIRTUAL<br>STAFF",
+        "body": "A single ui agents init command provisions a dedicated 3-expert team: System Architect for structural layout, Craft Stylist for aesthetic polish, and Release Auditor for quality gate enforcement.",
+        "heroNum": "3",
+        "heroLabel": "Specialized AI Roles",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       },
       "zh": {
-        "eyebrow": "自主协同体系",
-        "title": "虚拟设计班组与周期性 Heartbeat 心跳守护",
-        "subtitle": "Designer、Curator 与 Figma Hand 虚拟专员协同作业，通过确定性心跳守护实现无人值守维护。",
-        "notes": "三大虚拟角色各司其职，在 Heartbeat 的精确节拍下完成资产巡检与自动优化。"
+        "title": "VIRTUAL<br>STAFF",
+        "body": "A single ui agents init command provisions a dedicated 3-expert team: System Architect for structural layout, Craft Stylist for aesthetic polish, and Release Auditor for quality gate enforcement.",
+        "heroNum": "3",
+        "heroLabel": "Specialized AI Roles",
+        "notes": "Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."
       }
     },
     "9": {
       "en": {
-        "eyebrow": "Daily Operations",
-        "title": "The 6 Core Daily Verbs (/ui:* Commands)",
-        "subtitle": "Standardized slash commands covering every day-to-day design requirement with absolute determinism.",
-        "notes": "From generate to iterate and to-figma, these 6 verbs structure every agent workflow."
+        "title": "6 CORE<br>DAILY VERBS",
+        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "heroNum": "6",
+        "heroLabel": "Core Operating Verbs",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "vi": {
-        "eyebrow": "Thao Tác Thường Nhật",
-        "title": "6 Động Từ Thường Nhật (Daily Verbs)",
-        "subtitle": "Bộ lệnh slash command chuẩn hóa đáp ứng mọi nhu cầu thiết kế hàng ngày với độ tất định tuyệt đối.",
-        "notes": "Từ generate đến iterate và to-figma, 6 động từ này định hình toàn bộ luồng làm việc của agent."
+        "title": "6 ĐỘNG TỪ<br>VẬN HÀNH CLI",
+        "body": "Trải nghiệm CLI mượt mà với các lệnh tự nhiên: /ui:generate tạo màn hình mới, /ui:iterate tinh chỉnh, /ui:audit kiểm tra tiêu chuẩn và /ui:design khám phá biến thể.",
+        "heroNum": "6",
+        "heroLabel": "Động Từ Thao Tác Cốt Lõi",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "ko": {
-        "eyebrow": "일일 운영 커맨드",
-        "title": "6대 일상 동사 커맨드 (Daily Verbs)",
-        "subtitle": "절대적인 결정론을 기반으로 매일의 디자인 요구사항을 완벽히 충족하는 표준 슬래시 명령어 세트.",
-        "notes": "생성부터 반복 개선, 피그마 전송까지 6개 명령어가 모든 워크플로우를 주도합니다."
+        "title": "6 CORE<br>DAILY VERBS",
+        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "heroNum": "6",
+        "heroLabel": "Core Operating Verbs",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "ja": {
-        "eyebrow": "日常オペレーション",
-        "title": "6つの日常コマンド（Daily Verbs）",
-        "subtitle": "決定論的な品質を維持しながら、日々のデザイン作業を網羅する標準スラッシュコマンド群。",
-        "notes": "generateからiterate、to-figmaまで、6つのコマンドがエージェントの作業を定義します。"
+        "title": "6 CORE<br>DAILY VERBS",
+        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "heroNum": "6",
+        "heroLabel": "Core Operating Verbs",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "es": {
-        "eyebrow": "Operaciones Diarias",
-        "title": "Los 6 Verbos Clave de Operación Diaria",
-        "subtitle": "Comandos slash estandarizados que cubren cada necesidad de diseño con total determinismo.",
-        "notes": "Desde generate hasta iterate y to-figma, estos 6 verbos estructuran todo el flujo de trabajo."
+        "title": "6 CORE<br>DAILY VERBS",
+        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "heroNum": "6",
+        "heroLabel": "Core Operating Verbs",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "fr": {
-        "eyebrow": "Opérations Quotidiennes",
-        "title": "Les 6 Verbes Quotidiens Essentiels",
-        "subtitle": "Commandes slash standardisées couvrant tous les besoins de conception avec un déterminisme absolu.",
-        "notes": "De generate à iterate et to-figma, ces 6 verbes structurent le travail des agents."
+        "title": "6 CORE<br>DAILY VERBS",
+        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "heroNum": "6",
+        "heroLabel": "Core Operating Verbs",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "zh": {
-        "eyebrow": "日常操作动词",
-        "title": "6 大日常核心设计动词 (/ui:* 指令集)",
-        "subtitle": "标准化的斜杠指令集，以高度确定性的协议覆盖从草图生成、局部迭代到画布推送的全部场景。",
-        "notes": "6 大日常指令是驱动 DESIGN:OS 运转的核心交互接口。"
+        "title": "6 CORE<br>DAILY VERBS",
+        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "heroNum": "6",
+        "heroLabel": "Core Operating Verbs",
+        "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       }
     },
     "10": {
       "en": {
-        "eyebrow": "Bi-directional Bridge",
-        "title": "Figma Desktop Bridge: Broker Port 9410",
-        "subtitle": "AI Agents and Designers collaborate on a real-time Figma file with secure conflict locking.",
-        "notes": "The local broker on port 9410 connects directly to the Figma Desktop plugin for live layout synthesis and token binding."
+        "title": "FIGMA LIVE<br>DESKTOP BRIDGE",
+        "body": "Direct local WebSocket synchronization between the code repository and live Figma Desktop canvas. Pushes DTCG design tokens as native Figma Variables and pulls Auto-Layout frames as parsed AST.",
+        "heroNum": "9410",
+        "heroLabel": "Local Broker Port",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       },
       "vi": {
-        "eyebrow": "Cầu Nối Hai Chiều",
-        "title": "Cây Cầu Figma Desktop: Broker Port 9410",
-        "subtitle": "AI Agent và Designer cùng làm việc trên một file Figma thời gian thực với cơ chế khóa xung đột an toàn.",
-        "notes": "Broker port 9410 kết nối trực tiếp với Figma Desktop Plugin, cho phép AI dựng layout và gán token tự động."
+        "title": "CẦU NỐI TRỰC TIẾP<br>FIGMA DESKTOP",
+        "body": "Đồng bộ WebSocket cục bộ hai chiều giữa Git code và canvas Figma Desktop thời gian thực. Đẩy tokens DTCG thành Figma Variables và kéo Auto-Layout frames thành mã AST.",
+        "heroNum": "9410",
+        "heroLabel": "Cổng Broker Cục Bộ",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       },
       "ko": {
-        "eyebrow": "양방향 실시간 브릿지",
-        "title": "피그마 데스크톱 브릿지: 브로커 포트 9410",
-        "subtitle": "AI 에이전트와 디자이너가 안전한 충돌 방지 락을 통해 실시간 피그마 파일에서 협업합니다.",
-        "notes": "포트 9410 브로커를 통해 피그마 플러그인과 연결하여 오토레이아웃과 토큰을 실시간 동기화합니다."
+        "title": "FIGMA LIVE<br>DESKTOP BRIDGE",
+        "body": "Direct local WebSocket synchronization between the code repository and live Figma Desktop canvas. Pushes DTCG design tokens as native Figma Variables and pulls Auto-Layout frames as parsed AST.",
+        "heroNum": "9410",
+        "heroLabel": "Local Broker Port",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       },
       "ja": {
-        "eyebrow": "双方向ブリッジ",
-        "title": "Figma デスクトップブリッジ: Broker Port 9410",
-        "subtitle": "AIエージェントとデザイナーが衝突防止ロック付きでリアルタイムにFigmaファイルを共同編集します。",
-        "notes": "ポート9410のローカルブローカーを介して、Figmaプラグインとトークンを双方向同期します。"
+        "title": "FIGMA LIVE<br>DESKTOP BRIDGE",
+        "body": "Direct local WebSocket synchronization between the code repository and live Figma Desktop canvas. Pushes DTCG design tokens as native Figma Variables and pulls Auto-Layout frames as parsed AST.",
+        "heroNum": "9410",
+        "heroLabel": "Local Broker Port",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       },
       "es": {
-        "eyebrow": "Puente Bidireccional",
-        "title": "Puente Figma Desktop: Broker Port 9410",
-        "subtitle": "Los agentes AI y diseñadores colaboran en tiempo real en Figma con bloqueo de conflictos.",
-        "notes": "El broker en el puerto 9410 permite la síntesis de layouts y la vinculación de tokens en vivo."
+        "title": "FIGMA LIVE<br>DESKTOP BRIDGE",
+        "body": "Direct local WebSocket synchronization between the code repository and live Figma Desktop canvas. Pushes DTCG design tokens as native Figma Variables and pulls Auto-Layout frames as parsed AST.",
+        "heroNum": "9410",
+        "heroLabel": "Local Broker Port",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       },
       "fr": {
-        "eyebrow": "Pont Bidirectionnel",
-        "title": "Pont Figma Desktop: Broker Port 9410",
-        "subtitle": "Les agents IA et les designers collaborent en temps réel sur Figma avec verrouillage sécurisé.",
-        "notes": "Le broker sur le port 9410 connecte directement le plugin Figma pour la synchronisation des tokens."
+        "title": "FIGMA LIVE<br>DESKTOP BRIDGE",
+        "body": "Direct local WebSocket synchronization between the code repository and live Figma Desktop canvas. Pushes DTCG design tokens as native Figma Variables and pulls Auto-Layout frames as parsed AST.",
+        "heroNum": "9410",
+        "heroLabel": "Local Broker Port",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       },
       "zh": {
-        "eyebrow": "双向实时桥接",
-        "title": "Figma 桌面级桥接体系: Broker 端口 9410",
-        "subtitle": "AI Agent 与设计师在 Figma 画布上实时协同，具备安全无锁的冲突避让与断线保护机制。",
-        "notes": "9410 端口本地 Broker 直连官方 Plugin，实现代码 Tokens 与 Figma Variables 的 1:1 双向映射。"
-      }
-    },
-    "16": {
-      "en": {
-        "eyebrow": "Color Science",
-        "title": "OKLCH Mathematics, P3 Gamut &amp; Delta EOK",
-        "subtitle": "Why DESIGN:OS deprecates legacy HSL/Hex in favor of the perceptually uniform OKLCH color space.",
-        "notes": "OKLCH ensures uniform perceived lightness across all hues, guaranteeing true accessibility."
-      },
-      "vi": {
-        "eyebrow": "Khoa Học Màu Sắc",
-        "title": "Toán Học Màu OKLCH, Gamut P3 &amp; Delta EOK",
-        "subtitle": "Tại sao DESIGN:OS cấm hoàn toàn HSL và sRGB cổ điển để chuyển sang không gian cảm nhận đồng đều OKLCH.",
-        "notes": "Toán học màu OKLCH bảo đảm mọi thang bậc sáng đều có cùng độ tương phản mắt thấy."
-      },
-      "ko": {
-        "eyebrow": "색채 과학",
-        "title": "OKLCH 수학, P3 색역 및 델타 EOK",
-        "subtitle": "DESIGN:OS가 기존 HSL/Hex를 완전히 배제하고 지각적 균일 공간인 OKLCH를 선택한 이유입니다.",
-        "notes": "OKLCH는 모든 색상에서 인간의 눈이 느끼는 균일한 밝기를 제공하여 완벽한 웹 접근성을 보장합니다."
-      },
-      "ja": {
-        "eyebrow": "色彩科学",
-        "title": "OKLCH 色彩数学、P3色域、Delta EOK",
-        "subtitle": "従来のHSLやHexを廃止し、知覚的に均一なOKLCH色空間を採用する理由を解説します。",
-        "notes": "OKLCH数学により、あらゆる色相で視覚的に均一な明度とコントラスト比を保証します。"
-      },
-      "es": {
-        "eyebrow": "Ciencia del Color",
-        "title": "Matemáticas OKLCH, Gama P3 y Delta EOK",
-        "subtitle": "Por qué DESIGN:OS abandona HSL/Hex en favor del espacio perceptualmente uniforme OKLCH.",
-        "notes": "OKLCH garantiza una luminosidad percibida uniforme, asegurando verdadera accesibilidad."
-      },
-      "fr": {
-        "eyebrow": "Science des Couleurs",
-        "title": "Mathématiques OKLCH, Espace P3 &amp; Delta EOK",
-        "subtitle": "Pourquoi DESIGN:OS abandonne HSL/Hex au profit de l'espace perceptuellement uniforme OKLCH.",
-        "notes": "OKLCH assure une luminosité perçue constante sur toutes les teintes pour une accessibilité parfaite."
-      },
-      "zh": {
-        "eyebrow": "色彩科学与数学",
-        "title": "OKLCH 感知均匀色彩空间、P3 广色域与 ΔEOK",
-        "subtitle": "揭秘为何 DESIGN:OS 全面废黜传统 HSL/RGB，转向视觉感知一致的现代 OKLCH 色彩体系。",
-        "notes": "OKLCH 严格保证感知亮度 L 的物理一致性，结合 ΔEOK 实现 Semver 破坏性颜色变更的自动判定。"
-      }
-    },
-    "21": {
-      "en": {
-        "eyebrow": "Scroll-Driven Cinema",
-        "title": "Scroll-Cinema: The Art of Seamless Camera Flight",
-        "subtitle": "Chaining separately rendered video clips into a single continuous take driven directly by scroll gestures.",
-        "notes": "The seam is the product: position and velocity continuity must hold perfectly so the flight feels like one unbroken take."
-      },
-      "vi": {
-        "eyebrow": "Điện Ảnh Cuộn Trang",
-        "title": "Scroll-Cinema: Nghệ Thuật Cuộn Phim Không Vết Cắt",
-        "subtitle": "Kỹ thuật ráp nối các đoạn clip riêng lẻ thành một cú máy one-take duy nhất điều khiển trực tiếp bằng ngón tay cuộn chuột.",
-        "notes": "Mối nối (Seam) là sản phẩm: đảm bảo tính liên tục về vị trí và vận tốc để người xem cảm nhận như 1 cú máy one-take duy nhất."
-      },
-      "ko": {
-        "eyebrow": "스크롤 시네마",
-        "title": "스크롤 시네마: 이음새 없는 카메라 비행의 미학",
-        "subtitle": "개별 렌더링된 클립들을 스크롤 제스처로 직접 제어하는 하나의 연속적인 원테이크로 결합합니다.",
-        "notes": "이음새(Seam)가 곧 제품입니다. 위치와 속도의 연속성이 유지되어야 단절 없는 비행 경험이 완성됩니다."
-      },
-      "ja": {
-        "eyebrow": "スクロール・シネマ",
-        "title": "スクロールシネマ: 継ぎ目のないカメラ飛行の美学",
-        "subtitle": "個別にレンダリングされた映像を、スクロール操作で操る1つの連続ワンテイクへと結合します。",
-        "notes": "シーム（継ぎ目）こそが品質の核心です。位置と速度の連続性を厳格に保持します。"
-      },
-      "es": {
-        "eyebrow": "Cine Guiado por Scroll",
-        "title": "Scroll-Cinema: El Arte del Vuelo de Cámara Continuo",
-        "subtitle": "Uniendo clips independientes en una toma continua impulsada directamente por el desplazamiento.",
-        "notes": "La costura es el producto: la continuidad de posición y velocidad debe mantenerse intacta."
-      },
-      "fr": {
-        "eyebrow": "Cinéma au Défilement",
-        "title": "Scroll-Cinéma: L'Art du Vol de Caméra Continu",
-        "subtitle": "Assembler des clips distincts en un plan-séquence unique contrôlé par le défilement.",
-        "notes": "La jointure est le produit: la continuité de position et de vitesse doit être absolue."
-      },
-      "zh": {
-        "eyebrow": "滚动电影工程",
-        "title": "Scroll-Cinema: 无缝一镜到底的滚动电影艺术",
-        "subtitle": "通过接缝物理定律（Seam Physics），将多段 AI 生成的视频切片拼接为单手指掌控的超高清一镜到底体验。",
-        "notes": "接缝即产品：严格遵循位置连续性与速度矢量锁定，绝不允许在接缝处产生任何倒车眩晕卡顿。"
-      }
-    },
-    "27": {
-      "en": {
-        "eyebrow": "Fable Thinking",
-        "title": "The 5 Design Fables: Philosophy Behind Master Craft",
-        "subtitle": "Distilling complex engineering mechanisms into intuitive allegorical archetypes.",
-        "notes": "These 5 fables embody the deep design engineering philosophy behind DESIGN:OS."
-      },
-      "vi": {
-        "eyebrow": "Tư Duy Ngụ Ngôn",
-        "title": "5 Ngụ Ngôn Triết Lý Thiết Kế (Design Fables)",
-        "subtitle": "Đúc kết những cơ chế kỹ thuật phức tạp thành các hình tượng ngụ ngôn trực quan dễ ghi nhớ.",
-        "notes": "5 câu chuyện ngụ ngôn là tổng kết triết lý sâu sắc nhất đằng sau toàn bộ công nghệ của DESIGN:OS."
-      },
-      "ko": {
-        "eyebrow": "우화적 사고 모델",
-        "title": "5가지 디자인 우화: 마스터 크래프트 뒤에 숨겨진 철학",
-        "subtitle": "복잡한 엔지니어링 메커니즘을 직관적인 우화적 아키타입으로 압축하여 전달합니다.",
-        "notes": "이 5가지 우화는 DESIGN:OS 기술 전반에 흐르는 깊은 디자인 철학을 상징합니다."
-      },
-      "ja": {
-        "eyebrow": "寓話的思考法",
-        "title": "5つのデザイン寓話: 卓越したクラフトを支える哲学",
-        "subtitle": "複雑なエンジニアリング構造を、記憶に残りやすい直感的な寓話モデルへと昇華します。",
-        "notes": "これら5つの寓話は、DESIGN:OSの設計思想の真髄を端的に物語っています。"
-      },
-      "es": {
-        "eyebrow": "Pensamiento de Fábulas",
-        "title": "Las 5 Fábulas de Diseño: Filosofía Detrás del Diseño Maestro",
-        "subtitle": "Sintetizando mecanismos complejos en arquetipos alegóricos memorables.",
-        "notes": "Estas 5 fábulas representan la filosofía fundamental de ingeniería de DESIGN:OS."
-      },
-      "fr": {
-        "eyebrow": "Pensée par Fables",
-        "title": "Les 5 Fables de Design: La Philosophie du Grand Design",
-        "subtitle": "Transformer des mécanismes complexes en archétypes allégoriques mémorables.",
-        "notes": "Ces 5 fables incarnent la philosophie profonde d'ingénierie qui anime DESIGN:OS."
-      },
-      "zh": {
-        "eyebrow": "AK 寓言式思维",
-        "title": "5 大设计寓言: 卓越工程背后的系统哲学",
-        "subtitle": "将极其精密复杂的软件架构与美学规范，提炼为直指人心的 5 大直觉寓言模型。",
-        "notes": "5 大寓言是 DESIGN:OS 最深层的灵魂沉淀：用无缝飞行、双向之桥与14块坚硬踏板构筑工业级奇迹。"
-      }
-    },
-    "28": {
-      "en": {
-        "eyebrow": "Quickstart Guide",
-        "title": "Start in 60 Seconds: Production Ready",
-        "subtitle": "Install toolchain, compile design tokens, and launch your first AI agent with deterministic quality guarantees.",
-        "notes": "You are now fully equipped to build production-grade web interfaces and Figma canvases with DESIGN:OS."
-      },
-      "vi": {
-        "eyebrow": "Khởi Động Nhanh",
-        "title": "Bắt Đầu Ngay Trong 60 Giây",
-        "subtitle": "Cài đặt bộ công cụ, biên dịch design tokens và khởi chạy agent đầu tiên với bảo chứng chất lượng tuyệt đối.",
-        "notes": "Bạn đã sẵn sàng để xây dựng các sản phẩm web và canvas Figma đẳng cấp thế giới cùng DESIGN:OS."
-      },
-      "ko": {
-        "eyebrow": "빠른 시작 가이드",
-        "title": "60초 안에 시작하기: 프로덕션 준비 완료",
-        "subtitle": "툴체인을 설치하고, 디자인 토큰을 컴파일하며, 결정론적 품질 보증을 갖춘 첫 AI 에이전트를 실행하세요.",
-        "notes": "이제 DESIGN:OS와 함께 최고 수준의 웹 및 피그마 캔버스를 구축할 준비가 완료되었습니다."
-      },
-      "ja": {
-        "eyebrow": "クイックスタート",
-        "title": "60秒で始める: 本番対応",
-        "subtitle": "ツールチェーンをインストールし、トークンをコンパイルして、決定論的な品質保証のもとで最初のAIを起動します。",
-        "notes": "これでDESIGN:OSを活用して、最高品質のWebとFigmaを制作する準備が整いました。"
-      },
-      "es": {
-        "eyebrow": "Inicio Rápido",
-        "title": "Comienza en 60 Segundos: Listo para Producción",
-        "subtitle": "Instala la suite de herramientas, compila tus tokens y lanza tu primer agente AI con calidad garantizada.",
-        "notes": "Ahora estás listo para construir interfaces web y lienzos de Figma de clase mundial con DESIGN:OS."
-      },
-      "fr": {
-        "eyebrow": "Démarrage Rapide",
-        "title": "Démarrer en 60 Secondes: Prêt pour la Production",
-        "subtitle": "Installez les outils, compilez les tokens et lancez votre premier agent IA avec une garantie totale de qualité.",
-        "notes": "Vous êtes désormais équipé pour créer des interfaces web et des maquettes Figma de niveau mondial."
-      },
-      "zh": {
-        "eyebrow": "快速上手",
-        "title": "60 秒极速起步: 生产级就绪",
-        "subtitle": "安装全局工具链，编译 DTCG 设计令牌，以完全确定性的质量保障启动您的第一个 AI 设计智能体。",
-        "notes": "恭喜！您已全面掌握 DESIGN:OS 的全套精髓，开启确定性工业级设计之旅。"
+        "title": "FIGMA LIVE<br>DESKTOP BRIDGE",
+        "body": "Direct local WebSocket synchronization between the code repository and live Figma Desktop canvas. Pushes DTCG design tokens as native Figma Variables and pulls Auto-Layout frames as parsed AST.",
+        "heroNum": "9410",
+        "heroLabel": "Local Broker Port",
+        "notes": "The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."
       }
     },
     "11": {
       "en": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "Slide 11 architectural overview."
+        "title": "CANONICAL<br>TOKENS",
+        "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
+        "heroNum": "100 %",
+        "heroLabel": "Token AST Binding",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "vi": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "Tổng quan kiến trúc slide 11."
+        "title": "TOKEN CHÂN LÝ<br>W3C DTCG",
+        "body": "Hệ thống token biên dịch qua chuẩn W3C DTCG là nguồn chân lý duy nhất, xuất bản đồng thời CSS custom properties, Tailwind plugin và native Figma Variables.",
+        "heroNum": "100 %",
+        "heroLabel": "Ràng Buộc AST Token",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "ko": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "슬라이드 11 아키텍처 개요."
+        "title": "CANONICAL<br>TOKENS",
+        "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
+        "heroNum": "100 %",
+        "heroLabel": "Token AST Binding",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "ja": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "スライド 11 アーキテクチャ概要。"
+        "title": "CANONICAL<br>TOKENS",
+        "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
+        "heroNum": "100 %",
+        "heroLabel": "Token AST Binding",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "es": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "Resumen arquitectónico de la diapositiva 11."
+        "title": "CANONICAL<br>TOKENS",
+        "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
+        "heroNum": "100 %",
+        "heroLabel": "Token AST Binding",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "fr": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "Aperçu architectural de la diapositive 11."
+        "title": "CANONICAL<br>TOKENS",
+        "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
+        "heroNum": "100 %",
+        "heroLabel": "Token AST Binding",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "zh": {
-        "eyebrow": "Canvas Craft",
-        "title": "Crafting Canvas Art: Auto-Layout &amp; Variables",
-        "subtitle": "Deterministic Figma node construction.",
-        "notes": "第 11 页系统架构深度解析。"
+        "title": "CANONICAL<br>TOKENS",
+        "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
+        "heroNum": "100 %",
+        "heroLabel": "Token AST Binding",
+        "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       }
     },
     "12": {
       "en": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "Slide 12 architectural overview."
+        "title": "4 QUALITY<br>SURFACES",
+        "body": "The 4-stage quality sieve inspects every generation before release: ui taste-lint catches anti-patterns, validate-layout prevents overflow and container soup, a11y-lint verifies WCAG 2.2 AA, and full audit gates release.",
+        "heroNum": "0",
+        "heroLabel": "Errors Allowed to Ship",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       },
       "vi": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "Tổng quan kiến trúc slide 12."
+        "title": "4 CỬA ẢI<br>KIỂM ĐỊNH",
+        "body": "Tháp lọc 4 tầng kiểm tra mọi bản dựng trước khi phát hành: taste-lint bắt anti-pattern, validate-layout ngăn tràn lề và container soup, a11y-lint đạt WCAG 2.2 AA và audit tổng.",
+        "heroNum": "0",
+        "heroLabel": "Lỗi Được Phép Xuất Xưởng",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       },
       "ko": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "슬라이드 12 아키텍처 개요."
+        "title": "4 QUALITY<br>SURFACES",
+        "body": "The 4-stage quality sieve inspects every generation before release: ui taste-lint catches anti-patterns, validate-layout prevents overflow and container soup, a11y-lint verifies WCAG 2.2 AA, and full audit gates release.",
+        "heroNum": "0",
+        "heroLabel": "Errors Allowed to Ship",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       },
       "ja": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "スライド 12 アーキテクチャ概要。"
+        "title": "4 QUALITY<br>SURFACES",
+        "body": "The 4-stage quality sieve inspects every generation before release: ui taste-lint catches anti-patterns, validate-layout prevents overflow and container soup, a11y-lint verifies WCAG 2.2 AA, and full audit gates release.",
+        "heroNum": "0",
+        "heroLabel": "Errors Allowed to Ship",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       },
       "es": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "Resumen arquitectónico de la diapositiva 12."
+        "title": "4 QUALITY<br>SURFACES",
+        "body": "The 4-stage quality sieve inspects every generation before release: ui taste-lint catches anti-patterns, validate-layout prevents overflow and container soup, a11y-lint verifies WCAG 2.2 AA, and full audit gates release.",
+        "heroNum": "0",
+        "heroLabel": "Errors Allowed to Ship",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       },
       "fr": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "Aperçu architectural de la diapositive 12."
+        "title": "4 QUALITY<br>SURFACES",
+        "body": "The 4-stage quality sieve inspects every generation before release: ui taste-lint catches anti-patterns, validate-layout prevents overflow and container soup, a11y-lint verifies WCAG 2.2 AA, and full audit gates release.",
+        "heroNum": "0",
+        "heroLabel": "Errors Allowed to Ship",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       },
       "zh": {
-        "eyebrow": "Audit Matrix",
-        "title": "Dissecting the 4 'Audit' Surfaces",
-        "subtitle": "Clear distinction between the 4 audit modalities.",
-        "notes": "第 12 页系统架构深度解析。"
+        "title": "4 QUALITY<br>SURFACES",
+        "body": "The 4-stage quality sieve inspects every generation before release: ui taste-lint catches anti-patterns, validate-layout prevents overflow and container soup, a11y-lint verifies WCAG 2.2 AA, and full audit gates release.",
+        "heroNum": "0",
+        "heroLabel": "Errors Allowed to Ship",
+        "notes": "Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."
       }
     },
     "13": {
       "en": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "Slide 13 architectural overview."
+        "title": "TRIAGE &<br>AUTODETECT",
+        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Turns to Convergence",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "vi": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "Tổng quan kiến trúc slide 13."
+        "title": "GIAO THỨC<br>XỬ LÝ LỖI",
+        "body": "Mọi cảnh báo tuân thủ quy tắc 3 bước: Tự động sửa qua ui autofix, tái cấu trúc layout tối đa 3 vòng lặp, và chuyển tiếp lên người dùng nếu có xung đột không thể tự giải quyết.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Vòng Lặp Hội Tụ Tối Đa",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "ko": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "슬라이드 13 아키텍처 개요."
+        "title": "TRIAGE &<br>AUTODETECT",
+        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Turns to Convergence",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "ja": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "スライド 13 アーキテクチャ概要。"
+        "title": "TRIAGE &<br>AUTODETECT",
+        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Turns to Convergence",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "es": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "Resumen arquitectónico de la diapositiva 13."
+        "title": "TRIAGE &<br>AUTODETECT",
+        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Turns to Convergence",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "fr": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "Aperçu architectural de la diapositive 13."
+        "title": "TRIAGE &<br>AUTODETECT",
+        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Turns to Convergence",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "zh": {
-        "eyebrow": "Finding Triage",
-        "title": "Finding Triage Workflow &amp; 2 Golden Rules",
-        "subtitle": "How to triage, verify, and resolve issues.",
-        "notes": "第 13 页系统架构深度解析。"
+        "title": "TRIAGE &<br>AUTODETECT",
+        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "heroNum": "≤ 3",
+        "heroLabel": "Turns to Convergence",
+        "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       }
     },
     "14": {
       "en": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "Slide 14 architectural overview."
+        "title": "VECTOR<br>MEMORY LOOP",
+        "body": "Continuous learning powered by local vector embeddings. Incoming user briefs query historical design memories; previous corrections prime the agent to guarantee historical mistakes are never repeated.",
+        "heroNum": "0.85",
+        "heroLabel": "Recall Cosine Threshold",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       },
       "vi": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "Tổng quan kiến trúc slide 14."
+        "title": "VÒNG LẶP<br>KÝ ỨC VECTOR",
+        "body": "Học hỏi liên tục qua không gian vector ONNX cục bộ. Đề bài mới truy vấn ký ức thiết kế cũ, các bài học trước đó mồi agent để không bao giờ lặp lại sai lầm trong quá khứ.",
+        "heroNum": "0.85",
+        "heroLabel": "Ngưỡng Truy Hồi Cosine",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       },
       "ko": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "슬라이드 14 아키텍처 개요."
+        "title": "VECTOR<br>MEMORY LOOP",
+        "body": "Continuous learning powered by local vector embeddings. Incoming user briefs query historical design memories; previous corrections prime the agent to guarantee historical mistakes are never repeated.",
+        "heroNum": "0.85",
+        "heroLabel": "Recall Cosine Threshold",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       },
       "ja": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "スライド 14 アーキテクチャ概要。"
+        "title": "VECTOR<br>MEMORY LOOP",
+        "body": "Continuous learning powered by local vector embeddings. Incoming user briefs query historical design memories; previous corrections prime the agent to guarantee historical mistakes are never repeated.",
+        "heroNum": "0.85",
+        "heroLabel": "Recall Cosine Threshold",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       },
       "es": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "Resumen arquitectónico de la diapositiva 14."
+        "title": "VECTOR<br>MEMORY LOOP",
+        "body": "Continuous learning powered by local vector embeddings. Incoming user briefs query historical design memories; previous corrections prime the agent to guarantee historical mistakes are never repeated.",
+        "heroNum": "0.85",
+        "heroLabel": "Recall Cosine Threshold",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       },
       "fr": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "Aperçu architectural de la diapositive 14."
+        "title": "VECTOR<br>MEMORY LOOP",
+        "body": "Continuous learning powered by local vector embeddings. Incoming user briefs query historical design memories; previous corrections prime the agent to guarantee historical mistakes are never repeated.",
+        "heroNum": "0.85",
+        "heroLabel": "Recall Cosine Threshold",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       },
       "zh": {
-        "eyebrow": "Vector Memory",
-        "title": "Design Memory Loop (Recall &amp; Reflect)",
-        "subtitle": "Semantic memory query, synthesize, and store.",
-        "notes": "第 14 页系统架构深度解析。"
+        "title": "VECTOR<br>MEMORY LOOP",
+        "body": "Continuous learning powered by local vector embeddings. Incoming user briefs query historical design memories; previous corrections prime the agent to guarantee historical mistakes are never repeated.",
+        "heroNum": "0.85",
+        "heroLabel": "Recall Cosine Threshold",
+        "notes": "Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."
       }
     },
     "15": {
       "en": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "Slide 15 architectural overview."
+        "title": "CRUCIBLE<br>DISTILLATION",
+        "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
+        "heroNum": "100 %",
+        "heroLabel": "Local Privacy Capture",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "vi": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "Tổng quan kiến trúc slide 15."
+        "title": "LÒ LUYỆN<br>ĐÚC KẾT BÀI HỌC",
+        "body": "Phản tư sau khi sinh giao diện tự động trích xuất quy tắc thẩm mỹ từ chỉnh sửa của người dùng và PR diff, lưu trữ vào .design/memory.json hoàn toàn riêng tư cục bộ.",
+        "heroNum": "100 %",
+        "heroLabel": "Bảo Mật Ký Ức Cục Bộ",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "ko": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "슬라이드 15 아키텍처 개요."
+        "title": "CRUCIBLE<br>DISTILLATION",
+        "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
+        "heroNum": "100 %",
+        "heroLabel": "Local Privacy Capture",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "ja": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "スライド 15 アーキテクチャ概要。"
+        "title": "CRUCIBLE<br>DISTILLATION",
+        "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
+        "heroNum": "100 %",
+        "heroLabel": "Local Privacy Capture",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "es": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "Resumen arquitectónico de la diapositiva 15."
+        "title": "CRUCIBLE<br>DISTILLATION",
+        "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
+        "heroNum": "100 %",
+        "heroLabel": "Local Privacy Capture",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "fr": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "Aperçu architectural de la diapositive 15."
+        "title": "CRUCIBLE<br>DISTILLATION",
+        "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
+        "heroNum": "100 %",
+        "heroLabel": "Local Privacy Capture",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "zh": {
-        "eyebrow": "Taste Elo",
-        "title": "Taste Elo Rating &amp; Sample Curation",
-        "subtitle": "Blind pair-wise voting to curate top specimens.",
-        "notes": "第 15 页系统架构深度解析。"
+        "title": "CRUCIBLE<br>DISTILLATION",
+        "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
+        "heroNum": "100 %",
+        "heroLabel": "Local Privacy Capture",
+        "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
+      }
+    },
+    "16": {
+      "en": {
+        "title": "OKLCH COLOR<br>SCIENCE",
+        "body": "Standardizing on the OKLCH color space eliminates HSL perceptual brightness distortion. Generates harmonious color scales with mathematically constant perceived lightness across 100% Display P3 gamut.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Semver Patch Precision",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
+      },
+      "vi": {
+        "title": "KHOA HỌC MÀU<br>OKLCH DISPLAY P3",
+        "body": "Chuẩn hóa không gian màu OKLCH triệt tiêu biến dạng độ sáng cảm nhận của HSL. Tạo dải màu hài hòa toán học với độ sáng đồng nhất trên 100% dải màu rộng Display P3.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Độ Chuẩn Xác Semver Patch",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
+      },
+      "ko": {
+        "title": "OKLCH COLOR<br>SCIENCE",
+        "body": "Standardizing on the OKLCH color space eliminates HSL perceptual brightness distortion. Generates harmonious color scales with mathematically constant perceived lightness across 100% Display P3 gamut.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Semver Patch Precision",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
+      },
+      "ja": {
+        "title": "OKLCH COLOR<br>SCIENCE",
+        "body": "Standardizing on the OKLCH color space eliminates HSL perceptual brightness distortion. Generates harmonious color scales with mathematically constant perceived lightness across 100% Display P3 gamut.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Semver Patch Precision",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
+      },
+      "es": {
+        "title": "OKLCH COLOR<br>SCIENCE",
+        "body": "Standardizing on the OKLCH color space eliminates HSL perceptual brightness distortion. Generates harmonious color scales with mathematically constant perceived lightness across 100% Display P3 gamut.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Semver Patch Precision",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
+      },
+      "fr": {
+        "title": "OKLCH COLOR<br>SCIENCE",
+        "body": "Standardizing on the OKLCH color space eliminates HSL perceptual brightness distortion. Generates harmonious color scales with mathematically constant perceived lightness across 100% Display P3 gamut.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Semver Patch Precision",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
+      },
+      "zh": {
+        "title": "OKLCH COLOR<br>SCIENCE",
+        "body": "Standardizing on the OKLCH color space eliminates HSL perceptual brightness distortion. Generates harmonious color scales with mathematically constant perceived lightness across 100% Display P3 gamut.",
+        "heroNum": "ΔE 0.02",
+        "heroLabel": "Semver Patch Precision",
+        "notes": "Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."
       }
     },
     "17": {
       "en": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "Slide 17 architectural overview."
+        "title": "6+1 TASTE<br>RUBRIC RADAR",
+        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Minimum Score to Ship",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "vi": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "Tổng quan kiến trúc slide 17."
+        "title": "RADAR THẨM MỸ<br>6+1 TRỤC",
+        "body": "Đánh giá thẩm mỹ khách quan trên 6 chiều giác quan: Layout, Typography, Spacing, Iconography, Motion và Depth, xoay quanh mỏ neo bắt buộc Core 0 Tính nhất quán.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Điểm Tối Thiểu Xuất Xưởng",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "ko": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "슬라이드 17 아키텍처 개요."
+        "title": "6+1 TASTE<br>RUBRIC RADAR",
+        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Minimum Score to Ship",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "ja": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "スライド 17 アーキテクチャ概要。"
+        "title": "6+1 TASTE<br>RUBRIC RADAR",
+        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Minimum Score to Ship",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "es": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "Resumen arquitectónico de la diapositiva 17."
+        "title": "6+1 TASTE<br>RUBRIC RADAR",
+        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Minimum Score to Ship",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "fr": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "Aperçu architectural de la diapositive 17."
+        "title": "6+1 TASTE<br>RUBRIC RADAR",
+        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Minimum Score to Ship",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "zh": {
-        "eyebrow": "Taste Rubric",
-        "title": "6+1 Aesthetic Axes (Taste Rubric)",
-        "subtitle": "Scoring every axis from 0 to 10 with hard floors.",
-        "notes": "第 17 页系统架构深度解析。"
+        "title": "6+1 TASTE<br>RUBRIC RADAR",
+        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "heroNum": "8.0 +",
+        "heroLabel": "Minimum Score to Ship",
+        "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       }
     },
     "18": {
       "en": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "Slide 18 architectural overview."
+        "title": "12 COGNITIVE<br>UX LAWS",
+        "body": "Enforcing classic ergonomics—Fitts Law touch targets (min 44px), Miller Law chunking, Hick Law decision latency, and Jakob Law mental models—directly into layout linters and token presets.",
+        "heroNum": "12",
+        "heroLabel": "Enforced Ergonomic Laws",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       },
       "vi": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "Tổng quan kiến trúc slide 18."
+        "title": "12 ĐỊNH LUẬT<br>CÔNG HỌC UX",
+        "body": "Áp dụng công học kinh điển—vùng chạm Fitts Law (≥ 44px), phân đoạn Miller Law, độ trễ Hick Law và mô hình tâm trí Jakob Law trực tiếp vào linter và token.",
+        "heroNum": "12",
+        "heroLabel": "Luật Công Học Thực Thi",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       },
       "ko": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "슬라이드 18 아키텍처 개요."
+        "title": "12 COGNITIVE<br>UX LAWS",
+        "body": "Enforcing classic ergonomics—Fitts Law touch targets (min 44px), Miller Law chunking, Hick Law decision latency, and Jakob Law mental models—directly into layout linters and token presets.",
+        "heroNum": "12",
+        "heroLabel": "Enforced Ergonomic Laws",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       },
       "ja": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "スライド 18 アーキテクチャ概要。"
+        "title": "12 COGNITIVE<br>UX LAWS",
+        "body": "Enforcing classic ergonomics—Fitts Law touch targets (min 44px), Miller Law chunking, Hick Law decision latency, and Jakob Law mental models—directly into layout linters and token presets.",
+        "heroNum": "12",
+        "heroLabel": "Enforced Ergonomic Laws",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       },
       "es": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "Resumen arquitectónico de la diapositiva 18."
+        "title": "12 COGNITIVE<br>UX LAWS",
+        "body": "Enforcing classic ergonomics—Fitts Law touch targets (min 44px), Miller Law chunking, Hick Law decision latency, and Jakob Law mental models—directly into layout linters and token presets.",
+        "heroNum": "12",
+        "heroLabel": "Enforced Ergonomic Laws",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       },
       "fr": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "Aperçu architectural de la diapositive 18."
+        "title": "12 COGNITIVE<br>UX LAWS",
+        "body": "Enforcing classic ergonomics—Fitts Law touch targets (min 44px), Miller Law chunking, Hick Law decision latency, and Jakob Law mental models—directly into layout linters and token presets.",
+        "heroNum": "12",
+        "heroLabel": "Enforced Ergonomic Laws",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       },
       "zh": {
-        "eyebrow": "Machine Floor",
-        "title": "14 Hard Machine Floor Linters",
-        "subtitle": "Zero tolerance deterministic code linters.",
-        "notes": "第 18 页系统架构深度解析。"
+        "title": "12 COGNITIVE<br>UX LAWS",
+        "body": "Enforcing classic ergonomics—Fitts Law touch targets (min 44px), Miller Law chunking, Hick Law decision latency, and Jakob Law mental models—directly into layout linters and token presets.",
+        "heroNum": "12",
+        "heroLabel": "Enforced Ergonomic Laws",
+        "notes": "UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."
       }
     },
     "19": {
       "en": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "Slide 19 architectural overview."
+        "title": "DESIGN<br>PERSONAS",
+        "body": "11 distinctive aesthetic stances spanning Editorial, Hyper-Density, Brutalist, Spatial Glass, and Retro Terminal. Each persona dictates typography scales, corner radii, elevation depth, and motion speed.",
+        "heroNum": "11",
+        "heroLabel": "Bespoke Design Personas",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       },
       "vi": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "Tổng quan kiến trúc slide 19."
+        "title": "BỘ PERSONA<br>BẢN SẮC THIẾT KẾ",
+        "body": "11 bản sắc thiết kế độc đáo: Editorial, Hyper-Density, Brutalist, Spatial Glass, Retro Terminal. Mỗi persona định hình thang phông, bo góc, độ sâu bóng đổ và tốc độ chuyển động.",
+        "heroNum": "11",
+        "heroLabel": "Bản Sắc Thiết Kế Riêng",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       },
       "ko": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "슬라이드 19 아키텍처 개요."
+        "title": "DESIGN<br>PERSONAS",
+        "body": "11 distinctive aesthetic stances spanning Editorial, Hyper-Density, Brutalist, Spatial Glass, and Retro Terminal. Each persona dictates typography scales, corner radii, elevation depth, and motion speed.",
+        "heroNum": "11",
+        "heroLabel": "Bespoke Design Personas",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       },
       "ja": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "スライド 19 アーキテクチャ概要。"
+        "title": "DESIGN<br>PERSONAS",
+        "body": "11 distinctive aesthetic stances spanning Editorial, Hyper-Density, Brutalist, Spatial Glass, and Retro Terminal. Each persona dictates typography scales, corner radii, elevation depth, and motion speed.",
+        "heroNum": "11",
+        "heroLabel": "Bespoke Design Personas",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       },
       "es": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "Resumen arquitectónico de la diapositiva 19."
+        "title": "DESIGN<br>PERSONAS",
+        "body": "11 distinctive aesthetic stances spanning Editorial, Hyper-Density, Brutalist, Spatial Glass, and Retro Terminal. Each persona dictates typography scales, corner radii, elevation depth, and motion speed.",
+        "heroNum": "11",
+        "heroLabel": "Bespoke Design Personas",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       },
       "fr": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "Aperçu architectural de la diapositive 19."
+        "title": "DESIGN<br>PERSONAS",
+        "body": "11 distinctive aesthetic stances spanning Editorial, Hyper-Density, Brutalist, Spatial Glass, and Retro Terminal. Each persona dictates typography scales, corner radii, elevation depth, and motion speed.",
+        "heroNum": "11",
+        "heroLabel": "Bespoke Design Personas",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       },
       "zh": {
-        "eyebrow": "Cognitive Laws",
-        "title": "12 Classical Cognitive UX Laws",
-        "subtitle": "Integrating Fitts, Hick, Miller, and Doherty into code.",
-        "notes": "第 19 页系统架构深度解析。"
+        "title": "DESIGN<br>PERSONAS",
+        "body": "11 distinctive aesthetic stances spanning Editorial, Hyper-Density, Brutalist, Spatial Glass, and Retro Terminal. Each persona dictates typography scales, corner radii, elevation depth, and motion speed.",
+        "heroNum": "11",
+        "heroLabel": "Bespoke Design Personas",
+        "notes": "Explicit persona declarations prevent generic corporate dashboard syndrome."
       }
     },
     "20": {
       "en": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "Slide 20 architectural overview."
+        "title": "THE MOTION<br>LADDER",
+        "body": "Tiered kinetic discipline: Climb from T1 Micro-feedback up to T6 WebGL only when the product narrative demands it and performance budgets allow, strictly clamped by prefers-reduced-motion fallbacks.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Locked Kinetic Budget",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
       },
       "vi": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "Tổng quan kiến trúc slide 20."
+        "title": "THANG BẬC<br>CHUYỂN ĐỘNG",
+        "body": "Kỷ luật chuyển động phân tầng: Chỉ leo từ T1 Phản hồi xúc giác lên T6 WebGL khi câu chuyện đòi hỏi và ngân sách cho phép, bảo vệ tuyệt đối bởi prefers-reduced-motion.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Ngân Sách Khung Hình Khóa",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
       },
       "ko": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "슬라이드 20 아키텍처 개요."
+        "title": "THE MOTION<br>LADDER",
+        "body": "Tiered kinetic discipline: Climb from T1 Micro-feedback up to T6 WebGL only when the product narrative demands it and performance budgets allow, strictly clamped by prefers-reduced-motion fallbacks.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Locked Kinetic Budget",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
       },
       "ja": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "スライド 20 アーキテクチャ概要。"
+        "title": "THE MOTION<br>LADDER",
+        "body": "Tiered kinetic discipline: Climb from T1 Micro-feedback up to T6 WebGL only when the product narrative demands it and performance budgets allow, strictly clamped by prefers-reduced-motion fallbacks.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Locked Kinetic Budget",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
       },
       "es": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "Resumen arquitectónico de la diapositiva 20."
+        "title": "THE MOTION<br>LADDER",
+        "body": "Tiered kinetic discipline: Climb from T1 Micro-feedback up to T6 WebGL only when the product narrative demands it and performance budgets allow, strictly clamped by prefers-reduced-motion fallbacks.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Locked Kinetic Budget",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
       },
       "fr": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "Aperçu architectural de la diapositive 20."
+        "title": "THE MOTION<br>LADDER",
+        "body": "Tiered kinetic discipline: Climb from T1 Micro-feedback up to T6 WebGL only when the product narrative demands it and performance budgets allow, strictly clamped by prefers-reduced-motion fallbacks.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Locked Kinetic Budget",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
       },
       "zh": {
-        "eyebrow": "Motion Ladder",
-        "title": "6-Tier Motion Ladder (T1–T6)",
-        "subtitle": "From subtle hover to continuous spatial camera flights.",
-        "notes": "第 20 页系统架构深度解析。"
+        "title": "THE MOTION<br>LADDER",
+        "body": "Tiered kinetic discipline: Climb from T1 Micro-feedback up to T6 WebGL only when the product narrative demands it and performance budgets allow, strictly clamped by prefers-reduced-motion fallbacks.",
+        "heroNum": "60 FPS",
+        "heroLabel": "Locked Kinetic Budget",
+        "notes": "Animations must serve narrative purpose. Decorative motion without function is classified as code debt."
+      }
+    },
+    "21": {
+      "en": {
+        "title": "SCROLL-CINEMA<br>FLIGHT",
+        "body": "Chaining separately rendered spatial camera sequences into a continuous 60fps flight driven directly by user scroll gestures, locked by frame-matching kinetic velocity seams.",
+        "heroNum": "0 ms",
+        "heroLabel": "Seam Handoff Stutter",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
+      },
+      "vi": {
+        "title": "ĐIỆN ẢNH CUỘN<br>SCROLL-CINEMA",
+        "body": "Nối chuỗi các phân đoạn camera không gian thành đường bay liên tục 60fps điều khiển trực tiếp bằng thao tác cuộn, khóa chính xác bằng ngàm vật lý vận tốc tiếp tuyến.",
+        "heroNum": "0 ms",
+        "heroLabel": "Độ Giật Cục Chuyển Tiếp",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
+      },
+      "ko": {
+        "title": "SCROLL-CINEMA<br>FLIGHT",
+        "body": "Chaining separately rendered spatial camera sequences into a continuous 60fps flight driven directly by user scroll gestures, locked by frame-matching kinetic velocity seams.",
+        "heroNum": "0 ms",
+        "heroLabel": "Seam Handoff Stutter",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
+      },
+      "ja": {
+        "title": "SCROLL-CINEMA<br>FLIGHT",
+        "body": "Chaining separately rendered spatial camera sequences into a continuous 60fps flight driven directly by user scroll gestures, locked by frame-matching kinetic velocity seams.",
+        "heroNum": "0 ms",
+        "heroLabel": "Seam Handoff Stutter",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
+      },
+      "es": {
+        "title": "SCROLL-CINEMA<br>FLIGHT",
+        "body": "Chaining separately rendered spatial camera sequences into a continuous 60fps flight driven directly by user scroll gestures, locked by frame-matching kinetic velocity seams.",
+        "heroNum": "0 ms",
+        "heroLabel": "Seam Handoff Stutter",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
+      },
+      "fr": {
+        "title": "SCROLL-CINEMA<br>FLIGHT",
+        "body": "Chaining separately rendered spatial camera sequences into a continuous 60fps flight driven directly by user scroll gestures, locked by frame-matching kinetic velocity seams.",
+        "heroNum": "0 ms",
+        "heroLabel": "Seam Handoff Stutter",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
+      },
+      "zh": {
+        "title": "SCROLL-CINEMA<br>FLIGHT",
+        "body": "Chaining separately rendered spatial camera sequences into a continuous 60fps flight driven directly by user scroll gestures, locked by frame-matching kinetic velocity seams.",
+        "heroNum": "0 ms",
+        "heroLabel": "Seam Handoff Stutter",
+        "notes": "Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."
       }
     },
     "22": {
       "en": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "Slide 22 architectural overview."
+        "title": "3D SPATIAL<br>GFLOW",
+        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
+        "heroNum": "2 K",
+        "heroLabel": "Subpixel Texture Resolution",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "vi": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "Tổng quan kiến trúc slide 22."
+        "title": "KHÔNG GIAN 3D<br>GFLOW HARDWARE",
+        "body": "Module GFlow chuyên biệt mang lại shader WebGL tăng tốc phần cứng, nén hình học Draco và vòng đời thu hồi bộ nhớ nghiêm ngặt chống rò rỉ GPU.",
+        "heroNum": "2 K",
+        "heroLabel": "Độ Phân Giải Subpixel 2K",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "ko": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "슬라이드 22 아키텍처 개요."
+        "title": "3D SPATIAL<br>GFLOW",
+        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
+        "heroNum": "2 K",
+        "heroLabel": "Subpixel Texture Resolution",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "ja": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "スライド 22 アーキテクチャ概要。"
+        "title": "3D SPATIAL<br>GFLOW",
+        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
+        "heroNum": "2 K",
+        "heroLabel": "Subpixel Texture Resolution",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "es": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "Resumen arquitectónico de la diapositiva 22."
+        "title": "3D SPATIAL<br>GFLOW",
+        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
+        "heroNum": "2 K",
+        "heroLabel": "Subpixel Texture Resolution",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "fr": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "Aperçu architectural de la diapositive 22."
+        "title": "3D SPATIAL<br>GFLOW",
+        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
+        "heroNum": "2 K",
+        "heroLabel": "Subpixel Texture Resolution",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "zh": {
-        "eyebrow": "GFlow Video AI",
-        "title": "GFlow Hand: Google Flow Automation (Veo / Imagen)",
-        "subtitle": "Video-to-Video and Image-to-Video camera control.",
-        "notes": "第 22 页系统架构深度解析。"
+        "title": "3D SPATIAL<br>GFLOW",
+        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
+        "heroNum": "2 K",
+        "heroLabel": "Subpixel Texture Resolution",
+        "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       }
     },
     "23": {
       "en": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "Slide 23 architectural overview."
+        "title": "VISUAL<br>REGRESSION",
+        "body": "Automated headless visual regression matrices capture full-page snapshots across 1920, 1440, and 390 viewports, verifying zero layout shifts or font hydration glitches prior to PR approval.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Viewports Verified",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       },
       "vi": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "Tổng quan kiến trúc slide 23."
+        "title": "KIỂM ĐỊNH<br>HÌNH ẢNH HỒI QUY",
+        "body": "Ma trận hồi quy thị giác headless tự động chụp toàn trang trên 3 kích thước 1920, 1440 và 390, chứng minh không có độ trôi layout hay lỗi font trước khi duyệt PR.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Màn Hình Đã Xác Minh",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       },
       "ko": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "슬라이드 23 아키텍처 개요."
+        "title": "VISUAL<br>REGRESSION",
+        "body": "Automated headless visual regression matrices capture full-page snapshots across 1920, 1440, and 390 viewports, verifying zero layout shifts or font hydration glitches prior to PR approval.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Viewports Verified",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       },
       "ja": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "スライド 23 アーキテクチャ概要。"
+        "title": "VISUAL<br>REGRESSION",
+        "body": "Automated headless visual regression matrices capture full-page snapshots across 1920, 1440, and 390 viewports, verifying zero layout shifts or font hydration glitches prior to PR approval.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Viewports Verified",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       },
       "es": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "Resumen arquitectónico de la diapositiva 23."
+        "title": "VISUAL<br>REGRESSION",
+        "body": "Automated headless visual regression matrices capture full-page snapshots across 1920, 1440, and 390 viewports, verifying zero layout shifts or font hydration glitches prior to PR approval.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Viewports Verified",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       },
       "fr": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "Aperçu architectural de la diapositive 23."
+        "title": "VISUAL<br>REGRESSION",
+        "body": "Automated headless visual regression matrices capture full-page snapshots across 1920, 1440, and 390 viewports, verifying zero layout shifts or font hydration glitches prior to PR approval.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Viewports Verified",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       },
       "zh": {
-        "eyebrow": "WebGL Canvas",
-        "title": "Canvas T6 &amp; WebGL Shaders: Liquid Glass",
-        "subtitle": "High-performance shaders with strict teardown contract.",
-        "notes": "第 23 页系统架构深度解析。"
+        "title": "VISUAL<br>REGRESSION",
+        "body": "Automated headless visual regression matrices capture full-page snapshots across 1920, 1440, and 390 viewports, verifying zero layout shifts or font hydration glitches prior to PR approval.",
+        "heroNum": "3 / 3",
+        "heroLabel": "Viewports Verified",
+        "notes": "Automated headless Playwright sweeps catch subtle overflow and clipping before human review."
       }
     },
     "24": {
       "en": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "Slide 24 architectural overview."
+        "title": "COMPOUNDED<br>CRAFT REFLECTION",
+        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
+        "heroNum": "10 X",
+        "heroLabel": "Design Team Velocity",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "vi": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "Tổng quan kiến trúc slide 24."
+        "title": "ĐÚC KẾT &<br>TÍCH LŨY TAY NGHỀ",
+        "body": "Mỗi lần giao hàng kích hoạt phản tư tự động: chấm điểm biến thể, ghi nhận lựa chọn của con người và tích lũy gu thẩm mỹ vào kho tri thức chung của tổ chức.",
+        "heroNum": "10 X",
+        "heroLabel": "Gia Tốc Tốc Độ Đội Ngũ",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "ko": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "슬라이드 24 아키텍처 개요."
+        "title": "COMPOUNDED<br>CRAFT REFLECTION",
+        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
+        "heroNum": "10 X",
+        "heroLabel": "Design Team Velocity",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "ja": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "スライド 24 アーキテクチャ概要。"
+        "title": "COMPOUNDED<br>CRAFT REFLECTION",
+        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
+        "heroNum": "10 X",
+        "heroLabel": "Design Team Velocity",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "es": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "Resumen arquitectónico de la diapositiva 24."
+        "title": "COMPOUNDED<br>CRAFT REFLECTION",
+        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
+        "heroNum": "10 X",
+        "heroLabel": "Design Team Velocity",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "fr": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "Aperçu architectural de la diapositive 24."
+        "title": "COMPOUNDED<br>CRAFT REFLECTION",
+        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
+        "heroNum": "10 X",
+        "heroLabel": "Design Team Velocity",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "zh": {
-        "eyebrow": "Delivery Contract",
-        "title": "Qualified Delivery Contract v2",
-        "subtitle": "The 5 mandatory artifacts before merging PR.",
-        "notes": "第 24 页系统架构深度解析。"
+        "title": "COMPOUNDED<br>CRAFT REFLECTION",
+        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
+        "heroNum": "10 X",
+        "heroLabel": "Design Team Velocity",
+        "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       }
     },
     "25": {
       "en": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "Slide 25 architectural overview."
+        "title": "DELIVERY<br>PIPELINE",
+        "body": "The mandatory 6-stage delivery refinery executes tools in the exact order that catches defects: Flow validation, Evidence alignment, VR baseline, Paired tokens, Rendered a11y, and Full-stack audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Pipeline Stages Passed",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       },
       "vi": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "Tổng quan kiến trúc slide 25."
+        "title": "QUY TRÌNH<br>ĐÓNG GÓI 6 BƯỚC",
+        "body": "Tháp tinh chế đóng gói bắt buộc chạy công cụ theo đúng thứ tự bắt lỗi: Flow state machine, Evidence mục tiêu, VR baseline, Token cặp đôi, Rendered a11y và Full audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Cửa Ải Đạt Chuẩn",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       },
       "ko": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "슬라이드 25 아키텍처 개요."
+        "title": "DELIVERY<br>PIPELINE",
+        "body": "The mandatory 6-stage delivery refinery executes tools in the exact order that catches defects: Flow validation, Evidence alignment, VR baseline, Paired tokens, Rendered a11y, and Full-stack audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Pipeline Stages Passed",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       },
       "ja": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "スライド 25 アーキテクチャ概要。"
+        "title": "DELIVERY<br>PIPELINE",
+        "body": "The mandatory 6-stage delivery refinery executes tools in the exact order that catches defects: Flow validation, Evidence alignment, VR baseline, Paired tokens, Rendered a11y, and Full-stack audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Pipeline Stages Passed",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       },
       "es": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "Resumen arquitectónico de la diapositiva 25."
+        "title": "DELIVERY<br>PIPELINE",
+        "body": "The mandatory 6-stage delivery refinery executes tools in the exact order that catches defects: Flow validation, Evidence alignment, VR baseline, Paired tokens, Rendered a11y, and Full-stack audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Pipeline Stages Passed",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       },
       "fr": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "Aperçu architectural de la diapositive 25."
+        "title": "DELIVERY<br>PIPELINE",
+        "body": "The mandatory 6-stage delivery refinery executes tools in the exact order that catches defects: Flow validation, Evidence alignment, VR baseline, Paired tokens, Rendered a11y, and Full-stack audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Pipeline Stages Passed",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       },
       "zh": {
-        "eyebrow": "Full-Stack Audit",
-        "title": "The Mandatory 6-Step Full-Stack Audit Pipeline",
-        "subtitle": "Executing linters in the exact defect-catching order.",
-        "notes": "第 25 页系统架构深度解析。"
+        "title": "DELIVERY<br>PIPELINE",
+        "body": "The mandatory 6-stage delivery refinery executes tools in the exact order that catches defects: Flow validation, Evidence alignment, VR baseline, Paired tokens, Rendered a11y, and Full-stack audit.",
+        "heroNum": "6 / 6",
+        "heroLabel": "Pipeline Stages Passed",
+        "notes": "Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."
       }
     },
     "26": {
       "en": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "Slide 26 architectural overview."
+        "title": "SEMVER PR<br>MATRIX",
+        "body": "Rigorous semantic versioning rules for design releases: Non-breaking token tweaks are Patches, new component additions are Minors, and color palette shifts above Delta E 0.05 mandate Major version bumps.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Production Semver Bound",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
       },
       "vi": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "Tổng quan kiến trúc slide 26."
+        "title": "BẢNG PHÂN LOẠI<br>PHIÊN BẢN SEMVER",
+        "body": "Quy tắc Semantic Versioning chặt chẽ cho thiết kế: Chỉnh token nhỏ là Patch, thêm component là Minor, thay đổi màu Delta E > 0.05 bắt buộc nâng Major.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Ràng Buộc Semver Sản Xuất",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
       },
       "ko": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "슬라이드 26 아키텍처 개요."
+        "title": "SEMVER PR<br>MATRIX",
+        "body": "Rigorous semantic versioning rules for design releases: Non-breaking token tweaks are Patches, new component additions are Minors, and color palette shifts above Delta E 0.05 mandate Major version bumps.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Production Semver Bound",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
       },
       "ja": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "スライド 26 アーキテクチャ概要。"
+        "title": "SEMVER PR<br>MATRIX",
+        "body": "Rigorous semantic versioning rules for design releases: Non-breaking token tweaks are Patches, new component additions are Minors, and color palette shifts above Delta E 0.05 mandate Major version bumps.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Production Semver Bound",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
       },
       "es": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "Resumen arquitectónico de la diapositiva 26."
+        "title": "SEMVER PR<br>MATRIX",
+        "body": "Rigorous semantic versioning rules for design releases: Non-breaking token tweaks are Patches, new component additions are Minors, and color palette shifts above Delta E 0.05 mandate Major version bumps.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Production Semver Bound",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
       },
       "fr": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "Aperçu architectural de la diapositive 26."
+        "title": "SEMVER PR<br>MATRIX",
+        "body": "Rigorous semantic versioning rules for design releases: Non-breaking token tweaks are Patches, new component additions are Minors, and color palette shifts above Delta E 0.05 mandate Major version bumps.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Production Semver Bound",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
       },
       "zh": {
-        "eyebrow": "Delivery Checklist",
-        "title": "Delivery Checklist &amp; PR Semver Matrix",
-        "subtitle": "Evaluating patch vs minor vs major breaking changes.",
-        "notes": "第 26 页系统架构深度解析。"
+        "title": "SEMVER PR<br>MATRIX",
+        "body": "Rigorous semantic versioning rules for design releases: Non-breaking token tweaks are Patches, new component additions are Minors, and color palette shifts above Delta E 0.05 mandate Major version bumps.",
+        "heroNum": "v1.0.0",
+        "heroLabel": "Production Semver Bound",
+        "notes": "Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."
+      }
+    },
+    "27": {
+      "en": {
+        "title": "THE 5 DESIGN<br>FABLES",
+        "body": "Transforming abstract code diagrams into living spatial mechanisms: The Seamless Flight, The Two-Way Bridge, The 14-Plank Floor, The Motion Ladder, and Sol Vector Distillation.",
+        "heroNum": "5",
+        "heroLabel": "Living Design Fables",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      },
+      "vi": {
+        "title": "5 CÂU CHUYỆN<br>NGỤ NGÔN THIẾT KẾ",
+        "body": "Chuyển hóa sơ đồ mã khô khan thành thực thể cơ học sống động: Chuyến Bay Liền Mạch, Cây Cầu Hai Bờ, Sàn Thép 14 Tấm, Thang Chuyển Động và Ký Ức Đúc Kết.",
+        "heroNum": "5",
+        "heroLabel": "Ngụ Ngôn Không Gian Sống",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      },
+      "ko": {
+        "title": "THE 5 DESIGN<br>FABLES",
+        "body": "Transforming abstract code diagrams into living spatial mechanisms: The Seamless Flight, The Two-Way Bridge, The 14-Plank Floor, The Motion Ladder, and Sol Vector Distillation.",
+        "heroNum": "5",
+        "heroLabel": "Living Design Fables",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      },
+      "ja": {
+        "title": "THE 5 DESIGN<br>FABLES",
+        "body": "Transforming abstract code diagrams into living spatial mechanisms: The Seamless Flight, The Two-Way Bridge, The 14-Plank Floor, The Motion Ladder, and Sol Vector Distillation.",
+        "heroNum": "5",
+        "heroLabel": "Living Design Fables",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      },
+      "es": {
+        "title": "THE 5 DESIGN<br>FABLES",
+        "body": "Transforming abstract code diagrams into living spatial mechanisms: The Seamless Flight, The Two-Way Bridge, The 14-Plank Floor, The Motion Ladder, and Sol Vector Distillation.",
+        "heroNum": "5",
+        "heroLabel": "Living Design Fables",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      },
+      "fr": {
+        "title": "THE 5 DESIGN<br>FABLES",
+        "body": "Transforming abstract code diagrams into living spatial mechanisms: The Seamless Flight, The Two-Way Bridge, The 14-Plank Floor, The Motion Ladder, and Sol Vector Distillation.",
+        "heroNum": "5",
+        "heroLabel": "Living Design Fables",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      },
+      "zh": {
+        "title": "THE 5 DESIGN<br>FABLES",
+        "body": "Transforming abstract code diagrams into living spatial mechanisms: The Seamless Flight, The Two-Way Bridge, The 14-Plank Floor, The Motion Ladder, and Sol Vector Distillation.",
+        "heroNum": "5",
+        "heroLabel": "Living Design Fables",
+        "notes": "Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."
+      }
+    },
+    "28": {
+      "en": {
+        "title": "READY FOR<br>PRODUCTION",
+        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "heroNum": "SHIP",
+        "heroLabel": "Qualified Delivery Floor",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
+      },
+      "vi": {
+        "title": "SẴN SÀNG CHO<br>SẢN XUẤT",
+        "body": "Hệ thống thiết kế đa runtime của bạn đã được biên dịch, kiểm định và sẵn sàng. Chạy ui generate để tạo trải nghiệm tiếp theo với độ chuẩn xác tuyệt đối và tốc độ tức thì.",
+        "heroNum": "SHIP",
+        "heroLabel": "Sàn Chất Lượng Giao Hàng",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
+      },
+      "ko": {
+        "title": "READY FOR<br>PRODUCTION",
+        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "heroNum": "SHIP",
+        "heroLabel": "Qualified Delivery Floor",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
+      },
+      "ja": {
+        "title": "READY FOR<br>PRODUCTION",
+        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "heroNum": "SHIP",
+        "heroLabel": "Qualified Delivery Floor",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
+      },
+      "es": {
+        "title": "READY FOR<br>PRODUCTION",
+        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "heroNum": "SHIP",
+        "heroLabel": "Qualified Delivery Floor",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
+      },
+      "fr": {
+        "title": "READY FOR<br>PRODUCTION",
+        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "heroNum": "SHIP",
+        "heroLabel": "Qualified Delivery Floor",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
+      },
+      "zh": {
+        "title": "READY FOR<br>PRODUCTION",
+        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "heroNum": "SHIP",
+        "heroLabel": "Qualified Delivery Floor",
+        "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
       }
     }
   }
