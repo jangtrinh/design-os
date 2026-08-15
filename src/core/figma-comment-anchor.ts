@@ -201,6 +201,8 @@ export function resolveAnchor(
       element: null,
       confidence: "unanchored",
       pin: null,
+      sharedInstance: false,
+      componentId: null,
     };
   }
 
@@ -220,13 +222,18 @@ export function resolveAnchor(
       element: null,
       confidence: known ? "orphaned" : "frame",
       pin,
+      sharedInstance: false,
+      componentId: null,
     };
   }
 
   const frameBox = box(frame);
   const frameName = nameOf(frame) || null;
   if (!frameBox) {
-    return { frameId, frameName, pageName, chain: [], element: null, confidence: "frame", pin };
+    return {
+      frameId, frameName, pageName, chain: [], element: null, confidence: "frame", pin,
+      sharedInstance: false, componentId: null,
+    };
   }
 
   // node_offset is frame-LOCAL; absoluteBoundingBox is canvas-ABSOLUTE. Converting between
@@ -248,7 +255,14 @@ export function resolveAnchor(
   const confidence: AnchorConfidence =
     leaf === undefined ? "frame" : leafIsHit || leafIsStrong ? "element" : "region";
 
+  // Innermost INSTANCE on the path: the deepest one is what the pin is actually inside.
+  const instance = [...path].reverse().find((n) => n.type === "INSTANCE");
+  const componentId =
+    instance && typeof instance.componentId === "string" ? instance.componentId : null;
+
   return {
+    sharedInstance: instance !== undefined,
+    componentId,
     frameId,
     frameName,
     pageName,

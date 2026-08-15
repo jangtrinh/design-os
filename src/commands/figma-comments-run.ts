@@ -13,6 +13,8 @@ import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJson, ok } from "../core/output.js";
 import { foldComments, CommentPayloadError } from "../core/figma-comment-thread.js";
 import type { CommentThread } from "../core/figma-comment-thread.js";
+import { classifyVerdict, summariseVerdicts } from "../core/figma-comment-verdict.js";
+import type { ThreadVerdict } from "../core/figma-comment-verdict.js";
 import {
   activitySince,
   BadSinceError,
@@ -36,6 +38,8 @@ interface TriagedThread {
   anchor: ResolvedAnchor;
   /** Present only in --since mode. */
   activity?: ThreadActivity;
+  /** Present only with --authored-by, and only on threads we posted. */
+  verdict?: ThreadVerdict | null;
 }
 
 function readJson(path: string): unknown {
@@ -88,11 +92,19 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-function renderText(items: TriagedThread[], stats: Record<string, number>): string {
+function renderText(
+  items: TriagedThread[],
+  stats: Record<string, number>,
+  masterUses: Map<string, number>,
+): string {
   const lines: string[] = [];
   // Anything that did not become a shown thread is named here. A count the reader cannot
   // reconcile is how a triage tool quietly loses someone's feedback.
   const extras: string[] = [];
+  if (stats["reversed"]) extras.push(`${stats["reversed"]} REVERSED`);
+  if (stats["conditional"]) extras.push(`${stats["conditional"]} conditional`);
+  if (stats["silent"]) extras.push(`${stats["silent"]} silent (not accepted)`);
+  if (stats["accepted"]) extras.push(`${stats["accepted"]} accepted`);
   if (stats["newThreads"]) extras.push(`${stats["newThreads"]} new`);
   if (stats["repliedThreads"]) extras.push(`${stats["repliedThreads"]} replied`);
   if (stats["newlyResolved"]) extras.push(`${stats["newlyResolved"]} newly resolved`);
@@ -122,7 +134,7 @@ function renderText(items: TriagedThread[], stats: Record<string, number>): stri
     const first = bucket[0];
     if (!first) continue;
     lines.push(`${groupLabel(first.anchor)}  (${bucket.length})`);
-    for (const { thread, anchor, activity } of bucket) {
+    for (const { thread, anchor, activity, verdict } of bucket) {
       const num = thread.orderId ? `#${thread.orderId}` : thread.id;
       const chain = chainLabel(anchor);
       const where = chain ? `  ${chain} [${anchor.confidence}]` : `  [${anchor.confidence}]`;
@@ -130,6 +142,10 @@ function renderText(items: TriagedThread[], stats: Record<string, number>): stri
       if (activity?.isNew) marks.push("NEW");
       if (activity?.newReplies) marks.push(`+${activity.newReplies} reply`);
       if (activity?.newlyResolved) marks.push("RESOLVED");
+      if (verdict) marks.push(verdict.verdict.toUpperCase());
+      // Warn only when this master is hit more than once in the batch — see masterUses above.
+      const uses = anchor.componentId ? (masterUses.get(anchor.componentId) ?? 0) : 0;
+      if (uses > 1) marks.push(`shared×${uses}`);
       const mark = marks.length > 0 ? `  [${marks.join(" · ")}]` : "";
       lines.push(`  ${num} ${thread.author} · ${thread.createdAt.slice(0, 10)}${where}${mark}`);
       lines.push(`      ${thread.message}`);
@@ -160,6 +176,17 @@ export function runComments(parsed: ParsedArgs): CommandResult {
     return useJson ? errJson(CMD, "READ_ERROR", msg) : errText(`ui: ${msg}\n`);
   }
 
+  const DELIVERY_TARGETS = ["figma-canvas", "code", "both"] as const;
+  const target = parsed.flags["delivery-target"];
+  if (typeof target !== "string" || !DELIVERY_TARGETS.includes(target as (typeof DELIVERY_TARGETS)[number])) {
+    // Required, not defaulted: the most expensive error in the pilot run was a batch that
+    // named the wrong artifact and passed every gate defined for the wrong one.
+    const msg =
+      "ui figma comments requires --delivery-target <figma-canvas|code|both>. " +
+      "It decides what 'done' means and which gate proves it; a batch without one is not actionable.";
+    return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+  }
+
   const nodesFlag = parsed.flags["nodes"];
   const treeFlag = parsed.flags["file-tree"];
   const decisionsFlag = parsed.flags["decisions"];
@@ -185,11 +212,17 @@ export function runComments(parsed: ParsedArgs): CommandResult {
     throw error;
   }
 
+  const authoredBy = typeof parsed.flags["authored-by"] === "string" ? parsed.flags["authored-by"] : "";
+  const explicitResolved = parsed.flags["include-resolved"] === true;
+
   let folded;
   try {
-    // --since implies include-resolved: a reply inside a resolved thread is precisely the
-    // case this mode exists to surface, and the default view drops it.
-    folded = foldComments(payload, since !== undefined || parsed.flags["include-resolved"] === true);
+    // --since and --authored-by both imply include-resolved, for the same reason: the
+    // threads they exist to read are the ones that get resolved fastest. A verdict lives on
+    // a thread WE posted, and the owner resolves those as soon as he has replied — so
+    // filtering by resolve here silently drops every verdict, which is the exact blind spot
+    // this feature was built to close, one layer up.
+    folded = foldComments(payload, since !== undefined || explicitResolved || authoredBy !== "");
   } catch (error) {
     if (error instanceof CommentPayloadError) {
       const msg = error.message;
@@ -241,20 +274,58 @@ export function runComments(parsed: ParsedArgs): CommandResult {
     };
   }
 
-  const items = onlyPending ? delta.filter((i) => !decided.has(i.thread.id)) : delta;
+  let withVerdicts = delta;
+  let verdictStats: Record<string, number> = {};
+  if (authoredBy !== "") {
+    withVerdicts = delta.map((i) => ({ ...i, verdict: classifyVerdict(i.thread, authoredBy) }));
+    const s = summariseVerdicts(withVerdicts.map((i) => i.verdict ?? null));
+    verdictStats = {
+      accepted: s.accepted,
+      conditional: s.conditional,
+      reversed: s.reversed,
+      silent: s.silent,
+      awaitingVerdict: s.awaitingVerdict,
+    };
+  }
+
+  // Resolve-filtering is re-applied ONLY to threads that are not ours: the reviewer's own
+  // satisfied requests stay hidden, our own stay visible so their verdict can be read.
+  let visible = withVerdicts;
+  if (authoredBy !== "" && since === undefined && !explicitResolved) {
+    const resolved = resolvedRootIds(payload);
+    visible = withVerdicts.filter((i) => !resolved.has(i.thread.id) || i.thread.author === authoredBy);
+  }
+
+  const items = onlyPending ? visible.filter((i) => !decided.has(i.thread.id)) : visible;
+
+  // Blast-radius estimator, measured rather than assumed. The raw `sharedInstance` boolean
+  // fired on 84% of anchors on a real file — in a fully componentised design almost every pin
+  // is inside SOME instance, so the bare fact carries no signal. How often the SAME master
+  // appears across this batch does: 19 masters covered 52 pins, and one master accounted for
+  // 24 of them. A master hit once is probably local; a master hit repeatedly is shared, and
+  // that is the one worth stopping for.
+  const masterUses = new Map<string, number>();
+  for (const i of items) {
+    const id = i.anchor.componentId;
+    if (id) masterUses.set(id, (masterUses.get(id) ?? 0) + 1);
+  }
+  const hotMasters = [...masterUses.values()].filter((n) => n > 1).length;
 
   const stats: Record<string, number> = {
     ...folded.stats,
     ...deltaStats,
+    ...verdictStats,
+    hotMasters,
     shown: items.length,
     outsideScope,
-    decidedHidden: onlyPending ? delta.length - items.length : 0,
+    decidedHidden: onlyPending ? visible.length - items.length : 0,
   };
 
   if (useJson) {
     return okJson(CMD, {
+      deliveryTarget: target,
       stats,
-      threads: items.map(({ thread, anchor, activity }) => ({
+      threads: items.map(({ thread, anchor, activity, verdict }) => ({
         id: thread.id,
         orderId: thread.orderId,
         author: thread.author,
@@ -263,8 +334,9 @@ export function runComments(parsed: ParsedArgs): CommandResult {
         replies: thread.replies,
         anchor,
         ...(activity ? { activity } : {}),
+        ...(verdict ? { verdict } : {}),
       })),
     });
   }
-  return ok(renderText(items, stats));
+  return ok(renderText(items, stats, masterUses));
 }

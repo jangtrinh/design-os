@@ -24,9 +24,9 @@ export const FIGMA_HELP = `ui figma — deterministic Figma live-sync (spec 004/
 Usage:
   ui figma reconcile [--since <n>] [--dry-run | --apply] [--mirror-file <f>]
                      [--dir <project>] [--file-slug <s>] [--json]
-  ui figma comments  <comments.json> [--nodes <f>] [--file-tree <f>] [--under <nodeId>]
-                     [--since <iso>] [--decisions <f>] [--pending]
-                     [--include-resolved] [--json]
+  ui figma comments  <comments.json> --delivery-target <t> [--nodes <f>] [--file-tree <f>]
+                     [--under <nodeId>] [--since <iso>] [--authored-by <handle>]
+                     [--decisions <f>] [--pending] [--include-resolved] [--json]
 
 Subcommands:
   reconcile   Preview (--dry-run) or commit (--apply) the registry delta from the change-log
@@ -43,6 +43,15 @@ said". Read-only: it never writes and never resolves a comment in Figma.
   --file-tree <f>     Body of GET /v1/files/<key>?depth=2 — the ONLY payload carrying
                       page names (/nodes returns a subtree, never ancestry). Needed to
                       tell two frames named "Checkout" on different pages apart.
+  --delivery-target <t>  REQUIRED. figma-canvas | code | both. Decides what "done" means and
+                      which gate proves it. Required rather than defaulted because the most
+                      expensive error measured on a real run was a batch that named the wrong
+                      artifact and then passed every gate defined for the wrong one.
+  --authored-by <h>   Your Figma handle. On threads whose root YOU posted, read the latest
+                      reply as a verdict: accepted | conditional | reversed | silent.
+                      silent = resolved with nothing said, and it is NOT acceptance — a real
+                      run resolved 7 of 26 handoff threads in silence and read all 7 as yes.
+                      Supplied, never guessed: the kernel cannot ask Figma who a token is.
   --under <nodeId>    Scope to ONE section or page: keep only comments whose frame is that
                       node or a descendant of it. Requires --nodes to contain that
                       subtree (GET /nodes?ids=<nodeId>); if the node is absent the command
@@ -110,8 +119,14 @@ Scope mapping:
   HINT, not authoritative: a new component takes the hint; an existing one keeps its
   registry scope unless the hint promotes local → global.
 
+Anchors also report sharedInstance: the pin sits inside a component INSTANCE, so the real
+fix may belong in the master and would propagate to every other consumer. Only the boolean
+is reported, never a consumer count — masters live outside the fetched subtree, so the count
+is not derivable from it.
+
 Error codes:
-  BAD_ARG            --since is malformed, --apply combined with --dry-run,
+  BAD_ARG            --delivery-target missing or not one of figma-canvas|code|both,
+                     --since is malformed, --apply combined with --dry-run,
                      --mirror-file without --apply, or unknown subcommand
   UNKNOWN_FLAG       a flag outside this command's signature was passed
   BAD_CHANGE_LOG     the change-log has a malformed / wrong-version line

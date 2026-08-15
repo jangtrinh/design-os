@@ -79,6 +79,8 @@ export interface FigmaNode {
    * disagree and only this one matches what a human sees on the canvas.
    */
   characters?: unknown;
+  /** INSTANCE nodes only: the master this instance was made from. */
+  componentId?: unknown;
   absoluteBoundingBox?: { x: number; y: number; width: number; height: number } | null;
   children?: FigmaNode[];
 }
@@ -102,4 +104,17 @@ export interface ResolvedAnchor {
   confidence: AnchorConfidence;
   /** Frame-local pin position — multiply by the PNG scale to place a marker. */
   pin: { x: number; y: number } | null;
+  /**
+   * The pin sits inside a component INSTANCE, so the real fix may belong in the master and
+   * would propagate to every other consumer. Measured: the three shared-component tasks in
+   * the pilot run cost 7, 11 and 11 attempts against a baseline of 2 — the largest single
+   * cost in the run, and nothing in the task spec warned about it.
+   */
+  sharedInstance: boolean;
+  /**
+   * The master's id, when the pin landed on an instance. The master itself usually lives
+   * OUTSIDE the fetched subtree (masters sit on a library page), which is exactly why the
+   * consumer COUNT is not derivable here and only the boolean is reported.
+   */
+  componentId: string | null;
 }

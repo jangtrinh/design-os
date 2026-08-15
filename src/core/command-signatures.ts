@@ -591,6 +591,8 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "nodes", type: "string", summary: "Body of GET /v1/files/<key>/nodes?ids=<frames> — supplies the subtree used to name the element under the pin" },
           { name: "file-tree", type: "string", summary: "Body of GET /v1/files/<key>?depth=2 — the only payload carrying page names" },
           { name: "under", type: "string", summary: "Scope to one section/page: keep only comments whose frame is that node or a descendant of it (needs --nodes to contain that subtree)" },
+          { name: "delivery-target", type: "string", required: true, values: ["figma-canvas", "code", "both"], summary: "REQUIRED: what 'done' means and which gate proves it" },
+          { name: "authored-by", type: "string", summary: "Your Figma handle; reads the latest reply on threads you posted as a verdict (accepted|conditional|reversed|silent)" },
           { name: "since", type: "string", summary: "Delta mode: only threads that moved after this ISO instant (new, replied, newly resolved); implies --include-resolved" },
           { name: "decisions", type: "string", summary: "JSON map of already-triaged thread ids, written by the host; read-only here" },
           { name: "pending", type: "boolean", summary: "Show only threads absent from --decisions" },

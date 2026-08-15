@@ -11,14 +11,24 @@
         "name": "Checkout",
         "type": "FRAME",
         "visible": true,
-        "absoluteBoundingBox": { "x": 1000, "y": 500, "width": 390, "height": 844 },
+        "absoluteBoundingBox": {
+          "x": 1000,
+          "y": 500,
+          "width": 390,
+          "height": 844
+        },
         "children": [
           {
             "id": "10:3",
             "name": "Header",
             "type": "FRAME",
             "visible": true,
-            "absoluteBoundingBox": { "x": 1000, "y": 500, "width": 390, "height": 80 },
+            "absoluteBoundingBox": {
+              "x": 1000,
+              "y": 500,
+              "width": 390,
+              "height": 80
+            },
             "children": []
           },
           {
@@ -26,21 +36,36 @@
             "name": "OrderSummary",
             "type": "FRAME",
             "visible": true,
-            "absoluteBoundingBox": { "x": 1016, "y": 1000, "width": 358, "height": 200 },
+            "absoluteBoundingBox": {
+              "x": 1016,
+              "y": 1000,
+              "width": 358,
+              "height": 200
+            },
             "children": [
               {
                 "id": "10:5",
                 "name": "PriceRow",
                 "type": "FRAME",
                 "visible": true,
-                "absoluteBoundingBox": { "x": 1032, "y": 1120, "width": 326, "height": 40 },
+                "absoluteBoundingBox": {
+                  "x": 1032,
+                  "y": 1120,
+                  "width": 326,
+                  "height": 40
+                },
                 "children": [
                   {
                     "id": "10:7",
                     "name": "Rectangle 47",
                     "type": "RECTANGLE",
                     "visible": true,
-                    "absoluteBoundingBox": { "x": 1032, "y": 1120, "width": 326, "height": 40 },
+                    "absoluteBoundingBox": {
+                      "x": 1032,
+                      "y": 1120,
+                      "width": 326,
+                      "height": 40
+                    },
                     "children": []
                   },
                   {
@@ -48,7 +73,12 @@
                     "name": "Total",
                     "type": "TEXT",
                     "visible": true,
-                    "absoluteBoundingBox": { "x": 1032, "y": 1128, "width": 60, "height": 24 },
+                    "absoluteBoundingBox": {
+                      "x": 1032,
+                      "y": 1128,
+                      "width": 60,
+                      "height": 24
+                    },
                     "children": []
                   },
                   {
@@ -56,7 +86,12 @@
                     "name": "Spacer",
                     "type": "FRAME",
                     "visible": true,
-                    "absoluteBoundingBox": { "x": 1200, "y": 1120, "width": 4, "height": 40 },
+                    "absoluteBoundingBox": {
+                      "x": 1200,
+                      "y": 1120,
+                      "width": 4,
+                      "height": 40
+                    },
                     "children": []
                   },
                   {
@@ -64,7 +99,12 @@
                     "name": "Vector",
                     "type": "VECTOR",
                     "visible": false,
-                    "absoluteBoundingBox": { "x": 1210, "y": 1130, "width": 20, "height": 20 },
+                    "absoluteBoundingBox": {
+                      "x": 1210,
+                      "y": 1130,
+                      "width": 20,
+                      "height": 20
+                    },
                     "children": []
                   }
                 ]
@@ -76,17 +116,28 @@
             "name": "PayButton",
             "type": "INSTANCE",
             "visible": true,
-            "absoluteBoundingBox": { "x": 1016, "y": 1360, "width": 358, "height": 56 },
+            "absoluteBoundingBox": {
+              "x": 1016,
+              "y": 1360,
+              "width": 358,
+              "height": 56
+            },
             "children": [
               {
                 "id": "10:11",
                 "name": "Label",
                 "type": "TEXT",
                 "visible": true,
-                "absoluteBoundingBox": { "x": 1140, "y": 1376, "width": 110, "height": 24 },
+                "absoluteBoundingBox": {
+                  "x": 1140,
+                  "y": 1376,
+                  "width": 110,
+                  "height": 24
+                },
                 "children": []
               }
-            ]
+            ],
+            "componentId": "900:1"
           }
         ]
       }
@@ -97,14 +148,24 @@
         "name": "Checkout",
         "type": "FRAME",
         "visible": true,
-        "absoluteBoundingBox": { "x": -3000, "y": 500, "width": 390, "height": 844 },
+        "absoluteBoundingBox": {
+          "x": -3000,
+          "y": 500,
+          "width": 390,
+          "height": 844
+        },
         "children": [
           {
             "id": "90:3",
             "name": "LegacyBody",
             "type": "FRAME",
             "visible": true,
-            "absoluteBoundingBox": { "x": -3000, "y": 520, "width": 390, "height": 400 },
+            "absoluteBoundingBox": {
+              "x": -3000,
+              "y": 520,
+              "width": 390,
+              "height": 400
+            },
             "children": []
           }
         ]
