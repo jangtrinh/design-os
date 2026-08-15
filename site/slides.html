@@ -7,6 +7,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./deck.css">
+<style>
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .svg-flow-active,
+  .svg-packet-1,
+  .svg-packet-2,
+  .svg-radar-ring {
+    animation: none !important;
+  }
+}
+</style>
 </head>
 <body>
 
@@ -64,7 +82,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-triad-foundations">
+          <button class="interactive-badge-btn" id="btn-pulse-triad-foundations">
               <svg role="img" aria-labelledby="titleTriad descTriad" data-diagram-grammar="architecture" data-reading-order="hub" data-focal-id="nodePillar2" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleTriad">Foundations Triad: The 3 Supreme Truths Architecture</title>
               <desc id="descTriad">Hub-and-spoke structural diagram showing the three founding pillars: Zero Arbitrary Hex, Deterministic Quality Floor, and Pure Binary Separation.</desc>
@@ -72,75 +90,115 @@
             </svg>
               <span>Activate Foundations Triad</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableTriadTitle fableTriadDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="hub"
+            data-focal-id="nodePillar2"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableTriadTitle">The 3 Supreme Truths Architecture Triad</title>
+            <desc id="fableTriadDesc">Equilateral harmonic architecture diagram representing the three unbreakable foundational pillars: OKLCH Color Math, Sovereign Division of Labor, and the 14-Plank Machine Quality Floor.</desc>
 
-            <svg class="diagram-svg" id="svgFoundationsTriad" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 450 260 L 590 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 1050 260 L 1190 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              
-              <g transform="translate(450, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(1050, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+            <defs>
+              <linearGradient id="triadBeam" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="var(--text-primary)" stop-opacity="0.3"/>
+                <stop offset="50%" stop-color="var(--text-primary)" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="var(--text-primary)" stop-opacity="0.3"/>
+              </linearGradient>
+            </defs>
 
-              <!-- Node 1 -->
-              <g transform="translate(50, 60)" id="nodePillar1" style="cursor: pointer;">
-                <rect width="400" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="400" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="350" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="350" cy="48" r="4" fill="var(--text-primary)"/>
-                
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">CHÂN LÝ 01</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Zero Arbitrary Hex</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">100% DTCG Token-Bound</text>
-                
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• 100% màu sắc ánh xạ Token</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Cấm hardcode class tùy tiện</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Cấm số pixel ngẫu nhiên</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Giữ tính nhất quán toàn diện</text>
-                
-                <rect x="32" y="340" width="336" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">ENFORCED: DTCG Tokens</text>
-              </g>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE HARMONIC FIELD • THREE INVIOLABLE TRUTHS</text>
 
-              <!-- Node 2 -->
-              <g transform="translate(590, 60)" id="nodePillar2" style="cursor: pointer;">
-                <rect width="460" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="460" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="410" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="410" cy="48" r="4" fill="var(--text-primary)"/>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 440 250 L 520 250" fill="none" stroke="url(#triadBeam)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">CHÂN LÝ 02</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Sàn Kiểm Định Tất Định</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Deterministic Quality Floor</text>
-                
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Không phụ thuộc hy vọng LLM</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• 14 Luật kiểm định bằng mã máy</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• taste-lint &amp; validate-layout</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Vi phạm = Chặn phát hành (Exit 1)</text>
-                
-                <rect x="32" y="340" width="396" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">GATE: 0-Violation Required</text>
-              </g>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="url(#triadBeam)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-              <!-- Node 3 -->
-              <g transform="translate(1190, 60)" id="nodePillar3" style="cursor: pointer;">
-                <rect width="360" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="360" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="310" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="310" cy="48" r="4" fill="var(--text-primary)"/>
+            <circle cx="480" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-1"/>
+            <circle cx="960" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-2"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">CHÂN LÝ 03</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Hai Nguồn Chân Lý</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Knowledge Core vs UI Binary</text>
-                
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• knowledge/: Tri thức cho AI</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• ui binary: Engine toán học màu</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Zero runtime dependency</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chạy offline, không gọi LLM</text>
-                
-                <rect x="32" y="340" width="296" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">SEPARATION: Pure Binary</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-2">
+            <rect x="450" y="212" width="60" height="20" rx="10" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="480" y="226" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-primary)" text-anchor="middle">FEEDS</text>
+
+            <rect x="930" y="212" width="60" height="20" rx="10" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="960" y="226" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-primary)" text-anchor="middle">ENFORCES</text>
+
+            <!-- PILLAR 1: OKLCH COLOR SCIENCE (Prismatic Chamber) -->
+            <g id="nodePillar1" class="interactive-node" tabindex="0" role="button" aria-label="Truth 1: OKLCH Color Science" style="cursor: pointer;">
+              <rect x="60" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="60" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">TRUTH 01 • COLOR SCIENCE</text>
+              <circle cx="410" cy="102" r="6" fill="var(--text-primary)"/>
+
+              <circle cx="104" cy="165" r="18" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+              <polygon points="104,152 116,172 92,172" fill="var(--text-primary)"/>
+
+              <text x="136" y="162" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">OKLCH Color Math</text>
+              <text x="136" y="182" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Perceptual Uniformity Scale</text>
+
+              <line x1="84" y1="205" x2="416" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Triệt tiêu hoàn toàn HSL &amp; Hex ngẫu nhiên</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Độ sáng cảm nhận L đồng đều mọi góc Hue</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đạt chuẩn tương phản quang học WCAG AA</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Khai thác 100% không gian màu Display P3</text>
+
+              <rect x="84" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="250" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">METRIC: ΔEOK &lt; 0.02 (Pure Precision)</text>
+            </g>
+
+            <!-- PILLAR 2: DIVISION OF LABOR (Dual Core Monolith - FOCAL) -->
+            <g id="nodePillar2" class="interactive-node" tabindex="0" role="button" aria-label="Truth 2: Division of Labor" style="cursor: pointer;">
+              <rect x="520" y="70" width="400" height="360" rx="18" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <rect x="520" y="70" width="400" height="48" rx="18" fill="var(--text-primary)"/>
+              <text x="720" y="100" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.1em" text-anchor="middle">TRUTH 02 • BRAIN &amp; BODY [FOCAL]</text>
+
+              <circle cx="564" cy="165" r="18" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <circle cx="564" cy="165" r="7" fill="var(--text-primary)"/>
+
+              <text x="596" y="162" font-family="var(--font-sans)" font-size="22" font-weight="900" fill="var(--text-primary)">Division of Labor</text>
+              <text x="596" y="182" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Reasoning Brain vs UI Kernel</text>
+
+              <line x1="544" y1="205" x2="896" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="544" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Host AI: Suy luận Persona, IA &amp; Component Tree</text>
+              <text x="544" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• UI Kernel: Đóng gói DTCG Tokens &amp; Toán học màu</text>
+              <text x="544" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tách bạch tuyệt đối giữa Ý Niệm và Thực Thi</text>
+              <text x="544" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Không ảo giác token, không phụ thuộc may rủi</text>
+
+              <rect x="544" y="350" width="352" height="46" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="720" y="378" font-family="var(--font-mono)" font-size="13" font-weight="800" fill="var(--text-primary)" letter-spacing="0.04em" text-anchor="middle">CONTRACT: Zero Stochastic Code</text>
+            </g>
+
+            <!-- PILLAR 3: MACHINE QUALITY FLOOR (14-Plank Grid) -->
+            <g id="nodePillar3" class="interactive-node" tabindex="0" role="button" aria-label="Truth 3: Deterministic Machine Floor" style="cursor: pointer;">
+              <rect x="1000" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="1000" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="1024" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">TRUTH 03 • QUALITY FLOOR</text>
+              <circle cx="1350" cy="102" r="6" fill="var(--text-primary)"/>
+
+              <circle cx="1044" cy="165" r="18" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+              <rect x="1038" y="159" width="12" height="12" fill="var(--text-primary)"/>
+
+              <text x="1076" y="162" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Deterministic Floor</text>
+              <text x="1076" y="182" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">14 Hard Machine Linters</text>
+
+              <line x1="1024" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="1024" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• ui validate-layout: Bắt tràn màn hình &amp; soup &gt; 2</text>
+              <text x="1024" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• ui taste-lint: Sàn thẩm mỹ 6 trục (Taste Floor)</text>
+              <text x="1024" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• ui a11y-lint: Kiểm thử tĩnh chuẩn tiếp cận Tier-1</text>
+              <text x="1024" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Lỗi bất kỳ = Chặn merge Pull Request (Exit 1)</text>
+
+              <rect x="1024" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="1190" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">GATE: 14 Linters 100% Pass</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-2">
               <span class="readout-badge">FOUNDATIONS TRIAD: ACTIVE</span>
               <span class="readout-text" id="readout-text-slide-2">Click any Pillar node or trigger button to inspect architectural contract parameters.</span>
             </div>
@@ -397,7 +455,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-soul">
+          <button class="interactive-badge-btn" id="btn-pulse-soul">
               <svg role="img" aria-labelledby="titleSoul descSoul" data-diagram-grammar="architecture" data-reading-order="ttb" data-focal-id="soulProject" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleSoul">Design Soul Precedence Cascade Architecture</title>
               <desc id="descSoul">Hierarchical cascade diagram showing the three tiers of design truth: Factory Invariants, Studio Standards, and Project Soul.</desc>
@@ -405,79 +463,98 @@
             </svg>
               <span>Test Precedence Chain</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableSoulTitle fableSoulDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="ttb"
+            data-focal-id="soulProject"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableSoulTitle">Design Soul: The 3 Tiers of Sovereignty &amp; Precedence Cascade</title>
+            <desc id="fableSoulDesc">Hierarchical cascade diagram showing the three tiers of design truth: Factory Invariants, Studio Standards, and Project Soul.</desc>
 
-            <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 470 260 L 570 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 1030 260 L 1130 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE SOVEREIGNTY CASCADE • THREE TIERS OF DESIGN TRUTH</text>
 
-              <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-              <!-- Tier 1 -->
-              <g transform="translate(50, 60)" id="soulFactory" style="cursor: pointer;">
-                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="370" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="370" cy="48" r="4" fill="var(--text-primary)"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">TẦNG 1: MẶC ĐỊNH</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Factory Soul</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Built-in Binary Default</text>
+            <circle cx="480" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-1"/>
+            <circle cx="960" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-2"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tiêu chuẩn thẩm mỹ toàn cầu</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Biên dịch sẵn trong mã nguồn</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Đảm bảo chất lượng ngày đầu</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tra cứu: ui ds soul factory</text>
+            <!-- TIER 0: FACTORY INVARIANTS -->
+            <g id="soulFactory" class="interactive-node" tabindex="0" role="button" aria-label="Tier 0: Factory Invariants" style="cursor: pointer;">
+              <rect x="60" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="60" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">TIER 0 • FACTORY (WEIGHT 0)</text>
+              <circle cx="410" cy="102" r="6" fill="var(--text-primary)"/>
 
-                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">READ-ONLY: Built-in Base</text>
-              </g>
+              <circle cx="104" cy="165" r="18" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+              <rect x="96" y="157" width="16" height="16" fill="var(--text-primary)"/>
 
-              <!-- Tier 2 -->
-              <g transform="translate(570, 60)" id="soulStudio" style="cursor: pointer;">
-                <rect width="460" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="460" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="410" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="410" cy="48" r="4" fill="var(--text-primary)"/>
+              <text x="136" y="162" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Factory Invariants</text>
+              <text x="136" y="182" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Immutable Architectural Laws</text>
+              <line x1="84" y1="205" x2="416" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">TẦNG 2: CẤP MÁY / STUDIO</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Studio Soul</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">$EASE_DESIGN_HOME/studio-soul.md</text>
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Triệt tiêu Purple-on-Dark &amp; Glow Borders</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Cấm container lồng nhau quá 2 cấp (Soup)</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Chuẩn tiếp cận WCAG 2.2 AA bắt buộc</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Luật cứng: Không thể bị ghi đè (Immutable)</text>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Khởi tạo 1 lần cho cả máy</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Trường name: định danh Agent</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Áp dụng cho mọi repo trên máy</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Lệnh: ui ds soul init --studio</text>
+              <rect x="84" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="250" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">SOVEREIGNTY: Absolute Floor</text>
+            </g>
 
-                <rect x="32" y="340" width="396" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">PREFIX: designer-studio-*</text>
-              </g>
+            <!-- TIER 1: STUDIO STANDARDS -->
+            <g id="soulStudio" class="interactive-node" tabindex="0" role="button" aria-label="Tier 1: Studio Standards" style="cursor: pointer;">
+              <rect x="520" y="80" width="400" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="520" y="80" width="400" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="544" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">TIER 1 • STUDIO (WEIGHT 50)</text>
+              <circle cx="890" cy="102" r="6" fill="var(--text-primary)"/>
 
-              <!-- Tier 3 -->
-              <g transform="translate(1130, 60)" id="soulProject" style="cursor: pointer;">
-                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="370" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="370" cy="48" r="4" fill="var(--text-primary)"/>
+              <circle cx="564" cy="165" r="18" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
+              <polygon points="564,152 576,172 552,172" fill="var(--text-primary)"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">TẦNG 3: CẤP DỰ ÁN</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Project Soul</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">design/soul.md</text>
+              <text x="596" y="162" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Studio Standards</text>
+              <text x="596" y="182" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Workspace Shared Conventions</text>
+              <line x1="544" y1="205" x2="896" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Quy tắc Never / Always / Voice</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Ghi đè ưu tiên cao nhất</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Kiểm tra: ui ds soul check</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chuyển draft sang ratified</text>
+              <text x="544" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Chuẩn nhịp 8px Spacing Grid toàn team</text>
+              <text x="544" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Thư viện Icon mặc định: Phosphor Icons</text>
+              <text x="544" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Font typography mặc định theo phân khúc</text>
+              <text x="544" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Định hình phong cách chung cả tổ chức</text>
 
-                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">AUTHORITY: Project Overrides</text>
-              </g>
+              <rect x="544" y="350" width="352" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="720" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">WORKSPACE: Shared Stance</text>
+            </g>
 
-              <text x="800" y="490" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" text-anchor="middle">
-                Chuỗi Ưu Tiên: Explicit Brief &gt; Project Soul &gt; Studio Soul &gt; Memory Prior &gt; Knowledge Floors
-              </text>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-5">
+            <!-- TIER 2: PROJECT SOUL -->
+            <g id="soulProject" class="interactive-node" tabindex="0" role="button" aria-label="Tier 2: Project Soul" style="cursor: pointer;">
+              <rect x="1000" y="70" width="380" height="360" rx="18" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <rect x="1000" y="70" width="380" height="48" rx="18" fill="var(--text-primary)"/>
+              <text x="1190" y="100" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.1em" text-anchor="middle">TIER 2 • PROJECT SOUL [FOCAL]</text>
+
+              <circle cx="1044" cy="165" r="18" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <circle cx="1044" cy="165" r="8" fill="var(--text-primary)"/>
+
+              <text x="1076" y="162" font-family="var(--font-sans)" font-size="22" font-weight="900" fill="var(--text-primary)">Project Soul</text>
+              <text x="1076" y="182" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Bespoke Brand Persona</text>
+              <line x1="1024" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="1024" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Persona gia đình: Aurora Minimal / Brutalist</text>
+              <text x="1024" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Bảng màu thương hiệu OKLCH độc bản</text>
+              <text x="1024" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Độ cao thang chuyển động (Motion Cap T5)</text>
+              <text x="1024" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Ghi đè Studio Stance khi Brief yêu cầu</text>
+
+              <rect x="1024" y="350" width="332" height="46" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="1190" y="378" font-family="var(--font-mono)" font-size="13" font-weight="800" fill="var(--text-primary)" letter-spacing="0.04em" text-anchor="middle">PRECEDENCE: Project Brief Wins</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-5">
               <span class="readout-badge">PRECEDENCE: HIERARCHICAL</span>
               <span class="readout-text" id="readout-text-slide-5">Click tiers to test rule resolution: Explicit User Brief (100) > Project Soul (75) > Studio Standards (50) > Factory Invariants (0).</span>
             </div>
@@ -724,7 +801,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-figma-bridge">
+          <button class="interactive-badge-btn" id="btn-pulse-figma-bridge">
               <svg role="img" aria-labelledby="titleFigma descFigma" data-diagram-grammar="architecture" data-reading-order="ltr" data-focal-id="figmaNodeBroker" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleFigma">Figma Desktop Bridge & WebSocket Port 9410 Architecture</title>
               <desc id="descFigma">Bi-directional architecture diagram linking Code DTCG Tokens, the local 127.0.0.1:9410 WebSocket Broker, and the live Figma Desktop Canvas.</desc>
@@ -732,69 +809,99 @@
             </svg>
               <span>Simulate 2-Way Sync</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableFigmaTitle fableFigmaDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="ltr"
+            data-focal-id="figmaNodeBroker"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableFigmaTitle">The Two-Way Bridge: Code Tokens to Live Figma Desktop Canvas</title>
+            <desc id="fableFigmaDesc">Bi-directional suspension bridge diagram connecting Code AST Tokens and Figma Desktop Canvas via Port 9410 Broker.</desc>
 
-            <svg class="diagram-svg" id="svgFigmaBridge" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 440 260 L 580 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 1020 260 L 1160 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE TWO-WAY BRIDGE • PORT 9410 BI-DIRECTIONAL REAL-TIME SYNCHRONIZATION</text>
 
-              <g transform="translate(440, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(1020, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+            <path d="M 380 250 C 440 250, 460 250, 520 250" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 380 250 C 440 250, 460 250, 520 250" fill="none" stroke="var(--text-primary)" stroke-width="3" stroke-dasharray="10 8" class="svg-flow-active"/>
 
-              <!-- Left Node: Codebase & Tokens -->
-              <g transform="translate(50, 60)" id="figmaNodeCode" style="cursor: pointer;">
-                <rect width="390" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="390" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700">CODE ENGINE</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">DTCG Tokens</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">design/tokens.json</text>
+            <path d="M 920 250 C 980 250, 1000 250, 1060 250" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 920 250 C 980 250, 1000 250, 1060 250" fill="none" stroke="var(--text-primary)" stroke-width="3" stroke-dasharray="10 8" class="svg-flow-active"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 100% định nghĩa màu sắc OKLCH</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Typography modular scales</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Component registry specs</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Lệnh: ui ds build --figma</text>
+            <circle cx="450" cy="250" r="7" fill="var(--text-primary)" class="svg-packet-1"/>
+            <circle cx="990" cy="250" r="7" fill="var(--text-primary)" class="svg-packet-2"/>
 
-                <rect x="32" y="340" width="326" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">INPUT: Pure Code Truth</text>
-              </g>
+            <rect x="415" y="210" width="70" height="22" rx="11" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="450" y="225" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-primary)" text-anchor="middle">PUSH DTCG</text>
 
-              <!-- Center Node: Broker WebSocket Port 9410 -->
-              <g transform="translate(580, 60)" id="figmaNodeBroker" style="cursor: pointer;">
-                <rect width="440" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
-                <rect x="0" y="0" width="440" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="390" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="390" cy="48" r="5" fill="var(--text-primary)"/>
+            <rect x="955" y="210" width="70" height="22" rx="11" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="990" y="225" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="var(--text-primary)" text-anchor="middle">PULL AST</text>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700">LOCAL BROKER</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">figma-agent (9410)</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">WebSocket IPC Protocol</text>
+            <!-- WEST BANK: CODE -->
+            <g id="figmaNodeCode" class="interactive-node" tabindex="0" role="button" aria-label="West Bank: Code Token Matrix" style="cursor: pointer;">
+              <rect x="60" y="80" width="320" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="60" y="80" width="320" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">WEST BANK • CODE</text>
+              <circle cx="350" cy="102" r="6" fill="var(--text-primary)"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Giám sát trạng thái Plugin kết nối</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Biến đổi lệnh CLI thành Figma API</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Chặn xung đột khi designer thao tác</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tự ngắt kết nối an toàn (Fail Soft)</text>
+              <text x="84" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Code Repository</text>
+              <text x="84" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">design/tokens.json (DTCG)</text>
+              <line x1="84" y1="205" x2="356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <rect x="32" y="340" width="376" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">STATUS: WS://127.0.0.1:9410</text>
-              </g>
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Chân lý màu: design/tokens.json</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Lệnh biên dịch: ui tokens export</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Khung mã AST ngữ nghĩa HTML/CSS</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tự động sinh Pull Request AST diff</text>
 
-              <!-- Right Node: Figma Desktop Canvas -->
-              <g transform="translate(1160, 60)" id="figmaNodeCanvas" style="cursor: pointer;">
-                <rect width="390" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="390" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700">CANVAS ENVIRONMENT</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Figma Desktop App</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Official Plugin Manifest v2</text>
+              <rect x="84" y="350" width="272" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="220" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">SOURCE: Canonical DTCG</text>
+            </g>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Auto-Layout dựng động chính xác</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Hoán đổi Instance thật từ Library</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Gán Figma Variables chuẩn token</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Lệnh: /ui:to-figma &amp; /ui:audit</text>
+            <!-- CENTER ARCH: BROKER (FOCAL) -->
+            <g id="figmaNodeBroker" class="interactive-node" tabindex="0" role="button" aria-label="Center Arch: Port 9410 Rotary Commutator" style="cursor: pointer;">
+              <polygon points="720,60 900,155 900,345 720,440 540,345 540,155" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              
+              <rect x="580" y="80" width="280" height="36" rx="18" fill="var(--text-primary)"/>
+              <text x="720" y="103" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.08em" text-anchor="middle">WS BROKER : 9410 [FOCAL]</text>
 
-                <rect x="32" y="340" width="326" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CANVAS: 1:1 Live Sync</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-10">
+              <circle cx="720" cy="200" r="45" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2.5"/>
+              <circle cx="720" cy="200" r="8" fill="var(--text-primary)"/>
+              <line x1="720" y1="160" x2="720" y2="240" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+              <line x1="680" y1="200" x2="760" y2="200" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+
+              <text x="720" y="270" font-family="var(--font-sans)" font-size="20" font-weight="900" fill="var(--text-primary)" text-anchor="middle">figma-agent Broker</text>
+              <text x="720" y="292" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)" text-anchor="middle">127.0.0.1:9410 WebSocket Engine</text>
+
+              <line x1="600" y1="315" x2="840" y2="315" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="720" y="338" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)" text-anchor="middle">• Atomic Token Serialization</text>
+              <text x="720" y="360" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)" text-anchor="middle">• Mutex Conflict-Lock Protocol</text>
+
+              <rect x="580" y="380" width="280" height="36" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="720" y="403" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" text-anchor="middle">STATUS: Port 9410 Connected</text>
+            </g>
+
+            <!-- EAST BANK: CANVAS -->
+            <g id="figmaNodeCanvas" class="interactive-node" tabindex="0" role="button" aria-label="East Bank: Live Figma Desktop Canvas" style="cursor: pointer;">
+              <rect x="1060" y="80" width="320" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="1060" y="80" width="320" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="1084" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">EAST BANK • CANVAS</text>
+              <circle cx="1350" cy="102" r="6" fill="var(--text-primary)"/>
+
+              <text x="1084" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Figma Desktop Canvas</text>
+              <text x="1084" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Live Variables &amp; Auto-Layout</text>
+              <line x1="1084" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="1084" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Liên kết trực tiếp Figma Variables</text>
+              <text x="1084" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Auto-Layout tương thích 1:1 Flexbox</text>
+              <text x="1084" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Designer chỉnh sửa = Gửi event WebSocket</text>
+              <text x="1084" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tự động bắt sự kiện qua Plugin manifest</text>
+
+              <rect x="1084" y="350" width="272" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="1220" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">SURFACE: Live Native Canvas</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-10">
               <span class="readout-badge">BROKER: PORT 9410 READY</span>
               <span class="readout-text" id="readout-text-slide-10">Click nodes or simulation button to inspect bi-directional Code-to-Canvas push and Canvas-to-Code pull mechanics.</span>
             </div>
@@ -870,7 +977,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-audit-surfaces">
+          <button class="interactive-badge-btn" id="btn-pulse-audit-surfaces">
               <svg role="img" aria-labelledby="titleAudit descAudit" data-diagram-grammar="architecture" data-reading-order="hub" data-focal-id="auditQuad1" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleAudit">The 4 Registered Audit Surfaces Matrix</title>
               <desc id="descAudit">2-by-2 matrix diagram categorizing the four deterministic verification surfaces: taste-lint, validate-layout, a11y-lint, and full-audit.</desc>
@@ -878,65 +985,97 @@
             </svg>
               <span>Simulate 4 Audit Surfaces</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableAuditTitle fableAuditDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="hub"
+            data-focal-id="auditQuad1"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableAuditTitle">The 4 Registered Audit Surfaces Matrix</title>
+            <desc id="fableAuditDesc">Quadrant architecture matrix showing the four deterministic verification surfaces: taste-lint, validate-layout, a11y-lint, and full-stack vr-gate release suites.</desc>
 
-            <svg class="diagram-svg" id="svgAuditSurfaces" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Quadrant 1 -->
-              <g transform="translate(40, 40)" id="auditQuad1" style="cursor: pointer;">
-                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE 4-CHAMBER QUALITY SIEVE • DETERMINISTIC VERIFICATION MATRIX</text>
 
-                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 01 • FIGMA NODES JSON</text>
-                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">ui audit &lt;nodes.json&gt;</text>
-                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét báo cáo cấu trúc node xuất từ Figma</text>
-                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Bắt lỗi: raw-hex, detached-instance, off-grid spacing</text>
-                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Đã có file node JSON và cần báo cáo vi phạm Design System.</text>
-              </g>
+            <!-- Quad 1: Taste Lint -->
+            <g id="auditQuad1" class="interactive-node" tabindex="0" role="button" aria-label="Quadrant 1: ui taste-lint" style="cursor: pointer;">
+              <rect x="60" y="80" width="310" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="2.5"/>
+              <rect x="60" y="80" width="310" height="44" rx="16" fill="var(--text-primary)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.08em">SURFACE 01 • TASTE LINT [FOCAL]</text>
 
-              <!-- Quadrant 2 -->
-              <g transform="translate(830, 40)" id="auditQuad2" style="cursor: pointer;">
-                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+              <text x="84" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">ui taste-lint</text>
+              <text x="84" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">6-Axis Aesthetic Rubric Floor</text>
+              <line x1="84" y1="205" x2="346" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 02 • LIVE FIGMA CANVAS</text>
-                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">/ui:audit</text>
-                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét frame Figma đang mở trên Desktop qua port 9410</text>
-                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Tự động CHUẨN HÓA: gán token, thay icon, re-instance component</text>
-                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Người dùng yêu cầu "Chuẩn hóa frame Figma này về đúng DS".</text>
-              </g>
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Quét tĩnh HTML/CSS không cần render</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• 14 Luật cấm (Anti-Patterns)</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Kiểm tra Tracking &amp; Bo góc token</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tốc độ: &lt; 20ms thực thi</text>
 
-              <!-- Quadrant 3 -->
-              <g transform="translate(40, 270)" id="auditQuad3" style="cursor: pointer;">
-                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+              <rect x="84" y="350" width="262" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="1.5"/>
+              <text x="215" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">EXIT: Floor Score &ge; 8.0</text>
+            </g>
 
-                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 03 • HTML / PROJECT SWEEP</text>
-                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">design-os audit &lt;dir&gt;</text>
-                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét tĩnh toàn diện mã nguồn: validate-layout + a11y-lint + taste-lint</text>
-                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Bắt lỗi 14 luật máy, cấu trúc DOM, overflow, touch-target</text>
-                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Kiểm tra toàn bộ giao diện HTML trước khi đóng gói release.</text>
-              </g>
+            <!-- Quad 2: Validate Layout -->
+            <g id="auditQuad2" class="interactive-node" tabindex="0" role="button" aria-label="Quadrant 2: ui validate-layout" style="cursor: pointer;">
+              <rect x="400" y="80" width="310" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="400" y="80" width="310" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="424" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">SURFACE 02 • LAYOUT</text>
 
-              <!-- Quadrant 4 -->
-              <g transform="translate(830, 270)" id="auditQuad4" style="cursor: pointer;">
-                <rect width="730" height="210" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="730" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="680" cy="38" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="680" cy="38" r="4" fill="var(--text-primary)"/>
+              <text x="424" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">ui validate-layout</text>
+              <text x="424" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Container Soup &amp; Overflow</text>
+              <line x1="424" y1="205" x2="686" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <text x="24" y="42" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" letter-spacing="1">SURFACE 04 • TOKEN PAIRS WCAG</text>
-                <text x="24" y="80" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="22" font-weight="700">ui ds a11y</text>
-                <text x="24" y="115" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Kiểm tra độ tương phản tĩnh của từng cặp màu (text × surface)</text>
-                <text x="24" y="145" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Xác minh tiêu chuẩn WCAG AA (4.5:1 text, 3:1 display / UI)</text>
-                <text x="24" y="180" fill="var(--text-muted)" font-family="'Inter'" font-size="14">👉 Dùng khi: Muốn trả lời nhanh "Bảng màu token này có đạt chuẩn WCAG AA không?"</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-12">
+              <text x="424" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Bắt container lồng nhau &gt; 2 cấp</text>
+              <text x="424" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Quét tràn nội dung trục ngang</text>
+              <text x="424" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Phát hiện đứt gãy Grid / Flexbox</text>
+              <text x="424" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Khắc phục tự động qua autofix</text>
+
+              <rect x="424" y="350" width="262" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="555" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">CHECK: Nesting &le; 2 Levels</text>
+            </g>
+
+            <!-- Quad 3: A11y Lint -->
+            <g id="auditQuad3" class="interactive-node" tabindex="0" role="button" aria-label="Quadrant 3: ui a11y-lint" style="cursor: pointer;">
+              <rect x="740" y="80" width="310" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="740" y="80" width="310" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="764" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">SURFACE 03 • ACCESSIBILITY</text>
+
+              <text x="764" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">ui a11y-lint</text>
+              <text x="764" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Tier-1 Static Accessibility Floor</text>
+              <line x1="764" y1="205" x2="1026" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="764" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tương phản WCAG 2.2 AA (4.5:1)</text>
+              <text x="764" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Bắt buộc role, title, aria-labels</text>
+              <text x="764" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Kiểm tra thứ tự Focus bàn phím</text>
+              <text x="764" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Cấm thẻ img thiếu alt, button rỗng</text>
+
+              <rect x="764" y="350" width="262" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="895" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">LEVEL: WCAG 2.2 AA Static</text>
+            </g>
+
+            <!-- Quad 4: Full Audit -->
+            <g id="auditQuad4" class="interactive-node" tabindex="0" role="button" aria-label="Quadrant 4: design-os audit" style="cursor: pointer;">
+              <rect x="1080" y="80" width="300" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="1080" y="80" width="300" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="1104" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">SURFACE 04 • FULL SUITE</text>
+
+              <text x="1104" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">design-os audit</text>
+              <text x="1104" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">10-Tool Release Suite &amp; VR</text>
+              <line x1="1104" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="1104" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Kết hợp 10 công cụ kiểm định toàn diện</text>
+              <text x="1104" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Quét Visual Regression 3 Viewports</text>
+              <text x="1104" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đồng bộ Dark/Light Paired Tokens</text>
+              <text x="1104" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Điều kiện tiên quyết để tạo PR merge</text>
+
+              <rect x="1104" y="350" width="252" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="1230" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">GATE: 0 Errors Required</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-12">
               <span class="readout-badge">SURFACES: 4 REGISTERED</span>
               <span class="readout-text" id="readout-text-slide-12">Click any of the 4 quadrants to inspect its exact CLI command, verification scope, and execution order.</span>
             </div>
@@ -1006,7 +1145,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-memory">
+          <button class="interactive-badge-btn" id="btn-pulse-memory">
               <svg role="img" aria-labelledby="titleMemory descMemory" data-diagram-grammar="architecture" data-reading-order="ltr" data-focal-id="memReflect" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleMemory">Design Vector Memory Recall & Reflect Loop</title>
               <desc id="descMemory">Loop architecture diagram illustrating the three steps of persistent design learning: Recall embedding search, Work execution, and Reflect distillation.</desc>
@@ -1014,79 +1153,89 @@
             </svg>
               <span>Activate Learning Loop</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableMemTitle fableMemDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="ltr"
+            data-focal-id="memReflect"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableMemTitle">Design Vector Memory: The Recall &amp; Reflection Distillation Loop</title>
+            <desc id="fableMemDesc">Vector manifold diagram showing the three phases of continuous design learning.</desc>
 
-            <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 480 260 L 560 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 980 260 L 1060 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE RESONANT VECTOR MANIFOLD • PERSISTENT DISTILLATION LOOP</text>
 
-              <g transform="translate(480, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(980, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-              <!-- Step 1 -->
-              <g transform="translate(50, 60)" id="memRecall" style="cursor: pointer;">
-                <rect width="430" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="380" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="380" cy="48" r="4" fill="var(--text-primary)"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">1. ĐẦU PHIÊN (JOB START)</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Recall Query</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Vector Embeddings (ONNX)</text>
+            <circle cx="480" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-1"/>
+            <circle cx="960" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-2"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Truy vấn bộ nhớ vector cục bộ</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Tìm kiếm bài học kinh nghiệm cũ</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Nạp danh sách ID vào context</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chuẩn bị prompt prior chính xác</text>
+            <!-- STEP 1: RECALL -->
+            <g id="memRecall" class="interactive-node" tabindex="0" role="button" aria-label="Step 1: Vector Recall Manifold" style="cursor: pointer;">
+              <rect x="60" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="60" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">STEP 01 • VECTOR RECALL</text>
+              <circle cx="410" cy="102" r="6" fill="var(--text-primary)"/>
 
-                <rect x="32" y="340" width="366" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">CMD: recall query &lt;topic&gt;</text>
-              </g>
+              <text x="84" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Recall Embedding Query</text>
+              <text x="84" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Local ONNX Latent Space</text>
+              <line x1="84" y1="205" x2="416" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-              <!-- Step 2 -->
-              <g transform="translate(560, 60)" id="memWork" style="cursor: pointer;">
-                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="370" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="370" cy="48" r="4" fill="var(--text-primary)"/>
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Quét Brief qua mô hình Vector ONNX cục bộ</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đo độ tương đồng Cosine (Cosine Similarity &ge; 0.85)</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Truy hồi 2 bài học kinh nghiệm sát nhất</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Nạp trực tiếp vào ngữ cảnh Host AI Agent</text>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">2. THỰC HIỆN CÔNG VIỆC</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Design &amp; Lint</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Execution &amp; Telemetry</text>
+              <rect x="84" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="250" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">LATENT: Cosine Match &ge; 0.85</text>
+            </g>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Sinh giao diện theo tokens</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Chạy qua sàn linter tất định</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Thu thập telemetry &amp; events</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Ghi nhận tương tác thiết kế</text>
+            <!-- STEP 2: WORK EXECUTION -->
+            <g id="memWork" class="interactive-node" tabindex="0" role="button" aria-label="Step 2: Primed Work Execution" style="cursor: pointer;">
+              <rect x="520" y="80" width="400" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="520" y="80" width="400" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="544" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">STEP 02 • WORK EXECUTION</text>
+              <circle cx="890" cy="102" r="6" fill="var(--text-primary)"/>
 
-                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">STATUS: job-events.json</text>
-              </g>
+              <text x="544" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Primed Synthesis</text>
+              <text x="544" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Grounded Generation Pass</text>
+              <line x1="544" y1="205" x2="896" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-              <!-- Step 3 -->
-              <g transform="translate(1060, 60)" id="memReflect" style="cursor: pointer;">
-                <rect width="490" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="490" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="440" cy="48" r="8" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="440" cy="48" r="4" fill="var(--text-primary)"/>
+              <text x="544" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Sinh mã giao diện với bối cảnh đã tôi luyện</text>
+              <text x="544" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tuyệt đối không lặp lại lỗi thiết kế cũ</text>
+              <text x="544" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Áp dụng Persona và Token chuẩn xác</text>
+              <text x="544" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tiết kiệm hàng triệu token context window</text>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="16" font-weight="700" letter-spacing="1">3. CUỐI PHIÊN (JOB END)</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="700">Reflect &amp; Learn</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15">Knowledge Distillation</text>
+              <rect x="544" y="350" width="352" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="720" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">EXECUTION: Zero Regression</text>
+            </g>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• recall index --project .</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• recall reflect job-events.json</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Đúc kết bài học thành công/thất bại</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="18">• Cập nhật vĩnh viễn vào kho tri thức</text>
+            <!-- STEP 3: REFLECT -->
+            <g id="memReflect" class="interactive-node" tabindex="0" role="button" aria-label="Step 3: Reflection &amp; Distillation" style="cursor: pointer;">
+              <rect x="1000" y="70" width="380" height="360" rx="18" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <rect x="1000" y="70" width="380" height="48" rx="18" fill="var(--text-primary)"/>
+              <text x="1190" y="100" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.1em" text-anchor="middle">STEP 03 • REFLECT &amp; DISTILL [FOCAL]</text>
 
-                <rect x="32" y="340" width="426" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">RESULT: Permanent Memory Gain</text>
-              </g>
+              <text x="1024" y="160" font-family="var(--font-sans)" font-size="22" font-weight="900" fill="var(--text-primary)">Crucible Distillation</text>
+              <text x="1024" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">.design/memory.json Repository</text>
+              <line x1="1024" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-              <text x="800" y="490" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" text-anchor="middle">
-                Hệ thống tự học hỏi: Càng làm việc, DESIGN:OS càng thấu hiểu phong cách của đội ngũ.
-              </text>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-14">
+              <text x="1024" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đúc kết bài học sau mỗi lượt giao diện thành công</text>
+              <text x="1024" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đóng băng kinh nghiệm thành JSON có cấu trúc</text>
+              <text x="1024" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Cập nhật kho tri thức vĩnh cửu .design/memory.json</text>
+              <text x="1024" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Khép kín chu trình tự học vô hạn của Agent</text>
+
+              <rect x="1024" y="350" width="332" height="46" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="1190" y="378" font-family="var(--font-mono)" font-size="13" font-weight="800" fill="var(--text-primary)" letter-spacing="0.04em" text-anchor="middle">STORAGE: .design/memory.json</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-14">
               <span class="readout-badge">VECTOR MEMORY: ONNX READY</span>
               <span class="readout-text" id="readout-text-slide-14">Click steps to test Recall query embedding, execution context priming, and post-task lesson distillation.</span>
             </div>
@@ -1160,7 +1309,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-color-gamut">
+          <button class="interactive-badge-btn" id="btn-pulse-color-gamut">
               <svg role="img" aria-labelledby="titleColor descColor" data-diagram-grammar="architecture" data-reading-order="ltr" data-focal-id="colorOKLCH" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleColor">Color Science: OKLCH and Display P3 Gamut Space</title>
               <desc id="descColor">Color space diagram comparing legacy HSL perceptual distortion against uniform OKLCH perceptual lightness and Delta EOK semver distance.</desc>
@@ -1168,69 +1317,89 @@
             </svg>
               <span>Kiểm Tra Gamut P3 &amp; Delta EOK</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableColorTitle fableColorDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="ltr"
+            data-focal-id="colorOKLCH"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableColorTitle">Color Science: OKLCH &amp; Display P3 Perceptual Uniformity</title>
+            <desc id="fableColorDesc">Color gamut architecture diagram illustrating legacy HSL non-linear brightness distortion, uniform OKLCH perceived lightness across all 360-degree hues, and mathematical Semver breaking changes via Delta EOK calipers.</desc>
 
-            <svg class="diagram-svg" id="svgColorGamut" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 470 260 L 550 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 1030 260 L 1110 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE POLARIZED OPTICAL CHAMBER • OKLCH COLOR SCIENCE &amp; DELTA E PRECISION</text>
 
-              <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-              <!-- Node 1: HSL Flaw -->
-              <g transform="translate(40, 60)" id="colorHSL" style="cursor: pointer;">
-                <rect width="420" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="420" height="8" rx="4" fill="var(--text-muted)"/>
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">VẤN ĐỀ CỦA HSL CŨ</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">HSL / Hex Lệch Sáng</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Perceptual Non-uniformity</text>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--border-strong)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Màu vàng hsl(60, 100%, 50%) chói lòa</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Màu xanh hsl(240, 100%, 50%) tối sầm</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Cùng độ sáng L=50% nhưng mắt thấy khác</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Khiến UI accessibility bị vỡ ngầm</text>
+            <circle cx="480" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-1"/>
+            <circle cx="960" cy="250" r="6" fill="var(--text-primary)" class="svg-packet-2"/>
 
-                <rect x="32" y="340" width="356" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">DEPRECATED: Raw Hex / HSL</text>
-              </g>
+            <!-- CHAMBER 1: HSL -->
+            <g id="colorHSL" class="interactive-node" tabindex="0" role="button" aria-label="Legacy HSL Flaw" style="cursor: pointer;">
+              <rect x="60" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="60" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-muted)" letter-spacing="0.08em">LEGACY COLOR • HSL / sRGB</text>
+              <circle cx="410" cy="102" r="6" fill="var(--text-muted)"/>
 
-              <!-- Node 2: OKLCH Math -->
-              <g transform="translate(550, 60)" id="colorOKLCH" style="cursor: pointer;">
-                <rect width="470" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
-                <rect x="0" y="0" width="470" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="420" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="420" cy="48" r="5" fill="var(--text-primary)"/>
+              <text x="84" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">HSL Perceptual Flaw</text>
+              <text x="84" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Non-Linear Human Optical Perception</text>
+              <line x1="84" y1="205" x2="416" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">CHUẨN MỰC OKLCH</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Đồng Đều Cảm Nhận</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">oklch(L C H / alpha)</text>
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Vàng L=50% sáng gấp 3 lần Xanh L=50%</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đổi tông màu (Hue) làm vỡ độ tương phản</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Chỉ bao phủ không gian màu hẹp sRGB</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Ảo giác toán học không đáng tin cậy</text>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• L (Lightness): Đo lường độ sáng thực mắt thấy</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• C (Chroma): Độ rực bão hòa màu</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• H (Hue): Góc sắc độ từ 0 đến 360</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Hỗ trợ chuẩn dải màu rộng Display P3</text>
+              <rect x="84" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="250" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-muted)" text-anchor="middle">FLAW: Inconsistent Luminance</text>
+            </g>
 
-                <rect x="32" y="340" width="406" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">ENFORCED: ui color scale</text>
-              </g>
+            <!-- CHAMBER 2: OKLCH -->
+            <g id="colorOKLCH" class="interactive-node" tabindex="0" role="button" aria-label="OKLCH Color Science" style="cursor: pointer;">
+              <rect x="520" y="70" width="400" height="360" rx="18" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <rect x="520" y="70" width="400" height="48" rx="18" fill="var(--text-primary)"/>
+              <text x="720" y="100" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.1em" text-anchor="middle">OKLCH SCIENCE • DISPLAY P3 [FOCAL]</text>
 
-              <!-- Node 3: Delta EOK Semver -->
-              <g transform="translate(1110, 60)" id="colorDelta" style="cursor: pointer;">
-                <rect width="450" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="450" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">NGƯỠNG LỆCH THẨM MỸ</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Delta EOK Semver</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Toán Học Đo Sai Khác Màu</text>
+              <text x="544" y="160" font-family="var(--font-sans)" font-size="22" font-weight="900" fill="var(--text-primary)">OKLCH Uniformity</text>
+              <text x="544" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Perceptually Constant Lightness L</text>
+              <line x1="544" y1="205" x2="896" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Delta EOK &lt; 0.02: Không thể nhận biết (PATCH)</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 0.02 - 0.08: Lệch tinh tế có chủ đích (MINOR)</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Delta EOK &gt; 0.08: Đổi màu breaking (MAJOR)</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tự động đánh giá Breaking trong PR diff</text>
+              <text x="544" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Độ sáng cảm nhận L=0.7 đồng đều mọi góc Hue</text>
+              <text x="544" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tự động bảo đảm chuẩn tương phản WCAG 2.2</text>
+              <text x="544" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Khai thác 100% dải màu siêu rộng Display P3</text>
+              <text x="544" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tích hợp trực tiếp lệnh CLI: ui color scale</text>
 
-                <rect x="32" y="340" width="386" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">METRIC: ΔEOK &lt; 0.02 Safe</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-16">
+              <rect x="544" y="350" width="352" height="46" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="720" y="378" font-family="var(--font-mono)" font-size="13" font-weight="800" fill="var(--text-primary)" letter-spacing="0.04em" text-anchor="middle">STANDARD: 100% P3 Color Gamut</text>
+            </g>
+
+            <!-- CHAMBER 3: SEMVER DELTA -->
+            <g id="colorDelta" class="interactive-node" tabindex="0" role="button" aria-label="Delta EOK Semver Precision" style="cursor: pointer;">
+              <rect x="1000" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="1000" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="1024" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">SEMVER DELTA • ΔEOK</text>
+              <circle cx="1350" cy="102" r="6" fill="var(--text-primary)"/>
+
+              <text x="1024" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">ΔEOK Precision Meter</text>
+              <text x="1024" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Mathematical Semver Versioning</text>
+              <line x1="1024" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="1024" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• ΔEOK &gt; 0.05: Thay đổi lớn (MAJOR Breaking)</text>
+              <text x="1024" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• 0.02 &lt; ΔEOK &le; 0.05: Bổ sung (MINOR Additive)</text>
+              <text x="1024" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• ΔEOK &le; 0.02: Vi chỉnh không lệch mắt (PATCH)</text>
+              <text x="1024" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đánh giá khách quan, loại bỏ tranh cãi cảm tính</text>
+
+              <rect x="1024" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="1190" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">CALIPER: Precise Semver Gate</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-16">
               <span class="readout-badge">COLOR MATH: OKLCH / P3</span>
               <span class="readout-text" id="readout-text-slide-16">Inspect why OKLCH delivers uniform perceptual lightness L across all hues and how ΔEOK enforces Semver breaking color changes.</span>
             </div>
@@ -1256,7 +1425,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-taste-radar">
+          <button class="interactive-badge-btn" id="btn-pulse-taste-radar">
               <svg role="img" aria-labelledby="titleTaste descTaste" data-diagram-grammar="architecture" data-reading-order="hub" data-focal-id="tasteCore7" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleTaste">The 6+1 Taste Rubric Craft Radar Matrix</title>
               <desc id="descTaste">Radar diagram presenting the central Consistency Core Axis along with the 6 aesthetic craft axes and their quality floor scores.</desc>
@@ -1264,102 +1433,77 @@
             </svg>
               <span>Scan 6+1 Taste Radar (Score 8–10)</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableTasteTitle fableTasteDesc"
+            data-diagram-grammar="architecture"
+            data-reading-order="hub"
+            data-focal-id="tasteCore7"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableTasteTitle">The 6+1 Taste Rubric Craft Radar Matrix</title>
+            <desc id="fableTasteDesc">Heptagonal craft resonator radar diagram evaluating generated UI against Consistency Core 7 and the 6 aesthetic axes.</desc>
 
-            <svg class="diagram-svg" id="svgTasteRadar" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 470 150 L 510 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 470 370 L 510 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 840 150 L 860 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 1190 150 L 1210 150" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 840 370 L 860 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 1190 370 L 1210 370" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE HEPTAGONAL CRAFT RESONATOR • 6+1 TASTE RUBRIC FLOOR (ui taste-lint)</text>
 
-              <!-- LEFT MASTER CORE -->
-              <g transform="translate(40, 50)" id="tasteCore7" style="cursor: pointer;">
-                <rect width="430" height="420" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
-                <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="380" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="380" cy="48" r="5" fill="var(--text-primary)"/>
+            <circle cx="720" cy="260" r="160" fill="none" stroke="var(--border-subtle)" stroke-width="1" stroke-dasharray="4 4"/>
+            <circle cx="720" cy="260" r="110" fill="none" stroke="var(--border-subtle)" stroke-width="1" stroke-dasharray="4 4"/>
+            <circle cx="720" cy="260" r="60" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
 
-                <text x="28" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700" letter-spacing="1">TRỤC 7 (TRỌNG TÂM CỐT LÕI)</text>
-                <text x="28" y="90" fill="var(--text-primary)" font-family="'Inter'" font-size="28" font-weight="800">Consistency</text>
-                <text x="28" y="122" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">100% DTCG Token Reuse</text>
+            <line x1="720" y1="260" x2="720" y2="80" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <line x1="720" y1="260" x2="880" y2="170" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <line x1="720" y1="260" x2="880" y2="350" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <line x1="720" y1="260" x2="720" y2="440" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <line x1="720" y1="260" x2="560" y2="350" stroke="var(--border-strong)" stroke-width="1.5"/>
+            <line x1="720" y1="260" x2="560" y2="170" stroke="var(--border-strong)" stroke-width="1.5"/>
 
-                <text x="28" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 100% thuộc tính CSS dùng token</text>
-                <text x="28" y="212" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tái sử dụng component Registry</text>
-                <text x="28" y="249" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Triệt tiêu hoàn toàn mã màu Hex</text>
-                <text x="28" y="286" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Cấm tự viết component đã có</text>
+            <!-- CENTER CORE -->
+            <g id="tasteCore7" class="interactive-node" tabindex="0" role="button" aria-label="Core Axis: Consistency" style="cursor: pointer;">
+              <circle cx="720" cy="260" r="54" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <circle cx="720" cy="260" r="46" fill="var(--text-primary)"/>
+              <text x="720" y="254" font-family="var(--font-mono)" font-size="11" font-weight="900" fill="var(--text-inverse)" text-anchor="middle">CORE 0</text>
+              <text x="720" y="272" font-family="var(--font-sans)" font-size="12" font-weight="800" fill="var(--text-inverse)" text-anchor="middle">Consistency</text>
+            </g>
 
-                <rect x="28" y="340" width="374" height="42" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
-                <text x="44" y="366" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">FLOOR: Score 10/10 Mandatory</text>
-              </g>
+            <!-- AXES -->
+            <g id="tasteAxis1" class="interactive-node" tabindex="0" role="button" aria-label="Axis 1: Layout &amp; Hierarchy" style="cursor: pointer;">
+              <rect x="620" y="70" width="200" height="60" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <text x="720" y="96" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" text-anchor="middle">01 • LAYOUT &amp; HIERARCHY</text>
+              <text x="720" y="118" font-family="var(--font-sans)" font-size="14" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Reading Order (Score: 9.0)</text>
+            </g>
 
-              <!-- SATELLITE 1 -->
-              <g transform="translate(510, 50)" id="tasteAxis1" style="cursor: pointer;">
-                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
-                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">1. LAYOUT &amp; HIERARCHY</text>
-                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Bố Cục &amp; Tiêu Điểm</text>
-                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tiêu điểm duy nhất mỗi viewport</text>
-                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tỷ lệ khoảng trắng có chủ đích</text>
-                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm container soup &gt; 3 cấp</text>
-              </g>
+            <g id="tasteAxis2" class="interactive-node" tabindex="0" role="button" aria-label="Axis 2: Typography &amp; Rhythm" style="cursor: pointer;">
+              <rect x="910" y="140" width="210" height="60" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <text x="1015" y="166" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" text-anchor="middle">02 • TYPOGRAPHY</text>
+              <text x="1015" y="188" font-family="var(--font-sans)" font-size="14" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Modular Scale (Score: 8.8)</text>
+            </g>
 
-              <!-- SATELLITE 2 -->
-              <g transform="translate(860, 50)" id="tasteAxis2" style="cursor: pointer;">
-                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
-                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">2. TYPOGRAPHY</text>
-                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Thang Bậc Font Chữ</text>
-                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tỷ lệ modular chuẩn xác</text>
-                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tracking âm ở display; leading thoáng</text>
-                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm body &lt; 16px, &gt; 7 cỡ font</text>
-              </g>
+            <g id="tasteAxis3" class="interactive-node" tabindex="0" role="button" aria-label="Axis 3: Spacing &amp; Geometry" style="cursor: pointer;">
+              <rect x="910" y="320" width="210" height="60" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <text x="1015" y="346" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" text-anchor="middle">03 • SPACING</text>
+              <text x="1015" y="368" font-family="var(--font-sans)" font-size="14" font-weight="800" fill="var(--text-primary)" text-anchor="middle">8px Rhythm (Score: 9.2)</text>
+            </g>
 
-              <!-- SATELLITE 3 -->
-              <g transform="translate(1210, 50)" id="tasteAxis3" style="cursor: pointer;">
-                <rect width="350" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="350" height="6" rx="3" fill="var(--text-primary)"/>
-                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">3. SPACING RHYTHM</text>
-                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Nhịp Điệu Không Gian</text>
-                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Tuân thủ thang nhịp 4/8px token</text>
-                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Khoảng cách phản ánh quan hệ</text>
-                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm hardcode pixel rời rạc</text>
-              </g>
+            <g id="tasteAxis4" class="interactive-node" tabindex="0" role="button" aria-label="Axis 4: Iconography &amp; Badges" style="cursor: pointer;">
+              <rect x="620" y="410" width="200" height="60" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <text x="720" y="436" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" text-anchor="middle">04 • ICONOGRAPHY</text>
+              <text x="720" y="458" font-family="var(--font-sans)" font-size="14" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Single Family (Score: 9.5)</text>
+            </g>
 
-              <!-- SATELLITE 4 -->
-              <g transform="translate(510, 270)" id="tasteAxis4" style="cursor: pointer;">
-                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
-                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">4. MOTION LADDER</text>
-                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Bậc Chuyển Động T1–T6</text>
-                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Chuyển động có chủ đích &amp; ý nghĩa</text>
-                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• prefers-reduced-motion bắt buộc</text>
-                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm transition: all</text>
-              </g>
+            <g id="tasteAxis5" class="interactive-node" tabindex="0" role="button" aria-label="Axis 5: Motion Ladder" style="cursor: pointer;">
+              <rect x="320" y="320" width="210" height="60" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <text x="425" y="346" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" text-anchor="middle">05 • MOTION LADDER</text>
+              <text x="425" y="368" font-family="var(--font-sans)" font-size="14" font-weight="800" fill="var(--text-primary)" text-anchor="middle">T5 Choreography (Score: 9.0)</text>
+            </g>
 
-              <!-- SATELLITE 5 -->
-              <g transform="translate(860, 270)" id="tasteAxis5" style="cursor: pointer;">
-                <rect width="330" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="330" height="6" rx="3" fill="var(--text-primary)"/>
-                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">5. ICONOGRAPHY</text>
-                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Đồng Nhất Nét Vẽ</text>
-                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Dùng duy nhất bộ Phosphor Icons</text>
-                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Đồng bộ nét stroke và optical size</text>
-                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm trộn icon các bộ khác</text>
-              </g>
-
-              <!-- SATELLITE 6 -->
-              <g transform="translate(1210, 270)" id="tasteAxis6" style="cursor: pointer;">
-                <rect width="350" height="200" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="350" height="6" rx="3" fill="var(--text-primary)"/>
-                <text x="20" y="36" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" font-weight="700">6. DEPTH &amp; SURFACES</text>
-                <text x="20" y="68" fill="var(--text-primary)" font-family="'Inter'" font-size="19" font-weight="700">Phân Tầng Thị Giác</text>
-                <text x="20" y="100" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Bóng đổ đa tầng nhuộm màu nền</text>
-                <text x="20" y="126" fill="var(--text-secondary)" font-family="'Inter'" font-size="14">• Viền bán trong suốt 1px tinh tế</text>
-                <text x="20" y="166" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="12">❌ Cấm bóng đen xì #000000</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-17">
+            <g id="tasteAxis6" class="interactive-node" tabindex="0" role="button" aria-label="Axis 6: Depth &amp; Surfaces" style="cursor: pointer;">
+              <rect x="320" y="140" width="210" height="60" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <text x="425" y="166" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" text-anchor="middle">06 • DEPTH &amp; SURFACES</text>
+              <text x="425" y="188" font-family="var(--font-sans)" font-size="14" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Tonal Elevation (Score: 9.0)</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-17">
               <span class="readout-badge">RADAR SCAN: 6+1 AXES</span>
               <span class="readout-text" id="readout-text-slide-17">Click axes or press Scan to inspect individual craft score thresholds (Consistency 10/10, Layout & Typo >= 8.0).</span>
             </div>
@@ -1554,7 +1698,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-pulse-scroll-cinema">
+          <button class="interactive-badge-btn" id="btn-pulse-scroll-cinema">
               <svg role="img" aria-labelledby="titleCinema descCinema" data-diagram-grammar="sequence" data-reading-order="ltr" data-focal-id="cinemaLeg2" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleCinema">3D GFlow & Scroll-Cinema 3-Leg Seam Physics</title>
               <desc id="descCinema">Continuous camera sequence diagram showing Leg 1 Hero Orbit, Leg 2 Exploded View, and Leg 3 Macro Core connected via frame-locked seams.</desc>
@@ -1562,69 +1706,95 @@
             </svg>
               <span>Simulate 3-Leg One-Take Flight</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fableCinemaTitle fableCinemaDesc"
+            data-diagram-grammar="sequence"
+            data-reading-order="ltr"
+            data-focal-id="cinemaLeg2"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fableCinemaTitle">Scroll-Cinema: The 3-Leg Continuous Camera Flight with Kinetic Seam Physics</title>
+            <desc id="fableCinemaDesc">Continuous camera flight sequence diagram showing Leg 1 Hero Orbit, Leg 2 Exploded View, and Leg 3 Macro Core connected via frame-locked velocity seams guaranteeing zero-rewind stutter.</desc>
 
-            <svg class="diagram-svg" id="svgScrollCinema" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 470 260 L 550 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
-              <path d="M 1030 260 L 1110 260" stroke="var(--border-strong)" stroke-width="3" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE CONTINUOUS FLIGHT PATH • ZERO-REWIND SCROLL-CINEMA SEAM PHYSICS</text>
 
-              <g transform="translate(470, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-1"/></g>
-              <g transform="translate(1030, 260)"><circle cx="0" cy="0" r="6" fill="var(--text-primary)" class="svg-packet-2"/></g>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 440 250 L 520 250" fill="none" stroke="var(--text-primary)" stroke-width="3" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-              <!-- Leg 1 -->
-              <g transform="translate(40, 60)" id="cinemaLeg1" style="cursor: pointer;">
-                <rect width="430" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="430" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">PHÂN ĐOẠN 01</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Leg 1: Hero Fly-In</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Initial Establishing Orbit</text>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 920 250 L 1000 250" fill="none" stroke="var(--text-primary)" stroke-width="3" stroke-dasharray="8 6" class="svg-flow-active"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Bay lượn nửa vòng quanh đối tượng</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Tốc độ giảm dần về cuối clip</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Trích xuất Last Frame làm seed</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Khóa hướng chuyển động tiến thẳng</text>
+            <circle cx="480" cy="250" r="7" fill="var(--text-primary)" class="svg-packet-1"/>
+            <circle cx="960" cy="250" r="7" fill="var(--text-primary)" class="svg-packet-2"/>
 
-                <rect x="32" y="340" width="366" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">SEAM 1: Frame-Lock Exact</text>
-              </g>
+            <rect x="440" y="210" width="80" height="22" rx="11" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="480" y="225" font-family="var(--font-mono)" font-size="9" font-weight="800" fill="var(--text-primary)" text-anchor="middle">SEAM 1: LOCK</text>
 
-              <!-- Leg 2 -->
-              <g transform="translate(550, 60)" id="cinemaLeg2" style="cursor: pointer;">
-                <rect width="480" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
-                <rect x="0" y="0" width="480" height="8" rx="4" fill="var(--text-primary)"/>
-                <circle cx="430" cy="48" r="10" fill="none" stroke="var(--text-primary)" class="svg-radar-ring"/>
-                <circle cx="430" cy="48" r="5" fill="var(--text-primary)"/>
+            <rect x="920" y="210" width="80" height="22" rx="11" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+            <text x="960" y="225" font-family="var(--font-mono)" font-size="9" font-weight="800" fill="var(--text-primary)" text-anchor="middle">SEAM 2: LOCK</text>
 
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">PHÂN ĐOẠN 02</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Leg 2: Exploded View</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Continuous Forward Flight</text>
+            <!-- LEG 1 -->
+            <g id="cinemaLeg1" class="interactive-node" tabindex="0" role="button" aria-label="Leg 1: Hero Orbit" style="cursor: pointer;">
+              <rect x="60" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="60" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="84" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">LEG 01 • SPATIAL ORBIT</text>
+              <circle cx="410" cy="102" r="6" fill="var(--text-primary)"/>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Bắt đầu từ Frame kết thúc của Leg 1</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Các linh kiện tách rời dạng 3D 2K</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Vận tốc góc máy (Velocity) liên tục</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Không bao giờ đảo chiều lùi góc máy</text>
+              <text x="84" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Hero Spatial Orbit</text>
+              <text x="84" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">360&deg; Camera Spatial Path</text>
+              <line x1="84" y1="205" x2="416" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
 
-                <rect x="32" y="340" width="416" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1.5"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="700">PHYSICS: Zero Rewind Stutter</text>
-              </g>
+              <text x="84" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Camera quay quanh vật thể 3D sản phẩm</text>
+              <text x="84" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tốc độ cuộn Scrub đồng bộ 60fps mượt mà</text>
+              <text x="84" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tọa độ đích: Khóa vị trí Seam 1 (Delta = 0)</text>
+              <text x="84" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Kết thúc tại góc nhìn trực diện chuẩn bị nổ</text>
 
-              <!-- Leg 3 -->
-              <g transform="translate(1110, 60)" id="cinemaLeg3" style="cursor: pointer;">
-                <rect width="450" height="400" rx="12" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="450" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="32" y="52" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="15" font-weight="700">PHÂN ĐOẠN 03</text>
-                <text x="32" y="96" fill="var(--text-primary)" font-family="'Inter'" font-size="26" font-weight="700">Leg 3: Final Macro Core</text>
-                <text x="32" y="128" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14">Interior Immersion Landing</text>
+              <rect x="84" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="250" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">PHYSICS: 60 FPS Interpolation</text>
+            </g>
 
-                <text x="32" y="185" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Bay xuyên qua kiến trúc vi mô bên trong</text>
-                <text x="32" y="225" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Dừng êm dịu tại bảng điều khiển</text>
-                <text x="32" y="265" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• Nối liền mạch sang UI Controls</text>
-                <text x="32" y="305" fill="var(--text-secondary)" font-family="'Inter'" font-size="17">• 343 WebP Frames kết xuất 60 FPS</text>
+            <!-- LEG 2 (FOCAL) -->
+            <g id="cinemaLeg2" class="interactive-node" tabindex="0" role="button" aria-label="Leg 2: Exploded View" style="cursor: pointer;">
+              <rect x="520" y="70" width="400" height="360" rx="18" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <rect x="520" y="70" width="400" height="48" rx="18" fill="var(--text-primary)"/>
+              <text x="720" y="100" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-inverse)" letter-spacing="0.1em" text-anchor="middle">LEG 02 • EXPLODED VIEW [FOCAL]</text>
 
-                <rect x="32" y="340" width="386" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="48" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="14" font-weight="600">DELIVERY: 2K WebP Scrub Canvas</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-21">
+              <text x="544" y="160" font-family="var(--font-sans)" font-size="22" font-weight="900" fill="var(--text-primary)">Exploded Z-Disassembly</text>
+              <text x="544" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Internal Component Separation</text>
+              <line x1="544" y1="205" x2="896" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="544" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tách lớp linh kiện dọc theo trục sâu Z-axis</text>
+              <text x="544" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Seam 1 &rarr; Seam 2: Vận tốc vector khớp 100%</text>
+              <text x="544" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Triệt tiêu hoàn toàn hiện tượng giật cục (Stutter)</text>
+              <text x="544" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Cảm giác cinematic điện ảnh đẳng cấp cao</text>
+
+              <rect x="544" y="350" width="352" height="46" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="720" y="378" font-family="var(--font-mono)" font-size="13" font-weight="800" fill="var(--text-primary)" letter-spacing="0.04em" text-anchor="middle">SEAM QUALITY: Zero-Rewind Lock</text>
+            </g>
+
+            <!-- LEG 3 -->
+            <g id="cinemaLeg3" class="interactive-node" tabindex="0" role="button" aria-label="Leg 3: Macro 2K Core" style="cursor: pointer;">
+              <rect x="1000" y="80" width="380" height="340" rx="16" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="1000" y="80" width="380" height="44" rx="16" fill="var(--bg-surface-raised)"/>
+              <text x="1024" y="108" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" letter-spacing="0.08em">LEG 03 • MACRO 2K ZOOM</text>
+              <circle cx="1350" cy="102" r="6" fill="var(--text-primary)"/>
+
+              <text x="1024" y="160" font-family="var(--font-sans)" font-size="20" font-weight="800" fill="var(--text-primary)">Macro Core 2K Flight</text>
+              <text x="1024" y="180" font-family="var(--font-mono)" font-size="12" fill="var(--text-muted)">Sub-Pixel Micro-Texture Dive</text>
+              <line x1="1024" y1="205" x2="1356" y2="205" stroke="var(--border-subtle)" stroke-width="1"/>
+
+              <text x="1024" y="235" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Camera lao sâu vào bề mặt vi cấu trúc chip</text>
+              <text x="1024" y="265" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Hiển thị vân kim loại và chi tiết máy cực nét</text>
+              <text x="1024" y="295" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Đáp an toàn xuống vị trí CTA chuyển đổi</text>
+              <text x="1024" y="325" font-family="var(--font-sans)" font-size="14" fill="var(--text-secondary)">• Tự động dừng mượt mà khi người dùng ngừng cuộn</text>
+
+              <rect x="1024" y="350" width="332" height="42" rx="8" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="1190" y="376" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--text-primary)" text-anchor="middle">RESOLUTION: 2K Sub-Pixel Flight</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-21">
               <span class="readout-badge">SEAM PHYSICS: VERIFIED</span>
               <span class="readout-text" id="readout-text-slide-21">Test 3-leg continuous camera flight: Seam 1 (Position match) and Seam 2 (Velocity vector lock) zero-rewind guarantee.</span>
             </div>
@@ -1782,7 +1952,7 @@
           </div>
 
           <div class="diagram-container gsap-card">
-            <button class="interactive-badge-btn" id="btn-run-delivery-pipeline">
+          <button class="interactive-badge-btn" id="btn-run-delivery-pipeline">
               <svg role="img" aria-labelledby="titleDelivery descDelivery" data-diagram-grammar="sequence" data-reading-order="ltr" data-focal-id="pipeStep6" data-source-kind="brief" data-token-fallback="false" class="icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24">
               <title id="titleDelivery">The 6-Step Full-Stack Delivery Pipeline</title>
               <desc id="descDelivery">Sequential delivery pipeline diagram executing verification gates in exact defect-catching order from Flow lint to Full Audit.</desc>
@@ -1790,99 +1960,111 @@
             </svg>
               <span>Run 6-Step Audit Simulation</span>
             </button>
+          <svg viewBox="0 0 1440 500" width="100%" height="100%" class="diagram-svg"
+            role="img" aria-labelledby="fablePipeTitle fablePipeDesc"
+            data-diagram-grammar="sequence"
+            data-reading-order="ltr"
+            data-focal-id="pipeStep6"
+            data-source-kind="brief"
+            data-token-fallback="false"
+            xmlns="http://www.w3.org/2000/svg">
+            <title id="fablePipeTitle">The 6-Step Full-Stack Delivery Pipeline</title>
+            <desc id="fablePipeDesc">Sequential delivery pipeline diagram executing verification gates in exact defect-catching order.</desc>
 
-            <svg class="diagram-svg" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 255 260 L 290 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 515 260 L 550 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 775 260 L 810 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 1035 260 L 1070 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
-              <path d="M 1295 260 L 1330 260" stroke="var(--border-strong)" stroke-width="2" class="svg-flow-active"/>
+            <rect x="20" y="20" width="1400" height="460" rx="20" fill="var(--bg-base)" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="8 8"/>
+            <text x="50" y="52" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-muted)" letter-spacing="0.14em">THE 6-STAGE FRACTIONAL REFINERY • ORDERED QUALITY GATES</text>
 
-              <!-- Step 1 -->
-              <g transform="translate(30, 60)" id="pipeStep1" style="cursor: pointer;">
-                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 01</text>
-                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Flow First</text>
-                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">ui flow lint</text>
-                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét đồ thị IA flow</text>
-                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Bắt lỗi orphan views</text>
-                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Kiểm tra màn hình cụt</text>
-                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">flow.json CHECK</text>
-              </g>
+            <!-- Step 1 -->
+            <g id="pipeStep1" class="interactive-node" tabindex="0" role="button" aria-label="Step 1: Flow Lint" style="cursor: pointer;">
+              <rect x="40" y="80" width="210" height="340" rx="14" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="40" y="80" width="210" height="40" rx="14" fill="var(--bg-surface-raised)"/>
+              <text x="145" y="106" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-primary)" text-anchor="middle">STAGE 01 • FLOW</text>
+              <text x="145" y="155" font-family="var(--font-sans)" font-size="17" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Flow Lint</text>
+              <text x="145" y="175" font-family="var(--font-mono)" font-size="11" fill="var(--text-muted)" text-anchor="middle">ui flow lint</text>
+              <line x1="56" y1="195" x2="234" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="56" y="230" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Bắt lỗi cụt (dead-end)</text>
+              <text x="56" y="260" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Quét unreachable</text>
+              <text x="56" y="290" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Đủ trạng thái error</text>
+              <rect x="56" y="350" width="178" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="145" y="374" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)" text-anchor="middle">FLOW PASS</text>
+            </g>
 
-              <!-- Step 2 -->
-              <g transform="translate(290, 60)" id="pipeStep2" style="cursor: pointer;">
-                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 02</text>
-                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Evidence</text>
-                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">ui evidence verify</text>
-                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Xác minh trích dẫn</text>
-                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Đối chiếu file bằng chứng</text>
-                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Chống AI bịa bằng chứng</text>
-                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">EVIDENCE VALID</text>
-              </g>
+            <!-- Step 2 -->
+            <g id="pipeStep2" class="interactive-node" tabindex="0" role="button" aria-label="Step 2: User Evidence" style="cursor: pointer;">
+              <rect x="270" y="80" width="210" height="340" rx="14" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="270" y="80" width="210" height="40" rx="14" fill="var(--bg-surface-raised)"/>
+              <text x="375" y="106" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-primary)" text-anchor="middle">STAGE 02 • EVIDENCE</text>
+              <text x="375" y="155" font-family="var(--font-sans)" font-size="17" font-weight="800" fill="var(--text-primary)" text-anchor="middle">User Evidence</text>
+              <text x="375" y="175" font-family="var(--font-mono)" font-size="11" fill="var(--text-muted)" text-anchor="middle">ui evidence</text>
+              <line x1="286" y1="195" x2="464" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="286" y="230" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Khảo sát người dùng</text>
+              <text x="286" y="260" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Dữ liệu định tính</text>
+              <text x="286" y="290" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Trọng số chuyển đổi</text>
+              <rect x="286" y="350" width="178" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="375" y="374" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)" text-anchor="middle">EVIDENCE OK</text>
+            </g>
 
-              <!-- Step 3 -->
-              <g transform="translate(550, 60)" id="pipeStep3" style="cursor: pointer;">
-                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 03</text>
-                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">VR Baseline</text>
-                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">page-shot &amp; ui vr</text>
-                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Chụp baseline TRƯỚC</text>
-                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Ghi nhận snapshot gốc</text>
-                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Đối chiếu diff sau sửa</text>
-                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">BASELINE ACCEPT</text>
-              </g>
+            <!-- Step 3 -->
+            <g id="pipeStep3" class="interactive-node" tabindex="0" role="button" aria-label="Step 3: VR Baseline" style="cursor: pointer;">
+              <rect x="500" y="80" width="210" height="340" rx="14" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="500" y="80" width="210" height="40" rx="14" fill="var(--bg-surface-raised)"/>
+              <text x="605" y="106" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-primary)" text-anchor="middle">STAGE 03 • VR GATE</text>
+              <text x="605" y="155" font-family="var(--font-sans)" font-size="17" font-weight="800" fill="var(--text-primary)" text-anchor="middle">VR Baseline</text>
+              <text x="605" y="175" font-family="var(--font-mono)" font-size="11" fill="var(--text-muted)" text-anchor="middle">ui vr gate</text>
+              <line x1="516" y1="195" x2="694" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="516" y="230" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Quét ảnh 3 Viewports</text>
+              <text x="516" y="260" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• 1920 Desktop, Mobile</text>
+              <text x="516" y="290" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• So sánh pixel diff</text>
+              <rect x="516" y="350" width="178" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="605" y="374" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)" text-anchor="middle">VR MATCH 100%</text>
+            </g>
 
-              <!-- Step 4 -->
-              <g transform="translate(810, 60)" id="pipeStep4" style="cursor: pointer;">
-                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 04</text>
-                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Paired Tokens</text>
-                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">ui ds a11y</text>
-                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Tương phản cặp token</text>
-                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Text trên từng Surface</text>
-                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Đảm bảo WCAG AA</text>
-                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">PAIRS CONTRAST OK</text>
-              </g>
+            <!-- Step 4 -->
+            <g id="pipeStep4" class="interactive-node" tabindex="0" role="button" aria-label="Step 4: Paired Tokens" style="cursor: pointer;">
+              <rect x="730" y="80" width="210" height="340" rx="14" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="730" y="80" width="210" height="40" rx="14" fill="var(--bg-surface-raised)"/>
+              <text x="835" y="106" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-primary)" text-anchor="middle">STAGE 04 • PAIRS</text>
+              <text x="835" y="155" font-family="var(--font-sans)" font-size="17" font-weight="800" fill="var(--text-primary)" text-anchor="middle">Paired Tokens</text>
+              <text x="835" y="175" font-family="var(--font-mono)" font-size="11" fill="var(--text-muted)" text-anchor="middle">ui paired-tokens</text>
+              <line x1="746" y1="195" x2="924" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="746" y="230" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Đối soát Dark / Light</text>
+              <text x="746" y="260" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Không lạc mất cặp màu</text>
+              <text x="746" y="290" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Giữ độ sâu quang học</text>
+              <rect x="746" y="350" width="178" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="835" y="374" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)" text-anchor="middle">PAIRS CLEAN</text>
+            </g>
 
-              <!-- Step 5 -->
-              <g transform="translate(1070, 60)" id="pipeStep5" style="cursor: pointer;">
-                <rect width="225" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
-                <rect x="0" y="0" width="225" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="112" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 05</text>
-                <text x="112" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Rendered A11y</text>
-                <text x="112" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">a11y-audit (axe-core)</text>
-                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Quét Chrome Headless</text>
-                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Kiểm tra computed CSS</text>
-                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• Cây ngữ nghĩa ARIA thật</text>
-                <rect x="16" y="340" width="193" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="112" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">AXE PASS</text>
-              </g>
+            <!-- Step 5 -->
+            <g id="pipeStep5" class="interactive-node" tabindex="0" role="button" aria-label="Step 5: A11y Lint" style="cursor: pointer;">
+              <rect x="960" y="80" width="210" height="340" rx="14" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="2"/>
+              <rect x="960" y="80" width="210" height="40" rx="14" fill="var(--bg-surface-raised)"/>
+              <text x="1065" y="106" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-primary)" text-anchor="middle">STAGE 05 • A11Y</text>
+              <text x="1065" y="155" font-family="var(--font-sans)" font-size="17" font-weight="800" fill="var(--text-primary)" text-anchor="middle">A11y Lint</text>
+              <text x="1065" y="175" font-family="var(--font-mono)" font-size="11" fill="var(--text-muted)" text-anchor="middle">ui a11y-lint</text>
+              <line x1="976" y1="195" x2="1154" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="976" y="230" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Quét Axe Core máy cứng</text>
+              <text x="976" y="260" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Tương phản WCAG AA</text>
+              <text x="976" y="290" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• Khả năng đọc màn hình</text>
+              <rect x="976" y="350" width="178" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-strong)" stroke-width="1"/>
+              <text x="1065" y="374" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--text-primary)" text-anchor="middle">AXE PASS</text>
+            </g>
 
-              <!-- Step 6 -->
-              <g transform="translate(1330, 60)" id="pipeStep6" style="cursor: pointer;">
-                <rect width="240" height="400" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="3"/>
-                <rect x="0" y="0" width="240" height="8" rx="4" fill="var(--text-primary)"/>
-                <text x="120" y="48" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="14" font-weight="700" text-anchor="middle">BƯỚC 06</text>
-                <text x="120" y="86" fill="var(--text-primary)" font-family="'Inter'" font-size="22" font-weight="700" text-anchor="middle">Full Audit</text>
-                <text x="120" y="116" fill="var(--text-muted)" font-family="'JetBrains Mono'" font-size="13" text-anchor="middle">design-os audit</text>
-                <text x="20" y="175" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• taste-lint 6+1 trục</text>
-                <text x="20" y="210" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• validate-layout tĩnh</text>
-                <text x="20" y="245" fill="var(--text-secondary)" font-family="'Inter'" font-size="16">• content-lint &amp; a11y</text>
-                <rect x="16" y="340" width="208" height="38" rx="6" fill="var(--bg-surface-raised)" stroke="var(--border-subtle)" stroke-width="1"/>
-                <text x="120" y="364" fill="var(--text-primary)" font-family="'JetBrains Mono'" font-size="12" font-weight="600" text-anchor="middle">0 ERRORS → SHIP</text>
-              </g>
-            </svg>
-            <div class="diagram-readout-panel" id="readout-slide-25">
+            <!-- Step 6 -->
+            <g id="pipeStep6" class="interactive-node" tabindex="0" role="button" aria-label="Step 6: Full Audit" style="cursor: pointer;">
+              <rect x="1190" y="70" width="220" height="360" rx="16" fill="var(--bg-surface)" stroke="var(--text-primary)" stroke-width="3"/>
+              <rect x="1190" y="70" width="220" height="46" rx="16" fill="var(--text-primary)"/>
+              <text x="1300" y="98" font-family="var(--font-mono)" font-size="11" font-weight="800" fill="var(--text-inverse)" text-anchor="middle">STAGE 06 • FULL AUDIT [FOCAL]</text>
+              <text x="1300" y="155" font-family="var(--font-sans)" font-size="18" font-weight="900" fill="var(--text-primary)" text-anchor="middle">Full Audit</text>
+              <text x="1300" y="175" font-family="var(--font-mono)" font-size="11" fill="var(--text-muted)" text-anchor="middle">design-os audit</text>
+              <line x1="1206" y1="195" x2="1394" y2="195" stroke="var(--border-subtle)" stroke-width="1"/>
+              <text x="1206" y="230" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• taste-lint 6+1 trục</text>
+              <text x="1206" y="260" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• validate-layout tĩnh</text>
+              <text x="1206" y="290" font-family="var(--font-sans)" font-size="13" fill="var(--text-secondary)">• 10 công cụ xuất xưởng</text>
+              <rect x="1206" y="350" width="188" height="44" rx="8" fill="var(--bg-surface-raised)" stroke="var(--text-primary)" stroke-width="2"/>
+              <text x="1300" y="378" font-family="var(--font-mono)" font-size="12" font-weight="800" fill="var(--text-primary)" text-anchor="middle">0 ERRORS &rarr; SHIP</text>
+            </g>
+          </svg>
+          <div class="diagram-readout-panel" id="readout-slide-25">
               <span class="readout-badge">DELIVERY PIPELINE: 6 STEPS</span>
               <span class="readout-text" id="readout-text-slide-25">Run simulation to watch linters execute in the exact defect-catching order: Flow -> Evidence -> VR -> Paired -> A11y -> Audit.</span>
             </div>
