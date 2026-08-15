@@ -327,76 +327,26 @@
     }
 
     /* Interactive Action Controls within Diagram */
-    .interactive-badge-btn {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: var(--bg-surface);
-      color: var(--text-primary);
-      border: 1px solid var(--border-strong);
-      padding: 8px 16px;
-      border-radius: var(--radius-full);
-      font-family: var(--font-mono);
-      font-size: var(--font-size-xs);
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: background-color 150ms ease, transform 150ms ease;
-      z-index: 20;
-    }
+    
 
-    .interactive-badge-btn:hover {
-      background: var(--text-primary);
-      color: var(--text-inverse);
-      transform: scale(1.03);
-    }
+    
 
     /* SVG Keyframe Animations */
-    @keyframes flowDashes {
-      from { stroke-dashoffset: 40; }
-      to { stroke-dashoffset: 0; }
-    }
+    
 
-    @keyframes pulsePacket1 {
-      0% { transform: translateX(0px); opacity: 0; }
-      15% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { transform: translateX(130px); opacity: 0; }
-    }
+    
 
-    @keyframes pulsePacket2 {
-      0% { transform: translateX(0px); opacity: 0; }
-      15% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { transform: translateX(130px); opacity: 0; }
-    }
+    
 
-    @keyframes radarPulse {
-      0% { r: 4; opacity: 1; stroke-width: 2; }
-      50% { opacity: 0.6; }
-      100% { r: 28; opacity: 0; stroke-width: 1; }
-    }
+    
 
-    .svg-flow-active {
-      stroke-dasharray: 8 6;
-      animation: flowDashes 1.2s linear infinite;
-    }
+    
 
-    .svg-packet-1 {
-      animation: pulsePacket1 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
+    
 
-    .svg-packet-2 {
-      animation: pulsePacket2 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      animation-delay: 1.1s;
-    }
+    
 
-    .svg-radar-ring {
-      animation: radarPulse 2.4s ease-out infinite;
-      transform-origin: center;
-    }
+    
 
     .matrix-badge {
       display: inline-block;
@@ -573,9 +523,7 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
       }
-      .svg-flow-active, .svg-packet-1, .svg-packet-2, .svg-radar-ring {
-        animation: none !important;
-      }
+      .svg-flow-active, .svg-packet-1, .svg-packet-2, 
     }
 
 /* =========================================================
@@ -784,11 +732,7 @@
   color: var(--text-primary);
 }
 
-.lang-option:hover {
-  background: var(--bg-surface);
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
-}
+.lang-option:hover { background: var(--bg-surface); border-color: var(--border-strong); }
 
 .lang-option.active {
   background: var(--text-primary);
@@ -877,14 +821,9 @@
   text-overflow: ellipsis;
 }
 
-.interactive-node {
-  transition: transform 0.2s ease, stroke 0.2s ease;
-  cursor: pointer;
-}
+.interactive-node { cursor: pointer; }
 
-.interactive-node:hover {
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08));
-}
+.interactive-node:hover rect, .interactive-node:hover polygon, .interactive-node:hover circle { stroke: var(--text-primary) !important; }
 
 .interactive-node:focus {
   outline: 2px solid var(--text-primary);
@@ -908,7 +847,5 @@
   .svg-flow-active,
   .svg-packet-1,
   .svg-packet-2,
-  .svg-radar-ring {
-    animation: none !important;
-  }
+  
 }
