@@ -1,0 +1,12 @@
+{
+  "name": "design-os-slides",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audit": "node audit/design-audit.mjs",
+    "audit:static": "node audit/design-audit.mjs --static"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}
