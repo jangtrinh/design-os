@@ -148,8 +148,8 @@
     if (!overviewGrid) return;
     overviewGrid.innerHTML = '';
     slides.forEach((slide, index) => {
-      const titleEl = slide.querySelector('.slide-title-display, .slide-title-h1');
-      const titleText = titleEl ? titleEl.textContent : 'Slide ' + (index + 1);
+      const titleEl = slide.querySelector('.radiant-display-title, .slide-title-display, .slide-title-h1');
+      const titleText = titleEl ? (titleEl.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').trim()) : 'Slide ' + (index + 1);
       const card = document.createElement('div');
       card.className = 'overview-card' + (index === currentIndex ? ' active' : '');
       card.innerHTML = '<div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">SLIDE ' + String(index + 1).padStart(2, '0') + '</div><div style="font-weight: 700; font-size: 14px; color: var(--text-primary); line-height: 1.3;">' + titleText + '</div>';
@@ -226,13 +226,21 @@
         const slideData = DECK_I18N.slides[slideNum] && (DECK_I18N.slides[slideNum][lang] || DECK_I18N.slides[slideNum].en);
         if (slideData) {
           const eyebrowEl = slide.querySelector('.slide-eyebrow');
-          const titleEl = slide.querySelector('.slide-title-display, .slide-title-h1');
+          const titleEl = slide.querySelector('.radiant-display-title, .slide-title-display, .slide-title-h1');
           const subtitleEl = slide.querySelector('.slide-subtitle');
           const notesEl = slide.querySelector('[data-speaker-notes]');
 
-          if (eyebrowEl && slideData.eyebrow) eyebrowEl.innerHTML = slideData.eyebrow;
+          const radTitle = slide.querySelector('.radiant-display-title');
+          const radBody = slide.querySelector('.radiant-body-text');
+          const radHeroNum = slide.querySelector('.radiant-hero-number');
+          const radHeroLabel = slide.querySelector('.radiant-hero-label');
+          if (radTitle && slideData.title) radTitle.innerHTML = slideData.title;
+          if (radBody && (slideData.body || slideData.subtitle)) radBody.innerHTML = slideData.body || slideData.subtitle;
+          if (radHeroNum && slideData.heroNum) radHeroNum.textContent = slideData.heroNum;
+          if (radHeroLabel && slideData.heroLabel) radHeroLabel.textContent = slideData.heroLabel;
+
           if (titleEl && slideData.title) titleEl.innerHTML = slideData.title;
-          if (subtitleEl && slideData.subtitle) subtitleEl.innerHTML = slideData.subtitle;
+          if (subtitleEl && (slideData.subtitle || slideData.body)) subtitleEl.innerHTML = slideData.subtitle || slideData.body;
           if (notesEl && slideData.notes) notesEl.setAttribute('data-speaker-notes', slideData.notes);
         }
       });
