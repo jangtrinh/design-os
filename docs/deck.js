@@ -152,7 +152,7 @@
       const titleText = titleEl ? (titleEl.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').trim()) : 'Slide ' + (index + 1);
       const card = document.createElement('div');
       card.className = 'overview-card' + (index === currentIndex ? ' active' : '');
-      card.innerHTML = '<div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">SLIDE ' + String(index + 1).padStart(2, '0') + '</div><div style="font-weight: 700; font-size: 14px; color: var(--text-primary); line-height: 1.3;">' + titleText + '</div>';
+      card.innerHTML = '<div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">SLIDE ' + String(index + 1).padStart(2, '0') + '</div><div style="font-weight: 700; font-size: 14px; color: var(--text-primary); line-height: 1.3;">' + titleText + '</div>';
       card.addEventListener('click', () => {
         updateSlide(index);
         closeOverview();
@@ -164,14 +164,14 @@
   // =========================================================
   // 8. i18n Multi-Language Engine (7 Languages, Default: EN)
   // =========================================================
-  const supportedLanguages = [
-    { code: 'en', label: 'English (Default)', flag: '🇺🇸' },
-    { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
-    { code: 'ko', label: '한국어', flag: '🇰🇷' },
-    { code: 'ja', label: '日本語', flag: '🇯🇵' },
-    { code: 'es', label: 'Español', flag: '🇪🇸' },
-    { code: 'fr', label: 'Français', flag: '🇫🇷' },
-    { code: 'zh', label: '中文 (简体)', flag: '🇨🇳' }
+    const supportedLanguages = [
+    { code: 'en', label: 'English (Default)' },
+    { code: 'vi', label: 'Tiếng Việt' },
+    { code: 'ko', label: '한국어' },
+    { code: 'ja', label: '日本語' },
+    { code: 'es', label: 'Español' },
+    { code: 'fr', label: 'Français' },
+    { code: 'zh', label: '中文 (简体)' }
   ];
 
   let currentLang = 'en';
@@ -193,7 +193,7 @@
 
       const nameSpan = document.createElement('span');
       nameSpan.className = 'lang-name';
-      nameSpan.innerHTML = '<span style="font-size:18px;">' + lang.flag + '</span> <span>' + lang.label + '</span>';
+      nameSpan.innerHTML = '<span class="lang-icon"><i class="ph ph-globe"></i></span> <span>' + lang.label + '</span>';
 
       const codeSpan = document.createElement('span');
       codeSpan.className = 'lang-code';
