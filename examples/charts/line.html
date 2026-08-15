@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monthly active users, 2025</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all: series colour lives in `--color-chart-1` … `--color-chart-5`, the
+   * focal series in `--color-accent`.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the fallback literals shift to hold contrast. */
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  .grid      { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
+  .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
+  .tick      { fill: var(--chart-soft); font-size: 11px;
+               font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+
+  /* Focal series: heaviest stroke, solid, vertex dots. Supporting series: one shared
+     lighter weight and a distinct dash, so the pair survives grayscale. */
+  .line            { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+  .line--focal     { stroke: var(--chart-accent); stroke-width: 3; }
+  .line--support   { stroke: var(--chart-1); stroke-width: 2; stroke-dasharray: 8 5; }
+  .dot             { fill: var(--chart-accent); stroke: var(--chart-paper); stroke-width: 1.5; }
+
+  .end-label        { font-size: 12px; font-weight: 600; fill: var(--chart-accent); }
+  .end-label--support { fill: var(--chart-1); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · line</p>
+    <h1>Monthly active users, 2025</h1>
+    <p class="standfirst">Total monthly active users grew from 128k to 232k across the year, with mobile taking a steadily larger share. Both series share one axis, one unit, and a zero baseline.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1040 660" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="line"
+           data-reading-order="ltr; January to December 2025, focal series series-total read first, then series-mobile beneath it"
+           data-focal-id="series-total"
+           data-source-kind="dataset"
+           data-baseline="zero">
+        <title id="chart-title">Monthly active users, 2025</title>
+        <desc id="chart-desc">Illustrative dataset, not a real product metric. Two series of monthly active users in thousands, sampled once a month from January to December 2025 on a shared zero-based axis running to 240. Total monthly active users rises from 128 to 232 with a single dip in July; mobile monthly active users rises from 72 to 152, moving from 56 percent of the total to 66 percent. The focal series is the total, drawn solid with vertex dots; mobile is drawn dashed, and both carry a direct label at their right-hand end rather than a legend.</desc>
+
+        <g data-chart-element="axis" data-axis-role="value" id="axis-users">
+          <text class="axis-title" x="52" y="56">MONTHLY ACTIVE USERS (THOUSANDS)</text>
+
+          <line class="grid" x1="152" y1="80"  x2="792" y2="80"/>
+          <line class="grid" x1="152" y1="200" x2="792" y2="200"/>
+          <line class="grid" x1="152" y1="320" x2="792" y2="320"/>
+          <line class="grid" x1="152" y1="440" x2="792" y2="440"/>
+
+          <text class="tick" x="144" y="84"  text-anchor="end">240</text>
+          <text class="tick" x="144" y="204" text-anchor="end">180</text>
+          <text class="tick" x="144" y="324" text-anchor="end">120</text>
+          <text class="tick" x="144" y="444" text-anchor="end">60</text>
+          <text class="tick" x="144" y="564" text-anchor="end">0</text>
+
+          <line class="axis-rule" x1="152" y1="560" x2="792" y2="560"/>
+        </g>
+
+        <g data-chart-element="axis" data-axis-role="time" id="axis-month">
+          <text class="tick" x="160" y="584" text-anchor="middle">Jan</text>
+          <text class="tick" x="216" y="584" text-anchor="middle">Feb</text>
+          <text class="tick" x="272" y="584" text-anchor="middle">Mar</text>
+          <text class="tick" x="328" y="584" text-anchor="middle">Apr</text>
+          <text class="tick" x="384" y="584" text-anchor="middle">May</text>
+          <text class="tick" x="440" y="584" text-anchor="middle">Jun</text>
+          <text class="tick" x="496" y="584" text-anchor="middle">Jul</text>
+          <text class="tick" x="552" y="584" text-anchor="middle">Aug</text>
+          <text class="tick" x="608" y="584" text-anchor="middle">Sep</text>
+          <text class="tick" x="664" y="584" text-anchor="middle">Oct</text>
+          <text class="tick" x="720" y="584" text-anchor="middle">Nov</text>
+          <text class="tick" x="776" y="584" text-anchor="middle">Dec</text>
+          <text class="axis-title" x="160" y="612">2025</text>
+        </g>
+
+        <!-- Supporting series first, so the focal polyline sits on top of it. -->
+        <g data-chart-element="series" id="series-mobile" data-series-label="Mobile monthly active users">
+          <polyline class="line line--support" data-chart-element="mark" id="mark-mobile-path"
+                    points="160,416 216,408 272,392 328,384 384,368 440,352 496,344 552,328 608,312 664,296 720,280 776,256"/>
+          <text class="end-label end-label--support" data-chart-element="label" x="792" y="252">Mobile · 152k</text>
+        </g>
+
+        <g data-chart-element="series" id="series-total" data-series-label="Total monthly active users">
+          <polyline class="line line--focal" data-chart-element="mark" id="mark-total-path"
+                    points="160,304 216,288 272,264 328,256 384,232 440,208 496,216 552,192 608,168 664,144 720,128 776,96"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-01" cx="160" cy="304" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-02" cx="216" cy="288" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-03" cx="272" cy="264" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-04" cx="328" cy="256" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-05" cx="384" cy="232" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-06" cx="440" cy="208" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-07" cx="496" cy="216" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-08" cx="552" cy="192" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-09" cx="608" cy="168" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-10" cx="664" cy="144" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-11" cx="720" cy="128" r="4"/>
+          <circle class="dot" data-chart-element="mark" id="point-total-12" cx="776" cy="96" r="4"/>
+          <text class="end-label" data-chart-element="label" x="792" y="92">Total · 232k</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative dataset — the figures are invented to demonstrate the line grammar and describe no real product.
+      Units are stated once, on the value axis. The baseline is zero and the axis is not truncated; the scale is
+      2&nbsp;px per thousand users. Samples are joined as a polyline, never smoothed, and no gap is bridged. Series are
+      told apart by dash pattern and a direct end label as well as by colour. Colour resolves through design-system
+      tokens; where no project tokens are compiled the page falls back to the documented neutral palette declared in
+      <code>:root</code>. Static, script-free, and offline.
+    </p>
+  </div>
+</body>
+</html>

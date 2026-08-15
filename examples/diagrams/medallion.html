@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Survey dataset storage tiers</title>
+<style>
+  /*
+   * Diagram role layer — the token contract from templates/diagram-scaffolds/diagram-base.html.
+   *
+   * Every role resolves to a project design token first. The second value in each var() is
+   * the documented neutral fallback from knowledge/diagram-craft.md, used only when this
+   * example is opened outside a Design OS project; the artifact declares that fallback in
+   * data-token-fallback so a reader can tell "no tokens present" from "tokens ignored".
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fcfcfa);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #16181d);
+    --diagram-muted:       var(--color-muted-foreground, #6f7480);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f7480) 65%, var(--color-background, #fcfcfa));
+    --diagram-rule:        var(--color-border, #e6e5e0);
+    --diagram-rule-solid:  var(--color-input, #d2d1cb);
+    --diagram-accent:      var(--color-accent, #b3451c);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b3451c) 12%, var(--color-background, #fcfcfa));
+    --diagram-band:        color-mix(in oklch, var(--color-border, #e6e5e0) 55%, var(--color-background, #fcfcfa));
+    --diagram-link:        var(--color-primary, #2f5d7c);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #101215);
+    --diagram-surface:     var(--color-card, #171a1f);
+    --diagram-ink:         var(--color-foreground, #ecebe6);
+    --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+    --diagram-rule:        var(--color-border, #2a2f35);
+    --diagram-rule-solid:  var(--color-input, #3b414a);
+    --diagram-accent:      var(--color-accent, #e0743f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+    --diagram-band:        color-mix(in oklch, var(--color-border, #2a2f35) 70%, var(--color-card, #171a1f));
+    --diagram-link:        var(--color-primary, #7fb0d0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #101215);
+      --diagram-surface:     var(--color-card, #171a1f);
+      --diagram-ink:         var(--color-foreground, #ecebe6);
+      --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+      --diagram-rule:        var(--color-border, #2a2f35);
+      --diagram-rule-solid:  var(--color-input, #3b414a);
+      --diagram-accent:      var(--color-accent, #e0743f);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+      --diagram-band:        color-mix(in oklch, var(--color-border, #2a2f35) 70%, var(--color-card, #171a1f));
+      --diagram-link:        var(--color-primary, #7fb0d0);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1180px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 900px; height: auto; display: block; }
+
+  .tier-card { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .tier-card--outer { stroke: var(--diagram-rule); }
+  .tier-card--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+
+  .tier-band { fill: var(--diagram-band); stroke: none; }
+  .tier-band--focal { fill: var(--diagram-accent); }
+
+  .tier-name { fill: var(--diagram-ink); font-size: 14px; letter-spacing: 0.02em; }
+  .tier-name--focal { fill: var(--diagram-paper); }
+  .tier-location { fill: var(--diagram-muted); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+  .tier-location--focal { fill: var(--diagram-accent); }
+
+  .field-label { fill: var(--diagram-soft); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .field-value { fill: var(--diagram-ink); font-size: 11px; }
+  .field-value--muted { fill: var(--diagram-muted); font-size: 11px; }
+
+  .card-rule { stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .example-value { fill: var(--diagram-muted); font-size: 10px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+  .example-value--focal { fill: var(--diagram-accent); }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1; }
+  .edge--accent { stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .edge-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.14em; }
+  .edge-label--accent { fill: var(--diagram-accent); }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Medallion</p>
+    <h1>Survey dataset storage tiers</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1280 528" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="med-title med-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="medallion"
+           data-reading-order="Left to right, quality ascending: Raw, promoted by PII REMOVE to De-identified, promoted by CLEAN + WEIGHT to Curated, promoted by AGGREGATE to Aggregated — the focal tier downstream consumers query."
+           data-focal-id="tier-aggregated"
+           data-source-kind="brief"
+           data-token-fallback="neutral">
+        <title id="med-title">Survey dataset storage tiers</title>
+        <desc id="med-desc">One household survey dataset held at four ascending quality tiers on MinIO. Raw lands in raw-bucket, written by Apache NiFi as CSV, Parquet and JSON by a data engineer, and still carries respondent names and national identifiers. A PII REMOVE promotion lifts it to De-identified in anon-bucket, written by a Trino INSERT into partitioned Iceberg. A CLEAN and WEIGHT promotion lifts that to Curated in staging-bucket, typed and deduplicated with design weights applied by a data scientist in Trino and JupyterHub. An accent AGGREGATE promotion lands in the focal Aggregated tier in aggregated-bucket, holding Iceberg indicator tables that reporting and statistics consumers query. Promotions are adjacent-tier only and never flow backwards.</desc>
+
+        <defs>
+          <marker id="med-arrow" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <path d="M 0 0 L 7 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Promotion arcs are emitted before the cards so the cards mask any overshoot. -->
+        <path class="edge" data-diagram-element="edge" id="edge-raw-anon"
+              d="M 184 152 C 184 48 488 48 488 152" marker-end="url(#med-arrow)"/>
+        <text class="edge-label" x="336" y="112" text-anchor="middle">PII REMOVE</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-anon-curated"
+              d="M 488 152 C 488 48 792 48 792 152" marker-end="url(#med-arrow)"/>
+        <text class="edge-label" x="640" y="112" text-anchor="middle">CLEAN + WEIGHT</text>
+
+        <path class="edge edge--accent" data-diagram-element="edge" id="edge-curated-aggregated"
+              d="M 792 152 C 792 48 1096 48 1096 152" marker-end="url(#med-arrow)"/>
+        <text class="edge-label edge-label--accent" x="944" y="112" text-anchor="middle">AGGREGATE</text>
+
+        <!-- Tier 1 — outer: the ingest-facing tier. -->
+        <g data-diagram-element="node" id="tier-raw">
+          <rect class="tier-card tier-card--outer" x="48" y="152" width="272" height="328" rx="4"/>
+          <path class="tier-band" d="M 48 156 H 320 V 192 H 48 Z"/>
+          <text class="tier-name" x="68" y="180">Raw</text>
+          <text class="tier-location" x="68" y="216">raw-bucket</text>
+          <line class="card-rule" x1="64" y1="232" x2="304" y2="232"/>
+          <text class="field-label" x="68" y="258">Tool</text>
+          <text class="field-value" x="68" y="276">Apache NiFi raw write</text>
+          <text class="field-label" x="68" y="306">Format</text>
+          <text class="field-value" x="68" y="324">CSV · Parquet · JSON</text>
+          <text class="field-label" x="68" y="354">Writer</text>
+          <text class="field-value" x="68" y="372">Data engineer</text>
+          <line class="card-rule" x1="64" y1="392" x2="304" y2="392"/>
+          <text class="field-label" x="68" y="414">Example payload</text>
+          <text class="example-value" x="68" y="436">survey_2026q1.csv — 412 cols,</text>
+          <text class="example-value" x="68" y="454">respondent name and national ID</text>
+        </g>
+
+        <!-- Tier 2 — default. -->
+        <g data-diagram-element="node" id="tier-deidentified">
+          <rect class="tier-card" x="352" y="152" width="272" height="328" rx="4"/>
+          <path class="tier-band" d="M 352 156 H 624 V 192 H 352 Z"/>
+          <text class="tier-name" x="372" y="180">De-identified</text>
+          <text class="tier-location" x="372" y="216">anon-bucket</text>
+          <line class="card-rule" x1="368" y1="232" x2="608" y2="232"/>
+          <text class="field-label" x="372" y="258">Tool</text>
+          <text class="field-value" x="372" y="276">Trino INSERT</text>
+          <text class="field-label" x="372" y="306">Format</text>
+          <text class="field-value" x="372" y="324">Iceberg · partitioned</text>
+          <text class="field-label" x="372" y="354">Writer</text>
+          <text class="field-value" x="372" y="372">Data engineer</text>
+          <line class="card-rule" x1="368" y1="392" x2="608" y2="392"/>
+          <text class="field-label" x="372" y="414">Example payload</text>
+          <text class="example-value" x="372" y="436">hashed respondent key; name and</text>
+          <text class="example-value" x="372" y="454">ID columns dropped at write time</text>
+        </g>
+
+        <!-- Tier 3 — default. -->
+        <g data-diagram-element="node" id="tier-curated">
+          <rect class="tier-card" x="656" y="152" width="272" height="328" rx="4"/>
+          <path class="tier-band" d="M 656 156 H 928 V 192 H 656 Z"/>
+          <text class="tier-name" x="676" y="180">Curated</text>
+          <text class="tier-location" x="676" y="216">staging-bucket</text>
+          <line class="card-rule" x1="672" y1="232" x2="912" y2="232"/>
+          <text class="field-label" x="676" y="258">Tool</text>
+          <text class="field-value" x="676" y="276">Trino · JupyterHub</text>
+          <text class="field-label" x="676" y="306">Format</text>
+          <text class="field-value" x="676" y="324">Iceberg · cleaned</text>
+          <text class="field-label" x="676" y="354">Writer</text>
+          <text class="field-value" x="676" y="372">Data scientist</text>
+          <line class="card-rule" x1="672" y1="392" x2="912" y2="392"/>
+          <text class="field-label" x="676" y="414">Example payload</text>
+          <text class="example-value" x="676" y="436">typed and deduplicated rows with</text>
+          <text class="example-value" x="676" y="454">design weights applied per stratum</text>
+        </g>
+
+        <!-- Tier 4 — focal: the analytical pivot downstream consumers query. -->
+        <g data-diagram-element="node" id="tier-aggregated">
+          <rect class="tier-card tier-card--focal" x="960" y="152" width="272" height="328" rx="4"/>
+          <path class="tier-band tier-band--focal" d="M 960 156 H 1232 V 192 H 960 Z"/>
+          <text class="tier-name tier-name--focal" x="980" y="180">Aggregated</text>
+          <text class="tier-location tier-location--focal" x="980" y="216">aggregated-bucket</text>
+          <line class="card-rule" x1="976" y1="232" x2="1216" y2="232"/>
+          <text class="field-label" x="980" y="258">Tool</text>
+          <text class="field-value--muted" x="980" y="276">Trino INSERT · SAS JDBC</text>
+          <text class="field-label" x="980" y="306">Format</text>
+          <text class="field-value--muted" x="980" y="324">Iceberg · indicators</text>
+          <text class="field-label" x="980" y="354">Writer</text>
+          <text class="field-value--muted" x="980" y="372">Data scientist</text>
+          <line class="card-rule" x1="976" y1="392" x2="1216" y2="392"/>
+          <text class="field-label" x="980" y="414">Example payload</text>
+          <text class="example-value example-value--focal" x="980" y="436">employment_rate by region and</text>
+          <text class="example-value example-value--focal" x="980" y="454">quarter, with confidence bounds</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

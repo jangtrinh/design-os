@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Streaming engine capability profiles</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all: series colour lives in `--color-chart-1` … `--color-chart-5`, the
+   * focal series in `--color-accent`. Overlap is made readable with fill-opacity on a
+   * token colour, never by writing a lightened literal.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  .ring        { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
+  .ring--outer { stroke: var(--chart-rule-solid); }
+  .spoke       { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
+  .tick        { fill: var(--chart-soft); font-size: 11px;
+                 font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .axis-label  { fill: var(--chart-ink); font-size: 12px; }
+  .axis-title  { fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+
+  /* Every polygon fills its own token at one shared opacity and strokes it at full
+     opacity; the focal series differs by stroke weight, not by a second fill rule. */
+  .poly            { fill-opacity: 0.18; stroke-linejoin: round; }
+  .poly--helix     { fill: var(--chart-accent); stroke: var(--chart-accent); stroke-width: 3; }
+  .poly--corvus    { fill: var(--chart-1); stroke: var(--chart-1); stroke-width: 1.75; }
+  .poly--meridian  { fill: var(--chart-2); stroke: var(--chart-2); stroke-width: 1.75; }
+
+  /* Marker shape is the non-colour channel: circle, square, triangle — repeated in the key. */
+  .vtx             { stroke: var(--chart-paper); stroke-width: 1.25; }
+  .vtx--helix      { fill: var(--chart-accent); }
+  .vtx--corvus     { fill: var(--chart-1); }
+  .vtx--meridian   { fill: var(--chart-2); }
+
+  .key-label            { font-size: 12px; }
+  .key-label--helix     { fill: var(--chart-accent); font-weight: 600; }
+  .key-label--corvus    { fill: var(--chart-1); }
+  .key-label--meridian  { fill: var(--chart-2); }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · radar</p>
+    <h1>Streaming engine capability profiles</h1>
+    <p class="standfirst">Three candidate engines scored 0–5 on five shared criteria. Helix is the recommendation: it is the only profile that holds 4 or better on throughput, latency and reliability at once, and it pays for that in cost efficiency.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 620" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="radar"
+           data-reading-order="clockwise from the top axis: axis-throughput, axis-latency, axis-reliability, axis-cost-efficiency, axis-ecosystem; read outward from the centre, focal series series-helix last"
+           data-focal-id="series-helix"
+           data-source-kind="dataset"
+           data-baseline="zero">
+        <title id="chart-title">Streaming engine capability profiles</title>
+        <desc id="chart-desc">Illustrative dataset, not a real vendor evaluation. Three streaming engines scored on five criteria against one shared 0 to 5 scale, where the centre is a true zero and the outer ring is 5. Clockwise from the top: throughput, latency, reliability, cost efficiency, ecosystem. Helix scores 5, 4, 5, 3, 4; Corvus scores 4, 5, 3, 4, 2; Meridian scores 3, 3, 4, 5, 3. Helix, the focal profile, is the only engine at 4 or above on throughput, latency and reliability together, and it is the weakest of the three on cost efficiency. Each series carries its own vertex marker shape — circle, square, triangle — repeated in the key, so no series depends on colour alone.</desc>
+
+        <g data-chart-element="axis" data-axis-role="value" id="axis-score-rings">
+          <polygon class="ring" points="480,292 525.65,325.17 508.21,378.83 451.79,378.83 434.35,325.17"/>
+          <polygon class="ring" points="480,244 571.30,310.33 536.43,417.67 423.57,417.67 388.70,310.33"/>
+          <polygon class="ring" points="480,196 616.95,295.50 564.64,456.50 395.36,456.50 343.05,295.50"/>
+          <polygon class="ring" points="480,148 662.60,280.67 592.85,495.33 367.15,495.33 297.40,280.67"/>
+          <polygon class="ring ring--outer" points="480,100 708.25,265.84 621.07,534.16 338.93,534.16 251.75,265.84"/>
+
+          <!-- Numeric ticks on the first axis only; repeating them on every spoke is clutter. -->
+          <text class="tick" x="492" y="296">1</text>
+          <text class="tick" x="492" y="248">2</text>
+          <text class="tick" x="492" y="200">3</text>
+          <text class="tick" x="492" y="152">4</text>
+          <text class="tick" x="492" y="104">5</text>
+        </g>
+
+        <g data-chart-element="axis" data-axis-role="category" id="axis-criteria">
+          <line class="spoke" id="axis-throughput"      x1="480" y1="340" x2="480"    y2="100"/>
+          <line class="spoke" id="axis-latency"         x1="480" y1="340" x2="708.25" y2="265.84"/>
+          <line class="spoke" id="axis-reliability"     x1="480" y1="340" x2="621.07" y2="534.16"/>
+          <line class="spoke" id="axis-cost-efficiency" x1="480" y1="340" x2="338.93" y2="534.16"/>
+          <line class="spoke" id="axis-ecosystem"       x1="480" y1="340" x2="251.75" y2="265.84"/>
+
+          <text class="axis-label" x="480" y="72"  text-anchor="middle">Throughput</text>
+          <text class="axis-label" x="724" y="260" text-anchor="start">Latency</text>
+          <text class="axis-label" x="636" y="560" text-anchor="middle">Reliability</text>
+          <text class="axis-label" x="324" y="560" text-anchor="middle">Cost efficiency</text>
+          <text class="axis-label" x="236" y="260" text-anchor="end">Ecosystem</text>
+        </g>
+
+        <!-- Largest-area profile first, so the smaller ones stay visible on top of it. -->
+        <g data-chart-element="series" id="series-helix" data-series-label="Helix (circle markers)">
+          <polygon class="poly poly--helix" data-chart-element="mark" id="mark-helix-polygon"
+                   points="480,100 662.60,280.67 621.07,534.16 395.36,456.50 297.40,280.67"/>
+          <circle class="vtx vtx--helix" data-chart-element="mark" id="vertex-helix-throughput"      cx="480"    cy="100"    r="5"/>
+          <circle class="vtx vtx--helix" data-chart-element="mark" id="vertex-helix-latency"         cx="662.60" cy="280.67" r="5"/>
+          <circle class="vtx vtx--helix" data-chart-element="mark" id="vertex-helix-reliability"     cx="621.07" cy="534.16" r="5"/>
+          <circle class="vtx vtx--helix" data-chart-element="mark" id="vertex-helix-cost-efficiency" cx="395.36" cy="456.50" r="5"/>
+          <circle class="vtx vtx--helix" data-chart-element="mark" id="vertex-helix-ecosystem"       cx="297.40" cy="280.67" r="5"/>
+        </g>
+
+        <g data-chart-element="series" id="series-corvus" data-series-label="Corvus (square markers)">
+          <polygon class="poly poly--corvus" data-chart-element="mark" id="mark-corvus-polygon"
+                   points="480,148 708.25,265.84 564.64,456.50 367.15,495.33 388.70,310.33"/>
+          <rect class="vtx vtx--corvus" data-chart-element="mark" id="vertex-corvus-throughput"      x="475"    y="143"    width="10" height="10"/>
+          <rect class="vtx vtx--corvus" data-chart-element="mark" id="vertex-corvus-latency"         x="703.25" y="260.84" width="10" height="10"/>
+          <rect class="vtx vtx--corvus" data-chart-element="mark" id="vertex-corvus-reliability"     x="559.64" y="451.50" width="10" height="10"/>
+          <rect class="vtx vtx--corvus" data-chart-element="mark" id="vertex-corvus-cost-efficiency" x="362.15" y="490.33" width="10" height="10"/>
+          <rect class="vtx vtx--corvus" data-chart-element="mark" id="vertex-corvus-ecosystem"       x="383.70" y="305.33" width="10" height="10"/>
+        </g>
+
+        <g data-chart-element="series" id="series-meridian" data-series-label="Meridian (triangle markers)">
+          <polygon class="poly poly--meridian" data-chart-element="mark" id="mark-meridian-polygon"
+                   points="480,196 616.95,295.50 592.85,495.33 338.93,534.16 343.05,295.50"/>
+          <polygon class="vtx vtx--meridian" data-chart-element="mark" id="vertex-meridian-throughput"      points="480,190 485.5,199.5 474.5,199.5"/>
+          <polygon class="vtx vtx--meridian" data-chart-element="mark" id="vertex-meridian-latency"         points="616.95,289.50 622.45,299.00 611.45,299.00"/>
+          <polygon class="vtx vtx--meridian" data-chart-element="mark" id="vertex-meridian-reliability"     points="592.85,489.33 598.35,498.83 587.35,498.83"/>
+          <polygon class="vtx vtx--meridian" data-chart-element="mark" id="vertex-meridian-cost-efficiency" points="338.93,528.16 344.43,537.66 333.43,537.66"/>
+          <polygon class="vtx vtx--meridian" data-chart-element="mark" id="vertex-meridian-ecosystem"       points="343.05,289.50 348.55,299.00 337.55,299.00"/>
+        </g>
+
+        <!-- Key repeats each series' marker shape, so identity survives grayscale. -->
+        <g data-chart-element="label" id="key-series">
+          <circle class="vtx vtx--helix" cx="56" cy="92" r="5"/>
+          <text class="key-label key-label--helix" x="74" y="96">Helix</text>
+
+          <rect class="vtx vtx--corvus" x="51" y="111" width="10" height="10"/>
+          <text class="key-label key-label--corvus" x="74" y="120">Corvus</text>
+
+          <polygon class="vtx vtx--meridian" points="56,135 61.5,144.5 50.5,144.5"/>
+          <text class="key-label key-label--meridian" x="74" y="144">Meridian</text>
+
+          <text class="axis-title" x="48" y="176">SCORE 0–5 · ONE SHARED SCALE</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative dataset — the scores are invented to demonstrate the radar grammar and describe no real product
+      evaluation. All five criteria share one 0–5 scale with the centre as a true zero; no axis is normalised
+      separately and no inner ring is lifted off zero. Vertex marker shape, not colour, is the primary series cue, and
+      the key repeats each shape. Overlap is handled with <code>fill-opacity</code> on a token colour. Colour resolves
+      through design-system tokens; where no project tokens are compiled the page falls back to the documented neutral
+      palette declared in <code>:root</code>. Static, script-free, and offline.
+    </p>
+  </div>
+</body>
+</html>

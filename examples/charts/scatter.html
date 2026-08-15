@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Response time against request size</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all: group colour lives in `--color-chart-1` … `--color-chart-5`, the
+   * focal point in `--color-accent`.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  .grid      { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
+  .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
+  .tick      { fill: var(--chart-soft); font-size: 11px;
+               font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+
+  /* Marker SHAPE is the primary group cue; the token colour only reinforces it. */
+  .pt              { stroke-width: var(--chart-hairline); }
+  .pt--cached      { fill: var(--chart-1); fill-opacity: 0.5; stroke: var(--chart-1); }
+  .pt--uncached    { fill: var(--chart-2); fill-opacity: 0.5; stroke: var(--chart-2); }
+  .pt--focal       { fill: var(--chart-accent); fill-opacity: 0.85; stroke: var(--chart-accent); }
+
+  .group-label     { font-size: 12px; }
+  .group-label--cached   { fill: var(--chart-1); }
+  .group-label--uncached { fill: var(--chart-2); }
+  .point-label     { font-size: 12px; font-weight: 600; fill: var(--chart-accent); }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · scatter</p>
+    <h1>Response time against request size</h1>
+    <p class="standfirst">Response time rises with request size in both groups, but the uncached path costs roughly three times as much at any size — and one batch import sits well above its own group.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 660" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="scatter"
+           data-reading-order="x-axis request size in kilobytes, then y-axis response time in milliseconds, then the two clouds, then the focal point point-uncached-batch-import"
+           data-focal-id="point-uncached-batch-import"
+           data-source-kind="dataset"
+           data-baseline="zero">
+        <title id="chart-title">Response time against request size</title>
+        <desc id="chart-desc">Illustrative dataset, not a real production trace. Twenty API requests, each measured on two variables: request size in kilobytes on the horizontal axis, zero to 320, and response time in milliseconds on the vertical axis, zero to 600. Both axes include zero, so no correlation is exaggerated by a truncated frame. Ten cached responses, drawn as circles, run from 60 to 185 milliseconds; ten uncached responses, drawn as squares, run from 180 to 545 milliseconds over the same size range. The focal observation is a 272 kilobyte batch import answering in 545 milliseconds, well above the uncached trend. No trend line is drawn, no point is jittered, and no observation was dropped.</desc>
+
+        <g data-chart-element="axis" data-axis-role="value" id="axis-response-time">
+          <text class="axis-title" x="52" y="56">RESPONSE TIME (MS) · 0–600</text>
+
+          <line class="grid" x1="152" y1="80"  x2="808" y2="80"/>
+          <line class="grid" x1="152" y1="200" x2="808" y2="200"/>
+          <line class="grid" x1="152" y1="320" x2="808" y2="320"/>
+          <line class="grid" x1="152" y1="440" x2="808" y2="440"/>
+
+          <text class="tick" x="144" y="84"  text-anchor="end">600</text>
+          <text class="tick" x="144" y="204" text-anchor="end">450</text>
+          <text class="tick" x="144" y="324" text-anchor="end">300</text>
+          <text class="tick" x="144" y="444" text-anchor="end">150</text>
+          <text class="tick" x="144" y="564" text-anchor="end">0</text>
+
+          <line class="axis-rule" x1="152" y1="560" x2="808" y2="560"/>
+        </g>
+
+        <g data-chart-element="axis" data-axis-role="independent" id="axis-request-size">
+          <line class="grid" x1="320" y1="80" x2="320" y2="560"/>
+          <line class="grid" x1="480" y1="80" x2="480" y2="560"/>
+          <line class="grid" x1="640" y1="80" x2="640" y2="560"/>
+          <line class="grid" x1="800" y1="80" x2="800" y2="560"/>
+
+          <text class="tick" x="160" y="584" text-anchor="middle">0</text>
+          <text class="tick" x="320" y="584" text-anchor="middle">80</text>
+          <text class="tick" x="480" y="584" text-anchor="middle">160</text>
+          <text class="tick" x="640" y="584" text-anchor="middle">240</text>
+          <text class="tick" x="800" y="584" text-anchor="middle">320</text>
+
+          <text class="axis-title" x="160" y="612">REQUEST SIZE (KB) · 0–320</text>
+        </g>
+
+        <g data-chart-element="series" id="series-cached" data-series-label="Cached responses (circle markers)">
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-01" cx="184" cy="512" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-02" cx="216" cy="500" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-03" cx="248" cy="504" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-04" cx="280" cy="484" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-05" cx="312" cy="488" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-06" cx="352" cy="468" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-07" cx="400" cy="456" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-08" cx="456" cy="444" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-09" cx="512" cy="432" r="6"/>
+          <circle class="pt pt--cached" data-chart-element="mark" id="point-cached-10" cx="576" cy="412" r="6"/>
+        </g>
+
+        <g data-chart-element="series" id="series-uncached" data-series-label="Uncached responses (square markers)">
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-01" x="194" y="410" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-02" x="234" y="382" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-03" x="282" y="362" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-04" x="330" y="334" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-05" x="378" y="314" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-06" x="434" y="286" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-07" x="490" y="266" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-08" x="546" y="238" width="12" height="12"/>
+          <rect class="pt pt--uncached" data-chart-element="mark" id="point-uncached-09" x="618" y="210" width="12" height="12"/>
+          <!-- Focal: same marker shape as its group, larger and accented — never shape-swapped. -->
+          <rect class="pt pt--focal" data-chart-element="mark" id="point-uncached-batch-import"
+                x="696" y="116" width="16" height="16"/>
+        </g>
+
+        <!-- Direct region labels stand in for a legend; each repeats its group's marker shape. -->
+        <g data-chart-element="label" id="label-group-uncached">
+          <rect class="pt pt--uncached" x="160" y="314" width="12" height="12"/>
+          <text class="group-label group-label--uncached" x="180" y="324">Uncached responses</text>
+        </g>
+
+        <g data-chart-element="label" id="label-group-cached">
+          <circle class="pt pt--cached" cx="580" cy="436" r="6"/>
+          <text class="group-label group-label--cached" x="596" y="440">Cached responses</text>
+        </g>
+
+        <g data-chart-element="label" id="label-point-batch-import">
+          <text class="point-label" x="688" y="112" text-anchor="end">Batch import — 272 KB, 545 ms</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative dataset — the twenty observations are invented to demonstrate the scatter grammar and describe no
+      real service. Units are stated once per axis, and each axis title prints its full range so the frame is visible.
+      Zero is included on both axes. Groups are told apart by marker shape — circle and square — as well as by token
+      colour, and are labelled directly on the plot rather than through a legend. Marker area encodes nothing; no trend
+      line is fitted. Colour resolves through design-system tokens; where no project tokens are compiled the page falls
+      back to the documented neutral palette declared in <code>:root</code>. Static, script-free, and offline.
+    </p>
+  </div>
+</body>
+</html>

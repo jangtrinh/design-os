@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering org front door</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * `examples/` is a standalone corpus with no project design system to read, so the
+   * base tokens below are the documented NEUTRAL FALLBACK from diagram-craft.md
+   * (achromatic ramp plus one accent). The fallback is disclosed on the SVG root
+   * as data-token-fallback="neutral-default" — a silent fallback is indistinguishable
+   * from a broken token read.
+   */
+  :root {
+    --color-background:       oklch(0.986 0.003 95);
+    --color-card:             oklch(1 0 0);
+    --color-foreground:       oklch(0.24 0.012 264);
+    --color-muted-foreground: oklch(0.52 0.014 264);
+    --color-border:           oklch(0.90 0.006 264);
+    --color-input:            oklch(0.84 0.008 264);
+    --color-accent:           oklch(0.55 0.135 248);
+    --color-primary:          oklch(0.45 0.100 248);
+
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --color-background:       oklch(0.19 0.010 264);
+    --color-card:             oklch(0.24 0.012 264);
+    --color-foreground:       oklch(0.95 0.004 264);
+    --color-muted-foreground: oklch(0.72 0.012 264);
+    --color-border:           oklch(0.32 0.012 264);
+    --color-input:            oklch(0.40 0.014 264);
+    --color-accent:           oklch(0.74 0.120 248);
+    --color-primary:          oklch(0.80 0.090 248);
+
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-background:       oklch(0.19 0.010 264);
+      --color-card:             oklch(0.24 0.012 264);
+      --color-foreground:       oklch(0.95 0.004 264);
+      --color-muted-foreground: oklch(0.72 0.012 264);
+      --color-border:           oklch(0.32 0.012 264);
+      --color-input:            oklch(0.40 0.014 264);
+      --color-accent:           oklch(0.74 0.120 248);
+      --color-primary:          oklch(0.80 0.090 248);
+
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  /* Node kinds differ by treatment, not by shape: the front door must be unmissable. */
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--front-door { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .node-shape--group { stroke: var(--diagram-muted); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-invocation { fill: var(--diagram-soft); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
+
+  .rule-strip { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .rule-text { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Org chart</p>
+    <h1>Engineering, who to reach</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1144 560" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="org-title org-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="org-chart"
+           data-reading-order="top-down, front door first: node-0-cto, then tier 1 left to right node-1-platform, node-1-product, node-1-data, then tier 2 left to right node-2-web, node-2-api, node-2-growth, node-2-checkout, node-2-pipelines, node-2-ml"
+           data-focal-id="node-0-cto"
+           data-source-kind="brief"
+           data-token-fallback="neutral-default">
+        <title id="org-title">Engineering, who to reach</title>
+        <desc id="org-desc">The CTO is the front door and takes the accent treatment: work arriving without an owner goes there. Three directors report to the CTO — platform, product, and data — and each director owns two teams. Sibling order is the source's own stated order. A footer rule strip carries the escalation rule, because approval gates are rules and never nodes.</desc>
+
+        <!-- Connectors are drawn before nodes so a node fill covers any stroke touching its edge. -->
+        <path class="edge" data-diagram-element="edge" id="edge-bus-cto" d="M 204 168 H 940 M 572 120 V 168"/>
+        <path class="edge" data-diagram-element="edge" id="edge-cto-platform" d="M 204 168 V 216"/>
+        <path class="edge" data-diagram-element="edge" id="edge-cto-product" d="M 572 168 V 216"/>
+        <path class="edge" data-diagram-element="edge" id="edge-cto-data" d="M 940 168 V 216"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-bus-platform" d="M 120 336 H 288 M 204 288 V 336"/>
+        <path class="edge" data-diagram-element="edge" id="edge-platform-web" d="M 120 336 V 384"/>
+        <path class="edge" data-diagram-element="edge" id="edge-platform-api" d="M 288 336 V 384"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-bus-product" d="M 488 336 H 656 M 572 288 V 336"/>
+        <path class="edge" data-diagram-element="edge" id="edge-product-growth" d="M 488 336 V 384"/>
+        <path class="edge" data-diagram-element="edge" id="edge-product-checkout" d="M 656 336 V 384"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-bus-data" d="M 856 336 H 1024 M 940 288 V 336"/>
+        <path class="edge" data-diagram-element="edge" id="edge-data-pipelines" d="M 856 336 V 384"/>
+        <path class="edge" data-diagram-element="edge" id="edge-data-ml" d="M 1024 336 V 384"/>
+
+        <g data-diagram-element="node" id="node-0-cto">
+          <rect class="node-shape node-shape--front-door" x="484" y="48" width="176" height="72" rx="4"/>
+          <text class="node-label" x="572" y="80" text-anchor="middle">CTO</text>
+          <text class="node-invocation" x="572" y="100" text-anchor="middle">@cto · front door</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-1-platform">
+          <rect class="node-shape node-shape--group" x="116" y="216" width="176" height="72" rx="4"/>
+          <text class="node-label" x="204" y="248" text-anchor="middle">Director, Platform</text>
+          <text class="node-invocation" x="204" y="268" text-anchor="middle">@dir-platform</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-1-product">
+          <rect class="node-shape node-shape--group" x="484" y="216" width="176" height="72" rx="4"/>
+          <text class="node-label" x="572" y="248" text-anchor="middle">Director, Product</text>
+          <text class="node-invocation" x="572" y="268" text-anchor="middle">@dir-product</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-1-data">
+          <rect class="node-shape node-shape--group" x="852" y="216" width="176" height="72" rx="4"/>
+          <text class="node-label" x="940" y="248" text-anchor="middle">Director, Data</text>
+          <text class="node-invocation" x="940" y="268" text-anchor="middle">@dir-data</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-web">
+          <rect class="node-shape" x="48" y="384" width="144" height="72" rx="4"/>
+          <text class="node-label" x="120" y="416" text-anchor="middle">Web platform</text>
+          <text class="node-invocation" x="120" y="436" text-anchor="middle">#plat-web</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-api">
+          <rect class="node-shape" x="216" y="384" width="144" height="72" rx="4"/>
+          <text class="node-label" x="288" y="416" text-anchor="middle">API platform</text>
+          <text class="node-invocation" x="288" y="436" text-anchor="middle">#plat-api</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-growth">
+          <rect class="node-shape" x="416" y="384" width="144" height="72" rx="4"/>
+          <text class="node-label" x="488" y="416" text-anchor="middle">Growth</text>
+          <text class="node-invocation" x="488" y="436" text-anchor="middle">#growth</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-checkout">
+          <rect class="node-shape" x="584" y="384" width="144" height="72" rx="4"/>
+          <text class="node-label" x="656" y="416" text-anchor="middle">Checkout</text>
+          <text class="node-invocation" x="656" y="436" text-anchor="middle">#checkout</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-pipelines">
+          <rect class="node-shape" x="784" y="384" width="144" height="72" rx="4"/>
+          <text class="node-label" x="856" y="416" text-anchor="middle">Pipelines</text>
+          <text class="node-invocation" x="856" y="436" text-anchor="middle">#data-pipe</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-ml">
+          <rect class="node-shape" x="952" y="384" width="144" height="72" rx="4"/>
+          <text class="node-label" x="1024" y="416" text-anchor="middle">ML platform</text>
+          <text class="node-invocation" x="1024" y="436" text-anchor="middle">#data-ml</text>
+        </g>
+
+        <!-- Rule strip: escalation is a rule, not a person, so it never becomes a node. -->
+        <rect class="rule-strip" x="48" y="488" width="1048" height="40" rx="4"/>
+        <text class="rule-text" x="72" y="512">Escalation — unowned work lands on the CTO, is routed to a director within one working day, and only a director may reassign across branches.</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

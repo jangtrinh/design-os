@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User sign-in exchange</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+
+  /* Lifeline stroke is lighter than a message arrow, per the sequence grammar. */
+  .lifeline { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .activation { fill: var(--diagram-accent-tint); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .group-frame { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); stroke-dasharray: 4 4; }
+  .group-divider { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); stroke-dasharray: 4 4; }
+  .group-label { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge--return { stroke-dasharray: 5 4; }
+  .edge--accent { stroke: var(--diagram-accent); }
+  .edge-label { fill: var(--diagram-soft); font-size: 11px; }
+  .caption { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Sequence</p>
+    <h1>User sign-in exchange</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="sequence-title sequence-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="sequence"
+           data-reading-order="ttb: edge-browser-auth-signin, edge-auth-store-lookup, edge-store-auth-found, edge-auth-browser-token, edge-store-auth-nomatch, edge-auth-browser-rejected"
+           data-focal-id="edge-auth-browser-token"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="sequence-title">User sign-in exchange</title>
+        <desc id="sequence-desc">Time runs top to bottom across three participants. The browser posts credentials to the auth service, which looks up the credential record in the token store. In the matched branch the token store returns the record and the auth service replies to the browser with a session token — the focal message. In the else branch the token store reports no record and the auth service replies with a 401 rejection.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own colour via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g data-diagram-element="node" id="participant-browser">
+          <rect class="node-shape" x="64" y="48" width="192" height="48" rx="4"/>
+          <text class="node-label" x="160" y="76" text-anchor="middle">Browser</text>
+          <line class="lifeline" x1="160" y1="96" x2="160" y2="440"/>
+        </g>
+
+        <g data-diagram-element="node" id="participant-auth">
+          <rect class="node-shape" x="384" y="48" width="192" height="48" rx="4"/>
+          <text class="node-label" x="480" y="76" text-anchor="middle">Auth service</text>
+          <line class="lifeline" x1="480" y1="96" x2="480" y2="440"/>
+          <rect class="activation" x="472" y="152" width="16" height="240"/>
+        </g>
+
+        <g data-diagram-element="node" id="participant-store">
+          <rect class="node-shape" x="704" y="48" width="192" height="48" rx="4"/>
+          <text class="node-label" x="800" y="76" text-anchor="middle">Token store</text>
+          <line class="lifeline" x1="800" y1="96" x2="800" y2="440"/>
+          <rect class="activation" x="792" y="192" width="16" height="160"/>
+        </g>
+
+        <g id="frame-alt">
+          <rect class="group-frame" x="96" y="216" width="768" height="200" rx="4"/>
+          <line class="group-divider" x1="96" y1="320" x2="864" y2="320"/>
+          <text class="group-label" x="112" y="240">alt — credential matched</text>
+          <text class="group-label" x="112" y="344">else — no match</text>
+        </g>
+
+        <!-- DOM order matches visual time order, top to bottom. -->
+        <line class="edge" data-diagram-element="edge" id="edge-browser-auth-signin"
+              x1="160" y1="152" x2="472" y2="152" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="316" y="144" text-anchor="middle">POST /session (email, password)</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-auth-store-lookup"
+              x1="488" y1="192" x2="792" y2="192" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="640" y="184" text-anchor="middle">look up credential record</text>
+
+        <line class="edge edge--return" data-diagram-element="edge" id="edge-store-auth-found"
+              x1="792" y1="256" x2="488" y2="256" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="640" y="248" text-anchor="middle">record found</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-auth-browser-token"
+              x1="472" y1="288" x2="160" y2="288" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="316" y="280" text-anchor="middle">200 — session token issued</text>
+
+        <line class="edge edge--return" data-diagram-element="edge" id="edge-store-auth-nomatch"
+              x1="792" y1="352" x2="488" y2="352" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="640" y="344" text-anchor="middle">no record</text>
+
+        <line class="edge edge--return" data-diagram-element="edge" id="edge-auth-browser-rejected"
+              x1="472" y1="384" x2="160" y2="384" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="316" y="376" text-anchor="middle">401 — invalid credentials</text>
+
+        <text class="caption" x="96" y="464">Dashed arrows are replies. Activation bars mark work done in response to a received call.</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Platform entitlement matrix</title>
+<style>
+  /*
+   * Diagram role layer — the token contract from templates/diagram-scaffolds/diagram-base.html.
+   *
+   * Every role resolves to a project design token first. The second value in each var() is
+   * the documented neutral fallback from knowledge/diagram-craft.md, used only when this
+   * example is opened outside a Design OS project; the artifact declares that fallback in
+   * data-token-fallback so a reader can tell "no tokens present" from "tokens ignored".
+   *
+   * The four level roles below are derived with color-mix rather than pinned to literals, so
+   * the privilege ramp (full heaviest, none nearly silent) still tracks a DS palette change.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fcfcfa);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #16181d);
+    --diagram-muted:       var(--color-muted-foreground, #6f7480);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f7480) 65%, var(--color-background, #fcfcfa));
+    --diagram-rule:        var(--color-border, #e6e5e0);
+    --diagram-rule-solid:  var(--color-input, #d2d1cb);
+    --diagram-accent:      var(--color-accent, #b3451c);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b3451c) 12%, var(--color-background, #fcfcfa));
+
+    --diagram-banner:      color-mix(in oklch, var(--color-foreground, #16181d) 88%, var(--color-background, #fcfcfa));
+    --diagram-level-full:  color-mix(in oklch, var(--color-foreground, #16181d) 58%, var(--color-background, #fcfcfa));
+    --diagram-level-rw:    color-mix(in oklch, var(--color-foreground, #16181d) 10%, var(--color-background, #fcfcfa));
+    --diagram-level-read:  color-mix(in oklch, var(--color-foreground, #16181d) 4%, var(--color-background, #fcfcfa));
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #101215);
+    --diagram-surface:     var(--color-card, #171a1f);
+    --diagram-ink:         var(--color-foreground, #ecebe6);
+    --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+    --diagram-rule:        var(--color-border, #2a2f35);
+    --diagram-rule-solid:  var(--color-input, #3b414a);
+    --diagram-accent:      var(--color-accent, #e0743f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+
+    --diagram-banner:      color-mix(in oklch, var(--color-foreground, #ecebe6) 82%, var(--color-background, #101215));
+    --diagram-level-full:  color-mix(in oklch, var(--color-foreground, #ecebe6) 52%, var(--color-background, #101215));
+    --diagram-level-rw:    color-mix(in oklch, var(--color-foreground, #ecebe6) 14%, var(--color-background, #101215));
+    --diagram-level-read:  color-mix(in oklch, var(--color-foreground, #ecebe6) 6%, var(--color-background, #101215));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #101215);
+      --diagram-surface:     var(--color-card, #171a1f);
+      --diagram-ink:         var(--color-foreground, #ecebe6);
+      --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+      --diagram-rule:        var(--color-border, #2a2f35);
+      --diagram-rule-solid:  var(--color-input, #3b414a);
+      --diagram-accent:      var(--color-accent, #e0743f);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+
+      --diagram-banner:      color-mix(in oklch, var(--color-foreground, #ecebe6) 82%, var(--color-background, #101215));
+      --diagram-level-full:  color-mix(in oklch, var(--color-foreground, #ecebe6) 52%, var(--color-background, #101215));
+      --diagram-level-rw:    color-mix(in oklch, var(--color-foreground, #ecebe6) 14%, var(--color-background, #101215));
+      --diagram-level-read:  color-mix(in oklch, var(--color-foreground, #ecebe6) 6%, var(--color-background, #101215));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1120px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 880px; height: auto; display: block; }
+
+  /* Grid rules and cell borders are node chrome, never connectors. */
+  .banner { fill: var(--diagram-banner); stroke: none; }
+  .banner-name { fill: var(--diagram-paper); font-size: 13px; }
+  .banner-group {
+    fill: var(--diagram-paper); font-size: 9px; letter-spacing: 0.1em;
+    font-family: var(--font-family-mono, ui-monospace, monospace); opacity: 0.72;
+  }
+  .axis-caption { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+
+  .label-cell { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .label-name { fill: var(--diagram-ink); font-size: 13px; }
+  .label-hint { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.06em; }
+
+  .cell { stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .cell--full  { fill: var(--diagram-level-full); stroke: none; }
+  .cell--rw    { fill: var(--diagram-level-rw); stroke: var(--diagram-rule); }
+  .cell--read  { fill: var(--diagram-level-read); stroke: var(--diagram-rule); }
+  .cell--none  { fill: none; stroke: var(--diagram-rule); stroke-dasharray: 3 4; }
+  .cell--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+
+  .value { font-size: 12px; }
+  .value--full  { fill: var(--diagram-paper); font-size: 12px; }
+  .value--rw    { fill: var(--diagram-ink); font-size: 12px; }
+  .value--read  { fill: var(--diagram-muted); font-size: 12px; }
+  .value--none  { fill: var(--diagram-soft); font-size: 11px; }
+  .value--focal { fill: var(--diagram-accent); font-size: 12px; }
+  .value-note   { fill: var(--diagram-accent); font-size: 9px; letter-spacing: 0.06em; }
+
+  .legend-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">dp-security-matrix</p>
+    <h1>Platform entitlement matrix</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1200 664" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="dsm-title dsm-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="dp-security-matrix"
+           data-reading-order="rows-then-columns; component-1 identity provider, component-2 object store raw zone, component-3 query engine, component-4 notebook environment, component-5 ingest tool — read each row first, then sweep left to right across roles ordered by descending privilege."
+           data-focal-id="cell-r2-c3"
+           data-source-kind="brief"
+           data-token-fallback="neutral">
+        <title id="dsm-title">Platform entitlement matrix</title>
+        <desc id="dsm-desc">Four roles crossed with five platform components, every intersection rendered. Roles run left to right by descending privilege: platform administrator, data engineer, data scientist, reporting analyst. Components run top to bottom along the path data takes: identity provider, object store raw zone, query engine, notebook environment, ingest tool. The platform administrator holds full access to every component; the data engineer holds read-write everywhere except identity, where they only log in; the data scientist works in the query engine and notebooks but is denied the raw zone; the reporting analyst may only log in, run SELECT against the query engine, and nothing else. The focal cell is data scientist against the raw object store zone — no access — because raw personal data never reaches the analysis surface. There are no connectors in this diagram.</desc>
+
+        <text class="axis-caption" x="48" y="80">Platform component</text>
+        <text class="axis-caption" x="352" y="80">Roles, by descending privilege</text>
+
+        <!-- Role banners: the strongest fill on the canvas, above every data row. -->
+        <g data-diagram-element="node" id="role-1">
+          <rect class="banner" x="352" y="96" width="192" height="64" rx="4"/>
+          <text class="banner-name" x="448" y="126" text-anchor="middle">Platform admin</text>
+          <text class="banner-group" x="448" y="144" text-anchor="middle">grp-platform-admins</text>
+        </g>
+        <g data-diagram-element="node" id="role-2">
+          <rect class="banner" x="552" y="96" width="192" height="64" rx="4"/>
+          <text class="banner-name" x="648" y="126" text-anchor="middle">Data engineer</text>
+          <text class="banner-group" x="648" y="144" text-anchor="middle">grp-data-eng</text>
+        </g>
+        <g data-diagram-element="node" id="role-3">
+          <rect class="banner" x="752" y="96" width="192" height="64" rx="4"/>
+          <text class="banner-name" x="848" y="126" text-anchor="middle">Data scientist</text>
+          <text class="banner-group" x="848" y="144" text-anchor="middle">grp-data-sci</text>
+        </g>
+        <g data-diagram-element="node" id="role-4">
+          <rect class="banner" x="952" y="96" width="192" height="64" rx="4"/>
+          <text class="banner-name" x="1048" y="126" text-anchor="middle">Reporting analyst</text>
+          <text class="banner-group" x="1048" y="144" text-anchor="middle">grp-reporting</text>
+        </g>
+
+        <!-- Row 1 — identity provider. -->
+        <g data-diagram-element="node" id="component-1">
+          <rect class="label-cell" x="48" y="176" width="288" height="72" rx="4"/>
+          <text class="label-name" x="68" y="218">Identity provider</text>
+          <text class="label-hint" x="316" y="218" text-anchor="end">SSO</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r1-c1">
+          <rect class="cell cell--full" x="352" y="176" width="192" height="72" rx="4"/>
+          <text class="value--full" x="448" y="218" text-anchor="middle">Realm admin</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r1-c2">
+          <rect class="cell cell--read" x="552" y="176" width="192" height="72" rx="4"/>
+          <text class="value--read" x="648" y="218" text-anchor="middle">Login</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r1-c3">
+          <rect class="cell cell--read" x="752" y="176" width="192" height="72" rx="4"/>
+          <text class="value--read" x="848" y="218" text-anchor="middle">Login</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r1-c4">
+          <rect class="cell cell--read" x="952" y="176" width="192" height="72" rx="4"/>
+          <text class="value--read" x="1048" y="218" text-anchor="middle">Login</text>
+        </g>
+
+        <!-- Row 2 — object store, raw zone. Holds the single focal cell. -->
+        <g data-diagram-element="node" id="component-2">
+          <rect class="label-cell" x="48" y="256" width="288" height="72" rx="4"/>
+          <text class="label-name" x="68" y="298">Object store</text>
+          <text class="label-hint" x="316" y="298" text-anchor="end">raw zone</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r2-c1">
+          <rect class="cell cell--full" x="352" y="256" width="192" height="72" rx="4"/>
+          <text class="value--full" x="448" y="298" text-anchor="middle">Bucket admin</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r2-c2">
+          <rect class="cell cell--rw" x="552" y="256" width="192" height="72" rx="4"/>
+          <text class="value--rw" x="648" y="298" text-anchor="middle">R/W</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r2-c3">
+          <rect class="cell cell--focal" x="752" y="256" width="192" height="72" rx="4"/>
+          <text class="value--focal" x="848" y="288" text-anchor="middle">No access</text>
+          <text class="value-note" x="848" y="308" text-anchor="middle">raw PII never reaches analysis</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r2-c4">
+          <rect class="cell cell--none" x="952" y="256" width="192" height="72" rx="4"/>
+          <text class="value--none" x="1048" y="298" text-anchor="middle">No access</text>
+        </g>
+
+        <!-- Row 3 — query engine. -->
+        <g data-diagram-element="node" id="component-3">
+          <rect class="label-cell" x="48" y="336" width="288" height="72" rx="4"/>
+          <text class="label-name" x="68" y="378">Query engine</text>
+          <text class="label-hint" x="316" y="378" text-anchor="end">federation</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r3-c1">
+          <rect class="cell cell--full" x="352" y="336" width="192" height="72" rx="4"/>
+          <text class="value--full" x="448" y="378" text-anchor="middle">Cluster admin</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r3-c2">
+          <rect class="cell cell--rw" x="552" y="336" width="192" height="72" rx="4"/>
+          <text class="value--rw" x="648" y="378" text-anchor="middle">R/W</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r3-c3">
+          <rect class="cell cell--rw" x="752" y="336" width="192" height="72" rx="4"/>
+          <text class="value--rw" x="848" y="378" text-anchor="middle">R/W</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r3-c4">
+          <rect class="cell cell--read" x="952" y="336" width="192" height="72" rx="4"/>
+          <text class="value--read" x="1048" y="378" text-anchor="middle">SELECT</text>
+        </g>
+
+        <!-- Row 4 — notebook environment. -->
+        <g data-diagram-element="node" id="component-4">
+          <rect class="label-cell" x="48" y="416" width="288" height="72" rx="4"/>
+          <text class="label-name" x="68" y="458">Notebook environment</text>
+          <text class="label-hint" x="316" y="458" text-anchor="end">interactive</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r4-c1">
+          <rect class="cell cell--full" x="352" y="416" width="192" height="72" rx="4"/>
+          <text class="value--full" x="448" y="458" text-anchor="middle">Hub admin</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r4-c2">
+          <rect class="cell cell--rw" x="552" y="416" width="192" height="72" rx="4"/>
+          <text class="value--rw" x="648" y="458" text-anchor="middle">R/W</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r4-c3">
+          <rect class="cell cell--rw" x="752" y="416" width="192" height="72" rx="4"/>
+          <text class="value--rw" x="848" y="458" text-anchor="middle">R/W</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r4-c4">
+          <rect class="cell cell--none" x="952" y="416" width="192" height="72" rx="4"/>
+          <text class="value--none" x="1048" y="458" text-anchor="middle">No access</text>
+        </g>
+
+        <!-- Row 5 — ingest tool. -->
+        <g data-diagram-element="node" id="component-5">
+          <rect class="label-cell" x="48" y="496" width="288" height="72" rx="4"/>
+          <text class="label-name" x="68" y="538">Ingest tool</text>
+          <text class="label-hint" x="316" y="538" text-anchor="end">pipelines</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r5-c1">
+          <rect class="cell cell--full" x="352" y="496" width="192" height="72" rx="4"/>
+          <text class="value--full" x="448" y="538" text-anchor="middle">Flow admin</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r5-c2">
+          <rect class="cell cell--rw" x="552" y="496" width="192" height="72" rx="4"/>
+          <text class="value--rw" x="648" y="538" text-anchor="middle">R/W</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r5-c3">
+          <rect class="cell cell--read" x="752" y="496" width="192" height="72" rx="4"/>
+          <text class="value--read" x="848" y="538" text-anchor="middle">Read flows</text>
+        </g>
+        <g data-diagram-element="node" id="cell-r5-c4">
+          <rect class="cell cell--none" x="952" y="496" width="192" height="72" rx="4"/>
+          <text class="value--none" x="1048" y="538" text-anchor="middle">No access</text>
+        </g>
+
+        <!-- Legend: one swatch per level actually present in the grid, plus the focal rule. -->
+        <rect class="cell cell--full" x="48" y="604" width="28" height="16" rx="2"/>
+        <text class="legend-label" x="84" y="617">full</text>
+
+        <rect class="cell cell--rw" x="176" y="604" width="28" height="16" rx="2"/>
+        <text class="legend-label" x="212" y="617">rw</text>
+
+        <rect class="cell cell--read" x="296" y="604" width="28" height="16" rx="2"/>
+        <text class="legend-label" x="332" y="617">read</text>
+
+        <rect class="cell cell--none" x="424" y="604" width="28" height="16" rx="2"/>
+        <text class="legend-label" x="460" y="617">none</text>
+
+        <rect class="cell cell--focal" x="560" y="604" width="28" height="16" rx="2"/>
+        <text class="legend-label" x="596" y="617">focal access rule</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
