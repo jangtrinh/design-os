@@ -584,6 +584,20 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_CHANGE_LOG", "BAD_REGISTRY", "BAD_MIRROR_CAPTURE", "BAD_SIDECAR", "WRITE_ERROR", "READ_ERROR"],
       },
+      comments: {
+        summary: "Triage a captured comments payload: fold threads, resolve what each pin points at",
+        positionals: [{ name: "<comments.json>", required: true, summary: "Body of GET /v1/files/<key>/comments" }],
+        flags: [
+          { name: "nodes", type: "string", summary: "Body of GET /v1/files/<key>/nodes?ids=<frames> — supplies the subtree used to name the element under the pin" },
+          { name: "file-tree", type: "string", summary: "Body of GET /v1/files/<key>?depth=2 — the only payload carrying page names" },
+          { name: "under", type: "string", summary: "Scope to one section/page: keep only comments whose frame is that node or a descendant of it (needs --nodes to contain that subtree)" },
+          { name: "since", type: "string", summary: "Delta mode: only threads that moved after this ISO instant (new, replied, newly resolved); implies --include-resolved" },
+          { name: "decisions", type: "string", summary: "JSON map of already-triaged thread ids, written by the host; read-only here" },
+          { name: "pending", type: "boolean", summary: "Show only threads absent from --decisions" },
+          { name: "include-resolved", type: "boolean", summary: "Also show threads resolved in Figma (hidden by default)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_COMMENTS_PAYLOAD", "READ_ERROR"],
+      },
     },
   },
 

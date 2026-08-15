@@ -32,6 +32,7 @@ export const WORKFLOW_VERBS = [
   "from-ref",
   "from-url",
   "figma",
+  "figma-comments",
   "to-figma",
   "audit",
   "design",
