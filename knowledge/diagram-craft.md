@@ -30,9 +30,10 @@ navigation, an API call sequence.
 
 **Do NOT** reach for a diagram when: the request has no spatial or sequential structure to
 show (a diagram of nothing but bullet points is a list wearing a costume); the content is a
-chart of quantities (outside this capability); the request wants an editable
-canvas file, an imported/converted diagram, or a rendered PNG/browser export — v1 ships none
-of those (see "What this is NOT").
+chart of quantities (that is `chart-craft.md`, a sibling capability); the request wants an
+editable canvas file or a rendered PNG/browser export — neither ships here (see "What this is
+NOT"). A drawio or Mermaid source *can* be read as brief material, but it is redrawn natively
+rather than converted — see extract-then-redraw below.
 
 ## Selecting a grammar
 
@@ -205,11 +206,23 @@ that computes geometry — the host places every element by editorial judgment a
 the admission bar above; a twentieth is a decline, not a stretch. Charts belong to
 `chart-craft.md`.
 
-**Import is extract-then-redraw, never conversion.** The drawio and Mermaid extract scripts
-read a source file and emit *structured intermediate data* — a node/edge digest — which the
-host then uses as brief material to author a native grammar diagram. Imported geometry is
-never emitted into the artifact, and nothing here parses or produces a diagram interchange
-format as output. A redraw carries a fidelity ledger naming what it simplified or dropped.
+**Import is extract-then-redraw, never conversion.** The drawio and Mermaid extractors read a
+source file and emit *structured intermediate data* — a node/edge digest plus hub, cycle, and
+density analysis — which the host then uses as brief material to author a native grammar
+diagram:
+
+```
+python -m design_os.diagram.drawio_extract  <file.drawio|.xml|.png|.svg> [--json]
+python -m design_os.diagram.mermaid_extract <file.mmd|.mermaid|.md>      [--json]
+```
+
+Both are read-only, deterministic, standard-library only, and make no network calls. They
+refuse DTD/ENTITY declarations, cap input at 32 MiB and inflation at 64 MiB, and reject
+unsupported Mermaid grammars outright rather than parsing them partially.
+
+Imported geometry is never emitted into the artifact — the digest informs an editorial
+redraw, and the host still places every element. A redraw carries a fidelity ledger naming
+what it simplified or dropped.
 
 ## Failure Modes
 
