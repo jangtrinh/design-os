@@ -792,13 +792,13 @@
 
 .lang-option.active {
   background: var(--text-primary);
-  color: var(--bg-canvas);
+  color: var(--text-inverse);
   border-color: var(--text-primary);
   font-weight: 700;
 }
 
 .lang-option.active .lang-code {
-  color: var(--bg-canvas);
+  color: var(--text-inverse);
   opacity: 0.85;
 }
 
@@ -861,7 +861,7 @@
   gap: 6px;
   padding: 4px 8px;
   background: var(--text-primary);
-  color: var(--bg-canvas);
+  color: var(--text-inverse);
   border-radius: 4px;
   font-weight: 700;
   letter-spacing: 0.06em;
