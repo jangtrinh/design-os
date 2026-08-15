@@ -2514,3 +2514,48 @@ li {
   font-weight: 800;
   letter-spacing: 0.12em;
 }
+
+
+/* Enhanced Phosphor Icons Styling */
+.staff-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--bg-obsidian-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: var(--orb-lime-bg);
+}
+.staff-avatar i.ph {
+  font-size: 32px !important;
+}
+.staff-stylist .staff-avatar {
+  background: rgba(7, 8, 10, 0.08);
+  border-color: rgba(7, 8, 10, 0.15);
+  color: #07080a !important;
+}
+.orbit-chip i.ph {
+  font-size: 24px !important;
+  color: var(--orb-lime-bg);
+  margin-bottom: 8px;
+  display: block;
+}
+.token-emit-card i.ph,
+.input-card i.ph {
+  font-size: 26px !important;
+  color: var(--orb-lime-bg);
+  margin-bottom: 12px;
+  display: block;
+}
+.lang-icon i.ph {
+  font-size: 16px;
+  color: var(--orb-lime-bg);
+  margin-right: 8px;
+}
+.nav-btn i.ph {
+  font-size: 20px;
+  line-height: 1;
+}
