@@ -181,6 +181,16 @@
       ]
     },
     {
+      "id": "diagram-icons",
+      "path": "knowledge/diagram-icons.md",
+      "description": "The monochrome 24x24 icon set for diagram and chart artifacts — 86 currentColor icons across 12 categories, with per-icon upstream attribution.",
+      "when": [
+        "diagram-icon-lookup",
+        "infrastructure-node-glyph",
+        "monochrome-svg-icon-set"
+      ]
+    },
+    {
       "id": "figma-agent-hand",
       "path": "knowledge/figma-agent-hand.md",
       "description": "Driving the figma-agent CLI — the optional Figma hand outside the deterministic binary.",
