@@ -488,6 +488,43 @@ cleanup, INP, CLS, and frame-stability evidence. Read the
 
 ---
 
+## Gradient fields
+
+`ui init` installs `design-os-shader-gradient`, a T6 capability for animated 3D gradient
+fields built on [ShaderGradient](https://github.com/ruucm/shadergradient) (MIT). Ten named
+presets, plus twelve hand-configurable shader-by-mesh surfaces no preset reaches.
+
+<img src="docs/images/shader-gradient/presets-grid.png" alt="Ten ShaderGradient presets rendered as a labelled grid: Halo, Pensive, Mint, Interstella, Nighty night, Viola, Universe, Sunset, Mandarin, and Cotton Candy, each captioned with its mesh type and whether it uses grain or environment lighting" />
+
+<sub>Rendered from the published renderer at the pinned version, each preset in its own
+palette. In a real page a field's colours come from the active design system instead.</sub>
+
+It is **gated, not offered**. A field is reachable only after
+[the motion ladder](knowledge/motion-craft.md) selects T6 and the persona's motion cap
+allows it — and it shares **one** per-viewport budget with the Canvas UI effect capability,
+so a page gets one T6 surface, never one of each.
+
+<img src="docs/images/shader-gradient/field-demo.gif" width="400" alt="A Mint gradient field animating: cool green and cyan forms drifting slowly across a light ground" />
+
+A field fails two independent ways, so it carries **two** fallbacks and shipping one as
+though it were both is a reject:
+
+| Trigger | Fallback | Why this one |
+|---|---|---|
+| `prefers-reduced-motion: reduce` | the same field, **frozen** | WebGL still works; the visitor asked for less motion, not a different design |
+| no WebGL, or context loss | a **token-derived CSS gradient** | there is no canvas to freeze, and something must still light the surface |
+
+No preset ships a static default, so the frozen state does not exist until it is wired —
+`ui knowledge check` fails any matrix row whose fallback never names it.
+
+The field's three colours are derived from design-system tokens, never carried over from the
+preset. A canvas is invisible to `ui ds-usage-lint`, so nothing would catch a field that
+quietly became the page's colour authority — which is exactly why it is a rule and not a
+lint. Read the [gradient direction](knowledge/shader-gradient-direction.md) and
+[runtime skill](templates/skills/shader-gradient.md).
+
+---
+
 ## Your project gets a staff — the agents
 
 One command turns the design system into a small team of **Claude Code
@@ -815,6 +852,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-16 | **Gradient fields, rendered** — the ten ShaderGradient presets now appear in the README as a labelled grid plus an animated field, rendered from the published renderer with this repo's own preset values; the ledger's package version is corrected to one that was actually released | `#157` |
 | 2026-08-16 | **ShaderGradient as a T6 gradient-field capability** — `/ui:generate`/`/ui:refine`/`/ui:redesign` can direct one animated 3D gradient field behind the existing T6 gate, sharing `canvas-effect`'s single-effect budget; a source-free ledger pins the preset roster and surface set, `ui knowledge gradient-matrix` emits the matrix's machine columns, and `ui knowledge check` fails a fallback cell that never names the frozen state | `#156` |
 | 2026-08-15 | **Native diagram craft** — `/ui:diagram` routes architecture, sequence, and product-flow intent into accessible offline SVG; `ui diagram lint` enforces owned-artifact structure and product-flow source metadata; a pinned real-flow proof verifies every source ID and an empty fidelity ledger before release | `#132` |
 | 2026-08-13 | **Four shipped sites lead the showcase as a grid** — [OPAH ONE](https://github.com/jangtrinh/design-os-drone-showcase), [AURA](https://github.com/jangtrinh/aura-scrollcinema-demo), [Robotic Arm](https://github.com/jangtrinh/design-os-animejs), and [Rill Architecture](https://github.com/jangtrinh/design-os-rill-architecture) (now its own public repo + Pages) open the README as a two-column grid of scroll-throughs; each repo documents how to reproduce it with DESIGN:OS and carries its own demo recording (gif + mp4) | `5e2e499` |

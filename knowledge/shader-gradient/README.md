@@ -18,8 +18,27 @@ exactly what this ledger refuses to carry.
 - **Fork (ours, upstream-tracked):** https://github.com/jangtrinh/shadergradient
 - **Pinned revision:** `974a230b1e6c3ec375fbe17a8ea1c89edbc48019` (committed 2026-06-12)
 - **Captured:** 2026-06 (`202606`)
-- **Package:** `@shadergradient/react` v2.4.24
+- **Package:** `@shadergradient/react` — `sourceVersion` 2.4.24, `packageVersion` **2.4.20**
 - **Roster:** 10 presets · 12 surfaces. Confirmed at the pinned revision.
+
+### Version record — two versions, and only one of them exists
+
+The ledger carries **both**, because they are not the same number and using the wrong one
+breaks anything that tries to install or load the renderer:
+
+- **`sourceVersion` (2.4.24)** — what `packages/shadergradient/package.json` says *at the
+  pinned revision*. Changesets bumped it in-repo without a release, so this version exists
+  only as source. Every registry and CDN returns 404 for it.
+- **`packageVersion` (2.4.20)** — the latest version upstream actually **published**, and
+  the only one anything can load.
+
+Preset axes here are derived from the revision; anything that renders must use the published
+version. **The two were compared key-by-key: identical on all 30 render-relevant keys across
+all 10 presets**, so the split introduces no drift today.
+
+**Re-do that comparison at any future pin rather than assuming it still holds** — the whole
+reason both numbers are recorded is that a single "version" field silently picked the wrong
+one. A refresh that finds the two disagreeing must record the difference here, not absorb it.
 
 ### License record — read this before citing it
 

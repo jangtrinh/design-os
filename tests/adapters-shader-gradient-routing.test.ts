@@ -55,6 +55,8 @@ const read = (rel: string): string => readFileSync(join(REPO_ROOT, rel), "utf8")
 const LEDGER = JSON.parse(read("knowledge/shader-gradient/catalog.json")) as {
   revision: string;
   captured: string;
+  sourceVersion: string;
+  packageVersion: string;
   presets: { slug: string; name: string; mesh: string; light: string; grain: boolean }[];
   surfaces: { shader: string; mesh: string }[];
 };
@@ -190,7 +192,7 @@ describe("shader-gradient routing — G6b ledger allowlist, fail-closed (release
     expect(entries).toEqual(["README.md", "catalog.json"]);
   });
 
-  it("catalog.json top level has exactly the eight declared keys", () => {
+  it("catalog.json top level has exactly the declared keys", () => {
     expect(Object.keys(LEDGER).sort()).toEqual([
       "captured",
       "fork",
@@ -199,9 +201,18 @@ describe("shader-gradient routing — G6b ledger allowlist, fail-closed (release
       "packageVersion",
       "presets",
       "revision",
+      "sourceVersion",
       "surfaces",
       "upstream",
     ]);
+  });
+
+  it("packageVersion is a PUBLISHED version, distinct from the in-repo sourceVersion", () => {
+    // The revision's own package.json carries a version that was bumped but never
+    // released. Rendering with it 404s, so the two must stay separate fields — a single
+    // "version" field silently picked the unpublished one.
+    expect(LEDGER.sourceVersion).toBe("2.4.24");
+    expect(LEDGER.packageVersion).not.toBe(LEDGER.sourceVersion);
   });
 
   it("every preset has exactly slug/name/mesh/light/grain, in the declared enums", () => {
