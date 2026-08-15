@@ -584,7 +584,7 @@ li {
     top: 20px !important;
     left: 24px !important;
     right: 24px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
@@ -598,7 +598,7 @@ li {
     margin-top: 40px;
     padding-top: 20px;
     border-top: 1px solid var(--border-subtle);
-    font-size: 11px !important;
+    font-size: 12px !important;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
@@ -819,7 +819,7 @@ li {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .readout-text {
@@ -1802,7 +1802,7 @@ li {
 }
 .bridge-badge {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   padding: 6px 12px;
   border-radius: 999px;
@@ -1975,7 +1975,7 @@ li {
 .pipe5-step small { font-size: 13px; color: var(--text-obsidian-muted); }
 .pipe5-gate {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: #ff6b6b;
   padding: 4px 8px;
@@ -2013,7 +2013,7 @@ li {
 .staff-name { font-size: 28px; font-weight: 800; margin: 12px 0 4px; }
 .staff-role { font-family: var(--font-mono); font-size: 13px; font-weight: 600; opacity: 0.8; }
 .staff-desc { font-size: 15px; line-height: 1.5; margin: 16px 0; }
-.staff-badge { font-family: var(--font-mono); font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,0.1); }
+.staff-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,0.1); }
 
 /* Daily Verbs (Slide 9) */
 .verbs-matrix-grid {
@@ -2070,8 +2070,8 @@ li {
 .bridge-center-commutator { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .commutator-ring { width: 130px; height: 130px; border-radius: 50%; background: var(--orb-lime-bg); color: var(--orb-lime-text); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(158,245,180,0.3); }
 .commutator-port { font-size: 32px; font-weight: 800; }
-.commutator-label { font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
-.commutator-lock { font-family: var(--font-mono); font-size: 10px; color: #86efac; }
+.commutator-label { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.commutator-lock { font-family: var(--font-mono); font-size: 12px; color: #86efac; }
 
 /* Sieve (Slide 12) */
 .sieve-quadrant-grid {
@@ -2118,7 +2118,7 @@ li {
   border-radius: 24px;
   padding: 24px 32px;
 }
-.t-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: #86efac; display: block; margin-bottom: 4px; }
+.t-tag { font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #86efac; display: block; margin-bottom: 4px; }
 .triage-tier-box strong { font-size: 20px; color: var(--text-obsidian-primary); display: block; }
 .triage-tier-box p { font-size: 14px; color: var(--text-obsidian-muted); margin-top: 4px; }
 
@@ -2337,8 +2337,8 @@ li {
 .leg-tag { font-family: var(--font-mono); font-size: 12px; font-weight: 800; }
 .cinema-leg h3 { font-size: 36px; font-weight: 800; margin: 16px 0; }
 .cinema-leg p { font-size: 16px; line-height: 1.5; opacity: 0.85; }
-.cinema-seam { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--orb-lime-bg); }
-.cinema-seam strong { font-size: 11px; }
+.cinema-seam { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--orb-lime-bg); }
+.cinema-seam strong { font-size: 12px; }
 
 /* GFlow (Slide 22) */
 .gflow-viewport-grid {
@@ -2513,4 +2513,24 @@ li {
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.12em;
+}
+
+
+/* Phosphor Icons System Styling */
+i.ph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25em;
+  vertical-align: middle;
+  line-height: 1;
+}
+.staff-avatar i.ph {
+  font-size: 52px;
+}
+.orb-chip i.ph,
+.input-card i.ph,
+.token-emit-card i.ph {
+  font-size: 28px;
+  color: var(--orb-lime-bg);
 }
