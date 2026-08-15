@@ -53,6 +53,18 @@
       ]
     },
     {
+      "id": "chart-craft",
+      "path": "knowledge/chart-craft.md",
+      "description": "The shared chart contract — what a standalone chart artifact is, the boundary against generate/slides and the diagram capability, grammar routing across nine chart grammars, honest encoding, token inheritance, accessible inline SVG, output shape, and critique.",
+      "when": [
+        "chart-craft",
+        "quantity-encoding",
+        "standalone-chart-artifact",
+        "chart-lint",
+        "chart-grammar-routing"
+      ]
+    },
+    {
       "id": "color-science",
       "path": "knowledge/color-science.md",
       "description": "OKLCH reasoning, WCAG contrast targets, 11-stop scale generation, semantic role mapping.",
@@ -158,15 +170,14 @@
     {
       "id": "diagram-craft",
       "path": "knowledge/diagram-craft.md",
-      "description": "The shared diagram contract — grammar routing, selection/deletion, density, token inheritance, accessible inline SVG, output shape, and critique.",
+      "description": "The shared diagram contract — grammar routing across nineteen grammars, the admission bar, collision-family precedence, density, token inheritance, accessible inline SVG, output shape, and critique.",
       "when": [
         "diagram",
         "diagram-craft",
         "svg-diagram",
-        "architecture-diagram",
-        "sequence-diagram",
-        "product-flow-diagram",
-        "diagram-lint"
+        "diagram-lint",
+        "diagram-grammar-routing",
+        "extract-then-redraw"
       ]
     },
     {

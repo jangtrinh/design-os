@@ -2,10 +2,9 @@
 id: diagram-product-flow
 description: Native grammar for rendering product/user flows as diagrams sourced from flow.json, with mandatory linting and a fidelity ledger for anything merged, collapsed, or dropped.
 when:
-  - Rendering a product flow, user flow, onboarding, or checkout flow from flow.json
-  - Auditing an existing product-flow diagram for missing screens, states, or transitions
-  - Deciding whether a flow must split across multiple diagram files
-  - Reviewing a product-flow diagram before it ships in a PR
+  - flowjson-projection
+  - screen-state-transition
+  - product-journey-render
 ---
 
 # Product Flow Diagrams

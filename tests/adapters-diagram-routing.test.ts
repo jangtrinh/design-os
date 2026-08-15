@@ -11,7 +11,27 @@ function readRepoFile(relPath: string): string {
   return readFileSync(join(REPO_ROOT, relPath), "utf8");
 }
 
-const SUPPORTED_GRAMMARS = ["architecture", "sequence", "product-flow"] as const;
+const SUPPORTED_GRAMMARS = [
+  "architecture",
+  "sequence",
+  "product-flow",
+  "swimlane",
+  "data-flow",
+  "process",
+  "high-level",
+  "dp-integration",
+  "medallion",
+  "it-state",
+  "dp-security-matrix",
+  "loop",
+  "er",
+  "flowchart",
+  "layers",
+  "nested",
+  "org-chart",
+  "state",
+  "tree",
+] as const;
 
 describe("diagram knowledge index", () => {
   it("registers the top-level shared contract", () => {
@@ -44,7 +64,7 @@ describe("templates/workflows/diagram.md", () => {
     expect(workflow).toMatch(/knowledge\/diagram-craft\.md/);
   });
 
-  it("references all three grammar knowledge docs", () => {
+  it("references every supported grammar knowledge doc", () => {
     for (const grammar of SUPPORTED_GRAMMARS) {
       expect(workflow).toMatch(
         new RegExp(`knowledge/diagram-grammars/${grammar}\\.md`)
@@ -52,7 +72,7 @@ describe("templates/workflows/diagram.md", () => {
     }
   });
 
-  it("lists exactly the three supported grammar tokens", () => {
+  it("lists exactly the supported grammar tokens", () => {
     const section = workflow.match(
       /##\s*Supported grammars\s*\n([\s\S]*?)(?:\n##|\n?$)/i
     );

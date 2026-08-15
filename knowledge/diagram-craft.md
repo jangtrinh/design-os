@@ -1,15 +1,15 @@
 ---
 id: diagram-craft
-description: "The shared diagram contract — grammar routing, selection/deletion, density, token inheritance, accessible inline SVG, output shape, and critique."
-when: [diagram, diagram-craft, svg-diagram, architecture-diagram, sequence-diagram, product-flow-diagram, diagram-lint]
+description: "The shared diagram contract — grammar routing across nineteen grammars, the admission bar, collision-family precedence, density, token inheritance, accessible inline SVG, output shape, and critique."
+when: [diagram, diagram-craft, svg-diagram, diagram-lint, diagram-grammar-routing, extract-then-redraw]
 ---
 
-# Diagram Craft — the shared contract behind three grammars
+# Diagram Craft — the shared contract behind the diagram grammars
 
 ## Purpose
 
 Decide whether a diagram is the right answer, hold the rules every diagram grammar shares,
-and route to exactly one of the three bounded grammars this capability supports. A grammar
+and route to exactly one of the bounded grammars this capability supports. A grammar
 file never repeats what belongs here; this file never repeats what a grammar owns.
 
 ## Mental Model
@@ -36,24 +36,78 @@ of those (see "What this is NOT").
 
 ## Selecting a grammar
 
-Exactly **three** grammars exist. Route on what the content actually is, not on the word the
-requester used:
+Nineteen grammars exist. Route on what the content actually is, not on the word the requester
+used:
 
 | Signal in the request | Grammar |
 |---|---|
 | Components, services, zones, "what talks to what" as a structural map | `diagram-grammars/architecture.md` |
 | Time-ordered exchange between named participants — calls, messages, replies | `diagram-grammars/sequence.md` |
 | An existing `flow.json` being turned into a readable picture | `diagram-grammars/product-flow.md` |
+| Ordered steps partitioned by the role responsible | `diagram-grammars/swimlane.md` |
+| Steps that hand typed payloads to each other | `diagram-grammars/data-flow.md` |
+| Steps carrying role badges and distinguished connector styles | `diagram-grammars/process.md` |
+| Capability sweep across phases, with cross-cutting footer bars | `diagram-grammars/high-level.md` |
+| Which sources and consumers attach to a platform | `diagram-grammars/dp-integration.md` |
+| Data ascending storage quality tiers | `diagram-grammars/medallion.md` |
+| The estate as it stands today, before a change | `diagram-grammars/it-state.md` |
+| Roles against components as an access grid | `diagram-grammars/dp-security-matrix.md` |
+| A closed cycle whose stations feed a hub | `diagram-grammars/loop.md` |
+| Entities and their cardinality relationships | `diagram-grammars/er.md` |
+| A branching path with decisions and terminating branches | `diagram-grammars/flowchart.md` |
+| Stacked bands with no cross-band edges | `diagram-grammars/layers.md` |
+| Regions enclosing other regions | `diagram-grammars/nested.md` |
+| Reporting relationships between people | `diagram-grammars/org-chart.md` |
+| States, events, and transitions between them | `diagram-grammars/state.md` |
+| Parent-child decomposition of things | `diagram-grammars/tree.md` |
 
 State the match in one sentence before authoring ("this is a structural map of services, so
-architecture"). When the request sits between two grammars, pick the one that loses less —
-and say what the choice costs.
+architecture"). When the request sits between two grammars, resolve it with the precedence
+rules below rather than picking by feel — and say what the choice costs.
 
-**Decline, do not invent.** A request outside all three (entity-relationship, Gantt, mind map,
-flowchart-as-generic-DSL) gets a decline: name the closest of the three supported grammars,
-and state plainly what information that substitution would lose. Never stretch a grammar's
-invariants to cover a shape it was not built for — a sequence diagram bent into an ER diagram
-violates its own participant-order contract the moment it tries.
+### Precedence within collision families
+
+Several grammars are deliberately close neighbours. Ambiguity between them is resolved here,
+once, rather than re-argued per file.
+
+**Step-and-role family** — `swimlane` < `data-flow` < `process`. Most specific wins; escalate
+only when the brief demands the extra fields:
+
+- Roles and ordered steps, nothing more → **swimlane**
+- Steps carry typed input/output payloads → **data-flow**
+- Steps carry role badges *and* distinguished connector styles → **process**
+
+**Platform-overview family** — one discriminating question each:
+
+- Subject is the capability sweep across phases → **high-level**
+- Subject is which sources and consumers attach → **dp-integration**
+- Subject is data ascending storage quality tiers → **medallion**
+- Subject is the estate as it stands today, before change → **it-state**
+
+**Hierarchy family**:
+
+- Edges are reporting relationships between people → **org-chart**
+- Edges are parent-child decomposition of things → **tree**
+- Regions enclose other regions → **nested**
+- Bands stack with no cross-band edges → **layers**
+
+### The admission bar
+
+A grammar is admitted to this capability when it has **a distinct geometry recipe** *and* **a
+decline path no sibling covers**. A shape that reduces to an existing grammar plus different
+vocabulary is not a grammar; it is that grammar with a domain pack.
+
+**Decline, do not invent.** A request outside all nineteen gets a decline: name the closest
+supported grammar and state plainly what information that substitution would lose. Never
+stretch a grammar's invariants to cover a shape it was not built for — a sequence diagram bent
+into an ER diagram violates its own participant-order contract the moment it tries.
+
+**Charts are a different capability.** A chart of quantities — bars, lines, scatter, radar,
+Gantt, dated timelines, quadrants, Venn, proportional pyramids — is not a diagram and is not
+declined into one. Route it to `chart-craft.md`, which owns standalone chart artifacts.
+A dated run of events is `chart-grammars/timeline.md`, not `sequence` (which requires named
+participants exchanging messages) and not `chart-grammars/gantt.md` (which requires durations,
+not instants).
 
 ## Deciding whether a diagram is useful at all
 
@@ -119,9 +173,9 @@ reaches outside itself:
 
 - No `<script>`, no external stylesheet/font/image URL, no view-time network dependency — the
   file opens offline and renders identically.
-- No imports, exports, DSL, browser renderer, or conversion step. The host authors the HTML
-  directly; nothing in this capability parses or produces Mermaid, draw.io, or any other
-  diagram interchange format.
+- No exports, DSL, browser renderer, or conversion step. The host authors the HTML directly;
+  nothing in this capability *produces* Mermaid, draw.io, or any other diagram interchange
+  format. Reading one as brief material is permitted — see extract-then-redraw below.
 - The document declares, in inspectable `data-*` metadata: the **grammar** used, the **reading order** in prose,
   the **focal element**'s ID, the **source kind** (`flow-json` or `brief`) and, when
   applicable, a **source reference**, plus whether a **token fallback** was used.
@@ -145,10 +199,17 @@ After lint passes, critique the artifact the same way any other generation is cr
 
 ## What this is NOT
 
-Not a diagram editor, not an import/export pipeline for Mermaid or draw.io, not a browser
-renderer, not a universal diagram DSL, not a layout engine that computes geometry — the host
-places every element by editorial judgment and `ui diagram lint` only checks the facts a
-static reader can prove. Three grammars, full stop; a fourth is a decline, not a stretch.
+Not a diagram editor, not a browser renderer, not a universal diagram DSL, not a layout engine
+that computes geometry — the host places every element by editorial judgment and
+`ui diagram lint` only checks the facts a static reader can prove. Nineteen grammars, held to
+the admission bar above; a twentieth is a decline, not a stretch. Charts belong to
+`chart-craft.md`.
+
+**Import is extract-then-redraw, never conversion.** The drawio and Mermaid extract scripts
+read a source file and emit *structured intermediate data* — a node/edge digest — which the
+host then uses as brief material to author a native grammar diagram. Imported geometry is
+never emitted into the artifact, and nothing here parses or produces a diagram interchange
+format as output. A redraw carries a fidelity ledger naming what it simplified or dropped.
 
 ## Failure Modes
 
