@@ -3,38 +3,31 @@ const DECK_I18N = {
   "languages": [
     {
       "code": "en",
-      "label": "English (Default)",
-      "flag": "🇺🇸"
+      "label": "English (Default)"
     },
     {
       "code": "vi",
-      "label": "Tiếng Việt",
-      "flag": "🇻🇳"
+      "label": "Tiếng Việt"
     },
     {
       "code": "ko",
-      "label": "한국어",
-      "flag": "🇰🇷"
+      "label": "한국어"
     },
     {
       "code": "ja",
-      "label": "日本語",
-      "flag": "🇯🇵"
+      "label": "日本語"
     },
     {
       "code": "es",
-      "label": "Español",
-      "flag": "🇪🇸"
+      "label": "Español"
     },
     {
       "code": "fr",
-      "label": "Français",
-      "flag": "🇫🇷"
+      "label": "Français"
     },
     {
       "code": "zh",
-      "label": "中文 (简体)",
-      "flag": "🇨🇳"
+      "label": "中文 (简体)"
     }
   ],
   "slides": {
