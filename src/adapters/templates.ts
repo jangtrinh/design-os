@@ -52,6 +52,7 @@ export const SKILL_NAMES = [
   "pick-persona",
   "score-taste",
   "check-consistency",
+  "verify-canvas",
   "color-decision",
   "token-model",
   "apply-prompt-mode",

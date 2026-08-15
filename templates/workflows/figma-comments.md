@@ -1,5 +1,5 @@
 ---
-description: "Pull the open comments on a Figma file, resolve which screen and element each pin points at, and decide them one at a time. Use when the user wants to review, triage, or turn Figma design feedback into tasks."
+description: "Pull Figma comments scoped to what the owner points at, resolve which screen and element each pin means, decide them one at a time, and read the owner's verdict back off the threads you post. Use when reviewing, triaging, or closing the loop on Figma design feedback."
 ---
 
 # `/ui:figma-comments` — Triage Figma comments into decisions
@@ -31,6 +31,28 @@ anchored to.
   `FIGMA_ACCESS_TOKEN` (same resolution as `figma.md`). It **must carry the
   `file_comments:read` scope** — a token without it fails with an unhelpful 403. If
   neither the host CLI nor the user can supply one, stop and ask.
+
+## Three modes, and which one you are in
+
+- **triage** — first pass over a scope the owner named. Everything below, in order.
+- **sync** — a delta since the last pull (`--since`). Run it BEFORE starting a task and
+  AFTER delivering one. This is the mode that runs most often.
+- **verdict** — read the owner's answer off threads you posted (`--authored-by`). Part of
+  every sync; never skipped.
+
+Scope is whatever the owner pointed at. Do NOT scan a whole file to find work nobody asked
+for: on a mature file most threads are closed, most of the rest are outside the current
+scope, and the discovery is a cost the owner did not authorise.
+
+## Step 0. Settle the destination BEFORE reading a single comment
+
+`--delivery-target <figma-canvas|code|both>` is required, and it is required rather than
+defaulted for a measured reason: the most expensive error on the run this workflow comes from
+was a batch aimed at the wrong artefact that then passed every gate defined for the wrong one.
+
+The gate follows the target. A canvas change is proved by a before/after frame render
+(`templates/skills/verify-canvas.md`); a code change is proved by the project's build. A green
+build says nothing about whether a design moved.
 
 ## Steps
 
@@ -97,6 +119,13 @@ at `scale=2` the pixel position is `(pin.x * 2, pin.y * 2)`. Two cautions:
 - The returned URLs are **short-lived signed links**. Download the PNG into `raw/` — a
   hotlinked image is broken by the time the user resumes.
 
+### 4b. Check blast radius before starting, not at attempt seven
+
+If the anchor reports the pin inside a component instance, the real fix may live in the master
+and propagate to every consumer. The bare fact is not the signal — in a componentised file
+nearly every pin is inside some instance. The signal is **how often the same master recurs
+across this batch**; a master hit repeatedly needs owner approval before any edit.
+
 ### 5. Present one thread at a time
 
 In `stats` order, for each thread: the screen (`Page / Frame`), the anchor per step 3, the
@@ -132,6 +161,32 @@ from six words of prose.
 
 For an `ask`, collect the open questions into one list at the end of the same file, phrased
 so the user can paste them into Figma themselves — this workflow does not write to Figma.
+
+## Closing the loop — the part that is usually skipped
+
+Posting the handoff comment is not the end. The owner answers **in that thread**, and the
+answer is the only place completion exists.
+
+Run `--authored-by "<owner handle>"` and read the verdict on every thread you posted:
+
+| verdict | meaning | action |
+|---|---|---|
+| `accepted` | a bare acknowledgement | close it |
+| `conditional` | accepted with a caveat, or a new instruction | new task, immediately |
+| `reversed` | the requirement was withdrawn or inverted | supersede the task, check what shipped |
+| `silent` | resolved with nothing said | **NOT acceptance** — ask before closing |
+
+Two rules that make this work, both learned the expensive way:
+
+- **NEVER resolve-filter a thread you authored.** The owner resolves those the moment he has
+  replied, so filtering by resolve drops every thread that has a verdict. `--since` and
+  `--authored-by` both imply `--include-resolved` for this reason.
+- **A resolve is not a completion.** `resolved_at` means "my request is satisfied" from a
+  reviewer, but only "I have read this" from an owner answering in his own thread. Read the
+  reply, not the flag.
+
+Anything that is not a plain acknowledgement becomes a task in the same ledger, in the same
+session. A reversal noticed a day later has already shipped.
 
 ## Outputs
 
