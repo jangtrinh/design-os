@@ -5,7 +5,8 @@
   "captured": "202606",
   "license": "MIT",
   "package": "@shadergradient/react",
-  "packageVersion": "2.4.24",
+  "sourceVersion": "2.4.24",
+  "packageVersion": "2.4.20",
   "presets": [
     { "slug": "halo", "name": "Halo", "mesh": "plane", "light": "3d", "grain": true },
     { "slug": "pensive", "name": "Pensive", "mesh": "sphere", "light": "3d", "grain": true },

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-16 - Gradient fields, rendered and corrected
+
+### Added
+- A `## Gradient fields` README section showing all ten ShaderGradient presets as a labelled
+  grid plus an animated field, rendered from the published renderer using the exact preset
+  values this repo ships. The section leads with the capability's gate and its two-fallback
+  contract rather than the picture.
+
+### Fixed
+- `knowledge/shader-gradient/catalog.json` claimed `packageVersion` 2.4.24, a version
+  upstream **never published** — it exists only in that revision's own `package.json`, bumped
+  in-repo without a release, and 404s on every registry and CDN. The ledger now carries both
+  `sourceVersion` (2.4.24, what the revision says) and `packageVersion` (2.4.20, what can
+  actually be loaded), and records that the two were compared key-by-key and agree on every
+  render-relevant key.
+
 ## 2026-08-16 - ShaderGradient as a T6 gradient-field capability
 
 ### Added
