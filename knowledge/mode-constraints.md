@@ -202,11 +202,36 @@ Target: a presentation slide (deck member).
   `width:1920px; height:1080px; overflow:hidden; position:relative; margin:0;`.
   Nothing may extend beyond 1920 × 1080. No scrollbars. No clipped content.
 - **Fill & fit (critical):** Content must fill the **entire** viewport. Put `h-[1080px]`
-  (or `min-h-[1080px]`) on the main wrapper and use `flex flex-col justify-between` or CSS
-  Grid to distribute content vertically. No large empty regions — if content is sparse,
-  scale up typography, increase spacing, or add visual elements.
-- **Typography:** Display/Title 64–96 px/Bold, H1 48 px/Bold, H2 36 px/Semibold,
-  Body 24–28 px, Caption 18 px. Headlines should be large; body text substantial.
+  (or `min-h-[1080px]`) on the main wrapper and use CSS Grid or flex to distribute content
+  vertically. No large empty regions — if content is sparse, scale up typography, increase
+  spacing, or add visual elements.
+  **`justify-between` is not a composition.** Filling a container and then spreading N loose
+  children across it produces arbitrary voids — a real deck measured 144 / 120 / 152 px
+  between four children, three different large gaps, none of them a decision. Group the
+  content into **three anchored zones** (a top marker, the substance, a floor block) so the
+  flexible space lands in two places you chose. The machine-checkable form: **large voids
+  inside one container must agree with each other** — two equal voids are a three-zone
+  rhythm, three unequal ones are drift.
+- **Percentage grid columns plus a gap always overflow.** `grid-template-columns: 50% 50%`
+  with any `gap` exceeds the track by exactly that gap; the same is true of every `N% M%`
+  pair. Use `minmax(0, Nfr)` — the `minmax(0, …)` also lets a track shrink below its content
+  so long unbreakable words wrap instead of widening the column.
+- **Typography:** Derive the whole scale from **one modular ratio** (1.333 for an
+  editorial deck); do not hand-pick sizes per element. Display/Title 64–96 px/Bold,
+  H1 48 px/Bold, H2 36 px/Semibold, Body 24–28 px, Caption 18 px.
+  **Know what those numbers mean before trusting them:** a 1080-tall canvas maps a
+  standard 540 pt slide at ~2 px per point, so 24 px body is **~12 pt** — comfortable on
+  a laptop, marginal from the back of a room. The classic projection floor is 24 pt
+  (48 px), but a deck with six-card grids cannot carry 48 px body without cutting copy.
+  **Pick the scale and the words-per-slide together**, and say which you optimised for;
+  a deck read from a link and a deck thrown on a wall are different briefs.
+  Set leading, tracking and weight **per role**, not per element: display tight and
+  negatively tracked, body open at ~1.5, small uppercase labels widened. Express measure
+  in `ch`, never px — a px `max-width` tuned at one size becomes a 24-character column at
+  another.
+- **Type roles are surface-agnostic:** a role used on two different grounds must not
+  hardcode ink for one of them. Let colour inherit from the surface and set it on the
+  surface, or the same headline that reads on a light card is invisible on a dark stage.
 - **Layout:** Generous edge padding (60–120 px). Center content within the padded area.
 - **Colors:** High-contrast text on solid or gradient backgrounds. No low-contrast text.
 - **Backgrounds:** Each slide has a distinct full-bleed background — solid, gradient, or
@@ -215,10 +240,20 @@ Target: a presentation slide (deck member).
   slide body, hidden with `display:none`, holding 1–3 sentences the presenter would say.
 - **Hierarchy:** One main idea per slide. Bold headline, minimal body text — think keynote
   slide, not document.
-- **Imagery:** Large hero images where appropriate; images are decorative, not
-  informational.
-- **Consistency:** All slides in a deck share the same palette, font family, and design
-  language.
+- **Imagery:** An image belongs on a slide only where it **is** the evidence for that
+  slide's claim, or the subject itself — never as atmosphere. Ambient texture applied
+  evenly across a deck reads as decoration, not design, and on card-dense slides it is
+  barely visible anyway: file weight and noise for nothing. Keep an explicit allowlist with
+  a stated reason per image.
+  Content never sits on an unmediated image. A plate lights a surface; the surface carries
+  the text. Give the plate its own layer (a masked pseudo-element), not the card's own
+  `background-image` — a plate painted as the card's background makes the card's rectangle
+  the plate's rectangle, and any image whose ground is not perfectly black shows its
+  bounding box.
+- **Consistency:** All slides share one palette, font family and design language.
+  Consistency means **one legible system, not one uniform treatment** — a magazine does not
+  put a photo on every page. Imagery, emphasis and density may vary by structural role as
+  long as the rule is legible; that is pacing, not inconsistency.
 
 ## Dashboard
 
