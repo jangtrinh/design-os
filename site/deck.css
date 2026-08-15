@@ -814,3 +814,84 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+
+
+/* =========================================================
+   DIAGRAM CRAFT & INTERACTIVE READOUT PANEL (diagram-craft.md)
+   ========================================================= */
+
+.diagram-container {
+  position: relative;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.diagram-svg {
+  width: 100%;
+  height: 480px;
+  display: block;
+}
+
+.diagram-readout-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  z-index: 5;
+}
+
+.readout-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.readout-text {
+  color: var(--text-secondary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.interactive-node {
+  transition: transform 0.2s ease, stroke 0.2s ease;
+  cursor: pointer;
+}
+
+.interactive-node:hover {
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08));
+}
+
+.interactive-node:focus {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 4px;
+}
+
+.interactive-node.active-node rect {
+  stroke: var(--text-primary) !important;
+  stroke-width: 3px !important;
+}
