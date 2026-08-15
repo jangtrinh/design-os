@@ -34,50 +34,50 @@ const DECK_I18N = {
     "1": {
       "en": {
         "title": "MASTERING<br>DESIGN:OS",
-        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
-        "heroNum": "0 %",
+        "body": "Trade stochastic LLM luck for deterministic color math, live Figma sync, and vector memory recall.",
+        "heroNum": "0%",
         "heroLabel": "LLM Luck Required",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "vi": {
         "title": "LÀM CHỦ<br>DESIGN:OS",
-        "body": "Cẩm nang vận hành đa runtime cho thiết kế AI hiện đại. Chuyển đổi từ sự may rủi của LLM sang toán học màu tất định, đồng bộ trực tiếp Figma Desktop, truy hồi bộ nhớ vector và sàn kiểm định xuất xưởng.",
-        "heroNum": "0 %",
+        "body": "Đổi sự may rủi của LLM lấy toán học màu tất định, đồng bộ Figma trực tiếp và truy hồi bộ nhớ vector.",
+        "heroNum": "0%",
         "heroLabel": "Không Dựa May Rủi",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "ko": {
         "title": "MASTERING<br>DESIGN:OS",
-        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
-        "heroNum": "0 %",
+        "body": "Trade stochastic LLM luck for deterministic color math, live Figma sync, and vector memory recall.",
+        "heroNum": "0%",
         "heroLabel": "LLM Luck Required",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "ja": {
         "title": "MASTERING<br>DESIGN:OS",
-        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
-        "heroNum": "0 %",
+        "body": "Trade stochastic LLM luck for deterministic color math, live Figma sync, and vector memory recall.",
+        "heroNum": "0%",
         "heroLabel": "LLM Luck Required",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "es": {
         "title": "MASTERING<br>DESIGN:OS",
-        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
-        "heroNum": "0 %",
+        "body": "Trade stochastic LLM luck for deterministic color math, live Figma sync, and vector memory recall.",
+        "heroNum": "0%",
         "heroLabel": "LLM Luck Required",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "fr": {
         "title": "MASTERING<br>DESIGN:OS",
-        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
-        "heroNum": "0 %",
+        "body": "Trade stochastic LLM luck for deterministic color math, live Figma sync, and vector memory recall.",
+        "heroNum": "0%",
         "heroLabel": "LLM Luck Required",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       },
       "zh": {
         "title": "MASTERING<br>DESIGN:OS",
-        "body": "The definitive multi-runtime operating manual for modern AI design. Transition from stochastic LLM luck to deterministic color mathematics, live Figma desktop synchronization, vector memory recall, and qualified delivery pipelines.",
-        "heroNum": "0 %",
+        "body": "Trade stochastic LLM luck for deterministic color math, live Figma sync, and vector memory recall.",
+        "heroNum": "0%",
         "heroLabel": "LLM Luck Required",
         "notes": "Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."
       }
@@ -85,7 +85,7 @@ const DECK_I18N = {
     "2": {
       "en": {
         "title": "3 SUPREME<br>TRUTHS",
-        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "body": "Every token derives from OKLCH color science, a strict AI/kernel split, and an immutable 14-linter floor.",
         "heroNum": "14",
         "heroLabel": "Machine Floor Linters",
         "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
@@ -99,35 +99,35 @@ const DECK_I18N = {
       },
       "ko": {
         "title": "3 SUPREME<br>TRUTHS",
-        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "body": "Every token derives from OKLCH color science, a strict AI/kernel split, and an immutable 14-linter floor.",
         "heroNum": "14",
         "heroLabel": "Machine Floor Linters",
         "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "ja": {
         "title": "3 SUPREME<br>TRUTHS",
-        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "body": "Every token derives from OKLCH color science, a strict AI/kernel split, and an immutable 14-linter floor.",
         "heroNum": "14",
         "heroLabel": "Machine Floor Linters",
         "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "es": {
         "title": "3 SUPREME<br>TRUTHS",
-        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "body": "Every token derives from OKLCH color science, a strict AI/kernel split, and an immutable 14-linter floor.",
         "heroNum": "14",
         "heroLabel": "Machine Floor Linters",
         "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "fr": {
         "title": "3 SUPREME<br>TRUTHS",
-        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "body": "Every token derives from OKLCH color science, a strict AI/kernel split, and an immutable 14-linter floor.",
         "heroNum": "14",
         "heroLabel": "Machine Floor Linters",
         "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
       },
       "zh": {
         "title": "3 SUPREME<br>TRUTHS",
-        "body": "Eliminating reliance on stochastic generative luck. Every visual token is derived from perceptual OKLCH color science, strict division of labor between AI reasoning and the UI kernel, and an immutable 14-linter machine floor.",
+        "body": "Every token derives from OKLCH color science, a strict AI/kernel split, and an immutable 14-linter floor.",
         "heroNum": "14",
         "heroLabel": "Machine Floor Linters",
         "notes": "The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."
@@ -137,49 +137,49 @@ const DECK_I18N = {
       "en": {
         "title": "DIVISION<br>OF LABOR",
         "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Deterministic Compile",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "vi": {
         "title": "PHÂN QUYỀN<br>KIẾN TRÚC",
         "body": "Host AI Agent phụ trách tư duy sáng tạo bậc cao, giải quyết persona và cấu trúc DOM ngữ nghĩa. UI Kernel đảm bảo biên dịch DTCG, toán học màu và các cửa ải xuất xưởng không lỗi.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Biên Dịch Tất Định",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "ko": {
         "title": "DIVISION<br>OF LABOR",
         "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Deterministic Compile",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "ja": {
         "title": "DIVISION<br>OF LABOR",
         "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Deterministic Compile",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "es": {
         "title": "DIVISION<br>OF LABOR",
         "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Deterministic Compile",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "fr": {
         "title": "DIVISION<br>OF LABOR",
         "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Deterministic Compile",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       },
       "zh": {
         "title": "DIVISION<br>OF LABOR",
         "body": "The Host AI Agent handles high-level creative synthesis, persona resolution, and semantic DOM structuring. The UI Kernel strictly enforces DTCG compilation, color science math, and zero-error release gates.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Deterministic Compile",
         "notes": "Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."
       }
@@ -187,7 +187,7 @@ const DECK_I18N = {
     "4": {
       "en": {
         "title": "OPTIONAL<br>HANDS",
-        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "body": "Figma sync, GSAP timelines, 3D GFlow, memory recall and color science degrade gracefully when unconfigured.",
         "heroNum": "6",
         "heroLabel": "Multi-Runtime Engines",
         "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
@@ -201,35 +201,35 @@ const DECK_I18N = {
       },
       "ko": {
         "title": "OPTIONAL<br>HANDS",
-        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "body": "Figma sync, GSAP timelines, 3D GFlow, memory recall and color science degrade gracefully when unconfigured.",
         "heroNum": "6",
         "heroLabel": "Multi-Runtime Engines",
         "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "ja": {
         "title": "OPTIONAL<br>HANDS",
-        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "body": "Figma sync, GSAP timelines, 3D GFlow, memory recall and color science degrade gracefully when unconfigured.",
         "heroNum": "6",
         "heroLabel": "Multi-Runtime Engines",
         "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "es": {
         "title": "OPTIONAL<br>HANDS",
-        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "body": "Figma sync, GSAP timelines, 3D GFlow, memory recall and color science degrade gracefully when unconfigured.",
         "heroNum": "6",
         "heroLabel": "Multi-Runtime Engines",
         "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "fr": {
         "title": "OPTIONAL<br>HANDS",
-        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "body": "Figma sync, GSAP timelines, 3D GFlow, memory recall and color science degrade gracefully when unconfigured.",
         "heroNum": "6",
         "heroLabel": "Multi-Runtime Engines",
         "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
       },
       "zh": {
         "title": "OPTIONAL<br>HANDS",
-        "body": "Specialized modular capabilities—Figma live sync, GSAP timelines, 3D GFlow, vector memory recall, and color science—gracefully degrade when unconfigured, keeping the core bundle ultra-light.",
+        "body": "Figma sync, GSAP timelines, 3D GFlow, memory recall and color science degrade gracefully when unconfigured.",
         "heroNum": "6",
         "heroLabel": "Multi-Runtime Engines",
         "notes": "The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."
@@ -442,7 +442,7 @@ const DECK_I18N = {
     "9": {
       "en": {
         "title": "6 CORE<br>DAILY VERBS",
-        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "body": "Natural-language slash verbs: generate net-new views, iterate refinements, audit compliance.",
         "heroNum": "6",
         "heroLabel": "Core Operating Verbs",
         "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
@@ -456,35 +456,35 @@ const DECK_I18N = {
       },
       "ko": {
         "title": "6 CORE<br>DAILY VERBS",
-        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "body": "Natural-language slash verbs: generate net-new views, iterate refinements, audit compliance.",
         "heroNum": "6",
         "heroLabel": "Core Operating Verbs",
         "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "ja": {
         "title": "6 CORE<br>DAILY VERBS",
-        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "body": "Natural-language slash verbs: generate net-new views, iterate refinements, audit compliance.",
         "heroNum": "6",
         "heroLabel": "Core Operating Verbs",
         "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "es": {
         "title": "6 CORE<br>DAILY VERBS",
-        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "body": "Natural-language slash verbs: generate net-new views, iterate refinements, audit compliance.",
         "heroNum": "6",
         "heroLabel": "Core Operating Verbs",
         "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "fr": {
         "title": "6 CORE<br>DAILY VERBS",
-        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "body": "Natural-language slash verbs: generate net-new views, iterate refinements, audit compliance.",
         "heroNum": "6",
         "heroLabel": "Core Operating Verbs",
         "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
       },
       "zh": {
         "title": "6 CORE<br>DAILY VERBS",
-        "body": "High-velocity CLI ergonomics powered by natural language slash verbs: /ui:generate for net-new views, /ui:iterate for targeted refinements, /ui:audit for compliance checks, and /ui:design for exploratory variant synthesis.",
+        "body": "Natural-language slash verbs: generate net-new views, iterate refinements, audit compliance.",
         "heroNum": "6",
         "heroLabel": "Core Operating Verbs",
         "notes": "Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."
@@ -545,49 +545,49 @@ const DECK_I18N = {
       "en": {
         "title": "CANONICAL<br>TOKENS",
         "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Token AST Binding",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "vi": {
         "title": "TOKEN CHÂN LÝ<br>W3C DTCG",
         "body": "Hệ thống token biên dịch qua chuẩn W3C DTCG là nguồn chân lý duy nhất, xuất bản đồng thời CSS custom properties, Tailwind plugin và native Figma Variables.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Ràng Buộc AST Token",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "ko": {
         "title": "CANONICAL<br>TOKENS",
         "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Token AST Binding",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "ja": {
         "title": "CANONICAL<br>TOKENS",
         "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Token AST Binding",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "es": {
         "title": "CANONICAL<br>TOKENS",
         "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Token AST Binding",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "fr": {
         "title": "CANONICAL<br>TOKENS",
         "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Token AST Binding",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       },
       "zh": {
         "title": "CANONICAL<br>TOKENS",
         "body": "Design tokens compiled through the W3C DTCG standard represent the single source of truth across all platforms, exporting CSS custom properties, Tailwind plugins, and native Figma Variables simultaneously.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Token AST Binding",
         "notes": "Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."
       }
@@ -646,7 +646,7 @@ const DECK_I18N = {
     "13": {
       "en": {
         "title": "TRIAGE &<br>AUTODETECT",
-        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "body": "Autodefects resolve via autofix. Semantic issues refactor within three turns. Unresolvable conflicts escalate to human review.",
         "heroNum": "≤ 3",
         "heroLabel": "Turns to Convergence",
         "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
@@ -660,35 +660,35 @@ const DECK_I18N = {
       },
       "ko": {
         "title": "TRIAGE &<br>AUTODETECT",
-        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "body": "Autodefects resolve via autofix. Semantic issues refactor within three turns. Unresolvable conflicts escalate to human review.",
         "heroNum": "≤ 3",
         "heroLabel": "Turns to Convergence",
         "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "ja": {
         "title": "TRIAGE &<br>AUTODETECT",
-        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "body": "Autodefects resolve via autofix. Semantic issues refactor within three turns. Unresolvable conflicts escalate to human review.",
         "heroNum": "≤ 3",
         "heroLabel": "Turns to Convergence",
         "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "es": {
         "title": "TRIAGE &<br>AUTODETECT",
-        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "body": "Autodefects resolve via autofix. Semantic issues refactor within three turns. Unresolvable conflicts escalate to human review.",
         "heroNum": "≤ 3",
         "heroLabel": "Turns to Convergence",
         "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "fr": {
         "title": "TRIAGE &<br>AUTODETECT",
-        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "body": "Autodefects resolve via autofix. Semantic issues refactor within three turns. Unresolvable conflicts escalate to human review.",
         "heroNum": "≤ 3",
         "heroLabel": "Turns to Convergence",
         "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
       },
       "zh": {
         "title": "TRIAGE &<br>AUTODETECT",
-        "body": "Every static finding follows a strict 3-tier triage rule: Autodefects are resolved via ui autofix, semantic layout issues are refactored within 3 iterations, and unresolvable conflicts escalate to user review.",
+        "body": "Autodefects resolve via autofix. Semantic issues refactor within three turns. Unresolvable conflicts escalate to human review.",
         "heroNum": "≤ 3",
         "heroLabel": "Turns to Convergence",
         "notes": "Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."
@@ -749,49 +749,49 @@ const DECK_I18N = {
       "en": {
         "title": "CRUCIBLE<br>DISTILLATION",
         "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Local Privacy Capture",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "vi": {
         "title": "LÒ LUYỆN<br>ĐÚC KẾT BÀI HỌC",
         "body": "Phản tư sau khi sinh giao diện tự động trích xuất quy tắc thẩm mỹ từ chỉnh sửa của người dùng và PR diff, lưu trữ vào .design/memory.json hoàn toàn riêng tư cục bộ.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Bảo Mật Ký Ức Cục Bộ",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "ko": {
         "title": "CRUCIBLE<br>DISTILLATION",
         "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Local Privacy Capture",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "ja": {
         "title": "CRUCIBLE<br>DISTILLATION",
         "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Local Privacy Capture",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "es": {
         "title": "CRUCIBLE<br>DISTILLATION",
         "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Local Privacy Capture",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "fr": {
         "title": "CRUCIBLE<br>DISTILLATION",
         "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Local Privacy Capture",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       },
       "zh": {
         "title": "CRUCIBLE<br>DISTILLATION",
         "body": "Post-generation reflection automatically extracts actionable craft rules from user overrides and merged PR diffs, crystallizing new invariants into .design/memory.json with zero cloud exposure.",
-        "heroNum": "100 %",
+        "heroNum": "100%",
         "heroLabel": "Local Privacy Capture",
         "notes": "Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."
       }
@@ -850,7 +850,7 @@ const DECK_I18N = {
     "17": {
       "en": {
         "title": "6+1 TASTE<br>RUBRIC RADAR",
-        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "body": "Objective evaluation across six craft dimensions, anchored on the mandatory Core 0 token-consistency axis.",
         "heroNum": "8.0 +",
         "heroLabel": "Minimum Score to Ship",
         "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
@@ -864,35 +864,35 @@ const DECK_I18N = {
       },
       "ko": {
         "title": "6+1 TASTE<br>RUBRIC RADAR",
-        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "body": "Objective evaluation across six craft dimensions, anchored on the mandatory Core 0 token-consistency axis.",
         "heroNum": "8.0 +",
         "heroLabel": "Minimum Score to Ship",
         "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "ja": {
         "title": "6+1 TASTE<br>RUBRIC RADAR",
-        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "body": "Objective evaluation across six craft dimensions, anchored on the mandatory Core 0 token-consistency axis.",
         "heroNum": "8.0 +",
         "heroLabel": "Minimum Score to Ship",
         "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "es": {
         "title": "6+1 TASTE<br>RUBRIC RADAR",
-        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "body": "Objective evaluation across six craft dimensions, anchored on the mandatory Core 0 token-consistency axis.",
         "heroNum": "8.0 +",
         "heroLabel": "Minimum Score to Ship",
         "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "fr": {
         "title": "6+1 TASTE<br>RUBRIC RADAR",
-        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "body": "Objective evaluation across six craft dimensions, anchored on the mandatory Core 0 token-consistency axis.",
         "heroNum": "8.0 +",
         "heroLabel": "Minimum Score to Ship",
         "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
       },
       "zh": {
         "title": "6+1 TASTE<br>RUBRIC RADAR",
-        "body": "Objective aesthetic evaluation across 6 sensory dimensions—Layout, Typography, Spacing, Iconography, Motion, and Depth—centered around the mandatory Core 0 Token Consistency anchor.",
+        "body": "Objective evaluation across six craft dimensions, anchored on the mandatory Core 0 token-consistency axis.",
         "heroNum": "8.0 +",
         "heroLabel": "Minimum Score to Ship",
         "notes": "A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."
@@ -1105,51 +1105,51 @@ const DECK_I18N = {
     "22": {
       "en": {
         "title": "3D SPATIAL<br>GFLOW",
-        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
-        "heroNum": "2 K",
-        "heroLabel": "Subpixel Texture Resolution",
+        "body": "Hardware-accelerated shaders, Draco-compressed geometry, and lifecycle teardown that prevents GPU leaks.",
+        "heroNum": "0 MB",
+        "heroLabel": "GPU Memory Leaks",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "vi": {
         "title": "KHÔNG GIAN 3D<br>GFLOW HARDWARE",
         "body": "Module GFlow chuyên biệt mang lại shader WebGL tăng tốc phần cứng, nén hình học Draco và vòng đời thu hồi bộ nhớ nghiêm ngặt chống rò rỉ GPU.",
-        "heroNum": "2 K",
+        "heroNum": "2K",
         "heroLabel": "Độ Phân Giải Subpixel 2K",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "ko": {
         "title": "3D SPATIAL<br>GFLOW",
-        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
-        "heroNum": "2 K",
-        "heroLabel": "Subpixel Texture Resolution",
+        "body": "Hardware-accelerated shaders, Draco-compressed geometry, and lifecycle teardown that prevents GPU leaks.",
+        "heroNum": "0 MB",
+        "heroLabel": "GPU Memory Leaks",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "ja": {
         "title": "3D SPATIAL<br>GFLOW",
-        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
-        "heroNum": "2 K",
-        "heroLabel": "Subpixel Texture Resolution",
+        "body": "Hardware-accelerated shaders, Draco-compressed geometry, and lifecycle teardown that prevents GPU leaks.",
+        "heroNum": "0 MB",
+        "heroLabel": "GPU Memory Leaks",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "es": {
         "title": "3D SPATIAL<br>GFLOW",
-        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
-        "heroNum": "2 K",
-        "heroLabel": "Subpixel Texture Resolution",
+        "body": "Hardware-accelerated shaders, Draco-compressed geometry, and lifecycle teardown that prevents GPU leaks.",
+        "heroNum": "0 MB",
+        "heroLabel": "GPU Memory Leaks",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "fr": {
         "title": "3D SPATIAL<br>GFLOW",
-        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
-        "heroNum": "2 K",
-        "heroLabel": "Subpixel Texture Resolution",
+        "body": "Hardware-accelerated shaders, Draco-compressed geometry, and lifecycle teardown that prevents GPU leaks.",
+        "heroNum": "0 MB",
+        "heroLabel": "GPU Memory Leaks",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       },
       "zh": {
         "title": "3D SPATIAL<br>GFLOW",
-        "body": "Dedicated GFlow hand provides hardware-accelerated WebGL canvas shaders, Draco compressed geometries, and strict memory lifecycle teardown preventing GPU leaks.",
-        "heroNum": "2 K",
-        "heroLabel": "Subpixel Texture Resolution",
+        "body": "Hardware-accelerated shaders, Draco-compressed geometry, and lifecycle teardown that prevents GPU leaks.",
+        "heroNum": "0 MB",
+        "heroLabel": "GPU Memory Leaks",
         "notes": "All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."
       }
     },
@@ -1207,50 +1207,50 @@ const DECK_I18N = {
     "24": {
       "en": {
         "title": "COMPOUNDED<br>CRAFT REFLECTION",
-        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
-        "heroNum": "10 X",
+        "body": "Every delivery triggers a reflection pass that scores variants and compounds taste into the shared corpus.",
+        "heroNum": "10X",
         "heroLabel": "Design Team Velocity",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "vi": {
         "title": "ĐÚC KẾT &<br>TÍCH LŨY TAY NGHỀ",
         "body": "Mỗi lần giao hàng kích hoạt phản tư tự động: chấm điểm biến thể, ghi nhận lựa chọn của con người và tích lũy gu thẩm mỹ vào kho tri thức chung của tổ chức.",
-        "heroNum": "10 X",
+        "heroNum": "10X",
         "heroLabel": "Gia Tốc Tốc Độ Đội Ngũ",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "ko": {
         "title": "COMPOUNDED<br>CRAFT REFLECTION",
-        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
-        "heroNum": "10 X",
+        "body": "Every delivery triggers a reflection pass that scores variants and compounds taste into the shared corpus.",
+        "heroNum": "10X",
         "heroLabel": "Design Team Velocity",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "ja": {
         "title": "COMPOUNDED<br>CRAFT REFLECTION",
-        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
-        "heroNum": "10 X",
+        "body": "Every delivery triggers a reflection pass that scores variants and compounds taste into the shared corpus.",
+        "heroNum": "10X",
         "heroLabel": "Design Team Velocity",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "es": {
         "title": "COMPOUNDED<br>CRAFT REFLECTION",
-        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
-        "heroNum": "10 X",
+        "body": "Every delivery triggers a reflection pass that scores variants and compounds taste into the shared corpus.",
+        "heroNum": "10X",
         "heroLabel": "Design Team Velocity",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "fr": {
         "title": "COMPOUNDED<br>CRAFT REFLECTION",
-        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
-        "heroNum": "10 X",
+        "body": "Every delivery triggers a reflection pass that scores variants and compounds taste into the shared corpus.",
+        "heroNum": "10X",
         "heroLabel": "Design Team Velocity",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       },
       "zh": {
         "title": "COMPOUNDED<br>CRAFT REFLECTION",
-        "body": "Every design delivery triggers an automated reflection pass: scoring aesthetic variants, recording human selection patterns, and compounding design taste directly into the shared repository corpus.",
-        "heroNum": "10 X",
+        "body": "Every delivery triggers a reflection pass that scores variants and compounds taste into the shared corpus.",
+        "heroNum": "10X",
         "heroLabel": "Design Team Velocity",
         "notes": "Compounding craft transforms single-use generations into permanent organizational capability."
       }
@@ -1411,7 +1411,7 @@ const DECK_I18N = {
     "28": {
       "en": {
         "title": "READY FOR<br>PRODUCTION",
-        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "body": "Your design system is compiled, audited, and ready. Run ui generate with zero LLM luck.",
         "heroNum": "SHIP",
         "heroLabel": "Qualified Delivery Floor",
         "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
@@ -1425,35 +1425,35 @@ const DECK_I18N = {
       },
       "ko": {
         "title": "READY FOR<br>PRODUCTION",
-        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "body": "Your design system is compiled, audited, and ready. Run ui generate with zero LLM luck.",
         "heroNum": "SHIP",
         "heroLabel": "Qualified Delivery Floor",
         "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
       },
       "ja": {
         "title": "READY FOR<br>PRODUCTION",
-        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "body": "Your design system is compiled, audited, and ready. Run ui generate with zero LLM luck.",
         "heroNum": "SHIP",
         "heroLabel": "Qualified Delivery Floor",
         "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
       },
       "es": {
         "title": "READY FOR<br>PRODUCTION",
-        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "body": "Your design system is compiled, audited, and ready. Run ui generate with zero LLM luck.",
         "heroNum": "SHIP",
         "heroLabel": "Qualified Delivery Floor",
         "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
       },
       "fr": {
         "title": "READY FOR<br>PRODUCTION",
-        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "body": "Your design system is compiled, audited, and ready. Run ui generate with zero LLM luck.",
         "heroNum": "SHIP",
         "heroLabel": "Qualified Delivery Floor",
         "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"
       },
       "zh": {
         "title": "READY FOR<br>PRODUCTION",
-        "body": "Your complete multi-runtime design system is compiled, audited, and ready. Run ui generate to create your next experience with guaranteed mathematical perfection, zero LLM luck, and instant speed.",
+        "body": "Your design system is compiled, audited, and ready. Run ui generate with zero LLM luck.",
         "heroNum": "SHIP",
         "heroLabel": "Qualified Delivery Floor",
         "notes": "Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"

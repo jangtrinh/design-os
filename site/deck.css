@@ -35,7 +35,15 @@ li {
       --shadow-surface: 0 1px 3px rgba(9, 10, 15, 0.04), 0 8px 24px rgba(9, 10, 15, 0.04);
       --shadow-stage: 0 20px 50px rgba(9, 10, 15, 0.06), 0 1px 2px rgba(9, 10, 15, 0.04);
 
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      /* Be Vietnam Pro is drawn for Vietnamese diacritic stacking (ế, ộ, ữ),
+         which this deck needs: `vi` is a first-class language in translations.js,
+         and stacked marks are exactly what breaks at display sizes. It covers
+         Latin + Vietnamese only, so the CJK members of the language set fall
+         through to the platform's own faces rather than to a Latin face with no
+         glyphs — the same arrangement Inter had, but now stated explicitly. */
+      --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                   'Hiragino Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC',
+                   'Microsoft YaHei', Roboto, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
 
       /* Modular type tokens */
@@ -91,7 +99,7 @@ li {
       background-color: var(--bg-base);
       color: var(--text-primary);
       font-family: var(--font-sans);
-      font-size: 16px;
+      font-size: var(--fs-label);
       -webkit-font-smoothing: antialiased;
       user-select: none;
     }
@@ -128,7 +136,7 @@ li {
       display: none;
       flex-direction: column;
       justify-content: space-between;
-      padding: 70px 100px 60px;
+      padding: 64px 96px 64px;
       background-color: var(--bg-surface);
       opacity: 0;
       visibility: hidden;
@@ -174,7 +182,7 @@ li {
     .chrome-brand-badge {
       background-color: var(--text-primary);
       color: var(--text-inverse);
-      padding: 3px 10px;
+      padding: 4px 8px;
       border-radius: var(--radius-sm);
       font-weight: 700;
       letter-spacing: 0.05em;
@@ -197,7 +205,7 @@ li {
     .slide-content-zone {
       width: 100%;
       height: 870px;
-      margin-top: 30px;
+      margin-top: 32px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -214,7 +222,7 @@ li {
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -248,7 +256,7 @@ li {
     .slide-subtitle {
       font-size: var(--font-size-lg);
       color: var(--text-secondary);
-      margin-top: 10px;
+      margin-top: 8px;
       line-height: 1.35;
       max-width: 1400px;
     }
@@ -256,27 +264,27 @@ li {
     /* Grid & Cards for Slides */
     .slide-grid-4 {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 24px;
     }
 
     .slide-grid-3 {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 28px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
     }
 
     .slide-grid-2 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 36px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 32px;
     }
 
     .slide-card {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 28px 24px;
+      padding: 24px 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -359,7 +367,7 @@ li {
 
     .matrix-badge {
       display: inline-block;
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: var(--font-size-xs);
@@ -375,7 +383,7 @@ li {
       border-radius: var(--radius-md);
       padding: 16px;
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: var(--fs-label);
       color: var(--text-primary);
       line-height: 1.5;
     }
@@ -403,7 +411,7 @@ li {
       gap: 8px;
       z-index: var(--z-nav);
       background: var(--bg-surface);
-      padding: 6px;
+      padding: 4px;
       border-radius: var(--radius-full);
       border: 1px solid var(--border-medium);
       box-shadow: 0 4px 16px rgba(9, 10, 15, 0.1);
@@ -414,7 +422,7 @@ li {
       min-width: 44px;
       height: 44px;
       width: 44px;
-      padding: 10px;
+      padding: 8px;
       border-radius: var(--radius-full);
       background: transparent;
       color: var(--text-secondary);
@@ -480,7 +488,7 @@ li {
       inset: 0;
       background: var(--bg-base);
       z-index: var(--z-modal);
-      padding: 60px 80px;
+      padding: 64px 64px;
       display: none;
       flex-direction: column;
       gap: 24px;
@@ -493,20 +501,20 @@ li {
 
     .overview-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 24px;
-      padding-bottom: 60px;
+      padding-bottom: 64px;
     }
 
     .overview-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 20px;
+      padding: 16px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       transition: transform 150ms ease, border-color 150ms ease;
     }
 
@@ -584,7 +592,6 @@ li {
     top: 20px !important;
     left: 24px !important;
     right: 24px !important;
-    font-size: 11px !important;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
@@ -598,7 +605,6 @@ li {
     margin-top: 40px;
     padding-top: 20px;
     border-top: 1px solid var(--border-subtle);
-    font-size: 11px !important;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
@@ -686,7 +692,7 @@ li {
   align-items: center;
   gap: 4px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-label);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -723,20 +729,20 @@ li {
 .lang-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .lang-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: 12px 16px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all var(--motion-fast);
+  transition: transform 180ms var(--ease-enter), opacity 180ms var(--ease-enter);
   font-family: var(--font-sans);
   color: var(--text-primary);
 }
@@ -758,13 +764,13 @@ li {
 .lang-name {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 15px;
+  gap: 8px;
+  font-size: var(--fs-label);
 }
 
 .lang-code {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-label);
   color: var(--text-muted);
 }
 
@@ -797,13 +803,13 @@ li {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px 18px;
+  padding: 12px 16px;
   background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-label);
   color: var(--text-primary);
   z-index: 5;
 }
@@ -811,7 +817,7 @@ li {
 .readout-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 4px 8px;
   background: var(--text-primary);
   color: var(--text-inverse);
@@ -819,7 +825,7 @@ li {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: var(--fs-label);
 }
 
 .readout-text {
@@ -856,7 +862,9 @@ li {
   .svg-flow-active,
   .svg-packet-1,
   .svg-packet-2,
-  
+  .svg-radar-ring {
+    animation: none !important;
+  }
 }
 
 
@@ -890,10 +898,10 @@ li {
   right: 24px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   z-index: var(--z-nav);
   background: var(--bg-surface);
-  padding: 6px;
+  padding: 4px;
   border-radius: 999px;
   border: 1px solid var(--border-medium);
   box-shadow: 0 8px 32px rgba(9, 10, 15, 0.12), 0 2px 6px rgba(9, 10, 15, 0.04);
@@ -940,7 +948,7 @@ li {
   min-width: 44px;
   height: 44px;
   width: 44px;
-  padding: 10px;
+  padding: 8px;
   border-radius: 999px;
   background: transparent;
   color: var(--text-secondary);
@@ -973,8 +981,8 @@ li {
 .lang-liquid-track {
   position: relative;
   display: grid;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .lang-option {
@@ -983,7 +991,7 @@ li {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: 12px 16px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
@@ -1012,7 +1020,7 @@ li {
 .liquid-showcase-box {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   padding: 24px;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
@@ -1059,9 +1067,9 @@ li {
   z-index: 2;
   border: none;
   background: transparent;
-  padding: 8px 18px;
+  padding: 8px 16px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--fs-label);
   font-weight: 600;
   color: var(--text-secondary);
   border-radius: 999px;
@@ -1181,7 +1189,21 @@ li {
   --text-obsidian-muted: #8e929b;
   
   /* Luminous Radiant Card Palette */
-  --luminous-grad: linear-gradient(135deg, #e4fed2 0%, #f7fed8 40%, #9ef5b4 100%);
+  /* The signature lime surface appears on 22 elements — the deck's most-repeated
+     visual — and was a flat three-stop linear ramp. It is now a multi-point mesh
+     built from layered radial gradients over that same ramp: organic colour flow
+     rather than a single sweep, entirely within the existing lime family.
+
+     This is CSS, not a shader. DESIGN:OS's WebGL catalogue is T6 and its own gate
+     forbids reaching for it to decorate what T1 already serves — so the mesh idea
+     is taken at the tier that costs nothing: no library, no canvas, no fallback
+     to maintain, and no reduced-motion concern, because nothing moves. */
+  --luminous-grad:
+    radial-gradient(ellipse 78% 66% at 10% 6%,   #f4ffdc 0%, rgba(244,255,220,0) 62%),
+    radial-gradient(ellipse 68% 78% at 92% 18%,  #eaffca 0%, rgba(234,255,202,0) 60%),
+    radial-gradient(ellipse 88% 86% at 82% 98%,  #86efac 0%, rgba(134,239,172,0) 64%),
+    radial-gradient(ellipse 76% 58% at 16% 94%,  #b3f7c6 0%, rgba(179,247,198,0) 62%),
+    linear-gradient(135deg, #e8fed6 0%, #f7fed8 42%, #9ef5b4 100%);
   --luminous-text-primary: #07080a;
   --luminous-text-muted: #2d323b;
   --luminous-track: rgba(0, 0, 0, 0.12);
@@ -1204,7 +1226,7 @@ li {
 .slide-item {
   background-color: var(--bg-obsidian) !important;
   color: var(--text-obsidian-primary);
-  padding: 48px 80px 40px !important;
+  padding: 48px 64px 32px !important;
 }
 
 .chrome-accent-strip {
@@ -1217,7 +1239,7 @@ li {
   right: 80px !important;
   color: var(--text-obsidian-muted) !important;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--fs-label);
   letter-spacing: 0.08em;
 }
 
@@ -1232,17 +1254,17 @@ li {
   right: 80px !important;
   color: var(--text-obsidian-muted) !important;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-label);
 }
 
 /* Radiant Asymmetric Split Stage Layout */
 .radiant-stage-grid {
   display: grid;
-  grid-template-columns: 46% 54%;
+  grid-template-columns: minmax(0, 46fr) minmax(0, 54fr);
   gap: 48px;
   width: 100%;
   height: calc(1080px - 140px);
-  margin-top: 10px;
+  margin-top: 8px;
   align-items: center;
 }
 
@@ -1268,7 +1290,7 @@ li {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--fs-body);
   font-weight: 800;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
   z-index: 4;
@@ -1279,8 +1301,8 @@ li {
   position: absolute;
   left: 6%;
   bottom: 14%;
-  width: 330px;
-  height: 330px;
+  width: 400px;
+  height: 400px;
   border-radius: 50%;
   background: var(--orb-lime-bg);
   color: var(--orb-lime-text);
@@ -1296,22 +1318,22 @@ li {
 }
 
 .orb-arrow {
-  font-size: 28px;
+  font-size: var(--fs-body);
   line-height: 1;
   margin-bottom: 4px;
 }
 
 .orb-stat-huge {
-  font-size: 72px;
+  font-size: var(--fs-display);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.04em;
 }
 
 .orb-label-main {
-  font-size: 19px;
+  font-size: var(--fs-label);
   font-weight: 600;
-  margin-top: 10px;
+  margin-top: 8px;
   letter-spacing: -0.01em;
   opacity: 0.9;
 }
@@ -1321,8 +1343,8 @@ li {
   position: absolute;
   top: 16%;
   right: 18%;
-  width: 270px;
-  height: 270px;
+  width: 320px;
+  height: 320px;
   border-radius: 50%;
   background: var(--orb-dark-bg);
   color: var(--orb-dark-text);
@@ -1338,14 +1360,14 @@ li {
 }
 
 .orb-stat-secondary {
-  font-size: 58px;
+  font-size: var(--fs-heading);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.035em;
 }
 
 .orb-label-secondary {
-  font-size: 17px;
+  font-size: var(--fs-label);
   font-weight: 500;
   color: var(--text-obsidian-muted);
   margin-top: 8px;
@@ -1356,8 +1378,8 @@ li {
   position: absolute;
   right: 6%;
   bottom: 12%;
-  width: 220px;
-  height: 220px;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
   background: var(--orb-dark-bg);
   color: var(--orb-dark-text);
@@ -1366,24 +1388,24 @@ li {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   text-align: center;
   box-shadow: var(--orb-dark-shadow);
   z-index: 1;
 }
 
 .orb-stat-tertiary {
-  font-size: 48px;
+  font-size: var(--fs-heading);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.03em;
 }
 
 .orb-label-tertiary {
-  font-size: 15px;
+  font-size: var(--fs-label);
   font-weight: 500;
   color: var(--text-obsidian-muted);
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 /* Right Column: Luminous Master Card */
@@ -1393,7 +1415,7 @@ li {
   max-height: 760px;
   background: var(--luminous-grad);
   border-radius: 36px;
-  padding: 56px 64px;
+  padding: 48px 64px;
   color: var(--luminous-text-primary);
   display: flex;
   flex-direction: column;
@@ -1410,7 +1432,7 @@ li {
 
 .radiant-dots {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
   margin-bottom: 24px;
 }
@@ -1424,17 +1446,17 @@ li {
 }
 
 .radiant-display-title {
-  font-size: 60px;
+  font-size: var(--fs-display);
   font-weight: 800;
   line-height: 1.04;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   color: var(--luminous-text-primary);
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .radiant-body-text {
-  font-size: 18px;
+  font-size: var(--fs-body);
   line-height: 1.55;
   color: var(--luminous-text-muted);
   max-width: 580px;
@@ -1447,7 +1469,7 @@ li {
 }
 
 .radiant-hero-number {
-  font-size: 96px;
+  font-size: var(--fs-hero);
   font-weight: 800;
   line-height: 0.92;
   letter-spacing: -0.045em;
@@ -1455,11 +1477,11 @@ li {
 }
 
 .radiant-hero-label {
-  font-size: 26px;
+  font-size: var(--fs-title);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--luminous-text-primary);
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .radiant-progress-track {
@@ -1468,7 +1490,7 @@ li {
   height: 8px;
   background: var(--luminous-track);
   border-radius: 999px;
-  margin-top: 20px;
+  margin-top: 16px;
   overflow: hidden;
 }
 
@@ -1497,13 +1519,11 @@ li {
   }
 
   .radiant-display-title {
-    font-size: 34px !important;
     line-height: 1.05 !important;
     margin-bottom: 16px !important;
   }
 
   .radiant-body-text {
-    font-size: 15px !important;
     line-height: 1.5 !important;
   }
 
@@ -1512,18 +1532,16 @@ li {
   }
 
   .radiant-hero-number {
-    font-size: 56px !important;
   }
 
   .radiant-hero-label {
-    font-size: 18px !important;
   }
 
   .radiant-left-cluster {
     order: 2 !important;
     position: relative !important;
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: 12px !important;
     height: auto !important;
     width: 100% !important;
@@ -1537,7 +1555,6 @@ li {
     grid-column: span 2;
     width: 44px !important;
     height: 44px !important;
-    font-size: 18px !important;
     border-radius: 12px !important;
     margin: 0 auto 8px auto !important;
   }
@@ -1554,11 +1571,9 @@ li {
   }
 
   .orb-stat-huge {
-    font-size: 48px !important;
   }
 
   .orb-label-main {
-    font-size: 15px !important;
   }
 
   .orb-secondary-dark {
@@ -1572,11 +1587,9 @@ li {
   }
 
   .orb-stat-secondary {
-    font-size: 32px !important;
   }
 
   .orb-label-secondary {
-    font-size: 13px !important;
   }
 
   .orb-tertiary-dark {
@@ -1590,11 +1603,9 @@ li {
   }
 
   .orb-stat-tertiary {
-    font-size: 32px !important;
   }
 
   .orb-label-tertiary {
-    font-size: 13px !important;
   }
 }
 
@@ -1607,17 +1618,17 @@ li {
 /* Hero Gateway (Slide 1) */
 .hero-gateway-grid {
   display: grid;
-  grid-template-columns: 58% 42%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
-  margin-top: 10px;
+  margin-top: 8px;
   align-items: center;
 }
 .hero-main-card {
   background: var(--luminous-grad);
   border-radius: 36px;
-  padding: 56px 64px;
+  padding: 48px 64px;
   color: var(--luminous-text-primary);
   display: flex;
   flex-direction: column;
@@ -1626,19 +1637,19 @@ li {
   min-height: 640px;
 }
 .hero-stat-pill {
-  margin-top: 40px;
+  margin-top: 32px;
   display: inline-flex;
   align-items: baseline;
   gap: 16px;
 }
 .stat-pill-num {
-  font-size: 88px;
+  font-size: var(--fs-display);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.04em;
 }
 .stat-pill-label {
-  font-size: 24px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 .hero-right-orbs {
@@ -1653,8 +1664,8 @@ li {
   position: absolute;
   left: 10%;
   bottom: 16%;
-  width: 320px;
-  height: 320px;
+  width: 380px;
+  height: 380px;
   border-radius: 50%;
   background: var(--orb-lime-bg);
   color: var(--orb-lime-text);
@@ -1670,8 +1681,8 @@ li {
   position: absolute;
   top: 18%;
   right: 18%;
-  width: 250px;
-  height: 250px;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
   background: var(--orb-dark-bg);
   color: var(--orb-dark-text);
@@ -1688,8 +1699,8 @@ li {
   position: absolute;
   right: 8%;
   bottom: 12%;
-  width: 200px;
-  height: 200px;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
   background: var(--orb-dark-bg);
   color: var(--orb-dark-text);
@@ -1706,7 +1717,7 @@ li {
 /* Triad Stagger (Slide 2) */
 .triad-stagger-grid {
   display: grid;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: minmax(0, 50fr) minmax(0, 50fr);
   gap: 48px;
   width: 100%;
   height: calc(1080px - 140px);
@@ -1715,13 +1726,13 @@ li {
 .triad-orbs-col {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 .triad-orb {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 28px;
-  padding: 28px 40px;
+  padding: 24px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1757,35 +1768,35 @@ li {
 }
 .duality-tag {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-label);
   font-weight: 700;
   letter-spacing: 0.1em;
   opacity: 0.8;
 }
 .duality-title {
-  font-size: 48px;
+  font-size: var(--fs-heading);
   font-weight: 800;
   margin: 16px 0;
   letter-spacing: -0.03em;
 }
 .duality-desc {
-  font-size: 18px;
+  font-size: var(--fs-body);
   line-height: 1.5;
   opacity: 0.85;
 }
 .duality-metric {
-  margin-top: 40px;
+  margin-top: 32px;
   display: flex;
   align-items: baseline;
   gap: 16px;
 }
 .duality-num {
-  font-size: 72px;
+  font-size: var(--fs-display);
   font-weight: 800;
   line-height: 1;
 }
 .duality-label {
-  font-size: 20px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 .duality-center-bridge {
@@ -1802,9 +1813,9 @@ li {
 }
 .bridge-badge {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-label);
   font-weight: 800;
-  padding: 6px 12px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: var(--orb-lime-bg);
   color: var(--orb-lime-text);
@@ -1814,8 +1825,8 @@ li {
 /* Modular Orbit (Slide 4) */
 .orbit-layout-grid {
   display: grid;
-  grid-template-columns: 50% 50%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 50fr) minmax(0, 50fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -1823,22 +1834,22 @@ li {
 .orbit-center-card {
   background: var(--luminous-grad);
   border-radius: 36px;
-  padding: 56px;
+  padding: 48px;
   color: var(--luminous-text-primary);
 }
 .orbit-center-stat {
-  font-size: 20px;
+  font-size: var(--fs-body);
   font-weight: 700;
   margin-top: 32px;
-  padding: 12px 20px;
+  padding: 12px 16px;
   background: rgba(0,0,0,0.08);
   border-radius: 999px;
   width: fit-content;
 }
 .orbit-satellites-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
 }
 .orbit-chip {
   background: var(--bg-obsidian-card);
@@ -1849,9 +1860,9 @@ li {
   flex-direction: column;
   gap: 8px;
 }
-.orbit-chip span { font-size: 32px; }
-.orbit-chip strong { font-size: 20px; color: var(--text-obsidian-primary); }
-.orbit-chip small { font-size: 13px; color: var(--text-obsidian-muted); font-family: var(--font-mono); }
+.orbit-chip span { font-size: var(--fs-title); }
+.orbit-chip strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); }
+.orbit-chip small { font-size: var(--fs-label); color: var(--text-obsidian-muted); font-family: var(--font-mono); }
 
 /* Sovereignty Cascade (Slide 5) */
 .cascade-slabs-grid {
@@ -1869,7 +1880,7 @@ li {
 }
 .cascade-slab {
   border-radius: 24px;
-  padding: 24px 36px;
+  padding: 24px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1886,16 +1897,16 @@ li {
   background: var(--luminous-grad);
   color: var(--luminous-text-primary);
 }
-.slab-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 800; }
-.slab-main strong { font-size: 20px; display: block; }
-.slab-main span { font-size: 14px; opacity: 0.8; }
-.slab-stat { font-family: var(--font-mono); font-size: 14px; font-weight: 800; }
+.slab-badge { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
+.slab-main strong { font-size: var(--fs-body); display: block; }
+.slab-main span { font-size: var(--fs-label); opacity: 0.8; }
+.slab-stat { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
 
 /* 6 Roads Matrix (Slide 6) */
 .roads-matrix-layout {
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   justify-content: center;
@@ -1906,34 +1917,34 @@ li {
   align-items: center;
 }
 .roads-cmd-pill {
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 999px;
   background: var(--orb-lime-bg);
   color: var(--orb-lime-text);
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--fs-label);
   font-weight: 700;
 }
 .roads-grid-6 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 .road-card {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 24px;
-  padding: 28px;
+  padding: 24px;
 }
 .road-id {
-  font-size: 32px;
+  font-size: var(--fs-title);
   font-weight: 800;
   color: var(--orb-lime-bg);
   display: block;
   margin-bottom: 8px;
 }
-.road-card strong { font-size: 18px; color: var(--text-obsidian-primary); display: block; }
-.road-card p { font-size: 14px; color: var(--text-obsidian-muted); margin-top: 6px; }
+.road-card strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; }
+.road-card p { font-size: var(--fs-label); color: var(--text-obsidian-muted); margin-top: 4px; }
 
 /* 5-Step Pipeline (Slide 7) */
 .pipeline5-layout {
@@ -1951,7 +1962,7 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 36px;
-  padding: 40px;
+  padding: 32px;
 }
 .pipe5-step {
   display: flex;
@@ -1961,21 +1972,21 @@ li {
   gap: 8px;
 }
 .pipe5-num {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: var(--orb-lime-bg);
   color: var(--orb-lime-text);
-  font-size: 24px;
+  font-size: var(--fs-body);
   font-weight: 800;
   display: grid;
   place-items: center;
 }
-.pipe5-step strong { font-size: 18px; color: var(--text-obsidian-primary); }
-.pipe5-step small { font-size: 13px; color: var(--text-obsidian-muted); }
+.pipe5-step strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); }
+.pipe5-step small { font-size: var(--fs-label); color: var(--text-obsidian-muted); }
 .pipe5-gate {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-label);
   font-weight: 800;
   color: #ff6b6b;
   padding: 4px 8px;
@@ -1986,8 +1997,8 @@ li {
 /* Virtual Staff Triptych (Slide 8) */
 .staff-triptych-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -1996,7 +2007,7 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 32px;
-  padding: 40px 32px;
+  padding: 32px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2009,17 +2020,17 @@ li {
   color: var(--luminous-text-primary);
   border: none;
 }
-.staff-avatar { font-size: 56px; }
-.staff-name { font-size: 28px; font-weight: 800; margin: 12px 0 4px; }
-.staff-role { font-family: var(--font-mono); font-size: 13px; font-weight: 600; opacity: 0.8; }
-.staff-desc { font-size: 15px; line-height: 1.5; margin: 16px 0; }
-.staff-badge { font-family: var(--font-mono); font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,0.1); }
+.staff-avatar { font-size: var(--fs-heading); }
+.staff-name { font-size: var(--fs-title); font-weight: 800; margin: 12px 0 4px; }
+.staff-role { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 600; opacity: 0.8; }
+.staff-desc { font-size: var(--fs-body); line-height: 1.5; margin: 16px 0; }
+.staff-badge { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; padding: 4px 12px; border-radius: 999px; background: rgba(0,0,0,0.1); }
 
 /* Daily Verbs (Slide 9) */
 .verbs-matrix-grid {
   display: grid;
-  grid-template-columns: 55% 45%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -2028,23 +2039,23 @@ li {
   background: #0d0e14;
   border: 1px solid #1f232e;
   border-radius: 32px;
-  padding: 36px;
+  padding: 32px;
   font-family: var(--font-mono);
 }
-.terminal-dots { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; font-size: 12px; color: #6b7280; }
+.terminal-dots { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; font-size: var(--fs-label); color: #6b7280; }
 .dot-red { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
 .dot-yellow { width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; }
 .dot-green { width: 10px; height: 10px; border-radius: 50%; background: #10b981; }
 .terminal-body { display: flex; flex-direction: column; gap: 16px; }
 .t-row { display: flex; flex-direction: column; gap: 4px; }
-.t-row code { color: #86efac; font-size: 15px; font-weight: 700; }
-.t-row span { color: #9ca3af; font-size: 13px; }
+.t-row code { color: #86efac; font-size: var(--fs-body); font-weight: 700; }
+.t-row span { color: #9ca3af; font-size: var(--fs-label); }
 
 /* Figma Bridge (Slide 10) */
 .bridge-spatial-grid {
   display: grid;
   grid-template-columns: 1fr 180px 1fr;
-  gap: 28px;
+  gap: 24px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -2063,20 +2074,20 @@ li {
   background: var(--luminous-grad);
   color: var(--luminous-text-primary);
 }
-.bank-header { font-family: var(--font-mono); font-size: 12px; font-weight: 800; }
-.bank-stat { font-size: 48px; font-weight: 800; margin: 20px 0; }
-.bank-desc { font-size: 16px; line-height: 1.5; opacity: 0.85; }
-.bank-pill { font-family: var(--font-mono); font-size: 12px; font-weight: 800; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,0.1); width: fit-content; }
+.bank-header { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
+.bank-stat { font-size: var(--fs-heading); font-weight: 800; margin: 16px 0; }
+.bank-desc { font-size: var(--fs-body); line-height: 1.5; opacity: 0.85; }
+.bank-pill { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,0.1); width: fit-content; }
 .bridge-center-commutator { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.commutator-ring { width: 130px; height: 130px; border-radius: 50%; background: var(--orb-lime-bg); color: var(--orb-lime-text); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(158,245,180,0.3); }
-.commutator-port { font-size: 32px; font-weight: 800; }
-.commutator-label { font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
-.commutator-lock { font-family: var(--font-mono); font-size: 10px; color: #86efac; }
+.commutator-ring { width: 170px; height: 170px; border-radius: 50%; background: var(--orb-lime-bg); color: var(--orb-lime-text); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(158,245,180,0.3); }
+.commutator-port { font-size: var(--fs-title); font-weight: 800; }
+.commutator-label { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 700; }
+.commutator-lock { font-family: var(--font-mono); font-size: var(--fs-label); color: #86efac; }
 
 /* Sieve (Slide 12) */
 .sieve-quadrant-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
   width: 100%;
   height: calc(1080px - 140px);
@@ -2086,7 +2097,7 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 28px;
-  padding: 36px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2097,16 +2108,16 @@ li {
   color: var(--luminous-text-primary);
   border: none;
 }
-.sieve-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 800; opacity: 0.8; }
-.sieve-card h3 { font-size: 32px; font-weight: 800; margin: 8px 0; }
-.sieve-card p { font-size: 15px; opacity: 0.85; }
-.sieve-metric { font-family: var(--font-mono); font-size: 14px; font-weight: 800; margin-top: 16px; }
+.sieve-badge { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; opacity: 0.8; }
+.sieve-card h3 { font-size: var(--fs-title); font-weight: 800; margin: 8px 0; }
+.sieve-card p { font-size: var(--fs-body); opacity: 0.85; }
+.sieve-metric { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; margin-top: 16px; }
 
 /* Triage (Slide 13) */
 .triage-tree-grid {
   display: grid;
-  grid-template-columns: 50% 50%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 50fr) minmax(0, 50fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -2118,14 +2129,14 @@ li {
   border-radius: 24px;
   padding: 24px 32px;
 }
-.t-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: #86efac; display: block; margin-bottom: 4px; }
-.triage-tier-box strong { font-size: 20px; color: var(--text-obsidian-primary); display: block; }
-.triage-tier-box p { font-size: 14px; color: var(--text-obsidian-muted); margin-top: 4px; }
+.t-tag { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; color: #86efac; display: block; margin-bottom: 4px; }
+.triage-tier-box strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; }
+.triage-tier-box p { font-size: var(--fs-label); color: var(--text-obsidian-muted); margin-top: 4px; }
 
 /* Memory Ring (Slide 14) */
 .memory-ring-layout {
   display: grid;
-  grid-template-columns: 45% 55%;
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
   gap: 48px;
   width: 100%;
   height: calc(1080px - 140px);
@@ -2137,11 +2148,11 @@ li {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 20px;
+  gap: 16px;
 }
 .manifold-core {
-  width: 300px;
-  height: 300px;
+  width: 390px;
+  height: 390px;
   border-radius: 50%;
   background: var(--orb-lime-bg);
   color: var(--orb-lime-text);
@@ -2151,32 +2162,32 @@ li {
   justify-content: center;
   box-shadow: 0 20px 60px rgba(158, 245, 180, 0.25);
 }
-.manifold-stat { font-size: 72px; font-weight: 800; line-height: 1; }
-.manifold-label { font-size: 18px; font-weight: 600; margin-top: 6px; }
-.manifold-subtext { font-family: var(--font-mono); font-size: 13px; color: var(--text-obsidian-muted); }
-.memory-right-flow { display: flex; flex-direction: column; gap: 20px; }
+.manifold-stat { font-size: var(--fs-display); font-weight: 800; line-height: 1; }
+.manifold-label { font-size: var(--fs-body); font-weight: 600; margin-top: 4px; }
+.manifold-subtext { font-family: var(--font-mono); font-size: var(--fs-label); color: var(--text-obsidian-muted); }
+.memory-right-flow { display: flex; flex-direction: column; gap: 16px; }
 .mem-flow-step {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 24px;
-  padding: 28px;
+  padding: 24px;
 }
-.step-num { font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--orb-lime-bg); }
-.mem-flow-step strong { font-size: 20px; color: var(--text-obsidian-primary); display: block; margin: 4px 0; }
-.mem-flow-step p { font-size: 15px; color: var(--text-obsidian-muted); }
+.step-num { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; color: var(--orb-lime-bg); }
+.mem-flow-step strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; margin: 4px 0; }
+.mem-flow-step p { font-size: var(--fs-body); color: var(--text-obsidian-muted); }
 
 /* Color Spectrum (Slide 16) */
 .color-spectrum-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 36px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
 }
 .color-col {
   border-radius: 36px;
-  padding: 56px 48px;
+  padding: 48px 48px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2184,20 +2195,20 @@ li {
 }
 .col-hsl { background: #12131a; border: 1px solid #282a38; }
 .col-oklch { background: var(--luminous-grad); color: var(--luminous-text-primary); }
-.color-tag { font-family: var(--font-mono); font-size: 12px; font-weight: 800; }
+.color-tag { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
 .tag-flaw { color: #f87171; }
 .tag-pass { color: #07080a; }
-.color-title { font-size: 44px; font-weight: 800; margin: 16px 0; letter-spacing: -0.03em; }
-.color-desc { font-size: 18px; line-height: 1.5; opacity: 0.85; }
-.color-stat-box { font-family: var(--font-mono); font-size: 16px; font-weight: 800; padding: 12px 20px; border-radius: 999px; width: fit-content; }
+.color-title { font-size: var(--fs-heading); font-weight: 800; margin: 16px 0; letter-spacing: -0.03em; }
+.color-desc { font-size: var(--fs-body); line-height: 1.5; opacity: 0.85; }
+.color-stat-box { font-family: var(--font-mono); font-size: var(--fs-body); font-weight: 800; padding: 12px 16px; border-radius: 999px; width: fit-content; }
 .stat-bad { background: #24161a; color: #f87171; }
 .stat-good { background: rgba(0,0,0,0.1); }
 
 /* Radar (Slide 17) */
 .radar-resonator-grid {
   display: grid;
-  grid-template-columns: 50% 50%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 50fr) minmax(0, 50fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -2205,15 +2216,15 @@ li {
 .radar-core-card {
   background: var(--luminous-grad);
   border-radius: 36px;
-  padding: 56px;
+  padding: 48px;
   color: var(--luminous-text-primary);
 }
-.core-anchor-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 800; }
-.core-score-num { font-size: 72px; font-weight: 800; margin-top: 32px; line-height: 1; }
-.core-score-label { font-size: 20px; font-weight: 600; margin-top: 6px; }
+.core-anchor-badge { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
+.core-score-num { font-size: var(--fs-display); font-weight: 800; margin-top: 32px; line-height: 1; }
+.core-score-label { font-size: var(--fs-body); font-weight: 600; margin-top: 4px; }
 .radar-axes-ring {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
 }
 .radar-axis-pill {
@@ -2222,13 +2233,13 @@ li {
   border-radius: 20px;
   padding: 24px;
 }
-.radar-axis-pill strong { font-size: 18px; color: var(--text-obsidian-primary); display: block; }
-.radar-axis-pill span { font-size: 13px; color: var(--text-obsidian-muted); font-family: var(--font-mono); }
+.radar-axis-pill strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; }
+.radar-axis-pill span { font-size: var(--fs-label); color: var(--text-obsidian-muted); font-family: var(--font-mono); }
 
 /* UX Laws (Slide 18) */
 .laws-cloud-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   width: 100%;
   height: calc(1080px - 140px);
@@ -2238,7 +2249,7 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 28px;
-  padding: 36px 28px;
+  padding: 32px 24px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -2253,22 +2264,22 @@ li {
 }
 .law-card:nth-child(1) strong { color: var(--luminous-text-primary); }
 .law-card:nth-child(1) p { color: var(--luminous-text-muted); }
-.law-num { font-size: 48px; font-weight: 800; margin-bottom: 16px; line-height: 1; }
-.law-card strong { font-size: 22px; color: var(--text-obsidian-primary); display: block; }
-.law-card p { font-size: 14px; color: var(--text-obsidian-muted); margin-top: 8px; }
+.law-num { font-size: var(--fs-heading); font-weight: 800; margin-bottom: 16px; line-height: 1; }
+.law-card strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; }
+.law-card p { font-size: var(--fs-label); color: var(--text-obsidian-muted); margin-top: 8px; }
 
 /* Personas (Slide 19) */
 .personas-fan-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
 }
 .persona-swatch {
   border-radius: 28px;
-  padding: 36px 28px;
+  padding: 32px 24px;
   min-height: 480px;
   display: flex;
   flex-direction: column;
@@ -2278,19 +2289,19 @@ li {
 .swatch-hyper { background: #0e1118; border: 1px solid #1e2638; color: #86efac; font-family: var(--font-mono); }
 .swatch-brutalist { background: #ffffff; color: #000000; border: 4px solid #000000; }
 .swatch-spatial { background: #161822; border: 1px solid #2e3448; color: #f3f4f6; }
-.p-tag { font-size: 12px; font-weight: 800; font-family: var(--font-mono); }
-.p-sample { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
-.p-stat { font-size: 14px; font-weight: 600; }
+.p-tag { font-size: var(--fs-label); font-weight: 800; font-family: var(--font-mono); }
+.p-sample { font-size: var(--fs-title); font-weight: 800; letter-spacing: -0.02em; }
+.p-stat { font-size: var(--fs-label); font-weight: 600; }
 
 /* Motion Ladder (Slide 20) */
 .motion-ladder-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: flex-end;
-  padding-bottom: 40px;
+  padding-bottom: 32px;
 }
 .motion-step {
   background: var(--bg-obsidian-card);
@@ -2310,9 +2321,9 @@ li {
 .step-t6 { height: 560px; background: var(--luminous-grad); color: var(--luminous-text-primary); border: none; }
 .step-t6 strong { color: var(--luminous-text-primary); }
 .step-t6 p { color: var(--luminous-text-muted); }
-.m-tier { font-size: 36px; font-weight: 800; }
-.motion-step strong { font-size: 16px; color: var(--text-obsidian-primary); display: block; margin: 8px 0; }
-.motion-step p { font-size: 12px; color: var(--text-obsidian-muted); }
+.m-tier { font-size: var(--fs-title); font-weight: 800; }
+.motion-step strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; margin: 8px 0; }
+.motion-step p { font-size: var(--fs-label); color: var(--text-obsidian-muted); }
 
 /* Cinema Ribbon (Slide 21) */
 .cinema-flight-ribbon {
@@ -2327,24 +2338,24 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 32px;
-  padding: 40px 32px;
+  padding: 32px 32px;
   min-height: 480px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 .leg-3 { background: var(--luminous-grad); color: var(--luminous-text-primary); border: none; }
-.leg-tag { font-family: var(--font-mono); font-size: 12px; font-weight: 800; }
-.cinema-leg h3 { font-size: 36px; font-weight: 800; margin: 16px 0; }
-.cinema-leg p { font-size: 16px; line-height: 1.5; opacity: 0.85; }
-.cinema-seam { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--orb-lime-bg); }
-.cinema-seam strong { font-size: 11px; }
+.leg-tag { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
+.cinema-leg h3 { font-size: var(--fs-title); font-weight: 800; margin: 16px 0; }
+.cinema-leg p { font-size: var(--fs-body); line-height: 1.5; opacity: 0.85; }
+.cinema-seam { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; font-family: var(--font-mono); font-size: var(--fs-label); color: var(--orb-lime-bg); }
+.cinema-seam strong { font-size: var(--fs-label); }
 
 /* GFlow (Slide 22) */
 .gflow-viewport-grid {
   display: grid;
-  grid-template-columns: 50% 50%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 50fr) minmax(0, 50fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -2353,21 +2364,21 @@ li {
   background: #0a0c12;
   border: 1px solid #202636;
   border-radius: 36px;
-  padding: 56px;
+  padding: 48px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 600px;
 }
-.gflow-hud-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #86efac; }
-.gflow-stat-hero { font-size: 120px; font-weight: 800; color: #86efac; line-height: 1; margin: auto 0; }
-.gflow-stat-label { font-size: 24px; font-weight: 600; color: #d1d5db; }
+.gflow-hud-badge { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; color: #86efac; }
+.gflow-stat-hero { font-size: var(--fs-hero); font-weight: 800; color: #86efac; line-height: 1; margin: auto 0; }
+.gflow-stat-label { font-size: var(--fs-body); font-weight: 600; color: #d1d5db; }
 
 /* Visual Regression Matrix (Slide 23) */
 .vr-matrix-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
@@ -2376,7 +2387,7 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 32px;
-  padding: 40px 32px;
+  padding: 32px 32px;
   min-height: 500px;
   display: flex;
   flex-direction: column;
@@ -2384,34 +2395,34 @@ li {
   text-align: center;
 }
 .dev-desktop { background: var(--luminous-grad); color: var(--luminous-text-primary); border: none; }
-.dev-header { font-family: var(--font-mono); font-size: 13px; font-weight: 800; }
-.dev-stat { font-size: 72px; font-weight: 800; margin: 32px 0; }
-.vr-device-card p { font-size: 15px; opacity: 0.85; }
+.dev-header { font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 800; }
+.dev-stat { font-size: var(--fs-display); font-weight: 800; margin: 32px 0; }
+.vr-device-card p { font-size: var(--fs-body); opacity: 0.85; }
 
 /* Compounding (Slide 24) */
 .compounding-layout-grid {
   display: grid;
-  grid-template-columns: 55% 45%;
-  gap: 40px;
+  grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+  gap: 32px;
   width: 100%;
   height: calc(1080px - 140px);
   align-items: center;
 }
-.compounding-stats-col { display: flex; flex-direction: column; gap: 20px; }
+.compounding-stats-col { display: flex; flex-direction: column; gap: 16px; }
 .c-stat-box {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 24px;
-  padding: 28px;
+  padding: 24px;
 }
-.c-stat-box strong { font-size: 20px; color: var(--text-obsidian-primary); display: block; margin-bottom: 4px; }
-.c-stat-box p { font-size: 14px; color: var(--text-obsidian-muted); }
+.c-stat-box strong { font-size: var(--fs-body); color: var(--text-obsidian-primary); display: block; margin-bottom: 4px; }
+.c-stat-box p { font-size: var(--fs-label); color: var(--text-obsidian-muted); }
 
 /* Refinery Tower (Slide 25) */
 .refinery-tower-grid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   height: calc(1080px - 140px);
   justify-content: center;
@@ -2420,15 +2431,15 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 20px;
-  padding: 20px 36px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .step-6 { background: var(--luminous-grad); color: var(--luminous-text-primary); border: none; }
-.refinery-step span { font-family: var(--font-mono); font-size: 16px; font-weight: 800; }
-.refinery-step strong { font-size: 20px; }
-.refinery-step small { font-family: var(--font-mono); font-size: 13px; opacity: 0.85; }
+.refinery-step span { font-family: var(--font-mono); font-size: var(--fs-body); font-weight: 800; }
+.refinery-step strong { font-size: var(--fs-body); }
+.refinery-step small { font-family: var(--font-mono); font-size: var(--fs-label); opacity: 0.85; }
 
 /* Semver (Slide 26) */
 .semver-table-grid {
@@ -2441,7 +2452,7 @@ li {
 }
 .semver-row {
   border-radius: 28px;
-  padding: 40px 48px;
+  padding: 32px 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2449,14 +2460,14 @@ li {
 .semver-patch { background: var(--luminous-grad); color: var(--luminous-text-primary); }
 .semver-minor { background: #131722; border: 1px solid #242c40; color: #f3f4f6; }
 .semver-major { background: #1f1215; border: 1px solid #421e25; color: #fca5a5; }
-.semver-badge { font-size: 32px; font-weight: 800; font-family: var(--font-mono); }
-.semver-scope { font-size: 18px; }
-.semver-metric { font-size: 28px; font-weight: 800; font-family: var(--font-mono); }
+.semver-badge { font-size: var(--fs-title); font-weight: 800; font-family: var(--font-mono); }
+.semver-scope { font-size: var(--fs-body); }
+.semver-metric { font-size: var(--fs-title); font-weight: 800; font-family: var(--font-mono); }
 
 /* Fables (Slide 27) */
 .fables-constellation-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   width: 100%;
   height: calc(1080px - 140px);
@@ -2466,15 +2477,15 @@ li {
   background: var(--bg-obsidian-card);
   border: 1px solid var(--orb-dark-border);
   border-radius: 28px;
-  padding: 32px 20px;
+  padding: 32px 16px;
   min-height: 440px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 .f3 { background: var(--luminous-grad); color: var(--luminous-text-primary); border: none; }
-.fable-box strong { font-size: 24px; font-weight: 800; }
-.fable-box span { font-size: 14px; opacity: 0.85; }
+.fable-box strong { font-size: var(--fs-body); font-weight: 800; }
+.fable-box span { font-size: var(--fs-label); opacity: 0.85; }
 
 /* Grand Final Launchpad (Slide 28) */
 .launch-monolith-grid {
@@ -2489,7 +2500,7 @@ li {
   max-width: 980px;
   background: var(--luminous-grad);
   border-radius: 44px;
-  padding: 64px 72px;
+  padding: 64px 64px;
   color: var(--luminous-text-primary);
   text-align: center;
   display: flex;
@@ -2504,15 +2515,35 @@ li {
   padding: 16px 32px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: var(--fs-body);
   font-weight: 700;
   margin: 16px 0;
 }
 .launch-stamp {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--fs-label);
   font-weight: 800;
   letter-spacing: 0.12em;
+}
+
+
+/* Phosphor Icons System Styling */
+i.ph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25em;
+  vertical-align: middle;
+  line-height: 1;
+}
+.staff-avatar i.ph {
+  font-size: var(--fs-heading);
+}
+.orb-chip i.ph,
+.input-card i.ph,
+.token-emit-card i.ph {
+  font-size: var(--fs-title);
+  color: var(--orb-lime-bg);
 }
 
 
@@ -2530,7 +2561,7 @@ li {
   color: var(--orb-lime-bg);
 }
 .staff-avatar i.ph {
-  font-size: 32px !important;
+  font-size: var(--fs-title) !important;
 }
 .staff-stylist .staff-avatar {
   background: rgba(7, 8, 10, 0.08);
@@ -2538,24 +2569,2087 @@ li {
   color: #07080a !important;
 }
 .orbit-chip i.ph {
-  font-size: 24px !important;
+  font-size: var(--fs-body) !important;
   color: var(--orb-lime-bg);
   margin-bottom: 8px;
   display: block;
 }
 .token-emit-card i.ph,
 .input-card i.ph {
-  font-size: 26px !important;
+  font-size: var(--fs-title) !important;
   color: var(--orb-lime-bg);
   margin-bottom: 12px;
   display: block;
 }
 .lang-icon i.ph {
-  font-size: 16px;
+  font-size: var(--fs-body);
   color: var(--orb-lime-bg);
   margin-right: 8px;
 }
 .nav-btn i.ph {
-  font-size: 20px;
+  font-size: var(--fs-body);
   line-height: 1;
+}
+
+
+/* Enhanced Phosphor Icons Styling */
+.staff-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--bg-obsidian-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: var(--orb-lime-bg);
+}
+.staff-avatar i.ph {
+  font-size: var(--fs-title) !important;
+}
+.staff-stylist .staff-avatar {
+  background: rgba(7, 8, 10, 0.08);
+  border-color: rgba(7, 8, 10, 0.15);
+  color: #07080a !important;
+}
+.orbit-chip i.ph {
+  font-size: var(--fs-body) !important;
+  color: var(--orb-lime-bg);
+  margin-bottom: 8px;
+  display: block;
+}
+.token-emit-card i.ph,
+.input-card i.ph {
+  font-size: var(--fs-title) !important;
+  color: var(--orb-lime-bg);
+  margin-bottom: 12px;
+  display: block;
+}
+.lang-icon i.ph {
+  font-size: var(--fs-body);
+  color: var(--orb-lime-bg);
+  margin-right: 8px;
+}
+.nav-btn i.ph {
+  font-size: var(--fs-body);
+  line-height: 1;
+}
+
+/* =========================================================================
+   STAGE COMPOSITION SYSTEM
+   -------------------------------------------------------------------------
+   The 28 bespoke layouts were each authored with `height: calc(1080px - 140px)`
+   and `align-items: center`, so every grid item floated at its intrinsic height
+   inside a 940px track and left ~200px dead at the top and ~250px at the bottom.
+   The slide mode contract requires content to fill the frame. This layer states
+   the fill invariant once for every layout instead of 27 divergent copies.
+   ========================================================================= */
+
+/* The content stage owns the full band between the fixed header and footer. */
+.slide-item > section {
+  align-items: stretch;
+  align-content: stretch;
+}
+
+/* Track children may shrink below their content box so tall grids never overflow. */
+.slide-item > section > * {
+  min-height: 0;
+}
+
+/* Column wrappers that only exist to hold one card must pass the height through. */
+.hero-left-col,
+.triad-card-col,
+.duality-left,
+.duality-right,
+.cascade-header-block,
+.crucible-inputs-col,
+.gflow-specs-card,
+.compounding-hero-card,
+.triage-master-card,
+.verbs-stat-card,
+.bank-west,
+.staff-architect {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Row stacks distribute their rows across the full stage instead of clustering. */
+.cascade-slabs-stack,
+.refinery-tower-grid,
+.semver-table-grid,
+.triage-tiers-col,
+.memory-right-flow,
+.compounding-stats-col,
+.triad-orbs-col,
+.tokens-emit-row {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.cascade-slabs-stack > *,
+.refinery-tower-grid > *,
+.semver-table-grid > *,
+.triage-tiers-col > *,
+.memory-right-flow > *,
+.compounding-stats-col > *,
+.triad-orbs-col > * {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* Multi-row card grids give every row an equal share of the stage. */
+.roads-grid-6,
+.sieve-quadrant-grid,
+.laws-cloud-grid,
+.radar-axes-ring,
+.orbit-satellites-grid,
+.personas-fan-grid,
+.vr-matrix-grid,
+.fables-constellation-grid,
+.staff-triptych-grid,
+.color-spectrum-grid,
+.cinema-flight-ribbon,
+.motion-ladder-grid {
+  align-items: stretch;
+  align-content: stretch;
+}
+
+/* Every card fills its track; its own flexbox still governs internal alignment. */
+.road-card,
+.sieve-card,
+.law-card,
+.radar-axis-pill,
+.orbit-chip,
+.persona-swatch,
+.vr-device-card,
+.fable-box,
+.staff-card,
+.color-col,
+.cinema-leg,
+.bridge-bank,
+.duality-pole,
+.radiant-master-card,
+.hero-main-card,
+.launch-card,
+.gflow-canvas-card,
+.orbit-center-card,
+.radar-core-card,
+.verbs-terminal-card,
+.triage-tier-box,
+.mem-flow-step,
+.c-stat-box,
+.cascade-slab,
+.refinery-step,
+.semver-row,
+.triad-orb,
+.token-emit-card {
+  height: 100%;
+  min-height: 0;
+}
+
+/* The old intrinsic floors fight the fill contract once the card is 100% tall. */
+.hero-main-card,
+.duality-pole,
+.staff-card,
+.bridge-bank,
+.sieve-card,
+.color-col,
+.law-card,
+.persona-swatch,
+.cinema-leg,
+.gflow-canvas-card,
+.vr-device-card,
+.fable-box {
+  min-height: 0;
+}
+
+/* =========================================================================
+   SURFACE-AGNOSTIC INK
+   -------------------------------------------------------------------------
+   The `.radiant-*` type roles hardcoded `--luminous-text-primary` (#07080a),
+   the ink for the lime card. Slides 5, 6, 7 and 13 place the same roles
+   directly on the obsidian stage, where near-black on near-black rendered the
+   headline and body copy invisible. Ink now inherits from whichever surface
+   owns the text, so a role is legible on both grounds by construction.
+   ========================================================================= */
+.radiant-display-title,
+.radiant-hero-number,
+.radiant-hero-label {
+  color: inherit;
+}
+
+.radiant-body-text {
+  color: inherit;
+  opacity: 0.78;
+}
+
+/* The lime surfaces keep their dark ink; the obsidian stage keeps its light ink. */
+.radiant-master-card,
+.hero-main-card,
+.compounding-hero-card > .radiant-master-card,
+.gflow-specs-card > .radiant-master-card {
+  color: var(--luminous-text-primary);
+}
+
+.cascade-header-block,
+.roads-top-bar,
+.pipeline5-header,
+.triage-master-card {
+  color: var(--text-obsidian-primary);
+}
+
+/* =========================================================================
+   CHROME COLLISION
+   The footer's slide number sat underneath the floating nav pill on every
+   slide. The pill is centred at the bottom-right, so the number moves to the
+   left rail beside the deck title and the footer clears the pill's column.
+   ========================================================================= */
+.chrome-footer {
+  padding-right: 380px;
+}
+
+/* =========================================================================
+   MISSING LAYOUT — Slide 11 · Token Pipeline
+   `.tokens-pipeline-grid` and its children carried no rules at all, so the
+   slide rendered as an unstyled text dump at the top-left of the stage.
+   Composition: one canonical luminous source on the left fanning into the
+   three compile targets on the right — the deck's established asymmetric
+   split, matched to slides 2, 9, 17 and 24.
+   ========================================================================= */
+.tokens-pipeline-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 44fr) minmax(0, 56fr);
+  gap: 48px;
+  width: 100%;
+  height: calc(1080px - 140px);
+}
+
+.tokens-source-diamond {
+  background: var(--luminous-grad);
+  color: var(--luminous-text-primary);
+  border-radius: 40px;
+  padding: 64px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 30px 80px rgba(158, 245, 180, 0.14);
+}
+
+.source-tag {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.66;
+}
+
+.source-file {
+  font-family: var(--font-mono);
+  font-size: var(--fs-heading);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+.source-spec {
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  font-weight: 500;
+  opacity: 0.72;
+  max-width: 30ch;
+}
+
+.tokens-emit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.token-emit-card {
+  flex: 1 1 0;
+  min-height: 0;
+  background: var(--bg-obsidian-card);
+  border: 1px solid var(--orb-dark-border);
+  border-radius: 32px;
+  padding: 32px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.token-emit-card .ph-svg {
+  color: var(--orb-lime-bg);
+  margin-bottom: 4px;
+}
+
+.token-emit-card strong {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-obsidian-primary);
+}
+
+.token-emit-card p {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--text-obsidian-muted);
+  word-break: break-word;
+}
+
+/* =========================================================================
+   MISSING LAYOUT — Slide 15 · Crucible Distillation
+   Same failure as slide 11: `.crucible-split-layout` and every descendant were
+   unstyled. Composition inverts slide 11 — three raw inputs on the left
+   converge into one luminous vessel on the right, so the distillation reads
+   left-to-right as a funnel.
+   ========================================================================= */
+.crucible-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+  gap: 48px;
+  width: 100%;
+  height: calc(1080px - 140px);
+}
+
+.crucible-inputs-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.input-card {
+  flex: 1 1 0;
+  min-height: 0;
+  background: var(--bg-obsidian-card);
+  border: 1px solid var(--orb-dark-border);
+  border-radius: 32px;
+  padding: 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.input-card .ph-svg {
+  color: var(--orb-lime-bg);
+  margin-bottom: 4px;
+}
+
+.input-card strong {
+  font-size: var(--fs-body);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-obsidian-primary);
+}
+
+.input-card p {
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--text-obsidian-muted);
+}
+
+.crucible-vessel {
+  background: var(--luminous-grad);
+  color: var(--luminous-text-primary);
+  border-radius: 40px;
+  padding: 64px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  box-shadow: 0 30px 80px rgba(158, 245, 180, 0.14);
+}
+
+.vessel-badge {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.66;
+}
+
+.vessel-output code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-heading);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+.vessel-output p {
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  font-weight: 500;
+  opacity: 0.72;
+  margin-top: 16px;
+  max-width: 34ch;
+}
+
+.vessel-stat {
+  font-size: var(--fs-title);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-top: 8px;
+}
+
+/* =========================================================================
+   NESTED TRACK FILL
+   Several layouts wrap their card grid in an outer flex/grid column. The outer
+   container was made to fill the stage above, but the inner grid still sized to
+   its content, so the cards clustered in a band and left the lower third empty.
+   ========================================================================= */
+.roads-matrix-layout {
+  justify-content: flex-start;
+}
+
+.roads-grid-6,
+.radar-axes-ring,
+.orbit-satellites-grid,
+.pipeline5-track,
+.laws-cloud-grid > *,
+.triage-tiers-col {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.roads-grid-6,
+.radar-axes-ring,
+.orbit-satellites-grid {
+  align-items: stretch;
+  align-content: stretch;
+}
+
+/* =========================================================================
+   CARD INTERIOR RHYTHM
+   -------------------------------------------------------------------------
+   Two distinct card archetypes live in this deck and they want opposite
+   treatments once the card fills its track:
+
+   · Editorial cards — eyebrow at the top, a headline and body in the middle,
+     a metric or pill at the foot. These carry a real top-to-bottom structure,
+     so they distribute across the card and read as composed.
+   · Label cards — an identifier, a name and one line of description. These are
+     a single tight block; distributing them tears the name away from the line
+     that explains it. They sit optically centred instead.
+   ========================================================================= */
+
+/* Editorial — distribute. */
+.bridge-bank,
+.duality-pole,
+.staff-card,
+.sieve-card,
+.color-col,
+.vr-device-card,
+.persona-swatch,
+.cinema-leg,
+.gflow-canvas-card,
+.hero-main-card,
+.radiant-master-card,
+.launch-card {
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* Label — centre as one block. */
+.road-card,
+.law-card,
+.triage-tier-box,
+.orbit-chip,
+.radar-axis-pill,
+.mem-flow-step,
+.c-stat-box,
+.fable-box,
+.token-emit-card,
+.input-card,
+.refinery-step,
+.triad-orb,
+.cascade-slab,
+.semver-row {
+  display: flex;
+  justify-content: center;
+}
+
+.road-card,
+.law-card,
+.triage-tier-box,
+.orbit-chip,
+.radar-axis-pill,
+.mem-flow-step,
+.c-stat-box,
+.fable-box,
+.refinery-step {
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* =========================================================================
+   INTERIOR CORRECTIONS
+   ========================================================================= */
+
+/* `.triad-orb` is a horizontal stat row, not a stacked label card — it keeps
+   its own space-between and needs a gutter so the figure and its label do not
+   run together once both are set at display scale. */
+.triad-orb {
+  justify-content: space-between;
+  gap: 48px;
+}
+
+/* Cards carrying four or more parts read as dislocated when space-between
+   opens 200px between neighbours. space-evenly keeps the parts related while
+   still occupying the full card. */
+.staff-card,
+.duality-pole,
+.bridge-bank,
+.color-col,
+.sieve-card,
+.gflow-canvas-card {
+  justify-content: space-evenly;
+  gap: 16px;
+}
+
+/* =========================================================================
+   SPARSE-CARD DISPLAY SCALE
+   -------------------------------------------------------------------------
+   Slides 6, 18, 19, 23 and 27 give each card one idea. At full card height
+   their figures were still set at body scale, so the card read as mostly
+   empty. The slide contract answers sparse content with larger type, not with
+   a shorter card.
+   ========================================================================= */
+.law-num {
+  font-size: var(--fs-display);
+  margin-bottom: 24px;
+}
+
+.road-id {
+  font-size: var(--fs-display);
+}
+
+.dev-stat {
+  font-size: var(--fs-hero);
+  margin: 32px 0;
+}
+
+.p-sample {
+  font-size: var(--fs-title);
+}
+
+.fable-box h3,
+.fable-box strong {
+  font-size: var(--fs-heading);
+}
+
+.law-card h3,
+.law-card strong,
+.road-card strong {
+  font-size: var(--fs-title);
+}
+
+.law-card p,
+.road-card p {
+  font-size: var(--fs-body);
+  line-height: 1.45;
+}
+
+/* The 760px cap predated the fill contract: it clipped the master card's body
+   copy at the slide type scale and left its foot 180px short of the neighbouring
+   column. The card fills its track like every other surface. */
+.radiant-master-card {
+  max-height: none;
+}
+
+/* Optically-centred single-idea cards drift out of alignment when one card's
+   caption wraps to a second line. Reserving two lines keeps the row's titles on
+   a shared baseline. */
+.fable-box p,
+.fable-box span {
+  min-height: 2.9em;
+}
+
+/* =========================================================================
+   ROW AND LADDER COMPONENTS — EXEMPT FROM THE CARD RULES
+   -------------------------------------------------------------------------
+   Four components are not stacked cards and must keep their own axis:
+
+   · `.cascade-slab`, `.refinery-step`, `.semver-row` are horizontal rows —
+     an identifier on the left, the label in the middle, a verdict on the
+     right. Columnising them collapses all three into one jammed cluster.
+   · `.motion-ladder-grid` is a deliberate staircase: each step is taller than
+     the last and the row is bottom-aligned, so the ladder reads as an ascent.
+     Stretching the steps to equal height erases the entire idea of the slide.
+   ========================================================================= */
+.cascade-slab,
+.refinery-step,
+.semver-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.motion-ladder-grid {
+  align-items: flex-end;
+  align-content: end;
+}
+
+/* Each rung keeps its own height — the ascent IS the slide. Rescaled from the
+   original 260–560px band so the staircase spans the full stage rather than
+   climbing only to the midpoint and leaving the top third empty. */
+.step-t1 { height: 390px; }
+.step-t2 { height: 500px; }
+.step-t3 { height: 610px; }
+.step-t4 { height: 720px; }
+.step-t5 { height: 830px; }
+.step-t6 { height: 940px; }
+
+/* T6 is the luminous step in the ladder; its label and caption inherit the
+   card's dark ink instead of the obsidian stage's light ink. */
+.step-t6 strong,
+.step-t6 p,
+.step-t6 .m-tier {
+  color: var(--luminous-text-primary);
+}
+
+.step-t6 p {
+  opacity: 0.72;
+}
+
+/* =========================================================================
+   STAGE BAND — HEADER AND FOOTER CLEARANCE
+   -------------------------------------------------------------------------
+   The header and footer rails are absolutely positioned, so they sit outside
+   flow and the content stage was free to run underneath them. At the old
+   intrinsic heights nothing reached that far; once every layout fills its
+   track, the tallest cards on slides 20 and 21 ran under the slide-number rail.
+   The stage is now an explicit band with clearance reserved at both ends, and
+   each grid inherits it instead of restating `calc(1080px - 140px)`.
+   ========================================================================= */
+.slide-item {
+  padding: 96px 64px 64px !important;
+}
+
+.slide-item > section {
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+/* The ladder's rungs are absolute heights, so they rescale with the band. */
+.step-t1 { height: 340px; }
+.step-t2 { height: 450px; }
+.step-t3 { height: 560px; }
+.step-t4 { height: 670px; }
+.step-t5 { height: 780px; }
+.step-t6 { height: 890px; }
+
+/* The terminal transcript is the left half of slide 9; its rows sat at the top
+   of a now-full-height card. The body claims the remaining space and spaces the
+   six verbs evenly, so the card reads as a filled console rather than a short
+   list floating in a tall box. */
+.verbs-terminal-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-body {
+  flex: 1 1 auto;
+  justify-content: space-evenly;
+  padding: 8px 0;
+}
+
+/* The setup rail is the payload of slide 7; it claims the stage below the
+   heading block instead of sitting as a thin band with the lower third empty. */
+.pipeline5-layout {
+  justify-content: flex-start;
+}
+
+.pipeline5-track {
+  align-items: stretch;
+}
+
+.pipe5-step,
+.pipe5-gate-wrap {
+  justify-content: center;
+}
+
+.pipe5-gate {
+  align-self: center;
+}
+
+/* =========================================================================
+   PROJECTION TYPE & SPACE SYSTEM
+   -------------------------------------------------------------------------
+   The deck carried 19 hand-picked font sizes with no ratio behind them and
+   off-grid gaps — the `font-scale-sprawl` and off-grid-spacing anti-patterns.
+   It was also scaled for a monitor, not a room: a 1080-tall canvas maps a
+   standard 540pt slide at ~2px per point, so the old 26px body read as ~13pt
+   and the 18px eyebrows as ~9pt, roughly half the 24pt projection floor.
+
+   Both problems are fixed by deriving everything from two constants:
+
+     TYPE   one modular ratio of 1.333 (perfect fourth), anchored so that the
+            18pt caption floor and the 24pt body floor fall exactly one step
+            apart. Seven steps cover the whole deck.
+     SPACE  one 8px base unit. Every gap and pad is a multiple of it, on a
+            recognisable progression, tuned to the airy end for an editorial
+            keynote surface.
+
+   Leading, tracking and weight are set per role rather than per element:
+   display is tight and negatively tracked, body is open, small uppercase
+   labels are widened. All-caps display holds line-height above 1.0 so cap-tops
+   never collide on a wrap.
+   ========================================================================= */
+:root {
+  /* Type — one ratio: 1.333. px on the 1920x1080 stage; pt is px/2. */
+  --fs-micro:    20px;  /* 10pt   — persistent chrome rails only            */
+  --fs-label:    27px;  /* 13.5pt — mono eyebrow, caption, badge            */
+  --fs-body:     36px;  /* 18pt   — body copy                               */
+  --fs-title:    48px;  /* 24pt   — card title                              */
+  --fs-heading:  64px;  /* 32pt   — section heading                         */
+  --fs-display:  85px;  /* 43pt   — slide display title                     */
+  --fs-hero:    114px;  /* 57pt   — hero figure                             */
+
+  /* Leading — tight display, open body. All-caps display stays above 1.0. */
+  --lh-hero:    0.94;
+  --lh-display: 1.04;
+  --lh-title:   1.15;
+  --lh-body:    1.5;
+  --lh-label:   1.4;
+
+  /* Tracking — negative on display, widened on small uppercase labels. */
+  --tr-hero:    -0.035em;
+  --tr-display: -0.03em;
+  --tr-title:   -0.02em;
+  --tr-body:     0em;
+  --tr-label:    0.08em;
+
+  /* Weight — real contrast between roles. */
+  --fw-display: 800;
+  --fw-title:   700;
+  --fw-body:    450;
+  --fw-label:   700;
+
+  /* Space — one 8px base unit. */
+  --sp-1:   8px;
+  --sp-2:  16px;
+  --sp-3:  24px;
+  --sp-4:  32px;
+  --sp-5:  48px;
+  --sp-6:  64px;
+  --sp-7:  96px;
+  --sp-8: 128px;
+}
+
+/* =========================================================================
+   TYPE ROLES — leading, tracking and weight set per role, not per element
+   -------------------------------------------------------------------------
+   Sizes alone are not a typographic system. Each step in the scale carries the
+   leading and tracking its role needs: figures and display titles are set tight
+   and negatively tracked so they read as one mass, body copy opens up to 1.5 for
+   reading, and small uppercase mono labels are widened so the caps separate.
+   ========================================================================= */
+
+/* Figures — the numeral is the loudest thing on its slide; it sets as a block. */
+.radiant-hero-number,
+.gflow-stat-hero,
+.dev-stat,
+.orb-stat-huge,
+.stat-pill-num,
+.duality-num,
+.manifold-stat,
+.core-score-num,
+.law-num,
+.road-id,
+.orb-stat-secondary,
+.orb-stat-tertiary,
+.bank-stat,
+.commutator-port,
+.m-tier,
+.vessel-stat,
+.core-score-num {
+  line-height: var(--lh-hero);
+  letter-spacing: var(--tr-hero);
+  font-weight: var(--fw-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Display titles — all-caps, so leading stays above 1.0 to keep cap-tops clear. */
+.radiant-display-title,
+.duality-title,
+.color-title,
+.source-file,
+.vessel-output code,
+.slide-item h1,
+.slide-item h2 {
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  font-weight: var(--fw-display);
+}
+
+/* Card titles. */
+.staff-name,
+.sieve-card h3,
+.cinema-leg h3,
+.token-emit-card strong,
+.input-card strong,
+.road-card strong,
+.law-card strong,
+.fable-box strong,
+.mem-flow-step strong,
+.motion-step strong,
+.p-sample,
+.radiant-hero-label,
+.orbit-chip span,
+.slide-item h3 {
+  line-height: var(--lh-title);
+  letter-spacing: var(--tr-title);
+  font-weight: var(--fw-title);
+}
+
+/* Body copy — the only role that opens up. */
+.radiant-body-text,
+.slide-item p {
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  font-weight: var(--fw-body);
+}
+
+/* Small uppercase mono labels — widened so the caps separate at distance. */
+.chrome-header,
+.chrome-footer,
+.source-tag,
+.vessel-badge,
+.bank-header,
+.sieve-badge,
+.slab-badge,
+.leg-tag,
+.dev-header,
+.p-tag,
+.color-tag,
+.gflow-hud-badge,
+.core-anchor-badge,
+.duality-tag,
+.t-tag,
+.step-num,
+.semver-badge {
+  line-height: var(--lh-label);
+  letter-spacing: var(--tr-label);
+  font-weight: var(--fw-label);
+}
+
+/* The persistent rails sit one step below the content floor by design. */
+.chrome-header,
+.chrome-footer {
+  font-size: var(--fs-micro);
+}
+
+/* =========================================================================
+   SLIDE 18 — 12 COGNITIVE UX LAWS
+   -------------------------------------------------------------------------
+   The slide claimed twelve laws and showed four. Putting twelve competing
+   cards on one slide would break the one-idea-per-slide rule (and Miller's Law,
+   which is one of the twelve). Instead the four the linters actually enforce
+   stay featured, and the remaining eight are named in a quiet roster band, so
+   the count is honest and the hierarchy still has a single focal tier.
+   ========================================================================= */
+.laws-cloud-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.laws-featured-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.laws-roster {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-2) var(--sp-3);
+  flex: 0 0 auto;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--orb-dark-border);
+}
+
+.laws-roster li {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--tr-label);
+  font-weight: var(--fw-label);
+  color: var(--text-obsidian-muted);
+}
+
+/* =========================================================================
+   SLIDE 22 — the GFlow canvas card now shows a canvas
+   -------------------------------------------------------------------------
+   The card is named for a WebGL viewport but rendered as an empty box with a
+   number in it. It carries a generated wireframe plate in the deck's own
+   lime-on-obsidian palette, with a scrim so the overlaid readout keeps its
+   contrast against the brightest part of the mesh.
+   ========================================================================= */
+.gflow-canvas-card {
+  position: relative;
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.82) 0%, rgba(7,8,10,0.32) 38%, rgba(7,8,10,0.88) 100%),
+    url('./assets/gflow-canvas.jpg');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+.gflow-canvas-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================================================
+   FOCAL HIERARCHY INSIDE THE MASTER CARD
+   -------------------------------------------------------------------------
+   The luminous master card carries three roles at once: a display title, a
+   paragraph, and a proof figure. Setting the figure at --fs-hero made it
+   compete with the title for the same slide's focal point, and the three
+   together overran the card. --fs-hero is now reserved for slides where the
+   figure IS the slide (the law numerals, the VR verdicts, the GFlow readout);
+   on a card that also carries a headline the figure drops one step and reads
+   as evidence supporting the title rather than shouting over it.
+   ========================================================================= */
+.radiant-master-card .radiant-hero-number,
+.hero-main-card .stat-pill-num {
+  font-size: var(--fs-display);
+}
+
+.radiant-master-card .radiant-hero-label {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-title);
+}
+
+/* The card's own rhythm, on the 8px base. */
+.radiant-master-card {
+  padding: var(--sp-6);
+  gap: var(--sp-4);
+}
+
+.radiant-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.radiant-card-bottom {
+  padding-top: var(--sp-3);
+}
+
+.radiant-display-title {
+  margin-bottom: 0;
+}
+
+/* The radar core and the launch stamp sit inside fixed shells; they take the
+   step that fits the shell rather than the step above it. */
+.core-score-num {
+  font-size: var(--fs-display);
+}
+
+.core-score-label,
+.launch-stamp {
+  font-size: var(--fs-label);
+}
+
+/* -------------------------------------------------------------------------
+   Display vs heading — the step is decided by what the title titles.
+   `--fs-display` belongs to a title that sits on the open stage and names the
+   whole slide (5, 6, 7, 13). A title inside a card names the card, not the
+   slide, so it takes `--fs-heading` — still 43pt, still the loudest thing in
+   its own container, but it stops wrapping to three lines and crowding out the
+   paragraph and the figure beneath it. Slide 1's hero card is the exception:
+   there the card IS the slide.
+   ------------------------------------------------------------------------- */
+.radiant-master-card .radiant-display-title {
+  font-size: var(--fs-heading);
+}
+
+.hero-main-card .radiant-display-title {
+  font-size: var(--fs-display);
+}
+
+/* -------------------------------------------------------------------------
+   Measure, expressed in characters rather than pixels.
+   The paragraph carried `max-width: 580px`, a measure tuned for 18px type. At
+   the projection size that same box is a 24-character column, which forced the
+   copy into six short lines and blew out the card. Measure is a function of the
+   type size, so it is stated in `ch` and now tracks the scale automatically.
+   ------------------------------------------------------------------------- */
+.radiant-body-text {
+  max-width: 32ch;
+}
+
+.slide-item p {
+  max-width: 46ch;
+}
+
+/* The card gap already separates the figure from the paragraph; the extra
+   padding-top on the bottom block was doubling that seam. Padding steps down
+   one unit on the 8px scale — still generous at the projection size. */
+.radiant-master-card {
+  padding: var(--sp-5);
+}
+
+.radiant-card-bottom {
+  padding-top: 0;
+}
+
+/* All-caps display at 1.04 clipped its own ascenders where a title wrapped.
+   1.1 still reads as tight display leading and keeps cap-tops clear. */
+:root {
+  --lh-display: 1.1;
+}
+
+/* =========================================================================
+   CAPTION vs BODY — the step follows the role, not the element
+   -------------------------------------------------------------------------
+   A one-line descriptor under a card title is a caption, not body copy, and
+   setting it at --fs-body made it compete with the paragraph role and overrun
+   every small-multiple card. It steps down to --fs-label, which is still the
+   18pt projection floor, and keeps body leading so it stays readable.
+   Only the standalone paragraph roles keep --fs-body.
+   ========================================================================= */
+.road-card p,
+.law-card p,
+.sieve-card p,
+.mem-flow-step p,
+.c-stat-box p,
+.token-emit-card p,
+.input-card p,
+.orbit-chip p,
+.motion-step p,
+.cinema-leg p,
+.color-col p,
+.vr-device-card p,
+.persona-swatch p,
+.fable-box p,
+.staff-desc,
+.bank-desc,
+.duality-desc,
+.pipe5-step small,
+.t-row span,
+.triage-tier-box p {
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+  max-width: none;
+}
+
+:root {
+  --lh-display: 1.15;
+}
+
+/* Fixed connector columns were sized for label text at the old scale. */
+.cinema-flight-ribbon {
+  grid-template-columns: minmax(0, 1fr) 200px minmax(0, 1fr) 200px minmax(0, 1fr);
+}
+
+.bridge-spatial-grid {
+  grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr);
+}
+
+/* Inline figure+label rows wrap rather than clip when the figure grows. */
+.hero-stat-pill,
+.duality-metric {
+  flex-wrap: wrap;
+  align-items: baseline;
+  row-gap: var(--sp-1);
+}
+
+/* -------------------------------------------------------------------------
+   Header blocks are not column wrappers.
+   The fill rule earlier in this file gave every column wrapper `height: 100%`.
+   Three of those selectors are heading blocks that sit ABOVE a filling sibling
+   inside a flex column, so 100% made two children each claim the full stage and
+   the heading's own content was squeezed out of its box. A heading block sizes
+   to its content and lets the sibling take the remainder.
+   ------------------------------------------------------------------------- */
+.cascade-header-block,
+.roads-top-bar,
+.pipeline5-header,
+.triage-master-card {
+  height: auto;
+  flex: 0 0 auto;
+}
+
+.cascade-slabs-stack,
+.roads-grid-6,
+.pipeline5-track,
+.triage-tiers-col {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Baseline-aligned figure rows: bottom-align so the label sits on the numeral's
+   baseline without the numeral's descender slot growing the row. */
+.hero-stat-pill,
+.duality-metric {
+  align-items: flex-end;
+  line-height: 1;
+}
+
+/* The bridge column was 140px, sized for a 12px badge. The badge now sets at
+   the label step, so the column takes the width its content actually needs. */
+.duality-split-grid {
+  grid-template-columns: minmax(0, 1fr) 240px minmax(0, 1fr);
+}
+
+/* Figure-plus-label rows size to the glyphs, not to the numeral's line box. */
+.hero-stat-pill,
+.duality-metric {
+  line-height: 0.85;
+  padding-bottom: var(--sp-1);
+}
+
+/* The featured cards are the focal tier and take the stage; the roster is a
+   thin closing band. The numeral is each card's hero, so it takes the hero step
+   and gives the tall card something to hold. */
+.laws-featured-row {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.law-num {
+  font-size: var(--fs-hero);
+  margin-bottom: var(--sp-2);
+}
+
+.laws-roster {
+  flex: 0 0 auto;
+  gap: var(--sp-2) var(--sp-4);
+  padding-top: var(--sp-4);
+  padding-bottom: var(--sp-2);
+}
+
+.laws-roster li {
+  white-space: nowrap;
+}
+
+/* The four law figures differ wildly in length ("7 ± 2" against "O(log n)").
+   At the hero step the longest one wrapped and threw its card's title out of
+   line with the other three. One step down holds all four on a single line, and
+   a shared baseline across the row is worth more than the extra 29px. */
+.law-num {
+  font-size: var(--fs-display);
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   THE STAGE IS RESOLUTION-INDEPENDENT
+   -------------------------------------------------------------------------
+   `.slide-stage` is a fixed 1920x1080 board that deck.js scales with a CSS
+   transform, so one rendering serves every viewport. A legacy responsive block
+   re-declared slide type at phone breakpoints, which fired INSIDE that fixed
+   board and was then scaled again — at 390px it set body copy to 15px inside a
+   1920px stage, landing at roughly 7px on screen. Those declarations are now
+   removed at source rather than cancelled by a counter-override, which is why
+   no @media type rule remains here. Enforced by stage/resolution-independent
+   and stage/viewport-parity in audit/.
+   ========================================================================= */
+
+/* Two spacing literals were still off the base unit. */
+.radiant-dot { width: 8px; height: 8px; }
+
+/* =========================================================================
+   IMAGE PLATES
+   -------------------------------------------------------------------------
+   Generated plates sit BEHIND content, never beside it, so they add depth
+   without competing with the type. Every plate goes through one contract: the
+   image is the lower layer, a vertical obsidian scrim is the upper layer, and
+   content is lifted above both. The scrim is what keeps body copy at contrast
+   over the brightest part of a mesh — without it a plate is a legibility bug.
+   Plates are decorative, so they carry no alt text and no semantic weight.
+   ========================================================================= */
+.has-plate {
+  position: relative;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+}
+
+.has-plate > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Slide 1 — the opening stage gets a deep-field plate behind the orb cluster.
+   Kept very low in the mix; it reads as depth, not as an image. */
+
+/* Slide 14 — the vector manifold sits in its own embedding space. */
+.memory-left-manifold {
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(7,8,10,0.72) 0%, rgba(7,8,10,0.42) 45%, rgba(7,8,10,0.9) 100%),
+    url('./assets/memory-vectors.jpg');
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, contain;
+}
+
+/* Slide 21 — the three flight legs are literally camera moves, so each card
+   carries the move it names. */
+.cinema-leg.leg-1,
+.cinema-leg.leg-2,
+.cinema-leg.leg-3 {
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  position: relative;
+}
+
+.cinema-leg.leg-1 {
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.86) 0%, rgba(7,8,10,0.3) 42%, rgba(7,8,10,0.92) 100%),
+    url('./assets/cinema-orbit.jpg');
+}
+
+.cinema-leg.leg-2 {
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.86) 0%, rgba(7,8,10,0.3) 42%, rgba(7,8,10,0.92) 100%),
+    url('./assets/cinema-exploded.jpg');
+}
+
+.cinema-leg.leg-3 {
+  background-image:
+    linear-gradient(180deg, rgba(228,254,210,0.9) 0%, rgba(200,248,196,0.55) 42%, rgba(158,245,180,0.92) 100%),
+    url('./assets/cinema-macro.jpg');
+}
+
+.cinema-leg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Slide 16 — the one slide that earns full colour, because it IS about colour.
+   The two rings are the evidence for the claim in each card's copy. */
+.color-col.col-hsl,
+.color-col.col-oklch {
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center bottom;
+  background-size: cover, 74% auto;
+  position: relative;
+}
+
+.color-col.col-hsl {
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.95) 0%, rgba(7,8,10,0.86) 46%, rgba(7,8,10,0.5) 100%),
+    url('./assets/color-hsl.jpg');
+}
+
+.color-col.col-oklch {
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.95) 0%, rgba(7,8,10,0.86) 46%, rgba(7,8,10,0.5) 100%),
+    url('./assets/color-oklch.jpg');
+}
+
+.color-col > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The two colour columns are a like-for-like comparison, so once both carry a
+   ring plate they must share one surface treatment. The OKLCH card's luminous
+   fill is replaced by its plate, so its ink switches to the obsidian set —
+   otherwise the dark-on-lime text is dark-on-dark. The rings stay legible; the
+   copy stays primary. */
+.col-oklch {
+  color: var(--text-obsidian-primary);
+  border: 1px solid var(--orb-dark-border);
+}
+
+.col-oklch .tag-pass {
+  color: #86efac;
+}
+
+.col-oklch .stat-good {
+  background: rgba(158, 245, 180, 0.12);
+  color: #86efac;
+}
+
+/* Scrim the rings back so the copy leads and the evidence supports it. */
+.color-col.col-hsl,
+.color-col.col-oklch {
+  background-size: cover, 58% auto;
+  background-position: center, center 78%;
+}
+
+.color-col.col-hsl {
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.97) 0%, rgba(7,8,10,0.9) 52%, rgba(7,8,10,0.42) 100%),
+    url('./assets/color-hsl.jpg');
+}
+
+.color-col.col-oklch {
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,0.97) 0%, rgba(7,8,10,0.9) 52%, rgba(7,8,10,0.42) 100%),
+    url('./assets/color-oklch.jpg');
+}
+
+/* Every plate is rendered on pure black, but the cards sit on #12131a, so the
+   image's ground showed as a visible rectangle inside the card. Screen-blending
+   the image layer makes its black drop out to whatever is beneath, so the plate
+   dissolves into the card instead of sitting in it as a pasted tile. */
+/* `screen` assumed the plate's ground was pure black, which held while the
+   plates were PNGs. JPEG cannot encode #000 — the ground lands a few levels
+   above black — and screen AMPLIFIES that, painting the image's bounding box as
+   a visible lighter rectangle inside the card. `lighten` takes the per-channel
+   maximum instead: anywhere the plate is darker than the card, the card wins
+   outright, so the ground disappears no matter what the codec left behind. */
+.color-col.col-hsl,
+.color-col.col-oklch,
+.memory-left-manifold,
+.gflow-canvas-card,
+.cinema-leg.leg-1,
+.cinema-leg.leg-2 {
+  background-blend-mode: normal, lighten;
+}
+
+/* =========================================================================
+   NAV HOVER — one hover system, not two
+   -------------------------------------------------------------------------
+   Two hover treatments were stacked. The base rule painted the button's own
+   pill `--bg-surface-raised` (near-white), and a later gooey rule forced the
+   icon to `--text-inverse` with !important on the assumption that the dark
+   sliding blob would be behind it. But the button carries z-index 2 and paints
+   its own background OVER the blob, so the result was a white glyph on a
+   near-white pill — the hover state erased the icon.
+
+   The button's own hover fill is now the ink itself. `--text-primary` and
+   `--text-inverse` are exact complements in both themes, so the pair is legible
+   by construction and no longer depends on the blob arriving underneath; the
+   blob shares the same colour, so the two coincide instead of fighting.
+   ========================================================================= */
+.nav-btn:hover,
+.nav-btn:focus-visible,
+.nav-btn.gooey-active {
+  background: var(--text-primary);
+  color: var(--text-inverse) !important;
+}
+
+.nav-btn:hover svg,
+.nav-btn:focus-visible svg,
+.nav-btn.gooey-active svg {
+  color: var(--text-inverse) !important;
+}
+
+/* A keyboard user needs to see the focus ring against either theme. */
+.nav-btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   SLIDE 1 — HERO GATEWAY, RECOMPOSED
+   -------------------------------------------------------------------------
+   The opening slide had two problems that no amount of token tuning fixes.
+
+   RHYTHM. The card held four loose children under `space-between`, which threw
+   them 144 / 120 / 152px apart — three different large voids, none of them a
+   decision. It now holds three ANCHORED zones: a top marker, the lede (title
+   and body bound together as one unit), and a floor block behind a hairline.
+   Two intentional voids replace three accidental ones.
+
+   COMPOSITION. The three orbs sat at unrelated percentage offsets
+   (left:10%/bottom:16%, top:18%/right:18%, right:8%/bottom:12%) — scatter, not
+   a system. Their centres now sit on a single 60-degree axis at equal, non-
+   overlapping intervals, with the axis drawn behind them, so the cluster reads
+   as satellites on one trajectory. Sizes descend along the axis, which puts the
+   lime focal orb lowest and largest, nearest the title it answers.
+   ========================================================================= */
+
+/* ---- The card ---------------------------------------------------------- */
+.hero-main-card {
+  padding: var(--sp-7) var(--sp-7) var(--sp-6);
+  min-height: 0;
+  gap: var(--sp-6);
+  position: relative;
+  overflow: hidden;
+}
+
+/* A single specular edge along the top gives the flat gradient some material.
+   Kept to one hairline — any more and it reads as a bevel. */
+.hero-main-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+  pointer-events: none;
+}
+
+.hero-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 0 0 auto;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* Title and body are one thought, so they are bound at one spacing step and
+   the flexible space is pushed to the zone boundaries instead. */
+.hero-lede {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  flex: 0 0 auto;
+}
+
+.hero-main-card .radiant-display-title {
+  font-size: var(--fs-hero);
+  letter-spacing: var(--tr-hero);
+  margin-bottom: 0;
+}
+
+.hero-main-card .radiant-body-text {
+  max-width: 40ch;
+  opacity: 0.72;
+}
+
+/* The floor block sits behind a hairline so the proof reads as a footer to the
+   claim rather than a fourth floating item. */
+.hero-card-foot {
+  flex: 0 0 auto;
+  padding-top: var(--sp-5);
+  border-top: 1px solid rgba(7, 8, 10, 0.16);
+}
+
+.hero-main-card .hero-stat-pill {
+  margin-top: 0;
+  gap: var(--sp-3);
+}
+
+/* ---- The satellite cluster --------------------------------------------- */
+/* Centres lie on one 60-degree axis: (280,680) -> (438,406) -> (561,193),
+   spaced so neighbouring radii never intersect. */
+.hero-right-orbs {
+  display: block;
+}
+
+.orb-axis {
+  position: absolute;
+  left: 280px;
+  top: 680px;
+  width: 562px;
+  height: 1px;
+  transform-origin: 0 50%;
+  transform: rotate(-60deg);
+  background: linear-gradient(90deg, rgba(158,245,180,0.42), rgba(158,245,180,0.06));
+  z-index: 0;
+}
+
+.orb-hero-lime {
+  left: 110px;
+  top: 510px;
+  right: auto;
+  bottom: auto;
+  width: 340px;
+  height: 340px;
+}
+
+.orb-hero-dark-1 {
+  left: 308px;
+  top: 276px;
+  right: auto;
+  bottom: auto;
+  width: 260px;
+  height: 260px;
+}
+
+.orb-hero-dark-2 {
+  left: 461px;
+  top: 93px;
+  right: auto;
+  bottom: auto;
+  width: 200px;
+  height: 200px;
+}
+
+/* Each satellite marks its own centre on the axis. */
+.orb-hero-lime::after,
+.orb-hero-dark-1::after,
+.orb-hero-dark-2::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.28;
+}
+
+/* The satellites were spaced at the bare non-overlap minimum, which closed the
+   gaps the axis needs to be seen through, and the cluster hung low in its
+   column. Intervals open up, the whole run is centred vertically, and the axis
+   overshoots both end orbs so it reads as a trajectory the satellites sit on
+   rather than a rule drawn between them.
+   Centres: (270,685) -> (440,391) -> (575,157) on the same 60-degree axis. */
+.orb-hero-lime   { left: 100px; top: 515px; width: 340px; height: 340px; }
+.orb-hero-dark-1 { left: 310px; top: 261px; width: 260px; height: 260px; }
+.orb-hero-dark-2 { left: 475px; top:  57px; width: 200px; height: 200px; }
+
+.orb-axis {
+  left: 225px;
+  top: 763px;
+  width: 790px;
+  background: linear-gradient(90deg,
+    rgba(158,245,180,0) 0%,
+    rgba(158,245,180,0.55) 14%,
+    rgba(158,245,180,0.30) 62%,
+    rgba(158,245,180,0) 100%);
+}
+
+/* The direction marker is a cue, not a headline. */
+.orb-arrow {
+  font-size: var(--fs-label);
+  opacity: 0.5;
+  margin-bottom: var(--sp-1);
+}
+
+/* =========================================================================
+   SLIDE 8 — STAFF CARD RHYTHM
+   -------------------------------------------------------------------------
+   Five loose children under space-evenly produced 118 / 86 / 98 / 98px gaps.
+   The card actually has three parts, not five: an identity (icon, name, role),
+   the responsibility, and the boundary. The identity is bound tight at the top,
+   the responsibility takes the optical centre, and the boundary is anchored to
+   the floor behind a hairline — the same three-zone structure the hero uses, so
+   both cards read from one rulebook.
+   ========================================================================= */
+.staff-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0;
+  padding: var(--sp-6) var(--sp-5);
+}
+
+.staff-card .staff-avatar { margin-bottom: var(--sp-4); }
+.staff-card .staff-name   { margin-bottom: var(--sp-1); }
+
+/* Exactly two auto margins — one above the responsibility, one above the
+   boundary — so the free space splits evenly in two. A third auto (a bottom
+   margin on the responsibility) would split it in three and reopen the uneven
+   129 / 259 pair this replaces. */
+.staff-card .staff-desc {
+  margin: auto 0 0;
+}
+
+/* The badge is already a pill, so it is its own floor anchor — a hairline on
+   top of it stretched the pill into a full-width bar. It keeps its intrinsic
+   width and sits centred at the foot.
+
+   Its `rgba(0,0,0,0.1)` fill only reads on the lime card; on the two obsidian
+   cards it was invisible, so the same element looked like a plain caption in
+   two of three columns. The dark cards get a fill with actual separation. */
+.staff-card .staff-badge {
+  margin-top: auto;
+  align-self: center;
+  padding: var(--sp-2) var(--sp-4);
+}
+
+.staff-card:not(.staff-stylist) .staff-badge {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--orb-dark-border);
+  color: var(--text-obsidian-primary);
+}
+
+/* The terminal's session label measured 3.99:1 — under the 4.5:1 body floor on
+   the near-black console surface. Caught by contrast/wcag-aa. */
+.terminal-dots span:not([class]) {
+  color: #9ba3af;
+}
+
+/* The language modal's close button is a .nav-btn sitting on the modal surface,
+   not the nav pill, so the ink-on-hover pairing resolved against the wrong
+   ground and measured 2.01:1. It gets the same guaranteed-complement treatment
+   scoped to its own surface. Caught by interactive/hover-contrast. */
+.lang-modal .nav-btn:hover,
+.lang-modal .nav-btn:focus-visible {
+  background: var(--text-primary);
+  color: var(--text-inverse) !important;
+}
+
+.lang-modal .nav-btn:hover svg,
+.lang-modal .nav-btn:focus-visible svg {
+  color: var(--text-inverse) !important;
+}
+
+
+
+/* =========================================================================
+   WHEN AN IMAGE IS ALLOWED
+   -------------------------------------------------------------------------
+   An image appears only where it IS the evidence for the slide's claim, or the
+   subject itself. Never as atmosphere.
+
+   Four slides earn it. Slide 21's three cards are camera moves, so each card
+   shows the move it names. Slide 16's claim is that HSL lightness is uneven and
+   OKLCH's is not — the two rings ARE that argument, and are the one place full
+   colour is permitted. Slide 22's card is a WebGL viewport that was rendering
+   as an empty box with a number in it. Slide 14 depicts the embedding space it
+   describes.
+
+   An ambient plate was briefly applied to all 28 slides, on the theory that
+   imagery on some slides and not others was a consistency failure. That was
+   wrong. Consistency means one legible system, not one uniform treatment — a
+   magazine does not put a photo on every page. Texture applied evenly to every
+   slide reads as decoration rather than design, and on the card-dense slides
+   those plates were barely visible anyway: file weight and noise for nothing.
+
+   Enforced by content/images-earn-their-place in audit/.
+   ========================================================================= */
+
+/* =========================================================================
+   BE VIETNAM PRO METRICS
+   -------------------------------------------------------------------------
+   The face reserves more vertical room in its line box than Inter did, because
+   it carries stacked Vietnamese marks (ế, ộ, ữ) — the reason it was chosen.
+   Display leading and the baseline-aligned figure rows open up to match, so
+   the ascenders and marks have somewhere to sit instead of clipping.
+   Caught by fit/no-container-spill on the switch.
+   ========================================================================= */
+:root {
+  --lh-display: 1.2;
+  --lh-hero: 1.02;
+}
+
+.hero-stat-pill,
+.duality-metric {
+  line-height: 1;
+  padding-bottom: var(--sp-2);
+}
+
+/* The taller display line box costs the hero card ~24px it did not have. It
+   comes back from the top pad, stepping down one unit on the spacing scale —
+   still generous at 64px, and the card keeps its wider side margins. */
+.hero-main-card {
+  padding: var(--sp-6) var(--sp-7) var(--sp-6);
+}
+
+/* =========================================================================
+   PLATE LAYER — feathered, on its own element
+   -------------------------------------------------------------------------
+   Painting a plate as the card's own background made the card's rectangle the
+   plate's rectangle, so any plate whose ground was not perfectly black showed
+   its bounding box as a lighter panel. Blend modes only paper over that: they
+   depend on the image's darkest pixel, and a rendered glow (or a JPEG that
+   cannot encode #000) breaks the assumption.
+
+   The plate now lives on its own ::before layer, radially masked so it fades to
+   nothing well before the card edge. The card owns its background, the plate
+   owns its own alpha, and the bounding box cannot be seen regardless of what
+   the image's ground actually is.
+   ========================================================================= */
+.col-hsl,
+.col-oklch,
+.memory-left-manifold,
+.gflow-canvas-card,
+.cinema-leg.leg-1,
+.cinema-leg.leg-2,
+.cinema-leg.leg-3 {
+  position: relative;
+  isolation: isolate;
+  background-image: none;
+}
+
+.col-hsl::before,
+.col-oklch::before,
+.memory-left-manifold::before,
+.gflow-canvas-card::before,
+.cinema-leg.leg-1::before,
+.cinema-leg.leg-2::before,
+.cinema-leg.leg-3::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.55;
+  -webkit-mask-image: radial-gradient(ellipse at center,
+    #000 0%, #000 42%, rgba(0,0,0,0.45) 66%, transparent 82%);
+  mask-image: radial-gradient(ellipse at center,
+    #000 0%, #000 42%, rgba(0,0,0,0.45) 66%, transparent 82%);
+}
+
+.col-hsl::before            { background-image: url('./assets/color-hsl.jpg'); }
+.col-oklch::before          { background-image: url('./assets/color-oklch.jpg'); }
+.memory-left-manifold::before { background-image: url('./assets/memory-vectors.jpg'); opacity: 0.5; }
+.gflow-canvas-card::before  { background-image: url('./assets/gflow-canvas.jpg'); background-size: cover; opacity: 0.85; }
+.cinema-leg.leg-1::before   { background-image: url('./assets/cinema-orbit.jpg'); background-size: cover; }
+.cinema-leg.leg-2::before   { background-image: url('./assets/cinema-exploded.jpg'); background-size: cover; }
+.cinema-leg.leg-3::before   { background-image: url('./assets/cinema-macro.jpg'); background-size: cover; opacity: 0.32; }
+
+/* Content sits above its plate on every plated surface. */
+.col-hsl > *,
+.col-oklch > *,
+.memory-left-manifold > *,
+.gflow-canvas-card > *,
+.cinema-leg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The colour rings were sized `contain`, which leaves the image's own border
+   INSIDE the card, where the feather mask is still fully opaque — so the plate
+   edge stayed visible however the mask was tuned. Sizing them `cover` pushes
+   that border outside the element entirely. A scrim rides on the same layer so
+   the ring reads as evidence beneath the claim rather than competing with it. */
+.col-hsl::before,
+.col-oklch::before {
+  background-size: cover;
+  background-position: center 58%;
+  opacity: 0.42;
+  -webkit-mask-image: radial-gradient(ellipse 78% 62% at 50% 58%,
+    #000 0%, #000 46%, rgba(0,0,0,0.5) 72%, transparent 92%);
+  mask-image: radial-gradient(ellipse 78% 62% at 50% 58%,
+    #000 0%, #000 46%, rgba(0,0,0,0.5) 72%, transparent 92%);
+}
+
+/* A vertical scrim above the plate keeps the eyebrow, headline and body at
+   contrast over the brightest arc of the ring. */
+.col-hsl::after,
+.col-oklch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(7,8,10,0.92) 0%,
+    rgba(7,8,10,0.62) 34%,
+    rgba(7,8,10,0.70) 62%,
+    rgba(7,8,10,0.92) 100%);
+}
+
+/* The remaining rectangle is the render's own bloom: the ring lights its
+   backdrop in a soft rectangular falloff, so the plate's "black" is a dark grey
+   that no mask can fully hide. Raising contrast on the plate layer crushes that
+   grey to true black while leaving the ring's chroma intact — the artifact is
+   removed from the pixels rather than hidden behind more scrim. */
+.col-hsl::before,
+.col-oklch::before {
+  filter: contrast(1.5) brightness(0.94) saturate(1.08);
+}
+
+/* The bloom's rectangle extends past an ellipse fitted to the card, so the mask
+   is fitted to the RING instead — a true circle that goes fully transparent well
+   inside the image's lit area. The subject survives; its rectangular backdrop is
+   cut away entirely rather than merely dimmed. */
+.col-hsl::before,
+.col-oklch::before {
+  -webkit-mask-image: radial-gradient(circle at 50% 50%,
+    #000 0%, #000 27%, rgba(0,0,0,0.38) 42%, transparent 56%);
+  mask-image: radial-gradient(circle at 50% 50%,
+    #000 0%, #000 27%, rgba(0,0,0,0.38) 42%, transparent 56%);
+  background-position: center;
+  opacity: 0.5;
+}
+
+/* The card-level plate rules use two classes (`.color-col.col-oklch`), so the
+   single-class reset in the plate-layer block never beat them on specificity —
+   the card kept painting the old background underneath the new ::before layer,
+   and THAT was the visible rectangle. Nulled at matching specificity.
+   A reminder that "it should be overridden" is a hypothesis until measured. */
+.color-col.col-hsl,
+.color-col.col-oklch,
+.cinema-leg.leg-1,
+.cinema-leg.leg-2,
+.cinema-leg.leg-3 {
+  background-image: none;
+  background-blend-mode: normal;
+}
+
+/* With the duplicate gone the plate can sit at its intended strength. */
+.col-hsl::before,
+.col-oklch::before {
+  opacity: 0.62;
+  filter: contrast(1.35) saturate(1.05);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%,
+    #000 0%, #000 34%, rgba(0,0,0,0.42) 50%, transparent 66%);
+  mask-image: radial-gradient(circle at 50% 50%,
+    #000 0%, #000 34%, rgba(0,0,0,0.42) 50%, transparent 66%);
+}
+
+/* The regenerated OKLCH plate has a genuinely dark interior and clean corners,
+   so the mask no longer has to fight a bloom — it widens to let the whole ring
+   read, and the interior stays dark on its own instead of showing as a grey
+   disc behind the headline. */
+.col-oklch::before {
+  opacity: 0.7;
+  filter: contrast(1.15) saturate(1.05);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%,
+    #000 0%, #000 46%, rgba(0,0,0,0.5) 62%, transparent 76%);
+  mask-image: radial-gradient(circle at 50% 50%,
+    #000 0%, #000 46%, rgba(0,0,0,0.5) 62%, transparent 76%);
+}
+
+/* `.leg-3` sets its lime surface via the `background` SHORTHAND, so nulling
+   background-image at two-class specificity removed the lime along with the
+   photo — leaving dark ink on a dark card at 1.02:1. The gradient is restored
+   explicitly; only the photographic layer moved to ::before. */
+.cinema-leg.leg-3 {
+  background-image: var(--luminous-grad);
+}
+
+/* A dark plate over a light card has to sit much lighter to avoid muddying it. */
+.cinema-leg.leg-3::before {
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+}
+
+/* =========================================================================
+   MOTION SYSTEM — T1 (CSS only)
+   -------------------------------------------------------------------------
+   One system, used twice: a direction-aware content cascade that serves both
+   slide navigation and the entry sequence. Nothing here needs a library —
+   shipping GSAP for a fade is the anti-pattern slide 20 itself teaches against.
+
+   Two hard rules this deck imposes:
+   · `.slide-stage` carries an INLINE transform: scale() written by deck.js on
+     every resize. Nothing may animate the stage or its ancestors — only slide
+     children move.
+   · Slides toggle display:none/flex, so an exit animation on the outgoing slide
+     is structurally impossible. Enter-only is the correct architecture here,
+     not a compromise.
+
+   Entrance keyframes hang off `[data-enter]`, an attribute only deck.js adds —
+   never off `.active` alone. The audit flips `.active` synchronously and
+   measures immediately, so binding to `.active` would let the geometry gates
+   sample a mid-flight frame.
+   ========================================================================= */
+:root {
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out — anything entering */
+  --ease-exit:  cubic-bezier(0.4, 0, 1, 1);      /* ease-in  — anything leaving  */
+  --dur-enter: 420ms;
+  --dur-exit:  160ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes deck-rise-fwd  { from { opacity: 0; transform: translateX(28px);  } }
+  @keyframes deck-rise-back { from { opacity: 0; transform: translateX(-28px); } }
+  @keyframes deck-fade      { from { opacity: 0; } }
+
+  /* The chrome is the instrument panel: it never moves. Only the content zone
+     animates, so navigation reads as a page turn rather than a slide push.
+     Each slide carries its own copy of the rails, so animating them would make
+     an identical element re-fade on every step — that reads as flicker.
+
+     The content zone is addressed by excluding the chrome rather than by tag:
+     24 slides use <section>, but slides 20, 25, 26 and 27 use <ul>/<ol>, and a
+     `> section` selector silently left those four with no entrance at all. */
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]),
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > * {
+    animation: deck-rise-fwd var(--dur-enter) var(--ease-enter) both;
+  }
+
+  [data-nav-dir="back"] .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]),
+  [data-nav-dir="back"] .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > * {
+    animation-name: deck-rise-back;
+  }
+
+  /* A jump is a cut, not a step — lateral motion would imply adjacency. */
+  [data-nav-dir="jump"] .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]),
+  [data-nav-dir="jump"] .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > * {
+    animation-name: deck-fade;
+    animation-duration: 240ms;
+  }
+
+  /* The zone leads; its children follow on a 45ms stagger (inside the 20-60ms
+     floor). Past the fifth child everything shares the last step so a dense
+     grid never queues into a visibly long sequence. */
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes])                 { animation-delay: 0ms; }
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > *             { animation-delay: 180ms; }
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > :nth-child(1) { animation-delay: 45ms; }
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > :nth-child(2) { animation-delay: 90ms; }
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > :nth-child(3) { animation-delay: 135ms; }
+  .slide-item[data-enter] > :not(.chrome-accent-strip):not(.chrome-header):not(.chrome-footer):not([data-speaker-notes]) > :nth-child(4) { animation-delay: 180ms; }
+}
+
+/* The progress bar animated `width`, a layout property, against the
+   transform/opacity floor. Same visual, composited. */
+.progress-bar-deck {
+  width: 100% !important;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform 300ms var(--ease-enter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar-deck { transition: none; }
+}
+
+/* =========================================================================
+   ENTRY SEQUENCE
+   -------------------------------------------------------------------------
+   No spinner, no splash, no percentage: assets are local plus two font
+   families, so a loading indicator would be theatre. The first frame shows the
+   ground, the stage surface and its hairline — then the brand gesture draws and
+   the content arrives on the SAME cascade navigation uses. One system used
+   twice is what makes it read authored rather than decorated.
+
+   Pre-hide states are gated on `html.js` so a no-JS reader still gets a
+   complete static deck, and on no-preference so reduced motion skips it whole.
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes deck-strip-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes deck-chrome-in  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes deck-controls-in { from { opacity: 0; transform: translateY(8px); } }
+
+  /* The single brand gesture: the accent strip draws once, at entry only.
+     Repeating it on every slide change would turn a gesture into a tic. */
+  html.js.is-booting .slide-item.active .chrome-accent-strip {
+    transform-origin: left center;
+    animation: deck-strip-draw 560ms var(--ease-enter) both;
+  }
+
+  html.js.is-booting .slide-item.active .chrome-header,
+  html.js.is-booting .slide-item.active .chrome-footer {
+    animation: deck-chrome-in 300ms ease-out 120ms both;
+  }
+
+  html.js.is-booting .deck-nav-pill,
+  html.js.is-booting .nav-liquid-shell,
+  html.js.is-booting .counter-display,
+  html.js.is-booting .progress-bar-deck {
+    animation: deck-controls-in 300ms var(--ease-enter) 380ms both;
+  }
+}
+
+/* =========================================================================
+   OVERLAYS — enter and exit
+   -------------------------------------------------------------------------
+   These use `@starting-style` + `transition-behavior: allow-discrete` so a
+   display:none -> flex element can transition both ways. Where unsupported the
+   result degrades to exactly today's instant pop, so there is no regression.
+   Backdrops fade OPACITY only — animating a backdrop-filter blur value repaints
+   the whole stack for the duration and buys nothing.
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .lang-modal,
+  .overview-modal {
+    transition: opacity 200ms ease-out, display 200ms allow-discrete;
+    opacity: 1;
+  }
+
+  .lang-modal:not(.open),
+  .overview-modal:not(.open) {
+    opacity: 0;
+    transition: opacity 150ms var(--ease-exit), display 150ms allow-discrete;
+  }
+
+  @starting-style {
+    .lang-modal.open,
+    .overview-modal.open { opacity: 0; }
+  }
+
+  .lang-dialog,
+  .overview-grid {
+    transition: opacity 240ms var(--ease-enter), transform 240ms var(--ease-enter);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .lang-modal:not(.open) .lang-dialog,
+  .overview-modal:not(.open) .overview-grid {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-exit);
+  }
+
+  @starting-style {
+    .lang-modal.open .lang-dialog,
+    .overview-modal.open .overview-grid {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+  }
+
+  /* The notes drawer centres itself with translateX(-50%), so its entrance must
+     compose BOTH axes in a single translate() — animating translateY alone
+     would drop the centring and throw the drawer off to one side. */
+  .speaker-notes-drawer {
+    transition: opacity 240ms var(--ease-enter), transform 240ms var(--ease-enter);
+  }
+
+  .speaker-notes-drawer:not(.open) {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-exit);
+  }
+
+  @starting-style {
+    .speaker-notes-drawer.open { opacity: 0; transform: translate(-50%, 16px); }
+  }
+}
+
+/* The overshoot spring belongs on the physics objects — the liquid blob, the
+   tab pill — not on a button's own hover. Bouncy overshoot on a control is an
+   explicit rubric anti-pattern; the blob keeps its spring. */
+.nav-btn {
+  transition: color var(--gooey-dur) ease,
+              background-color 160ms ease-out,
+              transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* The overview cards are built in JS, which sets each card's animation-delay. */
+@media (prefers-reduced-motion: no-preference) {
+  .overview-modal.open .overview-card {
+    animation: deck-controls-in 280ms var(--ease-enter) both;
+  }
+}
+
+/* =========================================================================
+   FOOTER REMOVED
+   -------------------------------------------------------------------------
+   The footer rail repeated what the header already states — the deck title and
+   the slide number both appear top-of-frame — so it spent a band of every slide
+   restating known information. With it gone the stage reclaims that band: the
+   bottom pad drops to the same step as the sides, and content gets ~40px more
+   height on all 28 slides.
+
+   Hidden rather than deleted from 28 blocks of markup: one rule, reversible,
+   and the elements stay available if a printed or exported variant wants them.
+   ========================================================================= */
+.chrome-footer {
+  display: none;
+}
+
+.slide-item {
+  /* On the spacing scale rather than hand-picked: 96 top clears the header
+     rail, 64 sides, 48 bottom now that no footer needs clearing. */
+  padding: var(--sp-7) var(--sp-6) var(--sp-5) !important;
 }

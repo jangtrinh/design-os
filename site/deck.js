@@ -51,14 +51,40 @@
   // =========================================================
   // 3. Instant Slide Navigation (Zero Animation)
   // =========================================================
+  // Retriggering a CSS animation requires the attribute to be removed, layout
+  // flushed, then re-added — without the reflow the browser coalesces both
+  // changes and nothing replays. The attribute (rather than `.active`) is what
+  // keeps the audit's synchronous class-flipping out of a mid-flight frame.
+  const ENTER_MS = 700;
+  let enterTimer = null;
+  function startEnterAnimation(slide) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    slide.removeAttribute('data-enter');
+    void slide.offsetWidth;
+    slide.setAttribute('data-enter', '');
+    clearTimeout(enterTimer);
+    enterTimer = setTimeout(function () {
+      slide.removeAttribute('data-enter');
+    }, ENTER_MS);
+  }
+
   function updateSlide(index) {
     if (index < 0) index = 0;
     if (index >= totalSlides) index = totalSlides - 1;
+
+    // Navigation direction drives which way content enters from. A step of more
+    // than one slide (overview click, Home/End) is a jump, not a step, so it
+    // gets a straight cut instead of lateral motion that would imply adjacency.
+    const delta = index - currentIndex;
+    if (stage) {
+      stage.dataset.navDir = Math.abs(delta) > 1 ? 'jump' : delta < 0 ? 'back' : 'fwd';
+    }
     currentIndex = index;
 
     slides.forEach((slide, idx) => {
       if (idx === currentIndex) {
         slide.classList.add('active');
+        startEnterAnimation(slide);
         const notesEl = slide.querySelector('[data-speaker-notes]');
         if (notesText) {
           notesText.textContent = notesEl ? notesEl.getAttribute('data-speaker-notes') : 'No speaker notes for this slide.';
@@ -73,12 +99,14 @@
         }
       } else {
         slide.classList.remove('active');
+        slide.removeAttribute('data-enter');
       }
     });
 
     if (progressBar) {
       const progressPct = ((currentIndex + 1) / totalSlides) * 100;
-      progressBar.style.width = progressPct + '%';
+      // scaleX rather than width: a composited property, not a layout one.
+      progressBar.style.transform = 'scaleX(' + (progressPct / 100) + ')';
     }
   }
 
@@ -152,6 +180,9 @@
       const titleText = titleEl ? (titleEl.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').trim()) : 'Slide ' + (index + 1);
       const card = document.createElement('div');
       card.className = 'overview-card' + (index === currentIndex ? ' active' : '');
+      // 28 cards on a flat stagger would queue for over half a second; the
+      // per-card delay is capped so the grid is complete well inside 300ms.
+      card.style.animationDelay = Math.min(index * 18, 300) + 'ms';
       card.innerHTML = '<div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">SLIDE ' + String(index + 1).padStart(2, '0') + '</div><div style="font-weight: 700; font-size: 14px; color: var(--text-primary); line-height: 1.3;">' + titleText + '</div>';
       card.addEventListener('click', () => {
         updateSlide(index);
@@ -164,7 +195,7 @@
   // =========================================================
   // 8. i18n Multi-Language Engine (7 Languages, Default: EN)
   // =========================================================
-    const supportedLanguages = [
+      const supportedLanguages = [
     { code: 'en', label: 'English (Default)' },
     { code: 'vi', label: 'Tiếng Việt' },
     { code: 'ko', label: '한국어' },
@@ -317,8 +348,8 @@
     'tasteAxis1': { slide: 'slide-17', badge: 'AXIS 1: LAYOUT', text: 'Layout & Hierarchy: Clear reading order, no container soup, fluid responsiveness across breakpoints.' },
     'tasteAxis2': { slide: 'slide-17', badge: 'AXIS 2: TYPOGRAPHY', text: 'Typography & Rhythm: Modular type scale, calibrated line-height, and precise tracking.' },
     'tasteAxis3': { slide: 'slide-17', badge: 'AXIS 3: SPACING', text: 'Spacing & Geometry: Strict 8px spatial rhythm and harmonized corner radii tokens.' },
-    'tasteAxis4': { slide: 'slide-17', badge: 'AXIS 4: ICONOGRAPHY', text: 'Iconography: Single curated icon family with uniform stroke weight and semantic sizes.' },
-    'tasteAxis5': { slide: 'slide-17', badge: 'AXIS 5: MOTION', text: 'Motion Ladder: Purpose-driven choreography strictly bounded by reduced-motion accessibility.' },
+    'tasteAxis4': { slide: 'slide-17', badge: 'AXIS 4: MOTION', text: 'Motion Ladder: Purpose-driven choreography strictly bounded by reduced-motion accessibility.' },
+    'tasteAxis5': { slide: 'slide-17', badge: 'AXIS 5: ICONOGRAPHY', text: 'Iconography: Single curated icon family with uniform stroke weight and semantic sizes.' },
     'tasteAxis6': { slide: 'slide-17', badge: 'AXIS 6: DEPTH', text: 'Depth & Surfaces: Tonal elevation and polarized optical contrast instead of muddy drop shadows.' },
 
     // Slide 21
@@ -381,6 +412,7 @@
       case 'Home':
         e.preventDefault();
         updateSlide(0);
+
         break;
       case 'End':
         e.preventDefault();
@@ -511,6 +543,12 @@
   }
 
   initLiquidShowcase();
+
+  // The entry sequence is one-shot: clearing the boot class once it has played
+  // is what stops the accent-strip brand gesture replaying on every navigation.
+  setTimeout(function () {
+    document.documentElement.classList.remove('is-booting');
+  }, 1000);
 
   window.deck = {
     updateSlide,

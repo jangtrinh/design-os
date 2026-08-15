@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+<script>document.documentElement.classList.add('js','is-booting');</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DESIGN:OS Masterclass — 28-Slide Complete Architecture Deck</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./deck.css">
 <style>
@@ -63,16 +65,24 @@
   <section class="hero-gateway-grid">
     <div class="hero-left-col">
       <div class="hero-main-card">
-        <div class="radiant-dots" aria-hidden="true"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-        <h1 class="radiant-display-title">Mastering<br>Design:OS</h1>
-        <p class="radiant-body-text">The definitive multi-runtime operating manual. Transition from stochastic LLM luck to deterministic color science, live Figma synchronization, and vector memory recall.</p>
-        <div class="hero-stat-pill">
-          <span class="stat-pill-num">0 %</span>
-          <span class="stat-pill-label">LLM Luck Required</span>
+        <div class="hero-card-top">
+          <div class="radiant-dots" aria-hidden="true"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
+          <div class="hero-eyebrow">Act 0 &middot; Start Here</div>
+        </div>
+        <div class="hero-lede">
+          <h1 class="radiant-display-title">Mastering<br>Design:OS</h1>
+          <p class="radiant-body-text">The definitive multi-runtime operating manual. Transition from stochastic LLM luck to deterministic color science, live Figma synchronization, and vector memory recall.</p>
+        </div>
+        <div class="hero-card-foot">
+          <div class="hero-stat-pill">
+            <span class="stat-pill-num">0%</span>
+            <span class="stat-pill-label">LLM Luck Required</span>
+          </div>
         </div>
       </div>
     </div>
     <div class="hero-right-orbs">
+      <div class="orb-axis" aria-hidden="true"></div>
       <div class="orb-hero-lime">
         <div class="orb-arrow">→</div>
         <div class="orb-stat-huge">100%</div>
@@ -359,7 +369,7 @@
           <p class="radiant-body-text">High-velocity CLI ergonomics translating natural language prompts into production code.</p>
         </div>
         <div class="radiant-card-bottom">
-          <div class="radiant-hero-number">100 %</div>
+          <div class="radiant-hero-number">100%</div>
           <div class="radiant-hero-label">Natural Language CLI</div>
         </div>
       </div>
@@ -642,6 +652,7 @@
   </header>
 
   <section class="laws-cloud-grid">
+    <div class="laws-featured-row">
     <article class="law-card">
       <div class="law-num">≥ 44px</div>
       <strong>Fitts's Law</strong>
@@ -662,6 +673,17 @@
       <strong>Jakob's Law</strong>
       <p>Familiar platform mental models and conventions.</p>
     </article>
+  </div>
+    <ul class="laws-roster" aria-label="The remaining eight cognitive laws encoded in the linters">
+      <li>Von Restorff</li>
+      <li>Serial Position</li>
+      <li>Tesler's</li>
+      <li>Parkinson's</li>
+      <li>Postel's</li>
+      <li>Zeigarnik</li>
+      <li>Goal Gradient</li>
+      <li>Aesthetic&ndash;Usability</li>
+    </ul>
   </section>
 
   <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 12 Cognitive UX Laws</div><div>18 / 28</div></footer>
@@ -717,8 +739,8 @@
     </li>
     <li class="motion-step step-t2">
       <span class="m-tier">T2</span>
-      <strong>State Transition</strong>
-      <p>Modals, Tabs, Drawers</p>
+      <strong>View Transitions</strong>
+      <p>State &amp; route swaps</p>
     </li>
     <li class="motion-step step-t3">
       <span class="m-tier">T3</span>
@@ -727,8 +749,8 @@
     </li>
     <li class="motion-step step-t4">
       <span class="m-tier">T4</span>
-      <strong>Layout FLIP</strong>
-      <p>Smooth grid morph</p>
+      <strong>Motion / anime.js</strong>
+      <p>Orchestrated sequences</p>
     </li>
     <li class="motion-step step-t5">
       <span class="m-tier">T5</span>
@@ -860,7 +882,7 @@
           <p class="radiant-body-text">Every delivery pass compounds design taste directly into the shared organizational memory.</p>
         </div>
         <div class="radiant-card-bottom">
-          <div class="radiant-hero-number">10 X</div>
+          <div class="radiant-hero-number">10X</div>
           <div class="radiant-hero-label">Team Design Velocity</div>
         </div>
       </div>
@@ -1007,9 +1029,7 @@
     <div class="lang-dialog">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 id="langModalTitle" style="font-size:1.25rem; font-weight:700;">Select Language / 언어 선택 / 言語 / Idioma / Langue / 语言</h2>
-        <button type="button" class="nav-btn" id="btnCloseLang" title="Close" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <button type="button" class="nav-btn" id="btnCloseLang" title="Close" aria-label="Close"><svg class="ph-svg ph-x" width="18" height="18" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
       </div>
       <div class="lang-grid" id="langGrid"></div>
     </div>
@@ -1037,11 +1057,11 @@
   
   
 
-  <!-- Deck Orchestration & GSAP Choreography Script -->
+  <!-- Deck orchestration (vanilla; no animation library) -->
       <!-- Deck Translations Dictionary (i18n) -->
   <script src="./translations.js"></script>
 
-  <!-- Deck Orchestration & GSAP Choreography Script -->
+  <!-- Deck orchestration (vanilla; no animation library) -->
   <script src="./deck.js" defer></script>
 </body>
 </html>
