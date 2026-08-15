@@ -291,7 +291,7 @@ scanned, hygiene-audited, contrast-proven, and VR-baselined end to end.
 
 ## Six daily verbs
 
-These are the six common moves. The full adapter exposes 17 workflows (plus the internal critique gate) when the task needs more.
+These are the six common moves. The full adapter exposes 18 workflows (plus the internal critique gate) when the task needs more.
 
 | Verb | What it does |
 | --- | --- |
@@ -303,7 +303,7 @@ These are the six common moves. The full adapter exposes 17 workflows (plus the 
 | `/ui:why <question>` | Ask *why* a past design decision was made — answers with provenance from the project's design memory. |
 
 <details>
-<summary><b>All 17 workflows (+1 internal gate)</b> (audit · critique · design · diagram · evidence · extract · figma · from-ref · slides · redesign …)</summary>
+<summary><b>All 18 workflows (+1 internal gate)</b> (audit · chart · critique · design · diagram · evidence · extract · figma · from-ref · slides · redesign …)</summary>
 
 | Command | What it does |
 |---|---|
