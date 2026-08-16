@@ -46,20 +46,37 @@ function collect() {
   }));
 }
 
+/**
+ * A gallery of rendered work is a Portfolio Grid (page-structures.md §1), not a list of
+ * text cards: the artifact itself is the strongest thing we can show, so each cell leads
+ * with its render and lets the label do the naming. The whole cell is the link, which also
+ * clears the 44px tap-target floor without a separate hit area.
+ */
 function card(kind, item) {
-  return `        <li class="card">
-          <a class="card-link" href="./${kind}s/${item.file}">
-            <p class="card-grammar">${escapeHtml(item.grammar)}</p>
-            <h3 class="card-title">${escapeHtml(item.title)}</h3>
-            <p class="card-desc">${escapeHtml(item.desc)}</p>
+  const thumb = `./thumbs/${kind}s/${item.grammar}`;
+  return `        <li class="cell">
+          <a class="cell-link" href="./${kind}s/${item.file}">
+            <span class="cell-art">
+              <picture>
+                <source media="(prefers-color-scheme: dark)" srcset="${thumb}-dark.png">
+                <img src="${thumb}-light.png" alt="${escapeHtml(item.title)}" loading="lazy" width="1680" height="1000">
+              </picture>
+            </span>
+            <span class="cell-meta">
+              <span class="cell-label">${escapeHtml(item.grammar)}</span>
+              <span class="cell-name">${escapeHtml(item.title)}</span>
+            </span>
           </a>
         </li>`;
 }
 
 function render(groups) {
   const total = groups.reduce((sum, g) => sum + g.items.length, 0);
-  const sections = groups.map((g) => `      <section class="group">
-        <h2 class="group-title">${g.kind === "diagram" ? "Diagrams" : "Charts"} <span class="group-count">${g.items.length}</span></h2>
+  const sections = groups.map((g) => `      <section class="band" id="${g.kind}s">
+        <header class="band-head">
+          <h2 class="band-title">${g.kind === "diagram" ? "Diagrams" : "Charts"}</h2>
+          <p class="band-count">${g.items.length} grammars</p>
+        </header>
         <ul class="grid">
 ${g.items.map((item) => card(g.kind, item)).join("\n")}
         </ul>
@@ -73,55 +90,145 @@ ${g.items.map((item) => card(g.kind, item)).join("\n")}
 <title>DESIGN:OS — diagram and chart gallery</title>
 <meta name="description" content="${total} worked artifacts, one per grammar. Every one is self-contained, offline, and passes its deterministic linter.">
 <style>
+  /* Same canonical skin the artifacts resolve to, so the frame and its contents agree. */
   :root {
     --paper: #fbfaf8; --surface: #ffffff; --ink: #1a1a17; --muted: #6f6f66;
-    --rule: #e6e3dd; --accent: #b4531f;
+    --rule: #e6e3dd; --rule-strong: #d6d2c9; --accent: #b4531f;
+    --step-1: 8px; --step-2: 16px; --step-3: 24px; --step-4: 32px;
+    --step-5: 48px; --step-6: 64px; --step-7: 96px;
+  }
+  :root[data-theme="dark"], :root:not([data-theme="light"]) {
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --paper: #14140f; --surface: #1c1c17; --ink: #f2efe9; --muted: #a3a096;
-            --rule: #2e2e26; --accent: #e08c4a; }
+    :root:not([data-theme="light"]) {
+      --paper: #14140f; --surface: #1c1c17; --ink: #f2efe9; --muted: #a3a096;
+      --rule: #2e2e26; --rule-strong: #3d3d33; --accent: #e08c4a;
+      color-scheme: dark;
+    }
   }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--paper); color: var(--ink); padding: 64px 24px;
-         font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; line-height: 1.5; }
-  main { max-width: 1080px; margin: 0 auto; }
-  .eyebrow { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
-  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -.02em; margin: 8px 0 16px; }
-  .lede { color: var(--muted); max-width: 62ch; margin-bottom: 12px; }
-  .note { font-size: 13px; color: var(--muted); max-width: 62ch; }
-  .group { margin-top: 56px; }
-  .group-title { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
-                 color: var(--muted); padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
-  .group-count { color: var(--accent); }
-  .grid { list-style: none; display: grid; gap: 1px; background: var(--rule);
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          border: 1px solid var(--rule); border-top: none; }
-  .card { background: var(--surface); }
-  .card-link { display: block; padding: 20px; color: inherit; text-decoration: none; height: 100%; }
-  .card-link:hover { background: color-mix(in oklch, var(--accent) 6%, var(--surface)); }
-  .card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .card-grammar { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
-  .card-title { font-size: 16px; font-weight: 500; margin: 6px 0; }
-  .card-desc { font-size: 13px; color: var(--muted); }
-  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--rule);
-           font-size: 13px; color: var(--muted); }
-  a { color: var(--accent); }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell { max-width: 1240px; margin: 0 auto; padding: var(--step-6) var(--step-3) var(--step-6); }
+
+  /*
+   * Editorial masthead. The headline takes a short measure so it lands as one statement;
+   * the supporting copy takes a longer one and sits beside it on wide viewports. Holding
+   * both to the same narrow column would leave most of the fold empty for no reason.
+   */
+  .masthead {
+    display: grid; gap: var(--step-4) var(--step-6);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: end;
+    margin-bottom: var(--step-6);
+    padding-bottom: var(--step-5);
+    border-bottom: 1px solid var(--rule);
+  }
+  h1 {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.04;
+    max-width: 14ch;
+  }
+  .masthead-copy { max-width: 56ch; }
+  .lede { color: var(--muted); }
+  .lede + .lede { margin-top: var(--step-2); }
+  .lede a { color: var(--accent); }
+
+  .band { margin-top: var(--step-6); }
+  .band-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: var(--step-2);
+    padding-bottom: var(--step-2);
+    border-bottom: 1px solid var(--rule-strong);
+    margin-bottom: var(--step-4);
+  }
+  .band-title { font-size: 24px; font-weight: 500; letter-spacing: -0.01em; }
+  .band-count { color: var(--muted); font-size: 15px; }
+
+  .grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--step-4) var(--step-3);
+  }
+
+  .cell-link {
+    display: flex; flex-direction: column; gap: var(--step-2);
+    color: inherit; text-decoration: none;
+    border-radius: 6px;
+  }
+  .cell-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  /* The render is the content; the frame stays quiet so the artifact carries the cell. */
+  .cell-art {
+    display: block; overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    aspect-ratio: 16 / 10;
+  }
+  .cell-art img {
+    width: 100%; height: 100%; display: block;
+    object-fit: cover; object-position: top left;
+  }
+  .cell-link:hover .cell-art { border-color: var(--accent); }
+
+  .cell-meta { display: flex; flex-direction: column; gap: 2px; }
+  .cell-label {
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600;
+  }
+  .cell-name { font-size: 16px; }
+
+  .colophon {
+    margin-top: var(--step-7);
+    padding-top: var(--step-3);
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 62ch;
+  }
+  .colophon a { color: var(--accent); }
+  .colophon code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .masthead { grid-template-columns: 1fr; align-items: start; }
+    h1 { max-width: 20ch; }
+  }
+  @media (max-width: 640px) {
+    .shell { padding: var(--step-5) var(--step-2) var(--step-5); }
+    .grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-  <main>
-    <p class="eyebrow">DESIGN:OS</p>
-    <h1>Diagram and chart gallery</h1>
-    <p class="lede">${total} worked artifacts, one per grammar. Each is a single self-contained HTML file
-      with hand-authored inline SVG — no diagram DSL, no charting library, no network request.</p>
-    <p class="note">Every artifact here passes its deterministic linter with zero findings: owned SVG,
-      resolving accessible name, no script, no external reference, and no colour outside the design
-      system. Colours bind to the project's tokens and fall back to a documented neutral palette when
-      no design system is present, which is what you are seeing here.</p>
+  <main class="shell">
+    <div class="masthead">
+      <h1>${total} grammars, drawn by hand</h1>
+      <div class="masthead-copy">
+        <p class="lede">One worked artifact per grammar — a single self-contained HTML file
+          with hand-authored inline SVG. No diagram DSL, no charting library, no network
+          request at view time.</p>
+        <p class="lede">Colours resolve to the host project's design tokens and fall back to
+          a documented neutral palette when there is none, which is what you are seeing here.
+          Every artifact passes its deterministic linter with zero findings.</p>
+      </div>
+    </div>
 
 ${sections}
 
-    <footer>
+    <footer class="colophon">
       Generated from the committed corpus by <code>scripts/build-examples-gallery.mjs</code>.
       Diagram craft vendored from <a href="https://github.com/cathrynlavery/diagram-design">diagram-design</a> (MIT).
     </footer>
@@ -208,17 +315,19 @@ function syncReadme() {
 }
 
 if (process.argv.includes("--check")) {
-  const current = existsSync(OUT_FILE) ? readFileSync(OUT_FILE, "utf8") : "";
+  // Only the README grid is committed. `site/examples/` is gitignored and rebuilt by the
+  // Pages workflow on every deploy, so it cannot drift — checking it here just fails in a
+  // fresh clone, where it has correctly never been generated.
   const readme = syncReadme();
-  const stale = [];
-  if (current !== html) stale.push("site/examples/index.html");
-  if (readme.missing) stale.push("README.md (examples-grid markers not found)");
-  else if (readme.changed) stale.push("README.md examples grid");
-  if (stale.length > 0) {
-    console.error(`stale: ${stale.join(", ")} — run 'node scripts/build-examples-gallery.mjs' and commit the result`);
+  if (readme.missing) {
+    console.error("README.md has no examples-grid markers — cannot verify the image grid");
     process.exit(1);
   }
-  console.log("examples gallery + README grid: up to date");
+  if (readme.changed) {
+    console.error("stale: README.md examples grid — run 'node scripts/build-examples-gallery.mjs' and commit the result");
+    process.exit(1);
+  }
+  console.log("README examples grid: up to date");
   process.exit(0);
 }
 
@@ -241,36 +350,83 @@ function navBar(kind, item, siblings) {
   const index = siblings.findIndex((s) => s.grammar === item.grammar);
   const prev = siblings[index - 1];
   const next = siblings[index + 1];
-  const link = (target, label) =>
-    target ? `<a class="dos-nav-step" href="./${target.file}">${label}</a>` : `<span class="dos-nav-step is-off">${label}</span>`;
+  const step = (target, label, rel) =>
+    target
+      ? `<a class="dos-step" rel="${rel}" href="./${target.file}" title="${escapeHtml(target.title)}">${label}</a>`
+      : `<span class="dos-step is-off" aria-disabled="true">${label}</span>`;
 
   return `<style>
-  .dos-nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px;
-             padding: 10px 20px; font: 500 13px/1.4 ui-sans-serif, system-ui, sans-serif;
-             background: #fbfaf8; color: #1a1a17; border-bottom: 1px solid #e6e3dd; }
-  .dos-nav a { color: #b4531f; text-decoration: none; }
-  .dos-nav a:hover { text-decoration: underline; }
-  .dos-nav a:focus-visible { outline: 2px solid #b4531f; outline-offset: 2px; border-radius: 2px; }
-  .dos-nav-where { color: #6f6f66; }
-  .dos-nav-where b { color: #1a1a17; font-weight: 600; }
-  .dos-nav-steps { margin-left: auto; display: flex; gap: 12px; }
-  .dos-nav-step.is-off { color: #b3afa5; }
-  @media (prefers-color-scheme: dark) {
-    .dos-nav { background: #14140f; color: #f2efe9; border-bottom-color: #2e2e26; }
-    .dos-nav a { color: #e08c4a; }
-    .dos-nav a:focus-visible { outline-color: #e08c4a; }
-    .dos-nav-where { color: #a3a096; }
-    .dos-nav-where b { color: #f2efe9; }
-    .dos-nav-step.is-off { color: #5d5b53; }
+  /*
+   * The artifact centres its content with a flex body. Injecting the bar as a
+   * body child therefore made it a flex *sibling* — nav parked to the left of the diagram.
+   * Restore normal flow and centre the content block on its own margins instead.
+   */
+  body { display: block !important; padding-top: 0 !important; }
+  body > .frame { margin-inline: auto; }
+
+  .dos-bar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 24px;
+    min-height: 56px;
+    margin-bottom: 32px;
+    background: var(--paper-chrome);
+    border-bottom: 1px solid var(--rule-chrome);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    color: var(--ink-chrome);
   }
-  @media print { .dos-nav { display: none; } }
+  .dos-bar { --paper-chrome: #fbfaf8; --ink-chrome: #1a1a17; --muted-chrome: #6f6f66;
+             --rule-chrome: #e6e3dd; --accent-chrome: #b4531f; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dos-bar {
+      --paper-chrome: #14140f; --ink-chrome: #f2efe9; --muted-chrome: #a3a096;
+      --rule-chrome: #2e2e26; --accent-chrome: #e08c4a;
+    }
+  }
+  :root[data-theme="dark"] .dos-bar {
+    --paper-chrome: #14140f; --ink-chrome: #f2efe9; --muted-chrome: #a3a096;
+    --rule-chrome: #2e2e26; --accent-chrome: #e08c4a;
+  }
+
+  /* 44px minimum hit area on every control, per the tap-target floor. */
+  .dos-bar a, .dos-step {
+    display: inline-flex; align-items: center; min-height: 44px;
+    text-decoration: none; color: var(--accent-chrome);
+  }
+  .dos-bar a:hover { text-decoration: underline; }
+  .dos-bar a:focus-visible { outline: 2px solid var(--accent-chrome); outline-offset: -2px; border-radius: 4px; }
+
+  .dos-where { color: var(--muted-chrome); display: inline-flex; align-items: center; gap: 8px; }
+  .dos-grammar { color: var(--ink-chrome); font-weight: 600; }
+  .dos-steps { margin-left: auto; display: flex; gap: 20px; }
+  .dos-step.is-off { color: var(--muted-chrome); opacity: 0.45; }
+
+  @media (max-width: 640px) {
+    .dos-bar { gap: 16px; padding: 0 16px; }
+    .dos-where { display: none; }
+  }
+  @media print { .dos-bar { display: none; } }
 </style>
-<nav class="dos-nav" aria-label="Example gallery">
-  <a href="../index.html">&larr; All examples</a>
-  <span class="dos-nav-where">${kind === "diagram" ? "Diagram" : "Chart"} &middot; <b>${escapeHtml(item.grammar)}</b></span>
-  <span class="dos-nav-steps">${link(prev, "&larr; Prev")}${link(next, "Next &rarr;")}</span>
+<nav class="dos-bar" aria-label="Example gallery">
+  <a class="dos-home" href="../index.html">&larr; Gallery</a>
+  <span class="dos-where">${kind === "diagram" ? "Diagram" : "Chart"} <span class="dos-grammar">${escapeHtml(item.grammar)}</span></span>
+  <span class="dos-steps">${step(prev, "&larr; Prev", "prev")}${step(next, "Next &rarr;", "next")}</span>
 </nav>
 `;
+}
+
+// Pages publishes `site/` only, so the renders the grid points at have to live there too.
+const IMAGES = join(ROOT, "docs", "images", "examples");
+for (const { kind, items } of groups) {
+  const thumbs = join(OUT_DIR, "thumbs", `${kind}s`);
+  mkdirSync(thumbs, { recursive: true });
+  for (const item of items) {
+    for (const theme of ["light", "dark"]) {
+      const from = join(IMAGES, `${kind}s`, `${item.grammar}-${theme}.png`);
+      if (existsSync(from)) copyFileSync(from, join(thumbs, `${item.grammar}-${theme}.png`));
+    }
+  }
 }
 
 for (const { kind, dir, items } of groups) {

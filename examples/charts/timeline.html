@@ -125,7 +125,7 @@
   .baseline  { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
   .leader    { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
   .leader--focal { stroke: var(--chart-accent); }
-  .tick      { fill: var(--chart-soft); font-size: 11px; letter-spacing: 0.08em;
+  .label-tick      { fill: var(--chart-soft); font-size: 11px; letter-spacing: 0.08em;
                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
 
   /* One track, one marker shape. The focal milestone is told apart by marker size and
@@ -167,11 +167,11 @@
 
           <line class="baseline" x1="104" y1="288" x2="856" y2="288"/>
 
-          <text class="tick" x="120" y="420" text-anchor="middle">JAN 2025</text>
-          <text class="tick" x="300" y="420" text-anchor="middle">APR</text>
-          <text class="tick" x="482" y="420" text-anchor="middle">JUL</text>
-          <text class="tick" x="666" y="420" text-anchor="middle">OCT</text>
-          <text class="tick" x="850" y="420" text-anchor="middle">JAN 2026</text>
+          <text class="label-tick" x="120" y="420" text-anchor="middle">JAN 2025</text>
+          <text class="label-tick" x="300" y="420" text-anchor="middle">APR</text>
+          <text class="label-tick" x="482" y="420" text-anchor="middle">JUL</text>
+          <text class="label-tick" x="666" y="420" text-anchor="middle">OCT</text>
+          <text class="label-tick" x="850" y="420" text-anchor="middle">JAN 2026</text>
         </g>
 
         <g data-chart-element="series" id="track-releases" data-series-label="Product releases">

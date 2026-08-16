@@ -91,7 +91,7 @@
     margin-bottom: 12px;
   }
 
-  .intro {
+  .label-intro {
     font-size: 13px;
     line-height: 1.5;
     color: var(--diagram-muted);
@@ -114,28 +114,28 @@
   .n-terminal-ring { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
 
   .node-label { fill: var(--diagram-ink); font-size: 13px; }
-  .node-source { fill: var(--diagram-soft); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+  .label-node-source { fill: var(--diagram-soft); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
 
   .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
   .edge--back { stroke-dasharray: 6 4; }
   .edge-label { fill: var(--diagram-ink); font-size: 11px; }
   .edge-mask { fill: var(--diagram-paper); }
 
-  .ledger { margin-top: 32px; border-top: 1px solid var(--diagram-rule); padding-top: 20px; }
-  .ledger h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; margin-bottom: 12px; }
-  .ledger dl { display: grid; grid-template-columns: 168px 1fr; gap: 6px 16px; font-size: 12px; margin-bottom: 24px; }
-  .ledger dt { color: var(--diagram-muted); }
-  .ledger table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .ledger th, .ledger td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--diagram-rule); vertical-align: top; }
-  .ledger th { color: var(--diagram-muted); font-weight: 500; }
-  .ledger code { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 11px; }
+  .label-ledger { margin-top: 32px; border-top: 1px solid var(--diagram-rule); padding-top: 20px; }
+  .label-ledger h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; margin-bottom: 12px; }
+  .label-ledger dl { display: grid; grid-template-columns: 168px 1fr; gap: 6px 16px; font-size: 12px; margin-bottom: 24px; }
+  .label-ledger dt { color: var(--diagram-muted); }
+  .label-ledger table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .label-ledger th, .label-ledger td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--diagram-rule); vertical-align: top; }
+  .label-ledger th { color: var(--diagram-muted); font-weight: 500; }
+  .label-ledger code { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 11px; }
 </style>
 </head>
 <body>
   <div class="frame">
     <p class="eyebrow">Product flow · derived view</p>
     <h1>Checkout flow — partial view</h1>
-    <p class="intro">
+    <p class="label-intro">
       A view derived from <code>checkout.flow.json</code>, not an edit surface. This is a
       <strong>partial</strong> view: the empty-cart screen state and the session-heartbeat
       system transition are excluded, and both are named in the fidelity ledger below.
@@ -205,28 +205,28 @@
            data-source-id="entry.checkout-start" aria-label="Checkout entry point, source ID entry.checkout-start">
           <rect class="n-entry" x="40" y="176" width="144" height="80" rx="40"/>
           <text class="node-label" x="112" y="200" text-anchor="middle">Start checkout</text>
-          <text class="node-source" x="112" y="220" text-anchor="middle">entry.checkout-start</text>
+          <text class="label-node-source" x="112" y="220" text-anchor="middle">entry.checkout-start</text>
         </g>
 
         <g data-diagram-element="node" id="node-cart"
            data-source-id="screen.cart" aria-label="Cart screen, source ID screen.cart">
           <rect class="n-screen" x="248" y="176" width="160" height="80" rx="4"/>
           <text class="node-label" x="328" y="200" text-anchor="middle">Cart</text>
-          <text class="node-source" x="328" y="220" text-anchor="middle">screen.cart</text>
+          <text class="label-node-source" x="328" y="220" text-anchor="middle">screen.cart</text>
         </g>
 
         <g data-diagram-element="node" id="node-shipping"
            data-source-id="screen.shipping" aria-label="Shipping screen, source ID screen.shipping">
           <rect class="n-screen" x="472" y="176" width="160" height="80" rx="4"/>
           <text class="node-label" x="552" y="200" text-anchor="middle">Shipping</text>
-          <text class="node-source" x="552" y="220" text-anchor="middle">screen.shipping</text>
+          <text class="label-node-source" x="552" y="220" text-anchor="middle">screen.shipping</text>
         </g>
 
         <g data-diagram-element="node" id="node-payment"
            data-source-id="screen.payment" aria-label="Payment screen, focal, source ID screen.payment">
           <rect class="n-screen n-screen--focal" x="696" y="176" width="160" height="80" rx="4"/>
           <text class="node-label" x="776" y="200" text-anchor="middle">Payment</text>
-          <text class="node-source" x="776" y="220" text-anchor="middle">screen.payment</text>
+          <text class="label-node-source" x="776" y="220" text-anchor="middle">screen.payment</text>
         </g>
 
         <g data-diagram-element="node" id="node-confirmation"
@@ -234,14 +234,14 @@
           <rect class="n-terminal-ring" x="916" y="172" width="168" height="88" rx="32"/>
           <rect class="n-screen" x="920" y="176" width="160" height="80" rx="28"/>
           <text class="node-label" x="1000" y="200" text-anchor="middle">Confirmation ✓</text>
-          <text class="node-source" x="1000" y="220" text-anchor="middle">screen.confirmation · terminal</text>
+          <text class="label-node-source" x="1000" y="220" text-anchor="middle">screen.confirmation · terminal</text>
         </g>
 
         <g data-diagram-element="node" id="node-payment-error"
            data-source-id="screen.payment.error" aria-label="Payment error state, source ID screen.payment.error">
           <rect class="n-state" x="696" y="344" width="160" height="72" rx="4"/>
           <text class="node-label" x="776" y="376" text-anchor="middle">Payment error</text>
-          <text class="node-source" x="776" y="396" text-anchor="middle">screen.payment.error</text>
+          <text class="label-node-source" x="776" y="396" text-anchor="middle">screen.payment.error</text>
         </g>
 
         <rect class="edge-mask" x="176" y="196" width="80" height="16"/>
@@ -267,7 +267,7 @@
       </svg>
     </div>
 
-    <section class="ledger" aria-labelledby="derived-heading">
+    <section class="label-ledger" aria-labelledby="derived-heading">
       <h2 id="derived-heading">Derived-view declaration</h2>
       <dl>
         <dt>Source</dt><dd><code>checkout.flow.json</code></dd>
@@ -294,7 +294,7 @@
           </tr>
         </tbody>
       </table>
-      <p class="intro" style="margin-top:16px">
+      <p class="label-intro" style="margin-top:16px">
         Nothing is merged or collapsed. Both lints check disjoint things and neither resolves a
         <code>data-source-id</code> against the source flow — that resolution, and this ledger's
         completeness, is a manual audit.

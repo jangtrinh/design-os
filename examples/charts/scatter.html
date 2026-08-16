@@ -123,9 +123,9 @@
 
   .grid      { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
   .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
-  .tick      { fill: var(--chart-soft); font-size: 11px;
+  .label-tick      { fill: var(--chart-soft); font-size: 11px;
                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
-  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+  .label-axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
 
   /* Marker SHAPE is the primary group cue; the token colour only reinforces it. */
   .pt              { stroke-width: var(--chart-hairline); }
@@ -159,18 +159,18 @@
         <desc id="chart-desc">Illustrative dataset, not a real production trace. Twenty API requests, each measured on two variables: request size in kilobytes on the horizontal axis, zero to 320, and response time in milliseconds on the vertical axis, zero to 600. Both axes include zero, so no correlation is exaggerated by a truncated frame. Ten cached responses, drawn as circles, run from 60 to 185 milliseconds; ten uncached responses, drawn as squares, run from 180 to 545 milliseconds over the same size range. The focal observation is a 272 kilobyte batch import answering in 545 milliseconds, well above the uncached trend. No trend line is drawn, no point is jittered, and no observation was dropped.</desc>
 
         <g data-chart-element="axis" data-axis-role="value" id="axis-response-time">
-          <text class="axis-title" x="52" y="56">RESPONSE TIME (MS) · 0–600</text>
+          <text class="label-axis-title" x="52" y="56">RESPONSE TIME (MS) · 0–600</text>
 
           <line class="grid" x1="152" y1="80"  x2="808" y2="80"/>
           <line class="grid" x1="152" y1="200" x2="808" y2="200"/>
           <line class="grid" x1="152" y1="320" x2="808" y2="320"/>
           <line class="grid" x1="152" y1="440" x2="808" y2="440"/>
 
-          <text class="tick" x="144" y="84"  text-anchor="end">600</text>
-          <text class="tick" x="144" y="204" text-anchor="end">450</text>
-          <text class="tick" x="144" y="324" text-anchor="end">300</text>
-          <text class="tick" x="144" y="444" text-anchor="end">150</text>
-          <text class="tick" x="144" y="564" text-anchor="end">0</text>
+          <text class="label-tick" x="144" y="84"  text-anchor="end">600</text>
+          <text class="label-tick" x="144" y="204" text-anchor="end">450</text>
+          <text class="label-tick" x="144" y="324" text-anchor="end">300</text>
+          <text class="label-tick" x="144" y="444" text-anchor="end">150</text>
+          <text class="label-tick" x="144" y="564" text-anchor="end">0</text>
 
           <line class="axis-rule" x1="152" y1="560" x2="808" y2="560"/>
         </g>
@@ -181,13 +181,13 @@
           <line class="grid" x1="640" y1="80" x2="640" y2="560"/>
           <line class="grid" x1="800" y1="80" x2="800" y2="560"/>
 
-          <text class="tick" x="160" y="584" text-anchor="middle">0</text>
-          <text class="tick" x="320" y="584" text-anchor="middle">80</text>
-          <text class="tick" x="480" y="584" text-anchor="middle">160</text>
-          <text class="tick" x="640" y="584" text-anchor="middle">240</text>
-          <text class="tick" x="800" y="584" text-anchor="middle">320</text>
+          <text class="label-tick" x="160" y="584" text-anchor="middle">0</text>
+          <text class="label-tick" x="320" y="584" text-anchor="middle">80</text>
+          <text class="label-tick" x="480" y="584" text-anchor="middle">160</text>
+          <text class="label-tick" x="640" y="584" text-anchor="middle">240</text>
+          <text class="label-tick" x="800" y="584" text-anchor="middle">320</text>
 
-          <text class="axis-title" x="160" y="612">REQUEST SIZE (KB) · 0–320</text>
+          <text class="label-axis-title" x="160" y="612">REQUEST SIZE (KB) · 0–320</text>
         </g>
 
         <g data-chart-element="series" id="series-cached" data-series-label="Cached responses (circle markers)">

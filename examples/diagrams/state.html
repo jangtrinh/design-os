@@ -106,7 +106,7 @@
   /* Stroke weight is uniform: in this grammar it means nothing, so it must not vary. */
   .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
   .edge--back { stroke-dasharray: 6 4; }
-  .edge-event { fill: var(--diagram-ink); font-size: 11px; }
+  .label-edge-event { fill: var(--diagram-ink); font-size: 11px; }
   .edge-mask { fill: var(--diagram-paper); }
 </style>
 </head>
@@ -196,25 +196,25 @@
 
         <!-- Labels sit at the path midpoint, masked so no stroke runs under the text. -->
         <rect class="edge-mask" x="264" y="176" width="96" height="16"/>
-        <text class="edge-event" x="312" y="188" text-anchor="middle">trial ends</text>
+        <text class="label-edge-event" x="312" y="188" text-anchor="middle">trial ends</text>
 
         <rect class="edge-mask" x="520" y="176" width="96" height="16"/>
-        <text class="edge-event" x="568" y="188" text-anchor="middle">payment fails</text>
+        <text class="label-edge-event" x="568" y="188" text-anchor="middle">payment fails</text>
 
         <rect class="edge-mask" x="776" y="176" width="96" height="16"/>
-        <text class="edge-event" x="824" y="188" text-anchor="middle">grace ends</text>
+        <text class="label-edge-event" x="824" y="188" text-anchor="middle">grace ends</text>
 
         <rect class="edge-mask" x="392" y="92" width="96" height="16"/>
-        <text class="edge-event" x="440" y="104" text-anchor="middle">renews</text>
+        <text class="label-edge-event" x="440" y="104" text-anchor="middle">renews</text>
 
         <rect class="edge-mask" x="676" y="76" width="112" height="16"/>
-        <text class="edge-event" x="732" y="88" text-anchor="middle">user cancels</text>
+        <text class="label-edge-event" x="732" y="88" text-anchor="middle">user cancels</text>
 
         <rect class="edge-mask" x="504" y="320" width="128" height="20"/>
-        <text class="edge-event" x="568" y="336" text-anchor="middle">payment clears</text>
+        <text class="label-edge-event" x="568" y="336" text-anchor="middle">payment clears</text>
 
         <rect class="edge-mask" x="960" y="272" width="88" height="16"/>
-        <text class="edge-event" x="968" y="284">data purged</text>
+        <text class="label-edge-event" x="968" y="284">data purged</text>
       </svg>
     </div>
   </div>
