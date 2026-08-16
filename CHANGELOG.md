@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-08-16 - Root rules are decided by the selector's subject
+
+### Fixed
+- `root-overflow-x-hidden` no longer false-flags descendant rules. It matched the root
+  name anywhere in the selector, so `body.dark .card { overflow: hidden }` — a very common
+  theming shape — was reported as a root rule.
+- The colour-mode scan behind `mode-invisible-surface` had the same defect, where a dark
+  descendant rule could decide the whole document's mode and silence a real finding.
+
+### Changed
+- Both now read `selectorSubjectIsRoot` from `taste-checks-shared`: the subject (rightmost
+  compound) is what a rule actually styles. One answer, two consumers — repairing one can no
+  longer leave the other broken. Roots wrapped in a functional pseudo (`:is(body)`) are not
+  recognised; the limit is stated beside the helper and pinned by a test.
+
 ## 2026-08-16 - The scrub-encode floor gets its emitter
 
 `ui scrub-lint` could fail a clip whose encode missed the floor, but nothing produced one
