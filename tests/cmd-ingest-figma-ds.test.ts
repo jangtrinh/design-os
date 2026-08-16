@@ -280,4 +280,25 @@ describe("ui ingest-figma-ds — error paths", () => {
     expect(code).toBe(1);
     expect(env.error?.code).toBe("BAD_ARG");
   });
+
+  it("SEALED_PATH_COLLISION when --out resolves to a directory named 'design'", () => {
+    // The sealed path belongs to `ds init` / `ds import`, which write a
+    // manifest-backed registry there. Landing this command's UNSEALED bundle at
+    // the same path leaves loadDesignSystem reading a registry with no manifest.
+    const sealedDir = join(out, "design");
+    const { code, env } = json(["ingest-figma-ds", DS, "--out", sealedDir, "--json"]);
+    expect(code).toBe(1);
+    expect(env.error?.code).toBe("SEALED_PATH_COLLISION");
+    // Refused BEFORE any write — a partial bundle at the sealed path would be
+    // worse than the collision it is guarding against.
+    expect(existsSync(join(sealedDir, "component-registry.json"))).toBe(false);
+    expect(existsSync(join(sealedDir, "tokens.json"))).toBe(false);
+  });
+
+  it("does not refuse an --out that merely CONTAINS 'design' as a substring", () => {
+    const notSealed = join(out, "design-system-export");
+    const { code, env } = json(["ingest-figma-ds", DS, "--out", notSealed, "--json"]);
+    expect(code).toBe(0);
+    expect(env.ok).toBe(true);
+  });
 });

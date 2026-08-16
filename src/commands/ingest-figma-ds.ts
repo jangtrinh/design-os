@@ -72,6 +72,7 @@ Error codes:
   READ_ERROR       ds.json exists but cannot be read
   BAD_JSON         ds.json is not valid JSON
   BAD_DS           ds.json is not a scan-design-system output (missing components/tokens/styles)
+  SEALED_PATH_COLLISION  --out resolves to a directory named 'design' — the sealed DS path
   WRITE_ERROR      An output file could not be written
 `;
 
@@ -151,9 +152,23 @@ function runIngest(parsed: ParsedArgs): CommandResult {
 
   // 4. Validate shape + transform
   let result;
+  // Guard: --out must not resolve to a directory literally named "design" — that is
+  // the sealed path (design/component-registry.json, design/ds.manifest.json) that
+  // `ds init` and `ds import` own. This command writes the portable, UNSEALED bundle;
+  // landing it at the sealed path would drop an unsealed component-registry.json where
+  // loadDesignSystem expects a manifest-backed one. Refuse before any write.
+  const outDir = resolve(flagStr(parsed, "out") ?? process.cwd());
+  if (basename(outDir) === "design") {
+    return err(
+      "SEALED_PATH_COLLISION",
+      `--out '${outDir}' is the sealed design-system path (a directory named 'design') — ` +
+        "ingest-figma-ds writes an unsealed bundle and must not land it there. Use a " +
+        "different --out, then 'ui ds import' to seal it into a project's design/ directory.",
+    );
+  }
+
   try {
     const ds = parseDsFile(json);
-    const outDir = resolve(flagStr(parsed, "out") ?? process.cwd());
     const name = flagStr(parsed, "name") ?? basename(outDir);
     const source = `figma scan-design-system (${basename(dsPath)})`;
     result = { ...ingestDesignSystem(ds, name, source), outDir, source, name };
@@ -162,8 +177,7 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     throw e;
   }
 
-  // 5. Write the portable stores
-  const { outDir } = result;
+  // 5. Write the portable stores (outDir was resolved and guarded above)
   const tokensPath = join(outDir, "tokens.json");
   // Stage-4 N6 — route through the shared resolver so a foreign artifact (e.g. a project's
   // own generated component registry) already occupying `component-registry.json` is never
