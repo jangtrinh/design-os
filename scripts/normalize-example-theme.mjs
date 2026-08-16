@@ -105,18 +105,70 @@ function replaceVarFallbacks(region, palette) {
   return out + region.slice(cursor);
 }
 
-function applyPalette(region, palette) {
-  return replaceVarFallbacks(region, palette)
-    // Direct declarations: --color-x: <value>;  (the batch that defined tokens outright)
+/**
+ * Convert an artifact that *declares* the base tokens into one that *consumes* them.
+ *
+ * One batch wrote `--color-background: #fbfaf8;` and referenced it bare as
+ * `var(--color-background)`. That renders correctly standalone but inverts the contract:
+ * a declaration in `:root` overrides whatever a host project compiled, so the artifact
+ * imposes its own skin instead of inheriting the design system. Dropping the declaration
+ * and moving the value into the `var()` fallback leaves standalone rendering byte-identical
+ * while letting a real design system win.
+ */
+function consumeInsteadOfDeclare(region, palette) {
+  return region
+    // Drop the base declarations along with the line they occupy.
+    .replace(new RegExp(`^[ \\t]*--color-(?:${NAMES})\\s*:[^;]+;[ \\t]*\\r?\\n`, "gm"), "")
+    // Give any now-bare consumer the canonical fallback.
     .replace(
-      new RegExp(`(--color-(${NAMES})\\s*:\\s*)[^;]+;`, "g"),
-      (_m, prefix, name) => `${prefix}${palette[name]};`,
+      new RegExp(`var\\(\\s*--color-(${NAMES})\\s*\\)`, "g"),
+      (_m, name) => `var(--color-${name}, ${palette[name]})`,
     );
+}
+
+function applyPalette(region, palette) {
+  return replaceVarFallbacks(consumeInsteadOfDeclare(region, palette), palette);
+}
+
+const ROLE_LINE = /^[ \t]*--(?:diagram|chart)-[\w-]+\s*:.*var\(--color-[\s\S]*?;[ \t]*$/gm;
+
+/**
+ * Make sure each dark block restates the whole role layer.
+ *
+ * The batch that declared base tokens relied on redeclaring `--color-*` inside its dark
+ * blocks; its role layer sat only in `:root`. Once the base declarations are dropped,
+ * nothing drives dark mode and the page renders light with dark-on-light text. The other
+ * batch never had this problem because it restates every role with a dark fallback — so
+ * this brings the stragglers to the same shape rather than inventing a third one.
+ *
+ * Roles the dark block already sets are left alone: a grammar may legitimately shift a
+ * mix ratio for contrast, and that intent should survive.
+ */
+function backfillDarkRoles(source) {
+  const lightBlock = /:root\s*\{([\s\S]*?)\n\s*\}/.exec(source);
+  if (lightBlock === null) return source;
+  const lightRoles = lightBlock[1].match(ROLE_LINE) ?? [];
+  if (lightRoles.length === 0) return source;
+
+  const roleName = (line) => /--((?:diagram|chart)-[\w-]+)\s*:/.exec(line)?.[1];
+
+  return source.replace(
+    /(:root\[data-theme="dark"\]\s*\{|:root:not\(\[data-theme="light"\]\)\s*\{)([\s\S]*?)(\n[ \t]*\})/g,
+    (_match, open, body, close) => {
+      const present = new Set((body.match(ROLE_LINE) ?? []).map(roleName));
+      const indent = /^([ \t]*)--/m.exec(body)?.[1] ?? "    ";
+      const missing = lightRoles
+        .filter((line) => !present.has(roleName(line)))
+        .map((line) => indent + applyPalette(line.trim(), DARK));
+      if (missing.length === 0) return open + body + close;
+      return `${open}\n${missing.join("\n")}${body.replace(/^\n/, "\n")}${close}`;
+    },
+  );
 }
 
 function normalize(source) {
   const [light, dark] = splitAtDark(source);
-  return applyPalette(light, LIGHT) + applyPalette(dark, DARK);
+  return backfillDarkRoles(applyPalette(light, LIGHT) + applyPalette(dark, DARK));
 }
 
 const files = DIRS.flatMap((dir) =>
