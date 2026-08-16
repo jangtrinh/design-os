@@ -133,3 +133,37 @@ describe('corpus shares one canonical palette', () => {
     }
   });
 });
+
+/**
+ * An artifact consumes design tokens; it must never declare them.
+ *
+ * A `--color-background: #fbfaf8;` in `:root` renders fine standalone and is still wrong:
+ * it overrides whatever a host project compiled, so the artifact imposes its own skin
+ * instead of inheriting the design system — the inverse of the contract in
+ * diagram-craft.md. The value belongs in the `var()` fallback, which applies only when
+ * nothing else defines the token.
+ */
+describe('corpus consumes design tokens rather than declaring them', () => {
+  const all = [
+    ...diagramExamples.map((n) => [n, join(DIAGRAM_DIR, n)] as const),
+    ...chartExamples.map((n) => [n, join(CHART_DIR, n)] as const),
+  ];
+
+  it.each(all)('%s declares no base --color-* token', (_name, path) => {
+    const offending = readFileSync(path, 'utf8')
+      .split('\n')
+      .filter((line) => /^\s*--color-[a-z0-9-]+\s*:/.test(line))
+      .map((line) => line.trim());
+    expect(offending).toEqual([]);
+  });
+
+  // Dark mode has to be driven by the role layer, not by redeclaring the base tokens —
+  // otherwise removing a declaration silently leaves the page rendering light.
+  it.each(all)('%s drives dark mode through its role layer', (_name, path) => {
+    const html = readFileSync(path, 'utf8');
+    const darkStart = html.indexOf(':root[data-theme="dark"]');
+    expect(darkStart, 'expected a dark block').toBeGreaterThan(-1);
+    const darkBlock = html.slice(darkStart, html.indexOf('}', darkStart));
+    expect(darkBlock).toMatch(/--(?:diagram|chart)-(?:paper|ink)\s*:/);
+  });
+});
