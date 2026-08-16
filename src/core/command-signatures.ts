@@ -337,6 +337,15 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "scrub-lint": {
+    summary: "The scrub-encode floor checked on an encoded clip",
+    signature: {
+      summary: "Walk an mp4's box tree and check faststart / no audio / GOP length; exit 1 on violations",
+      positionals: [{ name: "file.mp4", required: true, summary: "The clip to check — one that will be SCRUBBED, not a playback video" }],
+      flags: [],
+      errorCodes: [...IO_CODES, "NOT_ISO_BMFF"],
+    },
+  },
   "taste-lint": {
     summary: "Deterministic taste-rubric floor for generated HTML",
     signature: {

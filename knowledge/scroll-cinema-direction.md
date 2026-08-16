@@ -189,10 +189,18 @@ advice. They run inside `ui taste-lint <file.html>` on the Motion axis, at error
 | `video-scrub-no-reduced-motion` | scroll drives `currentTime` and nothing in the document branches on `prefers-reduced-motion` |
 | `video-scrub-attrs` | a scrubbed `<video>` is missing `muted` or `playsinline` |
 | `safe-area-viewport-fit` | `env(safe-area-inset-*)` is used without `viewport-fit=cover` in the viewport meta |
+| `video-poster-missing` *(warning)* | a scrubbed `<video>` has no `poster` to hold while the clip loads |
 
 The first two are gated on **real scrub wiring** — a `currentTime` assignment *and* a scroll
 source — so an ordinary page with a decorative video stays silent. The third is not gated:
 that trap belongs to any page reaching for safe areas.
+
+**The encoded clip has its own checker.** `ui scrub-lint <file.mp4>` reads the container —
+an ISO-BMFF box walk, no decoding and no ffmpeg — and enforces the encode floor directly:
+`scrub-no-faststart` (moov after mdat), `scrub-has-audio`, `scrub-gop-too-long`,
+`scrub-no-video`. Point it only at a clip that will be **scrubbed**: a playback video is
+correctly encoded with long GOPs, and no heuristic can tell the two apart, since both are
+silent and both are faststart.
 
 **What this floor CANNOT see.** `taste-lint` reads one HTML file. A production scroll-cinema
 keeps its engine in an external `scrub-engine.js`, and **none of the scrub checks reach it** —
