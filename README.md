@@ -484,11 +484,14 @@ asks. A non-interactive run skips it. `--with-gflow` / `--no-gflow` answer ahead
 Skipping costs nothing but the ability to generate *new* footage, and `design-os doctor`
 reports the gap up front instead of failing mid-generation.
 
-| Get it | How | What you get |
-|---|---|---|
-| **Kernel** | `npm i -g ease-design` | the 42-command `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS, tenant scroll engine |
-| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD + recall, rendered a11y, heartbeat/evolution, and the opt-in gflow browser hand |
-| **Figma plugin** | [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) | the plugin + `figma-agent` CLI + the 1:1 mirror — versioned in its own repo |
+| Get it | How | What you get | Update |
+|---|---|---|---|
+| **Kernel** | `npm i -g ease-design` | the 42-command `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS, tenant scroll engine | `npm i -g ease-design@latest` |
+| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD + recall, rendered a11y, heartbeat/evolution, and the opt-in gflow browser hand | `git pull` + `design-os update` |
+| **Figma plugin** | [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) | the plugin + `figma-agent` CLI + the 1:1 mirror — versioned in its own repo | its own repo's releases |
+
+The `ui` kernel never phones home — it is deterministic and network-free by design, so it
+will not nag about new versions; updating is always your move, with the one-liner above.
 
 ---
 
