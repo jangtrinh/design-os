@@ -15,6 +15,7 @@
  *   video-scrub-no-reduced-motion  error  scroll drives currentTime, nothing branches on reduce
  *   video-scrub-attrs              error  a scrubbed video missing muted / playsinline
  *   safe-area-viewport-fit         error  env(safe-area-inset-*) without viewport-fit=cover
+ *   video-poster-missing           warn   a scrubbed <video> with no poster to hold
  */
 import type { TasteFinding } from "./taste-lint.js";
 import { lineOf } from "./taste-checks-shared.js";
@@ -111,11 +112,37 @@ export function checkSafeAreaViewportFit(html: string): TasteFinding[] {
   }];
 }
 
+/**
+ * video-poster-missing — the phone floor says hold the still until the clip
+ * paints its first frame. A scrubbed <video> with no `poster` has nothing to
+ * hold, so the section is blank for as long as the fetch takes.
+ *
+ * A warning, not an error: an engine can supply the poster from script, so the
+ * absent attribute is a strong smell rather than proof.
+ */
+export function checkVideoPosterMissing(html: string): TasteFinding[] {
+  const src = code(html);
+  if (!usesScrollScrub(src)) return [];
+  const findings: TasteFinding[] = [];
+  const tag = /<video\b[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = tag.exec(src)) !== null) {
+    if (/\bposter\s*=/i.test(m[0])) continue;
+    findings.push({
+      checkId: "video-poster-missing", axis: AXIS, severity: "warning",
+      line: lineOf(src, m.index),
+      message: "scrubbed <video> has no poster — the section stays blank until the clip paints its first frame, which on a slow connection is the whole fold (scroll-cinema-direction.md, phone floors)",
+    });
+  }
+  return findings;
+}
+
 /** Every scroll-scrub check, in checkId order. */
 export function videoScrubChecks(html: string): TasteFinding[] {
   return [
     ...checkSafeAreaViewportFit(html),
     ...checkVideoScrubAttrs(html),
     ...checkVideoScrubNoReducedMotion(html),
+    ...checkVideoPosterMissing(html),
   ];
 }
