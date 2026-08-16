@@ -11,7 +11,7 @@
  * imports nothing back). Pure string/regex — no DOM, no deps.
  */
 import type { LayoutFinding } from "./layout-lint.js";
-import { cssRegions, cssRules, lineOf } from "./taste-checks-shared.js";
+import { cssRegions, cssRules, lineOf, selectorSubjectIsRoot } from "./taste-checks-shared.js";
 
 // ─── width: 100vw (scrollbar-gutter overflow) ───────────────────────────────────
 
@@ -43,23 +43,6 @@ export function checkCss100vwWidth(html: string): LayoutFinding[] {
 
 /** `overflow` or `overflow-x` (not `-y`) set to a value containing `hidden`. */
 const OVERFLOW_X_HIDDEN = /overflow(?:-x)?\s*:\s*[^;}]*\bhidden\b/i;
-
-/**
- * True when the SUBJECT (rightmost compound) of any comma-separated selector is a
- * root element — `html`/`body` (with optional class/attr/pseudo, but not
- * `.body-text`) or `:root`. The subject is what the rule actually styles, so a
- * descendant rule like `html.js .ln { overflow: hidden }` targets `.ln`, NOT the
- * root, and must not flag. (The old start-anchored match mis-read every
- * `html…`/`body…`-prefixed descendant selector — e.g. `body.dark .card` — as a
- * root rule, a very common false positive.)
- */
-function selectorSubjectIsRoot(selector: string): boolean {
-  return selector.split(",").some((part) => {
-    const compounds = part.trim().split(/[\s>+~]+/);
-    const subject = compounds[compounds.length - 1] ?? "";
-    return /^(?:html|body)(?![\w-])/i.test(subject) || /^:root(?![\w-])/i.test(subject);
-  });
-}
 
 /**
  * root-overflow-x-hidden: `overflow-x: hidden` (or shorthand `overflow: hidden`)
