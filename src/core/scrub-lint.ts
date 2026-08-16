@@ -17,6 +17,8 @@
  * The command layer owns all IO.
  */
 
+import { SCRUB_ENCODE_FLOOR } from "./scrub-encode-floor.js";
+
 export interface ScrubFinding {
   checkId: string;
   severity: "error" | "warning";
@@ -39,7 +41,8 @@ export interface ScrubProbe {
   readonly gop: number | null;
 }
 
-const MAX_GOP = 12; // knowledge floor is "small GOP (-g 8)"; 12 leaves headroom for VFR
+// The floor lives in one place so the emitter and this linter cannot drift apart.
+const MAX_GOP = SCRUB_ENCODE_FLOOR.maxGopFrames;
 
 /** Read a 32-bit big-endian unsigned int. */
 function u32(b: Uint8Array, at: number): number {

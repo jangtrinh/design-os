@@ -141,6 +141,12 @@ scrubbing benefit once blobs are in play.
 Encode every clip in the chain with the same settings — uniform quality is part of the
 one-take illusion.
 
+**Do not retype this table into ffmpeg.** `ui scrub-scaffold <dir>` emits `build-assets.sh`
+carrying every knob above, plus the poster leg; `ui scrub-lint <file.mp4>` checks the result.
+The two read their numbers from one definition in the binary, so the command that produces
+the floor and the check that enforces it cannot drift apart. Retyping the table is how a
+project ends up with one clip at `crf 23` that reads as a cut.
+
 **Mobile is a native portrait chain, not a crop.** A 16:9 clip on a tall phone shows only
 its centre. Render 9:16 natively; encode narrower (~720 wide) with a **tighter GOP**, because
 a phone decoder's seek cost scales with GOP length. A centre-crop is a **fallback only** — and
@@ -201,6 +207,9 @@ an ISO-BMFF box walk, no decoding and no ffmpeg — and enforces the encode floo
 `scrub-no-video`. Point it only at a clip that will be **scrubbed**: a playback video is
 correctly encoded with long GOPs, and no heuristic can tell the two apart, since both are
 silent and both are faststart.
+
+Its emitter is `ui scrub-scaffold` — the pair named above. A floor with only a checker tells
+you at render time what a command could have gotten right the first time.
 
 **What this floor CANNOT see.** `taste-lint` reads one HTML file. A production scroll-cinema
 keeps its engine in an external `scrub-engine.js`, and **none of the scrub checks reach it** —
