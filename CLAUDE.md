@@ -149,6 +149,16 @@ a slow, taste-sensitive **marketing body** and a fast, mechanical **changelog** 
   adapter, four files absent from `main`) and one uncommitted guard worth recovering.
   **Before deleting a branch, prove its content landed; never infer it from ancestry.**
 
+- **A GREEN assertion is a claim too. Feed it an input that MUST turn it red.** The mirror of
+  "a zero is a claim", and it cost a false green in the same repo: a test asserting the emitted
+  build script contains `-an` stayed green after `-an` was deleted from the ffmpeg call, because
+  it matched the **comment explaining `-an`** two lines above. The probe caught the command's
+  documentation, not the command. So when the file under assertion holds both instructions and
+  prose — a script with `#` comments, HTML with `<!-- -->`, config with doc-strings — **strip the
+  commentary before matching and anchor to the line shape** (`/^\s+-an /m`), never `toContain`
+  over the whole file. And break **every** knob, not a sample: three of the four breaks in that
+  session went correctly red, so stopping at two would have certified a guard that does not guard.
+
 ## [IMPORTANT] ES Workflow (mandatory)
 
 - Every coding task: apply the `/es-lazy` ladder — reuse codebase → stdlib → native platform → installed dep → one line → only then minimum code. Deliberate corner-cuts carry an `es-debt: <ceiling>, <upgrade trigger>` comment.
