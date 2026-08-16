@@ -78,3 +78,58 @@ describe('corpus is self-contained and token-bound', () => {
     expect(html).toMatch(/\[data-theme="dark"\]|prefers-color-scheme:\s*dark/);
   });
 });
+
+/**
+ * One palette across the whole corpus.
+ *
+ * The examples were authored in batches and drifted into three skins — two warm ones a
+ * shade apart and a third on a blue accent. Twenty-eight artifacts only read as one
+ * system if they share a ground, so the canonical values are asserted here rather than
+ * left to whoever adds the next grammar.
+ */
+describe('corpus shares one canonical palette', () => {
+  const CANONICAL = {
+    light: { background: '#fbfaf8', foreground: '#1a1a17', accent: '#b4531f' },
+    dark: { background: '#14140f', foreground: '#f2efe9', accent: '#e08c4a' },
+  };
+
+  const all = [
+    ...diagramExamples.map((n) => [n, join(DIAGRAM_DIR, n)] as const),
+    ...chartExamples.map((n) => [n, join(CHART_DIR, n)] as const),
+  ];
+
+  it.each(all)('%s uses the canonical light palette', (_name, path) => {
+    const html = readFileSync(path, 'utf8');
+    // Everything before the first dark selector is the light region.
+    const light = html.split(':root[data-theme="dark"]')[0] ?? '';
+    for (const [role, value] of Object.entries(CANONICAL.light)) {
+      const used = [...light.matchAll(new RegExp(`--color-${role}\\s*[,:]\\s*(#[0-9a-fA-F]{3,8})`, 'g'))]
+        .map((m) => m[1]!.toLowerCase());
+      for (const found of used) expect(found).toBe(value);
+    }
+  });
+
+  it.each(all)('%s uses the canonical dark palette', (_name, path) => {
+    const html = readFileSync(path, 'utf8');
+    const darkStart = html.indexOf(':root[data-theme="dark"]');
+    if (darkStart === -1) return;
+    const dark = html.slice(darkStart);
+    for (const [role, value] of Object.entries(CANONICAL.dark)) {
+      const used = [...dark.matchAll(new RegExp(`--color-${role}\\s*[,:]\\s*(#[0-9a-fA-F]{3,8})`, 'g'))]
+        .map((m) => m[1]!.toLowerCase());
+      for (const found of used) expect(found).toBe(value);
+    }
+  });
+
+  // A literal that never resolves through a token would pin the artifact to one skin and
+  // ignore a project design system entirely.
+  it.each(all)('%s routes every base colour through a token', (_name, path) => {
+    const html = readFileSync(path, 'utf8');
+    const declarations = [...html.matchAll(/--(diagram|chart)-[a-z0-9-]+\s*:\s*([^;]+);/g)].map((m) => m[2]!);
+    for (const value of declarations) {
+      if (/#[0-9a-fA-F]{3,8}|\boklch\(|\brgb\(/.test(value)) {
+        expect(value, `role layer must consume a token, got: ${value.trim()}`).toMatch(/var\(--color-/);
+      }
+    }
+  });
+});
