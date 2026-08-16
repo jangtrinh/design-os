@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-08-16 - Diagram grammars expanded, chart capability added
+
+Vendors [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design)
+(MIT, pinned at `09df49d8`) into the knowledge core. Attribution and the upstream
+trademark note are recorded in `THIRD_PARTY_LICENSES.md`.
+
+### Added
+- Sixteen new diagram grammars — swimlane, data-flow, process, high-level, dp-integration,
+  medallion, it-state, dp-security-matrix, loop, er, flowchart, layers, nested, org-chart,
+  state, tree — bringing `/ui:diagram` to nineteen. `diagram-craft.md` gains an explicit
+  admission bar and collision-family precedence rules for the step-and-role,
+  platform-overview, and hierarchy families.
+- `/ui:chart` and `ui chart lint`: a sibling capability for standalone charts of quantities
+  across nine grammars (bar, line, scatter, radar, gantt, timeline, quadrant, venn,
+  pyramid). Its boundary against `/ui:generate` (dashboard mode) and `/ui:slides` is drawn
+  on two observable questions — is the chart the whole artifact, and does it need
+  interactivity or live data. `chart-craft.md` carries the honest-encoding floor: zero
+  baselines for length-encoded marks, declared truncation, no dual axes, no fabricated data.
+- `hardcoded-svg-color` check in both linters, closing a real gap: `ds-usage-lint` reads CSS
+  declarations only, so a colour in an SVG presentation attribute (`fill="#eb6c36"`) passed
+  every gate while bypassing the design system entirely.
+- Token-bound diagram scaffolds under `templates/diagram-scaffolds/`. Four roles the DS has
+  no token for (soft, rule-solid, accent-tint, link) are derived with `color-mix` from real
+  tokens rather than pinned to literals; light and dark ship in one file.
+- `knowledge/domain-packs/lakehouse.md` — concrete platform vocabulary kept out of the core
+  grammars so those stay vendor-neutral. Every grammar remains usable with the pack absent.
+- `knowledge/diagram-icons.md` — 86 monochrome `currentColor` icons with per-icon
+  attribution, plus the precedence split against Lucide.
+- Routing tests that prove decidability rather than asserting shape: trigger tokens are
+  pairwise disjoint across all twenty-eight grammars spanning both capabilities, each
+  collision family cross-names its members, and a golden corpus of one-line briefs resolves
+  each to exactly one grammar.
+- `src/core/svg-artifact.ts` — the owned-SVG contract shared by both linters, so a rule
+  fixed once is fixed for both.
+
+### Changed
+- `diagonal-line` is now grammar-gated rather than tag-gated. Applied to every grammar it
+  made loop, org-chart, and tree impossible to author; the strict rule remains the default,
+  so an unrecognised grammar is still geometry-checked. The check also now catches a
+  diagonal drawn as a `<path>`, closing the tag-swap escape hatch.
+- `templates/workflows/diagram.md` invokes `ui a11y-lint` and `ui ds-usage-lint` alongside
+  `ui taste-lint`; previously only the latter ran.
+- Runtime adapters now install 18 workflows and 14 craft skills.
+
+### Excluded
+- The upstream Stata icon is not vendored: its source (IcePanel / techicons.dev) publishes
+  no verifiable licence grant. SAS is retained under its Wikimedia public-domain dedication.
+
 ## 2026-08-16 - Gradient fields, rendered and corrected
 
 ### Added
@@ -15,6 +63,7 @@
   `sourceVersion` (2.4.24, what the revision says) and `packageVersion` (2.4.20, what can
   actually be loaded), and records that the two were compared key-by-key and agree on every
   render-relevant key.
+
 
 ## 2026-08-16 - ShaderGradient as a T6 gradient-field capability
 
@@ -44,6 +93,7 @@
 - `extractRevisionToken` and `monthsBetween` moved to `src/core/knowledge-ledger-provenance.ts`
   and are shared by both ledger pairs and the knowledge linter, replacing three copies of the
   same helper.
+
 
 ## 2026-08-15 - Native diagram craft
 

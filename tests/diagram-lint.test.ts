@@ -166,9 +166,80 @@ describe('lintDiagram - content safety', () => {
   });
 });
 
+describe('lintDiagram - hardcoded SVG color', () => {
+  // ds-usage-lint only reads CSS declarations, so a literal in a presentation attribute
+  // is invisible to it. These cases are the only thing standing between a vendored
+  // artifact and a design system it never actually uses.
+  it.each([
+    ['a hex fill', 'fill="#eb6c36"'],
+    ['a hex stroke', 'stroke="#4f5d75"'],
+    ['an rgb() fill', 'fill="rgb(235,108,54)"'],
+    ['an oklch() stroke', 'stroke="oklch(0.7 0.15 40)"'],
+    ['a CSS color keyword', 'fill="rebeccapurple"'],
+    ['a gradient stop color', 'stop-color="#fff"'],
+  ])('flags %s', (_label, attr) => {
+    const inner = ARCH_INNER.replace('<rect width="12" height="12"/>', `<rect width="12" height="12" ${attr}/>`);
+    const ids = lintDiagram(svgDoc(inner)).findings.map((item) => item.checkId);
+    expect(ids).toContain('hardcoded-svg-color');
+  });
+
+  it.each([
+    ['a token var', 'fill="var(--color-accent)"'],
+    ['currentColor', 'stroke="currentColor"'],
+    ['none', 'fill="none"'],
+    ['a gradient reference', 'fill="url(#grad)"'],
+    ['transparent', 'fill="transparent"'],
+  ])('accepts %s', (_label, attr) => {
+    const inner = ARCH_INNER.replace('<rect width="12" height="12"/>', `<rect width="12" height="12" ${attr}/>`);
+    const ids = lintDiagram(svgDoc(inner)).findings.map((item) => item.checkId);
+    expect(ids).not.toContain('hardcoded-svg-color');
+  });
+});
+
+describe('lintDiagram - orthogonality is grammar-gated', () => {
+  const diagonalEdge = '<line data-diagram-element="edge" id="e9" x1="0" y1="0" x2="20" y2="20"/>';
+  const diagonalInner = ARCH_INNER + diagonalEdge;
+
+  it.each(['loop', 'org-chart', 'tree'])('exempts the non-orthogonal grammar %s', (grammar) => {
+    const ids = lintDiagram(svgDoc(diagonalInner, { 'data-diagram-grammar': grammar })).findings
+      .map((item) => item.checkId);
+    expect(ids).not.toContain('diagonal-line');
+  });
+
+  it.each(['architecture', 'swimlane', 'medallion', 'er'])('still enforces it for %s', (grammar) => {
+    const ids = lintDiagram(svgDoc(diagonalInner, { 'data-diagram-grammar': grammar })).findings
+      .map((item) => item.checkId);
+    expect(ids).toContain('diagonal-line');
+  });
+
+  it('enforces it when the grammar is unrecognised, rather than skipping the check', () => {
+    const ids = lintDiagram(svgDoc(diagonalInner, { 'data-diagram-grammar': 'mind-map' })).findings
+      .map((item) => item.checkId);
+    expect(ids).toContain('diagonal-line');
+  });
+
+  it('catches a diagonal drawn as a path, so swapping the tag is not an escape hatch', () => {
+    const inner = ARCH_INNER + '<path data-diagram-element="edge" id="e8" d="M 0 0 L 40 25"/>';
+    const ids = lintDiagram(svgDoc(inner)).findings.map((item) => item.checkId);
+    expect(ids).toContain('diagonal-line');
+  });
+
+  it('permits an orthogonal elbow path', () => {
+    const inner = ARCH_INNER + '<path data-diagram-element="edge" id="e7" d="M 0 0 H 40 V 25"/>';
+    const ids = lintDiagram(svgDoc(inner)).findings.map((item) => item.checkId);
+    expect(ids).not.toContain('diagonal-line');
+  });
+
+  it('permits a deliberate curve, which several grammars specify for promotion arcs', () => {
+    const inner = ARCH_INNER + '<path data-diagram-element="edge" id="e6" d="M 0 0 C 20 0 20 25 40 25"/>';
+    const ids = lintDiagram(svgDoc(inner)).findings.map((item) => item.checkId);
+    expect(ids).not.toContain('diagonal-line');
+  });
+});
+
 describe('lintDiagram - root metadata', () => {
   it.each([
-    ['an invalid grammar value', { 'data-diagram-grammar': 'flowchart' }, 'grammar-value'],
+    ['an invalid grammar value', { 'data-diagram-grammar': 'mind-map' }, 'grammar-value'],
     ['an empty reading order', { 'data-reading-order': '' }, 'reading-order'],
     ['a dangling focal id', { 'data-focal-id': 'does-not-exist' }, 'focal-id'],
     ['an invalid source kind', { 'data-source-kind': 'yaml' }, 'source-kind'],

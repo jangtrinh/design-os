@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incident response runbook</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--focal { fill: var(--diagram-surface); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .flow-line { fill: var(--diagram-soft); font-size: 10px; }
+  .tool-line { fill: var(--diagram-soft); font-size: 10px; }
+
+  .lane-divider { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .lane-label { fill: var(--diagram-ink); font-size: 12px; }
+  .step-header { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .step-header--focal { fill: var(--diagram-accent); }
+
+  .role-badge { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .role-badge--focal { stroke: var(--diagram-accent); }
+  .role-key { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.08em; }
+  .role-key--focal { fill: var(--diagram-accent); }
+
+  /* One token-derived fill per payload code; the code text carries the meaning, the fill only groups. */
+  .chip { stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .chip--ls { fill: color-mix(in oklch, var(--diagram-muted) 18%, var(--diagram-paper)); }
+  .chip--db { fill: color-mix(in oklch, var(--diagram-link) 18%, var(--diagram-paper)); }
+  .chip--fl { fill: color-mix(in oklch, var(--diagram-link) 36%, var(--diagram-paper)); }
+  .chip-code { fill: var(--diagram-ink); font-size: 10px; letter-spacing: 0.06em; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge--focal { stroke: var(--diagram-accent); }
+  .edge--trigger { stroke-dasharray: 5 4; }
+  .legend-text { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Process</p>
+    <h1>Incident response runbook</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 984 628" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="process-title process-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="process"
+           data-reading-order="ltr-steps-ttb-lanes: node-oc-1, node-il-2, node-oc-3, node-il-4, node-cm-5, node-re-6"
+           data-focal-id="node-il-4"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="process-title">Incident response runbook</title>
+        <desc id="process-desc">Four actors — on-call, incident lead, comms, reliability — across six ordered steps read left to right. On-call detects the alert, the incident lead triages it, on-call mitigates, the incident lead verifies the fix as the focal step, comms notifies, and reliability reviews. A dashed orchestration trigger runs back from mitigate to triage when containment fails.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own colour via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+          <marker id="arrowhead-sm" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+            <path d="M 0 0 L 6 2.5 L 0 5 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!--
+          Lane grid per diagram-grammars/swimlane.md, widened for the badge, in-out, tool and
+          chip rows and declared here: step_slot_w 136, node_w 112, node_h 104, lane_h 128.
+          Every coordinate stays on the artifact's 4px grid; the routing corridor is 24px.
+        -->
+        <g id="grid">
+          <line class="lane-divider" x1="0" y1="36" x2="984" y2="36"/>
+          <line class="lane-divider" x1="0" y1="164" x2="984" y2="164"/>
+          <line class="lane-divider" x1="0" y1="292" x2="984" y2="292"/>
+          <line class="lane-divider" x1="0" y1="420" x2="984" y2="420"/>
+          <line class="lane-divider" x1="0" y1="548" x2="984" y2="548"/>
+          <line class="lane-divider" x1="140" y1="36" x2="140" y2="548"/>
+
+          <text class="step-header" x="24" y="24">Step</text>
+          <text class="step-header" x="208" y="24" text-anchor="middle">1 detect</text>
+          <text class="step-header" x="344" y="24" text-anchor="middle">2 triage</text>
+          <text class="step-header" x="480" y="24" text-anchor="middle">3 mitigate</text>
+          <text class="step-header step-header--focal" x="616" y="24" text-anchor="middle">4 verify</text>
+          <text class="step-header" x="752" y="24" text-anchor="middle">5 notify</text>
+          <text class="step-header" x="888" y="24" text-anchor="middle">6 review</text>
+
+          <text class="lane-label" x="24" y="104">On-call</text>
+          <text class="lane-label" x="24" y="232">Incident lead</text>
+          <text class="lane-label" x="24" y="360">Comms</text>
+          <text class="lane-label" x="24" y="488">Reliability</text>
+        </g>
+
+        <!-- Connectors precede node rectangles so node fills mask the line ends. -->
+        <path class="edge" data-diagram-element="edge" id="edge-oc-1-il-2"
+              d="M 264 100 H 336 Q 344 100 344 108 V 176" marker-end="url(#arrowhead)"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-il-2-oc-3"
+              d="M 400 228 H 472 Q 480 228 480 220 V 152" marker-end="url(#arrowhead)"/>
+
+        <path class="edge edge--focal" data-diagram-element="edge" id="edge-oc-3-il-4"
+              d="M 536 100 H 608 Q 616 100 616 108 V 176" marker-end="url(#arrowhead)"/>
+
+        <path class="edge edge--focal" data-diagram-element="edge" id="edge-il-4-cm-5"
+              d="M 672 228 H 744 Q 752 228 752 236 V 304" marker-end="url(#arrowhead)"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-cm-5-re-6"
+              d="M 808 356 H 880 Q 888 356 888 364 V 432" marker-end="url(#arrowhead)"/>
+
+        <!-- Re-test loop: leaves mitigate on its upstream side, since a backward edge cannot
+             exit the right edge. Dashed and unlabelled, per the trigger style. -->
+        <path class="edge edge--trigger" data-diagram-element="edge" id="edge-oc-3-il-2"
+              d="M 424 100 H 384 Q 376 100 376 108 V 176" marker-end="url(#arrowhead-sm)"/>
+
+        <g data-diagram-element="node" id="node-oc-1">
+          <rect class="node-shape" x="152" y="48" width="112" height="104" rx="4"/>
+          <rect class="role-badge" x="160" y="56" width="32" height="16" rx="4"/>
+          <text class="role-key" x="176" y="68" text-anchor="middle">OC</text>
+          <text class="node-label" x="208" y="92" text-anchor="middle">Detect</text>
+          <text class="flow-line" x="208" y="108" text-anchor="middle">alert → incident</text>
+          <text class="tool-line" x="208" y="124" text-anchor="middle">alerting</text>
+          <rect class="chip chip--ls" x="224" y="128" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="240" y="140" text-anchor="middle">LS</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-il-2">
+          <rect class="node-shape" x="288" y="176" width="112" height="104" rx="4"/>
+          <rect class="role-badge" x="296" y="184" width="32" height="16" rx="4"/>
+          <text class="role-key" x="312" y="196" text-anchor="middle">IL</text>
+          <text class="node-label" x="344" y="220" text-anchor="middle">Triage</text>
+          <text class="flow-line" x="344" y="236" text-anchor="middle">incident → severity</text>
+          <text class="tool-line" x="344" y="252" text-anchor="middle">on-call console</text>
+          <rect class="chip chip--ls" x="296" y="256" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="312" y="268" text-anchor="middle">LS</text>
+          <rect class="chip chip--db" x="360" y="256" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="376" y="268" text-anchor="middle">DB</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-oc-3">
+          <rect class="node-shape" x="424" y="48" width="112" height="104" rx="4"/>
+          <rect class="role-badge" x="432" y="56" width="32" height="16" rx="4"/>
+          <text class="role-key" x="448" y="68" text-anchor="middle">OC</text>
+          <text class="node-label" x="480" y="92" text-anchor="middle">Mitigate</text>
+          <text class="flow-line" x="480" y="108" text-anchor="middle">severity → fix</text>
+          <text class="tool-line" x="480" y="124" text-anchor="middle">deploy pipeline</text>
+          <rect class="chip chip--db" x="432" y="128" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="448" y="140" text-anchor="middle">DB</text>
+          <rect class="chip chip--db" x="496" y="128" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="512" y="140" text-anchor="middle">DB</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-il-4">
+          <rect class="node-shape node-shape--focal" x="560" y="176" width="112" height="104" rx="4"/>
+          <rect class="role-badge role-badge--focal" x="568" y="184" width="32" height="16" rx="4"/>
+          <text class="role-key role-key--focal" x="584" y="196" text-anchor="middle">IL</text>
+          <text class="node-label" x="616" y="220" text-anchor="middle">Verify</text>
+          <text class="flow-line" x="616" y="236" text-anchor="middle">fix → verified</text>
+          <text class="tool-line" x="616" y="252" text-anchor="middle">monitoring</text>
+          <rect class="chip chip--db" x="568" y="256" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="584" y="268" text-anchor="middle">DB</text>
+          <rect class="chip chip--db" x="632" y="256" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="648" y="268" text-anchor="middle">DB</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-cm-5">
+          <rect class="node-shape" x="696" y="304" width="112" height="104" rx="4"/>
+          <rect class="role-badge" x="704" y="312" width="32" height="16" rx="4"/>
+          <text class="role-key" x="720" y="324" text-anchor="middle">CM</text>
+          <text class="node-label" x="752" y="348" text-anchor="middle">Notify</text>
+          <text class="flow-line" x="752" y="364" text-anchor="middle">verified → notice</text>
+          <text class="tool-line" x="752" y="380" text-anchor="middle">status page</text>
+          <rect class="chip chip--db" x="704" y="384" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="720" y="396" text-anchor="middle">DB</text>
+          <rect class="chip chip--fl" x="768" y="384" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="784" y="396" text-anchor="middle">FL</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-re-6">
+          <rect class="node-shape" x="832" y="432" width="112" height="104" rx="4"/>
+          <rect class="role-badge" x="840" y="440" width="32" height="16" rx="4"/>
+          <text class="role-key" x="856" y="452" text-anchor="middle">RE</text>
+          <text class="node-label" x="888" y="476" text-anchor="middle">Review</text>
+          <text class="flow-line" x="888" y="492" text-anchor="middle">incident → actions</text>
+          <text class="tool-line" x="888" y="508" text-anchor="middle">issue tracker</text>
+          <rect class="chip chip--fl" x="840" y="512" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="856" y="524" text-anchor="middle">FL</text>
+        </g>
+
+        <g id="legend">
+          <text class="legend-text" x="24" y="576">Payload codes — LS alert stream · DB incident record · FL published report. Left chip is the input, right chip the output.</text>
+          <text class="legend-text" x="24" y="600">Connectors — muted solid is a routine handoff; accent solid enters and leaves the focal step; muted dashed is the re-test trigger back to triage.</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

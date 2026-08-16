@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order service request path — animated</title>
+<style>
+  /*
+   * Motion variant of the base diagram scaffold.
+   *
+   * This file carries an inline <script> and therefore CANNOT pass `ui diagram lint`,
+   * whose `no-script` check is absolute. That is deliberate: motion ships as a PAIR.
+   * The static diagram (../diagram-base.html) is the gated artifact; this variant is
+   * governed by knowledge/motion-craft.md and the checklist in knowledge/diagram-motion.md.
+   * The gate is never weakened to admit a script — the pair exists so it doesn't have to be.
+   *
+   * The source is complete before enhancement: every node, label, and connector is present
+   * in the markup. Script and CSS only reveal what is already there, so no-JS, reduced-motion,
+   * and print all show the finished diagram.
+   */
+  :root {
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+
+    --reveal-duration: 420ms;
+    --reveal-stagger: 120ms;
+  }
+
+  :root[data-theme="dark"] {
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--diagram-muted); margin-bottom: 8px; }
+  h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 16px; }
+
+  .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .controls button {
+    font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+    color: var(--diagram-ink); background: var(--diagram-surface);
+    border: 1px solid var(--diagram-rule-solid); border-radius: 4px;
+  }
+  .controls button:focus-visible { outline: 2px solid var(--diagram-accent); outline-offset: 2px; }
+  .status { font-size: 12px; color: var(--diagram-soft); }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: 1px; }
+  .node-shape--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+
+  /*
+   * Motion is opt-in and additive: it only applies once the controller sets
+   * data-motion="on". The default document state is the complete static frame, which is
+   * what a reader without JS, with reduced-motion, or printing will see.
+   */
+  [data-motion="on"] .step { opacity: 0; }
+  [data-motion="on"][data-playing="true"] .step {
+    animation: reveal var(--reveal-duration) ease-out forwards;
+  }
+  [data-motion="on"][data-playing="true"] .step-1 { animation-delay: calc(var(--reveal-stagger) * 0); }
+  [data-motion="on"][data-playing="true"] .step-2 { animation-delay: calc(var(--reveal-stagger) * 1); }
+  [data-motion="on"][data-playing="true"] .step-3 { animation-delay: calc(var(--reveal-stagger) * 2); }
+  [data-motion="on"][data-playing="true"] .step-4 { animation-delay: calc(var(--reveal-stagger) * 3); }
+
+  @keyframes reveal { from { opacity: 0; } to { opacity: 1; } }
+
+  /*
+   * Reduced motion wins over everything: the animation is neutralised, every step is
+   * visible, and the controls are removed rather than left as dead affordances.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    [data-motion="on"] .step,
+    [data-motion="on"][data-playing="true"] .step { opacity: 1; animation: none; }
+    .controls { display: none; }
+  }
+
+  @media print {
+    .step { opacity: 1 !important; animation: none !important; }
+    .controls { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · animated</p>
+    <h1>Order service request path</h1>
+
+    <div class="controls" data-diagram-controls hidden>
+      <button type="button" data-action="replay">Replay</button>
+      <button type="button" data-action="toggle">Pause</button>
+      <p class="status" role="status" aria-live="polite">Static view.</p>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 280" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="motion-title motion-desc"
+           data-diagram-grammar="architecture"
+           data-reading-order="left-to-right"
+           data-focal-id="node-orders">
+        <title id="motion-title">Order service request path</title>
+        <desc id="motion-desc">A client calls the API gateway, which routes to the order service; the order service writes to the orders database. Steps reveal left to right when motion is enabled; all steps are shown at once otherwise.</desc>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g class="step step-1" data-diagram-element="node" id="node-client">
+          <rect class="node-shape" x="48" y="104" width="144" height="64" rx="4"/>
+          <text class="node-label" x="120" y="140" text-anchor="middle">Client</text>
+        </g>
+
+        <line class="step step-2 edge" data-diagram-element="edge" id="edge-client-gateway"
+              x1="192" y1="136" x2="288" y2="136" marker-end="url(#arrowhead)"/>
+
+        <g class="step step-3" data-diagram-element="node" id="node-gateway">
+          <rect class="node-shape" x="288" y="104" width="144" height="64" rx="4"/>
+          <text class="node-label" x="360" y="140" text-anchor="middle">API gateway</text>
+        </g>
+
+        <line class="step step-4 edge" data-diagram-element="edge" id="edge-gateway-orders"
+              x1="432" y1="136" x2="528" y2="136" marker-end="url(#arrowhead)"/>
+
+        <g class="step step-4" data-diagram-element="node" id="node-orders">
+          <rect class="node-shape node-shape--focal" x="528" y="104" width="144" height="64" rx="4"/>
+          <text class="node-label" x="600" y="140" text-anchor="middle">Order service</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+<script>
+  /*
+   * Progressive enhancement only. The document is already complete and readable; this
+   * turns on a reveal and exposes controls for it. Anything that fails here leaves the
+   * finished diagram on screen.
+   */
+  (function () {
+    var root = document.documentElement;
+    var controls = document.querySelector('[data-diagram-controls]');
+    var status = controls && controls.querySelector('.status');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function setStatic(reason) {
+      root.removeAttribute('data-motion');
+      root.removeAttribute('data-playing');
+      if (controls) controls.hidden = true;
+      if (status) status.textContent = reason;
+    }
+
+    function enableMotion() {
+      root.setAttribute('data-motion', 'on');
+      root.setAttribute('data-playing', 'true');
+      if (controls) controls.hidden = false;
+      if (status) status.textContent = 'Playing reveal.';
+    }
+
+    // A user who asked for less motion gets the static frame, not a shorter animation.
+    if (reduced.matches) {
+      setStatic('Reduced motion: showing the complete diagram.');
+    } else {
+      enableMotion();
+    }
+
+    // Honour a change of preference mid-session.
+    var onChange = function (event) {
+      if (event.matches) setStatic('Reduced motion: showing the complete diagram.');
+      else enableMotion();
+    };
+    if (typeof reduced.addEventListener === 'function') reduced.addEventListener('change', onChange);
+
+    if (controls) {
+      controls.addEventListener('click', function (event) {
+        var action = event.target && event.target.getAttribute('data-action');
+        if (action === 'replay') {
+          root.removeAttribute('data-playing');
+          // Force a reflow so the animation restarts rather than being coalesced away.
+          void document.body.offsetWidth;
+          root.setAttribute('data-playing', 'true');
+          if (status) status.textContent = 'Replaying reveal.';
+        } else if (action === 'toggle') {
+          var playing = root.getAttribute('data-playing') === 'true';
+          if (playing) {
+            root.removeAttribute('data-motion');
+            if (status) status.textContent = 'Paused: showing the complete diagram.';
+          } else {
+            enableMotion();
+          }
+          event.target.textContent = playing ? 'Play' : 'Pause';
+        }
+      });
+    }
+  })();
+</script>
+</body>
+</html>

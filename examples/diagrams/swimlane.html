@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expense claim ownership</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-sublabel { fill: var(--diagram-soft); font-size: 11px; }
+
+  .lane-divider { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .lane-label { fill: var(--diagram-ink); font-size: 12px; }
+  .step-header { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge--focal { stroke: var(--diagram-accent); }
+  .edge-label { fill: var(--diagram-ink); font-size: 11px; }
+  .label-plate { fill: var(--diagram-paper); stroke: none; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Swimlane</p>
+    <h1>Expense claim ownership</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 808 300" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="swimlane-title swimlane-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="swimlane"
+           data-reading-order="ltr-steps-ttb-lanes: node-employee-1, node-manager-2, node-manager-3, node-finance-4, node-employee-5"
+           data-focal-id="edge-manager-3-finance-4"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="swimlane-title">Expense claim ownership</title>
+        <desc id="swimlane-desc">Three lanes — employee, manager, finance — across five ordered steps read left to right. The employee submits a claim, the manager checks it against policy and approves it, finance reimburses it, and the employee is confirmed. The focal handoff is the approved claim crossing from the manager lane into the finance lane.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own colour via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!--
+          Grid follows diagram-grammars/swimlane.md with two declared adjustments so every
+          coordinate lands on the artifact's 4px grid: node_w is 104 (not 100) and
+          step_slot_w is 128 (not 112). The routing corridor widens to 24px as a result;
+          label_col_w, header_h, lane_h and node_h are unchanged.
+        -->
+        <g id="grid">
+          <line class="lane-divider" x1="0" y1="36" x2="808" y2="36"/>
+          <line class="lane-divider" x1="0" y1="116" x2="808" y2="116"/>
+          <line class="lane-divider" x1="0" y1="196" x2="808" y2="196"/>
+          <line class="lane-divider" x1="0" y1="276" x2="808" y2="276"/>
+          <line class="lane-divider" x1="140" y1="36" x2="140" y2="276"/>
+
+          <text class="step-header" x="24" y="24">Step</text>
+          <text class="step-header" x="204" y="24" text-anchor="middle">1</text>
+          <text class="step-header" x="332" y="24" text-anchor="middle">2</text>
+          <text class="step-header" x="460" y="24" text-anchor="middle">3</text>
+          <text class="step-header" x="588" y="24" text-anchor="middle">4</text>
+          <text class="step-header" x="716" y="24" text-anchor="middle">5</text>
+
+          <text class="lane-label" x="24" y="80">Employee</text>
+          <text class="lane-label" x="24" y="160">Manager</text>
+          <text class="lane-label" x="24" y="240">Finance</text>
+        </g>
+
+        <!-- Connectors precede node rectangles so node fills mask the line ends. -->
+        <path class="edge" data-diagram-element="edge" id="edge-employee-1-manager-2"
+              d="M 256 76 H 324 Q 332 76 332 84 V 124" marker-end="url(#arrowhead)"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-manager-2-manager-3"
+              d="M 384 156 H 408" marker-end="url(#arrowhead)"/>
+
+        <path class="edge edge--focal" data-diagram-element="edge" id="edge-manager-3-finance-4"
+              d="M 512 156 H 580 Q 588 156 588 164 V 204" marker-end="url(#arrowhead)"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-finance-4-employee-5"
+              d="M 640 236 H 708 Q 716 236 716 228 V 108" marker-end="url(#arrowhead)"/>
+
+        <g data-diagram-element="node" id="node-employee-1">
+          <rect class="node-shape" x="152" y="44" width="104" height="64" rx="4"/>
+          <text class="node-label" x="204" y="72" text-anchor="middle">Submit claim</text>
+          <text class="node-sublabel" x="204" y="92" text-anchor="middle">with receipts</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-manager-2">
+          <rect class="node-shape" x="280" y="124" width="104" height="64" rx="4"/>
+          <text class="node-label" x="332" y="152" text-anchor="middle">Check policy</text>
+          <text class="node-sublabel" x="332" y="172" text-anchor="middle">limits, codes</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-manager-3">
+          <rect class="node-shape" x="408" y="124" width="104" height="64" rx="4"/>
+          <text class="node-label" x="460" y="152" text-anchor="middle">Approve</text>
+          <text class="node-sublabel" x="460" y="172" text-anchor="middle">sets payable</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-finance-4">
+          <rect class="node-shape" x="536" y="204" width="104" height="64" rx="4"/>
+          <text class="node-label" x="588" y="232" text-anchor="middle">Reimburse</text>
+          <text class="node-sublabel" x="588" y="252" text-anchor="middle">payroll run</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-employee-5">
+          <rect class="node-shape" x="664" y="44" width="104" height="64" rx="4"/>
+          <text class="node-label" x="716" y="72" text-anchor="middle">Confirmed</text>
+          <text class="node-sublabel" x="716" y="92" text-anchor="middle">payment notice</text>
+        </g>
+
+        <!-- Only the focal handoff carries a label; the opaque plate keeps it legible over the grid. -->
+        <rect class="label-plate" x="596" y="172" width="92" height="20" rx="4"/>
+        <text class="edge-label" x="604" y="188">approved claim</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

@@ -26,6 +26,15 @@ jobs:
       - name: Verify entry point
         run: test -f site/index.html
 
+      # The example gallery is derived from the committed corpus rather than duplicated
+      # into site/, so the artifacts have exactly one source of truth in the repo.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build the examples gallery
+        run: node scripts/build-examples-gallery.mjs
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3

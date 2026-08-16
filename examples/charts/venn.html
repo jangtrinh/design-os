@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlap between three workspace roles</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all. Overlaps read darker because the three token fills compound at one
+   * shared opacity — never because a lightened literal was introduced.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  /* One shared fill-opacity across all three sets; circles differ only in token. */
+  .set          { fill-opacity: 0.16; stroke-width: var(--chart-hairline); }
+  .set--builders  { fill: var(--chart-1); stroke: var(--chart-1); }
+  .set--reviewers { fill: var(--chart-2); stroke: var(--chart-2); }
+  .set--operators { fill: var(--chart-3); stroke: var(--chart-3); }
+
+  /* The one focal region, at the same stated opacity as the sets. */
+  .core { fill: var(--chart-accent); fill-opacity: 0.16; stroke: var(--chart-accent); stroke-width: 2; }
+
+  .set-name      { fill: var(--chart-ink); font-size: 14px; font-weight: 600; }
+  .set-size      { fill: var(--chart-soft); font-size: 11px;
+                   font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .region-name   { fill: var(--chart-ink); font-size: 11px; }
+  .region-count  { fill: var(--chart-muted); font-size: 11px;
+                   font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .region-name--focal  { fill: var(--chart-accent); font-size: 12px; font-weight: 600; }
+  .region-count--focal { fill: var(--chart-accent); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · venn</p>
+    <h1>Overlap between three workspace roles</h1>
+    <p class="standfirst">Builders, reviewers and operators are not disjoint audiences. 660 accounts do all three jobs — the group every workflow change hits three times.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 680" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="venn"
+           data-reading-order="outside-in: set-builders, set-reviewers, set-operators, then the single-set regions, then the two-way regions, then the focal three-way core region-builders-reviewers-operators last"
+           data-focal-id="region-builders-reviewers-operators"
+           data-source-kind="dataset"
+           data-baseline="not-applicable">
+        <title id="chart-title">Overlap between three workspace roles</title>
+        <desc id="chart-desc">Illustrative dataset, not a real account census. Three overlapping user segments: 5,400 builders, 4,800 reviewers and 3,900 operators. Seven regions are labelled — builders only 3,180, reviewers only 2,760, operators only 2,180, builders and reviewers 940, builders and operators 620, reviewers and operators 440, and all three 660, the focal region. Region areas are schematic and carry no magnitude: the circle radii and centre distances were not computed from the counts, so every quantity is read from its printed label and never from an area. The three circles are equal in radius because the three sets are comparable in size. Each set fills its own design-token colour at one shared fill-opacity of 0.16; overlaps read darker because those fills compound, not because a new colour was introduced.</desc>
+
+        <g data-chart-element="series" id="set-builders" data-series-label="Builders">
+          <circle class="set set--builders" cx="400" cy="260" r="160"/>
+          <text class="set-name" data-chart-element="label" x="264" y="76"  text-anchor="middle">Builders</text>
+          <text class="set-size" data-chart-element="label" x="264" y="96"  text-anchor="middle">5,400 accounts</text>
+        </g>
+
+        <g data-chart-element="series" id="set-reviewers" data-series-label="Reviewers">
+          <circle class="set set--reviewers" cx="560" cy="260" r="160"/>
+          <text class="set-name" data-chart-element="label" x="696" y="76"  text-anchor="middle">Reviewers</text>
+          <text class="set-size" data-chart-element="label" x="696" y="96"  text-anchor="middle">4,800 accounts</text>
+        </g>
+
+        <g data-chart-element="series" id="set-operators" data-series-label="Operators">
+          <circle class="set set--operators" cx="480" cy="400" r="160"/>
+          <text class="set-name" data-chart-element="label" x="480" y="616" text-anchor="middle">Operators</text>
+          <text class="set-size" data-chart-element="label" x="480" y="636" text-anchor="middle">3,900 accounts</text>
+        </g>
+
+        <g data-chart-element="mark" id="region-builders">
+          <text class="region-name"  data-chart-element="label" x="300" y="200" text-anchor="middle">Builders only</text>
+          <text class="region-count" data-chart-element="label" x="300" y="216" text-anchor="middle">3,180</text>
+        </g>
+
+        <g data-chart-element="mark" id="region-reviewers">
+          <text class="region-name"  data-chart-element="label" x="660" y="200" text-anchor="middle">Reviewers only</text>
+          <text class="region-count" data-chart-element="label" x="660" y="216" text-anchor="middle">2,760</text>
+        </g>
+
+        <g data-chart-element="mark" id="region-operators">
+          <text class="region-name"  data-chart-element="label" x="480" y="496" text-anchor="middle">Operators only</text>
+          <text class="region-count" data-chart-element="label" x="480" y="512" text-anchor="middle">2,180</text>
+        </g>
+
+        <g data-chart-element="mark" id="region-builders-reviewers">
+          <text class="region-name"  data-chart-element="label" x="480" y="196" text-anchor="middle">Builders + Reviewers</text>
+          <text class="region-count" data-chart-element="label" x="480" y="212" text-anchor="middle">940</text>
+        </g>
+
+        <g data-chart-element="mark" id="region-builders-operators">
+          <text class="region-name"  data-chart-element="label" x="384" y="380" text-anchor="middle">Builders + Operators</text>
+          <text class="region-count" data-chart-element="label" x="384" y="396" text-anchor="middle">620</text>
+        </g>
+
+        <g data-chart-element="mark" id="region-reviewers-operators">
+          <text class="region-name"  data-chart-element="label" x="576" y="380" text-anchor="middle">Reviewers + Operators</text>
+          <text class="region-count" data-chart-element="label" x="576" y="396" text-anchor="middle">440</text>
+        </g>
+
+        <!-- The sweet spot is drawn last, so the eye lands on it before reading a word. -->
+        <g data-chart-element="mark" id="region-builders-reviewers-operators">
+          <path class="core" d="M 400 261.4 A 160 160 0 0 1 560 261.4 A 160 160 0 0 1 480 398.6 A 160 160 0 0 1 400 261.4 Z"/>
+          <text class="region-name--focal"  data-chart-element="label" x="480" y="316" text-anchor="middle">All three roles</text>
+          <text class="region-count region-count--focal" data-chart-element="label" x="480" y="332" text-anchor="middle">660</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative dataset — the segment counts are invented to demonstrate the venn grammar and describe no real user
+      base. <strong>Region areas are schematic.</strong> The radii and centre distances were not derived from the
+      counts, so no area on this canvas encodes a quantity; every number is printed in its region's own label. Each set
+      fills one design-token colour at a shared <code>fill-opacity</code> of 0.16, and the overlaps darken because
+      those fills compound. Every region carries a direct label, so identity never rests on a compounded tint. A venn
+      has no value scale, so <code>data-baseline</code> is <code>not-applicable</code>. Colour resolves through
+      design-system tokens; where no project tokens are compiled the page falls back to the documented neutral palette
+      declared in <code>:root</code>. Static, script-free, and offline.
+    </p>
+  </div>
+</body>
+</html>

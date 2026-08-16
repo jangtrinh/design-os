@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runtime stack layers</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * `examples/` is a standalone corpus with no project design system to read, so the
+   * base tokens below are the documented NEUTRAL FALLBACK from diagram-craft.md
+   * (achromatic ramp plus one accent). The fallback is disclosed on the SVG root
+   * as data-token-fallback="neutral-default" — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block; every consumer below references these vars
+   * and never a literal.
+   */
+  :root {
+    --color-background:       oklch(0.986 0.003 95);
+    --color-card:             oklch(1 0 0);
+    --color-foreground:       oklch(0.24 0.012 264);
+    --color-muted-foreground: oklch(0.52 0.014 264);
+    --color-border:           oklch(0.90 0.006 264);
+    --color-input:            oklch(0.84 0.008 264);
+    --color-accent:           oklch(0.55 0.135 248);
+    --color-primary:          oklch(0.45 0.100 248);
+
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --color-background:       oklch(0.19 0.010 264);
+    --color-card:             oklch(0.24 0.012 264);
+    --color-foreground:       oklch(0.95 0.004 264);
+    --color-muted-foreground: oklch(0.72 0.012 264);
+    --color-border:           oklch(0.32 0.012 264);
+    --color-input:            oklch(0.40 0.014 264);
+    --color-accent:           oklch(0.74 0.120 248);
+    --color-primary:          oklch(0.80 0.090 248);
+
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-background:       oklch(0.19 0.010 264);
+      --color-card:             oklch(0.24 0.012 264);
+      --color-foreground:       oklch(0.95 0.004 264);
+      --color-muted-foreground: oklch(0.72 0.012 264);
+      --color-border:           oklch(0.32 0.012 264);
+      --color-input:            oklch(0.40 0.014 264);
+      --color-accent:           oklch(0.74 0.120 248);
+      --color-primary:          oklch(0.80 0.090 248);
+
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  /* Wide diagrams scroll in their own container; the page body never scrolls sideways. */
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  /* A band is a node. One surface token throughout, hairline separation, equal heights. */
+  .band { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .band--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .band-index { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.14em; }
+  .band-name { fill: var(--diagram-ink); font-size: 14px; }
+  .band-sub { fill: var(--diagram-soft); font-size: 11px; }
+
+  /* The margin direction indicator is the artifact's sole edge, and it is axis-aligned. */
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .axis-label { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Layers</p>
+    <h1>Runtime stack, hardware upward</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="layers-title layers-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="layers"
+           data-reading-order="bottom-up: band-1-hardware, band-2-operating-system, band-3-container-runtime, band-4-services, band-5-ui"
+           data-focal-id="band-3-container-runtime"
+           data-source-kind="brief"
+           data-token-fallback="neutral-default">
+        <title id="layers-title">Runtime stack, hardware upward</title>
+        <desc id="layers-desc">Five stacked bands read bottom-up from the foundation. Hardware sits at the bottom, then the operating system, then the container runtime, then application services, then the user interface at the top. The container runtime band is focal. Abstraction increases upward; nothing is drawn between the bands because adjacency alone carries the relationship.</desc>
+
+        <defs>
+          <!-- The marker inherits the connector's own colour through currentColor. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Direction indicator: outside the silhouette, parallel to the stack axis, exactly one. -->
+        <line class="edge" data-diagram-element="edge" id="edge-direction-stack"
+              x1="112" y1="432" x2="112" y2="48" marker-end="url(#arrowhead)"/>
+        <text class="axis-label" x="72" y="240" text-anchor="middle" transform="rotate(-90 72 240)">Abstraction</text>
+
+        <g data-diagram-element="node" id="band-5-ui">
+          <rect class="band" x="176" y="48" width="672" height="64" rx="4"/>
+          <text class="band-index" x="200" y="88">L5</text>
+          <text class="band-name" x="272" y="88">User interface</text>
+        </g>
+
+        <g data-diagram-element="node" id="band-4-services">
+          <rect class="band" x="176" y="128" width="672" height="64" rx="4"/>
+          <text class="band-index" x="200" y="168">L4</text>
+          <text class="band-name" x="272" y="168">Application services</text>
+        </g>
+
+        <g data-diagram-element="node" id="band-3-container-runtime">
+          <rect class="band band--focal" x="176" y="208" width="672" height="64" rx="4"/>
+          <text class="band-index" x="200" y="248">L3</text>
+          <text class="band-name" x="272" y="248">Container runtime</text>
+          <text class="band-sub" x="824" y="248" text-anchor="end">the layer under discussion</text>
+        </g>
+
+        <g data-diagram-element="node" id="band-2-operating-system">
+          <rect class="band" x="176" y="288" width="672" height="64" rx="4"/>
+          <text class="band-index" x="200" y="328">L2</text>
+          <text class="band-name" x="272" y="328">Operating system</text>
+        </g>
+
+        <g data-diagram-element="node" id="band-1-hardware">
+          <rect class="band" x="176" y="368" width="672" height="64" rx="4"/>
+          <text class="band-index" x="200" y="408">L1</text>
+          <text class="band-name" x="272" y="408">Hardware</text>
+          <text class="band-sub" x="824" y="408" text-anchor="end">foundation</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

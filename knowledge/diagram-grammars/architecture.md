@@ -2,9 +2,10 @@
 id: diagram-architecture
 description: Native grammar for system/software architecture diagrams — components, zones, and relationships resolved into a single-direction layout with independently traceable connectors.
 when:
-  - Brief describes services, modules, layers, containers, or infrastructure and how they connect or depend on each other
-  - User explicitly asks for a system diagram, architecture diagram, component diagram, or deployment view
-  - Brief names discrete components with relationships that are explicit ("calls", "depends on", "deploys to") or reliably inferable from the source
+  - service-topology
+  - component-boundary-set
+  - deployment-view
+  - what-talks-to-what
 ---
 
 # Diagram grammar: architecture
