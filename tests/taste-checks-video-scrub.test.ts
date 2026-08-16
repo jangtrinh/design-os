@@ -19,7 +19,7 @@ function doc(opts: {
   style?: string;
   meta?: string;
 } = {}): string {
-  const video = opts.video ?? '<video muted playsinline src="a.mp4"></video>';
+  const video = opts.video ?? '<video muted playsinline poster="p.webp" src="a.mp4"></video>';
   const script = opts.script ?? 'addEventListener("scroll", () => { v.currentTime = p * d; });';
   const meta = opts.meta ?? '<meta name="viewport" content="width=device-width, viewport-fit=cover">';
   const style = opts.style ? `<style>${opts.style}</style>` : "";
@@ -68,16 +68,16 @@ describe("video-scrub-no-reduced-motion", () => {
 
 describe("video-scrub-attrs", () => {
   it.each([
-    ["muted", '<video playsinline src="a.mp4"></video>'],
-    ["playsinline", '<video muted src="a.mp4"></video>'],
-    ["both", '<video src="a.mp4"></video>'],
+    ["muted", '<video playsinline poster="p.webp" src="a.mp4"></video>'],
+    ["playsinline", '<video muted poster="p.webp" src="a.mp4"></video>'],
+    ["both", '<video poster="p.webp" src="a.mp4"></video>'],
   ])("fires when %s is missing", (_label, video) => {
     expect(ids(doc({ video, script: `${RM} addEventListener("scroll", () => { v.currentTime = p; });` })))
       .toContain("video-scrub-attrs");
   });
 
   it("names which attribute is missing, so the fix is the message", () => {
-    const f = videoScrubChecks(doc({ video: '<video playsinline src="a.mp4"></video>' }))
+    const f = videoScrubChecks(doc({ video: '<video playsinline poster="p.webp" src="a.mp4"></video>' }))
       .find((x) => x.checkId === "video-scrub-attrs");
     expect(f?.message).toContain("muted");
     expect(f?.message).not.toContain("and playsinline");
@@ -89,7 +89,7 @@ describe("video-scrub-attrs", () => {
   });
 
   it("reports each offending video, not just the first", () => {
-    const two = '<video src="a.mp4"></video>\n<video src="b.mp4"></video>';
+    const two = '<video poster="p.webp" src="a.mp4"></video>\n<video poster="q.webp" src="b.mp4"></video>';
     const f = videoScrubChecks(doc({ video: two })).filter((x) => x.checkId === "video-scrub-attrs");
     expect(f).toHaveLength(2);
   });
@@ -121,6 +121,23 @@ describe("safe-area-viewport-fit", () => {
   });
 });
 
+describe("video-poster-missing", () => {
+  it("fires on a scrubbed video with nothing to hold while the clip loads", () => {
+    expect(ids(doc({ video: '<video muted playsinline src="a.mp4"></video>' })))
+      .toContain("video-poster-missing");
+  });
+
+  it("is a warning — an engine can supply the poster from script", () => {
+    const f = videoScrubChecks(doc({ video: '<video muted playsinline src="a.mp4"></video>' }))
+      .find((x) => x.checkId === "video-poster-missing");
+    expect(f?.severity).toBe("warning");
+  });
+
+  it("stays silent once a poster is declared", () => {
+    expect(ids(doc())).not.toContain("video-poster-missing");
+  });
+});
+
 describe("a correct scroll-cinema page trips nothing", () => {
   it("guards reduced motion, keeps both video attributes, opts into safe areas", () => {
     const html = doc({
@@ -130,7 +147,7 @@ describe("a correct scroll-cinema page trips nothing", () => {
     expect(videoScrubChecks(html)).toEqual([]);
   });
 
-  it("every finding is Motion axis and error severity", () => {
+  it("every finding is Motion axis, and every floor but the poster hint is an error", () => {
     const bad = doc({
       video: '<video src="a.mp4"></video>',
       meta: '<meta name="viewport" content="width=device-width">',
@@ -140,7 +157,9 @@ describe("a correct scroll-cinema page trips nothing", () => {
     expect(findings.length).toBeGreaterThan(0);
     for (const f of findings) {
       expect(f.axis).toBe("Motion");
-      expect(f.severity).toBe("error");
+      // video-poster-missing is deliberately a warning: an engine can supply the
+      // poster from script, so its absence is a strong smell rather than proof.
+      expect(f.severity).toBe(f.checkId === "video-poster-missing" ? "warning" : "error");
     }
   });
 });
