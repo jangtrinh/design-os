@@ -346,6 +346,15 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       errorCodes: [...IO_CODES, "NOT_ISO_BMFF"],
     },
   },
+  "scrub-scaffold": {
+    summary: "Emit the build script that encodes a clip chain to the scrub-encode floor",
+    signature: {
+      summary: "Write build-assets.sh verbatim to <target-dir> — the emitter half of scrub-lint",
+      positionals: [{ name: "<target-dir>", required: true, summary: "Directory to write build-assets.sh into" }],
+      flags: [{ name: "force", type: "boolean", summary: "Overwrite an existing file at the target" }],
+      errorCodes: ["BAD_ARG", "EXISTS", "WRITE_ERROR"],
+    },
+  },
   "taste-lint": {
     summary: "Deterministic taste-rubric floor for generated HTML",
     signature: {
