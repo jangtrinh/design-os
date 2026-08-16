@@ -230,49 +230,64 @@ describe("recognizeRoles — Phase 1 contract", () => {
   });
 });
 
-// ─── LIVE (Art III) — dana's real design.tokens.json ───────────────────────────
-// Path is the onboard-all scratchpad fixture used across spec 011's research.
-// Kept as a conditional describe so the suite stays green on machines without
-// the scratchpad fixture (Art III: real data before "done", not a hard fixture
-// dependency baked into CI).
+// ─── LIVE (Art III) — opt in with a real design.tokens.json ───────────────────
+// This block used to gate on a hard-coded scratchpad path from one session. That
+// path expired, so the block skipped on every machine including the one it was
+// written on — committed coverage that silently stopped running while the suite
+// stayed green (issue #127).
+//
+// The intent was right: a real-data check should not hard-fail CI on a machine
+// without the fixture. The mechanism was wrong, because a session-scoped temp
+// path cannot outlive its session. Now it is an explicit opt-in:
+//
+//   ROLE_RECOGNITION_LIVE=/path/to/design.tokens.json npm test
+//
+// Skipped means NOT CONFIGURED — the test title says so, so a skipped run cannot
+// be misread as a passing one. Point it at a file with no `surface-*` colours and
+// the prefix case FAILS rather than passing vacuously: an unsuitable file is a
+// different answer from an absent one.
 
 import { readFileSync, existsSync } from "node:fs";
 import { parseTokenFile } from "../src/core/token-model.js";
 
-const DANA_PATH =
-  "/private/tmp/claude-501/-Users-jang-Products-ease-design/7771253a-22c4-494f-bfbc-7432719ee8c1/scratchpad/onboard-all/dana-desktop/design/design.tokens.json";
+const LIVE_TOKENS = process.env["ROLE_RECOGNITION_LIVE"] ?? "";
+const liveReady = LIVE_TOKENS !== "" && existsSync(LIVE_TOKENS);
 
-describe.skipIf(!existsSync(DANA_PATH))("recognizeRoles — LIVE on dana's real tokens", () => {
-  it("recognizes dana's real semantic tokens without renaming or dropping any", () => {
-    const raw = JSON.parse(readFileSync(DANA_PATH, "utf-8"));
-    const parsedTree = parseTokenFile(raw);
+describe.skipIf(!liveReady)("recognizeRoles — LIVE on a real token file (set ROLE_RECOGNITION_LIVE)", () => {
+  const load = (): ReturnType<typeof parseTokenFile> =>
+    parseTokenFile(JSON.parse(readFileSync(LIVE_TOKENS, "utf-8")));
+
+  it("is lossless — every input token survives with a byte-identical $value", () => {
+    const parsedTree = load();
     const result = recognizeRoles(parsedTree);
-
-    // Lossless: every input token present in the output, byte-identical $value.
     for (const [cat, group] of Object.entries(parsedTree)) {
       for (const [name, token] of Object.entries(group)) {
         expect(result.annotated[cat]?.[name]?.$value).toBe(token.$value);
       }
     }
-    // Real, non-trivial recognition happened.
-    expect(result.recognized).toBeGreaterThan(50);
+  });
+
+  it("recognises a real share of the file without claiming to recognise all of it", () => {
+    const result = recognizeRoles(load());
+    // A real design system always yields both: recognition that is not trivial,
+    // and a remainder the dictionary does not cover. Either extreme means the
+    // recogniser is lying — matching nothing, or matching everything by accident.
+    expect(result.recognized).toBeGreaterThan(0);
     expect(result.unrecognized.length).toBeGreaterThan(0);
   });
 
-  it("surface-content (a real dana LITERAL) now recognizes as background — coordinator fix 1 recovers the flagship token", () => {
-    const raw = JSON.parse(readFileSync(DANA_PATH, "utf-8"));
-    const result = recognizeRoles(parseTokenFile(raw));
-    // dana's real surface-content is $value: "#FFFFFF" (a literal, not an alias)
-    // — Phase 1's original isAlias skip dropped it; fix 1 removes that skip, so
-    // it's recognized by NAME like any other token. See p1-recognition-core.md.
-    expect(result.annotated.color?.["surface-content"]?.$extensions).toMatchObject({
-      "design-os.role": "background",
-    });
-    // surface-chrome — a real dana alias — also resolves via the leading
-    // surface- prefix rule (fix 2), even though "chrome" itself is not a
-    // recognized word.
-    expect(result.annotated.color?.["surface-chrome"]?.$extensions).toMatchObject({
-      "design-os.role": "background",
-    });
+  it("resolves every `surface-*` colour to background, literal or alias alike", () => {
+    const parsedTree = load();
+    const surfaces = Object.keys(parsedTree.color ?? {}).filter((n) => n.startsWith("surface-"));
+    // Not a vacuous pass: a file without surface- colours cannot exercise the
+    // leading-prefix rule, and saying so beats reporting green.
+    expect(surfaces.length, `${LIVE_TOKENS} has no surface-* colours, so it cannot exercise the prefix rule`)
+      .toBeGreaterThan(0);
+
+    const result = recognizeRoles(parsedTree);
+    for (const name of surfaces) {
+      expect(result.annotated.color?.[name]?.$extensions, `surface token '${name}'`)
+        .toMatchObject({ "design-os.role": "background" });
+    }
   });
 });
