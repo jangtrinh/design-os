@@ -126,9 +126,9 @@
   .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
   .today     { fill: none; stroke: var(--chart-accent); stroke-width: var(--chart-hairline);
                stroke-dasharray: 5 4; }
-  .tick      { fill: var(--chart-soft); font-size: 11px; letter-spacing: 0.08em;
+  .label-tick      { fill: var(--chart-soft); font-size: 11px; letter-spacing: 0.08em;
                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
-  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+  .label-axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
 
   .band            { stroke: none; fill-opacity: 0.09; }
   .band--foundations { fill: var(--chart-1); }
@@ -141,7 +141,7 @@
   .bar        { fill: var(--chart-fill); stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
   .bar--focal { fill: var(--chart-accent); stroke: var(--chart-accent); stroke-width: 2; }
 
-  .task { fill: var(--chart-ink); font-size: 12px; }
+  .label-task { fill: var(--chart-ink); font-size: 12px; }
   .task--focal { font-weight: 600; }
 </style>
 </head>
@@ -165,17 +165,17 @@
         <desc id="chart-desc">Illustrative plan, not a real project schedule. Six tasks with explicit start and end dates laid against a month-granularity calendar covering Q1 and Q2 of 2026, snapshot dated 1 March 2026. Foundations holds discovery and data audit, 1 January to 15 February, and schema migration, 1 February to 15 March. Build holds the ingestion service, 1 March to 30 April, the reporting API, 15 March to 31 May, and the console redesign, 15 April to 15 June. Launch holds the pilot rollout, 1 June to 30 June. The focal bar is the reporting API, the critical path: it is the longest task at two and a half months and the pilot rollout cannot start before it ends. Bar width means duration and nothing else; the pixel pitch per month is constant across the axis. A gantt has no value baseline, so none is declared.</desc>
 
         <g data-chart-element="axis" data-axis-role="time" id="axis-calendar">
-          <text class="axis-title" x="284" y="112" text-anchor="end">TASK</text>
+          <text class="label-axis-title" x="284" y="112" text-anchor="end">TASK</text>
 
-          <text class="tick" x="448" y="88" text-anchor="middle">Q1 2026</text>
-          <text class="tick" x="736" y="88" text-anchor="middle">Q2 2026</text>
+          <text class="label-tick" x="448" y="88" text-anchor="middle">Q1 2026</text>
+          <text class="label-tick" x="736" y="88" text-anchor="middle">Q2 2026</text>
 
-          <text class="tick" x="352" y="112" text-anchor="middle">JAN</text>
-          <text class="tick" x="448" y="112" text-anchor="middle">FEB</text>
-          <text class="tick" x="544" y="112" text-anchor="middle">MAR</text>
-          <text class="tick" x="640" y="112" text-anchor="middle">APR</text>
-          <text class="tick" x="736" y="112" text-anchor="middle">MAY</text>
-          <text class="tick" x="832" y="112" text-anchor="middle">JUN</text>
+          <text class="label-tick" x="352" y="112" text-anchor="middle">JAN</text>
+          <text class="label-tick" x="448" y="112" text-anchor="middle">FEB</text>
+          <text class="label-tick" x="544" y="112" text-anchor="middle">MAR</text>
+          <text class="label-tick" x="640" y="112" text-anchor="middle">APR</text>
+          <text class="label-tick" x="736" y="112" text-anchor="middle">MAY</text>
+          <text class="label-tick" x="832" y="112" text-anchor="middle">JUN</text>
 
           <line class="grid" x1="304" y1="124" x2="304" y2="464"/>
           <line class="grid" x1="400" y1="124" x2="400" y2="464"/>
@@ -189,7 +189,7 @@
 
           <!-- Today marker is drawn only because the artifact declares its snapshot date. -->
           <line class="today" id="rule-snapshot" x1="496" y1="124" x2="496" y2="468"/>
-          <text class="tick" x="496" y="488" text-anchor="middle">1 MAR 2026 · SNAPSHOT</text>
+          <text class="label-tick" x="496" y="488" text-anchor="middle">1 MAR 2026 · SNAPSHOT</text>
         </g>
 
         <g data-chart-element="series" id="phase-foundations" data-series-label="Foundations">
@@ -198,11 +198,11 @@
 
           <rect class="bar" data-chart-element="mark" id="task-discovery"
                 x="304" y="156" width="144" height="24" rx="4"/>
-          <text class="task" data-chart-element="label" x="284" y="172" text-anchor="end">Discovery &amp; data audit</text>
+          <text class="label-task" data-chart-element="label" x="284" y="172" text-anchor="end">Discovery &amp; data audit</text>
 
           <rect class="bar" data-chart-element="mark" id="task-schema-migration"
                 x="400" y="204" width="144" height="24" rx="4"/>
-          <text class="task" data-chart-element="label" x="284" y="220" text-anchor="end">Schema migration</text>
+          <text class="label-task" data-chart-element="label" x="284" y="220" text-anchor="end">Schema migration</text>
         </g>
 
         <g data-chart-element="series" id="phase-build" data-series-label="Build">
@@ -211,15 +211,15 @@
 
           <rect class="bar" data-chart-element="mark" id="task-ingestion-service"
                 x="496" y="268" width="192" height="24" rx="4"/>
-          <text class="task" data-chart-element="label" x="284" y="284" text-anchor="end">Ingestion service</text>
+          <text class="label-task" data-chart-element="label" x="284" y="284" text-anchor="end">Ingestion service</text>
 
           <rect class="bar bar--focal" data-chart-element="mark" id="task-reporting-api"
                 x="544" y="316" width="240" height="24" rx="4"/>
-          <text class="task task--focal" data-chart-element="label" x="284" y="332" text-anchor="end">Reporting API · critical path</text>
+          <text class="label-task label-task--focal" data-chart-element="label" x="284" y="332" text-anchor="end">Reporting API · critical path</text>
 
           <rect class="bar" data-chart-element="mark" id="task-console-redesign"
                 x="640" y="364" width="192" height="24" rx="4"/>
-          <text class="task" data-chart-element="label" x="284" y="380" text-anchor="end">Console redesign</text>
+          <text class="label-task" data-chart-element="label" x="284" y="380" text-anchor="end">Console redesign</text>
         </g>
 
         <g data-chart-element="series" id="phase-launch" data-series-label="Launch">
@@ -228,7 +228,7 @@
 
           <rect class="bar" data-chart-element="mark" id="task-pilot-rollout"
                 x="784" y="428" width="96" height="24" rx="4"/>
-          <text class="task" data-chart-element="label" x="284" y="444" text-anchor="end">Pilot rollout</text>
+          <text class="label-task" data-chart-element="label" x="284" y="444" text-anchor="end">Pilot rollout</text>
         </g>
       </svg>
     </div>

@@ -102,15 +102,15 @@
 
   .tier-name { fill: var(--diagram-ink); font-size: 14px; letter-spacing: 0.02em; }
   .tier-name--focal { fill: var(--diagram-paper); }
-  .tier-location { fill: var(--diagram-muted); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+  .label-tier-location { fill: var(--diagram-muted); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
   .tier-location--focal { fill: var(--diagram-accent); }
 
-  .field-label { fill: var(--diagram-soft); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .field-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
   .field-value { fill: var(--diagram-ink); font-size: 11px; }
   .field-value--muted { fill: var(--diagram-muted); font-size: 11px; }
 
   .card-rule { stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
-  .example-value { fill: var(--diagram-muted); font-size: 10px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+  .label-example-value { fill: var(--diagram-muted); font-size: 10px; font-family: var(--font-family-mono, ui-monospace, monospace); }
   .example-value--focal { fill: var(--diagram-accent); }
 
   .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1; }
@@ -161,7 +161,7 @@
           <rect class="tier-card tier-card--outer" x="48" y="152" width="272" height="328" rx="4"/>
           <path class="tier-band" d="M 48 156 H 320 V 192 H 48 Z"/>
           <text class="tier-name" x="68" y="180">Raw</text>
-          <text class="tier-location" x="68" y="216">raw-bucket</text>
+          <text class="label-tier-location" x="68" y="216">raw-bucket</text>
           <line class="card-rule" x1="64" y1="232" x2="304" y2="232"/>
           <text class="field-label" x="68" y="258">Tool</text>
           <text class="field-value" x="68" y="276">Apache NiFi raw write</text>
@@ -171,8 +171,8 @@
           <text class="field-value" x="68" y="372">Data engineer</text>
           <line class="card-rule" x1="64" y1="392" x2="304" y2="392"/>
           <text class="field-label" x="68" y="414">Example payload</text>
-          <text class="example-value" x="68" y="436">survey_2026q1.csv — 412 cols,</text>
-          <text class="example-value" x="68" y="454">respondent name and national ID</text>
+          <text class="label-example-value" x="68" y="436">survey_2026q1.csv — 412 cols,</text>
+          <text class="label-example-value" x="68" y="454">respondent name and national ID</text>
         </g>
 
         <!-- Tier 2 — default. -->
@@ -180,7 +180,7 @@
           <rect class="tier-card" x="352" y="152" width="272" height="328" rx="4"/>
           <path class="tier-band" d="M 352 156 H 624 V 192 H 352 Z"/>
           <text class="tier-name" x="372" y="180">De-identified</text>
-          <text class="tier-location" x="372" y="216">anon-bucket</text>
+          <text class="label-tier-location" x="372" y="216">anon-bucket</text>
           <line class="card-rule" x1="368" y1="232" x2="608" y2="232"/>
           <text class="field-label" x="372" y="258">Tool</text>
           <text class="field-value" x="372" y="276">Trino INSERT</text>
@@ -190,8 +190,8 @@
           <text class="field-value" x="372" y="372">Data engineer</text>
           <line class="card-rule" x1="368" y1="392" x2="608" y2="392"/>
           <text class="field-label" x="372" y="414">Example payload</text>
-          <text class="example-value" x="372" y="436">hashed respondent key; name and</text>
-          <text class="example-value" x="372" y="454">ID columns dropped at write time</text>
+          <text class="label-example-value" x="372" y="436">hashed respondent key; name and</text>
+          <text class="label-example-value" x="372" y="454">ID columns dropped at write time</text>
         </g>
 
         <!-- Tier 3 — default. -->
@@ -199,7 +199,7 @@
           <rect class="tier-card" x="656" y="152" width="272" height="328" rx="4"/>
           <path class="tier-band" d="M 656 156 H 928 V 192 H 656 Z"/>
           <text class="tier-name" x="676" y="180">Curated</text>
-          <text class="tier-location" x="676" y="216">staging-bucket</text>
+          <text class="label-tier-location" x="676" y="216">staging-bucket</text>
           <line class="card-rule" x1="672" y1="232" x2="912" y2="232"/>
           <text class="field-label" x="676" y="258">Tool</text>
           <text class="field-value" x="676" y="276">Trino · JupyterHub</text>
@@ -209,8 +209,8 @@
           <text class="field-value" x="676" y="372">Data scientist</text>
           <line class="card-rule" x1="672" y1="392" x2="912" y2="392"/>
           <text class="field-label" x="676" y="414">Example payload</text>
-          <text class="example-value" x="676" y="436">typed and deduplicated rows with</text>
-          <text class="example-value" x="676" y="454">design weights applied per stratum</text>
+          <text class="label-example-value" x="676" y="436">typed and deduplicated rows with</text>
+          <text class="label-example-value" x="676" y="454">design weights applied per stratum</text>
         </g>
 
         <!-- Tier 4 — focal: the analytical pivot downstream consumers query. -->
@@ -218,7 +218,7 @@
           <rect class="tier-card tier-card--focal" x="960" y="152" width="272" height="328" rx="4"/>
           <path class="tier-band tier-band--focal" d="M 960 156 H 1232 V 192 H 960 Z"/>
           <text class="tier-name tier-name--focal" x="980" y="180">Aggregated</text>
-          <text class="tier-location tier-location--focal" x="980" y="216">aggregated-bucket</text>
+          <text class="label-tier-location label-tier-location--focal" x="980" y="216">aggregated-bucket</text>
           <line class="card-rule" x1="976" y1="232" x2="1216" y2="232"/>
           <text class="field-label" x="980" y="258">Tool</text>
           <text class="field-value--muted" x="980" y="276">Trino INSERT · SAS JDBC</text>
@@ -228,8 +228,8 @@
           <text class="field-value--muted" x="980" y="372">Data scientist</text>
           <line class="card-rule" x1="976" y1="392" x2="1216" y2="392"/>
           <text class="field-label" x="980" y="414">Example payload</text>
-          <text class="example-value example-value--focal" x="980" y="436">employment_rate by region and</text>
-          <text class="example-value example-value--focal" x="980" y="454">quarter, with confidence bounds</text>
+          <text class="label-example-value label-example-value--focal" x="980" y="436">employment_rate by region and</text>
+          <text class="label-example-value label-example-value--focal" x="980" y="454">quarter, with confidence bounds</text>
         </g>
       </svg>
     </div>

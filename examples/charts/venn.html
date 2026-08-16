@@ -131,10 +131,10 @@
   .core { fill: var(--chart-accent); fill-opacity: 0.16; stroke: var(--chart-accent); stroke-width: 2; }
 
   .set-name      { fill: var(--chart-ink); font-size: 14px; font-weight: 600; }
-  .set-size      { fill: var(--chart-soft); font-size: 11px;
+  .label-set-size      { fill: var(--chart-soft); font-size: 11px;
                    font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
   .region-name   { fill: var(--chart-ink); font-size: 11px; }
-  .region-count  { fill: var(--chart-muted); font-size: 11px;
+  .label-region-count  { fill: var(--chart-muted); font-size: 11px;
                    font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
   .region-name--focal  { fill: var(--chart-accent); font-size: 12px; font-weight: 600; }
   .region-count--focal { fill: var(--chart-accent); font-weight: 600; }
@@ -162,56 +162,56 @@
         <g data-chart-element="series" id="set-builders" data-series-label="Builders">
           <circle class="set set--builders" cx="400" cy="260" r="160"/>
           <text class="set-name" data-chart-element="label" x="264" y="76"  text-anchor="middle">Builders</text>
-          <text class="set-size" data-chart-element="label" x="264" y="96"  text-anchor="middle">5,400 accounts</text>
+          <text class="label-set-size" data-chart-element="label" x="264" y="96"  text-anchor="middle">5,400 accounts</text>
         </g>
 
         <g data-chart-element="series" id="set-reviewers" data-series-label="Reviewers">
           <circle class="set set--reviewers" cx="560" cy="260" r="160"/>
           <text class="set-name" data-chart-element="label" x="696" y="76"  text-anchor="middle">Reviewers</text>
-          <text class="set-size" data-chart-element="label" x="696" y="96"  text-anchor="middle">4,800 accounts</text>
+          <text class="label-set-size" data-chart-element="label" x="696" y="96"  text-anchor="middle">4,800 accounts</text>
         </g>
 
         <g data-chart-element="series" id="set-operators" data-series-label="Operators">
           <circle class="set set--operators" cx="480" cy="400" r="160"/>
           <text class="set-name" data-chart-element="label" x="480" y="616" text-anchor="middle">Operators</text>
-          <text class="set-size" data-chart-element="label" x="480" y="636" text-anchor="middle">3,900 accounts</text>
+          <text class="label-set-size" data-chart-element="label" x="480" y="636" text-anchor="middle">3,900 accounts</text>
         </g>
 
         <g data-chart-element="mark" id="region-builders">
           <text class="region-name"  data-chart-element="label" x="300" y="200" text-anchor="middle">Builders only</text>
-          <text class="region-count" data-chart-element="label" x="300" y="216" text-anchor="middle">3,180</text>
+          <text class="label-region-count" data-chart-element="label" x="300" y="216" text-anchor="middle">3,180</text>
         </g>
 
         <g data-chart-element="mark" id="region-reviewers">
           <text class="region-name"  data-chart-element="label" x="660" y="200" text-anchor="middle">Reviewers only</text>
-          <text class="region-count" data-chart-element="label" x="660" y="216" text-anchor="middle">2,760</text>
+          <text class="label-region-count" data-chart-element="label" x="660" y="216" text-anchor="middle">2,760</text>
         </g>
 
         <g data-chart-element="mark" id="region-operators">
           <text class="region-name"  data-chart-element="label" x="480" y="496" text-anchor="middle">Operators only</text>
-          <text class="region-count" data-chart-element="label" x="480" y="512" text-anchor="middle">2,180</text>
+          <text class="label-region-count" data-chart-element="label" x="480" y="512" text-anchor="middle">2,180</text>
         </g>
 
         <g data-chart-element="mark" id="region-builders-reviewers">
           <text class="region-name"  data-chart-element="label" x="480" y="196" text-anchor="middle">Builders + Reviewers</text>
-          <text class="region-count" data-chart-element="label" x="480" y="212" text-anchor="middle">940</text>
+          <text class="label-region-count" data-chart-element="label" x="480" y="212" text-anchor="middle">940</text>
         </g>
 
         <g data-chart-element="mark" id="region-builders-operators">
           <text class="region-name"  data-chart-element="label" x="384" y="380" text-anchor="middle">Builders + Operators</text>
-          <text class="region-count" data-chart-element="label" x="384" y="396" text-anchor="middle">620</text>
+          <text class="label-region-count" data-chart-element="label" x="384" y="396" text-anchor="middle">620</text>
         </g>
 
         <g data-chart-element="mark" id="region-reviewers-operators">
           <text class="region-name"  data-chart-element="label" x="576" y="380" text-anchor="middle">Reviewers + Operators</text>
-          <text class="region-count" data-chart-element="label" x="576" y="396" text-anchor="middle">440</text>
+          <text class="label-region-count" data-chart-element="label" x="576" y="396" text-anchor="middle">440</text>
         </g>
 
         <!-- The sweet spot is drawn last, so the eye lands on it before reading a word. -->
         <g data-chart-element="mark" id="region-builders-reviewers-operators">
           <path class="core" d="M 400 261.4 A 160 160 0 0 1 560 261.4 A 160 160 0 0 1 480 398.6 A 160 160 0 0 1 400 261.4 Z"/>
           <text class="region-name--focal"  data-chart-element="label" x="480" y="316" text-anchor="middle">All three roles</text>
-          <text class="region-count region-count--focal" data-chart-element="label" x="480" y="332" text-anchor="middle">660</text>
+          <text class="label-region-count label-region-count--focal" data-chart-element="label" x="480" y="332" text-anchor="middle">660</text>
         </g>
       </svg>
     </div>

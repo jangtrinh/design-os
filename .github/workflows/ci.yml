@@ -23,6 +23,10 @@ jobs:
       # Runs the built binary against the repo's own knowledge/ so index/persona/
       # xref/provenance drift fails CI. Free, deterministic, no model call.
       - run: node dist/cli.js knowledge check
+      # The example corpus is a published surface: one palette, named chrome roles, a
+      # gallery generated from the artifacts, and a render per grammar. Each has a --check
+      # so drift fails here instead of shipping to the gallery.
+      - run: npm run verify:examples
 
   # figma-agent moved to its own repo (github.com/jangtrinh/design-os-figma-plugin) — it
   # is no longer an in-repo npm workspace, so it has no job here; its own CI gates it.
