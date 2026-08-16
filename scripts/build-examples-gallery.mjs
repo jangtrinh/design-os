@@ -315,17 +315,19 @@ function syncReadme() {
 }
 
 if (process.argv.includes("--check")) {
-  const current = existsSync(OUT_FILE) ? readFileSync(OUT_FILE, "utf8") : "";
+  // Only the README grid is committed. `site/examples/` is gitignored and rebuilt by the
+  // Pages workflow on every deploy, so it cannot drift — checking it here just fails in a
+  // fresh clone, where it has correctly never been generated.
   const readme = syncReadme();
-  const stale = [];
-  if (current !== html) stale.push("site/examples/index.html");
-  if (readme.missing) stale.push("README.md (examples-grid markers not found)");
-  else if (readme.changed) stale.push("README.md examples grid");
-  if (stale.length > 0) {
-    console.error(`stale: ${stale.join(", ")} — run 'node scripts/build-examples-gallery.mjs' and commit the result`);
+  if (readme.missing) {
+    console.error("README.md has no examples-grid markers — cannot verify the image grid");
     process.exit(1);
   }
-  console.log("examples gallery + README grid: up to date");
+  if (readme.changed) {
+    console.error("stale: README.md examples grid — run 'node scripts/build-examples-gallery.mjs' and commit the result");
+    process.exit(1);
+  }
+  console.log("README examples grid: up to date");
   process.exit(0);
 }
 
