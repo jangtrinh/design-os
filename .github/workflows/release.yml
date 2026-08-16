@@ -55,8 +55,10 @@ jobs:
 
       # OIDC trusted publishing (configured on npmjs.com for this repo+workflow):
       # no token secret — npm exchanges the Actions OIDC identity directly.
-      # Node 20 ships npm 10.x, which predates trusted publishing; upgrade first.
+      # Node 20 ships npm 10.x, which predates trusted publishing. npm@12 requires
+      # Node >= 22, so pin npm@11 (OIDC support since 11.5.1, runs on Node 20.17+).
       - name: Publish to npm (OIDC trusted publishing)
         run: |
-          npm install -g npm@latest
+          npm install -g npm@11
+          npm --version
           npm publish --provenance --access public
