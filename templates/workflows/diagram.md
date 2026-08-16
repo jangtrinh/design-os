@@ -1,6 +1,6 @@
 ---
-description: Runtime-neutral diagram workflow for ease-design. Use when a request needs a visual architecture, sequence, or product-flow diagram and prose/tables would lose structure a reader needs to trace.
-argument-hint: "<what to diagram> [--grammar architecture|sequence|product-flow]"
+description: Runtime-neutral diagram workflow for ease-design. Use when a request needs a structural, sequential, or hierarchical picture and prose/tables would lose structure a reader needs to trace. Charts of quantities belong to the chart workflow.
+argument-hint: "<what to diagram> [--grammar <name>]"
 ---
 
 # /ui:diagram
@@ -19,13 +19,29 @@ Before authoring, size the input: how many nodes/edges/steps will this actually 
 
 ## Supported grammars
 
-Only three grammars exist. Pick exactly one per invocation; never mix or invent a fourth.
+Nineteen grammars exist. Pick exactly one per invocation; never mix them, and never invent one outside the list. When two feel close, resolve it with the collision-family precedence rules in `knowledge/diagram-craft.md` rather than choosing by feel.
 
 - **architecture** — read `knowledge/diagram-grammars/architecture.md`; components, boundaries, and their relationships.
 - **sequence** — read `knowledge/diagram-grammars/sequence.md`; participants and time-ordered messages.
 - **product-flow** — read `knowledge/diagram-grammars/product-flow.md`; a derived view of an existing lint-clean `flow.json`.
+- **swimlane** — read `knowledge/diagram-grammars/swimlane.md`; ordered steps partitioned by the responsible role.
+- **data-flow** — read `knowledge/diagram-grammars/data-flow.md`; steps handing typed payloads to each other.
+- **process** — read `knowledge/diagram-grammars/process.md`; steps with role badges and distinguished connector styles.
+- **high-level** — read `knowledge/diagram-grammars/high-level.md`; a capability sweep across phases with cross-cutting footer bars.
+- **dp-integration** — read `knowledge/diagram-grammars/dp-integration.md`; which sources and consumers attach to a platform.
+- **medallion** — read `knowledge/diagram-grammars/medallion.md`; data ascending storage quality tiers.
+- **it-state** — read `knowledge/diagram-grammars/it-state.md`; the estate as it stands today, before a change.
+- **dp-security-matrix** — read `knowledge/diagram-grammars/dp-security-matrix.md`; roles against components as an access grid.
+- **loop** — read `knowledge/diagram-grammars/loop.md`; a closed cycle whose stations feed a hub.
+- **er** — read `knowledge/diagram-grammars/er.md`; entities and their cardinality relationships.
+- **flowchart** — read `knowledge/diagram-grammars/flowchart.md`; a branching path with decisions and terminating branches.
+- **layers** — read `knowledge/diagram-grammars/layers.md`; stacked bands with no cross-band edges.
+- **nested** — read `knowledge/diagram-grammars/nested.md`; regions enclosing other regions.
+- **org-chart** — read `knowledge/diagram-grammars/org-chart.md`; reporting relationships between people.
+- **state** — read `knowledge/diagram-grammars/state.md`; states, events, and the transitions between them.
+- **tree** — read `knowledge/diagram-grammars/tree.md`; parent-child decomposition of things.
 
-If the request doesn't cleanly map to one of the three (e.g. it wants a Gantt chart, a mind map, a generic flowchart of abstract logic), **reject unsupported grammar**: state plainly that this workflow supports only architecture, sequence, and product-flow, and ask which of the three (if any) actually fits, or suggest the request is better served another way.
+If the request doesn't cleanly map to one of the nineteen (e.g. it wants a mind map or a freeform whiteboard), **reject unsupported grammar**: name the closest supported grammar, state what forcing the request into it would lose, and ask which (if any) actually fits. A chart of quantities — bars, lines, scatter, radar, Gantt, dated timelines, quadrants, Venn, proportional pyramids — is not declined but routed: it belongs to `knowledge/chart-craft.md`.
 
 ## 3. Author the diagram
 
@@ -52,7 +68,9 @@ Architecture and sequence diagrams skip this step entirely — it applies only t
 Run gates in this order, and do not proceed past a failing gate without either fixing the diagram or disclosing why it can't pass:
 
 1. **`ui diagram lint`** — the diagram-specific check (grammar conformance, `data-*` *presence* and shape, valid owned-SVG structure, no forbidden external refs). It proves the artifact is well-formed on its own; for product-flow it does **not** prove any `data-source-id` resolves against `flow.json` — that resolution stays a manual step (§4.2).
-2. **Existing generic a11y/layout gates** — whatever accessibility and layout checks already apply to shipped HTML in this repo. Reuse them; do not fork or reimplement a parallel a11y checker for diagrams.
+2. **`ui a11y-lint <file.html>`** — the Tier-1 static accessibility gate every shipped HTML artifact runs. Reuse it; do not fork or reimplement a parallel a11y checker for diagrams.
+3. **`ui ds-usage-lint <file.html>`** — proves the artifact's CSS draws on real design-system tokens rather than off-system values. Note its blind spot: it reads CSS declarations only, so a color sitting in an SVG presentation attribute (`fill="#eb6c36"`) is invisible to it. `ui diagram lint`'s `hardcoded-svg-color` check covers that gap — the two gates are complementary and neither substitutes for the other.
+4. **`ui autofix <file.html>`** — deterministic repairs (viewport, duplicate ids). It never rewrites inline `<svg>`, so it cannot fix a diagram's SVG for you.
 
 If a gate can't be satisfied (e.g. a required a11y check needs a runtime this workflow doesn't have), that is a substitution (disclose it per §7) or a stop (report it as a Gate stop per §9) — not something to skip silently.
 
@@ -69,8 +87,8 @@ diagram-only rubric:
    used everywhere else. Motion is rarely applicable to a static SVG; mark it
    not-applicable rather than scoring it against a criterion it cannot meet.
 3. Apply the grammar's own invariants (product-flow fidelity, architecture reading
-   direction, sequence ordering — see the routed grammar file) as part of the Layout and
-   Consistency scores, not as separate ad hoc axes.
+   direction, sequence ordering, the routed grammar's density budget — see the routed
+   grammar file) as part of the Layout and Consistency scores, not as separate ad hoc axes.
 
 Any axis below 7 gets a targeted revision, not a shipped exception. Don't ship a diagram you'd critique.
 
@@ -85,16 +103,16 @@ Before presenting the final diagram, state plainly and in the diagram's accompan
 ## 8. Hard constraints — never do these
 
 - No generated scripts and no `<script>` tags in the output HTML.
-- No import/export pipeline and no universal diagram DSL (Mermaid, PlantUML, GraphViz DOT, etc.) — SVG is authored directly.
+- No export pipeline and no universal diagram DSL (Mermaid, PlantUML, GraphViz DOT, etc.) as *output* — SVG is authored directly. Reading a drawio/Mermaid source as brief material is permitted via extract-then-redraw; its geometry is never emitted.
 - No auto-layout algorithm — positions are chosen deliberately, not computed by a force-directed or constraint solver.
 - No browser dependency to produce or validate the output — the HTML must be inspectable and correct by reading the markup itself.
-- No fourth grammar, ever, under any name.
+- No twentieth grammar, ever, under any name. A shape that reduces to an existing grammar plus different vocabulary is that grammar with a domain pack, not a new one.
 
 ## 9. Outputs and honest stops
 
 A successful run produces exactly one HTML file plus the disclosure text from §7. A run may legitimately end in a stop instead of an artifact:
 
-- **Declined** — the request doesn't fit one of the three grammars (§2).
+- **Declined** — the request doesn't fit any supported grammar (§2).
 - **Scope stop** — the true input is too large for a readable single diagram within budget (§1).
 - **Gate stop** — `ui diagram lint` or the generic a11y/layout gates fail and can't be reasonably fixed; report which gate, why, and what would need to change.
 - **Source stop** (product-flow only) — required source IDs aren't available, so the flow can't be drawn without inventing screens.

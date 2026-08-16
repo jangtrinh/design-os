@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data platform integration surfaces</title>
+<style>
+  /*
+   * Diagram role layer — the token contract from templates/diagram-scaffolds/diagram-base.html.
+   *
+   * Every role resolves to a project design token first. The second value in each var() is
+   * the documented neutral fallback from knowledge/diagram-craft.md, used only when this
+   * example is opened outside a Design OS project; the artifact declares that fallback in
+   * data-token-fallback so a reader can tell "no tokens present" from "tokens ignored".
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fcfcfa);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #16181d);
+    --diagram-muted:       var(--color-muted-foreground, #6f7480);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f7480) 65%, var(--color-background, #fcfcfa));
+    --diagram-rule:        var(--color-border, #e6e5e0);
+    --diagram-rule-solid:  var(--color-input, #d2d1cb);
+    --diagram-accent:      var(--color-accent, #b3451c);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b3451c) 12%, var(--color-background, #fcfcfa));
+    --diagram-link:        var(--color-primary, #2f5d7c);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #101215);
+    --diagram-surface:     var(--color-card, #171a1f);
+    --diagram-ink:         var(--color-foreground, #ecebe6);
+    --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+    --diagram-rule:        var(--color-border, #2a2f35);
+    --diagram-rule-solid:  var(--color-input, #3b414a);
+    --diagram-accent:      var(--color-accent, #e0743f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+    --diagram-link:        var(--color-primary, #7fb0d0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #101215);
+      --diagram-surface:     var(--color-card, #171a1f);
+      --diagram-ink:         var(--color-foreground, #ecebe6);
+      --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+      --diagram-rule:        var(--color-border, #2a2f35);
+      --diagram-rule-solid:  var(--color-input, #3b414a);
+      --diagram-accent:      var(--color-accent, #e0743f);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+      --diagram-link:        var(--color-primary, #7fb0d0);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1280px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 960px; height: auto; display: block; }
+
+  .zone { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .zone-label { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .zone-label--masked {
+    paint-order: stroke; stroke: var(--diagram-paper); stroke-width: 8px; stroke-linejoin: round;
+  }
+  .column-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-sublabel { fill: var(--diagram-soft); font-size: 10px; }
+
+  .bar { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .bar--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .bar--footer { fill: none; stroke: var(--diagram-rule); }
+  .bar-label { fill: var(--diagram-ink); font-size: 13px; }
+  .bar-sublabel { fill: var(--diagram-soft); font-size: 10px; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1; }
+  .edge--accent { stroke: var(--diagram-accent); }
+  .edge--bypass { stroke: var(--diagram-accent); stroke-dasharray: 6 4; }
+  .edge--trigger { stroke: var(--diagram-soft); stroke-dasharray: 3 4; }
+  .edge-label {
+    fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.08em;
+    paint-order: stroke; stroke: var(--diagram-paper); stroke-width: 4px; stroke-linejoin: round;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">dp-integration</p>
+    <h1>Data platform integration surfaces</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1440 720" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="dpi-title dpi-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="dp-integration"
+           data-reading-order="Left to right: four source systems (relational database over JDBC, SFTP drop, mailbox over IMAP, mainframe export) attach to the platform zone; inside the zone Airflow triggers NiFi, MinIO and JupyterLab, and Trino federates across them; the zone serves four consumer surfaces on the right; the identity and observability footer bars read last and connect upward into the zone's bottom edge."
+           data-focal-id="node-minio"
+           data-source-kind="brief"
+           data-token-fallback="neutral">
+        <title id="dpi-title">Data platform integration surfaces</title>
+        <desc id="dpi-desc">An integration topology with two focal components: MinIO, the storage hub everything writes into, and Trino, the federation engine that answers queries across it. Four sources attach on the left — a relational database over JDBC, an SFTP drop, a mailbox pulled over IMAP, and a mainframe file export. A dashed bypass shows Trino federating the relational database directly without going through ingest. Inside the DATA PLATFORM zone an Apache Airflow trigger bar drops dashed schedules into NiFi, MinIO and JupyterLab; MinIO feeds Trino, which serves four consumers on the right — statistics desktops over ODBC, notebook users over HTTPS, BI and reporting over JDBC, and an API gateway over REST. Two footer bars, identity and observability, sit below the zone and connect only to the zone's bottom edge.</desc>
+
+        <defs>
+          <marker id="dpi-arrow" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <path d="M 0 0 L 7 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <text class="column-label" x="32" y="96">Source systems</text>
+        <text class="column-label" x="1216" y="96">Consumer surfaces</text>
+
+        <!-- Platform zone: label sits on a masked break in its own top border. -->
+        <rect class="zone" x="336" y="128" width="768" height="352" rx="4"/>
+        <text class="zone-label zone-label--masked" x="368" y="133">Data platform</text>
+
+        <!-- Connectors are emitted before every node shape so the fills mask the line ends. -->
+        <path class="edge edge--bypass" data-diagram-element="edge" id="edge-database-trino"
+              d="M 224 176 H 248 V 400 H 360" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="236" y="170">FEDERATE</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-database-nifi"
+              d="M 224 208 H 280 V 268 H 360" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="236" y="202">JDBC</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-sftp-nifi"
+              d="M 224 288 H 288 V 284 H 360" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="236" y="282">SFTP</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-mailbox-nifi"
+              d="M 224 384 H 296 V 300 H 360" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="236" y="378">IMAP</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-mainframe-nifi"
+              d="M 224 480 H 312 V 316 H 360" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="236" y="474">FILE</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-nifi-minio"
+              x1="568" y1="292" x2="616" y2="292" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="592" y="284" text-anchor="middle">S3</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-minio-jupyterlab"
+              x1="824" y1="292" x2="872" y2="292" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="848" y="284" text-anchor="middle">S3</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-minio-trino"
+              x1="720" y1="336" x2="720" y2="384" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="728" y="364">ICEBERG</text>
+
+        <path class="edge edge--accent" data-diagram-element="edge" id="edge-trino-statistics"
+              d="M 1080 400 H 1136 V 192 H 1216" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="1092" y="394">ODBC</text>
+
+        <path class="edge edge--accent" data-diagram-element="edge" id="edge-trino-reporting"
+              d="M 1080 416 H 1160 V 384 H 1216" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="1092" y="436">JDBC</text>
+
+        <path class="edge edge--accent" data-diagram-element="edge" id="edge-trino-gateway"
+              d="M 1080 432 H 1184 V 480 H 1216" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="1092" y="464">REST</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-jupyterlab-notebook"
+              d="M 1080 292 H 1120 V 288 H 1216" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="1092" y="284">HTTPS</text>
+
+        <!-- Trigger drops: dashed, unlabelled, straight down from the bar's own bottom edge. -->
+        <line class="edge edge--trigger" data-diagram-element="edge" id="edge-airflow-nifi"
+              x1="464" y1="200" x2="464" y2="248" marker-end="url(#dpi-arrow)"/>
+        <line class="edge edge--trigger" data-diagram-element="edge" id="edge-airflow-minio"
+              x1="720" y1="200" x2="720" y2="248" marker-end="url(#dpi-arrow)"/>
+        <line class="edge edge--trigger" data-diagram-element="edge" id="edge-airflow-jupyterlab"
+              x1="976" y1="200" x2="976" y2="248" marker-end="url(#dpi-arrow)"/>
+
+        <!-- Footer bars connect to the zone's bottom edge and nowhere else. -->
+        <line class="edge" data-diagram-element="edge" id="edge-identity-zone"
+              x1="672" y1="560" x2="672" y2="480" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="680" y="536">AUTH</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-observability-zone"
+              x1="768" y1="632" x2="768" y2="480" marker-end="url(#dpi-arrow)"/>
+        <text class="edge-label" x="776" y="604">TELEMETRY</text>
+
+        <!-- Sources. -->
+        <g data-diagram-element="node" id="src-database">
+          <rect class="node-shape" x="32" y="160" width="192" height="64" rx="4"/>
+          <text class="node-label" x="128" y="188" text-anchor="middle">Relational database</text>
+          <text class="node-sublabel" x="128" y="206" text-anchor="middle">PostgreSQL · SQL Server</text>
+        </g>
+        <g data-diagram-element="node" id="src-sftp">
+          <rect class="node-shape" x="32" y="256" width="192" height="64" rx="4"/>
+          <text class="node-label" x="128" y="284" text-anchor="middle">SFTP drop</text>
+          <text class="node-sublabel" x="128" y="302" text-anchor="middle">nightly partner files</text>
+        </g>
+        <g data-diagram-element="node" id="src-mailbox">
+          <rect class="node-shape" x="32" y="352" width="192" height="64" rx="4"/>
+          <text class="node-label" x="128" y="380" text-anchor="middle">Mailbox</text>
+          <text class="node-sublabel" x="128" y="398" text-anchor="middle">returns inbox, attachments</text>
+        </g>
+        <g data-diagram-element="node" id="src-mainframe">
+          <rect class="node-shape" x="32" y="448" width="192" height="64" rx="4"/>
+          <text class="node-label" x="128" y="476" text-anchor="middle">Mainframe export</text>
+          <text class="node-sublabel" x="128" y="494" text-anchor="middle">fixed-width batch</text>
+        </g>
+
+        <!-- Zone: trigger bar, primary row, federation bar. -->
+        <g data-diagram-element="node" id="bar-airflow">
+          <rect class="bar" x="360" y="152" width="720" height="48" rx="4"/>
+          <text class="bar-label" x="380" y="174">Apache Airflow</text>
+          <text class="bar-sublabel" x="380" y="192">scheduler — triggers the row below, emits no labelled wires</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-nifi">
+          <rect class="node-shape" x="360" y="248" width="208" height="88" rx="4"/>
+          <text class="node-label" x="464" y="290" text-anchor="middle">Apache NiFi</text>
+          <text class="node-sublabel" x="464" y="308" text-anchor="middle">ingest tool</text>
+        </g>
+        <g data-diagram-element="node" id="node-minio">
+          <rect class="node-shape node-shape--focal" x="616" y="248" width="208" height="88" rx="4"/>
+          <text class="node-label" x="720" y="290" text-anchor="middle">MinIO</text>
+          <text class="node-sublabel" x="720" y="308" text-anchor="middle">storage hub — focal</text>
+        </g>
+        <g data-diagram-element="node" id="node-jupyterlab">
+          <rect class="node-shape" x="872" y="248" width="208" height="88" rx="4"/>
+          <text class="node-label" x="976" y="290" text-anchor="middle">JupyterLab</text>
+          <text class="node-sublabel" x="976" y="308" text-anchor="middle">notebook surface</text>
+        </g>
+
+        <g data-diagram-element="node" id="bar-trino">
+          <rect class="bar bar--focal" x="360" y="384" width="720" height="64" rx="4"/>
+          <text class="bar-label" x="380" y="414">Trino</text>
+          <text class="bar-sublabel" x="380" y="432">federation engine — the platform's public query face, second focal component</text>
+        </g>
+
+        <!-- Consumers. -->
+        <g data-diagram-element="node" id="cons-statistics">
+          <rect class="node-shape" x="1216" y="160" width="192" height="64" rx="4"/>
+          <text class="node-label" x="1312" y="188" text-anchor="middle">Statistics desktops</text>
+          <text class="node-sublabel" x="1312" y="206" text-anchor="middle">SPSS · SAS · Stata</text>
+        </g>
+        <g data-diagram-element="node" id="cons-notebook">
+          <rect class="node-shape" x="1216" y="256" width="192" height="64" rx="4"/>
+          <text class="node-label" x="1312" y="284" text-anchor="middle">Notebook users</text>
+          <text class="node-sublabel" x="1312" y="302" text-anchor="middle">researchers, ad hoc work</text>
+        </g>
+        <g data-diagram-element="node" id="cons-reporting">
+          <rect class="node-shape" x="1216" y="352" width="192" height="64" rx="4"/>
+          <text class="node-label" x="1312" y="380" text-anchor="middle">BI and reporting</text>
+          <text class="node-sublabel" x="1312" y="398" text-anchor="middle">Superset · Power BI</text>
+        </g>
+        <g data-diagram-element="node" id="cons-gateway">
+          <rect class="node-shape" x="1216" y="448" width="192" height="64" rx="4"/>
+          <text class="node-label" x="1312" y="476" text-anchor="middle">API gateway</text>
+          <text class="node-sublabel" x="1312" y="494" text-anchor="middle">public indicator service</text>
+        </g>
+
+        <!-- Footer bars: layer-wide services, drawn below the zone across the full width. -->
+        <g data-diagram-element="node" id="footer-identity">
+          <rect class="bar bar--footer" x="32" y="560" width="1376" height="56" rx="4"/>
+          <text class="bar-label" x="56" y="586">Identity</text>
+          <text class="bar-sublabel" x="56" y="604">Keycloak · Active Directory — LDAP, SSO, group RBAC for every surface above</text>
+        </g>
+        <g data-diagram-element="node" id="footer-observability">
+          <rect class="bar bar--footer" x="32" y="632" width="1376" height="56" rx="4"/>
+          <text class="bar-label" x="56" y="658">Observability</text>
+          <text class="bar-sublabel" x="56" y="676">Prometheus · Grafana · Loki — metrics, dashboards and logs for the whole zone</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

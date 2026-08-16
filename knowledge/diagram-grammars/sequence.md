@@ -2,10 +2,10 @@
 id: diagram-sequence
 description: Native grammar for rendering sequence diagrams as accessible inline SVG — ordered participants, messages, replies, activations, and branch/loop frames over time.
 when:
-  - The brief describes named actors/participants exchanging messages or calls
-  - The brief asks "who calls whom, in what order" or describes a request/response or handshake flow
-  - The brief uses words like "sequence", "handshake", "request-response", "callback", "async job", "retries"
-  - No stronger grammar (state machine for a single entity's states, flowchart for a decision tree) fits the described control flow better
+  - participant-exchange
+  - message-ordering
+  - request-response-trace
+  - protocol-handshake
 ---
 
 # Sequence diagrams

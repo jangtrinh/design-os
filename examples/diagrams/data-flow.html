@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nightly reporting run</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--focal { fill: var(--diagram-surface); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-sublabel { fill: var(--diagram-soft); font-size: 11px; }
+
+  .lane-divider { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .lane-label { fill: var(--diagram-ink); font-size: 12px; }
+  .step-header { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .step-header--focal { fill: var(--diagram-accent); }
+
+  .role-badge { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .role-key { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.08em; }
+
+  /* One token-derived fill per payload code; the code text carries the meaning, the fill only groups. */
+  .chip { stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .chip--db { fill: color-mix(in oklch, var(--diagram-muted) 18%, var(--diagram-paper)); }
+  .chip--tb { fill: color-mix(in oklch, var(--diagram-link) 18%, var(--diagram-paper)); }
+  .chip--fl { fill: color-mix(in oklch, var(--diagram-link) 36%, var(--diagram-paper)); }
+  .chip-code { fill: var(--diagram-ink); font-size: 10px; letter-spacing: 0.06em; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge--focal { stroke: var(--diagram-accent); }
+  .edge-label { fill: var(--diagram-ink); font-size: 11px; }
+  .label-plate { fill: var(--diagram-paper); stroke: none; }
+  .legend-text { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Data flow</p>
+    <h1>Nightly reporting run</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 872 596" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="data-flow-title data-flow-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="data-flow"
+           data-reading-order="ltr-steps-ttb-lanes: node-in-1, node-wh-2, node-an-3, node-ds-4"
+           data-focal-id="edge-wh-2-an-3"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="data-flow-title">Nightly reporting run</title>
+        <desc id="data-flow-desc">Four roles stacked producer to consumer, four ordered stages read left to right. Ingestion extracts a raw dataset, the warehouse loads it into an analysis-ready table, analytics models that table, and distribution publishes a report file. Each stage shows its input payload code bottom-left and its output code bottom-right; the focal handoff is the analysis-ready table passing from the warehouse to analytics.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own colour via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!--
+          Lane grid per diagram-grammars/swimlane.md, widened for the payload layer and
+          declared here: step_slot_w 176, node_w 144, node_h 96, lane_h 120. Every coordinate
+          stays on the artifact's 4px grid and the routing corridor is 32px.
+        -->
+        <g id="grid">
+          <line class="lane-divider" x1="0" y1="36" x2="872" y2="36"/>
+          <line class="lane-divider" x1="0" y1="156" x2="872" y2="156"/>
+          <line class="lane-divider" x1="0" y1="276" x2="872" y2="276"/>
+          <line class="lane-divider" x1="0" y1="396" x2="872" y2="396"/>
+          <line class="lane-divider" x1="0" y1="516" x2="872" y2="516"/>
+          <line class="lane-divider" x1="140" y1="36" x2="140" y2="516"/>
+
+          <text class="step-header" x="24" y="24">Stage</text>
+          <text class="step-header" x="228" y="24" text-anchor="middle">1 extract</text>
+          <text class="step-header" x="404" y="24" text-anchor="middle">2 load</text>
+          <text class="step-header step-header--focal" x="580" y="24" text-anchor="middle">3 model</text>
+          <text class="step-header" x="756" y="24" text-anchor="middle">4 publish</text>
+
+          <text class="lane-label" x="24" y="100">Ingestion</text>
+          <text class="lane-label" x="24" y="220">Warehouse</text>
+          <text class="lane-label" x="24" y="340">Analytics</text>
+          <text class="lane-label" x="24" y="460">Distribution</text>
+        </g>
+
+        <!-- Connectors precede node rectangles so node fills mask the line ends. -->
+        <path class="edge" data-diagram-element="edge" id="edge-in-1-wh-2"
+              d="M 300 96 H 396 Q 404 96 404 104 V 168" marker-end="url(#arrowhead)"/>
+
+        <path class="edge edge--focal" data-diagram-element="edge" id="edge-wh-2-an-3"
+              d="M 476 216 H 572 Q 580 216 580 224 V 288" marker-end="url(#arrowhead)"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-an-3-ds-4"
+              d="M 652 336 H 748 Q 756 336 756 344 V 408" marker-end="url(#arrowhead)"/>
+
+        <g data-diagram-element="node" id="node-in-1">
+          <rect class="node-shape" x="156" y="48" width="144" height="96" rx="4"/>
+          <rect class="role-badge" x="168" y="60" width="32" height="16" rx="4"/>
+          <text class="role-key" x="184" y="72" text-anchor="middle">IN</text>
+          <text class="node-label" x="228" y="96" text-anchor="middle">Extract</text>
+          <text class="node-sublabel" x="228" y="112" text-anchor="middle">scheduler</text>
+          <rect class="chip chip--db" x="256" y="120" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="272" y="132" text-anchor="middle">DB</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-wh-2">
+          <rect class="node-shape" x="332" y="168" width="144" height="96" rx="4"/>
+          <rect class="role-badge" x="344" y="180" width="32" height="16" rx="4"/>
+          <text class="role-key" x="360" y="192" text-anchor="middle">WH</text>
+          <text class="node-label" x="404" y="216" text-anchor="middle">Load</text>
+          <text class="node-sublabel" x="404" y="232" text-anchor="middle">object store</text>
+          <rect class="chip chip--db" x="344" y="240" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="360" y="252" text-anchor="middle">DB</text>
+          <rect class="chip chip--tb" x="432" y="240" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="448" y="252" text-anchor="middle">TB</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-an-3">
+          <rect class="node-shape node-shape--focal" x="508" y="288" width="144" height="96" rx="4"/>
+          <rect class="role-badge" x="520" y="300" width="32" height="16" rx="4"/>
+          <text class="role-key" x="536" y="312" text-anchor="middle">AN</text>
+          <text class="node-label" x="580" y="336" text-anchor="middle">Model</text>
+          <text class="node-sublabel" x="580" y="352" text-anchor="middle">query engine</text>
+          <rect class="chip chip--tb" x="520" y="360" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="536" y="372" text-anchor="middle">TB</text>
+          <rect class="chip chip--tb" x="608" y="360" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="624" y="372" text-anchor="middle">TB</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-ds-4">
+          <rect class="node-shape" x="684" y="408" width="144" height="96" rx="4"/>
+          <rect class="role-badge" x="696" y="420" width="32" height="16" rx="4"/>
+          <text class="role-key" x="712" y="432" text-anchor="middle">DS</text>
+          <text class="node-label" x="756" y="456" text-anchor="middle">Publish</text>
+          <text class="node-sublabel" x="756" y="472" text-anchor="middle">report delivery</text>
+          <rect class="chip chip--tb" x="696" y="480" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="712" y="492" text-anchor="middle">TB</text>
+          <rect class="chip chip--fl" x="784" y="480" width="32" height="16" rx="4"/>
+          <text class="chip-code" x="800" y="492" text-anchor="middle">FL</text>
+        </g>
+
+        <!-- Only the focal connector is labelled. -->
+        <rect class="label-plate" x="460" y="188" width="128" height="20" rx="4"/>
+        <text class="edge-label" x="524" y="204" text-anchor="middle">analysis-ready table</text>
+
+        <g id="legend">
+          <text class="legend-text" x="24" y="544">Payload codes — DB raw extract · TB analysis-ready table · FL report or export. Left chip is the input, right chip the output.</text>
+          <text class="legend-text" x="24" y="568">Connectors — muted solid is a stage handoff; accent solid is the focal handoff carrying this diagram's claim.</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

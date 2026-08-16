@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-serve conversion funnel, Q2</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all. The non-focal tiers take a monotonic ramp across `--color-chart-1` …
+   * `--color-chart-3` that follows tier order; the conversion tier takes `--color-accent`.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  /* Flat fills, hairline dividers of the page colour, no gradient and no shadow —
+     the silhouette is the encoding and nothing may soften its edges. */
+  .tier            { stroke: var(--chart-paper); stroke-width: 2; fill-opacity: 0.85; }
+  .tier--visited   { fill: var(--chart-1); }
+  .tier--trial     { fill: var(--chart-2); }
+  .tier--activated { fill: var(--chart-3); }
+  .tier--purchased { fill: var(--chart-accent); fill-opacity: 1; }
+
+  .tier-name       { fill: var(--chart-paper); font-size: 13px; font-weight: 600; }
+  .tier-value      { fill: var(--chart-paper); font-size: 12px;
+                     font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .tier-name--small  { font-size: 11px; }
+  .tier-value--small { font-size: 11px; }
+
+  .lead-name  { fill: var(--chart-accent); font-size: 13px; font-weight: 600; }
+  .lead-value { fill: var(--chart-accent); font-size: 12px;
+                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .leader     { fill: none; stroke: var(--chart-accent); stroke-width: var(--chart-hairline); }
+
+  .delta      { fill: var(--chart-muted); font-size: 11px;
+                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .delta-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
+
+  .direction      { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
+  .direction-label{ fill: var(--chart-soft); font-size: 10px; letter-spacing: 0.14em; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · pyramid</p>
+    <h1>Self-serve conversion funnel, Q2</h1>
+    <p class="standfirst">Eighty thousand pricing-page visits become eight thousand purchases. The steepest drop is the first one — nearly two thirds of visitors never start a trial.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="pyramid"
+           data-reading-order="funnel, top-down: start at the widest tier tier-1-visited and follow the population down through tier-2-trial and tier-3-activated to the focal conversion tier tier-4-purchased"
+           data-focal-id="tier-4-purchased"
+           data-source-kind="dataset"
+           data-baseline="zero">
+        <title id="chart-title">Self-serve conversion funnel, Q2</title>
+        <desc id="chart-desc">Illustrative dataset, not a real conversion record. A four-stage self-serve funnel measured in unique accounts over Q2. Encoding rule: width is proportional to value, measured from a zero width at 0.008 pixels per account, and each tier's top edge width encodes its own stage count while its bottom edge equals the next stage's count. Visited pricing page 80,000 gives a 640 pixel top edge; started trial 30,000 gives 240; activated a first workspace 14,000 gives 112; purchased 8,000 gives 64. The silhouette narrows monotonically and tier heights are uniform, so height encodes nothing. The steepest single drop is the first, a 63 percent loss between the pricing page and trial start; the last step loses 43 percent. The focal tier is purchased, the conversion tier.</desc>
+
+        <g data-chart-element="axis" data-axis-role="direction" id="indicator-direction">
+          <text class="direction-label" data-chart-element="label" x="96" y="112" text-anchor="middle">ALL VISITORS</text>
+          <line class="direction" x1="96" y1="128" x2="96" y2="472"/>
+          <line class="direction" x1="96" y1="472" x2="90" y2="460"/>
+          <line class="direction" x1="96" y1="472" x2="102" y2="460"/>
+          <text class="direction-label" data-chart-element="label" x="96" y="496" text-anchor="middle">CONVERTED</text>
+        </g>
+
+        <g data-chart-element="series" id="series-funnel" data-series-label="Q2 self-serve funnel (unique accounts)">
+          <polygon class="tier tier--visited" data-chart-element="mark" id="tier-1-visited"
+                   points="160,112 800,112 600,208 360,208"/>
+          <polygon class="tier tier--trial" data-chart-element="mark" id="tier-2-trial"
+                   points="360,208 600,208 536,304 424,304"/>
+          <polygon class="tier tier--activated" data-chart-element="mark" id="tier-3-activated"
+                   points="424,304 536,304 512,400 448,400"/>
+          <polygon class="tier tier--purchased" data-chart-element="mark" id="tier-4-purchased"
+                   points="448,400 512,400 512,496 448,496"/>
+        </g>
+
+        <g data-chart-element="label" id="labels-tiers">
+          <text class="tier-name"  x="480" y="152" text-anchor="middle">Visited pricing page</text>
+          <text class="tier-value" x="480" y="176" text-anchor="middle">80,000</text>
+
+          <text class="tier-name"  x="480" y="248" text-anchor="middle">Started trial</text>
+          <text class="tier-value" x="480" y="272" text-anchor="middle">30,000</text>
+
+          <text class="tier-name tier-name--small"   x="480" y="344" text-anchor="middle">Activated</text>
+          <text class="tier-value tier-value--small" x="480" y="368" text-anchor="middle">14,000</text>
+        </g>
+
+        <!-- The narrowest tier cannot hold its label at legible size, so it takes a leader
+             into clear space rather than a shrunken or rotated label. -->
+        <g data-chart-element="label" id="label-tier-4-purchased">
+          <line class="leader" x1="444" y1="448" x2="368" y2="448"/>
+          <text class="lead-name"  x="356" y="444" text-anchor="end">Purchased</text>
+          <text class="lead-value" x="356" y="464" text-anchor="end">8,000</text>
+        </g>
+
+        <g data-chart-element="label" id="labels-delta">
+          <line class="delta-rule" x1="604" y1="208" x2="628" y2="208"/>
+          <text class="delta" x="636" y="212" text-anchor="start">−63% to trial</text>
+
+          <line class="delta-rule" x1="516" y1="400" x2="556" y2="400"/>
+          <text class="delta" x="564" y="404" text-anchor="start">−43% to purchase</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative dataset — the four stage counts are invented to demonstrate the pyramid grammar and describe no real
+      funnel. <strong>Encoding rule: width ∝ value</strong>, at 0.008&nbsp;px per account measured from zero width;
+      each tier's top edge encodes its own count and its bottom edge equals the next stage's count, so the taper is
+      derived from the data rather than eyeballed. Tier heights are uniform — height is not a second encoded dimension
+      — and the silhouette narrows monotonically. Every tier carries its name and its number as text, so the ordering
+      and the magnitudes survive grayscale. Colour resolves through design-system tokens; where no project tokens are
+      compiled the page falls back to the documented neutral palette declared in <code>:root</code>. Static,
+      script-free, and offline.
+    </p>
+  </div>
+</body>
+</html>

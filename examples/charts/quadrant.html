@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q3 initiatives by effort and impact</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all. The four cells are deliberately NOT filled in four colours: position
+   * and label already carry the whole claim.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 44%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  /* The axis pair is the spine: both the same weight, and heavier than anything else. */
+  .axis-line { fill: none; stroke: var(--chart-rule-solid); stroke-width: 1.5; }
+  .axis-tip  { fill: var(--chart-muted); font-size: 12px; letter-spacing: 0.14em; }
+  .corner-tag{ fill: var(--chart-soft); font-size: 10px; letter-spacing: 0.14em; }
+  .caption   { fill: var(--chart-soft); font-size: 11px; }
+
+  /* Marks are uniform in size: size is not a third encoded dimension here. */
+  .dot        { fill: var(--chart-fill); stroke: var(--chart-fill); stroke-width: var(--chart-hairline); }
+  .dot--focal { fill: var(--chart-accent); stroke: var(--chart-accent); stroke-width: 3; }
+
+  .item        { fill: var(--chart-ink); font-size: 12px; }
+  .item--focal { fill: var(--chart-accent); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · quadrant</p>
+    <h1>Q3 initiatives by effort and impact</h1>
+    <p class="standfirst">Eight initiatives placed by the planning group against two judged axes. The onboarding checklist is the recommendation: it is the highest-impact item in the low-effort half.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="quadrant"
+           data-reading-order="start top-left in cell-high-impact-low-effort where the recommendation sits, then clockwise through cell-high-impact-high-effort, cell-low-impact-high-effort and cell-low-impact-low-effort; up is more impact, right is more effort"
+           data-focal-id="mark-onboarding-checklist"
+           data-source-kind="dataset"
+           data-baseline="not-applicable">
+        <title id="chart-title">Q3 initiatives by effort and impact</title>
+        <desc id="chart-desc">Illustrative planning frame, not a measured dataset. Eight initiatives placed by judgement against two named axes: impact on the vertical, more upward, and effort on the horizontal, more rightward. The origin is not arbitrary — it is the median effort and the median impact of these eight items, so each initiative sits above or below its own set's midpoint rather than an absolute scale. The high-impact low-effort cell holds the onboarding checklist, search filters and the weekly usage digest; the high-impact high-effort cell holds workspace permissions and the public API version two; the low-impact high-effort cell holds the legacy importer rewrite; the low-impact low-effort cell holds the docs refresh and keyboard shortcuts. The focal mark is the onboarding checklist, the highest-impact item on the low-effort side. Placements are judgements, not measurements: no coordinate here was read off a dataset, and no item sits on an axis line.</desc>
+
+        <g data-chart-element="axis" data-axis-role="judgement" id="axis-impact">
+          <line class="axis-line" x1="480" y1="96" x2="480" y2="544"/>
+          <text class="axis-tip" x="480" y="76" text-anchor="middle">IMPACT</text>
+        </g>
+
+        <g data-chart-element="axis" data-axis-role="judgement" id="axis-effort">
+          <line class="axis-line" x1="160" y1="320" x2="800" y2="320"/>
+          <text class="axis-tip" x="816" y="324" text-anchor="start">EFFORT</text>
+        </g>
+
+        <!-- Cell ids come from the axis words, so an id survives a polarity flip. -->
+        <g data-chart-element="label" id="cell-high-impact-low-effort">
+          <text class="corner-tag" x="176" y="120" text-anchor="start">HIGH IMPACT · LOW EFFORT</text>
+        </g>
+        <g data-chart-element="label" id="cell-high-impact-high-effort">
+          <text class="corner-tag" x="784" y="120" text-anchor="end">HIGH IMPACT · HIGH EFFORT</text>
+        </g>
+        <g data-chart-element="label" id="cell-low-impact-low-effort">
+          <text class="corner-tag" x="176" y="528" text-anchor="start">LOW IMPACT · LOW EFFORT</text>
+        </g>
+        <g data-chart-element="label" id="cell-low-impact-high-effort">
+          <text class="corner-tag" x="784" y="528" text-anchor="end">LOW IMPACT · HIGH EFFORT</text>
+        </g>
+
+        <g data-chart-element="series" id="series-initiatives" data-series-label="Q3 initiative backlog">
+          <circle class="dot dot--focal" data-chart-element="mark" id="mark-onboarding-checklist" cx="300" cy="176" r="7"/>
+          <text class="item item--focal" data-chart-element="label" x="312" y="180">Onboarding checklist</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-search-filters" cx="376" cy="240" r="6"/>
+          <text class="item" data-chart-element="label" x="388" y="244">Search filters</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-usage-digest" cx="240" cy="288" r="6"/>
+          <text class="item" data-chart-element="label" x="252" y="292">Weekly usage digest</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-workspace-permissions" cx="600" cy="160" r="6"/>
+          <text class="item" data-chart-element="label" x="612" y="164">Workspace permissions</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-public-api" cx="672" cy="216" r="6"/>
+          <text class="item" data-chart-element="label" x="684" y="220">Public API v2</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-legacy-import" cx="592" cy="424" r="6"/>
+          <text class="item" data-chart-element="label" x="604" y="428">Legacy importer rewrite</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-docs-refresh" cx="280" cy="400" r="6"/>
+          <text class="item" data-chart-element="label" x="292" y="404">Docs refresh</text>
+
+          <circle class="dot" data-chart-element="mark" id="mark-keyboard-shortcuts" cx="288" cy="464" r="6"/>
+          <text class="item" data-chart-element="label" x="300" y="468">Keyboard shortcuts</text>
+        </g>
+
+        <g data-chart-element="label" id="caption-origin">
+          <text class="caption" x="160" y="592">Origin: the median effort and median impact of these eight initiatives — not an absolute scale.</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative planning frame — the eight initiatives and their placements are invented to demonstrate the
+      quadrant grammar and describe no real backlog. Placements are judgements against two named axes, not measured
+      coordinates; had they come from a dataset this would be a scatter instead. The origin's meaning is stated on the
+      canvas and in the description, axis polarity is declared in <code>data-reading-order</code>, no mark sits on an
+      axis line, and mark size encodes nothing. The four cells are not filled in four colours — position and label
+      already carry the claim. A quadrant has no value scale, so <code>data-baseline</code> is
+      <code>not-applicable</code>. Colour resolves through design-system tokens; where no project tokens are compiled
+      the page falls back to the documented neutral palette declared in <code>:root</code>. Static, script-free, and
+      offline.
+    </p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subscription lifecycle</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * `examples/` is a standalone corpus with no project design system to read, so the
+   * base tokens below are the documented NEUTRAL FALLBACK from diagram-craft.md
+   * (achromatic ramp plus one accent). The fallback is disclosed on the SVG root
+   * as data-token-fallback="neutral-default" — a silent fallback is indistinguishable
+   * from a broken token read.
+   */
+  :root {
+    --color-background:       oklch(0.986 0.003 95);
+    --color-card:             oklch(1 0 0);
+    --color-foreground:       oklch(0.24 0.012 264);
+    --color-muted-foreground: oklch(0.52 0.014 264);
+    --color-border:           oklch(0.90 0.006 264);
+    --color-input:            oklch(0.84 0.008 264);
+    --color-accent:           oklch(0.55 0.135 248);
+    --color-primary:          oklch(0.45 0.100 248);
+
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --color-background:       oklch(0.19 0.010 264);
+    --color-card:             oklch(0.24 0.012 264);
+    --color-foreground:       oklch(0.95 0.004 264);
+    --color-muted-foreground: oklch(0.72 0.012 264);
+    --color-border:           oklch(0.32 0.012 264);
+    --color-input:            oklch(0.40 0.014 264);
+    --color-accent:           oklch(0.74 0.120 248);
+    --color-primary:          oklch(0.80 0.090 248);
+
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-background:       oklch(0.19 0.010 264);
+      --color-card:             oklch(0.24 0.012 264);
+      --color-foreground:       oklch(0.95 0.004 264);
+      --color-muted-foreground: oklch(0.72 0.012 264);
+      --color-border:           oklch(0.32 0.012 264);
+      --color-input:            oklch(0.40 0.014 264);
+      --color-accent:           oklch(0.74 0.120 248);
+      --color-primary:          oklch(0.80 0.090 248);
+
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .state-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .state-shape--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .state-name { fill: var(--diagram-ink); font-size: 14px; }
+  .state-note { fill: var(--diagram-soft); font-size: 11px; }
+
+  /* Structural punctuation stays neutral so it never competes with the focal state. */
+  .marker-dot { fill: var(--diagram-ink); stroke: none; }
+  .marker-ring { fill: none; stroke: var(--diagram-ink); stroke-width: 1.5; }
+
+  /* Stroke weight is uniform: in this grammar it means nothing, so it must not vary. */
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
+  .edge--back { stroke-dasharray: 6 4; }
+  .edge-event { fill: var(--diagram-ink); font-size: 11px; }
+  .edge-mask { fill: var(--diagram-paper); }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">State</p>
+    <h1>Subscription lifecycle</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1088 384" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="state-title state-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="state"
+           data-reading-order="ltr — happy path: initial, state-trial, state-active, state-past-due, state-cancelled, terminal-closed"
+           data-focal-id="state-past-due"
+           data-source-kind="brief"
+           data-token-fallback="neutral-default">
+        <title id="state-title">Subscription lifecycle</title>
+        <desc id="state-desc">One subscription rests in exactly one condition at a time. The initial marker enters trial; trial ends into active; active renews itself each month; a failed payment moves active to past due, which is the focal condition; past due returns to active when payment clears, or becomes cancelled when the grace window ends. Active can also be cancelled directly by the user. Cancelled reaches the terminal marker when the record is purged.</desc>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Transitions first, so a state fill covers any stroke that would touch its edge. -->
+        <line class="edge" data-diagram-element="edge" id="edge-initial-state-trial"
+              x1="56" y1="200" x2="96" y2="200" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-state-trial-state-active-trial-ends"
+              x1="272" y1="200" x2="352" y2="200" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-state-active-state-past-due-payment-fails"
+              x1="528" y1="200" x2="608" y2="200" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-state-past-due-state-cancelled-grace-ends"
+              x1="784" y1="200" x2="864" y2="200" marker-end="url(#arrowhead)"/>
+
+        <!-- Backward transition: the return edge is the shape of the machine, never hidden. -->
+        <path class="edge edge--back" data-diagram-element="edge" id="edge-state-past-due-state-active-payment-clears"
+              d="M 696 240 V 312 H 440 V 240" marker-end="url(#arrowhead)"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-state-active-state-cancelled-user-cancels"
+              d="M 512 160 V 96 H 952 V 160" marker-end="url(#arrowhead)"/>
+
+        <!-- Self-transition: a curve clearing the box above it. Curves are permitted routing. -->
+        <path class="edge" data-diagram-element="edge" id="edge-state-active-state-active-renews"
+              d="M 400 160 C 400 112 480 112 480 160" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-state-cancelled-terminal-closed-purge"
+              x1="952" y1="240" x2="952" y2="316" marker-end="url(#arrowhead)"/>
+
+        <g data-diagram-element="node" id="initial">
+          <circle class="marker-dot" cx="48" cy="200" r="8"/>
+        </g>
+
+        <g data-diagram-element="node" id="state-trial">
+          <rect class="state-shape" x="96" y="160" width="176" height="80" rx="12"/>
+          <text class="state-name" x="184" y="196" text-anchor="middle">Trial</text>
+          <text class="state-note" x="184" y="216" text-anchor="middle">14 days, no card charged</text>
+        </g>
+
+        <g data-diagram-element="node" id="state-active">
+          <rect class="state-shape" x="352" y="160" width="176" height="80" rx="12"/>
+          <text class="state-name" x="440" y="196" text-anchor="middle">Active</text>
+          <text class="state-note" x="440" y="216" text-anchor="middle">full access</text>
+        </g>
+
+        <g data-diagram-element="node" id="state-past-due">
+          <rect class="state-shape state-shape--focal" x="608" y="160" width="176" height="80" rx="12"/>
+          <text class="state-name" x="696" y="196" text-anchor="middle">Past due</text>
+          <text class="state-note" x="696" y="216" text-anchor="middle">grace window, access held</text>
+        </g>
+
+        <g data-diagram-element="node" id="state-cancelled">
+          <rect class="state-shape" x="864" y="160" width="176" height="80" rx="12"/>
+          <text class="state-name" x="952" y="196" text-anchor="middle">Cancelled</text>
+          <text class="state-note" x="952" y="216" text-anchor="middle">no access</text>
+        </g>
+
+        <g data-diagram-element="node" id="terminal-closed">
+          <circle class="marker-ring" cx="952" cy="336" r="12"/>
+          <circle class="marker-dot" cx="952" cy="336" r="4"/>
+        </g>
+
+        <!-- Labels sit at the path midpoint, masked so no stroke runs under the text. -->
+        <rect class="edge-mask" x="264" y="176" width="96" height="16"/>
+        <text class="edge-event" x="312" y="188" text-anchor="middle">trial ends</text>
+
+        <rect class="edge-mask" x="520" y="176" width="96" height="16"/>
+        <text class="edge-event" x="568" y="188" text-anchor="middle">payment fails</text>
+
+        <rect class="edge-mask" x="776" y="176" width="96" height="16"/>
+        <text class="edge-event" x="824" y="188" text-anchor="middle">grace ends</text>
+
+        <rect class="edge-mask" x="392" y="92" width="96" height="16"/>
+        <text class="edge-event" x="440" y="104" text-anchor="middle">renews</text>
+
+        <rect class="edge-mask" x="676" y="76" width="112" height="16"/>
+        <text class="edge-event" x="732" y="88" text-anchor="middle">user cancels</text>
+
+        <rect class="edge-mask" x="504" y="320" width="128" height="20"/>
+        <text class="edge-event" x="568" y="336" text-anchor="middle">payment clears</text>
+
+        <rect class="edge-mask" x="960" y="272" width="88" height="16"/>
+        <text class="edge-event" x="968" y="284">data purged</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

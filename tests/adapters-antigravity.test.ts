@@ -13,8 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 34 artifacts (17 workflows + 14 craft skills + 3 journey skills)", () => {
-    expect(makeArtifacts()).toHaveLength(34);
+  it("returns exactly 36 artifacts (18 workflows + 15 craft skills + 3 journey skills)", () => {
+    const arts = makeArtifacts();
+    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
+    expect(arts).toHaveLength(36);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -34,7 +36,7 @@ describe("generateAntigravityAdapter", () => {
     expect(workflows.some((w) => w.absPath.endsWith("/ui-from-url.md"))).toBe(true);
   });
 
-  it("16 artifacts are skill paths under .agent/skills/design-os-*/SKILL.md (13 craft + 3 journey)", () => {
+  it("18 artifacts are skill paths under .agent/skills/design-os-*/SKILL.md (15 craft + 3 journey)", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".agent/skills/design-os-"),
     );

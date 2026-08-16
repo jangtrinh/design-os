@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout flow — partial view</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * `examples/` is a standalone corpus with no project design system to read, so the
+   * base tokens below are the documented NEUTRAL FALLBACK from diagram-craft.md
+   * (achromatic ramp plus one accent). The fallback is disclosed on the SVG root
+   * as data-token-fallback="neutral-default" — a silent fallback is indistinguishable
+   * from a broken token read.
+   */
+  :root {
+    --color-background:       oklch(0.986 0.003 95);
+    --color-card:             oklch(1 0 0);
+    --color-foreground:       oklch(0.24 0.012 264);
+    --color-muted-foreground: oklch(0.52 0.014 264);
+    --color-border:           oklch(0.90 0.006 264);
+    --color-input:            oklch(0.84 0.008 264);
+    --color-accent:           oklch(0.55 0.135 248);
+    --color-primary:          oklch(0.45 0.100 248);
+
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --color-background:       oklch(0.19 0.010 264);
+    --color-card:             oklch(0.24 0.012 264);
+    --color-foreground:       oklch(0.95 0.004 264);
+    --color-muted-foreground: oklch(0.72 0.012 264);
+    --color-border:           oklch(0.32 0.012 264);
+    --color-input:            oklch(0.40 0.014 264);
+    --color-accent:           oklch(0.74 0.120 248);
+    --color-primary:          oklch(0.80 0.090 248);
+
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-background:       oklch(0.19 0.010 264);
+      --color-card:             oklch(0.24 0.012 264);
+      --color-foreground:       oklch(0.95 0.004 264);
+      --color-muted-foreground: oklch(0.72 0.012 264);
+      --color-border:           oklch(0.32 0.012 264);
+      --color-input:            oklch(0.40 0.014 264);
+      --color-accent:           oklch(0.74 0.120 248);
+      --color-primary:          oklch(0.80 0.090 248);
+
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+
+  .intro {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--diagram-muted);
+    max-width: 72ch;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  /*
+   * One colour token per node kind, held across every product-flow artifact in the repo:
+   * entry = muted wall, screen = surface + solid rule, screen-state = soft dashed wall.
+   */
+  .n-entry { fill: var(--diagram-paper); stroke: var(--diagram-muted); stroke-width: var(--diagram-hairline); }
+  .n-screen { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .n-screen--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .n-state { fill: var(--diagram-surface); stroke: var(--diagram-muted); stroke-width: var(--diagram-hairline); stroke-dasharray: 5 4; }
+  /* A terminal screen is the same node kind as any screen, so shape carries the difference. */
+  .n-terminal-ring { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-source { fill: var(--diagram-soft); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
+  .edge--back { stroke-dasharray: 6 4; }
+  .edge-label { fill: var(--diagram-ink); font-size: 11px; }
+  .edge-mask { fill: var(--diagram-paper); }
+
+  .ledger { margin-top: 32px; border-top: 1px solid var(--diagram-rule); padding-top: 20px; }
+  .ledger h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; margin-bottom: 12px; }
+  .ledger dl { display: grid; grid-template-columns: 168px 1fr; gap: 6px 16px; font-size: 12px; margin-bottom: 24px; }
+  .ledger dt { color: var(--diagram-muted); }
+  .ledger table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ledger th, .ledger td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--diagram-rule); vertical-align: top; }
+  .ledger th { color: var(--diagram-muted); font-weight: 500; }
+  .ledger code { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Product flow · derived view</p>
+    <h1>Checkout flow — partial view</h1>
+    <p class="intro">
+      A view derived from <code>checkout.flow.json</code>, not an edit surface. This is a
+      <strong>partial</strong> view: the empty-cart screen state and the session-heartbeat
+      system transition are excluded, and both are named in the fidelity ledger below.
+    </p>
+
+    <!--
+      FIDELITY LEDGER (see the rendered table below for the same content):
+        drop — screen.cart.empty      : empty-basket state, never on the purchase path this view answers
+        drop — t-session-heartbeat    : AFTER_DELAY system transition with no user-visible effect
+      Nothing is merged or collapsed. Every remaining screen, screen state, entry point, and
+      transition in the source is drawn, so `fidelity: partial` is the only honest claim.
+      Confirming each data-source-id resolves against the source flow is a manual audit step
+      that neither `ui flow lint` nor `ui diagram lint` performs.
+    -->
+
+    <div class="canvas">
+      <svg viewBox="0 0 1120 480" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="flow-title flow-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="product-flow"
+           data-reading-order="left-to-right: entry.checkout-start, screen.cart, screen.shipping, screen.payment, screen.confirmation; screen.payment.error hangs below screen.payment, and two back-edges return upstream"
+           data-focal-id="node-payment"
+           data-source-kind="flow-json"
+           data-source-file="checkout.flow.json"
+           data-fidelity="partial"
+           data-token-fallback="neutral-default">
+        <title id="flow-title">Checkout flow, partial view</title>
+        <desc id="flow-desc">The checkout entry point opens the cart. The cart advances to shipping, shipping advances to payment, and payment advances to the confirmation screen, which is terminal. Payment is the focal screen. A declined card moves payment into its error state, which returns to payment on retry, and shipping can return to the cart to edit the basket. Both return paths are drawn as dashed back-edges. This is a partial view: the empty-cart state and the session-heartbeat transition are excluded and listed in the fidelity ledger.</desc>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <line class="edge" data-diagram-element="edge" id="edge-entry-cart"
+              data-source-id="t-entry-to-cart" aria-label="Open cart transition, source ID t-entry-to-cart"
+              x1="184" y1="216" x2="248" y2="216" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-cart-shipping"
+              data-source-id="t-cart-to-shipping" aria-label="Checkout transition, source ID t-cart-to-shipping"
+              x1="408" y1="216" x2="472" y2="216" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-shipping-payment"
+              data-source-id="t-shipping-to-payment" aria-label="Continue to payment transition, source ID t-shipping-to-payment"
+              x1="632" y1="216" x2="696" y2="216" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-payment-confirmation"
+              data-source-id="t-payment-to-confirmation" aria-label="Pay now transition, source ID t-payment-to-confirmation"
+              x1="856" y1="216" x2="920" y2="216" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-payment-error"
+              data-source-id="t-payment-to-error" aria-label="Card declined transition, source ID t-payment-to-error"
+              x1="776" y1="256" x2="776" y2="344" marker-end="url(#arrowhead)"/>
+
+        <!-- Back-edges are dashed and labelled; a cycle is never flattened into a forward arrow. -->
+        <path class="edge edge--back" data-diagram-element="edge" id="edge-error-payment"
+              data-source-id="t-error-to-payment" aria-label="Retry payment back transition, source ID t-error-to-payment"
+              d="M 856 380 H 888 V 232 H 856" marker-end="url(#arrowhead)"/>
+
+        <path class="edge edge--back" data-diagram-element="edge" id="edge-shipping-cart"
+              data-source-id="t-shipping-back-to-cart" aria-label="Edit basket back transition, source ID t-shipping-back-to-cart"
+              d="M 472 192 H 440 V 112 H 328 V 176" marker-end="url(#arrowhead)"/>
+
+        <g data-diagram-element="node" id="node-entry"
+           data-source-id="entry.checkout-start" aria-label="Checkout entry point, source ID entry.checkout-start">
+          <rect class="n-entry" x="40" y="176" width="144" height="80" rx="40"/>
+          <text class="node-label" x="112" y="200" text-anchor="middle">Start checkout</text>
+          <text class="node-source" x="112" y="220" text-anchor="middle">entry.checkout-start</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-cart"
+           data-source-id="screen.cart" aria-label="Cart screen, source ID screen.cart">
+          <rect class="n-screen" x="248" y="176" width="160" height="80" rx="4"/>
+          <text class="node-label" x="328" y="200" text-anchor="middle">Cart</text>
+          <text class="node-source" x="328" y="220" text-anchor="middle">screen.cart</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-shipping"
+           data-source-id="screen.shipping" aria-label="Shipping screen, source ID screen.shipping">
+          <rect class="n-screen" x="472" y="176" width="160" height="80" rx="4"/>
+          <text class="node-label" x="552" y="200" text-anchor="middle">Shipping</text>
+          <text class="node-source" x="552" y="220" text-anchor="middle">screen.shipping</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-payment"
+           data-source-id="screen.payment" aria-label="Payment screen, focal, source ID screen.payment">
+          <rect class="n-screen n-screen--focal" x="696" y="176" width="160" height="80" rx="4"/>
+          <text class="node-label" x="776" y="200" text-anchor="middle">Payment</text>
+          <text class="node-source" x="776" y="220" text-anchor="middle">screen.payment</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-confirmation"
+           data-source-id="screen.confirmation" aria-label="Confirmation screen, terminal, source ID screen.confirmation">
+          <rect class="n-terminal-ring" x="916" y="172" width="168" height="88" rx="32"/>
+          <rect class="n-screen" x="920" y="176" width="160" height="80" rx="28"/>
+          <text class="node-label" x="1000" y="200" text-anchor="middle">Confirmation ✓</text>
+          <text class="node-source" x="1000" y="220" text-anchor="middle">screen.confirmation · terminal</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-payment-error"
+           data-source-id="screen.payment.error" aria-label="Payment error state, source ID screen.payment.error">
+          <rect class="n-state" x="696" y="344" width="160" height="72" rx="4"/>
+          <text class="node-label" x="776" y="376" text-anchor="middle">Payment error</text>
+          <text class="node-source" x="776" y="396" text-anchor="middle">screen.payment.error</text>
+        </g>
+
+        <rect class="edge-mask" x="176" y="196" width="80" height="16"/>
+        <text class="edge-label" x="216" y="208" text-anchor="middle">open cart</text>
+
+        <rect class="edge-mask" x="400" y="196" width="80" height="16"/>
+        <text class="edge-label" x="440" y="208" text-anchor="middle">checkout</text>
+
+        <rect class="edge-mask" x="624" y="196" width="80" height="16"/>
+        <text class="edge-label" x="664" y="208" text-anchor="middle">continue</text>
+
+        <rect class="edge-mask" x="848" y="196" width="80" height="16"/>
+        <text class="edge-label" x="888" y="208" text-anchor="middle">pay now</text>
+
+        <rect class="edge-mask" x="784" y="292" width="104" height="16"/>
+        <text class="edge-label" x="792" y="304">card declined</text>
+
+        <rect class="edge-mask" x="896" y="284" width="88" height="16"/>
+        <text class="edge-label" x="904" y="296">retry ↩</text>
+
+        <rect class="edge-mask" x="328" y="92" width="112" height="16"/>
+        <text class="edge-label" x="384" y="104" text-anchor="middle">edit basket ↩</text>
+      </svg>
+    </div>
+
+    <section class="ledger" aria-labelledby="derived-heading">
+      <h2 id="derived-heading">Derived-view declaration</h2>
+      <dl>
+        <dt>Source</dt><dd><code>checkout.flow.json</code></dd>
+        <dt>Source reference</dt><dd><code>v3.2.0</code></dd>
+        <dt>Generated</dt><dd>2026-08-16</dd>
+        <dt>Flow lint</dt><dd>Passed — <code>ui flow lint</code>, run by the author</dd>
+        <dt>Diagram lint</dt><dd>Passed — <code>ui diagram lint</code>, run by the author</dd>
+        <dt>Fidelity</dt><dd>Partial — the ledger below is non-empty</dd>
+      </dl>
+
+      <h2>Fidelity ledger</h2>
+      <table>
+        <thead><tr><th>Action</th><th>Affected IDs</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>drop</td>
+            <td><code>screen.cart.empty</code></td>
+            <td>Empty-basket state; never reachable on the purchase path this view answers.</td>
+          </tr>
+          <tr>
+            <td>drop</td>
+            <td><code>t-session-heartbeat</code></td>
+            <td><code>AFTER_DELAY</code> system transition with no user-visible effect.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="intro" style="margin-top:16px">
+        Nothing is merged or collapsed. Both lints check disjoint things and neither resolves a
+        <code>data-source-id</code> against the source flow — that resolution, and this ledger's
+        completeness, is a manual audit.
+      </p>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# The example corpus is generated calibration material, not hand-maintained source.
+# Collapsing it in diffs keeps review attention on the grammars and lint rules that
+# produce it; correctness is held by the batch gate in tests/examples-corpus.test.ts.
+examples/diagrams/*.html linguist-generated=true
+examples/charts/*.html   linguist-generated=true

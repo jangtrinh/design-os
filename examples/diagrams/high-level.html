@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lakehouse capability sweep</title>
+<style>
+  /*
+   * Diagram role layer — the token contract from templates/diagram-scaffolds/diagram-base.html.
+   *
+   * Every role resolves to a project design token first. The second value in each var() is
+   * the documented neutral fallback from knowledge/diagram-craft.md, used only when this
+   * example is opened outside a Design OS project; the artifact declares that fallback in
+   * data-token-fallback so a reader can tell "no tokens present" from "tokens ignored".
+   * `:root` is a token-declaration block, so the definitions themselves are permitted; every
+   * consumer below must reference these vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fcfcfa);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #16181d);
+    --diagram-muted:       var(--color-muted-foreground, #6f7480);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f7480) 65%, var(--color-background, #fcfcfa));
+    --diagram-rule:        var(--color-border, #e6e5e0);
+    --diagram-rule-solid:  var(--color-input, #d2d1cb);
+    --diagram-accent:      var(--color-accent, #b3451c);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b3451c) 12%, var(--color-background, #fcfcfa));
+    --diagram-link:        var(--color-primary, #2f5d7c);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /*
+   * The DS compiles a single palette, so dark values are authored here rather than emitted.
+   * Same var names, same roles — only the mix ratios and neutral fallbacks shift to hold
+   * contrast against a dark ground.
+   */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #101215);
+    --diagram-surface:     var(--color-card, #171a1f);
+    --diagram-ink:         var(--color-foreground, #ecebe6);
+    --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+    --diagram-rule:        var(--color-border, #2a2f35);
+    --diagram-rule-solid:  var(--color-input, #3b414a);
+    --diagram-accent:      var(--color-accent, #e0743f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+    --diagram-link:        var(--color-primary, #7fb0d0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #101215);
+      --diagram-surface:     var(--color-card, #171a1f);
+      --diagram-ink:         var(--color-foreground, #ecebe6);
+      --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+      --diagram-rule:        var(--color-border, #2a2f35);
+      --diagram-rule-solid:  var(--color-input, #3b414a);
+      --diagram-accent:      var(--color-accent, #e0743f);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+      --diagram-link:        var(--color-primary, #7fb0d0);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1280px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  /* Wide diagrams scroll in their own container; the page body never scrolls sideways. */
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 960px; height: auto; display: block; }
+
+  .chevron { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .chevron-label {
+    fill: var(--diagram-ink); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .chevron--concern { fill: none; stroke: var(--diagram-rule); }
+  .chevron--concern + .chevron-label { fill: var(--diagram-soft); }
+
+  .boundary { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .zone-dashed { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); stroke-dasharray: 4 4; }
+  .zone-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-sublabel { fill: var(--diagram-soft); font-size: 10px; }
+
+  .bar { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .bar--cross { fill: none; stroke: var(--diagram-rule); }
+  .bar-label { fill: var(--diagram-ink); font-size: 12px; letter-spacing: 0.06em; }
+  .bar-sublabel { fill: var(--diagram-soft); font-size: 10px; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1; }
+  .edge--accent { stroke: var(--diagram-accent); }
+  .edge--trigger { stroke: var(--diagram-soft); stroke-dasharray: 3 4; }
+  .edge-label {
+    fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.08em;
+    paint-order: stroke; stroke: var(--diagram-paper); stroke-width: 4px; stroke-linejoin: round;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">High-level</p>
+    <h1>Lakehouse capability sweep</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1440 552" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="hl-title hl-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="high-level"
+           data-reading-order="Left to right through the phase banner: ingest, store, query, analyse, visualise. External sources feed NiFi; MinIO is the focal storage hub every phase reads from or writes to; Airflow orchestrates from the bar inside the Kubernetes boundary; the security and observability bars below the boundary read last as ground the whole sweep stands on."
+           data-focal-id="node-minio"
+           data-source-kind="brief"
+           data-token-fallback="neutral">
+        <title id="hl-title">Lakehouse capability sweep</title>
+        <desc id="hl-desc">A five-phase platform sweep. External relational databases, SFTP drops and web forms land in Apache NiFi under the ingest phase; NiFi writes to MinIO, the focal object storage hub under the store phase; Trino federates queries over MinIO under the query phase; JupyterHub reads Trino under the analyse phase; Superset publishes under the visualise phase. An Airflow orchestration bar inside the Kubernetes deployment boundary drops dashed triggers into NiFi, Trino and JupyterHub. Identity and observability cross-cutting bars span the full width below the boundary, paired with the security and observability concern chevrons in the right-hand strip.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own color via currentColor, so one marker serves every edge role. -->
+          <marker id="hl-arrow" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <path d="M 0 0 L 7 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Phase banner: the legend. Every node's horizontal center sits on its chevron center. -->
+        <g data-diagram-element="node" id="phase-ingest">
+          <path class="chevron" d="M 256 48 H 432 L 448 72 L 432 96 H 256 Z"/>
+          <text class="chevron-label" x="352" y="77" text-anchor="middle">Ingest</text>
+        </g>
+        <g data-diagram-element="node" id="phase-store">
+          <path class="chevron" d="M 448 48 H 624 L 640 72 L 624 96 H 448 L 464 72 Z"/>
+          <text class="chevron-label" x="548" y="77" text-anchor="middle">Store</text>
+        </g>
+        <g data-diagram-element="node" id="phase-query">
+          <path class="chevron" d="M 640 48 H 816 L 832 72 L 816 96 H 640 L 656 72 Z"/>
+          <text class="chevron-label" x="740" y="77" text-anchor="middle">Query</text>
+        </g>
+        <g data-diagram-element="node" id="phase-analyse">
+          <path class="chevron" d="M 832 48 H 1008 L 1024 72 L 1008 96 H 832 L 848 72 Z"/>
+          <text class="chevron-label" x="932" y="77" text-anchor="middle">Analyse</text>
+        </g>
+        <g data-diagram-element="node" id="phase-visualise">
+          <path class="chevron" d="M 1024 48 H 1200 L 1216 72 L 1200 96 H 1024 L 1040 72 Z"/>
+          <text class="chevron-label" x="1124" y="77" text-anchor="middle">Visualise</text>
+        </g>
+
+        <!-- Concern strip: one rotated chevron per spanning component, declared bar-paired first. -->
+        <g data-diagram-element="node" id="concern-orchestration">
+          <path class="chevron chevron--concern" d="M 1264 120 V 180 L 1336 192 L 1408 180 V 120 Z"/>
+          <text class="chevron-label" x="1336" y="156" text-anchor="middle">Orchestr.</text>
+        </g>
+        <g data-diagram-element="node" id="concern-security">
+          <path class="chevron chevron--concern" d="M 1264 200 L 1336 212 L 1408 200 V 260 L 1336 272 L 1264 260 Z"/>
+          <text class="chevron-label" x="1336" y="240" text-anchor="middle">Security</text>
+        </g>
+        <g data-diagram-element="node" id="concern-observability">
+          <path class="chevron chevron--concern" d="M 1264 280 L 1336 292 L 1408 280 V 340 L 1336 352 L 1264 340 Z"/>
+          <text class="chevron-label" x="1336" y="320" text-anchor="middle">Observ.</text>
+        </g>
+
+        <!-- Deployment boundary: solid. Everything the platform actually runs. -->
+        <rect class="boundary" x="240" y="120" width="992" height="232" rx="4"/>
+        <text class="zone-label" x="256" y="340">Kubernetes deployment boundary</text>
+
+        <!-- External source zone: dashed, outside the boundary. -->
+        <rect class="zone-dashed" x="32" y="192" width="176" height="160" rx="4"/>
+        <text class="zone-label" x="48" y="212">External sources</text>
+
+        <!-- Connectors are emitted before node shapes so the fills mask the line ends. -->
+        <line class="edge" data-diagram-element="edge" id="edge-db-nifi"
+              x1="192" y1="240" x2="288" y2="240" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="212" y="232">JDBC</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-sftp-nifi"
+              d="M 192 284 H 212 V 256 H 288" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="212" y="278">SFTP</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-forms-nifi"
+              d="M 192 328 H 224 V 272 H 288" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="212" y="322">HTTPS</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-nifi-minio"
+              x1="416" y1="256" x2="480" y2="256" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="448" y="248" text-anchor="middle">PUT</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-minio-trino"
+              x1="608" y1="256" x2="672" y2="256" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="640" y="248" text-anchor="middle">scan</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-trino-jupyter"
+              x1="800" y1="256" x2="864" y2="256" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="832" y="248" text-anchor="middle">JDBC</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-jupyter-superset"
+              x1="992" y1="256" x2="1056" y2="256" marker-end="url(#hl-arrow)"/>
+        <text class="edge-label" x="1024" y="248" text-anchor="middle">publish</text>
+
+        <!-- Orchestration triggers: dashed, unlabelled, straight down into the target's top edge. -->
+        <line class="edge edge--trigger" data-diagram-element="edge" id="edge-airflow-nifi"
+              x1="352" y1="176" x2="352" y2="224" marker-end="url(#hl-arrow)"/>
+        <line class="edge edge--trigger" data-diagram-element="edge" id="edge-airflow-trino"
+              x1="736" y1="176" x2="736" y2="224" marker-end="url(#hl-arrow)"/>
+        <line class="edge edge--trigger" data-diagram-element="edge" id="edge-airflow-jupyter"
+              x1="928" y1="176" x2="928" y2="224" marker-end="url(#hl-arrow)"/>
+
+        <!-- Orchestration bar: spans the boundary's inner width. -->
+        <g data-diagram-element="node" id="bar-airflow">
+          <rect class="bar" x="256" y="136" width="960" height="40" rx="4"/>
+          <text class="bar-label" x="276" y="161">Apache Airflow</text>
+          <text class="bar-sublabel" x="404" y="161">scheduler · triggers ingest, federation and notebook runs</text>
+        </g>
+
+        <!-- External sources. -->
+        <g data-diagram-element="node" id="src-databases">
+          <rect class="node-shape" x="48" y="224" width="144" height="32" rx="4"/>
+          <text class="node-label" x="120" y="245" text-anchor="middle">Relational DBs</text>
+        </g>
+        <g data-diagram-element="node" id="src-sftp">
+          <rect class="node-shape" x="48" y="268" width="144" height="32" rx="4"/>
+          <text class="node-label" x="120" y="289" text-anchor="middle">SFTP drops</text>
+        </g>
+        <g data-diagram-element="node" id="src-forms">
+          <rect class="node-shape" x="48" y="312" width="144" height="32" rx="4"/>
+          <text class="node-label" x="120" y="333" text-anchor="middle">Web forms</text>
+        </g>
+
+        <!-- Phase nodes: one per phase column, centered on its chevron. -->
+        <g data-diagram-element="node" id="node-nifi">
+          <rect class="node-shape" x="288" y="224" width="128" height="64" rx="4"/>
+          <text class="node-label" x="352" y="252" text-anchor="middle">Apache NiFi</text>
+          <text class="node-sublabel" x="352" y="270" text-anchor="middle">ingest tool</text>
+        </g>
+        <g data-diagram-element="node" id="node-minio">
+          <rect class="node-shape node-shape--focal" x="480" y="224" width="128" height="64" rx="4"/>
+          <text class="node-label" x="544" y="252" text-anchor="middle">MinIO</text>
+          <text class="node-sublabel" x="544" y="270" text-anchor="middle">object storage hub</text>
+        </g>
+        <g data-diagram-element="node" id="node-trino">
+          <rect class="node-shape" x="672" y="224" width="128" height="64" rx="4"/>
+          <text class="node-label" x="736" y="252" text-anchor="middle">Trino</text>
+          <text class="node-sublabel" x="736" y="270" text-anchor="middle">federation engine</text>
+        </g>
+        <g data-diagram-element="node" id="node-jupyterhub">
+          <rect class="node-shape" x="864" y="224" width="128" height="64" rx="4"/>
+          <text class="node-label" x="928" y="252" text-anchor="middle">JupyterHub</text>
+          <text class="node-sublabel" x="928" y="270" text-anchor="middle">notebook surface</text>
+        </g>
+        <g data-diagram-element="node" id="node-superset">
+          <rect class="node-shape" x="1056" y="224" width="128" height="64" rx="4"/>
+          <text class="node-label" x="1120" y="252" text-anchor="middle">Superset</text>
+          <text class="node-sublabel" x="1120" y="270" text-anchor="middle">presentation surface</text>
+        </g>
+
+        <!-- Cross-cutting bars: below the boundary, full body width, one per concern chevron. -->
+        <g data-diagram-element="node" id="bar-security">
+          <rect class="bar bar--cross" x="32" y="392" width="1376" height="56" rx="4"/>
+          <text class="bar-label" x="56" y="418">Identity and policy</text>
+          <text class="bar-sublabel" x="56" y="436">Keycloak · LDAP · OIDC · HashiCorp Vault — applies to every phase, emits no connectors</text>
+        </g>
+        <g data-diagram-element="node" id="bar-observability">
+          <rect class="bar bar--cross" x="32" y="464" width="1376" height="56" rx="4"/>
+          <text class="bar-label" x="56" y="490">Observability</text>
+          <text class="bar-sublabel" x="56" y="508">Prometheus · Grafana · Loki — applies to every phase, emits no connectors</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

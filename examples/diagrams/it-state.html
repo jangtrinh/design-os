@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistics estate before modernisation</title>
+<style>
+  /*
+   * Diagram role layer — the token contract from templates/diagram-scaffolds/diagram-base.html.
+   *
+   * Every role resolves to a project design token first. The second value in each var() is
+   * the documented neutral fallback from knowledge/diagram-craft.md, used only when this
+   * example is opened outside a Design OS project; the artifact declares that fallback in
+   * data-token-fallback so a reader can tell "no tokens present" from "tokens ignored".
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fcfcfa);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #16181d);
+    --diagram-muted:       var(--color-muted-foreground, #6f7480);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f7480) 65%, var(--color-background, #fcfcfa));
+    --diagram-rule:        var(--color-border, #e6e5e0);
+    --diagram-rule-solid:  var(--color-input, #d2d1cb);
+    --diagram-accent:      var(--color-accent, #b3451c);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b3451c) 12%, var(--color-background, #fcfcfa));
+    --diagram-link:        var(--color-primary, #2f5d7c);
+    --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #2f5d7c) 10%, var(--color-background, #fcfcfa));
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #101215);
+    --diagram-surface:     var(--color-card, #171a1f);
+    --diagram-ink:         var(--color-foreground, #ecebe6);
+    --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+    --diagram-rule:        var(--color-border, #2a2f35);
+    --diagram-rule-solid:  var(--color-input, #3b414a);
+    --diagram-accent:      var(--color-accent, #e0743f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+    --diagram-link:        var(--color-primary, #7fb0d0);
+    --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #7fb0d0) 16%, var(--color-background, #101215));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #101215);
+      --diagram-surface:     var(--color-card, #171a1f);
+      --diagram-ink:         var(--color-foreground, #ecebe6);
+      --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
+      --diagram-rule:        var(--color-border, #2a2f35);
+      --diagram-rule-solid:  var(--color-input, #3b414a);
+      --diagram-accent:      var(--color-accent, #e0743f);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
+      --diagram-link:        var(--color-primary, #7fb0d0);
+      --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #7fb0d0) 16%, var(--color-background, #101215));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1240px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 960px; height: auto; display: block; }
+
+  .zone { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .zone-label {
+    fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    paint-order: stroke; stroke: var(--diagram-paper); stroke-width: 8px; stroke-linejoin: round;
+  }
+
+  .component { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .component--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .component--external { fill: none; stroke: var(--diagram-rule); stroke-dasharray: 4 4; }
+  .component--tinted { fill: var(--diagram-link-tint); stroke: var(--diagram-link); }
+
+  .component-name { fill: var(--diagram-ink); font-size: 13px; }
+  .component-name--external { fill: var(--diagram-muted); font-size: 13px; }
+  .component-sub { fill: var(--diagram-soft); font-size: 10px; }
+
+  .glyph { fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+  .glyph-ink { color: var(--diagram-muted); }
+  .glyph-accent { color: var(--diagram-accent); }
+
+  .bar--footer { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .bar-label { fill: var(--diagram-ink); font-size: 13px; }
+  .bar-sublabel { fill: var(--diagram-soft); font-size: 10px; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1; }
+  .edge--accent { stroke: var(--diagram-accent); stroke-width: 1.25; }
+  .edge--external { stroke: var(--diagram-soft); stroke-dasharray: 5 4; }
+  .edge-label {
+    fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.12em;
+    paint-order: stroke; stroke: var(--diagram-paper); stroke-width: 4px; stroke-linejoin: round;
+  }
+
+  .legend-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.06em; }
+  .legend-rule { stroke-width: 1; fill: none; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">it-state</p>
+    <h1>Statistics estate before modernisation</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1328 736" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="its-title its-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="it-state"
+           data-reading-order="Horizontal, zones left to right: COLLECTION hands CSV exports and emailed registry extracts to PROCESSING; inside PROCESSING files are copied by hand from the Windows shared drive to analyst workstations and loaded into SQL Server; PROCESSING hands Excel workbooks and CSV extracts to DISSEMINATION, where the legacy publishing portal republishes to the public website and ministry partners download CSV."
+           data-focal-id="comp-shared-drive"
+           data-source-kind="brief"
+           data-token-fallback="neutral">
+        <title id="its-title">Statistics estate before modernisation</title>
+        <desc id="its-desc">The estate as it runs today, in three zones read left to right. COLLECTION holds a CAPI survey tool on PostgreSQL, hand-maintained ASP.NET web portals, and an external civil registry outside the organisation's control. PROCESSING holds the Windows shared drive with no version control — the primary bottleneck and focal component — plus analyst workstations running SPSS, SAS, Stata and Excel, and an on-premises SQL Server tinted as a likely survivor of the migration. DISSEMINATION holds the legacy publishing portal, the second bottleneck, a static public website refreshed quarterly, and external ministry partners. Hand-offs are named by their real transport: CSV, EMAIL, COPY, LOAD, EXCEL, WEB and CSV download. Identity and observability footer bars span the canvas below the zones and emit no connectors.</desc>
+
+        <defs>
+          <marker id="its-arrow" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <path d="M 0 0 L 7 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Zones. Widths follow component count; all three carry three systems. -->
+        <rect class="zone" x="32" y="96" width="400" height="384" rx="4"/>
+        <text class="zone-label" x="64" y="101">Collection</text>
+
+        <rect class="zone" x="464" y="96" width="400" height="384" rx="4"/>
+        <text class="zone-label" x="496" y="101">Processing</text>
+
+        <rect class="zone" x="896" y="96" width="400" height="384" rx="4"/>
+        <text class="zone-label" x="928" y="101">Dissemination</text>
+
+        <!-- Hand-offs are emitted before every component so the fills mask the line ends. -->
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-capi-shared-drive"
+              x1="400" y1="196" x2="496" y2="196" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="408" y="188">CSV</text>
+
+        <path class="edge edge--accent" data-diagram-element="edge" id="edge-portal-shared-drive"
+              d="M 400 308 H 448 V 212 H 496" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="408" y="300">CSV</text>
+
+        <line class="edge edge--external" data-diagram-element="edge" id="edge-registry-sqlserver"
+              x1="400" y1="420" x2="496" y2="420" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="408" y="412">EMAIL</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-shared-drive-workstations"
+              x1="616" y1="240" x2="616" y2="264" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="624" y="256">COPY</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-workstations-sqlserver"
+              x1="712" y1="352" x2="712" y2="376" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="720" y="368">LOAD</text>
+
+        <path class="edge edge--accent" data-diagram-element="edge" id="edge-workstations-publisher"
+              d="M 832 308 H 880 V 196 H 928" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="840" y="300">EXCEL</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-sqlserver-website"
+              d="M 832 420 H 864 V 308 H 928" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="840" y="412">CSV</text>
+
+        <line class="edge edge--accent" data-diagram-element="edge" id="edge-publisher-website"
+              x1="1048" y1="240" x2="1048" y2="264" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="1056" y="256">WEB</text>
+
+        <line class="edge edge--external" data-diagram-element="edge" id="edge-website-ministries"
+              x1="1144" y1="352" x2="1144" y2="376" marker-end="url(#its-arrow)"/>
+        <text class="edge-label" x="1152" y="368">CSV DL</text>
+
+        <!-- COLLECTION -->
+        <g data-diagram-element="node" id="comp-capi">
+          <rect class="component" x="64" y="152" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 92 180 h 24 v 32 h -24 z M 98 188 h 12 M 98 196 h 12 M 98 204 h 8"/>
+          </g>
+          <text class="component-name" x="136" y="190">CAPI survey tool</text>
+          <text class="component-sub" x="136" y="210">PostgreSQL · field tablets sync on return</text>
+          <text class="component-sub" x="136" y="226">no automated export schedule</text>
+        </g>
+        <g data-diagram-element="node" id="comp-portal">
+          <rect class="component" x="64" y="264" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 90 292 h 28 v 32 h -28 z M 90 300 h 28 M 96 296 v 0.01"/>
+          </g>
+          <text class="component-name" x="136" y="302">ASP.NET web portals</text>
+          <text class="component-sub" x="136" y="322">hand-maintained by one developer</text>
+          <text class="component-sub" x="136" y="338">no version control, no tests</text>
+        </g>
+        <g data-diagram-element="node" id="comp-registry">
+          <rect class="component component--external" x="64" y="376" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 90 404 h 28 v 24 h -28 z M 90 404 l 14 12 l 14 -12"/>
+          </g>
+          <text class="component-name--external" x="136" y="414">Civil registry</text>
+          <text class="component-sub" x="136" y="434">external — outside our control</text>
+          <text class="component-sub" x="136" y="450">extract arrives as an email attachment</text>
+        </g>
+
+        <!-- PROCESSING -->
+        <g data-diagram-element="node" id="comp-shared-drive">
+          <rect class="component component--focal" x="496" y="152" width="336" height="88" rx="4"/>
+          <g class="glyph-accent">
+            <path class="glyph" d="M 522 182 h 12 l 4 6 h 14 v 24 h -30 z"/>
+          </g>
+          <text class="component-name" x="568" y="190">Windows shared drive</text>
+          <text class="component-sub" x="568" y="210">no version control, no access log</text>
+          <text class="component-sub" x="568" y="226">primary bottleneck — every hand-off passes here</text>
+        </g>
+        <g data-diagram-element="node" id="comp-workstations">
+          <rect class="component" x="496" y="264" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 522 292 h 30 v 22 h -30 z M 530 322 h 14 M 537 314 v 8"/>
+          </g>
+          <text class="component-name" x="568" y="302">Analyst workstations</text>
+          <text class="component-sub" x="568" y="322">SPSS · SAS · Stata · Excel, per-machine licences</text>
+          <text class="component-sub" x="568" y="338">scripts live on desktops, never reviewed</text>
+        </g>
+        <g data-diagram-element="node" id="comp-sqlserver">
+          <rect class="component component--tinted" x="496" y="376" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 522 406 a 15 6 0 0 0 30 0 a 15 6 0 0 0 -30 0 M 522 406 v 20 a 15 6 0 0 0 30 0 v -20"/>
+          </g>
+          <text class="component-name" x="568" y="414">SQL Server</text>
+          <text class="component-sub" x="568" y="434">on-premises, single node, nightly tape backup</text>
+          <text class="component-sub" x="568" y="450">expected to survive the migration</text>
+        </g>
+
+        <!-- DISSEMINATION -->
+        <g data-diagram-element="node" id="comp-publisher">
+          <rect class="component component--focal" x="928" y="152" width="336" height="88" rx="4"/>
+          <g class="glyph-accent">
+            <path class="glyph" d="M 954 180 h 26 v 32 h -26 z M 960 188 h 14 M 960 196 h 14 M 960 204 h 10"/>
+          </g>
+          <text class="component-name" x="1000" y="190">Legacy publishing portal</text>
+          <text class="component-sub" x="1000" y="210">releases assembled and uploaded by hand</text>
+          <text class="component-sub" x="1000" y="226">second bottleneck — six-week release lag</text>
+        </g>
+        <g data-diagram-element="node" id="comp-website">
+          <rect class="component" x="928" y="264" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 954 308 a 14 14 0 1 0 28 0 a 14 14 0 1 0 -28 0 M 954 308 h 28 M 968 294 a 20 14 0 0 1 0 28 a 20 14 0 0 1 0 -28"/>
+          </g>
+          <text class="component-name" x="1000" y="302">Static public website</text>
+          <text class="component-sub" x="1000" y="322">quarterly refresh, hand-cut HTML tables</text>
+          <text class="component-sub" x="1000" y="338">no machine-readable endpoint</text>
+        </g>
+        <g data-diagram-element="node" id="comp-ministries">
+          <rect class="component component--external" x="928" y="376" width="336" height="88" rx="4"/>
+          <g class="glyph-ink">
+            <path class="glyph" d="M 962 404 a 7 7 0 1 0 0 0.01 M 952 428 a 12 10 0 0 1 20 0 M 976 410 a 5 5 0 1 0 0 0.01 M 972 428 a 9 8 0 0 1 12 0"/>
+          </g>
+          <text class="component-name--external" x="1000" y="414">Ministry partners</text>
+          <text class="component-sub" x="1000" y="434">external — consume published downloads</text>
+          <text class="component-sub" x="1000" y="450">re-key figures into their own reports</text>
+        </g>
+
+        <!-- Footer bars: layer-wide services. They emit no connectors. -->
+        <g data-diagram-element="node" id="footer-identity">
+          <rect class="bar--footer" x="32" y="512" width="1264" height="56" rx="4"/>
+          <text class="bar-label" x="56" y="538">Identity manager</text>
+          <text class="bar-sublabel" x="56" y="556">Active Directory · LDAP · SSO — covers the estate, wired to no single system</text>
+        </g>
+        <g data-diagram-element="node" id="footer-observability">
+          <rect class="bar--footer" x="32" y="584" width="1264" height="56" rx="4"/>
+          <text class="bar-label" x="56" y="610">Observability</text>
+          <text class="bar-sublabel" x="56" y="628">server logs · host metrics · email alerts — no data-pipeline coverage</text>
+        </g>
+
+        <!-- Legend: only the styles this diagram actually uses. -->
+        <rect class="component" x="32" y="676" width="24" height="16" rx="2"/>
+        <text class="legend-label" x="64" y="689">System that exists</text>
+
+        <rect class="component component--focal" x="216" y="676" width="24" height="16" rx="2"/>
+        <text class="legend-label" x="248" y="689">Bottleneck (focal)</text>
+
+        <rect class="component component--tinted" x="400" y="676" width="24" height="16" rx="2"/>
+        <text class="legend-label" x="432" y="689">Likely survivor</text>
+
+        <rect class="component component--external" x="572" y="676" width="24" height="16" rx="2"/>
+        <text class="legend-label" x="604" y="689">Outside our control</text>
+
+        <line class="edge legend-rule" x1="796" y1="684" x2="836" y2="684"/>
+        <text class="legend-label" x="844" y="689">File hand-off</text>
+
+        <line class="edge edge--accent legend-rule" x1="972" y1="684" x2="1012" y2="684"/>
+        <text class="legend-label" x="1020" y="689">Touches a bottleneck</text>
+
+        <line class="edge edge--external legend-rule" x1="1188" y1="684" x2="1228" y2="684"/>
+        <text class="legend-label" x="1236" y="689">External leg</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

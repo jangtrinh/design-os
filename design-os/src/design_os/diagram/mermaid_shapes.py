@@ -1,0 +1,80 @@
+"""Mermaid node-delimiter and ``@{ shape: ... }`` shape tables.
+
+Vendored from cathrynlavery/diagram-design (MIT, (c) 2025 Cathryn Lavery).
+Ported verbatim except for the module split the ~200-line rule (Art IX) requires;
+every safety limit and parser body is unchanged.
+"""
+
+from __future__ import annotations
+
+
+SHAPE_FOR_DELIMITERS = (
+    ("(((", ")))", "circle"),
+    ("((", "))", "circle"),
+    ("([", "])", "stadium"),
+    ("{{", "}}", "hexagon"),
+    ("[(", ")]", "cylinder"),
+    ("[[", "]]", "subroutine"),
+    ("[/", "/]", "parallelogram"),
+    ("[\\", "\\]", "parallelogram"),
+    ("[/", "\\]", "trapezoid"),
+    ("[\\", "/]", "trapezoid"),
+    ("[", "]", "rect"),
+    ("(", ")", "round"),
+    ("{", "}", "rhombus"),
+    (">", "]", "asymmetric"),
+)
+
+EXPANDED_SHAPE_FAMILIES = {
+    "rect": "rect",
+    "rectangle": "rect",
+    "proc": "rect",
+    "process": "rect",
+    "rounded": "round",
+    "event": "round",
+    "stadium": "stadium",
+    "pill": "stadium",
+    "terminal": "stadium",
+    "circle": "circle",
+    "circ": "circle",
+    "sm-circ": "circle",
+    "small-circle": "circle",
+    "start": "circle",
+    "dbl-circ": "circle",
+    "double-circle": "circle",
+    "fr-circ": "circle",
+    "framed-circle": "circle",
+    "stop": "circle",
+    "cyl": "cylinder",
+    "cylinder": "cylinder",
+    "database": "cylinder",
+    "db": "cylinder",
+    "h-cyl": "cylinder",
+    "horizontal-cylinder": "cylinder",
+    "lin-cyl": "cylinder",
+    "lined-cylinder": "cylinder",
+    "diam": "rhombus",
+    "decision": "rhombus",
+    "diamond": "rhombus",
+    "question": "rhombus",
+    "hex": "hexagon",
+    "hexagon": "hexagon",
+    "prepare": "hexagon",
+    "fr-rect": "subroutine",
+    "framed-rectangle": "subroutine",
+    "subproc": "subroutine",
+    "subprocess": "subroutine",
+    "subroutine": "subroutine",
+    "lean-r": "parallelogram",
+    "lean-l": "parallelogram",
+    "in-out": "parallelogram",
+    "lean-right": "parallelogram",
+    "lean-left": "parallelogram",
+    "out-in": "parallelogram",
+    "trap-t": "trapezoid",
+    "trap-b": "trapezoid",
+    "trapezoid": "trapezoid",
+    "inv-trapezoid": "trapezoid",
+    "manual": "trapezoid",
+    "priority": "trapezoid",
+}

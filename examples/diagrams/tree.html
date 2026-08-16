@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product catalogue taxonomy</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * `examples/` is a standalone corpus with no project design system to read, so the
+   * base tokens below are the documented NEUTRAL FALLBACK from diagram-craft.md
+   * (achromatic ramp plus one accent). The fallback is disclosed on the SVG root
+   * as data-token-fallback="neutral-default" — a silent fallback is indistinguishable
+   * from a broken token read.
+   */
+  :root {
+    --color-background:       oklch(0.986 0.003 95);
+    --color-card:             oklch(1 0 0);
+    --color-foreground:       oklch(0.24 0.012 264);
+    --color-muted-foreground: oklch(0.52 0.014 264);
+    --color-border:           oklch(0.90 0.006 264);
+    --color-input:            oklch(0.84 0.008 264);
+    --color-accent:           oklch(0.55 0.135 248);
+    --color-primary:          oklch(0.45 0.100 248);
+
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --color-background:       oklch(0.19 0.010 264);
+    --color-card:             oklch(0.24 0.012 264);
+    --color-foreground:       oklch(0.95 0.004 264);
+    --color-muted-foreground: oklch(0.72 0.012 264);
+    --color-border:           oklch(0.32 0.012 264);
+    --color-input:            oklch(0.40 0.014 264);
+    --color-accent:           oklch(0.74 0.120 248);
+    --color-primary:          oklch(0.80 0.090 248);
+
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-background:       oklch(0.19 0.010 264);
+      --color-card:             oklch(0.24 0.012 264);
+      --color-foreground:       oklch(0.95 0.004 264);
+      --color-muted-foreground: oklch(0.72 0.012 264);
+      --color-border:           oklch(0.32 0.012 264);
+      --color-input:            oklch(0.40 0.014 264);
+      --color-accent:           oklch(0.74 0.120 248);
+      --color-primary:          oklch(0.80 0.090 248);
+
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  /* Depth is the only structural signal: fill, radius, and type size are constant. */
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--root { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  /* Terminal position already reads as terminal; a lighter wall is the one quiet echo. */
+  .node-shape--leaf { stroke: var(--diagram-rule); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-count { fill: var(--diagram-soft); font-size: 11px; font-family: var(--font-family-mono, ui-monospace, monospace); }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Tree</p>
+    <h1>Catalogue taxonomy, root at the leading edge</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 880 592" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="tree-title tree-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="tree"
+           data-reading-order="root-at-leading-edge advancing, depth-first: node-0-catalogue, node-1-apparel (node-2-outerwear, node-2-knitwear, node-2-footwear), node-1-home (node-2-cookware, node-2-textiles), node-1-outdoor (node-2-camping, node-2-cycling, node-2-water-sports)"
+           data-focal-id="node-0-catalogue"
+           data-source-kind="brief"
+           data-token-fallback="neutral-default">
+        <title id="tree-title">Catalogue taxonomy, root at the leading edge</title>
+        <desc id="tree-desc">The product catalogue decomposes into three branches. Apparel is made of outerwear, knitwear, and footwear. Home is made of cookware and textiles. Outdoor is made of camping, cycling, and water sports. The root carries the accent because the catalogue is what is being decomposed. Sibling order is the source's own stated order, and the uneven branch breadths are real, not balanced for looks. Root-at-leading-edge was chosen because the labels are long enough that a top-down layout would wrap them.</desc>
+
+        <!-- Elbow convention: parent stem, one shared bus per parent, then a short run into each child. -->
+        <path class="edge" data-diagram-element="edge" id="edge-bus-catalogue" d="M 264 136 V 456 M 224 296 H 264"/>
+        <path class="edge" data-diagram-element="edge" id="edge-catalogue-apparel" d="M 264 136 H 304"/>
+        <path class="edge" data-diagram-element="edge" id="edge-catalogue-home" d="M 264 296 H 304"/>
+        <path class="edge" data-diagram-element="edge" id="edge-catalogue-outdoor" d="M 264 456 H 304"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-bus-apparel" d="M 536 72 V 200 M 496 136 H 536"/>
+        <path class="edge" data-diagram-element="edge" id="edge-apparel-outerwear" d="M 536 72 H 576"/>
+        <path class="edge" data-diagram-element="edge" id="edge-apparel-knitwear" d="M 536 136 H 576"/>
+        <path class="edge" data-diagram-element="edge" id="edge-apparel-footwear" d="M 536 200 H 576"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-bus-home" d="M 536 264 V 328 M 496 296 H 536"/>
+        <path class="edge" data-diagram-element="edge" id="edge-home-cookware" d="M 536 264 H 576"/>
+        <path class="edge" data-diagram-element="edge" id="edge-home-textiles" d="M 536 328 H 576"/>
+
+        <path class="edge" data-diagram-element="edge" id="edge-bus-outdoor" d="M 536 392 V 520 M 496 456 H 536"/>
+        <path class="edge" data-diagram-element="edge" id="edge-outdoor-camping" d="M 536 392 H 576"/>
+        <path class="edge" data-diagram-element="edge" id="edge-outdoor-cycling" d="M 536 456 H 576"/>
+        <path class="edge" data-diagram-element="edge" id="edge-outdoor-water-sports" d="M 536 520 H 576"/>
+
+        <g data-diagram-element="node" id="node-0-catalogue">
+          <rect class="node-shape node-shape--root" x="48" y="264" width="176" height="64" rx="4"/>
+          <text class="node-label" x="136" y="292" text-anchor="middle">Product catalogue</text>
+          <text class="node-count" x="136" y="312" text-anchor="middle">3 branches · 8 leaves</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-1-apparel">
+          <rect class="node-shape" x="304" y="108" width="192" height="56" rx="4"/>
+          <text class="node-label" x="400" y="132" text-anchor="middle">Apparel</text>
+          <text class="node-count" x="400" y="152" text-anchor="middle">3</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-1-home">
+          <rect class="node-shape" x="304" y="268" width="192" height="56" rx="4"/>
+          <text class="node-label" x="400" y="292" text-anchor="middle">Home</text>
+          <text class="node-count" x="400" y="312" text-anchor="middle">2</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-1-outdoor">
+          <rect class="node-shape" x="304" y="428" width="192" height="56" rx="4"/>
+          <text class="node-label" x="400" y="452" text-anchor="middle">Outdoor</text>
+          <text class="node-count" x="400" y="472" text-anchor="middle">3</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-outerwear">
+          <rect class="node-shape node-shape--leaf" x="576" y="48" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="76">Outerwear</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-knitwear">
+          <rect class="node-shape node-shape--leaf" x="576" y="112" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="140">Knitwear</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-footwear">
+          <rect class="node-shape node-shape--leaf" x="576" y="176" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="204">Footwear</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-cookware">
+          <rect class="node-shape node-shape--leaf" x="576" y="240" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="268">Cookware</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-textiles">
+          <rect class="node-shape node-shape--leaf" x="576" y="304" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="332">Textiles</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-camping">
+          <rect class="node-shape node-shape--leaf" x="576" y="368" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="396">Camping</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-cycling">
+          <rect class="node-shape node-shape--leaf" x="576" y="432" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="460">Cycling</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-2-water-sports">
+          <rect class="node-shape node-shape--leaf" x="576" y="496" width="232" height="48" rx="4"/>
+          <text class="node-label" x="600" y="524">Water sports</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

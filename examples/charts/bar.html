@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revenue by region, FY2025</title>
+<style>
+  /*
+   * Chart role layer.
+   *
+   * Every role resolves to a design-system token first; the literal after the comma is
+   * the documented neutral fallback, used only when the project has compiled no tokens.
+   * The fallback is disclosed in the page note — a silent fallback is indistinguishable
+   * from a broken token read.
+   *
+   * `:root` is a token-declaration block, so the definitions may name literals here.
+   * Every consumer below references a var, and no SVG presentation attribute carries a
+   * colour at all: series colour lives in `--color-chart-1` … `--color-chart-5`, the
+   * focal mark in `--color-accent`.
+   */
+  :root {
+    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
+    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
+    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
+    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
+    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
+    --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
+    --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
+    --chart-3: var(--color-chart-3, oklch(0.60 0.09 150));
+    --chart-4: var(--color-chart-4, oklch(0.66 0.09 95));
+    --chart-5: var(--color-chart-5, oklch(0.55 0.09 300));
+
+    --chart-hairline: 1px;
+    --chart-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the fallback literals shift to hold contrast. */
+  :root[data-theme="dark"] {
+    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+    --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+    --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+    --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+    --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
+      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
+      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
+      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
+      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
+      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
+      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
+      --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
+      --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
+      --chart-4: var(--color-chart-4, oklch(0.78 0.10 95));
+      --chart-5: var(--color-chart-5, oklch(0.68 0.10 300));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--chart-paper);
+    color: var(--chart-ink);
+    font-family: var(--font-family-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1100px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chart-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .standfirst {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chart-muted);
+    max-width: 64ch;
+    margin-bottom: var(--chart-gap);
+  }
+
+  /* Wide charts scroll in their own container; the page body never scrolls sideways. */
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .note {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: var(--chart-hairline) solid var(--chart-rule);
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--chart-soft);
+    max-width: 76ch;
+  }
+
+  /* Gridlines sit at the bottom of the hierarchy and are the first thing to stop noticing. */
+  .grid      { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
+  .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
+  .tick      { fill: var(--chart-soft); font-size: 11px;
+               font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+
+  .bar        { fill: var(--chart-fill); stroke: var(--chart-fill); stroke-width: var(--chart-hairline); }
+  .bar--focal { fill: var(--chart-accent); stroke: var(--chart-accent); }
+
+  .cat { fill: var(--chart-ink); font-size: 12px; }
+  .val { fill: var(--chart-ink); font-size: 12px; font-weight: 600;
+         font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+  .val--focal { fill: var(--chart-accent); }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Chart · bar</p>
+    <h1>Revenue by region, FY2025</h1>
+    <p class="standfirst">North America books more revenue than Europe and Asia Pacific combined. Bars are ordered by value, and the value axis reaches zero, so the lengths are directly comparable.</p>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="chart-title chart-desc"
+           data-chart-owned="true"
+           data-chart-grammar="bar"
+           data-reading-order="ltr; five regions in descending revenue order, North America first"
+           data-focal-id="bar-revenue-north-america"
+           data-source-kind="dataset"
+           data-baseline="zero">
+        <title id="chart-title">Revenue by region, FY2025</title>
+        <desc id="chart-desc">Illustrative dataset, not a real financial record. Five regions compared on one measure, revenue in millions of United States dollars, over the twelve months of FY2025. North America books 48.0, Europe 36.0, Asia Pacific 27.0, Latin America 15.0, and Middle East and Africa 9.0, summing to 135.0. The value axis starts at zero and runs to 60, so every bar length is proportional to its value; North America alone is larger than Europe and Asia Pacific added together.</desc>
+
+        <g data-chart-element="axis" data-axis-role="value" id="axis-revenue">
+          <text class="axis-title" x="52" y="56">REVENUE ($M)</text>
+
+          <line class="grid" x1="152" y1="80"  x2="848" y2="80"/>
+          <line class="grid" x1="152" y1="200" x2="848" y2="200"/>
+          <line class="grid" x1="152" y1="320" x2="848" y2="320"/>
+          <line class="grid" x1="152" y1="440" x2="848" y2="440"/>
+
+          <text class="tick" x="144" y="84"  text-anchor="end">60</text>
+          <text class="tick" x="144" y="204" text-anchor="end">45</text>
+          <text class="tick" x="144" y="324" text-anchor="end">30</text>
+          <text class="tick" x="144" y="444" text-anchor="end">15</text>
+          <text class="tick" x="144" y="564" text-anchor="end">0</text>
+
+          <!-- The baseline is the one slightly stronger rule in the frame. -->
+          <line class="axis-rule" x1="152" y1="560" x2="848" y2="560"/>
+        </g>
+
+        <g data-chart-element="series" id="series-revenue" data-series-label="Revenue, FY2025 ($M)">
+          <rect class="bar bar--focal" data-chart-element="mark" id="bar-revenue-north-america"
+                x="160" y="176" width="96" height="384"/>
+          <rect class="bar" data-chart-element="mark" id="bar-revenue-europe"
+                x="304" y="272" width="96" height="288"/>
+          <rect class="bar" data-chart-element="mark" id="bar-revenue-asia-pacific"
+                x="448" y="344" width="96" height="216"/>
+          <rect class="bar" data-chart-element="mark" id="bar-revenue-latin-america"
+                x="592" y="440" width="96" height="120"/>
+          <rect class="bar" data-chart-element="mark" id="bar-revenue-middle-east-africa"
+                x="736" y="488" width="96" height="72"/>
+        </g>
+
+        <!-- Value printed at each bar's free end, so no length is estimated against a gridline. -->
+        <g data-chart-element="label" id="labels-value">
+          <text class="val val--focal" x="208" y="160" text-anchor="middle">48.0</text>
+          <text class="val" x="352" y="256" text-anchor="middle">36.0</text>
+          <text class="val" x="496" y="328" text-anchor="middle">27.0</text>
+          <text class="val" x="640" y="424" text-anchor="middle">15.0</text>
+          <text class="val" x="784" y="472" text-anchor="middle">9.0</text>
+        </g>
+
+        <g data-chart-element="axis" data-axis-role="category" id="axis-region">
+          <text class="cat" x="208" y="588" text-anchor="middle">North America</text>
+          <text class="cat" x="352" y="588" text-anchor="middle">Europe</text>
+          <text class="cat" x="496" y="588" text-anchor="middle">Asia Pacific</text>
+          <text class="cat" x="640" y="588" text-anchor="middle">Latin America</text>
+          <text class="cat" x="784" y="588" text-anchor="middle">Middle East</text>
+          <text class="cat" x="784" y="604" text-anchor="middle">&amp; Africa</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="note">
+      Illustrative dataset — the figures are invented to demonstrate the bar grammar and describe no real company.
+      Units are stated once, on the value axis. The scale is 8&nbsp;px per $1M measured from a zero baseline, so bar
+      length is the encoding. Colour resolves through design-system tokens; where no project tokens are compiled the
+      page falls back to the documented neutral palette declared in <code>:root</code>. Static, script-free, and offline.
+    </p>
+  </div>
+</body>
+</html>

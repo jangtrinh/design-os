@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loan eligibility check</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 640px; height: auto; display: block; }
+
+  /* Shape carries node type; colour never does — the chart reads correctly in greyscale. */
+  .terminal { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .action { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .decision { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .decision--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
+
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .branch-label { fill: var(--diagram-ink); font-size: 11px; letter-spacing: 0.04em; }
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .caption { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Flowchart</p>
+    <h1>Loan eligibility check</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 768 656" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="flowchart-title flowchart-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="flowchart"
+           data-reading-order="ttb: node-start, node-verify, node-credit, node-dti, node-approve"
+           data-focal-id="node-credit"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="flowchart-title">Loan eligibility check</title>
+        <desc id="flowchart-desc">Flow runs top to bottom. An application is received and income documents are verified, then two decisions gate it. The focal decision asks whether the credit score is at least 680; no declines the application. The second asks whether debt-to-income is at most forty percent; no refers the file to manual review. Yes on both approves at the standard rate.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own colour via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Connectors precede node shapes so node fills mask the line ends. -->
+        <line class="edge" data-diagram-element="edge" id="edge-start-verify"
+              x1="288" y1="80" x2="288" y2="128" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-verify-credit"
+              x1="288" y1="184" x2="288" y2="208" marker-end="url(#arrowhead)"/>
+
+        <line class="edge" data-diagram-element="edge" id="edge-credit-dti-yes"
+              x1="288" y1="320" x2="288" y2="376" marker-end="url(#arrowhead)"/>
+        <text class="branch-label" x="300" y="352">Yes</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-credit-decline-no"
+              x1="408" y1="264" x2="496" y2="264" marker-end="url(#arrowhead)"/>
+        <text class="branch-label" x="452" y="256" text-anchor="middle">No</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-dti-approve-yes"
+              x1="288" y1="488" x2="288" y2="560" marker-end="url(#arrowhead)"/>
+        <text class="branch-label" x="300" y="528">Yes</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-dti-review-no"
+              x1="408" y1="432" x2="496" y2="432" marker-end="url(#arrowhead)"/>
+        <text class="branch-label" x="452" y="424" text-anchor="middle">No</text>
+
+        <g data-diagram-element="node" id="node-start">
+          <rect class="terminal" x="168" y="32" width="240" height="48" rx="24"/>
+          <text class="node-label" x="288" y="60" text-anchor="middle">Application received</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-verify">
+          <rect class="action" x="168" y="128" width="240" height="56" rx="8"/>
+          <text class="node-label" x="288" y="160" text-anchor="middle">Verify income documents</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-credit">
+          <polygon class="decision decision--focal" points="288,208 408,264 288,320 168,264"/>
+          <text class="node-label" x="288" y="268" text-anchor="middle">Credit score ≥ 680?</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-dti">
+          <polygon class="decision" points="288,376 408,432 288,488 168,432"/>
+          <text class="node-label" x="288" y="436" text-anchor="middle">Debt-to-income ≤ 40%?</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-decline">
+          <rect class="terminal" x="496" y="240" width="192" height="48" rx="24"/>
+          <text class="node-label" x="592" y="268" text-anchor="middle">Decline application</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-review">
+          <rect class="terminal" x="496" y="408" width="192" height="48" rx="24"/>
+          <text class="node-label" x="592" y="436" text-anchor="middle">Refer to manual review</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-approve">
+          <rect class="terminal" x="168" y="560" width="240" height="48" rx="24"/>
+          <text class="node-label" x="288" y="588" text-anchor="middle">Approve at standard rate</text>
+        </g>
+
+        <text class="caption" x="24" y="640">Affirmative answers continue down the spine; the exception exits right. Every branch carries its answer token.</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

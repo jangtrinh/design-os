@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order model</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .entity-box { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .entity-box--focal { fill: var(--diagram-surface); stroke: var(--diagram-accent); stroke-width: 1.5; }
+  .entity-rule { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .entity-name { fill: var(--diagram-ink); font-size: 14px; }
+  .entity-name--focal { fill: var(--diagram-accent); }
+  .entity-tag { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* Monospaced body so key markers and type names align down the column. */
+  .attr { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; }
+  .attr-marker { fill: var(--diagram-muted); }
+  .attr-name { fill: var(--diagram-ink); }
+  .attr-type { fill: var(--diagram-soft); }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge-label { fill: var(--diagram-ink); font-size: 11px; }
+  .cardinality { fill: var(--diagram-soft); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px; }
+  .caption { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Entity relationship</p>
+    <h1>Order model</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 848 544" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="er-title er-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="er"
+           data-reading-order="ltr: entity-customer, entity-order, entity-orderline, entity-product"
+           data-focal-id="entity-order"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="er-title">Order model</title>
+        <desc id="er-desc">Four entities read left to right, referenced entity before referencing entity. A customer places zero or many orders; each order contains one or many order lines; each order line is priced by exactly one product, and a product may appear on zero or many order lines. Order is the anchor entity. Cardinality is written as text at both ends of every relationship.</desc>
+
+        <!--
+          Relationships are drawn before the entity boxes so the box fills mask the line ends.
+          No arrowheads: multiplicity is carried by the text notation at each end, declared once
+          in the caption below the model.
+        -->
+        <path class="edge" data-diagram-element="edge" id="edge-customer-order-places"
+              d="M 240 116 H 272 Q 280 116 280 124 V 156 Q 280 164 288 164 H 320"/>
+        <text class="cardinality" x="244" y="108">1</text>
+        <text class="edge-label" x="280" y="96" text-anchor="middle">places</text>
+        <text class="cardinality" x="316" y="156" text-anchor="end">0..*</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-order-orderline-contains"
+              x1="528" y1="116" x2="608" y2="116"/>
+        <text class="cardinality" x="532" y="108">1</text>
+        <text class="edge-label" x="568" y="136" text-anchor="middle">contains</text>
+        <text class="cardinality" x="604" y="108" text-anchor="end">1..*</text>
+
+        <line class="edge" data-diagram-element="edge" id="edge-orderline-product-priced"
+              x1="712" y1="236" x2="712" y2="316"/>
+        <text class="cardinality" x="720" y="252">0..*</text>
+        <text class="edge-label" x="704" y="280" text-anchor="end">priced by</text>
+        <text class="cardinality" x="720" y="312">1</text>
+
+        <g data-diagram-element="node" id="entity-customer">
+          <rect class="entity-box" x="32" y="64" width="208" height="148" rx="4"/>
+          <text class="entity-name" x="48" y="92">Customer</text>
+          <text class="entity-tag" x="224" y="92" text-anchor="end">Table</text>
+          <line class="entity-rule" x1="32" y1="104" x2="240" y2="104"/>
+
+          <text class="attr attr-marker" x="48" y="120">#</text>
+          <text class="attr attr-name" x="64" y="120">customer_id</text>
+          <text class="attr attr-type" x="224" y="120" text-anchor="end">uuid</text>
+
+          <text class="attr attr-name" x="64" y="144">email</text>
+          <text class="attr attr-type" x="224" y="144" text-anchor="end">text</text>
+
+          <text class="attr attr-name" x="64" y="168">full_name</text>
+          <text class="attr attr-type" x="224" y="168" text-anchor="end">text</text>
+
+          <text class="attr attr-name" x="64" y="192">created_at</text>
+          <text class="attr attr-type" x="224" y="192" text-anchor="end">date</text>
+        </g>
+
+        <g data-diagram-element="node" id="entity-order">
+          <rect class="entity-box--focal" x="320" y="64" width="208" height="172" rx="4"/>
+          <text class="entity-name entity-name--focal" x="336" y="92">Order</text>
+          <text class="entity-tag" x="512" y="92" text-anchor="end">Table</text>
+          <line class="entity-rule" x1="320" y1="104" x2="528" y2="104"/>
+
+          <text class="attr attr-marker" x="336" y="120">#</text>
+          <text class="attr attr-name" x="352" y="120">order_id</text>
+          <text class="attr attr-type" x="512" y="120" text-anchor="end">uuid</text>
+
+          <text class="attr attr-name" x="352" y="144">placed_at</text>
+          <text class="attr attr-type" x="512" y="144" text-anchor="end">date</text>
+
+          <text class="attr attr-marker" x="336" y="168">→</text>
+          <text class="attr attr-name" x="352" y="168">customer_id</text>
+          <text class="attr attr-type" x="512" y="168" text-anchor="end">Customer</text>
+
+          <text class="attr attr-name" x="352" y="192">status</text>
+          <text class="attr attr-type" x="512" y="192" text-anchor="end">text</text>
+
+          <text class="attr attr-name" x="352" y="216">total_amount</text>
+          <text class="attr attr-type" x="512" y="216" text-anchor="end">numeric</text>
+        </g>
+
+        <g data-diagram-element="node" id="entity-orderline">
+          <rect class="entity-box" x="608" y="64" width="208" height="172" rx="4"/>
+          <text class="entity-name" x="624" y="92">OrderLine</text>
+          <text class="entity-tag" x="800" y="92" text-anchor="end">Table</text>
+          <line class="entity-rule" x1="608" y1="104" x2="816" y2="104"/>
+
+          <text class="attr attr-marker" x="624" y="120">#</text>
+          <text class="attr attr-name" x="640" y="120">order_id</text>
+          <text class="attr attr-type" x="800" y="120" text-anchor="end">→ Order</text>
+
+          <text class="attr attr-marker" x="624" y="144">#</text>
+          <text class="attr attr-name" x="640" y="144">line_no</text>
+          <text class="attr attr-type" x="800" y="144" text-anchor="end">int</text>
+
+          <text class="attr attr-marker" x="624" y="168">→</text>
+          <text class="attr attr-name" x="640" y="168">product_id</text>
+          <text class="attr attr-type" x="800" y="168" text-anchor="end">Product</text>
+
+          <text class="attr attr-name" x="640" y="192">quantity</text>
+          <text class="attr attr-type" x="800" y="192" text-anchor="end">int</text>
+
+          <text class="attr attr-name" x="640" y="216">unit_price</text>
+          <text class="attr attr-type" x="800" y="216" text-anchor="end">numeric</text>
+        </g>
+
+        <g data-diagram-element="node" id="entity-product">
+          <rect class="entity-box" x="608" y="316" width="208" height="148" rx="4"/>
+          <text class="entity-name" x="624" y="344">Product</text>
+          <text class="entity-tag" x="800" y="344" text-anchor="end">Table</text>
+          <line class="entity-rule" x1="608" y1="356" x2="816" y2="356"/>
+
+          <text class="attr attr-marker" x="624" y="372">#</text>
+          <text class="attr attr-name" x="640" y="372">product_id</text>
+          <text class="attr attr-type" x="800" y="372" text-anchor="end">uuid</text>
+
+          <text class="attr attr-name" x="640" y="396">sku</text>
+          <text class="attr attr-type" x="800" y="396" text-anchor="end">text</text>
+
+          <text class="attr attr-name" x="640" y="420">name</text>
+          <text class="attr attr-type" x="800" y="420" text-anchor="end">text</text>
+
+          <text class="attr attr-name" x="640" y="444">list_price</text>
+          <text class="attr attr-type" x="800" y="444" text-anchor="end">numeric</text>
+        </g>
+
+        <text class="caption" x="32" y="496">Cardinality notation — 1 exactly one, 1..* one or many, 0..* zero or many; read at each end of a relationship. Markers — # primary key, → foreign key.</text>
+        <text class="caption" x="32" y="520">OrderLine keeps its own attributes, so it is drawn as an entity rather than collapsed into a many-to-many line. Payment and shipment relationships are out of scope for this view.</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three-tier web application</title>
+<style>
+  /*
+   * Diagram role layer (see templates/diagram-scaffolds/diagram-base.html).
+   *
+   * Every role resolves to a project design-system token first; the second argument of each
+   * var() is the documented neutral fallback used when this file is opened outside a project
+   * that compiles those tokens. The fallback is disclosed on the root SVG via
+   * data-token-fallback, per knowledge/diagram-craft.md — a silent fallback is
+   * indistinguishable from a broken token read.
+   *
+   * :root is a token-declaration block, so the literals below are definitions, not consumers.
+   * Everything past this block references the vars and never a literal.
+   */
+  :root {
+    --diagram-paper:       var(--color-background, #fbfaf8);
+    --diagram-surface:     var(--color-card, #ffffff);
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  /* Same var names, same roles — only the ground shifts, so contrast holds on a dark page. */
+  :root[data-theme="dark"] {
+    --diagram-paper:       var(--color-background, #131311);
+    --diagram-surface:     var(--color-card, #1c1c19);
+    --diagram-ink:         var(--color-foreground, #f2f1ec);
+    --diagram-muted:       var(--color-muted-foreground, #9a978d);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+    --diagram-rule:        var(--color-border, #2e2e29);
+    --diagram-rule-solid:  var(--color-input, #3a3934);
+    --diagram-accent:      var(--color-accent, #e08a54);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+    --diagram-link:        var(--color-primary, #7fa9bd);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --diagram-paper:       var(--color-background, #131311);
+      --diagram-surface:     var(--color-card, #1c1c19);
+      --diagram-ink:         var(--color-foreground, #f2f1ec);
+      --diagram-muted:       var(--color-muted-foreground, #9a978d);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9a978d) 70%, var(--color-background, #131311));
+      --diagram-rule:        var(--color-border, #2e2e29);
+      --diagram-rule-solid:  var(--color-input, #3a3934);
+      --diagram-accent:      var(--color-accent, #e08a54);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08a54) 18%, var(--color-background, #131311));
+      --diagram-link:        var(--color-primary, #7fa9bd);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  /* Wide diagrams scroll in their own container; the page body never scrolls sideways. */
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-shape--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+  .node-sublabel { fill: var(--diagram-soft); font-size: 11px; }
+  .zone { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
+  .zone-label { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge-label { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture</p>
+    <h1>Three-tier web application</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 400" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="architecture-title architecture-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="architecture"
+           data-reading-order="ltr: node-client, node-api, node-cache, node-db, node-store"
+           data-focal-id="node-api"
+           data-source-kind="brief"
+           data-token-fallback="neutral-achromatic-plus-accent">
+        <title id="architecture-title">Three-tier web application</title>
+        <desc id="architecture-desc">Reading left to right: a browser client calls the API service over HTTPS; the API service is the focal component and reaches three stores in the data tier — a session cache, the primary database it reads and writes, and an object store it writes uploaded files to.</desc>
+
+        <defs>
+          <!-- Markers inherit the connector's own colour via currentColor, so one marker serves every edge role. -->
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M 0 0 L 8 3 L 0 6 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g data-diagram-element="zone" id="zone-app">
+          <rect class="zone" x="240" y="96" width="256" height="208" rx="4"/>
+          <text class="zone-label" x="256" y="124">Application tier</text>
+        </g>
+
+        <g data-diagram-element="zone" id="zone-data">
+          <rect class="zone" x="576" y="48" width="336" height="304" rx="4"/>
+          <text class="zone-label" x="592" y="76">Data tier</text>
+        </g>
+
+        <!-- Connectors precede node rectangles so node fills mask the line ends. -->
+        <line class="edge" data-diagram-element="edge" id="edge-client-api"
+              x1="192" y1="200" x2="272" y2="200" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="232" y="192" text-anchor="middle">HTTPS</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-api-cache"
+              d="M 464 180 H 584 Q 592 180 592 172 V 140 Q 592 132 600 132 H 624" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="524" y="172" text-anchor="middle">reads session</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-api-db"
+              d="M 464 200 H 624" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="544" y="192" text-anchor="middle">reads and writes</text>
+
+        <path class="edge" data-diagram-element="edge" id="edge-api-store"
+              d="M 464 220 H 584 Q 592 220 592 228 V 284 Q 592 292 600 292 H 624" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="524" y="240" text-anchor="middle">writes uploads</text>
+
+        <g data-diagram-element="node" id="node-client">
+          <rect class="node-shape" x="48" y="168" width="144" height="64" rx="4"/>
+          <text class="node-label" x="120" y="196" text-anchor="middle">Browser client</text>
+          <text class="node-sublabel" x="120" y="216" text-anchor="middle">Single-page app</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-api">
+          <rect class="node-shape node-shape--focal" x="272" y="168" width="192" height="64" rx="4"/>
+          <text class="node-label" x="368" y="196" text-anchor="middle">API service</text>
+          <text class="node-sublabel" x="368" y="216" text-anchor="middle">Request handling and auth</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-cache">
+          <rect class="node-shape" x="624" y="104" width="240" height="56" rx="4"/>
+          <text class="node-label" x="744" y="128" text-anchor="middle">Session cache</text>
+          <text class="node-sublabel" x="744" y="148" text-anchor="middle">In-memory, evicts on expiry</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-db">
+          <rect class="node-shape" x="624" y="168" width="240" height="64" rx="4"/>
+          <text class="node-label" x="744" y="196" text-anchor="middle">Primary database</text>
+          <text class="node-sublabel" x="744" y="216" text-anchor="middle">System of record</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-store">
+          <rect class="node-shape" x="624" y="264" width="240" height="56" rx="4"/>
+          <text class="node-label" x="744" y="288" text-anchor="middle">Object store</text>
+          <text class="node-sublabel" x="744" y="308" text-anchor="middle">User uploads and exports</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

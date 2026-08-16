@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trust zones</title>
+<style>
+  /*
+   * Diagram role layer.
+   *
+   * `examples/` is a standalone corpus with no project design system to read, so the
+   * base tokens below are the documented NEUTRAL FALLBACK from diagram-craft.md
+   * (achromatic ramp plus one accent). The fallback is disclosed on the SVG root
+   * as data-token-fallback="neutral-default" — a silent fallback is indistinguishable
+   * from a broken token read.
+   */
+  :root {
+    --color-background:       oklch(0.986 0.003 95);
+    --color-card:             oklch(1 0 0);
+    --color-foreground:       oklch(0.24 0.012 264);
+    --color-muted-foreground: oklch(0.52 0.014 264);
+    --color-border:           oklch(0.90 0.006 264);
+    --color-input:            oklch(0.84 0.008 264);
+    --color-accent:           oklch(0.55 0.135 248);
+    --color-primary:          oklch(0.45 0.100 248);
+
+    --diagram-paper:       var(--color-background);
+    --diagram-surface:     var(--color-card);
+    --diagram-ink:         var(--color-foreground);
+    --diagram-muted:       var(--color-muted-foreground);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 65%, var(--color-background));
+    --diagram-rule:        var(--color-border);
+    --diagram-rule-solid:  var(--color-input);
+    --diagram-accent:      var(--color-accent);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 12%, var(--color-background));
+    --diagram-link:        var(--color-primary);
+
+    --diagram-hairline: 1px;
+    --diagram-gap: 24px;
+  }
+
+  :root[data-theme="dark"] {
+    --color-background:       oklch(0.19 0.010 264);
+    --color-card:             oklch(0.24 0.012 264);
+    --color-foreground:       oklch(0.95 0.004 264);
+    --color-muted-foreground: oklch(0.72 0.012 264);
+    --color-border:           oklch(0.32 0.012 264);
+    --color-input:            oklch(0.40 0.014 264);
+    --color-accent:           oklch(0.74 0.120 248);
+    --color-primary:          oklch(0.80 0.090 248);
+
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-background:       oklch(0.19 0.010 264);
+      --color-card:             oklch(0.24 0.012 264);
+      --color-foreground:       oklch(0.95 0.004 264);
+      --color-muted-foreground: oklch(0.72 0.012 264);
+      --color-border:           oklch(0.32 0.012 264);
+      --color-input:            oklch(0.40 0.014 264);
+      --color-accent:           oklch(0.74 0.120 248);
+      --color-primary:          oklch(0.80 0.090 248);
+
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--diagram-paper);
+    color: var(--diagram-ink);
+    font-family: var(--font-family-body, system-ui, sans-serif);
+    padding: 48px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .frame { max-width: 1200px; width: 100%; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--diagram-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-family-display, var(--font-family-body, system-ui, sans-serif));
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--diagram-gap);
+  }
+
+  .canvas { overflow-x: auto; }
+  svg { width: 100%; min-width: 720px; height: auto; display: block; }
+
+  /*
+   * A region is a wall you see through. One monotonic ramp carries depth: wall opacity
+   * and weight step up inward, interior fill steps up by the same number of steps.
+   * Radius is constant at every level so size and depth stay the only signals.
+   */
+  .region { stroke: var(--diagram-rule); }
+  .region--1 { fill: color-mix(in oklch, var(--diagram-muted) 3%, transparent); stroke-width: 1; stroke-opacity: 0.45; }
+  .region--2 { fill: color-mix(in oklch, var(--diagram-muted) 6%, transparent); stroke-width: 1.25; stroke-opacity: 0.65; }
+  .region--3 { fill: color-mix(in oklch, var(--diagram-muted) 9%, transparent); stroke-width: 1.5; stroke-opacity: 0.85; }
+  .region--4 { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.75; stroke-opacity: 1; }
+
+  .region-label { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .region-label--focal { fill: var(--diagram-accent); }
+  /* The label sits on the wall and breaks it, so a mask in paper is part of the label. */
+  .label-mask { fill: var(--diagram-paper); }
+
+  /* A content node is opaque, fully stroked, and holds nothing inside it. */
+  .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
+  .node-label { fill: var(--diagram-ink); font-size: 13px; }
+
+  .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.5; }
+  .edge-label { fill: var(--diagram-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Nested</p>
+    <h1>Trust zones, outside in</h1>
+
+    <div class="canvas">
+      <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-labelledby="nested-title nested-desc"
+           data-diagram-owned="true"
+           data-diagram-grammar="nested"
+           data-reading-order="outside-in: region-1-public-internet, region-2-dmz, region-3-internal-network, region-4-secure-store, then its two leaf nodes left to right"
+           data-focal-id="region-4-secure-store"
+           data-source-kind="brief"
+           data-token-fallback="neutral-default">
+        <title id="nested-title">Trust zones, outside in</title>
+        <desc id="nested-desc">Four regions enclose one another. The public internet is the outermost scope; it contains the DMZ, which contains the internal network, which contains the secure store. The secure store is focal and holds two content nodes, a key vault and a ledger database, joined by one sealed read connector. No stroke crosses an enclosure wall; every wall is drawn with a plain solid stroke because no boundary in this brief is permeable.</desc>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g data-diagram-element="node" id="region-1-public-internet">
+          <rect class="region region--1" x="48" y="48" width="864" height="464" rx="8"/>
+          <rect class="label-mask" x="64" y="44" width="144" height="16"/>
+          <text class="region-label" x="72" y="56">Public internet</text>
+        </g>
+
+        <g data-diagram-element="node" id="region-2-dmz">
+          <rect class="region region--2" x="104" y="104" width="752" height="352" rx="8"/>
+          <rect class="label-mask" x="120" y="100" width="64" height="16"/>
+          <text class="region-label" x="128" y="112">DMZ</text>
+        </g>
+
+        <g data-diagram-element="node" id="region-3-internal-network">
+          <rect class="region region--3" x="160" y="160" width="640" height="240" rx="8"/>
+          <rect class="label-mask" x="176" y="156" width="160" height="16"/>
+          <text class="region-label" x="184" y="168">Internal network</text>
+        </g>
+
+        <g data-diagram-element="node" id="region-4-secure-store">
+          <rect class="region region--4" x="216" y="216" width="528" height="128" rx="8"/>
+          <rect class="label-mask" x="232" y="212" width="136" height="16"/>
+          <text class="region-label region-label--focal" x="240" y="228">Secure store</text>
+        </g>
+
+        <!-- Sibling connector inside one region, orthogonal, never crossing a wall. -->
+        <line class="edge" data-diagram-element="edge" id="edge-key-vault-ledger"
+              x1="440" y1="284" x2="520" y2="284" marker-end="url(#arrowhead)"/>
+        <text class="edge-label" x="480" y="272" text-anchor="middle">sealed read</text>
+
+        <g data-diagram-element="node" id="node-key-vault">
+          <rect class="node-shape" x="248" y="252" width="192" height="64" rx="4"/>
+          <text class="node-label" x="344" y="288" text-anchor="middle">Key vault</text>
+        </g>
+
+        <g data-diagram-element="node" id="node-ledger-db">
+          <rect class="node-shape" x="520" y="252" width="192" height="64" rx="4"/>
+          <text class="node-label" x="616" y="288" text-anchor="middle">Ledger database</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

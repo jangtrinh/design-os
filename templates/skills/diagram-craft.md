@@ -1,6 +1,6 @@
 ---
 name: diagram-craft
-description: Use when the user asks for a product-flow, architecture, or sequence diagram (or asks to generate or update one) and needs it delivered as a rendered design artifact rather than prose or a text description.
+description: Use when the user asks for a structural, sequential, or hierarchical diagram (or asks to generate or update one) and needs it delivered as a rendered design artifact rather than prose or a text description. Charts of quantities route to chart-craft instead.
 ---
 
 # Diagram Craft
@@ -13,14 +13,16 @@ Before doing anything else, read `knowledge/diagram-craft.md` in full. It holds 
 
 ## 2. Classify intent into exactly one grammar
 
-Match the request against the three supported grammars: `product-flow`, `architecture`, `sequence`. Pick exactly one.
+Match the request against the nineteen supported grammars indexed in `knowledge/diagram-craft.md`. Pick exactly one.
 
 - If the request maps cleanly onto one grammar, proceed with that grammar only.
-- If it does not fit any of the three (e.g. Gantt, ER diagram, mind map, org chart, freeform whiteboard), **decline**. Name the closest supported grammar and state explicitly what information would be lost by forcing the request into it. Do not silently substitute a grammar the user didn't ask for.
+- If two grammars feel close, do not choose by feel — apply the collision-family precedence rules in `knowledge/diagram-craft.md` (step-and-role, platform-overview, hierarchy). They exist precisely because several grammars are deliberate near-neighbours.
+- If the request is a **chart of quantities** (bars, lines, scatter, radar, Gantt, dated timelines, quadrants, Venn, proportional pyramids), do not decline it — **route** it to `knowledge/chart-craft.md`, a sibling capability.
+- If it fits no supported grammar and is not a chart (e.g. a mind map or freeform whiteboard), **decline**. Name the closest supported grammar and state explicitly what information would be lost by forcing the request into it. Do not silently substitute a grammar the user didn't ask for.
 
 ## 3. Load only the matched grammar file
 
-Using the index in `knowledge/diagram-craft.md`, load the single grammar file for the chosen product. Do not load the other two grammar files — each is scoped to its own product, and the unrelated detail is noise, not useful context.
+Using the index in `knowledge/diagram-craft.md`, load the single grammar file for the chosen grammar. Do not load the other grammar files — each is scoped to its own shape, and the unrelated detail is noise, not useful context. The one exception: when a grammar's Decline section names a neighbour you are actively weighing against, read that neighbour's Selection section only.
 
 ## 4. Tokens: required, or an explicitly disclosed fallback
 
@@ -33,6 +35,8 @@ Every diagram is a single self-contained HTML file with inline SVG: no external 
 ## 6. Lint
 
 Run **ui diagram lint** against the output before returning it. If it fails, fix and re-lint — never hand back a diagram that fails lint with a caveat attached instead of a fix.
+
+Then run **ui a11y-lint** and **ui ds-usage-lint**. The two colour gates are complementary and neither substitutes for the other: `ds-usage-lint` reads CSS declarations, while `ui diagram lint`'s `hardcoded-svg-color` check covers colours sitting in SVG presentation attributes, which `ds-usage-lint` cannot see.
 
 ### product-flow only
 
