@@ -69,6 +69,19 @@ describe("mode-invisible-surface", () => {
     expect(checkModeInvisibleSurface('<div class="bg-white/5">x</div>')).toHaveLength(1);
   });
 
+  it("still reads a genuine root rule — `html, body { background: #0b0b0b }` is dark", () => {
+    // The root scan now takes only rules whose SUBJECT is the root. This proves
+    // "ignore descendants" did not degrade into "ignore everything": a real root
+    // rule must still set the mode.
+    const html = [
+      "<style>html, body { background: #0b0b0b }</style>",
+      '<body><div class="border border-black/10">x</div></body>',
+    ].join("\n");
+    const f = checkModeInvisibleSurface(html);
+    expect(f).toHaveLength(1);
+    expect(f[0]?.message).toContain("dark-mode");
+  });
+
   it("flags a literal rgba(255,255,255,0.08) background on a light document", () => {
     const f = checkModeInvisibleSurface('<div style="background:rgba(255,255,255,0.08)">x</div>');
     expect(f).toHaveLength(1);

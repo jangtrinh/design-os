@@ -47,3 +47,30 @@ export function cssRules(css: string): CssRule[] {
   }
   return out;
 }
+
+/**
+ * True when the SUBJECT (rightmost compound) of any comma-separated selector is a
+ * root element — `html`/`body` (with optional class/attr/pseudo, but not
+ * `.body-text`) or `:root`.
+ *
+ * The subject is what a rule actually styles, so `html.js .ln { … }` targets
+ * `.ln`, NOT the root. Matching anywhere in the selector instead reads every
+ * `html…`/`body…`-prefixed DESCENDANT rule — `body.dark .card` is the common one —
+ * as a root rule.
+ *
+ * Lives here because two checks need the same answer and each grew its own
+ * prefix-matching regex: `root-overflow-x-hidden` in layout-checks-viewport, and
+ * the colour-mode root scan in taste-checks-invisible-surface. Fixing one and not
+ * the other is how a repaired bug walks back in through the sibling.
+ *
+ * Known limit: a root wrapped in a functional pseudo — `:is(body)`, `:where(html)`
+ * — is not recognised. Rare enough to accept; stated so the next reader does not
+ * mistake it for an oversight.
+ */
+export function selectorSubjectIsRoot(selector: string): boolean {
+  return selector.split(",").some((part) => {
+    const compounds = part.trim().split(/[\s>+~]+/);
+    const subject = compounds[compounds.length - 1] ?? "";
+    return /^(?:html|body)(?![\w-])/i.test(subject) || /^:root(?![\w-])/i.test(subject);
+  });
+}

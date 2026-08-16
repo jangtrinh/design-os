@@ -19,7 +19,7 @@
  * Pure string/regex — no DOM, no deps.
  */
 import type { TasteFinding } from "./taste-lint.js";
-import { cssRegions, lineOf } from "./taste-checks-shared.js";
+import { cssRegions, cssRules, lineOf, selectorSubjectIsRoot } from "./taste-checks-shared.js";
 
 const CHECK_ID = "mode-invisible-surface";
 const ALPHA_FLOOR = 0.15; // below this a same-colour tint reads as no boundary at all
@@ -60,9 +60,13 @@ function rootText(html: string): string {
   const tagRe = /<(?:html|body)\b([^>]*)>/gi;
   let m: RegExpExecArray | null;
   while ((m = tagRe.exec(html)) !== null) roots.push(m[0] ?? "");
-  const css = cssRegions(html);
-  const rootRule = /(?:^|[\s,{])(?:html|body|:root)\b[^{]*\{([^}]*)\}/gi;
-  while ((m = rootRule.exec(css)) !== null) roots.push(m[1] ?? "");
+  // Only rules whose SUBJECT is the root count. Matching `html|body|:root`
+  // anywhere in the selector pulled in every descendant rule — `body.dark .card`
+  // — so one dark card could decide the whole document's mode, which is exactly
+  // what the comment above promises cannot happen.
+  for (const rule of cssRules(cssRegions(html))) {
+    if (selectorSubjectIsRoot(rule.selector)) roots.push(rule.body);
+  }
   return roots.join(" ");
 }
 
