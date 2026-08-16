@@ -459,10 +459,9 @@ Then open your agent CLI in that project and type:
 That's the whole loop: **describe → compile → qualify.** Have an existing app? Run
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
-`ease-design` is DESIGN:OS's npm name — the package ships the `ui` kernel. The published
-`v0.1.0` is the initial kernel release; the newest hands (the tenant scroll engine and the
-gflow asset toolchain behind the showcase grid) ship via the clone path below until the next
-npm release.
+`ease-design` is DESIGN:OS's npm name — the package ships the `ui` kernel. `v0.3.0`
+(published from CI with sigstore provenance) carries all 42 commands, including the tenant
+scroll engine and the asset gates behind the showcase grid.
 
 ### Full studio (clone)
 
@@ -487,8 +486,8 @@ reports the gap up front instead of failing mid-generation.
 
 | Get it | How | What you get |
 |---|---|---|
-| **Kernel** | `npm i -g ease-design` | the `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS |
-| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD (42 commands) + recall, rendered a11y, heartbeat/evolution, tenant scroll engine, gflow |
+| **Kernel** | `npm i -g ease-design` | the 42-command `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS, tenant scroll engine |
+| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD + recall, rendered a11y, heartbeat/evolution, and the opt-in gflow browser hand |
 | **Figma plugin** | [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) | the plugin + `figma-agent` CLI + the 1:1 mirror — versioned in its own repo |
 
 ---
@@ -991,6 +990,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-16 | **`ease-design@0.3.0` on npm** — the kernel release catches up with the showcase: all 42 commands including `tenant-scaffold`/`tenant-lint` (the scroll engine behind the demo grid), `gflow`, `chart`, `diagram`, `onboard`; published from CI with sigstore provenance | `v0.3.0` |
 | 2026-08-16 | **A design review becomes work, and the owner says when it is done** — `ui figma comments` folds a captured REST payload into threads and resolves each pin to a page/frame/ancestor chain with an honest confidence label, refusing to name an element rather than guessing a background rect; `--since` reports replies inside already-resolved threads (6 on a real file where the default view showed 0); and completion is read off the owner's own reply as `accepted / conditional / reversed / silent` instead of derived from the implementer — on a live 1,819-message file, 20 of 42 verdicts were not a clean yes and four were recorded nowhere | `#164` |
 | 2026-08-16 | **Gradient fields, rendered** — the ten ShaderGradient presets now appear in the README as a labelled grid plus an animated field, rendered from the published renderer with this repo's own preset values; the ledger's package version is corrected to one that was actually released | `#157` |
 | 2026-08-16 | **ShaderGradient as a T6 gradient-field capability** — `/ui:generate`/`/ui:refine`/`/ui:redesign` can direct one animated 3D gradient field behind the existing T6 gate, sharing `canvas-effect`'s single-effect budget; a source-free ledger pins the preset roster and surface set, `ui knowledge gradient-matrix` emits the matrix's machine columns, and `ui knowledge check` fails a fallback cell that never names the frozen state | `#156` |
