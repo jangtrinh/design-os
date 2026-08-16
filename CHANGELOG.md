@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-08-16 - Figma comment triage, and the owner's verdict as the completion signal
+
+Closes the loop between a design review and the work it asks for. Figma's Plugin API
+cannot read comments at all, so the kernel consumes REST payloads the host captured —
+the same precedent as `ingest-figma-ds` and `figma reconcile --mirror-file`. Validated
+against a live 1,819-message product file.
+
+### Added
+- `ui figma comments` and `/ui:figma-comments`: folds a captured comments payload into
+  threads and answers, per open thread, which screen, which element, and what was said.
+  Each pin resolves to a page/frame/ancestor chain with an honest confidence label
+  (`element | region | frame | orphaned | unanchored`). On the live file, 45/45 comments
+  reached element confidence with zero orphaned and every count reconciling against the
+  total pulled.
+- `--since`, a delta over a prior pull across four states — new, replied, newly resolved,
+  and replied-while-resolved. The last exists because `resolved_at` means "my request is
+  satisfied" from a reviewer but only "I have read this" from someone answering in their
+  own thread, so a reply inside a resolved thread is still a live instruction. It measured
+  6 on a real file while the default view reported 0.
+- Verdict reading — `classifyVerdict` returns `accepted | conditional | reversed | silent`
+  off the threads we posted, so completion comes from the owner rather than being derived
+  from the implementer. Silence is its own verdict and never acceptance: on a real run 7 of
+  26 handoff threads were resolved with nothing said and all 7 had been read as yes. Every
+  ambiguity biases to `conditional` — a wrong conditional costs one question, a wrong
+  accepted ships a defect. Live: 62 threads shown, 22 accepted, 10 conditional, 1 reversed,
+  9 silent — 20 of 42 verdicts not a clean yes, four recorded nowhere.
+- `knowledge/verification-honesty.md` — why a false pass costs more than a crash, and the
+  four rules that stop a check, a status flag, or a delegated agent from reporting success
+  it did not earn: a checker must be able to REFUSE rather than only pass or fail; totals
+  must reconcile against what entered the pipeline; a status flag carries its setter's
+  meaning, not the reader's; silence must be its own state instead of falling into the
+  accepting branch.
+- `templates/skills/verify-canvas.md` — that doctrine applied to a live canvas: visibility
+  is the ancestor chain, counts are measured not carried, a component swap needs a second
+  export, enums are probed against the runtime. Blast radius comes before the work, and
+  deletion is named as the most dangerous operation with the least tooling.
+
+### Changed
+- The anchor deliberately never returns the deepest containing node. In real auto-layout
+  that is routinely a full-bleed background rect or a spacer, and a confidently wrong
+  element name is worse than none; a fixture provokes exactly that case and a test pins
+  the refusal.
+- `--delivery-target` is required rather than defaulted. The most expensive error measured
+  was a batch aimed at the wrong artifact that then passed every gate defined for the wrong
+  one — a field that may be omitted will be omitted.
+- Blast radius reports how often a master recurs across the batch, not a bare boolean. The
+  boolean fired on 52 of 62 live anchors, because in a componentised file almost every pin
+  sits inside some instance; those 52 resolve to 19 masters with one accounting for 24, and
+  that frequency is what separates a local component from a shared one.
+
 ## 2026-08-16 - Diagram grammars expanded, chart capability added
 
 Vendors [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design)
