@@ -14,49 +14,49 @@
    * data-token-fallback so a reader can tell "no tokens present" from "tokens ignored".
    */
   :root {
-    --diagram-paper:       var(--color-background, #fcfcfa);
+    --diagram-paper:       var(--color-background, #fbfaf8);
     --diagram-surface:     var(--color-card, #ffffff);
-    --diagram-ink:         var(--color-foreground, #16181d);
-    --diagram-muted:       var(--color-muted-foreground, #6f7480);
-    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f7480) 65%, var(--color-background, #fcfcfa));
-    --diagram-rule:        var(--color-border, #e6e5e0);
-    --diagram-rule-solid:  var(--color-input, #d2d1cb);
-    --diagram-accent:      var(--color-accent, #b3451c);
-    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b3451c) 12%, var(--color-background, #fcfcfa));
-    --diagram-link:        var(--color-primary, #2f5d7c);
-    --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #2f5d7c) 10%, var(--color-background, #fcfcfa));
+    --diagram-ink:         var(--color-foreground, #1a1a17);
+    --diagram-muted:       var(--color-muted-foreground, #6f6f66);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #6f6f66) 65%, var(--color-background, #fbfaf8));
+    --diagram-rule:        var(--color-border, #e6e3dd);
+    --diagram-rule-solid:  var(--color-input, #d6d2c9);
+    --diagram-accent:      var(--color-accent, #b4531f);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #b4531f) 12%, var(--color-background, #fbfaf8));
+    --diagram-link:        var(--color-primary, #2f5d73);
+    --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #2f5d73) 10%, var(--color-background, #fbfaf8));
 
     --diagram-hairline: 1px;
     --diagram-gap: 24px;
   }
 
   :root[data-theme="dark"] {
-    --diagram-paper:       var(--color-background, #101215);
-    --diagram-surface:     var(--color-card, #171a1f);
-    --diagram-ink:         var(--color-foreground, #ecebe6);
-    --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
-    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
-    --diagram-rule:        var(--color-border, #2a2f35);
-    --diagram-rule-solid:  var(--color-input, #3b414a);
-    --diagram-accent:      var(--color-accent, #e0743f);
-    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
-    --diagram-link:        var(--color-primary, #7fb0d0);
-    --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #7fb0d0) 16%, var(--color-background, #101215));
+    --diagram-paper:       var(--color-background, #14140f);
+    --diagram-surface:     var(--color-card, #1c1c17);
+    --diagram-ink:         var(--color-foreground, #f2efe9);
+    --diagram-muted:       var(--color-muted-foreground, #a3a096);
+    --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #a3a096) 70%, var(--color-background, #14140f));
+    --diagram-rule:        var(--color-border, #2e2e26);
+    --diagram-rule-solid:  var(--color-input, #3d3d33);
+    --diagram-accent:      var(--color-accent, #e08c4a);
+    --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08c4a) 18%, var(--color-background, #14140f));
+    --diagram-link:        var(--color-primary, #7fb4cc);
+    --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #7fb4cc) 16%, var(--color-background, #14140f));
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --diagram-paper:       var(--color-background, #101215);
-      --diagram-surface:     var(--color-card, #171a1f);
-      --diagram-ink:         var(--color-foreground, #ecebe6);
-      --diagram-muted:       var(--color-muted-foreground, #9aa1ab);
-      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #9aa1ab) 70%, var(--color-background, #101215));
-      --diagram-rule:        var(--color-border, #2a2f35);
-      --diagram-rule-solid:  var(--color-input, #3b414a);
-      --diagram-accent:      var(--color-accent, #e0743f);
-      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e0743f) 18%, var(--color-background, #101215));
-      --diagram-link:        var(--color-primary, #7fb0d0);
-      --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #7fb0d0) 16%, var(--color-background, #101215));
+      --diagram-paper:       var(--color-background, #14140f);
+      --diagram-surface:     var(--color-card, #1c1c17);
+      --diagram-ink:         var(--color-foreground, #f2efe9);
+      --diagram-muted:       var(--color-muted-foreground, #a3a096);
+      --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground, #a3a096) 70%, var(--color-background, #14140f));
+      --diagram-rule:        var(--color-border, #2e2e26);
+      --diagram-rule-solid:  var(--color-input, #3d3d33);
+      --diagram-accent:      var(--color-accent, #e08c4a);
+      --diagram-accent-tint: color-mix(in oklch, var(--color-accent, #e08c4a) 18%, var(--color-background, #14140f));
+      --diagram-link:        var(--color-primary, #7fb4cc);
+      --diagram-link-tint:   color-mix(in oklch, var(--color-primary, #7fb4cc) 16%, var(--color-background, #14140f));
     }
   }
 
