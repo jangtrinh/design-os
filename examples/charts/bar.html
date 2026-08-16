@@ -126,15 +126,15 @@
   /* Gridlines sit at the bottom of the hierarchy and are the first thing to stop noticing. */
   .grid      { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
   .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
-  .tick      { fill: var(--chart-soft); font-size: 11px;
+  .label-tick      { fill: var(--chart-soft); font-size: 11px;
                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
-  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+  .label-axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
 
   .bar        { fill: var(--chart-fill); stroke: var(--chart-fill); stroke-width: var(--chart-hairline); }
   .bar--focal { fill: var(--chart-accent); stroke: var(--chart-accent); }
 
-  .cat { fill: var(--chart-ink); font-size: 12px; }
-  .val { fill: var(--chart-ink); font-size: 12px; font-weight: 600;
+  .label-cat { fill: var(--chart-ink); font-size: 12px; }
+  .label-val { fill: var(--chart-ink); font-size: 12px; font-weight: 600;
          font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
   .val--focal { fill: var(--chart-accent); }
 </style>
@@ -159,18 +159,18 @@
         <desc id="chart-desc">Illustrative dataset, not a real financial record. Five regions compared on one measure, revenue in millions of United States dollars, over the twelve months of FY2025. North America books 48.0, Europe 36.0, Asia Pacific 27.0, Latin America 15.0, and Middle East and Africa 9.0, summing to 135.0. The value axis starts at zero and runs to 60, so every bar length is proportional to its value; North America alone is larger than Europe and Asia Pacific added together.</desc>
 
         <g data-chart-element="axis" data-axis-role="value" id="axis-revenue">
-          <text class="axis-title" x="52" y="56">REVENUE ($M)</text>
+          <text class="label-axis-title" x="52" y="56">REVENUE ($M)</text>
 
           <line class="grid" x1="152" y1="80"  x2="848" y2="80"/>
           <line class="grid" x1="152" y1="200" x2="848" y2="200"/>
           <line class="grid" x1="152" y1="320" x2="848" y2="320"/>
           <line class="grid" x1="152" y1="440" x2="848" y2="440"/>
 
-          <text class="tick" x="144" y="84"  text-anchor="end">60</text>
-          <text class="tick" x="144" y="204" text-anchor="end">45</text>
-          <text class="tick" x="144" y="324" text-anchor="end">30</text>
-          <text class="tick" x="144" y="444" text-anchor="end">15</text>
-          <text class="tick" x="144" y="564" text-anchor="end">0</text>
+          <text class="label-tick" x="144" y="84"  text-anchor="end">60</text>
+          <text class="label-tick" x="144" y="204" text-anchor="end">45</text>
+          <text class="label-tick" x="144" y="324" text-anchor="end">30</text>
+          <text class="label-tick" x="144" y="444" text-anchor="end">15</text>
+          <text class="label-tick" x="144" y="564" text-anchor="end">0</text>
 
           <!-- The baseline is the one slightly stronger rule in the frame. -->
           <line class="axis-rule" x1="152" y1="560" x2="848" y2="560"/>
@@ -191,20 +191,20 @@
 
         <!-- Value printed at each bar's free end, so no length is estimated against a gridline. -->
         <g data-chart-element="label" id="labels-value">
-          <text class="val val--focal" x="208" y="160" text-anchor="middle">48.0</text>
-          <text class="val" x="352" y="256" text-anchor="middle">36.0</text>
-          <text class="val" x="496" y="328" text-anchor="middle">27.0</text>
-          <text class="val" x="640" y="424" text-anchor="middle">15.0</text>
-          <text class="val" x="784" y="472" text-anchor="middle">9.0</text>
+          <text class="label-val label-val--focal" x="208" y="160" text-anchor="middle">48.0</text>
+          <text class="label-val" x="352" y="256" text-anchor="middle">36.0</text>
+          <text class="label-val" x="496" y="328" text-anchor="middle">27.0</text>
+          <text class="label-val" x="640" y="424" text-anchor="middle">15.0</text>
+          <text class="label-val" x="784" y="472" text-anchor="middle">9.0</text>
         </g>
 
         <g data-chart-element="axis" data-axis-role="category" id="axis-region">
-          <text class="cat" x="208" y="588" text-anchor="middle">North America</text>
-          <text class="cat" x="352" y="588" text-anchor="middle">Europe</text>
-          <text class="cat" x="496" y="588" text-anchor="middle">Asia Pacific</text>
-          <text class="cat" x="640" y="588" text-anchor="middle">Latin America</text>
-          <text class="cat" x="784" y="588" text-anchor="middle">Middle East</text>
-          <text class="cat" x="784" y="604" text-anchor="middle">&amp; Africa</text>
+          <text class="label-cat" x="208" y="588" text-anchor="middle">North America</text>
+          <text class="label-cat" x="352" y="588" text-anchor="middle">Europe</text>
+          <text class="label-cat" x="496" y="588" text-anchor="middle">Asia Pacific</text>
+          <text class="label-cat" x="640" y="588" text-anchor="middle">Latin America</text>
+          <text class="label-cat" x="784" y="588" text-anchor="middle">Middle East</text>
+          <text class="label-cat" x="784" y="604" text-anchor="middle">&amp; Africa</text>
         </g>
       </svg>
     </div>

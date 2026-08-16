@@ -124,9 +124,9 @@
 
   .grid      { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
   .axis-rule { fill: none; stroke: var(--chart-rule-solid); stroke-width: var(--chart-hairline); }
-  .tick      { fill: var(--chart-soft); font-size: 11px;
+  .label-tick      { fill: var(--chart-soft); font-size: 11px;
                font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
-  .axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+  .label-axis-title{ fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
 
   /* Focal series: heaviest stroke, solid, vertex dots. Supporting series: one shared
      lighter weight and a distinct dash, so the pair survives grayscale. */
@@ -159,36 +159,36 @@
         <desc id="chart-desc">Illustrative dataset, not a real product metric. Two series of monthly active users in thousands, sampled once a month from January to December 2025 on a shared zero-based axis running to 240. Total monthly active users rises from 128 to 232 with a single dip in July; mobile monthly active users rises from 72 to 152, moving from 56 percent of the total to 66 percent. The focal series is the total, drawn solid with vertex dots; mobile is drawn dashed, and both carry a direct label at their right-hand end rather than a legend.</desc>
 
         <g data-chart-element="axis" data-axis-role="value" id="axis-users">
-          <text class="axis-title" x="52" y="56">MONTHLY ACTIVE USERS (THOUSANDS)</text>
+          <text class="label-axis-title" x="52" y="56">MONTHLY ACTIVE USERS (THOUSANDS)</text>
 
           <line class="grid" x1="152" y1="80"  x2="792" y2="80"/>
           <line class="grid" x1="152" y1="200" x2="792" y2="200"/>
           <line class="grid" x1="152" y1="320" x2="792" y2="320"/>
           <line class="grid" x1="152" y1="440" x2="792" y2="440"/>
 
-          <text class="tick" x="144" y="84"  text-anchor="end">240</text>
-          <text class="tick" x="144" y="204" text-anchor="end">180</text>
-          <text class="tick" x="144" y="324" text-anchor="end">120</text>
-          <text class="tick" x="144" y="444" text-anchor="end">60</text>
-          <text class="tick" x="144" y="564" text-anchor="end">0</text>
+          <text class="label-tick" x="144" y="84"  text-anchor="end">240</text>
+          <text class="label-tick" x="144" y="204" text-anchor="end">180</text>
+          <text class="label-tick" x="144" y="324" text-anchor="end">120</text>
+          <text class="label-tick" x="144" y="444" text-anchor="end">60</text>
+          <text class="label-tick" x="144" y="564" text-anchor="end">0</text>
 
           <line class="axis-rule" x1="152" y1="560" x2="792" y2="560"/>
         </g>
 
         <g data-chart-element="axis" data-axis-role="time" id="axis-month">
-          <text class="tick" x="160" y="584" text-anchor="middle">Jan</text>
-          <text class="tick" x="216" y="584" text-anchor="middle">Feb</text>
-          <text class="tick" x="272" y="584" text-anchor="middle">Mar</text>
-          <text class="tick" x="328" y="584" text-anchor="middle">Apr</text>
-          <text class="tick" x="384" y="584" text-anchor="middle">May</text>
-          <text class="tick" x="440" y="584" text-anchor="middle">Jun</text>
-          <text class="tick" x="496" y="584" text-anchor="middle">Jul</text>
-          <text class="tick" x="552" y="584" text-anchor="middle">Aug</text>
-          <text class="tick" x="608" y="584" text-anchor="middle">Sep</text>
-          <text class="tick" x="664" y="584" text-anchor="middle">Oct</text>
-          <text class="tick" x="720" y="584" text-anchor="middle">Nov</text>
-          <text class="tick" x="776" y="584" text-anchor="middle">Dec</text>
-          <text class="axis-title" x="160" y="612">2025</text>
+          <text class="label-tick" x="160" y="584" text-anchor="middle">Jan</text>
+          <text class="label-tick" x="216" y="584" text-anchor="middle">Feb</text>
+          <text class="label-tick" x="272" y="584" text-anchor="middle">Mar</text>
+          <text class="label-tick" x="328" y="584" text-anchor="middle">Apr</text>
+          <text class="label-tick" x="384" y="584" text-anchor="middle">May</text>
+          <text class="label-tick" x="440" y="584" text-anchor="middle">Jun</text>
+          <text class="label-tick" x="496" y="584" text-anchor="middle">Jul</text>
+          <text class="label-tick" x="552" y="584" text-anchor="middle">Aug</text>
+          <text class="label-tick" x="608" y="584" text-anchor="middle">Sep</text>
+          <text class="label-tick" x="664" y="584" text-anchor="middle">Oct</text>
+          <text class="label-tick" x="720" y="584" text-anchor="middle">Nov</text>
+          <text class="label-tick" x="776" y="584" text-anchor="middle">Dec</text>
+          <text class="label-axis-title" x="160" y="612">2025</text>
         </g>
 
         <!-- Supporting series first, so the focal polyline sits on top of it. -->

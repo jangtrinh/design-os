@@ -108,8 +108,8 @@
   /* Grid rules and cell borders are node chrome, never connectors. */
   .banner { fill: var(--diagram-banner); stroke: none; }
   .banner-name { fill: var(--diagram-paper); font-size: 13px; }
-  .banner-group {
-    fill: var(--diagram-paper); font-size: 9px; letter-spacing: 0.1em;
+  .label-banner-group {
+    fill: var(--diagram-paper); font-size: 10px; letter-spacing: 0.1em;
     font-family: var(--font-family-mono, ui-monospace, monospace); opacity: 0.72;
   }
   .axis-caption { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
@@ -125,13 +125,13 @@
   .cell--none  { fill: none; stroke: var(--diagram-rule); stroke-dasharray: 3 4; }
   .cell--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
 
-  .value { font-size: 12px; }
-  .value--full  { fill: var(--diagram-paper); font-size: 12px; }
-  .value--rw    { fill: var(--diagram-ink); font-size: 12px; }
-  .value--read  { fill: var(--diagram-muted); font-size: 12px; }
-  .value--none  { fill: var(--diagram-soft); font-size: 11px; }
-  .value--focal { fill: var(--diagram-accent); font-size: 12px; }
-  .value-note   { fill: var(--diagram-accent); font-size: 9px; letter-spacing: 0.06em; }
+  .label-value { font-size: 12px; }
+  .label-value--full  { fill: var(--diagram-paper); font-size: 12px; }
+  .label-value--rw    { fill: var(--diagram-ink); font-size: 12px; }
+  .label-value--read  { fill: var(--diagram-muted); font-size: 12px; }
+  .label-value--none  { fill: var(--diagram-soft); font-size: 11px; }
+  .label-value--focal { fill: var(--diagram-accent); font-size: 12px; }
+  .value-note   { fill: var(--diagram-accent); font-size: 10px; letter-spacing: 0.06em; }
 
   .legend-label { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.06em; }
 </style>
@@ -161,22 +161,22 @@
         <g data-diagram-element="node" id="role-1">
           <rect class="banner" x="352" y="96" width="192" height="64" rx="4"/>
           <text class="banner-name" x="448" y="126" text-anchor="middle">Platform admin</text>
-          <text class="banner-group" x="448" y="144" text-anchor="middle">grp-platform-admins</text>
+          <text class="label-banner-group" x="448" y="144" text-anchor="middle">grp-platform-admins</text>
         </g>
         <g data-diagram-element="node" id="role-2">
           <rect class="banner" x="552" y="96" width="192" height="64" rx="4"/>
           <text class="banner-name" x="648" y="126" text-anchor="middle">Data engineer</text>
-          <text class="banner-group" x="648" y="144" text-anchor="middle">grp-data-eng</text>
+          <text class="label-banner-group" x="648" y="144" text-anchor="middle">grp-data-eng</text>
         </g>
         <g data-diagram-element="node" id="role-3">
           <rect class="banner" x="752" y="96" width="192" height="64" rx="4"/>
           <text class="banner-name" x="848" y="126" text-anchor="middle">Data scientist</text>
-          <text class="banner-group" x="848" y="144" text-anchor="middle">grp-data-sci</text>
+          <text class="label-banner-group" x="848" y="144" text-anchor="middle">grp-data-sci</text>
         </g>
         <g data-diagram-element="node" id="role-4">
           <rect class="banner" x="952" y="96" width="192" height="64" rx="4"/>
           <text class="banner-name" x="1048" y="126" text-anchor="middle">Reporting analyst</text>
-          <text class="banner-group" x="1048" y="144" text-anchor="middle">grp-reporting</text>
+          <text class="label-banner-group" x="1048" y="144" text-anchor="middle">grp-reporting</text>
         </g>
 
         <!-- Row 1 — identity provider. -->
@@ -187,19 +187,19 @@
         </g>
         <g data-diagram-element="node" id="cell-r1-c1">
           <rect class="cell cell--full" x="352" y="176" width="192" height="72" rx="4"/>
-          <text class="value--full" x="448" y="218" text-anchor="middle">Realm admin</text>
+          <text class="label-value--full" x="448" y="218" text-anchor="middle">Realm admin</text>
         </g>
         <g data-diagram-element="node" id="cell-r1-c2">
           <rect class="cell cell--read" x="552" y="176" width="192" height="72" rx="4"/>
-          <text class="value--read" x="648" y="218" text-anchor="middle">Login</text>
+          <text class="label-value--read" x="648" y="218" text-anchor="middle">Login</text>
         </g>
         <g data-diagram-element="node" id="cell-r1-c3">
           <rect class="cell cell--read" x="752" y="176" width="192" height="72" rx="4"/>
-          <text class="value--read" x="848" y="218" text-anchor="middle">Login</text>
+          <text class="label-value--read" x="848" y="218" text-anchor="middle">Login</text>
         </g>
         <g data-diagram-element="node" id="cell-r1-c4">
           <rect class="cell cell--read" x="952" y="176" width="192" height="72" rx="4"/>
-          <text class="value--read" x="1048" y="218" text-anchor="middle">Login</text>
+          <text class="label-value--read" x="1048" y="218" text-anchor="middle">Login</text>
         </g>
 
         <!-- Row 2 — object store, raw zone. Holds the single focal cell. -->
@@ -210,20 +210,20 @@
         </g>
         <g data-diagram-element="node" id="cell-r2-c1">
           <rect class="cell cell--full" x="352" y="256" width="192" height="72" rx="4"/>
-          <text class="value--full" x="448" y="298" text-anchor="middle">Bucket admin</text>
+          <text class="label-value--full" x="448" y="298" text-anchor="middle">Bucket admin</text>
         </g>
         <g data-diagram-element="node" id="cell-r2-c2">
           <rect class="cell cell--rw" x="552" y="256" width="192" height="72" rx="4"/>
-          <text class="value--rw" x="648" y="298" text-anchor="middle">R/W</text>
+          <text class="label-value--rw" x="648" y="298" text-anchor="middle">R/W</text>
         </g>
         <g data-diagram-element="node" id="cell-r2-c3">
           <rect class="cell cell--focal" x="752" y="256" width="192" height="72" rx="4"/>
-          <text class="value--focal" x="848" y="288" text-anchor="middle">No access</text>
+          <text class="label-value--focal" x="848" y="288" text-anchor="middle">No access</text>
           <text class="value-note" x="848" y="308" text-anchor="middle">raw PII never reaches analysis</text>
         </g>
         <g data-diagram-element="node" id="cell-r2-c4">
           <rect class="cell cell--none" x="952" y="256" width="192" height="72" rx="4"/>
-          <text class="value--none" x="1048" y="298" text-anchor="middle">No access</text>
+          <text class="label-value--none" x="1048" y="298" text-anchor="middle">No access</text>
         </g>
 
         <!-- Row 3 — query engine. -->
@@ -234,19 +234,19 @@
         </g>
         <g data-diagram-element="node" id="cell-r3-c1">
           <rect class="cell cell--full" x="352" y="336" width="192" height="72" rx="4"/>
-          <text class="value--full" x="448" y="378" text-anchor="middle">Cluster admin</text>
+          <text class="label-value--full" x="448" y="378" text-anchor="middle">Cluster admin</text>
         </g>
         <g data-diagram-element="node" id="cell-r3-c2">
           <rect class="cell cell--rw" x="552" y="336" width="192" height="72" rx="4"/>
-          <text class="value--rw" x="648" y="378" text-anchor="middle">R/W</text>
+          <text class="label-value--rw" x="648" y="378" text-anchor="middle">R/W</text>
         </g>
         <g data-diagram-element="node" id="cell-r3-c3">
           <rect class="cell cell--rw" x="752" y="336" width="192" height="72" rx="4"/>
-          <text class="value--rw" x="848" y="378" text-anchor="middle">R/W</text>
+          <text class="label-value--rw" x="848" y="378" text-anchor="middle">R/W</text>
         </g>
         <g data-diagram-element="node" id="cell-r3-c4">
           <rect class="cell cell--read" x="952" y="336" width="192" height="72" rx="4"/>
-          <text class="value--read" x="1048" y="378" text-anchor="middle">SELECT</text>
+          <text class="label-value--read" x="1048" y="378" text-anchor="middle">SELECT</text>
         </g>
 
         <!-- Row 4 — notebook environment. -->
@@ -257,19 +257,19 @@
         </g>
         <g data-diagram-element="node" id="cell-r4-c1">
           <rect class="cell cell--full" x="352" y="416" width="192" height="72" rx="4"/>
-          <text class="value--full" x="448" y="458" text-anchor="middle">Hub admin</text>
+          <text class="label-value--full" x="448" y="458" text-anchor="middle">Hub admin</text>
         </g>
         <g data-diagram-element="node" id="cell-r4-c2">
           <rect class="cell cell--rw" x="552" y="416" width="192" height="72" rx="4"/>
-          <text class="value--rw" x="648" y="458" text-anchor="middle">R/W</text>
+          <text class="label-value--rw" x="648" y="458" text-anchor="middle">R/W</text>
         </g>
         <g data-diagram-element="node" id="cell-r4-c3">
           <rect class="cell cell--rw" x="752" y="416" width="192" height="72" rx="4"/>
-          <text class="value--rw" x="848" y="458" text-anchor="middle">R/W</text>
+          <text class="label-value--rw" x="848" y="458" text-anchor="middle">R/W</text>
         </g>
         <g data-diagram-element="node" id="cell-r4-c4">
           <rect class="cell cell--none" x="952" y="416" width="192" height="72" rx="4"/>
-          <text class="value--none" x="1048" y="458" text-anchor="middle">No access</text>
+          <text class="label-value--none" x="1048" y="458" text-anchor="middle">No access</text>
         </g>
 
         <!-- Row 5 — ingest tool. -->
@@ -280,19 +280,19 @@
         </g>
         <g data-diagram-element="node" id="cell-r5-c1">
           <rect class="cell cell--full" x="352" y="496" width="192" height="72" rx="4"/>
-          <text class="value--full" x="448" y="538" text-anchor="middle">Flow admin</text>
+          <text class="label-value--full" x="448" y="538" text-anchor="middle">Flow admin</text>
         </g>
         <g data-diagram-element="node" id="cell-r5-c2">
           <rect class="cell cell--rw" x="552" y="496" width="192" height="72" rx="4"/>
-          <text class="value--rw" x="648" y="538" text-anchor="middle">R/W</text>
+          <text class="label-value--rw" x="648" y="538" text-anchor="middle">R/W</text>
         </g>
         <g data-diagram-element="node" id="cell-r5-c3">
           <rect class="cell cell--read" x="752" y="496" width="192" height="72" rx="4"/>
-          <text class="value--read" x="848" y="538" text-anchor="middle">Read flows</text>
+          <text class="label-value--read" x="848" y="538" text-anchor="middle">Read flows</text>
         </g>
         <g data-diagram-element="node" id="cell-r5-c4">
           <rect class="cell cell--none" x="952" y="496" width="192" height="72" rx="4"/>
-          <text class="value--none" x="1048" y="538" text-anchor="middle">No access</text>
+          <text class="label-value--none" x="1048" y="538" text-anchor="middle">No access</text>
         </g>
 
         <!-- Legend: one swatch per level actually present in the grid, plus the focal rule. -->

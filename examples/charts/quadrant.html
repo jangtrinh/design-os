@@ -131,7 +131,7 @@
   .dot        { fill: var(--chart-fill); stroke: var(--chart-fill); stroke-width: var(--chart-hairline); }
   .dot--focal { fill: var(--chart-accent); stroke: var(--chart-accent); stroke-width: 3; }
 
-  .item        { fill: var(--chart-ink); font-size: 12px; }
+  .label-item        { fill: var(--chart-ink); font-size: 12px; }
   .item--focal { fill: var(--chart-accent); font-weight: 600; }
 </style>
 </head>
@@ -180,28 +180,28 @@
 
         <g data-chart-element="series" id="series-initiatives" data-series-label="Q3 initiative backlog">
           <circle class="dot dot--focal" data-chart-element="mark" id="mark-onboarding-checklist" cx="300" cy="176" r="7"/>
-          <text class="item item--focal" data-chart-element="label" x="312" y="180">Onboarding checklist</text>
+          <text class="label-item label-item--focal" data-chart-element="label" x="312" y="180">Onboarding checklist</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-search-filters" cx="376" cy="240" r="6"/>
-          <text class="item" data-chart-element="label" x="388" y="244">Search filters</text>
+          <text class="label-item" data-chart-element="label" x="388" y="244">Search filters</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-usage-digest" cx="240" cy="288" r="6"/>
-          <text class="item" data-chart-element="label" x="252" y="292">Weekly usage digest</text>
+          <text class="label-item" data-chart-element="label" x="252" y="292">Weekly usage digest</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-workspace-permissions" cx="600" cy="160" r="6"/>
-          <text class="item" data-chart-element="label" x="612" y="164">Workspace permissions</text>
+          <text class="label-item" data-chart-element="label" x="612" y="164">Workspace permissions</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-public-api" cx="672" cy="216" r="6"/>
-          <text class="item" data-chart-element="label" x="684" y="220">Public API v2</text>
+          <text class="label-item" data-chart-element="label" x="684" y="220">Public API v2</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-legacy-import" cx="592" cy="424" r="6"/>
-          <text class="item" data-chart-element="label" x="604" y="428">Legacy importer rewrite</text>
+          <text class="label-item" data-chart-element="label" x="604" y="428">Legacy importer rewrite</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-docs-refresh" cx="280" cy="400" r="6"/>
-          <text class="item" data-chart-element="label" x="292" y="404">Docs refresh</text>
+          <text class="label-item" data-chart-element="label" x="292" y="404">Docs refresh</text>
 
           <circle class="dot" data-chart-element="mark" id="mark-keyboard-shortcuts" cx="288" cy="464" r="6"/>
-          <text class="item" data-chart-element="label" x="300" y="468">Keyboard shortcuts</text>
+          <text class="label-item" data-chart-element="label" x="300" y="468">Keyboard shortcuts</text>
         </g>
 
         <g data-chart-element="label" id="caption-origin">

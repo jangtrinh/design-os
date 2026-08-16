@@ -101,7 +101,7 @@
   /* A band is a node. One surface token throughout, hairline separation, equal heights. */
   .band { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
   .band--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); }
-  .band-index { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.14em; }
+  .label-band-index { fill: var(--diagram-soft); font-size: 11px; letter-spacing: 0.14em; }
   .band-name { fill: var(--diagram-ink); font-size: 14px; }
   .band-sub { fill: var(--diagram-soft); font-size: 11px; }
 
@@ -142,32 +142,32 @@
 
         <g data-diagram-element="node" id="band-5-ui">
           <rect class="band" x="176" y="48" width="672" height="64" rx="4"/>
-          <text class="band-index" x="200" y="88">L5</text>
+          <text class="label-band-index" x="200" y="88">L5</text>
           <text class="band-name" x="272" y="88">User interface</text>
         </g>
 
         <g data-diagram-element="node" id="band-4-services">
           <rect class="band" x="176" y="128" width="672" height="64" rx="4"/>
-          <text class="band-index" x="200" y="168">L4</text>
+          <text class="label-band-index" x="200" y="168">L4</text>
           <text class="band-name" x="272" y="168">Application services</text>
         </g>
 
         <g data-diagram-element="node" id="band-3-container-runtime">
           <rect class="band band--focal" x="176" y="208" width="672" height="64" rx="4"/>
-          <text class="band-index" x="200" y="248">L3</text>
+          <text class="label-band-index" x="200" y="248">L3</text>
           <text class="band-name" x="272" y="248">Container runtime</text>
           <text class="band-sub" x="824" y="248" text-anchor="end">the layer under discussion</text>
         </g>
 
         <g data-diagram-element="node" id="band-2-operating-system">
           <rect class="band" x="176" y="288" width="672" height="64" rx="4"/>
-          <text class="band-index" x="200" y="328">L2</text>
+          <text class="label-band-index" x="200" y="328">L2</text>
           <text class="band-name" x="272" y="328">Operating system</text>
         </g>
 
         <g data-diagram-element="node" id="band-1-hardware">
           <rect class="band" x="176" y="368" width="672" height="64" rx="4"/>
-          <text class="band-index" x="200" y="408">L1</text>
+          <text class="label-band-index" x="200" y="408">L1</text>
           <text class="band-name" x="272" y="408">Hardware</text>
           <text class="band-sub" x="824" y="408" text-anchor="end">foundation</text>
         </g>

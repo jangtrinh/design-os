@@ -125,10 +125,10 @@
   .ring        { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
   .ring--outer { stroke: var(--chart-rule-solid); }
   .spoke       { fill: none; stroke: var(--chart-rule); stroke-width: var(--chart-hairline); }
-  .tick        { fill: var(--chart-soft); font-size: 11px;
+  .label-tick        { fill: var(--chart-soft); font-size: 11px;
                  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
   .axis-label  { fill: var(--chart-ink); font-size: 12px; }
-  .axis-title  { fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
+  .label-axis-title  { fill: var(--chart-muted); font-size: 11px; letter-spacing: 0.12em; }
 
   /* Every polygon fills its own token at one shared opacity and strokes it at full
      opacity; the focal series differs by stroke weight, not by a second fill rule. */
@@ -176,11 +176,11 @@
           <polygon class="ring ring--outer" points="480,100 708.25,265.84 621.07,534.16 338.93,534.16 251.75,265.84"/>
 
           <!-- Numeric ticks on the first axis only; repeating them on every spoke is clutter. -->
-          <text class="tick" x="492" y="296">1</text>
-          <text class="tick" x="492" y="248">2</text>
-          <text class="tick" x="492" y="200">3</text>
-          <text class="tick" x="492" y="152">4</text>
-          <text class="tick" x="492" y="104">5</text>
+          <text class="label-tick" x="492" y="296">1</text>
+          <text class="label-tick" x="492" y="248">2</text>
+          <text class="label-tick" x="492" y="200">3</text>
+          <text class="label-tick" x="492" y="152">4</text>
+          <text class="label-tick" x="492" y="104">5</text>
         </g>
 
         <g data-chart-element="axis" data-axis-role="category" id="axis-criteria">
@@ -239,7 +239,7 @@
           <polygon class="vtx vtx--meridian" points="56,135 61.5,144.5 50.5,144.5"/>
           <text class="key-label key-label--meridian" x="74" y="144">Meridian</text>
 
-          <text class="axis-title" x="48" y="176">SCORE 0–5 · ONE SHARED SCALE</text>
+          <text class="label-axis-title" x="48" y="176">SCORE 0–5 · ONE SHARED SCALE</text>
         </g>
       </svg>
     </div>

@@ -94,7 +94,7 @@
   .station--focal { fill: var(--diagram-accent-tint); stroke: var(--diagram-accent); stroke-width: 1.5; }
   .station-name { fill: var(--diagram-ink); font-size: 14px; }
   .station-sub { fill: var(--diagram-soft); font-size: 10px; }
-  .station-index { fill: var(--diagram-soft); font-size: 9px; letter-spacing: 0.16em; }
+  .label-station-index { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.16em; }
 
   /* The hub is the single darkest element: the inversion says "state", not "step". */
   .hub { fill: var(--diagram-hub); stroke: none; }
@@ -105,7 +105,7 @@
   .edge { fill: none; stroke: var(--diagram-muted); stroke-width: 1.25; }
   .edge--spoke { stroke: var(--diagram-rule-solid); stroke-width: 1; stroke-dasharray: 3 5; }
   .edge-label {
-    fill: var(--diagram-soft); font-size: 9px; letter-spacing: 0.16em;
+    fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.16em;
     paint-order: stroke; stroke: var(--diagram-paper); stroke-width: 4px; stroke-linejoin: round;
   }
 </style>
@@ -171,31 +171,31 @@
         <!-- Stations, clockwise from the top. -->
         <g data-diagram-element="node" id="station-0">
           <rect class="station" x="460" y="124" width="200" height="72" rx="4"/>
-          <text class="station-index" x="560" y="148" text-anchor="middle">01</text>
+          <text class="label-station-index" x="560" y="148" text-anchor="middle">01</text>
           <text class="station-name" x="560" y="168" text-anchor="middle">Ingest</text>
           <text class="station-sub" x="560" y="184" text-anchor="middle">land source drops</text>
         </g>
         <g data-diagram-element="node" id="station-1">
           <rect class="station" x="736" y="324" width="200" height="72" rx="4"/>
-          <text class="station-index" x="836" y="348" text-anchor="middle">02</text>
+          <text class="label-station-index" x="836" y="348" text-anchor="middle">02</text>
           <text class="station-name" x="836" y="368" text-anchor="middle">Validate</text>
           <text class="station-sub" x="836" y="384" text-anchor="middle">schema · personal-data checks</text>
         </g>
         <g data-diagram-element="node" id="station-2">
           <rect class="station station--focal" x="628" y="644" width="200" height="72" rx="4"/>
-          <text class="station-index" x="728" y="668" text-anchor="middle">03</text>
+          <text class="label-station-index" x="728" y="668" text-anchor="middle">03</text>
           <text class="station-name" x="728" y="688" text-anchor="middle">Promote</text>
           <text class="station-sub" x="728" y="704" text-anchor="middle">the editorial tier gate</text>
         </g>
         <g data-diagram-element="node" id="station-3">
           <rect class="station" x="292" y="644" width="200" height="72" rx="4"/>
-          <text class="station-index" x="392" y="668" text-anchor="middle">04</text>
+          <text class="label-station-index" x="392" y="668" text-anchor="middle">04</text>
           <text class="station-name" x="392" y="688" text-anchor="middle">Publish</text>
           <text class="station-sub" x="392" y="704" text-anchor="middle">serve indicators</text>
         </g>
         <g data-diagram-element="node" id="station-4">
           <rect class="station" x="184" y="324" width="200" height="72" rx="4"/>
-          <text class="station-index" x="284" y="348" text-anchor="middle">05</text>
+          <text class="label-station-index" x="284" y="348" text-anchor="middle">05</text>
           <text class="station-name" x="284" y="368" text-anchor="middle">Review</text>
           <text class="station-sub" x="284" y="384" text-anchor="middle">analyst feedback</text>
         </g>

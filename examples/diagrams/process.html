@@ -98,8 +98,8 @@
   .node-shape { fill: var(--diagram-surface); stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
   .node-shape--focal { fill: var(--diagram-surface); stroke: var(--diagram-accent); stroke-width: 1.5; }
   .node-label { fill: var(--diagram-ink); font-size: 13px; }
-  .flow-line { fill: var(--diagram-soft); font-size: 10px; }
-  .tool-line { fill: var(--diagram-soft); font-size: 10px; }
+  .label-flow-line { fill: var(--diagram-soft); font-size: 10px; }
+  .label-tool-line { fill: var(--diagram-soft); font-size: 10px; }
 
   .lane-divider { fill: none; stroke: var(--diagram-rule); stroke-width: var(--diagram-hairline); }
   .lane-label { fill: var(--diagram-ink); font-size: 12px; }
@@ -108,7 +108,7 @@
 
   .role-badge { fill: none; stroke: var(--diagram-rule-solid); stroke-width: var(--diagram-hairline); }
   .role-badge--focal { stroke: var(--diagram-accent); }
-  .role-key { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.08em; }
+  .label-role-key { fill: var(--diagram-soft); font-size: 10px; letter-spacing: 0.08em; }
   .role-key--focal { fill: var(--diagram-accent); }
 
   /* One token-derived fill per payload code; the code text carries the meaning, the fill only groups. */
@@ -203,10 +203,10 @@
         <g data-diagram-element="node" id="node-oc-1">
           <rect class="node-shape" x="152" y="48" width="112" height="104" rx="4"/>
           <rect class="role-badge" x="160" y="56" width="32" height="16" rx="4"/>
-          <text class="role-key" x="176" y="68" text-anchor="middle">OC</text>
+          <text class="label-role-key" x="176" y="68" text-anchor="middle">OC</text>
           <text class="node-label" x="208" y="92" text-anchor="middle">Detect</text>
-          <text class="flow-line" x="208" y="108" text-anchor="middle">alert → incident</text>
-          <text class="tool-line" x="208" y="124" text-anchor="middle">alerting</text>
+          <text class="label-flow-line" x="208" y="108" text-anchor="middle">alert → incident</text>
+          <text class="label-tool-line" x="208" y="124" text-anchor="middle">alerting</text>
           <rect class="chip chip--ls" x="224" y="128" width="32" height="16" rx="4"/>
           <text class="chip-code" x="240" y="140" text-anchor="middle">LS</text>
         </g>
@@ -214,10 +214,10 @@
         <g data-diagram-element="node" id="node-il-2">
           <rect class="node-shape" x="288" y="176" width="112" height="104" rx="4"/>
           <rect class="role-badge" x="296" y="184" width="32" height="16" rx="4"/>
-          <text class="role-key" x="312" y="196" text-anchor="middle">IL</text>
+          <text class="label-role-key" x="312" y="196" text-anchor="middle">IL</text>
           <text class="node-label" x="344" y="220" text-anchor="middle">Triage</text>
-          <text class="flow-line" x="344" y="236" text-anchor="middle">incident → severity</text>
-          <text class="tool-line" x="344" y="252" text-anchor="middle">on-call console</text>
+          <text class="label-flow-line" x="344" y="236" text-anchor="middle">incident → severity</text>
+          <text class="label-tool-line" x="344" y="252" text-anchor="middle">on-call console</text>
           <rect class="chip chip--ls" x="296" y="256" width="32" height="16" rx="4"/>
           <text class="chip-code" x="312" y="268" text-anchor="middle">LS</text>
           <rect class="chip chip--db" x="360" y="256" width="32" height="16" rx="4"/>
@@ -227,10 +227,10 @@
         <g data-diagram-element="node" id="node-oc-3">
           <rect class="node-shape" x="424" y="48" width="112" height="104" rx="4"/>
           <rect class="role-badge" x="432" y="56" width="32" height="16" rx="4"/>
-          <text class="role-key" x="448" y="68" text-anchor="middle">OC</text>
+          <text class="label-role-key" x="448" y="68" text-anchor="middle">OC</text>
           <text class="node-label" x="480" y="92" text-anchor="middle">Mitigate</text>
-          <text class="flow-line" x="480" y="108" text-anchor="middle">severity → fix</text>
-          <text class="tool-line" x="480" y="124" text-anchor="middle">deploy pipeline</text>
+          <text class="label-flow-line" x="480" y="108" text-anchor="middle">severity → fix</text>
+          <text class="label-tool-line" x="480" y="124" text-anchor="middle">deploy pipeline</text>
           <rect class="chip chip--db" x="432" y="128" width="32" height="16" rx="4"/>
           <text class="chip-code" x="448" y="140" text-anchor="middle">DB</text>
           <rect class="chip chip--db" x="496" y="128" width="32" height="16" rx="4"/>
@@ -240,10 +240,10 @@
         <g data-diagram-element="node" id="node-il-4">
           <rect class="node-shape node-shape--focal" x="560" y="176" width="112" height="104" rx="4"/>
           <rect class="role-badge role-badge--focal" x="568" y="184" width="32" height="16" rx="4"/>
-          <text class="role-key role-key--focal" x="584" y="196" text-anchor="middle">IL</text>
+          <text class="label-role-key label-role-key--focal" x="584" y="196" text-anchor="middle">IL</text>
           <text class="node-label" x="616" y="220" text-anchor="middle">Verify</text>
-          <text class="flow-line" x="616" y="236" text-anchor="middle">fix → verified</text>
-          <text class="tool-line" x="616" y="252" text-anchor="middle">monitoring</text>
+          <text class="label-flow-line" x="616" y="236" text-anchor="middle">fix → verified</text>
+          <text class="label-tool-line" x="616" y="252" text-anchor="middle">monitoring</text>
           <rect class="chip chip--db" x="568" y="256" width="32" height="16" rx="4"/>
           <text class="chip-code" x="584" y="268" text-anchor="middle">DB</text>
           <rect class="chip chip--db" x="632" y="256" width="32" height="16" rx="4"/>
@@ -253,10 +253,10 @@
         <g data-diagram-element="node" id="node-cm-5">
           <rect class="node-shape" x="696" y="304" width="112" height="104" rx="4"/>
           <rect class="role-badge" x="704" y="312" width="32" height="16" rx="4"/>
-          <text class="role-key" x="720" y="324" text-anchor="middle">CM</text>
+          <text class="label-role-key" x="720" y="324" text-anchor="middle">CM</text>
           <text class="node-label" x="752" y="348" text-anchor="middle">Notify</text>
-          <text class="flow-line" x="752" y="364" text-anchor="middle">verified → notice</text>
-          <text class="tool-line" x="752" y="380" text-anchor="middle">status page</text>
+          <text class="label-flow-line" x="752" y="364" text-anchor="middle">verified → notice</text>
+          <text class="label-tool-line" x="752" y="380" text-anchor="middle">status page</text>
           <rect class="chip chip--db" x="704" y="384" width="32" height="16" rx="4"/>
           <text class="chip-code" x="720" y="396" text-anchor="middle">DB</text>
           <rect class="chip chip--fl" x="768" y="384" width="32" height="16" rx="4"/>
@@ -266,10 +266,10 @@
         <g data-diagram-element="node" id="node-re-6">
           <rect class="node-shape" x="832" y="432" width="112" height="104" rx="4"/>
           <rect class="role-badge" x="840" y="440" width="32" height="16" rx="4"/>
-          <text class="role-key" x="856" y="452" text-anchor="middle">RE</text>
+          <text class="label-role-key" x="856" y="452" text-anchor="middle">RE</text>
           <text class="node-label" x="888" y="476" text-anchor="middle">Review</text>
-          <text class="flow-line" x="888" y="492" text-anchor="middle">incident → actions</text>
-          <text class="tool-line" x="888" y="508" text-anchor="middle">issue tracker</text>
+          <text class="label-flow-line" x="888" y="492" text-anchor="middle">incident → actions</text>
+          <text class="label-tool-line" x="888" y="508" text-anchor="middle">issue tracker</text>
           <rect class="chip chip--fl" x="840" y="512" width="32" height="16" rx="4"/>
           <text class="chip-code" x="856" y="524" text-anchor="middle">FL</text>
         </g>
