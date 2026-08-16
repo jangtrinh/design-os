@@ -138,6 +138,17 @@ a slow, taste-sensitive **marketing body** and a fast, mechanical **changelog** 
   list, then rewrite — and re-audit every touched file afterwards, because the damage looks exactly
   like the intended change.
 
+- **"Not merged" is not a finding — squash-merge makes every merged branch look unmerged.**
+  A squash lands new content under a NEW commit, so the branch's tip was never an ancestor of
+  `main` and `git merge-base --is-ancestor` reports it unmerged forever. Sweeping 15 abandoned
+  worktrees, that heuristic flagged **12 of 12** merged branches as unmerged; grepping commit
+  subjects was no better, because a merge reworded them. Two probes settled it: `gh pr list
+  --head <branch> --state all` for the PR's real state, and `git grep` for a distinctive symbol
+  the branch introduced — is the CONTENT on `main`, whatever commit carries it. That pair found
+  the one branch in fifteen that genuinely still held work (a universal `AGENTS.md` runtime
+  adapter, four files absent from `main`) and one uncommitted guard worth recovering.
+  **Before deleting a branch, prove its content landed; never infer it from ancestry.**
+
 ## [IMPORTANT] ES Workflow (mandatory)
 
 - Every coding task: apply the `/es-lazy` ladder — reuse codebase → stdlib → native platform → installed dep → one line → only then minimum code. Deliberate corner-cuts carry an `es-debt: <ceiling>, <upgrade trigger>` comment.
