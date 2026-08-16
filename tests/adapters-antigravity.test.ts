@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 36 artifacts (18 workflows + 15 craft skills + 3 journey skills)", () => {
+  it("returns exactly 38 artifacts (19 workflows + 16 craft skills + 3 journey skills)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
-    expect(arts).toHaveLength(36);
+    expect(arts).toHaveLength(38);
   });
 
   it("all artifacts have mode 'write'", () => {
