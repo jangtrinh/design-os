@@ -55,7 +55,8 @@ Name format:
   Category/Variant — both segments PascalCase, letters only (e.g. Button/Primary)
 
 Token paths:
-  Comma-separated, each matching ^[a-z][a-z0-9.-]*$ (e.g. color.primary,space.4)
+  --tokens is comma-separated, each matching ^[a-z][a-z0-9.-]*$ (e.g. color.primary,space.4)
+  and is written to the record's 'tokensUsed' field.
 
 States enum:
   default, hover, active, focus, disabled
