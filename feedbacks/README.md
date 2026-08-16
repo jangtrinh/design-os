@@ -74,4 +74,5 @@ bring anything the codebase can answer — look it up.
 
 | Date | Product | Attempted | Blockers | Notes |
 |---|---|---|---|---|
+| 2026-07-24 | [Hermes Agent](260724-hermes-agent-onboarding.md) | Native DESIGN:OS project context, Fable-gated skill discovery, and model-wrapper onboarding | 0 | `agents-md` provides usable project context, but a first-class `hermes` runtime should emit project-local skills, require Fable Thinking, opt into Hermes `external_dirs`, and invoke Hermes rather than Codex. |
 | 2026-07-17 | [dana-desktop](260717-dana-desktop-onboarding.md) | `ui init` → E2 brownfield onboard → `/ui:learn` (React 19 + Vite 6 + Tailwind 4, existing 2-tier CSS token system) | 3 | DS shipped sealed (286 tokens, 102 aliases) but **0 components** — component registration is structurally blocked. |
