@@ -19,8 +19,8 @@
 </p>
 
 <p align="center"><sub>
-Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel · 40 commands · 2,819 kernel tests green ·
-a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,548-test Figma plugin</a> ·
+Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel · 42 commands · 3,430 kernel tests green ·
+a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,675-test Figma plugin</a> ·
 26 personas · a 27-component kit · deterministic static + rendered gates · a 1:1 Figma mirror
 </sub></p>
 
@@ -488,7 +488,7 @@ reports the gap up front instead of failing mid-generation.
 | Get it | How | What you get |
 |---|---|---|
 | **Kernel** | `npm i -g ease-design` | the `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS |
-| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD (40 commands) + recall, rendered a11y, heartbeat/evolution, tenant scroll engine, gflow |
+| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD (42 commands) + recall, rendered a11y, heartbeat/evolution, tenant scroll engine, gflow |
 | **Figma plugin** | [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) | the plugin + `figma-agent` CLI + the 1:1 mirror — versioned in its own repo |
 
 ---
@@ -742,14 +742,14 @@ flowchart LR
       E5["Tokens / existing DS"]
       E6["Image reference"]
     end
-    E1 --> W["17 /ui:* workflows"]
+    E1 --> W["18 /ui:* workflows"]
     E2 --> W
     E3 --> W
     E4 --> W
     E5 --> W
     E6 --> W
-    W --> H["Host model + DESIGN:OS knowledge and 16 installed skills"]
-    H --> K["40-command deterministic ui kernel"]
+    W --> H["Host model + DESIGN:OS knowledge and 17 installed skills"]
+    H --> K["42-command deterministic ui kernel"]
     H --> O1["Responsive production UI"]
     H --> O2["Idiomatic Figma canvas"]
     H --> O3["Design-system artifacts"]
@@ -765,7 +765,7 @@ semantic recall remain optional hands used by the host workflow, not hidden depe
 
 ## The plugin — an agent and a designer in the same Figma file
 
-<sub><b>1,548 tests green in its own repo</b> · four adversarial review rounds · a 200-target apply into a 10,000-record registry in ~1 ms</sub>
+<sub><b>1,675 tests green in its own repo</b> · four adversarial review rounds · a 200-target apply into a 10,000-record registry in ~1 ms</sub>
 
 Every AI-on-Figma setup hits the same three walls. The agent's work collapses into **one
 giant undo step** — press ⌘Z after twenty minutes of automated work and twenty minutes
@@ -905,15 +905,15 @@ instead of falling into the accepting branch.
 
 | Surface | Path | What it is | Tests |
 |---|---|---|---|
-| **`ui` kernel** | `src/` | 40 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 2,819 |
-| **`design-os` conductor** | `design-os/` | Python/Typer umbrella that composes everything: `doctor` · `audit` · `heartbeat` (deterministic design-health rhythm — due/compare/notify, zero model calls) · `reference` · `vr-matrix` · `figma status/scan/audit` · `update` (one-command toolchain refresh on any machine) · entry-point plugins. Re-emits every underlying envelope **verbatim** — one source of truth per verdict. | 283 |
-| **`figma-agent` hand** | [external repo](https://github.com/jangtrinh/design-os-figma-plugin) | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 10-detector hygiene audit, exec-js, capture. Split out so it can version independently of this kernel. | 1,548 (own repo) |
+| **`ui` kernel** | `src/` | 42 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 3,430 |
+| **`design-os` conductor** | `design-os/` | Python/Typer umbrella that composes everything: `doctor` · `audit` · `heartbeat` (deterministic design-health rhythm — due/compare/notify, zero model calls) · `reference` · `vr-matrix` · `figma status/scan/audit` · `update` (one-command toolchain refresh on any machine) · entry-point plugins. Re-emits every underlying envelope **verbatim** — one source of truth per verdict. | 312 |
+| **`figma-agent` hand** | [external repo](https://github.com/jangtrinh/design-os-figma-plugin) | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 10-detector hygiene audit, exec-js, capture. Split out so it can version independently of this kernel. | 1,675 (own repo) |
 | **rendered-tier hands** | `a11y/` | `a11y-audit` (axe-core over installed Chrome — wording never claims "compliant") + `page-shot` (deterministic full-page PNG). | — |
 | **`recall` mind** | `recall/` | Optional semantic memory: local embeddings (MiniLM/ONNX, nothing leaves the machine), hybrid RRF ranking, `query → …work… → reflect` loop. The kernel never imports it — a test fails the build if it does. | — |
 | **`knowledge/` core** | `knowledge/` | The model-facing brain: 6+1-axis taste rubric, 26 personas / 7 families, page-structures (21 shapes + diversification + honest copy), two-tier a11y model, color science, token taxonomy, `figma-craft/` construction tree. | — |
 
 <details>
-<summary><b>All 40 <code>ui</code> commands</b></summary>
+<summary><b>All 42 <code>ui</code> commands</b></summary>
 
 | Command | Summary |
 |---|---|
@@ -936,6 +936,8 @@ instead of falling into the accepting branch.
 | `ui audit` | Deterministic DS-violation audit of a structured node export (5 families) |
 | `ui critique-coverage` | Acceptance-criteria coverage of a produced design |
 | `ui flow` | Lint a multi-screen flow's IA graph |
+| `ui chart` | Lint self-contained chart artifacts deterministically |
+| `ui diagram` | Lint self-contained diagram artifacts deterministically |
 | `ui vr` | Visual-regression diff/gate (zero-dep PNG codec + pixelmatch) |
 | `ui evidence` | User-evidence ledger with an anti-fabrication gate |
 | `ui memory` | Design-decision ledger → compiled graph → cross-project taste profile |
