@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-16 - The scrub-encode floor gets its emitter
+
+`ui scrub-lint` could fail a clip whose encode missed the floor, but nothing produced one
+that met it — the floor was a table of knobs retyped into ffmpeg per project, with the
+checker catching the typo only after the render.
+
+### Added
+- `ui scrub-scaffold <dir>`: emits `build-assets.sh` carrying the whole scrub-encode floor
+  (no audio, fixed small GOP, `crf 20`, `+faststart`, light unsharp, native resolution) plus
+  the poster leg. The portrait profile encodes narrower *and* with a tighter GOP, and refuses
+  to centre-crop a landscape source rather than cropping silently. The kernel emits the
+  command; it never runs ffmpeg.
+
+### Changed
+- The floor now has one definition (`src/core/scrub-encode-floor.ts`) read by both the
+  emitter and `scrub-lint`, with the suite asserting the emitted script spells those values —
+  changing a knob in one place goes red instead of splitting the floor in two.
+
 ## 2026-08-16 - ease-design 0.3.0 on npm
 
 ### Added
