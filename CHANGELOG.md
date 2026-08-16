@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-16 - ease-design 0.3.0 on npm
+
+### Added
+- Published `ease-design@0.3.0` (tag `v0.3.0`, CI release with sigstore provenance). The
+  npm kernel now matches the showcase: 42 commands, including the tenant scroll engine
+  (`tenant-scaffold`/`tenant-lint`), `gflow`, `chart`, `diagram`, and `onboard`. The
+  0.1.0→0.3.0 gap closes the "npm can't reproduce the demos" finding from the 2026-08-13
+  README audit; the four demo repos now install via `npm i -g ease-design`.
+
 ## 2026-08-16 - Figma comment triage, and the owner's verdict as the completion signal
 
 Closes the loop between a design review and the work it asks for. Figma's Plugin API
