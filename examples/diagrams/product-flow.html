@@ -15,14 +15,14 @@
    * from a broken token read.
    */
   :root {
-    --color-background:       oklch(0.986 0.003 95);
-    --color-card:             oklch(1 0 0);
-    --color-foreground:       oklch(0.24 0.012 264);
-    --color-muted-foreground: oklch(0.52 0.014 264);
-    --color-border:           oklch(0.90 0.006 264);
-    --color-input:            oklch(0.84 0.008 264);
-    --color-accent:           oklch(0.55 0.135 248);
-    --color-primary:          oklch(0.45 0.100 248);
+    --color-background:       #fbfaf8;
+    --color-card:             #ffffff;
+    --color-foreground:       #1a1a17;
+    --color-muted-foreground: #6f6f66;
+    --color-border:           #e6e3dd;
+    --color-input:            #d6d2c9;
+    --color-accent:           #b4531f;
+    --color-primary:          #2f5d73;
 
     --diagram-paper:       var(--color-background);
     --diagram-surface:     var(--color-card);
@@ -40,14 +40,14 @@
   }
 
   :root[data-theme="dark"] {
-    --color-background:       oklch(0.19 0.010 264);
-    --color-card:             oklch(0.24 0.012 264);
-    --color-foreground:       oklch(0.95 0.004 264);
-    --color-muted-foreground: oklch(0.72 0.012 264);
-    --color-border:           oklch(0.32 0.012 264);
-    --color-input:            oklch(0.40 0.014 264);
-    --color-accent:           oklch(0.74 0.120 248);
-    --color-primary:          oklch(0.80 0.090 248);
+    --color-background:       #14140f;
+    --color-card:             #1c1c17;
+    --color-foreground:       #f2efe9;
+    --color-muted-foreground: #a3a096;
+    --color-border:           #2e2e26;
+    --color-input:            #3d3d33;
+    --color-accent:           #e08c4a;
+    --color-primary:          #7fb4cc;
 
     --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
     --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));
@@ -55,14 +55,14 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --color-background:       oklch(0.19 0.010 264);
-      --color-card:             oklch(0.24 0.012 264);
-      --color-foreground:       oklch(0.95 0.004 264);
-      --color-muted-foreground: oklch(0.72 0.012 264);
-      --color-border:           oklch(0.32 0.012 264);
-      --color-input:            oklch(0.40 0.014 264);
-      --color-accent:           oklch(0.74 0.120 248);
-      --color-primary:          oklch(0.80 0.090 248);
+      --color-background:       #14140f;
+      --color-card:             #1c1c17;
+      --color-foreground:       #f2efe9;
+      --color-muted-foreground: #a3a096;
+      --color-border:           #2e2e26;
+      --color-input:            #3d3d33;
+      --color-accent:           #e08c4a;
+      --color-primary:          #7fb4cc;
 
       --diagram-soft:        color-mix(in oklch, var(--color-muted-foreground) 70%, var(--color-background));
       --diagram-accent-tint: color-mix(in oklch, var(--color-accent) 18%, var(--color-background));

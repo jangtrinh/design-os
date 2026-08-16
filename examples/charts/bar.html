@@ -19,14 +19,14 @@
    * focal mark in `--color-accent`.
    */
   :root {
-    --chart-paper:       var(--color-background, oklch(0.99 0.003 265));
-    --chart-surface:     var(--color-card, oklch(0.97 0.004 265));
-    --chart-ink:         var(--color-foreground, oklch(0.25 0.014 265));
-    --chart-muted:       var(--color-muted-foreground, oklch(0.53 0.014 265));
+    --chart-paper:       var(--color-background, #fbfaf8);
+    --chart-surface:     var(--color-card, #ffffff);
+    --chart-ink:         var(--color-foreground, #1a1a17);
+    --chart-muted:       var(--color-muted-foreground, #6f6f66);
     --chart-soft:        color-mix(in oklch, var(--chart-muted) 80%, var(--chart-paper));
-    --chart-rule:        var(--color-border, oklch(0.91 0.005 265));
-    --chart-rule-solid:  var(--color-input, oklch(0.80 0.007 265));
-    --chart-accent:      var(--color-accent, oklch(0.58 0.16 34));
+    --chart-rule:        var(--color-border, #e6e3dd);
+    --chart-rule-solid:  var(--color-input, #d6d2c9);
+    --chart-accent:      var(--color-accent, #b4531f);
     --chart-fill:        color-mix(in oklch, var(--chart-muted) 26%, var(--chart-paper));
     --chart-1: var(--color-chart-1, oklch(0.58 0.09 250));
     --chart-2: var(--color-chart-2, oklch(0.62 0.08 195));
@@ -40,13 +40,13 @@
 
   /* Same var names, same roles — only the fallback literals shift to hold contrast. */
   :root[data-theme="dark"] {
-    --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
-    --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
-    --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
-    --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
-    --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
-    --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
-    --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+    --chart-paper:       var(--color-background, #14140f);
+    --chart-surface:     var(--color-card, #1c1c17);
+    --chart-ink:         var(--color-foreground, #f2efe9);
+    --chart-muted:       var(--color-muted-foreground, #a3a096);
+    --chart-rule:        var(--color-border, #2e2e26);
+    --chart-rule-solid:  var(--color-input, #3d3d33);
+    --chart-accent:      var(--color-accent, #e08c4a);
     --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
     --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
     --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
@@ -56,13 +56,13 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --chart-paper:       var(--color-background, oklch(0.18 0.008 265));
-      --chart-surface:     var(--color-card, oklch(0.22 0.009 265));
-      --chart-ink:         var(--color-foreground, oklch(0.96 0.004 265));
-      --chart-muted:       var(--color-muted-foreground, oklch(0.72 0.013 265));
-      --chart-rule:        var(--color-border, oklch(0.32 0.008 265));
-      --chart-rule-solid:  var(--color-input, oklch(0.42 0.010 265));
-      --chart-accent:      var(--color-accent, oklch(0.72 0.15 40));
+      --chart-paper:       var(--color-background, #14140f);
+      --chart-surface:     var(--color-card, #1c1c17);
+      --chart-ink:         var(--color-foreground, #f2efe9);
+      --chart-muted:       var(--color-muted-foreground, #a3a096);
+      --chart-rule:        var(--color-border, #2e2e26);
+      --chart-rule-solid:  var(--color-input, #3d3d33);
+      --chart-accent:      var(--color-accent, #e08c4a);
       --chart-1: var(--color-chart-1, oklch(0.70 0.10 250));
       --chart-2: var(--color-chart-2, oklch(0.74 0.09 195));
       --chart-3: var(--color-chart-3, oklch(0.72 0.10 150));
