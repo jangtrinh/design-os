@@ -1,0 +1,30 @@
+{
+  "_provenance": "Shaped to GET /v1/files/{file_key}?depth=2 — DOCUMENT -> CANVAS (one per page) -> top-level children. This is the ONLY payload that carries page names; /nodes returns a node's subtree, never its ancestry. Two pages here own a frame named 'Checkout' (10:2 and 90:2), which is why grouping keys on node_id and only DISPLAYS 'Page / Frame'.",
+  "name": "Storefront",
+  "lastModified": "2026-08-14T12:30:00Z",
+  "version": "123456789",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Product",
+        "type": "CANVAS",
+        "children": [
+          { "id": "10:2", "name": "Checkout", "type": "FRAME" },
+          { "id": "10:50", "name": "Cart", "type": "FRAME" }
+        ]
+      },
+      {
+        "id": "0:2",
+        "name": "Archive",
+        "type": "CANVAS",
+        "children": [
+          { "id": "90:2", "name": "Checkout", "type": "FRAME" }
+        ]
+      }
+    ]
+  }
+}

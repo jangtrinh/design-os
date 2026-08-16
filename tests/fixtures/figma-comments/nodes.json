@@ -1,0 +1,175 @@
+{
+  "_provenance": "Shaped to GetFileNodesResponse (figma/rest-api-spec openapi.yaml L9366+): nodes is a map from node id to { document: Node }. A requested id that no longer exists is ABSENT from the map — see 77:99, referenced by fixture comment c-orphaned but deliberately not present here.",
+  "_designed_to_provoke": "Frame 10:2 nests a full-bleed 'Rectangle 47' background that shares PriceRow's exact bounds, plus a 4px spacer and a bare Vector. A naive deepest-containing-node hit-test resolves comment c-anchored-1 to 'Rectangle 47' — a name no human recognises. The ancestor chain must survive that.",
+  "name": "Storefront",
+  "lastModified": "2026-08-14T12:30:00Z",
+  "version": "123456789",
+  "nodes": {
+    "10:2": {
+      "document": {
+        "id": "10:2",
+        "name": "Checkout",
+        "type": "FRAME",
+        "visible": true,
+        "absoluteBoundingBox": {
+          "x": 1000,
+          "y": 500,
+          "width": 390,
+          "height": 844
+        },
+        "children": [
+          {
+            "id": "10:3",
+            "name": "Header",
+            "type": "FRAME",
+            "visible": true,
+            "absoluteBoundingBox": {
+              "x": 1000,
+              "y": 500,
+              "width": 390,
+              "height": 80
+            },
+            "children": []
+          },
+          {
+            "id": "10:4",
+            "name": "OrderSummary",
+            "type": "FRAME",
+            "visible": true,
+            "absoluteBoundingBox": {
+              "x": 1016,
+              "y": 1000,
+              "width": 358,
+              "height": 200
+            },
+            "children": [
+              {
+                "id": "10:5",
+                "name": "PriceRow",
+                "type": "FRAME",
+                "visible": true,
+                "absoluteBoundingBox": {
+                  "x": 1032,
+                  "y": 1120,
+                  "width": 326,
+                  "height": 40
+                },
+                "children": [
+                  {
+                    "id": "10:7",
+                    "name": "Rectangle 47",
+                    "type": "RECTANGLE",
+                    "visible": true,
+                    "absoluteBoundingBox": {
+                      "x": 1032,
+                      "y": 1120,
+                      "width": 326,
+                      "height": 40
+                    },
+                    "children": []
+                  },
+                  {
+                    "id": "10:6",
+                    "name": "Total",
+                    "type": "TEXT",
+                    "visible": true,
+                    "absoluteBoundingBox": {
+                      "x": 1032,
+                      "y": 1128,
+                      "width": 60,
+                      "height": 24
+                    },
+                    "children": []
+                  },
+                  {
+                    "id": "10:8",
+                    "name": "Spacer",
+                    "type": "FRAME",
+                    "visible": true,
+                    "absoluteBoundingBox": {
+                      "x": 1200,
+                      "y": 1120,
+                      "width": 4,
+                      "height": 40
+                    },
+                    "children": []
+                  },
+                  {
+                    "id": "10:9",
+                    "name": "Vector",
+                    "type": "VECTOR",
+                    "visible": false,
+                    "absoluteBoundingBox": {
+                      "x": 1210,
+                      "y": 1130,
+                      "width": 20,
+                      "height": 20
+                    },
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "10:10",
+            "name": "PayButton",
+            "type": "INSTANCE",
+            "visible": true,
+            "absoluteBoundingBox": {
+              "x": 1016,
+              "y": 1360,
+              "width": 358,
+              "height": 56
+            },
+            "children": [
+              {
+                "id": "10:11",
+                "name": "Label",
+                "type": "TEXT",
+                "visible": true,
+                "absoluteBoundingBox": {
+                  "x": 1140,
+                  "y": 1376,
+                  "width": 110,
+                  "height": 24
+                },
+                "children": []
+              }
+            ],
+            "componentId": "900:1"
+          }
+        ]
+      }
+    },
+    "90:2": {
+      "document": {
+        "id": "90:2",
+        "name": "Checkout",
+        "type": "FRAME",
+        "visible": true,
+        "absoluteBoundingBox": {
+          "x": -3000,
+          "y": 500,
+          "width": 390,
+          "height": 844
+        },
+        "children": [
+          {
+            "id": "90:3",
+            "name": "LegacyBody",
+            "type": "FRAME",
+            "visible": true,
+            "absoluteBoundingBox": {
+              "x": -3000,
+              "y": 520,
+              "width": 390,
+              "height": 400
+            },
+            "children": []
+          }
+        ]
+      }
+    }
+  }
+}

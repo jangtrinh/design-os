@@ -15,6 +15,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText } from "../core/output.js";
 import { runReconcile } from "./figma-reconcile-run.js";
+import { runComments } from "./figma-comments-run.js";
 
 const CMD = "figma";
 
@@ -23,9 +24,57 @@ export const FIGMA_HELP = `ui figma — deterministic Figma live-sync (spec 004/
 Usage:
   ui figma reconcile [--since <n>] [--dry-run | --apply] [--mirror-file <f>]
                      [--dir <project>] [--file-slug <s>] [--json]
+  ui figma comments  <comments.json> --delivery-target <t> [--nodes <f>] [--file-tree <f>]
+                     [--under <nodeId>] [--since <iso>] [--authored-by <handle>]
+                     [--decisions <f>] [--pending] [--include-resolved] [--json]
 
 Subcommands:
   reconcile   Preview (--dry-run) or commit (--apply) the registry delta from the change-log
+  comments    Triage a captured comments payload: fold threads, resolve what each pin points at
+
+comments reads payloads the HOST captured from the REST API (the kernel never calls
+Figma — Art. I) and answers, per open thread, "which screen, which element, what was
+said". Read-only: it never writes and never resolves a comment in Figma.
+
+  <comments.json>     Body of GET /v1/files/<key>/comments (scope: file_comments:read)
+  --nodes <f>         Body of GET /v1/files/<key>/nodes?ids=<frame ids> — supplies the
+                      subtree used to name the element under the pin. Without it the
+                      command still groups by frame, it just cannot name elements.
+  --file-tree <f>     Body of GET /v1/files/<key>?depth=2 — the ONLY payload carrying
+                      page names (/nodes returns a subtree, never ancestry). Needed to
+                      tell two frames named "Checkout" on different pages apart.
+  --delivery-target <t>  REQUIRED. figma-canvas | code | both. Decides what "done" means and
+                      which gate proves it. Required rather than defaulted because the most
+                      expensive error measured on a real run was a batch that named the wrong
+                      artifact and then passed every gate defined for the wrong one.
+  --authored-by <h>   Your Figma handle. On threads whose root YOU posted, read the latest
+                      reply as a verdict: accepted | conditional | reversed | silent.
+                      silent = resolved with nothing said, and it is NOT acceptance — a real
+                      run resolved 7 of 26 handoff threads in silence and read all 7 as yes.
+                      Supplied, never guessed: the kernel cannot ask Figma who a token is.
+  --under <nodeId>    Scope to ONE section or page: keep only comments whose frame is that
+                      node or a descendant of it. Requires --nodes to contain that
+                      subtree (GET /nodes?ids=<nodeId>); if the node is absent the command
+                      refuses rather than silently reporting the whole file.
+  --since <iso>       DELTA mode: show only threads that moved after this instant — new
+                      threads, new replies, and newly resolved ones. Implies
+                      --include-resolved, deliberately: a reply inside a RESOLVED thread is
+                      still a live instruction, and it is the case the default view drops.
+                      resolved_at means "my request is satisfied" from a reviewer but only
+                      "I have read this" from someone answering in their own thread, so
+                      resolution alone cannot decide what is finished.
+  --decisions <f>     JSON map {commentId: …} of already-triaged threads, written by the
+                      host. Read-only here; pair with --pending to resume a session.
+  --pending           Show only threads absent from --decisions
+  --include-resolved  Also show threads resolved in Figma (hidden by default)
+
+Anchor confidence — the command says how much it actually knows:
+  element     the pin landed on a named node a human would recognise
+  region      the literal hit was filler (a background rect, a spacer); the ancestor
+              chain is reported instead of a name that would be confidently wrong
+  frame       the frame is known but no subtree was captured
+  orphaned    the frame the comment names no longer exists in the file
+  unanchored  the pin sits on bare canvas and was never attached to a frame
 
 reconcile walks design/figma.changes.jsonl from a line-count cursor, coalesces
 cross-batch to the component level, and reports what the registry WOULD become —
@@ -70,14 +119,22 @@ Scope mapping:
   HINT, not authoritative: a new component takes the hint; an existing one keeps its
   registry scope unless the hint promotes local → global.
 
+Anchors also report sharedInstance: the pin sits inside a component INSTANCE, so the real
+fix may belong in the master and would propagate to every other consumer. Only the boolean
+is reported, never a consumer count — masters live outside the fetched subtree, so the count
+is not derivable from it.
+
 Error codes:
-  BAD_ARG            --since is malformed, --apply combined with --dry-run,
+  BAD_ARG            --delivery-target missing or not one of figma-canvas|code|both,
+                     --since is malformed, --apply combined with --dry-run,
                      --mirror-file without --apply, or unknown subcommand
   UNKNOWN_FLAG       a flag outside this command's signature was passed
   BAD_CHANGE_LOG     the change-log has a malformed / wrong-version line
   BAD_REGISTRY       the component registry is invalid JSON or wrong shape
   BAD_MIRROR_CAPTURE the --mirror-file payload is malformed / wrong-version
   BAD_SIDECAR        a captured node spec is not a valid Figma node
+  BAD_COMMENTS_PAYLOAD  the comments payload has no 'comments' array — it is not the body
+                     of GET /v1/files/<key>/comments
   WRITE_ERROR        --apply could not write a sidecar, the registry, or the cursor state
   READ_ERROR         a non-ENOENT I/O failure reading the registry or the mirror file
 
@@ -101,6 +158,8 @@ export const figmaCommand = {
     switch (sub) {
       case "reconcile":
         return runReconcile(parsed);
+      case "comments":
+        return runComments(parsed);
       case undefined: {
         const msg = "ui figma requires a subcommand. Run 'ui figma --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);

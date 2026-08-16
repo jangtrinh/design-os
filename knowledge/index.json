@@ -461,6 +461,23 @@
       ]
     },
     {
+      "id": "verification-honesty",
+      "path": "knowledge/verification-honesty.md",
+      "description": "Why a false pass costs more than a crash, and the four rules that stop a check, a status flag, or an agent from reporting success it did not earn.",
+      "when": [
+        "verify",
+        "verifier",
+        "false-pass",
+        "gate",
+        "silent-failure",
+        "acceptance",
+        "sign-off",
+        "refuse",
+        "done",
+        "status-flag"
+      ]
+    },
+    {
       "id": "versioning-semver",
       "path": "knowledge/versioning-semver.md",
       "description": "Semver for a design system — how a DS diff classifies breaking, additive, and patch changes.",

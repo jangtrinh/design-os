@@ -1,0 +1,127 @@
+{
+  "_provenance": "Hand-built to the Figma OpenAPI Comment schema (figma/rest-api-spec, openapi.yaml L6835-6894). message is `type: string` (required); client_meta is required and is a oneOf over Vector | FrameOffset | Region | FrameOffsetRegion. Every edge case below is a shape the real endpoint can return.",
+  "comments": [
+    {
+      "id": "c-anchored-1",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-dana", "handle": "Dana", "img_url": "https://example.invalid/dana.png" },
+      "created_at": "2026-08-14T09:12:00Z",
+      "resolved_at": null,
+      "order_id": "1",
+      "message": "The total is cramped against the divider — needs more breathing room.",
+      "client_meta": { "node_id": "10:2", "node_offset": { "x": 220, "y": 640 } },
+      "reactions": []
+    },
+    {
+      "id": "c-anchored-1-reply",
+      "file_key": "FILEKEY123",
+      "parent_id": "c-anchored-1",
+      "user": { "id": "u-bao", "handle": "Bao", "img_url": "https://example.invalid/bao.png" },
+      "created_at": "2026-08-14T09:40:00Z",
+      "resolved_at": null,
+      "order_id": null,
+      "message": "Agreed. 8px is not enough at this density.",
+      "client_meta": { "node_id": "10:2", "node_offset": { "x": 220, "y": 640 } },
+      "reactions": [
+        { "user": { "id": "u-dana", "handle": "Dana", "img_url": "" }, "emoji": ":heart:", "created_at": "2026-08-14T09:41:00Z" }
+      ]
+    },
+    {
+      "id": "c-anchored-2",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-bao", "handle": "Bao", "img_url": "" },
+      "created_at": "2026-08-14T10:02:00Z",
+      "resolved_at": null,
+      "order_id": "2",
+      "message": "Can the CTA say <b>Pay now</b> instead? & make it primary.",
+      "client_meta": { "node_id": "10:2", "node_offset": { "x": 180, "y": 880 } },
+      "reactions": []
+    },
+    {
+      "id": "c-same-name-other-page",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-dana", "handle": "Dana", "img_url": "" },
+      "created_at": "2026-08-14T10:20:00Z",
+      "resolved_at": null,
+      "order_id": "3",
+      "message": "This Checkout is the old one, ignore it.",
+      "client_meta": { "node_id": "90:2", "node_offset": { "x": 40, "y": 60 } },
+      "reactions": []
+    },
+    {
+      "id": "c-resolved",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-dana", "handle": "Dana", "img_url": "" },
+      "created_at": "2026-08-13T08:00:00Z",
+      "resolved_at": "2026-08-13T18:30:00Z",
+      "order_id": "4",
+      "message": "Spacing on the header was off — fixed.",
+      "client_meta": { "node_id": "10:2", "node_offset": { "x": 30, "y": 20 } },
+      "reactions": []
+    },
+    {
+      "id": "c-orphaned",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-bao", "handle": "Bao", "img_url": "" },
+      "created_at": "2026-08-14T11:00:00Z",
+      "resolved_at": null,
+      "order_id": "5",
+      "message": "This card should be removed entirely.",
+      "client_meta": { "node_id": "77:99", "node_offset": { "x": 10, "y": 10 } },
+      "reactions": []
+    },
+    {
+      "id": "c-unanchored-vector",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-dana", "handle": "Dana", "img_url": "" },
+      "created_at": "2026-08-14T11:30:00Z",
+      "resolved_at": null,
+      "order_id": "6",
+      "message": "General note for the whole flow: we never designed the empty state.",
+      "client_meta": { "x": -1200.5, "y": 340.25 },
+      "reactions": []
+    },
+    {
+      "id": "c-unanchored-region",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-bao", "handle": "Bao", "img_url": "" },
+      "created_at": "2026-08-14T11:45:00Z",
+      "resolved_at": null,
+      "order_id": "7",
+      "message": "Everything in this area is exploratory, not for build.",
+      "client_meta": {
+        "x": -2000,
+        "y": 100,
+        "region_width": 800,
+        "region_height": 600,
+        "comment_pin_corner": "bottom-right"
+      },
+      "reactions": []
+    },
+    {
+      "id": "c-region-on-frame",
+      "file_key": "FILEKEY123",
+      "parent_id": "",
+      "user": { "id": "u-dana", "handle": "Dana", "img_url": "" },
+      "created_at": "2026-08-14T12:00:00Z",
+      "resolved_at": null,
+      "order_id": "8",
+      "message": "This whole row reads as one block, it shouldn't.",
+      "client_meta": {
+        "node_id": "10:2",
+        "node_offset": { "x": 200, "y": 620 },
+        "region_width": 300,
+        "region_height": 60,
+        "comment_pin_corner": "bottom-right"
+      },
+      "reactions": []
+    }
+  ]
+}

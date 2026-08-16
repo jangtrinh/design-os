@@ -862,6 +862,45 @@ quick zero-setup read; full reasoning lives in the plugin repo's README.
 
 ---
 
+## The review loop — a comment becomes work, and the owner closes it
+
+A design review is instructions scattered across pins. `ui figma comments` turns that into a
+worklist and then reads back whether the work was accepted — the two ends the hand above does
+not cover. It is a pure transform over REST payloads the host captured (Figma's Plugin API
+cannot read comments at all), so it stays inside the deterministic kernel.
+
+- **Triage** — replies fold into threads, resolution is judged per thread, and every pin
+  resolves to a page/frame/ancestor chain with an honest confidence label
+  (`element` · `region` · `frame` · `orphaned` · `unanchored`). **It refuses rather than
+  guesses:** the anchor never returns the deepest containing node, because in real
+  auto-layout that is routinely a full-bleed background rect or a spacer, and a confidently
+  wrong element name is worse than none. A fixture provokes that exact case; a test pins the
+  refusal.
+- **Sync** — `--since` reports the delta over a prior pull across four states, one of which
+  exists because `resolved_at` is ambiguous: it means *"my request is satisfied"* from a
+  reviewer but only *"I have read this"* from someone answering in their own thread. A reply
+  inside an already-resolved thread is still a live instruction — it measured **6** on a real
+  file where the default view reported **0**.
+- **Verdict** — completion is read off the owner's own reply as
+  `accepted` · `conditional` · `reversed` · `silent`, not derived from the implementer.
+  Silence is its own verdict and never acceptance; ambiguity biases to `conditional`, because
+  a wrong conditional costs one question and a wrong `accepted` ships a defect.
+
+Measured on a live 1,819-message product file: 45/45 comments reached `element` confidence
+with zero orphaned and every count reconciling against the total pulled; of 42 verdicts
+**20 were not a clean yes, and four were recorded nowhere** — including 7 threads resolved in
+silence that a boolean "done" flag had been reading as yes.
+
+`--delivery-target` is required rather than defaulted, because the most expensive error
+measured was a batch aimed at the wrong artifact that then passed every gate defined for the
+wrong one. The doctrine behind all of this is written down once, in
+[`knowledge/verification-honesty.md`](knowledge/verification-honesty.md): a checker must be
+able to **refuse**, totals must reconcile against what entered the pipeline, a status flag
+carries its *setter's* meaning rather than the reader's, and silence must be its own state
+instead of falling into the accepting branch.
+
+---
+
 ## The surfaces
 
 | Surface | Path | What it is | Tests |
@@ -903,7 +942,7 @@ quick zero-setup read; full reasoning lives in the plugin repo's README.
 | `ui changelog` | Fold DS history into a readable changelog |
 | `ui ingest-figma-ds` | Onboard a scanned Figma DS (ds.json → tokens + registry + DESIGN.md) |
 | `ui ingest-css-ds` | Compile CSS custom properties into portable design tokens |
-| `ui figma` | Reconcile Figma change logs into the component registry |
+| `ui figma` | Reconcile Figma change logs into the component registry; `comments` triages a captured comment payload into anchored threads and reads the owner's verdict |
 | `ui synthesize-conventions` | Learn applied conventions from real screens |
 | `ui taste` | Ingest pairwise taste evidence and compute study verdicts |
 | `ui agents` | Generate and verify project-scoped designer, curator, and Figma agents |
@@ -950,6 +989,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-16 | **A design review becomes work, and the owner says when it is done** — `ui figma comments` folds a captured REST payload into threads and resolves each pin to a page/frame/ancestor chain with an honest confidence label, refusing to name an element rather than guessing a background rect; `--since` reports replies inside already-resolved threads (6 on a real file where the default view showed 0); and completion is read off the owner's own reply as `accepted / conditional / reversed / silent` instead of derived from the implementer — on a live 1,819-message file, 20 of 42 verdicts were not a clean yes and four were recorded nowhere | `#164` |
 | 2026-08-16 | **Gradient fields, rendered** — the ten ShaderGradient presets now appear in the README as a labelled grid plus an animated field, rendered from the published renderer with this repo's own preset values; the ledger's package version is corrected to one that was actually released | `#157` |
 | 2026-08-16 | **ShaderGradient as a T6 gradient-field capability** — `/ui:generate`/`/ui:refine`/`/ui:redesign` can direct one animated 3D gradient field behind the existing T6 gate, sharing `canvas-effect`'s single-effect budget; a source-free ledger pins the preset roster and surface set, `ui knowledge gradient-matrix` emits the matrix's machine columns, and `ui knowledge check` fails a fallback cell that never names the frozen state | `#156` |
 | 2026-08-15 | **Native diagram craft** — `/ui:diagram` routes architecture, sequence, and product-flow intent into accessible offline SVG; `ui diagram lint` enforces owned-artifact structure and product-flow source metadata; a pinned real-flow proof verifies every source ID and an empty fidelity ledger before release | `#132` |
