@@ -51,6 +51,52 @@ describe("ui onboard — empty project", () => {
     expect(byId["figma"]?.optional).toBe(true);
   });
 
+  describe("the figma hint follows what the machine actually has", () => {
+    // Onboarding exists to name the next action, so a next action the reader
+    // cannot perform is worse than none: the hint used to say `figma-agent
+    // status` on every machine, and the agent lives in a separate repo, so on
+    // most machines that is a `command not found`.
+    const withPath = <T>(value: string | undefined, fn: () => T): T => {
+      const before = process.env["PATH"];
+      if (value === undefined) delete process.env["PATH"];
+      else process.env["PATH"] = value;
+      try {
+        return fn();
+      } finally {
+        if (before === undefined) delete process.env["PATH"];
+        else process.env["PATH"] = before;
+      }
+    };
+
+    // Read the hint off the TEXT output: the JSON envelope deliberately carries
+    // only id/state/optional, and the hint is what a human actually acts on.
+    const figmaHint = (): string => {
+      const { out } = captureRun(["onboard", "--cwd", tmp()]);
+      const line = out.split("\n").findIndex((l) => l.includes("figma design agent"));
+      return line === -1 ? "" : (out.split("\n")[line + 1] ?? "");
+    };
+
+    it("points at the plugin repo when figma-agent is not on PATH", () => {
+      const hint = withPath(join(tmpdir(), "definitely-empty-path-dir"), figmaHint);
+      expect(hint).toContain("design-os-figma-plugin");
+      expect(hint).not.toContain("figma-agent status");
+    });
+
+    it("tells an equipped machine to open the plugin instead", () => {
+      const dir = mkdtempSync(join(tmpdir(), "ease-fakebin-"));
+      writeFileSync(join(dir, "figma-agent"), "#!/bin/sh\n", { mode: 0o755 });
+      const hint = withPath(dir, figmaHint);
+      expect(hint).toContain("figma-agent status");
+      expect(hint).not.toContain("design-os-figma-plugin");
+    });
+
+    it("does not crash when PATH is unset", () => {
+      // An empty environment must degrade to the install hint, not throw — the
+      // command's contract is to always exit 0.
+      expect(withPath(undefined, figmaHint)).toContain("design-os-figma-plugin");
+    });
+  });
+
   it("shows the honest text checklist with pending marks and hints", () => {
     const dir = tmp();
     const { out } = captureRun(["onboard", "--cwd", dir]);
