@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-17 - Onboarding points at the plugin repo when the Figma agent is absent
+
+### Fixed
+- `ui onboard` printed `figma-agent status` as the Figma next step on every machine. The
+  Design Agent ships from its own repository, so on a machine without it that instruction is a
+  `command not found` — in the one place a newcomer trusts. A PATH probe now decides: open the
+  plugin if it is there, install it from `design-os-figma-plugin` if it is not. The probe stats
+  PATH entries rather than spawning anything, so the kernel stays a pure transform.
+
 ## 2026-08-16 - Root rules are decided by the selector's subject
 
 ### Fixed

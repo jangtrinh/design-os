@@ -993,6 +993,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-17 | **Onboarding points at the plugin repo when the Figma agent is absent** — the Figma next step said `figma-agent status` on every machine, which is a `command not found` unless the separately-shipped Design Agent is installed; a PATH probe now picks the right sentence | `#187` |
 | 2026-08-16 | **Root rules are decided by the selector's subject** — `root-overflow-x-hidden` matched the root name anywhere in the selector, so `body.dark .card { overflow: hidden }` was false-flagged as a root rule; the colour-mode scan behind `mode-invisible-surface` shared the defect. Both now read one `selectorSubjectIsRoot` helper, so repairing one cannot leave the other broken | `#183` |
 | 2026-08-16 | **The scrub-encode floor gets its emitter** — `ui scrub-scaffold` writes the `build-assets.sh` that produces a clip meeting the floor `ui scrub-lint` enforces; both halves read one definition, so a knob cannot change on one side only. The portrait profile encodes narrower *and* with a tighter GOP, and refuses to centre-crop a landscape source instead of cropping silently | `#179` |
 | 2026-08-16 | **`ease-design@0.3.0` on npm** — the kernel release catches up with the showcase: all 42 commands including `tenant-scaffold`/`tenant-lint` (the scroll engine behind the demo grid), `gflow`, `chart`, `diagram`, `onboard`; published from CI with sigstore provenance | `v0.3.0` |
