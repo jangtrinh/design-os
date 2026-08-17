@@ -58,6 +58,8 @@ const HINTS = {
   heartbeat: "wired automatically by `ui ds init`/`ui ds import`",
   agents: "run `ui agents init` for soul-bound project agents (Claude Code)",
   figma: "open the Figma Design Agent plugin, then `figma-agent status`",
+  figmaAbsent:
+    "using Figma? install the Design Agent: https://github.com/jangtrinh/design-os-figma-plugin",
 } as const;
 
 /** `design/soul.md`'s frontmatter `status:` value, or null if unreadable/absent.
@@ -97,6 +99,29 @@ function hasFigmaRef(): boolean {
   return (env["FIGMA_AGENT_FILE"] ?? "").length > 0;
 }
 
+/**
+ * Is the `figma-agent` binary reachable on PATH?
+ *
+ * Walks PATH entries and stats the candidate — no process is spawned, so the
+ * kernel stays a pure transform (Art I.2) and a probe can never hang on a
+ * misbehaving binary.
+ *
+ * Onboarding's whole job is to say what to do next, so a next step the reader
+ * cannot perform is worse than no step at all: before this probe existed, every
+ * run told the reader to type `figma-agent status`, and on a machine without it
+ * that is a `command not found` in the one place a newcomer trusts. The agent
+ * lives in its own repo (design-os-figma-plugin), so absence is the normal case,
+ * not a fault.
+ */
+function figmaAgentOnPath(): boolean {
+  const path = env["PATH"] ?? "";
+  if (path.length === 0) return false;
+  return path
+    .split(":")
+    .filter((dir) => dir.length > 0)
+    .some((dir) => existsSync(join(dir, "figma-agent")));
+}
+
 function detectSteps(cwd: string): Step[] {
   const hasAdapters =
     existsSync(join(cwd, ".claude", "ease-design.json")) ||
@@ -118,7 +143,9 @@ function detectSteps(cwd: string): Step[] {
     { id: "soul", label: "design soul", state: soulState, optional: false, hint: HINTS.soul },
     { id: "heartbeat", label: "learning loop (soul · heartbeat · harvest)", state: hasHeartbeat ? "done" : "pending", optional: false, hint: HINTS.heartbeat },
     { id: "agents", label: "project agents      (optional)", state: hasAgents ? "done" : "pending", optional: true, hint: HINTS.agents },
-    { id: "figma", label: "figma design agent  (optional)", state: hasFigma ? "done" : "pending", optional: true, hint: HINTS.figma },
+    // The hint depends on whether the agent is reachable: tell an equipped
+    // machine to open the plugin, and an unequipped one where to get it.
+    { id: "figma", label: "figma design agent  (optional)", state: hasFigma ? "done" : "pending", optional: true, hint: figmaAgentOnPath() ? HINTS.figma : HINTS.figmaAbsent },
   ];
 }
 
