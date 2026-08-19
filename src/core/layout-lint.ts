@@ -32,6 +32,7 @@ import {
   checkInputFontBelow16,
   checkEdgeBarNoSafeArea,
 } from "./layout-checks-mobile.js";
+import { checkStickyHoverUnguarded } from "./layout-checks-hover.js";
 import { isRedirectStub } from "./redirect-stub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -87,6 +88,8 @@ const WARNING_CHECKS = [
   checkTapSpacingCramped,
   checkInputFontBelow16,
   checkEdgeBarNoSafeArea,
+  // Touch-hover floor: raw :hover outside @media (hover: hover) sticks on touch.
+  checkStickyHoverUnguarded,
 ] as const;
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────

@@ -7,7 +7,9 @@ import { describe, expect, it } from "vitest";
 import {
   checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
   checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
+  checkBareConfirmButton,
 } from "../src/core/content-checks.js";
+import { checkDumbPunctuation } from "../src/core/content-checks-punctuation.js";
 
 describe("checkLoremIpsum (error)", () => {
   it("fires on 'lorem ipsum'", () => {
@@ -148,5 +150,49 @@ describe("checkAllCapsShout (warning)", () => {
   });
   it("does not fire on a single caps word", () => {
     expect(checkAllCapsShout("<p>STOP before continuing</p>")).toEqual([]);
+  });
+});
+
+describe("checkDumbPunctuation (warning)", () => {
+  it("fires on a three-dot ellipsis in visible copy", () => {
+    const out = checkDumbPunctuation("<p>Loading your files...</p>");
+    expect(out).toHaveLength(1);
+    expect(out[0]?.checkId).toBe("dumb-punctuation");
+    expect(out[0]?.severity).toBe("warning");
+    expect(out[0]?.message).toContain("…");
+  });
+  it("fires on a straight apostrophe in a contraction", () => {
+    const out = checkDumbPunctuation("<p>Don't have an account?</p>");
+    expect(out.map((f) => f.checkId)).toEqual(["dumb-punctuation"]);
+  });
+  it("fires on straight double quotes wrapping a phrase", () => {
+    const out = checkDumbPunctuation('<p>Press "Save" to continue</p>');
+    expect(out.map((f) => f.checkId)).toEqual(["dumb-punctuation"]);
+  });
+  it("does not fire on typographic punctuation", () => {
+    expect(checkDumbPunctuation("<p>Loading… Don’t press “Save” yet</p>")).toEqual([]);
+  });
+  it("ignores quotes/dots inside tags, scripts and styles", () => {
+    const html = '<script>const a = "x...y";</script><style>.a{content:"..."}</style><a href="/x" title="it\'s">Read the docs</a>';
+    expect(checkDumbPunctuation(html)).toEqual([]);
+  });
+});
+
+describe("checkBareConfirmButton (warning)", () => {
+  it('fires on a bare "OK" button', () => {
+    const out = checkBareConfirmButton("<button>OK</button>");
+    expect(out).toHaveLength(1);
+    expect(out[0]?.checkId).toBe("bare-confirm-button");
+    expect(out[0]?.severity).toBe("warning");
+  });
+  it('fires on "Yes"/"No" buttons and a submit input valued "Okay!"', () => {
+    const out = checkBareConfirmButton('<button>Yes</button><button>No</button><input type="submit" value="Okay!">');
+    expect(out).toHaveLength(3);
+  });
+  it("does not fire on verb-first labels", () => {
+    expect(checkBareConfirmButton("<button>Save draft</button><button>Delete project</button><button>Cancel</button>")).toEqual([]);
+  });
+  it('does not fire on "OK" outside a control', () => {
+    expect(checkBareConfirmButton("<p>OK</p>")).toEqual([]);
   });
 });

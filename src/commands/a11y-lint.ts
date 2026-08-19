@@ -20,6 +20,7 @@ Checks (WCAG SC) — decidable from static markup, precision-first:
   img-missing-alt (1.1.1) · html-lang (3.1.1) · document-title (2.4.2) ·
   positive-tabindex (2.4.3) · viewport-zoom-blocked (1.4.4) ·
   icon-control-unnamed (4.1.2 — an emoji/glyph or icon-only button/link with no aria-label) ·
+  paste-blocked (3.3.8 — a handler cancels paste; password managers and one-time codes break) ·
   heading hierarchy (1.3.1/2.4.6, warnings).
 
 A pass is NOT "accessible" and NOT "WCAG AA conformant": this verifies what static markup

@@ -6,6 +6,7 @@
  * Pure functions of the HTML string.
  */
 import { lineAt } from "./a11y-lint.js";
+import { checkDumbPunctuation } from "./content-checks-punctuation.js";
 
 export type ContentSeverity = "error" | "warning";
 export interface ContentFinding {
@@ -139,6 +140,26 @@ export function checkAllCapsShout(html: string): ContentFinding[] {
   return out;
 }
 
+// ── bare-confirm-button (warning) — labels start with a verb, repeat the consequence ──
+/** A bare acknowledgement standing in for a real label: OK / Okay / Yes / No (± trailing . or !). */
+const BARE_CONFIRM = /^(?:ok(?:ay)?|yes|no)[.!]?$/i;
+export function checkBareConfirmButton(html: string): ContentFinding[] {
+  const out: ContentFinding[] = [];
+  const flag = (label: string, idx: number): void => {
+    out.push({ checkId: "bare-confirm-button", severity: "warning",
+      message: `bare "${label}" button — start the label with a verb and repeat the consequence ("Save draft", "Delete project"), never a bare acknowledgement`, line: lineAt(html, idx) });
+  };
+  for (const m of html.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/gi)) {
+    const t = textOf(m[1] ?? "");
+    if (BARE_CONFIRM.test(t)) flag(t, m.index);
+  }
+  for (const m of html.matchAll(/<input\b[^>]*\btype\s*=\s*["']?(?:submit|button)\b[^>]*>/gi)) {
+    const v = /\bvalue\s*=\s*"([^"]*)"/i.exec(m[0])?.[1]?.trim() ?? "";
+    if (BARE_CONFIRM.test(v)) flag(v, m.index);
+  }
+  return out;
+}
+
 /**
  * The canonical content-check set — the single source of truth every consumer
  * composes from (the `ui content-lint` command and the figma-agent panel gate).
@@ -148,4 +169,5 @@ export function checkAllCapsShout(html: string): ContentFinding[] {
 export const allContentChecks = [
   checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
   checkAllCapsShout, checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage,
+  checkBareConfirmButton, checkDumbPunctuation,
 ] as const;

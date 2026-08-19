@@ -90,3 +90,32 @@ export function checkUppercaseTightLineHeight(html: string): TasteFinding[] {
   }
   return findings;
 }
+
+// ─── Typography: changing/columnar numbers use tabular figures (rubric Axis 2) ───
+
+/** A table cell whose text is number-shaped: digits plus number furniture only. */
+const NUMERIC_CELL = /^[\s\d.,:%$€£+()\-−–—/]*\d[\s\d.,:%$€£+()\-−–—/]*$/;
+
+/**
+ * data-numbers-not-tabular: a document laying out ≥3 number-shaped table cells
+ * with no `tabular-nums` anywhere (the `font-variant-numeric` value and the
+ * Tailwind utility share the token) and no monospace family in the CSS (a mono
+ * face is already fixed-width). Proportional digits misalign down a column and
+ * jitter when a value ticks (rubric Typography: "numeric data columns and
+ * changing values use tabular figures"). Warning-only, one whole-document
+ * finding — the true face may be decided by external CSS this check cannot see.
+ */
+export function checkDataNumbersNotTabular(html: string): TasteFinding[] {
+  if (/\btabular-nums\b/i.test(html)) return [];
+  if (/font-family[^;}]*mono/i.test(cssRegions(html))) return [];
+  let numericCells = 0;
+  for (const m of html.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)) {
+    const t = (m[1] ?? "").replace(/<[^>]*>/g, "").trim();
+    if (t !== "" && NUMERIC_CELL.test(t)) numericCells++;
+  }
+  if (numericCells < 3) return [];
+  return [{
+    checkId: "data-numbers-not-tabular", axis: "Typography", severity: "warning",
+    message: `${numericCells} number-shaped table cells with no tabular-nums (rubric Typography: "numeric data columns and changing values use tabular figures") — set font-variant-numeric: tabular-nums (or the tabular-nums utility) on data columns`,
+  }];
+}

@@ -6,7 +6,7 @@ import { lintA11y } from "../src/core/a11y-lint.js";
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
   checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
-  isRedirectStub,
+  checkPasteBlocked, isRedirectStub,
 } from "../src/core/a11y-checks.js";
 import { run } from "../src/cli.js";
 
@@ -148,5 +148,25 @@ describe("ui a11y-lint (command)", () => {
     expect(j.errorCount).toBeGreaterThan(0);
     expect(JSON.parse(capture(["a11y-lint", "--json"]).out).error.code).toBe("BAD_ARG");
     expect(JSON.parse(capture(["a11y-lint", "/no/such.html", "--json"]).out).error.code).toBe("FILE_NOT_FOUND");
+  });
+});
+
+describe("paste-blocked (3.3.8)", () => {
+  it("fires on onpaste=\"return false\"", () => {
+    const f = checkPasteBlocked('<input type="password" onpaste="return false">');
+    expect(f).toHaveLength(1);
+    expect(f[0]?.checkId).toBe("paste-blocked");
+    expect(f[0]?.severity).toBe("error");
+  });
+  it("fires on onpaste calling preventDefault", () => {
+    expect(ids(checkPasteBlocked('<input onpaste="event.preventDefault()">'))).toEqual(["paste-blocked"]);
+  });
+  it("fires on a script paste listener that calls preventDefault", () => {
+    const html = "<script>el.addEventListener('paste', (e) => e.preventDefault());</script>";
+    expect(ids(checkPasteBlocked(html))).toEqual(["paste-blocked"]);
+  });
+  it("does not fire on a paste handler that merely observes", () => {
+    expect(checkPasteBlocked('<input onpaste="trackPaste()">')).toEqual([]);
+    expect(checkPasteBlocked("<script>el.addEventListener('paste', track);</script>")).toEqual([]);
   });
 });

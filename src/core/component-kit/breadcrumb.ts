@@ -15,7 +15,8 @@ const markup = `<nav class="ui-kit ui-bc" aria-label="Breadcrumb">
     .ui-bc { font-family: var(--font-family-body); font-size: var(--font-size-sm); }
     .ui-bc__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
     .ui-bc__link { color: var(--color-muted-foreground); text-decoration: none; border-radius: var(--radius-sm); transition: color var(--duration-fast) ease; }
-    .ui-bc__link:hover { color: var(--color-foreground); text-decoration: underline; }
+    /* Touch floor: real :hover only where hover exists — on touch it sticks after a tap. */
+    @media (hover: hover) { .ui-bc__link:hover { color: var(--color-foreground); text-decoration: underline; } }
     .ui-bc__link:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; color: var(--color-foreground); }
     .ui-bc__sep { color: var(--color-muted-foreground); user-select: none; }
     .ui-bc__current { color: var(--color-foreground); font-weight: var(--font-weight-medium); }

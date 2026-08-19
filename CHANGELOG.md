@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-08-19 - Five interface-craft floors from the interfaces.dev cheat sheet
+
+### Added
+- `content-lint`: `dumb-punctuation` (typewriter `...`/`'`/`"` in visible copy — typeset
+  copy uses `…` `’` `“ ”`; scripts, styles and attributes never fire) and
+  `bare-confirm-button` (a bare OK/Okay/Yes/No label — start with a verb and repeat the
+  consequence). Both warnings.
+- `a11y-lint`: `paste-blocked` (error, WCAG 3.3.8) — an `onpaste` that cancels, or a paste
+  listener calling `preventDefault`, breaks password managers and one-time-code entry.
+- `validate-layout`: `sticky-hover-unguarded` (warning) — a raw CSS `:hover` rule outside
+  `@media (hover: hover)` on a mobile-intent document; on touch, hover styling sticks after
+  a tap. Tailwind `hover:` utilities and desktop-only pages never fire.
+- `taste-lint`: `data-numbers-not-tabular` (warning, Typography) — three or more
+  number-shaped table cells with no `tabular-nums` and no monospace face; proportional
+  digits misalign down a column. The rubric now states the tabular-figures rule the
+  Table emitter already practised.
+
+### Changed
+- The kit's Button and Breadcrumb emitters wrap their real `:hover` rules in
+  `@media (hover: hover)` (the static `.is-hover` specimens are untouched), so the kit
+  passes the floor it now enforces. All five checks are adopted from the
+  [interfaces.dev cheat sheet](https://interfaces.dev/cheat-sheet), rewritten against
+  this repo's rubric language.
+
 ## 2026-08-17 - Onboarding points at the plugin repo when the Figma agent is absent
 
 ### Fixed

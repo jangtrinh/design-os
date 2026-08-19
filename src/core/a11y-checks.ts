@@ -128,6 +128,36 @@ export function checkIconControlUnnamed(html: string): A11yFinding[] {
   return out;
 }
 
+// ── 3.3.8 Accessible authentication: never block paste ──
+/** An inline onpaste handler that cancels the event (return false / preventDefault). */
+const ONPASTE_BLOCKING = /\bonpaste\s*=\s*("([^"]*)"|'([^']*)')/gi;
+/** A scripted paste listener that cancels within its handler (bounded window, precision-first). */
+const PASTE_LISTENER_BLOCKING = /addEventListener\(\s*["']paste["']\s*,[\s\S]{0,160}?preventDefault/gi;
+
+/**
+ * checkPasteBlocked — blocking paste breaks password managers and one-time-code
+ * entry (WCAG 2.2 SC 3.3.8 Accessible Authentication: no cognitive-function test
+ * such as retyping). Fires only on POSITIVE cancel evidence: an `onpaste` whose
+ * handler text returns false / calls preventDefault, or a `paste` listener that
+ * calls preventDefault inside its bounded handler window. A handler that merely
+ * observes the paste never flags.
+ */
+export function checkPasteBlocked(html: string): A11yFinding[] {
+  const out: A11yFinding[] = [];
+  for (const m of html.matchAll(ONPASTE_BLOCKING)) {
+    const handler = m[2] ?? m[3] ?? "";
+    if (/return\s+false|preventDefault/i.test(handler)) {
+      out.push({ checkId: "paste-blocked", severity: "error", sc: "3.3.8",
+        message: "paste is blocked (onpaste cancels the event) — people paste passwords and one-time codes; never block paste", line: lineAt(html, m.index) });
+    }
+  }
+  for (const m of html.matchAll(PASTE_LISTENER_BLOCKING)) {
+    out.push({ checkId: "paste-blocked", severity: "error", sc: "3.3.8",
+      message: "a paste listener calls preventDefault — people paste passwords and one-time codes; never block paste", line: lineAt(html, m.index) });
+  }
+  return out;
+}
+
 // ── 1.3.1 / 2.4.6 Heading hierarchy: no skipped level, no empty heading ──
 export function checkHeadingHierarchy(html: string): A11yFinding[] {
   const out: A11yFinding[] = [];

@@ -15,6 +15,7 @@
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
   checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
+  checkPasteBlocked,
 } from "./a11y-checks.js";
 
 export type A11ySeverity = "error" | "warning";
@@ -43,6 +44,7 @@ const CHECKS = [
   checkViewportMetaPresent,
   checkIconControlUnnamed,
   checkHeadingHierarchy,
+  checkPasteBlocked,
 ];
 
 /** 1-based line number of a byte offset in the source. */

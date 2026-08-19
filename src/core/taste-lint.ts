@@ -22,6 +22,7 @@
  *   Iconography   → mixed-icon-families     (≥ 2 icon libraries)
  *   Iconography   → text-arrow-as-interface-icon (Unicode arrow in link/button)
  *   Typography    → italic-display-heading, uppercase-tight-line-height
+ *   Typography    → data-numbers-not-tabular (numeric table columns without tabular figures; warning)
  *   Depth/Surface → pure-black-shadow       (hard/opaque black shadow)
  *   Depth/Surface → z-index-inflation       (all-nines z-index)
  *   Depth/Surface → z-index-off-ladder      (z-index off a base-10 scale; warning)
@@ -52,7 +53,7 @@ import {
 // The slop-gate checks live in their own modules (taste-checks.ts is over the
 // 200-line guideline, so we import these directly rather than via that barrel).
 import { checkOvershootEasing, checkFocusRingAnimatesIn } from "./taste-checks-motion-state.js";
-import { checkItalicDisplayHeading, checkUppercaseTightLineHeight } from "./taste-checks-typography.js";
+import { checkItalicDisplayHeading, checkUppercaseTightLineHeight, checkDataNumbersNotTabular } from "./taste-checks-typography.js";
 import { checkZIndexInflation, checkZIndexOffLadder } from "./taste-checks-depth.js";
 import { checkTapTargetUndersized } from "./taste-checks-tap-target.js";
 import { checkAiClicheGradient } from "./taste-checks-gradient.js";
@@ -136,6 +137,7 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     ...checkTinyBodyText(stripped),
     ...checkItalicDisplayHeading(stripped),
     ...checkUppercaseTightLineHeight(stripped),
+    ...checkDataNumbersNotTabular(stripped),
     ...checkOffGridSpacing(stripped),
     ...checkMixedIconFamilies(stripped),
     ...checkTextArrowAsInterfaceIcon(stripped),
