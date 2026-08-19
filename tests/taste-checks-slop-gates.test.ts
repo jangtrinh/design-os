@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { checkOvershootEasing, checkFocusRingAnimatesIn } from "../src/core/taste-checks-motion-state.js";
-import { checkItalicDisplayHeading, checkUppercaseTightLineHeight } from "../src/core/taste-checks-typography.js";
+import { checkItalicDisplayHeading, checkUppercaseTightLineHeight, checkDataNumbersNotTabular } from "../src/core/taste-checks-typography.js";
 import { checkZIndexInflation } from "../src/core/taste-checks-depth.js";
 import { lintTaste } from "../src/core/taste-lint.js";
 
@@ -191,5 +191,33 @@ describe("lintTaste — slop-gate checks wired + axis-sorted", () => {
       "</style></head><body><h2>Title</h2></body></html>",
     ].join("\n");
     expect(lintTaste(clean).errorCount).toBe(0);
+  });
+});
+
+// ─── data-numbers-not-tabular (Typography, warning) ─────────────────────────────
+
+const NUMERIC_TABLE =
+  "<table><tr><th>Month</th><th>Revenue</th></tr>" +
+  "<tr><td>Jan</td><td>1,204</td></tr><tr><td>Feb</td><td>982</td></tr><tr><td>Mar</td><td>1,410</td></tr></table>";
+
+describe("data-numbers-not-tabular", () => {
+  it("flags a numeric table with no tabular-nums anywhere", () => {
+    const f = checkDataNumbersNotTabular(`<style>body{font-family:Inter}</style>${NUMERIC_TABLE}`);
+    expect(f).toHaveLength(1);
+    expect(f[0]?.checkId).toBe("data-numbers-not-tabular");
+    expect(f[0]?.axis).toBe("Typography");
+    expect(f[0]?.severity).toBe("warning");
+  });
+  it("passes when CSS declares font-variant-numeric: tabular-nums", () => {
+    expect(checkDataNumbersNotTabular(`<style>td{font-variant-numeric: tabular-nums}</style>${NUMERIC_TABLE}`)).toEqual([]);
+  });
+  it("passes when the Tailwind tabular-nums utility is present", () => {
+    expect(checkDataNumbersNotTabular(NUMERIC_TABLE.replace("<table>", '<table class="tabular-nums">'))).toEqual([]);
+  });
+  it("passes when a monospace font family is in play", () => {
+    expect(checkDataNumbersNotTabular(`<style>td{font-family:"JetBrains Mono",monospace}</style>${NUMERIC_TABLE}`)).toEqual([]);
+  });
+  it("passes on a words-only table", () => {
+    expect(checkDataNumbersNotTabular("<table><tr><td>Alpha</td><td>Beta</td></tr><tr><td>Gamma</td><td>Delta</td></tr></table>")).toEqual([]);
   });
 });

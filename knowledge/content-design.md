@@ -54,7 +54,10 @@ readability formulas misfire and are deliberately excluded):
 - **errors:** `lorem-ipsum`, `placeholder-copy`, `placeholder-name` (unfinished copy / placeholder filler).
 - **warnings:** `click-here-link` (WCAG 2.4.4) · `error-code-alone` · `exclamation-overload` ·
   `insensitive-terms` (whitelist/blacklist/master-slave only) · `plural-s-hack` (`item(s)`) ·
-  `text-in-image` · `all-caps-shout` (text-content caps; taste-lint owns CSS-transform caps).
+  `text-in-image` · `all-caps-shout` (text-content caps; taste-lint owns CSS-transform caps) ·
+  `bare-confirm-button` (a bare OK/Okay/Yes/No label — start with a verb, repeat the
+  consequence) · `dumb-punctuation` (typewriter `...`/`'`/`"` in visible copy — typeset
+  copy uses `…` `’` `“ ”`).
 
 ## Honest copy — never fabricate evidence
 Copy must not invent evidence to fill a layout. No fabricated metrics (`10× faster`,

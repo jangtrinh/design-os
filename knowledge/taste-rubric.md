@@ -85,7 +85,9 @@ near normal; widen tracking slightly on small uppercase labels. Body leading ~1.
 display leading tight (~1.0–1.2). Body text never below 16px. Reserve all-caps for short
 labels, never running text. Display type is roman — italic headings (or an italic emphasis
 word inside a heading) read as generated, not designed. All-caps display keeps line-height
-≥ 1.0; below that, cap-tops collide when the text wraps.
+≥ 1.0; below that, cap-tops collide when the text wraps. Numeric data columns and changing
+values use tabular figures (`font-variant-numeric: tabular-nums`) unless the face is
+monospace — proportional digits misalign down a column and jitter as a value ticks.
 
 **Anti-patterns:** five+ font sizes with no ratio relationship; headings and body at the
 same weight; uppercase paragraphs; default-tracked huge display text; pairing two fonts
@@ -93,7 +95,9 @@ that occupy the same role; italic display headings; all-caps display with line-h
 *Machine floor:* `taste-lint`'s `font-scale-sprawl` counts the distinct hand-picked font
 sizes (arbitrary `text-[..px]` utilities and raw `font-size` literals — named Tailwind steps
 and `var(--…)` token sizes do not count) and warns past 7, errors past 10 — the signal that
-the scale was never derived from one ratio.
+the scale was never derived from one ratio. `data-numbers-not-tabular` warns when a document
+lays out three or more number-shaped table cells with no `tabular-nums` (and no monospace
+face) in play.
 
 ### Scoring 0–10
 

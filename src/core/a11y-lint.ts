@@ -15,7 +15,9 @@
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
   checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
+  checkPasteBlocked,
 } from "./a11y-checks.js";
+import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 
 export type A11ySeverity = "error" | "warning";
 
@@ -43,6 +45,7 @@ const CHECKS = [
   checkViewportMetaPresent,
   checkIconControlUnnamed,
   checkHeadingHierarchy,
+  checkPasteBlocked,
 ];
 
 /** 1-based line number of a byte offset in the source. */
@@ -53,10 +56,13 @@ export function lineAt(html: string, index: number): number {
 }
 
 export function lintA11y(html: string): A11yLintResult {
+  // Commented-out markup is not markup: strip comments once (offset-preserving,
+  // same helper as layout-lint/taste-lint) so no a11y check fires inside <!-- -->.
+  const stripped = stripCommentsPreservingOffsets(html);
   const errors: A11yFinding[] = [];
   const warnings: A11yFinding[] = [];
   for (const check of CHECKS) {
-    for (const f of check(html)) (f.severity === "error" ? errors : warnings).push(f);
+    for (const f of check(stripped)) (f.severity === "error" ? errors : warnings).push(f);
   }
   const sortF = (a: A11yFinding, b: A11yFinding): number =>
     (a.line ?? 0) - (b.line ?? 0) || a.checkId.localeCompare(b.checkId) || a.message.localeCompare(b.message);

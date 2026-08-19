@@ -22,6 +22,7 @@
  *   Iconography   → mixed-icon-families     (≥ 2 icon libraries)
  *   Iconography   → text-arrow-as-interface-icon (Unicode arrow in link/button)
  *   Typography    → italic-display-heading, uppercase-tight-line-height
+ *   Typography    → data-numbers-not-tabular (numeric table columns without tabular figures; warning)
  *   Depth/Surface → pure-black-shadow       (hard/opaque black shadow)
  *   Depth/Surface → z-index-inflation       (all-nines z-index)
  *   Depth/Surface → z-index-off-ladder      (z-index off a base-10 scale; warning)
@@ -52,7 +53,7 @@ import {
 // The slop-gate checks live in their own modules (taste-checks.ts is over the
 // 200-line guideline, so we import these directly rather than via that barrel).
 import { checkOvershootEasing, checkFocusRingAnimatesIn } from "./taste-checks-motion-state.js";
-import { checkItalicDisplayHeading, checkUppercaseTightLineHeight } from "./taste-checks-typography.js";
+import { checkItalicDisplayHeading, checkUppercaseTightLineHeight, checkDataNumbersNotTabular } from "./taste-checks-typography.js";
 import { checkZIndexInflation, checkZIndexOffLadder } from "./taste-checks-depth.js";
 import { checkTapTargetUndersized } from "./taste-checks-tap-target.js";
 import { checkAiClicheGradient } from "./taste-checks-gradient.js";
@@ -61,6 +62,7 @@ import { checkModeInvisibleSurface } from "./taste-checks-invisible-surface.js";
 import { checkContainerNestingDepth } from "./taste-checks-nesting.js";
 import { checkRadiusSprawl } from "./taste-checks-radius.js";
 import { gsapChecks } from "./taste-checks-gsap.js";
+import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { videoScrubChecks } from "./taste-checks-video-scrub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -113,14 +115,8 @@ export interface TasteLintOptions {
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
 
-/**
- * Replace each HTML comment with an equal-length run of spaces so byte offsets
- * (and line numbers) stay correct. Prevents commented-out markup — including
- * the AI_CRITIQUE_LOG block critique.md writes — from tripping checks.
- */
-function stripCommentsPreservingOffsets(html: string): string {
-  return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
-}
+// Comment stripping is shared with layout-lint and a11y-lint (one definition;
+// it also keeps the AI_CRITIQUE_LOG block critique.md writes from tripping checks).
 
 /** Axis order for stable sorting (matches the rubric's listed order). */
 const AXIS_ORDER: Record<TasteAxis, number> = {
@@ -136,6 +132,7 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     ...checkTinyBodyText(stripped),
     ...checkItalicDisplayHeading(stripped),
     ...checkUppercaseTightLineHeight(stripped),
+    ...checkDataNumbersNotTabular(stripped),
     ...checkOffGridSpacing(stripped),
     ...checkMixedIconFamilies(stripped),
     ...checkTextArrowAsInterfaceIcon(stripped),

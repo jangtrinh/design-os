@@ -169,6 +169,26 @@ describe("component-kit — full linter set wrap-lint (a11y + layout + taste + c
     }
   });
 
+  // The interfaces-cheatsheet floors are warnings (paste-blocked aside), so the
+  // errors-only gates above cannot catch a regression of them. This one can: the
+  // kit must emit NONE of the five, warnings included.
+  const NEW_FLOOR_IDS = new Set([
+    "dumb-punctuation", "bare-confirm-button", "paste-blocked",
+    "sticky-hover-unguarded", "data-numbers-not-tabular",
+  ]);
+  it("each fragment emits none of the interfaces-cheatsheet floor findings (warnings included)", () => {
+    for (const c of COMPONENT_KIT) {
+      const html = wrap(c.markup);
+      const hits = [
+        ...lintA11y(html).findings,
+        ...lintLayout(html).findings,
+        ...lintTaste(html).findings,
+        ...allContentChecks.flatMap((check) => check(html)),
+      ].filter((f) => NEW_FLOOR_IDS.has(f.checkId));
+      expect(hits, `${c.name}: ${JSON.stringify(hits)}`).toEqual([]);
+    }
+  });
+
   it("each fragment, wrapped in a valid document, lints with 0 content errors", () => {
     for (const c of COMPONENT_KIT) {
       const html = wrap(c.markup);

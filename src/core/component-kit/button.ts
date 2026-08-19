@@ -25,11 +25,17 @@ const markup = `<div class="ui-kit ui-btn">
     .ui-btn__btn--sm { padding: var(--space-1) var(--space-3); font-size: var(--font-size-xs); }
     .ui-btn__btn--lg { padding: var(--space-3) var(--space-5); font-size: var(--font-size-md); }
     .ui-btn__btn--primary { background: var(--color-primary); color: var(--color-primary-foreground); }
-    .ui-btn__btn--primary.is-hover, .ui-btn__btn--primary:hover { background: var(--color-primary-hover); }
+    .ui-btn__btn--primary.is-hover { background: var(--color-primary-hover); }
     .ui-btn__btn--secondary { background: var(--color-secondary); color: var(--color-secondary-foreground); }
-    .ui-btn__btn--secondary.is-hover, .ui-btn__btn--secondary:hover { background: var(--color-accent); color: var(--color-accent-foreground); }
+    .ui-btn__btn--secondary.is-hover { background: var(--color-accent); color: var(--color-accent-foreground); }
     .ui-btn__btn--danger { background: var(--color-danger); color: var(--color-danger-foreground); }
-    .ui-btn__btn--danger.is-hover, .ui-btn__btn--danger:hover { filter: brightness(0.92); }
+    .ui-btn__btn--danger.is-hover { filter: brightness(0.92); }
+    /* Touch floor: real :hover only where hover exists — on touch it sticks after a tap. */
+    @media (hover: hover) {
+      .ui-btn__btn--primary:hover { background: var(--color-primary-hover); }
+      .ui-btn__btn--secondary:hover { background: var(--color-accent); color: var(--color-accent-foreground); }
+      .ui-btn__btn--danger:hover { filter: brightness(0.92); }
+    }
     .ui-btn__btn.is-focus, .ui-btn__btn:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
     .ui-btn__btn[disabled] { opacity: 0.5; cursor: not-allowed; }
     .ui-btn__spin {

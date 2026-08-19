@@ -10,6 +10,16 @@ export function lineOf(html: string, idx: number): number {
 }
 
 /**
+ * Replace each HTML comment with an equal-length run of spaces so byte offsets
+ * (and line numbers) stay correct after stripping. Commented-out markup must
+ * never trip a heuristic check. One definition for every linter family —
+ * a11y-lint gained the third consumer, which is the extract-the-helper line.
+ */
+export function stripCommentsPreservingOffsets(html: string): string {
+  return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
+}
+
+/**
  * Extract the text inside `<style>…</style>` blocks plus all `style="…"`
  * inline attribute values — i.e. everywhere a CSS declaration can live.
  * Used by checks that must not match CSS-like substrings in body copy.

@@ -22,7 +22,8 @@ Checks (low-false-positive only; voice/tone fit stays a model judgment):
   lorem-ipsum · placeholder-copy · placeholder-name   (errors — unfinished copy)
   click-here-link (WCAG 2.4.4) · error-code-alone · exclamation-overload ·
   insensitive-terms (whitelist/blacklist/master-slave) · plural-s-hack ("item(s)") ·
-  text-in-image · all-caps-shout            (warnings)
+  text-in-image · all-caps-shout · bare-confirm-button (OK/Yes labels) ·
+  dumb-punctuation (typewriter quotes/ellipsis)        (warnings)
 
 Deliberately NOT included: write-good/proselint/alex-adjectives/Flesch–Kincaid — they
 misfire on short imperative microcopy. Voice, wit and brand fit are scored by the curator
