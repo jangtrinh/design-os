@@ -993,6 +993,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-19 | **font-display gets its repair** — the one floor the born-passing A/B showed teaching cannot move (6→6 across arms) becomes an autofix: `@font-face` gains `font-display: swap`, Google-Fonts hrefs gain `display=swap`; 12→0 on the A/B corpus in one pass | `#200` |
 | 2026-08-19 | **Tractability telemetry events** — the ledger learns `route_decided`, `attempt_completed`, `outcome_recorded` (accept REQUIRES the final gate verdict with provenance refs) and `taste_veto` (file + mandatory reason; the stream the FP gauge and librarian recurrence will read) — the labeled-loop data the moat thesis lives on | `#199` |
 | 2026-08-19 | **FloorFinding schema v1 + `ui gate coverage`** — findings gain declared repair fields (`expected`/`actual`/`fixHint`/`repairScope`) and the gate grows a coverage registry (88 checks, per-project activity, paired against the sources AND against runtime emission) — the evidence base for tractability routing and strict patch validation | `#198` |
 | 2026-08-19 | **One composed judge: `ui gate`** — every HTML-emitting workflow (and the critique funnel itself, which was silently missing a11y+content) now judges through one command composing all four linter families plus an autofix dry-run; skips must carry declared reasons, a coverage test keeps future workflows honest, and wiring the goldens exposed and fixed a `fixDuplicateIds` false positive on `data-*-id` attributes | `#197` |

@@ -19,6 +19,24 @@ export function stripCommentsPreservingOffsets(html: string): string {
   return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
 }
 
+/** Blank to spaces, length- AND newline-preserving — offsets and line numbers stay valid. */
+export function blankPreservingNewlines(m: string): string {
+  return m.replace(/[^\n]/g, " ");
+}
+
+/**
+ * The dead-markup mask: script regions and HTML comments blanked, offsets
+ * preserved. A tag inside a script string or a comment is not live markup;
+ * pre/code content is NOT blanked here — the HTML parser treats elements
+ * inside <pre> as real, so checks that judge live elements must see them.
+ * Shared by checker/repair pairs so both sides read one world.
+ */
+export function blankDeadMarkup(html: string): string {
+  return stripCommentsPreservingOffsets(
+    html.replace(/<script\b[\s\S]*?<\/script\s*>/gi, blankPreservingNewlines),
+  );
+}
+
 /**
  * Extract the text inside `<style>…</style>` blocks plus all `style="…"`
  * inline attribute values — i.e. everywhere a CSS declaration can live.

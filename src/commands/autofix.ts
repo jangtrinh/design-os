@@ -35,6 +35,7 @@ Rules applied (in order):
   hover-media-guard     Wrap raw :hover rules in @media (hover: hover) (mobile-intent docs)
   table-tabular-nums    Add font-variant-numeric: tabular-nums for numeric table columns
   focus-outline-restore Remove outline-killing focus declarations so the browser ring returns
+  font-display-swap     Add font-display: swap to @font-face blocks and Google-Fonts links
 
 Floor repairs are gated by the same checks the linters run and rewrite only
 CSS and attribute values — copy text is never edited.
