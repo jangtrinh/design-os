@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lintDiagram } from '../src/core/diagram-lint.js';
 import { lintChart } from '../src/core/chart-lint.js';
+import { runGate } from '../src/core/gate.js';
 
 /**
  * The golden corpus: one worked artifact per grammar.
@@ -165,5 +166,21 @@ describe('corpus consumes design tokens rather than declaring them', () => {
     expect(darkStart, 'expected a dark block').toBeGreaterThan(-1);
     const darkBlock = html.slice(darkStart, html.indexOf('}', darkStart));
     expect(darkBlock).toMatch(/--(?:diagram|chart)-(?:paper|ink)\s*:/);
+  });
+});
+
+
+describe('golden corpus — the composed gate the docstring promises', () => {
+  // The header above says goldens are "held to the same gate a delivered artifact
+  // is" — with only the grammar linters running, that claim was 1-of-5 true. Now
+  // every golden runs the composed judge (all four families + autofix dry-run).
+  it('every chart and diagram golden passes ui gate', () => {
+    for (const dir of [CHART_DIR, DIAGRAM_DIR]) {
+      for (const f of htmlFiles(dir)) {
+        const res = runGate(readFileSync(join(dir, f), 'utf8'));
+        const errs = Object.values(res.families).flatMap((r) => r.findings.filter((x) => x.severity === 'error'));
+        expect(errs, `${f}: ${JSON.stringify(errs)}`).toEqual([]);
+      }
+    }
   });
 });

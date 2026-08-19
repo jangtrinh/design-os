@@ -4,6 +4,8 @@ description: "Author idiomatic Figma on the canvas from intent or an existing ea
 
 # `/ui:to-figma` — Author idiomatic Figma from intent
 
+<!-- gate-exempt: figma-canvas — builds on the Figma canvas, a medium the HTML floors do not map to (figma-craft owns that side) -->
+
 Turn a plain-language intent (or a design you already produced with ease-design) into
 **real, idiomatic Figma** on the canvas — auto-layout structure, component instances,
 token-bound variables — the kind of file a senior designer would accept the *layer

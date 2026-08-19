@@ -215,15 +215,16 @@ This applies the deterministic HTML fix rules (viewport meta, `<img onerror>`
 fallbacks, lucide `createIcons()` injection, CDN URL normalization, duplicate
 `id` deduplication). Capture the applied-findings JSON for the report.
 
-### 8. Lint the layout
+### 8. Run the composed floor judge
 
 ```bash
-ui validate-layout <redesigned-html>
+ui gate <redesigned-html>
 ```
 
-Inspect the report. Structural errors (3 hard checks) must be fixed in this
-workflow before handing off to the quality gate; layout smells (7 heuristics)
-should be noted and left for the gate to weigh.
+One verdict across every linter family (layout, a11y, taste, content) plus the
+autofix dry-run. Error-severity findings must be fixed in this workflow before
+handing off to the quality gate; warnings should be noted and left for the
+gate to weigh.
 
 ### 9. Hand off to the quality gate
 

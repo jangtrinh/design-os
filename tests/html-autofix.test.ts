@@ -250,3 +250,25 @@ describe("runAutofix", () => {
     expect(script).not.toContain("/api/unsplash/search");
   });
 });
+
+describe("fixDuplicateIds — only real id attributes count", () => {
+  it("data-*-id attributes are not id occurrences (the chart goldens' focal marker)", () => {
+    const html = '<div data-focal-id="bar-na"></div><rect id="bar-na"></rect>';
+    expect(fixDuplicateIds(html).applied).toBe(false);
+  });
+  it("a CSS attribute selector [id=\"dlg\"] never renames the element it targets", () => {
+    const html = '<style>[id="dlg"] { color: red; }</style><div id="dlg"></div>';
+    const { html: out, applied } = fixDuplicateIds(html);
+    expect(applied).toBe(false);
+    expect(out).toContain('<div id="dlg">');
+  });
+  it("an id mentioned in a script string does not count either", () => {
+    const html = '<script>el.setAttribute("id", "x"); const s = \'id="x"\';</script><div id="x"></div>';
+    expect(fixDuplicateIds(html).applied).toBe(false);
+  });
+  it("REGRESSION: genuine duplicates still get renamed", () => {
+    const { html: out, applied } = fixDuplicateIds('<p id="t">a</p><p id="t">b</p>');
+    expect(applied).toBe(true);
+    expect(out).toContain('id="t-1"');
+  });
+});

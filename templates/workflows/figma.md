@@ -243,13 +243,14 @@ After the HTML is in hand, run a literal string-replace pass over the output:
 
 ```sh
 ui autofix output/<slug>-figma/index.html --write
-ui validate-layout output/<slug>-figma/index.html
+ui gate output/<slug>-figma/index.html
 ui registry list                       # confirm the components used are registered
 ```
 
 `ui autofix` fixes viewport-meta omissions, missing `onerror` handlers, missing
-Lucide init, dirty CDN URLs, and duplicate ids. `ui validate-layout` runs the
-structural-error + layout-smell checks. Both must come back clean.
+Lucide init, dirty CDN URLs, and duplicate ids. `ui gate` then judges every
+linter family (layout, a11y, taste, content) plus the autofix dry-run in one
+verdict. Both must come back clean.
 
 ## Outputs
 

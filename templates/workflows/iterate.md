@@ -173,15 +173,18 @@ a `## Never` clause; prefer choices that express `## Always`.
    deterministic structural check on the edited file:
 
    ```bash
-   ui validate-layout <variant.html> --json
+   ui gate <variant.html> --json
    ```
 
    This catches structural breakage a surgical edit can introduce — unbalanced or
-   orphaned tags, broken nesting, overflow smells. **Hard rule:** if it reports any
-   `error`-severity finding (the 3 structural checks), the edit corrupted the markup —
-   discard it and re-run this pass as `full_regen` (the safe path that always produces
-   valid HTML). Layout smells (the 7 heuristics) are advisory: note them and let the
-   quality gate weigh them. This mirrors `redesign.md`; it exists because a malformed
+   orphaned tags, broken nesting, overflow smells. **Hard rule:** if the gate's
+   **layout family** reports any `error`-severity finding (the structural checks),
+   the edit corrupted the markup — discard it and re-run this pass as `full_regen`
+   (the safe path that always produces valid HTML). Error findings from the OTHER
+   families (a11y, content, taste, autofix-not-clean) are real floors but not
+   corruption — fix them in place; a pre-existing error the input already carried
+   never justifies discarding a valid surgical edit. Warnings are advisory: note
+   them and let the quality gate weigh them. This mirrors `redesign.md`; it exists because a malformed
    ln_diff splice would otherwise reach the user with no machine check.
 
 7. **Run the quality gate.** Hand the patched file to `templates/workflows/critique.md`.
