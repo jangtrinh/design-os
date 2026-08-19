@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-19 - ease-design 0.4.0
+
+One day, ten merged PRs, one thesis proven: the tractability frontier is movable.
+Everything below ships in this release — 14 new machine floors across four linter
+families, four autofix floor repairs, the composed judge `ui gate` (+ its 89-check
+coverage registry), FloorFinding schema v1 with declared repair scopes, four
+tractability telemetry event types, and a measured −65% error-at-birth improvement
+from teaching the floors at generation time (evaluation-260819-2016).
+
+
 ## 2026-08-19 - font-display gets its repair (the floor teaching could not move)
 
 ### Added
