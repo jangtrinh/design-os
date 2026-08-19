@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { checkRadiusSprawl } from "../src/core/taste-checks-radius.js";
+import { checkEqualNestedRadii } from "../src/core/taste-checks-concentric-radius.js";
 import { lintTaste } from "../src/core/taste-lint.js";
 
 /** Build markup with `n` distinct non-zero arbitrary Tailwind radii (2px, 4px, 6px, …). */
@@ -96,5 +97,29 @@ describe("lintTaste — radius-sprawl wired", () => {
   it("a clean document trips no radius-sprawl finding", () => {
     const r = lintTaste('<div class="rounded-sm">a</div><div class="rounded-md">b</div>');
     expect(r.findings.some((f) => f.checkId === "radius-sprawl")).toBe(false);
+  });
+});
+
+// ─── equal-nested-radii (Consistency, warning) ──────────────────────────────────
+
+describe("equal-nested-radii", () => {
+  it("flags a padded parent and direct child sharing the same rounded step", () => {
+    const f = checkEqualNestedRadii('<div class="rounded-xl p-4"><div class="rounded-xl">inner</div></div>');
+    expect(f).toHaveLength(1);
+    expect(f[0]?.checkId).toBe("equal-nested-radii");
+    expect(f[0]?.severity).toBe("warning");
+    expect(f[0]?.message).toContain("padding");
+  });
+  it("flags equal arbitrary px values too", () => {
+    expect(checkEqualNestedRadii('<div class="rounded-[12px] p-2"><img class="rounded-[12px]" src="x" alt=""></div>')).toHaveLength(1);
+  });
+  it("passes when the child steps down (concentric)", () => {
+    expect(checkEqualNestedRadii('<div class="rounded-2xl p-2"><div class="rounded-lg">inner</div></div>')).toEqual([]);
+  });
+  it("passes when the parent has no padding (flush corners are legitimate)", () => {
+    expect(checkEqualNestedRadii('<div class="rounded-xl"><div class="rounded-xl">flush</div></div>')).toEqual([]);
+  });
+  it("exempts the pill bucket (rounded-full in rounded-full)", () => {
+    expect(checkEqualNestedRadii('<div class="rounded-full p-1"><span class="rounded-full">dot</span></div>')).toEqual([]);
   });
 });

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-19 - Three more floors: labels, focus rings, concentric corners
+
+### Added
+- `a11y-lint`: `input-unlabeled` (error, WCAG 3.3.2) — a text control with no `<label for>`,
+  no wrapping `<label>`, and no aria-label/aria-labelledby; a placeholder is not a label.
+  And `focus-outline-removed` (error, WCAG 2.4.7) — a focus rule kills the outline
+  (`outline: none` / `focus:outline-none`) and no focus rule anywhere provides a visible
+  replacement.
+- `taste-lint`: `equal-nested-radii` (warning, Spacing) — a padded Tailwind container
+  nesting a child at the same radius step; the concentric rule (outer = inner + padding)
+  already lived in prose twice with no linter, and the rubric now states it under Spacing.
+- The critique workflow walks every declared state (hover/focus/active/disabled/loading/
+  empty), reads motion "at 10% speed", and gains an optional additive `rejected` field —
+  borderline fixes land there with a reason instead of padding `suggestions`, and the
+  refine loop reads it so a rejected candidate is never re-proposed.
+
+### Changed
+- `lintA11y` gained two checks, so a11y error counts can rise on pages with unlabeled
+  controls or removed focus rings. One repo-wide run on all repo HTML: zero findings
+  (probe proven able to go red first). Adopted from
+  [jakubkrehel/skills](https://github.com/jakubkrehel/skills), rewritten against WCAG
+  and this repo's rubric language.
+
 ## 2026-08-19 - Kit typography polish: balanced titles, pretty bodies, hairline photos
 
 ### Changed

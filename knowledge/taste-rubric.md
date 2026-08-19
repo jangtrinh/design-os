@@ -119,6 +119,12 @@ corrected on large and small extremes? Is body ≥16px?
 **Controls:** base spacing unit, vertical and horizontal rhythm, content density,
 padding scale, the relationship between nested paddings.
 
+Nested rounded corners stay concentric: outer radius = inner radius + padding. Equal
+radii on a padded parent and its child make the inner corner look pinched — the most
+common single tell of an unconsidered surface. *Machine floor:* `taste-lint`'s
+`equal-nested-radii` warns when a padded Tailwind container nests a child at the same
+radius step.
+
 Spacing is rhythm. A UI that respects one base unit feels engineered; one that uses
 arbitrary gaps feels improvised.
 

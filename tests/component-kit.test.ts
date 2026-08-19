@@ -175,6 +175,7 @@ describe("component-kit — full linter set wrap-lint (a11y + layout + taste + c
   const NEW_FLOOR_IDS = new Set([
     "dumb-punctuation", "bare-confirm-button", "paste-blocked",
     "sticky-hover-unguarded", "data-numbers-not-tabular",
+    "equal-nested-radii", "input-unlabeled", "focus-outline-removed",
   ]);
   it("each fragment emits none of the interfaces-cheatsheet floor findings (warnings included)", () => {
     for (const c of COMPONENT_KIT) {
