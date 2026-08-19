@@ -17,6 +17,10 @@ import {
   checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
   checkPasteBlocked,
 } from "./a11y-checks.js";
+// Imported directly (not via the a11y-checks barrel): the barrel already sits in a
+// runtime cycle with this module (it imports lineAt back), and routing these two
+// through it left them undefined in some load orders under the test runner's interop.
+import { checkInputUnlabeled, checkFocusOutlineRemoved } from "./a11y-checks-focus-and-labels.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 
 export type A11ySeverity = "error" | "warning";
@@ -46,6 +50,8 @@ const CHECKS = [
   checkIconControlUnnamed,
   checkHeadingHierarchy,
   checkPasteBlocked,
+  checkInputUnlabeled,
+  checkFocusOutlineRemoved,
 ];
 
 /** 1-based line number of a byte offset in the source. */

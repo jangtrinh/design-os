@@ -23,6 +23,8 @@ Checks (WCAG SC) — decidable from static markup, precision-first:
   paste-blocked (3.3.8 — a handler cancels paste without re-inserting the clipboard text;
   password managers and one-time codes break. The onpaste attribute form is an error;
   the scripted-listener form is a warning) ·
+  input-unlabeled (3.3.2 — a text control with no label association; a placeholder is not a label) ·
+  focus-outline-removed (2.4.7 — outline killed on focus with no visible replacement anywhere) ·
   heading hierarchy (1.3.1/2.4.6, warnings).
 
 A pass is NOT "accessible" and NOT "WCAG AA conformant": this verifies what static markup

@@ -19,6 +19,7 @@
  *   Typography    → font-scale-sprawl       (> 7 hand-picked font sizes; error > 10)
  *   Spacing       → off-grid-spacing        (Tailwind spacing not on 4px grid)
  *   Spacing       → tap-target-undersized   (interactive control < 44px; warning)
+ *   Spacing       → equal-nested-radii      (padded parent and child share one radius; warning)
  *   Iconography   → mixed-icon-families     (≥ 2 icon libraries)
  *   Iconography   → text-arrow-as-interface-icon (Unicode arrow in link/button)
  *   Typography    → italic-display-heading, uppercase-tight-line-height
@@ -61,6 +62,7 @@ import { checkFontScaleSprawl } from "./taste-checks-font-scale.js";
 import { checkModeInvisibleSurface } from "./taste-checks-invisible-surface.js";
 import { checkContainerNestingDepth } from "./taste-checks-nesting.js";
 import { checkRadiusSprawl } from "./taste-checks-radius.js";
+import { checkEqualNestedRadii } from "./taste-checks-concentric-radius.js";
 import { gsapChecks } from "./taste-checks-gsap.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { videoScrubChecks } from "./taste-checks-video-scrub.js";
@@ -155,6 +157,7 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     // Craft-lint graduation (spec CRAFT-LINT). Both new checks default warning.
     ...checkContainerNestingDepth(stripped),
     ...checkRadiusSprawl(stripped),
+    ...checkEqualNestedRadii(stripped),
     // Motion axis, GSAP subset — the machine-checkable half of
     // knowledge/gsap-motion-direction.md, which shipped as prose with no linter.
     // Every check is silent unless GSAP is actually present in the document.

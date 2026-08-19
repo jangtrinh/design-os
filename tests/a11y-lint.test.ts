@@ -6,7 +6,7 @@ import { lintA11y } from "../src/core/a11y-lint.js";
 import {
   checkImgAlt, checkHtmlLang, checkDocumentTitle, checkPositiveTabindex,
   checkViewportZoom, checkViewportMetaPresent, checkIconControlUnnamed, checkHeadingHierarchy,
-  checkPasteBlocked, isRedirectStub,
+  checkPasteBlocked, checkInputUnlabeled, checkFocusOutlineRemoved, isRedirectStub,
 } from "../src/core/a11y-checks.js";
 import { run } from "../src/cli.js";
 
@@ -189,5 +189,80 @@ describe("paste-blocked (3.3.8)", () => {
       '<!-- <input onpaste="return false"> legacy --><!-- <img src="x"> --><p>hi</p></body></html>';
     const res = lintA11y(html);
     expect(res.findings.map((f) => f.checkId)).toEqual([]);
+  });
+});
+
+describe("input-unlabeled (3.3.2)", () => {
+  it("fires on a text input with no label association", () => {
+    const f = checkInputUnlabeled('<input type="email" id="em">');
+    expect(f).toHaveLength(1);
+    expect(f[0]?.checkId).toBe("input-unlabeled");
+    expect(f[0]?.severity).toBe("error");
+  });
+  it("fires on select/textarea too, and a placeholder is not a label", () => {
+    expect(ids(checkInputUnlabeled("<select><option>A</option></select>"))).toEqual(["input-unlabeled"]);
+    expect(ids(checkInputUnlabeled('<input type="text" placeholder="Email">'))).toEqual(["input-unlabeled"]);
+  });
+  it("passes with label[for], a wrapping label, aria-label, or aria-labelledby", () => {
+    expect(checkInputUnlabeled('<label for="em">Email</label><input id="em" type="email">')).toEqual([]);
+    expect(checkInputUnlabeled('<label><input type="checkbox"> Send me updates</label>')).toEqual([]);
+    expect(checkInputUnlabeled('<input type="search" aria-label="Search">')).toEqual([]);
+    expect(checkInputUnlabeled('<span id="t">Amount</span><input aria-labelledby="t">')).toEqual([]);
+  });
+  it("skips non-text input types (hidden, submit, button, reset, image)", () => {
+    expect(checkInputUnlabeled('<input type="hidden" name="csrf"><input type="submit" value="Save draft">')).toEqual([]);
+  });
+});
+
+describe("focus-outline-removed (2.4.7)", () => {
+  it("fires when a :focus rule kills the outline with no replacement anywhere", () => {
+    const f = checkFocusOutlineRemoved("<style>button:focus { outline: none; }</style>");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.checkId).toBe("focus-outline-removed");
+    expect(f[0]?.severity).toBe("error");
+  });
+  it("fires on outline: 0 and on the Tailwind focus:outline-none class form", () => {
+    expect(ids(checkFocusOutlineRemoved("<style>a:focus-visible { outline: 0; }</style>"))).toEqual(["focus-outline-removed"]);
+    expect(ids(checkFocusOutlineRemoved('<button class="focus:outline-none">Go</button>'))).toEqual(["focus-outline-removed"]);
+  });
+  it("passes when the same or another focus rule provides a visible replacement", () => {
+    expect(checkFocusOutlineRemoved("<style>button:focus { outline: none; box-shadow: 0 0 0 2px var(--ring); }</style>")).toEqual([]);
+    expect(checkFocusOutlineRemoved("<style>button:focus { outline: none; } button:focus-visible { outline: 2px solid var(--ring); }</style>")).toEqual([]);
+    expect(checkFocusOutlineRemoved('<button class="focus:outline-none focus-visible:ring-2">Go</button>')).toEqual([]);
+  });
+  it("does not fire when no focus rule removes the outline", () => {
+    expect(checkFocusOutlineRemoved("<style>button:focus-visible { outline-offset: 2px; }</style>")).toEqual([]);
+  });
+});
+
+describe("focus/label precision — mention vs use, hidden controls, focus targets", () => {
+  it("a page merely MENTIONING focus:outline-none (prose/code/script) never fires", () => {
+    expect(checkFocusOutlineRemoved("<article><p>Never write <code>focus:outline-none</code> without a ring.</p></article>")).toEqual([]);
+    expect(checkFocusOutlineRemoved("<script>const cls = 'focus:outline-none';</script>")).toEqual([]);
+    expect(checkFocusOutlineRemoved('<pre>class="focus:outline-none"</pre>')).toEqual([]);
+  });
+  it("the class-attribute form still fires", () => {
+    expect(ids(checkFocusOutlineRemoved('<button class="focus:outline-none">Go</button>'))).toEqual(["focus-outline-removed"]);
+  });
+  it("outline removal on a tabindex=-1 programmatic focus target is not a removal", () => {
+    const html = '<style>#main:focus { outline: none; }</style><main id="main" tabindex="-1">content</main>';
+    expect(checkFocusOutlineRemoved(html)).toEqual([]);
+    const attrForm = '<style>[tabindex="-1"]:focus { outline: none; }</style><div tabindex="-1"></div>';
+    expect(checkFocusOutlineRemoved(attrForm)).toEqual([]);
+  });
+  it("Tailwind focus:shadow-* and focus:border-* count as visible replacements", () => {
+    expect(checkFocusOutlineRemoved('<button class="focus:outline-none focus:shadow-outline">Go</button>')).toEqual([]);
+    expect(checkFocusOutlineRemoved('<button class="focus:outline-none focus:border-2 focus:border-indigo-600">Go</button>')).toEqual([]);
+  });
+  it("outline: 0px and outline: none !important are removals, never replacements", () => {
+    const f = checkFocusOutlineRemoved("<style>a:focus { outline: 0px; } button:focus { outline: none !important; }</style>");
+    expect(ids(f)).toEqual(["focus-outline-removed"]);
+  });
+  it("a hidden or aria-hidden control needs no label (out of the a11y tree)", () => {
+    expect(checkInputUnlabeled('<input id="meal-file" type="file" accept="image/*" hidden>')).toEqual([]);
+    expect(checkInputUnlabeled('<input type="text" aria-hidden="true">')).toEqual([]);
+  });
+  it("an input inside a script template string never fires", () => {
+    expect(checkInputUnlabeled("<script>const tpl = `<input type=\"text\">`;</script>")).toEqual([]);
   });
 });
