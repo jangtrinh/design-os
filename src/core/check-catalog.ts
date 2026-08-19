@@ -23,6 +23,10 @@ export interface CatalogEntry {
   id: string;
   family: GateFamily;
   requires: "none" | "tokens";
+  /** For rules whose repairs are global-scope: the machine-readable region a
+   *  valid patch may touch. Patch validators compose allowed regions as the
+   *  UNION of per-rule subjects — never flatten "global" to "anywhere". */
+  subject?: string;
 }
 
 export const CHECK_CATALOG: readonly CatalogEntry[] = [
@@ -42,12 +46,12 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "missing-html-root", family: "layout", requires: "none" },
   { id: "nested-scroll-container", family: "layout", requires: "none" },
   { id: "root-overflow-x-hidden", family: "layout", requires: "none" },
-  { id: "sticky-hover-unguarded", family: "layout", requires: "none" },
+  { id: "sticky-hover-unguarded", family: "layout", requires: "none", subject: ":hover rule blocks inside <style> regions" },
   { id: "tap-spacing-cramped", family: "layout", requires: "none" },
   { id: "unclosed-structural-tag", family: "layout", requires: "none" },
   { id: "viewport-unit-on-body", family: "layout", requires: "none" },
   { id: "document-title", family: "a11y", requires: "none" },
-  { id: "focus-outline-removed", family: "a11y", requires: "none" },
+  { id: "focus-outline-removed", family: "a11y", requires: "none", subject: ":focus-family CSS rules and class attributes carrying focus utilities" },
   { id: "heading-empty", family: "a11y", requires: "none" },
   { id: "heading-no-h1", family: "a11y", requires: "none" },
   { id: "heading-skip", family: "a11y", requires: "none" },
@@ -59,8 +63,14 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "positive-tabindex", family: "a11y", requires: "none" },
   { id: "viewport-meta-missing", family: "a11y", requires: "none" },
   { id: "viewport-zoom-blocked", family: "a11y", requires: "none" },
+  { id: "ai-cliche-gradient", family: "taste", requires: "none" },
+  { id: "container-nesting-depth", family: "taste", requires: "none" },
+  { id: "font-scale-sprawl", family: "taste", requires: "none" },
+  { id: "mode-invisible-surface", family: "taste", requires: "none" },
+  { id: "radius-sprawl", family: "taste", requires: "none" },
+  { id: "tap-target-undersized", family: "taste", requires: "none" },
   { id: "animation-no-reduced-motion", family: "taste", requires: "none" },
-  { id: "data-numbers-not-tabular", family: "taste", requires: "none" },
+  { id: "data-numbers-not-tabular", family: "taste", requires: "none", subject: "<td>/<th> numeric cells plus one injected <style> rule in <head>" },
   { id: "equal-nested-radii", family: "taste", requires: "none" },
   { id: "focus-ring-animates-in", family: "taste", requires: "none" },
   { id: "gsap-dev-markers-shipped", family: "taste", requires: "none" },
@@ -107,8 +117,8 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "lucide-createicons", family: "autofix", requires: "none" },
   { id: "cdn-urls", family: "autofix", requires: "none" },
   { id: "duplicate-ids", family: "autofix", requires: "none" },
-  { id: "hover-media-guard", family: "autofix", requires: "none" },
-  { id: "table-tabular-nums", family: "autofix", requires: "none" },
-  { id: "focus-outline-restore", family: "autofix", requires: "none" },
+  { id: "hover-media-guard", family: "autofix", requires: "none", subject: ":hover rule blocks inside <style> regions" },
+  { id: "table-tabular-nums", family: "autofix", requires: "none", subject: "one injected <style> rule at the top of <head>" },
+  { id: "focus-outline-restore", family: "autofix", requires: "none", subject: ":focus-family CSS rules and class attributes carrying focus utilities" },
   { id: "autofix-not-clean", family: "autofix", requires: "none" },
 ] as const;

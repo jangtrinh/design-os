@@ -32,27 +32,35 @@ export type RepairScope =
   | "nodes"
   /** The offending node's subtree (layout/structural rearrangements). */
   | "subtree"
-  /** Anywhere the rule's subject appears — document-wide mechanical fixes;
-   *  these should graduate to deterministic autofixers, not model patches. */
+  /** Anywhere the rule's SUBJECT appears (the catalog's `subject` column names
+   *  it machine-readably) — document-wide mechanical fixes; these should
+   *  graduate to deterministic autofixers, not model patches. */
   | "global";
 
 export type FloorSeverity = "error" | "warning";
 
+/**
+ * Node-scoped repairs REQUIRE a nodeRef by construction — a "nodes" scope with
+ * nothing named is a blast radius a validator can neither honor nor bound.
+ * Global repairs carry no nodeRef; their region comes from the rule's catalog
+ * `subject`. A finding with no repair story declares neither field.
+ */
+export type RepairTarget =
+  | { repairScope: "nodes" | "subtree"; nodeRef: string }
+  | { repairScope: "global"; nodeRef?: undefined }
+  | { repairScope?: undefined; nodeRef?: string };
+
 /** The base shape every gate family's findings normalize to. */
-export interface FloorFindingBase {
+export type FloorFindingBase = {
   checkId: string;
   severity: FloorSeverity;
   message: string;
   /** 1-based line number when locatable; omitted for whole-document findings. */
   line?: number;
-  /** Stable locator for the offending node (see header). */
-  nodeRef?: string;
   /** The contract the artifact violated, as a short string. */
   expected?: string;
   /** The observed value, as a short string. */
   actual?: string;
   /** One imperative repair clause, authored per-rule. */
   fixHint?: string;
-  /** Declared blast radius a valid patch may touch. */
-  repairScope?: RepairScope;
-}
+} & RepairTarget;

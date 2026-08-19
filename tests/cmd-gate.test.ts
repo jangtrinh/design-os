@@ -5,7 +5,7 @@
  * family, a clean fixture that stays green, declared skips, and the envelope.
  */
 import { describe, expect, it, beforeEach } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
@@ -145,7 +145,6 @@ describe("ui gate coverage — the registry triage routes on", () => {
   });
 
   it("a project with a token file activates the tokens-gated check", () => {
-    const { mkdirSync } = require("node:fs") as typeof import("node:fs");
     mkdirSync(join(dir, "design"), { recursive: true });
     writeFileSync(join(dir, "design", "design.tokens.json"), JSON.stringify({ color: { brand: { $type: "color", $value: "#123456" } } }));
     const r = capture(["gate", "coverage", "--dir", dir, "--json"]);
@@ -183,5 +182,26 @@ describe("FloorFinding schema v1 — reference checks carry repair fields", () =
     expect(f.expected).toContain("outer = inner + padding");
     expect(f.actual).toContain("rounded-xl");
     expect(f.repairScope).toBe("nodes");
+  });
+});
+
+describe("nodeRef stability — the stuck detector's identity contract", () => {
+  it("the identity tuple is invariant under an unrelated edit ABOVE the node", () => {
+    const before = BASE.replace("<h1>Alpha</h1>", '<h1>Alpha</h1><input type="email">');
+    const after = BASE.replace("<h1>Alpha</h1>", '<h1>Alpha</h1><p>an unrelated paragraph</p><input type="email">');
+    const ref = (html: string): string => {
+      const r = capture(["gate", write(`stable-${html.length}.html`, html), "--json"]);
+      return JSON.parse(r.out).data.families.a11y.findings.find((x: { checkId: string }) => x.checkId === "input-unlabeled").nodeRef;
+    };
+    expect(ref(before)).toBe(ref(after));
+  });
+  it("two distinct unlabeled controls never share one identity", () => {
+    const bad = BASE.replace("<h1>Alpha</h1>", '<h1>Alpha</h1><input type="email"><input type="text">');
+    const r = capture(["gate", write("two-inputs.html", bad), "--json"]);
+    const refs = JSON.parse(r.out).data.families.a11y.findings
+      .filter((x: { checkId: string }) => x.checkId === "input-unlabeled")
+      .map((x: { nodeRef: string }) => x.nodeRef);
+    expect(refs).toHaveLength(2);
+    expect(new Set(refs).size).toBe(2);
   });
 });

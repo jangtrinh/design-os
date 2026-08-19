@@ -89,9 +89,9 @@ export type TasteAxis =
   | "Consistency";
 
 /** Taste findings speak the shared FloorFinding schema plus their rubric axis. */
-export interface TasteFinding extends FloorFindingBase {
+export type TasteFinding = FloorFindingBase & {
   axis: TasteAxis;
-}
+};
 
 export interface TasteLintResult {
   findings: TasteFinding[];

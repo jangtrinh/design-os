@@ -11,6 +11,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import { runGate, gateCoverage, GATE_FAMILIES } from "../core/gate.js";
 import type { GateFamily, GateOptions } from "../core/gate.js";
 import { loadTokenHexes } from "./taste-lint.js";
+import { tryDiscoverDesignSystem } from "../core/design-system.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 
 const CMD = "gate";
@@ -78,9 +79,13 @@ export const gateCommand = {
     const file = parsed.positionals[0];
     if (file === "coverage") {
       const dir = typeof parsed.flags["dir"] === "string" ? (parsed.flags["dir"] as string) : process.cwd();
+      // Resolve the DS the way every DS command does (walks up to .git) — a
+      // flat join would report "no tokens" from any subdirectory of a real
+      // project and silently deactivate the tokens-gated check.
+      const ds = tryDiscoverDesignSystem(dir);
       const project = {
-        tokensPresent: existsSync(join(dir, "design", "design.tokens.json")),
-        dsPresent: existsSync(join(dir, "design", "ds.manifest.json")),
+        tokensPresent: existsSync(ds !== undefined ? ds.tokens : join(dir, "design", "design.tokens.json")),
+        dsPresent: ds !== undefined,
       };
       const cov = gateCoverage(project);
       if (useJson) return okJsonWithExit(CMD, cov, 0);

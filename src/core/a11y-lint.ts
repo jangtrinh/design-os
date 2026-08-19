@@ -27,10 +27,10 @@ import type { FloorFindingBase } from "./finding-schema.js";
 export type A11ySeverity = "error" | "warning";
 
 /** A11y findings speak the shared FloorFinding schema plus the WCAG criterion. */
-export interface A11yFinding extends FloorFindingBase {
+export type A11yFinding = FloorFindingBase & {
   /** WCAG success criterion, e.g. "1.1.1". */
   sc: string;
-}
+};
 
 export interface A11yLintResult {
   findings: A11yFinding[];
