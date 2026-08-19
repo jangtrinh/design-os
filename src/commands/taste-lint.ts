@@ -93,7 +93,7 @@ function collectTokenHexes(node: unknown, out: Set<string>): void {
 }
 
 /** Load token hexes from a file path; returns undefined on any read/parse failure. */
-function loadTokenHexes(path: string): Set<string> | undefined {
+export function loadTokenHexes(path: string): Set<string> | undefined {
   let raw: string;
   try {
     raw = readFileSync(path, "utf8");

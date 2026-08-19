@@ -202,7 +202,7 @@ When the generate flow returns HTML, run:
 
 ```sh
 ui autofix <file.html> --write
-ui validate-layout <file.html>
+ui gate <file.html>
 ```
 
 Fix any structural errors `validate-layout` flags before passing the output to the

@@ -259,7 +259,7 @@ After the model emits each slide, immediately:
 
 ```sh
 ui autofix slides/<NN>-<role>.html --write
-ui validate-layout slides/<NN>-<role>.html
+ui gate slides/<NN>-<role>.html
 ```
 
 Fix any structural-error findings before moving on to the next slide. If `ui

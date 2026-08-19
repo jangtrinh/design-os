@@ -173,7 +173,7 @@ a `## Never` clause; prefer choices that express `## Always`.
    deterministic structural check on the edited file:
 
    ```bash
-   ui validate-layout <variant.html> --json
+   ui gate <variant.html> --json
    ```
 
    This catches structural breakage a surgical edit can introduce — unbalanced or

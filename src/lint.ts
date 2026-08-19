@@ -10,4 +10,5 @@ export * from "./core/layout-lint.js";
 export * from "./core/a11y-lint.js";
 export * from "./core/taste-lint.js";
 export * from "./core/content-checks.js";
+export * from "./core/gate.js";
 export * from "./core/ds-usage-lint.js";

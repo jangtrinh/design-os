@@ -128,7 +128,7 @@ a `## Never` clause; prefer choices that express `## Always`.
    machine check. Mirror the gate that `iterate.md` and `redesign.md` already run:
 
    ```bash
-   ui validate-layout <variant.html> --json
+   ui gate <variant.html> --json
    ```
 
    **Hard rule:** if it reports any `error`-severity finding (missing `<html>`/`<body>`,
@@ -168,7 +168,7 @@ Defer to `templates/workflows/critique.md`. A refine pass is only "done" when:
 
 - The file parses as valid HTML with CDN links intact.
 - `ui autofix` reports zero findings on a re-run (idempotence proof).
-- `ui validate-layout` reports zero `error`-severity findings introduced by refine
+- `ui gate` reports zero `error`-severity findings introduced by refine
   (pre-existing source errors are exempt per step 4d).
 - The critique verdict is **pass** across all 7 axes; axes that were not the focus of
   refine must still not regress against the baseline.

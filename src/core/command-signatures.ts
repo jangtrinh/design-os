@@ -205,6 +205,19 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  gate: {
+    summary: "Composed floor judge — every linter family plus autofix dry-run, one verdict",
+    signature: {
+      summary: "Run all linter families + autofix dry-run over an HTML file; exit 1 on any error-severity finding",
+      positionals: [htmlFile("HTML file to gate")],
+      flags: [
+        { name: "tokens", type: "string", summary: "DS token file; enables the taste Consistency raw-hex check" },
+        { name: "skip", type: "string", summary: "Comma-separated <family>:<reason> pairs — declared partial gating" },
+      ],
+      errorCodes: [...IO_CODES],
+    },
+  },
+
   "ds-usage-lint": {
     summary: "ENFORCEMENT gate — does the page use the design system's own tokens? (not a conformance claim)",
     signature: {
