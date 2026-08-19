@@ -118,3 +118,98 @@ describe("runAutofix — floor repairs are registered", () => {
     expect(checkFocusOutlineRemoved(html)).toEqual([]);
   });
 });
+
+// ─── Adversarial shapes from the stage-4 review — every output must stay structural ───
+
+/** Brace balance with string literals blanked — a cheap "does the CSS still close" probe. */
+function cssBraceBalanced(html: string): boolean {
+  for (const m of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)) {
+    const css = (m[1] ?? "").replace(/(["'])(?:\\.|(?!\1)[^\\\n])*\1/g, (s) => " ".repeat(s.length));
+    let depth = 0;
+    for (const ch of css) {
+      if (ch === "{") depth++;
+      else if (ch === "}") depth--;
+      if (depth < 0) return false;
+    }
+    if (depth !== 0) return false;
+  }
+  return true;
+}
+
+describe("hover-media-guard — structural safety", () => {
+  it("never engulfs base declarations of a CSS-nested rule (selector with ';' is not a selector)", () => {
+    const html = `${VIEWPORT}<style>.card { padding: 2rem; background: var(--surface); &:hover { transform: translateY(-2px); } }</style>`;
+    const { html: out } = fixHoverMediaGuard(html);
+    expect(out).toContain("padding: 2rem; background: var(--surface);");
+    expect(out).not.toMatch(/@media \(hover: hover\) \{ padding/);
+    expect(cssBraceBalanced(out)).toBe(true);
+  });
+
+  it("a '}' inside a CSS string cannot produce an unclosed block", () => {
+    const html = `${VIEWPORT}<style>.code:hover { content: "} }"; color: red; } .other { color: blue; }</style>`;
+    const { html: out } = fixHoverMediaGuard(html);
+    expect(cssBraceBalanced(out)).toBe(true);
+    expect(out).toContain(".other { color: blue; }");
+    expect(checkStickyHoverUnguarded(out)).toEqual([]);
+  });
+
+  it("a selector list mixing :hover with a non-hover state is skipped (miss, never a wrap)", () => {
+    const html = `${VIEWPORT}<style>.c:hover, .c.is-active { transform: scale(1.05); }</style>`;
+    const { html: out } = fixHoverMediaGuard(html);
+    expect(out).toBe(html); // .is-active styling must not move behind hover capability
+  });
+});
+
+describe("table-tabular-nums — placement safety", () => {
+  const TABLE = "<table><tr><td>1,204</td></tr><tr><td>982</td></tr><tr><td>1,410</td></tr></table>";
+
+  it("never injects into a <style> living inside a script string (fresh head block instead)", () => {
+    const html = `<head><title>t</title></head><body><script>document.body.insertAdjacentHTML('beforeend', '<style>.x{color:red}</style>');</script>${TABLE}</body>`;
+    const { html: out, applied } = fixTableTabularNums(html);
+    expect(applied).toBe(true);
+    expect(out).not.toMatch(/insertAdjacentHTML\('beforeend', '<style>\n/);
+    expect(out).toMatch(/<head[^>]*>\s*<style>td, th \{ font-variant-numeric: tabular-nums; \}<\/style>/);
+  });
+
+  it("ignores commented-out/noscript style blocks — the injected rule must be live", () => {
+    const html = `<head><title>t</title></head><body><!-- <style>.dead{}</style> --><noscript><style>.ns{}</style></noscript>${TABLE}</body>`;
+    const { html: out } = fixTableTabularNums(html);
+    expect(out).toMatch(/<head[^>]*>\s*<style>td, th \{ font-variant-numeric: tabular-nums; \}<\/style>/);
+  });
+});
+
+describe("focus-outline-restore — markup-only class pass", () => {
+  it("never edits documentation copy in <pre>/<code>, and never touches data-class/:class", () => {
+    const html = '<button class="focus:outline-none">Go</button>' +
+      '<pre><code>&lt;button class="focus:outline-none"&gt;</code></pre>' +
+      '<div data-class="focus:outline-none ring-0"></div>' +
+      '<div :class="btn focus:outline-none"></div>';
+    const { html: out } = fixFocusOutlineRestore(html);
+    expect(out).toContain('<pre><code>&lt;button class="focus:outline-none"&gt;</code></pre>');
+    expect(out).toContain('data-class="focus:outline-none ring-0"');
+    expect(out).toContain(':class="btn focus:outline-none"');
+    expect(out).toContain('<button class="">Go</button>');
+  });
+
+  it("leaves attributes untouched when no token was removed (no diff noise)", () => {
+    const html = '<style>a:focus{outline:none}</style><div class="grid  grid-cols-2\n gap-4  p-6">x</div>';
+    const { html: out } = fixFocusOutlineRestore(html);
+    expect(out).toContain('class="grid  grid-cols-2\n gap-4  p-6"');
+  });
+
+  it("a real ring in any focus rule means the checker is silent — the repair must not act at all", () => {
+    // Shared-evidence semantics: outline: 0px solid transparent IS a ring, so the
+    // checker does not fire and the aligned repair leaves the whole document alone.
+    const html = "<style>a:focus { outline: none; } b:focus-visible { outline: 0px solid transparent; }</style>";
+    expect(fixFocusOutlineRestore(html).applied).toBe(false);
+  });
+
+  it("deletes only the whole-value kill and keeps sibling declarations and non-focus rules", () => {
+    const html = "<style>a:focus { outline: 0px; color: red; } .brand { outline: 0px solid gold; }</style>";
+    const { html: out, applied } = fixFocusOutlineRestore(html);
+    expect(applied).toBe(true);
+    expect(out).toContain("color: red");
+    expect(out).toContain("outline: 0px solid gold"); // non-focus rule untouched
+    expect(out).not.toMatch(/a:focus \{ outline: 0px;/);
+  });
+});

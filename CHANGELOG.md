@@ -5,11 +5,16 @@
 ### Added
 - `ui autofix` gains three floor repairs, each gated by the same check function its
   linter runs (a repair the checker cannot confirm fixed nothing): `hover-media-guard`
-  wraps raw `:hover` rules in `@media (hover: hover)` in place (cascade order kept;
-  nesting inside an unrelated media query stays valid); `table-tabular-nums` injects
-  the one declaration the lint prescribes; `focus-outline-restore` deletes
-  outline-killing focus declarations and `focus:outline-none` utility tokens so the
-  browser ring returns — programmatic focus targets (`tabindex="-1"`) are left alone.
+  wraps raw flat `:hover` rules in `@media (hover: hover)` in place (cascade order
+  kept; wrapping inside an unrelated media query is valid nested media; CSS-nested
+  rules and mixed selector lists are skipped as misses — structural safety over
+  coverage, and string literals are blanked so a `}` in `content:"…"` can never
+  mis-pair a brace); `table-tabular-nums` emits a fresh one-line `<style>` in
+  `<head>` (never adopts a block that may live in a script string or a comment);
+  `focus-outline-restore` deletes whole-value outline kills and
+  `focus:outline-none` utility tokens so the browser ring returns — programmatic
+  focus targets (`tabindex="-1"`), documentation copy in `<pre>/<code>`, and
+  framework values (`data-class`/`:class`) are all left alone.
   Floor repairs rewrite CSS and attribute values only; copy text is never edited
   (owner decision), so punctuation and label violations still route through refine.
 - `generation-craft-defaults.md` gains a "Machine floors — emit to pass" section: the

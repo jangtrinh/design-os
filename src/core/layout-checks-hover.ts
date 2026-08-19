@@ -24,6 +24,13 @@ import { hasViewportMeta } from "./a11y-checks.js";
 const WIDTH_MEDIA = /@media[^{]*\(\s*(?:max|min)-width/i;
 const MOBILE_INTENT = /\b(?:sm|md|lg|xl|2xl):[a-z[]/i;
 
+/** Blank CSS string literals to spaces, length-preserving — a `}` inside
+ *  `content: "…"` must never pair a brace. Shared by the checker's mask and the
+ *  hover-media-guard repair, so both walk the same structure. */
+export function blankStringLiterals(css: string): string {
+  return css.replace(/(["'])(?:\\.|(?!\1)[^\\\n])*\1/g, (s) => " ".repeat(s.length));
+}
+
 /** Opening of a hover-capability media guard: @media … (hover: hover) / (any-hover: hover) … { */
 const HOVER_GUARD_HEAD = /@media[^{]*\(\s*(?:any-)?hover\s*:\s*hover\s*\)[^{]*\{/gi;
 
@@ -50,8 +57,9 @@ export function stripHoverGuardedBlocks(css: string): string {
 
 export function checkStickyHoverUnguarded(html: string): LayoutFinding[] {
   if (!hasViewportMeta(html) && !WIDTH_MEDIA.test(html) && !MOBILE_INTENT.test(html)) return [];
-  // CSS comments are blanked first — a ":hover" mentioned in prose is not a rule.
-  const css = cssRegions(html).replace(/\/\*[\s\S]*?\*\//g, (m) => " ".repeat(m.length));
+  // CSS comments and string literals are blanked first — a ":hover" mentioned in
+  // prose is not a rule, and a "}" inside content:"…" must not close a guard early.
+  const css = blankStringLiterals(cssRegions(html).replace(/\/\*[\s\S]*?\*\//g, (m) => " ".repeat(m.length)));
   const unguarded = stripHoverGuardedBlocks(css);
   const count = [...unguarded.matchAll(/:hover\b/gi)].length;
   if (count === 0) return [];
