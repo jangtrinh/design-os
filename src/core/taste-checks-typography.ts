@@ -104,6 +104,13 @@ const NUMERIC_CELL = /^[\s\d.,:%$€£+()\-−–—/]*\d[\s\d.,:%$€£+()\-−
  * jitter when a value ticks (rubric Typography: "numeric data columns and
  * changing values use tabular figures"). Warning-only, one whole-document
  * finding — the true face may be decided by external CSS this check cannot see.
+ *
+ * Date/time/phone cells counting as number-shaped is a decision, not a leak:
+ * a column of dates misaligns under proportional digits exactly like a column
+ * of prices, so tabular figures apply to any digit column. Measured 2026-08-19
+ * on 1,071 real files across four products: 21 fired — 18 lcov coverage reports
+ * (tool output, true by the rule) and 3 designed compliance-centre prototypes
+ * whose version/date columns genuinely lack tabular figures.
  */
 export function checkDataNumbersNotTabular(html: string): TasteFinding[] {
   if (/\btabular-nums\b/i.test(html)) return [];

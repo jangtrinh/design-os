@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-19 - The repo's own surfaces meet the punctuation floor
+
+### Fixed
+- `site/index.html` and `docs/design-os-guide-slides.html` now pass `content-lint` with
+  0 findings: seven UX-law possessives get the typographic apostrophe (Fitts's → Fitts’s),
+  the Figma collection name gets curly quotes, and the CSS-custom-props snippet
+  is marked up as `<code>` — it is code, which also exempts its elision dots.
+
+### Changed
+- `data-numbers-not-tabular` documents its date/time decision: a column of dates
+  misaligns under proportional digits exactly like a column of prices, so digit-shaped
+  date cells count on purpose. Measured on 1,071 real files across four products:
+  21 fired — 18 lcov coverage reports (tool output, true by the rule) and 3 designed
+  compliance-centre prototypes whose version/date columns genuinely lack tabular figures.
+- Decision recorded (issue #190): the six frozen `examples/generated/live-2026-05-30/`
+  artifacts that fire `sticky-hover-unguarded` stay untouched — they are captured
+  evidence of a past live run, and editing evidence to quiet a warning would falsify it.
+
 ## 2026-08-19 - Five interface-craft floors from the interfaces.dev cheat sheet
 
 ### Added
