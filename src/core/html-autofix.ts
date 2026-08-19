@@ -1,7 +1,7 @@
 /**
  * Deterministic HTML autofix rules — pure string/regex transforms, zero deps.
  *
- * Five rules run in sequence; each returns the (possibly modified) HTML and a
+ * The registered rules run in sequence; each returns the (possibly modified) HTML and a
  * boolean indicating whether it fired. runAutofix threads the HTML through all
  * five and returns the final string plus a findings list.
  *
@@ -11,6 +11,7 @@
  *     the /api/unsplash/search fetch step is removed (dead endpoint in ease-design).
  */
 import { getImageFallbackScriptInline } from "./html-img-fallback-script.js";
+import { fixHoverMediaGuard, fixTableTabularNums, fixFocusOutlineRestore } from "./html-autofix-floor-repairs.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -184,9 +185,14 @@ const RULES = [
   { id: "lucide-createicons",fn: fixLucideCreateIcons, desc: "Added lucide.createIcons() call" },
   { id: "cdn-urls",          fn: fixCdnUrls,          desc: "Fixed outdated CDN URLs" },
   { id: "duplicate-ids",     fn: fixDuplicateIds,     desc: "Fixed duplicate element IDs" },
+  // Floor repairs — CSS/attribute-only fixes for linted floors; each is gated by
+  // its own checker (see html-autofix-floor-repairs.ts) and never touches copy.
+  { id: "hover-media-guard",     fn: fixHoverMediaGuard,     desc: "Wrapped raw :hover rules in @media (hover: hover)" },
+  { id: "table-tabular-nums",    fn: fixTableTabularNums,    desc: "Added tabular figures to numeric table columns" },
+  { id: "focus-outline-restore", fn: fixFocusOutlineRestore, desc: "Restored the focus ring (removed outline-killing declarations)" },
 ] as const;
 
-/** Apply all five rules in order. Returns fixed HTML + list of rules that fired. */
+/** Apply every rule in order. Returns fixed HTML + list of rules that fired. */
 export function runAutofix(html: string): AutofixResult {
   let current = html;
   const findings: AutofixFinding[] = [];

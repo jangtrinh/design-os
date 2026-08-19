@@ -993,6 +993,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-19 | **The floors repair themselves** — `ui autofix` wraps unguarded `:hover` in `@media (hover: hover)`, injects `tabular-nums` on numeric tables, and restores killed focus rings, each repair gated by its own linter check and confirmed silent after; generation-craft-defaults now teaches the floors up front so variants are born passing | `#195` |
 | 2026-08-19 | **Three more floors: labels, focus rings, concentric corners** — `input-unlabeled` + `focus-outline-removed` (a11y errors, WCAG 3.3.2/2.4.7), `equal-nested-radii` (taste warning; the concentric rule finally gets its linter), and the critique workflow walks every state, slows motion to 10%, and reports considered-but-rejected fixes instead of padding suggestions | `#193` |
 | 2026-08-19 | **Kit typography polish** — kit titles set `text-wrap: balance`, bodies `text-wrap: pretty`, the Avatar photo carries a token-driven 1px hairline outline, breadcrumb underlines clear descenders (`from-font` + `skip-ink`); a kit floor test pins every declaration so a reverted emitter goes red | `#192` |
 | 2026-08-19 | **The repo's own surfaces meet the punctuation floor** — the site and guide slides pass `content-lint` clean (typographic apostrophes, curly quotes, the CSS snippet marked up as `<code>`); `data-numbers-not-tabular` validated on 1,071 real files (3 genuine designed-UI positives) and its date-column behavior recorded as a decision | `#191` |

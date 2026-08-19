@@ -1,5 +1,5 @@
 /**
- * `ui autofix` command — apply 5 deterministic HTML fix rules.
+ * `ui autofix` command — apply the deterministic HTML fix rules.
  *
  * Default: fixed HTML → stdout, findings summary → stderr.
  * --write: overwrite the input file in place (opt-in side effect).
@@ -32,6 +32,12 @@ Rules applied (in order):
   lucide-createicons Insert lucide.createIcons() when Lucide icons are used
   cdn-urls           Replace versioned Lucide CDN URLs with @latest
   duplicate-ids      Append -N suffix to duplicate id="" values
+  hover-media-guard     Wrap raw :hover rules in @media (hover: hover) (mobile-intent docs)
+  table-tabular-nums    Add font-variant-numeric: tabular-nums for numeric table columns
+  focus-outline-restore Remove outline-killing focus declarations so the browser ring returns
+
+Floor repairs are gated by the same checks the linters run and rewrite only
+CSS and attribute values — copy text is never edited.
 
 Error codes:
   BAD_ARG        Missing <file.html> argument
@@ -49,7 +55,7 @@ Notes:
 
 export const autofixCommand = {
   name: CMD,
-  summary: "Apply 5 deterministic HTML fix rules (viewport, imgs, Lucide, CDN, dup-ids)",
+  summary: "Apply deterministic HTML fix rules (viewport, imgs, Lucide, CDN, dup-ids, floor repairs)",
   hasSubcommands: false,
   help: AUTOFIX_HELP,
 

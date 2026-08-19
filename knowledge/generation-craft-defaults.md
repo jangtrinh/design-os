@@ -87,6 +87,28 @@ Use the lowest sufficient tier in `motion-craft.md`.
 Motion must serve hierarchy, causality, feedback, or atmosphere. Animation quantity is never a
 quality metric.
 
+## Machine floors — emit to pass, not to be repaired
+
+Every candidate runs the full linter set and the autofixer before critique, and the
+critique gate caps any axis with a linter finding below the pass threshold. A variant
+born violating a floor spends a bounded refine round on what should have been emitted
+correctly. Emit these from the first keystroke:
+
+- Real `:hover` styling sits inside `@media (hover: hover)`; specimen states use static
+  classes. Tailwind `hover:` utilities already comply.
+- Numeric data columns and changing values carry `font-variant-numeric: tabular-nums`
+  (or a monospace face).
+- Headings set `text-wrap: balance`; running copy sets `text-wrap: pretty`.
+- Every text control has a programmatic label (`<label for>`, a wrapping label, or
+  `aria-label`) — a placeholder is never a label. Never cancel paste.
+- Never remove a focus outline without a visible replacement ring; a `tabindex="-1"`
+  programmatic focus target is the one legitimate suppression.
+- Nested rounded corners stay concentric (outer = inner + padding); transitions name
+  exact properties, never `all`; animation ships with a `prefers-reduced-motion` path.
+- Copy is typeset: `…` `’` curly quotes; button labels start with a verb and repeat the
+  consequence (never a bare OK/Yes) — the autofixer repairs CSS and attributes only,
+  so copy violations always cost a refine round.
+
 ## Custom controls
 
 Custom appearance is the default. Custom behavior must be earned.

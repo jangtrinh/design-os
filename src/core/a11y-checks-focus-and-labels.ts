@@ -85,8 +85,8 @@ const TW_REPLACED = /\bfocus(?:-visible|-within)?:(?:ring|shadow|border|outline-
  * A programmatic focus target — a skip-link/dialog destination focused from
  * script with tabindex="-1". Suppressing its ring while real controls keep the
  * browser default is recommended practice, not a removal (WCAG techniques).
- */
-function isProgrammaticFocusTarget(selector: string, markup: string): boolean {
+ *  Exported for the paired repair (focus-outline-restore) — checker and repair share it. */
+export function isProgrammaticFocusTarget(selector: string, markup: string): boolean {
   if (/\[tabindex\s*=\s*["']?-1/i.test(selector)) return true;
   const id = /#([\w-]+)/.exec(selector)?.[1];
   if (id === undefined) return false;
