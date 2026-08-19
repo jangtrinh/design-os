@@ -58,11 +58,14 @@ describe("registry shape", () => {
     expect(new Set(commands).size).toBe(OUTCOME_BEARING.length);
   });
 
-  it("covers the nine commands spec 006 locked as outcome-bearing", () => {
-    expect(OUTCOME_BEARING).toHaveLength(9);
+  it("covers the commands locked as outcome-bearing (spec 006's nine, plus the composed gate)", () => {
+    // `ui gate` composes the four lint families into one lint_run producer — the
+    // same event type the locked nine already record, extended, not relaxed.
+    expect(OUTCOME_BEARING).toHaveLength(10);
     expect(OUTCOME_BEARING.map((s) => s.command)).toEqual([
       "ui a11y-lint",
       "ui content-lint",
+      "ui gate",
       "ui taste-lint",
       "ui validate-layout",
       "ui audit",

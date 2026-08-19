@@ -4,6 +4,8 @@ description: "Extract a portable DESIGN.md spec folder from a live URL. Use when
 
 # Workflow — `/ui:from-url`
 
+<!-- gate-exempt: mirror-evidence — outputs snapshot a third-party site; their violations are evidence, and gating them would attribute foreign defects to us -->
+
 ## Title
 
 `/ui:from-url <url> [--name <slug>] [--out-dir <path>] [--force]` —

@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-08-19 - One composed judge: ui gate
+
+### Added
+- `ui gate <file.html>` — the composed floor judge (advisory:
+  plans/reports/advisory-260819-1536-ui-gate-unification.md, Fable + Kongming). One call
+  runs validate-layout, a11y-lint, taste-lint and content-lint plus an autofix DRY-RUN
+  cleanliness check (`autofix-not-clean` — the mutation stays `ui autofix --write`).
+  Read-only; exit 1 on any error-severity finding; `--skip <family>:<reason>` makes
+  partial gating a declared, auditable decision — a reasonless skip is refused.
+  `runGate` ships on the public `ease-design/lint` subpath.
+- A workflow-coverage test: every HTML-emitting workflow either calls `ui gate` or
+  carries a `<!-- gate-exempt: <reason> -->` marker (from-url mirrors third-party
+  evidence; extract emits JSON; design/to-figma live on the Figma canvas) — a future
+  workflow cannot silently recreate the 3-of-4 gate hole.
+
+### Changed
+- The critique workflow's excellence correctness gate — the funnel every HTML workflow
+  defers to — now runs `ui gate`; it previously ran layout + taste only, so a11y and
+  content floors could escape on any deferring workflow's output.
+- generate, redesign, refine, iterate, from-ref, figma, slides, chart and diagram all
+  judge through `ui gate` (superset-only swaps: generate keeps `ds-usage-lint` +
+  `ds a11y`; chart/diagram keep their grammar linters).
+- The chart/diagram golden corpus now passes the composed gate in its own tests — the
+  claim its header always made. Getting there exposed a real `fixDuplicateIds` false
+  positive (issue #196): `data-focal-id="…"` counted as an `id=` occurrence, flagging
+  all 28 goldens; ids are now scanned on a style/script/comment-blanked mask with the
+  attribute name anchored, which also stops a CSS `[id="x"]` selector renaming the
+  element it targets. Both #196 halves close.
+
+
 ## 2026-08-19 - The floors repair themselves, and generation is told to be born passing
 
 ### Added

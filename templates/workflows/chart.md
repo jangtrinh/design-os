@@ -65,15 +65,15 @@ One HTML file, self-contained, openable offline, no network calls, no `<script>`
 Run in this order; do not proceed past a failing gate without fixing the chart or disclosing why it cannot pass:
 
 1. **`ui chart lint <file.html>`** — the chart contract: grammar value, owned SVG, accessible name, baseline declaration, series identity and labelling, no dual value axis, and `hardcoded-svg-color`.
-2. **`ui a11y-lint <file.html>`** — the Tier-1 static accessibility gate every shipped HTML artifact runs.
+2. **`ui gate <file.html>`** — the composed floor judge every shipped HTML artifact runs (layout, a11y, taste, content families plus the autofix dry-run in one verdict).
 3. **`ui ds-usage-lint <file.html>`** — proves the CSS draws on real design-system tokens. Note the division of labour: it reads CSS declarations only, so a colour in an SVG presentation attribute is invisible to it — `ui chart lint` covers that gap. Neither substitutes for the other.
-4. **`ui autofix <file.html>`** — deterministic repairs only; it never rewrites inline `<svg>`.
+4. **`ui autofix <file.html> --write`** — deterministic repairs only (run BEFORE the gate; the gate's autofix family then confirms a re-run is a no-op); it never rewrites inline `<svg>`.
 
 ## 5. Critique against the taste rubric and revise
 
 A chart is critiqued the same way as any other generation — there is no separate, chart-only rubric:
 
-1. Run `ui taste-lint <file.html>` and fix any findings before scoring.
+1. The gate already ran taste-lint; fix any findings it reported before scoring.
 2. Score every applicable axis from the full **6+1 axis taste rubric** in `knowledge/taste-rubric.md` — Layout, Typography, Spacing, Motion, Iconography, Depth/Surface, plus Consistency — against the same **≥ 7/10 gate** used everywhere else. Motion is rarely applicable to a static chart; mark it not-applicable rather than scoring it against a criterion it cannot meet.
 3. Apply the grammar's own invariants (baseline policy, density budget, axis rules) as part of Layout and Consistency, not as separate ad hoc axes.
 

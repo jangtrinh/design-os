@@ -29,6 +29,7 @@ export interface OutcomeCommandSpec {
 export const OUTCOME_BEARING: readonly OutcomeCommandSpec[] = [
   { command: "ui a11y-lint",       file: "src/commands/a11y-lint.ts",           eventType: "lint_run",          condition: "every successful run (a clean pass is an outcome)" },
   { command: "ui content-lint",    file: "src/commands/content-lint.ts",        eventType: "lint_run",          condition: "every successful run" },
+  { command: "ui gate",            file: "src/commands/gate.ts",                eventType: "lint_run",          condition: "every successful run (the composed floor judge)" },
   { command: "ui taste-lint",      file: "src/commands/taste-lint.ts",          eventType: "lint_run",          condition: "every successful run" },
   { command: "ui validate-layout", file: "src/commands/validate-layout.ts",     eventType: "lint_run",          condition: "every successful run" },
   { command: "ui audit",           file: "src/commands/audit.ts",               eventType: "lint_run",          condition: "every successful run (total→errorCount)" },

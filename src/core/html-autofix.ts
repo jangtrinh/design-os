@@ -143,38 +143,48 @@ export function fixCdnUrls(html: string): { html: string; applied: boolean } {
  * that were introduced by a naive rename of the first run.
  */
 export function fixDuplicateIds(html: string): { html: string; applied: boolean } {
+  // Only REAL id attributes count: scan a mask with style/script/comment regions
+  // blanked (a CSS [id="x"] selector or an id in a script string is not an
+  // element), and anchor the attribute name so data-*-id never matches. The
+  // chart goldens' data-focal-id and a [id="dlg"] selector both burned this.
+  const blankKeepLen = (m: string): string => " ".repeat(m.length);
+  const mask = html
+    .replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, blankKeepLen)
+    .replace(/<!--[\s\S]*?-->/g, blankKeepLen);
+  const ID_ATTR = /(?<![-\w:])id=(["'])([^"']+)\1/g;
+
   // Collect the full set of existing ids before any rewriting.
   const existingIds = new Set<string>();
-  for (const m of html.matchAll(/\bid=(["'])([^"']+)\1/g)) {
+  for (const m of mask.matchAll(ID_ATTR)) {
     existingIds.add(m[2] ?? "");
   }
 
   const seenCounts = new Map<string, number>();
-  let applied = false;
+  const edits: Array<{ start: number; end: number; text: string }> = [];
 
-  const fixed = html.replace(/\bid=(["'])([^"']+)\1/g, (_match, quote: string, id: string) => {
+  for (const m of mask.matchAll(ID_ATTR)) {
+    const quote = m[1] ?? '"';
+    const id = m[2] ?? "";
     const count = seenCounts.get(id) ?? 0;
     seenCounts.set(id, count + 1);
-
-    if (count === 0) {
-      // First occurrence — keep as-is.
-      return _match;
-    }
+    if (count === 0) continue; // first occurrence — keep as-is
 
     // Find the lowest suffix N (starting at count) such that `id-N` is not
-    // already present in the document. Add the chosen candidate to the set so
-    // subsequent passes within this same replace call won't reuse it.
+    // already present in the document, and remember it so later duplicates in
+    // this same pass won't reuse it.
     let n = count;
     while (existingIds.has(`${id}-${n}`)) {
       n++;
     }
     const newId = `${id}-${n}`;
     existingIds.add(newId);
-    applied = true;
-    return `id=${quote}${newId}${quote}`;
-  });
+    edits.push({ start: m.index, end: m.index + m[0].length, text: `id=${quote}${newId}${quote}` });
+  }
 
-  return { html: fixed, applied };
+  // Positions come from the mask; edits land on the original (lengths match).
+  let fixed = html;
+  for (const e of edits.reverse()) fixed = fixed.slice(0, e.start) + e.text + fixed.slice(e.end);
+  return { html: fixed, applied: edits.length > 0 };
 }
 
 // ─── Rule registry + orchestrator ────────────────────────────────────────────
