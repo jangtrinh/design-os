@@ -27,7 +27,7 @@ const markup = `<div class="ui-kit ui-avatar">
     .ui-avatar__face--sm { width: 1.75rem; height: 1.75rem; font-size: var(--font-size-xs); }
     .ui-avatar__face--md { width: 2.25rem; height: 2.25rem; font-size: var(--font-size-sm); }
     .ui-avatar__face--lg { width: 3rem;    height: 3rem;    font-size: var(--font-size-md); }
-    .ui-avatar__img { width: 100%; height: 100%; object-fit: cover; }
+    .ui-avatar__img { width: 100%; height: 100%; object-fit: cover; outline: 1px solid color-mix(in oklab, var(--color-foreground) 8%, transparent); outline-offset: -1px; }
   </style>
   <div class="ui-avatar__row">
     <span class="ui-avatar__cap">Sizes</span>
@@ -53,7 +53,7 @@ export const avatar: KitComponent = {
     "State=Static",
   ],
   tokensUsed: [
-    "color.accent", "color.accent-foreground", "color.border", "color.muted-foreground",
+    "color.accent", "color.accent-foreground", "color.border", "color.foreground", "color.muted-foreground",
     "radius.full",
     "font-family.body", "font-weight.semibold",
     "font-size.xs", "font-size.sm", "font-size.md",

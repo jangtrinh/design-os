@@ -22,9 +22,9 @@ const markup = `<div class="ui-kit ui-card">
       box-shadow: var(--elevation-card-offset-x) var(--elevation-card-offset-y) var(--elevation-card-blur) var(--elevation-card-spread) var(--elevation-card-color);
     }
     .ui-card__head { display: grid; gap: var(--space-1); }
-    .ui-card__title { font-family: var(--font-family-display); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+    .ui-card__title { font-family: var(--font-family-display); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); text-wrap: balance; }
     .ui-card__sub { font-size: var(--font-size-xs); color: var(--color-muted-foreground); }
-    .ui-card__body { font-size: var(--font-size-sm); line-height: 1.5; }
+    .ui-card__body { font-size: var(--font-size-sm); line-height: 1.5; text-wrap: pretty; }
     .ui-card__foot { display: flex; gap: var(--space-2); align-items: center; }
     .ui-card__btn {
       font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); cursor: pointer;

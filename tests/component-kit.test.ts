@@ -284,3 +284,52 @@ describe("component-kit — token-only boundary holds on Table", () => {
     }
   });
 });
+
+// ─── Typography-polish floor (interfaces.dev; gap e1690's emitter half) ─────────
+//
+// The paired-standard rule: these emitters practise the standard, and THIS test is
+// the check that fails without it. Titles balance their line breaks, running copy
+// wraps pretty, the kit's real photo carries the hairline outline, and drawn
+// underlines clear descenders. Asserted per-rule against the emitters' own CSS so
+// a reverted declaration goes red here, not in a reviewer's eyeball.
+describe("component-kit — typography-polish floor", () => {
+  const byName = (name: string): string => COMPONENT_KIT.find((c) => c.name === name)!.markup;
+
+  it("every kit title rule balances its wrap (text-wrap: balance)", () => {
+    for (const [name, cls] of [
+      ["Display/Card", ".ui-card__title"], ["Overlay/Dialog", ".ui-dialog__title"],
+      ["Display/Toast", ".ui-toast__title"], ["Display/Alert", ".ui-alert__title"],
+      ["Overlay/Popover", ".ui-pop__title"],
+    ] as const) {
+      const m = byName(name);
+      expect(m, `${name} ${cls} lacks text-wrap: balance`).toMatch(
+        new RegExp(`${cls.replace(/[.$]/g, "\\$&")}\\s*\\{[^}]*text-wrap:\\s*balance`),
+      );
+    }
+  });
+
+  it("every kit body/description rule wraps pretty (text-wrap: pretty)", () => {
+    for (const [name, cls] of [
+      ["Display/Card", ".ui-card__body"], ["Overlay/Dialog", ".ui-dialog__body"],
+      ["Display/Toast", ".ui-toast__body"], ["Display/Alert", ".ui-alert__body"],
+      ["Overlay/Popover", ".ui-pop__body"],
+    ] as const) {
+      const m = byName(name);
+      expect(m, `${name} ${cls} lacks text-wrap: pretty`).toMatch(
+        new RegExp(`${cls.replace(/[.$]/g, "\\$&")}\\s*\\{[^}]*text-wrap:\\s*pretty`),
+      );
+    }
+  });
+
+  it("the avatar photo carries the 1px hairline outline, inset by -1px", () => {
+    const m = byName("Display/Avatar");
+    expect(m).toMatch(/\.ui-avatar__img\s*\{[^}]*outline:\s*1px solid color-mix\(in oklab, var\(--color-foreground\) 8%, transparent\)/);
+    expect(m).toMatch(/\.ui-avatar__img\s*\{[^}]*outline-offset:\s*-1px/);
+  });
+
+  it("breadcrumb underlines clear descenders (from-font + skip-ink)", () => {
+    const m = byName("Structure/Breadcrumb");
+    expect(m).toMatch(/\.ui-bc__link\s*\{[^}]*text-underline-position:\s*from-font/);
+    expect(m).toMatch(/\.ui-bc__link\s*\{[^}]*text-decoration-skip-ink:\s*auto/);
+  });
+});

@@ -28,8 +28,8 @@ const markup = `<div class="ui-kit ui-alert">
     .ui-alert__box--warning .ui-alert__dot { background: var(--color-warning); }
     .ui-alert__box--danger .ui-alert__dot { background: var(--color-danger); }
     .ui-alert__text { display: grid; gap: var(--space-1); }
-    .ui-alert__title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-    .ui-alert__body { font-size: var(--font-size-xs); color: var(--color-muted-foreground); line-height: 1.5; }
+    .ui-alert__title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-wrap: balance; }
+    .ui-alert__body { font-size: var(--font-size-xs); color: var(--color-muted-foreground); line-height: 1.5; text-wrap: pretty; }
     .ui-alert__action {
       font: inherit; font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); cursor: pointer;
       align-self: center; white-space: nowrap; padding: var(--space-1) var(--space-3);

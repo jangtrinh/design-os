@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-19 - Kit typography polish: balanced titles, pretty bodies, hairline photos
+
+### Changed
+- Every kit title rule (`Card`, `Dialog`, `Toast`, `Alert`, `Popover`) sets
+  `text-wrap: balance`; every body/description rule sets `text-wrap: pretty` — headings
+  stop ragging on one orphan word, running copy stops leaving widows.
+- The Avatar photo carries the hairline image outline: `1px` of
+  `color-mix(in oklab, var(--color-foreground) 8%, transparent)` at `outline-offset: -1px`,
+  so a light photo reads bounded in light mode and a dark one in dark mode — one
+  token-driven declaration instead of a per-mode pair.
+- Breadcrumb links set `text-underline-position: from-font` +
+  `text-decoration-skip-ink: auto`, so the hover underline clears descenders.
+- Paired-standard rule honored in-kind: a kit floor test asserts each declaration
+  per component, so a reverted emitter goes red in CI (interfaces.dev adoption,
+  gap e1690's emitter half; the knowledge half stays in the librarian queue).
+
 ## 2026-08-19 - The repo's own surfaces meet the punctuation floor
 
 ### Fixed

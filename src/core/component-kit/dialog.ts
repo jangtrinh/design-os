@@ -23,14 +23,14 @@ const markup = `<div class="ui-kit ui-dialog">
       box-shadow: var(--elevation-overlay-offset-x) var(--elevation-overlay-offset-y) var(--elevation-overlay-blur) var(--elevation-overlay-spread) var(--elevation-overlay-color);
     }
     .ui-dialog__head { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); }
-    .ui-dialog__title { font-family: var(--font-family-display); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+    .ui-dialog__title { font-family: var(--font-family-display); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); text-wrap: balance; }
     .ui-dialog__close {
       font: inherit; line-height: 1; cursor: pointer; flex: none;
       padding: var(--space-1); border-radius: var(--radius-button);
       border: 1px solid transparent; background: transparent; color: var(--color-muted-foreground);
     }
     .ui-dialog__close.is-focus { outline: 2px solid var(--color-ring); outline-offset: 1px; }
-    .ui-dialog__body { font-size: var(--font-size-sm); color: var(--color-muted-foreground); line-height: 1.5; }
+    .ui-dialog__body { font-size: var(--font-size-sm); color: var(--color-muted-foreground); line-height: 1.5; text-wrap: pretty; }
     .ui-dialog__actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
     .ui-dialog__btn {
       font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); cursor: pointer;

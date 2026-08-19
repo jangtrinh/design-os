@@ -28,8 +28,8 @@ const markup = `<div class="ui-kit ui-toast">
     .ui-toast__item--success .ui-toast__dot { background: var(--color-success); }
     .ui-toast__item--danger  .ui-toast__dot { background: var(--color-danger); }
     .ui-toast__text { display: grid; gap: var(--space-1); }
-    .ui-toast__title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-    .ui-toast__body { font-size: var(--font-size-xs); color: var(--color-muted-foreground); line-height: 1.5; }
+    .ui-toast__title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-wrap: balance; }
+    .ui-toast__body { font-size: var(--font-size-xs); color: var(--color-muted-foreground); line-height: 1.5; text-wrap: pretty; }
     .ui-toast__close {
       font: inherit; line-height: 1; cursor: pointer; flex: none;
       padding: var(--space-1); border-radius: var(--radius-button);
