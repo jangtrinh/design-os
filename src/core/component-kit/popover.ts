@@ -34,8 +34,8 @@ const markup = `<div class="ui-kit ui-pop">
       position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
       border: var(--space-1) solid transparent; border-bottom-color: var(--color-popover);
     }
-    .ui-pop__title { font-family: var(--font-family-display); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-    .ui-pop__body { font-size: var(--font-size-xs); color: var(--color-muted-foreground); line-height: 1.5; }
+    .ui-pop__title { font-family: var(--font-family-display); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-wrap: balance; }
+    .ui-pop__body { font-size: var(--font-size-xs); color: var(--color-muted-foreground); line-height: 1.5; text-wrap: pretty; }
     .ui-pop__row { display: flex; gap: var(--space-2); }
     .ui-pop__btn {
       font: inherit; font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); cursor: pointer;
