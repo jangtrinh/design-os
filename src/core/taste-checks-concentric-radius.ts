@@ -63,6 +63,10 @@ export function checkEqualNestedRadii(html: string): TasteFinding[] {
           checkId: "equal-nested-radii", axis: "Spacing", severity: "warning",
           message: `a padded "${outer}" container nests a child at the same "${childRadius}" — equal nested radii make the inner corner look pinched (rubric Spacing: nested rounded corners stay concentric, outer radius = inner radius + padding); step the child down or bump the parent up`,
           line: lineOf(html, m.index),
+          expected: "concentric nested radii (outer = inner + padding)",
+          actual: `parent and child both "${childRadius}" with padding between`,
+          fixHint: "step the child down one radius step (or raise the parent one)",
+          repairScope: "nodes",
         });
       }
       break; // judge only the first rounded child per container — one finding per parent

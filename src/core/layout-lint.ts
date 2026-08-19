@@ -35,18 +35,14 @@ import {
 import { checkStickyHoverUnguarded } from "./layout-checks-hover.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { isRedirectStub } from "./redirect-stub.js";
+import type { FloorFindingBase } from "./finding-schema.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type LayoutSeverity = "error" | "warning";
 
-export interface LayoutFinding {
-  checkId: string;
-  severity: LayoutSeverity;
-  message: string;
-  /** 1-based line number when locatable; omitted for whole-document checks. */
-  line?: number;
-}
+/** Layout findings speak the shared FloorFinding schema (finding-schema.ts). */
+export type LayoutFinding = FloorFindingBase;
 
 export interface LayoutLintResult {
   findings: LayoutFinding[];

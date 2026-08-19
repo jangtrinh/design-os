@@ -53,7 +53,12 @@ export function checkInputUnlabeled(html: string): A11yFinding[] {
     const id = /\bid\s*=\s*["']?([\w-]+)/i.exec(attrs)?.[1]?.toLowerCase();
     if (id !== undefined && forIds.has(id)) continue;
     out.push({ checkId: "input-unlabeled", severity: "error", sc: "3.3.2",
-      message: `<${tag}> has no programmatic label — add <label for>, wrap it in a <label>, or set aria-label (a placeholder is not a label: it vanishes on the first keystroke)`, line: lineOf(scan, m.index) });
+      message: `<${tag}> has no programmatic label — add <label for>, wrap it in a <label>, or set aria-label (a placeholder is not a label: it vanishes on the first keystroke)`, line: lineOf(scan, m.index),
+      nodeRef: `<${tag}> line ${lineOf(scan, m.index)}`,
+      expected: "a programmatic label (<label for>, wrapping <label>, or aria-label)",
+      actual: "no label association",
+      fixHint: "add a <label for> pointing at the control's id",
+      repairScope: "nodes" });
   }
   return out;
 }
@@ -115,5 +120,9 @@ export function checkFocusOutlineRemoved(html: string): A11yFinding[] {
   }
   if (!removed || replaced) return [];
   return [{ checkId: "focus-outline-removed", severity: "error", sc: "2.4.7",
-    message: "a focus rule removes the outline (outline: none / focus:outline-none) and no focus rule provides a visible replacement — sighted keyboard users lose their place; keep the browser ring (outline-offset alone preserves it) or draw a ring with the project's focus token" }];
+    message: "a focus rule removes the outline (outline: none / focus:outline-none) and no focus rule provides a visible replacement — sighted keyboard users lose their place; keep the browser ring (outline-offset alone preserves it) or draw a ring with the project's focus token",
+    expected: "a visible focus indicator on every focus rule",
+    actual: "outline removed with no replacement anywhere",
+    fixHint: "run `ui autofix --write` (focus-outline-restore) or draw a ring with the focus token",
+    repairScope: "global" }];
 }

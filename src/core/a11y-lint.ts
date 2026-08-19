@@ -22,16 +22,14 @@ import {
 // through it left them undefined in some load orders under the test runner's interop.
 import { checkInputUnlabeled, checkFocusOutlineRemoved } from "./a11y-checks-focus-and-labels.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
+import type { FloorFindingBase } from "./finding-schema.js";
 
 export type A11ySeverity = "error" | "warning";
 
-export interface A11yFinding {
-  checkId: string;
-  severity: A11ySeverity;
-  message: string;
+/** A11y findings speak the shared FloorFinding schema plus the WCAG criterion. */
+export interface A11yFinding extends FloorFindingBase {
   /** WCAG success criterion, e.g. "1.1.1". */
   sc: string;
-  line?: number;
 }
 
 export interface A11yLintResult {
