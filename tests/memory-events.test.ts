@@ -162,12 +162,20 @@ describe("tractability telemetry events — route/attempt/outcome/veto", () => {
     expect(codeOf(() => validateEvent("attempt_completed", { file: "v1.html", attempt: 2, route: "executor", gateErrorCount: 0, gateWarningCount: 3 }, undefined))).toBeNull();
     expect(codeOf(() => validateEvent("attempt_completed", { file: "v1.html", attempt: 2 }, undefined))).toBe("BAD_EVENT");
   });
-  it("outcome_recorded requires the final gate verdict — an accept cannot be recorded without it", () => {
-    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2, gatePass: true }, undefined))).toBeNull();
-    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2 }, undefined))).toBe("BAD_EVENT");
+  it("outcome_recorded requires the final gate verdict WITH provenance — counts and a ref to the gate run", () => {
+    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2, gatePass: true, gateErrorCount: 0 }, ["e12"]))).toBeNull();
+    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2 }, ["e12"]))).toBe("BAD_EVENT");
+    // a self-declared verdict with no error count is unfalsifiable — refused
+    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2, gatePass: true }, ["e12"]))).toBe("BAD_EVENT");
+    // no refs = no gate-run provenance — refused (the insight/refs precedent)
+    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2, gatePass: true, gateErrorCount: 0 }, undefined))).toBe("BAD_EVENT");
   });
-  it("taste_veto requires checkId + mandatory reason + verdict", () => {
-    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", reason: "flush inset is the brand's signature here", verdict: "context-exception" }, undefined))).toBeNull();
-    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", verdict: "fp" }, undefined))).toBe("BAD_EVENT");
+  it("taste_veto requires checkId + file + a NON-EMPTY reason + verdict", () => {
+    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", file: "v1.html", reason: "flush inset is the brand's signature here", verdict: "context-exception" }, undefined))).toBeNull();
+    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", file: "v1.html", verdict: "fp" }, undefined))).toBe("BAD_EVENT");
+    // a veto with no file cannot be deduped or falsified — refused
+    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", reason: "r", verdict: "fp" }, undefined))).toBe("BAD_EVENT");
+    // presence is not a sentence: empty/whitespace reasons are refused
+    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", file: "v1.html", reason: "   ", verdict: "fp" }, undefined))).toBe("BAD_EVENT");
   });
 });

@@ -41,6 +41,19 @@ NON-DETERMINISTIC  recall/ — embeddings + vector index + ranking
   themselves; they record a gap and the librarian graduates it through a PR. `refs` is
   optional (unlike `insight`), but pointing at the `taste_verdict`/`duel_result` that
   exposed the gap is encouraged.
+- Tractability telemetry — the loop's labels — is recorded by EXTERNAL producers
+  (routers, products, host workflows), never auto-recorded by a `ui` command; the kernel
+  owns only the schema. The four canonical invocations:
+  - `ui memory record route_decided --data '{"task":"…","route":"cheap-loop|executor|selection"}'`
+  - `ui memory record attempt_completed --data '{"file":"…","attempt":2,"route":"executor","gateErrorCount":0,"gateWarningCount":3}'`
+  - `ui memory record outcome_recorded --refs <gate lint_run id> --data '{"file":"…","accepted":true,"attempts":2,"gatePass":true,"gateErrorCount":0}'`
+    — refs to the FINAL gate run are mandatory (an outcome with no gate provenance is a
+    self-declared pass), and `gatePass`/`gateErrorCount` must agree or the record is
+    self-contradicting by design.
+  - `ui memory record taste_veto --data '{"checkId":"…","file":"…","reason":"one honest sentence","verdict":"fp|outdated|context-exception"}'`
+    — the stream the per-floor false-positive gauge and the librarian's cross-project
+    recurrence WILL read (consumers land separately; recording starts now so the labels
+    exist when they do).
 - The `ui` binary never imports anything from `recall/` (a test enforces this).
 
 ### Which channel: gap vs. GitHub issue
