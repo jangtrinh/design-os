@@ -10,6 +10,8 @@ import {
   fixTableTabularNums,
   fixFocusOutlineRestore,
 } from "../src/core/html-autofix-floor-repairs.js";
+import { fixFontDisplaySwap } from "../src/core/html-autofix-font-display.js";
+import { checkFontDisplayMissing } from "../src/core/layout-checks-craft.js";
 import { runAutofix } from "../src/core/html-autofix.js";
 import { checkStickyHoverUnguarded } from "../src/core/layout-checks-hover.js";
 import { checkDataNumbersNotTabular } from "../src/core/taste-checks-typography.js";
@@ -211,5 +213,37 @@ describe("focus-outline-restore — markup-only class pass", () => {
     expect(out).toContain("color: red");
     expect(out).toContain("outline: 0px solid gold"); // non-focus rule untouched
     expect(out).not.toMatch(/a:focus \{ outline: 0px;/);
+  });
+});
+
+describe("font-display-swap", () => {
+  it("inserts font-display: swap into @font-face blocks that lack it, and the check goes silent", () => {
+    const bad = '<style>@font-face { font-family: "Inter"; src: url("/inter.woff2") format("woff2"); } .a{color:red}</style>';
+    const { html, applied } = fixFontDisplaySwap(bad);
+    expect(applied).toBe(true);
+    expect(html).toMatch(/@font-face \{ font-display: swap; font-family: "Inter";/);
+    expect(html).toContain(".a{color:red}");
+    expect(checkFontDisplayMissing(html)).toEqual([]);
+  });
+  it("respects an author's existing font-display choice", () => {
+    const ok = '<style>@font-face { font-family: I; src: url(a.woff2); font-display: optional; }</style>';
+    expect(fixFontDisplaySwap(ok).applied).toBe(false);
+  });
+  it("appends display=swap to a Google-Fonts href (?, & and pre/code exclusion)", () => {
+    const bad = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600">' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2">' +
+      '<pre>&lt;link href="https://fonts.googleapis.com/css2?family=X"&gt;</pre>';
+    const { html } = fixFontDisplaySwap(bad);
+    expect(html).toContain("family=Inter:wght@400;600&display=swap");
+    expect(html).toContain("css2?display=swap");
+    expect(html).toContain('<pre>&lt;link href="https://fonts.googleapis.com/css2?family=X"&gt;</pre>');
+    expect(checkFontDisplayMissing(html)).toEqual([]);
+  });
+  it("is idempotent and registered in runAutofix", () => {
+    const bad = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">';
+    const once = fixFontDisplaySwap(bad).html;
+    expect(fixFontDisplaySwap(once).applied).toBe(false);
+    const { findings } = runAutofix(bad);
+    expect(findings.map((f) => f.ruleId)).toContain("font-display-swap");
   });
 });

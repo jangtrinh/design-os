@@ -12,6 +12,7 @@
  */
 import { getImageFallbackScriptInline } from "./html-img-fallback-script.js";
 import { fixHoverMediaGuard, fixTableTabularNums, fixFocusOutlineRestore } from "./html-autofix-floor-repairs.js";
+import { fixFontDisplaySwap } from "./html-autofix-font-display.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -200,6 +201,7 @@ const RULES = [
   { id: "hover-media-guard",     fn: fixHoverMediaGuard,     desc: "Wrapped raw :hover rules in @media (hover: hover)" },
   { id: "table-tabular-nums",    fn: fixTableTabularNums,    desc: "Added tabular figures to numeric table columns" },
   { id: "focus-outline-restore", fn: fixFocusOutlineRestore, desc: "Restored the focus ring (removed outline-killing declarations)" },
+  { id: "font-display-swap",     fn: fixFontDisplaySwap,     desc: "Added font-display: swap to @font-face blocks and Google-Fonts links" },
 ] as const;
 
 /** Apply every rule in order. Returns fixed HTML + list of rules that fired. */

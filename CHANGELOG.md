@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-19 - font-display gets its repair (the floor teaching could not move)
+
+### Added
+- `ui autofix` gains `font-display-swap`: inserts `font-display: swap;` into `@font-face`
+  blocks that lack the descriptor (an author's existing choice is respected by the shared
+  checker gate) and appends `display=swap` to Google-Fonts link hrefs without one. Edits
+  locate on the non-markup mask — a code sample quoting a font link is never rewritten.
+  Chosen by measurement: in the born-passing A/B (evaluation-260819-2016),
+  `font-display-missing` was the one floor teaching did not move (6→6 across arms —
+  generators pick fonts before thinking about loading behaviour); on that same corpus,
+  one autofix pass takes it 12→0.
+
+
 ## 2026-08-19 - The loop gets its labels: tractability telemetry events
 
 ### Added
