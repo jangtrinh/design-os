@@ -37,6 +37,7 @@ Checks (the machine-verifiable subset of knowledge/taste-rubric.md; error unless
   tiny-body-text             Typography     font-size <= 13px (rubric: body never below 16px)
   italic-display-heading     Typography     italic heading/display type (a generated-UI tell)
   uppercase-tight-line-height Typography    all-caps text with line-height below 1.0
+  data-numbers-not-tabular   Typography     numeric table columns without tabular-nums (warning)
   off-grid-spacing           Spacing        Tailwind spacing not on the 4px base grid
   mixed-icon-families        Iconography    two or more icon libraries in one UI
   text-arrow-as-interface-icon Iconography  Unicode arrow in a link/button instead of an icon component

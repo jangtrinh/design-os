@@ -158,6 +158,9 @@ hardest, but a responsive desktop page that reflows to a phone owes them too:
   (`h-dvh` / `min-h-dvh`), never `100vh` / `h-screen`. WHY: the mobile URL bar resizes the
   visual viewport, so `100vh` clips content then jumps as the bar collapses; the dynamic unit
   tracks the real viewport.
+- **Hover guard (`sticky-hover-unguarded`):** raw CSS `:hover` rules sit inside
+  **`@media (hover: hover)`** (Tailwind's `hover:` utilities already do this). WHY: on touch,
+  `:hover` styling sticks after a tap, so the last-tapped control looks permanently selected.
 
 ## Desktop
 

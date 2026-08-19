@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-08-19 - Five interface-craft floors from the interfaces.dev cheat sheet
+
+### Added
+- `content-lint`: `dumb-punctuation` (typewriter `...`/`'`/`"` in visible copy — typeset
+  copy uses `…` `’` `“ ”`; scripts, styles and attributes never fire) and
+  `bare-confirm-button` (a bare OK/Okay/Yes/No label — start with a verb and repeat the
+  consequence). Both warnings.
+- `a11y-lint`: `paste-blocked` (WCAG 3.3.8) — a handler that cancels paste without
+  re-inserting the clipboard text breaks password managers and one-time-code entry. The
+  `onpaste` attribute form is an error; the scripted-listener form is a warning (a regex
+  cannot prove runtime semantics), and the paste-as-plain-text idiom
+  (`preventDefault` + `getData` + `insertText`) never fires.
+- `validate-layout`: `sticky-hover-unguarded` (warning) — a raw CSS `:hover` rule outside
+  `@media (hover: hover)` on a mobile-intent document; on touch, hover styling sticks after
+  a tap. Tailwind `hover:` utilities and desktop-only pages never fire.
+- `taste-lint`: `data-numbers-not-tabular` (warning, Typography) — three or more
+  number-shaped table cells with no `tabular-nums` and no monospace face; proportional
+  digits misalign down a column. The rubric now states the tabular-figures rule the
+  Table emitter already practised.
+
+### Changed
+- The kit's Button and Breadcrumb emitters wrap their real `:hover` rules in
+  `@media (hover: hover)` (the static `.is-hover` specimens are untouched), so the kit
+  passes the floor it now enforces — and the kit gate now asserts none of the five new
+  checkIds fire, warnings included, so a reverted guard goes red in CI. All five checks
+  are adopted from the [interfaces.dev cheat sheet](https://interfaces.dev/cheat-sheet),
+  rewritten against this repo's rubric language.
+- `allContentChecks` gained two members, so every consumer composing from it (the
+  figma-agent panel gate included) starts emitting the two new warnings on upgrade.
+- `lintA11y` now strips HTML comments before running its checks (the same
+  offset-preserving helper layout-lint and taste-lint already used, now shared from
+  `taste-checks-shared`) — commented-out markup no longer trips any a11y check.
+
 ## 2026-08-17 - Onboarding points at the plugin repo when the Figma agent is absent
 
 ### Fixed
