@@ -128,7 +128,7 @@ a `## Never` clause; prefer choices that express `## Always`.
    machine check. Mirror the gate that `iterate.md` and `redesign.md` already run:
 
    ```bash
-   ui validate-layout <variant.html> --json
+   ui gate <variant.html> --json
    ```
 
    **Hard rule:** if it reports any `error`-severity finding (missing `<html>`/`<body>`,
@@ -136,7 +136,7 @@ a `## Never` clause; prefer choices that express `## Always`.
    copy kept in step 2, re-emit ONCE with the linter's findings appended to the
    checklist analysis, and re-run this check. If the second attempt still trips an
    error, keep the restored pre-pass copy and hand THAT to critique — never forward
-   corrupted markup. Warning-severity findings (the layout-smell heuristics) are
+   corrupted markup. Warning-severity findings (across all the gate's families) are
    advisory: note them and let the quality gate weigh them.
 
    **Pre-existing-error exception:** if the *original input* variant (the step-2 copy,
@@ -168,7 +168,7 @@ Defer to `templates/workflows/critique.md`. A refine pass is only "done" when:
 
 - The file parses as valid HTML with CDN links intact.
 - `ui autofix` reports zero findings on a re-run (idempotence proof).
-- `ui validate-layout` reports zero `error`-severity findings introduced by refine
+- `ui gate` reports zero `error`-severity findings introduced by refine
   (pre-existing source errors are exempt per step 4d).
 - The critique verdict is **pass** across all 7 axes; axes that were not the focus of
   refine must still not regress against the baseline.

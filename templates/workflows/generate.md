@@ -154,13 +154,14 @@ ui autofix candidate.html --write
 Run every declared gate. A missing DS gate is a concern, not a pass.
 
 ```sh
-ui validate-layout candidate.html
-ui a11y-lint candidate.html
-ui taste-lint candidate.html
-ui content-lint candidate.html
+ui gate candidate.html --tokens design/design.tokens.json
 ui ds-usage-lint candidate.html
 ui ds a11y
 ```
+
+(`ui gate` composes validate-layout + a11y-lint + taste-lint + content-lint
+plus the autofix dry-run in one verdict; the two DS gates stay explicit —
+they are project-scoped, not artifact floors.)
 
 No qualitative score is produced while an error-severity machine finding remains.
 

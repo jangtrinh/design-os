@@ -225,9 +225,15 @@ ship-grade output ("excellence", a flagship/public surface, or scoring
 against named products), apply `knowledge/taste-rubric.md` § "The
 Excellence Tier" on top of this gate:
 
-1. **Correctness gate before any score** — `ui validate-layout` zero
-   error-severity findings, `ui taste-lint` zero findings (fix-first, not
-   axis-cap), `ui autofix` re-run a no-op, Consistency work list empty.
+1. **Correctness gate before any score** — `ui gate <variant-html>
+   [--tokens design/design.tokens.json]` passes: every linter family
+   (layout, a11y, taste, content) at zero error-severity findings, the
+   autofix dry-run clean, **and the taste family at zero findings of ANY
+   severity** (the Excellence bar was always fix-first on taste warnings
+   too — a craft smell is not flagship-grade; not axis-cap), plus the
+   Consistency work list empty. One composed judge — a family this gate does not run
+   is a hole every deferring workflow inherits, so skips must be declared
+   (`--skip <family>: <reason>`), never assumed.
    Any failure → NO SCORE this round; fix, then score.
 2. **Adversarial judging** — score in a fresh context (a judge subagent on
    runtimes that have them; otherwise an explicit refute-first stance with

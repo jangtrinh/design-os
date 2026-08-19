@@ -4,6 +4,8 @@ description: "Extract a design system from existing HTML. Use when the user prov
 
 # Workflow — `/ui:extract`
 
+<!-- gate-exempt: no-html-artifact — emits design/*.json; its validate-layout run is a diagnostic on foreign source HTML, not a floor on our output -->
+
 ## Title
 
 `/ui:extract <file.html>` — **extract a design system from existing HTML or

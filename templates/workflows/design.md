@@ -4,6 +4,8 @@ description: "Design something NEW from a requirement, on the Figma canvas — a
 
 # Workflow — `/ui:design`
 
+<!-- gate-exempt: figma-canvas — builds on the Figma canvas, a medium the HTML floors do not map to (figma-craft owns that side) -->
+
 Design something **new from a requirement** on the Figma canvas. This is distinct from
 rebuilding an existing frame (`/ui:to-figma` real-instance mode / clone) and from auditing one
 (`/ui:audit`) — here there is no source to reproduce, only an intent to realize well.

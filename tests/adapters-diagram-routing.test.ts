@@ -91,8 +91,9 @@ describe("templates/workflows/diagram.md", () => {
     expect(workflow).toMatch(/reject/i);
   });
 
-  it("invokes ui taste-lint and the full 6+1 axis taste rubric with the >=7 gate", () => {
-    expect(workflow).toMatch(/ui taste-lint/);
+  it("invokes the composed gate (which runs taste-lint) and the full 6+1 axis taste rubric with the >=7 gate", () => {
+    expect(workflow).toMatch(/ui gate/);
+    expect(workflow).toMatch(/taste-lint/); // the prose still names the family the gate runs
     expect(workflow).toMatch(/6\+1/);
     expect(workflow).toMatch(/knowledge\/taste-rubric\.md/);
     expect(workflow).toMatch(/(?:>=|≥)\s*7/);
