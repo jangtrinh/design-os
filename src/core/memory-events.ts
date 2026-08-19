@@ -33,6 +33,10 @@ export const EVENT_TYPES = [
   "autofix_applied",
   "reconcile_applied",
   "taste_vote",
+  "route_decided",
+  "attempt_completed",
+  "outcome_recorded",
+  "taste_veto",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
@@ -66,6 +70,32 @@ const REQUIRED_DATA: Readonly<Record<EventType, readonly string[]>> = {
   // One `ui taste record --mode pair` vote. NOT `user_pick`: a corpus item id is not a
   // designId, and compileGraph would file it under `designs` (memory-graph.ts:93).
   taste_vote: ["a", "b", "winner"],
+  // ─── Tractability telemetry (advisory 260819 + brainstorm §5.4) — recorded by
+  // routers/products (EaseUI) and host workflows via `ui memory record`; the
+  // kernel owns the schema so every consumer labels the loop the same way.
+  // A triage decision: `route` is cheap-loop | executor | selection (documented,
+  // presence-validated like gap.kind); optional: coverageActive, dsPresent, reason.
+  route_decided: ["task", "route"],
+  // One generate→gate cycle. Optional: checkIds, escalated, model.
+  attempt_completed: ["file", "attempt", "route", "gateErrorCount", "gateWarningCount"],
+  // The loop's label. `gatePass` + `gateErrorCount` are REQUIRED by design and
+  // the event must ref the gate run it reports (see the provenance rule below):
+  // an accept may not be recorded without the final artifact's checkable gate
+  // verdict — a bare boolean would be a self-declared pass nothing in the
+  // ledger could contradict (the retry-swallows-regression hazard).
+  // Optional: gateWarningCount, escalations, vetoCount.
+  outcome_recorded: ["file", "accepted", "attempts", "gatePass", "gateErrorCount"],
+  // A human overriding a machine floor — the stream the per-floor FP gauge and
+  // the librarian's cross-project recurrence will read. `file` is required so
+  // vetoes dedupe and stay falsifiable (a veto naming a check that never fired
+  // on that file is detectable); project-wide vetoes are a future scope field,
+  // not an omitted file. `verdict` is fp | outdated | context-exception
+  // (documented, presence-validated); `reason` must be a NON-EMPTY sentence —
+  // a veto costs one honest line, exactly like --skip (enforced below).
+  // Optional: nodeRef. NOTE: `taste_veto` ≠ `taste_vote` (one character apart;
+  // a typo records loudly-wrong via disjoint required keys, but `memory query
+  // --type` will silently return the other stream — check the spelling).
+  taste_veto: ["checkId", "file", "reason", "verdict"],
 };
 
 export interface MemoryArtifact {
@@ -129,12 +159,21 @@ export function validateEvent(
       throw new MemoryEventError("BAD_EVENT", `event '${type}' requires data.${key}`);
     }
   }
-  // Provenance rule: an insight must cite the events it was drawn from.
-  if (type === "insight" && (refs === undefined || refs.length === 0)) {
+  // Provenance rules: an insight must cite the events it was drawn from, and an
+  // outcome must cite the gate run whose verdict it reports — an outcome with
+  // no gate-run ref is a self-declared pass the ledger cannot contradict.
+  if ((type === "insight" || type === "outcome_recorded") && (refs === undefined || refs.length === 0)) {
     throw new MemoryEventError(
       "BAD_EVENT",
-      "event 'insight' requires --refs (provenance): the event ids it was drawn from",
+      `event '${type}' requires --refs (provenance): the event ids it was drawn from`,
     );
+  }
+  // A veto costs one honest sentence — presence is not a sentence.
+  if (type === "taste_veto") {
+    const reason = data["reason"];
+    if (typeof reason !== "string" || reason.trim() === "") {
+      throw new MemoryEventError("BAD_EVENT", "event 'taste_veto' requires a non-empty data.reason — a veto costs one honest sentence");
+    }
   }
 }
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-19 - The loop gets its labels: tractability telemetry events
+
+### Added
+- Four ledger event types (the kernel owns the schema; routers, products and host
+  workflows record through `ui memory record`, so every consumer labels the loop the
+  same way): `route_decided` (task + route: cheap-loop | executor | selection),
+  `attempt_completed` (one generate→gate cycle: file, attempt, route, gate counts),
+  `outcome_recorded` — where `gatePass` is REQUIRED by design: an accept cannot be
+  recorded without the final artifact's gate verdict, closing the
+  retry-swallows-regression hazard — and `taste_veto` (a human overriding a machine
+  floor: checkId + mandatory one-sentence reason + verdict fp | outdated |
+  context-exception, plus the file it fired on — required so vetoes dedupe and stay
+  falsifiable). The veto stream is what the per-floor false-positive gauge and the
+  librarian's cross-project recurrence WILL read — consumers land separately, the labels
+  start now; the graph compiler ignores all four by the same convention as `lint_run`
+  (ledger truth, rebuildable views). `outcome_recorded` additionally requires
+  `gateErrorCount` and a `--refs` pointer to the gate run it reports — a bare
+  self-declared boolean would be a pass nothing in the ledger could contradict.
+
+
 ## 2026-08-19 - FloorFinding schema v1 and the coverage registry
 
 ### Added
@@ -62,7 +82,6 @@
   all 28 goldens; ids are now scanned on a style/script/comment-blanked mask with the
   attribute name anchored, which also stops a CSS `[id="x"]` selector renaming the
   element it targets. Both #196 halves close.
-
 
 ## 2026-08-19 - The floors repair themselves, and generation is told to be born passing
 
