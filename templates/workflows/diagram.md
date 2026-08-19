@@ -67,10 +67,10 @@ Architecture and sequence diagrams skip this step entirely — it applies only t
 
 Run gates in this order, and do not proceed past a failing gate without either fixing the diagram or disclosing why it can't pass:
 
-1. **`ui diagram lint`** — the diagram-specific check (grammar conformance, `data-*` *presence* and shape, valid owned-SVG structure, no forbidden external refs). It proves the artifact is well-formed on its own; for product-flow it does **not** prove any `data-source-id` resolves against `flow.json` — that resolution stays a manual step (§4.2).
-2. **`ui gate <file.html>`** — the composed floor judge every shipped HTML artifact runs (layout, a11y, taste, content families plus the autofix dry-run in one verdict). Reuse it; do not fork or reimplement a parallel checker for diagrams.
-3. **`ui ds-usage-lint <file.html>`** — proves the artifact's CSS draws on real design-system tokens rather than off-system values. Note its blind spot: it reads CSS declarations only, so a color sitting in an SVG presentation attribute (`fill="#eb6c36"`) is invisible to it. `ui diagram lint`'s `hardcoded-svg-color` check covers that gap — the two gates are complementary and neither substitutes for the other.
-4. **`ui autofix <file.html> --write`** — deterministic repairs (viewport, duplicate ids; run BEFORE the gate — its autofix family then confirms a re-run is a no-op). It never rewrites inline `<svg>`, so it cannot fix a diagram's SVG for you.
+1. **`ui autofix <file.html> --write`** — deterministic repairs (viewport, duplicate ids). It never rewrites inline `<svg>`, so it cannot fix a diagram's SVG for you.
+2. **`ui diagram lint`** — the diagram-specific check (grammar conformance, `data-*` *presence* and shape, valid owned-SVG structure, no forbidden external refs). It proves the artifact is well-formed on its own; for product-flow it does **not** prove any `data-source-id` resolves against `flow.json` — that resolution stays a manual step (§4.2).
+3. **`ui gate <file.html>`** — the composed floor judge every shipped HTML artifact runs (layout, a11y, taste, content families plus the autofix dry-run in one verdict). Reuse it; do not fork or reimplement a parallel checker for diagrams.
+4. **`ui ds-usage-lint <file.html>`** — proves the artifact's CSS draws on real design-system tokens rather than off-system values. Note its blind spot: it reads CSS declarations only, so a color sitting in an SVG presentation attribute (`fill="#eb6c36"`) is invisible to it. `ui diagram lint`'s `hardcoded-svg-color` check covers that gap — the two gates are complementary and neither substitutes for the other.
 
 If a gate can't be satisfied (e.g. a required a11y check needs a runtime this workflow doesn't have), that is a substitution (disclose it per §7) or a stop (report it as a Gate stop per §9) — not something to skip silently.
 

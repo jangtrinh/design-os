@@ -64,10 +64,10 @@ One HTML file, self-contained, openable offline, no network calls, no `<script>`
 
 Run in this order; do not proceed past a failing gate without fixing the chart or disclosing why it cannot pass:
 
-1. **`ui chart lint <file.html>`** — the chart contract: grammar value, owned SVG, accessible name, baseline declaration, series identity and labelling, no dual value axis, and `hardcoded-svg-color`.
-2. **`ui gate <file.html>`** — the composed floor judge every shipped HTML artifact runs (layout, a11y, taste, content families plus the autofix dry-run in one verdict).
-3. **`ui ds-usage-lint <file.html>`** — proves the CSS draws on real design-system tokens. Note the division of labour: it reads CSS declarations only, so a colour in an SVG presentation attribute is invisible to it — `ui chart lint` covers that gap. Neither substitutes for the other.
-4. **`ui autofix <file.html> --write`** — deterministic repairs only (run BEFORE the gate; the gate's autofix family then confirms a re-run is a no-op); it never rewrites inline `<svg>`.
+1. **`ui autofix <file.html> --write`** — deterministic repairs only; it never rewrites inline `<svg>`.
+2. **`ui chart lint <file.html>`** — the chart contract: grammar value, owned SVG, accessible name, baseline declaration, series identity and labelling, no dual value axis, and `hardcoded-svg-color`.
+3. **`ui gate <file.html>`** — the composed floor judge every shipped HTML artifact runs (layout, a11y, taste, content families plus the autofix dry-run in one verdict).
+4. **`ui ds-usage-lint <file.html>`** — proves the CSS draws on real design-system tokens. Note the division of labour: it reads CSS declarations only, so a colour in an SVG presentation attribute is invisible to it — `ui chart lint` covers that gap. Neither substitutes for the other.
 
 ## 5. Critique against the taste rubric and revise
 

@@ -214,7 +214,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "tokens", type: "string", summary: "DS token file; enables the taste Consistency raw-hex check" },
         { name: "skip", type: "string", summary: "Comma-separated <family>:<reason> pairs — declared partial gating" },
       ],
-      errorCodes: [...IO_CODES],
+      errorCodes: [...IO_CODES, "TOKENS_NOT_READABLE"],
     },
   },
 

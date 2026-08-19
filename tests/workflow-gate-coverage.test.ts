@@ -34,6 +34,23 @@ describe("workflow gate coverage", () => {
     }
   });
 
+  it("family-specific gates survive the composed-judge swap (superset stays superset)", () => {
+    // ui gate covers the four generic families; these project-scoped or
+    // grammar-specific gates must ALSO stay — deleting one is the silent
+    // weakening the composed judge cannot see.
+    const REQUIRED: Record<string, string[]> = {
+      generate: ["ui ds-usage-lint", "ui ds a11y"],
+      chart: ["ui chart lint", "ui ds-usage-lint"],
+      diagram: ["ui diagram lint", "ui ds-usage-lint", "ui flow lint"],
+    };
+    for (const [name, cmds] of Object.entries(REQUIRED)) {
+      const body = readFileSync(join(DIR, `${name}.md`), "utf8");
+      for (const cmd of cmds) {
+        expect(body, `${name}.md must keep \`${cmd}\``).toContain(cmd);
+      }
+    }
+  });
+
   it("every exempt workflow declares its reason in a gate-exempt marker", () => {
     for (const name of EXEMPT) {
       const body = readFileSync(join(DIR, `${name}.md`), "utf8");

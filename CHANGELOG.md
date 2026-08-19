@@ -22,6 +22,11 @@
 - generate, redesign, refine, iterate, from-ref, figma, slides, chart and diagram all
   judge through `ui gate` (superset-only swaps: generate keeps `ds-usage-lint` +
   `ds a11y`; chart/diagram keep their grammar linters).
+- Two deliberate strictness changes, named as such: the gate's `autofix-not-clean`
+  finding is error-severity even when the underlying smell is a warning (a repairable
+  floor left unrepaired blocks — run `ui autofix --write` first), and an unreadable
+  `--tokens` path is refused (`TOKENS_NOT_READABLE`) instead of silently disabling the
+  raw-hex check the way optional `taste-lint --tokens` tolerates.
 - The chart/diagram golden corpus now passes the composed gate in its own tests — the
   claim its header always made. Getting there exposed a real `fixDuplicateIds` false
   positive (issue #196): `data-focal-id="…"` counted as an `id=` occurrence, flagging

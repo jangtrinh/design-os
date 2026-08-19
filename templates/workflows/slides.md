@@ -262,9 +262,10 @@ ui autofix slides/<NN>-<role>.html --write
 ui gate slides/<NN>-<role>.html
 ```
 
-Fix any structural-error findings before moving on to the next slide. If `ui
-validate-layout` reports a slide whose root is not 1920 × 1080, regenerate that
-slide — the constraint is non-negotiable.
+Fix any error-severity findings the gate reports before moving on to the next
+slide. The 1920 × 1080 root is non-negotiable but NO linter enforces it — verify
+the root element's dimensions yourself (the §4 viewport rule) and regenerate the
+slide if it drifts; never claim a machine checked it.
 
 ### 6. Slide-by-slide critique
 

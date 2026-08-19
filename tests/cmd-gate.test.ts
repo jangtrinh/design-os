@@ -123,3 +123,11 @@ describe("ui gate — text mode and file errors", () => {
     expect(JSON.parse(r.out).error.code).toBe("FILE_NOT_FOUND");
   });
 });
+
+describe("ui gate — --tokens must fail loud", () => {
+  it("an unreadable --tokens path is an error, never a silently weaker gate", () => {
+    const r = capture(["gate", write("tok.html", BASE), "--tokens", join(dir, "absent.json"), "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).error.code).toBe("TOKENS_NOT_READABLE");
+  });
+});

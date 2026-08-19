@@ -205,7 +205,7 @@ ui autofix <file.html> --write
 ui gate <file.html>
 ```
 
-Fix any structural errors `validate-layout` flags before passing the output to the
+Fix any error-severity findings the gate reports before passing the output to the
 quality gate.
 
 ## Outputs

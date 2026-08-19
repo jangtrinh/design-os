@@ -136,7 +136,7 @@ a `## Never` clause; prefer choices that express `## Always`.
    copy kept in step 2, re-emit ONCE with the linter's findings appended to the
    checklist analysis, and re-run this check. If the second attempt still trips an
    error, keep the restored pre-pass copy and hand THAT to critique — never forward
-   corrupted markup. Warning-severity findings (the layout-smell heuristics) are
+   corrupted markup. Warning-severity findings (across all the gate's families) are
    advisory: note them and let the quality gate weigh them.
 
    **Pre-existing-error exception:** if the *original input* variant (the step-2 copy,

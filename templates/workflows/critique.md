@@ -227,9 +227,11 @@ Excellence Tier" on top of this gate:
 
 1. **Correctness gate before any score** — `ui gate <variant-html>
    [--tokens design/design.tokens.json]` passes: every linter family
-   (layout, a11y, taste, content) at zero error-severity findings and the
-   autofix dry-run clean (fix-first, not axis-cap), plus the Consistency
-   work list empty. One composed judge — a family this gate does not run
+   (layout, a11y, taste, content) at zero error-severity findings, the
+   autofix dry-run clean, **and the taste family at zero findings of ANY
+   severity** (the Excellence bar was always fix-first on taste warnings
+   too — a craft smell is not flagship-grade; not axis-cap), plus the
+   Consistency work list empty. One composed judge — a family this gate does not run
    is a hole every deferring workflow inherits, so skips must be declared
    (`--skip <family>: <reason>`), never assumed.
    Any failure → NO SCORE this round; fix, then score.

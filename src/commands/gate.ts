@@ -42,6 +42,7 @@ Exit codes:
 
 Error codes:
   BAD_ARG        Missing <file.html>, unknown --skip family, or a skip without a reason
+  TOKENS_NOT_READABLE  --tokens path missing/unparsable — refused rather than silently weaker
   FILE_NOT_FOUND The input file does not exist
   READ_ERROR     The input file cannot be read
 `;
@@ -93,7 +94,17 @@ export const gateCommand = {
       skip = parsedSkip;
     }
     const tokensFlag = parsed.flags["tokens"];
-    const knownHexes = typeof tokensFlag === "string" ? loadTokenHexes(tokensFlag) : undefined;
+    let knownHexes: Set<string> | undefined;
+    if (typeof tokensFlag === "string") {
+      knownHexes = loadTokenHexes(tokensFlag);
+      // Fail LOUD: taste-lint tolerates a missing token file (optional context),
+      // but on the mandatory gate line a typo'd path would silently disable the
+      // raw-hex Consistency check — a quieter gate that looks like a passing one.
+      if (knownHexes === undefined) {
+        const msg = `--tokens '${tokensFlag}' is not a readable token file (missing, unparsable, or holds no color tokens) — fix the path or drop the flag; a gate must never weaken silently`;
+        return useJson ? errJson(CMD, "TOKENS_NOT_READABLE", msg) : errText(`ui: ${msg}\n`);
+      }
+    }
 
     const result = runGate(html, { knownHexes, skip });
     const exitCode = result.pass ? 0 : 1;
