@@ -7,17 +7,14 @@
  */
 import { lineAt } from "./a11y-lint.js";
 import { checkDumbPunctuation } from "./content-checks-punctuation.js";
+import type { FloorFindingBase } from "./finding-schema.js";
 // Re-exported so the public `ease-design/lint` surface (which does
 // `export * from "./core/content-checks.js"`) carries every content check.
 export { checkDumbPunctuation } from "./content-checks-punctuation.js";
 
 export type ContentSeverity = "error" | "warning";
-export interface ContentFinding {
-  checkId: string;
-  severity: ContentSeverity;
-  message: string;
-  line?: number;
-}
+/** Content findings speak the shared FloorFinding schema (finding-schema.ts). */
+export type ContentFinding = FloorFindingBase;
 
 /** Visible text: strip tags, decode a few entities, collapse whitespace. */
 function textOf(html: string): string {

@@ -124,5 +124,9 @@ export function checkDataNumbersNotTabular(html: string): TasteFinding[] {
   return [{
     checkId: "data-numbers-not-tabular", axis: "Typography", severity: "warning",
     message: `${numericCells} number-shaped table cells with no tabular-nums (rubric Typography: "numeric data columns and changing values use tabular figures") — set font-variant-numeric: tabular-nums (or the tabular-nums utility) on data columns`,
+    expected: "font-variant-numeric: tabular-nums on numeric data columns (or a monospace face)",
+    actual: `${numericCells} number-shaped cells without tabular figures`,
+    fixHint: "run `ui autofix --write` (table-tabular-nums injects the declaration)",
+    repairScope: "global",
   }];
 }

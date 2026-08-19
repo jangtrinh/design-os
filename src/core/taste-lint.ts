@@ -66,6 +66,7 @@ import { checkEqualNestedRadii } from "./taste-checks-concentric-radius.js";
 import { gsapChecks } from "./taste-checks-gsap.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { videoScrubChecks } from "./taste-checks-video-scrub.js";
+import type { FloorFindingBase } from "./finding-schema.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -87,14 +88,10 @@ export type TasteAxis =
   | "Depth/Surface"
   | "Consistency";
 
-export interface TasteFinding {
-  checkId: string;
+/** Taste findings speak the shared FloorFinding schema plus their rubric axis. */
+export type TasteFinding = FloorFindingBase & {
   axis: TasteAxis;
-  severity: TasteSeverity;
-  message: string;
-  /** 1-based line number when locatable; omitted for whole-document checks. */
-  line?: number;
-}
+};
 
 export interface TasteLintResult {
   findings: TasteFinding[];

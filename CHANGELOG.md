@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-08-19 - FloorFinding schema v1 and the coverage registry
+
+### Added
+- **FloorFinding schema v1** (`finding-schema.ts`): every gate family's findings now share
+  one base shape with optional repair fields — `nodeRef`, `expected`, `actual`, `fixHint`
+  (authored per-rule, never model-generated), and `repairScope` (`nodes | subtree | global`,
+  the finding's DECLARED patch blast radius — the strict-patch ruling from the tractability
+  advisory). All additions are optional; six reference checks ship the fields first
+  (input-unlabeled, focus-outline-removed, sticky-hover-unguarded, data-numbers-not-tabular,
+  equal-nested-radii), the rest adopt as they are touched.
+- **`ui gate coverage [--dir]`** — the machine-readable roster of every check the composed
+  judge can run (88 entries across five families), with per-project activity (the tokens-gated
+  raw-hex check reports inactive until the DS token file exists; the DS root resolves through
+  the same walk every DS command uses, so a subdirectory probe cannot lie). This is the
+  evidence source a triage router derives from: routing on this registry can never go stale,
+  because shipping a floor updates the registry it routes on. Paired two ways with reality:
+  the source extractor resolves both literal and const-style checkIds (the const class fooled
+  the first draft's grep into a green that could never go red — review-caught, extractor now
+  self-probed), and a runtime containment test asserts every id a kitchen-sink gate run emits
+  is a catalog row. Rules with global-scope repairs carry a machine-readable `subject`
+  naming the region a valid patch may touch — validators compose unions of subjects,
+  never flatten "global" to "anywhere".
+
+### Changed
+- The gate envelope now passes family findings through whole: a11y findings keep their WCAG
+  `sc`, taste findings keep their rubric `axis` (previously stripped to the four base fields).
+  Additive — existing consumers of the base fields are unaffected.
+
+
 ## 2026-08-19 - One composed judge: ui gate
 
 ### Added

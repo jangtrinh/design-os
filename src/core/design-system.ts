@@ -105,6 +105,16 @@ export function pathsForDir(dir: string): DesignSystemPaths {
  * design/ds.manifest.json. Stops early at any .git boundary.
  * Throws DSError("DS_NOT_FOUND") if not found.
  */
+/** Non-throwing discovery — for probes (gate coverage) where "no DS" is a
+ *  normal answer, not an error. Same walk, same .git boundary. */
+export function tryDiscoverDesignSystem(start: string | undefined): DesignSystemPaths | undefined {
+  try {
+    return discoverDesignSystem(start);
+  } catch {
+    return undefined;
+  }
+}
+
 export function discoverDesignSystem(start: string | undefined): DesignSystemPaths {
   let cur = resolve(start ?? process.cwd());
 

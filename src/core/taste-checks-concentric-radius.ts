@@ -45,6 +45,7 @@ export function checkEqualNestedRadii(html: string): TasteFinding[] {
   const lower = html.toLowerCase();
   const re = /<([a-zA-Z][\w-]*)\b([^>]*)>/g;
   let m: RegExpExecArray | null;
+  let nthPadded = 0;
   while ((m = re.exec(html)) !== null) {
     const cls = classOf(m[2] ?? "");
     const outer = radiusOf(cls);
@@ -54,6 +55,7 @@ export function checkEqualNestedRadii(html: string): TasteFinding[] {
     // A void or unclosed tag has no inner HTML — scanning the rest of the
     // document would report unrelated siblings as nested children.
     if (closeIdx === -1) continue;
+    nthPadded++;
     const inner = html.slice(re.lastIndex, closeIdx);
     for (const c of inner.matchAll(/<[a-zA-Z][\w-]*\b([^>]*)>/g)) {
       const childRadius = radiusOf(classOf(c[1] ?? ""));
@@ -63,6 +65,13 @@ export function checkEqualNestedRadii(html: string): TasteFinding[] {
           checkId: "equal-nested-radii", axis: "Spacing", severity: "warning",
           message: `a padded "${outer}" container nests a child at the same "${childRadius}" — equal nested radii make the inner corner look pinched (rubric Spacing: nested rounded corners stay concentric, outer radius = inner radius + padding); step the child down or bump the parent up`,
           line: lineOf(html, m.index),
+          // nth padded-rounded container in document order — stable under
+          // edits above; never a line number (stuck-detector identity).
+          nodeRef: `<${tag} ${outer}>[${nthPadded}]`,
+          expected: "concentric nested radii (outer = inner + padding)",
+          actual: `parent and child both "${childRadius}" with padding between`,
+          fixHint: "step the child down one radius step (or raise the parent one)",
+          repairScope: "nodes",
         });
       }
       break; // judge only the first rounded child per container — one finding per parent

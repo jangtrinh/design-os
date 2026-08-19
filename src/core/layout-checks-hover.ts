@@ -66,5 +66,9 @@ export function checkStickyHoverUnguarded(html: string): LayoutFinding[] {
   return [{
     checkId: "sticky-hover-unguarded", severity: "warning",
     message: `${count} CSS :hover rule${count === 1 ? "" : "s"} outside @media (hover: hover) on a mobile-intent document — on touch, :hover sticks after a tap and the control looks selected; wrap hover styling in @media (hover: hover)`,
+    expected: "every real :hover rule inside @media (hover: hover)",
+    actual: `${count} unguarded :hover rule${count === 1 ? "" : "s"}`,
+    fixHint: "run `ui autofix --write` (hover-media-guard wraps them in place)",
+    repairScope: "global",
   }];
 }

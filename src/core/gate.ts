@@ -18,6 +18,9 @@ import { lintTaste } from "./taste-lint.js";
 import { allContentChecks } from "./content-checks.js";
 import type { ContentFinding } from "./content-checks.js";
 import { runAutofix } from "./html-autofix.js";
+import type { FloorFindingBase } from "./finding-schema.js";
+import { CHECK_CATALOG } from "./check-catalog.js";
+import type { CatalogEntry } from "./check-catalog.js";
 
 export const GATE_FAMILIES = ["layout", "a11y", "taste", "content", "autofix"] as const;
 export type GateFamily = (typeof GATE_FAMILIES)[number];
@@ -25,7 +28,8 @@ export type GateFamily = (typeof GATE_FAMILIES)[number];
 export interface GateFamilyResult {
   errorCount: number;
   warningCount: number;
-  findings: Array<{ checkId: string; severity: "error" | "warning"; message: string; line?: number }>;
+  /** FloorFinding schema v1; family extras (a11y `sc`, taste `axis`) ride along. */
+  findings: FloorFindingBase[];
 }
 
 export interface GateResult {
@@ -65,11 +69,9 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
       const r = lintLayout(html);
       families.layout = familyResult(r.findings);
     } else if (fam === "a11y") {
-      const r = lintA11y(html);
-      families.a11y = familyResult(r.findings.map(({ checkId, severity, message, line }) => ({ checkId, severity, message, line })));
+      families.a11y = familyResult(lintA11y(html).findings);
     } else if (fam === "taste") {
-      const r = lintTaste(html, { knownHexes: opts.knownHexes });
-      families.taste = familyResult(r.findings.map(({ checkId, severity, message, line }) => ({ checkId, severity, message, line })));
+      families.taste = familyResult(lintTaste(html, { knownHexes: opts.knownHexes }).findings);
     } else if (fam === "content") {
       const all: ContentFinding[] = [];
       for (const check of allContentChecks) all.push(...check(html));
@@ -94,4 +96,31 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
     warningCount += r.warningCount;
   }
   return { families, skipped, errorCount, warningCount, pass: errorCount === 0 };
+}
+
+// ─── Coverage — the registry triage routes on ─────────────────────────────────
+
+export interface GateCoverage {
+  checks: Array<CatalogEntry & { active: boolean }>;
+  families: Record<GateFamily, { total: number; active: number }>;
+  project: { tokensPresent: boolean; dsPresent: boolean };
+}
+
+/**
+ * gateCoverage — which checks CAN run for a given project context. Derived from
+ * the same catalog the gate's families are paired against, so a router reading
+ * this can never go stale as floors ship (triage-by-attempted-compilation's
+ * evidence source). `dsPresent` is reported for routing context (DS density);
+ * no gate check currently keys on it beyond the token file.
+ */
+export function gateCoverage(project: { tokensPresent: boolean; dsPresent: boolean }): GateCoverage {
+  const checks = CHECK_CATALOG.map((c) => ({
+    ...c,
+    active: c.requires === "none" || (c.requires === "tokens" && project.tokensPresent),
+  }));
+  const families = Object.fromEntries(GATE_FAMILIES.map((f) => {
+    const rows = checks.filter((c) => c.family === f);
+    return [f, { total: rows.length, active: rows.filter((c) => c.active).length }];
+  })) as Record<GateFamily, { total: number; active: number }>;
+  return { checks, families, project };
 }
