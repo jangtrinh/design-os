@@ -39,6 +39,7 @@ Checks (the machine-verifiable subset of knowledge/taste-rubric.md; error unless
   uppercase-tight-line-height Typography    all-caps text with line-height below 1.0
   data-numbers-not-tabular   Typography     numeric table columns without tabular-nums (warning)
   off-grid-spacing           Spacing        Tailwind spacing not on the 4px base grid
+  equal-nested-radii         Spacing        padded parent and child share one radius (warning)
   mixed-icon-families        Iconography    two or more icon libraries in one UI
   text-arrow-as-interface-icon Iconography  Unicode arrow in a link/button instead of an icon component
   pure-black-shadow          Depth/Surface  hard/opaque black shadow (should be tinted)

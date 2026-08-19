@@ -9,6 +9,8 @@ import { isRedirectStub } from "./redirect-stub.js";
 // Re-exported so existing importers of isRedirectStub from a11y-checks keep working —
 // the detector itself now lives in redirect-stub.ts, shared with validate-layout (L4).
 export { isRedirectStub } from "./redirect-stub.js";
+// Form-label + focus-visibility checks live in their own module (200-line guideline).
+export { checkInputUnlabeled, checkFocusOutlineRemoved } from "./a11y-checks-focus-and-labels.js";
 
 function attr(tag: string, name: string): string | null {
   const m = new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, "i").exec(tag);
