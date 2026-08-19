@@ -100,7 +100,7 @@ describe("lintTaste — radius-sprawl wired", () => {
   });
 });
 
-// ─── equal-nested-radii (Consistency, warning) ──────────────────────────────────
+// ─── equal-nested-radii (Spacing, warning) ──────────────────────────────────
 
 describe("equal-nested-radii", () => {
   it("flags a padded parent and direct child sharing the same rounded step", () => {
@@ -121,5 +121,17 @@ describe("equal-nested-radii", () => {
   });
   it("exempts the pill bucket (rounded-full in rounded-full)", () => {
     expect(checkEqualNestedRadii('<div class="rounded-full p-1"><span class="rounded-full">dot</span></div>')).toEqual([]);
+  });
+});
+
+describe("equal-nested-radii — void/unclosed parents never wrap the document", () => {
+  it("a void element (input/img) never becomes a parent scanning the rest of the document", () => {
+    const html = '<input id="em" type="email" class="rounded-lg p-3 border">' +
+      '<section><article class="rounded-lg">siblings, not nested</article></section>';
+    expect(checkEqualNestedRadii(html)).toEqual([]);
+    expect(checkEqualNestedRadii('<img class="rounded-2xl p-2" src="x" alt=""><div class="rounded-2xl">later</div>')).toEqual([]);
+  });
+  it("an unclosed padded container is skipped, not treated as wrapping everything after it", () => {
+    expect(checkEqualNestedRadii('<li class="rounded-md p-2">open<div class="rounded-md">far away</div>')).toEqual([]);
   });
 });

@@ -51,7 +51,10 @@ export function checkEqualNestedRadii(html: string): TasteFinding[] {
     if (outer === null || !PADDED.test(cls)) continue;
     const tag = (m[1] ?? "").toLowerCase();
     const closeIdx = lower.indexOf(`</${tag}>`, re.lastIndex);
-    const inner = closeIdx === -1 ? html.slice(re.lastIndex) : html.slice(re.lastIndex, closeIdx);
+    // A void or unclosed tag has no inner HTML — scanning the rest of the
+    // document would report unrelated siblings as nested children.
+    if (closeIdx === -1) continue;
+    const inner = html.slice(re.lastIndex, closeIdx);
     for (const c of inner.matchAll(/<[a-zA-Z][\w-]*\b([^>]*)>/g)) {
       const childRadius = radiusOf(classOf(c[1] ?? ""));
       if (childRadius === null) continue;

@@ -18,10 +18,19 @@
 
 ### Changed
 - `lintA11y` gained two checks, so a11y error counts can rise on pages with unlabeled
-  controls or removed focus rings. One repo-wide run on all repo HTML: zero findings
-  (probe proven able to go red first). Adopted from
-  [jakubkrehel/skills](https://github.com/jakubkrehel/skills), rewritten against WCAG
-  and this repo's rubric language.
+  controls or removed focus rings. Measured on every tracked `*.html`
+  (`git ls-files`, 79 files): zero findings, with the probe proven able to go red
+  first — an earlier, narrower sweep missed `showcase/` and its one hit, which turned
+  out to be a false positive on a `hidden` file input and drove the `hidden`/
+  `aria-hidden` exemption now in the check. Adversarial review also hardened the
+  floors: Tailwind utilities are read from `class` attributes only (a page that
+  merely *mentions* `focus:outline-none` in prose or a code sample never fires),
+  `tabindex="-1"` programmatic focus targets may suppress their ring,
+  `focus:shadow-*`/`focus:border-*` count as replacements, `outline: 0px` and
+  `!important` forms are removals rather than silent kill-switches, and a void or
+  unclosed container can no longer adopt the rest of the document as its child.
+  Adopted from [jakubkrehel/skills](https://github.com/jakubkrehel/skills),
+  rewritten against WCAG and this repo's rubric language.
 
 ## 2026-08-19 - Kit typography polish: balanced titles, pretty bodies, hairline photos
 

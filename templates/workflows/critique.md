@@ -347,6 +347,7 @@ If the variant failed and `round < 3`:
    <!-- AI_CRITIQUE_LOG round=<N>:
     targeted: <axis> (was <prev>/10, target ≥ 7)
     change:   <one-line summary>
+    rejected: <candidate — reason> (omit the line when nothing was borderline)
     autofix:  <count> findings applied: <viewport-meta, img-onerror, ...>
    -->
    ```
@@ -444,9 +445,11 @@ Field contract:
 - **`rejected`** — optional, 1–3 entries, additive (consumers ignore it).
   Fixes genuinely considered and rejected, each with its reason. This is the
   anti-padding valve: a borderline candidate goes here with its reason instead
-  of inflating `suggestions`, and step 5's refine loop reads it so a rejected
-  candidate is never re-proposed in a later round. Never invent filler — when
-  nothing was borderline, omit the field.
+  of inflating `suggestions`. The same entries go on the round's
+  `rejected:` line in the AI_CRITIQUE_LOG block (step 5), which is the
+  episodic memory `<prior_attempts>` actually carries — that is what keeps a
+  rejected candidate from being re-proposed in a later round. Never invent
+  filler — when nothing was borderline, omit the field.
 - **`consistencyScored`** — boolean, **always present**. `true` when the
   project has a DS on disk and the Consistency axis was graded; `false`
   when the project has no DS yet and Consistency was skipped. Callers
@@ -549,7 +552,10 @@ is the floor every other workflow defers to. Its own self-check:
   rubric's "Score against" questions.
 - The verdict must be deterministic given the same HTML, persona DNA, and
   DS context — re-running critique on an unchanged file must produce the
-  same scores. The `ui taste-lint` floor (step 2) is fully deterministic and
+  same scores. (State walking and slowed-motion reading in step 2 score the
+  DECLARED states and transitions, from a preview when one exists and from
+  the declarations when none does — the inputs above stay the whole basis,
+  and which basis was used is stated in the Motion paragraph.) The `ui taste-lint` floor (step 2) is fully deterministic and
   is the part of the gate that does not depend on model judgment: a variant
   that trips a linter finding fails the corresponding axis every time,
   reproducibly.

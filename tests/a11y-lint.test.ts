@@ -234,3 +234,35 @@ describe("focus-outline-removed (2.4.7)", () => {
     expect(checkFocusOutlineRemoved("<style>button:focus-visible { outline-offset: 2px; }</style>")).toEqual([]);
   });
 });
+
+describe("focus/label precision — mention vs use, hidden controls, focus targets", () => {
+  it("a page merely MENTIONING focus:outline-none (prose/code/script) never fires", () => {
+    expect(checkFocusOutlineRemoved("<article><p>Never write <code>focus:outline-none</code> without a ring.</p></article>")).toEqual([]);
+    expect(checkFocusOutlineRemoved("<script>const cls = 'focus:outline-none';</script>")).toEqual([]);
+    expect(checkFocusOutlineRemoved('<pre>class="focus:outline-none"</pre>')).toEqual([]);
+  });
+  it("the class-attribute form still fires", () => {
+    expect(ids(checkFocusOutlineRemoved('<button class="focus:outline-none">Go</button>'))).toEqual(["focus-outline-removed"]);
+  });
+  it("outline removal on a tabindex=-1 programmatic focus target is not a removal", () => {
+    const html = '<style>#main:focus { outline: none; }</style><main id="main" tabindex="-1">content</main>';
+    expect(checkFocusOutlineRemoved(html)).toEqual([]);
+    const attrForm = '<style>[tabindex="-1"]:focus { outline: none; }</style><div tabindex="-1"></div>';
+    expect(checkFocusOutlineRemoved(attrForm)).toEqual([]);
+  });
+  it("Tailwind focus:shadow-* and focus:border-* count as visible replacements", () => {
+    expect(checkFocusOutlineRemoved('<button class="focus:outline-none focus:shadow-outline">Go</button>')).toEqual([]);
+    expect(checkFocusOutlineRemoved('<button class="focus:outline-none focus:border-2 focus:border-indigo-600">Go</button>')).toEqual([]);
+  });
+  it("outline: 0px and outline: none !important are removals, never replacements", () => {
+    const f = checkFocusOutlineRemoved("<style>a:focus { outline: 0px; } button:focus { outline: none !important; }</style>");
+    expect(ids(f)).toEqual(["focus-outline-removed"]);
+  });
+  it("a hidden or aria-hidden control needs no label (out of the a11y tree)", () => {
+    expect(checkInputUnlabeled('<input id="meal-file" type="file" accept="image/*" hidden>')).toEqual([]);
+    expect(checkInputUnlabeled('<input type="text" aria-hidden="true">')).toEqual([]);
+  });
+  it("an input inside a script template string never fires", () => {
+    expect(checkInputUnlabeled("<script>const tpl = `<input type=\"text\">`;</script>")).toEqual([]);
+  });
+});

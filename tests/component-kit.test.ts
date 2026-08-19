@@ -173,9 +173,12 @@ describe("component-kit — full linter set wrap-lint (a11y + layout + taste + c
   // errors-only gates above cannot catch a regression of them. This one can: the
   // kit must emit NONE of the five, warnings included.
   const NEW_FLOOR_IDS = new Set([
+    // equal-nested-radii is deliberately absent: it reads Tailwind classes only
+    // and the kit is BEM + raw CSS, so the assertion could never go red for it
+    // (a guard that cannot fail guards nothing); its own unit tests pin it.
     "dumb-punctuation", "bare-confirm-button", "paste-blocked",
     "sticky-hover-unguarded", "data-numbers-not-tabular",
-    "equal-nested-radii", "input-unlabeled", "focus-outline-removed",
+    "input-unlabeled", "focus-outline-removed",
   ]);
   it("each fragment emits none of the interfaces-cheatsheet floor findings (warnings included)", () => {
     for (const c of COMPONENT_KIT) {
