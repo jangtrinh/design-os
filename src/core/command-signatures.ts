@@ -213,6 +213,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       flags: [
         { name: "tokens", type: "string", summary: "DS token file; enables the taste Consistency raw-hex check" },
         { name: "skip", type: "string", summary: "Comma-separated <family>:<reason> pairs — declared partial gating" },
+        { name: "dir", type: "string", summary: "coverage mode: project directory to probe for tokens/DS (default: cwd)" },
       ],
       errorCodes: [...IO_CODES, "TOKENS_NOT_READABLE"],
     },

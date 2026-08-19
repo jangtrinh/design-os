@@ -42,9 +42,12 @@ export function checkInputUnlabeled(html: string): A11yFinding[] {
   for (const m of markup.matchAll(/<label\b[^>]*\bfor\s*=\s*["']?([\w-]+)/gi)) forIds.add((m[1] ?? "").toLowerCase());
   // Controls inside a wrapping <label> are labeled — blank those regions out.
   const scan = markup.replace(/<label\b[\s\S]*?<\/label\s*>/gi, blank);
+  const seenPerTag = new Map<string, number>();
   for (const m of scan.matchAll(/<(input|select|textarea)\b([^>]*)>/gi)) {
     const tag = (m[1] ?? "").toLowerCase();
     const attrs = m[2] ?? "";
+    const nth = (seenPerTag.get(tag) ?? 0) + 1;
+    seenPerTag.set(tag, nth);
     if (tag === "input" && UNLABELED_OK_TYPES.test(attrs)) continue;
     // Hidden content sits outside the accessibility tree — no label required.
     // (?:^|\s) guards the bare `hidden` attribute against matching inside aria-hidden.
@@ -53,7 +56,21 @@ export function checkInputUnlabeled(html: string): A11yFinding[] {
     const id = /\bid\s*=\s*["']?([\w-]+)/i.exec(attrs)?.[1]?.toLowerCase();
     if (id !== undefined && forIds.has(id)) continue;
     out.push({ checkId: "input-unlabeled", severity: "error", sc: "3.3.2",
-      message: `<${tag}> has no programmatic label — add <label for>, wrap it in a <label>, or set aria-label (a placeholder is not a label: it vanishes on the first keystroke)`, line: lineOf(scan, m.index) });
+      message: `<${tag}> has no programmatic label — add <label for>, wrap it in a <label>, or set aria-label (a placeholder is not a label: it vanishes on the first keystroke)`, line: lineOf(scan, m.index),
+      // Stable under edits ABOVE the node (never a line number — the stuck
+      // detector keys identity on nodeRef, and a renumbering locator makes
+      // churn read as progress). Anchor on id/name when present; otherwise
+      // the nth occurrence of the tag, which also keeps two same-line
+      // controls distinct.
+      nodeRef: (() => {
+        const idAttr = /\bid\s*=\s*["']?([\w-]+)/i.exec(attrs)?.[1];
+        const nameAttr = /\bname\s*=\s*["']?([\w-]+)/i.exec(attrs)?.[1];
+        return idAttr !== undefined ? `<${tag}#${idAttr}>` : nameAttr !== undefined ? `<${tag}[name=${nameAttr}]>` : `<${tag}>[${nth}]`;
+      })(),
+      expected: "a programmatic label (<label for>, wrapping <label>, or aria-label)",
+      actual: "no label association",
+      fixHint: "add a <label for> pointing at the control's id",
+      repairScope: "nodes" });
   }
   return out;
 }
@@ -115,5 +132,9 @@ export function checkFocusOutlineRemoved(html: string): A11yFinding[] {
   }
   if (!removed || replaced) return [];
   return [{ checkId: "focus-outline-removed", severity: "error", sc: "2.4.7",
-    message: "a focus rule removes the outline (outline: none / focus:outline-none) and no focus rule provides a visible replacement — sighted keyboard users lose their place; keep the browser ring (outline-offset alone preserves it) or draw a ring with the project's focus token" }];
+    message: "a focus rule removes the outline (outline: none / focus:outline-none) and no focus rule provides a visible replacement — sighted keyboard users lose their place; keep the browser ring (outline-offset alone preserves it) or draw a ring with the project's focus token",
+    expected: "a visible focus indicator on every focus rule",
+    actual: "outline removed with no replacement anywhere",
+    fixHint: "run `ui autofix --write` (focus-outline-restore) or draw a ring with the focus token",
+    repairScope: "global" }];
 }

@@ -3,13 +3,15 @@
  * family plus the autofix dry-run cleanliness check, so a workflow's quality
  * gate is a single line that cannot drift from its siblings. Read-only.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
-import { runGate, GATE_FAMILIES } from "../core/gate.js";
+import { runGate, gateCoverage, GATE_FAMILIES } from "../core/gate.js";
 import type { GateFamily, GateOptions } from "../core/gate.js";
 import { loadTokenHexes } from "./taste-lint.js";
+import { tryDiscoverDesignSystem } from "../core/design-system.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 
 const CMD = "gate";
@@ -18,6 +20,7 @@ export const GATE_HELP = `ui gate — composed floor judge (every linter family,
 
 Usage:
   ui gate <file.html> [--tokens <f>] [--skip <family>:<reason>[,...]] [--json]
+  ui gate coverage [--dir <project>] [--json]
 
 Runs, in one call:
   layout    ui validate-layout   (structure + mobile + hover floors)
@@ -25,6 +28,10 @@ Runs, in one call:
   taste     ui taste-lint        (rubric machine floors; --tokens enables raw-hex)
   content   ui content-lint      (UX-writing floors)
   autofix   DRY-RUN cleanliness  (pending repairs = error "autofix-not-clean")
+
+\`ui gate coverage\` lists every check the gate can run (the same catalog its
+families are test-paired against) with per-project activity — the evidence a
+router derives tractability from, never stale as floors ship.
 
 The gate never rewrites the file — run \`ui autofix --write\` first, then gate.
 A skipped family requires a reason and is reported in the result, so partial
@@ -70,6 +77,25 @@ export const gateCommand = {
   run(parsed: ParsedArgs): CommandResult {
     const useJson = parsed.json;
     const file = parsed.positionals[0];
+    if (file === "coverage") {
+      const dir = typeof parsed.flags["dir"] === "string" ? (parsed.flags["dir"] as string) : process.cwd();
+      // Resolve the DS the way every DS command does (walks up to .git) — a
+      // flat join would report "no tokens" from any subdirectory of a real
+      // project and silently deactivate the tokens-gated check.
+      const ds = tryDiscoverDesignSystem(dir);
+      const project = {
+        tokensPresent: existsSync(ds !== undefined ? ds.tokens : join(dir, "design", "design.tokens.json")),
+        dsPresent: ds !== undefined,
+      };
+      const cov = gateCoverage(project);
+      if (useJson) return okJsonWithExit(CMD, cov, 0);
+      const lines = [
+        `gate coverage — ${cov.checks.filter((c) => c.active).length}/${cov.checks.length} checks active (tokens: ${project.tokensPresent ? "present" : "absent"}, ds: ${project.dsPresent ? "present" : "absent"})`,
+        ...GATE_FAMILIES.map((f) => `  ${f}: ${cov.families[f].active}/${cov.families[f].total} active`),
+        ...cov.checks.filter((c) => !c.active).map((c) => `  inactive: ${c.id} (requires ${c.requires})`),
+      ];
+      return { exitCode: 0, stdout: lines.join("\n") + "\n" };
+    }
     if (file === undefined) {
       const msg = "ui gate requires <file.html>";
       return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
