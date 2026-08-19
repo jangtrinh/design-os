@@ -169,4 +169,25 @@ describe("paste-blocked (3.3.8)", () => {
     expect(checkPasteBlocked('<input onpaste="trackPaste()">')).toEqual([]);
     expect(checkPasteBlocked("<script>el.addEventListener('paste', track);</script>")).toEqual([]);
   });
+  it("does not fire when an unrelated listener calls preventDefault nearby", () => {
+    const html = "<script>notes.addEventListener('paste', (e) => { analytics.track('pasted'); });\n" +
+      "f.addEventListener('submit', (e) => { e.preventDefault(); send(); });</script>";
+    expect(checkPasteBlocked(html)).toEqual([]);
+  });
+  it("does not fire on the paste-as-plain-text idiom (preventDefault + re-insert)", () => {
+    const html = "<script>ed.addEventListener('paste', (e) => { e.preventDefault();\n" +
+      "  const t = e.clipboardData.getData('text/plain'); document.execCommand('insertText', false, t); });</script>";
+    expect(checkPasteBlocked(html)).toEqual([]);
+  });
+  it("the scripted-listener form is a warning (regex cannot prove runtime semantics)", () => {
+    const f = checkPasteBlocked("<script>el.addEventListener('paste', (e) => e.preventDefault());</script>");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.severity).toBe("warning");
+  });
+  it("lintA11y ignores commented-out markup (onpaste and img alike)", () => {
+    const html = '<!doctype html><html lang="en"><head><title>t</title></head><body>' +
+      '<!-- <input onpaste="return false"> legacy --><!-- <img src="x"> --><p>hi</p></body></html>';
+    const res = lintA11y(html);
+    expect(res.findings.map((f) => f.checkId)).toEqual([]);
+  });
 });

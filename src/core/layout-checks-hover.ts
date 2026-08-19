@@ -11,12 +11,16 @@
  * with no mobile-intent signal never flags (a desktop-only page is out of
  * scope); one whole-document finding, counting the unguarded rules, mirroring
  * the animation-no-reduced-motion shape. Pure string/regex — no DOM, no deps.
+ *
+ * Known limit: the brace walk does not tokenize CSS strings, so a literal brace
+ * inside a guarded block (`content: "}"`) closes the guard early and can inflate
+ * the count. Warning-only and count-only, so the trade is accepted over a tokenizer.
  */
 import type { LayoutFinding } from "./layout-lint.js";
 import { cssRegions } from "./taste-checks-shared.js";
+import { hasViewportMeta } from "./a11y-checks.js";
 
-/** Mobile-intent signals — same shape as a11y's checkViewportMetaPresent gate. */
-const VIEWPORT_META = /<meta\b[^>]*name\s*=\s*("|')?viewport\1?/i;
+/** Mobile-intent signals — viewport meta shared with a11y-checks (one definition). */
 const WIDTH_MEDIA = /@media[^{]*\(\s*(?:max|min)-width/i;
 const MOBILE_INTENT = /\b(?:sm|md|lg|xl|2xl):[a-z[]/i;
 
@@ -44,7 +48,7 @@ function stripHoverGuardedBlocks(css: string): string {
 }
 
 export function checkStickyHoverUnguarded(html: string): LayoutFinding[] {
-  if (!VIEWPORT_META.test(html) && !WIDTH_MEDIA.test(html) && !MOBILE_INTENT.test(html)) return [];
+  if (!hasViewportMeta(html) && !WIDTH_MEDIA.test(html) && !MOBILE_INTENT.test(html)) return [];
   // CSS comments are blanked first — a ":hover" mentioned in prose is not a rule.
   const css = cssRegions(html).replace(/\/\*[\s\S]*?\*\//g, (m) => " ".repeat(m.length));
   const unguarded = stripHoverGuardedBlocks(css);

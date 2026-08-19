@@ -62,6 +62,7 @@ import { checkModeInvisibleSurface } from "./taste-checks-invisible-surface.js";
 import { checkContainerNestingDepth } from "./taste-checks-nesting.js";
 import { checkRadiusSprawl } from "./taste-checks-radius.js";
 import { gsapChecks } from "./taste-checks-gsap.js";
+import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { videoScrubChecks } from "./taste-checks-video-scrub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -114,14 +115,8 @@ export interface TasteLintOptions {
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
 
-/**
- * Replace each HTML comment with an equal-length run of spaces so byte offsets
- * (and line numbers) stay correct. Prevents commented-out markup — including
- * the AI_CRITIQUE_LOG block critique.md writes — from tripping checks.
- */
-function stripCommentsPreservingOffsets(html: string): string {
-  return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
-}
+// Comment stripping is shared with layout-lint and a11y-lint (one definition;
+// it also keeps the AI_CRITIQUE_LOG block critique.md writes from tripping checks).
 
 /** Axis order for stable sorting (matches the rubric's listed order). */
 const AXIS_ORDER: Record<TasteAxis, number> = {

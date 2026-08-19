@@ -96,7 +96,7 @@ const WIDTH_MEDIA = /@media[^{]*\(\s*(?:max|min)-width/i;
  */
 export function checkViewportMetaPresent(html: string): A11yFinding[] {
   if (isRedirectStub(html)) return [];
-  if (/<meta\b[^>]*name\s*=\s*("|')?viewport\1?/i.test(html)) return [];
+  if (hasViewportMeta(html)) return [];
   if (!MOBILE_INTENT.test(html) && !WIDTH_MEDIA.test(html)) return [];
   return [{ checkId: "viewport-meta-missing", severity: "warning", sc: "1.4.10",
     message: "a responsive document has no <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> — mobile browsers render it at a fake ~980px desktop width and downscale, so the breakpoints never fire",
@@ -131,31 +131,65 @@ export function checkIconControlUnnamed(html: string): A11yFinding[] {
 // ── 3.3.8 Accessible authentication: never block paste ──
 /** An inline onpaste handler that cancels the event (return false / preventDefault). */
 const ONPASTE_BLOCKING = /\bonpaste\s*=\s*("([^"]*)"|'([^']*)')/gi;
-/** A scripted paste listener that cancels within its handler (bounded window, precision-first). */
-const PASTE_LISTENER_BLOCKING = /addEventListener\(\s*["']paste["']\s*,[\s\S]{0,160}?preventDefault/gi;
+/** Head of a scripted paste listener; the handler text is paren-matched from here. */
+const PASTE_LISTENER_HEAD = /addEventListener\(\s*["']paste["']\s*,/gi;
+/**
+ * A handler that touches the clipboard content is re-inserting, not blocking —
+ * the paste-as-plain-text idiom (preventDefault + getData + insertText) is the
+ * OPPOSITE of a 3.3.8 violation and must never flag.
+ */
+const CLIPBOARD_REINSERT = /clipboardData|getData|insertText|execCommand/i;
 
 /**
  * checkPasteBlocked — blocking paste breaks password managers and one-time-code
  * entry (WCAG 2.2 SC 3.3.8 Accessible Authentication: no cognitive-function test
- * such as retyping). Fires only on POSITIVE cancel evidence: an `onpaste` whose
- * handler text returns false / calls preventDefault, or a `paste` listener that
- * calls preventDefault inside its bounded handler window. A handler that merely
- * observes the paste never flags.
+ * such as retyping). Fires only on POSITIVE cancel evidence, and only inside the
+ * paste handler itself:
+ *   - an `onpaste` attribute that returns false / calls preventDefault → ERROR
+ *     (the handler text is fully visible, so the evidence is unambiguous);
+ *   - a scripted `paste` listener whose paren-matched argument text calls
+ *     preventDefault → WARNING (a regex cannot prove runtime semantics).
+ * Both forms are exempt when the handler touches the clipboard content — that
+ * is a re-insert, not a block. A handler that merely observes never flags, and
+ * paren-matching confines the search to THIS listener, so a neighboring
+ * handler's preventDefault can never bleed in.
  */
 export function checkPasteBlocked(html: string): A11yFinding[] {
   const out: A11yFinding[] = [];
   for (const m of html.matchAll(ONPASTE_BLOCKING)) {
     const handler = m[2] ?? m[3] ?? "";
-    if (/return\s+false|preventDefault/i.test(handler)) {
+    if ((/return\s+false|preventDefault/i.test(handler)) && !CLIPBOARD_REINSERT.test(handler)) {
       out.push({ checkId: "paste-blocked", severity: "error", sc: "3.3.8",
         message: "paste is blocked (onpaste cancels the event) — people paste passwords and one-time codes; never block paste", line: lineAt(html, m.index) });
     }
   }
-  for (const m of html.matchAll(PASTE_LISTENER_BLOCKING)) {
-    out.push({ checkId: "paste-blocked", severity: "error", sc: "3.3.8",
-      message: "a paste listener calls preventDefault — people paste passwords and one-time codes; never block paste", line: lineAt(html, m.index) });
+  let lm: RegExpExecArray | null;
+  PASTE_LISTENER_HEAD.lastIndex = 0;
+  while ((lm = PASTE_LISTENER_HEAD.exec(html)) !== null) {
+    // Walk to the ')' matching addEventListener's '(' — the argument list holds
+    // exactly this listener's handler, however it is written (arrow, function, ref).
+    let depth = 1;
+    let i = PASTE_LISTENER_HEAD.lastIndex;
+    while (i < html.length && depth > 0) {
+      const ch = html[i];
+      if (ch === "(") depth++;
+      else if (ch === ")") depth--;
+      i++;
+    }
+    const handler = html.slice(PASTE_LISTENER_HEAD.lastIndex, i - 1);
+    if (/preventDefault/i.test(handler) && !CLIPBOARD_REINSERT.test(handler)) {
+      out.push({ checkId: "paste-blocked", severity: "warning", sc: "3.3.8",
+        message: "a paste listener calls preventDefault without re-inserting the clipboard text — people paste passwords and one-time codes; never block paste", line: lineAt(html, lm.index) });
+    }
+    PASTE_LISTENER_HEAD.lastIndex = i;
   }
   return out;
+}
+
+/** True when the document declares a viewport meta — the mobile-intent signal
+ *  shared by checkViewportMetaPresent and layout-checks-hover (one definition). */
+export function hasViewportMeta(html: string): boolean {
+  return /<meta\b[^>]*name\s*=\s*("|')?viewport\1?/i.test(html);
 }
 
 // ── 1.3.1 / 2.4.6 Heading hierarchy: no skipped level, no empty heading ──

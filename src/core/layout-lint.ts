@@ -33,6 +33,7 @@ import {
   checkEdgeBarNoSafeArea,
 } from "./layout-checks-mobile.js";
 import { checkStickyHoverUnguarded } from "./layout-checks-hover.js";
+import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { isRedirectStub } from "./redirect-stub.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -93,15 +94,6 @@ const WARNING_CHECKS = [
 ] as const;
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
-
-/**
- * Replace each HTML comment with an equal-length run of spaces so that all
- * byte offsets (and therefore line numbers) remain correct after stripping.
- * This avoids false positives from commented-out markup in all heuristic checks.
- */
-function stripCommentsPreservingOffsets(html: string): string {
-  return html.replace(/<!--[\s\S]*?-->/g, (match) => " ".repeat(match.length));
-}
 
 /** Run every registered check and return findings sorted errors-first, then warnings. */
 export function lintLayout(html: string): LayoutLintResult {

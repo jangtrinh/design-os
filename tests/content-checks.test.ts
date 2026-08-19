@@ -7,9 +7,8 @@ import { describe, expect, it } from "vitest";
 import {
   checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
   checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage, checkAllCapsShout,
-  checkBareConfirmButton,
+  checkBareConfirmButton, checkDumbPunctuation,
 } from "../src/core/content-checks.js";
-import { checkDumbPunctuation } from "../src/core/content-checks-punctuation.js";
 
 describe("checkLoremIpsum (error)", () => {
   it("fires on 'lorem ipsum'", () => {
@@ -172,6 +171,21 @@ describe("checkDumbPunctuation (warning)", () => {
   it("does not fire on typographic punctuation", () => {
     expect(checkDumbPunctuation("<p>Loading… Don’t press “Save” yet</p>")).toEqual([]);
   });
+  it("reports the ORIGINAL source line, not a post-strip line (multi-line <style> above)", () => {
+    const html = "<!doctype html>\n<html>\n<head>\n<style>\n.a{}\n.b{}\n.c{}\n</style>\n</head>\n<body>\n<p>Loading your files...</p>\n</body>\n</html>";
+    const out = checkDumbPunctuation(html);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.line).toBe(11);
+  });
+  it("ignores code samples: <pre>/<code>/<kbd>/<samp> never fire", () => {
+    expect(checkDumbPunctuation('<pre><code>const cfg = { name: "app" }; // don\'t forget...</code></pre>')).toEqual([]);
+  });
+  it("ignores prime/inch marks after digits and cross-sentence pairings", () => {
+    expect(checkDumbPunctuation('<p>The file is 8"x10" at 300dpi.</p>')).toEqual([]);
+    const out = checkDumbPunctuation('<p>The 15" monitor is fine. Choose the "large" size.</p>');
+    expect(out).toHaveLength(1);
+    expect(out[0]?.message).toContain("large");
+  });
   it("ignores quotes/dots inside tags, scripts and styles", () => {
     const html = '<script>const a = "x...y";</script><style>.a{content:"..."}</style><a href="/x" title="it\'s">Read the docs</a>';
     expect(checkDumbPunctuation(html)).toEqual([]);
@@ -194,5 +208,9 @@ describe("checkBareConfirmButton (warning)", () => {
   });
   it('does not fire on "OK" outside a control', () => {
     expect(checkBareConfirmButton("<p>OK</p>")).toEqual([]);
+  });
+  it("catches single-quoted and unquoted input values too", () => {
+    expect(checkBareConfirmButton("<input type=submit value='OK'>")).toHaveLength(1);
+    expect(checkBareConfirmButton("<input type=submit value=OK>")).toHaveLength(1);
   });
 });

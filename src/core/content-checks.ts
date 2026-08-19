@@ -7,6 +7,9 @@
  */
 import { lineAt } from "./a11y-lint.js";
 import { checkDumbPunctuation } from "./content-checks-punctuation.js";
+// Re-exported so the public `ease-design/lint` surface (which does
+// `export * from "./core/content-checks.js"`) carries every content check.
+export { checkDumbPunctuation } from "./content-checks-punctuation.js";
 
 export type ContentSeverity = "error" | "warning";
 export interface ContentFinding {
@@ -154,7 +157,8 @@ export function checkBareConfirmButton(html: string): ContentFinding[] {
     if (BARE_CONFIRM.test(t)) flag(t, m.index);
   }
   for (const m of html.matchAll(/<input\b[^>]*\btype\s*=\s*["']?(?:submit|button)\b[^>]*>/gi)) {
-    const v = /\bvalue\s*=\s*"([^"]*)"/i.exec(m[0])?.[1]?.trim() ?? "";
+    const vm = /\bvalue\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[0]);
+    const v = (vm?.[1] ?? vm?.[2] ?? vm?.[3] ?? "").trim();
     if (BARE_CONFIRM.test(v)) flag(v, m.index);
   }
   return out;
