@@ -72,3 +72,7 @@ release-manifest.json
 
 # Generated at deploy time from examples/ by scripts/build-examples-gallery.mjs
 site/examples/
+
+# Autorecorded lint_run ledgers — running ui *-lint on example artifacts creates
+# these as local state; they must never ride into a commit (scar: PR #189).
+examples/**/design/memory.events.*
