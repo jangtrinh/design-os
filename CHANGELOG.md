@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-19 - The floors repair themselves, and generation is told to be born passing
+
+### Added
+- `ui autofix` gains three floor repairs, each gated by the same check function its
+  linter runs (a repair the checker cannot confirm fixed nothing): `hover-media-guard`
+  wraps raw `:hover` rules in `@media (hover: hover)` in place (cascade order kept;
+  nesting inside an unrelated media query stays valid); `table-tabular-nums` injects
+  the one declaration the lint prescribes; `focus-outline-restore` deletes
+  outline-killing focus declarations and `focus:outline-none` utility tokens so the
+  browser ring returns — programmatic focus targets (`tabindex="-1"`) are left alone.
+  Floor repairs rewrite CSS and attribute values only; copy text is never edited
+  (owner decision), so punctuation and label violations still route through refine.
+- `generation-craft-defaults.md` gains a "Machine floors — emit to pass" section: the
+  generator is told the floors up front instead of paying a bounded refine round for
+  what the linters would catch anyway.
+
+
 ## 2026-08-19 - Three more floors: labels, focus rings, concentric corners
 
 ### Added

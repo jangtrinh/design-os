@@ -27,8 +27,9 @@ const MOBILE_INTENT = /\b(?:sm|md|lg|xl|2xl):[a-z[]/i;
 /** Opening of a hover-capability media guard: @media … (hover: hover) / (any-hover: hover) … { */
 const HOVER_GUARD_HEAD = /@media[^{]*\(\s*(?:any-)?hover\s*:\s*hover\s*\)[^{]*\{/gi;
 
-/** Blank every @media (hover: hover) {…} block, brace-depth aware, offsets preserved. */
-function stripHoverGuardedBlocks(css: string): string {
+/** Blank every @media (hover: hover) {…} block, brace-depth aware, offsets preserved.
+ *  Exported for the paired repair (hover-media-guard) — checker and repair share one mask. */
+export function stripHoverGuardedBlocks(css: string): string {
   let out = css;
   let m: RegExpExecArray | null;
   HOVER_GUARD_HEAD.lastIndex = 0;
