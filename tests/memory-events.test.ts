@@ -73,8 +73,8 @@ describe("memory-events — validateEvent", () => {
     expect(codeOf(() => validateEvent("insight", { text: "x" }, ["e1"]))).toBeNull();
   });
 
-  it("EVENT_TYPES has 16 members; isEventType/isMedium guard", () => {
-    expect(EVENT_TYPES.length).toBe(16);
+  it("EVENT_TYPES has 20 members (16 v1 + 4 tractability telemetry); isEventType/isMedium guard", () => {
+    expect(EVENT_TYPES.length).toBe(20);
     expect(isEventType("gap")).toBe(true);
     expect(isEventType("user_pick")).toBe(true);
     expect(isEventType("lint_run")).toBe(true);
@@ -150,5 +150,24 @@ describe("memory-events — parseLedger", () => {
 
   it("rejects a line whose type is not in the v1 set as BAD_LEDGER", () => {
     expect(codeOf(() => parseLedger('{"id":"e1","t":"t","type":"nope","data":{}}\n'))).toBe("BAD_LEDGER");
+  });
+});
+
+describe("tractability telemetry events — route/attempt/outcome/veto", () => {
+  it("route_decided requires task + route", () => {
+    expect(codeOf(() => validateEvent("route_decided", { task: "generate hero", route: "executor" }, undefined))).toBeNull();
+    expect(codeOf(() => validateEvent("route_decided", { task: "generate hero" }, undefined))).toBe("BAD_EVENT");
+  });
+  it("attempt_completed requires file + attempt + route + gate counts", () => {
+    expect(codeOf(() => validateEvent("attempt_completed", { file: "v1.html", attempt: 2, route: "executor", gateErrorCount: 0, gateWarningCount: 3 }, undefined))).toBeNull();
+    expect(codeOf(() => validateEvent("attempt_completed", { file: "v1.html", attempt: 2 }, undefined))).toBe("BAD_EVENT");
+  });
+  it("outcome_recorded requires the final gate verdict — an accept cannot be recorded without it", () => {
+    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2, gatePass: true }, undefined))).toBeNull();
+    expect(codeOf(() => validateEvent("outcome_recorded", { file: "v1.html", accepted: true, attempts: 2 }, undefined))).toBe("BAD_EVENT");
+  });
+  it("taste_veto requires checkId + mandatory reason + verdict", () => {
+    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", reason: "flush inset is the brand's signature here", verdict: "context-exception" }, undefined))).toBeNull();
+    expect(codeOf(() => validateEvent("taste_veto", { checkId: "equal-nested-radii", verdict: "fp" }, undefined))).toBe("BAD_EVENT");
   });
 });

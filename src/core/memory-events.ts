@@ -33,6 +33,10 @@ export const EVENT_TYPES = [
   "autofix_applied",
   "reconcile_applied",
   "taste_vote",
+  "route_decided",
+  "attempt_completed",
+  "outcome_recorded",
+  "taste_veto",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
@@ -66,6 +70,25 @@ const REQUIRED_DATA: Readonly<Record<EventType, readonly string[]>> = {
   // One `ui taste record --mode pair` vote. NOT `user_pick`: a corpus item id is not a
   // designId, and compileGraph would file it under `designs` (memory-graph.ts:93).
   taste_vote: ["a", "b", "winner"],
+  // ─── Tractability telemetry (advisory 260819 + brainstorm §5.4) — recorded by
+  // routers/products (EaseUI) and host workflows via `ui memory record`; the
+  // kernel owns the schema so every consumer labels the loop the same way.
+  // A triage decision: `route` is cheap-loop | executor | selection (documented,
+  // presence-validated like gap.kind); optional: coverageActive, dsPresent, reason.
+  route_decided: ["task", "route"],
+  // One generate→gate cycle. Optional: checkIds, escalated, model.
+  attempt_completed: ["file", "attempt", "route", "gateErrorCount", "gateWarningCount"],
+  // The loop's label. `gatePass` is REQUIRED by design: an accept may not be
+  // recorded without the final artifact's gate verdict (guards the
+  // retry-swallows-regression hazard — outcome = user accept AND gate re-run).
+  // Optional: escalations, vetoCount.
+  outcome_recorded: ["file", "accepted", "attempts", "gatePass"],
+  // A human overriding a machine floor — the FP gauge and the librarian's
+  // organic cross-project recurrence source. `verdict` is fp | outdated |
+  // context-exception (documented, presence-validated); `reason` is mandatory
+  // by design — a veto costs one honest sentence, exactly like --skip.
+  // Optional: nodeRef; the artifact fingerprint rides the top-level field.
+  taste_veto: ["checkId", "reason", "verdict"],
 };
 
 export interface MemoryArtifact {
