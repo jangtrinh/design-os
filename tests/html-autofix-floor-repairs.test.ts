@@ -229,15 +229,44 @@ describe("font-display-swap", () => {
     const ok = '<style>@font-face { font-family: I; src: url(a.woff2); font-display: optional; }</style>';
     expect(fixFontDisplaySwap(ok).applied).toBe(false);
   });
-  it("appends display=swap to a Google-Fonts href (?, & and pre/code exclusion)", () => {
+  it("appends display=swap to a Google-Fonts STYLESHEET href (? and & forms)", () => {
     const bad = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600">' +
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2">' +
-      '<pre>&lt;link href="https://fonts.googleapis.com/css2?family=X"&gt;</pre>';
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2">';
     const { html } = fixFontDisplaySwap(bad);
     expect(html).toContain("family=Inter:wght@400;600&display=swap");
     expect(html).toContain("css2?display=swap");
-    expect(html).toContain('<pre>&lt;link href="https://fonts.googleapis.com/css2?family=X"&gt;</pre>');
     expect(checkFontDisplayMissing(html)).toEqual([]);
+  });
+  it("never touches preconnect/dns-prefetch links — Google's own snippet stays intact (checker agrees)", () => {
+    const canonical = '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+      '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter&display=swap">';
+    expect(checkFontDisplayMissing(canonical)).toEqual([]);
+    expect(fixFontDisplaySwap(canonical).applied).toBe(false);
+  });
+  it("never rewrites prose copy quoting @font-face outside real style regions (checker agrees)", () => {
+    const prose = '<p class="snippet">Declare @font-face { font-family: "Brand"; src: url("/b.woff2"); } near the top.</p>';
+    expect(checkFontDisplayMissing(prose)).toEqual([]);
+    expect(fixFontDisplaySwap(prose).applied).toBe(false);
+  });
+  it("a duplicate URL in another attribute never receives the edit — the href itself does, once", () => {
+    const bad = '<link data-src="https://fonts.googleapis.com/css2?family=Inter" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">';
+    const once = fixFontDisplaySwap(bad).html;
+    expect(once).toContain('data-src="https://fonts.googleapis.com/css2?family=Inter"');
+    expect(once).toContain('href="https://fonts.googleapis.com/css2?family=Inter&display=swap"');
+    expect(fixFontDisplaySwap(once).applied).toBe(false); // converges — no unbounded growth
+    expect(checkFontDisplayMissing(once)).toEqual([]);
+  });
+  it("an entity-encoded &amp;display=swap is recognized as compliant by both sides", () => {
+    const ok = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter&amp;display=swap">';
+    expect(checkFontDisplayMissing(ok)).toEqual([]);
+    expect(fixFontDisplaySwap(ok).applied).toBe(false);
+  });
+  it("commented-out and script-string links are dead on BOTH sides (one mask contract)", () => {
+    const dead = '<!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=X"> -->' +
+      "<script>const t = '<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Y\">';</script>";
+    expect(checkFontDisplayMissing(dead)).toEqual([]);
+    expect(fixFontDisplaySwap(dead).applied).toBe(false);
   });
   it("is idempotent and registered in runAutofix", () => {
     const bad = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">';

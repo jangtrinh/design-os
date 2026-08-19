@@ -8,9 +8,15 @@
   checker gate) and appends `display=swap` to Google-Fonts link hrefs without one. Edits
   locate on the non-markup mask — a code sample quoting a font link is never rewritten.
   Chosen by measurement: in the born-passing A/B (evaluation-260819-2016),
-  `font-display-missing` was the one floor teaching did not move (6→6 across arms —
-  generators pick fonts before thinking about loading behaviour); on that same corpus,
-  one autofix pass takes it 12→0.
+  `font-display-missing` was the one floor teaching did not move (6 findings per arm,
+  12 across the corpus's 12 files — generators pick fonts before thinking about loading
+  behaviour); one autofix pass over those same 12 files takes the count 12→0.
+  The paired checker tightened with it, one mask contract for both sides: only
+  `rel~=stylesheet` links flag (a preconnect hint to the fonts origin is correct
+  markup — previously a checker false positive, and the repair made fixing it urgent),
+  scripts/comments are dead on both sides, `&amp;display=` counts as compliant, and
+  `@font-face` repairs live in real CSS regions only — prose quoting CSS is never
+  rewritten.
 
 
 ## 2026-08-19 - The loop gets its labels: tractability telemetry events
