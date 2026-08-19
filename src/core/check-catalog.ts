@@ -120,5 +120,6 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "hover-media-guard", family: "autofix", requires: "none", subject: ":hover rule blocks inside <style> regions" },
   { id: "table-tabular-nums", family: "autofix", requires: "none", subject: "one injected <style> rule at the top of <head>" },
   { id: "focus-outline-restore", family: "autofix", requires: "none", subject: ":focus-family CSS rules and class attributes carrying focus utilities" },
+  { id: "font-display-swap", family: "autofix", requires: "none", subject: "@font-face blocks and fonts.googleapis.com link hrefs" },
   { id: "autofix-not-clean", family: "autofix", requires: "none" },
 ] as const;

@@ -14,7 +14,7 @@
  * no DOM, no deps.
  */
 import type { LayoutFinding } from "./layout-lint.js";
-import { cssRegions, cssRules, lineOf } from "./taste-checks-shared.js";
+import { blankDeadMarkup, cssRegions, cssRules, lineOf } from "./taste-checks-shared.js";
 
 // ─── clickable-no-pointer ───────────────────────────────────────────────────────
 
@@ -93,14 +93,22 @@ export function checkFontDisplayMissing(html: string): LayoutFinding[] {
     });
   }
 
-  // Google-Fonts <link> stylesheets with no display= param.
+  // Google-Fonts STYLESHEET <link>s with no display= param. Only rel~=stylesheet
+  // loads CSS — a preconnect/dns-prefetch hint to the fonts origin is correct
+  // markup and must never flag (its paired repair would otherwise rewrite
+  // Google's own canonical snippet). Scanned on the dead-markup mask (scripts +
+  // comments blanked) so a quoted link in a JS string is not a live link; the
+  // display probe accepts the entity-encoded &amp;display= form, which the
+  // browser decodes to a compliant URL.
+  const live = blankDeadMarkup(html);
   const linkRe = /<link\b[^>]*\bhref\s*=\s*["']([^"']*fonts\.googleapis\.com[^"']*)["'][^>]*>/gi;
-  while ((m = linkRe.exec(html)) !== null) {
-    if (/[?&]display=/i.test(m[1] ?? "")) continue;
+  while ((m = linkRe.exec(live)) !== null) {
+    if (!/\brel\s*=\s*["']?[^"'>]*stylesheet/i.test(m[0])) continue;
+    if (/[?&](?:amp;)?display=/i.test(m[1] ?? "")) continue;
     findings.push({
       checkId: "font-display-missing", severity: "warning",
       message: `Google-Fonts <link> has no display= param — the font renders with the default block behaviour (FOIT + swap-in shift); append &display=swap to the href`,
-      line: lineOf(html, m.index),
+      line: lineOf(live, m.index),
     });
   }
 
