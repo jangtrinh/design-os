@@ -38,7 +38,7 @@ const graded = [];
 for (const p of prompts) {
   const d = decisions.get(p.id);
   if (d === undefined) continue; // partial run — reported in coverage below
-  let pass = false;
+  let pass;
   if (p.category === "verb" || p.category === "selection-route") {
     pass = d.ask === "none" && d.route[0] === p.expectedRoute[0];
   } else if (p.category === "must-ask") {
