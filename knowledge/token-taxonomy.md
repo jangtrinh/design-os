@@ -247,7 +247,7 @@ and `chart-1…5`. A bare `foreground` pairs with `background` (the app default)
 intended background, **contrast becomes deterministic**. `ui ds a11y` checks `{role}-foreground`
 against `{role}` — the *declared* pairs — instead of guessing every text×surface combination. That
 guessing (the legacy "inferred" mode) mis-paired a light-surface text token against dark panels (the
-VSF dogfood over-pairing). Adopt the pairing and the a11y audit is exact:
+the client-portal dogfood over-pairing). Adopt the pairing and the a11y audit is exact:
 
 - **Name foregrounds by convention** (`X-foreground`) so `ui ds a11y` runs in `paired` mode.
 - Legacy cartesian inference stays only as a fallback for un-paired DSs, and the report says so —

@@ -280,5 +280,5 @@ live file (`scan-design-system`) at run time. API facts (`setSharedPluginData`, 
 as a `ChildrenMixin`, async export timing, `COMPONENT_SET` sizing) verified against
 https://developers.figma.com/docs/plugins/.
 
-R10–R15 distilled from the VSF-PCP `figma-idp-rebuild` field skill (dogfood 2026-07-13) —
+R10–R15 distilled from a confidential client-portal rebuild field skill (dogfood 2026-07-13) —
 principles only, no project-specific inventory.
