@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-20 - stdout survives the pipe (#209)
+
+### Fixed
+- The `ui` entrypoint no longer calls `process.exit()` — it sets `process.exitCode`
+  and lets the event loop drain stdout, so output larger than the 64KB pipe buffer
+  (`ui schema --json` is ~87KB) arrives complete through a pipe instead of being
+  silently truncated at exactly 65536 bytes with exit 0. Found by the 0.5.0
+  delivery smoke; fixed at the single shared exit site, so every command is
+  covered at once. Regression test pipes the BUILT binary — a file redirect can
+  never catch this class.
+
 ## 2026-08-20 - ease-design 0.5.0
 
 The native-expert release: a stated need is now enough. `knowledge/need-routing.md`
