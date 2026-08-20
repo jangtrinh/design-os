@@ -993,6 +993,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-20 | **Routing doctrine, measured** — an 83-prompt blind benchmark (authored from frontmatter only, routed by context-clean agents): verb top-1 96%, 0 taste interrogations; the must-ask 58% exposed two doctrine bugs, fixed and re-measured to 5/5 the same run | `#206` |
 | 2026-08-20 | **Native-expert agents** — `knowledge/need-routing.md` turns a stated need into the right design:os application (19-verb decision gates, three sanctioned asks, the composition rule); two-way parity checks make an untaught new capability a red build, and a per-role allowlist keeps agent templates pointing instead of enumerating (born-red on the real designer drift) | `#203` |
 | 2026-08-19 | **`ease-design@0.4.0`** — the tractability release: 14 floors, 4 floor repairs, `ui gate` + coverage registry, FloorFinding schema v1, telemetry events, and a measured −65% error-at-birth from born-passing knowledge | `v0.4.0` |
 | 2026-08-19 | **font-display gets its repair** — the one floor the born-passing A/B showed teaching cannot move (6→6 across arms) becomes an autofix: `@font-face` gains `font-display: swap`, Google-Fonts hrefs gain `display=swap`; 12→0 on the A/B corpus in one pass | `#200` |

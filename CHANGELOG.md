@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-20 - Routing-accuracy benchmark: the routing doctrine gets measured, and loses twice
+
+### Added
+- `eval/routing-prompts.json` — 83 English need-prompts (3 per verb × 19, 12 must-ask,
+  6 selection-route, 8 composites) authored by a context-clean agent that saw ONLY the
+  workflow frontmatter — never the routing tree — so expected routes cannot be
+  tautological with the tree's wording. Rerun contract: `docs/routing-benchmark.md`
+  (manual, never CI; blind batched routers + deterministic grading).
+- First run (blind sonnet routers): verb top-1 **96%** (target ≥85), composites **8/8**,
+  **0** taste interrogations — but must-ask **58%**, exposing two real doctrine bugs.
+
+### Fixed
+- The composite-split law swallowed ask #3 (4/4 ambiguous-reference prompts routed
+  capture→generate without asking) — the split law now fires the replicate-vs-inspired
+  question BEFORE the capture leg. Same defect class as the stage-4 R1 finding: an
+  exception written outside the gate that swallows it never runs.
+- "Audit the checkout experience" read as a Figma `audit` — G2's ask-1 clause now owns
+  any audit aimed at a product area that pins none of the four surfaces.
+- Targeted re-measure of the five missed prompts after both fixes: 5/5 flipped —
+  projected must-ask 100%.
+
 ## 2026-08-20 - Native-expert agents: need-routing knowledge + the untaught-feature gate
 
 ### Added
