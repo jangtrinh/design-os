@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-08-20 - Canvas-cell adjudication: the routing board reaches 83/83
+
+### Fixed
+- The benchmark's three remaining misses were adjudicated and fixed at their real
+  sources. v29/s02 (design vs generate): the routing tree was right — HTML is the
+  ratified default surface unless Figma is explicitly named — but `design.md`'s
+  frontmatter trigger clauses had dropped the canvas condition, misleading anyone
+  routing from frontmatter alone; the frontmatter now carries it. Labels relabeled
+  design→generate with loud per-prompt provenance in `eval/routing-prompts.json`.
+  v32 (design vs to-figma): G2 gained the decision-vs-construction tie-break (still
+  deciding WHAT → `design`; formed intent to construct idiomatically → `to-figma`);
+  the to-figma label stood.
+- Re-measured on the affected cells plus collateral guards (9 prompts, blind router):
+  9/9, no collateral flips. **Final merged board: 83/83 — verb 100%, must-ask 100%,
+  selection-route 100%, composite 100%, 0 taste interrogations** (single router tier,
+  one sample per prompt; 58 prompts carry run-1 decisions). Decomposed honestly: of
+  the +3, only v32 was MOVED by a doctrine change (the router flipped after the
+  tie-break landed); v29/s02 are label corrections — the router's answer was already
+  `generate` before and after. The frontmatter repair is validated on the author path
+  (a fresh frontmatter-only author labels those needs `generate`), not by the router
+  re-run, which never reads frontmatter.
+- The tie-break's discriminator is formed-ness of intent, NOT construction tooling —
+  variables/auto-layout are what `design` produces too, so naming them proves nothing.
+  Added `v58` to the corpus: a design-labeled canvas need that NAMES the tooling,
+  so the tie-break can go red if tooling words ever creep back in as the line
+  (corpus is 84 prompts from here on; runs 1–3 measured the original 83).
+- Workflow-template change (`design.md` frontmatter) — propagates to existing
+  projects via `ui init --force`; `ui doctor` flags the drift with the same remedy.
+
 ## 2026-08-20 - `ui init --with-agents`: opt-in roster at init time
 
 ### Added

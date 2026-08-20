@@ -7,11 +7,14 @@ authority — each run lands as a dated report under the maintainer's `plans/rep
 
 ## What is measured
 
-83 one-sentence English needs, four categories:
+84 one-sentence English needs, four categories. (Originally authored as 83 with 3 per
+verb; the 2026-08-20 adjudication relabeled v29/s02 to `generate` and added the v58
+tie-break falsifier — current per-verb distribution lives in the asset's
+`_provenance.adjudication`, and runs 1–3 were measured on the 83-prompt set.)
 
 | Category | n | Pass condition | Target |
 |---|---|---|---|
-| verb | 57 (3 × 19 verbs) | top-1 route verb matches, no question asked | ≥ 85% |
+| verb | 58 | top-1 route verb matches, no question asked | ≥ 85% |
 | must-ask | 12 (4 × 3 asks) | the router asks exactly the sanctioned ask (#1 bare audit, #2 keep-or-throw, #3 ambiguous reference); the route is IGNORED — asking correctly while sketching a tentative route still passes | 100% |
 | selection-route | 6 | NO question on taste vagueness; top-1 route verb matches. `variants` is tracked informationally — no target set yet | 0 taste interrogations |
 | composite | 8 | ask "none" AND the route equals the expected capture-then-produce sequence exactly (same verbs, same order, same length) | tracked |
@@ -35,8 +38,9 @@ published numbers exactly from run 1's raw decisions.
   for owner adjudication, never silently rescored.
 - The mirror obligation: the DOCTRINE must never quote a corpus sentence verbatim —
   a quoted prompt becomes a self-fulfilling cell (the router reads the answer key).
-  Before merging any `need-routing.md` example phrase, grep it against
-  `eval/routing-prompts.json`; paraphrase on a hit.
+  Before merging any `need-routing.md` example phrase, grep it against the `prompt`
+  FIELDS of `eval/routing-prompts.json` (the `adjudicated`/provenance notes quote
+  doctrine terms legitimately — only prompt text counts); paraphrase on a hit.
 
 ## How to rerun
 
