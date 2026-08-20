@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-08-20 - Native-expert agents: need-routing knowledge + the untaught-feature gate
+
+### Added
+- `knowledge/need-routing.md` — the ONE authored home of the need→verb decision
+  procedure: four ordered gates covering all 19 workflow verbs, three sanctioned asks
+  (bare "audit", keep-or-throw direction, ambiguous reference), the composition rule
+  ("dashboard giống trang X" = capture then generate — a sequence, never one leaf), and
+  the two invariant laws: verb ambiguity costs ONE question, taste ambiguity costs ZERO
+  questions (it costs variants); never guess an invocation — read `ui schema --json`.
+- The owner's ship-gate corollary, mechanized twice over:
+  `routing-unknown-verb` / `routing-verb-uncovered` in `ui knowledge check` keep the
+  anchored route table in exact two-way parity with WORKFLOW_VERBS — a new capability
+  cannot merge until the routing knowledge teaches it (parser reads ONLY the anchored
+  table, so prose mentions never count as coverage — the grep-tautology scar applied).
+  And a per-role command ALLOWLIST guards `templates/agents/*`: agent templates point,
+  never enumerate — an existence check provably misses the drift class actually found
+  (the designer teaching the live-but-superseded four-linter quartet), so the allowlist
+  is what goes red. That test was BORN RED on the real drift, then the templates were
+  fixed.
+
+### Changed
+- Agent templates (designer/curator/figma-hand) gain the routing pointer block and two
+  runtime-read sources (`ui schema --json`, `ui gate coverage`); the designer's handback
+  gate is now `ui gate` (was the superseded four-linter quartet). Existing rosters go
+  hash-stale by design — regenerate with `ui agents init --force`.
+- Generated agents now carry the knowledge anchor: `ui agents init` resolves bare
+  `knowledge/…` references to the package's absolute knowledge root (the same
+  `buildKnowledgeAnchor` the slash-command wrappers use — one definition, two
+  consumers), so routing expertise resolves outside this repo too.
+- Routing coverage counts ONLY the route column of the anchored table (a backticked
+  verb in the need column is prose, not a route) and ignores fenced examples; the
+  gates split composite needs before walking, an existing artifact aimed at a
+  reference captures then continues at G4 (`redesign`/`refine`/`iterate`), and the
+  bare-"audit" ask is owned by G2 explicitly (stage-4 review findings R1–R4).
+- Roster stays opt-in per the ratified §4; the host session is already the native
+  expert via knowledge + adapters for projects that never run `agents init`.
+
+
 ## 2026-08-19 - ease-design 0.4.0
 
 One day, ten merged PRs, one thesis proven: the tractability frontier is movable.

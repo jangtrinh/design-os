@@ -5,6 +5,11 @@
 import { describe, expect, it } from "vitest";
 
 import { lintKnowledge } from "../src/core/knowledge-lint.js";
+import { fullRouteTable } from "./fixtures/full-route-table.js";
+import { routingChecks } from "../src/core/knowledge-routing-check.js";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { KnowledgeLintInput } from "../src/core/knowledge-lint.js";
 import { buildIndex, emitIndex } from "../src/core/knowledge-index-emit.js";
 import { topLevelMarkdown } from "../src/core/knowledge-frontmatter-check.js";
@@ -29,6 +34,7 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
     "| `persona-index.md` | Persona lookup |",
     "| `personas/<family>.md` | Persona DNA |",
     "| `benchmarks/*.dna.json` | Measured DNA |",
+    "| `need-routing.md` | Need routing |",
     "",
   ].join("\n");
   const personaIndex = [
@@ -54,6 +60,7 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
     "persona-index.md": fm("persona-index", "Persona lookup.", ["persona"]) + personaIndex,
     "personas/family-a.md": familyA,
     "personas/family-b.md": familyB,
+    "need-routing.md": fm("need-routing", "Need routing.", ["routing"]) + "# Need routing\n\n" + fullRouteTable(),
   };
   const files = [
     "README.md",
@@ -61,6 +68,7 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
     "persona-index.md",
     "personas/family-a.md",
     "personas/family-b.md",
+    "need-routing.md",
     "personas/personas.json",
     "benchmarks/stripe--202607.dna.json",
   ];
@@ -81,6 +89,7 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
 function fm(id: string, description: string, when: string[]): string {
   return `---\nid: ${id}\ndescription: "${description}"\nwhen: [${when.join(", ")}]\n---\n\n`;
 }
+
 
 const ids = (input: KnowledgeLintInput): string[] => lintKnowledge(input).map((f) => f.checkId);
 
@@ -250,5 +259,59 @@ describe("knowledge-lint — provenance-machine-local-ref [R]", () => {
       (id) => id === "provenance-machine-local-ref" || id === "provenance-bad-grammar",
     );
     expect(found).toEqual(["provenance-bad-grammar"]);
+  });
+});
+
+describe("need-routing parity — the ship-gate for agent expertise", () => {
+  const TABLE = (rows: string) => `## Route table\n\n| Need class | Route |\n|---|---|\n${rows}\n\n## Next\n`;
+
+  it("(b) a route-table verb outside WORKFLOW_VERBS is an error — and this probe CAN go red", () => {
+    const bad = TABLE("| something | `generate` |\n| bogus need | `frobnicate` |");
+    const f = routingChecks(bad).filter((x) => x.checkId === "routing-unknown-verb");
+    expect(f).toHaveLength(1);
+    expect(f[0]?.message).toContain("frobnicate");
+  });
+
+  it("(c) a WORKFLOW_VERB with no route-table row is an error — a new feature cannot ship untaught", () => {
+    const partial = TABLE("| words only, nothing exists yet | `generate` |");
+    const f = routingChecks(partial).filter((x) => x.checkId === "routing-verb-uncovered");
+    expect(f.length).toBeGreaterThan(10); // 19 verbs, only 1 covered
+    expect(f.map((x) => x.message).join(" ")).toContain("slides");
+  });
+
+  it("prose mentions outside the anchored table NEVER count as coverage (the tautology guard)", () => {
+    const prose = "Never use `slides` for single pages.\n" + TABLE("| words only | `generate` |");
+    const f = routingChecks(prose).filter((x) => x.checkId === "routing-verb-uncovered");
+    expect(f.map((x) => x.message).join(" ")).toContain("slides");
+  });
+
+  it("a backticked verb in the NEED column never counts as coverage — only the route column teaches", () => {
+    // The `slides` row is deleted; another row's need cell mentions `slides` in
+    // prose style. Coverage must still report slides untaught.
+    const masked = TABLE("| a quantitative comparison graphic (not `slides`) | `chart` |");
+    const f = routingChecks(masked).filter((x) => x.checkId === "routing-verb-uncovered");
+    expect(f.map((x) => x.message).join(" ")).toContain("slides");
+  });
+
+  it("a backticked non-verb in the NEED column is not an unknown-verb false positive", () => {
+    const masked = TABLE("| the need cell may say `frobnicate` freely | `generate` |");
+    expect(routingChecks(masked).filter((x) => x.checkId === "routing-unknown-verb")).toEqual([]);
+  });
+
+  it("fenced examples inside the section are ignored (same law as the template commandSpans helper)", () => {
+    const fenced =
+      "## Route table\n\n| Need class | Route |\n|---|---|\n| x | `generate` |\n\n" +
+      "```\n| illustrative only | `frobnicate` |\n```\n\n## Next\n";
+    expect(routingChecks(fenced).filter((x) => x.checkId === "routing-unknown-verb")).toEqual([]);
+  });
+
+  it("a missing need-routing.md is itself an error (the routing home must exist)", () => {
+    const f = routingChecks(null);
+    expect(f[0]?.checkId).toBe("routing-file-missing");
+  });
+
+  it("the REAL knowledge/need-routing.md covers every verb with zero unknowns", () => {
+    const real = readFileSync(join(fileURLToPath(new URL("..", import.meta.url)), "knowledge", "need-routing.md"), "utf8");
+    expect(routingChecks(real)).toEqual([]);
   });
 });

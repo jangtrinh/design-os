@@ -4,6 +4,8 @@ description: "Run the day-to-day design:os loop well: know which of the four 'au
 
 # Journey: Daily
 
+> Need→verb routing (which workflow for which stated need) lives in `knowledge/need-routing.md`; the four-surface audit question below stays canonical here.
+
 Use this for the ordinary day-to-day work between onboarding and delivery: generating,
 iterating, auditing, voting on taste, and operating the Figma canvas. It does not
 re-explain what any one linter checks (`knowledge/` and each command's own `--help` already

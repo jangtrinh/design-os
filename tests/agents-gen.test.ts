@@ -101,7 +101,7 @@ You are {{NAME}}, an agent for **{{PROJECT}}**.{{STUDIO_LINE}}
 
 describe("renderAgent", () => {
   it("substitutes every placeholder — no '{{' survives", () => {
-    const out = renderAgent(TPL, { name: "meridian-meridian-store", project: "meridian-store", studio: "MERIDIAN" });
+    const out = renderAgent(TPL, { name: "meridian-meridian-store", project: "meridian-store", studio: "MERIDIAN", knowledgeRoot: "/pkg/knowledge" });
     expect(out).not.toContain("{{");
     expect(out).toContain("name: meridian-meridian-store");
     expect(out).toContain("You are meridian-meridian-store, an agent for **meridian-store**.");
@@ -109,8 +109,19 @@ describe("renderAgent", () => {
     expect(out).toContain(`template-hash: ${templateHash(TPL)}`);
   });
 
+  it("KNOWLEDGE_ANCHOR resolves bare knowledge/ refs to an absolute base — a consumer project has no knowledge/ of its own", () => {
+    const tpl = TPL.replace("{{STUDIO_LINE}}", "{{STUDIO_LINE}}\n\n{{KNOWLEDGE_ANCHOR}}");
+    const out = renderAgent(tpl, { name: "x", project: "p", studio: null, knowledgeRoot: "/opt/ease/knowledge" });
+    expect(out).not.toContain("{{");
+    expect(out).toContain("`/opt/ease/knowledge`");
+    // Without a root the anchor degrades to nothing, never to a dangling relative path claim.
+    const bare = renderAgent(tpl, { name: "x", project: "p", studio: null, knowledgeRoot: null });
+    expect(bare).not.toContain("{{");
+    expect(bare).not.toContain("absolute base");
+  });
+
   it("emits an empty STUDIO_LINE when there is no studio", () => {
-    const out = renderAgent(TPL, { name: "meridian-store-designer", project: "meridian-store", studio: null });
+    const out = renderAgent(TPL, { name: "meridian-store-designer", project: "meridian-store", studio: null, knowledgeRoot: null });
     expect(out).not.toContain("{{");
     expect(out).not.toContain("studio's soul");
     expect(out).toContain("an agent for **meridian-store**.\n");
@@ -121,7 +132,7 @@ describe("renderAgent", () => {
 
 describe("parseAgentStamp", () => {
   it("roundtrips: rendered file → {role, hash of the source template}", () => {
-    const out = renderAgent(TPL, { name: "x", project: "p", studio: null });
+    const out = renderAgent(TPL, { name: "x", project: "p", studio: null, knowledgeRoot: null });
     expect(parseAgentStamp(out)).toEqual({ role: "designer", hash: templateHash(TPL) });
   });
 
@@ -136,12 +147,12 @@ describe("parseAgentStamp", () => {
 describe("templates/agents/ contract", () => {
   it.each([...ROSTER])("%s.md carries all placeholders and a stamp naming its own role", (role) => {
     const tpl = readFileSync(join(REPO_ROOT, "templates", "agents", `${role}.md`), "utf8");
-    for (const ph of ["{{NAME}}", "{{PROJECT}}", "{{STUDIO_LINE}}", "{{HASH}}"]) {
+    for (const ph of ["{{NAME}}", "{{PROJECT}}", "{{STUDIO_LINE}}", "{{KNOWLEDGE_ANCHOR}}", "{{HASH}}"]) {
       expect(tpl, `${role}.md must contain ${ph}`).toContain(ph);
     }
     expect(tpl).toContain(`roster-role: ${role} `);
     // Rendering the real template yields a parseable stamp for the same role.
-    const rendered = renderAgent(tpl, { name: "n", project: "p", studio: "S" });
+    const rendered = renderAgent(tpl, { name: "n", project: "p", studio: "S", knowledgeRoot: "/pkg/knowledge" });
     expect(rendered).not.toContain("{{");
     expect(parseAgentStamp(rendered)).toEqual({ role, hash: templateHash(tpl) });
   });

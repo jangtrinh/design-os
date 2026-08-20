@@ -29,6 +29,7 @@ import { xrefChecks, provenanceChecks } from "./knowledge-link-check.js";
 import { effectCatalogChecks } from "./knowledge-effect-catalog-check.js";
 import { gradientCatalogChecks } from "./knowledge-gradient-catalog-check.js";
 import { frontMatterChecks } from "./knowledge-frontmatter-check.js";
+import { routingChecks } from "./knowledge-routing-check.js";
 // monthsBetween was a third local copy of the same 12-line helper (the other two were
 // in knowledge-effect-catalog-parse.ts). Shared-layer rule: one definition, three
 // consumers — a fix to the staleness arithmetic can no longer miss two of them.
@@ -122,6 +123,9 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
       asOf: input.asOf,
     }),
     ...frontMatterChecks(input.mdContents, input.committedIndex ?? null),
+    // The agent-expertise ship-gate: the need→verb route table stays in exact
+    // parity with the live verb registry, both directions (see routing-check).
+    ...routingChecks(input.mdContents["need-routing.md"] ?? null),
   ];
   return sortFindings(findings);
 }

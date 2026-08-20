@@ -132,18 +132,20 @@ function studioNameFromHome(): string | null {
   catch { return null; }
 }
 
-/** Read all three role templates from the package's templates/agents/. */
-function agentTemplates(): Record<AgentRole, string> | Fail {
+interface AgentTemplates { tpls: Record<AgentRole, string>; knowledgeRoot: string | null }
+
+/** Read all three role templates (and the knowledge root beside them) from the package. */
+function agentTemplates(): AgentTemplates | Fail {
   const startDir = dirname(fileURLToPath(import.meta.url));
-  const { templatesRoot } = resolvePackageRoots(startDir);
+  const { templatesRoot, knowledgeRoot } = resolvePackageRoots(startDir);
   if (templatesRoot === null) return fail("READ_ERROR", `ease-design templates not found (searched upward from ${startDir})`);
-  const out = {} as Record<AgentRole, string>;
+  const tpls = {} as Record<AgentRole, string>;
   for (const role of ROSTER) {
     const p = join(templatesRoot, "agents", `${role}.md`);
-    try { out[role] = readFileSync(p, "utf8"); }
+    try { tpls[role] = readFileSync(p, "utf8"); }
     catch (e) { return fail("READ_ERROR", `cannot read agent template '${p}': ${e instanceof Error ? e.message : String(e)}`); }
   }
-  return out;
+  return { tpls, knowledgeRoot };
 }
 
 interface ScannedAgent { name: string; path: string; text: string; stamp: AgentStamp }
@@ -167,8 +169,13 @@ function scanStampedAgents(agentsDir: string): ScannedAgent[] | Fail {
 }
 
 /** The exact content `init` would write for a role right now — the check/list freshness baseline. */
-function expectedRender(role: AgentRole, tpls: Record<AgentRole, string>, project: string, studio: string | null): string {
-  return renderAgent(tpls[role], { name: agentName(role, project, studio), project, studio });
+function expectedRender(role: AgentRole, t: AgentTemplates, project: string, studio: string | null): string {
+  return renderAgent(t.tpls[role], {
+    name: agentName(role, project, studio),
+    project,
+    studio,
+    knowledgeRoot: t.knowledgeRoot,
+  });
 }
 
 const isRosterRole = (r: string): r is AgentRole => (ROSTER as readonly string[]).includes(r);
