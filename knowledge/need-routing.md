@@ -53,6 +53,10 @@ to `generate`; inside a deck, to `slides` (composition, not a chart artifact).
 
 **G2 — Figma-canvas needs, and the bare "audit" that names no target.** Design
 something new on canvas → `design`. Push existing output or intent onto canvas →
+`to-figma`. Tie-break when a sentence reads as both (new thing AND canvas
+construction): the line is decision-vs-construction — still deciding WHAT it
+should be → `design`; intent already formed and the ask is to construct it
+idiomatically (authoring words, naming the figma hand, variables/auto-layout) →
 `to-figma`. Normalize an existing Figma file against the DS → `audit`. Review or
 close Figma comments → `figma-comments`. An "audit" that names no SURFACE —
 bare, or aimed at a product area ("audit the pricing area") that could

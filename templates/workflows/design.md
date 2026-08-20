@@ -1,5 +1,5 @@
 ---
-description: "Design something NEW from a requirement, on the Figma canvas — a whole screen or a single component. Detects the scope and runs the matching discipline, driven by an understand-until-decision-ready loop. Use when the user says 'design a screen/page' or 'design a component', 'I want a new <X>', 'add a variant to <component>', or describes a UI to design from scratch (distinct from rebuilding an existing frame or auditing one)."
+description: "Design something NEW from a requirement, on the Figma canvas — a whole screen or a single component. Detects the scope and runs the matching discipline, driven by an understand-until-decision-ready loop. Use when the Figma canvas is named as the target AND the thing is still to be decided — only then: 'design a screen/page in Figma', 'I want a new <X> on the canvas', 'add a variant to <component>'. Without Figma named, a new-UI ask is generate (HTML is the default surface); already-formed intent to be constructed on canvas is to-figma."
 ---
 
 # Workflow — `/ui:design`
