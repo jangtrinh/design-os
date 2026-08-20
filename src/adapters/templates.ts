@@ -46,6 +46,26 @@ export const WORKFLOW_VERBS = [
 export type WorkflowVerb = (typeof WORKFLOW_VERBS)[number];
 
 /**
+ * Per-role command allowlist for templates/agents/*.md — agent templates POINT,
+ * they never enumerate volatile commands. An existence check cannot catch the
+ * drift class actually observed (a template teaching live-but-SUPERSEDED
+ * commands: the designer's old four-linter quartet all still exist); pinning
+ * what each role should cite makes a superseded citation a red test.
+ * Same-commit discipline as WORKFLOW_VERBS: change a template's commands and
+ * this list in one commit. tests/template-command-refs.test.ts enforces
+ * template→allowlist (every cited span is allowlisted) and
+ * allowlist→registry (every `ui` prefix names a real command AND subcommand;
+ * `design-os` spans belong to the Typer umbrella's own registry). It does NOT
+ * enforce allowlist→template: a prefix left behind after a template edit is
+ * dead config, pruned by review.
+ */
+export const AGENT_TEMPLATE_COMMAND_ALLOWLIST: Record<string, readonly string[]> = {
+  designer: ["ui ds context", "ui gate", "ui memory record", "ui schema"],
+  curator: ["ui ds context", "ui gate", "ui ds a11y", "ui memory record", "ui schema", "design-os audit"],
+  "figma-hand": ["ui ds context", "ui memory record", "ui schema"],
+};
+
+/**
  * All skill names. Each corresponds to a file in templates/skills/.
  */
 export const SKILL_NAMES = [

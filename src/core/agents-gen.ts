@@ -14,6 +14,8 @@
  * layer (src/commands/agents.ts).
  */
 
+import { buildKnowledgeAnchor } from "../adapters/wrapper-shapes.js";
+
 // ─── Roster ───────────────────────────────────────────────────────────────────
 
 /** The three launch roles. Registry grows only after these live in the wild. */
@@ -88,13 +90,22 @@ export interface AgentVars {
   project: string;
   /** Studio name from the studio soul's `name:` frontmatter, or null. */
   studio: string | null;
+  /**
+   * Absolute path of the package's knowledge/ directory, or null. Agents cite
+   * `knowledge/need-routing.md` etc.; a consumer project has no knowledge/ of
+   * its own, so without this anchor every such read resolves to nothing — the
+   * same blind spot the slash-command wrappers solved (wrapper-shapes.ts).
+   */
+  knowledgeRoot: string | null;
 }
 
 /**
  * Substitute a template's placeholders. {{STUDIO_LINE}} becomes a one-sentence
  * genealogy note (leading space — it follows a period in the templates) when a
- * studio name exists, else the empty string. {{HASH}} becomes
- * templateHash(tpl) so the emitted stamp always matches its source template.
+ * studio name exists, else the empty string. {{KNOWLEDGE_ANCHOR}} becomes the
+ * shared absolute-base resolution note (buildKnowledgeAnchor), else the empty
+ * string. {{HASH}} becomes templateHash(tpl) so the emitted stamp always
+ * matches its source template.
  */
 export function renderAgent(tpl: string, vars: AgentVars): string {
   const studioLine =
@@ -105,6 +116,7 @@ export function renderAgent(tpl: string, vars: AgentVars): string {
     .replaceAll("{{NAME}}", vars.name)
     .replaceAll("{{PROJECT}}", vars.project)
     .replaceAll("{{STUDIO_LINE}}", studioLine)
+    .replaceAll("{{KNOWLEDGE_ANCHOR}}", buildKnowledgeAnchor(vars.knowledgeRoot ?? undefined).trim())
     .replaceAll("{{HASH}}", templateHash(tpl));
 }
 

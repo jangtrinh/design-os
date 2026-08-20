@@ -5,6 +5,7 @@
  */
 import { describe, expect, it, beforeEach } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { fullRouteTable } from "./fixtures/full-route-table.js";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -55,8 +56,10 @@ function scaffoldConsistent(): void {
     "| `persona-index.md` | Persona lookup |",
     "| `personas/<family>.md` | Persona DNA |",
     "| `benchmarks/*.dna.json` | Measured DNA |",
+    "| `need-routing.md` | Need routing |",
     "",
   ].join("\n"));
+  write("knowledge/need-routing.md", fm("need-routing", "Need routing.", ["routing"]) + "# Need routing\n\n" + fullRouteTable());
   write("knowledge/taste-rubric.md", fm("taste-rubric", "The taste model.", ["taste"]) + "# Taste\n");
   write("knowledge/persona-index.md", fm("persona-index", "Persona lookup.", ["persona"]) + [
     "# Persona Index", "", "## 1. Lookup Table", "",
@@ -68,6 +71,7 @@ function scaffoldConsistent(): void {
   write("knowledge/benchmarks/stripe--202607.dna.json", "{}");
   emitIndexInto(root);
 }
+
 
 /** A routing front-matter block, the shape authoring-standard.md specifies. */
 function fm(id: string, description: string, when: string[]): string {

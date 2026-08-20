@@ -52,8 +52,11 @@ function toFwdSlash(p: string): string {
  * outside the ease-design repo (e.g. an npm install) can still reach the
  * knowledge core. Without this, every `knowledge/...` read in the workflow has
  * no resolvable anchor. Returns "" when no root is supplied (legacy callers).
+ *
+ * Exported: generated agents (src/core/agents-gen.ts) cite `knowledge/…` too —
+ * same blind spot, one definition (the fix-at-the-shared-layer law).
  */
-function buildKnowledgeAnchor(knowledgeRoot: string | undefined): string {
+export function buildKnowledgeAnchor(knowledgeRoot: string | undefined): string {
   if (knowledgeRoot === undefined || knowledgeRoot === "") return "";
   const kr = toFwdSlash(knowledgeRoot);
   return (
