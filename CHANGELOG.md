@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-20 - `ui init --with-agents`: opt-in roster at init time
+
+### Added
+- `ui init --with-agents` runs `ui agents init` in the same invocation, once the adapter
+  tree is installed. Strictly opt-in per the ratified roster decision — nothing changes
+  without the flag. Requires the claude runtime (agents are Claude Code subagents) and an
+  existing project DS: without `design/ds.manifest.json` the whole init pre-flights to
+  `DS_NOT_FOUND` before any file is written, teaching the order (`ui ds init` / `/ui:learn`
+  first). Agent generation runs through the agents command's own seam, so EXISTS
+  pre-flight, rollback, and stamping stay one implementation; failures after the adapter
+  write are reported honestly (`EXISTS` → re-run with `--force`).
 ## 2026-08-20 - Routing-accuracy benchmark: the routing doctrine gets measured, and loses twice
 
 ### Added

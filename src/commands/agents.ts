@@ -3,7 +3,8 @@
  * (Claude Code subagents under `.claude/agents/`). Pure kernel:
  * src/core/agents-gen.ts; knowledge: knowledge/design-agents.md.
  *
- * Opt-in by design — `ui init` never generates agents, it only hints. The
+ * Opt-in by design — `ui init` only hints, unless the user passes the
+ * explicit `--with-agents` flag (the opt-in, exercised at init time). The
  * emitter/linter pair: `init` renders templates/agents/<role>.md with the
  * genealogy name (studio soul `name:` × manifest name × role) and a stamp;
  * `check` re-renders the live templates and flags any file whose content no
