@@ -6,7 +6,7 @@
  * registration, not a switch-case edit.
  */
 import { realpathSync } from "node:fs";
-import { argv, exit, stderr, stdout } from "node:process";
+import { argv, stderr, stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs } from "./core/cli-args.js";
@@ -257,5 +257,11 @@ function isEntrypoint(): boolean {
 }
 
 if (isEntrypoint()) {
-  exit(run(argv.slice(2)));
+  // Set exitCode and let the process end naturally — process.exit() here
+  // truncated any stdout beyond the 64KB pipe buffer at exactly 65536 bytes
+  // (issue #209: `ui schema --json | …` silently lost its tail with exit 0;
+  // writes to a pipe past the kernel buffer complete asynchronously). The CLI
+  // is fully synchronous with no lingering handles, so the event loop drains
+  // stdout and exits with this code on its own.
+  process.exitCode = run(argv.slice(2));
 }
