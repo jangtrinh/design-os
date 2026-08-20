@@ -39,6 +39,7 @@ import type { Runtime } from "../core/init-stub.js";
 import { generateAdapter } from "../adapters/index.js";
 import type { GenerateAdapterInput } from "../adapters/index.js";
 import { renderBanner } from "../core/report-style.js";
+import { agentsCommand } from "./agents.js";
 import {
   writeAdapterArtifacts,
   AdapterWriteError,
@@ -61,14 +62,16 @@ const CMD = "init";
 export const INIT_HELP = `ui init — write the ease-design manifest and per-runtime adapter tree
 
 Usage:
-  ui init --runtime <claude|antigravity|codex> [--cwd <path>] [--force] [--json]
-  ui init --all [--cwd <path>] [--force] [--json]
+  ui init --runtime <claude|antigravity|codex> [--cwd <path>] [--force] [--with-agents] [--json]
+  ui init --all [--cwd <path>] [--force] [--with-agents] [--json]
 
 Options:
   --runtime <r>  Target runtime: claude | antigravity | codex
   --all          Write manifests and adapter trees for all three runtimes
   --cwd <path>   Target directory (default: current working directory)
   --force        Overwrite existing manifest and adapter files
+  --with-agents  Also run 'ui agents init' (opt-in roster; needs the claude
+                 runtime and an existing project DS — ds init/learn first)
   --json         Emit a JSON envelope instead of writing to stderr
   -h, --help     Show this help
 
@@ -93,9 +96,12 @@ Notes:
   - On any write failure all files written this invocation are removed or restored.
 
 Error codes:
-  BAD_ARG         Missing --runtime, unknown runtime, or --runtime + --all together
+  BAD_ARG         Missing --runtime, unknown runtime, --runtime + --all together,
+                  or --with-agents without the claude runtime
   UNKNOWN_FLAG    Unrecognised --flag (rejected, with a did-you-mean hint)
   MANIFEST_EXISTS Target file already exists (use --force to overwrite)
+  DS_NOT_FOUND    --with-agents needs design/ds.manifest.json — run 'ui ds init' first
+  EXISTS          --with-agents found existing agent files (use --force)
   WRITE_ERROR     File could not be written
 `;
 
@@ -132,7 +138,7 @@ export const initCommand = {
     const useJson = parsed.json;
 
     // ── Reject unknown flags (loud misconfig beats a silent no-op) ─────────
-    const unknown = findUnknownFlag(parsed.flags, ["runtime", "all", "cwd", "force"]);
+    const unknown = findUnknownFlag(parsed.flags, ["runtime", "all", "cwd", "force", "with-agents"]);
     if (unknown !== null) {
       const msg = unknownFlagMessage(unknown);
       return useJson ? errJson(CMD, "UNKNOWN_FLAG", msg) : errText(`ui: ${msg}\n`);
@@ -140,6 +146,7 @@ export const initCommand = {
 
     const force = parsed.flags["force"] === true;
     const useAll = parsed.flags["all"] === true;
+    const withAgents = parsed.flags["with-agents"] === true;
     const runtimeFlag = parsed.flags["runtime"];
 
     // ── Validate flag combination ──────────────────────────────────────────
@@ -168,6 +175,21 @@ export const initCommand = {
     // ── Resolve target directory ───────────────────────────────────────────
     const cwdFlag = parsed.flags["cwd"];
     const targetCwd = typeof cwdFlag === "string" ? resolve(cwdFlag) : processCwd();
+
+    // ── --with-agents pre-flight (before ANY write — a failed combination
+    //    must never leave a half-installed adapter tree) ─────────────────────
+    if (withAgents) {
+      // Agents are Claude Code subagents only (agents.ts runtime scope).
+      if (!runtimes.includes("claude")) {
+        const msg = "--with-agents requires the claude runtime (agents are Claude Code subagents) — use --runtime claude or --all";
+        return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+      }
+      // Agents bind to a project design system; teach the order instead of failing late.
+      if (!existsSync(join(targetCwd, "design", "ds.manifest.json"))) {
+        const msg = "--with-agents needs a project design system: run 'ui ds init <name>' (or /ui:learn) first, then re-run — or drop the flag and run 'ui agents init' later";
+        return useJson ? errJson(CMD, "DS_NOT_FOUND", msg) : errText(`ui: ${msg}\n`);
+      }
+    }
 
     // ── Resolve package roots (templates/ + knowledge/) ────────────────────
     // Shared with `ui doctor` via resolvePackageRoots (init-stub.ts). Walks up
@@ -403,6 +425,33 @@ export const initCommand = {
       });
     }
 
+    // ── --with-agents: generate the roster now that adapters are installed ─
+    // Runs through the agents command's own seam (json mode) so EXISTS
+    // pre-flight, rollback, and stamping stay one implementation.
+    let agentsWritten: { role: string; name: string; path: string }[] | null = null;
+    if (withAgents) {
+      const agentsFlags: Record<string, string | boolean> = { dir: targetCwd };
+      if (force) agentsFlags["force"] = true;
+      const res = agentsCommand.run({
+        command: "agents", subcommand: "init", positionals: [],
+        flags: agentsFlags, help: false, version: false, json: true,
+        repeatedFlags: new Set<string>(),
+      });
+      let env: { ok: boolean; data?: { agents?: { role: string; name: string; path: string }[] }; error?: { code: string; message: string } };
+      try { env = JSON.parse(res.stdout ?? "{}") as typeof env; }
+      catch { env = { ok: false, error: { code: "WRITE_ERROR", message: (res.stderr ?? res.stdout ?? "agent generation failed").trim() } }; }
+      if (!env.ok) {
+        const inner = env.error?.code ?? "WRITE_ERROR";
+        // Only codes init declares may surface; anything else folds to WRITE_ERROR.
+        const code = inner === "EXISTS" || inner === "DS_NOT_FOUND" ? inner : "WRITE_ERROR";
+        const msg =
+          `adapter tree written, but agent generation failed: ${env.error?.message ?? "unknown error"}` +
+          (inner === "EXISTS" ? " — re-run with --force, or run 'ui agents init --force'" : "");
+        return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
+      }
+      agentsWritten = env.data?.agents ?? [];
+    }
+
     // ── Next-step hint (best-effort scan of the target project) ────────────
     const hint = computeNextStepHint(targetCwd);
 
@@ -410,6 +459,7 @@ export const initCommand = {
     if (useJson) {
       const data: Record<string, unknown> = { manifests, adapters: adapterResults };
       if (hint !== null) data.nextStep = hint.nextStep;
+      if (agentsWritten !== null) data.agents = agentsWritten;
       return okJson(CMD, data);
     }
 
@@ -436,9 +486,12 @@ export const initCommand = {
       "next: run `ui onboard` — your setup checklist and what to do next\n" +
       "      run `ui guide`   — see what DESIGN:OS can do";
     let body = hint !== null ? `${lines}\n${hint.hintLine}\n${nextBlock}` : `${lines}\n${nextBlock}`;
-    // Agents are opt-in (never auto-generated) — Claude Code installs get one hint line.
+    // Agents are opt-in (never auto-generated) — Claude Code installs get one
+    // hint line, unless --with-agents just exercised the opt-in in this run.
     if (runtimes.includes("claude")) {
-      body += "\noptional: `ui agents init` gives this project soul-bound task agents";
+      body += agentsWritten !== null
+        ? "\n" + agentsWritten.map((a) => `agent written: ${a.path} (${a.role})`).join("\n")
+        : "\noptional: `ui agents init` gives this project soul-bound task agents";
     }
     body = `${renderBanner(templatesRoot)}\n${body}`;
     return { exitCode: 0, stderr: body + "\n" };

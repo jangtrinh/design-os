@@ -560,8 +560,9 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "all", type: "boolean", summary: "Write all three runtimes (mutually exclusive with --runtime)" },
         { name: "cwd", type: "string", summary: "Target directory (default: current working directory)" },
         { name: "force", type: "boolean", summary: "Overwrite existing manifest and adapter files" },
+        { name: "with-agents", type: "boolean", summary: "Also run 'ui agents init' (claude runtime + existing project DS required)" },
       ],
-      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "MANIFEST_EXISTS", "WRITE_ERROR"],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "MANIFEST_EXISTS", "DS_NOT_FOUND", "EXISTS", "WRITE_ERROR"],
     },
   },
 

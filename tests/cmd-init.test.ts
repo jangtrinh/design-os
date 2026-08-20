@@ -1,7 +1,7 @@
 import { describe, expect, it, afterEach } from "vitest";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { mkdirSync, existsSync, rmSync, readFileSync, writeFileSync, statSync } from "node:fs";
+import { mkdirSync, existsSync, rmSync, readFileSync, readdirSync, writeFileSync, statSync } from "node:fs";
 import { run } from "../src/cli.js";
 
 function captureRun(args: string[]): { code: number; out: string; err: string } {
@@ -445,5 +445,36 @@ describe("ui init writes the model-adapter wrapper (spec 013 P1)", () => {
     expect(claudeManifest.modelAdapter?.mode).toBe("stdin");
     expect(agManifest.modelAdapter?.mode).toBe("arg");
     expect(codexManifest.modelAdapter?.mode).toBe("stdin");
+  });
+});
+
+describe("ui init --with-agents (opt-in roster at init time)", () => {
+  it("without a project DS → DS_NOT_FOUND before any file is written", () => {
+    const cwd = makeTmpDir();
+    const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents", "--json"]);
+    expect(code).toBe(1);
+    expect((JSON.parse(out) as { error: { code: string } }).error.code).toBe("DS_NOT_FOUND");
+    // Pre-flight: the failed combination must not leave a half-installed adapter tree.
+    expect(existsSync(join(cwd, ".claude"))).toBe(false);
+  });
+
+  it("with a non-claude runtime → BAD_ARG (agents are Claude Code subagents)", () => {
+    const cwd = makeTmpDir();
+    const { code, out } = captureRun(["init", "--runtime", "codex", "--cwd", cwd, "--with-agents", "--json"]);
+    expect(code).toBe(1);
+    expect((JSON.parse(out) as { error: { code: string } }).error.code).toBe("BAD_ARG");
+  });
+
+  it("with a project DS → adapters AND stamped agent files in one run", () => {
+    const cwd = makeTmpDir();
+    const personaData = new URL("../knowledge/personas/personas.json", import.meta.url).pathname;
+    expect(captureRun(["ds", "init", "proj-x", "--persona", "liquid-glass", "--intent", "with-agents test", "--dir", cwd, "--persona-data", personaData]).code).toBe(0);
+    const { code } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents"]);
+    expect(code).toBe(0);
+    expect(existsSync(join(cwd, ".claude", "ease-design.json"))).toBe(true);
+    const agentsDir = join(cwd, ".claude", "agents");
+    expect(existsSync(agentsDir)).toBe(true);
+    const files = readFileSync(join(agentsDir, readdirSync(agentsDir).find((f) => f.startsWith("designer-")) ?? ""), "utf8");
+    expect(files).toContain("design-os agents · roster-role: designer");
   });
 });
