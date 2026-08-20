@@ -993,7 +993,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
-| 2026-08-20 | **Routing board 83/83** — the three canvas-cell misses adjudicated at their sources (`design.md` frontmatter regains the canvas condition; G2 gains the decision-vs-construction tie-break) and re-measured 9/9 with no collateral flips | `#207` |
+| 2026-08-20 | **Routing board clean** — the three canvas-cell misses adjudicated at their sources (`design.md` frontmatter regains the canvas condition; G2 gains the decision-vs-construction tie-break): one moved by doctrine and measured, two corrected labels; re-measured with no collateral flips | `#207` |
 | 2026-08-20 | **`ui init --with-agents`** — opt-in roster generation in the same init run (claude runtime + existing project DS required; pre-flights to `DS_NOT_FOUND` before any write) | `#205` |
 | 2026-08-20 | **Routing doctrine, measured** — an 83-prompt blind benchmark (authored from frontmatter only, routed by context-clean agents) caught two doctrine bugs at must-ask 58%; after the fixes a 16-prompt reference-path re-run graded 16/16, putting the merged figures at verb 96% / must-ask 100% / composite 100% / 0 taste interrogations | `#206` |
 | 2026-08-20 | **Native-expert agents** — `knowledge/need-routing.md` turns a stated need into the right design:os application (19-verb decision gates, three sanctioned asks, the composition rule); two-way parity checks make an untaught new capability a red build, and a per-role allowlist keeps agent templates pointing instead of enumerating (born-red on the real designer drift) | `#203` |

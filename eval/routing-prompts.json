@@ -10,7 +10,7 @@
       "selection-route": 6,
       "composite": 8
     },
-    "adjudication": "2026-08-20 (owner-delegated): v29 and s02 relabeled to generate, v32 confirmed to-figma — see the per-prompt adjudicated notes. Post-adjudication verb distribution: generate ×4, design ×2 (the 3-per-verb structure note describes the ORIGINAL authoring, not current labels)."
+    "adjudication": "2026-08-20 (owner-delegated): v29 and s02 relabeled to generate, v32 confirmed to-figma — see the per-prompt adjudicated notes. Post-adjudication verb distribution: generate ×4, design ×2 (the 3-per-verb structure note describes the ORIGINAL authoring, not current labels). v58 added as the tie-break falsifier: corpus is 84 prompts from 2026-08-20 onward (83 in runs 1-3)."
   },
   "prompts": [
     {
@@ -675,6 +675,15 @@
         "from-ref",
         "iterate"
       ]
+    },
+    {
+      "id": "v58",
+      "category": "verb",
+      "prompt": "We need to design a fresh analytics overview in Figma using auto-layout and our semantic variables — the direction is still completely open.",
+      "expectedRoute": [
+        "design"
+      ],
+      "adjudicated": "2026-08-20: adversarial addition (stage-4 H1) — a design-labeled need that NAMES construction tooling (auto-layout, variables) on canvas; exists so the G2 decision-vs-construction tie-break CAN go red if tooling words are ever treated as the discriminator"
     }
   ]
 }

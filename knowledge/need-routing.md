@@ -54,10 +54,12 @@ to `generate`; inside a deck, to `slides` (composition, not a chart artifact).
 **G2 — Figma-canvas needs, and the bare "audit" that names no target.** Design
 something new on canvas → `design`. Push existing output or intent onto canvas →
 `to-figma`. Tie-break when a sentence reads as both (new thing AND canvas
-construction): the line is decision-vs-construction — still deciding WHAT it
-should be → `design`; intent already formed and the ask is to construct it
-idiomatically (authoring words, naming the figma hand, variables/auto-layout) →
-`to-figma`. Normalize an existing Figma file against the DS → `audit`. Review or
+construction): the line is decision-vs-construction — the sentence asks to
+DECIDE what the thing should be (design words, an open direction) → `design`;
+the sentence asks for the authoring pass itself — an authoring verb as the main
+ask, or the figma hand named as the executor — → `to-figma`. Construction
+TOOLING is NOT the line: variables and auto-layout are what `design` produces
+too; a "design me…" ask that merely names them stays `design`. Normalize an existing Figma file against the DS → `audit`. Review or
 close Figma comments → `figma-comments`. An "audit" that names no SURFACE —
 bare, or aimed at a product area ("audit the pricing area") that could
 equally be a Figma file, an HTML output, the DS itself, or a live page — this
