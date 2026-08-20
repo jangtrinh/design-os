@@ -620,7 +620,7 @@ for (const c of comp.children) c.layoutSizingHorizontal = 'FILL';
 - Convert many screens SEQUENTIALLY — one file, one connection, rate-limited (`canvas-operations.md`
   R15); track the conversion as a `plans/` checklist, one screen per step, never parallel agents.
 
-Provenance: distilled from the VSF-PCP `figma-idp-rebuild` field skill (dogfood 2026-07-13) —
+Provenance: distilled from a confidential client-portal rebuild field skill (dogfood 2026-07-13) —
 generalized, no project-specific inventory.
 
 ---

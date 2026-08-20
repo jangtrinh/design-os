@@ -191,7 +191,7 @@ card.exposedInstances[0].setProperties({ State: 'Hover' });
   built by cloning a real on-canvas meter and stepping the fill width; the "limitation" is now a
   variant a consumer just picks. Same move for any "you can't tweak X per instance" gap: make X an
   enumerated axis or a property, and the constraint stops being tribal knowledge. (B8–B10 distilled
-  from the VSF-PCP `figma-idp-rebuild` field skill, dogfood 2026-07-13 — principles only.)
+  from a confidential client-portal rebuild field skill, dogfood 2026-07-13 — principles only.)
 - **Slots (B6)** — for "put arbitrary consumer content here" regions (card body, dialog
   content):
   - Prefer **`component.createSlot()`**: it creates the slot node AND auto-wires the SLOT

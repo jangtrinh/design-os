@@ -215,7 +215,7 @@ The first dogfood study used three real project histories:
 | Project | Supported level | What it proves |
 |---|---|---|
 | ease-design | **APPLIED** | User feedback changed orchestration and a later Nutrition Planning delivery |
-| VSF-PCP | **LEARNING** | Persistent project identity and harvested project lessons |
+| client-portal (confidential) | **LEARNING** | Persistent project identity and harvested project lessons |
 | platform-design-system | **APPLIED** | Escaped defects became executable gates with negative fixtures and later detections |
 
 The controlled Nutrition Planning run compared a

@@ -1,7 +1,7 @@
 /**
  * A redirect-only stub: `<meta http-equiv="refresh" content="…url=…">` with effectively no
  * visible body. Such a document has no page to title and no content to voice, so gating it for
- * <title>/<html lang> is noise (dogfood L1: VSF-PCP index.html is a 1-line meta-refresh stub).
+ * <title>/<html lang> is noise (dogfood L1: a client project's index.html was a 1-line meta-refresh stub).
  *
  * Shared by a11y-lint (dogfood L1) and validate-layout (dogfood L4) — a redirect-only document
  * is an intentional non-page, so structural/title/lang gating on it is noise. L4's lesson: this
