@@ -478,3 +478,63 @@ describe("ui init --with-agents (opt-in roster at init time)", () => {
     expect(files).toContain("design-os agents · roster-role: designer");
   });
 });
+
+describe("ui init --with-agents pre-flight completeness (stage-4 B1/H2)", () => {
+  const personaData = new URL("../knowledge/personas/personas.json", import.meta.url).pathname;
+  const scaffoldDs = (cwd: string): void => {
+    expect(captureRun(["ds", "init", "proj-y", "--persona", "liquid-glass", "--intent", "preflight test", "--dir", cwd, "--persona-data", personaData]).code).toBe(0);
+  };
+
+  it("malformed design/ds.manifest.json → BAD_MANIFEST before any write", () => {
+    const cwd = makeTmpDir();
+    mkdirSync(join(cwd, "design"), { recursive: true });
+    writeFileSync(join(cwd, "design", "ds.manifest.json"), "{ this is not json");
+    const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents", "--json"]);
+    expect(code).toBe(1);
+    expect((JSON.parse(out) as { error: { code: string } }).error.code).toBe("BAD_MANIFEST");
+    expect(existsSync(join(cwd, ".claude"))).toBe(false);
+  });
+
+  it("existing agent files without --force → EXISTS before the adapter tree is written", () => {
+    const cwd = makeTmpDir();
+    scaffoldDs(cwd);
+    expect(captureRun(["agents", "init", "--dir", cwd]).code).toBe(0);
+    const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents", "--json"]);
+    expect(code).toBe(1);
+    expect((JSON.parse(out) as { error: { code: string } }).error.code).toBe("EXISTS");
+    // Pre-flight, not post-write: the manifest must NOT have landed.
+    expect(existsSync(join(cwd, ".claude", "ease-design.json"))).toBe(false);
+  });
+
+  it("--all --with-agents with a DS → three manifests AND stamped agents, exit 0", () => {
+    const cwd = makeTmpDir();
+    scaffoldDs(cwd);
+    const { code } = captureRun(["init", "--all", "--cwd", cwd, "--with-agents"]);
+    expect(code).toBe(0);
+    expect(existsSync(join(cwd, ".claude", "ease-design.json"))).toBe(true);
+    expect(existsSync(join(cwd, ".agent", "ease-design.json"))).toBe(true);
+    expect(existsSync(join(cwd, "AGENTS.ease-design.json"))).toBe(true);
+    expect(readdirSync(join(cwd, ".claude", "agents")).length).toBe(3);
+  });
+
+  it("--with-agents --force on a populated project → exit 0 (force reaches the agents subcall)", () => {
+    const cwd = makeTmpDir();
+    scaffoldDs(cwd);
+    expect(captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents"]).code).toBe(0);
+    expect(captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents", "--force"]).code).toBe(0);
+  });
+
+  it("JSON mode carries data.agents with role/name/path/written", () => {
+    const cwd = makeTmpDir();
+    scaffoldDs(cwd);
+    const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--with-agents", "--json"]);
+    expect(code).toBe(0);
+    const agents = (JSON.parse(out) as { data: { agents: { role: string; name: string; path: string; written: boolean }[] } }).data.agents;
+    expect(agents).toHaveLength(3);
+    for (const a of agents) {
+      expect(a.role.length).toBeGreaterThan(0);
+      expect(a.path.endsWith(`${a.name}.md`)).toBe(true);
+      expect(a.written).toBe(true);
+    }
+  });
+});
