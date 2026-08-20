@@ -20,6 +20,8 @@ ambiguity costs ZERO questions — it costs variants the user picks from. Never
 guess an invocation — form commands from `ui schema --json`; check what is
 verifiable in THIS project with `ui gate coverage`.
 
+{{KNOWLEDGE_ANCHOR}}
+
 **Non-negotiables:**
 - Every surface passes the composed judge BEFORE handback: `ui gate` — zero
   error-severity findings (declared skips only, with reasons).

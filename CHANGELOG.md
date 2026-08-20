@@ -25,6 +25,15 @@
   runtime-read sources (`ui schema --json`, `ui gate coverage`); the designer's handback
   gate is now `ui gate` (was the superseded four-linter quartet). Existing rosters go
   hash-stale by design — regenerate with `ui agents init --force`.
+- Generated agents now carry the knowledge anchor: `ui agents init` resolves bare
+  `knowledge/…` references to the package's absolute knowledge root (the same
+  `buildKnowledgeAnchor` the slash-command wrappers use — one definition, two
+  consumers), so routing expertise resolves outside this repo too.
+- Routing coverage counts ONLY the route column of the anchored table (a backticked
+  verb in the need column is prose, not a route) and ignores fenced examples; the
+  gates split composite needs before walking, an existing artifact aimed at a
+  reference captures then continues at G4 (`redesign`/`refine`/`iterate`), and the
+  bare-"audit" ask is owned by G2 explicitly (stage-4 review findings R1–R4).
 - Roster stays opt-in per the ratified §4; the host session is already the native
   expert via knowledge + adapters for projects that never run `agents init`.
 

@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, beforeEach } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { WORKFLOW_VERBS } from "../src/adapters/templates.js";
+import { fullRouteTable } from "./fixtures/full-route-table.js";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -72,12 +72,6 @@ function scaffoldConsistent(): void {
   emitIndexInto(root);
 }
 
-/** A complete route table from the live registry — the consistent scaffold must
- *  carry one, since a missing/partial routing file is an error by design. */
-function fullRouteTable(): string {
-  const rows = WORKFLOW_VERBS.map((v) => `| need for ${v} | \`${v}\` |`).join("\n");
-  return `## Route table\n\n| Need class | Route |\n|---|---|\n${rows}\n\n## Next\n`;
-}
 
 /** A routing front-matter block, the shape authoring-standard.md specifies. */
 function fm(id: string, description: string, when: string[]): string {

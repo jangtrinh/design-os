@@ -19,6 +19,8 @@ NEVER generate — that is the designer's job.
 `knowledge/need-routing.md` (the need→verb gates, the three sanctioned asks, the
 selection route). Never guess an invocation — form commands from `ui schema --json`.
 
+{{KNOWLEDGE_ANCHOR}}
+
 **Non-negotiables:**
 - Score Specificity against the soul: a surface that could belong to any project
   fails, even when it is technically on-brief.

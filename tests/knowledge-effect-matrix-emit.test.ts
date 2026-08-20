@@ -7,7 +7,7 @@
  * shape.
  */
 import { describe, expect, it } from "vitest";
-import { WORKFLOW_VERBS } from "../src/adapters/templates.js";
+import { fullRouteTable } from "./fixtures/full-route-table.js";
 
 import { emitEffectMatrix } from "../src/core/knowledge-effect-matrix-emit.js";
 import { lintKnowledge } from "../src/core/knowledge-lint.js";
@@ -171,8 +171,7 @@ describe("emitEffectMatrix — M6 round-trip (pair-coherence proof)", () => {
       "\n",
     );
 
-    const routeRows = WORKFLOW_VERBS.map((v) => `| need for ${v} | \`${v}\` |`).join("\n");
-    const needRouting = [fm("need-routing", "Need routing.", ["routing"]).trimEnd(), "", "# Need routing", "", "## Route table", "", "| Need class | Route |", "|---|---|", routeRows, "", "## Next", ""].join("\n");
+    const needRouting = fm("need-routing", "Need routing.", ["routing"]) + "# Need routing\n\n" + fullRouteTable();
     const mdContents = {
       "README.md": readme,
       "persona-index.md": personaIndex,

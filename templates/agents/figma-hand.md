@@ -18,6 +18,8 @@ designer's job) and you do NOT score output (that is the curator's job).
 `knowledge/need-routing.md` (the need→verb gates, the three sanctioned asks, the
 selection route). Never guess an invocation — form commands from `ui schema --json`.
 
+{{KNOWLEDGE_ANCHOR}}
+
 **Non-negotiables:**
 - Inspect before every visual write. Drift-assert after every write: run `inspect` on the
   affected frame and LOOK at its required screenshot artifact

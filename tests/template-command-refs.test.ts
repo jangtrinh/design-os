@@ -32,18 +32,34 @@ describe("agent templates cite only their role's allowlisted commands", () => {
       const allow = AGENT_TEMPLATE_COMMAND_ALLOWLIST[role] ?? [];
       expect(allow.length, `no allowlist for role '${role}' — add it in templates.ts`).toBeGreaterThan(0);
       for (const span of commandSpans(readFileSync(join(AGENTS_DIR, f), "utf8"))) {
-        const ok = allow.some((prefix) => span.startsWith(prefix));
+        // Word-boundary prefix match: "ui gate coverage" passes under "ui gate",
+        // but "ui gateway --nuke" must not (bare startsWith would accept it).
+        const ok = allow.some((prefix) => span === prefix || span.startsWith(prefix + " "));
         expect(ok, `${f} cites \`${span}\` — not under ${role}'s allowlist. Templates point, never enumerate: a live-but-superseded citation (the designer's old four-linter quartet) is exactly the drift this guard exists to catch.`).toBe(true);
       }
     }
   });
 
-  it("allowlisted prefixes name real commands (the allowlist itself cannot rot)", () => {
-    const known = new Set(Object.keys(COMMAND_SIGNATURES));
+  it("allowlisted prefixes name real commands AND real subcommands (the allowlist itself cannot rot)", () => {
     for (const [role, prefixes] of Object.entries(AGENT_TEMPLATE_COMMAND_ALLOWLIST)) {
       for (const p of prefixes) {
-        const head = p.replace(/^(ui|design-os) /, "").split(" ")[0] as string;
-        expect(known.has(head), `${role} allowlist prefix '${p}' → unknown command '${head}'`).toBe(true);
+        // `design-os` is the Typer umbrella — a separate distribution with its
+        // own command registry; COMMAND_SIGNATURES governs only the `ui` kernel,
+        // so validating a design-os span against it would pass whenever a
+        // same-named `ui` command happens to exist (the wrong-registry hole).
+        if (p.startsWith("design-os ")) continue;
+        const tokens = p.replace(/^ui /, "").split(" ");
+        const head = tokens[0] as string;
+        const schema = COMMAND_SIGNATURES[head];
+        expect(schema, `${role} allowlist prefix '${p}' → unknown command '${head}'`).toBeDefined();
+        // Head-only validation would stay green after a subcommand rename —
+        // exactly the live-but-superseded drift class this file exists to catch.
+        if (schema?.subcommands !== undefined && tokens[1] !== undefined) {
+          expect(
+            Object.keys(schema.subcommands).includes(tokens[1]),
+            `${role} allowlist prefix '${p}' → '${head}' has no subcommand '${tokens[1]}'`,
+          ).toBe(true);
+        }
       }
     }
   });

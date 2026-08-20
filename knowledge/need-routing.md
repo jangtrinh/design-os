@@ -31,6 +31,14 @@ fork. Two laws govern every leaf:
 
 ## The gates
 
+Walk them top-down, first match wins — but SPLIT composites before walking: a
+need that names BOTH a reference source (URL, image, repo) AND an artifact to
+produce or change routes to a sequence (Composition rule below), never a single
+leaf. The reference decides the capture leg (G3 verbs); the artifact decides the
+production leg (G1 verbs for chart/diagram/slides, G4 for surfaces). A gate that
+fires on the reference alone ("a live URL → `from-url`") must never swallow the
+artifact half of the sentence.
+
 **G0 — meta and ops (no new artifact).** "Why is X this way / what was decided" →
 `why`. "Log this interview / finding / transcript" → `evidence`. New project / setup →
 `init`. "Teach the tool my existing design system": whole repo with a UI → `learn`;
@@ -40,15 +48,21 @@ a single HTML file → `extract`; a live site to capture as a portable spec → 
 A comparison of quantities → `chart`. A deck → `slides`. A chart INSIDE a page belongs
 to `generate`; inside a deck, to `slides` (composition, not a chart artifact).
 
-**G2 — the Figma canvas is named as the TARGET.** Design something new on canvas →
-`design`. Push existing output or intent onto canvas → `to-figma`. Normalize an existing
-Figma file against the DS → `audit`. Review or close Figma comments → `figma-comments`.
-A bare "audit" with no clear target → **ask #1** (the four-surface question in
-`templates/journeys/daily.md` §1 — link, don't restate).
+**G2 — Figma-canvas needs, and the bare "audit" that names no target.** Design
+something new on canvas → `design`. Push existing output or intent onto canvas →
+`to-figma`. Normalize an existing Figma file against the DS → `audit`. Review or
+close Figma comments → `figma-comments`. A bare "audit" with NO target named —
+this gate still owns it, even though no canvas was mentioned → **ask #1** (the
+four-surface question in `templates/journeys/daily.md` §1 — link, don't restate).
 
-**G3 — an input is in hand (HTML surface).** A figma.com URL to turn into code →
-`figma`. A screenshot or image file → `from-ref`. A live URL → `from-url`. Words only →
-G4.
+**G3 — an input is in hand (HTML surface).** Two checks BEFORE any leaf fires:
+(1) if the reference is aimed at an EXISTING artifact ("make this dashboard look
+like stripe.com", "làm giống vầy" + image, about a current screen), the reference
+is a capture STEP, not the destination — capture it, then continue at G4 for the
+existing artifact's verb; never terminate at the capture verb. (2) if the
+reference arrived without a sentence saying replicate-vs-inspired → **ask #3**
+below, first. Then the leaves: a figma.com URL to turn into code → `figma`. A
+screenshot or image file → `from-ref`. A live URL → `from-url`. Words only → G4.
 
 **G4 — does a generated artifact already exist here?** No → `generate`. Yes: same
 direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
@@ -59,10 +73,14 @@ tell which → **ask #2** ("keep this direction, or throw it away?").
 replicate-vs-inspired: ask once. It decides faithful capture (`from-url`/`from-ref`,
 Replicate mode) versus capture-then-generate (composition below).
 
-**Composition rule.** A need that combines a NEW artifact with a reference source
-("dashboard giống trang X") routes to a SEQUENCE, never one leaf: capture first
-(`from-url` / `from-ref` / `extract` / `learn`), then `generate` against the captured
-spec. Composite rows in the route table name every verb in the chain.
+**Composition rule.** A need that combines an artifact with a reference source
+("dashboard giống trang X", "chart giống trang X") routes to a SEQUENCE, never one
+leaf: capture first (`from-url` / `from-ref` / `extract` / `learn`), then the
+artifact's own production verb against the captured spec — `generate` for a
+surface, `chart` / `diagram` / `slides` for those classes, or the G4 verb
+(`redesign` / `refine` / `iterate`) when the artifact already exists. The route
+table lists the common composites; other chains follow the same capture-then-
+produce shape.
 
 **Defaults — never ask about these.** Prompt mode → Replicate (`prompt-modes.md`).
 Output surface → HTML unless Figma is explicitly named. Persona → the pick-persona
@@ -97,6 +115,7 @@ with the live verb registry — a new capability cannot ship until this table te
 | Replace the direction of an existing artifact | `redesign` |
 | New artifact modeled on a live site (composite) | `from-url` then `generate` |
 | New artifact modeled on a screenshot (composite) | `from-ref` then `generate` |
+| Re-aim an EXISTING artifact at a reference (composite) | `from-url`/`from-ref` then the G4 verb (`redesign`/`refine`/`iterate`) |
 
 ## Cross-references
 

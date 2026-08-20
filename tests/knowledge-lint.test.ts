@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 
 import { lintKnowledge } from "../src/core/knowledge-lint.js";
-import { WORKFLOW_VERBS } from "../src/adapters/templates.js";
+import { fullRouteTable } from "./fixtures/full-route-table.js";
 import { routingChecks } from "../src/core/knowledge-routing-check.js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -90,12 +90,6 @@ function fm(id: string, description: string, when: string[]): string {
   return `---\nid: ${id}\ndescription: "${description}"\nwhen: [${when.join(", ")}]\n---\n\n`;
 }
 
-/** A complete route table derived from the live registry — the consistent()
- *  fixture must carry it, since a missing/partial routing file is an error. */
-function fullRouteTable(): string {
-  const rows = WORKFLOW_VERBS.map((v) => `| need for ${v} | \`${v}\` |`).join("\n");
-  return `## Route table\n\n| Need class | Route |\n|---|---|\n${rows}\n\n## Next\n`;
-}
 
 const ids = (input: KnowledgeLintInput): string[] => lintKnowledge(input).map((f) => f.checkId);
 
@@ -289,6 +283,26 @@ describe("need-routing parity — the ship-gate for agent expertise", () => {
     const prose = "Never use `slides` for single pages.\n" + TABLE("| words only | `generate` |");
     const f = routingChecks(prose).filter((x) => x.checkId === "routing-verb-uncovered");
     expect(f.map((x) => x.message).join(" ")).toContain("slides");
+  });
+
+  it("a backticked verb in the NEED column never counts as coverage — only the route column teaches", () => {
+    // The `slides` row is deleted; another row's need cell mentions `slides` in
+    // prose style. Coverage must still report slides untaught.
+    const masked = TABLE("| a quantitative comparison graphic (not `slides`) | `chart` |");
+    const f = routingChecks(masked).filter((x) => x.checkId === "routing-verb-uncovered");
+    expect(f.map((x) => x.message).join(" ")).toContain("slides");
+  });
+
+  it("a backticked non-verb in the NEED column is not an unknown-verb false positive", () => {
+    const masked = TABLE("| the need cell may say `frobnicate` freely | `generate` |");
+    expect(routingChecks(masked).filter((x) => x.checkId === "routing-unknown-verb")).toEqual([]);
+  });
+
+  it("fenced examples inside the section are ignored (same law as the template commandSpans helper)", () => {
+    const fenced =
+      "## Route table\n\n| Need class | Route |\n|---|---|\n| x | `generate` |\n\n" +
+      "```\n| illustrative only | `frobnicate` |\n```\n\n## Next\n";
+    expect(routingChecks(fenced).filter((x) => x.checkId === "routing-unknown-verb")).toEqual([]);
   });
 
   it("a missing need-routing.md is itself an error (the routing home must exist)", () => {

@@ -36,10 +36,19 @@ export function routingChecks(needRoutingMd: string | null): KnowledgeFinding[] 
   }
 
   const covered = new Set<string>();
-  // Route column = every backticked token in table rows; composite rows list chains.
-  for (const row of table.split("\n")) {
+  // Route column ONLY = the last cell of each table row. A backticked verb in
+  // the NEED column is prose, not a route — counting it would let a deleted
+  // route row stay "covered" by a need-cell mention (the coverage-masking hole
+  // the stage-4 review red-proved). Fenced examples are stripped first, same
+  // law as the template commandSpans helper.
+  const noFences = table.replace(/```[\s\S]*?```/g, "");
+  for (const row of noFences.split("\n")) {
     if (!/^\|.*\|.*\|/.test(row) || /^\|\s*-+/.test(row)) continue;
-    for (const tok of row.matchAll(/`([a-z0-9-]+)`/g)) {
+    const cells = row.split("|").map((c) => c.trim());
+    // Leading "|" yields an empty first cell; a trailing "|" an empty last one.
+    while (cells.length > 0 && cells[cells.length - 1] === "") cells.pop();
+    const route = cells[cells.length - 1] ?? "";
+    for (const tok of route.matchAll(/`([a-z0-9-]+)`/g)) {
       const verb = tok[1] as string;
       if (!(WORKFLOW_VERBS as readonly string[]).includes(verb)) {
         findings.push({ checkId: "routing-unknown-verb", severity: "error",
