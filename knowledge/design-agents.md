@@ -58,7 +58,9 @@ studio or project means `ui agents init --force`.
 
 ## §4 Roster is opt-in
 
-`ui init` never generates agents — it only prints a hint. A user runs
+`ui init` never generates agents on its own — it prints a hint, and only the
+explicit `ui init --with-agents` flag exercises the opt-in in the same run
+(claude runtime + existing project DS required). A user otherwise runs
 `ui agents init` (optionally `--roster designer,curator`) to get one or as many
 agents as they want; a project with zero agents is a fully supported state
 (`agents check` reports it as a warning, never an error).
