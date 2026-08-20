@@ -37,7 +37,10 @@ produce or change routes to a sequence (Composition rule below), never a single
 leaf. The reference decides the capture leg (G3 verbs); the artifact decides the
 production leg (G1 verbs for chart/diagram/slides, G4 for surfaces). A gate that
 fires on the reference alone ("a live URL → `from-url`") must never swallow the
-artifact half of the sentence.
+artifact half of the sentence. Splitting a composite does NOT skip **ask #3**:
+when the reference arrives without a replicate-vs-inspired sentence ("make us
+one like this", "start from this one"), that one question comes BEFORE the
+capture leg is chosen — it decides the capture's fidelity mode.
 
 **G0 — meta and ops (no new artifact).** "Why is X this way / what was decided" →
 `why`. "Log this interview / finding / transcript" → `evidence`. New project / setup →
@@ -51,8 +54,10 @@ to `generate`; inside a deck, to `slides` (composition, not a chart artifact).
 **G2 — Figma-canvas needs, and the bare "audit" that names no target.** Design
 something new on canvas → `design`. Push existing output or intent onto canvas →
 `to-figma`. Normalize an existing Figma file against the DS → `audit`. Review or
-close Figma comments → `figma-comments`. A bare "audit" with NO target named —
-this gate still owns it, even though no canvas was mentioned → **ask #1** (the
+close Figma comments → `figma-comments`. An "audit" that names no SURFACE —
+bare, or aimed at a product area ("audit the pricing area") that could
+equally be a Figma file, an HTML output, the DS itself, or a live page — this
+gate still owns it, even though no canvas was mentioned → **ask #1** (the
 four-surface question in `templates/journeys/daily.md` §1 — link, don't restate).
 
 **G3 — an input is in hand (HTML surface).** Two checks BEFORE any leaf fires:

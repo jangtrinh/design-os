@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-08-20 - Routing-accuracy benchmark: the routing doctrine gets measured, and loses twice
+
+### Added
+- `eval/routing-prompts.json` — 83 English need-prompts (3 per verb × 19, 12 must-ask,
+  6 selection-route, 8 composites) authored by a context-clean agent that saw ONLY the
+  workflow frontmatter — never the routing tree — so expected routes cannot be
+  tautological with the tree's wording. Rerun contract: `docs/routing-benchmark.md`
+  (manual, never CI; blind batched routers + deterministic grading).
+- First run (blind sonnet routers): verb top-1 **96%** (target ≥85), composites **8/8**,
+  **0** taste interrogations — but must-ask **58%**, exposing two real doctrine bugs.
+
+### Fixed
+- The composite-split law swallowed ask #3 (4/4 ambiguous-reference prompts routed
+  capture→generate without asking) — the split law now fires the replicate-vs-inspired
+  question BEFORE the capture leg. Same defect class as the stage-4 R1 finding: an
+  exception written outside the gate that swallows it never runs.
+- An audit aimed at a product area that pins none of the four surfaces read as a Figma
+  `audit` — G2's ask-1 clause now owns that shape.
+- Doctrine examples had quoted two benchmark prompts verbatim (self-fulfilling cells) —
+  paraphrased off-corpus, and the rerun contract now mandates grepping any new doctrine
+  example against the corpus.
+- Post-fix re-measure of the FULL reference path (16 prompts: all 8 composites, all 4
+  ask-3, the audit ask, the 3 from-url) on the decontaminated doctrine, graded by the
+  committed `eval/routing-grader.mjs`: 16/16 — no composite regression. Merged post-fix
+  figures over all 83: verb 96%, **must-ask 100%**, composite 100%, 0 taste
+  interrogations; the only remaining misses are the 3 design/generate/to-figma
+  adjudication items. Caveats: one router tier, one sample per prompt; the 67
+  non-reference-path prompts carry run-1 decisions.
+
 ## 2026-08-20 - Native-expert agents: need-routing knowledge + the untaught-feature gate
 
 ### Added

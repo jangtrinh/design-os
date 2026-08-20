@@ -1,0 +1,676 @@
+{
+  "_provenance": {
+    "authoredAt": "2026-08-20",
+    "authoredBy": "context-clean author agent (sonnet) — saw ONLY the 19 workflow frontmatter descriptions + the three sanctioned-ask definitions; never the routing tree",
+    "contract": "docs/routing-benchmark.md",
+    "language": "English only (owner ruling 2026-08-20)",
+    "categories": {
+      "verb": 57,
+      "must-ask": 12,
+      "selection-route": 6,
+      "composite": 8
+    }
+  },
+  "prompts": [
+    {
+      "id": "v01",
+      "category": "verb",
+      "prompt": "What was the reasoning behind switching our primary CTA color from blue to green last sprint?",
+      "expectedRoute": [
+        "why"
+      ]
+    },
+    {
+      "id": "v02",
+      "category": "verb",
+      "prompt": "Can you trace who approved bumping the checkout font size and when that decision landed?",
+      "expectedRoute": [
+        "why"
+      ]
+    },
+    {
+      "id": "v03",
+      "category": "verb",
+      "prompt": "Why did we move the pricing table's spacing from 8px to 12px in the fintech dashboard?",
+      "expectedRoute": [
+        "why"
+      ]
+    },
+    {
+      "id": "v04",
+      "category": "verb",
+      "prompt": "Please ingest this usability-test transcript from our healthcare patient portal and turn the pain points into findings we can cite.",
+      "expectedRoute": [
+        "evidence"
+      ]
+    },
+    {
+      "id": "v05",
+      "category": "verb",
+      "prompt": "Here's a survey CSV from e-commerce shoppers abandoning cart — log a finding for each recurring complaint.",
+      "expectedRoute": [
+        "evidence"
+      ]
+    },
+    {
+      "id": "v06",
+      "category": "verb",
+      "prompt": "Add this support-call notes file as evidence backing our claim that the fintech signup form is too long.",
+      "expectedRoute": [
+        "evidence"
+      ]
+    },
+    {
+      "id": "v07",
+      "category": "verb",
+      "prompt": "We're starting a brand-new SaaS dashboard project and need the design tooling set up from scratch.",
+      "expectedRoute": [
+        "init"
+      ]
+    },
+    {
+      "id": "v08",
+      "category": "verb",
+      "prompt": "Set up ease-design for the first time in our new portfolio site repo.",
+      "expectedRoute": [
+        "init"
+      ]
+    },
+    {
+      "id": "v09",
+      "category": "verb",
+      "prompt": "This is a fresh fintech mobile app repo with no design manifest yet — get the adapter tree written.",
+      "expectedRoute": [
+        "init"
+      ]
+    },
+    {
+      "id": "v10",
+      "category": "verb",
+      "prompt": "Our e-commerce storefront already has a full UI — teach the tool our existing design system by scanning the repo.",
+      "expectedRoute": [
+        "learn"
+      ]
+    },
+    {
+      "id": "v11",
+      "category": "verb",
+      "prompt": "We just finished a major redesign of the healthcare portal, so refresh the tool's understanding of our tokens and components straight from the live code.",
+      "expectedRoute": [
+        "learn"
+      ]
+    },
+    {
+      "id": "v12",
+      "category": "verb",
+      "prompt": "Scan our existing SaaS admin panel's HTML/CSS and harvest the real tokens and interaction states into a compiled DS.",
+      "expectedRoute": [
+        "learn"
+      ]
+    },
+    {
+      "id": "v13",
+      "category": "verb",
+      "prompt": "Here's the raw HTML export of our old landing page — pull its tokens and components into a project design system.",
+      "expectedRoute": [
+        "extract"
+      ]
+    },
+    {
+      "id": "v14",
+      "category": "verb",
+      "prompt": "I have static HTML from our fintech marketing site; harvest the color and spacing tokens out of it.",
+      "expectedRoute": [
+        "extract"
+      ]
+    },
+    {
+      "id": "v15",
+      "category": "verb",
+      "prompt": "Extract the design system from this HTML file of our checkout page so we can reuse the components.",
+      "expectedRoute": [
+        "extract"
+      ]
+    },
+    {
+      "id": "v16",
+      "category": "verb",
+      "prompt": "Capture the design system from stripe.com's pricing page as a portable spec folder we can reuse.",
+      "expectedRoute": [
+        "from-url"
+      ]
+    },
+    {
+      "id": "v17",
+      "category": "verb",
+      "prompt": "Point at this live competitor's SaaS marketing site URL and pull out a reusable DESIGN.md of its system.",
+      "expectedRoute": [
+        "from-url"
+      ]
+    },
+    {
+      "id": "v18",
+      "category": "verb",
+      "prompt": "Grab the visual system from this URL of a healthcare booking site so we can reference it later.",
+      "expectedRoute": [
+        "from-url"
+      ]
+    },
+    {
+      "id": "v19",
+      "category": "verb",
+      "prompt": "We need a picture showing how a user request flows through our microservices architecture.",
+      "expectedRoute": [
+        "diagram"
+      ]
+    },
+    {
+      "id": "v20",
+      "category": "verb",
+      "prompt": "Map out the hierarchy of our fintech onboarding steps so a reader can trace the structure at a glance.",
+      "expectedRoute": [
+        "diagram"
+      ]
+    },
+    {
+      "id": "v21",
+      "category": "verb",
+      "prompt": "Create a diagram of how our checkout state machine transitions between steps.",
+      "expectedRoute": [
+        "diagram"
+      ]
+    },
+    {
+      "id": "v22",
+      "category": "verb",
+      "prompt": "I need a standalone comparison of monthly active users across our three SaaS pricing tiers, not buried in a table.",
+      "expectedRoute": [
+        "chart"
+      ]
+    },
+    {
+      "id": "v23",
+      "category": "verb",
+      "prompt": "Show quantities of support tickets by category for our healthcare app so the comparison doesn't get lost in a table.",
+      "expectedRoute": [
+        "chart"
+      ]
+    },
+    {
+      "id": "v24",
+      "category": "verb",
+      "prompt": "Generate a chart of conversion rate by traffic source for the e-commerce funnel.",
+      "expectedRoute": [
+        "chart"
+      ]
+    },
+    {
+      "id": "v25",
+      "category": "verb",
+      "prompt": "Put together a full presentation deck on our fintech app's Q3 roadmap.",
+      "expectedRoute": [
+        "slides"
+      ]
+    },
+    {
+      "id": "v26",
+      "category": "verb",
+      "prompt": "We need slides to pitch the new healthcare portal redesign to stakeholders.",
+      "expectedRoute": [
+        "slides"
+      ]
+    },
+    {
+      "id": "v27",
+      "category": "verb",
+      "prompt": "Generate a deck walking investors through our SaaS product's design evolution.",
+      "expectedRoute": [
+        "slides"
+      ]
+    },
+    {
+      "id": "v28",
+      "category": "verb",
+      "prompt": "I want a brand-new settings screen built on the Figma canvas for our fintech app, starting completely from a blank slate.",
+      "expectedRoute": [
+        "design"
+      ]
+    },
+    {
+      "id": "v29",
+      "category": "verb",
+      "prompt": "I need a fresh notification-bell component created from scratch for our SaaS dashboard, nothing to base it on yet.",
+      "expectedRoute": [
+        "design"
+      ]
+    },
+    {
+      "id": "v30",
+      "category": "verb",
+      "prompt": "We need a new checkout confirmation page designed on canvas for the e-commerce app, nothing exists yet.",
+      "expectedRoute": [
+        "design"
+      ]
+    },
+    {
+      "id": "v31",
+      "category": "verb",
+      "prompt": "Take this generated landing page and build it out as idiomatic Figma auto-layout with real components.",
+      "expectedRoute": [
+        "to-figma"
+      ]
+    },
+    {
+      "id": "v32",
+      "category": "verb",
+      "prompt": "Author the healthcare dashboard on the Figma canvas using our design variables, driven by figma-agent.",
+      "expectedRoute": [
+        "to-figma"
+      ]
+    },
+    {
+      "id": "v33",
+      "category": "verb",
+      "prompt": "Use to-figma to turn our intent for a pricing card into an editable Figma component.",
+      "expectedRoute": [
+        "to-figma"
+      ]
+    },
+    {
+      "id": "v34",
+      "category": "verb",
+      "prompt": "Check our fintech app's Figma file against the design system and normalize any raw hex colors.",
+      "expectedRoute": [
+        "audit"
+      ]
+    },
+    {
+      "id": "v35",
+      "category": "verb",
+      "prompt": "Find and fix the detached instances and off-grid spacing in our SaaS dashboard Figma file.",
+      "expectedRoute": [
+        "audit"
+      ]
+    },
+    {
+      "id": "v36",
+      "category": "verb",
+      "prompt": "Audit the healthcare portal's Figma frame for deprecated components and clean them up.",
+      "expectedRoute": [
+        "audit"
+      ]
+    },
+    {
+      "id": "v37",
+      "category": "verb",
+      "prompt": "Pull all the open comments on our checkout frame in Figma and resolve which element each pin refers to.",
+      "expectedRoute": [
+        "figma-comments"
+      ]
+    },
+    {
+      "id": "v38",
+      "category": "verb",
+      "prompt": "Triage the design feedback threads the client left on our SaaS onboarding file and close the loop.",
+      "expectedRoute": [
+        "figma-comments"
+      ]
+    },
+    {
+      "id": "v39",
+      "category": "verb",
+      "prompt": "Go through the Figma comments on the fintech dashboard frame one at a time and read back the verdicts.",
+      "expectedRoute": [
+        "figma-comments"
+      ]
+    },
+    {
+      "id": "v40",
+      "category": "verb",
+      "prompt": "Here's a link to our pricing page frame on the design canvas — turn it into working HTML code.",
+      "expectedRoute": [
+        "figma"
+      ]
+    },
+    {
+      "id": "v41",
+      "category": "verb",
+      "prompt": "I have a canvas frame from the healthcare app's dashboard — reproduce it as working HTML code, not just inspiration.",
+      "expectedRoute": [
+        "figma"
+      ]
+    },
+    {
+      "id": "v42",
+      "category": "verb",
+      "prompt": "Import this Figma design of our e-commerce product page and produce the HTML for it.",
+      "expectedRoute": [
+        "figma"
+      ]
+    },
+    {
+      "id": "v43",
+      "category": "verb",
+      "prompt": "I'm attaching a screenshot of a fintech app's login screen — generate high-fidelity HTML inspired by it.",
+      "expectedRoute": [
+        "from-ref"
+      ]
+    },
+    {
+      "id": "v44",
+      "category": "verb",
+      "prompt": "Here's a reference image of a healthcare booking UI, reproduce it faithfully in HTML.",
+      "expectedRoute": [
+        "from-ref"
+      ]
+    },
+    {
+      "id": "v45",
+      "category": "verb",
+      "prompt": "Use this screenshot of a SaaS dashboard purely as inspiration and build a fresh HTML version, not a copy.",
+      "expectedRoute": [
+        "from-ref"
+      ]
+    },
+    {
+      "id": "v46",
+      "category": "verb",
+      "prompt": "Create a marketing landing page for our new fintech savings product from this plain-language brief.",
+      "expectedRoute": [
+        "generate"
+      ]
+    },
+    {
+      "id": "v47",
+      "category": "verb",
+      "prompt": "Generate a checkout page design for our e-commerce store backed by our user research.",
+      "expectedRoute": [
+        "generate"
+      ]
+    },
+    {
+      "id": "v48",
+      "category": "verb",
+      "prompt": "Build a signup page UI for the healthcare portal from this description of what we need.",
+      "expectedRoute": [
+        "generate"
+      ]
+    },
+    {
+      "id": "v49",
+      "category": "verb",
+      "prompt": "Take the pricing page you generated yesterday and just nudge the CTA button to feel more urgent.",
+      "expectedRoute": [
+        "iterate"
+      ]
+    },
+    {
+      "id": "v50",
+      "category": "verb",
+      "prompt": "Tweak the hero headline size on the SaaS landing variant we already made, don't redesign it.",
+      "expectedRoute": [
+        "iterate"
+      ]
+    },
+    {
+      "id": "v51",
+      "category": "verb",
+      "prompt": "Iterate on the fintech signup variant — just adjust the spacing between form fields.",
+      "expectedRoute": [
+        "iterate"
+      ]
+    },
+    {
+      "id": "v52",
+      "category": "verb",
+      "prompt": "The checkout page variant scored low on visual craft — polish it up without changing the layout.",
+      "expectedRoute": [
+        "refine"
+      ]
+    },
+    {
+      "id": "v53",
+      "category": "verb",
+      "prompt": "Clean up the alignment and shadow inconsistencies on the healthcare dashboard variant we generated.",
+      "expectedRoute": [
+        "refine"
+      ]
+    },
+    {
+      "id": "v54",
+      "category": "verb",
+      "prompt": "Run a refine pass on the SaaS pricing card to fix its execution quality, keep the design as-is.",
+      "expectedRoute": [
+        "refine"
+      ]
+    },
+    {
+      "id": "v55",
+      "category": "verb",
+      "prompt": "We hate the current direction of the fintech onboarding variant — give us something completely different.",
+      "expectedRoute": [
+        "redesign"
+      ]
+    },
+    {
+      "id": "v56",
+      "category": "verb",
+      "prompt": "Reject this healthcare landing page's whole vibe and redesign it with an opposite persona.",
+      "expectedRoute": [
+        "redesign"
+      ]
+    },
+    {
+      "id": "v57",
+      "category": "verb",
+      "prompt": "The e-commerce homepage variant feels totally wrong — throw it out and give us the opposite direction entirely.",
+      "expectedRoute": [
+        "redesign"
+      ]
+    },
+    {
+      "id": "a01",
+      "category": "must-ask",
+      "prompt": "Audit our onboarding screens before the review meeting.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-1"
+    },
+    {
+      "id": "a02",
+      "category": "must-ask",
+      "prompt": "Can you go through and audit the pricing page?",
+      "expectedRoute": [],
+      "expectedAsk": "ask-1"
+    },
+    {
+      "id": "a03",
+      "category": "must-ask",
+      "prompt": "We need an audit done on the dashboard design.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-1"
+    },
+    {
+      "id": "a04",
+      "category": "must-ask",
+      "prompt": "Please audit the checkout experience for consistency issues.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-1"
+    },
+    {
+      "id": "a05",
+      "category": "must-ask",
+      "prompt": "The onboarding variant we generated just isn't landing right — can you do something about it?",
+      "expectedRoute": [],
+      "expectedAsk": "ask-2"
+    },
+    {
+      "id": "a06",
+      "category": "must-ask",
+      "prompt": "Something feels off about the pricing page we made yesterday, fix it.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-2"
+    },
+    {
+      "id": "a07",
+      "category": "must-ask",
+      "prompt": "I'm not happy with the checkout page design, can you improve it?",
+      "expectedRoute": [],
+      "expectedAsk": "ask-2"
+    },
+    {
+      "id": "a08",
+      "category": "must-ask",
+      "prompt": "The healthcare landing page variant doesn't feel right, make it better.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-2"
+    },
+    {
+      "id": "a09",
+      "category": "must-ask",
+      "prompt": "Here's the URL of a competitor's admin dashboard — use it as the basis for our new admin panel.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-3"
+    },
+    {
+      "id": "a10",
+      "category": "must-ask",
+      "prompt": "[attached: screenshot of a fintech login screen] Build our login page from this.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-3"
+    },
+    {
+      "id": "a11",
+      "category": "must-ask",
+      "prompt": "Here's the URL for a SaaS landing page — build ours from it.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-3"
+    },
+    {
+      "id": "a12",
+      "category": "must-ask",
+      "prompt": "I'm attaching an image of a healthcare booking flow — create our version from it.",
+      "expectedRoute": [],
+      "expectedAsk": "ask-3"
+    },
+    {
+      "id": "s01",
+      "category": "selection-route",
+      "prompt": "Create a landing page for our fintech savings app that feels more premium and trustworthy.",
+      "expectedRoute": [
+        "generate"
+      ]
+    },
+    {
+      "id": "s02",
+      "category": "selection-route",
+      "prompt": "Design a new onboarding screen for our healthcare app that feels calm and reassuring.",
+      "expectedRoute": [
+        "design"
+      ]
+    },
+    {
+      "id": "s03",
+      "category": "selection-route",
+      "prompt": "Redesign our SaaS pricing page — it currently feels corporate and stiff, we want something bolder.",
+      "expectedRoute": [
+        "redesign"
+      ]
+    },
+    {
+      "id": "s04",
+      "category": "selection-route",
+      "prompt": "Polish up the fintech dashboard variant we generated so it feels more premium.",
+      "expectedRoute": [
+        "refine"
+      ]
+    },
+    {
+      "id": "s05",
+      "category": "selection-route",
+      "prompt": "Put together an investor deck for our e-commerce platform that feels sleek and modern.",
+      "expectedRoute": [
+        "slides"
+      ]
+    },
+    {
+      "id": "s06",
+      "category": "selection-route",
+      "prompt": "Take our generated checkout flow and build it out in Figma so it feels more premium and on-brand.",
+      "expectedRoute": [
+        "to-figma"
+      ]
+    },
+    {
+      "id": "c01",
+      "category": "composite",
+      "prompt": "Look at stripe.com's pricing page and build us a similar pricing page for our fintech product.",
+      "expectedRoute": [
+        "from-url",
+        "generate"
+      ]
+    },
+    {
+      "id": "c02",
+      "category": "composite",
+      "prompt": "I'm attaching a screenshot of a competitor's onboarding flow — use it to generate our own onboarding screens for the healthcare app.",
+      "expectedRoute": [
+        "from-ref",
+        "generate"
+      ]
+    },
+    {
+      "id": "c03",
+      "category": "composite",
+      "prompt": "Scan our existing e-commerce site's codebase for its design system, then design a new wishlist page that matches it, from scratch on the canvas.",
+      "expectedRoute": [
+        "learn",
+        "design"
+      ]
+    },
+    {
+      "id": "c04",
+      "category": "composite",
+      "prompt": "Here's the raw HTML of our old dashboard — extract its tokens, then design a brand-new analytics screen on the Figma canvas using them.",
+      "expectedRoute": [
+        "extract",
+        "design"
+      ]
+    },
+    {
+      "id": "c05",
+      "category": "composite",
+      "prompt": "Grab the design system from this healthcare app's live URL and put together a slide deck showcasing a redesigned patient dashboard concept.",
+      "expectedRoute": [
+        "from-url",
+        "slides"
+      ]
+    },
+    {
+      "id": "c06",
+      "category": "composite",
+      "prompt": "Here's a screenshot of a fintech app's card-management screen — reproduce it in HTML first, then build that out properly in Figma with real auto-layout components.",
+      "expectedRoute": [
+        "from-ref",
+        "to-figma"
+      ]
+    },
+    {
+      "id": "c07",
+      "category": "composite",
+      "prompt": "The checkout page we generated last week doesn't match this new screenshot of a competitor's flow — redesign it to match this reference instead.",
+      "expectedRoute": [
+        "from-ref",
+        "redesign"
+      ]
+    },
+    {
+      "id": "c08",
+      "category": "composite",
+      "prompt": "Here's a screenshot of a cleaner pricing layout — nudge our existing pricing variant closer to this reference without starting over.",
+      "expectedRoute": [
+        "from-ref",
+        "iterate"
+      ]
+    }
+  ]
+}
