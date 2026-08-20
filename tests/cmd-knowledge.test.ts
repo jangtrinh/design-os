@@ -5,6 +5,7 @@
  */
 import { describe, expect, it, beforeEach } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { WORKFLOW_VERBS } from "../src/adapters/templates.js";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -55,8 +56,10 @@ function scaffoldConsistent(): void {
     "| `persona-index.md` | Persona lookup |",
     "| `personas/<family>.md` | Persona DNA |",
     "| `benchmarks/*.dna.json` | Measured DNA |",
+    "| `need-routing.md` | Need routing |",
     "",
   ].join("\n"));
+  write("knowledge/need-routing.md", fm("need-routing", "Need routing.", ["routing"]) + "# Need routing\n\n" + fullRouteTable());
   write("knowledge/taste-rubric.md", fm("taste-rubric", "The taste model.", ["taste"]) + "# Taste\n");
   write("knowledge/persona-index.md", fm("persona-index", "Persona lookup.", ["persona"]) + [
     "# Persona Index", "", "## 1. Lookup Table", "",
@@ -67,6 +70,13 @@ function scaffoldConsistent(): void {
   write("knowledge/personas/personas.json", JSON.stringify([{ slug: "alpha-one", family: "family-a" }]));
   write("knowledge/benchmarks/stripe--202607.dna.json", "{}");
   emitIndexInto(root);
+}
+
+/** A complete route table from the live registry — the consistent scaffold must
+ *  carry one, since a missing/partial routing file is an error by design. */
+function fullRouteTable(): string {
+  const rows = WORKFLOW_VERBS.map((v) => `| need for ${v} | \`${v}\` |`).join("\n");
+  return `## Route table\n\n| Need class | Route |\n|---|---|\n${rows}\n\n## Next\n`;
 }
 
 /** A routing front-matter block, the shape authoring-standard.md specifies. */

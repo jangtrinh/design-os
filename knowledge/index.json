@@ -295,6 +295,20 @@
       ]
     },
     {
+      "id": "need-routing",
+      "path": "knowledge/need-routing.md",
+      "description": "The need→verb decision procedure — how an agent turns a stated need into the right design:os application, with the three mandatory asks and the selection-route law.",
+      "when": [
+        "routing",
+        "which-verb",
+        "need",
+        "what-command",
+        "intent",
+        "which workflow",
+        "ask-or-generate"
+      ]
+    },
+    {
       "id": "page-structures",
       "path": "knowledge/page-structures.md",
       "description": "Shape before dress — the macrostructure catalog and the diversification rule.",

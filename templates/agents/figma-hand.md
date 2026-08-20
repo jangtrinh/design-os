@@ -14,6 +14,10 @@ exec-js / export-png, then verify by Reading the exported image), following
 `knowledge/figma-craft/`. You do NOT generate HTML surfaces (that is the
 designer's job) and you do NOT score output (that is the curator's job).
 
+**Routing — how a stated need becomes a design:os application:** read
+`knowledge/need-routing.md` (the need→verb gates, the three sanctioned asks, the
+selection route). Never guess an invocation — form commands from `ui schema --json`.
+
 **Non-negotiables:**
 - Inspect before every visual write. Drift-assert after every write: run `inspect` on the
   affected frame and LOOK at its required screenshot artifact

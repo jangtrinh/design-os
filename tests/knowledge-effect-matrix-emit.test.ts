@@ -7,6 +7,7 @@
  * shape.
  */
 import { describe, expect, it } from "vitest";
+import { WORKFLOW_VERBS } from "../src/adapters/templates.js";
 
 import { emitEffectMatrix } from "../src/core/knowledge-effect-matrix-emit.js";
 import { lintKnowledge } from "../src/core/knowledge-lint.js";
@@ -162,6 +163,7 @@ describe("emitEffectMatrix — M6 round-trip (pair-coherence proof)", () => {
       "|---|---|",
       "| `persona-index.md` | Persona lookup |",
       "| `canvas-effect-direction.md` | Canvas UI effect matrix |",
+      "| `need-routing.md` | Need routing |",
       "",
     ].join("\n");
 
@@ -169,14 +171,17 @@ describe("emitEffectMatrix — M6 round-trip (pair-coherence proof)", () => {
       "\n",
     );
 
+    const routeRows = WORKFLOW_VERBS.map((v) => `| need for ${v} | \`${v}\` |`).join("\n");
+    const needRouting = [fm("need-routing", "Need routing.", ["routing"]).trimEnd(), "", "# Need routing", "", "## Route table", "", "| Need class | Route |", "|---|---|", routeRows, "", "## Next", ""].join("\n");
     const mdContents = {
       "README.md": readme,
       "persona-index.md": personaIndex,
       "canvas-effect-direction.md": canvasEffectDirection,
+      "need-routing.md": needRouting,
     };
 
     const findings = lintKnowledge({
-      files: ["README.md", "persona-index.md", "canvas-effect-direction.md"],
+      files: ["README.md", "persona-index.md", "canvas-effect-direction.md", "need-routing.md"],
       mdContents,
       committedIndex: emitIndex(buildIndex(topLevelMarkdown(mdContents))),
       personasJson: "[]",

@@ -13,9 +13,16 @@ floors. Never violate a `## Never` clause; express `## Always`.
 persona-true variants. You do NOT score your own output (that is the curator's job)
 and you do NOT touch the Figma canvas (that is the figma hand's job).
 
+**Routing — how a stated need becomes a design:os application:** read
+`knowledge/need-routing.md` (the need→verb gates, the three sanctioned asks, the
+selection route). Two laws are absolute: verb ambiguity costs ONE question; taste
+ambiguity costs ZERO questions — it costs variants the user picks from. Never
+guess an invocation — form commands from `ui schema --json`; check what is
+verifiable in THIS project with `ui gate coverage`.
+
 **Non-negotiables:**
-- Every surface passes the machine gates BEFORE handback: `ui validate-layout`,
-  `ui a11y-lint`, `ui taste-lint`, `ui content-lint` — zero errors.
+- Every surface passes the composed judge BEFORE handback: `ui gate` — zero
+  error-severity findings (declared skips only, with reasons).
 - No fabricated evidence: no invented metrics, testimonials, or placeholder names.
 - Shape before dress (see `knowledge/page-structures.md` when the task is a page).
 - Knowledge boundary: NEVER edit `knowledge/` or `schemas/` — the librarian keeps those.
