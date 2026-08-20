@@ -524,7 +524,7 @@ trademark note are recorded in `THIRD_PARTY_LICENSES.md`.
   job-tagged timeouts; the seat probe no longer mistakes a queue-induced timeout for a
   view-only refusal).
 - **Panel Activity shows sync runs**: full human sentences for start/result/failure
-  ("Synced VSF - PCP — 3 added, 1 updated" / "Sync failed for … — <reason>"), failure rows
+  ("Synced Client Portal — 3 added, 1 updated" / "Sync failed for … — <reason>"), failure rows
   wrap instead of truncating, a stuck "Syncing" row times out honestly, and a second Sync
   click resolves the first as superseded.
 - In-process daemon test harness (three end-to-end scenarios over the seams pure unit
@@ -842,7 +842,7 @@ All notable changes to ease-design are documented here. Format follows
   When a DS follows the `{role}` / `{role}-foreground` convention (background/foreground,
   primary/primary-foreground, muted/muted-foreground, …), `ds a11y` now checks each foreground against its
   ONE intended surface — the declared pairs — instead of the text×surface cartesian product. This fixes the
-  VSF-dogfood "L3" over-pairing (a light-surface text token was wrongly paired against dark panels). The
+  a client-portal-dogfood "L3" over-pairing (a light-surface text token was wrongly paired against dark panels). The
   result reports `mode: "explicit" | "paired" | "inferred"`; the legacy cartesian inference remains only as a
   fallback for un-paired DSs and the report nudges toward `-foreground` naming or `--pairs`. New pure module
   `src/core/token-pairs.ts` (`inferForegroundPairs`). The paired convention is now the documented Design-OS
@@ -864,7 +864,7 @@ All notable changes to ease-design are documented here. Format follows
   converts the flat file to the DTCG two-tier store (inferring `$type` per value: color / dimension /
   number / fontFamily / fontWeight / duration; hoisting nested groups to `<cat>-<sub>`; **skipping and
   reporting** un-typeable values like box-shadow strings and bezier easings rather than emitting a wrong
-  type) and seals a manifest + empty registry. On the VSF-PCP dogfood this imported 117 tokens and
+  type) and seals a manifest + empty registry. On a confidential client-portal dogfood this imported 117 tokens and
   immediately surfaced a systemic contrast matrix via `ui ds a11y` that a one-off check had missed.
 - **`ui evidence` — user-evidence ledger with an anti-fabrication gate (DESIGN-OS T6).** Grounds design in
   what users actually said: a self-contained, git-committable store (`design/research.events.jsonl` +

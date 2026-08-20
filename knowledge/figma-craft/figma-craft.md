@@ -58,7 +58,7 @@ doesn't. This is why a new standard ships its linter alongside its emitter (`CLA
 rules), and why a missing-rule bug is patched at the shared layer so no other consumer inherits the
 blind spot — the check is the part of the lesson that survives to the next session.
 
-Provenance: distilled from the VSF-PCP `figma-idp-rebuild` field skill (dogfood 2026-07-13).
+Provenance: distilled from a confidential client-portal rebuild field skill (dogfood 2026-07-13).
 
 ## Decision ladder — which reference to read when
 

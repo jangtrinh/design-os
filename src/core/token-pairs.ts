@@ -5,7 +5,7 @@
  * (background/foreground, card/card-foreground, primary/primary-foreground, …). Because a
  * foreground token names its ONE intended background, contrast becomes a check on declared
  * pairs — not the text×surface cartesian product that `ds-a11y` used to guess (which mis-paired
- * light-surface text against dark panels: the VSF dogfood "L3" over-pairing bug).
+ * light-surface text against dark panels: a client dogfood "L3" over-pairing bug).
  *
  * Pure, name-based, separator-agnostic (`.`, `-`, `/`). No IO.
  */

@@ -29,7 +29,7 @@ export const HEARTBEAT_FILENAME = "heartbeat.json";
 export const HARVEST_INBOX_DIRNAME = "harvest-inbox";
 
 /**
- * Default heartbeat config (matches VSF-PCP's proven shape — version 1, a
+ * Default heartbeat config (matches a production client project's proven shape — version 1, a
  * `tasks` array of `{id, type, interval, params?}`) minus `figma-audit`, which
  * only belongs once a project has a Figma file configured.
  */

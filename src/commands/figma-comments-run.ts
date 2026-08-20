@@ -69,7 +69,7 @@ function groupLabel(anchor: ResolvedAnchor): string {
   return anchor.confidence === "orphaned" ? `${label} — deleted since the comment` : label;
 }
 
-/** Real files nest deep — a VSF-PCP section measured a median chain of 8 and a max of 11. */
+/** Real files nest deep — a real client-file section measured a median chain of 8 and a max of 11. */
 const MAX_CHAIN_SEGMENTS = 3;
 
 /**

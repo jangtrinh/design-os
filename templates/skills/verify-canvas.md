@@ -23,7 +23,7 @@ proves a code change and proves nothing about a design.
 ## The four measurements
 
 Each one exists because assuming it instead of measuring it produced a wrong verdict on a real
-run (2026-08-15, VSF-PCP).
+run (2026-08-15, a client-portal dogfood).
 
 **1 · Visibility is a property of the ANCESTOR CHAIN, not the node.**
 A node can carry `visible: true` inside a hidden parent and render nowhere. Walk from the node
