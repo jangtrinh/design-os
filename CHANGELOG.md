@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-20 - ease-design 0.5.0
+
+The native-expert release: a stated need is now enough. `knowledge/need-routing.md`
+ships the need→verb decision procedure (ordered gates over all 19 workflow verbs, three
+sanctioned asks, the composition rule, the decision-vs-construction tie-break), kept
+honest by the two-way parity gate in `ui knowledge check` — a new capability cannot
+merge until the routing knowledge teaches it. Generated agents point instead of
+enumerating (per-role command allowlist, born-red on real drift) and carry the absolute
+knowledge anchor so routing expertise resolves in consumer projects. `ui init
+--with-agents` exercises the roster opt-in in one run, fully pre-flighted. The doctrine
+is MEASURED: an 84-prompt blind benchmark (authored from frontmatter only, graded by
+the committed `eval/routing-grader.mjs`) caught two routing bugs and three label
+defects on its way to a fully clean board — verb 100%, must-ask 100%, selection-route
+100%, composite 100%, 0 taste interrogations. Published surfaces carry no confidential
+project names (one leftover example slug cleaned this release).
+
 ## 2026-08-20 - Canvas-cell adjudication: the routing board reaches 83/83
 
 ### Fixed
