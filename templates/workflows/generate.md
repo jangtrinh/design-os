@@ -23,6 +23,7 @@ Read only the relevant parts of:
 - `knowledge/figma-craft/facet-model.md`;
 - `knowledge/user-evidence.md` when claims or research are present;
 - `knowledge/prompt-modes.md` when a visual reference is supplied.
+- `knowledge/web-technique-craft.md` and `knowledge/web-techniques/catalog.json` while compiling directions.
 
 Write `design-brief.json` matching `schemas/design-brief.schema.json`. Preserve the raw request,
 tag every assumption with provenance and confidence, declare prohibited claims, and produce
@@ -37,6 +38,12 @@ Do not proceed while the brief has errors.
 Compile `prompt-plan.json` matching `schemas/prompt-plan.schema.json`. Bind all facets and
 cross-cutting layers to evidence, preserve exactly three structurally divergent directions, give
 every major region a production brief, and define actionable visual-system DNA.
+
+For each of the exactly three directions, consider zero or at most one primary imported technique
+from the catalog. Format a selected row as `<ID> — <brief-specific adaptation>`; preserve an
+original free-string `signatureTechnique` when no row earns brief fit. Do not ask a
+technique-preference question—taste ambiguity earns variants. Do not open deep cards while comparing
+directions.
 
 Always create a content-led and a golden proportion candidate. Render and compare them under the
 same content, assets, visual DNA, regions, and viewports. Golden ratio is a candidate only; release
@@ -75,6 +82,10 @@ Soul and evidence outrank memory. Memory is a weak prior.
 
 Use the three preserved prompt-plan directions. Confirm the selected direction still has the best
 brief fit after proportion comparison. Do not recreate or silently collapse the alternatives.
+After direction choice, if the technique is catalog-derived, open only the selected card declared
+by its row; an original free string opens no catalog card. Invoke a specialist
+only when that row's handoff is registered and reachable for `generate`, and suitability, tier, and
+anti-use gates pass; an unavailable handoff means no handoff, never a substitute.
 
 Write a version 2 `generation-contract.json` matching
 `schemas/generation-contract.schema.json`, including:

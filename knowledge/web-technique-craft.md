@@ -8,7 +8,7 @@ when: [web-design, visual-direction, interaction-concept, landing-page, immersiv
 
 ## Purpose
 
-Turn a design brief into a small, explicit set of web craft techniques that strengthen the
+Turn a design brief into one explicit web craft technique per direction when it strengthens the
 idea without turning the page into an effects sampler.
 
 ## Mental Model
@@ -30,15 +30,17 @@ floors; a selected technique is subordinate to them.
 
 1. Read `knowledge/web-techniques/catalog.json`. Match the brief to each row's `when` signals
    and reject any row whose `requires` conditions are unavailable.
-2. Propose at most two techniques per direction. Name each as
-   `<ID> — <brief-specific adaptation>` so the choice is reviewable rather than implied.
+2. Preserve exactly three directions. For each, propose at most one primary imported technique per
+   direction, formatted `<ID> — <brief-specific adaptation>` so the choice is reviewable rather
+   than implied. Prefer an original free-string technique when no catalog row earns a fit; novelty
+   alone is never a fit.
 3. Make directions structurally different: rewording one ID does not create a new direction.
-   Prefer no technique when none changes hierarchy, comprehension, feedback, or narrative.
-4. Open only the family card declared by the selected row. Apply its anti-use, fallback,
+   Do not ask a technique-preference question; taste ambiguity earns variants, not interrogation.
+4. After direction choice, open only the selected family card declared by the chosen row. Apply its anti-use, fallback,
    responsive/input, lifecycle/performance, verification, and failure-mode clauses.
-5. If `handoffSkill` is non-null, suggest that registered specialist only for a listed
-   `applicableWorkflows` verb. A null handoff means implement from the card and existing owners;
-   never invent a replacement specialist.
+5. If `handoffSkill` is non-null, suggest that specialist only when it is registered and reachable
+   for the current workflow, and suitability, tier, and anti-use gates all pass. A null or
+   unavailable handoff means no handoff; never invent a replacement specialist.
 
 ## Direction proposal contract
 
@@ -50,9 +52,9 @@ For each proposed direction, tell the user:
 - the main performance or lifecycle cost;
 - the specialist handoff, when the catalog explicitly permits one.
 
-ALLOWED: a restrained surface mechanism plus one narrative or interaction mechanism when they
-solve different jobs. NOT ALLOWED: stacking techniques that compete for the same focal moment,
-because simultaneous signatures erase hierarchy and make graceful downgrade impossible.
+ALLOWED: zero or one primary imported technique per direction, with an original free-string
+technique when no catalog row earns the job. NOT ALLOWED: stacking techniques that compete for the
+same focal moment, because simultaneous signatures erase hierarchy and make graceful downgrade impossible.
 
 ## Quality boundary
 

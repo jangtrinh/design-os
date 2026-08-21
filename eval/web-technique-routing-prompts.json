@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "catalog": "knowledge/web-techniques/catalog.json",
+  "briefs": [
+    {"id":"brief-1","brief":"Show a technical operations product with spatial depth, readable proof, and a restrained fallback."},
+    {"id":"brief-2","brief":"Create a calm service-booking page where content and availability outrank visual novelty."},
+    {"id":"brief-3","brief":"Redesign an editorial portfolio while retaining its existing case-study information architecture."}
+  ]
+}

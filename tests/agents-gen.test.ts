@@ -166,4 +166,13 @@ describe("templates/agents/ contract", () => {
     );
     expect(tpl, `${role}.md must forbid editing knowledge/`).toMatch(/NEVER edit `knowledge\/`/);
   });
+
+  it("designer routes catalog-backed techniques without a taste question or all-card loading", () => {
+    const tpl = readFileSync(join(REPO_ROOT, "templates", "agents", "designer.md"), "utf8");
+    expect(tpl).toContain("knowledge/web-technique-craft.md");
+    expect(tpl).toContain("knowledge/web-techniques/catalog.json");
+    expect(tpl).toContain("at most one primary");
+    expect(tpl).toContain("technique-preference question");
+    expect(tpl).toContain("only the selected");
+  });
 });

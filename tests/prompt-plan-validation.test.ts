@@ -13,6 +13,21 @@ describe("prompt-plan validation", () => {
     });
   }
 
+  it("keeps both legacy and catalog-formatted signature techniques compatible", () => {
+    const legacy = validPromptPlan();
+    ((legacy["directions"] as Array<Record<string, unknown>>)[0]!)["signatureTechnique"] = "a quiet archival sequence";
+    expect(validatePromptPlan(legacy).ready).toBe(true);
+    const catalog = validPromptPlan();
+    ((catalog["directions"] as Array<Record<string, unknown>>)[0]!)["signatureTechnique"] = "FX-01 — spatial grid behind operational proof";
+    expect(validatePromptPlan(catalog).ready).toBe(true);
+  });
+
+  it("still rejects an empty signature technique", () => {
+    const plan = validPromptPlan();
+    ((plan["directions"] as Array<Record<string, unknown>>)[0]!)["signatureTechnique"] = "";
+    expect(validatePromptPlan(plan).findings.map((finding) => finding.checkId)).toContain("incomplete-direction-set");
+  });
+
   const failures: Array<[string, string, (plan: Record<string, unknown>) => void]> = [
     ["missing facets", "missing-facet-binding", (plan) => {
       (plan["facetBindings"] as unknown[]).pop();
