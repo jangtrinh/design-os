@@ -1,0 +1,1038 @@
+{
+  "expected": {
+    "skillRecordCount": 88,
+    "categoryCounts": {
+      "core": 37,
+      "style": 27,
+      "vendor": 15,
+      "composite": 9
+    },
+    "dispositionCounts": {
+      "adopted": 34,
+      "covered-existing": 41,
+      "rejected": 13
+    }
+  },
+  "schemaVersion": 1,
+  "skills": [
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Adopt damped pointer parallax and clamp mechanics from first principles.",
+      "skill": "add-mouse-driven-orbit",
+      "techniqueIds": [
+        "MOT-07"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Vendor-specific WebGPU shader graph without a general design contract.",
+      "skill": "add-shader-cursor-trail",
+      "techniqueIds": []
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame layout and existing persona selection.",
+      "skill": "agency-grid-layout-minimal",
+      "techniqueIds": [
+        "LAY-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt bounded canvas ambient particles with density and lifecycle constraints.",
+      "skill": "ambient-section-particles",
+      "techniqueIds": [
+        "MOT-10"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Covered by viewport reveal motion primitive and entrance motion floor.",
+      "skill": "animation-on-scroll",
+      "techniqueIds": [
+        "MOT-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Covered by existing motion selection system and tier ladder choreography.",
+      "skill": "animation-systems",
+      "techniqueIds": [
+        "SYS-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt layered atmospheric light background device with static fallback.",
+      "skill": "atmosphere-background",
+      "techniqueIds": [
+        "SUR-09"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt perspective grid canvas effect with fog fade and DPR caps.",
+      "skill": "background-grid-webgl",
+      "techniqueIds": [
+        "FX-01"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Vendor package snapshot and state decoration without core design value.",
+      "skill": "beam-glow-states",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/taste-rubric.md"
+      ],
+      "reason": "Covered by elevation ramp surface device and depth rubric.",
+      "skill": "beautiful-shadows",
+      "techniqueIds": [
+        "SUR-04"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by atmospheric light device and standard page structures.",
+      "skill": "blue-cloudy-clean-modern",
+      "techniqueIds": [
+        "SUR-09"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by glass surface and laser accent signature devices.",
+      "skill": "blue-laser-clean-glass-layout",
+      "techniqueIds": [
+        "SUR-05",
+        "DET-03"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by index-first and long-document structural page patterns.",
+      "skill": "book-serif-index",
+      "techniqueIds": []
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by split studio structure and lit 3D object effect.",
+      "skill": "bright-green-tech-system-webgl",
+      "techniqueIds": [
+        "FX-04"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Subjective quality label and over-broad bundle without concrete primitives.",
+      "skill": "build-awwwards-quality-sites",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt distance emitter particle trail with segment interpolation and pooling.",
+      "skill": "build-interactive-particle-trail",
+      "techniqueIds": [
+        "MOT-09"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt persistent world structure with continuity ledgers and quality governor.",
+      "skill": "build-threejs-scroll-worlds",
+      "techniqueIds": [
+        "STR-01",
+        "SYS-02",
+        "SYS-05",
+        "SYS-06"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt scan assembly reveal effect with world-space front progression.",
+      "skill": "build-wireframe-scan-reveal",
+      "techniqueIds": [
+        "MOT-11"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/gsap-motion-direction.md"
+      ],
+      "reason": "Covered by motion selection system and GSAP scene direction.",
+      "skill": "cinematic-gsap-lenis-motion-system",
+      "techniqueIds": [
+        "SYS-01",
+        "STR-02"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by cinematic chapters page structure and existing motion contracts.",
+      "skill": "cinematic-scroll-storytelling",
+      "techniqueIds": [
+        "STR-02"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by existing persona selection and feature stack page structure.",
+      "skill": "clean-minimal-beige-light-mode",
+      "techniqueIds": []
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Vendor library wrapper with volatile API and no distinct contract.",
+      "skill": "cobejs",
+      "techniqueIds": []
+    },
+    {
+      "category": "vendor",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/generation-craft-defaults.md"
+      ],
+      "reason": "Covered by logo truth and sourcing craft defaults.",
+      "skill": "company-logos",
+      "techniqueIds": [
+        "AST-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by measured frame layout device and boundary guide rules.",
+      "skill": "container-lines",
+      "techniqueIds": [
+        "LAY-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt chamfered surface device with clip-path and focus constraints.",
+      "skill": "corner-diagonals",
+      "techniqueIds": [
+        "SUR-07"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by laser accent detail device in signature devices.",
+      "skill": "corner-lasers",
+      "techniqueIds": [
+        "DET-03"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt CSS alpha mask surface device with horizontal and vertical variants.",
+      "skill": "css-alpha-masking",
+      "techniqueIds": [
+        "SUR-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt gradient edge surface device with pseudo-element mask fallback.",
+      "skill": "css-border-gradient",
+      "techniqueIds": [
+        "SUR-02"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by persona styling, gradient edge, and atmospheric light.",
+      "skill": "dark-blue-contrasting-clean",
+      "techniqueIds": [
+        "SUR-02",
+        "SUR-09"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by split studio structure and glass surface device.",
+      "skill": "dark-glass-clean-layout",
+      "techniqueIds": [
+        "SUR-05"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt ordered dither field effect with Bayer thresholding and DPR scaling.",
+      "skill": "dither-background",
+      "techniqueIds": [
+        "SUR-08",
+        "FX-10"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by dither surface and laser accent device composition.",
+      "skill": "dither-laser-dark-mode",
+      "techniqueIds": [
+        "SUR-08",
+        "DET-03"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt documentary portfolio story structure with irregular collages and chapter alternation.",
+      "skill": "documentary-brutalist-agency",
+      "techniqueIds": [
+        "STR-09"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt editorial portfolio chapters story structure with curated section interactions.",
+      "skill": "editorial-portfolio-chapters",
+      "techniqueIds": [
+        "STR-03"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt service booking story structure with truthful operational and error states.",
+      "skill": "editorial-service-booking",
+      "techniqueIds": [
+        "STR-04"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by split studio structure and existing persona definitions.",
+      "skill": "editorial-tech",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt ambient particle foliage specialization with coupled tumble and slip.",
+      "skill": "falling-leaves",
+      "techniqueIds": [
+        "MOT-10"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by measured frame layout and corner bracket detail devices.",
+      "skill": "framed-grid-layout",
+      "techniqueIds": [
+        "LAY-01",
+        "DET-02"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame layout and gradient edge surface devices.",
+      "skill": "framed-tech-dark-border-gradient",
+      "techniqueIds": [
+        "LAY-01",
+        "SUR-02"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame layout combined with color persona tokens.",
+      "skill": "funky-purple-container-tech",
+      "techniqueIds": [
+        "LAY-01"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by glass surface device and specimen page structure.",
+      "skill": "glass-dark-mode-clock",
+      "techniqueIds": [
+        "SUR-05"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/taste-rubric.md"
+      ],
+      "reason": "Covered by glass surface, gradient edge, and depth rubric constraints.",
+      "skill": "glass-dark-ui",
+      "techniqueIds": [
+        "SUR-05",
+        "SUR-02"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Vendor library wrapper with volatile API and redundant runtime dependencies.",
+      "skill": "globe-gl",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt particle globe canvas effect with density layering and disposal.",
+      "skill": "globe-particles",
+      "techniqueIds": [
+        "FX-03"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt gooey field surface device using SVG filter thresholding mechanisms.",
+      "skill": "gooey-blob-system",
+      "techniqueIds": [
+        "SUR-10"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/gsap-motion-direction.md"
+      ],
+      "reason": "Covered by existing dedicated GSAP motion direction guidance.",
+      "skill": "gsap",
+      "techniqueIds": []
+    },
+    {
+      "category": "composite",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/gsap-motion-direction.md"
+      ],
+      "reason": "Covered by cinematic chapters structure and GSAP scene contracts.",
+      "skill": "gsap-scrolltrigger-storytelling",
+      "techniqueIds": [
+        "STR-02"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by tactile depth surface device and persona selection.",
+      "skill": "high-contrast-skeuomorphic-clean",
+      "techniqueIds": [
+        "SUR-06"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame layout and portfolio grid page structures.",
+      "skill": "image-first-grid-layout",
+      "techniqueIds": [
+        "LAY-01"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by single-offer page structure and conversion evidence hierarchy.",
+      "skill": "landing-page",
+      "techniqueIds": [
+        "STR-07"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame, corner brackets, and light theme tokens.",
+      "skill": "light-mode-paper-technical",
+      "techniqueIds": [
+        "LAY-01",
+        "DET-02"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Package-specific costly decorative shader without general architectural value.",
+      "skill": "liquid-metal-border",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by existing marquee motion primitive and duplicate seam rules.",
+      "skill": "marquee-loop",
+      "techniqueIds": [
+        "MOT-04"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/gsap-motion-direction.md"
+      ],
+      "reason": "Covered by stagger text motion primitive and overflow mask mechanics.",
+      "skill": "masked-reveal",
+      "techniqueIds": [
+        "MOT-02"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Physics engine wrapper lacking a justified design system gap.",
+      "skill": "matterjs",
+      "techniqueIds": []
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/shader-gradient-direction.md"
+      ],
+      "reason": "Covered by shader gradient direction and brand persona styling.",
+      "skill": "mesh-gradient-dark-blue-clean",
+      "techniqueIds": []
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame layout and container restraint rules.",
+      "skill": "nested-container-clean-agency",
+      "techniqueIds": [
+        "LAY-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by measured frame layout and concentric radius constraints.",
+      "skill": "nested-container-frames",
+      "techniqueIds": [
+        "LAY-01"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Covered by numeric index detail device in signature devices.",
+      "skill": "number-details",
+      "techniqueIds": [
+        "DET-01"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt enterprise proof story structure with audit and rollback workflows.",
+      "skill": "operational-enterprise-ai",
+      "techniqueIds": [
+        "STR-05"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by feature stack structure and paper persona token palette.",
+      "skill": "orange-clean-paper-saas",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt distance emitter motion primitive with ring-buffer and idle breath.",
+      "skill": "pointer-trail-emitter",
+      "techniqueIds": [
+        "MOT-09"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt pricing comparison story structure with honest table fallbacks.",
+      "skill": "pricing-page",
+      "techniqueIds": [
+        "STR-08"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt product proof story structure with deterministic hero demonstrations.",
+      "skill": "product-proof-saas",
+      "techniqueIds": [
+        "STR-06"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt progressive blur surface device with stacked masked blur bands.",
+      "skill": "progressive-blur",
+      "techniqueIds": [
+        "SUR-03"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Adopt hover aperture motion primitive with aligned dual-image invariant.",
+      "skill": "reveal-hover-effect",
+      "techniqueIds": [
+        "MOT-08"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Adopt progress story motion primitive with semantic ordered-list baseline.",
+      "skill": "scroll-progress-timeline",
+      "techniqueIds": [
+        "MOT-05"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Adopt reversible sequence motion primitive with normalized progress and preloading.",
+      "skill": "scroll-scrubbed-visual-sequence",
+      "techniqueIds": [
+        "MOT-06"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Adopt scrubbed semantic text primitive preserving inline formatting and rewrapping.",
+      "skill": "scroll-scrubbed-word-reveal",
+      "techniqueIds": [
+        "MOT-03"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Adopt scroll-world renderer decision across video, 3D, and DOM.",
+      "skill": "scroll-world-storytelling",
+      "techniqueIds": [
+        "STR-01",
+        "STR-02"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Component-specific WebGPU shader wrapper without core design abstraction.",
+      "skill": "shaders-cursor-ripples",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/signature-devices.md"
+      ],
+      "reason": "Adopt tactile depth surface device with multi-layer shadow elevation.",
+      "skill": "skeuomorphic-ui",
+      "techniqueIds": [
+        "SUR-06"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Single icon-set vendor prescription conflicting with family coherence rules.",
+      "skill": "solar-duotone-bold",
+      "techniqueIds": []
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by split studio layout in existing page structures.",
+      "skill": "split-layout-technical",
+      "techniqueIds": [
+        "LAY-02"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/motion-craft.md"
+      ],
+      "reason": "Adopt staggered semantic text primitive with DOM-safe word reveal.",
+      "skill": "staggered-word-reveal",
+      "techniqueIds": [
+        "MOT-02"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Framework implementation wrapper belonging outside core design knowledge.",
+      "skill": "tailwindcss",
+      "techniqueIds": []
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by measured frame, atmospheric light, and persona tokens.",
+      "skill": "tech-green-dark-mode-modern",
+      "techniqueIds": [
+        "LAY-01",
+        "SUR-09"
+      ]
+    },
+    {
+      "category": "style",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/page-structures.md"
+      ],
+      "reason": "Covered by specimen page structure and scan assembly motion.",
+      "skill": "technical-wireframe-info-layout",
+      "techniqueIds": [
+        "MOT-11"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Package wrapper for status states covered by general accessibility.",
+      "skill": "thinking-orbs",
+      "techniqueIds": []
+    },
+    {
+      "category": "vendor",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Covered by existing Three.js scene contracts and effect guidance.",
+      "skill": "threejs",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt landscape canvas effect with polar-grid LOD and time transitions.",
+      "skill": "threejs-landscape",
+      "techniqueIds": [
+        "FX-05"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt procedural architecture effect with clipping plane assembly sequences.",
+      "skill": "threejs-towers",
+      "techniqueIds": [
+        "FX-06"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt weather system canvas effect with frustum-anchored precipitation models.",
+      "skill": "threejs-weather",
+      "techniqueIds": [
+        "FX-07"
+      ]
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Hosted embed runtime wrapper violating self-contained knowledge architecture.",
+      "skill": "unicorn-studio",
+      "techniqueIds": []
+    },
+    {
+      "category": "vendor",
+      "disposition": "rejected",
+      "existingKnowledgeRefs": [],
+      "reason": "Preset library wrapper causing dependency drift and generic outputs.",
+      "skill": "vantajs",
+      "techniqueIds": []
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt lit 3D object canvas effect with PBR lighting and static fallbacks.",
+      "skill": "webgl-3d-object",
+      "techniqueIds": [
+        "FX-04"
+      ]
+    },
+    {
+      "category": "composite",
+      "disposition": "covered-existing",
+      "existingKnowledgeRefs": [
+        "knowledge/prompt-plan-orchestration.md"
+      ],
+      "reason": "Covered by effect budgeting and orchestrator quality governor contracts.",
+      "skill": "webgl-landing-steering",
+      "techniqueIds": [
+        "SYS-01",
+        "SYS-04",
+        "SYS-06"
+      ]
+    },
+    {
+      "category": "core",
+      "disposition": "adopted",
+      "existingKnowledgeRefs": [
+        "knowledge/canvas-effect-direction.md"
+      ],
+      "reason": "Adopt laser field canvas effect with halo layering and lifecycle controls.",
+      "skill": "webgl-laser",
+      "techniqueIds": [
+        "FX-09"
+      ]
+    }
+  ],
+  "upstream": {
+    "repository": "https://github.com/MengTo/Skills.git",
+    "revision": "4c716b516b6b0143f3037631306b3730d2832344",
+    "capturedAt": "2026-08-21T00:27:35Z",
+    "rootLicense": "MIT",
+    "rootLicenseEvidence": {
+      "path": "LICENSE",
+      "mode": "100644",
+      "gitObjectId": "b3a5f823a69b4b010f92930ac09e8a776daf65c6",
+      "byteCount": 1064,
+      "sha256": "b2a071ba22fefd803f4e9d1f5c777dd79c62d191695586a1a73fd4d0ebd051c6"
+    }
+  }
+}
