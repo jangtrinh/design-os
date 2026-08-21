@@ -132,6 +132,18 @@ read the section for the chosen slug. Extract the full aesthetic DNA:
 
 The persona DNA is the **mandatory** style contract for the redesign.
 
+### 5.5 Consider one technique after the contra-persona is chosen
+
+Read `knowledge/web-technique-craft.md` and `knowledge/web-techniques/catalog.json`. Preserve the
+source IA and content above technique novelty. Consider exactly three structural directions; each
+may use zero or at most one primary imported catalog technique formatted
+`<ID> — <brief-specific adaptation>`, or an original free-string technique when no row earns fit.
+Do not ask a technique-preference question. After direction choice, open only the selected card for
+a catalog-derived technique; an original free string opens no catalog card.
+Invoke a specialist only when its catalog handoff is registered and reachable for `redesign` and
+suitability, tier, and anti-use gates pass. An unavailable handoff means no handoff, never a
+hallucinated replacement.
+
 ### 6. Generate the redesigned variant
 
 Combine three contracts and produce a single complete HTML artifact:

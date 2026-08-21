@@ -152,6 +152,17 @@ headings, colors, icons, or images does not make a repeated composition distinct
 The page should read as one narrative family, not a collage. Distinct section architecture means
 different jobs expressed through related forms—not arbitrary novelty in every viewport.
 
+## Technique selection boundary
+
+When a prompt plan preserves exactly three directions, each direction may carry zero or one primary
+imported technique from `knowledge/web-techniques/catalog.json` formatted `<ID> — <brief-specific adaptation>`. A no-match direction may
+retain an original free-string technique; novelty alone does not establish fit. Do not ask a
+technique-preference question. After the direction is selected, open only the selected deep card
+for a catalog-derived value; an original free string opens no catalog card.
+Invoke a specialist only when its catalog handoff is registered and reachable for the workflow and
+the suitability, tier, and anti-use gates pass. An unavailable handoff means no handoff, never a
+replacement.
+
 ## Qualification evidence
 
 A craft-qualified delivery includes:
