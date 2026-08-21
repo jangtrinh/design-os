@@ -516,6 +516,19 @@
       ]
     },
     {
+      "id": "web-technique-craft",
+      "path": "knowledge/web-technique-craft.md",
+      "description": "The brief-to-technique router for selecting one or two purposeful web craft mechanisms and their safe implementation contract.",
+      "when": [
+        "web-design",
+        "visual-direction",
+        "interaction-concept",
+        "landing-page",
+        "immersive-interface",
+        "design-technique"
+      ]
+    },
+    {
       "id": "world-class-learning-loop",
       "path": "knowledge/world-class-learning-loop.md",
       "description": "Qualification, art direction, and reusable learning — controlled trials and anti-overfitting promotion.",

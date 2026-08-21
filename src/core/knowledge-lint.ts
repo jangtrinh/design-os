@@ -30,6 +30,10 @@ import { effectCatalogChecks } from "./knowledge-effect-catalog-check.js";
 import { gradientCatalogChecks } from "./knowledge-gradient-catalog-check.js";
 import { frontMatterChecks } from "./knowledge-frontmatter-check.js";
 import { routingChecks } from "./knowledge-routing-check.js";
+import { sourceLedgerChecks } from "./knowledge-source-ledger-check.js";
+import { webTechniqueChecks } from "./knowledge-web-technique-check.js";
+import { SKILL_NAMES } from "../adapters/templates.js";
+import { VERB_SKILL_REFS } from "../adapters/skill-refs.js";
 // monthsBetween was a third local copy of the same 12-line helper (the other two were
 // in knowledge-effect-catalog-parse.ts). Shared-layer rule: one definition, three
 // consumers — a fix to the staleness arithmetic can no longer miss two of them.
@@ -62,6 +66,11 @@ export interface KnowledgeLintInput {
    * Optional for the same reason as canvasCatalogJson — fixtures that predate the
    * ShaderGradient adoption keep typechecking, and absent is treated as null. */
   gradientCatalogJson?: string | null;
+  /** Tracked Phase 1 source-ledger manifest and its fixed parts. */
+  sourceLedgerJson?: string | null;
+  sourceLedgerParts?: Readonly<Record<string, string>>;
+  /** Future Phase 3 technique catalog; absent is meaningful during Phase 2. */
+  webTechniqueCatalogJson?: string | null;
 }
 
 const STALE_MONTHS = 6;
@@ -121,6 +130,12 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
       knowledgeFileContent: input.mdContents["shader-gradient-direction.md"] ?? null,
       catalogJson: input.gradientCatalogJson ?? null,
       asOf: input.asOf,
+    }),
+    ...sourceLedgerChecks({ manifestJson: input.sourceLedgerJson ?? null, parts: input.sourceLedgerParts ?? {}, files: input.files }),
+    ...webTechniqueChecks({
+      ledgerJson: input.sourceLedgerJson ?? null, ledgerParts: input.sourceLedgerParts ?? {},
+      catalogJson: input.webTechniqueCatalogJson ?? null, files: input.files, mdContents: input.mdContents,
+      skillNames: SKILL_NAMES, verbSkillRefs: VERB_SKILL_REFS,
     }),
     ...frontMatterChecks(input.mdContents, input.committedIndex ?? null),
     // The agent-expertise ship-gate: the need→verb route table stays in exact

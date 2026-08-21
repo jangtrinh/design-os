@@ -959,10 +959,10 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   },
 
   knowledge: {
-    summary: "Governance checks over the knowledge core (index / persona / xref / provenance / effect-catalog drift) + the routing index emitter",
+    summary: "Governance checks over the knowledge core (index / persona / xref / provenance / catalog and source-ledger drift) + the routing index emitter",
     subcommands: {
       check: {
-        summary: "Findings-linter over knowledge/; exit 1 on error-severity findings, including Canvas UI effect-catalog drift (ledger↔matrix row drift, Draco)",
+        summary: "Findings-linter over knowledge/; exit 1 on error-severity findings, including catalog/card and pinned source-ledger integrity drift",
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Repo root holding knowledge/ (default: current working directory)" },

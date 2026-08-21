@@ -25,6 +25,14 @@ for a human reading top to bottom.
 | `authoring-standard.md` | **The meta-standard for writing knowledge/ files** — the repeatable file frame (`Purpose → Mental Model → When to Use/NOT → Content → Failure Modes`, Failure Modes mandatory), the constraint-language rules (bilateral ALLOWED/NOT-ALLOWED, WHY-with-mechanism, CAPS discipline), no-hardcoded-counts-in-prose, dual machine+human examples, the `<!-- ease:source ref=… -->` provenance grammar, untrusted-content quarantine, and scar-driven guardrails. Enforced by `ui knowledge check`. Read when writing or editing any knowledge file. |
 | `taste-rubric.md` | The 6-axis taste model — Layout, Typography, Spacing, Motion, Iconography, Depth/Surface — plus the 7th Consistency axis. Per-axis 0–10 scoring and the critique-gate pass thresholds. |
 | `motion-craft.md` | The animation decision ladder (T1 CSS → T6 Lottie/WebGL) — which motion technology to reach for so capability never exceeds intent, plus persona tier caps, the non-negotiable motion floors (reduced-motion every tier, transform/opacity only), and copy-paste CDN recipes. The *build* contract; `taste-rubric.md` Motion axis is the *grading* contract. |
+| `web-technique-craft.md` | **Brief-to-technique routing for distinctive web craft** — select at most two purposeful mechanisms per direction from the machine catalog, open only their family cards, preserve existing design owners and fallbacks, and invoke a specialist only when the catalog permits that workflow. |
+| `web-techniques/layout-and-surface.md` | Surface construction mechanisms: masks, clipped borders, progressive blur, tactile light, cut corners, dithering, atmosphere, and soft fusion. |
+| `web-techniques/semantic-motion.md` | Semantic text reveal, cursor-following response, and spring-feedback mechanisms that preserve readable content and stable interaction. |
+| `web-techniques/scroll-storytelling.md` | Scroll progress, pinned chapters, frame sequences, orbit response, and camera-path continuity with mobile de-pin and static fallbacks. |
+| `web-techniques/real-time-fields.md` | Cursor fields, particle systems, ambient drift, and scan sweeps with bounded work, capability gates, and lifecycle cleanup. |
+| `web-techniques/3d-worlds.md` | Instanced planes, particle volumes, model stages, and procedural terrain with quality tiers and context-loss recovery. |
+| `web-techniques/content-and-proof.md` | Chapter layouts, booking flows, operational metrics, proof tables, pricing cadence, and editorial asymmetry grounded in honest content. |
+| `web-techniques/system-quality-contracts.md` | Shared scene continuity, adaptive quality governance, and resource-disposal contracts for advanced web techniques. |
 | `gsap-motion-direction.md` | The specialized T5 GSAP direction and implementation contract: meaningful scene planning, timelines, ScrollTrigger, framework lifecycle, plugin restraint, native-mobile boundary, reduced motion, and runtime evidence. Adapted from GreenSock's official MIT skill suite. |
 | `canvas-effect-direction.md` | The T6 external-effect direction for Canvas UI — 25 named WebGL/html-in-canvas art-direction effects (`knowledge/canvas-ui/`), reachable only after the motion ladder selects T6 and the persona cap allows it. The effect matrix (Narrative job · Anti-use · Required fallback per slug), the T6 floor, the one-effect-per-viewport cap + Tenant Law binding, the Draco clause for `object`-family effects, and the install handoff (an emitted upstream CLI command, never run by `ui`). |
 | `shader-gradient-direction.md` | The T6 gradient-field direction for ShaderGradient — 10 named presets and 12 hand-configurable surfaces (`knowledge/shader-gradient/`), reachable only after the motion ladder selects T6 and the persona cap allows it. The preset matrix (Narrative job · Anti-use · Required fallback per slug), the T6 floor, the design-system colour binding (a field must express the DS palette, never define it), the two mandatory fallbacks (reduced-motion → frozen field; no-WebGL → token-derived CSS gradient), the shared one-effect cap with `canvas-effect-direction.md`, and the conditional install handoff. |
@@ -86,8 +94,10 @@ enforces.
 3. `personas/<family>.md` — load the full DNA of each chosen persona
 4. `signature-devices.md` — when the persona reads on-brief but forgettable, compose one hero
    signature move (at most two) onto its DNA
-5. `mode-constraints.md` — apply the UI mode's constraints + `TECHNICAL_RULES`
-6. `taste-rubric.md` — score the result; refine the failing axes
+5. `web-technique-craft.md` — when the brief benefits from distinctive surface, motion,
+   interaction, scroll, canvas, or 3D craft, propose the canonical technique choices and fallbacks
+6. `mode-constraints.md` — apply the UI mode's constraints + `TECHNICAL_RULES`
+7. `taste-rubric.md` — score the result; refine the failing axes
 
 **Establish / compile a design system**
 - `token-taxonomy.md` — token tiers and immutability rules
