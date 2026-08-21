@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 1,
+  "id": "mengto-web-techniques--202608",
+  "upstream": {
+    "repository": "https://github.com/MengTo/Skills.git",
+    "revision": "4c716b516b6b0143f3037631306b3730d2832344",
+    "capturedAt": "2026-08-21T00:27:35Z",
+    "rootLicense": "MIT",
+    "rootLicenseEvidence": {
+      "path": "LICENSE",
+      "mode": "100644",
+      "gitObjectId": "b3a5f823a69b4b010f92930ac09e8a776daf65c6",
+      "byteCount": 1064,
+      "sha256": "b2a071ba22fefd803f4e9d1f5c777dd79c62d191695586a1a73fd4d0ebd051c6"
+    }
+  },
+  "enumeration": {
+    "scope": "agent-skills/web-design",
+    "command": "git ls-tree -r -t -l --full-tree <revision> -- agent-skills/web-design"
+  },
+  "treeRecordCount": 926,
+  "blobRecordCount": 669,
+  "textArtifactCount": 373,
+  "duplicateBlobGroups": [
+    {
+      "sha256": "0d71068ad67cbdbfca87b5e5f57f21fbb47fb29148e2ae8d2e1a5df136ea5cfc",
+      "paths": [
+        "agent-skills/web-design/agency-grid-layout-minimal/demo/assets/page-01-0d868fef-f560-45ca-ab35-5dad4fc29059-3840w.webp",
+        "agent-skills/web-design/clean-minimal-beige-light-mode/demo/assets/page-03-0d868fef-f560-45ca-ab35-5dad4fc29059-3840w.webp",
+        "agent-skills/web-design/gooey-blob-system/demo/assets/page-01-0d868fef-f560-45ca-ab35-5dad4fc29059-3840w.webp",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-02-0d868fef-f560-45ca-ab35-5dad4fc29059-3840w.webp"
+      ]
+    },
+    {
+      "sha256": "184da411f3d660fc3cb9ec2f428e7d9b832c4d84da3e2dcef0e5caf106662759",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/index.html",
+        "agent-skills/web-design/number-details/demo/index.html"
+      ]
+    },
+    {
+      "sha256": "1e06aaa12c3395215a1f292f228f502281f2bb2b45970ab6982d59a1fe760008",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/number-details/demo/assets/source-preview.jpg"
+      ]
+    },
+    {
+      "sha256": "1ec8f6ee2750554b4bc59ff0b507d316a82a7ba37e0e5bebc41d3bd9b9faad46",
+      "paths": [
+        "agent-skills/web-design/add-mouse-driven-orbit/demo/assets/lexend-latin.woff2",
+        "agent-skills/web-design/build-interactive-particle-trail/demo/assets/lexend-latin.woff2",
+        "agent-skills/web-design/build-wireframe-scan-reveal/demo/assets/lexend-latin.woff2"
+      ]
+    },
+    {
+      "sha256": "20b69fddcd23ce1c188891dc2febb3cab2865519cae9210b347c52fcc801260b",
+      "paths": [
+        "agent-skills/web-design/background-grid-webgl/demo/assets/page-04-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/clean-minimal-beige-light-mode/demo/assets/page-06-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/light-mode-paper-technical/demo/assets/page-04-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/nested-container-clean-agency/demo/assets/page-04-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/nested-container-frames/demo/assets/page-04-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-14-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/solar-duotone-bold/demo/assets/page-04-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg",
+        "agent-skills/web-design/webgl-laser/demo/assets/page-04-c92852bb-a510-405a-85ab-ffa0fde136a4-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "21f51f52256cc0c08deb82e954ba0418fa8319ed9a36277902c005842b105b96",
+      "paths": [
+        "agent-skills/web-design/beautiful-shadows/demo/index.html",
+        "agent-skills/web-design/corner-diagonals/demo/index.html"
+      ]
+    },
+    {
+      "sha256": "32a1f0a3fb3b604920ea7d8301e69eedd747d85a299c9e7a40f354360f0cbbc8",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-03-photo-1596394516093-501ba68a0ba6.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-03-photo-1596394516093-501ba68a0ba6.jpg"
+      ]
+    },
+    {
+      "sha256": "337627390f499b3ae272cec9e2f83c817694a82f42e1aa10a7b26a2c7d679dff",
+      "paths": [
+        "agent-skills/web-design/add-mouse-driven-orbit/demo/assets/card-ethos.jpg",
+        "agent-skills/web-design/build-interactive-particle-trail/demo/assets/card-ethos.jpg",
+        "agent-skills/web-design/build-wireframe-scan-reveal/demo/assets/card-ethos.jpg"
+      ]
+    },
+    {
+      "sha256": "3bfb70e2fd5359c261e9268583aca339d4d360fd774854977af109d3ab3edc6d",
+      "paths": [
+        "agent-skills/web-design/dither-background/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/framed-grid-layout/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/glass-dark-mode-clock/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/mesh-gradient-dark-blue-clean/demo/assets/source-preview.jpg"
+      ]
+    },
+    {
+      "sha256": "3c53a7cdf511b5078b720e0846641af3f3627ccd5ad310dc21346f24e8cc7fb5",
+      "paths": [
+        "agent-skills/web-design/background-grid-webgl/demo/assets/page-03-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg",
+        "agent-skills/web-design/light-mode-paper-technical/demo/assets/page-03-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg",
+        "agent-skills/web-design/nested-container-clean-agency/demo/assets/page-03-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg",
+        "agent-skills/web-design/nested-container-frames/demo/assets/page-03-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-10-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg",
+        "agent-skills/web-design/solar-duotone-bold/demo/assets/page-03-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg",
+        "agent-skills/web-design/webgl-laser/demo/assets/page-03-77415a2e-dcbc-4748-a29d-fced4821881a-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "3ecad5d2605bbf56d3f02c0a2a4673d574d405a5d830e45b43d6a34c01cbe992",
+      "paths": [
+        "agent-skills/web-design/container-lines/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/css-border-gradient/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/masked-reveal/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/split-layout-technical/demo/assets/source-preview.jpg"
+      ]
+    },
+    {
+      "sha256": "4526a25eb7c0b86d945cf5e43ed53e85be9821edb8dc26017ed372b1450ae6f6",
+      "paths": [
+        "agent-skills/web-design/clean-minimal-beige-light-mode/demo/assets/page-02-eca707cc-a5b7-439a-b4fd-247f6106c2e1-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-08-eca707cc-a5b7-439a-b4fd-247f6106c2e1-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "4559d22599d5ed733eb14ba074e37de12e8db297571b70be93b898a347274658",
+      "paths": [
+        "agent-skills/web-design/container-lines/demo/index.html",
+        "agent-skills/web-design/css-border-gradient/demo/index.html",
+        "agent-skills/web-design/image-first-grid-layout/demo/index.html",
+        "agent-skills/web-design/masked-reveal/demo/index.html",
+        "agent-skills/web-design/skeuomorphic-ui/demo/index.html",
+        "agent-skills/web-design/split-layout-technical/demo/index.html"
+      ]
+    },
+    {
+      "sha256": "47dc6ced9e3d2354583a2dec0adba4c2d7da55e6325f48b38cbfb28c39f6e2cf",
+      "paths": [
+        "agent-skills/web-design/css-border-gradient/demo/preview.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/preview.jpg",
+        "agent-skills/web-design/masked-reveal/demo/preview.jpg"
+      ]
+    },
+    {
+      "sha256": "5643fc34792343982ab3990a1107745535413692371f1269473a69ba53b148ca",
+      "paths": [
+        "agent-skills/web-design/container-lines/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/css-border-gradient/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/masked-reveal/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-03-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/split-layout-technical/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg",
+        "agent-skills/web-design/webgl-3d-object/demo/assets/page-04-005600e5-f6ab-4e59-bc86-eaeb02797dfa-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "5ebc42216d0cd25fef1caa8510c6972388744fd513de2b2f9ada053145e4c3d1",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-08-photo-1555396273-367ea4eb4db5.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-08-photo-1555396273-367ea4eb4db5.jpg"
+      ]
+    },
+    {
+      "sha256": "6a0ea1bc48598dd6b7848a1a718b87c93a2f15600c32eafa0d3e13138b3516cf",
+      "paths": [
+        "agent-skills/web-design/progressive-blur/demo/assets/page-11-5ee0a38a-b5d3-4531-8793-98beed4af162-1600w.jpg",
+        "agent-skills/web-design/webgl-3d-object/demo/assets/page-05-5ee0a38a-b5d3-4531-8793-98beed4af162-1600w.jpg",
+        "agent-skills/web-design/webgl-3d-object/demo/assets/page-06-5ee0a38a-b5d3-4531-8793-98beed4af162-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "6a7bb45fc2ab13660d9c66de569563e928ffaaa526d6f44f5d3147d5c35699f7",
+      "paths": [
+        "agent-skills/web-design/editorial-tech/demo/assets/page-01-fa51902b-c2a4-4c33-a96e-a8f1ef67edc6-1600w.jpg",
+        "agent-skills/web-design/globe-particles/demo/assets/page-01-fa51902b-c2a4-4c33-a96e-a8f1ef67edc6-1600w.jpg",
+        "agent-skills/web-design/technical-wireframe-info-layout/demo/assets/page-01-fa51902b-c2a4-4c33-a96e-a8f1ef67edc6-1600w.jpg",
+        "agent-skills/web-design/webgl-3d-object/demo/assets/page-03-fa51902b-c2a4-4c33-a96e-a8f1ef67edc6-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "715a6071cdbc31593c5ce34ef33fa3c97f0f251bd1508828cd3f45769553c7bc",
+      "paths": [
+        "agent-skills/web-design/book-serif-index/demo/assets/page-01-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/container-lines/demo/assets/page-05-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/css-border-gradient/demo/assets/page-05-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/page-05-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/masked-reveal/demo/assets/page-05-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-15-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/page-05-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg",
+        "agent-skills/web-design/split-layout-technical/demo/assets/page-05-e534354d-c5f2-4399-a1d9-2f50338e8c47-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "7abbd51e4c973de2df8ce06f7b1f24f9c20cbfc4cabb0438b88e80177d26f50e",
+      "paths": [
+        "agent-skills/web-design/background-grid-webgl/demo/index.html",
+        "agent-skills/web-design/light-mode-paper-technical/demo/index.html",
+        "agent-skills/web-design/nested-container-clean-agency/demo/index.html",
+        "agent-skills/web-design/nested-container-frames/demo/index.html",
+        "agent-skills/web-design/solar-duotone-bold/demo/index.html",
+        "agent-skills/web-design/webgl-laser/demo/index.html"
+      ]
+    },
+    {
+      "sha256": "7c5d0ce6a7c09525fbccb58630648d2a2a5cbae23566d8c2a2883b1b1cbab1bc",
+      "paths": [
+        "agent-skills/web-design/container-lines/demo/assets/page-03-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/css-border-gradient/demo/assets/page-03-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/page-03-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/masked-reveal/demo/assets/page-03-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-09-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/page-03-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/split-layout-technical/demo/assets/page-03-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg",
+        "agent-skills/web-design/webgl-3d-object/demo/assets/page-01-4734259a-bad7-422f-981e-ce01e79184f2-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "7cd43cddf21947985f32ffefd02d2f2f4273cf79c438b0fa9dadc089fd35b329",
+      "paths": [
+        "agent-skills/web-design/dither-background/demo/index.html",
+        "agent-skills/web-design/framed-grid-layout/demo/index.html",
+        "agent-skills/web-design/glass-dark-mode-clock/demo/index.html",
+        "agent-skills/web-design/mesh-gradient-dark-blue-clean/demo/index.html"
+      ]
+    },
+    {
+      "sha256": "852496aebbe37c983c885d9aa20b3520e0c0244472703e3c2925b9c56f749a2c",
+      "paths": [
+        "agent-skills/web-design/clean-minimal-beige-light-mode/demo/assets/page-01-3186f9ea-5f5a-49f7-8fcf-568ad52f515e-3840w.webp",
+        "agent-skills/web-design/gooey-blob-system/demo/assets/page-02-3186f9ea-5f5a-49f7-8fcf-568ad52f515e-3840w.webp",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-04-3186f9ea-5f5a-49f7-8fcf-568ad52f515e-3840w.webp"
+      ]
+    },
+    {
+      "sha256": "868ee7e6983767d120387ecbd017fd6870f85aa0c5aeba6db06d54e0504c2934",
+      "paths": [
+        "agent-skills/web-design/background-grid-webgl/demo/assets/page-01-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/editorial-tech/demo/assets/page-03-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/globe-particles/demo/assets/page-03-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/gooey-blob-system/demo/assets/page-03-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/light-mode-paper-technical/demo/assets/page-01-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/nested-container-clean-agency/demo/assets/page-01-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/nested-container-frames/demo/assets/page-01-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-16-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/solar-duotone-bold/demo/assets/page-01-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg",
+        "agent-skills/web-design/webgl-laser/demo/assets/page-01-2f563338-39fa-47ea-9761-658d4f3f84db-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "8a5f7249903b54d30f79f708699d2fed2d6a1d0741a4cd41377d1f01bb5a2271",
+      "paths": [
+        "agent-skills/web-design/add-mouse-driven-orbit/demo/assets/three.min.js",
+        "agent-skills/web-design/build-interactive-particle-trail/demo/assets/three.min.js",
+        "agent-skills/web-design/build-threejs-scroll-worlds/demo/secret-pathways-assets/three.min.js",
+        "agent-skills/web-design/build-wireframe-scan-reveal/demo/assets/three.min.js",
+        "agent-skills/web-design/threejs-landscape/demo/assets/three.min.js",
+        "agent-skills/web-design/threejs-towers/demo/assets/three.min.js",
+        "agent-skills/web-design/threejs-weather/demo/assets/three.min.js"
+      ]
+    },
+    {
+      "sha256": "8c60a544ff48b3e2900418d6098efe1c72b5541ed41cb44ea70cd9d2b03a2f20",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-01-photo-1542224566-6e85f2e6772f.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-01-photo-1542224566-6e85f2e6772f.jpg"
+      ]
+    },
+    {
+      "sha256": "95767b6c354c4ac206cadaac8937b5a7b74ea1e227fa2f578703674d3725bcdd",
+      "paths": [
+        "agent-skills/web-design/background-grid-webgl/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/editorial-tech/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/globe-particles/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/light-mode-paper-technical/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/marquee-loop/demo/assets/page-04-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/nested-container-clean-agency/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/nested-container-frames/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-06-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/solar-duotone-bold/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg",
+        "agent-skills/web-design/webgl-laser/demo/assets/page-02-4f5668c5-fc4a-44e0-bc5e-a664189d3c31-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "97c65569d294acbb5072f963eec2f67f57fd3e8fbba84cfa9a1bfe5042e92d54",
+      "paths": [
+        "agent-skills/web-design/background-grid-webgl/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/light-mode-paper-technical/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/nested-container-clean-agency/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/nested-container-frames/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/solar-duotone-bold/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/webgl-laser/demo/assets/source-preview.jpg"
+      ]
+    },
+    {
+      "sha256": "a5705dd6a81f41b53984155db8648b5325b7ac40aa100158a4a44b03cc07f0ea",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-05-photo-1522708323590-d24dbb6b0267.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-05-photo-1522708323590-d24dbb6b0267.jpg"
+      ]
+    },
+    {
+      "sha256": "aa13a51aa712319693dc94d6fcd6dc8ac32d4bbd869fd12fd6872fcb57632005",
+      "paths": [
+        "agent-skills/web-design/clean-minimal-beige-light-mode/demo/assets/page-05-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/container-lines/demo/assets/page-01-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/css-border-gradient/demo/assets/page-01-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/gooey-blob-system/demo/assets/page-04-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/page-01-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/masked-reveal/demo/assets/page-01-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-12-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/page-01-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp",
+        "agent-skills/web-design/split-layout-technical/demo/assets/page-01-65695f80-23f9-46ee-8487-cbb6c93cc48b-3840w.webp"
+      ]
+    },
+    {
+      "sha256": "b7cbd83537c98728b3d59f720bd93f6a9037e564587cb4a117dbbb5e813248c1",
+      "paths": [
+        "agent-skills/web-design/editorial-tech/demo/index.html",
+        "agent-skills/web-design/globe-particles/demo/index.html"
+      ]
+    },
+    {
+      "sha256": "bb9608e956b3ba037ddff5f238268c5c0a0b4ad0dd96f529ae56feae5ac72c30",
+      "paths": [
+        "agent-skills/web-design/container-lines/demo/assets/page-06-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg",
+        "agent-skills/web-design/css-border-gradient/demo/assets/page-06-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/page-06-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg",
+        "agent-skills/web-design/masked-reveal/demo/assets/page-06-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-13-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/page-06-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg",
+        "agent-skills/web-design/split-layout-technical/demo/assets/page-06-fb6415fd-bf4d-4ccf-8e9d-7ab445e99207-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "bbe08c5a657202eed3200ef00f2ba3bcd7ead0be207bf1b0d67d0eee118e4fc0",
+      "paths": [
+        "agent-skills/web-design/solar-duotone-bold/demo/preview.jpg",
+        "agent-skills/web-design/webgl-laser/demo/preview.jpg"
+      ]
+    },
+    {
+      "sha256": "bf39595522ac70a092bb41991e20e03f93c9ad9025a3176ed9a534aa66fa4895",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-06-photo-1464822759023-fed622ff2c3b.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-06-photo-1464822759023-fed622ff2c3b.jpg"
+      ]
+    },
+    {
+      "sha256": "ca99771790e92886557b657ef1f4d4d213d0d58d102207edd4bc26987dbd146b",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-07-photo-1544161515-4ab6ce6db874.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-07-photo-1544161515-4ab6ce6db874.jpg"
+      ]
+    },
+    {
+      "sha256": "cea85a39224a0cac5523629063a71ff13a173ffce2d347f029ea567e994472a6",
+      "paths": [
+        "agent-skills/web-design/beautiful-shadows/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/corner-diagonals/demo/assets/source-preview.jpg"
+      ]
+    },
+    {
+      "sha256": "cf38c5d328948a752335fead031955f3db89c5584effb869d90e7a44b818c451",
+      "paths": [
+        "agent-skills/web-design/book-serif-index/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/container-lines/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/corner-lasers/demo/assets/page-03-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/css-border-gradient/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/image-first-grid-layout/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/masked-reveal/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/progressive-blur/demo/assets/page-01-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/skeuomorphic-ui/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/split-layout-technical/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg",
+        "agent-skills/web-design/webgl-3d-object/demo/assets/page-02-724142aa-44a6-48d3-9cf3-761e00d05b78-1600w.jpg"
+      ]
+    },
+    {
+      "sha256": "d1cf2835a4411c20236c5b9b4c27599768e45c87ae3bea2332e35d0c0519085f",
+      "paths": [
+        "agent-skills/web-design/editorial-tech/demo/assets/source-preview.jpg",
+        "agent-skills/web-design/globe-particles/demo/assets/source-preview.jpg"
+      ]
+    },
+    {
+      "sha256": "dd5ea24c41f638a247ceb9a4b4277be9a3ce571525778352ede1b40b9c33e53c",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-04-photo-1587061949409-02df41d5e562.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-04-photo-1587061949409-02df41d5e562.jpg"
+      ]
+    },
+    {
+      "sha256": "fdc05d807596db69affad0b516142dd3267d9918e3f5e7c36af5807cec7c783f",
+      "paths": [
+        "agent-skills/web-design/dither-laser-dark-mode/demo/assets/page-02-photo-1518732714860-b62714ce0c59.jpg",
+        "agent-skills/web-design/number-details/demo/assets/page-02-photo-1518732714860-b62714ce0c59.jpg"
+      ]
+    }
+  ],
+  "skillRecordCount": 88,
+  "categoryCounts": {
+    "core": 37,
+    "style": 27,
+    "vendor": 15,
+    "composite": 9
+  },
+  "dispositionCounts": {
+    "adopted": 34,
+    "covered-existing": 41,
+    "rejected": 13
+  },
+  "parts": [
+    {
+      "kind": "tree",
+      "path": "mengto-web-techniques--202608/tree.json",
+      "sha256": "8553ba239196550dd825f979cb78001cf3f5b67bb96538256c5f46ce63c90909",
+      "recordCount": 926
+    },
+    {
+      "kind": "skills",
+      "path": "mengto-web-techniques--202608/skills.json",
+      "sha256": "26f28a0ee7df41af36984c4eb64e8c128097852453e9194927128dcd9b7139fb",
+      "recordCount": 88
+    }
+  ]
+}
