@@ -50,6 +50,9 @@ prohibited claims, decision-changing unknowns, and content inventory before visu
 
 Each direction defines structural thesis, focal mechanism, region rhythm, signature technique,
 hero or workspace architecture, shape language, system fit, and execution/convergence risk.
+Preserve exactly three directions. For each direction, consider zero or one primary imported technique from
+`knowledge/web-techniques/catalog.json`, formatted `<ID> — <brief-specific adaptation>`; retain an arbitrary non-empty original
+`signatureTechnique` when no catalog row earns brief fit. Never ask a technique-preference question.
 
 ALLOWED: select the strongest direction while retaining the other two as inspectable alternatives.
 
@@ -131,7 +134,8 @@ Order the packet as:
 
 1. role and outcome;
 2. surface constraints and product truth;
-3. selected direction and visual DNA;
+3. selected direction and visual DNA; for a catalog-derived technique, include only its selected
+   card, while an original free string includes no catalog card;
 4. region production briefs;
 5. selected proportion plan;
 6. assets, content, behavior, motion, responsive, and states;

@@ -20,6 +20,15 @@ ambiguity costs ZERO questions — it costs variants the user picks from. Never
 guess an invocation — form commands from `ui schema --json`; check what is
 verifiable in THIS project with `ui gate coverage`.
 
+For generate-shaped work, read `knowledge/web-technique-craft.md` and
+`knowledge/web-techniques/catalog.json`. Preserve exactly three directions; each can carry zero or
+at most one primary imported technique formatted `<ID> — <brief-specific adaptation>`, or an
+original free-string technique when no row earns fit. Do not ask a technique-preference question.
+After direction choice, open only the selected card for a catalog-derived technique; an original
+free string opens no catalog card. Invoke a specialist only when the catalog
+handoff is registered and reachable for the workflow and suitability, tier, and anti-use gates pass;
+an unavailable handoff means no handoff, never a replacement.
+
 {{KNOWLEDGE_ANCHOR}}
 
 **Non-negotiables:**
