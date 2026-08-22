@@ -19,7 +19,7 @@
 </p>
 
 <p align="center"><sub>
-Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel · 42 commands · 3,430 kernel tests green ·
+Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel · 45 commands · 3,699 kernel tests green ·
 a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,675-test Figma plugin</a> ·
 26 personas · a 27-component kit · deterministic static + rendered gates · a 1:1 Figma mirror
 </sub></p>
@@ -475,7 +475,7 @@ before compilation instead of silently falling back to HTML. Have an existing ap
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
 `ease-design` is DESIGN:OS's npm name — the package ships the `ui` kernel. `v0.3.0`
-(published from CI with sigstore provenance) carries all 42 commands, including the tenant
+(published from CI with sigstore provenance) carries all 45 commands, including the tenant
 scroll engine and the asset gates behind the showcase grid.
 
 ### Full studio (clone)
@@ -937,7 +937,7 @@ instead of falling into the accepting branch.
 
 | Surface | Path | What it is | Tests |
 |---|---|---|---|
-| **`ui` kernel** | `src/` | 42 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 3,430 |
+| **`ui` kernel** | `src/` | 45 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 3,699 |
 | **`design-os` conductor** | `design-os/` | Python/Typer umbrella that composes everything: `doctor` · `audit` · `heartbeat` (deterministic design-health rhythm — due/compare/notify, zero model calls) · `reference` · `vr-matrix` · `figma status/scan/audit` · `update` (one-command toolchain refresh on any machine) · entry-point plugins. Re-emits every underlying envelope **verbatim** — one source of truth per verdict. | 312 |
 | **`figma-agent` hand** | [external repo](https://github.com/jangtrinh/design-os-figma-plugin) | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 10-detector hygiene audit, exec-js, capture. Split out so it can version independently of this kernel. | 1,675 (own repo) |
 | **rendered-tier hands** | `a11y/` | `a11y-audit` (axe-core over installed Chrome — wording never claims "compliant") + `page-shot` (deterministic full-page PNG). | — |
@@ -945,7 +945,7 @@ instead of falling into the accepting branch.
 | **`knowledge/` core** | `knowledge/` | The model-facing brain: 6+1-axis taste rubric, 26 personas / 7 families, page-structures (21 shapes + diversification + honest copy), two-tier a11y model, color science, token taxonomy, `figma-craft/` construction tree. | — |
 
 <details>
-<summary><b>All 42 <code>ui</code> commands</b></summary>
+<summary><b>All 45 <code>ui</code> commands</b></summary>
 
 | Command | Summary |
 |---|---|
@@ -960,6 +960,7 @@ instead of falling into the accepting branch.
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
 | `ui taste-lint` | 14 absolute taste checks across 6 axes |
 | `ui validate-layout` | 12 structural/overflow checks |
+| `ui gate` | Composed floor judge — every linter family plus autofix dry-run, one verdict |
 | `ui tenant-lint` | Enforce the Tenant Law on embeddable motion sections (scroll-scrub, parallax, exploded view) |
 | `ui tenant-scaffold` | Emit the canonical scroll-scrub tenant engine verbatim |
 | `ui content-lint` | 10 honest-copy checks |
@@ -991,6 +992,8 @@ instead of falling into the accepting branch.
 | `ui strip-fences` | Remove fences + stray prose around LLM HTML |
 | `ui parse-json-stream` | Extract concatenated JSON objects from a stream |
 | `ui gflow` | Drive the gflow scroll-cinema asset pipeline (footage → frame tiers) |
+| `ui scrub-lint` | The scrub-encode floor checked on an encoded clip (faststart / no audio / GOP length) |
+| `ui scrub-scaffold` | Emit the build script that encodes a clip chain to the scrub-encode floor |
 
 </details>
 
