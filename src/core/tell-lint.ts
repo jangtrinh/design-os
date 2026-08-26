@@ -97,8 +97,16 @@ export function lintTell(
     seen.add(key);
     return true;
   });
+  // Then COLLAPSE what is one decision reported many times.
+  //
+  // Dedupe removes literal duplicates; this removes the other shape. One CSS
+  // declaration paints every element its selector matches, so a single authored
+  // mistake arrives as N findings that differ only by locator. Measured on real
+  // projects: 54 identical `cramped-padding` lines in one file, 210 identical
+  // contrast lines in another. The author has ONE thing to change, so they get
+  // one finding — with the count and an example node, so nothing is hidden.
   findings.length = 0;
-  findings.push(...deduped);
+  findings.push(...collapseRepeated(deduped));
 
   findings.sort(
     (a, b) =>
@@ -113,14 +121,50 @@ export function lintTell(
   const contrastResult = checkComputedContrast(facts, profile.supplies.color);
   const voice = checkVoice(facts);
 
+  const contrast = collapseRepeated(contrastResult.findings);
+  const collapsedVoice = collapseRepeated(voice);
+
   return {
     findings,
-    contrast: contrastResult.findings,
+    contrast,
     contrastNotComputable: contrastResult.notComputable,
-    voice,
-    ...countBySeverity([...findings, ...contrastResult.findings, ...voice]),
+    voice: collapsedVoice,
+    ...countBySeverity([...findings, ...contrast, ...collapsedVoice]),
     notEvaluated: notEvaluated.map((n) => ({ id: n.id, reason: n.reason })),
   };
+}
+
+/**
+ * Collapse findings that are one authored decision reported many times.
+ *
+ * Dedupe removes literal duplicates; this removes the other shape. One CSS
+ * declaration paints every element its selector matches, so a single authored
+ * mistake arrives as N findings differing only by locator. Measured on real
+ * projects: 54 identical `cramped-padding` lines in one file, 210 identical
+ * contrast lines in another.
+ *
+ * Keyed on (checkId, message) because the message carries the VALUE — the author
+ * has one thing to change, so they get one finding, with the count and an
+ * example node so nothing is hidden.
+ *
+ * Shared by all three families for the reason this repo learned the hard way: a
+ * blind spot fixed where it surfaced comes back in the next consumer.
+ */
+export function collapseRepeated<T extends { checkId: string; message: string; nodeRef?: string; line?: number }>(
+  findings: readonly T[],
+): T[] {
+  const byMessage = new Map<string, { finding: T; count: number }>();
+  for (const f of findings) {
+    const key = `${f.checkId}\u0000${f.message}`;
+    const seen = byMessage.get(key);
+    if (seen === undefined) byMessage.set(key, { finding: f, count: 1 });
+    else seen.count++;
+  }
+  return [...byMessage.values()].map(({ finding: f, count }) =>
+    count === 1
+      ? f
+      : ({ ...f, message: `${f.message} — ${count} elements, first at ${f.nodeRef ?? `line ${f.line}`}` } as T),
+  );
 }
 
 /**

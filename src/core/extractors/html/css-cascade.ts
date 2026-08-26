@@ -30,7 +30,7 @@ import generate from "css-tree/generator";
 import type * as csstree from "css-tree";
 import { selectAll } from "css-select";
 import type { Document, Element } from "domhandler";
-import { lineOfOffset } from "./html-dom.js";
+import { lineIndexFor } from "./html-dom.js";
 import type { EmbeddedSheet } from "./html-dom.js";
 import { expandShorthand, isExpandableShorthand } from "./css-shorthands.js";
 
@@ -91,7 +91,11 @@ interface RawDecl {
 }
 
 /** Walk one stylesheet into a flat declaration list. */
-function declarationsOf(sheet: EmbeddedSheet, source: string, startOrder: number): {
+function declarationsOf(
+  sheet: EmbeddedSheet,
+  lineAt: (offset: number) => number,
+  startOrder: number,
+): {
   decls: RawDecl[];
   media: string[];
 } {
@@ -139,8 +143,8 @@ function declarationsOf(sheet: EmbeddedSheet, source: string, startOrder: number
             // An external sheet's offsets index THAT file; reporting them
             // against the HTML would point at a line that says something else.
             line: sheet.externalPath === undefined
-              ? lineOfOffset(source, sheet.offset + offsetInSheet)
-              : lineOfOffset(source, sheet.offset),
+              ? lineAt(sheet.offset + offsetInSheet)
+              : lineAt(sheet.offset),
             media: mediaCond,
           };
           decls.push({ ...base, prop, value, order: order++ });
@@ -175,6 +179,9 @@ function wins(challenger: RawDecl, incumbent: Computed & { order: number; import
  * the condition it cares about rather than being handed a blend of viewports.
  */
 export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: string): CascadeResult {
+  // Pay the line scan ONCE for the document. lineOfOffset rescans from byte zero
+  // on every call, which on a large page dominated the entire run.
+  const lineAt = lineIndexFor(source);
   const byElement = new Map<Element, ComputedStyle>();
   const unsupportedSelectors: string[] = [];
   const mediaConditions: string[] = [];
@@ -182,16 +189,35 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
 
   let order = 0;
   for (const sheet of sheets) {
-    const { decls, media } = declarationsOf(sheet, source, order);
+    const { decls, media } = declarationsOf(sheet, lineAt, order);
     for (const m of media) if (!mediaConditions.includes(m)) mediaConditions.push(m);
     order += decls.length + 1;
 
+    // Match each SELECTOR once, not each declaration.
+    //
+    // A rule block shares one selector across all its declarations, so matching
+    // per declaration walks the whole DOM N times for one rule. On a 1.1MB
+    // scraped page that was 15 seconds; the selector set is a fraction of the
+    // declaration count, and the cache turns the walk from O(declarations x
+    // nodes) into O(selectors x nodes).
+    const matchCache = new Map<string, Element[] | null>();
+    const matchesFor = (selector: string): Element[] | null => {
+      const cached = matchCache.get(selector);
+      if (cached !== undefined) return cached;
+      let result: Element[] | null;
+      try {
+        result = selectAll<Element, Element>(selector, doc as unknown as Element);
+      } catch {
+        result = null;
+      }
+      matchCache.set(selector, result);
+      return result;
+    };
+
     for (const decl of decls) {
       if (decl.media !== undefined) continue; // conditional: not in the default cascade
-      let matched: Element[];
-      try {
-        matched = selectAll<Element, Element>(decl.selector, doc as unknown as Element);
-      } catch {
+      const matched = matchesFor(decl.selector);
+      if (matched === null) {
         if (!unsupportedSelectors.includes(decl.selector)) unsupportedSelectors.push(decl.selector);
         continue;
       }
@@ -219,7 +245,7 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
   }
 
   // Inline styles last: they outrank stylesheet rules that are not !important.
-  for (const [el, props] of collectInline(doc, source)) {
+  for (const [el, props] of collectInline(doc, lineAt)) {
     let target = winners.get(el);
     if (target === undefined) {
       target = new Map();
@@ -245,7 +271,7 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
 /** Parse every `style=""` attribute in the document. */
 function collectInline(
   doc: Document,
-  source: string,
+  lineAt: (offset: number) => number,
 ): Map<Element, Map<string, Computed & { order: number }>> {
   const out = new Map<Element, Map<string, Computed & { order: number }>>();
   const walk = (nodes: readonly unknown[]): void => {
@@ -255,7 +281,7 @@ function collectInline(
         const style = node.attribs?.["style"];
         if (style !== undefined && style.trim() !== "") {
           const props = new Map<string, Computed & { order: number }>();
-          const line = lineOfOffset(source, node.startIndex ?? 0);
+          const line = lineAt(node.startIndex ?? 0);
           for (const part of style.split(";")) {
             const i = part.indexOf(":");
             if (i < 0) continue;

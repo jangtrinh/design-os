@@ -209,7 +209,9 @@ const FIRES: Record<string, DesignFact[]> = {
     { kind: "color", hex: "ffffff", role: "bg", at: at(79) },
   ],
   "overused-font": [{ kind: "typography", family: "Inter", at: at(81) }],
-  "flat-type-hierarchy": [14, 15, 16].map((n, i): DesignFact => ({ kind: "typography", sizePx: n, at: at(82 + i) })),
+  // A display size must be present: a fragment whose sizes are all UI chrome has
+  // no hierarchy to be flat. 28/30/32 is a display scale with no step.
+  "flat-type-hierarchy": [28, 30, 32].map((n, i): DesignFact => ({ kind: "typography", sizePx: n, at: at(82 + i) })),
   "oversized-h1": [
     { kind: "text", content: "Big", role: "heading", level: 1, at: at(90) },
     { kind: "typography", sizePx: 96, at: at(90) },
@@ -331,6 +333,32 @@ describe("the false-positive floor", () => {
     }
   });
 
+  it("does not call a component's UI chrome scale a flat hierarchy", () => {
+    // Measured on a real React app: 27 of 27 hits were 12/14/16px in component
+    // files — text-xs/text-sm/text-base, which is interface text, not a broken
+    // heading scale. A fragment has no display type to be flat.
+    const chrome: DesignFact[] = [12, 14, 16].map((n, i) => ({ kind: "typography", sizePx: n, at: at(i + 1) }));
+    expect(lintTell(chrome, html).findings.map((f) => f.checkId)).not.toContain("flat-type-hierarchy");
+  });
+
+  it("does not call a pill's padding cramped", () => {
+    // `rounded-full` IS the chip case. The first threshold exempted only SMALL
+    // radii and so flagged most pills in a real app.
+    const pill: DesignFact[] = [
+      { kind: "spacing", prop: "padding-top", px: 4, at: at(1) },
+      { kind: "radius", px: 999, at: at(1) },
+    ];
+    expect(lintTell(pill, html).findings.map((f) => f.checkId)).not.toContain("cramped-padding");
+  });
+
+  it("still calls a real card's 4px padding cramped", () => {
+    const card: DesignFact[] = [
+      { kind: "spacing", prop: "padding-top", px: 4, at: at(1) },
+      { kind: "radius", px: 16, at: at(1) },
+    ];
+    expect(lintTell(card, html).findings.map((f) => f.checkId)).toContain("cramped-padding");
+  });
+
   it("does not call a well-ranked type scale flat", () => {
     const scale: DesignFact[] = [12, 16, 24, 40].map((n, i) => ({ kind: "typography", sizePx: n, at: at(i + 1) }));
     expect(lintTell(scale, html).findings.map((f) => f.checkId)).not.toContain("flat-type-hierarchy");
@@ -413,15 +441,28 @@ describe("guards proven by breaking them", () => {
     expect(sideTabs).toHaveLength(1);
   });
 
-  it("keeps findings apart when they name different elements", () => {
+  it("collapses the same mistake on two elements into one finding with a count", () => {
+    // Two elements, one authored decision. Reporting it twice makes the reader
+    // scroll; reporting it once with the count and an example is the finding
+    // they can act on. Measured on a real page: 54 identical lines in one file.
     const two: DesignFact[] = [
       { kind: "border", sides: ["left"], widthPx: 4, at: { ...at(4), nodeRef: "div.a" } },
       { kind: "border", sides: ["left"], widthPx: 4, at: { ...at(4), nodeRef: "div.b" } },
       { kind: "radius", px: 16, at: at(4) },
     ];
     const sideTabs = lintTell(two, html).findings.filter((f) => f.checkId === "side-tab");
-    expect(sideTabs).toHaveLength(2);
-    expect(sideTabs.map((f) => f.nodeRef).sort()).toEqual(["div.a", "div.b"]);
+    expect(sideTabs).toHaveLength(1);
+    expect(sideTabs[0]?.message).toContain("2 elements");
+    expect(sideTabs[0]?.nodeRef).toBe("div.a");
+  });
+
+  it("keeps DIFFERENT mistakes apart even on the same line", () => {
+    const mixed: DesignFact[] = [
+      { kind: "border", sides: ["left"], widthPx: 4, at: { ...at(4), nodeRef: "div.a" } },
+      { kind: "border", sides: ["right"], widthPx: 6, at: { ...at(4), nodeRef: "div.b" } },
+      { kind: "radius", px: 16, at: at(4) },
+    ];
+    expect(lintTell(mixed, html).findings.filter((f) => f.checkId === "side-tab")).toHaveLength(2);
   });
 });
 

@@ -134,7 +134,14 @@ export function elements(doc: Document): Element[] {
   return du.findAll((n): n is Element => isTag(n), doc.children);
 }
 
-/** 1-based line of a byte offset in the source. */
+/**
+ * 1-based line of a byte offset.
+ *
+ * O(offset) — it rescans from the start of the file on every call. Fine for one
+ * lookup, ruinous for thousands: on a 1.1MB scraped page this was the dominant
+ * cost of the whole run. Anything in a loop must use `lineIndexFor` below, which
+ * pays the scan once.
+ */
 export function lineOfOffset(source: string, offset: number): number {
   let line = 1;
   const end = Math.min(offset, source.length);
@@ -142,9 +149,35 @@ export function lineOfOffset(source: string, offset: number): number {
   return line;
 }
 
+/**
+ * Build an O(log n) offset→line lookup for one document.
+ *
+ * Same shape as the scanner base's `lineIndex`; kept here so the HTML path has
+ * no reason to import across extractor families for one function.
+ */
+export function lineIndexFor(source: string): (offset: number) => number {
+  const starts: number[] = [0];
+  for (let i = 0; i < source.length; i++) if (source[i] === "\n") starts.push(i + 1);
+  return (offset: number): number => {
+    let lo = 0;
+    let hi = starts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if ((starts[mid] as number) <= offset) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo + 1;
+  };
+}
+
 /** The element's own line, or 1 when offsets are unavailable. */
 export function lineOfElement(source: string, el: Element): number {
   return lineOfOffset(source, el.startIndex ?? 0);
+}
+
+/** The element's own line, using a prebuilt index. */
+export function lineOfElementIndexed(lineAt: (offset: number) => number, el: Element): number {
+  return lineAt(el.startIndex ?? 0);
 }
 
 /**

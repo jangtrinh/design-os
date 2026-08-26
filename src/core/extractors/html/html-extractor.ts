@@ -15,7 +15,7 @@ import type { Element } from "domhandler";
 import { FactCollector } from "../../design-facts/fact-collector.js";
 import { extractorById } from "../../design-facts/extractor-registry.js";
 import type { Provenance, Side, SpacingProp } from "../../design-facts/index.js";
-import { parseHtml, elements, lineOfElement, nodeRef, textOf } from "./html-dom.js";
+import { parseHtml, elements, lineIndexFor, lineOfElementIndexed, nodeRef, textOf } from "./html-dom.js";
 import { buildCascade } from "./css-cascade.js";
 import type { ComputedStyle } from "./css-cascade.js";
 import { resolveVars } from "./css-custom-properties.js";
@@ -51,6 +51,7 @@ export function extractHtml(html: string, file: string): HtmlExtraction {
     };
   }
 
+  const lineAt = lineIndexFor(parsed.source);
   const cascade = buildCascade(parsed.doc, parsed.sheets, parsed.source);
   const els = elements(parsed.doc);
   const rootEl = els.find((e) => e.tagName === "html");
@@ -58,7 +59,7 @@ export function extractHtml(html: string, file: string): HtmlExtraction {
 
   const at = (el: Element, line?: number): Provenance => ({
     file,
-    line: line ?? lineOfElement(parsed.source, el),
+    line: line ?? lineOfElementIndexed(lineAt, el),
     extractor: EXTRACTOR_ID,
     confidence: "resolved",
     nodeRef: nodeRef(el),

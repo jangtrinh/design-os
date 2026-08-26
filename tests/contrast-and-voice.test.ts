@@ -236,3 +236,48 @@ describe("background resolution, pinned where it can flip", () => {
     expect(r.findings[0]?.message).toContain("#7c3aed");
   });
 });
+
+describe("one decision is reported once", () => {
+  // Collapsing lives in lintTell, not in this family: one declaration painting
+  // many elements is a blind spot every rule shares, so it is fixed once.
+  it("collapses a colour pair that paints many elements, keeping the count", () => {
+    // Measured on a real scraped page: 210 identical "#62666d on #08090a" lines
+    // for ONE declared pair. Accurate output nobody scrolls past is not output.
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "b", at: at(1, "b") },
+      { kind: "color", hex: "08090a", role: "bg", at: at(1, "b") },
+    ];
+    for (let i = 0; i < 12; i++) {
+      facts.push({ kind: "structure", node: "span", depth: 1, ref: `s${i}`, parentRef: "b", at: at(2 + i, `s${i}`) });
+      facts.push({ kind: "color", hex: "62666d", role: "fg", at: at(2 + i, `s${i}`) });
+    }
+    const r = lintTell(facts, html);
+    expect(r.contrast).toHaveLength(1);
+    expect(r.contrast[0]?.message).toContain("12 elements");
+    expect(r.contrast[0]?.ratio).toBeCloseTo(3.45, 1);
+  });
+
+  it("leaves a single occurrence unchanged — no count noise on one element", () => {
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "b", at: at(1, "b") },
+      { kind: "color", hex: "ffffff", role: "bg", at: at(1, "b") },
+      { kind: "structure", node: "p", depth: 1, ref: "p", parentRef: "b", at: at(2, "p") },
+      { kind: "color", hex: "9ca3af", role: "fg", at: at(2, "p") },
+    ];
+    const r = lintTell(facts, html);
+    expect(r.contrast).toHaveLength(1);
+    expect(r.contrast[0]?.message).not.toContain("elements, first at");
+  });
+
+  it("keeps DIFFERENT pairs apart", () => {
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "b", at: at(1, "b") },
+      { kind: "color", hex: "ffffff", role: "bg", at: at(1, "b") },
+      { kind: "structure", node: "p", depth: 1, ref: "p1", parentRef: "b", at: at(2, "p1") },
+      { kind: "color", hex: "9ca3af", role: "fg", at: at(2, "p1") },
+      { kind: "structure", node: "p", depth: 1, ref: "p2", parentRef: "b", at: at(3, "p2") },
+      { kind: "color", hex: "b0b0b0", role: "fg", at: at(3, "p2") },
+    ];
+    expect(lintTell(facts, html).contrast).toHaveLength(2);
+  });
+});

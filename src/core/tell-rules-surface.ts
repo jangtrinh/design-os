@@ -136,8 +136,12 @@ export const crampedPadding: TellRule = {
     const byNode = new Map<string, { props: string[]; px: number; line: number; radius?: number }>();
     for (const s of facts.by("spacing")) {
       if (!s.prop.startsWith("padding-") || s.px <= 0 || s.px >= 8) continue;
-      // Only on something that presents as a surface — a chip legitimately has 4px.
-      const radius = radii.find((r) => r.px >= 12 && sameOwner(r, s));
+      // Only on something that presents as a SURFACE. A chip legitimately has
+      // 4px — and so does a pill: `rounded-full` (999px) IS the chip case, which
+      // the first threshold missed by only exempting SMALL radii. Measured on a
+      // real React app: most hits were 4-6px padding on 999px-radius pills.
+      const PILL_RADIUS = 100;
+      const radius = radii.find((r) => r.px >= 12 && r.px < PILL_RADIUS && sameOwner(r, s));
       if (radius === undefined) continue;
       const key = s.at.nodeRef ?? `line:${s.at.line}`;
       const cur = byNode.get(key);

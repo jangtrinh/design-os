@@ -160,6 +160,11 @@ export function checkComputedContrast(
     findings.push(ref !== undefined ? { ...base, repairScope: "nodes", nodeRef: ref } : base);
   }
 
+  // Collapsing repeated findings is NOT done here. One declared pair can paint
+  // hundreds of elements, but so can any rule — a real page produced 210
+  // identical contrast lines and 54 identical padding ones. That is one blind
+  // spot with two symptoms, so it is fixed once in lintTell rather than in each
+  // family that happens to notice it.
   findings.sort((a, b) => (a.line ?? 0) - (b.line ?? 0) || a.message.localeCompare(b.message));
   notComputable.sort((a, b) => a.line - b.line);
   return { findings, notComputable };

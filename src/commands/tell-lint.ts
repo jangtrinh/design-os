@@ -278,7 +278,17 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
     }
   }
 
-  for (const s of resolution.skipped) lines.push(`  skipped ${relative(cwd, s.path) || s.path}: ${s.reason}`);
+  // Summarise by REASON, not one line per file. On a real project this was 239
+  // lines of "no extractor claims .ts" burying eight findings — accurate output
+  // nobody scrolls past is not output. The counts stay, so nothing is hidden.
+  if (resolution.skipped.length > 0) {
+    const byReason = new Map<string, number>();
+    for (const s of resolution.skipped) byReason.set(s.reason, (byReason.get(s.reason) ?? 0) + 1);
+    lines.push("");
+    for (const [reason, n] of [...byReason.entries()].sort((a, b) => b[1] - a[1])) {
+      lines.push(`  skipped ${n} file(s): ${reason}`);
+    }
+  }
 
   lines.push(
     "",

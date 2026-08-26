@@ -47,6 +47,13 @@ export const flatTypeHierarchy: TellRule = {
     )].sort((a, b) => a - b);
     // Fewer than three steps is not a hierarchy to judge.
     if (sizes.length < 3) return [];
+    // Neither is a set with nothing above interface chrome. Measured on a real
+    // React app: 27 of 27 hits were component files whose sizes were 12/14/16px
+    // — the text-xs/text-sm/text-base UI scale, which is not a broken heading
+    // hierarchy, it is normal interface text. A fragment has no display scale to
+    // be flat. Require something that reads as display type before judging.
+    const DISPLAY_FLOOR = 24;
+    if (!sizes.some((n) => n >= DISPLAY_FLOOR)) return [];
     const ratios = sizes.slice(1).map((n, i) => n / (sizes[i] as number));
     const largest = Math.max(...ratios);
     if (largest >= 1.25) return [];
