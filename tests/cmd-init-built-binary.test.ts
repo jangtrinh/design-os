@@ -273,3 +273,46 @@ describe("templates walk: sentinel sniff rejects decoy and finds real templates"
     expect(json.error.message).toContain("searched");
   });
 });
+
+/**
+ * The binary must run where it is copied.
+ *
+ * tsup externalises `dependencies` by default. The moment the cascade engine's
+ * four packages were added, dist/ stopped being relocatable: copied anywhere
+ * without node_modules beside it, it died with ERR_MODULE_NOT_FOUND before any
+ * command ran. Worse, the first check of this missed it — grepping cli.js showed
+ * no external imports because they had moved into the shared chunk.
+ *
+ * So the assertion is behavioural, not textual: run the copy, in isolation.
+ */
+describe("the built binary is relocatable", () => {
+  it("runs with no node_modules anywhere above it", () => {
+    if (!existsSync(DIST_CLI)) return;
+    const root = makeTmpDir();
+    const isolated = join(root, "elsewhere", "bin");
+    mkdirSync(isolated, { recursive: true });
+    copyBuiltCli(isolated);
+
+    const result = spawnSync("node", [join(isolated, "cli.js"), "--version"], { encoding: "utf8" });
+    expect(result.stderr).not.toContain("ERR_MODULE_NOT_FOUND");
+    expect(result.stderr).not.toContain("Cannot find module");
+    expect(result.status).toBe(0);
+  });
+
+  it("parses CSS from the bundle, with no runtime data load", () => {
+    if (!existsSync(DIST_CLI)) return;
+    const root = makeTmpDir();
+    const isolated = join(root, "elsewhere2", "bin");
+    mkdirSync(isolated, { recursive: true });
+    copyBuiltCli(isolated);
+
+    // css-tree's root entry require()s ../data/patch.json at runtime — a load a
+    // bundler cannot follow. Exercising a command that parses CSS is what proves
+    // the subpath imports actually avoided it.
+    const page = join(root, "p.html");
+    writeFileSync(page, `<html><head><style>.a{border-left:4px solid #7c3aed;border-radius:16px}</style></head><body><div class="a">x</div></body></html>`, "utf8");
+    const result = spawnSync("node", [join(isolated, "cli.js"), "tell-lint", page, "--json"], { encoding: "utf8" });
+    expect(result.stderr).not.toContain("patch.json");
+    expect(result.stdout).toContain("side-tab");
+  });
+});

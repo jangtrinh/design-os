@@ -17,7 +17,17 @@
  *  - Shorthands are NOT expanded. A rule asking for `padding-left` will not see
  *    a `padding: 16px` shorthand; callers that need both ask for both.
  */
-import * as csstree from "css-tree";
+// Subpath imports, not the package root.
+//
+// `css-tree`'s root entry pulls in the lexer, which `require`s its syntax data
+// from `../data/patch.json` at runtime. A bundler cannot follow that, so the
+// bundled binary died with "Cannot find module '../data/patch.json'" the moment
+// it was copied away from node_modules. parse/walk/generate is all this engine
+// uses, and those three subpaths carry no runtime data load.
+import parse from "css-tree/parser";
+import walk from "css-tree/walker";
+import generate from "css-tree/generator";
+import type * as csstree from "css-tree";
 import { selectAll } from "css-select";
 import type { Document, Element } from "domhandler";
 import { lineOfOffset } from "./html-dom.js";
@@ -91,26 +101,26 @@ function declarationsOf(sheet: EmbeddedSheet, source: string, startOrder: number
 
   let ast: csstree.CssNode;
   try {
-    ast = csstree.parse(sheet.css, { positions: true });
+    ast = parse(sheet.css, { positions: true }) as csstree.CssNode;
   } catch {
     return { decls, media };
   }
 
-  csstree.walk(ast, {
+  walk(ast, {
     visit: "Rule",
     enter(node, item, list) {
       void item;
       void list;
       const rule = node as csstree.Rule;
       if (rule.prelude.type !== "SelectorList") return;
-      const selectorText = csstree.generate(rule.prelude);
+      const selectorText = generate(rule.prelude);
       // The nearest enclosing at-rule, if any. `this.atrule` is provided by the walker.
       // css-tree sets `this.atrule` to NULL outside an at-rule, not undefined —
       // an `!== undefined` guard throws on the very first top-level rule.
       const atrule = (this as unknown as { atrule?: csstree.Atrule | null }).atrule ?? null;
       const mediaCond =
         atrule !== null && atrule.name === "media" && atrule.prelude !== null
-          ? csstree.generate(atrule.prelude)
+          ? generate(atrule.prelude)
           : undefined;
       if (mediaCond !== undefined && !media.includes(mediaCond)) media.push(mediaCond);
 
@@ -121,7 +131,7 @@ function declarationsOf(sheet: EmbeddedSheet, source: string, startOrder: number
           if (child.type !== "Declaration") return;
           const offsetInSheet = child.loc?.start.offset ?? 0;
           const prop = child.property.toLowerCase();
-          const value = csstree.generate(child.value).trim();
+          const value = generate(child.value).trim();
           const base = {
             selector,
             important: child.important === true,

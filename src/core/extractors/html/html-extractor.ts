@@ -61,6 +61,7 @@ export function extractHtml(html: string, file: string): HtmlExtraction {
     line: line ?? lineOfElement(parsed.source, el),
     extractor: EXTRACTOR_ID,
     confidence: "resolved",
+    nodeRef: nodeRef(el),
   });
 
   const depthOf = new Map<Element, number>();

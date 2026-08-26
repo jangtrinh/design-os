@@ -171,18 +171,17 @@ describe("fact collector", () => {
 describe("CHECK_CATALOG requires widening", () => {
   it("leaves every existing row on the legacy string form", () => {
     const legacy = CHECK_CATALOG.filter((e) => isLegacyRequires(e.requires));
-    expect(legacy.length).toBe(CHECK_CATALOG.length);
-    // 89 gate-catalog rows: layout 20, a11y 13, taste 34, content 12, autofix 10.
-    // Not to be confused with the ~122 checkIds across all of src/core — most of
-    // the difference is checks the gate does not compose (knowledge-lint,
-    // flow-lint, ds-soul, the effect/gradient catalogs).
-    expect(CHECK_CATALOG.length).toBe(89);
+    // The 89 pre-existing rows keep the legacy string form; the 36 `tell` rows
+    // added in phase 05 use the fact-set form, which is the whole point of the
+    // widening. Both must coexist.
+    expect(legacy.length).toBe(89);
+    expect(CHECK_CATALOG.length).toBe(125);
   });
 
   it("keeps the family split the gate composes", () => {
     const byFamily: Record<string, number> = {};
     for (const e of CHECK_CATALOG) byFamily[e.family] = (byFamily[e.family] ?? 0) + 1;
-    expect(byFamily).toEqual({ layout: 20, a11y: 13, taste: 34, content: 12, autofix: 10 });
+    expect(byFamily).toEqual({ layout: 20, a11y: 13, taste: 34, tell: 36, content: 12, autofix: 10 });
   });
 
   it("accepts a fact-based requirement without disturbing the legacy ones", () => {

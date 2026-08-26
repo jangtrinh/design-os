@@ -60,4 +60,15 @@ export interface Provenance {
   /** Registered extractor id (see extractor-registry.ts). */
   extractor: string;
   confidence: Confidence;
+  /**
+   * Stable locator for the element this fact belongs to, when there is one.
+   *
+   * One CSS rule can match many elements, so the same declaration produces one
+   * fact per element. Without a locator those findings are indistinguishable —
+   * the first real run printed `side-tab` twice and `cramped-padding` eight
+   * times for a single stylesheet line, which is how a linter earns being
+   * switched off. With it they are either one finding about two nodes, or one
+   * finding deduplicated.
+   */
+  nodeRef?: string;
 }

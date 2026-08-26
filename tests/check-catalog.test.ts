@@ -10,6 +10,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CHECK_CATALOG } from "../src/core/check-catalog.js";
+import { isLegacyRequires } from "../src/core/check-catalog.js";
+import { FACT_KINDS } from "../src/core/design-facts/index.js";
+import { TELL_RULES } from "../src/core/tell-lint.js";
 
 const CORE = join(fileURLToPath(new URL("..", import.meta.url)), "src", "core");
 
@@ -71,7 +74,27 @@ describe("check catalog — paired with the family sources", () => {
   });
   it("ids are unique and requires values are known", () => {
     expect(new Set(CHECK_CATALOG.map((c) => c.id)).size).toBe(CHECK_CATALOG.length);
-    for (const c of CHECK_CATALOG) expect(["none", "tokens"]).toContain(c.requires);
+    for (const c of CHECK_CATALOG) {
+      if (isLegacyRequires(c.requires)) {
+        expect(["none", "tokens"]).toContain(c.requires);
+        continue;
+      }
+      // The fact-set form: every named kind must be a real FactKind, or a rule
+      // could declare a dependency nothing can ever satisfy and read as
+      // permanently NOT-EVALUATED instead of as a mistake.
+      expect(Array.isArray(c.requires.facts), c.id).toBe(true);
+      expect(c.requires.facts.length, c.id).toBeGreaterThan(0);
+      for (const k of c.requires.facts) expect(FACT_KINDS, `${c.id}: ${k}`).toContain(k);
+    }
+  });
+
+  it("pairs the tell family against its runtime roster, not against a grep", () => {
+    // The tell rows were generated from the rule modules. Verifying them by
+    // re-reading those modules would be green by construction, so the pairing is
+    // against the imported roster — the same objects the linter runs.
+    const fromCatalog = catalogByFamily("tell");
+    const fromRuntime = new Set(TELL_RULES.map((r) => r.id));
+    expect([...fromCatalog].sort()).toEqual([...fromRuntime].sort());
   });
 });
 
