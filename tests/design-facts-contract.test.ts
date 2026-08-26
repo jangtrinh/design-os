@@ -9,6 +9,9 @@
  *      compile-time bridge that replaces "we'll converge later").
  */
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   FACT_KINDS, CONFIDENCE_ORDER, atLeast,
   FactCollector, FactContractError,
@@ -278,5 +281,31 @@ describe("AuditNode stays representable in the IR", () => {
     const { runnable, notEvaluated } = partition(rules, figma);
     expect(runnable).toEqual(["nested-cards"]);
     expect(notEvaluated.map((n) => n.id)).toEqual(["overused-font", "pulsing-dot", "side-tab"]);
+  });
+});
+
+/**
+ * The README's numbers are CLAIMS. They drifted before — a check count that says
+ * 14 where the catalog holds 34 is a promise the repo stopped keeping — so they
+ * are measured here rather than remembered.
+ */
+describe("README states what the catalog actually holds", () => {
+  it("quotes the per-family check counts correctly", () => {
+    const readme = readFileSync(join(fileURLToPath(new URL("..", import.meta.url)), "README.md"), "utf8");
+    const byFamily: Record<string, number> = {};
+    for (const e of CHECK_CATALOG) byFamily[e.family] = (byFamily[e.family] ?? 0) + 1;
+    const claims: Array<[string, string]> = [
+      ["taste", "`ui taste-lint` — "],
+      ["layout", "`ui validate-layout` — "],
+      ["content", "`ui content-lint` — "],
+      ["tell", "`ui tell-lint` — "],
+    ];
+    for (const [family, prefix] of claims) {
+      const n = byFamily[family] as number;
+      const i = readme.indexOf(prefix);
+      expect(i, `README does not mention ${prefix}`).toBeGreaterThan(-1);
+      const quoted = Number.parseInt(readme.slice(i + prefix.length), 10);
+      expect(quoted, `README says ${quoted} ${family} checks; the catalog holds ${n}`).toBe(n);
+    }
   });
 });

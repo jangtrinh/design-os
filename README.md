@@ -19,7 +19,7 @@
 </p>
 
 <p align="center"><sub>
-Node ≥ 20 · MIT · zero-dependency <code>ui</code> kernel · 45 commands · 3,699 kernel tests green ·
+Node ≥ 20 · MIT · deterministic <code>ui</code> kernel · 46 commands · 3,952 kernel tests green ·
 a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,675-test Figma plugin</a> ·
 26 personas · a 27-component kit · deterministic static + rendered gates · a 1:1 Figma mirror
 </sub></p>
@@ -703,20 +703,32 @@ designer,curator`. `ui agents list` shows what exists; `ui agents check` fails
 ## The machine floor
 
 Most design guidance is prose the model can talk itself past. The DESIGN:OS floor is
-**code**: four core deterministic linters run on every HTML delivery, specialist gates cover
-design-system usage and flow structure, and the rendered tier checks what static analysis cannot
-see. A detected blocking breach cannot receive a `QUALIFIED` verdict.
+**code**: deterministic linters run on every delivery, specialist gates cover design-system
+usage and flow structure, and the rendered tier checks what static analysis cannot see. A
+detected blocking breach cannot receive a `QUALIFIED` verdict.
+
+The floor is no longer only for the HTML the model just wrote. Point it at a directory and it
+reads **the app you already have** — HTML, React, Vue, Svelte, plain CSS, SwiftUI, Flutter —
+because the rules are written against design *facts*, not against CSS syntax. One rule, every
+language. Adding a platform is one extractor, and no rule is edited.
 
 | Layer | What it proves |
 |---|---|
-| `ui taste-lint` — 14 absolute checks | The generated-UI tells: `transition: all`, layout-property keyframes, missing reduced-motion, overshoot easing, italic display headings, uppercase line-height < 1, focus rings that fade in, z-index inflation, off-grid spacing, mixed icon sets… |
-| `ui validate-layout` — 12 checks | Structural + overflow safety: unclosed tags, fixed-width overflow, `100vw` traps, root `overflow-x: hidden` breaking sticky. |
-| `ui content-lint` — 10 checks | Honest copy: lorem-ipsum, placeholder copy, placeholder names (Jane Doe / Acme), click-here links, all-caps shouting. |
+| `ui taste-lint` — 34 absolute checks | The generated-UI tells: `transition: all`, layout-property keyframes, missing reduced-motion, overshoot easing, italic display headings, uppercase line-height < 1, focus rings that fade in, z-index inflation, off-grid spacing, mixed icon sets… |
+| `ui validate-layout` — 20 checks | Structural + overflow safety: unclosed tags, fixed-width overflow, `100vw` traps, root `overflow-x: hidden` breaking sticky. |
+| `ui content-lint` — 16 checks | Honest copy: lorem-ipsum, placeholder copy, placeholder names (Jane Doe / Acme), click-here links, all-caps shouting. |
 | `ui a11y-lint` + `ui ds a11y` | Tier-1 static WCAG checks + **token-pair contrast** (every `{role}/{role}-foreground` pair ≥ AA, hover/active states included). Never claims "compliant" — says exactly what it checked. |
+| `ui tell-lint` — 43 checks, any language | The **design tells**: the side-tab accent, the stock purple palette, nested cards, a kicker above every heading, a pulsing dot that reports nothing, an overused face (including Flutter's default Roboto — SF is not a tell). Mostly advisory: a tell prints, it never fails a build. |
+| `ui a11y-lint` — computed contrast | The real WCAG ratio against the nearest opaque ancestor, from a resolved cascade. It refuses where the answer would be a fiction — a gradient background, a translucent veil — and says the run was partial. |
 | `a11y-audit` + `page-shot` + `ui vr` | The rendered tier: axe-core over live Chrome, deterministic PNG renders, pixel-level visual-regression gates per component (`design-os vr-matrix`). |
 
 The pairing is structural: **every standard ships an emitter and a linter in the same
 commit** — prose-only rules drift; enforced rules hold.
+
+So is the honesty. Every run reports what it could *not* do as loudly as what it found: an
+UNDERCOUNT tier, an unresolvable `cn()` call, a rule NOT-EVALUATED for want of facts, a
+contrast pair that could not be computed, a walk that hit its budget. A low finding count is
+never allowed to read as a clean page.
 
 ---
 
@@ -1029,6 +1041,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 | Date | Change | Commit |
 |---|---|---|
 | 2026-08-27 | **Native macOS becomes an official DESIGN:OS arm** — `/ui:native-macos` now routes to its own SwiftUI-first workflow with provisional assurance, pinned activation evidence, and a fail-closed ban on qualified platform-delivery claims | `#231` |
+| 2026-08-26 | **`ui tell-lint`** — design:os reads your app, whatever it is written in: one DesignFacts IR + N language extractors (HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI, Flutter), 43 `tell` checks written once, computed WCAG contrast, and a zero-dependency rendered tier that drives a browser already on the machine | `feat/design-facts-ir` |
 | 2026-08-20 | **`ease-design@0.5.0`** — the native-expert release: need→verb routing knowledge + the untaught-feature parity gate, pointing agents with the knowledge anchor, `ui init --with-agents`, and an 84-prompt blind benchmark that measured the doctrine to a fully clean board | `v0.5.0` |
 | 2026-08-20 | **Routing board clean** — the three canvas-cell misses adjudicated at their sources (`design.md` frontmatter regains the canvas condition; G2 gains the decision-vs-construction tie-break): one moved by doctrine and measured, two corrected labels; re-measured with no collateral flips | `#207` |
 | 2026-08-20 | **`ui init --with-agents`** — opt-in roster generation in the same init run (claude runtime + existing project DS required; pre-flights to `DS_NOT_FOUND` before any write) | `#205` |

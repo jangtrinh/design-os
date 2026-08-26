@@ -1,5 +1,9 @@
 # Writing an extractor
 
+> Companion to `knowledge/design-tells.md` (what the rules judge) and
+> `ui tell-lint --coverage` (which rules can run where).
+
+
 An extractor turns one language's source into **DesignFacts**. The 36 `tell`
 rules already exist and are language-independent; adding a platform means adding
 an extractor, and **editing no rule**.

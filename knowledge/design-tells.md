@@ -1,3 +1,9 @@
+---
+id: design-tells
+description: "What a design tell is, the 43 the tell family detects, and which family a new rule belongs to."
+when: [tell, tells, ai-slop, generated-ui, side-tab, overused-font, cliche, design-smell, looks-ai-generated]
+---
+
 # Design tells
 
 A **tell** is an involuntary, machine-detectable sign that a surface was produced

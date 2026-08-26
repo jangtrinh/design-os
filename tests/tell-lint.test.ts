@@ -115,9 +115,17 @@ describe("NOT-EVALUATED, never a silent pass", () => {
   });
 
   it("builds a rule x extractor matrix over every registered extractor", () => {
+    // All 43: the 36 fact rules AND the 7 rendered ones. Listing only the first
+    // set would leave the rendered rules invisible, and a rule nobody can see is
+    // a rule nobody notices has stopped running.
     const matrix = tellCoverage(EXTRACTOR_PROFILES);
-    expect(matrix).toHaveLength(36);
+    expect(matrix).toHaveLength(43);
     for (const row of matrix) expect(row.byExtractor).toHaveLength(EXTRACTOR_PROFILES.length);
+    // The rendered rules run against exactly one extractor, and are
+    // NOT-EVALUATED against every other.
+    const hidden = matrix.find((r) => r.id === "content-hidden-at-rest");
+    const runsOn = hidden?.byExtractor.filter((b) => b.runnable).map((b) => b.extractor);
+    expect(runsOn).toEqual(["rendered-cdp"]);
   });
 });
 

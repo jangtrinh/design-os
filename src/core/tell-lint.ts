@@ -31,6 +31,7 @@ import { LABEL_RULES } from "./tell-rules-labels.js";
 import { COLOR_RULES } from "./tell-rules-color.js";
 import { TYPE_RULES } from "./tell-rules-type.js";
 import { MOTION_RULES } from "./tell-rules-motion.js";
+import { RENDERED_RULES } from "./tell-rules-rendered.js";
 
 /** The whole roster, in one place. Order is normalised on output. */
 export const TELL_RULES: readonly TellRule[] = [
@@ -122,7 +123,18 @@ export function lintTell(
   };
 }
 
-/** The rule x extractor matrix behind `ui tell-lint --coverage`. */
+/**
+ * The rule x extractor matrix behind `ui tell-lint --coverage`.
+ *
+ * Includes the rendered rules, which run only against `rendered-cdp`. Listing
+ * only the 36 fact rules would leave the other seven invisible — and a rule
+ * nobody can see is a rule nobody notices has stopped running.
+ */
 export function tellCoverage(profiles: readonly ExtractorProfile[]) {
-  return coverageMatrix(TELL_REQUIREMENTS, profiles);
+  const rendered: RuleRequirement[] = RENDERED_RULES.map((r) => ({
+    id: r.id,
+    needs: ["structure"],
+    minConfidence: "rendered",
+  }));
+  return coverageMatrix([...TELL_REQUIREMENTS, ...rendered], profiles);
 }

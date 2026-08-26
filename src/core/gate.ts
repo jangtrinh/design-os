@@ -135,16 +135,24 @@ export interface GateCoverage {
  * evidence source). `dsPresent` is reported for routing context (DS density);
  * no gate check currently keys on it beyond the token file.
  */
-export function gateCoverage(project: { tokensPresent: boolean; dsPresent: boolean }): GateCoverage {
+export function gateCoverage(project: {
+  tokensPresent: boolean;
+  dsPresent: boolean;
+  /** True when a rendered capture is available (ui gate --render). */
+  renderAvailable?: boolean;
+}): GateCoverage {
   const checks = CHECK_CATALOG.map((c) => ({
     ...c,
     // A fact-based requirement is active when the gate's extractor supplies the
-    // kinds — html-cascade supplies all ten, so every tell row is active here.
-    // A hostless or literal-tier caller asks tellCoverage() instead.
+    // kinds. html-cascade supplies all ten, so every fact rule is active — but a
+    // rule needing `rendered` confidence cannot run without a capture, and
+    // reporting it active would be exactly the silent pass NOT-EVALUATED exists
+    // to prevent.
     active:
       c.requires === "none" ||
       (c.requires === "tokens" && project.tokensPresent) ||
-      typeof c.requires === "object",
+      (typeof c.requires === "object" &&
+        (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
   }));
   const families = Object.fromEntries(GATE_FAMILIES.map((f) => {
     const rows = checks.filter((c) => c.family === f);

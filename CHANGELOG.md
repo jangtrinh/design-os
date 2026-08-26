@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-08-26 - design:os reads your app, whatever it is written in
+
+### Added
+- **`ui tell-lint <file|dir|glob>`** — a new `tell` gate family: 43 checks for
+  *design tells*, involuntary machine-detectable signs that a surface was made
+  without design judgment. Most are advisory: a tell prints, it never fails a
+  build. `knowledge/design-tells.md` is the standard; `docs/tell-lint.md` is the
+  command reference.
+- **One DesignFacts IR, N language extractors, rules written once.** Rules bound
+  to CSS syntax can never leave the web; bound to design *facts* the same 36
+  judge HTML, JSX/TSX, Vue, Svelte, Astro, bare CSS, SwiftUI and Flutter. Adding
+  a platform is one ~150-line extractor and two fixtures — no rule is edited.
+  See `docs/extractor-authoring.md`.
+- **Every linter now takes a file, a directory or a glob.** Until now they took
+  exactly one `.html` file, so a React app could not be linted and a SwiftUI app
+  was invisible.
+- **A resolved CSS cascade.** Real selector matching, specificity, `var()`
+  resolution, shorthand expansion, and linked *local* stylesheets read from the
+  same filesystem the linter already reads. Remote sheets stay declared-unresolved.
+- **WCAG contrast on a rendered surface.** `ui a11y-lint` used to print "0 static
+  findings … rendered criteria need a browser". It now computes the real ratio
+  against the nearest opaque ancestor background, and REFUSES — reporting a
+  partial run — where the answer would be a fiction: a gradient background, a
+  translucent veil, or a literal-tier extractor.
+- **A third severity, `advisory`.** Detected, listed, excluded from the failure
+  count. The exit code keeps its exact previous meaning.
+- **In-file waivers with a mandatory reason** (`design-os-disable`, `-line`,
+  `-next-line`) in HTML, CSS and JS comment syntaxes. Every waived finding is
+  counted in the output.
+- **A rendered tier with zero dependencies.** `ui tell-lint --render` drives a
+  Chrome, Chromium or Edge *already installed on the machine* over a stdlib-only
+  CDP client — no download, no npm browser dependency. It unlocks the seven rules
+  static analysis provably cannot reach, chief among them
+  `content-hidden-at-rest`: copy still at `opacity: 0` after the page settles,
+  which ships a blank screen. Findings are stated under their engine.
+- **`ui tell-lint --coverage`** — the rule x extractor matrix, naming for every
+  combination either that it runs or exactly which facts are missing.
+
+### Changed
+- **design:os no longer ships zero runtime dependencies.** A deliberate reversal,
+  ratified 2026-08-26: `htmlparser2`, `css-tree`, `css-select`, `domutils`. The
+  guard was narrowed rather than removed — `tests/approved-runtime-deps.ts` names
+  the four, and a fifth still turns the suite red. Determinism, no-network and
+  no-LLM are unchanged.
+- The build now bundles those four into the binary. tsup externalises
+  dependencies by default, which had silently made `dist/` non-relocatable.
+- `ai-cliche-gradient` is superseded by `ai-color-palette`; the old id remains an
+  alias for one release.
+- `CHECK_CATALOG.requires` accepts a fact-kind set alongside the original
+  `"none"` / `"tokens"`. All 89 pre-existing rows are untouched. The catalog is
+  now 137 rows: layout 20, a11y 14, taste 34, tell 43, content 16, autofix 10.
+
+### Fixed
+- A rule needing facts its extractor cannot supply is reported NOT-EVALUATED,
+  never passed. That contract is enforced by construction: a rule landing in
+  neither bucket throws rather than reading as one fewer finding.
+
+
 ## 2026-08-20 - stdout survives the pipe (#209)
 
 ### Fixed
