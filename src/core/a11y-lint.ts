@@ -36,6 +36,8 @@ export interface A11yLintResult {
   findings: A11yFinding[];
   errorCount: number;
   warningCount: number;
+  /** Signs, not defects: printed, never counted toward failure. */
+  advisoryCount: number;
 }
 
 const CHECKS = [
@@ -65,12 +67,25 @@ export function lintA11y(html: string): A11yLintResult {
   const stripped = stripCommentsPreservingOffsets(html);
   const errors: A11yFinding[] = [];
   const warnings: A11yFinding[] = [];
+  // Advisory findings ride in their own bucket: they print, they never fail.
+  const advisories: A11yFinding[] = [];
   for (const check of CHECKS) {
-    for (const f of check(stripped)) (f.severity === "error" ? errors : warnings).push(f);
+    for (const f of check(stripped)) {
+      // Three-way on purpose: an `else` here would bucket advisory into warnings.
+      if (f.severity === "error") errors.push(f);
+      else if (f.severity === "warning") warnings.push(f);
+      else advisories.push(f);
+    }
   }
   const sortF = (a: A11yFinding, b: A11yFinding): number =>
     (a.line ?? 0) - (b.line ?? 0) || a.checkId.localeCompare(b.checkId) || a.message.localeCompare(b.message);
   errors.sort(sortF);
   warnings.sort(sortF);
-  return { findings: [...errors, ...warnings], errorCount: errors.length, warningCount: warnings.length };
+  advisories.sort(sortF);
+  return {
+    findings: [...errors, ...warnings, ...advisories],
+    errorCount: errors.length,
+    warningCount: warnings.length,
+    advisoryCount: advisories.length,
+  };
 }

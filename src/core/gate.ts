@@ -13,6 +13,7 @@
  * which also keeps the "autofix re-run is a no-op" proof meaningful.
  */
 import { lintLayout } from "./layout-lint.js";
+import { countBySeverity } from "./finding-schema.js";
 import { lintA11y } from "./a11y-lint.js";
 import { lintTaste } from "./taste-lint.js";
 import { allContentChecks } from "./content-checks.js";
@@ -50,8 +51,7 @@ export interface GateOptions {
 }
 
 function familyResult(findings: GateFamilyResult["findings"]): GateFamilyResult {
-  const errorCount = findings.filter((f) => f.severity === "error").length;
-  return { errorCount, warningCount: findings.length - errorCount, findings };
+  return { ...countBySeverity(findings), findings };
 }
 
 export function runGate(html: string, opts: GateOptions = {}): GateResult {

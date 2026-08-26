@@ -11,6 +11,7 @@
  * longer matches (template drift, hand edits, or a renamed studio/project).
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { countBySeverity } from "../core/finding-schema.js";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -345,7 +346,7 @@ function runCheck(parsed: ParsedArgs): CommandResult {
       a.message.localeCompare(b.message),
   );
   const errorCount = findings.filter((f) => f.severity === "error").length;
-  const warningCount = findings.length - errorCount;
+  const { warningCount } = countBySeverity(findings);
   const exitCode = errorCount > 0 ? 1 : 0;
 
   if (useJson) return okJsonWithExit(sub, { dir: agentsDir, findings, errorCount, warningCount }, exitCode);
