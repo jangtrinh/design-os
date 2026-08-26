@@ -14,5 +14,11 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  // Fixtures are DATA, not code. tell-react-slop.tsx deliberately references an
+  // undefined `isActive` because that is the unresolvable-className case the
+  // extractor must refuse to guess at; typechecking it would make the fixture
+  // answer to rules the thing under test exists to survive. eslint already
+  // ignores this path for the same reason.
+  "exclude": ["tests/fixtures"]
 }

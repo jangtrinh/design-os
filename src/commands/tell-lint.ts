@@ -21,6 +21,8 @@ import type { LintTarget } from "../core/lint-target.js";
 import { extractHtml } from "../core/extractors/html/html-extractor.js";
 import { extractSwiftUi } from "../core/extractors/native/swiftui-extractor.js";
 import { extractFlutter } from "../core/extractors/native/flutter-extractor.js";
+import { extractJsx } from "../core/extractors/web/jsx-extractor.js";
+import { extractSfc, extractCssOnly } from "../core/extractors/web/sfc-extractor.js";
 import { lintTell, tellCoverage, TELL_RULES } from "../core/tell-lint.js";
 import type { TellFinding } from "../core/tell-rules.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../core/design-facts/index.js";
@@ -97,8 +99,29 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
     };
   }
 
-  // The remaining tiers land in phase 06. Until then a target routed to one is
-  // reported as NOT ANALYSED rather than as clean.
+  if (target.extractorId === "jsx-tailwind" || target.extractorId === "sfc" || target.extractorId === "css-only") {
+    const src = readFileSync(target.path, "utf8");
+    const ex =
+      target.extractorId === "jsx-tailwind" ? extractJsx(src, target.path)
+        : target.extractorId === "sfc" ? extractSfc(src, target.path)
+          : extractCssOnly(src, target.path);
+    const res = lintTell(ex.collector.facts(), profile);
+    const scanned = scanInlineIgnores(src);
+    const { kept, waived } = applyInlineIgnores(res.findings, scanned);
+    return {
+      file: rel,
+      extractor: target.extractorId,
+      tier: target.tier,
+      undercount: true,
+      findings: kept,
+      notEvaluated: res.notEvaluated,
+      unresolvedCount: ex.collector.unresolvedCount,
+      waived: waived.length,
+    };
+  }
+
+  // Anything else routed here has a registered profile but no reader yet, so it
+  // is reported as NOT ANALYSED rather than as clean.
   if (target.extractorId !== "html-cascade") {
     return {
       file: rel,

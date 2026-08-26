@@ -9,7 +9,7 @@
  * Enforces knowledge/design-tells.md § Type.
  */
 import type { TellRule } from "./tell-rules.js";
-import { finding, sameOwner, nearestOwner, OVERUSED_FONTS } from "./tell-rules.js";
+import { finding, nearestOwner, OVERUSED_FONTS } from "./tell-rules.js";
 
 const SECTION = "Type";
 
