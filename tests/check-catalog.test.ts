@@ -13,6 +13,35 @@ import { CHECK_CATALOG } from "../src/core/check-catalog.js";
 import { isLegacyRequires } from "../src/core/check-catalog.js";
 import { FACT_KINDS } from "../src/core/design-facts/index.js";
 import { TELL_RULES } from "../src/core/tell-lint.js";
+import { VOICE_CHECKS } from "../src/core/content-checks-voice.js";
+import type { DesignFact } from "../src/core/design-facts/index.js";
+
+/** The four voice ids, listed once so the two assertions above can disagree. */
+const VOICE_IDS = ["marketing-buzzword", "em-dash-overuse", "theater-slop-phrase", "aphoristic-cadence"];
+
+/** Text that trips all four at once. */
+const VOICE_TRIGGER: DesignFact[] = [
+  {
+    kind: "text",
+    role: "body",
+    content:
+      "Supercharge your stunning workflow. This is not just a tool — it's a way of thinking — " +
+      "a way that is — plainly — better, and it is world-class.",
+    at: { file: "f", line: 1, extractor: "html-cascade", confidence: "resolved" },
+  },
+  {
+    kind: "text",
+    role: "body",
+    // em-dash-overuse is a RATE check with a 60-word floor, so the trigger has
+    // to be long enough to measure. A shorter sample fired three of four and
+    // looked like a missing check rather than a sample too small to judge.
+    content:
+      "Another line of copy — with more words to push the sample over the rate floor so " +
+      "the dash rate is measurable at all, because a short run of text is punctuation " +
+      "rather than a habit and the check refuses to call it one without enough evidence.",
+    at: { file: "f", line: 2, extractor: "html-cascade", confidence: "resolved" },
+  },
+];
 
 const CORE = join(fileURLToPath(new URL("..", import.meta.url)), "src", "core");
 
@@ -64,8 +93,24 @@ describe("check catalog — paired with the family sources", () => {
       .toEqual([...idsFromFiles(["taste-checks"])].sort());
   });
   it("content rows == ids in content-checks* sources", () => {
-    expect([...catalogByFamily("content")].sort())
-      .toEqual([...idsFromFiles(["content-checks"])].sort());
+    // The voice checks pass their id positionally (`finding("id", …)`), which
+    // the literal extractor cannot see. Rather than widen the grep — the same
+    // grep that generated nothing here and would then be verifying itself — they
+    // are paired against RUNTIME emission in the test below and excluded here.
+    const fromSource = idsFromFiles(["content-checks"]);
+    for (const id of VOICE_IDS) fromSource.add(id);
+    expect([...catalogByFamily("content")].sort()).toEqual([...fromSource].sort());
+  });
+
+  it("every voice row is a check that ACTUALLY emits it", () => {
+    // Pairing against emission, not against source text: a catalog row whose
+    // check was deleted, or renamed, goes red here even though the file still
+    // mentions the string.
+    const emitted = new Set<string>();
+    for (const check of VOICE_CHECKS) {
+      for (const f of check(VOICE_TRIGGER)) emitted.add(f.checkId);
+    }
+    expect([...emitted].sort()).toEqual([...VOICE_IDS].sort());
   });
   it("autofix rows == autofix RULES ids plus the gate's autofix-not-clean", () => {
     const fromSource = idsFromFiles(["html-autofix"], RULE_ID);

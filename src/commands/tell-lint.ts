@@ -70,6 +70,8 @@ interface PerFile {
   undercount: boolean;
   findings: TellFinding[];
   notEvaluated: Array<{ id: string; reason: string }>;
+  /** Text whose background could not be resolved: the run is PARTIAL, not clean. */
+  notComputable: number;
   unresolvedCount: number;
   waived: number;
   degraded?: string;
@@ -96,6 +98,7 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
       notEvaluated: res.notEvaluated,
       unresolvedCount: ex.collector.unresolvedCount,
       waived: waived.length,
+      notComputable: 0,
     };
   }
 
@@ -117,6 +120,7 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
       notEvaluated: res.notEvaluated,
       unresolvedCount: ex.collector.unresolvedCount,
       waived: waived.length,
+      notComputable: 0,
     };
   }
 
@@ -135,6 +139,7 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
       })),
       unresolvedCount: 0,
       waived: 0,
+      notComputable: 0,
     };
   }
 
@@ -149,10 +154,11 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
     extractor: target.extractorId,
     tier: target.tier,
     undercount: target.undercount || extraction.degraded,
-    findings: kept,
+    findings: [...kept, ...result.contrast, ...result.voice] as TellFinding[],
     notEvaluated: result.notEvaluated,
     unresolvedCount: extraction.collector.unresolvedCount,
     waived: waived.length,
+    notComputable: result.contrastNotComputable.length,
     degraded: extraction.degraded ? extraction.degradeReason : undefined,
   };
 }
@@ -220,6 +226,9 @@ export function runTellLint(args: ParsedArgs, cwd = process.cwd()): CommandResul
     if (f.unresolvedCount > 0) notes.push(`${f.unresolvedCount} unresolved read(s)`);
     if (f.waived > 0) notes.push(`${f.waived} waived in-file`);
     if (f.notEvaluated.length > 0) notes.push(`${f.notEvaluated.length} rule(s) NOT-EVALUATED`);
+    // A background nobody could resolve means the contrast pass was PARTIAL.
+    // Silence here would let a half-checked page read as a checked one.
+    if (f.notComputable > 0) notes.push(`${f.notComputable} contrast pair(s) NOT COMPUTABLE`);
 
     if (shown.length === 0 && notes.length === 0) continue;
     lines.push("", `${f.file}  [${f.extractor} — ${f.tier}]${notes.length > 0 ? `  (${notes.join("; ")})` : ""}`);

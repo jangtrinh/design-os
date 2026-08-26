@@ -20,6 +20,10 @@ import { partition, coverageMatrix } from "./design-facts/index.js";
 import type { ExtractorProfile, RuleRequirement } from "./design-facts/index.js";
 import { countBySeverity } from "./finding-schema.js";
 import type { SeverityCounts } from "./finding-schema.js";
+import { checkComputedContrast } from "./a11y-checks-contrast.js";
+import type { ContrastFinding, ContrastResult } from "./a11y-checks-contrast.js";
+import { checkVoice } from "./content-checks-voice.js";
+import type { VoiceFinding } from "./content-checks-voice.js";
 import { indexFacts } from "./tell-rules.js";
 import type { TellRule, TellFinding } from "./tell-rules.js";
 import { SURFACE_RULES } from "./tell-rules-surface.js";
@@ -50,6 +54,12 @@ export interface NotEvaluatedRule {
 
 export interface TellLintResult extends SeverityCounts {
   findings: TellFinding[];
+  /** Contrast findings — a11y family, computed only at `resolved` confidence. */
+  contrast: ContrastFinding[];
+  /** Text nodes whose background could not be resolved: a PARTIAL evaluation. */
+  contrastNotComputable: ContrastResult["notComputable"];
+  /** Voice findings — content family, advisory, readable in any language. */
+  voice: VoiceFinding[];
   /** Rules that could not run here, and why. Never silently absent. */
   notEvaluated: NotEvaluatedRule[];
 }
@@ -96,9 +106,18 @@ export function lintTell(
       a.message.localeCompare(b.message),
   );
 
+  // low-contrast is an a11y check and the voice tells are content checks: they
+  // ride along here because this is where the facts are, but they keep their own
+  // family so `ui gate` attributes them correctly.
+  const contrastResult = checkComputedContrast(facts, profile.supplies.color);
+  const voice = checkVoice(facts);
+
   return {
     findings,
-    ...countBySeverity(findings),
+    contrast: contrastResult.findings,
+    contrastNotComputable: contrastResult.notComputable,
+    voice,
+    ...countBySeverity([...findings, ...contrastResult.findings, ...voice]),
     notEvaluated: notEvaluated.map((n) => ({ id: n.id, reason: n.reason })),
   };
 }

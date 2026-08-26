@@ -175,13 +175,13 @@ describe("CHECK_CATALOG requires widening", () => {
     // added in phase 05 use the fact-set form, which is the whole point of the
     // widening. Both must coexist.
     expect(legacy.length).toBe(89);
-    expect(CHECK_CATALOG.length).toBe(125);
+    expect(CHECK_CATALOG.length).toBe(130);
   });
 
   it("keeps the family split the gate composes", () => {
     const byFamily: Record<string, number> = {};
     for (const e of CHECK_CATALOG) byFamily[e.family] = (byFamily[e.family] ?? 0) + 1;
-    expect(byFamily).toEqual({ layout: 20, a11y: 13, taste: 34, tell: 36, content: 12, autofix: 10 });
+    expect(byFamily).toEqual({ layout: 20, a11y: 14, taste: 34, tell: 36, content: 16, autofix: 10 });
   });
 
   it("accepts a fact-based requirement without disturbing the legacy ones", () => {

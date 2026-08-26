@@ -126,6 +126,14 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "placeholder-name", family: "content", requires: "none" },
   { id: "plural-s-hack", family: "content", requires: "none" },
   { id: "text-in-image", family: "content", requires: "none" },
+  // ── a11y: contrast on a rendered surface, computed from resolved facts.
+  // ds-a11y checks declared TOKEN pairs; this is the painted result.
+  { id: "low-contrast", family: "a11y", requires: { facts: ["color", "structure"], minConfidence: "resolved" } },
+  // ── content: LLM-voice tells. `text` only, so they read Swift and Dart too.
+  { id: "marketing-buzzword", family: "content", requires: { facts: ["text"] } },
+  { id: "em-dash-overuse", family: "content", requires: { facts: ["text"] } },
+  { id: "theater-slop-phrase", family: "content", requires: { facts: ["text"] } },
+  { id: "aphoristic-cadence", family: "content", requires: { facts: ["text"] } },
   // ── tell: generated-UI tells (knowledge/design-tells.md). Most are advisory:
   // a tell is evidence of inattention, not a defect, so it prints without
   // failing a build. `requires` names the DesignFacts kinds each rule reads —
