@@ -190,7 +190,7 @@ function renderCoverage(json: boolean): CommandResult {
   return { stdout: lines.join("\n"), exitCode: 0 };
 }
 
-export function runTellLint(args: ParsedArgs, cwd = process.cwd()): CommandResult {
+export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promise<CommandResult> {
   const json = args.flags["json"] === true;
   if (args.flags["coverage"] === true) return renderCoverage(json);
 
@@ -208,6 +208,25 @@ export function runTellLint(args: ParsedArgs, cwd = process.cwd()): CommandResul
   for (const target of resolution.targets) {
     const r = analyze(target, cwd);
     if (r !== undefined) perFile.push(r);
+  }
+
+  // The rendered tier. Without --render its seven rules stay NOT-EVALUATED and
+  // are never counted as passing; with it, a browser already on this machine is
+  // driven and the findings ride in under their engine.
+  let renderedNote: string | undefined;
+  let renderedEngine: string | undefined;
+  if (args.flags["render"] === true) {
+    const viewport = parseViewport(args.flags["viewport"]);
+    const pass = await runRenderedPass(resolution.targets, {
+      browser: typeof args.flags["browser"] === "string" ? args.flags["browser"] : undefined,
+      viewport,
+    });
+    renderedNote = pass.notEvaluated;
+    renderedEngine = pass.engine;
+    if (pass.findings.length > 0) {
+      const byFile = perFile[0];
+      if (byFile !== undefined) byFile.findings.push(...(pass.findings as unknown as TellFinding[]));
+    }
   }
 
   const all = perFile.flatMap((f) => f.findings);
@@ -230,6 +249,9 @@ export function runTellLint(args: ParsedArgs, cwd = process.cwd()): CommandResul
 
   const lines: string[] = [`${CMD}: ${describeResolution(resolution)}`];
   if (resolution.truncated) lines.push(`  ! ${resolution.droppedNote}`);
+  if (renderedEngine !== undefined) lines.push(`  rendered tier: ${renderedEngine}`);
+  // Never silent: a rendered pass that could not run says so and names the fix.
+  if (renderedNote !== undefined) lines.push(`  rendered tier NOT-EVALUATED — ${renderedNote}`);
 
   for (const f of perFile) {
     const shown = hideAdvisory ? f.findings.filter((x) => x.severity !== "advisory") : f.findings;
@@ -271,7 +293,7 @@ export const tellLintCommand = {
   summary: "Generated-UI tells, in any language the extractor registry can read",
   hasSubcommands: false,
   help: TELL_LINT_HELP,
-  run(parsed: ParsedArgs): CommandResult {
+  run(parsed: ParsedArgs): Promise<CommandResult> {
     return runTellLint(parsed);
   },
 };
@@ -305,4 +327,12 @@ export async function runRenderedPass(
     findings.push(...lintRendered(capture));
   }
   return { findings, engine };
+}
+
+/** `--viewport 390x844` → a size, or undefined when unparseable. */
+function parseViewport(raw: unknown): { width: number; height: number } | undefined {
+  if (typeof raw !== "string") return undefined;
+  const m = /^(\d+)x(\d+)$/.exec(raw.trim());
+  if (m === null) return undefined;
+  return { width: Number.parseInt(m[1] as string, 10), height: Number.parseInt(m[2] as string, 10) };
 }

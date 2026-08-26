@@ -168,10 +168,10 @@ describe("catalog pairing", () => {
 
 describe("browser location", () => {
   it("names the variable to set instead of failing blankly", () => {
-    // No env, and no platform candidates — the branch that must never be a
-    // silent pass. On a machine that HAS Chrome the real candidate list would
-    // rescue it, which is why the list is a parameter.
-    const r = locateBrowser("/definitely/not/here", {} as NodeJS.ProcessEnv, []);
+    // Nothing named, no env, no platform candidates — the branch that must never
+    // be a silent pass. On a machine that HAS Chrome the real candidate list
+    // would rescue it, which is why the list is a parameter.
+    const r = locateBrowser(undefined, {} as NodeJS.ProcessEnv, []);
     expect(r.path).toBeUndefined();
     expect(r.reason).toContain("CHROME_PATH");
     expect(r.reason).toContain("--browser");
@@ -185,7 +185,7 @@ describe("browser location", () => {
 
   it("never turns a bad explicit path into a good one", () => {
     const r = locateBrowser("/definitely/not/here", {} as NodeJS.ProcessEnv, []);
-    expect(r.path).not.toBe("/definitely/not/here");
+    expect(r.path).toBeUndefined();
   });
 
   it("honours an explicit path over the environment", () => {
@@ -276,4 +276,22 @@ describe("live capture", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 60_000);
+});
+
+describe("an explicitly named browser is never silently substituted", () => {
+  it("stops on a --browser path that does not exist", () => {
+    const r = locateBrowser("/definitely/not/here");
+    expect(r.path).toBeUndefined();
+    expect(r.reason).toContain("/definitely/not/here");
+    // The dangerous behaviour is falling through to a DIFFERENT engine: every
+    // rendered finding is stated under its engine, so the substitution would
+    // quietly invalidate the report while looking like it worked.
+    expect(r.path).not.toBe(locateBrowser().path);
+  });
+
+  it("still falls back through the environment when nothing was named", () => {
+    const found = locateBrowser();
+    if (found.path === undefined) return;
+    expect(locateBrowser(undefined, { CHROME_PATH: found.path } as NodeJS.ProcessEnv, []).path).toBe(found.path);
+  });
 });

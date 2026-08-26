@@ -67,8 +67,16 @@ export function locateBrowser(
     return existsSync(p) ? p : undefined;
   };
 
+  // An EXPLICIT --browser that does not exist is a hard stop, not a fallback.
+  // Falling through would silently render with a different engine than the
+  // operator named — and every rendered finding is stated under its engine, so
+  // the substitution would quietly invalidate the whole report.
+  if (explicit !== undefined && explicit !== "") {
+    if (existsSync(explicit)) return { path: explicit };
+    return { reason: `--browser ${explicit} does not exist` };
+  }
+
   const found =
-    consider(explicit) ??
     consider(env["CHROME_PATH"]) ??
     consider(env["PUPPETEER_EXECUTABLE_PATH"]) ??
     candidates.map((p) => consider(p)).find((p) => p !== undefined);

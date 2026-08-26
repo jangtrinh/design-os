@@ -19,7 +19,7 @@
 </p>
 
 <p align="center"><sub>
-Node ≥ 20 · MIT · deterministic <code>ui</code> kernel · 46 commands · 3,952 kernel tests green ·
+Node ≥ 20 · MIT · deterministic <code>ui</code> kernel · 46 commands · 3,955 kernel tests green ·
 a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,675-test Figma plugin</a> ·
 26 personas · a 27-component kit · deterministic static + rendered gates · a 1:1 Figma mirror
 </sub></p>
