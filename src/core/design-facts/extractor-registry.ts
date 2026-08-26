@@ -49,6 +49,20 @@ export const EXTRACTOR_PROFILES: readonly ExtractorProfile[] = [
     },
   },
   {
+    id: "css-only",
+    extensions: [".css", ".scss"],
+    tier: "declarations only (no DOM)",
+    undercount: true,
+    supplies: {
+      // A bare stylesheet states values but not which elements receive them, so
+      // there is no structure and no text — and every rule needing those is
+      // NOT-EVALUATED rather than guessed at from selector names.
+      color: "resolved", gradient: "resolved", typography: "resolved",
+      spacing: "resolved", radius: "resolved", border: "resolved",
+      shadow: "resolved", motion: "resolved",
+    },
+  },
+  {
     id: "jsx-tailwind",
     extensions: [".jsx", ".tsx"],
     tier: "line-scanner + Tailwind resolver",
