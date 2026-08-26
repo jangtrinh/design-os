@@ -7,6 +7,10 @@ import {
 
 export function validateBriefV1(j: Record<string, unknown>): DeliveryFinding[] {
   requireBase(j, "design-brief", 1);
+  return validateBriefBase(j);
+}
+
+export function validateBriefBase(j: Record<string, unknown>): DeliveryFinding[] {
   const required = ["rawRequest", "audience", "context", "primaryOutcome", "primaryAction"] as const;
   const out = required.filter((k) => !str(j[k]))
     .map((k) => finding("missing-field", `${k} must be a non-empty string`));

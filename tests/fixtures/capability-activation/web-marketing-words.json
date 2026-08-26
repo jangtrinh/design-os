@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build a launch landing page for AgentTour",
+  "requestedSurface": "web-marketing",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "landing page",
+    "role": "requested-artifact"
+  }
+}

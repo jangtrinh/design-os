@@ -2,7 +2,7 @@ import {
   DeliveryError,
 } from "./delivery-types.js";
 import type {
-  DeliveryKind, DeliveryResult, DeliveryValidationContext,
+  DeliveryFinding, DeliveryKind, DeliveryResult, DeliveryValidationContext,
 } from "./delivery-types.js";
 import { nonEmptyString as str, objectValue as obj } from "./delivery-shared-validation.js";
 import {
@@ -11,6 +11,7 @@ import {
 import { validateContractV2 } from "./delivery-v2-contract-validation.js";
 import { validateQualificationV2 } from "./delivery-v2-qualification-validation.js";
 import { validateLearningRecordV1 } from "./delivery-learning-validation.js";
+import { validateBriefV2 } from "./delivery-v2-brief-validation.js";
 
 export function validateDelivery(
   json: unknown,
@@ -27,19 +28,10 @@ export function validateDelivery(
   if (version !== 1 && version !== 2) {
     throw new DeliveryError("BAD_DELIVERY", "delivery artifact version must be 1 or 2");
   }
-  if (kind === "design-brief" && version !== 1) {
-    throw new DeliveryError("BAD_DELIVERY", "design-brief currently supports version 1 only");
-  }
   if (kind === "learning-record" && version !== 1) {
     throw new DeliveryError("BAD_DELIVERY", "learning-record currently supports version 1 only");
   }
-  const findings = kind === "learning-record"
-    ? validateLearningRecordV1(json)
-    : kind === "design-brief"
-    ? validateBriefV1(json)
-    : kind === "generation-contract"
-      ? version === 1 ? validateContractV1(json) : validateContractV2(json)
-      : version === 1 ? validateQualificationV1(json) : validateQualificationV2(json, context);
+  const findings = validateArtifact(json, kind, version, context);
   return {
     kind,
     version,
@@ -47,4 +39,22 @@ export function validateDelivery(
     warningCount: findings.filter((finding) => finding.severity === "warning").length,
     findings,
   };
+}
+
+function validateArtifact(
+  artifact: Record<string, unknown>,
+  kind: DeliveryKind,
+  version: 1 | 2,
+  context: DeliveryValidationContext,
+): DeliveryFinding[] {
+  switch (kind) {
+    case "design-brief":
+      return version === 1 ? validateBriefV1(artifact) : validateBriefV2(artifact, context);
+    case "generation-contract":
+      return version === 1 ? validateContractV1(artifact) : validateContractV2(artifact);
+    case "qualification-record":
+      return version === 1 ? validateQualificationV1(artifact) : validateQualificationV2(artifact, context);
+    case "learning-record":
+      return validateLearningRecordV1(artifact);
+  }
 }

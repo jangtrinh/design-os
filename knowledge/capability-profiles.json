@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "id": "web-marketing",
+      "status": "qualified",
+      "acceptedInputKinds": ["words", "visual-reference", "existing-artifact"],
+      "workflow": "generate",
+      "artifact": "html",
+      "requiredKnowledge": [
+        "need-routing",
+        "qualified-delivery",
+        "prompt-plan-orchestration",
+        "generation-craft-defaults"
+      ],
+      "machineWitnesses": [
+        "delivery validate",
+        "prompt-plan validate",
+        "prompt-plan preflight",
+        "gate",
+        "ds-usage-lint",
+        "ds a11y"
+      ],
+      "renderedWitnesses": ["1440px", "768px", "390px", "reduced-motion", "javascript-failure"],
+      "manualWitnesses": ["independent-curator", "owner-visible-acceptance"],
+      "qualificationEvidence": "knowledge/qualified-delivery.md",
+      "action": "Proceed with generate and preserve this activation receipt beside the design brief."
+    },
+    {
+      "id": "native-macos",
+      "status": "unqualified",
+      "acceptedInputKinds": ["words", "visual-reference", "existing-artifact"],
+      "workflow": null,
+      "artifact": "native-macos-application",
+      "refusalCode": "CAPABILITY_UNQUALIFIED",
+      "action": "Do not run generate. Offer web-marketing only as an explicit user-approved alternative.",
+      "advisoryKnowledge": ["content-design", "design-review", "verification-honesty"],
+      "qualificationRequirements": [
+        "SwiftUI and AppKit knowledge packet",
+        "build and test contract",
+        "native static and rendered witnesses",
+        "accessibility tree evidence",
+        "owner-visible acceptance from a second held-out pilot"
+      ]
+    }
+  ]
+}

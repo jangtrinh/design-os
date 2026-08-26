@@ -19,7 +19,11 @@ export interface DeliveryResult {
 }
 export interface DeliveryValidationContext {
   contract?: Record<string, unknown>;
+  activation?: Record<string, unknown>;
+  capabilityCatalog?: CapabilityCatalog;
+  catalogDigest?: string;
 }
 export class DeliveryError extends Error {
   constructor(readonly code: "BAD_DELIVERY", message: string) { super(message); }
 }
+import type { CapabilityCatalog } from "../capability-activation.js";

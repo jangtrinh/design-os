@@ -32,7 +32,9 @@ import { frontMatterChecks } from "./knowledge-frontmatter-check.js";
 import { routingChecks } from "./knowledge-routing-check.js";
 import { sourceLedgerChecks } from "./knowledge-source-ledger-check.js";
 import { webTechniqueChecks } from "./knowledge-web-technique-check.js";
-import { SKILL_NAMES } from "../adapters/templates.js";
+import { capabilityChecks } from "./knowledge-capability-check.js";
+import { SKILL_NAMES, WORKFLOW_VERBS } from "../adapters/templates.js";
+import { COMMAND_SIGNATURES } from "./command-signatures.js";
 import { VERB_SKILL_REFS } from "../adapters/skill-refs.js";
 // monthsBetween was a third local copy of the same 12-line helper (the other two were
 // in knowledge-effect-catalog-parse.ts). Shared-layer rule: one definition, three
@@ -71,6 +73,8 @@ export interface KnowledgeLintInput {
   sourceLedgerParts?: Readonly<Record<string, string>>;
   /** Future Phase 3 technique catalog; absent is meaningful during Phase 2. */
   webTechniqueCatalogJson?: string | null;
+  /** Capability catalog. Undefined skips the check for legacy unit fixtures; null means missing. */
+  capabilityCatalogJson?: string | null;
 }
 
 const STALE_MONTHS = 6;
@@ -141,6 +145,21 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
     // The agent-expertise ship-gate: the need→verb route table stays in exact
     // parity with the live verb registry, both directions (see routing-check).
     ...routingChecks(input.mdContents["need-routing.md"] ?? null),
+    ...(input.capabilityCatalogJson === undefined ? [] : capabilityChecks({
+      catalogJson: input.capabilityCatalogJson,
+      knowledgeIndexJson: input.committedIndex ?? null,
+      needRoutingMd: input.mdContents["need-routing.md"] ?? null,
+      workflowVerbs: WORKFLOW_VERBS,
+      commandNames: commandNames(),
+      repoFiles: input.repoFiles,
+    })),
   ];
   return sortFindings(findings);
+}
+
+function commandNames(): string[] {
+  return Object.entries(COMMAND_SIGNATURES).flatMap(([name, schema]) => [
+    name,
+    ...Object.keys(schema.subcommands ?? {}).map((subcommand) => `${name} ${subcommand}`),
+  ]);
 }

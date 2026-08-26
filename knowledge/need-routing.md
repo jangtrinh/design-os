@@ -17,9 +17,10 @@ commands from `ui schema --json`, verify what is checkable here with `ui gate co
 
 ## Mental model
 
-Routing is a chain of ordered gates — first match wins. Meta needs route before artifact
-classes; artifact classes before input sources; input sources before the new-vs-existing
-fork. Two laws govern every leaf:
+Routing is a chain of ordered gates — first match wins. G0–G3 first separate meta work,
+specialized artifacts, Figma work, and capture inputs. Capability activation is the precondition
+for every G4 surface-production leg; it does not redefine the earlier routes. Two laws
+govern every leaf:
 
 1. **Verb ambiguity costs one question; taste ambiguity costs zero questions — it costs
    variants.** Unsure WHICH verb: ask exactly one question (the three sanctioned asks
@@ -31,7 +32,7 @@ fork. Two laws govern every leaf:
 
 ## The gates
 
-Walk them top-down, first match wins — but SPLIT composites before walking: a
+Walk them top-down, first match wins, and SPLIT composites before walking: a
 need that names BOTH a reference source (URL, image, repo) AND an artifact to
 produce or change routes to a sequence (Composition rule below), never a single
 leaf. The reference decides the capture leg (G3 verbs); the artifact decides the
@@ -41,6 +42,25 @@ artifact half of the sentence. Splitting a composite does NOT skip **ask #3**:
 when the reference arrives without a replicate-vs-inspired sentence ("make us
 one like this", "start from this one"), that one question comes BEFORE the
 capture leg is chosen — it decides the capture's fidelity mode.
+
+**G-1 — requested artifact surface activation.** The host identifies the artifact being requested,
+not every platform noun in the sentence, then writes a `capability-activation-request` with quoted
+`requested-artifact` evidence (or the documented page-output default). Run:
+
+```sh
+ui knowledge activate capability-activation-request.json --json
+```
+
+A non-zero result stops routing. `CAPABILITY_UNQUALIFIED` means the surface is known but has no
+qualified delivery route; preserve `route: null`, show `action`, and never substitute `generate`.
+An explicit artifact platform always beats the HTML default. For example, “native macOS app”
+activates `native-macos`; “landing page for a native macOS app” activates `web-marketing` because
+the requested artifact is the landing page and the app is subject context. The binary validates
+the typed selection and current capability; it does not perform semantic classification.
+Every G4 production leg runs G-1, whether the surface is new or already exists. For an existing
+qualified web surface, activation authorizes the surface and G4 still selects the edit verb; the
+catalog route remains the new-artifact entry route, not an override to regenerate it.
+Do not run G-1 for G0, G1, G2, or capture-only G3 routes; their existing verb contracts remain authoritative.
 
 **G0 — meta and ops (no new artifact).** "Why is X this way / what was decided" →
 `why`. "Log this interview / finding / transcript" → `evidence`. New project / setup →
@@ -75,8 +95,9 @@ reference arrived without a sentence saying replicate-vs-inspired → **ask #3**
 below, first. Then the leaves: a figma.com URL to turn into code → `figma`. A
 screenshot or image file → `from-ref`. A live URL → `from-url`. Words only → G4.
 
-**G4 — does a generated artifact already exist here?** No → `generate`. Yes: same
-direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
+**G4 — does a qualified generated artifact already exist here?** First require a qualified G-1
+result for the requested surface. No existing artifact → the activated route (`generate` only when
+G-1 returned `QUALIFIED` with `route: "generate"`). Existing artifact: same direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
 ("polish", failing axes) → `refine`; direction rejected outright → `redesign`; cannot
 tell which → **ask #2** ("keep this direction, or throw it away?").
 
@@ -94,8 +115,19 @@ table lists the common composites; other chains follow the same capture-then-
 produce shape.
 
 **Defaults — never ask about these.** Prompt mode → Replicate (`prompt-modes.md`).
-Output surface → HTML unless Figma is explicitly named. Persona → the pick-persona
+An unspecified page-shaped output → `web-marketing`; never apply that default when the explicit artifact platform
+is native or Figma. Persona → the pick-persona
 skill. Anything taste-shaped → the selection route, zero questions.
+
+## Surface activation table
+
+This table is the human-readable join to `knowledge/capability-profiles.json`; `ui knowledge check`
+keeps both directions in parity with the live workflow, knowledge and witness registries.
+
+| Surface | Status | Candidate route |
+|---|---|---|
+| `web-marketing` | qualified | `generate` |
+| `native-macos` | unqualified | none (`CAPABILITY_UNQUALIFIED`, `route: null`) |
 
 ## Route table
 
@@ -120,7 +152,7 @@ with the live verb registry — a new capability cannot ship until this table te
 | Triage or close Figma comments | `figma-comments` |
 | Convert a figma.com URL into code | `figma` |
 | Reproduce or draw from a screenshot / image | `from-ref` |
-| A new surface from words alone | `generate` |
+| A new marketing / landing HTML surface from words, after qualified activation | `generate` |
 | Nudge an existing artifact, same direction | `iterate` |
 | Fix craft/quality on an existing artifact, same direction | `refine` |
 | Replace the direction of an existing artifact | `redesign` |
@@ -131,6 +163,7 @@ with the live verb registry — a new capability cannot ship until this table te
 ## Cross-references
 
 - Per-verb trigger language: each `templates/workflows/<verb>.md` frontmatter (canonical).
+- Capability status, artifact, knowledge and witnesses: `capability-profiles.json`.
 - Fidelity modes (Replicate/Enhance/Adapt): `prompt-modes.md` — fidelity, not routing.
 - The four-surface audit question: `templates/journeys/daily.md` §1.
 - What is verifiable in this project right now: `ui gate coverage`.

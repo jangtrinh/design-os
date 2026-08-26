@@ -7,9 +7,10 @@
   "additionalProperties": false,
   "properties": {
     "kind": { "const": "design-brief" },
-    "version": { "const": 1 },
+    "version": { "enum": [1, 2] },
     "rawRequest": { "type": "string", "minLength": 1 },
     "surface": { "enum": ["marketing-landing"] },
+    "activationRef": { "type": "string", "minLength": 1 },
     "audience": { "type": "string", "minLength": 1 },
     "context": { "type": "string", "minLength": 1 },
     "primaryOutcome": { "type": "string", "minLength": 1 },
@@ -41,5 +42,11 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "version": { "const": 2 } } },
+      "then": { "required": ["activationRef"] }
+    }
+  ]
 }

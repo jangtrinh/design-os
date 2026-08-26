@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/capability-activation.schema.json",
+  "title": "ease-design capability activation request or receipt",
+  "oneOf": [
+    { "$ref": "#/definitions/request" },
+    { "$ref": "#/definitions/receipt" }
+  ],
+  "definitions": {
+    "request": {
+      "type": "object",
+      "required": ["kind", "version", "rawRequest", "requestedSurface", "inputKind", "selectionEvidence"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "capability-activation-request" },
+        "version": { "const": 1 },
+        "rawRequest": { "type": "string", "minLength": 1 },
+        "requestedSurface": { "type": "string", "minLength": 1 },
+        "inputKind": { "type": "string", "minLength": 1 },
+        "selectionEvidence": { "$ref": "#/definitions/selectionEvidence" }
+      },
+      "allOf": [{
+        "if": {
+          "properties": {
+            "selectionEvidence": {
+              "properties": { "kind": { "const": "documented-default" } },
+              "required": ["kind"]
+            }
+          }
+        },
+        "then": { "properties": { "requestedSurface": { "const": "web-marketing" } } }
+      }]
+    },
+    "receipt": {
+      "type": "object",
+      "required": ["kind", "version", "requestDigest", "catalogDigest", "requestedSurface", "inputKind", "selectionEvidence", "disposition", "route", "artifact", "selectedKnowledge", "machineWitnesses", "renderedWitnesses", "manualWitnesses", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "capability-activation" },
+        "version": { "const": 1 },
+        "requestDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "catalogDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "requestedSurface": { "type": "string" },
+        "inputKind": { "type": "string" },
+        "selectionEvidence": { "$ref": "#/definitions/selectionEvidence" },
+        "disposition": { "enum": ["QUALIFIED", "UNQUALIFIED"] },
+        "route": { "type": ["string", "null"] },
+        "artifact": { "type": "string" },
+        "selectedKnowledge": { "type": "array", "items": { "type": "string" } },
+        "machineWitnesses": { "type": "array", "items": { "type": "string" } },
+        "renderedWitnesses": { "type": "array", "items": { "type": "string" } },
+        "manualWitnesses": { "type": "array", "items": { "type": "string" } },
+        "action": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selectionEvidence": {
+                "properties": { "kind": { "const": "documented-default" } },
+                "required": ["kind"]
+              }
+            }
+          },
+          "then": { "properties": { "requestedSurface": { "const": "web-marketing" } } }
+        },
+        {
+          "if": { "properties": { "disposition": { "const": "UNQUALIFIED" } } },
+          "then": { "properties": { "route": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "disposition": { "const": "QUALIFIED" } } },
+          "then": { "properties": { "route": { "type": "string", "minLength": 1 } } }
+        }
+      ]
+    },
+    "selectionEvidence": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "quote", "role"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "quoted-request" },
+            "quote": { "type": "string", "minLength": 1 },
+            "role": { "const": "requested-artifact" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "rule"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "documented-default" },
+            "rule": { "const": "unspecified-page-output-defaults-to-web-marketing" }
+          }
+        }
+      ]
+    }
+  }
+}
