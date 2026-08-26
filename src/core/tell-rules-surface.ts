@@ -10,7 +10,7 @@
  * Enforces knowledge/design-tells.md § Surface and card.
  */
 import type { TellRule, FactIndex } from "./tell-rules.js";
-import { finding } from "./tell-rules.js";
+import { finding, sameOwner } from "./tell-rules.js";
 
 const SECTION = "Surface and card";
 
@@ -27,7 +27,7 @@ export const sideTab: TellRule = {
       if (b.sides.length !== 1 || b.widthPx < 3) continue;
       // Only on a rounded surface: a one-sided rule on a square block is a
       // legitimate divider, not a category stripe.
-      const rounded = radii.some((r) => r.px >= 4 && r.at.line === b.at.line);
+      const rounded = radii.some((r) => r.px >= 4 && sameOwner(r, b));
       if (!rounded) continue;
       out.push(
         finding(sideTab, {
@@ -54,7 +54,7 @@ export const borderAccentOnRounded: TellRule = {
     const radii = facts.by("radius");
     for (const b of facts.by("border")) {
       if (b.sides.length < 4 || b.widthPx < 3) continue;
-      const r = radii.find((x) => x.px >= 8 && x.at.line === b.at.line);
+      const r = radii.find((x) => x.px >= 8 && sameOwner(x, b));
       if (r === undefined) continue;
       out.push(
         finding(borderAccentOnRounded, {
@@ -137,7 +137,7 @@ export const crampedPadding: TellRule = {
     for (const s of facts.by("spacing")) {
       if (!s.prop.startsWith("padding-") || s.px <= 0 || s.px >= 8) continue;
       // Only on something that presents as a surface — a chip legitimately has 4px.
-      const radius = radii.find((r) => r.px >= 12 && r.at.line === s.at.line);
+      const radius = radii.find((r) => r.px >= 12 && sameOwner(r, s));
       if (radius === undefined) continue;
       const key = s.at.nodeRef ?? `line:${s.at.line}`;
       const cur = byNode.get(key);

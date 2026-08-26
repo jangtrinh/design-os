@@ -10,7 +10,7 @@
  * Enforces knowledge/design-tells.md § Surface and card.
  */
 import type { TellRule } from "./tell-rules.js";
-import { finding } from "./tell-rules.js";
+import { finding, sameOwner, nearestOwner } from "./tell-rules.js";
 
 const SECTION = "Surface and card";
 
@@ -28,7 +28,7 @@ export const iconTileStack: TellRule = {
     if (icons.length < REPEAT) return [];
     const radii = facts.by("radius");
     // A TILE, not a bare glyph: the icon's own line carries a small radius.
-    const tiled = icons.filter((i) => radii.some((r) => r.px > 0 && r.px <= 16 && r.at.line === i.at.line));
+    const tiled = icons.filter((i) => radii.some((r) => r.px > 0 && r.px <= 16 && sameOwner(r, i)));
     if (tiled.length < REPEAT) return [];
     return [
       finding(iconTileStack, {
@@ -55,7 +55,7 @@ export const kickerAboveHeading: TellRule = {
       if (t.role === "heading") return false;
       const content = t.content.trim();
       if (content.length === 0 || content.length > 32) return false;
-      const styled = type.find((y) => y.at.line === t.at.line);
+      const styled = nearestOwner(type, t);
       const upperFromStyle = styled?.transform === "uppercase";
       const upperFromText = content === content.toUpperCase() && /[A-Z]/.test(content);
       const small = styled?.sizePx !== undefined && styled.sizePx <= 14;
@@ -90,8 +90,8 @@ export const heroEyebrowChip: TellRule = {
       // Above the h1 in source order, short, pill-shaped, small type.
       if (t.at.line >= h1.at.line || h1.at.line - t.at.line > 6) return false;
       if (t.content.trim().length > 40) return false;
-      const pill = radii.some((r) => r.px >= 999 || (r.px >= 12 && r.at.line === t.at.line));
-      const small = type.some((y) => y.at.line === t.at.line && (y.sizePx ?? 99) <= 14);
+      const pill = radii.some((r) => r.px >= 999 || (r.px >= 12 && sameOwner(r, t)));
+      const small = type.some((y) => sameOwner(y, t) && (y.sizePx ?? 99) <= 14);
       return pill && small;
     });
     if (chip === undefined) return [];

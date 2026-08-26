@@ -9,7 +9,7 @@
  * Enforces knowledge/design-tells.md § Type.
  */
 import type { TellRule } from "./tell-rules.js";
-import { finding, OVERUSED_FONTS } from "./tell-rules.js";
+import { finding, sameOwner, nearestOwner, OVERUSED_FONTS } from "./tell-rules.js";
 
 const SECTION = "Type";
 
@@ -71,7 +71,7 @@ export const oversizedH1: TellRule = {
     const type = facts.by("typography");
     const h1 = facts.by("text").find((t) => t.role === "heading" && t.level === 1);
     if (h1 === undefined) return [];
-    const h1Size = type.find((t) => t.at.line === h1.at.line)?.sizePx;
+    const h1Size = nearestOwner(type, h1)?.sizePx;
     if (h1Size === undefined) return [];
     const others = type
       .map((t) => t.sizePx)
@@ -101,7 +101,7 @@ export const headingRhythm: TellRule = {
     const byLevel = new Map<number, number>();
     for (const t of facts.by("text")) {
       if (t.role !== "heading" || t.level === undefined) continue;
-      const size = type.find((y) => y.at.line === t.at.line)?.sizePx;
+      const size = nearestOwner(type, t)?.sizePx;
       if (size === undefined) continue;
       const seen = byLevel.get(t.level);
       if (seen === undefined || size > seen) byLevel.set(t.level, size);
@@ -241,7 +241,7 @@ export const undersizedUiText: TellRule = {
       .by("text")
       .filter((t) => t.role === "label")
       .flatMap((t) => {
-        const size = type.find((y) => y.at.line === t.at.line)?.sizePx;
+        const size = nearestOwner(type, t)?.sizePx;
         return size !== undefined && size < 12
           ? [
               finding(undersizedUiText, {

@@ -422,3 +422,56 @@ describe("the purple threshold, pinned by both sides", () => {
       expect(isPalette(hex), `#${hex} should NOT be caught`).toBe(false);
   });
 });
+
+/**
+ * Owner pairing. `sameOwner` is an existence check; `nearestOwner` is "THE
+ * partner". Confusing them let heading-rhythm read the h2's size for the h1 the
+ * moment a line window replaced line equality, so both directions are pinned.
+ */
+describe("owner pairing", () => {
+  it("pairs a heading with ITS size, not with a neighbour's", () => {
+    const facts: DesignFact[] = [
+      { kind: "text", content: "H1", role: "heading", level: 1, at: at(10) },
+      { kind: "typography", sizePx: 48, at: at(10) },
+      { kind: "text", content: "H2", role: "heading", level: 2, at: at(11) },
+      { kind: "typography", sizePx: 24, at: at(11) },
+    ];
+    // A correct scale: h1 48 > h2 24. Mispairing inverts it and fires the rule.
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).not.toContain("heading-rhythm");
+  });
+
+  it("still catches a genuinely inverted heading scale", () => {
+    const facts: DesignFact[] = [
+      { kind: "text", content: "H1", role: "heading", level: 1, at: at(10) },
+      { kind: "typography", sizePx: 24, at: at(10) },
+      { kind: "text", content: "H2", role: "heading", level: 2, at: at(20) },
+      { kind: "typography", sizePx: 48, at: at(20) },
+    ];
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).toContain("heading-rhythm");
+  });
+
+  it("treats consecutive modifier lines as one owner when no node is named", () => {
+    // The native shape: radius on one line, the edge bar on the next.
+    const facts: DesignFact[] = [
+      { kind: "radius", px: 16, at: { file: "v.swift", line: 24, extractor: "swiftui", confidence: "literal" } },
+      { kind: "border", sides: ["left"], widthPx: 4, at: { file: "v.swift", line: 25, extractor: "swiftui", confidence: "literal" } },
+    ];
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).toContain("side-tab");
+  });
+
+  it("does NOT join facts from unrelated parts of a file", () => {
+    const facts: DesignFact[] = [
+      { kind: "radius", px: 16, at: { file: "v.swift", line: 10, extractor: "swiftui", confidence: "literal" } },
+      { kind: "border", sides: ["left"], widthPx: 4, at: { file: "v.swift", line: 90, extractor: "swiftui", confidence: "literal" } },
+    ];
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).not.toContain("side-tab");
+  });
+
+  it("never joins facts from different files", () => {
+    const facts: DesignFact[] = [
+      { kind: "radius", px: 16, at: { file: "a.swift", line: 10, extractor: "swiftui", confidence: "literal" } },
+      { kind: "border", sides: ["left"], widthPx: 4, at: { file: "b.swift", line: 10, extractor: "swiftui", confidence: "literal" } },
+    ];
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).not.toContain("side-tab");
+  });
+});

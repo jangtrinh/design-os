@@ -19,6 +19,8 @@ import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { resolveTargets, describeResolution } from "../core/lint-target.js";
 import type { LintTarget } from "../core/lint-target.js";
 import { extractHtml } from "../core/extractors/html/html-extractor.js";
+import { extractSwiftUi } from "../core/extractors/native/swiftui-extractor.js";
+import { extractFlutter } from "../core/extractors/native/flutter-extractor.js";
 import { lintTell, tellCoverage, TELL_RULES } from "../core/tell-lint.js";
 import type { TellFinding } from "../core/tell-rules.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../core/design-facts/index.js";
@@ -77,8 +79,26 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
   if (profile === undefined) return undefined;
   const rel = relative(cwd, target.path) || target.path;
 
-  // Extractors for the other tiers land in phases 06 and 07. Until then a
-  // target routed to one is reported as NOT ANALYSED rather than as clean.
+  if (target.extractorId === "swiftui" || target.extractorId === "flutter") {
+    const src = readFileSync(target.path, "utf8");
+    const ex = target.extractorId === "swiftui" ? extractSwiftUi(src, target.path) : extractFlutter(src, target.path);
+    const res = lintTell(ex.collector.facts(), profile);
+    const scanned = scanInlineIgnores(src);
+    const { kept, waived } = applyInlineIgnores(res.findings, scanned);
+    return {
+      file: rel,
+      extractor: target.extractorId,
+      tier: target.tier,
+      undercount: true,
+      findings: kept,
+      notEvaluated: res.notEvaluated,
+      unresolvedCount: ex.collector.unresolvedCount,
+      waived: waived.length,
+    };
+  }
+
+  // The remaining tiers land in phase 06. Until then a target routed to one is
+  // reported as NOT ANALYSED rather than as clean.
   if (target.extractorId !== "html-cascade") {
     return {
       file: rel,

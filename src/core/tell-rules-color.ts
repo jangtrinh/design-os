@@ -9,7 +9,7 @@
  * Enforces knowledge/design-tells.md § Colour and light.
  */
 import type { TellRule } from "./tell-rules.js";
-import { finding, isAiPurple, isAiCyan, isCream, isGrey, isSaturated } from "./tell-rules.js";
+import { finding, sameOwner, isAiPurple, isAiCyan, isCream, isGrey, isSaturated } from "./tell-rules.js";
 
 const SECTION = "Colour and light";
 
@@ -74,7 +74,7 @@ export const gradientText: TellRule = {
     const clipped = facts.by("color").filter((c) => c.role === "fg" && (c.alpha ?? 1) < 0.1);
     const gradients = facts.by("gradient");
     return clipped
-      .filter((c) => gradients.some((g) => g.at.line === c.at.line))
+      .filter((c) => gradients.some((g) => sameOwner(g, c)))
       .map((c) =>
         finding(gradientText, {
           message: "gradient clipped to text — decorative rather than meaningful, and it costs legibility at every size",
@@ -165,7 +165,7 @@ export const grayOnColor: TellRule = {
     const out = [];
     for (const fg of colors) {
       if (fg.role !== "fg" || !isGrey(fg.hex)) continue;
-      const bg = colors.find((c) => c.role === "bg" && c.at.line === fg.at.line && isSaturated(c.hex));
+      const bg = colors.find((c) => c.role === "bg" && sameOwner(c, fg) && isSaturated(c.hex));
       if (bg === undefined) continue;
       out.push(
         finding(grayOnColor, {
@@ -193,7 +193,7 @@ export const gptThinBorderWideShadow: TellRule = {
       .by("border")
       .filter((b) => b.widthPx <= 1 && b.sides.length >= 4)
       .flatMap((b) => {
-        const wide = shadows.find((s) => s.at.line === b.at.line && s.blurPx >= 16);
+        const wide = shadows.find((s) => sameOwner(s, b) && s.blurPx >= 16);
         return wide === undefined
           ? []
           : [

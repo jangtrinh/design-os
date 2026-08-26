@@ -9,7 +9,7 @@
  * Enforces knowledge/design-tells.md § Motion and decoration.
  */
 import type { TellRule } from "./tell-rules.js";
-import { finding } from "./tell-rules.js";
+import { finding, sameOwner } from "./tell-rules.js";
 
 const SECTION = "Motion and decoration";
 
@@ -26,7 +26,7 @@ export const pulsingDot: TellRule = {
       .filter((m) => m.repeatsForever === true)
       .flatMap((m) => {
         // A dot: fully rounded on the same line as the looping animation.
-        const dot = radii.find((r) => r.at.line === m.at.line && r.px >= 999);
+        const dot = radii.find((r) => sameOwner(r, m) && r.px >= 999);
         return dot === undefined
           ? []
           : [
@@ -127,7 +127,7 @@ export const shapeAssembledIllustration: TellRule = {
     for (const s of structures) {
       if (s.parentRef === undefined) continue;
       if (texted.has(s.at.line)) continue;
-      if (!radii.some((r) => r.px > 0 && r.at.line === s.at.line)) continue;
+      if (!radii.some((r) => r.px > 0 && sameOwner(r, s))) continue;
       byParent.set(s.parentRef, (byParent.get(s.parentRef) ?? 0) + 1);
     }
     const worst = [...byParent.entries()].filter(([, n]) => n >= 5).sort((a, b) => b[1] - a[1])[0];

@@ -14,6 +14,7 @@
  * missed marginal one; a UI-kit showcase of badges must not read as 35 violations.
  */
 import type { DesignFact, FactKind } from "./design-facts/index.js";
+import type { Provenance } from "./design-facts/index.js";
 import type { FloorFindingBase, FloorSeverity } from "./finding-schema.js";
 
 /** Facts for one artifact, indexed by kind so rules do not re-filter. */
@@ -86,6 +87,59 @@ export function finding(
   return parts.nodeRef !== undefined
     ? { ...base, repairScope: "nodes", nodeRef: parts.nodeRef }
     : base;
+}
+
+/**
+ * Do two facts describe the same element?
+ *
+ * In a resolved cascade every declaration of one element carries that element's
+ * nodeRef, so identity is exact. A line scanner has no such handle: SwiftUI and
+ * Flutter spell one view as a chain of modifiers on CONSECUTIVE LINES, and a
+ * rule that demanded the same line would silently never fire there.
+ *
+ * `.cornerRadius(16)` on line 24 and `.overlay(...alignment: .leading)` on line
+ * 25 are one card. Matching on line equality made side-tab and pulsing-dot dead
+ * rules on every native file — a cascade assumption leaking into a rule that is
+ * supposed to be language-independent.
+ *
+ * So: exact when both facts name a node, and a small line window otherwise. The
+ * window is deliberately tight; widening it trades a dead rule for a false one.
+ */
+export const OWNER_LINE_WINDOW = 4;
+
+export function sameOwner(a: { at: Provenance }, b: { at: Provenance }): boolean {
+  if (a.at.nodeRef !== undefined && b.at.nodeRef !== undefined) return a.at.nodeRef === b.at.nodeRef;
+  if (a.at.file !== b.at.file) return false;
+  return Math.abs(a.at.line - b.at.line) <= OWNER_LINE_WINDOW;
+}
+
+/**
+ * THE partner fact for this one, or undefined.
+ *
+ * `sameOwner` answers "could these belong together" — right for an existence
+ * check ("is there a radius on this element"), wrong when a rule needs exactly
+ * one partner. Pairing a heading with *a* nearby size picked the h2's size for
+ * the h1 the moment the line window opened, and heading-rhythm started reading
+ * a scale that was never written.
+ *
+ * So: same line wins outright; otherwise the nearest candidate inside the
+ * window, ties broken by the earlier line for determinism.
+ */
+export function nearestOwner<T extends { at: Provenance }>(
+  candidates: readonly T[],
+  fact: { at: Provenance },
+): T | undefined {
+  let best: T | undefined;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const c of candidates) {
+    if (!sameOwner(c, fact)) continue;
+    const distance = Math.abs(c.at.line - fact.at.line);
+    if (distance < bestDistance) {
+      best = c;
+      bestDistance = distance;
+    }
+  }
+  return best;
 }
 
 /** Fonts that no longer carry personality. Platform defaults are handled per-extractor. */
