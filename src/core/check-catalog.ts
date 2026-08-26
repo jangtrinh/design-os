@@ -18,11 +18,28 @@
  * subject just may not appear in a given artifact.
  */
 import type { GateFamily } from "./gate.js";
+import type { FactKind, Confidence } from "./design-facts/fact-model.js";
+
+/**
+ * What context a check needs to be ACTIVE.
+ *
+ * The two original values are kept verbatim so all 122 existing rows compile
+ * untouched: "none" = runs on any HTML artifact; "tokens" = needs the DS token
+ * file. Polyglot checks (the `tell` family) instead name the DesignFacts kinds
+ * they read, which is what lets a rule be reported NOT-EVALUATED against an
+ * extractor that cannot see those kinds rather than silently passing.
+ */
+export type CheckRequires = "none" | "tokens" | { facts: readonly FactKind[]; minConfidence?: Confidence };
+
+/** True for the two legacy string forms; narrows the union for old consumers. */
+export function isLegacyRequires(r: CheckRequires): r is "none" | "tokens" {
+  return typeof r === "string";
+}
 
 export interface CatalogEntry {
   id: string;
   family: GateFamily;
-  requires: "none" | "tokens";
+  requires: CheckRequires;
   /** For rules whose repairs are global-scope: the machine-readable region a
    *  valid patch may touch. Patch validators compose allowed regions as the
    *  UNION of per-rule subjects — never flatten "global" to "anywhere". */
