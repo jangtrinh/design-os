@@ -28,6 +28,10 @@ import type { TellFinding } from "../core/tell-rules.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../core/design-facts/index.js";
 import { scanInlineIgnores, applyInlineIgnores } from "../core/inline-ignores.js";
 import { countBySeverity } from "../core/finding-schema.js";
+import { locateBrowser } from "../core/rendered/browser-session.js";
+import { capturePage } from "../core/rendered/capture-page.js";
+import { lintRendered } from "../core/tell-rules-rendered.js";
+import type { RenderedFinding } from "../core/tell-rules-rendered.js";
 
 const CMD = "tell-lint";
 
@@ -42,6 +46,12 @@ design judgment (knowledge/design-tells.md). AI-generation fingerprints are the
 salient subclass, not the definition.
 
 Options:
+  --render       Also run the 7 rendered rules by driving a browser ALREADY on
+                 this machine (never downloads one). Without it they are
+                 NOT-EVALUATED, never counted as passing.
+  --browser <p>  Path to Chrome/Chromium/Edge. Defaults to $CHROME_PATH, then
+                 $PUPPETEER_EXECUTABLE_PATH, then the platform's usual paths.
+  --viewport WxH Viewport for the rendered pass (default 1280x800)
   --coverage     Print the rule x extractor matrix and exit
   --no-advisory  Hide advisory findings (they never affect the exit code anyway)
   --json         Emit a JSON envelope instead of human-readable output
@@ -55,6 +65,9 @@ Waivers travel with the file and require a reason:
   <!-- design-os-disable side-tab -- exported brand doc -->
   /* design-os-disable-line overused-font -- client mandate */
   // design-os-disable-next-line pulsing-dot -- genuinely live data
+
+Rendered findings are stated under their engine: a finding is never "the page is
+broken" but "broken under <engine> at <viewport>".
 
 Exit code: 1 iff any error-severity finding.
 
@@ -262,3 +275,34 @@ export const tellLintCommand = {
     return runTellLint(parsed);
   },
 };
+
+/**
+ * The rendered pass: drive a browser that is already installed, judge the
+ * capture, and say plainly when it could not run.
+ *
+ * Kept apart from `analyze` because it is the only async, only impure and only
+ * environment-dependent part of the command. A missing browser makes the tier
+ * NOT-EVALUATED with the variable to set — never a silent pass, and never an
+ * install.
+ */
+export async function runRenderedPass(
+  targets: readonly LintTarget[],
+  opts: { browser?: string; viewport?: { width: number; height: number } },
+): Promise<{ findings: RenderedFinding[]; notEvaluated?: string; engine?: string }> {
+  const located = locateBrowser(opts.browser);
+  if (located.path === undefined) return { findings: [], notEvaluated: located.reason };
+
+  const findings: RenderedFinding[] = [];
+  let engine: string | undefined;
+  for (const target of targets) {
+    if (target.extractorId !== "html-cascade") continue;
+    const capture = await capturePage({
+      browserPath: located.path,
+      target: target.path,
+      viewport: opts.viewport,
+    });
+    engine = capture.engine.browser;
+    findings.push(...lintRendered(capture));
+  }
+  return { findings, engine };
+}

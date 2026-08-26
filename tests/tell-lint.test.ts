@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TELL_RULES, TELL_REQUIREMENTS, lintTell, tellCoverage } from "../src/core/tell-lint.js";
 import { CHECK_CATALOG } from "../src/core/check-catalog.js";
+import { RENDERED_RULES } from "../src/core/tell-rules-rendered.js";
 import { GATE_FAMILIES } from "../src/core/gate.js";
 import { EXTRACTOR_PROFILES, extractorById } from "../src/core/design-facts/index.js";
 import type { DesignFact, Provenance } from "../src/core/design-facts/index.js";
@@ -34,10 +35,14 @@ describe("family registration", () => {
   });
 
   it("pairs the catalog against the RUNTIME roster, not against its own generator", () => {
-    const fromRuntime = new Set(TELL_RULES.map((r) => r.id));
+    // The family has two rosters with different shapes: 36 rules over facts and
+    // 7 over a settled render. Pairing against only the first would let a
+    // rendered row rot unnoticed — the catalog must account for both.
+    const fromRuntime = new Set([...TELL_RULES, ...RENDERED_RULES].map((r) => r.id));
     const fromCatalog = new Set(CHECK_CATALOG.filter((e) => e.family === "tell").map((e) => e.id));
     expect([...fromRuntime].sort()).toEqual([...fromCatalog].sort());
-    expect(fromRuntime.size).toBe(36);
+    expect(TELL_RULES).toHaveLength(36);
+    expect(RENDERED_RULES).toHaveLength(7);
   });
 
   it("declares in the catalog exactly the fact kinds each rule declares at runtime", () => {
@@ -65,6 +70,11 @@ describe("family registration", () => {
       // The standard must actually describe the rule it claims to emit.
       expect(doc, rule.id).toContain(`**${rule.id}**`);
     }
+    // The rendered rules carry no `section` field, but the standard still owes
+    // each one a description — a rule the knowledge never mentions is a rule
+    // nobody agreed to.
+    expect(doc).toContain("## Rendered");
+    for (const rule of RENDERED_RULES) expect(doc, rule.id).toContain(`**${rule.id}**`);
   });
 
   it("defaults to advisory — a tell prints, it does not fail a build", () => {

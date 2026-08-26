@@ -126,6 +126,16 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "placeholder-name", family: "content", requires: "none" },
   { id: "plural-s-hack", family: "content", requires: "none" },
   { id: "text-in-image", family: "content", requires: "none" },
+  // ── tell (rendered): the seven rules that need a real render. `requires` names
+  // the `rendered` confidence, so without --render they are NOT-EVALUATED and
+  // never counted as passing.
+  { id: "content-hidden-at-rest", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  { id: "text-overflow", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  { id: "text-occlusion", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  { id: "broken-image", family: "tell", requires: { facts: ["structure"], minConfidence: "rendered" } },
+  { id: "script-error", family: "tell", requires: { facts: ["structure"], minConfidence: "rendered" } },
+  { id: "first-viewport-column-overflow", family: "tell", requires: { facts: ["structure"], minConfidence: "rendered" } },
+  { id: "body-text-viewport-edge", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
   // ── a11y: contrast on a rendered surface, computed from resolved facts.
   // ds-a11y checks declared TOKEN pairs; this is the painted result.
   { id: "low-contrast", family: "a11y", requires: { facts: ["color", "structure"], minConfidence: "resolved" } },

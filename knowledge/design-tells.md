@@ -141,3 +141,35 @@ aesthetic as decoration where no input exists.
 
 **shape-assembled-illustration** — an "illustration" built from stacked primitive
 shapes, standing in for a drawing.
+
+## Rendered
+
+*Facts: a settled render. Requires `rendered` confidence — without `--render`
+these are NOT-EVALUATED, never counted as passing.*
+
+A rendered finding is always stated under its engine: never "the page is broken",
+always "broken under Chrome 151 at 1280x800". Engines differ, and a stamped
+condition is a fact where an unstamped one is a flake.
+
+**content-hidden-at-rest** — copy still at `opacity: 0` after the page has
+settled. The blank-page bug: an entrance animation whose trigger never fires
+leaves real text in the DOM and nothing on the screen. Static analysis provably
+cannot see it, and it is the rule that justifies the whole tier. `display: none`
+and `visibility: hidden` are deliberate and never flagged. *(error)*
+
+**text-overflow** — text clipped by a container with `overflow: hidden`. A
+scrollable container is not an overflow.
+
+**text-occlusion** — text fully covered by an opaque box drawn over it.
+
+**broken-image** — an `<img>` that did not load. *(error)*
+
+**script-error** — the page threw. Anything after the throw did not run, so every
+other finding on that page is suspect. Capped at five: one broken page should not
+be a wall of output. *(error)*
+
+**first-viewport-column-overflow** — content extending past the viewport within
+the first screen.
+
+**body-text-viewport-edge** — body copy within 8px of the viewport edge. Large
+headings may bleed on purpose and are exempt.

@@ -13,6 +13,7 @@ import { CHECK_CATALOG } from "../src/core/check-catalog.js";
 import { isLegacyRequires } from "../src/core/check-catalog.js";
 import { FACT_KINDS } from "../src/core/design-facts/index.js";
 import { TELL_RULES } from "../src/core/tell-lint.js";
+import { RENDERED_RULES } from "../src/core/tell-rules-rendered.js";
 import { VOICE_CHECKS } from "../src/core/content-checks-voice.js";
 import type { DesignFact } from "../src/core/design-facts/index.js";
 
@@ -138,7 +139,8 @@ describe("check catalog — paired with the family sources", () => {
     // re-reading those modules would be green by construction, so the pairing is
     // against the imported roster — the same objects the linter runs.
     const fromCatalog = catalogByFamily("tell");
-    const fromRuntime = new Set(TELL_RULES.map((r) => r.id));
+    // Two rosters, one family: 36 fact rules and 7 rendered ones.
+    const fromRuntime = new Set([...TELL_RULES, ...RENDERED_RULES].map((r) => r.id));
     expect([...fromCatalog].sort()).toEqual([...fromRuntime].sort());
   });
 });
