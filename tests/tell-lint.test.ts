@@ -143,9 +143,12 @@ const FIRES: Record<string, DesignFact[]> = {
     { kind: "border", sides: ["top", "right", "bottom", "left"], widthPx: 4, at: at(4) },
     { kind: "radius", px: 16, at: at(4) },
   ],
+  // Refs are PATHS: nesting is proved by one ref extending another, which is how
+  // nodeRef is built. A wrapper between the two cards is the real-world shape.
   "nested-cards": [
-    { kind: "structure", node: "div", depth: 1, ref: "outer", roles: ["card"], at: at(5) },
-    { kind: "structure", node: "div", depth: 2, ref: "inner", parentRef: "outer", roles: ["card"], at: at(6) },
+    { kind: "structure", node: "div", depth: 1, ref: "body > div.outer", roles: ["card"], at: at(5) },
+    { kind: "structure", node: "div", depth: 2, ref: "body > div.outer > div.wrap", at: at(6) },
+    { kind: "structure", node: "div", depth: 3, ref: "body > div.outer > div.wrap > div.inner", roles: ["card"], at: at(7) },
   ],
   "monotonous-spacing": Array.from({ length: 8 }, (_, i): DesignFact => ({
     kind: "spacing", prop: "padding-top", px: 16, at: at(10 + i),
@@ -384,8 +387,8 @@ describe("guards proven by breaking them", () => {
     // Hand the swiftui profile facts that WOULD trip a structure rule. Listing
     // nested-cards under notEvaluated is not enough: the rule must not fire.
     const facts: DesignFact[] = [
-      { kind: "structure", node: "VStack", depth: 1, ref: "outer", roles: ["card"], at: at(1) },
-      { kind: "structure", node: "VStack", depth: 2, ref: "inner", parentRef: "outer", roles: ["card"], at: at(2) },
+      { kind: "structure", node: "VStack", depth: 1, ref: "v > outer", roles: ["card"], at: at(1) },
+      { kind: "structure", node: "VStack", depth: 2, ref: "v > outer > inner", roles: ["card"], at: at(2) },
     ];
     const r = lintTell(facts, swift);
     expect(r.findings.map((f) => f.checkId)).not.toContain("nested-cards");
@@ -410,8 +413,29 @@ describe("guards proven by breaking them", () => {
 
   it("does not call a card inside a NON-card `nested-cards`", () => {
     const facts: DesignFact[] = [
-      { kind: "structure", node: "section", depth: 0, ref: "sec", at: at(1) },
-      { kind: "structure", node: "div", depth: 1, ref: "card", parentRef: "sec", roles: ["card"], at: at(2) },
+      { kind: "structure", node: "section", depth: 0, ref: "body > sec", at: at(1) },
+      { kind: "structure", node: "div", depth: 1, ref: "body > sec > div.card", roles: ["card"], at: at(2) },
+    ];
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).not.toContain("nested-cards");
+  });
+
+  it("catches a card nested through a WRAPPER, not only a direct child", () => {
+    // Measured against the reference implementation on a real page: it found 7
+    // nested cards where the direct-parent rule found 0, because every card sat
+    // inside a layout wrapper. A wrapper between two cards does not stop them
+    // reading as cards inside cards.
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "div", depth: 1, ref: "body > div.card", roles: ["card"], at: at(1) },
+      { kind: "structure", node: "div", depth: 2, ref: "body > div.card > div.flex", at: at(2) },
+      { kind: "structure", node: "div", depth: 3, ref: "body > div.card > div.flex > div.card", roles: ["card"], at: at(3) },
+    ];
+    expect(lintTell(facts, html).findings.map((f) => f.checkId)).toContain("nested-cards");
+  });
+
+  it("does not call two SIBLING cards nested", () => {
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "div", depth: 1, ref: "body > div.card[0]", roles: ["card"], at: at(1) },
+      { kind: "structure", node: "div", depth: 1, ref: "body > div.card[1]", roles: ["card"], at: at(2) },
     ];
     expect(lintTell(facts, html).findings.map((f) => f.checkId)).not.toContain("nested-cards");
   });

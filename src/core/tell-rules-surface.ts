@@ -71,7 +71,20 @@ export const borderAccentOnRounded: TellRule = {
   },
 };
 
-/** A card whose PARENT is also a card. Structure is what makes this provable. */
+/**
+ * A card with a card ANCESTOR. Structure is what makes this provable.
+ *
+ * Ancestor, not direct parent. Measured against the reference implementation on
+ * a real page: it found 7 nested cards where this rule found 0, and the reason
+ * was that every card sat inside a layout wrapper — `div.flex > div.flex >
+ * div.preview-card` inside another `preview-card`. A wrapper between two cards
+ * does not stop them reading as cards inside cards; visually the nesting is
+ * exactly what the reader sees.
+ *
+ * The chain is still REQUIRED. What the prototype got wrong was calling any two
+ * radii nesting; what the first implementation got wrong was demanding direct
+ * parenthood. Containment proved through refs is the middle that is true.
+ */
 export const nestedCards: TellRule = {
   id: "nested-cards",
   needs: ["structure"],
@@ -79,19 +92,25 @@ export const nestedCards: TellRule = {
   section: SECTION,
   run: (facts) => {
     const structures = facts.by("structure");
-    const cardRefs = new Set(structures.filter((s) => s.roles?.includes("card")).map((s) => s.ref));
-    return structures
-      .filter((s) => s.roles?.includes("card") && s.parentRef !== undefined && cardRefs.has(s.parentRef))
-      .map((s) =>
-        finding(nestedCards, {
-          message: `card nested directly inside another card (${s.parentRef})`,
-          line: s.at.line,
-          nodeRef: s.ref,
+    const cards = structures.filter((s) => s.roles?.includes("card"));
+    const cardRefs = cards.map((c) => c.ref);
+    return cards
+      .map((c) => {
+        // The nearest card ancestor: a ref is an ancestor when this ref extends
+        // it by a path separator, which is exactly how nodeRef is built.
+        const ancestors = cardRefs.filter((o) => o !== c.ref && c.ref.startsWith(`${o} > `));
+        if (ancestors.length === 0) return undefined;
+        const nearest = ancestors.reduce((a, b) => (b.length > a.length ? b : a));
+        return finding(nestedCards, {
+          message: `card nested inside another card (${nearest.split(" > ").slice(-1)[0]})`,
+          line: c.at.line,
+          nodeRef: c.ref,
           expected: "one level of card",
-          actual: `card at depth ${s.depth} inside ${s.parentRef}`,
+          actual: `card at depth ${c.depth} inside ${nearest.split(" > ").slice(-1)[0]}`,
           fixHint: "flatten: use spacing and type, not a second container",
-        }),
-      );
+        });
+      })
+      .filter((f): f is NonNullable<typeof f> => f !== undefined);
   },
 };
 
