@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { expectedCapabilityPilotReceipt, parseCapabilityPilotReceiptPin } from "./capability-pilot-receipt.js";
 
 export type CapabilityStatus = "qualified" | "unqualified";
 
@@ -110,7 +111,9 @@ export function parseCapabilityCatalog(raw: string): CatalogParseResult {
     }
     if (item["status"] === "unqualified" &&
         (item["workflow"] !== null || item["refusalCode"] !== "CAPABILITY_UNQUALIFIED" ||
-         !nonEmpty(item["action"]) || stringList(item["qualificationRequirements"]) === null)) {
+         !nonEmpty(item["action"]) || stringList(item["qualificationRequirements"]) === null ||
+         !parseCapabilityPilotReceiptPin(item["qualificationEvidence"]).ok ||
+         expectedCapabilityPilotReceipt(String(item["id"])) === null)) {
       return { ok: false, message: `unqualified capability '${item["id"]}' is incomplete` };
     }
     profiles.push(item as unknown as CapabilityProfile);

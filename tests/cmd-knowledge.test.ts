@@ -3,8 +3,9 @@
  * scaffolds a throwaway repo root with a knowledge/ tree in tmp, so the command's
  * own IO (walk + read) is exercised end-to-end against the pure linter.
  */
+import { createHash } from "node:crypto";
 import { describe, expect, it, beforeEach } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { fullRouteTable } from "./fixtures/full-route-table.js";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
@@ -35,6 +36,18 @@ const parse = (s: string): Envelope => JSON.parse(s) as Envelope;
 const checkIds = (r: { stdout: string }): string[] => (parse(r.stdout).data?.findings ?? []).map((f) => f.checkId);
 
 let root: string;
+const PILOT_RECEIPT = {
+  kind: "design-os.capability-pilot-receipt",
+  version: 1,
+  capabilityId: "native-macos",
+  pilotId: "native-macos-pilot-01",
+  surfaceCategory: "note-document-editor",
+  evidenceDisposition: "retained",
+  ownerVerdict: "OK khá ổn rồi.",
+  ownerDisposition: "accept-with-reservation",
+};
+const receiptBytes = (): string => `${JSON.stringify(PILOT_RECEIPT, null, 2)}\n`;
+const sha256 = (bytes: string): string => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 
 /** Write one file under the tmp repo root, creating parent dirs. */
 function write(rel: string, content: string): void {
@@ -107,6 +120,37 @@ function emitIndexInto(repoRoot: string): void {
     if (name.endsWith(".md")) md[name] = readFileSync(join(dir, name), "utf8");
   }
   writeFileSync(join(dir, "index.json"), emitIndex(buildIndex(topLevelMarkdown(md))), "utf8");
+}
+
+function addNativePilot(options: { pin?: string; bytes?: string; writeReceipt?: boolean } = {}): string {
+  const bytes = options.bytes ?? receiptBytes();
+  const pin = options.pin ?? `knowledge/native-macos/pilot-01-evidence.json#${sha256(bytes)}`;
+  if (options.writeReceipt !== false) write("knowledge/native-macos/pilot-01-evidence.json", bytes);
+  const catalog = JSON.parse(readFileSync(join(root, "knowledge", "capability-profiles.json"), "utf8")) as {
+    profiles: Array<Record<string, unknown>>;
+  };
+  catalog.profiles.push({
+    id: "native-macos", status: "unqualified", acceptedInputKinds: ["words"], workflow: null,
+    artifact: "native-macos-application", refusalCode: "CAPABILITY_UNQUALIFIED", action: "Stop.",
+    qualificationRequirements: ["second held-out pilot"], qualificationEvidence: pin,
+  });
+  write("knowledge/capability-profiles.json", JSON.stringify(catalog));
+  write("knowledge/need-routing.md", readFileSync(join(root, "knowledge", "need-routing.md"), "utf8").replace(
+    "| `web-marketing` | qualified | `generate` |",
+    "| `web-marketing` | qualified | `generate` |\n| `native-macos` | unqualified | none |",
+  ));
+  emitIndexInto(root);
+  return pin;
+}
+
+function replaceNativePin(pin: string): void {
+  const catalog = JSON.parse(readFileSync(join(root, "knowledge", "capability-profiles.json"), "utf8")) as {
+    profiles: Array<Record<string, unknown>>;
+  };
+  const native = catalog.profiles.find((profile) => profile["id"] === "native-macos");
+  if (native === undefined) throw new Error("native pilot profile missing from test scaffold");
+  native["qualificationEvidence"] = pin;
+  write("knowledge/capability-profiles.json", JSON.stringify(catalog));
 }
 
 beforeEach(() => {
@@ -201,5 +245,78 @@ describe("ui knowledge check", () => {
     const r = capture(["knowledge", "check", "--dir", root, "--as-of", "julyish", "--json"]);
     expect(r.exitCode).toBe(1);
     expect(parse(r.stdout).error?.code).toBe("BAD_AS_OF");
+  });
+
+  it("validates a correctly pinned native pilot receipt", () => {
+    scaffoldConsistent();
+    addNativePilot();
+    const r = capture(["knowledge", "check", "--dir", root, "--as-of", "202607", "--json"]);
+    expect(r.exitCode).toBe(0);
+    expect(checkIds(r)).not.toContain("capability-pilot-receipt-invalid");
+  });
+
+  it.each(["mutated-bytes", "zeroed-digest", "malformed-pin", "traversal-pin"])(
+    "rejects a %s receipt pin through the real knowledge check command",
+    (caseName) => {
+      scaffoldConsistent();
+      addNativePilot();
+      if (caseName === "mutated-bytes") {
+        write("knowledge/native-macos/pilot-01-evidence.json", `${receiptBytes()}\n`);
+      } else if (caseName === "zeroed-digest") {
+        replaceNativePin(`knowledge/native-macos/pilot-01-evidence.json#${"sha256:" + "0".repeat(64)}`);
+      } else if (caseName === "malformed-pin") {
+        replaceNativePin("not-a-pilot-receipt-pin");
+      } else {
+        replaceNativePin(`knowledge/../outside.json#${"sha256:" + "0".repeat(64)}`);
+      }
+      const r = capture(["knowledge", "check", "--dir", root, "--as-of", "202607", "--json"]);
+      expect(r.exitCode).toBe(1);
+      expect(checkIds(r)).toContain("capability-pilot-receipt-invalid");
+    },
+  );
+
+  it("rejects a missing native pilot pin through the real knowledge check command", () => {
+    scaffoldConsistent();
+    addNativePilot();
+    const catalog = JSON.parse(readFileSync(join(root, "knowledge", "capability-profiles.json"), "utf8")) as {
+      profiles: Array<Record<string, unknown>>;
+    };
+    const native = catalog.profiles.find((profile) => profile["id"] === "native-macos");
+    if (native === undefined) throw new Error("native pilot profile missing from test scaffold");
+    delete native["qualificationEvidence"];
+    write("knowledge/capability-profiles.json", JSON.stringify(catalog));
+    const r = capture(["knowledge", "check", "--dir", root, "--as-of", "202607", "--json"]);
+    expect(r.exitCode).toBe(1);
+    expect(checkIds(r)).toContain("capability-pilot-receipt-missing");
+  });
+
+  it("rejects a receipt symlink that resolves outside knowledge", () => {
+    scaffoldConsistent();
+    addNativePilot({ writeReceipt: false });
+    const bytes = receiptBytes();
+    write("outside.json", bytes);
+    const receiptPath = join(root, "knowledge", "native-macos", "pilot-01-evidence.json");
+    mkdirSync(dirname(receiptPath), { recursive: true });
+    symlinkSync(join(root, "outside.json"), receiptPath);
+    const r = capture(["knowledge", "check", "--dir", root, "--as-of", "202607", "--json"]);
+    expect(r.exitCode).toBe(1);
+    expect(checkIds(r)).toContain("capability-pilot-receipt-invalid");
+  });
+
+  it("rejects an unqualified capability with no registered pilot identity", () => {
+    scaffoldConsistent();
+    addNativePilot();
+    const catalog = JSON.parse(readFileSync(join(root, "knowledge", "capability-profiles.json"), "utf8")) as {
+      profiles: Array<Record<string, unknown>>;
+    };
+    const native = catalog.profiles.find((profile) => profile["id"] === "native-macos");
+    if (native === undefined) throw new Error("native pilot profile missing from test scaffold");
+    native["id"] = "unregistered-native";
+    write("knowledge/capability-profiles.json", JSON.stringify(catalog));
+    write("knowledge/need-routing.md", readFileSync(join(root, "knowledge", "need-routing.md"), "utf8")
+      .replace("`native-macos`", "`unregistered-native`"));
+    const r = capture(["knowledge", "check", "--dir", root, "--as-of", "202607", "--json"]);
+    expect(r.exitCode).toBe(1);
+    expect(checkIds(r)).toContain("capability-pilot-receipt-invalid");
   });
 });

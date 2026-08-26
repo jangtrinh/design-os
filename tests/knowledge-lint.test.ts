@@ -99,6 +99,18 @@ describe("knowledge-lint — passes on a consistent core", () => {
   });
 });
 
+describe("knowledge-lint — capability pilot evidence", () => {
+  it("turns command-provided receipt rejection into a stable error", () => {
+    const base = consistent({
+      capabilityPilotReceipts: [{
+        capabilityId: "native-macos",
+        result: { ok: false, code: "PILOT_RECEIPT_DIGEST", message: "pilot receipt digest does not match exact stored bytes" },
+      }],
+    });
+    expect(ids(base)).toContain("capability-pilot-receipt-invalid");
+  });
+});
+
 describe("knowledge-lint — index checks", () => {
   it("index-missing-row: a knowledge md with no table row", () => {
     const base = consistent();

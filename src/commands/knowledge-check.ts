@@ -6,6 +6,9 @@ import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { lintKnowledge } from "../core/knowledge-lint.js";
+import type { CapabilityPilotReceiptValidation } from "../core/knowledge-lint.js";
+import { expectedCapabilityPilotReceipt, verifyCapabilityPilotReceipt } from "../core/capability-pilot-receipt.js";
+import type { CapabilityPilotReceiptCheck } from "../core/capability-pilot-receipt.js";
 
 function currentMonth(): string { const now = new Date(); return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`; }
 export function walkKnowledge(root: string, base = ""): string[] {
@@ -17,6 +20,33 @@ export function walkKnowledge(root: string, base = ""): string[] {
   return out;
 }
 const optional = (path: string): string | null => { try { return existsSync(path) ? readFileSync(path, "utf8") : null; } catch { return null; } };
+const isRecord = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
+const receiptFailure = (code: string, message: string): CapabilityPilotReceiptCheck => ({ ok: false, code, message });
+
+function pilotReceiptValidations(knowledgeDir: string, catalogJson: string | null): CapabilityPilotReceiptValidation[] {
+  if (catalogJson === null) return [];
+  let profiles: unknown[];
+  try {
+    const catalog = JSON.parse(catalogJson) as unknown;
+    profiles = isRecord(catalog) && Array.isArray(catalog["profiles"]) ? catalog["profiles"] : [];
+  } catch { return []; }
+  const seenPilotIds = new Set<string>();
+  return profiles.flatMap((profile): CapabilityPilotReceiptValidation[] => {
+    if (!isRecord(profile) || profile["status"] !== "unqualified") return [];
+    const capabilityId = typeof profile["id"] === "string" ? profile["id"] : "unknown";
+    const pin = profile["qualificationEvidence"];
+    if (pin === undefined || pin === null || (typeof pin === "string" && pin.trim() === "")) {
+      return [{ capabilityId, result: receiptFailure("PILOT_RECEIPT_MISSING", "unqualified capability requires a pilot receipt pin") }];
+    }
+    const expected = expectedCapabilityPilotReceipt(capabilityId);
+    if (expected === null) {
+      return [{ capabilityId, result: receiptFailure("PILOT_RECEIPT_CAPABILITY", "no retained pilot identity is registered for this capability") }];
+    }
+    const result = verifyCapabilityPilotReceipt(knowledgeDir, pin, expected, seenPilotIds);
+    if (result.ok) seenPilotIds.add(result.receipt.pilotId);
+    return [{ capabilityId, result }];
+  });
+}
 
 export function runKnowledgeCheck(parsed: ParsedArgs): CommandResult {
   const sub = "knowledge check"; const useJson = parsed.json;
@@ -37,6 +67,7 @@ export function runKnowledgeCheck(parsed: ParsedArgs): CommandResult {
   let sourceLedgerJson: string | null; let sourceTree: string | null; let sourceSkills: string | null; let webTechniqueCatalogJson: string | null;
   try { sourceLedgerJson = tracked("sources/mengto-web-techniques--202608.json"); sourceTree = tracked("sources/mengto-web-techniques--202608/tree.json"); sourceSkills = tracked("sources/mengto-web-techniques--202608/skills.json"); webTechniqueCatalogJson = tracked("web-techniques/catalog.json"); }
   catch (error) { return err("READ_ERROR", `cannot read tracked technique knowledge: ${error instanceof Error ? error.message : String(error)}`); }
+  const capabilityCatalogJson = read("capability-profiles.json");
   const findings = lintKnowledge({
     files, mdContents, repoFiles: files.map((file) => `knowledge/${file}`), asOf,
     personasJson: read("personas/personas.json"), committedIndex: read("index.json"),
@@ -44,7 +75,8 @@ export function runKnowledgeCheck(parsed: ParsedArgs): CommandResult {
     sourceLedgerJson,
     sourceLedgerParts: { "sources/mengto-web-techniques--202608/tree.json": sourceTree ?? "", "sources/mengto-web-techniques--202608/skills.json": sourceSkills ?? "" },
     webTechniqueCatalogJson,
-    capabilityCatalogJson: read("capability-profiles.json"),
+    capabilityCatalogJson,
+    capabilityPilotReceipts: pilotReceiptValidations(knowledgeDir, capabilityCatalogJson),
   });
   const errorCount = findings.filter((finding) => finding.severity === "error").length; const warningCount = findings.length - errorCount;
   if (useJson) return okJsonWithExit(sub, { dir: knowledgeDir, asOf, findings, errorCount, warningCount }, errorCount > 0 ? 1 : 0);

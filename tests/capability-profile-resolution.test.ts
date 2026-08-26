@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   parseCapabilityCatalog,
@@ -29,6 +32,7 @@ const catalog = {
       refusalCode: "CAPABILITY_UNQUALIFIED",
       action: "Do not run generate.",
       advisoryKnowledge: ["content-design"],
+      qualificationEvidence: "knowledge/native-macos/pilot-01-evidence.json#sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       qualificationRequirements: ["SwiftUI knowledge"],
     },
   ],
@@ -42,6 +46,7 @@ const request = (surface: string, rawRequest: string, quote: string) => ({
   inputKind: "words",
   selectionEvidence: { kind: "quoted-request", quote, role: "requested-artifact" },
 });
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 describe("capability activation core", () => {
   const receiptFor = (value: ReturnType<typeof request>) => {
@@ -108,6 +113,32 @@ describe("capability activation core", () => {
     }
   });
 
+  it("keeps the actual native catalog advisory-only while pinning retained pilot evidence", () => {
+    const parsed = parseCapabilityCatalog(readFileSync(join(ROOT, "knowledge", "capability-profiles.json"), "utf8"));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const native = parsed.catalog.profiles.find((profile) => profile.id === "native-macos");
+    expect(native).toBeDefined();
+    if (native === undefined) return;
+
+    expect(native.status).toBe("unqualified");
+    expect(native.workflow).toBeNull();
+    expect(native.advisoryKnowledge).toContain("native-macos-craft");
+    expect(native.qualificationEvidence).toMatch(
+      /^knowledge\/native-macos\/pilot-01-evidence\.json#sha256:[a-f0-9]{64}$/,
+    );
+    const result = resolveCapabilityActivation(
+      request("native-macos", "Build a native macOS workspace", "native macOS workspace"),
+      parsed.catalog,
+      "sha256:catalog",
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.receipt?.route).toBeNull();
+      expect(result.receipt?.selectedKnowledge).toContain("native-macos-craft");
+    }
+  });
+
   it("rejects selection evidence whose quote is absent from the raw request", () => {
     const parsed = parseCapabilityCatalog(JSON.stringify(catalog));
     if (!parsed.ok) throw new Error(parsed.message);
@@ -127,6 +158,12 @@ describe("capability activation core", () => {
     const extraField = structuredClone(catalog) as unknown as { profiles: Array<Record<string, unknown>> };
     extraField.profiles[1]!["fallbackWorkflow"] = "generate";
     expect(parseCapabilityCatalog(JSON.stringify(extraField)).ok).toBe(false);
+    const missingNativeEvidence = structuredClone(catalog) as unknown as { profiles: Array<Record<string, unknown>> };
+    delete missingNativeEvidence.profiles[1]!["qualificationEvidence"];
+    expect(parseCapabilityCatalog(JSON.stringify(missingNativeEvidence)).ok).toBe(false);
+    const unregisteredNative = structuredClone(catalog) as unknown as { profiles: Array<Record<string, unknown>> };
+    unregisteredNative.profiles[1]!["id"] = "unregistered-native";
+    expect(parseCapabilityCatalog(JSON.stringify(unregisteredNative)).ok).toBe(false);
   });
 
   it("rejects activation request fields outside the public schema", () => {
