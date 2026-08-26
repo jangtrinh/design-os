@@ -81,6 +81,23 @@ function nearestBackground(
   return fallback;
 }
 
+/** Which ancestor actually supplies the background, or undefined. */
+function nearestBackgroundOwner(
+  startRef: string | undefined,
+  parentOf: Map<string, string>,
+  bgByRef: Map<string, { hex: string; alpha?: number }>,
+): string | undefined {
+  let ref = startRef;
+  const seen = new Set<string>();
+  while (ref !== undefined && !seen.has(ref)) {
+    seen.add(ref);
+    const bg = bgByRef.get(ref);
+    if (bg !== undefined && (bg.alpha ?? 1) >= 0.95) return ref;
+    ref = parentOf.get(ref);
+  }
+  return undefined;
+}
+
 /**
  * Compute contrast for every text-bearing node the facts describe.
  *
@@ -98,24 +115,63 @@ export function checkComputedContrast(
 
   const parentOf = new Map<string, string>();
   const bgByRef = new Map<string, { hex: string; alpha?: number }>();
-  let documentBg: { hex: string; alpha?: number } | undefined;
+  const rootRefs = new Set<string>();
 
   for (const f of facts) {
     if (f.kind === "structure") {
       if (f.parentRef !== undefined) parentOf.set(f.ref, f.parentRef);
+      const tag = f.node.toLowerCase();
+      if (tag === "html" || tag === "body") rootRefs.add(f.ref);
       continue;
     }
-    if (f.kind === "color" && f.role === "bg") {
-      const ref = f.at.nodeRef;
-      if (ref !== undefined) bgByRef.set(ref, { hex: f.hex, alpha: f.alpha });
-      // The outermost opaque background stands in when no ancestor paints one.
-      if ((f.alpha ?? 1) >= 0.95 && documentBg === undefined) documentBg = { hex: f.hex, alpha: f.alpha };
+    if (f.kind === "color" && f.role === "bg" && f.at.nodeRef !== undefined) {
+      bgByRef.set(f.at.nodeRef, { hex: f.hex, alpha: f.alpha });
+    }
+  }
+
+  // The page background comes from <html> or <body>, and from nowhere else.
+  //
+  // It used to be "the first opaque background encountered", which is a GUESS —
+  // and on a real page the first one was a `<div style="background-color:#FDFDFD">`
+  // holding a video poster. Every text node with no painted ancestor was then
+  // judged against a video placeholder, producing white-on-near-white at 1.02:1
+  // for a surface nobody ever sees. No root background means no fallback, and
+  // the pair is reported NOT COMPUTABLE.
+  let documentBg: { hex: string; alpha?: number } | undefined;
+  for (const ref of rootRefs) {
+    const bg = bgByRef.get(ref);
+    if (bg !== undefined && (bg.alpha ?? 1) >= 0.95) {
+      documentBg = bg;
+      break;
     }
   }
 
   // Lines carrying a gradient background: a ratio against a gradient is not one
   // number, so any text over one is reported not-computable rather than judged.
   const gradientLines = new Set(facts.filter((f) => f.kind === "gradient").map((f) => f.at.line));
+
+  // Backgrounds that a MEDIA element paints over.
+  //
+  // Found on a real site: `<div style="background-color:#FDFDFD"><video …>` with
+  // white player controls absolutely positioned on top. The nearest opaque
+  // ancestor background is #FDFDFD by the cascade, so the check reported white
+  // on near-white at 1.02:1 — a ratio for a surface nobody ever sees, because
+  // the video paints over it. Same class as the gradient guard: what is actually
+  // behind the text is not knowable statically, so it is NOT COMPUTABLE.
+  //
+  // Whether the media truly overlaps needs layout, which is the rendered tier's
+  // job. Refusing here is the honest static answer.
+  //
+  // Only the media's DIRECT parent counts. Marking the whole ancestor chain
+  // silenced 271 pairs on one real site — an `<svg>` icon anywhere makes `body`
+  // media-covered, and with it every text node on the page. The container that
+  // literally wraps the media is the one whose background the media hides.
+  const MEDIA = new Set(["video", "img", "canvas", "svg", "picture", "iframe", "object"]);
+  const mediaCovered = new Set<string>();
+  for (const f of facts) {
+    if (f.kind !== "structure" || !MEDIA.has(f.node.toLowerCase())) continue;
+    if (f.parentRef !== undefined) mediaCovered.add(f.parentRef);
+  }
 
   const typography = facts.filter((f): f is Extract<DesignFact, { kind: "typography" }> => f.kind === "typography");
   const findings: ContrastFinding[] = [];
@@ -128,6 +184,12 @@ export function checkComputedContrast(
     const ref = f.at.nodeRef;
     if (ref !== undefined && gradientLines.has(f.at.line)) {
       notComputable.push({ nodeRef: ref, line: f.at.line, reason: "background is a gradient" });
+      continue;
+    }
+
+    const bgOwner = nearestBackgroundOwner(ref, parentOf, bgByRef);
+    if (bgOwner !== undefined && mediaCovered.has(bgOwner)) {
+      notComputable.push({ nodeRef: ref, line: f.at.line, reason: "a media element paints over the background" });
       continue;
     }
 

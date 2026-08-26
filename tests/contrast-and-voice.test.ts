@@ -281,3 +281,138 @@ describe("one decision is reported once", () => {
     expect(lintTell(facts, html).contrast).toHaveLength(2);
   });
 });
+
+describe("a background a media element paints over is not knowable", () => {
+  const mediaCase = (mediaTag: string): DesignFact[] => [
+    { kind: "structure", node: "div", depth: 0, ref: "shell", at: at(1, "shell") },
+    { kind: "color", hex: "fdfdfd", role: "bg", at: at(1, "shell") },
+    { kind: "structure", node: mediaTag, depth: 1, ref: "media", parentRef: "shell", at: at(2, "media") },
+    { kind: "structure", node: "button", depth: 1, ref: "btn", parentRef: "shell", at: at(3, "btn") },
+    { kind: "color", hex: "ffffff", role: "fg", at: at(3, "btn") },
+  ];
+
+  it("REFUSES rather than reporting white-on-near-white for player controls", () => {
+    // Found on a real site: <div style="background-color:#FDFDFD"><video …>
+    // with white controls over it. The cascade says the background is #FDFDFD,
+    // so the check reported 1.02:1 — a ratio for a surface nobody ever sees.
+    const r = checkComputedContrast(mediaCase("video"), "resolved");
+    expect(r.findings).toEqual([]);
+    expect(r.notComputable[0]?.reason).toBe("a media element paints over the background");
+  });
+
+  it("refuses for every media element that can cover a surface", () => {
+    for (const tag of ["video", "img", "canvas", "svg", "picture", "iframe"]) {
+      const r = checkComputedContrast(mediaCase(tag), "resolved");
+      expect(r.findings, tag).toEqual([]);
+    }
+  });
+
+  it("still judges a surface with no media in it", () => {
+    const plain: DesignFact[] = [
+      { kind: "structure", node: "div", depth: 0, ref: "shell", at: at(1, "shell") },
+      { kind: "color", hex: "fdfdfd", role: "bg", at: at(1, "shell") },
+      { kind: "structure", node: "button", depth: 1, ref: "btn", parentRef: "shell", at: at(3, "btn") },
+      { kind: "color", hex: "ffffff", role: "fg", at: at(3, "btn") },
+    ];
+    const r = checkComputedContrast(plain, "resolved");
+    expect(r.findings).toHaveLength(1);
+    expect(r.findings[0]?.ratio).toBeCloseTo(1.02, 2);
+  });
+
+  it("does not refuse when the media is in an UNRELATED subtree", () => {
+    const elsewhere: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "body", at: at(1, "body") },
+      { kind: "structure", node: "figure", depth: 1, ref: "fig", parentRef: "body", at: at(2, "fig") },
+      { kind: "structure", node: "video", depth: 2, ref: "vid", parentRef: "fig", at: at(3, "vid") },
+      { kind: "structure", node: "section", depth: 1, ref: "sec", parentRef: "body", at: at(9, "sec") },
+      { kind: "color", hex: "7c3aed", role: "bg", at: at(9, "sec") },
+      { kind: "structure", node: "p", depth: 2, ref: "p", parentRef: "sec", at: at(10, "p") },
+      { kind: "color", hex: "9ca3af", role: "fg", at: at(10, "p") },
+    ];
+    // The video sits under <figure>, not under <section>; the section's own
+    // background is still knowable. Refusing here would silence the check on any
+    // page that contains an image anywhere.
+    const r = checkComputedContrast(elsewhere, "resolved");
+    expect(r.findings).toHaveLength(1);
+    expect(r.findings[0]?.ratio).toBeCloseTo(2.24, 2);
+  });
+});
+
+describe("the page background comes from the root, never from a guess", () => {
+  it("does NOT adopt an arbitrary element's background as the page background", () => {
+    // The old fallback took "the first opaque background encountered". On a real
+    // page that was a <div style="background-color:#FDFDFD"> holding a video
+    // poster, so unrelated text was judged against a video placeholder and
+    // reported white-on-near-white at 1.02:1 for a surface nobody sees.
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "body", at: at(1, "body") },
+      { kind: "structure", node: "div", depth: 1, ref: "poster", parentRef: "body", at: at(2, "poster") },
+      { kind: "color", hex: "fdfdfd", role: "bg", at: at(2, "poster") },
+      { kind: "structure", node: "p", depth: 1, ref: "p", parentRef: "body", at: at(9, "p") },
+      { kind: "color", hex: "ffffff", role: "fg", at: at(9, "p") },
+    ];
+    const r = checkComputedContrast(facts, "resolved");
+    expect(r.findings).toEqual([]);
+    expect(r.notComputable[0]?.reason).toBe("no opaque background resolved");
+  });
+
+  it("DOES use a background painted on body", () => {
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "body", at: at(1, "body") },
+      { kind: "color", hex: "101010", role: "bg", at: at(1, "body") },
+      { kind: "structure", node: "code", depth: 2, ref: "code", parentRef: "body", at: at(9, "code") },
+      { kind: "color", hex: "3178c6", role: "fg", at: at(9, "code") },
+    ];
+    // Syntax highlighting on a dark page: 4.2:1, marginally under AA. A real
+    // finding on a real site, and it must survive both guards above.
+    const r = checkComputedContrast(facts, "resolved");
+    expect(r.findings).toHaveLength(1);
+    expect(r.findings[0]?.ratio).toBeCloseTo(4.2, 1);
+  });
+
+  it("an icon somewhere on the page does not silence the whole page", () => {
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "body", at: at(1, "body") },
+      { kind: "color", hex: "101010", role: "bg", at: at(1, "body") },
+      { kind: "structure", node: "button", depth: 1, ref: "btn", parentRef: "body", at: at(2, "btn") },
+      { kind: "structure", node: "svg", depth: 2, ref: "icon", parentRef: "btn", at: at(3, "icon") },
+      { kind: "structure", node: "code", depth: 1, ref: "code", parentRef: "body", at: at(9, "code") },
+      { kind: "color", hex: "3178c6", role: "fg", at: at(9, "code") },
+    ];
+    // Marking the icon's whole ancestor chain silenced 271 pairs on one site.
+    const r = checkComputedContrast(facts, "resolved");
+    expect(r.findings).toHaveLength(1);
+  });
+});
+
+describe("the root fallback, where it actually matters", () => {
+  it("uses body's background for text whose ancestor chain is broken", () => {
+    // An extractor that supplies structure only heuristically may not emit a
+    // parentRef chain reaching the root. The walk then finds nothing, and the
+    // root fallback is the only thing standing between a real finding and a
+    // NOT COMPUTABLE. Every earlier test had a complete chain, so removing root
+    // detection left them all green.
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "body", depth: 0, ref: "body", at: at(1, "body") },
+      { kind: "color", hex: "101010", role: "bg", at: at(1, "body") },
+      // No parentRef: this node is floating.
+      { kind: "structure", node: "code", depth: 3, ref: "orphan", at: at(9, "orphan") },
+      { kind: "color", hex: "3178c6", role: "fg", at: at(9, "orphan") },
+    ];
+    const r = checkComputedContrast(facts, "resolved");
+    expect(r.findings).toHaveLength(1);
+    expect(r.findings[0]?.message).toContain("#101010");
+  });
+
+  it("refuses for a floating node when NO root background exists", () => {
+    const facts: DesignFact[] = [
+      { kind: "structure", node: "div", depth: 1, ref: "poster", at: at(2, "poster") },
+      { kind: "color", hex: "fdfdfd", role: "bg", at: at(2, "poster") },
+      { kind: "structure", node: "code", depth: 3, ref: "orphan", at: at(9, "orphan") },
+      { kind: "color", hex: "ffffff", role: "fg", at: at(9, "orphan") },
+    ];
+    const r = checkComputedContrast(facts, "resolved");
+    expect(r.findings).toEqual([]);
+    expect(r.notComputable[0]?.reason).toBe("no opaque background resolved");
+  });
+});
