@@ -65,6 +65,21 @@ export function digestText(value: string): string {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
+export function digestActivationRequest(request: Record<string, unknown>): string {
+  return digestText(stableJson({
+    kind: request["kind"], version: request["version"], rawRequest: request["rawRequest"],
+    requestedSurface: request["requestedSurface"], inputKind: request["inputKind"],
+    selectionEvidence: request["selectionEvidence"],
+  }));
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (objectValue(value)) return `{${Object.keys(value).sort().map((key) =>
+    `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  return JSON.stringify(value) ?? "null";
+}
+
 export function parseCapabilityCatalog(raw: string): CatalogParseResult {
   let value: unknown;
   try { value = JSON.parse(raw); }
@@ -161,7 +176,7 @@ function buildReceipt(
   const qualified = profile.status === "qualified";
   return {
     kind: "capability-activation", version: 1,
-    requestDigest: digestText(String(request["rawRequest"])), catalogDigest,
+    requestDigest: digestActivationRequest(request), catalogDigest,
     requestedSurface: profile.id, inputKind: String(request["inputKind"]),
     selectionEvidence: evidence,
     disposition: qualified ? "QUALIFIED" : "UNQUALIFIED",
