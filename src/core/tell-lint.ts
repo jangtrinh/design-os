@@ -24,6 +24,7 @@ import { checkComputedContrast } from "./a11y-checks-contrast.js";
 import type { ContrastFinding, ContrastResult } from "./a11y-checks-contrast.js";
 import { checkVoice } from "./content-checks-voice.js";
 import type { VoiceFinding } from "./content-checks-voice.js";
+import { synthesizeRoles } from "./design-facts/role-synthesis.js";
 import { indexFacts } from "./tell-rules.js";
 import type { TellRule, TellFinding } from "./tell-rules.js";
 import { SURFACE_RULES } from "./tell-rules-surface.js";
@@ -78,7 +79,12 @@ export function lintTell(
 ): TellLintResult {
   const { runnable, notEvaluated } = partition(TELL_REQUIREMENTS, profile);
   const runnableIds = new Set(runnable);
-  const index = indexFacts(facts);
+  // Roles are DERIVED before any rule sees the facts. Name matching failed in
+  // both directions on real pages — `card-title` counted as a card, a Tailwind
+  // surface did not — so the predicate reads the facts the extractors already
+  // emit and every language gets it at once.
+  const resolved = synthesizeRoles(facts);
+  const index = indexFacts(resolved);
 
   const findings: TellFinding[] = [];
   for (const rule of TELL_RULES) {
@@ -118,8 +124,8 @@ export function lintTell(
   // low-contrast is an a11y check and the voice tells are content checks: they
   // ride along here because this is where the facts are, but they keep their own
   // family so `ui gate` attributes them correctly.
-  const contrastResult = checkComputedContrast(facts, profile.supplies.color);
-  const voice = checkVoice(facts);
+  const contrastResult = checkComputedContrast(resolved, profile.supplies.color);
+  const voice = checkVoice(resolved);
 
   const contrast = collapseRepeated(contrastResult.findings);
   const collapsedVoice = collapseRepeated(voice);

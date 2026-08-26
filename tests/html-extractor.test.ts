@@ -180,28 +180,20 @@ describe("html extractor on the real probe fixture", () => {
     expect(oneSided).toMatchObject({ sides: ["left"], widthPx: 4 });
   });
 
-  it("sees the nesting that makes `nested-cards` provable rather than guessed", () => {
-    // The claim is not "two cards exist" — the prototype made that mistake and
-    // reported "radius 16 inside 12". The claim is "a card whose PARENT is a card".
+  it("emits the FACTS that prove nesting — the role itself is derived downstream", () => {
+    // Roles moved out of the extractor: name matching read `card-title` as a
+    // card and read a Tailwind surface as nothing. The extractor's job is now
+    // the parent chain and the surface facts; `tests/role-synthesis.test.ts`
+    // owns whether those add up to a card.
     const structures = of(facts, "structure");
-    const cardRefs = new Set(structures.filter((f) => f.roles?.includes("card")).map((f) => f.ref));
-    const nested = structures.filter(
-      (f) => f.roles?.includes("card") && f.parentRef !== undefined && cardRefs.has(f.parentRef),
-    );
-    expect(nested).toHaveLength(1);
-    expect(nested[0]?.depth).toBeGreaterThan(0);
-  });
-
-  it("does NOT see nesting where there is none — the false-positive guard", () => {
-    const flat = `<html><head><style>.card{border-radius:16px}.box{border-radius:12px}</style></head>
-      <body><div class="card">a</div><div class="box">b</div></body></html>`;
-    const r = extractHtml(flat, "flat.html");
-    const st = of(r.collector.facts(), "structure");
-    const cardRefs = new Set(st.filter((f) => f.roles?.includes("card")).map((f) => f.ref));
-    const nested = st.filter((f) => f.roles?.includes("card") && f.parentRef !== undefined && cardRefs.has(f.parentRef));
-    expect(nested).toHaveLength(0);
-    // Two radii in one file, zero nesting: exactly the case the prototype got wrong.
-    expect(of(r.collector.facts(), "radius")).toHaveLength(2);
+    const withParent = structures.filter((f) => f.parentRef !== undefined);
+    expect(withParent.length).toBeGreaterThan(0);
+    // The chain is a real path: a child's ref extends its parent's.
+    for (const s of withParent.slice(0, 20)) expect(s.ref.startsWith(`${s.parentRef} > `)).toBe(true);
+    // And the surface facts a card is proved from are present and located.
+    expect(of(facts, "border").length).toBeGreaterThan(0);
+    expect(of(facts, "radius").length).toBeGreaterThan(0);
+    for (const b of of(facts, "border")) expect(b.at.nodeRef).toBeDefined();
   });
 
   it("reads the AI-tell gradient and the overused font", () => {

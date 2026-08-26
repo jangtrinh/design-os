@@ -120,7 +120,10 @@ function emitStructure(
 ): void {
   const classes = (el.attribs["class"] ?? "").split(/\s+/).filter(Boolean);
   const roles: string[] = [];
-  if (classes.some((k) => /(^|-)card($|-)/i.test(k))) roles.push("card");
+  // A name CLAIMS a role; role-synthesis decides. `card` is deliberately absent
+  // here: the regex matched `card-title` and `card-desc`, so a card's own title
+  // counted as a nested card. Card-ness is now proved from surface facts.
+  
   if (classes.some((k) => /(^|-)(icon|glyph)($|-)/i.test(k))) roles.push("icon");
   if (el.tagName === "section" || classes.some((k) => /(^|-)section($|-)/i.test(k))) roles.push("section");
   const parent = el.parent as Element | null;

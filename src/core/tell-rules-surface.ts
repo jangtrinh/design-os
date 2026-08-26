@@ -11,6 +11,7 @@
  */
 import type { TellRule, FactIndex } from "./tell-rules.js";
 import { finding, sameOwner } from "./tell-rules.js";
+import { hasDistinctSurface } from "./design-facts/role-synthesis.js";
 
 const SECTION = "Surface and card";
 
@@ -92,7 +93,14 @@ export const nestedCards: TellRule = {
   section: SECTION,
   run: (facts) => {
     const structures = facts.by("structure");
-    const cards = structures.filter((s) => s.roles?.includes("card"));
+    // Both surfaces must be visually DISTINCT — own background or a shadow.
+    // Role detection is deliberately generous because a Tailwind card and an
+    // ordinary bordered div carry identical facts; the discrimination lives
+    // here. Measured on a real checkout page: 520 findings became 5, with no
+    // cost to the Tailwind case and none to the card-title case.
+    const cards = structures.filter(
+      (s) => s.roles?.includes("card") && hasDistinctSurface(facts.all, s.ref),
+    );
     const cardRefs = cards.map((c) => c.ref);
     return cards
       .map((c) => {

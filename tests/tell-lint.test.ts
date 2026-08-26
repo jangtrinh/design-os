@@ -27,7 +27,8 @@ const CORE = join(fileURLToPath(new URL("..", import.meta.url)), "src", "core");
 const html = extractorById("html-cascade")!;
 const swift = extractorById("swiftui")!;
 
-const at = (line = 1): Provenance => ({ file: "f", line, extractor: "html-cascade", confidence: "resolved" });
+const at = (line = 1, nodeRef?: string): Provenance =>
+  ({ file: "f", line, extractor: "html-cascade", confidence: "resolved", nodeRef });
 
 describe("family registration", () => {
   it("is a gate family", () => {
@@ -145,10 +146,19 @@ const FIRES: Record<string, DesignFact[]> = {
   ],
   // Refs are PATHS: nesting is proved by one ref extending another, which is how
   // nodeRef is built. A wrapper between the two cards is the real-world shape.
+  // Card-ness is DERIVED from surface facts now, so a fixture must carry them:
+  // declaring roles by hand tested a code path that no longer exists.
   "nested-cards": [
-    { kind: "structure", node: "div", depth: 1, ref: "body > div.outer", roles: ["card"], at: at(5) },
+    { kind: "structure", node: "div", depth: 1, ref: "body > div.outer", at: at(5, "body > div.outer") },
+    { kind: "border", sides: ["top", "right", "bottom", "left"], widthPx: 1, at: at(5, "body > div.outer") },
+    { kind: "radius", px: 12, at: at(5, "body > div.outer") },
+    // A DISTINCT surface: nesting is only a tell when the reader can see two.
+    { kind: "color", hex: "ffffff", role: "bg", at: at(5, "body > div.outer") },
     { kind: "structure", node: "div", depth: 2, ref: "body > div.outer > div.wrap", at: at(6) },
-    { kind: "structure", node: "div", depth: 3, ref: "body > div.outer > div.wrap > div.inner", roles: ["card"], at: at(7) },
+    { kind: "structure", node: "div", depth: 3, ref: "body > div.outer > div.wrap > div.inner", at: at(7, "body > div.outer > div.wrap > div.inner") },
+    { kind: "border", sides: ["top", "right", "bottom", "left"], widthPx: 1, at: at(7, "body > div.outer > div.wrap > div.inner") },
+    { kind: "radius", px: 8, at: at(7, "body > div.outer > div.wrap > div.inner") },
+    { kind: "color", hex: "f5f5f5", role: "bg", at: at(7, "body > div.outer > div.wrap > div.inner") },
   ],
   "monotonous-spacing": Array.from({ length: 8 }, (_, i): DesignFact => ({
     kind: "spacing", prop: "padding-top", px: 16, at: at(10 + i),
@@ -158,10 +168,13 @@ const FIRES: Record<string, DesignFact[]> = {
     { kind: "radius", px: 16, at: at(7) },
   ],
   "edge-flush-cards": [
-    { kind: "structure", node: "div", depth: 1, ref: "a", roles: ["card"], at: at(8) },
-    { kind: "structure", node: "div", depth: 1, ref: "b", roles: ["card"], at: at(9) },
-    { kind: "spacing", prop: "padding-top", px: 16, at: at(8) },
-    { kind: "radius", px: 8, at: at(8) },
+    { kind: "structure", node: "div", depth: 1, ref: "body > a", at: at(8, "body > a") },
+    { kind: "border", sides: ["top", "right", "bottom", "left"], widthPx: 1, at: at(8, "body > a") },
+    { kind: "radius", px: 8, at: at(8, "body > a") },
+    { kind: "structure", node: "div", depth: 1, ref: "body > b", at: at(9, "body > b") },
+    { kind: "border", sides: ["top", "right", "bottom", "left"], widthPx: 1, at: at(9, "body > b") },
+    { kind: "radius", px: 8, at: at(9, "body > b") },
+    { kind: "spacing", prop: "padding-top", px: 16, at: at(8, "body > a") },
   ],
   "repeated-container-text": Array.from({ length: 3 }, (_, i): DesignFact => ({
     kind: "text", content: "Everything you need to ship faster than before", role: "body", at: at(20 + i),
@@ -424,10 +437,16 @@ describe("guards proven by breaking them", () => {
     // nested cards where the direct-parent rule found 0, because every card sat
     // inside a layout wrapper. A wrapper between two cards does not stop them
     // reading as cards inside cards.
+    const card = (ref: string, line: number): DesignFact[] => [
+      { kind: "structure", node: "div", depth: line, ref, at: at(line, ref) },
+      { kind: "border", sides: ["top", "right", "bottom", "left"], widthPx: 1, at: at(line, ref) },
+      { kind: "radius", px: 12, at: at(line, ref) },
+      { kind: "color", hex: "ffffff", role: "bg", at: at(line, ref) },
+    ];
     const facts: DesignFact[] = [
-      { kind: "structure", node: "div", depth: 1, ref: "body > div.card", roles: ["card"], at: at(1) },
+      ...card("body > div.card", 1),
       { kind: "structure", node: "div", depth: 2, ref: "body > div.card > div.flex", at: at(2) },
-      { kind: "structure", node: "div", depth: 3, ref: "body > div.card > div.flex > div.card", roles: ["card"], at: at(3) },
+      ...card("body > div.card > div.flex > div.card", 3),
     ];
     expect(lintTell(facts, html).findings.map((f) => f.checkId)).toContain("nested-cards");
   });
