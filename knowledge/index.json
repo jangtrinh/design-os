@@ -295,6 +295,20 @@
       ]
     },
     {
+      "id": "native-macos-craft",
+      "path": "knowledge/native-macos-craft.md",
+      "description": "SwiftUI-first advisory craft for bounded native macOS composition, evidence, and escalation.",
+      "when": [
+        "native-macos",
+        "swiftui",
+        "macos",
+        "desktop",
+        "composition",
+        "writing-column",
+        "finite-proposal"
+      ]
+    },
+    {
       "id": "need-routing",
       "path": "knowledge/need-routing.md",
       "description": "The need→verb decision procedure — how an agent turns a stated need into the right design:os application, with the three mandatory asks and the selection-route law.",

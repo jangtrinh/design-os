@@ -3,7 +3,7 @@
  * every commit, no model call. It answers one question deterministically: has
  * the knowledge core drifted from its own conventions?
  *
- * Eleven checks (findings-linter shape, per constitution Art II):
+ * Checks (findings-linter shape, per constitution Art II):
  *   index-missing-row             error    a knowledge/*.md with no README table row
  *   index-dead-row                 error    a table row pointing to a missing file
  *   persona-drift                   error    index ↔ family md ↔ personas.json disagree
@@ -36,6 +36,7 @@ import { capabilityChecks } from "./knowledge-capability-check.js";
 import { SKILL_NAMES, WORKFLOW_VERBS } from "../adapters/templates.js";
 import { COMMAND_SIGNATURES } from "./command-signatures.js";
 import { VERB_SKILL_REFS } from "../adapters/skill-refs.js";
+import type { CapabilityPilotReceiptCheck } from "./capability-pilot-receipt.js";
 // monthsBetween was a third local copy of the same 12-line helper (the other two were
 // in knowledge-effect-catalog-parse.ts). Shared-layer rule: one definition, three
 // consumers — a fix to the staleness arithmetic can no longer miss two of them.
@@ -45,6 +46,12 @@ export interface KnowledgeFinding {
   checkId: string;
   severity: "error" | "warning";
   message: string;
+}
+
+/** Command-validated receipt result; this FS-free kernel only turns it into a finding. */
+export interface CapabilityPilotReceiptValidation {
+  capabilityId: string;
+  result: CapabilityPilotReceiptCheck;
 }
 
 export interface KnowledgeLintInput {
@@ -75,6 +82,8 @@ export interface KnowledgeLintInput {
   webTechniqueCatalogJson?: string | null;
   /** Capability catalog. Undefined skips the check for legacy unit fixtures; null means missing. */
   capabilityCatalogJson?: string | null;
+  /** Exact-byte pilot receipt results prepared by the command layer. */
+  capabilityPilotReceipts?: readonly CapabilityPilotReceiptValidation[];
 }
 
 const STALE_MONTHS = 6;
@@ -153,8 +162,19 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
       commandNames: commandNames(),
       repoFiles: input.repoFiles,
     })),
+    ...pilotReceiptFindings(input.capabilityPilotReceipts ?? []),
   ];
   return sortFindings(findings);
+}
+
+function pilotReceiptFindings(validations: readonly CapabilityPilotReceiptValidation[]): KnowledgeFinding[] {
+  return validations.flatMap(({ capabilityId, result }) => {
+    if (result.ok) return [];
+    const checkId = result.code === "PILOT_RECEIPT_MISSING"
+      ? "capability-pilot-receipt-missing"
+      : "capability-pilot-receipt-invalid";
+    return [{ checkId, severity: "error", message: `'${capabilityId}' ${result.code}: ${result.message}` }];
+  });
 }
 
 function commandNames(): string[] {
