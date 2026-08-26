@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { digestText, resolveCapabilityActivation } from "../capability-activation.js";
+import { digestActivationRequest, resolveCapabilityActivation } from "../capability-activation.js";
 import type { DeliveryFinding, DeliveryValidationContext } from "./delivery-types.js";
 import { finding, nonEmptyString as str, objectValue as obj, requireBase } from "./delivery-shared-validation.js";
 import { validateBriefBase } from "./delivery-v1-validation.js";
@@ -26,8 +26,13 @@ export function validateBriefV2(
   if (receipt["requestedSurface"] !== "web-marketing" || receipt["route"] !== "generate" || receipt["artifact"] !== "html") {
     out.push(finding("activation-route-mismatch", "marketing brief requires web-marketing -> generate -> html activation"));
   }
-  if (str(brief["rawRequest"]) && receipt["requestDigest"] !== digestText(brief["rawRequest"])) {
-    out.push(finding("activation-request-drift", "activation request digest does not match design-brief rawRequest"));
+  const activationRequest = {
+    kind: "capability-activation-request", version: 1, rawRequest: brief["rawRequest"],
+    requestedSurface: receipt["requestedSurface"], inputKind: receipt["inputKind"],
+    selectionEvidence: receipt["selectionEvidence"],
+  };
+  if (str(brief["rawRequest"]) && receipt["requestDigest"] !== digestActivationRequest(activationRequest)) {
+    out.push(finding("activation-request-drift", "activation request digest does not match the typed activation request"));
   }
   if (!str(context.catalogDigest) || receipt["catalogDigest"] !== context.catalogDigest) {
     out.push(finding("activation-catalog-drift", "activation catalog digest does not match the installed capability catalog"));
@@ -36,14 +41,7 @@ export function validateBriefV2(
     out.push(finding("activation-catalog-unavailable", "installed capability catalog is unavailable for activation replay"));
     return out;
   }
-  const replay = resolveCapabilityActivation({
-    kind: "capability-activation-request",
-    version: 1,
-    rawRequest: brief["rawRequest"],
-    requestedSurface: receipt["requestedSurface"],
-    inputKind: receipt["inputKind"],
-    selectionEvidence: receipt["selectionEvidence"],
-  }, context.capabilityCatalog, context.catalogDigest);
+  const replay = resolveCapabilityActivation(activationRequest, context.capabilityCatalog, context.catalogDigest);
   if (!replay.ok) {
     out.push(finding("activation-invalid", `activation receipt cannot be replayed: ${replay.code}`));
   } else if (!isDeepStrictEqual(receipt, replay.receipt)) {

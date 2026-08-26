@@ -120,6 +120,28 @@ describe("ui delivery validate", () => {
     expect(requestDriftIds).toContain("activation-request-drift");
   });
 
+  it.each([
+    ["requestedSurface", (data: Record<string, unknown>) => { data["requestedSurface"] = "native-macos"; }],
+    ["inputKind", (data: Record<string, unknown>) => { data["inputKind"] = "visual-reference"; }],
+    ["selectionEvidence", (data: Record<string, unknown>) => {
+      data["selectionEvidence"] = { kind: "quoted-request", quote: "AgentTour", role: "requested-artifact" };
+    }],
+  ])("rejects v2 receipt %s drift through the request digest", (_field, mutate) => {
+    const dir = mkdtempSync(join(tmpdir(), "delivery-v2-metadata-drift-"));
+    const request = join(process.cwd(), "tests", "fixtures", "capability-activation", "web-marketing-words.json");
+    const envelope = JSON.parse(capture(["knowledge", "activate", request, "--json"]).out) as Record<string, unknown>;
+    mutate(envelope["data"] as Record<string, unknown>);
+    writeFileSync(join(dir, "activation.json"), JSON.stringify(envelope));
+    const brief = JSON.parse(String(requireFixture("design-brief-valid.json"))) as Record<string, unknown>;
+    brief["version"] = 2;
+    brief["rawRequest"] = "Build a launch landing page for AgentTour";
+    brief["activationRef"] = "activation.json";
+    const file = join(dir, "brief.json"); writeFileSync(file, JSON.stringify(brief));
+    const ids = JSON.parse(capture(["delivery", "validate", file, "--json"]).out).data.findings
+      .map((finding: { checkId: string }) => finding.checkId);
+    expect(ids).toContain("activation-request-drift");
+  });
+
   it("replays activation and rejects a hand-edited successful envelope", () => {
     const dir = mkdtempSync(join(tmpdir(), "delivery-v2-forged-"));
     const request = join(process.cwd(), "tests", "fixtures", "capability-activation", "web-marketing-words.json");

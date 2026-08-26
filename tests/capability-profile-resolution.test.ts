@@ -11,7 +11,7 @@ const catalog = {
     {
       id: "web-marketing",
       status: "qualified",
-      acceptedInputKinds: ["words"],
+      acceptedInputKinds: ["words", "visual-reference"],
       workflow: "generate",
       artifact: "html",
       requiredKnowledge: ["need-routing"],
@@ -44,6 +44,37 @@ const request = (surface: string, rawRequest: string, quote: string) => ({
 });
 
 describe("capability activation core", () => {
+  const receiptFor = (value: ReturnType<typeof request>) => {
+    const parsed = parseCapabilityCatalog(JSON.stringify(catalog));
+    if (!parsed.ok) throw new Error(parsed.message);
+    const result = resolveCapabilityActivation(value, parsed.catalog, "sha256:catalog");
+    if (result.ok) return result.receipt;
+    if (result.receipt !== undefined) return result.receipt;
+    throw new Error(result.message);
+  };
+
+  it.each([
+    ["requestedSurface", (value: ReturnType<typeof request>) => ({ ...value, requestedSurface: "native-macos" })],
+    ["inputKind", (value: ReturnType<typeof request>) => ({ ...value, inputKind: "visual-reference" })],
+    ["selectionEvidence", (value: ReturnType<typeof request>) => ({
+      ...value,
+      selectionEvidence: { kind: "quoted-request", quote: "AgentTour", role: "requested-artifact" },
+    })],
+  ])("binds requestDigest to %s", (_field, mutate) => {
+    const base = request("web-marketing", "Build a landing page for AgentTour", "landing page");
+    expect(receiptFor(mutate(base)).requestDigest).not.toBe(receiptFor(base).requestDigest);
+  });
+
+  it("canonicalizes typed request and selectionEvidence key ordering in requestDigest", () => {
+    const base = request("web-marketing", "Build a landing page for AgentTour", "landing page");
+    const reordered: ReturnType<typeof request> = {
+      selectionEvidence: { role: "requested-artifact", quote: "landing page", kind: "quoted-request" },
+      inputKind: base.inputKind, requestedSurface: base.requestedSurface, rawRequest: base.rawRequest,
+      version: base.version, kind: base.kind,
+    };
+    expect(receiptFor(reordered).requestDigest).toBe(receiptFor(base).requestDigest);
+  });
+
   it("qualifies marketing and preserves marketing-for-native-app subject context", () => {
     const parsed = parseCapabilityCatalog(JSON.stringify(catalog));
     expect(parsed.ok).toBe(true);
