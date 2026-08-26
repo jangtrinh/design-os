@@ -1,5 +1,5 @@
 ---
-description: "Generate an evidence-qualified marketing or landing-page design. Use when the user asks to create UI from a plain-language request or visual reference."
+description: "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference."
 ---
 
 # Workflow: generate
@@ -16,6 +16,24 @@ candidate, and delivers it by qualification status. Read `knowledge/qualified-de
 - `--brand-hex`, `--industry`, and `--persona` remain optional DS/style constraints.
 - `--count` is accepted for compatibility, but delivery count is subordinate to qualification.
 
+## 0. Activate the requested artifact surface
+
+Before compiling a brief, read `knowledge/need-routing.md` G-1. Write
+`capability-activation-request.json` matching `schemas/capability-activation.schema.json` with the
+raw request, typed requested surface, input kind, and either quoted `requested-artifact` evidence or
+the documented page-output default. The requested artifact is not every platform noun in the copy:
+“landing page for a native macOS app” is `web-marketing`; “build a native macOS app” is
+`native-macos`.
+
+```sh
+ui knowledge activate capability-activation-request.json --json > capability-activation.json
+```
+
+Preserve the JSON result even when the command exits non-zero. Stop on every non-zero result.
+`CAPABILITY_UNQUALIFIED` with `route: null` is an honest refusal, not permission to generate HTML.
+Proceed only when `data.disposition` is `QUALIFIED`, `data.route` is `generate`, and
+`data.artifact` is `html`. Save the result beside the brief; no global telemetry is required.
+
 ## 1. Compile intent into a prompt plan
 
 Read only the relevant parts of:
@@ -25,7 +43,8 @@ Read only the relevant parts of:
 - `knowledge/prompt-modes.md` when a visual reference is supplied.
 - `knowledge/web-technique-craft.md` and `knowledge/web-techniques/catalog.json` while compiling directions.
 
-Write `design-brief.json` matching `schemas/design-brief.schema.json`. Preserve the raw request,
+Write a version 2 `design-brief.json` matching `schemas/design-brief.schema.json`, with
+`activationRef: "capability-activation.json"`. Preserve the raw request,
 tag every assumption with provenance and confidence, declare prohibited claims, and produce
 evaluable Must criteria. Ask one focused question only for design-changing ambiguity.
 

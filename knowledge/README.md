@@ -65,6 +65,7 @@ for a human reading top to bottom.
 | `page-structures.md` | **Shape before dress — the page-composition layer between persona and code.** The macrostructure catalog (21 named page shapes — pick one shape, not six loose axes), the diversification rule + the variety↔conformance switch (resist the default-attractor), honest-copy rules (no fabricated evidence), the six-axis pre-emit self-critique, and the nav/footer/hero "AI tells" (with pointers to the `taste-lint`/`layout-lint` checkIds that catch the machine-detectable ones). Read when shaping a standalone landing / marketing / docs surface or a custom `ds preview` chrome — NOT for a single component. |
 | `prompt-modes.md` | The replicate / enhance / adapt strategy modifiers for reference-driven generation. |
 | `need-routing.md` | The need→verb decision procedure — which design:os application for which stated need, the three sanctioned asks, the selection route |
+| `capability-profiles.json` | Typed surface capability authority — qualified workflow/artifact/knowledge/witness joins plus explicit unqualified refusals. Resolve it with `ui knowledge activate` before running a production workflow. |
 | `delivery-assets.md` | **Resolve reproduced images to originals, never screenshot crops** — the best→last-resort resolution ladder (inline-SVG logo → harvested site-served raster → sprite slice → screenshot-crop LAST RESORT, art-only), the machine floor (the deterministic `avoidable-screenshot-crop` lint in `ui validate-layout` + the host-model resolution workflow that fills `real/` and emits `ASSET-MAP.json` provenance), and the failure modes (crop-includes-text · screenshot-as-hero · missing-DPR · provenance-loss). Read when rebuilding / cloning / design-from-URL off a probed source with a mirror + asset harvest — NOT for a from-scratch generative design. |
 | `asset-production-orchestration.md` | **Generated raw material → curated website assets** — the provider-neutral request and provenance contract, locked-reference branching, hard-edge chroma vs soft-alpha dual-render vs segmentation/decomposition routing, immutable raw custody, sidecar curation, recomposition QA, atomic publish, and portable PNG + PSD delivery. Read when Codex, Gemini, or another runtime hand generates or edits raster assets for `design-os`. |
 | `ux-psychology.md` | UX laws (Hick's, Fitts', Miller's, …), Gestalt perception, cognitive biases, emotional design, trust building, cognitive-load management, ethical persuasion — with per-law application rules and a final audit checklist. Read selectively: only the law(s) a brief triggers. |
@@ -88,16 +89,17 @@ constraint-language rules, provenance grammar, and quarantine rules `ui knowledg
 enforces.
 
 **Generate a design from an intent**
-1. `prompt-plan-orchestration.md` — compile and validate product truth, directions, regions,
+1. `need-routing.md` + `ui knowledge activate` — classify the requested artifact with evidence and fail closed when the surface has no qualified route
+2. `prompt-plan-orchestration.md` — compile and validate product truth, directions, regions,
    visual DNA, and proportion candidates
-2. `persona-index.md` — auto-select personas from the intent
-3. `personas/<family>.md` — load the full DNA of each chosen persona
-4. `signature-devices.md` — when the persona reads on-brief but forgettable, compose one hero
+3. `persona-index.md` — auto-select personas from the intent
+4. `personas/<family>.md` — load the full DNA of each chosen persona
+5. `signature-devices.md` — when the persona reads on-brief but forgettable, compose one hero
    signature move (at most two) onto its DNA
-5. `web-technique-craft.md` — when the brief benefits from distinctive surface, motion,
+6. `web-technique-craft.md` — when the brief benefits from distinctive surface, motion,
    interaction, scroll, canvas, or 3D craft, propose the canonical technique choices and fallbacks
-6. `mode-constraints.md` — apply the UI mode's constraints + `TECHNICAL_RULES`
-7. `taste-rubric.md` — score the result; refine the failing axes
+7. `mode-constraints.md` — apply the UI mode's constraints + `TECHNICAL_RULES`
+8. `taste-rubric.md` — score the result; refine the failing axes
 
 **Establish / compile a design system**
 - `token-taxonomy.md` — token tiers and immutability rules

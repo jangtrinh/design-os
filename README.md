@@ -456,7 +456,8 @@ Then open your agent CLI in that project and type:
 /ui:generate a pricing page for a developer-tools SaaS — 3 tiers, dark theme
 ```
 
-That's the whole loop: **describe → compile → qualify.** Have an existing app? Run
+That's the whole loop: **describe → activate → compile → qualify.** Unsupported surfaces stop
+before compilation instead of silently falling back to HTML. Have an existing app? Run
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
 `ease-design` is DESIGN:OS's npm name — the package ships the `ui` kernel. `v0.3.0`
@@ -502,7 +503,11 @@ A better prompt improves the first draft. It does not prove the draft is ready.
 
 ```text
 raw request
-  → design-brief.json
+  → capability-activation request
+  → ui knowledge activate
+      ↳ unsupported surface → CAPABILITY_UNQUALIFIED (route: null)
+      ↳ qualified web marketing → capability-activation.json
+  → design-brief.json v2 (activationRef)
   → generation-contract.json
   → candidate + 1440/768/390 renders
   → qualification-record.json
@@ -513,6 +518,7 @@ The host model owns design reasoning. The zero-dependency `ui` kernel only valid
 contracts and rejects false-green verdicts:
 
 ```sh
+ui knowledge activate capability-request.json --json > capability-activation.json
 ui delivery validate design-brief.json
 ui delivery validate generation-contract.json
 ui delivery validate qualification-record.json
@@ -542,8 +548,10 @@ Qualified Delivery v2 adds an implementation-grade craft contract:
 - a named composition thesis, signature spatial move, and whitespace strategy.
 
 Version 1 artifacts remain valid historical records. Only version 2 proves the current craft
-contract. `ui delivery validate` resolves a v2 qualification record's `contractRef` relative to
-the record and rejects missing or contradictory evidence.
+contract. A v2 design brief binds `activationRef` to a qualified `web-marketing → generate → html`
+receipt; `ui delivery validate` recomputes its request and installed-catalog digests. The validator
+also resolves a v2 qualification record's `contractRef` relative to the record and rejects missing
+or contradictory evidence.
 
 The design prompt orchestrator compiles weak intent before generation: provenance-bound facets,
 product truth, three structurally divergent directions, complete region briefs, actionable visual
@@ -558,6 +566,8 @@ candidates, promoted knowledge, or rejected counterevidence. Promotion requires 
 approval or repeated winning evidence across at least three cases and two categories.
 
 The schemas are public contracts:
+[capability profiles](schemas/capability-profiles.schema.json) ·
+[capability activation](schemas/capability-activation.schema.json) ·
 [design brief](schemas/design-brief.schema.json) ·
 [prompt plan](schemas/prompt-plan.schema.json) ·
 [generation contract](schemas/generation-contract.schema.json) ·
@@ -700,25 +710,27 @@ never generates assets, calls a model, or accesses the network.
 
 ```mermaid
 flowchart TD
-    U["1 · User intent or reference"] --> B["2 · Preserve raw request<br/>compile design-brief.json"]
-    B --> PP["3 · Compile prompt-plan.json<br/>3 structural directions · region jobs · visual DNA"]
+    U["1 · User intent or reference"] --> CA{"2 · ui knowledge activate<br/>typed surface + visible evidence"}
+    CA -- unqualified --> STOP["Stop · CAPABILITY_UNQUALIFIED<br/>route: null"]
+    CA -- web-marketing qualified --> B["3 · Preserve activation receipt<br/>compile design-brief.json v2"]
+    B --> PP["4 · Compile prompt-plan.json<br/>3 structural directions · region jobs · visual DNA"]
     PP --> PF{"ui prompt-plan<br/>validate + preflight"}
     PF -- fail --> B
-    PF -- pass --> G["4 · Ground the project<br/>scan · DS context · soul · memory prior"]
-    G --> S["5 · Select direction<br/>content-led vs golden candidate"]
-    S --> C["6 · generation-contract.json v2<br/>sections · assets · states · viewports · motion"]
-    C --> A["7 · Resolve assets<br/>project → approved source → image generation → no image"]
-    A --> I["8 · Implement one candidate<br/>semantic responsive UI · Phosphor · GSAP only when justified"]
-    I --> SG{"9 · Six static gates"}
+    PF -- pass --> G["5 · Ground the project<br/>scan · DS context · soul · memory prior"]
+    G --> S["6 · Select direction<br/>content-led vs golden candidate"]
+    S --> C["7 · generation-contract.json v2<br/>sections · assets · states · viewports · motion"]
+    C --> A["8 · Resolve assets<br/>project → approved source → image generation → no image"]
+    A --> I["9 · Implement one candidate<br/>semantic responsive UI · Phosphor · GSAP only when justified"]
+    I --> SG{"10 · Six static gates"}
     SG -- fail --> R["Targeted repair<br/>worst evidence-backed finding only"]
-    SG -- pass --> RE["10 · Render evidence<br/>1440 · 768 · 390 · states · reduced motion · no-JS"]
-    RE --> Q["11 · Independent curator<br/>qualification-record.json"]
+    SG -- pass --> RE["11 · Render evidence<br/>1440 · 768 · 390 · states · reduced motion · no-JS"]
+    RE --> Q["12 · Independent curator<br/>qualification-record.json"]
     Q -- DRAFT_WITH_CONCERNS --> R
     R --> SG
     Q -- BLOCKED_BY_EVIDENCE --> ASK["Ask for missing product truth"]
-    Q -- QUALIFIED --> D["12 · Deliver with evidence<br/>then integrate through code-surface intake"]
+    Q -- QUALIFIED --> D["13 · Deliver with evidence<br/>then integrate through code-surface intake"]
     D --> EXP{"Quality-learning task?"}
-    EXP -- no --> RCPT["13 · Record evidence receipt"]
+    EXP -- no --> RCPT["14 · Record evidence receipt"]
     EXP -- yes --> AD["Art-direct qualified control<br/>section reference boards · max 3 ceiling revisions"]
     AD --> LR["Blinded comparison + learning-record.json"]
     LR --> PR{"Expert approval or<br/>3 wins across 2 categories?"}
@@ -969,19 +981,21 @@ instead of falling into the accepting branch.
 ## How the loop works, mechanically
 
 1. **You describe intent** → `/ui:generate landing page for a new gym`.
-2. **Intent compiles** — the raw request becomes a provenance-tagged brief and a validated
+2. **Capability activates first** — the host records the requested surface with visible evidence;
+   `ui knowledge activate` either emits a qualified receipt or stops with `route: null`.
+3. **Intent compiles only after qualification** — the raw request becomes a provenance-tagged brief and a validated
    prompt plan with three structural directions, explicit region jobs, and visual DNA.
-3. **The project grounds the decision** — current DS, soul, evidence, and memory context load;
+4. **The project grounds the decision** — current DS, soul, evidence, and memory context load;
    current product truth outranks recalled preference.
-4. **Direction and assets resolve before code** — content-led and golden candidates are compared;
+5. **Direction and assets resolve before code** — content-led and golden candidates are compared;
    icons, logos, imagery, states, responsive transformations, and motion receive explicit roles.
-5. **One candidate earns delivery** — six static gates run first; desktop/tablet/mobile and
+6. **One candidate earns delivery** — six static gates run first; desktop/tablet/mobile and
    behavioral renders feed an independent curator.
-6. **Repair stays bounded** — only the worst evidence-backed finding is repaired per round, for
+7. **Repair stays bounded** — only the worst evidence-backed finding is repaired per round, for
    at most three attempts, with affected gates and renders rerun.
-7. **Status stays honest** — only clean evidence emits `QUALIFIED`; unresolved work remains
+8. **Status stays honest** — only clean evidence emits `QUALIFIED`; unresolved work remains
    `DRAFT_WITH_CONCERNS` or `BLOCKED_BY_EVIDENCE`.
-8. **Learning needs causality** — evidence, application, artifact, and outcome form a receipt.
+9. **Learning needs causality** — evidence, application, artifact, and outcome form a receipt.
    Quality-learning tasks preserve controls, use blinded comparison, and promote a lesson only
    after expert approval or repeated wins across categories.
 

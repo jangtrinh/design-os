@@ -57,9 +57,15 @@ function scaffoldConsistent(): void {
     "| `personas/<family>.md` | Persona DNA |",
     "| `benchmarks/*.dna.json` | Measured DNA |",
     "| `need-routing.md` | Need routing |",
+    "| `capability-profiles.json` | Capability profiles |",
     "",
   ].join("\n"));
-  write("knowledge/need-routing.md", fm("need-routing", "Need routing.", ["routing"]) + "# Need routing\n\n" + fullRouteTable());
+  write("knowledge/need-routing.md", fm("need-routing", "Need routing.", ["routing"]) + [
+    "# Need routing", "", "## Surface activation table", "",
+    "| Surface | Status | Candidate route |", "|---|---|---|",
+    "| `web-marketing` | qualified | `generate` |", "",
+    fullRouteTable(),
+  ].join("\n"));
   write("knowledge/taste-rubric.md", fm("taste-rubric", "The taste model.", ["taste"]) + "# Taste\n");
   write("knowledge/persona-index.md", fm("persona-index", "Persona lookup.", ["persona"]) + [
     "# Persona Index", "", "## 1. Lookup Table", "",
@@ -69,6 +75,16 @@ function scaffoldConsistent(): void {
   write("knowledge/personas/family-a.md", "# Family A\n\n## Alpha One\n\n- **Slug:** `alpha-one`\n- **Family:** family-a\n");
   write("knowledge/personas/personas.json", JSON.stringify([{ slug: "alpha-one", family: "family-a" }]));
   write("knowledge/benchmarks/stripe--202607.dna.json", "{}");
+  write("knowledge/capability-profiles.json", JSON.stringify({
+    version: 1,
+    profiles: [{
+      id: "web-marketing", status: "qualified", acceptedInputKinds: ["words"],
+      workflow: "generate", artifact: "html", requiredKnowledge: ["need-routing"],
+      machineWitnesses: ["gate"], renderedWitnesses: ["1440px"],
+      manualWitnesses: ["owner-visible-acceptance"],
+      qualificationEvidence: "knowledge/taste-rubric.md",
+    }],
+  }));
   emitIndexInto(root);
 }
 
