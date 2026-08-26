@@ -961,6 +961,14 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   knowledge: {
     summary: "Governance checks over the knowledge core (index / persona / xref / provenance / catalog and source-ledger drift) + the routing index emitter",
     subcommands: {
+      activate: {
+        summary: "Resolve a typed requested artifact surface against the packaged capability catalog",
+        positionals: [{ name: "<request.json>", required: true, summary: "Capability activation request" }],
+        flags: [
+          { name: "dir", type: "string", summary: "Repo root holding knowledge/capability-profiles.json (default: packaged knowledge)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_ACTIVATION", "NO_CATALOG", "BAD_CATALOG", "UNKNOWN_CAPABILITY", "UNSUPPORTED_INPUT", "CAPABILITY_UNQUALIFIED"],
+      },
       check: {
         summary: "Findings-linter over knowledge/; exit 1 on error-severity findings, including catalog/card and pinned source-ledger integrity drift",
         positionals: [],

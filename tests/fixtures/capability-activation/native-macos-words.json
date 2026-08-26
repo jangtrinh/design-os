@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build a native macOS workspace in SwiftUI",
+  "requestedSurface": "native-macos",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "native macOS workspace",
+    "role": "requested-artifact"
+  }
+}

@@ -44,6 +44,7 @@ export function runKnowledgeCheck(parsed: ParsedArgs): CommandResult {
     sourceLedgerJson,
     sourceLedgerParts: { "sources/mengto-web-techniques--202608/tree.json": sourceTree ?? "", "sources/mengto-web-techniques--202608/skills.json": sourceSkills ?? "" },
     webTechniqueCatalogJson,
+    capabilityCatalogJson: read("capability-profiles.json"),
   });
   const errorCount = findings.filter((finding) => finding.severity === "error").length; const warningCount = findings.length - errorCount;
   if (useJson) return okJsonWithExit(sub, { dir: knowledgeDir, asOf, findings, errorCount, warningCount }, errorCount > 0 ? 1 : 0);

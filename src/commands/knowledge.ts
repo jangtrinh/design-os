@@ -17,6 +17,7 @@ import { topLevelMarkdown } from "../core/knowledge-frontmatter-check.js";
 import { runEffectMatrix } from "./knowledge-effect-matrix.js";
 import { runGradientMatrix } from "./knowledge-gradient-matrix.js";
 import { runKnowledgeCheck, walkKnowledge } from "./knowledge-check.js";
+import { runKnowledgeActivate } from "./knowledge-activate.js";
 
 const CMD = "knowledge";
 
@@ -24,11 +25,13 @@ export const KNOWLEDGE_HELP = `ui knowledge — governance checks over the knowl
 
 Usage:
   ui knowledge check [--dir <repo-root>] [--as-of <YYYYMM>] [--json]
+  ui knowledge activate <request.json> [--dir <repo-root>] [--json]
   ui knowledge effect-matrix [--dir <repo-root>] [--json]
   ui knowledge gradient-matrix [--dir <repo-root>] [--json]
   ui knowledge index [--dir <repo-root>] [--emit]
 
 Subcommands:
+  activate       Resolve a typed requested surface against qualified capabilities; fail closed when unsupported
   check          Findings-linter over knowledge/; exit 1 on error-severity findings
   index          Emit the routing index (id / description / when) over knowledge/*.md.
                  Without --emit it prints to stdout; with --emit it writes
@@ -87,6 +90,10 @@ Error codes (check):
   READ_ERROR    A knowledge file could not be read
   WRITE_ERROR   knowledge/index.json could not be written (--emit)
 
+Error codes (activate):
+  BAD_ARG | UNKNOWN_FLAG | FILE_NOT_FOUND | BAD_ACTIVATION | NO_CATALOG | BAD_CATALOG
+  UNKNOWN_CAPABILITY | UNSUPPORTED_INPUT | CAPABILITY_UNQUALIFIED
+
 Error codes (effect-matrix / gradient-matrix):
   BAD_ARG       Missing/unknown subcommand
   UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
@@ -138,12 +145,13 @@ export const knowledgeCommand = {
   help: KNOWLEDGE_HELP,
   run(parsed: ParsedArgs): CommandResult {
     switch (parsed.subcommand) {
+      case "activate": return runKnowledgeActivate(parsed);
       case "check": return runKnowledgeCheck(parsed);
       case "effect-matrix": return runEffectMatrix(parsed);
       case "gradient-matrix": return runGradientMatrix(parsed);
       case "index": return runIndex(parsed);
       case undefined: {
-        const msg = "ui knowledge requires a subcommand (check, effect-matrix, gradient-matrix, index). Run 'ui knowledge --help'.";
+        const msg = "ui knowledge requires a subcommand (activate, check, effect-matrix, gradient-matrix, index). Run 'ui knowledge --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
       }
       default: {

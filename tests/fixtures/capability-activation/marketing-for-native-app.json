@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build a landing page for a native macOS app",
+  "requestedSurface": "web-marketing",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "landing page",
+    "role": "requested-artifact"
+  }
+}
