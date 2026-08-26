@@ -218,6 +218,26 @@ export function buildAntigravityWorkflow(
   }
 
   const tplPath = toFwdSlash(templatePath);
+  if (verb === "native-macos") {
+    return [
+      "---",
+      `description: ${yamlQuote(`ease-design ui-${verb} — ${summary}`)}`,
+      "---",
+      "",
+      `# ui-${verb}`,
+      "",
+      "Follow the runtime-neutral workflow at:",
+      `\`${tplPath}\``,
+      buildKnowledgeAnchor(knowledgeRoot),
+      "Create the typed activation request required by that workflow, then run its real entry check:",
+      "",
+      "// turbo",
+      "```bash",
+      "ui knowledge activate capability-activation-request.json --json > capability-activation.json",
+      "```",
+      "",
+    ].join("\n");
+  }
   return [
     "---",
     `description: ${yamlQuote(`ease-design ui-${verb} — ${summary}`)}`,

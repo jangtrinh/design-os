@@ -962,7 +962,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     summary: "Governance checks over the knowledge core (index / persona / xref / provenance / catalog and source-ledger drift) + the routing index emitter",
     subcommands: {
       activate: {
-        summary: "Resolve a typed requested artifact surface against the packaged capability catalog",
+        summary: "Resolve a typed artifact surface into a route, assurance level, and delivery-claim policy",
         positionals: [{ name: "<request.json>", required: true, summary: "Capability activation request" }],
         flags: [
           { name: "dir", type: "string", summary: "Repo root holding knowledge/capability-profiles.json (default: packaged knowledge)" },

@@ -1,15 +1,15 @@
 ---
 id: native-macos-craft
-description: "SwiftUI-first advisory craft for bounded native macOS composition, evidence, and escalation."
+description: "SwiftUI-first craft for provisional native macOS execution, bounded composition, evidence, and escalation."
 when: [native-macos, swiftui, macos, desktop, composition, writing-column, finite-proposal]
 ---
 
-# Native macOS craft — advisory composition and evidence
+# Native macOS craft — provisional composition and evidence
 
 ## Purpose
 
-Guide a native macOS composition toward idiomatic SwiftUI structure and honest evidence without
-claiming a delivery workflow or promoting one pilot into a platform default.
+Guide a routed native macOS composition toward idiomatic SwiftUI structure and honest evidence
+without promoting one pilot into a platform-qualified default.
 
 ## Mental Model
 
@@ -20,14 +20,14 @@ adaptation that the platform already owns.
 
 ## When to Use / When NOT
 
-**Use** this guidance for a SwiftUI-first native macOS surface after activation has refused a
-native generation route and returned this advisory knowledge ID. Apply it to composition, bounded
-editor allocation, native controls, and the evidence needed for a later held-out pilot.
+**Use** this guidance for a SwiftUI-first native macOS surface after activation returns the
+`native-macos` route with `PROVISIONAL` assurance. Apply it to composition, bounded editor
+allocation, native controls, and the evidence needed for a later held-out qualification.
 
-**Do NOT** treat this file as a workflow, a template, an adapter, or permission to generate a
-native application. Do NOT copy a pilot's dimensions, gaps, captures, or source into another
-product: those values describe one evidence context and would turn a local observation into a
-false Apple-wide rule.
+**Do NOT** treat this file as an approval to claim qualified platform delivery. The workflow is
+`templates/workflows/native-macos.md`; this file provides craft boundaries. Do NOT copy a pilot's
+dimensions, gaps, captures, or source into another product: those values describe one evidence
+context and would turn a local observation into a false Apple-wide rule.
 
 ## Content
 
@@ -83,8 +83,9 @@ green build cannot substitute for accessibility, a capture cannot substitute for
 review cannot substitute for the owner's decision.
 
 The retained `native-macos-pilot-01` receipt records one accepted-with-reservation outcome. It
-binds evidence identity only. Native macOS remains unqualified with no route until a distinct
-held-out pilot has the required evidence and an explicit owner decision without that reservation.
+supports provisional assurance only. Native macOS is available through its own route now, while a
+distinct held-out pilot and explicit owner decision may change assurance later without removing the
+route or authorizing a qualified-delivery claim today.
 
 ## Failure Modes
 
@@ -94,5 +95,5 @@ held-out pilot has the required evidence and an explicit owner decision without 
   losing keyboard focus, selection, and accessibility semantics; preserve the native role instead.
 - **The editor has two scrolling owners.** The cursor or error notice becomes unreachable in a
   compact window; keep scrolling with the editor inside the finite allocation.
-- **A receipt is mistaken for qualification.** The record says retained evidence and a reserved
-  verdict, not a delivery authorization; preserve the activation refusal and stop action.
+- **A receipt is mistaken for qualification.** The record authorizes provisional routing, not
+  qualified delivery; preserve `QUALIFIED_DELIVERY_FORBIDDEN` in the handoff and status language.

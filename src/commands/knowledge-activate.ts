@@ -3,7 +3,9 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { ParsedArgs } from "../core/cli-args.js";
-import { digestText, parseCapabilityCatalog, resolveCapabilityActivation } from "../core/capability-activation.js";
+import { digestText, resolveCapabilityActivation } from "../core/capability-activation.js";
+import { parseCapabilityCatalog } from "../core/capability-catalog.js";
+import { expectedCapabilityPilotReceipt, verifyCapabilityPilotReceipt } from "../core/capability-pilot-receipt.js";
 import { resolvePackageRoots } from "../core/init-stub.js";
 import { errJson, errJsonWithData, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
@@ -35,6 +37,13 @@ export function runKnowledgeActivate(parsed: ParsedArgs): CommandResult {
   catch { return fail("BAD_ACTIVATION", "activation request is not valid JSON"); }
   const catalog = parseCapabilityCatalog(catalogRaw);
   if (!catalog.ok) return fail("BAD_CATALOG", catalog.message);
+  for (const profile of catalog.catalog.profiles) {
+    if (profile.assurance !== "provisional") continue;
+    const expected = expectedCapabilityPilotReceipt(profile.id);
+    if (expected === null) return fail("BAD_CATALOG", `PILOT_RECEIPT_CAPABILITY: no retained pilot identity is registered for '${profile.id}'`);
+    const evidence = verifyCapabilityPilotReceipt(knowledgeRoot, profile.assuranceEvidence, expected);
+    if (!evidence.ok) return fail("BAD_CATALOG", `${evidence.code}: ${evidence.message}`);
+  }
   const result = resolveCapabilityActivation(request, catalog.catalog, digestText(catalogRaw));
   if (!result.ok) {
     const data = result.receipt ?? result.data;

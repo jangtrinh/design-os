@@ -175,7 +175,7 @@ describe("ui init argument validation", () => {
 // ── Adapter tree integration tests ────────────────────────────────────────────
 
 describe("ui init --runtime claude adapter tree", () => {
-  it("JSON envelope data.adapters[0].paths has 38 entries", () => {
+  it("JSON envelope data.adapters[0].paths has 40 entries", () => {
     const cwd = makeTmpDir();
     const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--json"]);
     expect(code).toBe(0);
@@ -183,7 +183,7 @@ describe("ui init --runtime claude adapter tree", () => {
       data: { adapters: { runtime: string; paths: string[] }[] };
     };
     expect(json.data.adapters).toHaveLength(1);
-    expect(json.data.adapters[0]?.paths.length).toBe(38);
+    expect(json.data.adapters[0]?.paths.length).toBe(40);
   });
 
   it("JSON envelope data.adapters[0].paths includes the generate slash-command path", () => {
@@ -205,6 +205,15 @@ describe("ui init --runtime claude adapter tree", () => {
     const paths = json.data.adapters[0]?.paths ?? [];
     expect(paths.some((p) => p.includes("commands/ui/design.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "commands", "ui", "design.md"))).toBe(true);
+  });
+
+  it("a fresh init installs the provisional native workflow and craft skill", () => {
+    const cwd = makeTmpDir();
+    const { out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--json"]);
+    const json = JSON.parse(out) as { data: { adapters: { paths: string[] }[] } };
+    const paths = json.data.adapters[0]?.paths ?? [];
+    expect(paths.some((p) => p.includes("commands/ui/native-macos.md"))).toBe(true);
+    expect(paths.some((p) => p.includes("design-os-native-macos-craft/SKILL.md"))).toBe(true);
   });
 
   it("on-disk manifest has status 'ready' with adapters and templateHashes", () => {

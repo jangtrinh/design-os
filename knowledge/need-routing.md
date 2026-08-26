@@ -51,8 +51,11 @@ not every platform noun in the sentence, then writes a `capability-activation-re
 ui knowledge activate capability-activation-request.json --json
 ```
 
-A non-zero result stops routing. `CAPABILITY_UNQUALIFIED` means the surface is known but has no
-qualified delivery route; preserve `route: null`, show `action`, and never substitute `generate`.
+Any non-zero result stops routing. A `REFUSED` receipt means the surface is known but unavailable;
+preserve `route: null`, show `action`, and never substitute `generate`. A `ROUTED` receipt carries
+both assurance and claim policy: `PROVISIONAL` may execute its named route but always has
+`QUALIFIED_DELIVERY_FORBIDDEN`; only `QUALIFIED` with
+`QUALIFIED_DELIVERY_ALLOWED` can authorize qualified web delivery.
 An explicit artifact platform always beats the HTML default. For example, “native macOS app”
 activates `native-macos`; “landing page for a native macOS app” activates `web-marketing` because
 the requested artifact is the landing page and the app is subject context. The binary validates
@@ -95,9 +98,10 @@ reference arrived without a sentence saying replicate-vs-inspired → **ask #3**
 below, first. Then the leaves: a figma.com URL to turn into code → `figma`. A
 screenshot or image file → `from-ref`. A live URL → `from-url`. Words only → G4.
 
-**G4 — does a qualified generated artifact already exist here?** First require a qualified G-1
-result for the requested surface. No existing artifact → the activated route (`generate` only when
-G-1 returned `QUALIFIED` with `route: "generate"`). Existing artifact: same direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
+**G4 — does a generated artifact already exist here?** First require a routed G-1 result for the
+requested surface. No existing artifact → the activated route. `generate` is allowed only when G-1
+returned `ROUTED + QUALIFIED + QUALIFIED_DELIVERY_ALLOWED` with `route: "generate"`; a provisional
+native receipt routes only to `native-macos`, never to HTML. Existing web artifact: same direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
 ("polish", failing axes) → `refine`; direction rejected outright → `redesign`; cannot
 tell which → **ask #2** ("keep this direction, or throw it away?").
 
@@ -124,10 +128,10 @@ skill. Anything taste-shaped → the selection route, zero questions.
 This table is the human-readable join to `knowledge/capability-profiles.json`; `ui knowledge check`
 keeps both directions in parity with the live workflow, knowledge and witness registries.
 
-| Surface | Status | Candidate route |
-|---|---|---|
-| `web-marketing` | qualified | `generate` |
-| `native-macos` | unqualified | none (`CAPABILITY_UNQUALIFIED`, `route: null`) |
+| Surface | Availability | Assurance | Candidate route |
+|---|---|---|---|
+| `web-marketing` | available | qualified | `generate` |
+| `native-macos` | available | provisional | `native-macos` |
 
 ## Route table
 
@@ -153,6 +157,7 @@ with the live verb registry — a new capability cannot ship until this table te
 | Convert a figma.com URL into code | `figma` |
 | Reproduce or draw from a screenshot / image | `from-ref` |
 | A new marketing / landing HTML surface from words, after qualified activation | `generate` |
+| A new native macOS application or workspace, after provisional activation | `native-macos` |
 | Nudge an existing artifact, same direction | `iterate` |
 | Fix craft/quality on an existing artifact, same direction | `refine` |
 | Replace the direction of an existing artifact | `redesign` |
@@ -163,7 +168,7 @@ with the live verb registry — a new capability cannot ship until this table te
 ## Cross-references
 
 - Per-verb trigger language: each `templates/workflows/<verb>.md` frontmatter (canonical).
-- Capability status, artifact, knowledge and witnesses: `capability-profiles.json`.
+- Capability availability, assurance, artifact, knowledge and witnesses: `capability-profiles.json`.
 - Fidelity modes (Replicate/Enhance/Adapt): `prompt-modes.md` — fidelity, not routing.
 - The four-surface audit question: `templates/journeys/daily.md` §1.
 - What is verifiable in this project right now: `ui gate coverage`.

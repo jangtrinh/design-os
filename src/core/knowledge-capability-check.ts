@@ -1,5 +1,5 @@
-import { parseCapabilityCatalog } from "./capability-activation.js";
-import type { CapabilityProfile } from "./capability-activation.js";
+import { parseCapabilityCatalog } from "./capability-catalog.js";
+import type { CapabilityProfile } from "./capability-catalog.js";
 import type { KnowledgeFinding } from "./knowledge-lint.js";
 
 export interface CapabilityCheckInput {
@@ -9,6 +9,12 @@ export interface CapabilityCheckInput {
   workflowVerbs: readonly string[];
   commandNames: readonly string[];
   repoFiles: readonly string[];
+}
+
+interface SurfaceProfile {
+  availability: string;
+  assurance: string;
+  route: string | null;
 }
 
 const finding = (checkId: string, message: string): KnowledgeFinding =>
@@ -22,6 +28,7 @@ export function capabilityChecks(input: CapabilityCheckInput): KnowledgeFinding[
   }
   const parsed = parseCapabilityCatalog(input.catalogJson);
   if (!parsed.ok) return [finding("capability-catalog-bad", parsed.message)];
+
   const out: KnowledgeFinding[] = [];
   const ids = new Set<string>();
   const knowledgeIds = indexIds(input.knowledgeIndexJson);
@@ -30,13 +37,7 @@ export function capabilityChecks(input: CapabilityCheckInput): KnowledgeFinding[
     if (ids.has(profile.id)) out.push(finding("capability-profile-duplicate", `duplicate capability '${profile.id}'`));
     ids.add(profile.id);
     checkProfile(profile, input, knowledgeIds, out);
-    const routed = routedProfiles.get(profile.id);
-    if (routed === undefined) {
-      out.push(finding("capability-routing-uncovered", `capability '${profile.id}' has no Surface activation table row`));
-    } else {
-      if (routed.status !== profile.status) out.push(finding("capability-routing-status-drift", `'${profile.id}' status differs between table and catalog`));
-      if (routed.route !== profile.workflow) out.push(finding("capability-routing-route-drift", `'${profile.id}' route differs between table and catalog`));
-    }
+    checkRouting(profile, routedProfiles.get(profile.id), out);
   }
   for (const routed of routedProfiles.keys()) {
     if (!ids.has(routed)) out.push(finding("capability-routing-unknown", `surface table names unknown capability '${routed}'`));
@@ -55,31 +56,49 @@ function checkProfile(
   const renderedWitnesses = strings(profile.renderedWitnesses);
   const manualWitnesses = strings(profile.manualWitnesses);
 
-  if (profile.status === "qualified") {
+  if (profile.availability === "available") {
     if (profile.workflow === null || !input.workflowVerbs.includes(profile.workflow)) {
-      out.push(finding("capability-workflow-unknown", `qualified capability '${profile.id}' names unknown workflow '${profile.workflow}'`));
+      out.push(finding("capability-workflow-unknown", `available capability '${profile.id}' names unknown workflow '${profile.workflow}'`));
     }
     for (const witness of machineWitnesses) {
       if (!input.commandNames.includes(witness)) out.push(finding("capability-witness-unknown", `'${profile.id}' names unknown machine witness '${witness}'`));
     }
     if (requiredKnowledge.length === 0 || machineWitnesses.length === 0 ||
         renderedWitnesses.length === 0 || manualWitnesses.length === 0) {
-      out.push(finding("capability-qualified-incomplete", `qualified capability '${profile.id}' needs knowledge and all witness classes`));
+      out.push(finding("capability-available-incomplete", `available capability '${profile.id}' needs knowledge and all witness classes`));
     }
-    if (typeof profile.qualificationEvidence !== "string" || !input.repoFiles.includes(profile.qualificationEvidence)) {
-      out.push(finding("capability-evidence-missing", `'${profile.id}' qualificationEvidence does not resolve`));
+    if (!evidenceExists(profile.assuranceEvidence, input.repoFiles)) {
+      out.push(finding("capability-evidence-missing", `'${profile.id}' assuranceEvidence does not resolve`));
     }
-  } else {
-    if (profile.workflow !== null) out.push(finding("capability-unqualified-route", `unqualified capability '${profile.id}' must have workflow:null`));
-    if (profile.refusalCode !== "CAPABILITY_UNQUALIFIED" || typeof profile.action !== "string" ||
-        strings(profile.qualificationRequirements).length === 0) {
-      out.push(finding("capability-refusal-incomplete", `unqualified capability '${profile.id}' needs refusalCode, action and qualificationRequirements`));
-    }
+  } else if (profile.workflow !== null || profile.assurance !== "unassessed" ||
+      profile.refusalCode !== "CAPABILITY_UNQUALIFIED" || typeof profile.action !== "string" ||
+      strings(profile.qualificationRequirements).length === 0) {
+    out.push(finding("capability-refusal-incomplete", `unavailable capability '${profile.id}' needs a typed refusal and recovery action`));
   }
-  const references = [...requiredKnowledge, ...strings(profile.advisoryKnowledge)];
-  for (const id of references) {
+
+  for (const id of [...requiredKnowledge, ...strings(profile.advisoryKnowledge)]) {
     if (!knowledgeIds.has(id)) out.push(finding("capability-knowledge-unknown", `'${profile.id}' names unknown knowledge id '${id}'`));
   }
+}
+
+function checkRouting(profile: CapabilityProfile, routed: SurfaceProfile | undefined, out: KnowledgeFinding[]): void {
+  if (routed === undefined) {
+    out.push(finding("capability-routing-uncovered", `capability '${profile.id}' has no Surface activation table row`));
+    return;
+  }
+  if (routed.availability !== profile.availability) {
+    out.push(finding("capability-routing-availability-drift", `'${profile.id}' availability differs between table and catalog`));
+  }
+  if (routed.assurance !== profile.assurance) {
+    out.push(finding("capability-routing-assurance-drift", `'${profile.id}' assurance differs between table and catalog`));
+  }
+  if (routed.route !== profile.workflow) {
+    out.push(finding("capability-routing-route-drift", `'${profile.id}' route differs between table and catalog`));
+  }
+}
+
+function evidenceExists(reference: unknown, repoFiles: readonly string[]): boolean {
+  return typeof reference === "string" && repoFiles.includes(reference.split("#", 1)[0] ?? "");
 }
 
 function indexIds(raw: string | null): Set<string> {
@@ -90,25 +109,33 @@ function indexIds(raw: string | null): Set<string> {
   } catch { return new Set(); }
 }
 
-function surfaceProfiles(
-  md: string | null,
-  workflowVerbs: readonly string[],
-): Map<string, { status: string; route: string | null }> {
+function surfaceProfiles(md: string | null, workflowVerbs: readonly string[]): Map<string, SurfaceProfile> {
   if (md === null) return new Map();
   const heading = /^## Surface activation table\s*$/m.exec(md);
   if (heading === null) return new Map();
   const rest = md.slice(heading.index + heading[0].length);
   const next = /^## /m.exec(rest);
   const section = next === null ? rest : rest.slice(0, next.index);
-  const profiles = new Map<string, { status: string; route: string | null }>();
+  const profiles = new Map<string, SurfaceProfile>();
   for (const row of section.split("\n")) {
     const cells = row.split("|").map((cell) => cell.trim()).filter(Boolean);
     const id = /^`([a-z0-9-]+)`$/.exec(cells[0] ?? "")?.[1];
     if (id === undefined) continue;
-    const status = cells[1] ?? "";
-    const route = [...(cells[2] ?? "").matchAll(/`([a-z0-9-]+)`/g)]
+    const v2 = cells.length >= 4;
+    const availability = v2 ? cells[1] ?? "" : legacyAvailability(cells[1] ?? "");
+    const assurance = v2 ? cells[2] ?? "" : legacyAssurance(cells[1] ?? "");
+    const routeCell = v2 ? cells[3] ?? "" : cells[2] ?? "";
+    const route = [...routeCell.matchAll(/`([a-z0-9-]+)`/g)]
       .map((match) => match[1] as string).find((candidate) => workflowVerbs.includes(candidate)) ?? null;
-    profiles.set(id, { status, route });
+    profiles.set(id, { availability, assurance, route });
   }
   return profiles;
+}
+
+function legacyAvailability(status: string): string {
+  return status === "qualified" ? "available" : status === "unqualified" ? "unavailable" : status;
+}
+
+function legacyAssurance(status: string): string {
+  return status === "qualified" ? "qualified" : status === "unqualified" ? "unassessed" : status;
 }

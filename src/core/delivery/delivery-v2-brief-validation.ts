@@ -20,7 +20,7 @@ export function validateBriefV2(
     return out;
   }
   const receipt = envelope["data"];
-  if (receipt["kind"] !== "capability-activation" || receipt["version"] !== 1 || receipt["disposition"] !== "QUALIFIED") {
+  if (!isQualifiedMarketingReceipt(receipt)) {
     out.push(finding("activation-unqualified", "design-brief v2 requires a qualified activation receipt"));
   }
   if (receipt["requestedSurface"] !== "web-marketing" || receipt["route"] !== "generate" || receipt["artifact"] !== "html") {
@@ -48,4 +48,11 @@ export function validateBriefV2(
     out.push(finding("activation-receipt-mismatch", "activation receipt differs from deterministic catalog resolution"));
   }
   return out;
+}
+
+function isQualifiedMarketingReceipt(receipt: Record<string, unknown>): boolean {
+  if (receipt["kind"] !== "capability-activation") return false;
+  if (receipt["version"] === 1) return receipt["disposition"] === "QUALIFIED";
+  return receipt["version"] === 2 && receipt["routingDisposition"] === "ROUTED" &&
+    receipt["assurance"] === "QUALIFIED" && receipt["claimPolicy"] === "QUALIFIED_DELIVERY_ALLOWED";
 }

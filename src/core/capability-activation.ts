@@ -1,28 +1,16 @@
 import { createHash } from "node:crypto";
-import { expectedCapabilityPilotReceipt, parseCapabilityPilotReceiptPin } from "./capability-pilot-receipt.js";
+import type { CapabilityCatalog, CapabilityProfile } from "./capability-catalog.js";
 
-export type CapabilityStatus = "qualified" | "unqualified";
+export { parseCapabilityCatalog } from "./capability-catalog.js";
+export type {
+  CapabilityAssurance,
+  CapabilityAvailability,
+  CapabilityCatalog,
+  CapabilityProfile,
+  CatalogParseResult,
+} from "./capability-catalog.js";
 
-export interface CapabilityProfile {
-  id: string;
-  status: CapabilityStatus;
-  acceptedInputKinds: string[];
-  workflow: string | null;
-  artifact: string;
-  requiredKnowledge?: string[];
-  machineWitnesses?: string[];
-  renderedWitnesses?: string[];
-  manualWitnesses?: string[];
-  qualificationEvidence?: string;
-  refusalCode?: string;
-  action?: string;
-  advisoryKnowledge?: string[];
-  qualificationRequirements?: string[];
-}
-
-export interface CapabilityCatalog { version: 1; profiles: CapabilityProfile[] }
-
-export interface ActivationReceipt {
+export interface ActivationReceiptV1 {
   kind: "capability-activation";
   version: 1;
   requestDigest: string;
@@ -40,13 +28,37 @@ export interface ActivationReceipt {
   action: string;
 }
 
-export type CatalogParseResult =
-  | { ok: true; catalog: CapabilityCatalog }
-  | { ok: false; message: string };
+export interface ActivationReceiptV2 {
+  kind: "capability-activation";
+  version: 2;
+  requestDigest: string;
+  catalogDigest: string;
+  requestedSurface: string;
+  inputKind: string;
+  selectionEvidence: Record<string, unknown>;
+  routingDisposition: "ROUTED" | "REFUSED";
+  assurance: "QUALIFIED" | "PROVISIONAL" | "UNASSESSED";
+  claimPolicy: "QUALIFIED_DELIVERY_ALLOWED" | "QUALIFIED_DELIVERY_FORBIDDEN";
+  route: string | null;
+  artifact: string;
+  selectedKnowledge: string[];
+  machineWitnesses: string[];
+  renderedWitnesses: string[];
+  manualWitnesses: string[];
+  action: string;
+}
 
+export type ActivationReceipt = ActivationReceiptV1 | ActivationReceiptV2;
 export type ActivationResult =
-  | { ok: true; receipt: ActivationReceipt }
-  | { ok: false; code: string; message: string; receipt?: ActivationReceipt; data?: unknown };
+  | { ok: true; receipt: ActivationReceiptV2 }
+  | { ok: false; code: string; message: string; receipt?: ActivationReceiptV2; data?: unknown };
+
+interface ActivationRequest extends Record<string, unknown> {
+  rawRequest: string;
+  requestedSurface: string;
+  inputKind: string;
+  selectionEvidence: Record<string, unknown>;
+}
 
 const objectValue = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -56,11 +68,6 @@ const stringList = (value: unknown): string[] | null =>
   Array.isArray(value) && value.length > 0 && value.every(nonEmpty) ? value as string[] : null;
 const hasOnlyKeys = (value: Record<string, unknown>, allowed: readonly string[]): boolean =>
   Object.keys(value).every((key) => allowed.includes(key));
-const PROFILE_KEYS = [
-  "id", "status", "acceptedInputKinds", "workflow", "artifact", "requiredKnowledge",
-  "machineWitnesses", "renderedWitnesses", "manualWitnesses", "qualificationEvidence",
-  "refusalCode", "action", "advisoryKnowledge", "qualificationRequirements",
-] as const;
 
 export function digestText(value: string): string {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
@@ -81,70 +88,17 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value) ?? "null";
 }
 
-export function parseCapabilityCatalog(raw: string): CatalogParseResult {
-  let value: unknown;
-  try { value = JSON.parse(raw); }
-  catch { return { ok: false, message: "capability catalog is not valid JSON" }; }
-  if (!objectValue(value) || !hasOnlyKeys(value, ["version", "profiles"]) || value["version"] !== 1 ||
-      !Array.isArray(value["profiles"]) || value["profiles"].length === 0) {
-    return { ok: false, message: "capability catalog requires version 1 and profiles[]" };
-  }
-  const profiles: CapabilityProfile[] = [];
-  for (const item of value["profiles"]) {
-    if (!objectValue(item) || !hasOnlyKeys(item, PROFILE_KEYS) || !nonEmpty(item["id"]) ||
-        !["qualified", "unqualified"].includes(String(item["status"])) ||
-        stringList(item["acceptedInputKinds"]) === null ||
-        !nonEmpty(item["artifact"]) ||
-        !(item["workflow"] === null || nonEmpty(item["workflow"]))) {
-      return { ok: false, message: "every capability profile needs id, status, acceptedInputKinds, workflow and artifact" };
-    }
-    const optionalLists = ["requiredKnowledge", "machineWitnesses", "renderedWitnesses", "manualWitnesses",
-      "advisoryKnowledge", "qualificationRequirements"] as const;
-    if (optionalLists.some((key) => item[key] !== undefined && stringList(item[key]) === null)) {
-      return { ok: false, message: `capability profile '${item["id"]}' contains an invalid string list` };
-    }
-    if (item["status"] === "qualified" &&
-        (stringList(item["requiredKnowledge"]) === null || stringList(item["machineWitnesses"]) === null ||
-         stringList(item["renderedWitnesses"]) === null || stringList(item["manualWitnesses"]) === null ||
-         !nonEmpty(item["qualificationEvidence"]))) {
-      return { ok: false, message: `qualified capability '${item["id"]}' is incomplete` };
-    }
-    if (item["status"] === "unqualified" &&
-        (item["workflow"] !== null || item["refusalCode"] !== "CAPABILITY_UNQUALIFIED" ||
-         !nonEmpty(item["action"]) || stringList(item["qualificationRequirements"]) === null ||
-         !parseCapabilityPilotReceiptPin(item["qualificationEvidence"]).ok ||
-         expectedCapabilityPilotReceipt(String(item["id"])) === null)) {
-      return { ok: false, message: `unqualified capability '${item["id"]}' is incomplete` };
-    }
-    profiles.push(item as unknown as CapabilityProfile);
-  }
-  return { ok: true, catalog: { version: 1, profiles } };
-}
-
 export function resolveCapabilityActivation(
   value: unknown,
   catalog: CapabilityCatalog,
   catalogDigest: string,
 ): ActivationResult {
-  if (!objectValue(value) || !hasOnlyKeys(value, ["kind", "version", "rawRequest", "requestedSurface", "inputKind", "selectionEvidence"]) ||
-      value["kind"] !== "capability-activation-request" ||
-      value["version"] !== 1 || !nonEmpty(value["rawRequest"]) ||
-      !nonEmpty(value["requestedSurface"]) || !nonEmpty(value["inputKind"]) ||
-      !objectValue(value["selectionEvidence"])) {
+  if (!validRequest(value)) {
     return bad("BAD_ACTIVATION", "activation request has an invalid kind, version, request, surface, input kind or selection evidence");
   }
   const evidence = value["selectionEvidence"];
-  if (evidence["kind"] === "quoted-request") {
-    if (!hasOnlyKeys(evidence, ["kind", "quote", "role"]) || !nonEmpty(evidence["quote"]) || evidence["role"] !== "requested-artifact" ||
-        !value["rawRequest"].includes(evidence["quote"])) {
-      return bad("BAD_ACTIVATION", "quoted selection evidence must be a requested-artifact substring of rawRequest");
-    }
-  } else if (evidence["kind"] === "documented-default") {
-    if (!hasOnlyKeys(evidence, ["kind", "rule"]) || evidence["rule"] !== "unspecified-page-output-defaults-to-web-marketing" ||
-        value["requestedSurface"] !== "web-marketing") {
-      return bad("BAD_ACTIVATION", "documented page default is valid only for web-marketing");
-    }
-  } else return bad("BAD_ACTIVATION", "selectionEvidence.kind must be quoted-request or documented-default");
+  const evidenceProblem = validateSelectionEvidence(value, evidence);
+  if (evidenceProblem !== null) return bad("BAD_ACTIVATION", evidenceProblem);
 
   const profile = catalog.profiles.find((candidate) => candidate.id === value["requestedSurface"]);
   if (profile === undefined) {
@@ -154,20 +108,46 @@ export function resolveCapabilityActivation(
   if (!profile.acceptedInputKinds.includes(value["inputKind"])) {
     return bad("UNSUPPORTED_INPUT", `${profile.id} does not accept input kind '${value["inputKind"]}'`);
   }
-  if (profile.status === "qualified" && (!nonEmpty(profile.workflow) ||
-      stringList(profile.requiredKnowledge) === null || stringList(profile.machineWitnesses) === null ||
-      stringList(profile.renderedWitnesses) === null || stringList(profile.manualWitnesses) === null)) {
-    return bad("BAD_CATALOG", `qualified capability '${profile.id}' is incomplete`);
-  }
-  if (profile.status === "unqualified" && profile.workflow !== null) {
-    return bad("BAD_CATALOG", `unqualified capability '${profile.id}' must have workflow:null`);
-  }
+  if (!profileIsConsistent(profile)) return bad("BAD_CATALOG", `capability '${profile.id}' is incomplete`);
+
   const receipt = buildReceipt(value, evidence, profile, catalogDigest);
-  if (profile.status === "unqualified") {
+  if (profile.availability === "unavailable") {
     return { ok: false, code: profile.refusalCode ?? "CAPABILITY_UNQUALIFIED",
-      message: `${profile.id} has no qualified DESIGN:OS delivery profile`, receipt };
+      message: `${profile.id} has no available DESIGN:OS delivery route`, receipt };
   }
   return { ok: true, receipt };
+}
+
+function validRequest(value: unknown): value is ActivationRequest {
+  return objectValue(value) && hasOnlyKeys(value, ["kind", "version", "rawRequest", "requestedSurface", "inputKind", "selectionEvidence"]) &&
+    value["kind"] === "capability-activation-request" && value["version"] === 1 &&
+    nonEmpty(value["rawRequest"]) && nonEmpty(value["requestedSurface"]) &&
+    nonEmpty(value["inputKind"]) && objectValue(value["selectionEvidence"]);
+}
+
+function validateSelectionEvidence(request: ActivationRequest, evidence: Record<string, unknown>): string | null {
+  if (evidence["kind"] === "quoted-request") {
+    return hasOnlyKeys(evidence, ["kind", "quote", "role"]) && nonEmpty(evidence["quote"]) &&
+      evidence["role"] === "requested-artifact" && request.rawRequest.includes(evidence["quote"])
+      ? null : "quoted selection evidence must be a requested-artifact substring of rawRequest";
+  }
+  if (evidence["kind"] === "documented-default") {
+    return hasOnlyKeys(evidence, ["kind", "rule"]) &&
+      evidence["rule"] === "unspecified-page-output-defaults-to-web-marketing" &&
+      request.requestedSurface === "web-marketing"
+      ? null : "documented page default is valid only for web-marketing";
+  }
+  return "selectionEvidence.kind must be quoted-request or documented-default";
+}
+
+function profileIsConsistent(profile: CapabilityProfile): boolean {
+  if (profile.availability === "unavailable") {
+    return profile.workflow === null && profile.assurance === "unassessed" &&
+      profile.refusalCode === "CAPABILITY_UNQUALIFIED" && nonEmpty(profile.action);
+  }
+  return profile.workflow !== null && profile.assurance !== "unassessed" &&
+    stringList(profile.requiredKnowledge) !== null && stringList(profile.machineWitnesses) !== null &&
+    stringList(profile.renderedWitnesses) !== null && stringList(profile.manualWitnesses) !== null;
 }
 
 function buildReceipt(
@@ -175,20 +155,20 @@ function buildReceipt(
   evidence: Record<string, unknown>,
   profile: CapabilityProfile,
   catalogDigest: string,
-): ActivationReceipt {
-  const qualified = profile.status === "qualified";
+): ActivationReceiptV2 {
+  const routed = profile.availability === "available";
+  const assurance = profile.assurance.toUpperCase() as ActivationReceiptV2["assurance"];
   return {
-    kind: "capability-activation", version: 1,
+    kind: "capability-activation", version: 2,
     requestDigest: digestActivationRequest(request), catalogDigest,
-    requestedSurface: profile.id, inputKind: String(request["inputKind"]),
-    selectionEvidence: evidence,
-    disposition: qualified ? "QUALIFIED" : "UNQUALIFIED",
-    route: qualified ? profile.workflow : null, artifact: profile.artifact,
-    selectedKnowledge: qualified ? profile.requiredKnowledge ?? [] : profile.advisoryKnowledge ?? [],
-    machineWitnesses: profile.machineWitnesses ?? [],
-    renderedWitnesses: profile.renderedWitnesses ?? [],
+    requestedSurface: profile.id, inputKind: String(request["inputKind"]), selectionEvidence: evidence,
+    routingDisposition: routed ? "ROUTED" : "REFUSED", assurance,
+    claimPolicy: assurance === "QUALIFIED" ? "QUALIFIED_DELIVERY_ALLOWED" : "QUALIFIED_DELIVERY_FORBIDDEN",
+    route: routed ? profile.workflow : null, artifact: profile.artifact,
+    selectedKnowledge: routed ? profile.requiredKnowledge ?? [] : profile.advisoryKnowledge ?? [],
+    machineWitnesses: profile.machineWitnesses ?? [], renderedWitnesses: profile.renderedWitnesses ?? [],
     manualWitnesses: profile.manualWitnesses ?? [],
-    action: profile.action ?? (qualified ? `Proceed with ${profile.workflow}.` : "Stop."),
+    action: profile.action ?? (routed ? `Proceed with ${profile.workflow}.` : "Stop."),
   };
 }
 
