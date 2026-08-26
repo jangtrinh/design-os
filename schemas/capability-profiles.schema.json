@@ -41,10 +41,14 @@
           {
             "if": { "properties": { "status": { "const": "unqualified" } } },
             "then": {
-              "required": ["refusalCode", "action", "qualificationRequirements"],
+              "required": ["refusalCode", "action", "qualificationRequirements", "qualificationEvidence"],
               "properties": {
                 "workflow": { "const": null },
-                "refusalCode": { "const": "CAPABILITY_UNQUALIFIED" }
+                "refusalCode": { "const": "CAPABILITY_UNQUALIFIED" },
+                "qualificationEvidence": {
+                  "type": "string",
+                  "pattern": "^knowledge/(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9][A-Za-z0-9._/-]*\\.json#sha256:[a-f0-9]{64}$"
+                }
               }
             }
           }

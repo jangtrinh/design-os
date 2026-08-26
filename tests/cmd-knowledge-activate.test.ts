@@ -26,7 +26,9 @@ describe("ui knowledge activate", () => {
     expect(result.code).toBe(1);
     const envelope = JSON.parse(result.out);
     expect(envelope.error.code).toBe("CAPABILITY_UNQUALIFIED");
+    expect(envelope.data.disposition).toBe("UNQUALIFIED");
     expect(envelope.data.route).toBeNull();
+    expect(envelope.data.selectedKnowledge).toContain("native-macos-craft");
     expect(envelope.data.action).toContain("Do not run generate");
   });
 

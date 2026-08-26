@@ -1,0 +1,10 @@
+{
+  "kind": "design-os.capability-pilot-receipt",
+  "version": 1,
+  "capabilityId": "native-macos",
+  "pilotId": "native-macos-pilot-01",
+  "surfaceCategory": "note-document-editor",
+  "evidenceDisposition": "retained",
+  "ownerVerdict": "OK khá ổn rồi.",
+  "ownerDisposition": "accept-with-reservation"
+}
