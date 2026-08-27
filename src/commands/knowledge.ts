@@ -31,7 +31,7 @@ Usage:
   ui knowledge index [--dir <repo-root>] [--emit]
 
 Subcommands:
-  activate       Resolve a typed requested surface against qualified capabilities; fail closed when unsupported
+  activate       Route an available typed surface with explicit assurance; fail closed when unavailable or invalid
   check          Findings-linter over knowledge/; exit 1 on error-severity findings
   index          Emit the routing index (id / description / when) over knowledge/*.md.
                  Without --emit it prints to stdout; with --emit it writes
@@ -93,6 +93,7 @@ Error codes (check):
 Error codes (activate):
   BAD_ARG | UNKNOWN_FLAG | FILE_NOT_FOUND | BAD_ACTIVATION | NO_CATALOG | BAD_CATALOG
   UNKNOWN_CAPABILITY | UNSUPPORTED_INPUT | CAPABILITY_UNQUALIFIED
+  Successful receipts report route availability separately from assurance and qualified-delivery claim policy.
 
 Error codes (effect-matrix / gradient-matrix):
   BAD_ARG       Missing/unknown subcommand

@@ -2,10 +2,10 @@
  * Antigravity adapter — generates the adapter artifact list for the antigravity runtime.
  *
  * Emits:
- *   17 workflow files → <cwd>/.agent/workflows/ui-<verb>.md
- *   16 skill files    → <cwd>/.agent/skills/design-os-<name>/SKILL.md  (13 craft + 3 journey)
+ *   20 workflow files → <cwd>/.agent/workflows/ui-<verb>.md
+ *   20 skill files    → <cwd>/.agent/skills/design-os-<name>/SKILL.md  (17 craft + 3 journey)
  *
- * Total: 34 artifacts, all mode "write".
+ * Total: 40 artifacts, all mode "write".
  *
  * Antigravity uses the same YAML-frontmatter Markdown shape as Claude.
  * Shell blocks are preceded by `// turbo` to mark them as auto-executable.
@@ -71,7 +71,7 @@ export function generateAntigravityAdapter(input: AdapterInput): AdapterArtifact
     });
   }
 
-  // ── Skill files (14 craft skills) ───────────────────────────────────────────
+  // ── Skill files (17 craft skills) ───────────────────────────────────────────
   for (const name of SKILL_NAMES) {
     pushSkillArtifact(artifacts, cwd, templatesRoot, knowledgeRoot, "skill", name);
   }

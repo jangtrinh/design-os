@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -21,15 +21,41 @@ const fixture = (name: string): string =>
   `${process.cwd()}/tests/fixtures/capability-activation/${name}.json`;
 
 describe("ui knowledge activate", () => {
-  it("refuses native macOS with route:null and an actionable machine envelope", () => {
+  it("routes native macOS provisionally with a forbidden qualified-delivery claim", () => {
     const result = capture(["knowledge", "activate", fixture("native-macos-words"), "--json"]);
-    expect(result.code).toBe(1);
+    expect(result.code).toBe(0);
     const envelope = JSON.parse(result.out);
-    expect(envelope.error.code).toBe("CAPABILITY_UNQUALIFIED");
-    expect(envelope.data.disposition).toBe("UNQUALIFIED");
-    expect(envelope.data.route).toBeNull();
+    expect(envelope.data.version).toBe(2);
+    expect(envelope.data.routingDisposition).toBe("ROUTED");
+    expect(envelope.data.assurance).toBe("PROVISIONAL");
+    expect(envelope.data.claimPolicy).toBe("QUALIFIED_DELIVERY_FORBIDDEN");
+    expect(envelope.data.route).toBe("native-macos");
+    expect(envelope.data.artifact).not.toBe("html");
     expect(envelope.data.selectedKnowledge).toContain("native-macos-craft");
-    expect(envelope.data.action).toContain("Do not run generate");
+    expect(envelope.data.action).not.toContain("generate");
+  });
+
+  it("refuses provisional activation when the pinned assurance receipt digest is wrong", () => {
+    const dir = mkdtempSync(join(tmpdir(), "activate-bad-assurance-"));
+    const knowledgeDir = join(dir, "knowledge");
+    const receiptDir = join(knowledgeDir, "native-macos");
+    mkdirSync(receiptDir, { recursive: true });
+
+    const catalog = JSON.parse(readFileSync(join(process.cwd(), "knowledge", "capability-profiles.json"), "utf8"));
+    const native = catalog.profiles.find((profile: { id: string }) => profile.id === "native-macos");
+    native.assuranceEvidence = `knowledge/native-macos/pilot-01-evidence.json#sha256:${"a".repeat(64)}`;
+    writeFileSync(join(knowledgeDir, "capability-profiles.json"), JSON.stringify(catalog));
+    writeFileSync(
+      join(receiptDir, "pilot-01-evidence.json"),
+      readFileSync(join(process.cwd(), "knowledge", "native-macos", "pilot-01-evidence.json")),
+    );
+
+    const result = capture([
+      "knowledge", "activate", fixture("native-macos-words"), "--dir", dir, "--json",
+    ]);
+    expect(result.code).toBe(1);
+    expect(JSON.parse(result.out).error).toMatchObject({ code: "BAD_CATALOG" });
+    expect(JSON.parse(result.out).error.message).toContain("PILOT_RECEIPT_DIGEST");
   });
 
   it.each(["web-marketing-words", "marketing-for-native-app"])(
@@ -38,7 +64,10 @@ describe("ui knowledge activate", () => {
       const result = capture(["knowledge", "activate", fixture(name), "--json"]);
       expect(result.code).toBe(0);
       const envelope = JSON.parse(result.out);
-      expect(envelope.data.disposition).toBe("QUALIFIED");
+      expect(envelope.data.version).toBe(2);
+      expect(envelope.data.routingDisposition).toBe("ROUTED");
+      expect(envelope.data.assurance).toBe("QUALIFIED");
+      expect(envelope.data.claimPolicy).toBe("QUALIFIED_DELIVERY_ALLOWED");
       expect(envelope.data.route).toBe("generate");
       expect(envelope.data.artifact).toBe("html");
       expect(envelope.data.requestDigest).toMatch(/^sha256:[a-f0-9]{64}$/);

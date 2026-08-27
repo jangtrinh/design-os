@@ -98,6 +98,62 @@ describe("capability activation core", () => {
     }
   });
 
+  it("routes an available provisional v2 native arm without HTML fallback", () => {
+    const v2 = {
+      version: 2,
+      profiles: [{
+        id: "native-macos",
+        availability: "available",
+        assurance: "provisional",
+        acceptedInputKinds: ["words"],
+        workflow: "native-macos",
+        artifact: "native-macos-application",
+        requiredKnowledge: ["need-routing", "native-macos-craft"],
+        machineWitnesses: ["gate"],
+        renderedWitnesses: ["native-window-capture"],
+        manualWitnesses: ["owner-visible-acceptance"],
+        assuranceEvidence: "knowledge/native-macos/pilot-01-evidence.json#sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        action: "Proceed with the provisional native-macos workflow.",
+      }],
+    };
+    const parsed = parseCapabilityCatalog(JSON.stringify(v2));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    const result = resolveCapabilityActivation(
+      request("native-macos", "Build a native macOS workspace", "native macOS workspace"),
+      parsed.catalog,
+      "sha256:catalog",
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const receipt = result.receipt as unknown as Record<string, unknown>;
+    expect(receipt).toMatchObject({
+      version: 2,
+      routingDisposition: "ROUTED",
+      assurance: "PROVISIONAL",
+      claimPolicy: "QUALIFIED_DELIVERY_FORBIDDEN",
+      route: "native-macos",
+      artifact: "native-macos-application",
+    });
+    expect(receipt["route"]).not.toBe("generate");
+    expect(receipt["artifact"]).not.toBe("html");
+  });
+
+  it("normalizes v1 catalog profiles without granting an implicit provisional route", () => {
+    const parsed = parseCapabilityCatalog(JSON.stringify(catalog));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const profiles = parsed.catalog.profiles as unknown as Array<Record<string, unknown>>;
+    expect(profiles.find((profile) => profile["id"] === "web-marketing")).toMatchObject({
+      availability: "available", assurance: "qualified",
+    });
+    expect(profiles.find((profile) => profile["id"] === "native-macos")).toMatchObject({
+      availability: "unavailable", assurance: "unassessed", workflow: null,
+    });
+  });
+
   it("refuses native macOS without an implicit HTML fallback", () => {
     const parsed = parseCapabilityCatalog(JSON.stringify(catalog));
     if (!parsed.ok) throw new Error(parsed.message);
@@ -113,7 +169,7 @@ describe("capability activation core", () => {
     }
   });
 
-  it("keeps the actual native catalog advisory-only while pinning retained pilot evidence", () => {
+  it("keeps the actual native catalog available but explicitly provisional", () => {
     const parsed = parseCapabilityCatalog(readFileSync(join(ROOT, "knowledge", "capability-profiles.json"), "utf8"));
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
@@ -121,10 +177,12 @@ describe("capability activation core", () => {
     expect(native).toBeDefined();
     if (native === undefined) return;
 
-    expect(native.status).toBe("unqualified");
-    expect(native.workflow).toBeNull();
-    expect(native.advisoryKnowledge).toContain("native-macos-craft");
-    expect(native.qualificationEvidence).toMatch(
+    const profile = native as unknown as Record<string, unknown>;
+    expect(profile["availability"]).toBe("available");
+    expect(profile["assurance"]).toBe("provisional");
+    expect(profile["workflow"]).toBe("native-macos");
+    expect(profile["requiredKnowledge"]).toContain("native-macos-craft");
+    expect(profile["assuranceEvidence"]).toMatch(
       /^knowledge\/native-macos\/pilot-01-evidence\.json#sha256:[a-f0-9]{64}$/,
     );
     const result = resolveCapabilityActivation(
@@ -132,11 +190,16 @@ describe("capability activation core", () => {
       parsed.catalog,
       "sha256:catalog",
     );
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.receipt?.route).toBeNull();
-      expect(result.receipt?.selectedKnowledge).toContain("native-macos-craft");
-    }
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const receipt = result.receipt as unknown as Record<string, unknown>;
+    expect(receipt).toMatchObject({
+      routingDisposition: "ROUTED",
+      assurance: "PROVISIONAL",
+      claimPolicy: "QUALIFIED_DELIVERY_FORBIDDEN",
+      route: "native-macos",
+    });
+    expect(receipt["selectedKnowledge"]).toContain("native-macos-craft");
   });
 
   it("rejects selection evidence whose quote is absent from the raw request", () => {

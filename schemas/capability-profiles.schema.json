@@ -2,61 +2,145 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://ease-design/schemas/capability-profiles.schema.json",
   "title": "ease-design capability profiles",
-  "type": "object",
-  "required": ["version", "profiles"],
-  "additionalProperties": false,
-  "properties": {
-    "version": { "const": 1 },
-    "profiles": {
+  "oneOf": [
+    { "$ref": "#/definitions/catalogV1" },
+    { "$ref": "#/definitions/catalogV2" }
+  ],
+  "definitions": {
+    "stringList": {
       "type": "array",
       "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": ["id", "status", "acceptedInputKinds", "workflow", "artifact"],
-        "additionalProperties": false,
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "status": { "enum": ["qualified", "unqualified"] },
-          "acceptedInputKinds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-          "workflow": { "type": ["string", "null"] },
-          "artifact": { "type": "string", "minLength": 1 },
-          "requiredKnowledge": { "$ref": "#/definitions/stringList" },
-          "machineWitnesses": { "$ref": "#/definitions/stringList" },
-          "renderedWitnesses": { "$ref": "#/definitions/stringList" },
-          "manualWitnesses": { "$ref": "#/definitions/stringList" },
-          "qualificationEvidence": { "type": "string", "minLength": 1 },
-          "refusalCode": { "type": "string", "minLength": 1 },
-          "action": { "type": "string", "minLength": 1 },
-          "advisoryKnowledge": { "$ref": "#/definitions/stringList" },
-          "qualificationRequirements": { "$ref": "#/definitions/stringList" }
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "catalogV1": {
+      "type": "object",
+      "required": ["version", "profiles"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "const": 1 },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/profileV1" }
+        }
+      }
+    },
+    "profileV1": {
+      "type": "object",
+      "required": ["id", "status", "acceptedInputKinds", "workflow", "artifact"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["qualified", "unqualified"] },
+        "acceptedInputKinds": { "$ref": "#/definitions/stringList" },
+        "workflow": { "type": ["string", "null"] },
+        "artifact": { "type": "string", "minLength": 1 },
+        "requiredKnowledge": { "$ref": "#/definitions/stringList" },
+        "machineWitnesses": { "$ref": "#/definitions/stringList" },
+        "renderedWitnesses": { "$ref": "#/definitions/stringList" },
+        "manualWitnesses": { "$ref": "#/definitions/stringList" },
+        "qualificationEvidence": { "type": "string", "minLength": 1 },
+        "refusalCode": { "type": "string", "minLength": 1 },
+        "action": { "type": "string", "minLength": 1 },
+        "advisoryKnowledge": { "$ref": "#/definitions/stringList" },
+        "qualificationRequirements": { "$ref": "#/definitions/stringList" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "qualified" } } },
+          "then": {
+            "required": ["requiredKnowledge", "machineWitnesses", "renderedWitnesses", "manualWitnesses", "qualificationEvidence"],
+            "properties": { "workflow": { "type": "string", "minLength": 1 } }
+          }
         },
-        "allOf": [
-          {
-            "if": { "properties": { "status": { "const": "qualified" } } },
-            "then": {
-              "required": ["requiredKnowledge", "machineWitnesses", "renderedWitnesses", "manualWitnesses", "qualificationEvidence"],
-              "properties": { "workflow": { "type": "string", "minLength": 1 } }
-            }
-          },
-          {
-            "if": { "properties": { "status": { "const": "unqualified" } } },
-            "then": {
-              "required": ["refusalCode", "action", "qualificationRequirements", "qualificationEvidence"],
-              "properties": {
-                "workflow": { "const": null },
-                "refusalCode": { "const": "CAPABILITY_UNQUALIFIED" },
-                "qualificationEvidence": {
-                  "type": "string",
-                  "pattern": "^knowledge/(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9][A-Za-z0-9._/-]*\\.json#sha256:[a-f0-9]{64}$"
-                }
-              }
+        {
+          "if": { "properties": { "status": { "const": "unqualified" } } },
+          "then": {
+            "required": ["refusalCode", "action", "qualificationRequirements", "qualificationEvidence"],
+            "properties": {
+              "workflow": { "const": null },
+              "refusalCode": { "const": "CAPABILITY_UNQUALIFIED" },
+              "qualificationEvidence": { "$ref": "#/definitions/pilotEvidence" }
             }
           }
-        ]
+        }
+      ]
+    },
+    "catalogV2": {
+      "type": "object",
+      "required": ["version", "profiles"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "const": 2 },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/profileV2" }
+        }
       }
+    },
+    "profileV2": {
+      "type": "object",
+      "required": ["id", "availability", "assurance", "acceptedInputKinds", "workflow", "artifact"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "availability": { "enum": ["available", "unavailable"] },
+        "assurance": { "enum": ["qualified", "provisional", "unassessed"] },
+        "acceptedInputKinds": { "$ref": "#/definitions/stringList" },
+        "workflow": { "type": ["string", "null"] },
+        "artifact": { "type": "string", "minLength": 1 },
+        "requiredKnowledge": { "$ref": "#/definitions/stringList" },
+        "machineWitnesses": { "$ref": "#/definitions/stringList" },
+        "renderedWitnesses": { "$ref": "#/definitions/stringList" },
+        "manualWitnesses": { "$ref": "#/definitions/stringList" },
+        "assuranceEvidence": { "type": "string", "minLength": 1 },
+        "refusalCode": { "type": "string", "minLength": 1 },
+        "action": { "type": "string", "minLength": 1 },
+        "advisoryKnowledge": { "$ref": "#/definitions/stringList" },
+        "qualificationRequirements": { "$ref": "#/definitions/stringList" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "availability": { "const": "available" } } },
+          "then": {
+            "required": ["requiredKnowledge", "machineWitnesses", "renderedWitnesses", "manualWitnesses", "assuranceEvidence"],
+            "properties": {
+              "assurance": { "enum": ["qualified", "provisional"] },
+              "workflow": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "availability": { "const": "unavailable" } } },
+          "then": {
+            "required": ["refusalCode", "action", "qualificationRequirements", "assuranceEvidence"],
+            "properties": {
+              "assurance": { "const": "unassessed" },
+              "workflow": { "const": null },
+              "refusalCode": { "const": "CAPABILITY_UNQUALIFIED" },
+              "assuranceEvidence": { "$ref": "#/definitions/pilotEvidence" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "assurance": { "const": "provisional" } } },
+          "then": {
+            "properties": {
+              "availability": { "const": "available" },
+              "assuranceEvidence": { "$ref": "#/definitions/pilotEvidence" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "assurance": { "const": "qualified" } } },
+          "then": { "properties": { "availability": { "const": "available" } } }
+        }
+      ]
+    },
+    "pilotEvidence": {
+      "type": "string",
+      "pattern": "^knowledge/(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9][A-Za-z0-9._/-]*\\.json#sha256:[a-f0-9]{64}$"
     }
-  },
-  "definitions": {
-    "stringList": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
   }
 }

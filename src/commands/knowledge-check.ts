@@ -32,11 +32,11 @@ function pilotReceiptValidations(knowledgeDir: string, catalogJson: string | nul
   } catch { return []; }
   const seenPilotIds = new Set<string>();
   return profiles.flatMap((profile): CapabilityPilotReceiptValidation[] => {
-    if (!isRecord(profile) || profile["status"] !== "unqualified") return [];
+    if (!isRecord(profile) || !requiresPilotReceipt(profile)) return [];
     const capabilityId = typeof profile["id"] === "string" ? profile["id"] : "unknown";
-    const pin = profile["qualificationEvidence"];
+    const pin = profile["assuranceEvidence"] ?? profile["qualificationEvidence"];
     if (pin === undefined || pin === null || (typeof pin === "string" && pin.trim() === "")) {
-      return [{ capabilityId, result: receiptFailure("PILOT_RECEIPT_MISSING", "unqualified capability requires a pilot receipt pin") }];
+      return [{ capabilityId, result: receiptFailure("PILOT_RECEIPT_MISSING", "provisional or unavailable capability requires a pilot receipt pin") }];
     }
     const expected = expectedCapabilityPilotReceipt(capabilityId);
     if (expected === null) {
@@ -46,6 +46,11 @@ function pilotReceiptValidations(knowledgeDir: string, catalogJson: string | nul
     if (result.ok) seenPilotIds.add(result.receipt.pilotId);
     return [{ capabilityId, result }];
   });
+}
+
+function requiresPilotReceipt(profile: Record<string, unknown>): boolean {
+  return profile["status"] === "unqualified" || profile["availability"] === "unavailable" ||
+    profile["assurance"] === "provisional";
 }
 
 export function runKnowledgeCheck(parsed: ParsedArgs): CommandResult {

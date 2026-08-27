@@ -8,6 +8,7 @@
 
 export const VERB_SKILL_REFS: Readonly<Record<string, readonly string[]>> = {
   generate:  ["pick-persona", "score-taste", "check-consistency", "color-decision", "gsap-motion", "canvas-effect", "shader-gradient", "scroll-cinema", "gflow-flight"],
+  "native-macos": ["native-macos-craft"],
   iterate:   ["apply-prompt-mode", "score-taste"],
   refine:    ["score-taste", "check-consistency", "gsap-motion", "canvas-effect", "shader-gradient", "scroll-cinema", "gflow-flight"],
   redesign:  ["pick-persona", "score-taste", "color-decision", "gsap-motion", "canvas-effect", "shader-gradient", "scroll-cinema"],
