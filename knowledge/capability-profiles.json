@@ -1,9 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "profiles": [
     {
       "id": "web-marketing",
-      "status": "qualified",
+      "availability": "available",
+      "assurance": "qualified",
       "acceptedInputKinds": ["words", "visual-reference", "existing-artifact"],
       "workflow": "generate",
       "artifact": "html",
@@ -23,26 +24,22 @@
       ],
       "renderedWitnesses": ["1440px", "768px", "390px", "reduced-motion", "javascript-failure"],
       "manualWitnesses": ["independent-curator", "owner-visible-acceptance"],
-      "qualificationEvidence": "knowledge/qualified-delivery.md",
+      "assuranceEvidence": "knowledge/qualified-delivery.md",
       "action": "Proceed with generate and preserve this activation receipt beside the design brief."
     },
     {
       "id": "native-macos",
-      "status": "unqualified",
+      "availability": "available",
+      "assurance": "provisional",
       "acceptedInputKinds": ["words", "visual-reference", "existing-artifact"],
-      "workflow": null,
+      "workflow": "native-macos",
       "artifact": "native-macos-application",
-      "refusalCode": "CAPABILITY_UNQUALIFIED",
-      "action": "Do not run generate. Native macOS remains unqualified; use native-macos-craft only as advisory guidance and require a second held-out pilot before any native route. Offer web-marketing only as an explicit user-approved alternative.",
-      "advisoryKnowledge": ["native-macos-craft", "content-design", "design-review", "verification-honesty"],
-      "qualificationEvidence": "knowledge/native-macos/pilot-01-evidence.json#sha256:15985c431056cc29b5823650b4daf8c09974caed64e75019b103f89d69341ff9",
-      "qualificationRequirements": [
-        "SwiftUI-first knowledge packet with AppKit escalation boundary",
-        "build and test contract",
-        "native static and rendered witnesses",
-        "accessibility tree evidence",
-        "owner-visible acceptance from a second held-out pilot"
-      ]
+      "requiredKnowledge": ["need-routing", "native-macos-craft", "content-design", "design-review", "verification-honesty"],
+      "machineWitnesses": ["knowledge activate"],
+      "renderedWitnesses": ["native-window-capture", "accessibility-tree-observation"],
+      "manualWitnesses": ["independent-curator", "owner-visible-acceptance"],
+      "assuranceEvidence": "knowledge/native-macos/pilot-01-evidence.json#sha256:15985c431056cc29b5823650b4daf8c09974caed64e75019b103f89d69341ff9",
+      "action": "Proceed with the native-macos workflow under provisional assurance. Do not claim qualified platform delivery; held-out evidence may change assurance only."
     }
   ]
 }

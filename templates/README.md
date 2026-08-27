@@ -9,6 +9,7 @@ User-facing entry points (`/ui:<verb>` on Claude Code; analogous shapes elsewher
 | File | Verb | What it does |
 |---|---|---|
 | `generate.md` | `/ui:generate` | Central generation flow: compile prompt plan → compare content-led and golden proportions → validate compact builder packet → generate → qualify → bounded repair. |
+| `native-macos.md` | `/ui:native-macos` | SwiftUI-first native execution arm: route through typed activation, keep platform assurance provisional, and preserve distinct deterministic, rendered, accessibility, review, and owner evidence. |
 | `iterate.md` | `/ui:iterate` | Surgical edit to an existing variant via `ui edit-strategy` (deterministic / ln-diff / full-regen). |
 | `refine.md` | `/ui:refine` | Self-correction pass: critique → identify failing axes → refine those → re-critique. ≤2 passes. |
 | `redesign.md` | `/ui:redesign` | Radical contra-persona redesign preserving the source's information architecture. |
@@ -32,6 +33,7 @@ Small wrappers that tell the host model *which `knowledge/` files to read for wh
 | `token-model.md` | Defining, aliasing, or mutating tokens. |
 | `apply-prompt-mode.md` | Choosing `replicate` / `enhance` / `adapt` against a reference. |
 | `gsap-motion.md` | Directing and implementing advanced GSAP web choreography with lifecycle, accessibility, and performance gates. |
+| `native-macos-craft.md` | Applying SwiftUI-first native macOS craft, finite layout ownership, and provisional evidence boundaries. |
 
 ## Journeys — `journeys/`
 

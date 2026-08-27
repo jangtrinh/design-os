@@ -26,4 +26,4 @@ export interface DeliveryValidationContext {
 export class DeliveryError extends Error {
   constructor(readonly code: "BAD_DELIVERY", message: string) { super(message); }
 }
-import type { CapabilityCatalog } from "../capability-activation.js";
+import type { CapabilityCatalog } from "../capability-catalog.js";

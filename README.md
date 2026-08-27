@@ -291,7 +291,7 @@ scanned, hygiene-audited, contrast-proven, and VR-baselined end to end.
 
 ## Six daily verbs
 
-These are the six common moves. The full adapter exposes 18 workflows (plus the internal critique gate) when the task needs more.
+These are the six common moves. The full adapter exposes 19 workflows (plus the internal critique gate) when the task needs more.
 
 | Verb | What it does |
 | --- | --- |
@@ -303,11 +303,12 @@ These are the six common moves. The full adapter exposes 18 workflows (plus the 
 | `/ui:why <question>` | Ask *why* a past design decision was made — answers with provenance from the project's design memory. |
 
 <details>
-<summary><b>All 18 workflows (+1 internal gate)</b> (audit · chart · critique · design · diagram · evidence · extract · figma · from-ref · slides · redesign …)</summary>
+<summary><b>All 19 workflows (+1 internal gate)</b> (audit · chart · critique · design · diagram · evidence · extract · figma · from-ref · native-macos · slides · redesign …)</summary>
 
 | Command | What it does |
 |---|---|
 | `/ui:generate <intent>` | Start a fresh design from a plain-language description. Token-bound variants across diverse personas. |
+| `/ui:native-macos <intent>` | Build a SwiftUI-first native macOS surface through an available, provisional arm; it never claims qualified platform delivery. |
 | `/ui:iterate <change>`  | Tweak the current design in plain words; applied as a surgical line-diff, re-scored by the gate. |
 | `/ui:refine`            | Run the full critique→refine polish loop on the current design. |
 | `/ui:redesign <intent>` | Reimagine an existing page in a different persona/direction. |
@@ -505,8 +506,9 @@ A better prompt improves the first draft. It does not prove the draft is ready.
 raw request
   → capability-activation request
   → ui knowledge activate
-      ↳ unsupported surface → CAPABILITY_UNQUALIFIED (route: null)
+      ↳ unavailable surface → CAPABILITY_UNQUALIFIED (route: null)
       ↳ qualified web marketing → capability-activation.json
+      ↳ provisional native macOS → native-macos route with qualified-delivery claim forbidden
   → design-brief.json v2 (activationRef)
   → generation-contract.json
   → candidate + 1440/768/390 renders
@@ -548,8 +550,10 @@ Qualified Delivery v2 adds an implementation-grade craft contract:
 - a named composition thesis, signature spatial move, and whitespace strategy.
 
 Version 1 artifacts remain valid historical records. Only version 2 proves the current craft
-contract. A v2 design brief binds `activationRef` to a qualified `web-marketing → generate → html`
-receipt; `ui delivery validate` recomputes its request and installed-catalog digests. The validator
+contract. A v2 design brief binds `activationRef` to a `ROUTED + QUALIFIED +
+QUALIFIED_DELIVERY_ALLOWED` `web-marketing → generate → html` receipt; `ui delivery validate`
+recomputes its request and installed-catalog digests. A native receipt can route with `PROVISIONAL`
+assurance but has `QUALIFIED_DELIVERY_FORBIDDEN`, so it cannot satisfy a marketing brief. The validator
 also resolves a v2 qualification record's `contractRef` relative to the record and rejects missing
 or contradictory evidence.
 
@@ -711,8 +715,9 @@ never generates assets, calls a model, or accesses the network.
 ```mermaid
 flowchart TD
     U["1 · User intent or reference"] --> CA{"2 · ui knowledge activate<br/>typed surface + visible evidence"}
-    CA -- unqualified --> STOP["Stop · CAPABILITY_UNQUALIFIED<br/>route: null"]
+    CA -- unavailable --> STOP["Stop · CAPABILITY_UNQUALIFIED<br/>route: null"]
     CA -- web-marketing qualified --> B["3 · Preserve activation receipt<br/>compile design-brief.json v2"]
+    CA -- native-macos provisional --> N["Route native-macos<br/>PROVISIONAL · qualified delivery forbidden"]
     B --> PP["4 · Compile prompt-plan.json<br/>3 structural directions · region jobs · visual DNA"]
     PP --> PF{"ui prompt-plan<br/>validate + preflight"}
     PF -- fail --> B
@@ -756,13 +761,13 @@ flowchart LR
       E5["Tokens / existing DS"]
       E6["Image reference"]
     end
-    E1 --> W["18 /ui:* workflows"]
+    E1 --> W["19 /ui:* workflows"]
     E2 --> W
     E3 --> W
     E4 --> W
     E5 --> W
     E6 --> W
-    W --> H["Host model + DESIGN:OS knowledge and 17 installed skills"]
+    W --> H["Host model + DESIGN:OS knowledge and 20 installed skills"]
     H --> K["42-command deterministic ui kernel"]
     H --> O1["Responsive production UI"]
     H --> O2["Idiomatic Figma canvas"]
@@ -982,9 +987,9 @@ instead of falling into the accepting branch.
 
 1. **You describe intent** → `/ui:generate landing page for a new gym`.
 2. **Capability activates first** — the host records the requested surface with visible evidence;
-   `ui knowledge activate` either emits a qualified receipt or stops with `route: null`.
-3. **Intent compiles only after qualification** — the raw request becomes a provenance-tagged brief and a validated
-   prompt plan with three structural directions, explicit region jobs, and visual DNA.
+   `ui knowledge activate` either routes an available arm with explicit assurance or stops with `route: null`.
+3. **Intent compiles only after an authorized route** — the receipt's claim policy bounds what may be delivered;
+   the raw request then becomes the route-specific provenance-tagged artifact contract.
 4. **The project grounds the decision** — current DS, soul, evidence, and memory context load;
    current product truth outranks recalled preference.
 5. **Direction and assets resolve before code** — content-led and golden candidates are compared;

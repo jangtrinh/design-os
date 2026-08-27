@@ -79,6 +79,14 @@ describe("ui delivery validate", () => {
     const activationRequest = join(process.cwd(), "tests", "fixtures", "capability-activation", "web-marketing-words.json");
     const activationRun = capture(["knowledge", "activate", activationRequest, "--json"]);
     expect(activationRun.code).toBe(0);
+    expect(JSON.parse(activationRun.out).data).toMatchObject({
+      version: 2,
+      routingDisposition: "ROUTED",
+      assurance: "QUALIFIED",
+      claimPolicy: "QUALIFIED_DELIVERY_ALLOWED",
+      route: "generate",
+      artifact: "html",
+    });
     writeFileSync(join(dir, "activation.json"), activationRun.out);
     const brief = JSON.parse(String(requireFixture("design-brief-valid.json"))) as Record<string, unknown>;
     brief["version"] = 2;
@@ -88,6 +96,24 @@ describe("ui delivery validate", () => {
     const result = capture(["delivery", "validate", file, "--json"]);
     expect(result.code).toBe(0);
     expect(JSON.parse(result.out).data.errorCount).toBe(0);
+  });
+
+  it("rejects a successful provisional native activation as a marketing brief", () => {
+    const dir = mkdtempSync(join(tmpdir(), "delivery-v2-native-"));
+    const activationRequest = join(process.cwd(), "tests", "fixtures", "capability-activation", "native-macos-words.json");
+    const activationRun = capture(["knowledge", "activate", activationRequest, "--json"]);
+    expect(activationRun.code).toBe(0);
+    writeFileSync(join(dir, "activation.json"), activationRun.out);
+    const brief = JSON.parse(String(requireFixture("design-brief-valid.json"))) as Record<string, unknown>;
+    brief["version"] = 2;
+    brief["rawRequest"] = "Build a native macOS workspace";
+    brief["activationRef"] = "activation.json";
+    const file = join(dir, "brief.json"); writeFileSync(file, JSON.stringify(brief));
+    const result = capture(["delivery", "validate", file, "--json"]);
+    expect(result.code).toBe(1);
+    const ids = JSON.parse(result.out).data.findings.map((finding: { checkId: string }) => finding.checkId);
+    expect(ids).toContain("activation-unqualified");
+    expect(ids).toContain("activation-route-mismatch");
   });
 
   it("rejects v2 briefs with missing, stale, or wrong-route activation", () => {

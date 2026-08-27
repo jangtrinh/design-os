@@ -153,6 +153,14 @@ describe("buildAntigravityWorkflow", () => {
     expect(out).toContain("// turbo");
   });
 
+  it("does not fabricate a direct ui native-macos command for a workflow-only arm", () => {
+    const nativeTemplate = `${FAKE_TEMPLATES}/workflows/native-macos.md`;
+    const out = buildAntigravityWorkflow("native-macos", nativeTemplate);
+    expect(out).toContain(nativeTemplate);
+    expect(out).toContain("ui knowledge activate");
+    expect(out).not.toContain("ui native-macos");
+  });
+
   it("is deterministic", () => {
     const a = buildAntigravityWorkflow("iterate", FAKE_TPL);
     const b = buildAntigravityWorkflow("iterate", FAKE_TPL);

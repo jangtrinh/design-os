@@ -29,10 +29,12 @@ the documented page-output default. The requested artifact is not every platform
 ui knowledge activate capability-activation-request.json --json > capability-activation.json
 ```
 
-Preserve the JSON result even when the command exits non-zero. Stop on every non-zero result.
-`CAPABILITY_UNQUALIFIED` with `route: null` is an honest refusal, not permission to generate HTML.
-Proceed only when `data.disposition` is `QUALIFIED`, `data.route` is `generate`, and
-`data.artifact` is `html`. Save the result beside the brief; no global telemetry is required.
+Preserve the JSON result even when the command exits non-zero. Stop on every non-zero result or
+`data.routingDisposition: "REFUSED"`. A refused or provisional native receipt is never permission to
+generate HTML. Proceed only when `data.routingDisposition` is `ROUTED`, `data.assurance` is
+`QUALIFIED`, `data.claimPolicy` is `QUALIFIED_DELIVERY_ALLOWED`, `data.requestedSurface` is
+`web-marketing`, `data.route` is `generate`, and `data.artifact` is `html`. Save the result beside the
+brief; no global telemetry is required.
 
 ## 1. Compile intent into a prompt plan
 

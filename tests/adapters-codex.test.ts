@@ -71,6 +71,8 @@ describe("generateCodexAdapter", () => {
     // New verb / skill must also be hashed
     expect(art.content).toMatch(/workflows\/from-url\.md: [0-9a-f]{64}/);
     expect(art.content).toMatch(/skills\/designmd-emit\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/workflows\/native-macos\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/skills\/native-macos-craft\.md: [0-9a-f]{64}/);
   });
 
   it("is deterministic — two calls produce identical content", () => {

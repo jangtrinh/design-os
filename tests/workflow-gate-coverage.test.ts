@@ -18,7 +18,7 @@ const GATED = ["chart", "critique", "diagram", "figma", "from-ref", "generate", 
 /** Workflows exempt for a declared reason — each must carry a gate-exempt marker. */
 const EXEMPT = ["design", "extract", "from-url", "to-figma"];
 /** Workflows that emit no HTML at all. */
-const NON_EMITTING = ["audit", "evidence", "figma-comments", "learn", "why"];
+const NON_EMITTING = ["audit", "evidence", "figma-comments", "learn", "native-macos", "why"];
 
 describe("workflow gate coverage", () => {
   it("every workflow file is classified (new files must join exactly one list)", () => {

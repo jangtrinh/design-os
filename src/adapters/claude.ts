@@ -2,10 +2,10 @@
  * Claude Code adapter — generates the adapter artifact list for the claude runtime.
  *
  * Emits:
- *   17 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
- *   16 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (13 craft + 3 journey)
+ *   20 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
+ *   20 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (17 craft + 3 journey)
  *
- * Total: 34 artifacts, all mode "write".
+ * Total: 40 artifacts, all mode "write".
  */
 import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
@@ -72,7 +72,7 @@ export function generateClaudeAdapter(input: AdapterInput): AdapterArtifact[] {
     });
   }
 
-  // ── Skill files (14 craft skills) ───────────────────────────────────────────
+  // ── Skill files (17 craft skills) ───────────────────────────────────────────
   for (const name of SKILL_NAMES) {
     pushSkillArtifact(artifacts, cwd, templatesRoot, knowledgeRoot, "skill", name);
   }

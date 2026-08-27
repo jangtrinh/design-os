@@ -32,6 +32,10 @@ describe("WORKFLOW_VERBS registry", () => {
   it("includes the synthetic 'init' verb", () => {
     expect(WORKFLOW_VERBS).toContain("init");
   });
+
+  it("registers native macOS as an installable workflow", () => {
+    expect(WORKFLOW_VERBS).toContain("native-macos");
+  });
 });
 
 describe("SKILL_NAMES registry", () => {
@@ -43,6 +47,10 @@ describe("SKILL_NAMES registry", () => {
 
     const registrySkills = [...SKILL_NAMES].sort();
     expect(registrySkills).toEqual(fsSkills);
+  });
+
+  it("registers the native macOS craft skill", () => {
+    expect(SKILL_NAMES).toContain("native-macos-craft");
   });
 });
 

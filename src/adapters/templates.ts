@@ -23,6 +23,7 @@ import { createHash } from "node:crypto";
  */
 export const WORKFLOW_VERBS = [
   "generate",
+  "native-macos",
   "iterate",
   "refine",
   "redesign",
@@ -85,6 +86,7 @@ export const SKILL_NAMES = [
   "gflow-flight",
   "scroll-cinema",
   "shader-gradient",
+  "native-macos-craft",
 ] as const satisfies readonly string[];
 
 export type SkillName = (typeof SKILL_NAMES)[number];
