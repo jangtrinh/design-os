@@ -24,6 +24,7 @@ import { AA_NORMAL } from "./ds-a11y.js";
 import type { DesignFact } from "./design-facts/index.js";
 import { atLeast } from "./design-facts/index.js";
 import type { FloorFindingBase } from "./finding-schema.js";
+import { thr } from "./tell-thresholds.js";
 
 /** AA for large text: >= 24px, or >= 18.66px when bold. */
 export const AA_LARGE = 3;
@@ -75,7 +76,7 @@ function nearestBackground(
     // A translucent paint does not establish the background on its own: what is
     // behind it still shows through, and guessing the blend would be a made-up
     // colour. Keep walking.
-    if (bg !== undefined && (bg.alpha ?? 1) >= 0.95) return bg;
+    if (bg !== undefined && (bg.alpha ?? 1) >= thr("OPAQUE_MIN_ALPHA")) return bg;
     ref = parentOf.get(ref);
   }
   return fallback;
@@ -92,7 +93,7 @@ function nearestBackgroundOwner(
   while (ref !== undefined && !seen.has(ref)) {
     seen.add(ref);
     const bg = bgByRef.get(ref);
-    if (bg !== undefined && (bg.alpha ?? 1) >= 0.95) return ref;
+    if (bg !== undefined && (bg.alpha ?? 1) >= thr("OPAQUE_MIN_ALPHA")) return ref;
     ref = parentOf.get(ref);
   }
   return undefined;
@@ -140,7 +141,7 @@ export function checkComputedContrast(
   let documentBg: { hex: string; alpha?: number } | undefined;
   for (const ref of rootRefs) {
     const bg = bgByRef.get(ref);
-    if (bg !== undefined && (bg.alpha ?? 1) >= 0.95) {
+    if (bg !== undefined && (bg.alpha ?? 1) >= thr("OPAQUE_MIN_ALPHA")) {
       documentBg = bg;
       break;
     }
@@ -179,7 +180,7 @@ export function checkComputedContrast(
 
   for (const f of facts) {
     if (f.kind !== "color" || f.role !== "fg") continue;
-    if ((f.alpha ?? 1) < 0.95) continue; // translucent text: the blend is not knowable here
+    if ((f.alpha ?? 1) < thr("OPAQUE_MIN_ALPHA")) continue; // translucent text: the blend is not knowable here
 
     const ref = f.at.nodeRef;
     if (ref !== undefined && gradientLines.has(f.at.line)) {

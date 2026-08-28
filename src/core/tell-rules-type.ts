@@ -10,6 +10,7 @@
  */
 import type { TellRule } from "./tell-rules.js";
 import { finding, nearestOwner, OVERUSED_FONTS } from "./tell-rules.js";
+import { thr } from "./tell-thresholds.js";
 
 const SECTION = "Type";
 
@@ -52,11 +53,11 @@ export const flatTypeHierarchy: TellRule = {
     // — the text-xs/text-sm/text-base UI scale, which is not a broken heading
     // hierarchy, it is normal interface text. A fragment has no display scale to
     // be flat. Require something that reads as display type before judging.
-    const DISPLAY_FLOOR = 24;
+    const DISPLAY_FLOOR = thr("DISPLAY_FLOOR_PX");
     if (!sizes.some((n) => n >= DISPLAY_FLOOR)) return [];
     const ratios = sizes.slice(1).map((n, i) => n / (sizes[i] as number));
     const largest = Math.max(...ratios);
-    if (largest >= 1.25) return [];
+    if (largest >= thr("HIERARCHY_MIN_STEP")) return [];
     return [
       finding(flatTypeHierarchy, {
         message: `${sizes.length} type sizes (${sizes.map((n) => `${n}px`).join(", ")}) with no step above ${largest.toFixed(2)}x — nothing ranks`,
@@ -85,7 +86,7 @@ export const oversizedH1: TellRule = {
       .filter((n): n is number => n !== undefined && n > 0 && n !== h1Size)
       .sort((a, b) => b - a);
     const next = others[0];
-    if (next === undefined || h1Size / next < 3) return [];
+    if (next === undefined || h1Size / next < thr("OVERSIZED_H1_RATIO")) return [];
     return [
       finding(oversizedH1, {
         message: `h1 at ${h1Size}px with nothing between it and the next size (${next}px) — a ${(h1Size / next).toFixed(1)}x jump`,
@@ -156,7 +157,7 @@ export const tightLeading: TellRule = {
   run: (facts) =>
     facts
       .by("typography")
-      .filter((t) => t.lineHeight !== undefined && t.lineHeight < 1.2 && t.sizePx !== undefined && t.sizePx <= 20)
+      .filter((t) => t.lineHeight !== undefined && t.lineHeight < thr("TIGHT_LEADING_MAX") && t.sizePx !== undefined && t.sizePx <= thr("BODY_COPY_MAX_PX"))
       .map((t) =>
         finding(tightLeading, {
           message: `line-height ${(t.lineHeight as number).toFixed(2)} on ${t.sizePx as number}px body copy`,
@@ -176,7 +177,7 @@ export const wideTracking: TellRule = {
   run: (facts) =>
     facts
       .by("typography")
-      .filter((t) => t.letterSpacingEm !== undefined && t.letterSpacingEm > 0.18 && t.transform !== "uppercase")
+      .filter((t) => t.letterSpacingEm !== undefined && t.letterSpacingEm > thr("WIDE_TRACKING_MIN_EM") && t.transform !== "uppercase")
       .map((t) =>
         finding(wideTracking, {
           message: `letter-spacing ${(t.letterSpacingEm as number).toFixed(2)}em on non-uppercase text`,
@@ -196,7 +197,7 @@ export const extremeNegativeTracking: TellRule = {
   run: (facts) =>
     facts
       .by("typography")
-      .filter((t) => t.letterSpacingEm !== undefined && t.letterSpacingEm < -0.05)
+      .filter((t) => t.letterSpacingEm !== undefined && t.letterSpacingEm < thr("NEGATIVE_TRACKING_MAX_EM"))
       .map((t) =>
         finding(extremeNegativeTracking, {
           message: `letter-spacing ${(t.letterSpacingEm as number).toFixed(3)}em — letters collide before the headline reads tighter`,
@@ -219,7 +220,7 @@ export const lineLength: TellRule = {
     // conservative — a real measure needs the rendered tier.
     const long = facts
       .by("text")
-      .filter((t) => t.role === "body" && t.content.length > 400);
+      .filter((t) => t.role === "body" && t.content.length > thr("LINE_LENGTH_MAX_CHARS"));
     if (long.length === 0) return [];
     return [
       finding(lineLength, {
@@ -265,7 +266,7 @@ export const undersizedUiText: TellRule = {
       .filter((t) => t.role === "label")
       .flatMap((t) => {
         const size = nearestOwner(type, t)?.sizePx;
-        return size !== undefined && size < 12
+        return size !== undefined && size < thr("TINY_TEXT_MIN_PX")
           ? [
               finding(undersizedUiText, {
                 message: `interface text at ${size}px — below the readable floor for controls`,

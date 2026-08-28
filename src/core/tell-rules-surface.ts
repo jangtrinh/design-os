@@ -12,6 +12,7 @@
 import type { TellRule, FactIndex } from "./tell-rules.js";
 import { finding, sameOwner } from "./tell-rules.js";
 import { hasDistinctSurface } from "./design-facts/role-synthesis.js";
+import { thr } from "./tell-thresholds.js";
 
 const SECTION = "Surface and card";
 
@@ -25,10 +26,10 @@ export const sideTab: TellRule = {
     const out = [];
     const radii = facts.by("radius");
     for (const b of facts.by("border")) {
-      if (b.sides.length !== 1 || b.widthPx < 3) continue;
+      if (b.sides.length !== 1 || b.widthPx < thr("BORDER_FRAME_MIN_PX")) continue;
       // Only on a rounded surface: a one-sided rule on a square block is a
       // legitimate divider, not a category stripe.
-      const rounded = radii.some((r) => r.px >= 4 && sameOwner(r, b));
+      const rounded = radii.some((r) => r.px >= thr("ROUNDED_MIN_PX") && sameOwner(r, b));
       if (!rounded) continue;
       out.push(
         finding(sideTab, {
@@ -54,8 +55,8 @@ export const borderAccentOnRounded: TellRule = {
     const out = [];
     const radii = facts.by("radius");
     for (const b of facts.by("border")) {
-      if (b.sides.length < 4 || b.widthPx < 3) continue;
-      const r = radii.find((x) => x.px >= 8 && sameOwner(x, b));
+      if (b.sides.length < 4 || b.widthPx < thr("BORDER_FRAME_MIN_PX")) continue;
+      const r = radii.find((x) => x.px >= thr("CARD_RADIUS_MIN_PX") && sameOwner(x, b));
       if (r === undefined) continue;
       out.push(
         finding(borderAccentOnRounded, {
@@ -132,7 +133,7 @@ export const monotonousSpacing: TellRule = {
     const spacings = facts.by("spacing").filter((s) => s.px > 0);
     // Below this a page has not made enough spacing decisions to have a rhythm
     // to lack. Firing on three paddings is how a small component reads as slop.
-    if (spacings.length < 8) return [];
+    if (spacings.length < thr("ENOUGH_SPACINGS_TO_JUDGE")) return [];
     const values = new Set(spacings.map((s) => s.px));
     if (values.size > 1) return [];
     const px = [...values][0] as number;
@@ -162,13 +163,13 @@ export const crampedPadding: TellRule = {
     // switch the linter off.
     const byNode = new Map<string, { props: string[]; px: number; line: number; radius?: number }>();
     for (const s of facts.by("spacing")) {
-      if (!s.prop.startsWith("padding-") || s.px <= 0 || s.px >= 8) continue;
+      if (!s.prop.startsWith("padding-") || s.px <= 0 || s.px >= thr("CRAMPED_PADDING_MAX_PX")) continue;
       // Only on something that presents as a SURFACE. A chip legitimately has
       // 4px — and so does a pill: `rounded-full` (999px) IS the chip case, which
       // the first threshold missed by only exempting SMALL radii. Measured on a
       // real React app: most hits were 4-6px padding on 999px-radius pills.
       const PILL_RADIUS = 100;
-      const radius = radii.find((r) => r.px >= 12 && r.px < PILL_RADIUS && sameOwner(r, s));
+      const radius = radii.find((r) => r.px >= thr("CRAMPED_RADIUS_MIN_PX") && r.px < PILL_RADIUS && sameOwner(r, s));
       if (radius === undefined) continue;
       const key = s.at.nodeRef ?? `line:${s.at.line}`;
       const cur = byNode.get(key);
@@ -199,7 +200,7 @@ export const edgeFlushCards: TellRule = {
     const cards = structures.filter((s) => s.roles?.includes("card"));
     if (cards.length < 2) return [];
     // Top-level cards (depth <= 2) with no horizontal margin anywhere.
-    const shallow = cards.filter((c) => c.depth <= 2);
+    const shallow = cards.filter((c) => c.depth <= thr("SHALLOW_CARD_MAX_DEPTH"));
     if (shallow.length < 2) return [];
     const hasGutter = spacings.some(
       (s) => (s.prop === "margin-left" || s.prop === "margin-right" || s.prop === "padding-left") && s.px > 0,
@@ -228,13 +229,13 @@ export const repeatedContainerText: TellRule = {
     for (const t of facts.by("text")) {
       const key = t.content.trim().toLowerCase();
       // Short strings repeat legitimately ("Save", "Cancel", "1").
-      if (key.length < 24) continue;
+      if (key.length < thr("REPEATED_TEXT_MIN_CHARS")) continue;
       const cur = counts.get(key);
       if (cur === undefined) counts.set(key, { n: 1, line: t.at.line });
       else cur.n++;
     }
     return [...counts.entries()]
-      .filter(([, v]) => v.n >= 3)
+      .filter(([, v]) => v.n >= thr("REPEATED_TEXT_MIN_COUNT"))
       .map(([text, v]) =>
         finding(repeatedContainerText, {
           message: `the same ${text.length}-character string appears in ${v.n} containers — placeholder copy that shipped`,

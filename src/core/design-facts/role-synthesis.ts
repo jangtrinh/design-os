@@ -23,6 +23,7 @@
  */
 import type { DesignFact } from "./fact-kinds.js";
 import type { Confidence } from "./fact-model.js";
+import { thr } from "../tell-thresholds.js";
 
 /** What one element's facts say about it. */
 export interface Surface {
@@ -85,7 +86,7 @@ export function synthesizeRoles(facts: readonly DesignFact[]): DesignFact[] {
         if (f.px > 0) s.hasRadius = true;
         break;
       case "color":
-        if (f.role === "bg" && (f.alpha ?? 1) >= 0.5) s.hasOwnBackground = true;
+        if (f.role === "bg" && (f.alpha ?? 1) >= thr("OWN_BACKGROUND_MIN_ALPHA")) s.hasOwnBackground = true;
         break;
       case "structure":
         for (const role of f.roles ?? []) s.claimed.add(role);
@@ -161,7 +162,7 @@ export function hasDistinctSurface(facts: readonly DesignFact[], ref: string): b
     (f) =>
       f.at.nodeRef === ref &&
       ((f.kind === "shadow" && f.inset !== true) ||
-        (f.kind === "color" && f.role === "bg" && (f.alpha ?? 1) >= 0.5)),
+        (f.kind === "color" && f.role === "bg" && (f.alpha ?? 1) >= thr("OWN_BACKGROUND_MIN_ALPHA"))),
   );
 }
 

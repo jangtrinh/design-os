@@ -10,6 +10,7 @@
  */
 import type { TellRule } from "./tell-rules.js";
 import { finding, sameOwner, isAiPurple, isAiCyan, isCream, isGrey, isSaturated } from "./tell-rules.js";
+import { thr } from "./tell-thresholds.js";
 
 const SECTION = "Colour and light";
 
@@ -71,7 +72,7 @@ export const gradientText: TellRule = {
   run: (facts) => {
     // Transparent (or near-transparent) text on the same line as a gradient is
     // the background-clip:text construction, whatever syntax produced it.
-    const clipped = facts.by("color").filter((c) => c.role === "fg" && (c.alpha ?? 1) < 0.1);
+    const clipped = facts.by("color").filter((c) => c.role === "fg" && (c.alpha ?? 1) < thr("INVISIBLE_TEXT_MAX_ALPHA"));
     const gradients = facts.by("gradient");
     return clipped
       .filter((c) => gradients.some((g) => sameOwner(g, c)))
@@ -94,12 +95,12 @@ export const darkGlow: TellRule = {
   section: SECTION,
   run: (facts) => {
     const dark = facts.by("color").some(
-      (c) => c.role === "bg" && Number.parseInt(c.hex.slice(0, 2), 16) < 60 &&
-        Number.parseInt(c.hex.slice(2, 4), 16) < 60,
+      (c) => c.role === "bg" && Number.parseInt(c.hex.slice(0, 2), 16) < thr("DARK_SURFACE_MAX_CHANNEL") &&
+        Number.parseInt(c.hex.slice(2, 4), 16) < thr("DARK_SURFACE_MAX_CHANNEL"),
     );
     if (!dark) return [];
     const glows = facts.by("shadow").filter(
-      (s) => s.hex !== undefined && isSaturated(s.hex) && s.blurPx >= 20 && s.inset !== true,
+      (s) => s.hex !== undefined && isSaturated(s.hex) && s.blurPx >= thr("GLOW_MIN_BLUR_PX") && s.inset !== true,
     );
     return glows.map((s) =>
       finding(darkGlow, {
@@ -191,9 +192,9 @@ export const gptThinBorderWideShadow: TellRule = {
     const shadows = facts.by("shadow");
     return facts
       .by("border")
-      .filter((b) => b.widthPx <= 1 && b.sides.length >= 4)
+      .filter((b) => b.widthPx <= thr("HAIRLINE_MAX_PX") && b.sides.length >= 4)
       .flatMap((b) => {
-        const wide = shadows.find((s) => sameOwner(s, b) && s.blurPx >= 16);
+        const wide = shadows.find((s) => sameOwner(s, b) && s.blurPx >= thr("HEAVY_SHADOW_MIN_BLUR_PX"));
         return wide === undefined
           ? []
           : [

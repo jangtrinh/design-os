@@ -15,6 +15,7 @@
  */
 import type { DesignFact } from "./design-facts/index.js";
 import type { FloorFindingBase } from "./finding-schema.js";
+import { thr } from "./tell-thresholds.js";
 
 export type VoiceFinding = FloorFindingBase;
 
@@ -76,9 +77,9 @@ export function checkEmDashOveruse(facts: readonly DesignFact[]): VoiceFinding[]
   const runs = textRuns(facts);
   const words = runs.reduce((n, r) => n + wordsOf(r.content), 0);
   const dashes = runs.reduce((n, r) => n + (r.content.match(/—/g) ?? []).length, 0);
-  if (words < 60 || dashes < 3) return [];
+  if (words < thr("EM_DASH_MIN_WORDS") || dashes < thr("EM_DASH_MIN_COUNT")) return [];
   const perHundred = (dashes / words) * 100;
-  if (perHundred < 2.5) return [];
+  if (perHundred < thr("EM_DASH_MAX_RATE")) return [];
   return [
     finding(
       "em-dash-overuse",

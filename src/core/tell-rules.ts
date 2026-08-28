@@ -16,6 +16,7 @@
 import type { DesignFact, FactKind } from "./design-facts/index.js";
 import type { Provenance } from "./design-facts/index.js";
 import type { FloorFindingBase, FloorSeverity } from "./finding-schema.js";
+import { thr } from "./tell-thresholds.js";
 
 /** Facts for one artifact, indexed by kind so rules do not re-filter. */
 export interface FactIndex {
@@ -161,7 +162,12 @@ export function isAiPurple(hex: string): boolean {
   // stayed green. `r - g >= -20` admits indigo while still rejecting royal blue
   // (#4169e1, -40) and blue-500 (#3b82f6, -71), which are blue, not purple.
   // Navy and dark plum fail `b > 140` on their own.
-  return b > 140 && b - g > 60 && r > 60 && r - g >= -20;
+  return (
+    b > thr("PURPLE_MIN_BLUE") &&
+    b - g > thr("PURPLE_MIN_BLUE_OVER_GREEN") &&
+    r > thr("PURPLE_MIN_RED") &&
+    r - g >= thr("PURPLE_MIN_RED_OVER_GREEN")
+  );
 }
 
 /** Cyan-on-dark, the other half of the same palette tell. */
@@ -169,7 +175,7 @@ export function isAiCyan(hex: string): boolean {
   const r = Number.parseInt(hex.slice(0, 2), 16);
   const g = Number.parseInt(hex.slice(2, 4), 16);
   const b = Number.parseInt(hex.slice(4, 6), 16);
-  return g > 170 && b > 170 && r < 110;
+  return g > thr("CYAN_MIN_GREEN") && b > thr("CYAN_MIN_BLUE") && r < thr("CYAN_MAX_RED");
 }
 
 /** Warm off-white reached for by reflex as the "tasteful" default surface. */
@@ -179,7 +185,14 @@ export function isCream(hex: string): boolean {
   const b = Number.parseInt(hex.slice(4, 6), 16);
   // #FAF7F0 — the canonical reflex cream — has r-b = 10, so a floor of 12
   // silently excluded the exact colour this rule exists to catch.
-  return r > 235 && g > 225 && b > 200 && r >= g && g > b && r - b >= 8 && r - b <= 48;
+  return (
+    r > thr("CREAM_MIN_RED") &&
+    g > thr("CREAM_MIN_GREEN") &&
+    b > thr("CREAM_MIN_BLUE") &&
+    r >= g && g > b &&
+    r - b >= thr("CREAM_MIN_WARMTH") &&
+    r - b <= thr("CREAM_MAX_WARMTH")
+  );
 }
 
 /** Perceptual grey: low saturation, mid lightness. */
@@ -189,7 +202,11 @@ export function isGrey(hex: string): boolean {
   const b = Number.parseInt(hex.slice(4, 6), 16);
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  return max - min <= 24 && max >= 90 && max <= 205;
+  return (
+    max - min <= thr("GREY_MAX_CHROMA") &&
+    max >= thr("GREY_MIN_LIGHTNESS") &&
+    max <= thr("GREY_MAX_LIGHTNESS")
+  );
 }
 
 /** Saturated enough that grey text on it reads washed out. */
@@ -197,5 +214,5 @@ export function isSaturated(hex: string): boolean {
   const r = Number.parseInt(hex.slice(0, 2), 16);
   const g = Number.parseInt(hex.slice(2, 4), 16);
   const b = Number.parseInt(hex.slice(4, 6), 16);
-  return Math.max(r, g, b) - Math.min(r, g, b) >= 60;
+  return Math.max(r, g, b) - Math.min(r, g, b) >= thr("SATURATED_MIN_CHROMA");
 }

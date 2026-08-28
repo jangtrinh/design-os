@@ -11,6 +11,7 @@
  */
 import type { TellRule } from "./tell-rules.js";
 import { finding, sameOwner, nearestOwner } from "./tell-rules.js";
+import { thr } from "./tell-thresholds.js";
 
 const SECTION = "Surface and card";
 
@@ -28,7 +29,7 @@ export const iconTileStack: TellRule = {
     if (icons.length < REPEAT) return [];
     const radii = facts.by("radius");
     // A TILE, not a bare glyph: the icon's own line carries a small radius.
-    const tiled = icons.filter((i) => radii.some((r) => r.px > 0 && r.px <= 16 && sameOwner(r, i)));
+    const tiled = icons.filter((i) => radii.some((r) => r.px > 0 && r.px <= thr("ICON_TILE_MAX_RADIUS_PX") && sameOwner(r, i)));
     if (tiled.length < REPEAT) return [];
     return [
       finding(iconTileStack, {
@@ -54,11 +55,11 @@ export const kickerAboveHeading: TellRule = {
     const kickers = facts.by("text").filter((t) => {
       if (t.role === "heading") return false;
       const content = t.content.trim();
-      if (content.length === 0 || content.length > 32) return false;
+      if (content.length === 0 || content.length > thr("KICKER_MAX_CHARS")) return false;
       const styled = nearestOwner(type, t);
       const upperFromStyle = styled?.transform === "uppercase";
       const upperFromText = content === content.toUpperCase() && /[A-Z]/.test(content);
-      const small = styled?.sizePx !== undefined && styled.sizePx <= 14;
+      const small = styled?.sizePx !== undefined && styled.sizePx <= thr("KICKER_MAX_PX");
       return (upperFromStyle || upperFromText) && (small || upperFromStyle);
     });
     if (kickers.length < REPEAT) return [];
@@ -88,10 +89,10 @@ export const heroEyebrowChip: TellRule = {
     const chip = facts.by("text").find((t) => {
       if (t.role === "heading") return false;
       // Above the h1 in source order, short, pill-shaped, small type.
-      if (t.at.line >= h1.at.line || h1.at.line - t.at.line > 6) return false;
-      if (t.content.trim().length > 40) return false;
-      const pill = radii.some((r) => r.px >= 999 || (r.px >= 12 && sameOwner(r, t)));
-      const small = type.some((y) => sameOwner(y, t) && (y.sizePx ?? 99) <= 14);
+      if (t.at.line >= h1.at.line || h1.at.line - t.at.line > thr("EYEBROW_MAX_LINE_GAP")) return false;
+      if (t.content.trim().length > thr("EYEBROW_MAX_CHARS")) return false;
+      const pill = radii.some((r) => r.px >= thr("PILL_RADIUS_PX") || (r.px >= thr("CHIP_RADIUS_MIN_PX") && sameOwner(r, t)));
+      const small = type.some((y) => sameOwner(y, t) && (y.sizePx ?? 99) <= thr("KICKER_MAX_PX"));
       return pill && small;
     });
     if (chip === undefined) return [];

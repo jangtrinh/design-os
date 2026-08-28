@@ -10,6 +10,7 @@
  */
 import type { TellRule } from "./tell-rules.js";
 import { finding, sameOwner } from "./tell-rules.js";
+import { thr } from "./tell-thresholds.js";
 
 const SECTION = "Motion and decoration";
 
@@ -26,7 +27,7 @@ export const pulsingDot: TellRule = {
       .filter((m) => m.repeatsForever === true)
       .flatMap((m) => {
         // A dot: fully rounded on the same line as the looping animation.
-        const dot = radii.find((r) => sameOwner(r, m) && r.px >= 999);
+        const dot = radii.find((r) => sameOwner(r, m) && r.px >= thr("PILL_RADIUS_PX"));
         return dot === undefined
           ? []
           : [
@@ -53,7 +54,7 @@ export const blinkingCursor: TellRule = {
     if (hasRealInput) return [];
     const blinkers = facts
       .by("motion")
-      .filter((m) => m.repeatsForever === true && (m.durationMs ?? 9999) <= 1200);
+      .filter((m) => m.repeatsForever === true && (m.durationMs ?? 9999) <= thr("FAST_LOOP_MAX_MS"));
     if (blinkers.length === 0) return [];
     return [
       finding(blinkingCursor, {
@@ -76,7 +77,7 @@ export const marquee: TellRule = {
     facts
       .by("motion")
       // Long, infinite, and not a micro-interaction: an auto-scrolling band.
-      .filter((m) => m.repeatsForever === true && (m.durationMs ?? 0) >= 4000)
+      .filter((m) => m.repeatsForever === true && (m.durationMs ?? 0) >= thr("SLOW_LOOP_MIN_MS"))
       .map((m) =>
         finding(marquee, {
           message: `auto-scrolling content on a ${Math.round((m.durationMs as number) / 1000)}s infinite loop the reader cannot pause`,
@@ -130,7 +131,7 @@ export const shapeAssembledIllustration: TellRule = {
       if (!radii.some((r) => r.px > 0 && sameOwner(r, s))) continue;
       byParent.set(s.parentRef, (byParent.get(s.parentRef) ?? 0) + 1);
     }
-    const worst = [...byParent.entries()].filter(([, n]) => n >= 5).sort((a, b) => b[1] - a[1])[0];
+    const worst = [...byParent.entries()].filter(([, n]) => n >= thr("ICON_TILE_MIN_COUNT")).sort((a, b) => b[1] - a[1])[0];
     if (worst === undefined) return [];
     return [
       finding(shapeAssembledIllustration, {
@@ -153,7 +154,7 @@ export const radialSpotlightGlow: TellRule = {
     if (h1 === undefined) return [];
     const near = facts
       .by("gradient")
-      .filter((g) => g.gradientKind === "radial" && Math.abs(g.at.line - h1.at.line) <= 8);
+      .filter((g) => g.gradientKind === "radial" && Math.abs(g.at.line - h1.at.line) <= thr("HALO_MAX_LINE_GAP"));
     if (near.length === 0) return [];
     return [
       finding(radialSpotlightGlow, {
