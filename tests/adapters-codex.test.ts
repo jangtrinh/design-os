@@ -73,6 +73,10 @@ describe("generateCodexAdapter", () => {
     expect(art.content).toMatch(/skills\/designmd-emit\.md: [0-9a-f]{64}/);
     expect(art.content).toMatch(/workflows\/native-macos\.md: [0-9a-f]{64}/);
     expect(art.content).toMatch(/skills\/native-macos-craft\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/workflows\/native-ios\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/skills\/native-ios-craft\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/workflows\/native-ipados\.md: [0-9a-f]{64}/);
+    expect(art.content).toMatch(/skills\/native-ipados-craft\.md: [0-9a-f]{64}/);
   });
 
   it("is deterministic — two calls produce identical content", () => {

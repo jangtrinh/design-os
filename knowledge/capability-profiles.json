@@ -40,6 +40,34 @@
       "manualWitnesses": ["independent-curator", "owner-visible-acceptance"],
       "assuranceEvidence": "knowledge/native-macos/pilot-01-evidence.json#sha256:15985c431056cc29b5823650b4daf8c09974caed64e75019b103f89d69341ff9",
       "action": "Proceed with the native-macos workflow under provisional assurance. Do not claim qualified platform delivery; held-out evidence may change assurance only."
+    },
+    {
+      "id": "native-ios",
+      "availability": "available",
+      "assurance": "provisional",
+      "acceptedInputKinds": ["words", "visual-reference", "existing-artifact"],
+      "workflow": "native-ios",
+      "artifact": "native-ios-application",
+      "requiredKnowledge": ["need-routing", "apple-swiftui-craft", "native-ios-craft", "content-design", "design-review", "verification-honesty"],
+      "machineWitnesses": ["knowledge activate"],
+      "renderedWitnesses": ["iphone-simulator-capture", "accessibility-tree-observation"],
+      "manualWitnesses": ["VoiceOver", "real-device", "independent-curator", "owner-visible-acceptance"],
+      "assuranceEvidence": "knowledge/native-ios/pilot-01-evidence.json#sha256:8f1ac37587308ab9a7661e86038b55d2400463908d5577f9fc1a924953408de7",
+      "action": "Proceed with the native-ios workflow under provisional assurance. Owner and live-device witnesses remain pending; qualified platform delivery is forbidden."
+    },
+    {
+      "id": "native-ipados",
+      "availability": "available",
+      "assurance": "provisional",
+      "acceptedInputKinds": ["words", "visual-reference", "existing-artifact"],
+      "workflow": "native-ipados",
+      "artifact": "native-ipados-application",
+      "requiredKnowledge": ["need-routing", "apple-swiftui-craft", "native-ipados-craft", "content-design", "design-review", "verification-honesty"],
+      "machineWitnesses": ["knowledge activate"],
+      "renderedWitnesses": ["ipad-windowed-simulator-capture", "accessibility-tree-observation"],
+      "manualWitnesses": ["VoiceOver", "Full Keyboard Access", "hardware-keyboard-and-pointer", "resizable-window-transitions", "real-device", "independent-curator", "owner-visible-acceptance"],
+      "assuranceEvidence": "knowledge/native-ipados/pilot-01-evidence.json#sha256:d4a5f1a99f9537ecef9ed0785a62584342fd8409bc140b3e958e0bf18a195e52",
+      "action": "Proceed with the native-ipados workflow under provisional assurance. Owner, live-device, keyboard, pointer, and window-transition witnesses remain pending; qualified platform delivery is forbidden."
     }
   ]
 }

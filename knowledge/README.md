@@ -68,6 +68,9 @@ for a human reading top to bottom.
 | `need-routing.md` | The need→verb decision procedure — which design:os application for which stated need, the three sanctioned asks, the selection route |
 | `capability-profiles.json` | Typed surface capability authority — availability controls workflow routing while assurance controls delivery claims. Resolve it with `ui knowledge activate` before running a production workflow. |
 | `native-macos-craft.md` | **SwiftUI-first native macOS craft** — provisional execution, composition before styling, finite adaptive proposals, semantic containers, AppKit escalation boundaries, and evidence that stays separate from qualification. |
+| `apple-swiftui-craft.md` | **Shared Apple mobile craft** — SwiftUI semantic ownership, proposal-driven layout, 44 × 44 pt default control regions, Dynamic Type, accessibility, narrow UIKit escalation, and separated evidence tiers. |
+| `native-ios-craft.md` | **Compact-first native iOS craft** — stack/tab navigation, safe areas, software keyboard, touch, orientation, content states, and provisional iPhone evidence. |
+| `native-ipados-craft.md` | **Resizable native iPadOS craft** — split navigation, window adaptation, scene state, touch/pointer/keyboard focus, and provisional iPad evidence. |
 | `delivery-assets.md` | **Resolve reproduced images to originals, never screenshot crops** — the best→last-resort resolution ladder (inline-SVG logo → harvested site-served raster → sprite slice → screenshot-crop LAST RESORT, art-only), the machine floor (the deterministic `avoidable-screenshot-crop` lint in `ui validate-layout` + the host-model resolution workflow that fills `real/` and emits `ASSET-MAP.json` provenance), and the failure modes (crop-includes-text · screenshot-as-hero · missing-DPR · provenance-loss). Read when rebuilding / cloning / design-from-URL off a probed source with a mirror + asset harvest — NOT for a from-scratch generative design. |
 | `asset-production-orchestration.md` | **Generated raw material → curated website assets** — the provider-neutral request and provenance contract, locked-reference branching, hard-edge chroma vs soft-alpha dual-render vs segmentation/decomposition routing, immutable raw custody, sidecar curation, recomposition QA, atomic publish, and portable PNG + PSD delivery. Read when Codex, Gemini, or another runtime hand generates or edits raster assets for `design-os`. |
 | `ux-psychology.md` | UX laws (Hick's, Fitts', Miller's, …), Gestalt perception, cognitive biases, emotional design, trust building, cognitive-load management, ethical persuasion — with per-law application rules and a final audit checklist. Read selectively: only the law(s) a brief triggers. |
@@ -106,6 +109,14 @@ enforces.
 **Build a native macOS surface** (`/ui:native-macos`)
 1. `need-routing.md` + `ui knowledge activate` — require the routed `native-macos` receipt and preserve its provisional claim boundary
 2. `native-macos-craft.md` — use SwiftUI-first composition, finite proposals, one scroll owner, and a documented AppKit escalation only when SwiftUI has an ownership gap
+
+**Build a native iOS surface** (`/ui:native-ios`)
+1. `need-routing.md` + `ui knowledge activate` — require the exact routed `native-ios` receipt; availability permits this route but does not authorize qualified delivery; never substitute iPadOS or web
+2. `apple-swiftui-craft.md` + `native-ios-craft.md` — combine the shared SwiftUI floor with compact navigation, touch, safe-area, keyboard, Dynamic Type, and honest evidence
+
+**Build a native iPadOS surface** (`/ui:native-ipados`)
+1. `need-routing.md` + `ui knowledge activate` — require the exact routed `native-ipados` receipt; availability permits this route but does not authorize qualified delivery; never substitute iOS or web
+2. `apple-swiftui-craft.md` + `native-ipados-craft.md` — combine the shared SwiftUI floor with resizable windows, split navigation, scenes, pointer/keyboard focus, and honest evidence
 
 **Establish / compile a design system**
 - `token-taxonomy.md` — token tiers and immutability rules

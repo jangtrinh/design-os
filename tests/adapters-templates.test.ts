@@ -35,6 +35,8 @@ describe("WORKFLOW_VERBS registry", () => {
 
   it("registers native macOS as an installable workflow", () => {
     expect(WORKFLOW_VERBS).toContain("native-macos");
+    expect(WORKFLOW_VERBS).toContain("native-ios");
+    expect(WORKFLOW_VERBS).toContain("native-ipados");
   });
 });
 
@@ -51,6 +53,8 @@ describe("SKILL_NAMES registry", () => {
 
   it("registers the native macOS craft skill", () => {
     expect(SKILL_NAMES).toContain("native-macos-craft");
+    expect(SKILL_NAMES).toContain("native-ios-craft");
+    expect(SKILL_NAMES).toContain("native-ipados-craft");
   });
 });
 

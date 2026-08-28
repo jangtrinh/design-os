@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -20,6 +20,15 @@ function capture(args: string[]): { code: number; out: string; err: string } {
 const fixture = (name: string): string =>
   `${process.cwd()}/tests/fixtures/capability-activation/${name}.json`;
 
+function mutableKnowledgeCopy(prefix: string): { dir: string; catalog: { profiles: Array<Record<string, unknown>> } } {
+  const dir = mkdtempSync(join(tmpdir(), prefix));
+  cpSync(join(process.cwd(), "knowledge"), join(dir, "knowledge"), { recursive: true });
+  const catalog = JSON.parse(readFileSync(join(dir, "knowledge", "capability-profiles.json"), "utf8")) as {
+    profiles: Array<Record<string, unknown>>;
+  };
+  return { dir, catalog };
+}
+
 describe("ui knowledge activate", () => {
   it("routes native macOS provisionally with a forbidden qualified-delivery claim", () => {
     const result = capture(["knowledge", "activate", fixture("native-macos-words"), "--json"]);
@@ -35,7 +44,7 @@ describe("ui knowledge activate", () => {
     expect(envelope.data.action).not.toContain("generate");
   });
 
-  it("refuses provisional activation when the pinned assurance receipt digest is wrong", () => {
+  it("refuses provisional activation when its registered evidence policy is changed", () => {
     const dir = mkdtempSync(join(tmpdir(), "activate-bad-assurance-"));
     const knowledgeDir = join(dir, "knowledge");
     const receiptDir = join(knowledgeDir, "native-macos");
@@ -55,8 +64,62 @@ describe("ui knowledge activate", () => {
     ]);
     expect(result.code).toBe(1);
     expect(JSON.parse(result.out).error).toMatchObject({ code: "BAD_CATALOG" });
-    expect(JSON.parse(result.out).error.message).toContain("PILOT_RECEIPT_DIGEST");
+    expect(JSON.parse(result.out).error.message).toContain("CAPABILITY_PROFILE_POLICY");
   });
+
+  it("rejects duplicate capability profiles before first-match activation", () => {
+    const { dir, catalog } = mutableKnowledgeCopy("activate-duplicate-profile-");
+    const native = catalog.profiles.find((profile) => profile["id"] === "native-ios");
+    expect(native).toBeDefined();
+    catalog.profiles.push(structuredClone(native!));
+    writeFileSync(join(dir, "knowledge", "capability-profiles.json"), JSON.stringify(catalog));
+
+    const result = capture(["knowledge", "activate", fixture("native-ios-words"), "--dir", dir, "--json"]);
+    expect(result.code).toBe(1);
+    expect(JSON.parse(result.out).error).toMatchObject({ code: "BAD_CATALOG" });
+    expect(JSON.parse(result.out).error.message).toContain("CAPABILITY_PROFILE_DUPLICATE");
+  });
+
+  it.each([
+    ["acceptedInputKinds", ["words"]],
+    ["workflow", "generate"],
+    ["artifact", "html"],
+    ["requiredKnowledge", ["need-routing"]],
+    ["machineWitnesses", ["owner-accepted"]],
+    ["renderedWitnesses", ["real-device-approved"]],
+    ["manualWitnesses", ["owner-accepted"]],
+    ["action", "Qualified delivery is approved."],
+  ])("rejects provisional profile policy drift in %s", (field, value) => {
+    const { dir, catalog } = mutableKnowledgeCopy(`activate-policy-${field}-`);
+    const native = catalog.profiles.find((profile) => profile["id"] === "native-ios");
+    expect(native).toBeDefined();
+    native![field] = value;
+    writeFileSync(join(dir, "knowledge", "capability-profiles.json"), JSON.stringify(catalog));
+
+    const result = capture(["knowledge", "activate", fixture("native-ios-words"), "--dir", dir, "--json"]);
+    expect(result.code).toBe(1);
+    expect(JSON.parse(result.out).error).toMatchObject({ code: "BAD_CATALOG" });
+    expect(JSON.parse(result.out).error.message).toContain("CAPABILITY_PROFILE_POLICY");
+  });
+
+  it.each(["native-macos", "native-ios", "native-ipados"])(
+    "rejects assurance escalation for registered %s",
+    (capabilityId) => {
+      const { dir, catalog } = mutableKnowledgeCopy(`activate-assurance-${capabilityId}-`);
+      const native = catalog.profiles.find((profile) => profile["id"] === capabilityId);
+      expect(native).toBeDefined();
+      native!["assurance"] = "qualified";
+      writeFileSync(join(dir, "knowledge", "capability-profiles.json"), JSON.stringify(catalog));
+
+      const result = capture([
+        "knowledge", "activate", fixture(`${capabilityId}-words`), "--dir", dir, "--json",
+      ]);
+      expect(result.code).toBe(1);
+      expect(JSON.parse(result.out).error).toMatchObject({ code: "BAD_CATALOG" });
+      expect(JSON.parse(result.out).error.message).toContain("CAPABILITY_PROFILE_POLICY");
+      expect(result.out).not.toContain("QUALIFIED_DELIVERY_ALLOWED");
+    },
+  );
 
   it.each(["web-marketing-words", "marketing-for-native-app"])(
     "qualifies %s as marketing HTML",
@@ -78,7 +141,7 @@ describe("ui knowledge activate", () => {
   it("rejects an unknown surface with the supported profile list", () => {
     const result = capture(["knowledge", "activate", fixture("web-marketing-words"), "--json"]);
     const request = JSON.parse(readFileSync(fixture("web-marketing-words"), "utf8"));
-    request.requestedSurface = "native-ios";
+    request.requestedSurface = "native-visionos";
     const dir = mkdtempSync(join(tmpdir(), "activate-"));
     const file = join(dir, "request.json"); writeFileSync(file, JSON.stringify(request));
     const unknown = capture(["knowledge", "activate", file, "--json"]);
@@ -86,5 +149,7 @@ describe("ui knowledge activate", () => {
     expect(unknown.code).toBe(1);
     expect(JSON.parse(unknown.out).error.code).toBe("UNKNOWN_CAPABILITY");
     expect(JSON.parse(unknown.out).data.supportedProfiles).toContain("native-macos");
+    expect(JSON.parse(unknown.out).data.supportedProfiles).toContain("native-ios");
+    expect(JSON.parse(unknown.out).data.supportedProfiles).toContain("native-ipados");
   });
 });

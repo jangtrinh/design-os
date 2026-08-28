@@ -40,6 +40,16 @@ const WORKFLOW: GuideStep[] = [
     detail: "Routes to the SwiftUI-first native arm. It is available with provisional assurance, so the workflow keeps platform-qualified delivery claims forbidden.",
   },
   {
+    want: "Build a native iPhone or iOS app",
+    command: "/ui:native-ios <describe what you want>",
+    detail: "Routes to the compact-first SwiftUI arm. It is available with provisional assurance while owner, live-device, and VoiceOver witnesses remain pending.",
+  },
+  {
+    want: "Build a native iPad or iPadOS workspace",
+    command: "/ui:native-ipados <describe what you want>",
+    detail: "Routes to the resizable SwiftUI arm for split navigation and mixed input. It is provisional while owner, real-device, keyboard, pointer, and accessibility witnesses remain pending.",
+  },
+  {
     want: "Onboard an existing app or codebase",
     command: "/ui:learn",
     detail: "Have an existing app? ease-design scans it and learns your design system from it — tokens, components, interaction states — so everything you generate next matches your product.",
