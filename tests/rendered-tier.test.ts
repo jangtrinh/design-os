@@ -302,6 +302,9 @@ describe("an explicitly named browser is never silently substituted", () => {
   });
 });
 
+/** What this runtime had before any test touched it — Node 22 has one, Node 20 does not. */
+const BASELINE_WEBSOCKET_TYPE = typeof globalThis.WebSocket;
+
 describe("the runtime capability gate", () => {
   /**
    * `WebSocket` became a Node global in 22; this package supports `>=20`. The tier must
@@ -335,7 +338,11 @@ describe("the runtime capability gate", () => {
     }
   });
 
-  it("restored the global, so later tests are unaffected", () => {
-    expect(typeof globalThis.WebSocket).toBe("function");
+  it("restores the global to whatever it was, so later tests are unaffected", () => {
+    // NOT `toBe("function")`. That assumed Node 22, and on the Node 20 CI job there is
+    // no WebSocket to restore, so the assertion failed on the one runtime this whole
+    // section exists to describe. A test about cross-version behaviour that only holds
+    // on one version is the same mistake one level up.
+    expect(typeof globalThis.WebSocket).toBe(BASELINE_WEBSOCKET_TYPE);
   });
 });
