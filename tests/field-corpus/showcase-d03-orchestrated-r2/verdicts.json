@@ -4,6 +4,21 @@
   "why": "The page is tracked in this repo, so it is versioned in the same commit as the rules. A copy would silently diverge from the real page; a content-hash mismatch fails loudly and asks for re-adjudication.",
   "sha256": "c5f206f43a88f92ee83a38c375bd90b6107c9fffc1864077dacc50d692076748",
   "extractor": "html-cascade",
+  "censusFloor": {
+    "total": 762,
+    "kinds": [
+      "border",
+      "color",
+      "gradient",
+      "motion",
+      "radius",
+      "shadow",
+      "spacing",
+      "structure",
+      "text",
+      "typography"
+    ]
+  },
   "adjudicatedOn": "2026-08-28",
   "adjudicatedBy": "tell-family author",
   "verdicts": [

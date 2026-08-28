@@ -18,6 +18,7 @@ import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { resolveTargets, describeResolution } from "../core/lint-target.js";
 import type { LintTarget } from "../core/lint-target.js";
 import { lintFileByExtractor } from "../core/lint-file-by-extractor.js";
+import type { FactCensus } from "../core/lint-file-by-extractor.js";
 import { tellCoverage } from "../core/tell-lint.js";
 import type { TellFinding } from "../core/tell-rules.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../core/design-facts/index.js";
@@ -82,6 +83,9 @@ interface PerFile {
   unresolvedCount: number;
   waived: number;
   degraded?: string;
+  /** What the reader actually saw. A zero finding count is only readable next to this. */
+  census: FactCensus;
+  unresolvedSheets: string[];
 }
 
 /** Extract facts for one target. Only the HTML tier is implemented so far. */
@@ -105,7 +109,25 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
     waived: r.waived,
     notComputable: r.notComputable,
     degraded: r.degraded,
+    census: r.census,
+    unresolvedSheets: r.unresolvedSheets,
   };
+}
+
+/**
+ * One line describing what the reader saw.
+ *
+ * Printed when a file yields no findings, which is exactly when a reader needs to know
+ * whether the page is clean or the engine was blind.
+ */
+export function describeCensus(c: FactCensus): string {
+  if (c.total === 0) return "saw NOTHING — 0 facts, so this zero means unread, not clean";
+  const kinds = Object.entries(c.byKind)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([k, n]) => `${k} ${n}`)
+    .join(", ");
+  const where = c.nodes > 0 ? ` across ${c.nodes} element${c.nodes === 1 ? "" : "s"}` : "";
+  return `saw ${c.total} fact${c.total === 1 ? "" : "s"}${where} — ${kinds}`;
 }
 
 function renderCoverage(json: boolean): CommandResult {
@@ -191,6 +213,11 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
     if (f.undercount) notes.push("UNDERCOUNT");
     if (f.degraded !== undefined) notes.push(`DEGRADED: ${f.degraded}`);
     if (f.unresolvedCount > 0) notes.push(`${f.unresolvedCount} unresolved read(s)`);
+    // Named, not just counted: "3 stylesheets did not load" is actionable where a
+    // bare undercount flag is not.
+    if (f.unresolvedSheets.length > 0) {
+      notes.push(`${f.unresolvedSheets.length} stylesheet(s) NOT LOADED — findings here are a floor, not a verdict`);
+    }
     if (f.waived > 0) notes.push(`${f.waived} waived in-file`);
     if (f.notEvaluated.length > 0) notes.push(`${f.notEvaluated.length} rule(s) NOT-EVALUATED`);
     // A background nobody could resolve means the contrast pass was PARTIAL.
@@ -199,6 +226,10 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
 
     if (shown.length === 0 && notes.length === 0) continue;
     lines.push("", `${f.file}  [${f.extractor} — ${f.tier}]${notes.length > 0 ? `  (${notes.join("; ")})` : ""}`);
+    // A file with nothing to report is the one case where the reader needs to know
+    // what the engine SAW. Clean and blind print identically otherwise, and two
+    // defects on this branch lived in exactly that gap.
+    if (shown.length === 0) lines.push(`  ${describeCensus(f.census)}`);
     for (const x of shown) {
       const mark = x.severity === "error" ? "✗" : x.severity === "warning" ? "!" : "·";
       // Two elements can trip one stylesheet line — the same rule, different

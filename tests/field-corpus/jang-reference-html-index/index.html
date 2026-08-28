@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interfaces.dev Design Reference Library</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #0c0c0e;
+      --card-border: #1f1f23;
+      --text: #ededed;
+      --text-muted: #88888e;
+      --accent: #38bdf8;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      padding: 48px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    header {
+      margin-bottom: 48px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 40px 0 16px;
+      letter-spacing: -0.01em;
+      color: #fafafa;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 140px;
+    }
+    .card:hover {
+      border-color: #3b82f6;
+      background: #121216;
+      transform: translateY(-2px);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: #60a5fa;
+    }
+    .badge {
+      background: #1c1c21;
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+  </style>
+  <link rel="stylesheet" href="./assets/css/34-u8uq09dgmp.css">
+</head>
+<body>
+  <header>
+    <h1>Interfaces.dev Design Reference Library</h1>
+    <p class="subtitle">Complete offline archive of https://interfaces.dev — typography, layout tokens, interactions, and all magazine issues.</p>
+  </header>
+
+  <h2>Main Sections</h2>
+  <div class="grid">
+    <a class="card" href="./lab.html" style="border-color: #38bdf8; background: #131d27;">
+      <div>
+        <div class="card-title" style="color: #38bdf8; font-weight: 600;">⚡ Interactive Motion & Physics Lab</div>
+        <div class="card-desc" style="color: #cbd5e1;">Live runnable specimens: Concentric radius sliders, Spring Tab snapping, Drag with inertia, Optical center & OKLCH color generator.</div>
+      </div>
+      <div class="card-footer" style="color: #38bdf8;">
+        <span class="badge" style="background: rgba(56,189,248,0.2); color: #38bdf8;">lab.html</span>
+        <span>Run Lab →</span>
+      </div>
+    </a>
+    
+      <a class="card" href="./home.html">
+        <div>
+          <div class="card-title">Interfaces › Magazine</div>
+          <div class="card-desc">Design engineering articles and bookmarks.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">home.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./homepage.html">
+        <div>
+          <div class="card-title">Interfaces › Design Engineering Magazine</div>
+          <div class="card-desc">Interfaces is a design engineering magazine about building great interfaces that covers topics such as animation, typography, layout and color.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">homepage.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/index.html">
+        <div>
+          <div class="card-title">Interfaces › Magazine</div>
+          <div class="card-desc">Design engineering articles and bookmarks.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">magazine/index.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/bookmarks.html">
+        <div>
+          <div class="card-title">Interfaces › Bookmarks</div>
+          <div class="card-desc">Reading, inspiration, videos and other resources.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">magazine/bookmarks.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/tools.html">
+        <div>
+          <div class="card-title">Interfaces › Tools</div>
+          <div class="card-desc">A curated list of apps and tools.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">magazine/tools.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/skills.html">
+        <div>
+          <div class="card-title">Interfaces › Skills</div>
+          <div class="card-desc">Agent skills for accessibility, layout, writing, typography, color, and UI polish.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">magazine/skills.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/profile.html">
+        <div>
+          <div class="card-title">Interfaces › Profile</div>
+          <div class="card-desc">Account and subscription details.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">magazine/profile.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/profile/card.html">
+        <div>
+          <div class="card-title">Interfaces › Member card</div>
+          <div class="card-desc">Personalize your collectible membership card.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">magazine/profile/card.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./cheat-sheet.html">
+        <div>
+          <div class="card-title">Interfaces › Cheat Sheet</div>
+          <div class="card-desc">A list of tips, improvements and best practices that quickly make your interfaces better.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">cheat-sheet.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./changelog.html">
+        <div>
+          <div class="card-title">Changelog — Interfaces › Design Engineering Magazine</div>
+          <div class="card-desc">What’s new on Interfaces › Design Engineering Magazine.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">changelog.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./checkout.html">
+        <div>
+          <div class="card-title">Interfaces › Magazine</div>
+          <div class="card-desc">Design engineering articles and bookmarks.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">checkout.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./writing/details-that-make-interfaces-feel-better.html">
+        <div>
+          <div class="card-title">Interfaces › Design Engineering Magazine</div>
+          <div class="card-desc">Interfaces is a design engineering magazine about building great interfaces that covers topics such as animation, typography, layout and color.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">writing/details-that-make-interfaces-feel-better.html</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+  </div>
+
+  <h2>Magazine Issues (16)</h2>
+  <div class="grid">
+    
+      <a class="card" href="./magazine/issues/introduction.html">
+        <div>
+          <div class="card-title">Introduction</div>
+          <div class="card-desc">Introduction to the article.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #1</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/using-ai-as-a-design-engineer.html">
+        <div>
+          <div class="card-title">Using AI as a design engineer</div>
+          <div class="card-desc">Using AI as a Design Engineer</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #2</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/details-that-make-interfaces-feel-better.html">
+        <div>
+          <div class="card-title">Details that make interfaces feel better</div>
+          <div class="card-desc">A collection of details that make your interfaces feel better.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #3</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/sharing-your-work-online.html">
+        <div>
+          <div class="card-title">Sharing your work online</div>
+          <div class="card-desc">Sharing Your Work Online</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #4</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/less-is-more.html">
+        <div>
+          <div class="card-title">Less is more, more or less</div>
+          <div class="card-desc">In the age of AI, knowing what not to build might be the most important skill of all.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #5</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/accessibility-as-craft.html">
+        <div>
+          <div class="card-title">Accessibility as craft</div>
+          <div class="card-desc">Why accessibility is the same craft as the rest of interface work.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #6</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/how-i-use-shared-layout-animations.html">
+        <div>
+          <div class="card-title">How I use shared layout animations</div>
+          <div class="card-desc">How I use shared layout animations.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #7</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/will-change-in-css.html">
+        <div>
+          <div class="card-title">will-change in CSS</div>
+          <div class="card-desc">An article about the will-change CSS property and how it works.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #8</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/drag-gestures-on-the-web.html">
+        <div>
+          <div class="card-title">Drag gestures on the web</div>
+          <div class="card-desc">Drag Gestures on the Web</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #9</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/using-gestures-in-motion.html">
+        <div>
+          <div class="card-title">Using gestures in motion</div>
+          <div class="card-desc">Using Gestures in Motion</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #10</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/review-your-animations.html">
+        <div>
+          <div class="card-title">Reviewing your animations</div>
+          <div class="card-desc">Reviewing your animations as a design engineer.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #11</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/building-an-animated-sign-in-dialog.html">
+        <div>
+          <div class="card-title">Building an animated sign-in dialog</div>
+          <div class="card-desc">An animated sign-in dialog built on top of the Base UI dialog primitive.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #12</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/typography-manual-for-the-web.html">
+        <div>
+          <div class="card-title">Typography manual for the web</div>
+          <div class="card-desc">The first half of a practical tour of web typography: choosing a typeface, font formats and loading, variable fonts and OpenType features.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #13</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/working-with-type.html">
+        <div>
+          <div class="card-title">Working with type</div>
+          <div class="card-desc">The second half of the typography manual: spacing and rhythm, wrapping and overflow, underlines, forms and accessibility.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #14</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/what-are-oklch-colors.html">
+        <div>
+          <div class="card-title">What are OKLCH colors?</div>
+          <div class="card-desc">What are OKLCH colors?</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #15</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+      <a class="card" href="./magazine/issues/understanding-gradients.html">
+        <div>
+          <div class="card-title">Understanding gradients</div>
+          <div class="card-desc">A deep dive into how gradients work, how color models affect them and why some gradients look better than others.</div>
+        </div>
+        <div class="card-footer">
+          <span class="badge">Issue #16</span>
+          <span>Open →</span>
+        </div>
+      </a>
+    
+  </div>
+  <script src="./assets/js/interactive-polyfill.js"></script>
+  <script src="./assets/js/issue-interactions.js"></script>
+</body>
+</html>

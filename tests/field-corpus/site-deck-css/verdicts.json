@@ -4,6 +4,19 @@
   "why": "The repo's own shipped stylesheet, tracked here. Covers the css-only reader, which sees declarations with no DOM — a strictly weaker tier than the cascade, and worth pinning separately.",
   "sha256": "ba5fe01f99338a012ff513b0dc689ed7bd728c4db55d5ebdbd1c6f3426618cf8",
   "extractor": "css-only",
+  "censusFloor": {
+    "total": 849,
+    "kinds": [
+      "border",
+      "color",
+      "gradient",
+      "motion",
+      "radius",
+      "shadow",
+      "spacing",
+      "typography"
+    ]
+  },
   "adjudicatedOn": "2026-08-28",
   "adjudicatedBy": "tell-family author",
   "verdicts": [

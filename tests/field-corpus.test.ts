@@ -22,6 +22,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lintFileByExtractor } from "../src/core/lint-file-by-extractor.js";
+import type { FactCensus } from "../src/core/lint-file-by-extractor.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../src/core/design-facts/index.js";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -43,6 +44,8 @@ interface CorpusPage {
   pinnedBy: "repo-path" | "snapshot";
   sha256?: string;
   extractor: string;
+  /** What the engine saw at adjudication time. A floor, never an equality. */
+  censusFloor?: { total: number; kinds: string[] };
   verdicts: VerdictRow[];
 }
 
@@ -89,7 +92,9 @@ const DIRS = pageDirs();
  * into judging a pipeline users do not run, and its verdicts would then certify the
  * wrong thing.
  */
-function lintPage(absPath: string, extractorId: string): { keys: string[]; byKey: Map<string, string>; severities: string[] } {
+function lintPage(absPath: string, extractorId: string): {
+  keys: string[]; byKey: Map<string, string>; severities: string[]; census: FactCensus;
+} {
   const profile = extractorById(extractorId);
   if (profile === undefined) throw new Error(`extractor profile is not registered: ${extractorId}`);
   const result = lintFileByExtractor(absPath, extractorId, profile);
@@ -99,7 +104,7 @@ function lintPage(absPath: string, extractorId: string): { keys: string[]; byKey
   const keys = withOrdinals(all);
   const byKey = new Map<string, string>();
   keys.forEach((k, i) => byKey.set(k, all[i]?.message ?? ""));
-  return { keys, byKey, severities: all.map((f) => f.severity) };
+  return { keys, byKey, severities: all.map((f) => f.severity), census: result.census };
 }
 
 describe("field corpus", () => {
@@ -137,6 +142,27 @@ describe("field corpus", () => {
         // A duplicate key would make one verdict unreachable.
         const keys = spec.verdicts.map((v) => v.key);
         expect(new Set(keys).size, "duplicate verdict keys").toBe(keys.length);
+      });
+
+      it("the engine still sees what it saw when this page was adjudicated", () => {
+        // A page can keep producing the same findings while the reader quietly goes
+        // blind on a whole fact kind — a rule that needed `spacing` simply stops
+        // running, and NOT-EVALUATED absorbs it. Pinning the census catches that.
+        //
+        // A FLOOR, not an equality: the question is "did the engine still see this
+        // much", not "exactly how much". Exact counts would redden on every unrelated
+        // edit and the row would be deleted within a week.
+        const { census } = lintPage(absPath, spec.extractor);
+        if (spec.censusFloor === undefined) {
+          throw new Error(
+            `no censusFloor recorded for ${dir}. Paste this into verdicts.json:\n` +
+              `  "censusFloor": { "total": ${census.total}, "kinds": ${JSON.stringify(Object.keys(census.byKind).sort())} }`,
+          );
+        }
+        expect(census.total, `${dir}: the engine now sees fewer facts than when it was adjudicated`)
+          .toBeGreaterThanOrEqual(spec.censusFloor.total);
+        const missing = spec.censusFloor.kinds.filter((k) => !(k in census.byKind));
+        expect(missing, `${dir}: the reader went blind on fact kind(s) it used to see`).toEqual([]);
       });
 
       it("fires exactly what was adjudicated to fire, and nothing unadjudicated", () => {

@@ -20,6 +20,28 @@ import type { TellFinding } from "./tell-rules.js";
 import type { ExtractorProfile } from "./design-facts/extractor-registry.js";
 import { scanInlineIgnores, applyInlineIgnores } from "./inline-ignores.js";
 
+/**
+ * What the engine actually saw, per fact kind.
+ *
+ * `0 findings` from a page the reader was blind to looks exactly like `0 findings`
+ * from a clean page. Two defects on this branch survived in precisely that gap: the
+ * engine saw nothing and said nothing. The census is the repo's own "a zero is a
+ * claim" rule turned on the engine's own input — `1400 elements, 0 color facts` is a
+ * self-evident red flag, and no debugger is needed to see it.
+ *
+ * Advisory. It reports; it does not change the exit code. Choosing a failure threshold
+ * before measuring what a normal census looks like would be the same guess this whole
+ * instrument exists to replace.
+ */
+export interface FactCensus {
+  /** Fact count per kind, kinds with zero facts omitted. */
+  byKind: Record<string, number>;
+  /** Total facts the collector accepted. */
+  total: number;
+  /** Distinct elements the reader attributed facts to — 0 for tiers with no DOM. */
+  nodes: number;
+}
+
 export interface FileLintResult {
   findings: TellFinding[];
   notEvaluated: Array<{ id: string; reason: string }>;
@@ -29,6 +51,27 @@ export interface FileLintResult {
   /** True when the reader cannot see the whole cascade, so absence proves nothing. */
   undercount: boolean;
   degraded?: string;
+  census: FactCensus;
+  /**
+   * `<link rel=stylesheet>` hrefs the reader could not open.
+   *
+   * A page whose stylesheets all failed to load produces no findings for the same
+   * reason a blank page does, and the two must not print alike. The census found this
+   * on a real Vercel export: 982 elements, 4 colour facts, 0 spacing, 0 typography —
+   * and `undercount: false`, because `extractHtml` had always returned this list and
+   * no caller had ever read it.
+   */
+  unresolvedSheets: string[];
+}
+
+function censusOf(facts: readonly { kind: string; at: { nodeRef?: string } }[]): FactCensus {
+  const byKind: Record<string, number> = {};
+  const nodes = new Set<string>();
+  for (const f of facts) {
+    byKind[f.kind] = (byKind[f.kind] ?? 0) + 1;
+    if (f.at.nodeRef !== undefined) nodes.add(f.at.nodeRef);
+  }
+  return { byKind, total: facts.length, nodes: nodes.size };
 }
 
 /** Extractor ids that have a reader. Anything else is reported NOT ANALYSED, never clean. */
@@ -57,6 +100,8 @@ export function lintFileByExtractor(
       waived: 0,
       notComputable: 0,
       undercount: true,
+      census: { byKind: {}, total: 0, nodes: 0 },
+      unresolvedSheets: [],
     };
   }
 
@@ -64,7 +109,8 @@ export function lintFileByExtractor(
 
   if (extractorId === "html-cascade") {
     const extraction = extractHtml(src, path);
-    const result = lintTell(extraction.collector.facts(), profile);
+    const htmlFacts = extraction.collector.facts();
+    const result = lintTell(htmlFacts, profile);
     const { kept, waived } = applyInlineIgnores(result.findings, scanInlineIgnores(src));
     return {
       // Contrast and voice run only on the resolved cascade; the other readers cannot
@@ -74,8 +120,13 @@ export function lintFileByExtractor(
       unresolvedCount: extraction.collector.unresolvedCount,
       waived: waived.length,
       notComputable: result.contrastNotComputable.length,
-      undercount: extraction.degraded,
+      // A stylesheet the reader could not open makes the whole run an undercount.
+      // Absence of CSS means absence of findings proves nothing — the same rule the
+      // NOT-EVALUATED contract applies to rules, applied to the engine's own input.
+      undercount: extraction.degraded || extraction.unresolvedSheets.length > 0,
       degraded: extraction.degraded ? extraction.degradeReason : undefined,
+      census: censusOf(htmlFacts),
+      unresolvedSheets: [...extraction.unresolvedSheets],
     };
   }
 
@@ -86,7 +137,8 @@ export function lintFileByExtractor(
           : extractorId === "sfc" ? extractSfc(src, path)
             : extractCssOnly(src, path);
 
-  const result = lintTell(ex.collector.facts(), profile);
+  const exFacts = ex.collector.facts();
+  const result = lintTell(exFacts, profile);
   const { kept, waived } = applyInlineIgnores(result.findings, scanInlineIgnores(src));
   return {
     findings: kept as TellFinding[],
@@ -96,5 +148,7 @@ export function lintFileByExtractor(
     notComputable: 0,
     // Every source reader below the cascade sees declarations, not resolved values.
     undercount: true,
+    census: censusOf(exFacts),
+    unresolvedSheets: [],
   };
 }
