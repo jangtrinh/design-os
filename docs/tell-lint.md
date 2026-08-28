@@ -90,3 +90,48 @@ NOT-EVALUATED and are never counted as passing.
 
 When no browser is found the tier reports the variable to set. It never installs
 one, and it never passes silently.
+
+## The fact census
+
+Every file reports what the reader actually saw — fact counts per kind, and the elements
+they came from. Human output prints it whenever a file yields no findings, which is exactly
+when it matters: a clean page and a page the reader was blind to otherwise print the
+identical zero, and two defects lived in that gap.
+
+```
+../vercel/source.html  [html-cascade — resolved cascade]  (UNDERCOUNT; 4 stylesheet(s) NOT LOADED)
+  saw 1261 facts across 982 elements — structure 982, text 275, color 4
+```
+
+982 elements yielding four colours and no spacing is not a clean page; it is an unread one.
+That page links its stylesheets by absolute server paths that do not exist on disk, so an
+unresolved sheet now marks the whole run UNDERCOUNT and the sheets are named.
+
+The census is **advisory**. It reports; it never changes the exit code. A failure threshold
+will be chosen once there is a measurement of what a normal census looks like, not before.
+
+## How the rules are kept honest
+
+Three instruments, each answering a failure the fixtures could not.
+
+**The field corpus** (`tests/field-corpus/`) pins real pages with a recorded verdict and a
+reason per finding. A fix that silences an adjudicated true positive turns the suite red,
+naming the finding and quoting the reason someone wrote when they judged it real. A finding
+nobody has judged fails as `unadjudicated`. It prints the live false-positive rate on every
+run, because an FP rate nobody measures is one that drifts upward — and a gate readers have
+learned to ignore has already stopped being a gate.
+
+**The threshold table** (`src/core/tell-thresholds.ts`) holds every number that decides a
+verdict, with its owner and provenance. Each is pinned by an executable boundary pair: a
+value at the threshold that must stay silent, one past it that must fire. A constant with
+neither a pair nor a stated reason fails the meta-test.
+
+**The mutation audit** (`npm run audit:mutation`) mutates rule predicates and reports which
+mutants survived — the machine-generated version of "these guards do not guard". It runs
+**nightly or on demand, never on a pull request**. As a gate it is slow and noisy on
+cosmetic code and would be disabled within a month; as an audit it produces a number that
+trends and a list somebody reads on purpose.
+
+Baseline, 2026-08-28: **62.91%** mutation score over the six rule modules — 731 killed, 418
+survived, 2m25s. Weakest module `tell-rules-labels.ts` at 46.71%, strongest
+`tell-rules-type.ts` at 71.43%.
