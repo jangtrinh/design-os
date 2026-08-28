@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build a native iOS app for iPhone in SwiftUI",
+  "requestedSurface": "native-ios",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "native iOS app",
+    "role": "requested-artifact"
+  }
+}

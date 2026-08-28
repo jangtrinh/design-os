@@ -1,0 +1,10 @@
+{
+  "kind": "design-os.capability-pilot-receipt",
+  "version": 1,
+  "capabilityId": "native-ipados",
+  "pilotId": "native-ipados-pilot-01",
+  "surfaceCategory": "native-gallery-ipad-windowed",
+  "evidenceDisposition": "retained",
+  "ownerVerdict": "Pending owner-visible acceptance.",
+  "ownerDisposition": "pending-owner-review"
+}

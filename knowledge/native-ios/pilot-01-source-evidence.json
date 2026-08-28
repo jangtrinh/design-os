@@ -1,0 +1,34 @@
+{
+  "kind": "design-os.capability-pilot-source-evidence",
+  "version": 1,
+  "capabilityId": "native-ios",
+  "pilotId": "native-ios-pilot-01",
+  "sourceRepository": "design-os-apple",
+  "sourceRevision": null,
+  "sourceRevisionState": "no-git-head",
+  "runtimeScheme": "DesignOSAppleGallery-iOS",
+  "target": "iPhone 17 Pro simulator",
+  "verifiedEvidence": [
+    "strict iOS build-for-testing",
+    "41 logical tests and 48 parameterized runs",
+    "gallery install and launch",
+    "simulator rendering",
+    "structural accessibility audit"
+  ],
+  "sourceFiles": [
+    {
+      "path": "plans/reports/final-swiftui-runtime-delivery-260826.md",
+      "sha256": "1413841df8aeffdac08974d5db9c0ba6a00c382db72bf5e795092f1d7c6fec19"
+    },
+    {
+      "path": "plans/reports/native-gallery-accessibility-evidence-260826.md",
+      "sha256": "71d05d6329f28c9c378c0ef130a3ac4643a6adb8922ef451157b7e1411cf1875"
+    },
+    {
+      "path": "plans/260826-1646-deep-figma-swiftui-design-system/visuals/native-gallery-iphone-17-pro.png",
+      "sha256": "7d02ad80b81f08ffe7497370fb362709e0ad98c495ff299731077b172dddd46e"
+    }
+  ],
+  "knownFailures": ["unfiltered Xcode 26.5 accessibility audit"],
+  "pendingWitnesses": ["VoiceOver", "real-device", "owner-visible-acceptance"]
+}

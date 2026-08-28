@@ -1,0 +1,49 @@
+{
+  "kind": "design-os.capability-pilot-source-evidence",
+  "version": 1,
+  "capabilityId": "native-ipados",
+  "pilotId": "native-ipados-pilot-01",
+  "sourceRepository": "design-os-apple",
+  "sourceRevision": null,
+  "sourceRevisionState": "no-git-head",
+  "runtimeScheme": "DesignOSAppleGallery-iOS",
+  "target": "iPad Pro 13-inch simulator",
+  "verifiedEvidence": [
+    "strict iOS build-for-testing on an iPad target",
+    "41 logical tests and 48 parameterized runs",
+    "gallery install and launch",
+    "simulator rendering",
+    "structural accessibility audit"
+  ],
+  "sourceFiles": [
+    {
+      "path": "plans/reports/final-swiftui-runtime-delivery-260826.md",
+      "sha256": "1413841df8aeffdac08974d5db9c0ba6a00c382db72bf5e795092f1d7c6fec19"
+    },
+    {
+      "path": "plans/reports/native-gallery-accessibility-evidence-260826.md",
+      "sha256": "71d05d6329f28c9c378c0ef130a3ac4643a6adb8922ef451157b7e1411cf1875"
+    },
+    {
+      "path": "plans/260826-1646-deep-figma-swiftui-design-system/visuals/native-gallery-ipad-pro-13.png",
+      "sha256": "94f2d9a8a0b67258e39a3c1505973336e795c6b63679a4822571f87eb3eef936"
+    },
+    {
+      "path": "plans/260826-1646-deep-figma-swiftui-design-system/visuals/native-gallery-ipad-list-row.png",
+      "sha256": "5394de7cb3f1a9e45530878f54ad2b61bcaca3755b431f0981965c3bd2c3b65a"
+    },
+    {
+      "path": "plans/260826-1646-deep-figma-swiftui-design-system/visuals/native-gallery-ipad-sidebar-row.png",
+      "sha256": "20a7b5cc293ccd5968ba9191bb8231ab544ec783d32a9dca5f3e8dd3caeb9b11"
+    }
+  ],
+  "knownFailures": ["unfiltered Xcode 26.5 accessibility audit"],
+  "pendingWitnesses": [
+    "VoiceOver",
+    "Full Keyboard Access",
+    "hardware keyboard and pointer",
+    "resizable-window transitions",
+    "real-device",
+    "owner-visible-acceptance"
+  ]
+}

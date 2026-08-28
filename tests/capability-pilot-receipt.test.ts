@@ -47,11 +47,17 @@ afterEach(() => {
 });
 
 describe("capability pilot receipt", () => {
-  it("declares the exact retained native pilot receipt schema", () => {
+  it("declares a generic retained native pilot receipt schema", () => {
     const schema = JSON.parse(readFileSync(join(ROOT, "schemas", "capability-pilot-receipt.schema.json"), "utf8")) as {
-      properties: Record<string, { const: unknown }>;
+      required: string[];
+      properties: Record<string, { const?: unknown; type?: string; minLength?: number }>;
     };
-    for (const [key, value] of Object.entries(RECEIPT)) expect(schema.properties[key]?.const).toBe(value);
+    expect(schema.required.sort()).toEqual(Object.keys(RECEIPT).sort());
+    expect(schema.properties["kind"]?.const).toBe(RECEIPT.kind);
+    expect(schema.properties["version"]?.const).toBe(RECEIPT.version);
+    for (const key of ["capabilityId", "pilotId", "surfaceCategory", "ownerVerdict", "ownerDisposition"]) {
+      expect(schema.properties[key]).toMatchObject({ type: "string", minLength: 1 });
+    }
   });
 
   it("accepts the exact retained native pilot fields", async () => {
@@ -61,7 +67,10 @@ describe("capability pilot receipt", () => {
 
   it("exposes native pilot-01 as the only registered production identity", async () => {
     const { expectedCapabilityPilotReceipt } = await pilotReceiptApi();
-    expect(expectedCapabilityPilotReceipt("native-macos")).toEqual(EXPECTED);
+    expect(expectedCapabilityPilotReceipt("native-macos")).toMatchObject({
+      ...EXPECTED,
+      profilePolicyDigest: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
+    });
     expect(expectedCapabilityPilotReceipt("unregistered-native")).toBeNull();
   });
 

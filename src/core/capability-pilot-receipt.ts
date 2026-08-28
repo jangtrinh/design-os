@@ -16,26 +16,53 @@ export interface CapabilityPilotReceipt {
 }
 
 export interface CapabilityPilotReceiptExpectation {
-  capabilityId: string;
-  pilotId: string;
-  surfaceCategory: string;
-  evidenceDisposition: string;
-  ownerVerdict: string;
-  ownerDisposition: string;
+  readonly capabilityId: string;
+  readonly pilotId: string;
+  readonly surfaceCategory: string;
+  readonly evidenceDisposition: string;
+  readonly ownerVerdict: string;
+  readonly ownerDisposition: string;
+  readonly profilePolicyDigest?: string;
+  readonly sourceEvidencePin?: string;
 }
 
-const NATIVE_MACOS_PILOT_01: CapabilityPilotReceiptExpectation = {
+const NATIVE_MACOS_PILOT_01: CapabilityPilotReceiptExpectation = Object.freeze({
   capabilityId: "native-macos",
   pilotId: "native-macos-pilot-01",
   surfaceCategory: "note-document-editor",
   evidenceDisposition: "retained",
   ownerVerdict: "OK khá ổn rồi.",
   ownerDisposition: "accept-with-reservation",
-};
+  profilePolicyDigest: "sha256:ca53857de1b13c51996c6d27cc43b84bab51b441f79717b3b8de26b893179b96",
+});
+
+const CAPABILITY_PILOT_RECEIPTS: Readonly<Record<string, CapabilityPilotReceiptExpectation>> = Object.freeze({
+  "native-macos": NATIVE_MACOS_PILOT_01,
+  "native-ios": Object.freeze({
+    capabilityId: "native-ios",
+    pilotId: "native-ios-pilot-01",
+    surfaceCategory: "native-gallery-iphone",
+    evidenceDisposition: "retained",
+    ownerVerdict: "Pending owner-visible acceptance.",
+    ownerDisposition: "pending-owner-review",
+    profilePolicyDigest: "sha256:f072e353202c4f39911f7f8b6a11961d475b20477482a21edbeb4ca151390f0b",
+    sourceEvidencePin: "knowledge/native-ios/pilot-01-source-evidence.json#sha256:bcf7af83f0cd778d7470ca84dfb0c58e8e4067a6578dff1f63003bb9a9656ec9",
+  }),
+  "native-ipados": Object.freeze({
+    capabilityId: "native-ipados",
+    pilotId: "native-ipados-pilot-01",
+    surfaceCategory: "native-gallery-ipad-windowed",
+    evidenceDisposition: "retained",
+    ownerVerdict: "Pending owner-visible acceptance.",
+    ownerDisposition: "pending-owner-review",
+    profilePolicyDigest: "sha256:7e3dd66852e1dd9afb4d279cd34385e7b17c57b8cf26bcc293a59b68713ab6ee",
+    sourceEvidencePin: "knowledge/native-ipados/pilot-01-source-evidence.json#sha256:2f5daf4b0bb389ad3302597908ab2abc100b9aec394a030d5bd5b7f3eb7c6b71",
+  }),
+});
 
 /** Known retained pilots are identity contracts, not delivery qualifications. */
 export function expectedCapabilityPilotReceipt(capabilityId: string): CapabilityPilotReceiptExpectation | null {
-  return capabilityId === "native-macos" ? NATIVE_MACOS_PILOT_01 : null;
+  return CAPABILITY_PILOT_RECEIPTS[capabilityId] ?? null;
 }
 
 export interface CapabilityPilotReceiptPin { path: string; digest: string }
@@ -51,7 +78,7 @@ const STRING_FIELDS = RECEIPT_KEYS.filter((key) => key !== "kind" && key !== "ve
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const nonEmpty = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
-const failure = (code: string, message: string): CapabilityPilotReceiptCheck => ({ ok: false, code, message });
+const failure = (code: string, message: string): { ok: false; code: string; message: string } => ({ ok: false, code, message });
 const contained = (root: string, candidate: string): boolean => candidate.startsWith(`${root}${sep}`);
 
 /** Parse a repository-relative `knowledge/...#sha256:<hex>` evidence pin. */
@@ -114,6 +141,37 @@ export function verifyCapabilityPilotReceipt(
   expected: CapabilityPilotReceiptExpectation,
   seenPilotIds: ReadonlySet<string> = new Set(),
 ): CapabilityPilotReceiptCheck {
+  const pinned = readPinnedEvidence(knowledgeRoot, pinValue);
+  if (!pinned.ok) return pinned;
+  let receipt: CapabilityPilotReceiptCheck;
+  try {
+    receipt = parseCapabilityPilotReceipt(JSON.parse(pinned.bytes.toString("utf8")) as unknown, expected, seenPilotIds);
+  } catch {
+    return failure("PILOT_RECEIPT_JSON", "pilot receipt is not valid JSON");
+  }
+  if (!receipt.ok || expected.sourceEvidencePin === undefined) return receipt;
+
+  const source = readPinnedEvidence(knowledgeRoot, expected.sourceEvidencePin);
+  if (!source.ok) return source;
+  try {
+    const value = JSON.parse(source.bytes.toString("utf8")) as unknown;
+    if (!isRecord(value) || value["kind"] !== "design-os.capability-pilot-source-evidence" || value["version"] !== 1 ||
+        value["capabilityId"] !== expected.capabilityId || value["pilotId"] !== expected.pilotId ||
+        value["sourceRevision"] !== null || value["sourceRevisionState"] !== "no-git-head" ||
+        !Array.isArray(value["knownFailures"]) || !value["knownFailures"].includes("unfiltered Xcode 26.5 accessibility audit") ||
+        !Array.isArray(value["pendingWitnesses"]) || !value["pendingWitnesses"].includes("owner-visible-acceptance")) {
+      return failure("PILOT_SOURCE_EVIDENCE_IDENTITY", "pilot source evidence does not preserve its platform identity and pending gates");
+    }
+  } catch {
+    return failure("PILOT_SOURCE_EVIDENCE_JSON", "pilot source evidence is not valid JSON");
+  }
+  return receipt;
+}
+
+function readPinnedEvidence(
+  knowledgeRoot: string,
+  pinValue: unknown,
+): { ok: true; bytes: Buffer } | { ok: false; code: string; message: string } {
   const parsedPin = parseCapabilityPilotReceiptPin(pinValue);
   if (!parsedPin.ok) return failure(parsedPin.code, parsedPin.message);
   let root: string;
@@ -134,9 +192,5 @@ export function verifyCapabilityPilotReceipt(
   catch { return failure("PILOT_RECEIPT_PATH", "pilot receipt bytes cannot be read"); }
   const digest = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
   if (digest !== parsedPin.pin.digest) return failure("PILOT_RECEIPT_DIGEST", "pilot receipt digest does not match exact stored bytes");
-  try {
-    return parseCapabilityPilotReceipt(JSON.parse(bytes.toString("utf8")) as unknown, expected, seenPilotIds);
-  } catch {
-    return failure("PILOT_RECEIPT_JSON", "pilot receipt is not valid JSON");
-  }
+  return { ok: true, bytes };
 }

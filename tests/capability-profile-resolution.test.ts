@@ -99,24 +99,7 @@ describe("capability activation core", () => {
   });
 
   it("routes an available provisional v2 native arm without HTML fallback", () => {
-    const v2 = {
-      version: 2,
-      profiles: [{
-        id: "native-macos",
-        availability: "available",
-        assurance: "provisional",
-        acceptedInputKinds: ["words"],
-        workflow: "native-macos",
-        artifact: "native-macos-application",
-        requiredKnowledge: ["need-routing", "native-macos-craft"],
-        machineWitnesses: ["gate"],
-        renderedWitnesses: ["native-window-capture"],
-        manualWitnesses: ["owner-visible-acceptance"],
-        assuranceEvidence: "knowledge/native-macos/pilot-01-evidence.json#sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        action: "Proceed with the provisional native-macos workflow.",
-      }],
-    };
-    const parsed = parseCapabilityCatalog(JSON.stringify(v2));
+    const parsed = parseCapabilityCatalog(readFileSync(join(ROOT, "knowledge", "capability-profiles.json"), "utf8"));
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
 
@@ -227,6 +210,26 @@ describe("capability activation core", () => {
     const unregisteredNative = structuredClone(catalog) as unknown as { profiles: Array<Record<string, unknown>> };
     unregisteredNative.profiles[1]!["id"] = "unregistered-native";
     expect(parseCapabilityCatalog(JSON.stringify(unregisteredNative)).ok).toBe(false);
+  });
+
+  it.each([1, 2] as const)("rejects duplicate capability IDs in v%s catalogs", (version) => {
+    const source = (version === 1 ? structuredClone(catalog) : {
+      version: 2,
+      profiles: [{
+        id: "web-marketing", availability: "available", assurance: "qualified",
+        acceptedInputKinds: ["words"], workflow: "generate", artifact: "html",
+        requiredKnowledge: ["need-routing"], machineWitnesses: ["gate"],
+        renderedWitnesses: ["1440px"], manualWitnesses: ["owner-visible-acceptance"],
+        assuranceEvidence: "knowledge/qualified-delivery.md",
+      }],
+    }) as unknown as { profiles: Array<Record<string, unknown>> };
+    source.profiles.push(structuredClone(source.profiles[0]!));
+    const parsed = parseCapabilityCatalog(JSON.stringify(source));
+    expect(parsed).toMatchObject({
+      ok: false,
+      code: "CAPABILITY_PROFILE_DUPLICATE",
+      message: "CAPABILITY_PROFILE_DUPLICATE: duplicate capability profile id 'web-marketing'",
+    });
   });
 
   it("rejects activation request fields outside the public schema", () => {

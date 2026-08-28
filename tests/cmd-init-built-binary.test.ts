@@ -97,13 +97,17 @@ describe("built binary: ui init --runtime claude", () => {
     expect(json.data.manifests[0]?.written).toBe(true);
     expect(existsSync(join(cwd, ".claude", "ease-design.json"))).toBe(true);
 
-    // Adapter tree written — 40 files (20 workflows + 17 craft skills + 3 journey skills)
-    expect(json.data.adapters[0]?.paths.length).toBe(40);
+    // Adapter tree written — 44 files (22 workflows + 19 craft skills + 3 journey skills)
+    expect(json.data.adapters[0]?.paths.length).toBe(44);
     expect(existsSync(join(cwd, ".claude", "commands", "ui", "generate.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "skills", "design-os-pick-persona", "SKILL.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "skills", "design-os-gsap-motion", "SKILL.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "commands", "ui", "native-macos.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "skills", "design-os-native-macos-craft", "SKILL.md"))).toBe(true);
+    expect(existsSync(join(cwd, ".claude", "commands", "ui", "native-ios.md"))).toBe(true);
+    expect(existsSync(join(cwd, ".claude", "skills", "design-os-native-ios-craft", "SKILL.md"))).toBe(true);
+    expect(existsSync(join(cwd, ".claude", "commands", "ui", "native-ipados.md"))).toBe(true);
+    expect(existsSync(join(cwd, ".claude", "skills", "design-os-native-ipados-craft", "SKILL.md"))).toBe(true);
   });
 
   it("adapter content references an existing templates/ path (no dangling pointer)", () => {
@@ -156,7 +160,7 @@ describe("built binary: ui init --runtime antigravity", () => {
     expect(code).toBe(0);
     const json = JSON.parse(stdout) as { ok: boolean; data: { adapters: { paths: string[] }[] } };
     expect(json.ok).toBe(true);
-    expect(json.data.adapters[0]?.paths.length).toBe(40);
+    expect(json.data.adapters[0]?.paths.length).toBe(44);
     expect(existsSync(join(cwd, ".agent", "workflows", "ui-generate.md"))).toBe(true);
     expect(existsSync(join(cwd, ".agent", "workflows", "ui-from-url.md"))).toBe(true);
     const native = readFileSync(join(cwd, ".agent", "workflows", "ui-native-macos.md"), "utf8");

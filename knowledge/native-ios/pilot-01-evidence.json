@@ -1,0 +1,10 @@
+{
+  "kind": "design-os.capability-pilot-receipt",
+  "version": 1,
+  "capabilityId": "native-ios",
+  "pilotId": "native-ios-pilot-01",
+  "surfaceCategory": "native-gallery-iphone",
+  "evidenceDisposition": "retained",
+  "ownerVerdict": "Pending owner-visible acceptance.",
+  "ownerDisposition": "pending-owner-review"
+}

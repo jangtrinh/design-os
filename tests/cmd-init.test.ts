@@ -175,7 +175,7 @@ describe("ui init argument validation", () => {
 // ── Adapter tree integration tests ────────────────────────────────────────────
 
 describe("ui init --runtime claude adapter tree", () => {
-  it("JSON envelope data.adapters[0].paths has 40 entries", () => {
+  it("JSON envelope data.adapters[0].paths has 44 entries", () => {
     const cwd = makeTmpDir();
     const { code, out } = captureRun(["init", "--runtime", "claude", "--cwd", cwd, "--json"]);
     expect(code).toBe(0);
@@ -183,7 +183,7 @@ describe("ui init --runtime claude adapter tree", () => {
       data: { adapters: { runtime: string; paths: string[] }[] };
     };
     expect(json.data.adapters).toHaveLength(1);
-    expect(json.data.adapters[0]?.paths.length).toBe(40);
+    expect(json.data.adapters[0]?.paths.length).toBe(44);
   });
 
   it("JSON envelope data.adapters[0].paths includes the generate slash-command path", () => {
@@ -214,6 +214,10 @@ describe("ui init --runtime claude adapter tree", () => {
     const paths = json.data.adapters[0]?.paths ?? [];
     expect(paths.some((p) => p.includes("commands/ui/native-macos.md"))).toBe(true);
     expect(paths.some((p) => p.includes("design-os-native-macos-craft/SKILL.md"))).toBe(true);
+    expect(paths.some((p) => p.includes("commands/ui/native-ios.md"))).toBe(true);
+    expect(paths.some((p) => p.includes("design-os-native-ios-craft/SKILL.md"))).toBe(true);
+    expect(paths.some((p) => p.includes("commands/ui/native-ipados.md"))).toBe(true);
+    expect(paths.some((p) => p.includes("design-os-native-ipados-craft/SKILL.md"))).toBe(true);
   });
 
   it("on-disk manifest has status 'ready' with adapters and templateHashes", () => {

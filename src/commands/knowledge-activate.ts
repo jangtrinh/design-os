@@ -37,12 +37,15 @@ export function runKnowledgeActivate(parsed: ParsedArgs): CommandResult {
   catch { return fail("BAD_ACTIVATION", "activation request is not valid JSON"); }
   const catalog = parseCapabilityCatalog(catalogRaw);
   if (!catalog.ok) return fail("BAD_CATALOG", catalog.message);
+  const seenPilotIds = new Set<string>();
   for (const profile of catalog.catalog.profiles) {
-    if (profile.assurance !== "provisional") continue;
     const expected = expectedCapabilityPilotReceipt(profile.id);
+    const registeredV2Pilot = catalog.catalog.version === 2 && expected?.profilePolicyDigest !== undefined;
+    if (profile.assurance !== "provisional" && !registeredV2Pilot) continue;
     if (expected === null) return fail("BAD_CATALOG", `PILOT_RECEIPT_CAPABILITY: no retained pilot identity is registered for '${profile.id}'`);
-    const evidence = verifyCapabilityPilotReceipt(knowledgeRoot, profile.assuranceEvidence, expected);
+    const evidence = verifyCapabilityPilotReceipt(knowledgeRoot, profile.assuranceEvidence, expected, seenPilotIds);
     if (!evidence.ok) return fail("BAD_CATALOG", `${evidence.code}: ${evidence.message}`);
+    seenPilotIds.add(evidence.receipt.pilotId);
   }
   const result = resolveCapabilityActivation(request, catalog.catalog, digestText(catalogRaw));
   if (!result.ok) {

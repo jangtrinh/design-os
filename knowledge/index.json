@@ -16,6 +16,19 @@
       ]
     },
     {
+      "id": "apple-swiftui-craft",
+      "path": "knowledge/apple-swiftui-craft.md",
+      "description": "Shared SwiftUI craft for native iOS and iPadOS composition, semantic controls, adaptive layout, accessibility, and honest evidence.",
+      "when": [
+        "swiftui",
+        "ios",
+        "ipados",
+        "native-mobile",
+        "adaptive-layout",
+        "accessibility"
+      ]
+    },
+    {
       "id": "asset-production-orchestration",
       "path": "knowledge/asset-production-orchestration.md",
       "description": "Ordering and gating a multi-asset production run so generated media arrives usable.",
@@ -308,6 +321,33 @@
         "reduced-motion",
         "motion-tier",
         "easing"
+      ]
+    },
+    {
+      "id": "native-ios-craft",
+      "path": "knowledge/native-ios-craft.md",
+      "description": "iPhone-focused SwiftUI craft for compact composition, touch, software-keyboard safety, navigation, and provisional evidence.",
+      "when": [
+        "native-ios",
+        "iphone",
+        "swiftui",
+        "compact",
+        "touch",
+        "software-keyboard"
+      ]
+    },
+    {
+      "id": "native-ipados-craft",
+      "path": "knowledge/native-ipados-craft.md",
+      "description": "iPadOS SwiftUI craft for resizable windows, split navigation, mixed input, focus, scenes, and provisional evidence.",
+      "when": [
+        "native-ipados",
+        "ipad",
+        "swiftui",
+        "resizable-window",
+        "split-navigation",
+        "pointer",
+        "keyboard"
       ]
     },
     {

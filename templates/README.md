@@ -10,6 +10,8 @@ User-facing entry points (`/ui:<verb>` on Claude Code; analogous shapes elsewher
 |---|---|---|
 | `generate.md` | `/ui:generate` | Central generation flow: compile prompt plan → compare content-led and golden proportions → validate compact builder packet → generate → qualify → bounded repair. |
 | `native-macos.md` | `/ui:native-macos` | SwiftUI-first native execution arm: route through typed activation, keep platform assurance provisional, and preserve distinct deterministic, rendered, accessibility, review, and owner evidence. |
+| `native-ios.md` | `/ui:native-ios` | Compact-first SwiftUI arm for iPhone: safe-area and keyboard-aware composition, touch, navigation, and provisional evidence. |
+| `native-ipados.md` | `/ui:native-ipados` | Resizable SwiftUI arm for iPad: split navigation, scene state, mixed input, focus, and provisional evidence. |
 | `iterate.md` | `/ui:iterate` | Surgical edit to an existing variant via `ui edit-strategy` (deterministic / ln-diff / full-regen). |
 | `refine.md` | `/ui:refine` | Self-correction pass: critique → identify failing axes → refine those → re-critique. ≤2 passes. |
 | `redesign.md` | `/ui:redesign` | Radical contra-persona redesign preserving the source's information architecture. |
@@ -34,6 +36,8 @@ Small wrappers that tell the host model *which `knowledge/` files to read for wh
 | `apply-prompt-mode.md` | Choosing `replicate` / `enhance` / `adapt` against a reference. |
 | `gsap-motion.md` | Directing and implementing advanced GSAP web choreography with lifecycle, accessibility, and performance gates. |
 | `native-macos-craft.md` | Applying SwiftUI-first native macOS craft, finite layout ownership, and provisional evidence boundaries. |
+| `native-ios-craft.md` | Applying shared Apple SwiftUI craft plus compact iOS navigation, touch, keyboard-safe layout, and evidence boundaries. |
+| `native-ipados-craft.md` | Applying shared Apple SwiftUI craft plus resizable iPadOS windows, split navigation, mixed input, and evidence boundaries. |
 
 ## Journeys — `journeys/`
 

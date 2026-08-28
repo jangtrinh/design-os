@@ -29,6 +29,8 @@ describe("ui guide — designer on-ramp", () => {
     expect(out).toContain("/ui:generate");
     expect(out).toContain("/ui:iterate");
     expect(out).toContain("/ui:native-macos");
+    expect(out).toContain("/ui:native-ios");
+    expect(out).toContain("/ui:native-ipados");
     expect(out).toContain("provisional");
     // Plain-language framing, not dev jargon.
     expect(out).toContain("pick a result by eye");
@@ -62,11 +64,11 @@ describe("ui guide — designer on-ramp", () => {
     expect(json.data.quality).toContain("taste");
   });
 
-  it("covers all official /ui:* workflows including provisional native macOS", () => {
+  it("covers all official /ui:* workflows including provisional Apple-native arms", () => {
     const { out } = captureRun(["guide", "--json"]);
     const json = JSON.parse(out) as { data: { workflow: { command: string }[] } };
     const cmds = json.data.workflow.map((s) => s.command).join(" ");
-    for (const verb of ["generate", "learn", "iterate", "refine", "redesign", "from-ref", "from-url", "figma", "to-figma", "slides", "extract", "native-macos"]) {
+    for (const verb of ["generate", "learn", "iterate", "refine", "redesign", "from-ref", "from-url", "figma", "to-figma", "slides", "extract", "native-macos", "native-ios", "native-ipados"]) {
       expect(cmds).toContain(`/ui:${verb}`);
     }
   });
