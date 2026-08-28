@@ -170,6 +170,22 @@
       ]
     },
     {
+      "id": "design-tells",
+      "path": "knowledge/design-tells.md",
+      "description": "What a design tell is, the 43 the tell family detects, and which family a new rule belongs to.",
+      "when": [
+        "tell",
+        "tells",
+        "ai-slop",
+        "generated-ui",
+        "side-tab",
+        "overused-font",
+        "cliche",
+        "design-smell",
+        "looks-ai-generated"
+      ]
+    },
+    {
       "id": "designmd-format",
       "path": "knowledge/designmd-format.md",
       "description": "The DESIGN.md contract — the YAML token front-matter plus the eight fixed sections.",

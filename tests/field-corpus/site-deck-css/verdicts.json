@@ -1,0 +1,66 @@
+{
+  "page": "site/deck.css",
+  "pinnedBy": "repo-path",
+  "why": "The repo's own shipped stylesheet, tracked here. Covers the css-only reader, which sees declarations with no DOM — a strictly weaker tier than the cascade, and worth pinning separately.",
+  "sha256": "ba5fe01f99338a012ff513b0dc689ed7bd728c4db55d5ebdbd1c6f3426618cf8",
+  "extractor": "css-only",
+  "censusFloor": {
+    "total": 849,
+    "kinds": [
+      "border",
+      "color",
+      "gradient",
+      "motion",
+      "radius",
+      "shadow",
+      "spacing",
+      "typography"
+    ]
+  },
+  "adjudicatedOn": "2026-08-28",
+  "adjudicatedBy": "tell-family author",
+  "verdicts": [
+    {
+      "key": "dark-glow@line:1315##9ef5b4 blur 60px",
+      "verdict": "tp",
+      "reason": "A 60px mint glow on a dark surface — light simulated with no source. Our own site does the thing the rule names.",
+      "message": "saturated 60px glow (#9ef5b4) on a dark surface — light simulated with no light source — 3 elements, first at line 1315"
+    },
+    {
+      "key": "gray-on-color@line:2045##6b7280 on #ef4444",
+      "verdict": "tp",
+      "reason": "Tailwind grey-500 on red-500. Reads washed out on a saturated ground.",
+      "message": "grey #6b7280 on saturated #ef4444 — it reads washed out even where it passes contrast"
+    },
+    {
+      "key": "gray-on-color@line:2052##9ca3af on #10b981",
+      "verdict": "tp",
+      "reason": "Tailwind grey-400 on emerald-500. Same defect, different pair.",
+      "message": "grey #9ca3af on saturated #10b981 — it reads washed out even where it passes contrast"
+    },
+    {
+      "key": "dark-glow@line:2082##9ef5b4 blur 50px",
+      "verdict": "tp",
+      "reason": "Second glow, 50px. Same mint, same simulated light.",
+      "message": "saturated 50px glow (#9ef5b4) on a dark surface — light simulated with no light source"
+    },
+    {
+      "key": "dark-glow@line:2841##9ef5b4 blur 80px",
+      "verdict": "tp",
+      "reason": "Third glow, 80px, on two elements. The repetition is the tell.",
+      "message": "saturated 80px glow (#9ef5b4) on a dark surface — light simulated with no light source — 2 elements, first at line 2841"
+    },
+    {
+      "key": "radial-halo@line:3799#1 radial gradient(s)",
+      "verdict": "tp",
+      "reason": "A radial gradient carrying ambient depth rather than meaning.",
+      "message": "1 radial gradient(s) used as ambient depth"
+    },
+    {
+      "key": "repeating-stripes-gradient@line:4123#4 alternating stops",
+      "verdict": "tp",
+      "reason": "A 4-stop two-colour gradient used as stripe texture, on two elements.",
+      "message": "4-stop two-colour gradient used as stripe texture — 2 elements, first at line 4123"
+    }
+  ]
+}

@@ -13,27 +13,35 @@
  * which also keeps the "autofix re-run is a no-op" proof meaningful.
  */
 import { lintLayout } from "./layout-lint.js";
+import { countBySeverity } from "./finding-schema.js";
 import { lintA11y } from "./a11y-lint.js";
 import { lintTaste } from "./taste-lint.js";
 import { allContentChecks } from "./content-checks.js";
 import type { ContentFinding } from "./content-checks.js";
 import { runAutofix } from "./html-autofix.js";
+import { lintTell } from "./tell-lint.js";
+import { extractHtml } from "./extractors/html/html-extractor.js";
+import { extractorById } from "./design-facts/index.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { CHECK_CATALOG } from "./check-catalog.js";
 import type { CatalogEntry } from "./check-catalog.js";
 
-export const GATE_FAMILIES = ["layout", "a11y", "taste", "content", "autofix"] as const;
+export const GATE_FAMILIES = ["layout", "a11y", "taste", "tell", "content", "autofix"] as const;
 export type GateFamily = (typeof GATE_FAMILIES)[number];
 
 export interface GateFamilyResult {
   errorCount: number;
   warningCount: number;
+  /** Signs, not defects — printed, never counted toward failure. */
+  advisoryCount: number;
   /** FloorFinding schema v1; family extras (a11y `sc`, taste `axis`) ride along. */
   findings: FloorFindingBase[];
 }
 
 export interface GateResult {
   families: Partial<Record<GateFamily, GateFamilyResult>>;
+  /** Signs, not defects — printed, never counted toward failure. */
+  advisoryCount: number;
   /** Declared partial gating: "<family>: <reason>" per skipped family. */
   skipped: string[];
   errorCount: number;
@@ -47,11 +55,12 @@ export interface GateOptions {
   knownHexes?: Set<string>;
   /** Families to skip, each with a REQUIRED reason (validated by the command). */
   skip?: Partial<Record<GateFamily, string>>;
+  /** Path of the artifact, so tell findings carry a real file in their provenance. */
+  file?: string;
 }
 
 function familyResult(findings: GateFamilyResult["findings"]): GateFamilyResult {
-  const errorCount = findings.filter((f) => f.severity === "error").length;
-  return { errorCount, warningCount: findings.length - errorCount, findings };
+  return { ...countBySeverity(findings), findings };
 }
 
 export function runGate(html: string, opts: GateOptions = {}): GateResult {
@@ -72,6 +81,16 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
       families.a11y = familyResult(lintA11y(html).findings);
     } else if (fam === "taste") {
       families.taste = familyResult(lintTaste(html, { knownHexes: opts.knownHexes }).findings);
+    } else if (fam === "tell") {
+      // The gate reads HTML, so the tell family runs against the reference
+      // extractor. Rules whose fact kinds it cannot supply would be reported
+      // NOT-EVALUATED — with html-cascade there are none, which is why the
+      // richer extractor is also the one the gate uses.
+      const extraction = extractHtml(html, opts.file ?? "artifact.html");
+      const profile = extractorById("html-cascade");
+      families.tell = profile === undefined
+        ? familyResult([])
+        : familyResult(lintTell(extraction.collector.facts(), profile).findings);
     } else if (fam === "content") {
       const all: ContentFinding[] = [];
       for (const check of allContentChecks) all.push(...check(html));
@@ -89,13 +108,16 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
 
   let errorCount = 0;
   let warningCount = 0;
+  let advisoryCount = 0;
   for (const fam of GATE_FAMILIES) {
     const r = families[fam];
     if (r === undefined) continue;
     errorCount += r.errorCount;
     warningCount += r.warningCount;
+    advisoryCount += r.advisoryCount;
   }
-  return { families, skipped, errorCount, warningCount, pass: errorCount === 0 };
+  // pass keys on errors alone: an advisory finding prints and never fails.
+  return { families, skipped, errorCount, warningCount, advisoryCount, pass: errorCount === 0 };
 }
 
 // ─── Coverage — the registry triage routes on ─────────────────────────────────
@@ -113,10 +135,24 @@ export interface GateCoverage {
  * evidence source). `dsPresent` is reported for routing context (DS density);
  * no gate check currently keys on it beyond the token file.
  */
-export function gateCoverage(project: { tokensPresent: boolean; dsPresent: boolean }): GateCoverage {
+export function gateCoverage(project: {
+  tokensPresent: boolean;
+  dsPresent: boolean;
+  /** True when a rendered capture is available (ui gate --render). */
+  renderAvailable?: boolean;
+}): GateCoverage {
   const checks = CHECK_CATALOG.map((c) => ({
     ...c,
-    active: c.requires === "none" || (c.requires === "tokens" && project.tokensPresent),
+    // A fact-based requirement is active when the gate's extractor supplies the
+    // kinds. html-cascade supplies all ten, so every fact rule is active — but a
+    // rule needing `rendered` confidence cannot run without a capture, and
+    // reporting it active would be exactly the silent pass NOT-EVALUATED exists
+    // to prevent.
+    active:
+      c.requires === "none" ||
+      (c.requires === "tokens" && project.tokensPresent) ||
+      (typeof c.requires === "object" &&
+        (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
   }));
   const families = Object.fromEntries(GATE_FAMILIES.map((f) => {
     const rows = checks.filter((c) => c.family === f);

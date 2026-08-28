@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { APPROVED_RUNTIME_DEPS } from "./approved-runtime-deps.js";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -55,12 +56,15 @@ describe("recall boundary (Track 9 invariant #1)", () => {
     }
   });
 
-  it("the root package still declares zero runtime dependencies", () => {
+  it("the root package declares only the approved runtime dependencies", () => {
     const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       workspaces?: string[];
     };
-    expect(Object.keys(pkg.dependencies ?? {})).toEqual([]);
+    // Zero-dep was ratified away on 2026-08-26 for the cascade engine; the
+    // point this test still defends is that RECALL's heavy deps never leak into
+    // the binary, which the named allowlist enforces exactly as well.
+    expect(Object.keys(pkg.dependencies ?? {}).sort()).toEqual([...APPROVED_RUNTIME_DEPS]);
     // recall is an optional workspace — present, but never a dependency of the binary.
     expect(pkg.workspaces).toContain("recall");
   });

@@ -21,6 +21,7 @@ import { tokensCommand } from "./commands/tokens.js";
 import { autofixCommand } from "./commands/autofix.js";
 import { validateLayoutCommand } from "./commands/validate-layout.js";
 import { tasteLintCommand } from "./commands/taste-lint.js";
+import { tellLintCommand } from "./commands/tell-lint.js";
 import { scrubLintCommand } from "./commands/scrub-lint.js";
 import { scrubScaffoldCommand } from "./commands/scrub-scaffold.js";
 import { tenantLintCommand } from "./commands/tenant-lint.js";
@@ -72,7 +73,11 @@ interface Command {
   name: string;
   summary: string;
   hasSubcommands: boolean;
-  run: (parsed: ParsedArgs) => CommandResult;
+  /**
+   * A command may be async ONLY when it genuinely cannot be synchronous —
+   * today that is the rendered tier, which waits on a real browser.
+   */
+  run: (parsed: ParsedArgs) => CommandResult | Promise<CommandResult>;
   help: string;
 }
 
@@ -83,6 +88,7 @@ COMMANDS[tokensCommand.name] = tokensCommand;
 COMMANDS[autofixCommand.name] = autofixCommand;
 COMMANDS[validateLayoutCommand.name] = validateLayoutCommand;
 COMMANDS[tasteLintCommand.name] = tasteLintCommand;
+COMMANDS[tellLintCommand.name] = tellLintCommand;
 COMMANDS[gateCommand.name] = gateCommand;
 COMMANDS[scrubLintCommand.name] = scrubLintCommand;
 COMMANDS[scrubScaffoldCommand.name] = scrubScaffoldCommand;
@@ -153,8 +159,34 @@ function buildRootHelp(): string {
 
 // ─── run() — testable entry point ────────────────────────────────────────────
 
-/** Runs the CLI for the given args (process.argv without node + script). */
+/**
+ * Runs the CLI for the given args (process.argv without node + script).
+ *
+ * SYNCHRONOUS, and stays that way. Every command but one is synchronous, and
+ * seventy-eight test files read this return value as a number; widening it to a
+ * union to serve a single command would have been churn across all of them for
+ * no gain.
+ *
+ * The one exception — `ui tell-lint --render`, which waits on a real browser —
+ * is served by `runAsync` below. Calling it through here is a clear error rather
+ * than a silently-unawaited promise reported as exit 0.
+ */
 export function run(args: string[]): number {
+  const outcome = dispatch(args);
+  if (outcome instanceof Promise) {
+    stderr.write(`ui: this command is asynchronous; run it through the binary or call runAsync()\n`);
+    void outcome.catch(() => undefined);
+    return 2;
+  }
+  return outcome;
+}
+
+/** The entrypoint's form: awaits an async command, identical otherwise. */
+export async function runAsync(args: string[]): Promise<number> {
+  return dispatch(args);
+}
+
+function dispatch(args: string[]): number | Promise<number> {
   const parsed = parseArgs(args);
 
   // Root --version
@@ -226,21 +258,30 @@ export function run(args: string[]): number {
     }
   }
 
-  // Wrap dispatch so any unexpected throw becomes a clean exit 2 instead of
-  // an unhandled exception that dumps a stack trace to the terminal.
-  let result;
-  try {
-    result = cmd.run(parsed);
-  } catch (e) {
+  const emit = (res: CommandResult): number => {
+    if (res.stdout !== undefined) stdout.write(res.stdout);
+    if (res.stderr !== undefined) stderr.write(res.stderr);
+    return res.exitCode;
+  };
+  const internalError = (e: unknown): number => {
     const msg = e instanceof Error ? e.message : String(e);
     stderr.write(`ui: internal error: ${msg}\n`);
     return 2;
+  };
+
+  // Wrap dispatch so any unexpected throw becomes a clean exit 2 instead of
+  // an unhandled exception that dumps a stack trace to the terminal.
+  let result: CommandResult | Promise<CommandResult>;
+  try {
+    result = cmd.run(parsed) as CommandResult | Promise<CommandResult>;
+  } catch (e) {
+    return internalError(e);
   }
 
-  if (result.stdout !== undefined) stdout.write(result.stdout);
-  if (result.stderr !== undefined) stderr.write(result.stderr);
-
-  return result.exitCode;
+  // An async command needs the same guarantees: its rejection must become the
+  // same clean exit 2, not an unhandled rejection.
+  if (result instanceof Promise) return result.then(emit, internalError);
+  return emit(result);
 }
 
 // ─── Entrypoint guard ────────────────────────────────────────────────────────
@@ -261,7 +302,9 @@ if (isEntrypoint()) {
   // truncated any stdout beyond the 64KB pipe buffer at exactly 65536 bytes
   // (issue #209: `ui schema --json | …` silently lost its tail with exit 0;
   // writes to a pipe past the kernel buffer complete asynchronously). The CLI
-  // is fully synchronous with no lingering handles, so the event loop drains
-  // stdout and exits with this code on its own.
-  process.exitCode = run(argv.slice(2));
+  // is synchronous with no lingering handles for every command but the rendered
+  // tier, so the event loop drains stdout and exits with this code on its own.
+  void runAsync(argv.slice(2)).then((code) => {
+    process.exitCode = code;
+  });
 }
