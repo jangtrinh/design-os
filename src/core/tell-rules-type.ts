@@ -132,6 +132,22 @@ export const headingRhythm: TellRule = {
   },
 };
 
+/**
+ * Tight leading is a defect on BODY COPY and correct craft on a display headline,
+ * so the rule cannot judge until it knows the size.
+ *
+ * It used to read `(t.sizePx ?? 16) <= 20`, which substituted 16 for an unknown size
+ * and then declared the result body copy. A `clamp(58px, 6.4vw, 94px)` headline does
+ * not resolve to a single px, so every large clamped headline in the corpus was
+ * reported as "line-height 0.93 on 16px body copy" — three false positives on the
+ * first real page adjudicated, at 94px, 70px and 66px.
+ *
+ * The sibling rules already got this right by choosing a default that cannot fire —
+ * `sizePx ?? 99` in `tell-rules-labels.ts`, `durationMs ?? 9999` in `tell-rules-motion.ts`.
+ * An unknown must never be substituted with the one value that satisfies the predicate.
+ * Here the size is required outright, so the message can no longer claim a size it
+ * does not have.
+ */
 export const tightLeading: TellRule = {
   id: "tight-leading",
   needs: ["typography"],
@@ -140,10 +156,10 @@ export const tightLeading: TellRule = {
   run: (facts) =>
     facts
       .by("typography")
-      .filter((t) => t.lineHeight !== undefined && t.lineHeight < 1.2 && (t.sizePx ?? 16) <= 20)
+      .filter((t) => t.lineHeight !== undefined && t.lineHeight < 1.2 && t.sizePx !== undefined && t.sizePx <= 20)
       .map((t) =>
         finding(tightLeading, {
-          message: `line-height ${(t.lineHeight as number).toFixed(2)} on ${t.sizePx ?? 16}px body copy`,
+          message: `line-height ${(t.lineHeight as number).toFixed(2)} on ${t.sizePx as number}px body copy`,
           line: t.at.line,
           expected: "line-height >= 1.4 for body copy",
           actual: String((t.lineHeight as number).toFixed(2)),
