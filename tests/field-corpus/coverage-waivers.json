@@ -1,0 +1,33 @@
+{
+  "why": "An extractor profile with no corpus page is a blind spot. Recording it as data — with the evidence that was actually checked — is the difference between a known gap and a silent one. The coverage test reads this file; a profile that is neither covered nor waived fails by name.",
+  "waivers": [
+    {
+      "extractor": "sfc",
+      "reason": "No real Vue or Svelte source exists on this machine. A repo-wide search for *.vue and *.svelte outside node_modules returned exactly one file: tests/fixtures/web/tell-svelte-slop.svelte, which this repo wrote for its own test. Adjudicating our own fixture would make the corpus circular — it would encode the author's model, which is the exact failure the corpus exists to escape.",
+      "evidence": "find /Users/jang/Products -maxdepth 6 \\( -name '*.svelte' -o -name '*.vue' \\) -not -path '*/node_modules/*' → 1 hit, our own fixture. git ls-files: 0 .vue, 1 .svelte (fixture).",
+      "checkedOn": "2026-08-28",
+      "liftWhen": "Any real Vue or Svelte project lands on this machine, or a product ships one."
+    },
+    {
+      "extractor": "flutter",
+      "reason": "Same shape as sfc: the only Dart on this machine is three fixture files this repo authored (tests/fixtures/native/tell-flutter-{clean,slop}.dart and a plan evidence copy). No real Flutter app to read.",
+      "evidence": "git ls-files '*.dart' → 3, all fixtures. find over /Users/jang/Products at maxdepth 6 → the same fixtures plus one plan-evidence copy.",
+      "checkedOn": "2026-08-28",
+      "liftWhen": "A real Flutter app is available. The extractor itself is proven working: it fires 6 findings on tell-flutter-slop.dart."
+    },
+    {
+      "extractor": "figma-nodes",
+      "reason": "Not a file-based reader. It consumes a Figma node graph over the plugin bridge, so there is no artifact on disk for a corpus page to pin.",
+      "evidence": "The reader is absent from SOURCE_READERS in src/core/lint-file-by-extractor.ts; lintFileByExtractor reports every rule NOT-EVALUATED for it.",
+      "checkedOn": "2026-08-28",
+      "liftWhen": "A recorded node-graph fixture format exists that a corpus row could pin."
+    },
+    {
+      "extractor": "rendered-cdp",
+      "reason": "Requires driving a real browser. Its output depends on the engine version, the viewport and animation settle timing, so pinning verdicts from it would pin one machine's browser rather than the rules. The rendered tier is exercised by its own fixture-based capture tests instead.",
+      "evidence": "src/core/rendered/capture-page.ts records engine and viewport in every capture precisely because the result is engine-relative.",
+      "checkedOn": "2026-08-28",
+      "liftWhen": "Captures are pinned as recorded JSON in the repo, at which point the rules over them become deterministic and corpus-able."
+    }
+  ]
+}

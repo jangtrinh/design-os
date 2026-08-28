@@ -1,0 +1,49 @@
+# The mutation audit — a periodic report, never a gate.
+#
+# It automates the red-probe discipline that failed 13 times out of 63 when done by hand:
+# it mutates a rule predicate and reports whether any test noticed. What it prints is the
+# list "these guards do not guard", which was previously compiled by memory.
+#
+# Deliberately NOT wired into pull requests. As a gate it is slow, noisy on cosmetic code,
+# and it gets argued with until someone disables it — at which point the signal is gone.
+# As an audit it produces a number that trends, and a list somebody reads on purpose.
+#
+# `continue-on-error` is the point, not an oversight: a falling mutation score is
+# information, not a broken build.
+name: mutation audit
+
+on:
+  schedule:
+    # 03:00 UTC daily, well clear of the working day.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run the scoped mutation audit
+        continue-on-error: true
+        run: npm run audit:mutation
+
+      - name: Publish the survived-mutant report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          if-no-files-found: warn
+          retention-days: 30

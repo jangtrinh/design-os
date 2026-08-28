@@ -44,7 +44,7 @@ describe("ui gate — every family knob turns it red individually", () => {
     expect(r.code).toBe(0);
     const d = JSON.parse(r.out).data;
     expect(d.pass).toBe(true);
-    expect(Object.keys(d.families).sort()).toEqual(["a11y", "autofix", "content", "layout", "taste"]);
+    expect(Object.keys(d.families).sort()).toEqual(["a11y", "autofix", "content", "layout", "taste", "tell"]);
     expect(d.errorCount).toBe(0);
   });
 
@@ -141,7 +141,7 @@ describe("ui gate coverage — the registry triage routes on", () => {
     const rawHex = d.checks.find((c: { id: string }) => c.id === "raw-hex-when-token-exists");
     expect(rawHex.active).toBe(false);
     expect(d.project.tokensPresent).toBe(false);
-    expect(Object.keys(d.families).sort()).toEqual(["a11y", "autofix", "content", "layout", "taste"]);
+    expect(Object.keys(d.families).sort()).toEqual(["a11y", "autofix", "content", "layout", "taste", "tell"]);
   });
 
   it("a project with a token file activates the tokens-gated check", () => {

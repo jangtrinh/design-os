@@ -67,6 +67,7 @@ import { gsapChecks } from "./taste-checks-gsap.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { videoScrubChecks } from "./taste-checks-video-scrub.js";
 import type { FloorFindingBase } from "./finding-schema.js";
+import { countBySeverity } from "./finding-schema.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,6 +177,5 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     (a, b) => AXIS_ORDER[a] - AXIS_ORDER[b],
   );
 
-  const errorCount = findings.filter((f) => f.severity === "error").length;
-  return { findings, errorCount, warningCount: findings.length - errorCount, axesAffected };
+  return { findings, ...countBySeverity(findings), axesAffected };
 }

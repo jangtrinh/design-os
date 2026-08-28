@@ -1,5 +1,125 @@
 # Changelog
 
+## 2026-08-28 - the rules are now kept honest by measurement, not by memory
+
+### Added
+- **A field corpus with adjudicated verdicts** (`tests/field-corpus/`). Real pages,
+  pinned, where every finding carries a recorded `tp`/`fp` verdict and a written
+  reason. A fix that silences an adjudicated true positive turns the suite red,
+  naming the finding and quoting the reason someone wrote when they judged it
+  real — the guard that two over-widened fixes had needed. A finding nobody has
+  judged fails as `unadjudicated`, printing a paste-ready row.
+  Motivation, measured: **8 of 8 substantive defects on this branch came from
+  real data and 0 from the 4,000-test fixture suite.** A fixture states the rule
+  author's model of the world, so it catches drift away from that model and
+  structurally never an error inside it.
+- **A third verdict state, `fp-open`** — a false positive that is known, reasoned
+  and not yet fixed. The runner asserts it still fires and counts it, so the
+  **live false-positive rate is printed on every run** rather than left to drift.
+  An FP rate nobody measures is one that climbs until readers start ignoring the
+  gate, at which point it has stopped being a gate.
+- **A fact census in the envelope.** Per-kind fact counts and the elements they
+  came from, printed in human output whenever a file yields no findings — which
+  is exactly when a reader needs to know whether the page is clean or the reader
+  was blind. The two are otherwise indistinguishable.
+- **`TELL_THRESHOLDS`** — every number that decides a verdict in one table, with
+  its owner and its provenance, each pinned by an *executable* boundary pair: a
+  value at the threshold that must stay silent and one past it that must fire.
+  A constant with neither a pair nor a stated reason fails the meta-test.
+- **Three metamorphic laws** over the rule engine: an unrelated fact changes
+  nothing, fact order changes nothing, and a duplicated fact never doubles a
+  finding — the last making the 54-findings-from-210-duplicate-facts defect
+  impossible by construction rather than by example.
+- **A near-miss fixture class.** A rule's definition of done now includes the
+  *tempting adjacent case that must stay silent*, with six worked examples that
+  are each a defect that shipped: a pill for `cramped-padding`, the system font
+  stack for `overused-font`, `card-title` for `nested-cards`, a video poster for
+  `documentBg`, a `clamp()` headline for `tight-leading`, a nav CTA for
+  `hero-eyebrow-chip`.
+- **A nightly mutation audit** (`npm run audit:mutation`), scoped to rule
+  predicates, run on a schedule and on demand but **never on a pull request**.
+  It automates the red-probe discipline that failed 13 times out of 63 by hand.
+  Baseline for trending: 62.91%, 731 mutants killed, 418 survived.
+
+### Fixed
+- **`tight-leading` reported display headlines as body copy.** It read
+  `(t.sizePx ?? 16) <= 20`, substituting 16 for an unresolvable `clamp()` size and
+  then asserting the result was body copy — so a `clamp(58px, 6.4vw, 94px)`
+  headline was reported as *"line-height 0.93 on 16px body copy"*. Three false
+  positives from one silent substitution, found by the first page ever
+  adjudicated. The sibling rules already chose defaults that cannot fire
+  (`sizePx ?? 99`, `durationMs ?? 9999`); the fix restores that idiom.
+- **A page whose stylesheets all failed to load reported a confident clean read.**
+  `extractHtml` had always returned `unresolvedSheets` and no caller had ever read
+  it, so `undercount` stayed false. An unresolved stylesheet now marks the run
+  UNDERCOUNT and the sheets are named, not merely counted.
+
+### Changed
+- The three extractor-dispatch branches in `ui tell-lint` move to
+  `src/core/lint-file-by-extractor.ts`, shared with the corpus runner. A second
+  copy would have been worse than duplication: the corpus would have judged a
+  pipeline that had drifted from the one users run.
+- Corpus pages and snapshots are excluded from `tsc` and `eslint`, extending the
+  convention already written for `tests/fixtures` — evidence is not source.
+
+## 2026-08-26 - design:os reads your app, whatever it is written in
+
+### Added
+- **`ui tell-lint <file|dir|glob>`** — a new `tell` gate family: 43 checks for
+  *design tells*, involuntary machine-detectable signs that a surface was made
+  without design judgment. Most are advisory: a tell prints, it never fails a
+  build. `knowledge/design-tells.md` is the standard; `docs/tell-lint.md` is the
+  command reference.
+- **One DesignFacts IR, N language extractors, rules written once.** Rules bound
+  to CSS syntax can never leave the web; bound to design *facts* the same 36
+  judge HTML, JSX/TSX, Vue, Svelte, Astro, bare CSS, SwiftUI and Flutter. Adding
+  a platform is one ~150-line extractor and two fixtures — no rule is edited.
+  See `docs/extractor-authoring.md`.
+- **Every linter now takes a file, a directory or a glob.** Until now they took
+  exactly one `.html` file, so a React app could not be linted and a SwiftUI app
+  was invisible.
+- **A resolved CSS cascade.** Real selector matching, specificity, `var()`
+  resolution, shorthand expansion, and linked *local* stylesheets read from the
+  same filesystem the linter already reads. Remote sheets stay declared-unresolved.
+- **WCAG contrast on a rendered surface.** `ui a11y-lint` used to print "0 static
+  findings … rendered criteria need a browser". It now computes the real ratio
+  against the nearest opaque ancestor background, and REFUSES — reporting a
+  partial run — where the answer would be a fiction: a gradient background, a
+  translucent veil, or a literal-tier extractor.
+- **A third severity, `advisory`.** Detected, listed, excluded from the failure
+  count. The exit code keeps its exact previous meaning.
+- **In-file waivers with a mandatory reason** (`design-os-disable`, `-line`,
+  `-next-line`) in HTML, CSS and JS comment syntaxes. Every waived finding is
+  counted in the output.
+- **A rendered tier with zero dependencies.** `ui tell-lint --render` drives a
+  Chrome, Chromium or Edge *already installed on the machine* over a stdlib-only
+  CDP client — no download, no npm browser dependency. It unlocks the seven rules
+  static analysis provably cannot reach, chief among them
+  `content-hidden-at-rest`: copy still at `opacity: 0` after the page settles,
+  which ships a blank screen. Findings are stated under their engine.
+- **`ui tell-lint --coverage`** — the rule x extractor matrix, naming for every
+  combination either that it runs or exactly which facts are missing.
+
+### Changed
+- **design:os no longer ships zero runtime dependencies.** A deliberate reversal,
+  ratified 2026-08-26: `htmlparser2`, `css-tree`, `css-select`, `domutils`. The
+  guard was narrowed rather than removed — `tests/approved-runtime-deps.ts` names
+  the four, and a fifth still turns the suite red. Determinism, no-network and
+  no-LLM are unchanged.
+- The build now bundles those four into the binary. tsup externalises
+  dependencies by default, which had silently made `dist/` non-relocatable.
+- `ai-cliche-gradient` is superseded by `ai-color-palette`; the old id remains an
+  alias for one release.
+- `CHECK_CATALOG.requires` accepts a fact-kind set alongside the original
+  `"none"` / `"tokens"`. All 89 pre-existing rows are untouched. The catalog is
+  now 137 rows: layout 20, a11y 14, taste 34, tell 43, content 16, autofix 10.
+
+### Fixed
+- A rule needing facts its extractor cannot supply is reported NOT-EVALUATED,
+  never passed. That contract is enforced by construction: a rule landing in
+  neither bucket throws rather than reading as one fewer finding.
+
+
 ## 2026-08-20 - stdout survives the pipe (#209)
 
 ### Fixed

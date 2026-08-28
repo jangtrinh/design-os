@@ -379,6 +379,22 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "tell-lint": {
+    summary: "Generated-UI tells, in any language the extractor registry can read",
+    signature: {
+      summary: "Report design tells across HTML, and (as extractors land) JSX, Vue, Swift and Dart",
+      positionals: [{ name: "target", summary: "File, directory or glob to check", required: false }],
+      flags: [
+        { name: "coverage", type: "boolean", summary: "Print the rule x extractor matrix and exit" },
+        { name: "no-advisory", type: "boolean", summary: "Hide advisory findings (they never affect the exit code)" },
+        { name: "render", type: "boolean", summary: "Also run the 7 rendered rules, driving a browser already on this machine" },
+        { name: "browser", type: "string", summary: "Path to Chrome/Chromium/Edge; defaults to $CHROME_PATH then the platform's usual paths" },
+        { name: "viewport", type: "string", summary: "Viewport for the rendered pass, e.g. 390x844 (default 1280x800)" },
+      ],
+      errorCodes: [...IO_CODES],
+    },
+  },
+
   "tenant-lint": {
     summary: "Deterministic Tenant-contract floor for an embeddable motion section's markup",
     signature: {

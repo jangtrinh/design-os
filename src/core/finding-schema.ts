@@ -37,7 +37,50 @@ export type RepairScope =
    *  graduate to deterministic autofixers, not model patches. */
   | "global";
 
-export type FloorSeverity = "error" | "warning";
+/**
+ * Three tiers, not two.
+ *
+ * `advisory` is for signs, not defects — a `cream-palette` surface is a smell
+ * worth printing and never worth failing a build over. It is detected, listed
+ * separately, and EXCLUDED from the failure count, so the exit code keeps its
+ * exact current meaning.
+ *
+ * The trap this tier introduces is arithmetic, not typing: thirteen call sites
+ * computed `warningCount` as `findings.length - errorCount`, which silently
+ * buckets advisory into warnings without any type error. Use `countBySeverity`
+ * below rather than subtracting — that is the shared-layer fix, and it makes a
+ * fourth tier a one-place change instead of a fourteen-place hunt.
+ */
+export type FloorSeverity = "error" | "warning" | "advisory";
+
+/** Findings split by severity. Never derive one count by subtracting another. */
+export interface SeverityCounts {
+  errorCount: number;
+  warningCount: number;
+  advisoryCount: number;
+}
+
+/** The ONE way to count findings by severity. */
+export function countBySeverity(
+  findings: readonly { severity: FloorSeverity }[],
+): SeverityCounts {
+  let errorCount = 0;
+  let warningCount = 0;
+  let advisoryCount = 0;
+  for (const f of findings) {
+    if (f.severity === "error") errorCount++;
+    else if (f.severity === "warning") warningCount++;
+    else advisoryCount++;
+  }
+  return { errorCount, warningCount, advisoryCount };
+}
+
+/** Findings that count toward failure. The exit code keys off this, nothing else. */
+export function failing(
+  findings: readonly { severity: FloorSeverity }[],
+): readonly { severity: FloorSeverity }[] {
+  return findings.filter((f) => f.severity === "error");
+}
 
 /**
  * Node-scoped repairs REQUIRE a nodeRef by construction — a "nodes" scope with

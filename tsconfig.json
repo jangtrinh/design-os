@@ -14,5 +14,15 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  // Fixtures are DATA, not code. tell-react-slop.tsx deliberately references an
+  // undefined `isActive` because that is the unresolvable-className case the
+  // extractor must refuse to guess at; typechecking it would make the fixture
+  // answer to rules the thing under test exists to survive. eslint already
+  // ignores this path for the same reason.
+  // tests/field-corpus holds real pages snapshotted from other products. They are
+  // evidence, not source: a React file from another repo answers to that repo's
+  // tsconfig, and typechecking it here would make the corpus fail for reasons that
+  // have nothing to do with the rules it exists to pin.
+  "exclude": ["tests/fixtures", "tests/field-corpus"]
 }

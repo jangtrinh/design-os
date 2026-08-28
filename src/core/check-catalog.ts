@@ -18,11 +18,28 @@
  * subject just may not appear in a given artifact.
  */
 import type { GateFamily } from "./gate.js";
+import type { FactKind, Confidence } from "./design-facts/fact-model.js";
+
+/**
+ * What context a check needs to be ACTIVE.
+ *
+ * The two original values are kept verbatim so all 122 existing rows compile
+ * untouched: "none" = runs on any HTML artifact; "tokens" = needs the DS token
+ * file. Polyglot checks (the `tell` family) instead name the DesignFacts kinds
+ * they read, which is what lets a rule be reported NOT-EVALUATED against an
+ * extractor that cannot see those kinds rather than silently passing.
+ */
+export type CheckRequires = "none" | "tokens" | { facts: readonly FactKind[]; minConfidence?: Confidence };
+
+/** True for the two legacy string forms; narrows the union for old consumers. */
+export function isLegacyRequires(r: CheckRequires): r is "none" | "tokens" {
+  return typeof r === "string";
+}
 
 export interface CatalogEntry {
   id: string;
   family: GateFamily;
-  requires: "none" | "tokens";
+  requires: CheckRequires;
   /** For rules whose repairs are global-scope: the machine-readable region a
    *  valid patch may touch. Patch validators compose allowed regions as the
    *  UNION of per-rule subjects — never flatten "global" to "anywhere". */
@@ -109,6 +126,64 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "placeholder-name", family: "content", requires: "none" },
   { id: "plural-s-hack", family: "content", requires: "none" },
   { id: "text-in-image", family: "content", requires: "none" },
+  // ── tell (rendered): the seven rules that need a real render. `requires` names
+  // the `rendered` confidence, so without --render they are NOT-EVALUATED and
+  // never counted as passing.
+  { id: "content-hidden-at-rest", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  { id: "text-overflow", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  { id: "text-occlusion", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  { id: "broken-image", family: "tell", requires: { facts: ["structure"], minConfidence: "rendered" } },
+  { id: "script-error", family: "tell", requires: { facts: ["structure"], minConfidence: "rendered" } },
+  { id: "first-viewport-column-overflow", family: "tell", requires: { facts: ["structure"], minConfidence: "rendered" } },
+  { id: "body-text-viewport-edge", family: "tell", requires: { facts: ["structure", "text"], minConfidence: "rendered" } },
+  // ── a11y: contrast on a rendered surface, computed from resolved facts.
+  // ds-a11y checks declared TOKEN pairs; this is the painted result.
+  { id: "low-contrast", family: "a11y", requires: { facts: ["color", "structure"], minConfidence: "resolved" } },
+  // ── content: LLM-voice tells. `text` only, so they read Swift and Dart too.
+  { id: "marketing-buzzword", family: "content", requires: { facts: ["text"] } },
+  { id: "em-dash-overuse", family: "content", requires: { facts: ["text"] } },
+  { id: "theater-slop-phrase", family: "content", requires: { facts: ["text"] } },
+  { id: "aphoristic-cadence", family: "content", requires: { facts: ["text"] } },
+  // ── tell: generated-UI tells (knowledge/design-tells.md). Most are advisory:
+  // a tell is evidence of inattention, not a defect, so it prints without
+  // failing a build. `requires` names the DesignFacts kinds each rule reads —
+  // an extractor that cannot supply them yields NOT-EVALUATED, never a pass.
+  { id: "ai-color-palette", family: "tell", requires: { facts: ["color"] } },
+  { id: "blinking-cursor", family: "tell", requires: { facts: ["motion", "structure"] } },
+  { id: "border-accent-on-rounded", family: "tell", requires: { facts: ["border", "radius"] } },
+  { id: "codex-grid-background", family: "tell", requires: { facts: ["gradient", "color"] } },
+  { id: "cramped-padding", family: "tell", requires: { facts: ["spacing", "radius"] } },
+  { id: "cream-palette", family: "tell", requires: { facts: ["color"] } },
+  { id: "dark-glow", family: "tell", requires: { facts: ["shadow", "color"] } },
+  { id: "edge-flush-cards", family: "tell", requires: { facts: ["structure", "spacing", "radius"] } },
+  { id: "extreme-negative-tracking", family: "tell", requires: { facts: ["typography"] } },
+  { id: "flat-type-hierarchy", family: "tell", requires: { facts: ["typography"] } },
+  { id: "gpt-thin-border-wide-shadow", family: "tell", requires: { facts: ["border", "shadow"] } },
+  { id: "gradient-text", family: "tell", requires: { facts: ["gradient", "color"] } },
+  { id: "gray-on-color", family: "tell", requires: { facts: ["color"] } },
+  { id: "heading-rhythm", family: "tell", requires: { facts: ["typography", "text"] } },
+  { id: "hero-eyebrow-chip", family: "tell", requires: { facts: ["text", "radius", "typography"] } },
+  { id: "icon-tile-stack", family: "tell", requires: { facts: ["structure", "radius"] } },
+  { id: "image-hover-transform", family: "tell", requires: { facts: ["motion", "structure"] } },
+  { id: "justified-text", family: "tell", requires: { facts: ["typography"] } },
+  { id: "kicker-above-heading", family: "tell", requires: { facts: ["text", "typography"] } },
+  { id: "line-length", family: "tell", requires: { facts: ["text", "typography"] } },
+  { id: "marquee", family: "tell", requires: { facts: ["motion"] } },
+  { id: "monotonous-spacing", family: "tell", requires: { facts: ["spacing", "structure"] } },
+  { id: "nested-cards", family: "tell", requires: { facts: ["structure"] } },
+  { id: "numbered-section-labels", family: "tell", requires: { facts: ["text"] } },
+  { id: "oversized-h1", family: "tell", requires: { facts: ["typography", "text"] } },
+  { id: "overused-font", family: "tell", requires: { facts: ["typography"] } },
+  { id: "pulsing-dot", family: "tell", requires: { facts: ["motion", "radius"] } },
+  { id: "radial-halo", family: "tell", requires: { facts: ["gradient"] } },
+  { id: "radial-spotlight-glow", family: "tell", requires: { facts: ["gradient", "text"] } },
+  { id: "repeated-container-text", family: "tell", requires: { facts: ["text", "structure"] } },
+  { id: "repeating-stripes-gradient", family: "tell", requires: { facts: ["gradient"] } },
+  { id: "shape-assembled-illustration", family: "tell", requires: { facts: ["structure", "radius"] } },
+  { id: "side-tab", family: "tell", requires: { facts: ["border", "radius"] } },
+  { id: "tight-leading", family: "tell", requires: { facts: ["typography"] } },
+  { id: "undersized-ui-text", family: "tell", requires: { facts: ["typography", "text"] } },
+  { id: "wide-tracking", family: "tell", requires: { facts: ["typography"] } },
   // Autofix rules — the repairs whose pending state the gate's autofix family
   // reports as `autofix-not-clean`; listed so coverage shows what the system
   // can FIX, not only what it can flag.

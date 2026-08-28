@@ -1,0 +1,20 @@
+{
+  "page": "CapturedProductSurface.swift",
+  "pinnedBy": "snapshot",
+  "why": "Real SwiftUI from the AgentTour macOS prototype — 141 lines, 29 styling modifiers, the densest real SwiftUI view available. Snapshotted from an untracked plan directory, which git would not carry. Origin: plans/260826-1220-agenttour-macos-dogfood/prototype/Sources/AgentTourStudio/CapturedProductSurface.swift, copied 2026-08-28.",
+  "sha256": "0b2043025d25d7daf85f7d62d0f3704533b48c933b8a1c1a99f837b1402cd57c",
+  "extractor": "swiftui",
+  "censusFloor": {
+    "total": 9,
+    "kinds": [
+      "radius",
+      "spacing",
+      "text"
+    ]
+  },
+  "adjudicatedOn": "2026-08-28",
+  "adjudicatedBy": "tell-family author",
+  "expectedClean": true,
+  "cleanReason": "0 findings with 8 rules NOT-EVALUATED at the line-scanner tier. This is a real clean read, not a silent pass: the same extractor fires 6 findings on tests/fixtures/native/tell-swiftui-slop.swift, so the reader demonstrably works. The row exists to pin the zero — any new finding here becomes unadjudicated and fails, which is the only way a zero can be trusted.",
+  "verdicts": []
+}

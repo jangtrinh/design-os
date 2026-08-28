@@ -35,7 +35,18 @@ export interface AuditFill {
   boundToken?: string;
 }
 
-/** One node in the structured export. Tolerant: absent fields skip their check. */
+/**
+ * One node in the structured export. Tolerant: absent fields skip their check.
+ *
+ * This is the repo's SECOND design model, alongside the DesignFacts IR in
+ * `design-facts/`. That is deliberate — audit judges DS *conformance* against a
+ * supplied spec, the `tell` rules judge taste *fingerprints* with no spec, and
+ * the two share no rule. But "two models that converge later" is a promise this
+ * repo has been burned by, so the drift guard is mechanical:
+ * `tests/design-facts-contract.test.ts` builds DesignFacts from a fixture
+ * AuditNode covering every fact-bearing field below. **Add a fact-bearing field
+ * here and that test goes red until the IR can express it.**
+ */
 export interface AuditNode {
   name?: string;
   type?: string;

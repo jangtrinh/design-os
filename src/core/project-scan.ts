@@ -61,13 +61,22 @@ export interface ScanResult {
 // repo — showed a 8187-file .venv alone was 54% of its whole tree and sorted
 // ahead of the real UI. .vercel/.pytest_cache measured too (<10 files each,
 // noise) and .tox/target/Pods/.gradle/etc. measured 0/9 — none of those ship.
-const SKIP_DIRS = new Set([
+/**
+ * Directories no walk should descend. Corpus-counted, not guessed: ten
+ * plausible additions measured 0 hits across nine real projects, while `.venv`
+ * alone was 8,187 files — 54% of one repo's tree.
+ *
+ * Exported so the lint target resolver shares these DECISIONS rather than
+ * forking a second list that drifts from this one.
+ */
+export const SKIP_DIRS = new Set([
   "node_modules", "dist", "build", "out", "coverage", "vendor", ".git",
   ".next", ".turbo", ".cache", ".agent", ".claude", "design",
   ".venv", "venv", "__pycache__",
 ]);
-const MAX_DEPTH = 6;
-const MAX_ENTRIES = 4000;
+/** Shared with the lint target resolver — see SKIP_DIRS. */
+export const MAX_DEPTH = 6;
+export const MAX_ENTRIES = 4000;
 const CODE_EXT = new Set([".tsx", ".jsx", ".vue", ".svelte", ".html"]);
 // Corpus-counted (9 real code projects), same discipline as SKIP_DIRS above:
 // name-only matching saw 375/1485 (25%) component files — every miss (dashboard

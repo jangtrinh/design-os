@@ -15,6 +15,7 @@
  * Exit 1 iff any error-severity finding, mirroring taste-lint / validate-layout.
  */
 import { readFileSync } from "node:fs";
+import { countBySeverity } from "../core/finding-schema.js";
 
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
@@ -68,7 +69,7 @@ function formatReport(filePath: string, findings: readonly ScrubFinding[]): stri
   }
   lines.push("");
   const errorCount = findings.filter((f) => f.severity === "error").length;
-  lines.push(`${findings.length} finding(s) (${errorCount} error, ${findings.length - errorCount} warning)`);
+  lines.push(`${findings.length} finding(s) (${errorCount} error, ${countBySeverity(findings).warningCount} warning)`);
   return lines.join("\n") + "\n";
 }
 
@@ -119,7 +120,7 @@ export const scrubLintCommand = {
         file: filePath,
         findings,
         errorCount,
-        warningCount: findings.length - errorCount,
+        warningCount: countBySeverity(findings).warningCount,
         probe: {
           faststart: probe.faststart,
           handlers: probe.handlers,
