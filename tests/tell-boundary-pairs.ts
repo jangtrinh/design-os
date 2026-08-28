@@ -84,11 +84,15 @@ export const BOUNDARY_PAIRS: Partial<Record<ThresholdKey, BoundaryPair>> = {
   GREY_MAX_LIGHTNESS: hex(isGrey, "#dcdee0", "#8c9096", "lighter than the ceiling is an off-white"),
 
   SATURATED_MIN_CHROMA: hex(isSaturated, "#8c9096", "#c8ff62", "chroma below the floor is grey, and grey-on-grey is a contrast question"),
-  DARK_SURFACE_MAX_CHANNEL: hex((h) => {
-    const r = Number.parseInt(h.slice(0, 2), 16);
-    const g = Number.parseInt(h.slice(2, 4), 16);
-    return r < 60 && g < 60;
-  }, "#3c3c20", "#141c17", "a surface at the ceiling is a mid-tone, and a glow on it is not simulated light"),
+  DARK_SURFACE_MAX_CHANNEL: css("dark-glow",
+    page(".s{background:#3c3c20;box-shadow:0 0 40px #9ef5b4}", `<div class="s">x</div>`),
+    page(".s{background:#141c17;box-shadow:0 0 40px #9ef5b4}", `<div class="s">x</div>`),
+    "#3c3c20 has r and g both AT 60, so it is a mid-tone and a glow on it is not simulated " +
+    "light; #141c17 is below the ceiling and is. SCAR: the first version of this pair " +
+    "re-implemented `r < 60 && g < 60` inline, so it never read TELL_THRESHOLDS or the rule " +
+    "and was green by construction — while being counted as one of the pinned constants. " +
+    "A pair that recomputes the comparison pins nothing, which is the whole reason pairs " +
+    "run through the real linter."),
 
   // ── Type ────────────────────────────────────────────────────────────────────
   BODY_COPY_MAX_PX: css("tight-leading",
@@ -108,9 +112,11 @@ export const BOUNDARY_PAIRS: Partial<Record<ThresholdKey, BoundaryPair>> = {
     page(".t{letter-spacing:-0.06em}", `<p class="t">letters begin to touch</p>`),
     "-0.05em holds; -0.06em trips"),
   LINE_LENGTH_MAX_CHARS: css("line-length",
-    page("", `<p>${"a ".repeat(150)}</p>`),
-    page("", `<p>${"a ".repeat(220)}</p>`),
-    "300 characters is within the ceiling; 440 is past it"),
+    page("", `<p>${"a".repeat(400)}</p>`),
+    page("", `<p>${"a".repeat(401)}</p>`),
+    "EXACTLY at the ceiling and exactly one past it. An earlier version used 300 and 440, " +
+    "which left the constant free to drift anywhere in [301,439] without reddening — a pair " +
+    "with slack in it does not pin a threshold, it pins a neighbourhood"),
   TINY_TEXT_MIN_PX: css("undersized-ui-text",
     page(".t{font-size:12px}", `<button class="t">at the floor</button>`),
     page(".t{font-size:11px}", `<button class="t">below the floor</button>`),
@@ -132,8 +138,8 @@ export const BOUNDARY_PAIRS: Partial<Record<ThresholdKey, BoundaryPair>> = {
     page(".s{padding:4px;border-radius:12px}", `<div class="s">x</div>`),
     "an 11px radius is not rounded enough for the padding to look cramped; 12px is"),
   REPEATED_TEXT_MIN_CHARS: css("repeated-container-text",
-    page("", `<div>repeat me now</div>`.repeat(3)),
-    page("", `<div>a repeated string long enough to count as placeholder copy</div>`.repeat(3)),
-    "13 characters repeat legitimately — labels, units, single words; 56 characters " +
-    "three times is placeholder copy that shipped"),
+    page("", `<div>${"a".repeat(23)}</div>`.repeat(3)),
+    page("", `<div>${"a".repeat(24)}</div>`.repeat(3)),
+    "23 characters is one below the floor and repeats legitimately; 24 is AT it. Exact, " +
+    "for the same reason as LINE_LENGTH_MAX_CHARS — 13-vs-56 left ten values of slack"),
 };
