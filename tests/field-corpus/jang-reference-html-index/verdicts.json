@@ -1,0 +1,42 @@
+{
+  "page": "index.html",
+  "pinnedBy": "snapshot",
+  "why": "The page that carries this branch's most important behavioural history. Before role synthesis it produced 19 findings, 16 of them phantom nested-cards from the class-name regex matching `card-title`. After deriving roles from facts it produces 3. Pinning it means that regression cannot come back unnoticed. Snapshotted with its stylesheet; origin jang-personal-site/reference-html/index.html, copied 2026-08-28, finding count verified identical to the source at snapshot time.",
+  "sha256": "3bfbeb29f868716f30e973c260ad45bc1a3613fd2fc3932ffbd5071ba52a9212",
+  "extractor": "html-cascade",
+  "censusFloor": {
+    "total": 2494,
+    "kinds": [
+      "border",
+      "color",
+      "motion",
+      "radius",
+      "spacing",
+      "structure",
+      "text",
+      "typography"
+    ]
+  },
+  "adjudicatedOn": "2026-08-28",
+  "adjudicatedBy": "tell-family author",
+  "verdicts": [
+    {
+      "key": "shape-assembled-illustration@doc#16 stacked shapes",
+      "verdict": "tp",
+      "reason": "16 rounded, textless sibling shapes stacked under one grid — an illustration built from primitives rather than drawn. Note the locator is `doc`: this finding carries neither a line nor a nodeRef, so this row exercises the third fallback rung of the verdict key (measured at 2 in 86 findings).",
+      "message": "16 rounded, textless sibling shapes under html > body > div.grid[1] — an illustration assembled from primitives"
+    },
+    {
+      "key": "ai-color-palette@line:112##38bdf8",
+      "verdict": "tp",
+      "reason": "#38bdf8 is Tailwind sky-400 — cyan-on-dark, the single most recognisable generated-palette tell.",
+      "message": "purple/violet or cyan-on-dark accents (#38bdf8) — the most recognisable palette tell"
+    },
+    {
+      "key": "repeated-container-text@line:126#\"design engineering articles and bookmark...\" x3",
+      "verdict": "tp",
+      "reason": "Verified by hand: the exact string \"Design engineering articles and bookmarks.\" appears in three separate .card-desc elements (lines 126, 148 and one more). Three distinct cards sharing one description is placeholder copy that shipped.",
+      "message": "the same 42-character string appears in 3 containers — placeholder copy that shipped"
+    }
+  ]
+}

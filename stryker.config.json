@@ -1,0 +1,55 @@
+{
+  "packageManager": "npm",
+  "ignorePatterns": [
+    "**",
+    "!src/**",
+    "!tests/**",
+    "!docs/**",
+    "!schemas/**",
+    "!knowledge/**",
+    "!package.json",
+    "!package-lock.json",
+    "!tsconfig.json",
+    "!vitest.config.ts",
+    "!vitest.mutation.config.ts",
+    "tests/field-corpus/**"
+  ],
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.mutation.config.ts"
+  },
+  "reporters": [
+    "clear-text",
+    "progress",
+    "json"
+  ],
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/core/tell-rules-color.ts",
+    "src/core/tell-rules-labels.ts",
+    "src/core/tell-rules-motion.ts",
+    "src/core/tell-rules-surface.ts",
+    "src/core/tell-rules-type.ts",
+    "src/core/design-facts/role-synthesis.ts"
+  ],
+  "mutator": {
+    "excludedMutations": [
+      "StringLiteral",
+      "Regex",
+      "ObjectLiteral"
+    ]
+  },
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": null
+  },
+  "timeoutMS": 60000,
+  "concurrency": 4,
+  "sandbox_comment": "Stryker copies the repo into a sandbox per run, and this repo root holds things that cannot be copied \u2014 a socket named `taste`, and Swift .build sockets under plans/. Rather than chase each one, the sandbox is an ALLOW-LIST: nothing enters except the sources, the tests and the config the audit actually needs.",
+  "mutations_comment": "String, regex and object-literal mutants are excluded deliberately. Mutating a fixHint or a message produces noise with no signal \u2014 the guards live in the predicates, and mutation testing is known to over-report on cosmetic code.",
+  "audit_comment": "Mutation audit, NOT a gate. It automates the red-probe discipline that failed 13 times out of 63 by hand: it mutates a rule predicate and reports whether any test noticed. Run nightly or on demand, never per-PR \u2014 per-PR it is slow, noisy, and gets argued with until someone disables it. As an audit it prints 'these guards do not guard', which is exactly the list that was previously compiled by hand."
+}

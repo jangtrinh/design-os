@@ -4,6 +4,7 @@
  * Voice/tone FIT is a model judgment (curator), never mechanised here.
  */
 import { readFileSync } from "node:fs";
+import { countBySeverity } from "../core/finding-schema.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
@@ -70,7 +71,7 @@ export const contentLintCommand = {
     for (const check of allContentChecks) all.push(...check(html));
     all.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1) || (a.line ?? 0) - (b.line ?? 0) || a.checkId.localeCompare(b.checkId));
     const errorCount = all.filter((f) => f.severity === "error").length;
-    const result = { file, findings: all, errorCount, warningCount: all.length - errorCount };
+    const result = { file, findings: all, ...countBySeverity(all) };
     const exitCode = errorCount > 0 ? 1 : 0;
 
     const lines = all.length === 0

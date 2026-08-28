@@ -1,0 +1,33 @@
+{
+  "page": "WorkspaceSettings.tsx",
+  "pinnedBy": "snapshot",
+  "why": "Real React from the dana-ui product, outside this repo. Snapshotted because a corpus that follows a live external project is not a measurement — it drifts under you and the verdicts stop meaning anything. Origin: dana-ui/src/desktop-ui/components/WorkspaceSettings.tsx, copied 2026-08-28.",
+  "sha256": "60129e8874d9d2843c9fab3a9d0e4ee258c86ddf4454e7be39b76ea93e578746",
+  "extractor": "jsx-tailwind",
+  "censusFloor": {
+    "total": 219,
+    "kinds": [
+      "border",
+      "radius",
+      "spacing",
+      "structure",
+      "typography"
+    ]
+  },
+  "adjudicatedOn": "2026-08-28",
+  "adjudicatedBy": "tell-family author",
+  "verdicts": [
+    {
+      "key": "icon-tile-stack@svg@250#4 icon tiles",
+      "verdict": "tp",
+      "reason": "Four rounded icon tiles repeated down a settings panel — ornament standing in for hierarchy. Note the locator is a nodeRef (svg@250), so this row exercises the primary key path rather than the line fallback.",
+      "message": "4 rounded icon tiles repeated as section ornament — decoration standing in for hierarchy"
+    },
+    {
+      "key": "cramped-padding@line:296#4px on 4 side(s)",
+      "verdict": "tp",
+      "reason": "4px on all four sides inside a 16px-radius surface. A 16px radius is a card corner, not a pill, so the pill near-miss does not apply — this one is genuinely cramped.",
+      "message": "4px padding (bottom, left, right, top) on a 16px-radius surface — 2 elements, first at line 296"
+    }
+  ]
+}
