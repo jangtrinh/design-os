@@ -98,15 +98,19 @@ describe("ui delivery validate", () => {
     expect(JSON.parse(result.out).data.errorCount).toBe(0);
   });
 
-  it("rejects a successful provisional native activation as a marketing brief", () => {
+  it.each([
+    ["native-macos-words.json", "Build a native macOS workspace"],
+    ["native-ios-words.json", "Build a native iOS app"],
+    ["native-ipados-words.json", "Build a native iPadOS workspace"],
+  ])("rejects a successful provisional %s activation as a marketing brief", (requestName, rawRequest) => {
     const dir = mkdtempSync(join(tmpdir(), "delivery-v2-native-"));
-    const activationRequest = join(process.cwd(), "tests", "fixtures", "capability-activation", "native-macos-words.json");
+    const activationRequest = join(process.cwd(), "tests", "fixtures", "capability-activation", requestName);
     const activationRun = capture(["knowledge", "activate", activationRequest, "--json"]);
     expect(activationRun.code).toBe(0);
     writeFileSync(join(dir, "activation.json"), activationRun.out);
     const brief = JSON.parse(String(requireFixture("design-brief-valid.json"))) as Record<string, unknown>;
     brief["version"] = 2;
-    brief["rawRequest"] = "Build a native macOS workspace";
+    brief["rawRequest"] = rawRequest;
     brief["activationRef"] = "activation.json";
     const file = join(dir, "brief.json"); writeFileSync(file, JSON.stringify(brief));
     const result = capture(["delivery", "validate", file, "--json"]);

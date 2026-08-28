@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { expectedCapabilityPilotReceipt, parseCapabilityPilotReceiptPin } from "./capability-pilot-receipt.js";
 
 export type CapabilityAvailability = "available" | "unavailable";
@@ -24,7 +25,7 @@ export interface CapabilityProfile {
 export interface CapabilityCatalog { version: 1 | 2; profiles: CapabilityProfile[] }
 export type CatalogParseResult =
   | { ok: true; catalog: CapabilityCatalog }
-  | { ok: false; message: string };
+  | { ok: false; code: "BAD_CATALOG" | "CAPABILITY_PROFILE_DUPLICATE" | "CAPABILITY_PROFILE_POLICY"; message: string };
 
 const objectValue = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -43,6 +44,13 @@ export function parseCapabilityCatalog(raw: string): CatalogParseResult {
   catch { return bad("capability catalog is not valid JSON"); }
   if (!objectValue(value) || !hasOnlyKeys(value, ["version", "profiles"]) || !Array.isArray(value["profiles"]) || value["profiles"].length === 0) {
     return bad("capability catalog requires version and profiles[]");
+  }
+  const duplicate = duplicateProfileId(value["profiles"]);
+  if (duplicate !== null) {
+    return bad(
+      `CAPABILITY_PROFILE_DUPLICATE: duplicate capability profile id '${duplicate}'`,
+      "CAPABILITY_PROFILE_DUPLICATE",
+    );
   }
   if (value["version"] === 1) return parseV1(value["profiles"]);
   if (value["version"] === 2) return parseV2(value["profiles"]);
@@ -76,6 +84,14 @@ function parseV2(items: unknown[]): CatalogParseResult {
     const profile = profileFrom(item, item["availability"] as CapabilityAvailability, item["assurance"] as CapabilityAssurance, item["assuranceEvidence"]);
     const issue = profile.availability === "available" ? availableIssue(profile) : unavailableIssue(profile);
     if (issue !== null) return bad(`v2 capability '${profile.id}' ${issue}`);
+    const expected = expectedCapabilityPilotReceipt(profile.id);
+    if (expected?.profilePolicyDigest !== undefined &&
+        digestCapabilityProfilePolicy(profile) !== expected.profilePolicyDigest) {
+      return bad(
+        `CAPABILITY_PROFILE_POLICY: registered capability '${profile.id}' differs from its activation policy`,
+        "CAPABILITY_PROFILE_POLICY",
+      );
+    }
     profiles.push(profile);
   }
   return { ok: true, catalog: { version: 2, profiles } };
@@ -130,4 +146,41 @@ function validPilotEvidence(profile: CapabilityProfile): boolean {
   return parseCapabilityPilotReceiptPin(profile.assuranceEvidence).ok && expectedCapabilityPilotReceipt(profile.id) !== null;
 }
 
-function bad(message: string): CatalogParseResult { return { ok: false, message }; }
+function duplicateProfileId(items: unknown[]): string | null {
+  const seen = new Set<string>();
+  for (const item of items) {
+    if (!objectValue(item) || !nonEmpty(item["id"])) continue;
+    const id = item["id"];
+    if (seen.has(id)) return id;
+    seen.add(id);
+  }
+  return null;
+}
+
+/** Fingerprint every profile field that can affect admission or the emitted activation receipt. */
+export function digestCapabilityProfilePolicy(profile: CapabilityProfile): string {
+  const canonical = JSON.stringify({
+    version: 1,
+    id: profile.id,
+    availability: profile.availability,
+    assurance: profile.assurance,
+    acceptedInputKinds: profile.acceptedInputKinds,
+    workflow: profile.workflow,
+    artifact: profile.artifact,
+    requiredKnowledge: profile.requiredKnowledge ?? null,
+    machineWitnesses: profile.machineWitnesses ?? null,
+    renderedWitnesses: profile.renderedWitnesses ?? null,
+    manualWitnesses: profile.manualWitnesses ?? null,
+    assuranceEvidence: profile.assuranceEvidence ?? null,
+    refusalCode: profile.refusalCode ?? null,
+    action: profile.action ?? null,
+    advisoryKnowledge: profile.advisoryKnowledge ?? null,
+    qualificationRequirements: profile.qualificationRequirements ?? null,
+  });
+  return `sha256:${createHash("sha256").update(canonical).digest("hex")}`;
+}
+
+function bad(
+  message: string,
+  code: "BAD_CATALOG" | "CAPABILITY_PROFILE_DUPLICATE" | "CAPABILITY_PROFILE_POLICY" = "BAD_CATALOG",
+): CatalogParseResult { return { ok: false, code, message }; }

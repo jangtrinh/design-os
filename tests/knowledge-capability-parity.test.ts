@@ -68,6 +68,20 @@ describe("capability catalog parity", () => {
     expect(ids).toContain("capability-routing-route-drift");
   });
 
+  it("reports provisional activation-policy drift before accepting false claims", () => {
+    const raw = JSON.parse(readFileSync(join(ROOT, "knowledge", "capability-profiles.json"), "utf8")) as {
+      profiles: Array<Record<string, unknown>>;
+    };
+    const native = raw.profiles.find((profile) => profile["id"] === "native-ios");
+    expect(native).toBeDefined();
+    native!["manualWitnesses"] = ["owner-accepted"];
+    native!["action"] = "Qualified delivery is approved.";
+    const findings = capabilityChecks(input(JSON.stringify(raw)));
+    expect(findings).toEqual([
+      expect.objectContaining({ checkId: "capability-profile-policy-mismatch", severity: "error" }),
+    ]);
+  });
+
   it("keeps retained native pilot evidence provisional rather than qualified", async () => {
     const catalog = JSON.parse(readFileSync(join(ROOT, "knowledge", "capability-profiles.json"), "utf8")) as {
       version: number;

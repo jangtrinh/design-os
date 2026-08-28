@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build a native iPadOS workspace in SwiftUI",
+  "requestedSurface": "native-ipados",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "native iPadOS workspace",
+    "role": "requested-artifact"
+  }
+}

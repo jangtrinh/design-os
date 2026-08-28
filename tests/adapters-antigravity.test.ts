@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 40 artifacts (20 workflows + 17 craft skills + 3 journey skills)", () => {
+  it("returns exactly 44 artifacts (22 workflows + 19 craft skills + 3 journey skills)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
-    expect(arts).toHaveLength(40);
+    expect(arts).toHaveLength(44);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -37,7 +37,7 @@ describe("generateAntigravityAdapter", () => {
     expect(workflows.some((w) => w.absPath.endsWith("/ui-native-macos.md"))).toBe(true);
   });
 
-  it("20 artifacts are skill paths under .agent/skills/design-os-*/SKILL.md (17 craft + 3 journey)", () => {
+  it("22 artifacts are skill paths under .agent/skills/design-os-*/SKILL.md (19 craft + 3 journey)", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".agent/skills/design-os-"),
     );
@@ -66,7 +66,7 @@ describe("generateAntigravityAdapter", () => {
   it("each non-init workflow content contains // turbo above a bash block", () => {
     const arts = makeArtifacts();
     for (const verb of WORKFLOW_VERBS) {
-      if (verb === "init" || verb === "native-macos") continue;
+      if (["init", "native-macos", "native-ios", "native-ipados"].includes(verb)) continue;
       const art = arts.find((a) => a.absPath.endsWith(`/ui-${verb}.md`));
       expect(art, `workflow for verb '${verb}' not found`).toBeDefined();
       expect(art!.content).toContain("// turbo");
@@ -74,13 +74,16 @@ describe("generateAntigravityAdapter", () => {
     }
   });
 
-  it("keeps native macOS on its template activation path instead of inventing a ui command", () => {
-    const native = makeArtifacts().find((a) => a.absPath.endsWith("/ui-native-macos.md"));
-    expect(native).toBeDefined();
-    expect(native!.content).toContain("templates/workflows/native-macos.md");
-    expect(native!.content).toContain("ui knowledge activate");
-    expect(native!.content).not.toContain("ui native-macos");
-  });
+  it.each(["native-macos", "native-ios", "native-ipados"])(
+    "keeps %s on its template activation path instead of inventing a ui command",
+    (name) => {
+      const native = makeArtifacts().find((a) => a.absPath.endsWith(`/ui-${name}.md`));
+      expect(native).toBeDefined();
+      expect(native!.content).toContain(`templates/workflows/${name}.md`);
+      expect(native!.content).toContain("ui knowledge activate");
+      expect(native!.content).not.toContain(`ui ${name}`);
+    },
+  );
 
   it("init workflow content contains // turbo and ui init --runtime antigravity", () => {
     const art = makeArtifacts().find((a) => a.absPath.endsWith("/ui-init.md"));

@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateClaudeAdapter", () => {
-  it("returns exactly 40 artifacts (20 commands + 17 craft skills + 3 journey skills)", () => {
+  it("returns exactly 44 artifacts (22 commands + 19 craft skills + 3 journey skills)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
-    expect(arts).toHaveLength(40);
+    expect(arts).toHaveLength(44);
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -25,7 +25,7 @@ describe("generateClaudeAdapter", () => {
     }
   });
 
-  it("20 artifacts are slash-command paths under .claude/commands/ui/", () => {
+  it("22 artifacts are slash-command paths under .claude/commands/ui/", () => {
     const commands = makeArtifacts().filter((a) =>
       a.absPath.includes(".claude/commands/ui/"),
     );
@@ -36,9 +36,11 @@ describe("generateClaudeAdapter", () => {
     // explicit presence assertions for the new verb
     expect(commands.some((c) => c.absPath.endsWith("/from-url.md"))).toBe(true);
     expect(commands.some((c) => c.absPath.endsWith("/native-macos.md"))).toBe(true);
+    expect(commands.some((c) => c.absPath.endsWith("/native-ios.md"))).toBe(true);
+    expect(commands.some((c) => c.absPath.endsWith("/native-ipados.md"))).toBe(true);
   });
 
-  it("20 artifacts are skill paths under .claude/skills/design-os-*/SKILL.md (17 craft + 3 journey)", () => {
+  it("22 artifacts are skill paths under .claude/skills/design-os-*/SKILL.md (19 craft + 3 journey)", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".claude/skills/design-os-"),
     );
@@ -63,6 +65,8 @@ describe("generateClaudeAdapter", () => {
     expect(
       skills.some((s) => s.absPath.endsWith("design-os-native-macos-craft/SKILL.md")),
     ).toBe(true);
+    expect(skills.some((s) => s.absPath.endsWith("design-os-native-ios-craft/SKILL.md"))).toBe(true);
+    expect(skills.some((s) => s.absPath.endsWith("design-os-native-ipados-craft/SKILL.md"))).toBe(true);
   });
 
   it("each non-init command content references the absolute workflow template path", () => {

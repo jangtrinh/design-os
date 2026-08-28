@@ -56,9 +56,11 @@ preserve `route: null`, show `action`, and never substitute `generate`. A `ROUTE
 both assurance and claim policy: `PROVISIONAL` may execute its named route but always has
 `QUALIFIED_DELIVERY_FORBIDDEN`; only `QUALIFIED` with
 `QUALIFIED_DELIVERY_ALLOWED` can authorize qualified web delivery.
-An explicit artifact platform always beats the HTML default. For example, “native macOS app”
-activates `native-macos`; “landing page for a native macOS app” activates `web-marketing` because
-the requested artifact is the landing page and the app is subject context. The binary validates
+An explicit artifact platform always beats the HTML default. “Native macOS app” activates
+`native-macos`; “iPhone/iOS app” activates `native-ios`; and “iPad/iPadOS app” activates
+`native-ipados`. A generic “Apple mobile app” request is not a composite capability: ask, “iOS for
+iPhone, or iPadOS for iPad?” instead of guessing. “Landing page for a native iOS app” still activates `web-marketing`
+because the requested artifact is the landing page and the app is subject context. The binary validates
 the typed selection and current capability; it does not perform semantic classification.
 Every G4 production leg runs G-1, whether the surface is new or already exists. For an existing
 qualified web surface, activation authorizes the surface and G4 still selects the edit verb; the
@@ -101,7 +103,8 @@ screenshot or image file → `from-ref`. A live URL → `from-url`. Words only �
 **G4 — does a generated artifact already exist here?** First require a routed G-1 result for the
 requested surface. No existing artifact → the activated route. `generate` is allowed only when G-1
 returned `ROUTED + QUALIFIED + QUALIFIED_DELIVERY_ALLOWED` with `route: "generate"`; a provisional
-native receipt routes only to `native-macos`, never to HTML. Existing web artifact: same direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
+native receipt routes only to its exact `native-macos`, `native-ios`, or `native-ipados` arm, never to
+HTML or a sibling arm. Existing web artifact: same direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
 ("polish", failing axes) → `refine`; direction rejected outright → `redesign`; cannot
 tell which → **ask #2** ("keep this direction, or throw it away?").
 
@@ -132,6 +135,8 @@ keeps both directions in parity with the live workflow, knowledge and witness re
 |---|---|---|---|
 | `web-marketing` | available | qualified | `generate` |
 | `native-macos` | available | provisional | `native-macos` |
+| `native-ios` | available | provisional | `native-ios` |
+| `native-ipados` | available | provisional | `native-ipados` |
 
 ## Route table
 
@@ -158,6 +163,8 @@ with the live verb registry — a new capability cannot ship until this table te
 | Reproduce or draw from a screenshot / image | `from-ref` |
 | A new marketing / landing HTML surface from words, after qualified activation | `generate` |
 | A new native macOS application or workspace, after provisional activation | `native-macos` |
+| A new native iPhone or iOS application, after provisional activation | `native-ios` |
+| A new native iPad or iPadOS application, after provisional activation | `native-ipados` |
 | Nudge an existing artifact, same direction | `iterate` |
 | Fix craft/quality on an existing artifact, same direction | `refine` |
 | Replace the direction of an existing artifact | `redesign` |

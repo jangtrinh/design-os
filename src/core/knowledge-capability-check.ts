@@ -27,7 +27,14 @@ export function capabilityChecks(input: CapabilityCheckInput): KnowledgeFinding[
     return [finding("capability-catalog-missing", "knowledge/capability-profiles.json is missing")];
   }
   const parsed = parseCapabilityCatalog(input.catalogJson);
-  if (!parsed.ok) return [finding("capability-catalog-bad", parsed.message)];
+  if (!parsed.ok) {
+    const checkId = parsed.code === "CAPABILITY_PROFILE_DUPLICATE"
+      ? "capability-profile-duplicate"
+      : parsed.code === "CAPABILITY_PROFILE_POLICY"
+        ? "capability-profile-policy-mismatch"
+        : "capability-catalog-bad";
+    return [finding(checkId, parsed.message)];
+  }
 
   const out: KnowledgeFinding[] = [];
   const ids = new Set<string>();

@@ -24,6 +24,8 @@ import { createHash } from "node:crypto";
 export const WORKFLOW_VERBS = [
   "generate",
   "native-macos",
+  "native-ios",
+  "native-ipados",
   "iterate",
   "refine",
   "redesign",
@@ -87,6 +89,8 @@ export const SKILL_NAMES = [
   "scroll-cinema",
   "shader-gradient",
   "native-macos-craft",
+  "native-ios-craft",
+  "native-ipados-craft",
 ] as const satisfies readonly string[];
 
 export type SkillName = (typeof SKILL_NAMES)[number];

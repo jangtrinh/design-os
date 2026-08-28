@@ -2,7 +2,7 @@
 
 <h1 align="center">DESIGN:OS</h1>
 
-<p align="center"><b>One design system. Web, Figma, and native macOS execution.</b></p>
+<p align="center"><b>One design system. Web, Figma, and Apple-native execution.</b></p>
 
 <p align="center">
   [<a href="#quick-start">Quick start</a>] ·
@@ -36,14 +36,17 @@ surface-specific craft and design-system context, and keeps delivery claims hone
 | **Web marketing** | `/ui:generate <intent>` | A qualified route to production HTML, bounded by typed delivery contracts. |
 | **Figma** | `/ui:to-figma <intent>` | Idiomatic canvas authoring through the opt-in Figma hand. |
 | **Native macOS** | `/ui:native-macos <intent>` | A first-class, SwiftUI-first workflow — available now with **provisional assurance**. |
+| **Native iOS** | `/ui:native-ios <intent>` | Compact-first SwiftUI craft for iPhone — available with **provisional assurance**. |
+| **Native iPadOS** | `/ui:native-ipados <intent>` | Resizable SwiftUI craft for iPad workspaces and mixed input — available with **provisional assurance**. |
 
 Your host agent writes the implementation. The deterministic `ui` kernel handles routing,
 contract validation, and fail-closed claim boundaries; it does not call a model or generate
 Swift. **No API keys, no design tokens to hand-edit, no taste vocabulary to learn.**
 
-**Native macOS is available, not overclaimed.** `PROVISIONAL` means the arm can route and
-produce SwiftUI-first work today while platform-qualified delivery, live accessibility
-evidence, and owner acceptance remain separate gates.
+**Apple-native arms are available, not overclaimed.** macOS, iOS, and iPadOS have separate
+routes, artifacts, evidence, and assurance. They share SwiftUI fundamentals without flattening
+platform behavior. `PROVISIONAL` means an arm can route and produce work today while live
+accessibility, hardware/device evidence, and owner acceptance remain separate qualification gates.
 
 ---
 
@@ -304,7 +307,7 @@ scanned, hygiene-audited, contrast-proven, and VR-baselined end to end.
 
 ## Six daily verbs
 
-These are the six common moves. The full adapter exposes 19 workflows (plus the internal critique gate) when the task needs more.
+These are the six common moves. The full adapter exposes additional workflows (plus the internal critique gate) when the task needs more.
 
 | Verb | What it does |
 | --- | --- |
@@ -316,12 +319,14 @@ These are the six common moves. The full adapter exposes 19 workflows (plus the 
 | `/ui:why <question>` | Ask *why* a past design decision was made — answers with provenance from the project's design memory. |
 
 <details>
-<summary><b>All 19 workflows (+1 internal gate)</b> (audit · chart · critique · design · diagram · evidence · extract · figma · from-ref · native-macos · slides · redesign …)</summary>
+<summary><b>Additional workflows (plus the internal critique gate)</b> (audit · chart · critique · design · diagram · evidence · extract · figma · from-ref · native-macos · native-ios · native-ipados · slides · redesign …)</summary>
 
 | Command | What it does |
 |---|---|
 | `/ui:generate <intent>` | Start a fresh design from a plain-language description. Token-bound variants across diverse personas. |
 | `/ui:native-macos <intent>` | Build a SwiftUI-first native macOS surface through an available, provisional arm; it never claims qualified platform delivery. |
+| `/ui:native-ios <intent>` | Build a compact-first SwiftUI iPhone app with native navigation, touch, keyboard-safe layout, and provisional evidence. |
+| `/ui:native-ipados <intent>` | Build a resizable SwiftUI iPad workspace with split navigation, scene state, mixed input, and provisional evidence. |
 | `/ui:iterate <change>`  | Tweak the current design in plain words; applied as a surgical line-diff, re-scored by the gate. |
 | `/ui:refine`            | Run the full critique→refine polish loop on the current design. |
 | `/ui:redesign <intent>` | Reimagine an existing page in a different persona/direction. |
@@ -521,7 +526,7 @@ raw request
   → ui knowledge activate
       ↳ unavailable surface → CAPABILITY_UNQUALIFIED (route: null)
       ↳ qualified web marketing → capability-activation.json
-      ↳ provisional native macOS → native-macos route with qualified-delivery claim forbidden
+      ↳ provisional native macOS/iOS/iPadOS → exact native route with qualified-delivery claim forbidden
   → design-brief.json v2 (activationRef)
   → generation-contract.json
   → candidate + 1440/768/390 renders
@@ -731,6 +736,8 @@ flowchart TD
     CA -- unavailable --> STOP["Stop · CAPABILITY_UNQUALIFIED<br/>route: null"]
     CA -- web-marketing qualified --> B["3 · Preserve activation receipt<br/>compile design-brief.json v2"]
     CA -- native-macos provisional --> N["Route native-macos<br/>PROVISIONAL · qualified delivery forbidden"]
+    CA -- native-ios provisional --> NI["Route native-ios<br/>PROVISIONAL · qualified delivery forbidden"]
+    CA -- native-ipados provisional --> NP["Route native-ipados<br/>PROVISIONAL · qualified delivery forbidden"]
     B --> PP["4 · Compile prompt-plan.json<br/>3 structural directions · region jobs · visual DNA"]
     PP --> PF{"ui prompt-plan<br/>validate + preflight"}
     PF -- fail --> B
@@ -774,13 +781,13 @@ flowchart LR
       E5["Tokens / existing DS"]
       E6["Image reference"]
     end
-    E1 --> W["19 /ui:* workflows"]
+    E1 --> W["DESIGN:OS workflows"]
     E2 --> W
     E3 --> W
     E4 --> W
     E5 --> W
     E6 --> W
-    W --> H["Host model + DESIGN:OS knowledge and 20 installed skills"]
+    W --> H["Host model + DESIGN:OS knowledge and installed skills"]
     H --> K["42-command deterministic ui kernel"]
     H --> O1["Responsive production UI"]
     H --> O2["Idiomatic Figma canvas"]

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://ease-design/schemas/capability-pilot-receipt.schema.json",
-  "title": "Retained native macOS capability pilot receipt",
+  "title": "Retained native capability pilot receipt",
   "type": "object",
   "required": [
     "kind",
@@ -17,11 +17,11 @@
   "properties": {
     "kind": { "const": "design-os.capability-pilot-receipt" },
     "version": { "const": 1 },
-    "capabilityId": { "const": "native-macos" },
-    "pilotId": { "const": "native-macos-pilot-01" },
-    "surfaceCategory": { "const": "note-document-editor" },
+    "capabilityId": { "type": "string", "minLength": 1 },
+    "pilotId": { "type": "string", "minLength": 1 },
+    "surfaceCategory": { "type": "string", "minLength": 1 },
     "evidenceDisposition": { "const": "retained" },
-    "ownerVerdict": { "const": "OK khá ổn rồi." },
-    "ownerDisposition": { "const": "accept-with-reservation" }
+    "ownerVerdict": { "type": "string", "minLength": 1 },
+    "ownerDisposition": { "type": "string", "minLength": 1 }
   }
 }
