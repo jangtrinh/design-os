@@ -1040,6 +1040,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-28 | **The tell rules are kept honest by measurement** — a field corpus of real pages with adjudicated verdicts (a fix that silences a true positive goes red, naming it and quoting the reason), a printed live false-positive rate, a fact census so a zero can be read, every threshold in one table pinned by an executable boundary pair, three metamorphic laws, and a nightly mutation audit | `feat/design-facts-ir` |
 | 2026-08-27 | **Native macOS becomes an official DESIGN:OS arm** — `/ui:native-macos` now routes to its own SwiftUI-first workflow with provisional assurance, pinned activation evidence, and a fail-closed ban on qualified platform-delivery claims | `#231` |
 | 2026-08-26 | **`ui tell-lint`** — design:os reads your app, whatever it is written in: one DesignFacts IR + N language extractors (HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI, Flutter), 43 `tell` checks written once, computed WCAG contrast, and a zero-dependency rendered tier that drives a browser already on the machine | `feat/design-facts-ir` |
 | 2026-08-20 | **`ease-design@0.5.0`** — the native-expert release: need→verb routing knowledge + the untaught-feature parity gate, pointing agents with the knowledge anchor, `ui init --with-agents`, and an 84-prompt blind benchmark that measured the doctrine to a fully clean board | `v0.5.0` |
