@@ -2,7 +2,7 @@
 
 <h1 align="center">DESIGN:OS</h1>
 
-<p align="center"><b>Describe what you want in plain words — get production-grade, on-system UI back.</b></p>
+<p align="center"><b>One design system. Web, Figma, and native macOS execution.</b></p>
 
 <p align="center">
   [<a href="#quick-start">Quick start</a>] ·
@@ -28,9 +28,22 @@ a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,675-test Figma
 
 DESIGN:OS is a multi-runtime **design CLI**. You drive it through the agent CLI you
 already use (Claude Code, Codex CLI, or Antigravity) with plain-language `/ui:*` commands.
-The host model writes the HTML; DESIGN:OS supplies the taste — personas, a compiled
-design system, and a hard quality gate the model cannot talk past. **No API keys, no
-design tokens to hand-edit, no taste vocabulary to learn.**
+Describe the interface; DESIGN:OS routes the work to the right execution arm, loads the
+surface-specific craft and design-system context, and keeps delivery claims honest.
+
+| Surface | Start with | What you get |
+|---|---|---|
+| **Web marketing** | `/ui:generate <intent>` | A qualified route to production HTML, bounded by typed delivery contracts. |
+| **Figma** | `/ui:to-figma <intent>` | Idiomatic canvas authoring through the opt-in Figma hand. |
+| **Native macOS** | `/ui:native-macos <intent>` | A first-class, SwiftUI-first workflow — available now with **provisional assurance**. |
+
+Your host agent writes the implementation. The deterministic `ui` kernel handles routing,
+contract validation, and fail-closed claim boundaries; it does not call a model or generate
+Swift. **No API keys, no design tokens to hand-edit, no taste vocabulary to learn.**
+
+**Native macOS is available, not overclaimed.** `PROVISIONAL` means the arm can route and
+produce SwiftUI-first work today while platform-qualified delivery, live accessibility
+evidence, and owner acceptance remain separate gates.
 
 ---
 
@@ -1012,6 +1025,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-27 | **Native macOS becomes an official DESIGN:OS arm** — `/ui:native-macos` now routes to its own SwiftUI-first workflow with provisional assurance, pinned activation evidence, and a fail-closed ban on qualified platform-delivery claims | `#231` |
 | 2026-08-20 | **`ease-design@0.5.0`** — the native-expert release: need→verb routing knowledge + the untaught-feature parity gate, pointing agents with the knowledge anchor, `ui init --with-agents`, and an 84-prompt blind benchmark that measured the doctrine to a fully clean board | `v0.5.0` |
 | 2026-08-20 | **Routing board clean** — the three canvas-cell misses adjudicated at their sources (`design.md` frontmatter regains the canvas condition; G2 gains the decision-vs-construction tie-break): one moved by doctrine and measured, two corrected labels; re-measured with no collateral flips | `#207` |
 | 2026-08-20 | **`ui init --with-agents`** — opt-in roster generation in the same init run (claude runtime + existing project DS required; pre-flights to `DS_NOT_FOUND` before any write) | `#205` |
