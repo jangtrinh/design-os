@@ -24,7 +24,7 @@ import { AA_NORMAL } from "../src/core/ds-a11y.js";
 
 const PROBE = join(
   fileURLToPath(new URL("..", import.meta.url)),
-  "plans", "260826-1603-polyglot-design-tell-detection", "evidence", "fixtures", "probe.html",
+  "tests", "fixtures", "tell-cascade-probe.html",
 );
 
 const html = extractorById("html-cascade")!;

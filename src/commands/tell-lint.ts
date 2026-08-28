@@ -25,6 +25,7 @@ import { extractorById, EXTRACTOR_PROFILES } from "../core/design-facts/index.js
 import { countBySeverity } from "../core/finding-schema.js";
 import { locateBrowser } from "../core/rendered/browser-session.js";
 import { capturePage } from "../core/rendered/capture-page.js";
+import { cdpUnavailableReason } from "../core/rendered/cdp-client.js";
 import { lintRendered } from "../core/tell-rules-rendered.js";
 import type { RenderedFinding } from "../core/tell-rules-rendered.js";
 
@@ -284,6 +285,12 @@ export async function runRenderedPass(
   targets: readonly LintTarget[],
   opts: { browser?: string; viewport?: { width: number; height: number } },
 ): Promise<{ findings: RenderedFinding[]; notEvaluated?: string; engine?: string }> {
+  // Two independent reasons the tier cannot run, and BOTH are reported by name rather
+  // than counted as clean. The runtime check exists because `WebSocket` only became a
+  // Node global in 22 while this package supports >=20 — found by CI, not by a laptop.
+  const runtimeBlocked = cdpUnavailableReason();
+  if (runtimeBlocked !== undefined) return { findings: [], notEvaluated: runtimeBlocked };
+
   const located = locateBrowser(opts.browser);
   if (located.path === undefined) return { findings: [], notEvaluated: located.reason };
 
@@ -291,13 +298,19 @@ export async function runRenderedPass(
   let engine: string | undefined;
   for (const target of targets) {
     if (target.extractorId !== "html-cascade") continue;
-    const capture = await capturePage({
-      browserPath: located.path,
-      target: target.path,
-      viewport: opts.viewport,
-    });
-    engine = capture.engine.browser;
-    findings.push(...lintRendered(capture));
+    try {
+      const capture = await capturePage({
+        browserPath: located.path,
+        target: target.path,
+        viewport: opts.viewport,
+      });
+      engine = capture.engine.browser;
+      findings.push(...lintRendered(capture));
+    } catch (err) {
+      // A browser or protocol failure mid-run must not take the whole command down and
+      // must not read as a clean page. Report the tier NOT-EVALUATED, naming the cause.
+      return { findings, notEvaluated: `rendered capture failed: ${(err as Error).message}` };
+    }
   }
   return { findings, engine };
 }

@@ -4,7 +4,7 @@
  * The bar is the one impeccable already cleared on the same fixture. Its
  * detector reported `low-contrast 2.2:1 — #9ca3af on #7c3aed` from static
  * analysis, WITH `var(--brand)` resolved. If this extractor cannot hand a rule
- * those two colours off `plans/.../evidence/fixtures/probe.html`, the engine is
+ * those two colours off `tests/fixtures/tell-cascade-probe.html`, the engine is
  * not finished — so the assertions are written against that file, not a fixture
  * invented to pass.
  */
@@ -20,7 +20,7 @@ import { parseColor, parseLengthPx, parseGradient, parseShadow, splitTopLevel } 
 import type { DesignFact, FactKind } from "../src/core/design-facts/index.js";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const PROBE = join(ROOT, "plans", "260826-1603-polyglot-design-tell-detection", "evidence", "fixtures", "probe.html");
+const PROBE = join(ROOT, "tests", "fixtures", "tell-cascade-probe.html");
 
 const of = <K extends FactKind>(facts: readonly DesignFact[], kind: K) =>
   facts.filter((f): f is Extract<DesignFact, { kind: K }> => f.kind === kind);
@@ -161,9 +161,9 @@ describe("html extractor on the real probe fixture", () => {
   });
 
   it("resolves a custom property end-to-end, on the fixture that uses one", () => {
-    // rendered-probe.html declares --brand and paints .muted with var(--brand);
+    // tell-cascade-rendered-probe.html declares --brand and paints .muted with var(--brand);
     // the CDP probe proved a real engine resolves it, so the static path must too.
-    const rendered = readFileSync(join(dirname(PROBE), "rendered-probe.html"), "utf8");
+    const rendered = readFileSync(join(dirname(PROBE), "tell-cascade-rendered-probe.html"), "utf8");
     const r = extractHtml(rendered, "rendered-probe.html");
     const bg = of(r.collector.facts(), "color").find((f) => f.role === "bg" && f.hex === "7c3aed");
     expect(bg, "background resolved through var(--brand)").toBeDefined();

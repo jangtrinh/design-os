@@ -42,6 +42,24 @@ interface Pending {
 /** Per-call ceiling. A hung page must fail the command, not hang the process. */
 const CALL_TIMEOUT_MS = 15_000;
 
+/**
+ * Why CDP cannot run here, or `undefined` when it can.
+ *
+ * `WebSocket` became a global in Node 22. This package supports `>=20`, so on Node 20 the
+ * rendered tier simply cannot open a debugger socket — and the honest answer is to say so
+ * by name rather than to throw a bare `ReferenceError` from inside a rule run.
+ *
+ * Found on CI, not locally: the whole family passed on a Node 22 laptop and failed on the
+ * Node 20 job, which is exactly the gap between a supported version and a tested one.
+ * Reported as NOT-EVALUATED, never as a pass — the rendered tier's seven rules do not get
+ * to count as clean because the runtime could not run them.
+ */
+export function cdpUnavailableReason(): string | undefined {
+  return typeof globalThis.WebSocket === "function"
+    ? undefined
+    : `this Node build has no global WebSocket (needs Node 22+; running ${process.version})`;
+}
+
 /** Ask the browser where its debugger socket is, and what it is. */
 export async function browserVersion(port: number): Promise<{ wsUrl: string; engine: string }> {
   const res = await fetch(`http://127.0.0.1:${port}/json/version`);
@@ -62,6 +80,8 @@ export async function browserVersion(port: number): Promise<{ wsUrl: string; eng
  * connection serve both browser-level and page-level calls.
  */
 export async function connect(wsUrl: string): Promise<CdpSession> {
+  const unavailable = cdpUnavailableReason();
+  if (unavailable !== undefined) throw new CdpError(unavailable, "connect");
   const ws = new WebSocket(wsUrl);
   const pending = new Map<number, Pending>();
   const listeners = new Map<string, Array<(params: Record<string, unknown>) => void>>();

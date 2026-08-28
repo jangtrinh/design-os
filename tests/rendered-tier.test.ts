@@ -15,6 +15,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lintRendered, RENDERED_RULES } from "../src/core/tell-rules-rendered.js";
 import { locateBrowser } from "../src/core/rendered/browser-session.js";
+import { cdpUnavailableReason } from "../src/core/rendered/cdp-client.js";
 import { capturePage } from "../src/core/rendered/capture-page.js";
 import { CAPTURE_VERSION, isSupportedCapture, describeUnsupported } from "../src/core/rendered/runtime-capture.js";
 import type { RuntimeCapture, CapturedNode } from "../src/core/rendered/runtime-capture.js";
@@ -201,6 +202,11 @@ describe("browser location", () => {
  */
 describe("live capture", () => {
   const browser = locateBrowser().path;
+  // Two independent reasons the live half cannot run: no browser, or a Node build with
+  // no global WebSocket (Node 20 — this package supports >=20). Both skip LOUDLY; a
+  // skipped smoke that reads as a pass is the failure mode this tier exists to avoid.
+  const cdpBlocked = cdpUnavailableReason();
+  const cannotRunLive = browser === undefined || cdpBlocked !== undefined;
 
   it("reports whether the live tier could be exercised at all", () => {
     // Deliberately always-green: its job is to PRINT the environment fact, so a
@@ -209,7 +215,7 @@ describe("live capture", () => {
     expect(true).toBe(true);
   });
 
-  it.skipIf(browser === undefined)("reads real computed styles and catches a hidden entrance", async () => {
+  it.skipIf(cannotRunLive)("reads real computed styles and catches a hidden entrance", async () => {
     const dir = mkdtempSync(join(tmpdir(), "rendered-smoke-"));
     const page = join(dir, "p.html");
     writeFileSync(
@@ -239,7 +245,7 @@ describe("live capture", () => {
     }
   }, 60_000);
 
-  it.skipIf(browser === undefined)("collects a REAL console error — script-error can actually fire", async () => {
+  it.skipIf(cannotRunLive)("collects a REAL console error — script-error can actually fire", async () => {
     // consoleErrors was an array nothing ever wrote to, so script-error was a
     // rule that could never fire on a live page. A probe that deleted the domain
     // enables stayed green, which is what that emptiness looks like from inside.
@@ -261,7 +267,7 @@ describe("live capture", () => {
     }
   }, 60_000);
 
-  it.skipIf(browser === undefined)("leaves no process holding its port", async () => {
+  it.skipIf(cannotRunLive)("leaves no process holding its port", async () => {
     const dir = mkdtempSync(join(tmpdir(), "rendered-orphan-"));
     const page = join(dir, "p.html");
     writeFileSync(page, "<!doctype html><html lang=en><head><title>t</title></head><body><p>x</p></body></html>", "utf8");
@@ -293,5 +299,43 @@ describe("an explicitly named browser is never silently substituted", () => {
     const found = locateBrowser();
     if (found.path === undefined) return;
     expect(locateBrowser(undefined, { CHROME_PATH: found.path } as NodeJS.ProcessEnv, []).path).toBe(found.path);
+  });
+});
+
+describe("the runtime capability gate", () => {
+  /**
+   * `WebSocket` became a Node global in 22; this package supports `>=20`. The tier must
+   * say so by name instead of throwing a bare ReferenceError from inside a rule run.
+   *
+   * Found by CI, not by a laptop: the whole family passed on Node 22 locally and failed
+   * on the Node 20 job. A supported version is not a tested version until something runs
+   * there.
+   */
+  it("reports availability honestly for the Node it is running on", () => {
+    const reason = cdpUnavailableReason();
+    if (typeof globalThis.WebSocket === "function") {
+      expect(reason, "WebSocket exists here, so nothing should be reported as blocking").toBeUndefined();
+    } else {
+      expect(reason).toContain("WebSocket");
+      expect(reason).toContain("Node 22");
+    }
+  });
+
+  it("names the requirement when the global is absent", () => {
+    // Simulate the Node 20 runtime rather than asserting only the happy path — the
+    // branch that matters here is the one this machine cannot otherwise reach.
+    const saved = Reflect.get(globalThis, "WebSocket") as unknown;
+    try {
+      Reflect.deleteProperty(globalThis, "WebSocket");
+      const reason = cdpUnavailableReason();
+      expect(reason, "a runtime with no WebSocket must be reported, not assumed working").toBeDefined();
+      expect(reason).toContain("Node 22+");
+    } finally {
+      if (saved !== undefined) Reflect.set(globalThis, "WebSocket", saved);
+    }
+  });
+
+  it("restored the global, so later tests are unaffected", () => {
+    expect(typeof globalThis.WebSocket).toBe("function");
   });
 });
