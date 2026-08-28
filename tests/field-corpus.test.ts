@@ -21,10 +21,8 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { extractHtml } from "../src/core/extractors/html/html-extractor.js";
-import { lintTell } from "../src/core/tell-lint.js";
-import { extractorById } from "../src/core/design-facts/extractor-registry.js";
-import { scanInlineIgnores, applyInlineIgnores } from "../src/core/inline-ignores.js";
+import { lintFileByExtractor } from "../src/core/lint-file-by-extractor.js";
+import { extractorById, EXTRACTOR_PROFILES } from "../src/core/design-facts/index.js";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const CORPUS = join(ROOT, "tests", "field-corpus");
@@ -84,21 +82,24 @@ function pageDirs(): string[] {
 
 const DIRS = pageDirs();
 
-/** Run the same pipeline `ui tell-lint` runs for the html-cascade tier. */
-function lintPage(absPath: string): { keys: string[]; byKey: Map<string, string> } {
-  const profile = extractorById("html-cascade");
-  if (profile === undefined) throw new Error("html-cascade profile is not registered");
-  const source = readFileSync(absPath, "utf8");
-  const extraction = extractHtml(source, absPath);
-  const result = lintTell(extraction.collector.facts(), profile);
-  const { kept } = applyInlineIgnores(result.findings, scanInlineIgnores(source));
-  const all = [...kept, ...result.contrast, ...result.voice] as Array<{
-    checkId: string; line?: number; nodeRef?: string; actual?: string; message: string;
+/**
+ * Run exactly the pipeline `ui tell-lint` runs.
+ *
+ * Via the shared dispatch, not a copy of it: a second copy would let the corpus drift
+ * into judging a pipeline users do not run, and its verdicts would then certify the
+ * wrong thing.
+ */
+function lintPage(absPath: string, extractorId: string): { keys: string[]; byKey: Map<string, string>; severities: string[] } {
+  const profile = extractorById(extractorId);
+  if (profile === undefined) throw new Error(`extractor profile is not registered: ${extractorId}`);
+  const result = lintFileByExtractor(absPath, extractorId, profile);
+  const all = result.findings as unknown as Array<{
+    checkId: string; line?: number; nodeRef?: string; actual?: string; message: string; severity: string;
   }>;
   const keys = withOrdinals(all);
   const byKey = new Map<string, string>();
   keys.forEach((k, i) => byKey.set(k, all[i]?.message ?? ""));
-  return { keys, byKey };
+  return { keys, byKey, severities: all.map((f) => f.severity) };
 }
 
 describe("field corpus", () => {
@@ -139,7 +140,7 @@ describe("field corpus", () => {
       });
 
       it("fires exactly what was adjudicated to fire, and nothing unadjudicated", () => {
-        const { keys, byKey } = lintPage(absPath);
+        const { keys, byKey } = lintPage(absPath, spec.extractor);
         const fired = new Set(keys);
         const byVerdict = new Map(spec.verdicts.map((v) => [v.key, v]));
 
@@ -169,6 +170,42 @@ describe("field corpus", () => {
       });
     });
   }
+
+  it("covers every extractor profile, or names the gap", () => {
+    // Registry-driven on purpose. A hand-kept list of profiles goes stale the moment
+    // someone adds a ninth extractor, and the blind spot arrives silently.
+    const covered = new Set(
+      DIRS.map((d) => (JSON.parse(readFileSync(join(CORPUS, d, "verdicts.json"), "utf8")) as CorpusPage).extractor),
+    );
+    const waivers = JSON.parse(readFileSync(join(CORPUS, "coverage-waivers.json"), "utf8")) as {
+      waivers: Array<{ extractor: string; reason: string; evidence: string }>;
+    };
+    for (const w of waivers.waivers) {
+      expect(w.reason.trim().length, `waiver for ${w.extractor} has no reason`).toBeGreaterThan(0);
+      expect(w.evidence.trim().length, `waiver for ${w.extractor} has no evidence`).toBeGreaterThan(0);
+    }
+    const waived = new Set(waivers.waivers.map((w) => w.extractor));
+
+    const uncovered = EXTRACTOR_PROFILES.map((p) => p.id).filter((id) => !covered.has(id) && !waived.has(id));
+    expect(
+      uncovered,
+      `extractor profile with neither a corpus page nor a waiver — add one, or record why not:\n  ${uncovered.join("\n  ")}`,
+    ).toEqual([]);
+  });
+
+  it("exercises every severity tier the family can emit", () => {
+    // A corpus made only of advisory findings cannot guard the tier that actually
+    // fails the gate. Measured across 86 real findings: 76 advisory, 10 error.
+    const seen = new Set<string>();
+    for (const dir of DIRS) {
+      const spec = JSON.parse(readFileSync(join(CORPUS, dir, "verdicts.json"), "utf8")) as CorpusPage;
+      const abs = spec.pinnedBy === "repo-path" ? join(ROOT, spec.page) : join(CORPUS, dir, spec.page);
+      if (!existsSync(abs)) continue;
+      for (const s of lintPage(abs, spec.extractor).severities) seen.add(s);
+    }
+    expect([...seen].sort(), "the corpus never exercises error severity").toContain("error");
+    expect([...seen].sort()).toContain("advisory");
+  });
 
   it("reports outstanding false-positive debt", () => {
     // `fp-open` is a false positive that is known, reasoned, and not yet fixed. Counting

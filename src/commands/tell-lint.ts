@@ -11,22 +11,16 @@
  * unresolved reads, and rules that were NOT-EVALUATED for want of facts. A zero
  * from a half-read project is a claim nobody has earned.
  */
-import { readFileSync } from "node:fs";
 import { relative } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { resolveTargets, describeResolution } from "../core/lint-target.js";
 import type { LintTarget } from "../core/lint-target.js";
-import { extractHtml } from "../core/extractors/html/html-extractor.js";
-import { extractSwiftUi } from "../core/extractors/native/swiftui-extractor.js";
-import { extractFlutter } from "../core/extractors/native/flutter-extractor.js";
-import { extractJsx } from "../core/extractors/web/jsx-extractor.js";
-import { extractSfc, extractCssOnly } from "../core/extractors/web/sfc-extractor.js";
-import { lintTell, tellCoverage, TELL_RULES } from "../core/tell-lint.js";
+import { lintFileByExtractor } from "../core/lint-file-by-extractor.js";
+import { tellCoverage } from "../core/tell-lint.js";
 import type { TellFinding } from "../core/tell-rules.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../core/design-facts/index.js";
-import { scanInlineIgnores, applyInlineIgnores } from "../core/inline-ignores.js";
 import { countBySeverity } from "../core/finding-schema.js";
 import { locateBrowser } from "../core/rendered/browser-session.js";
 import { capturePage } from "../core/rendered/capture-page.js";
@@ -96,83 +90,21 @@ function analyze(target: LintTarget, cwd: string): PerFile | undefined {
   if (profile === undefined) return undefined;
   const rel = relative(cwd, target.path) || target.path;
 
-  if (target.extractorId === "swiftui" || target.extractorId === "flutter") {
-    const src = readFileSync(target.path, "utf8");
-    const ex = target.extractorId === "swiftui" ? extractSwiftUi(src, target.path) : extractFlutter(src, target.path);
-    const res = lintTell(ex.collector.facts(), profile);
-    const scanned = scanInlineIgnores(src);
-    const { kept, waived } = applyInlineIgnores(res.findings, scanned);
-    return {
-      file: rel,
-      extractor: target.extractorId,
-      tier: target.tier,
-      undercount: true,
-      findings: kept,
-      notEvaluated: res.notEvaluated,
-      unresolvedCount: ex.collector.unresolvedCount,
-      waived: waived.length,
-      notComputable: 0,
-    };
-  }
-
-  if (target.extractorId === "jsx-tailwind" || target.extractorId === "sfc" || target.extractorId === "css-only") {
-    const src = readFileSync(target.path, "utf8");
-    const ex =
-      target.extractorId === "jsx-tailwind" ? extractJsx(src, target.path)
-        : target.extractorId === "sfc" ? extractSfc(src, target.path)
-          : extractCssOnly(src, target.path);
-    const res = lintTell(ex.collector.facts(), profile);
-    const scanned = scanInlineIgnores(src);
-    const { kept, waived } = applyInlineIgnores(res.findings, scanned);
-    return {
-      file: rel,
-      extractor: target.extractorId,
-      tier: target.tier,
-      undercount: true,
-      findings: kept,
-      notEvaluated: res.notEvaluated,
-      unresolvedCount: ex.collector.unresolvedCount,
-      waived: waived.length,
-      notComputable: 0,
-    };
-  }
-
-  // Anything else routed here has a registered profile but no reader yet, so it
-  // is reported as NOT ANALYSED rather than as clean.
-  if (target.extractorId !== "html-cascade") {
-    return {
-      file: rel,
-      extractor: target.extractorId,
-      tier: target.tier,
-      undercount: target.undercount,
-      findings: [],
-      notEvaluated: TELL_RULES.map((r) => ({
-        id: r.id,
-        reason: `${target.extractorId} extractor not implemented yet`,
-      })),
-      unresolvedCount: 0,
-      waived: 0,
-      notComputable: 0,
-    };
-  }
-
-  const source = readFileSync(target.path, "utf8");
-  const extraction = extractHtml(source, target.path);
-  const result = lintTell(extraction.collector.facts(), profile);
-  const scan = scanInlineIgnores(source);
-  const { kept, waived } = applyInlineIgnores(result.findings, scan);
+  // One dispatch, shared with the field corpus so the corpus provably judges the same
+  // pipeline this command runs. See core/lint-file-by-extractor.ts.
+  const r = lintFileByExtractor(target.path, target.extractorId, profile);
 
   return {
     file: rel,
     extractor: target.extractorId,
     tier: target.tier,
-    undercount: target.undercount || extraction.degraded,
-    findings: [...kept, ...result.contrast, ...result.voice] as TellFinding[],
-    notEvaluated: result.notEvaluated,
-    unresolvedCount: extraction.collector.unresolvedCount,
-    waived: waived.length,
-    notComputable: result.contrastNotComputable.length,
-    degraded: extraction.degraded ? extraction.degradeReason : undefined,
+    undercount: target.undercount || r.undercount,
+    findings: r.findings,
+    notEvaluated: r.notEvaluated,
+    unresolvedCount: r.unresolvedCount,
+    waived: r.waived,
+    notComputable: r.notComputable,
+    degraded: r.degraded,
   };
 }
 

@@ -64,7 +64,38 @@ moment verdicts get blessed instead of adjudicated — at which point it is a sn
 that ratifies bugs. If you are changing a verdict, say why in the `reason` field, in the
 same commit.
 
+## Coverage
+
+Coverage is **registry-driven**: the test reads `EXTRACTOR_PROFILES` and fails by name for
+any profile with neither a corpus page nor a waiver. A hand-kept list would go stale the
+moment someone adds a ninth extractor, and the blind spot would arrive silently.
+
+| Profile | Status |
+|---|---|
+| `html-cascade` | covered — `showcase/.../d03-orchestrated-r2/index.html` |
+| `css-only` | covered — `site/deck.css` |
+| `jsx-tailwind` | covered — snapshot of real dana-ui React |
+| `swiftui` | covered — snapshot of real AgentTour SwiftUI (clean row) |
+| `sfc`, `flutter`, `figma-nodes`, `rendered-cdp` | waived, with evidence, in `coverage-waivers.json` |
+
+`sfc` and `flutter` are waived for an honest reason worth stating plainly: **no real Vue,
+Svelte or Dart source exists on this machine.** The only candidates were fixtures this repo
+wrote itself, and adjudicating our own fixture would make the corpus circular — it would
+encode the author's model, which is the exact thing the corpus exists to escape. Both
+extractors are nonetheless proven working: each fires 6 findings on its slop fixture.
+
+The corpus also asserts that **both severity tiers are exercised**. A corpus made only of
+advisory findings cannot guard the tier that actually fails the gate.
+
 ## What the numbers do and do not mean
 
-The corpus is finite, so any recall computed on it is a **lower bound**, never an accuracy
-score. It answers "did we break something we already judged?" — not "do we catch everything".
+The runner prints a line like:
+
+```
+field corpus: 4 page(s), 28 adjudicated findings — 25 true positive, 3 open false positive,
+0 fixed false positive (live FP rate 10.7%)
+```
+
+The FP rate is real and worth watching. The corpus is finite, so any **recall** computed on
+it is a **lower bound**, never an accuracy score. It answers "did we break something we
+already judged?" — not "do we catch everything". Do not quote it as accuracy.
