@@ -69,15 +69,53 @@ names and text content from the RAW source, since stripping blanks string bodies
 
 ## Fixtures
 
-Two, minimum, and both are required:
+**Three classes, and the third is the one that catches real defects.**
 
-- `tell-<platform>-slop.<ext>` — carries the tells, and the test names which ids
-  must fire;
-- `tell-<platform>-clean.<ext>` — carries none, and the test asserts zero.
+| Class | The question it answers |
+|---|---|
+| `tell-<platform>-slop.<ext>` | Does the rule catch the thing it is for? The test names which ids must fire. |
+| `tell-<platform>-clean.<ext>` | Does it leave obviously-fine input alone? The test asserts zero. |
+| **near-miss** | Does it leave the **tempting adjacent** thing alone? |
 
-A rule that only ever fires has not been shown to discriminate. Add a third
-fixture for any platform-specific asymmetry — `tell-flutter-no-family.dart`
+A rule that only ever fires has not been shown to discriminate. But a rule that stays
+silent on obviously-fine input has not been shown to discriminate *either* — the hard
+cases are the ones that look exactly like the tell and are not it.
+
+Nearly every false positive this family has shipped was a near-miss failure, and the
+two-fixture contract structurally cannot express one. The four worked examples below are
+not invented; each is a defect that shipped and was paid for:
+
+| Rule | The near-miss that broke it |
+|---|---|
+| `cramped-padding` | a **pill** — 7px vertical padding on a 99px-radius badge is correct, not cramped |
+| `overused-font` | the canonical **system font stack**, where "Roboto" is a fallback and not a choice |
+| `nested-cards` | **`card-title`** — a class name containing "card" that is not a card |
+| `documentBg` | a **video poster** div, an element that legitimately covers the background |
+| `tight-leading` | a **`clamp()` display headline**, where tight leading is craft and the size does not resolve |
+| `hero-eyebrow-chip` | a **nav CTA button** — pill-shaped, near the hero, and not an eyebrow |
+
+Add a further fixture for any platform-specific asymmetry — `tell-flutter-no-family.dart`
 exists solely to pin the Roboto default.
+
+**Where this stands today, measured 2026-08-28:** 43 rules, 6 near-misses documented above,
+3 of them pinned as `fp-open` rows in the field corpus. So roughly **37 rules have no
+near-miss case at all** — that is the backlog, stated rather than implied. New rules are
+held to all three classes; existing ones get theirs as the corpus surfaces them, which is
+how five of the six above were found in the first place.
+
+### Thresholds live in the table, not in the predicate
+
+Any number that decides a verdict goes in `src/core/tell-thresholds.ts` with its owner and
+its provenance, and gets a boundary pair in `tests/tell-boundary-pairs.ts` — a value AT the
+threshold that must stay silent, and one PAST it that must fire. The meta-test fails for a
+constant with neither a pair nor a stated reason.
+
+Presence checks (`px > 0`), geometric definitions (`sides.length >= 4`) and "not enough
+here to compare" guards are **not** thresholds. Turning them does not retune a rule, it
+breaks one.
+
+Write `provenance: unknown` when you do not know where a value came from. An invented
+rationale is worse than an admitted gap.
 
 ## Regex traps paid for already
 
