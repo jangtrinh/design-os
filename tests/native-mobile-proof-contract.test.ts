@@ -58,18 +58,27 @@ describe("native mobile proof manifest contract", () => {
     expect(() => JSON.parse(readFileSync("showcase/native-mobile-proof-pilot/proof-manifest.json", "utf8"))).not.toThrow();
   });
 
-  it("keeps schema parity for exact arm identities, tier IDs, and PASS evidence", () => {
+  it("keeps schema parity for v2 arm identities, Tier 3 dispositions, and point-space geometry", () => {
     const schema = JSON.parse(readFileSync("schemas/native-mobile-proof-manifest.schema.json", "utf8")) as {
-      properties: { arms: { allOf?: unknown[] } };
+      properties: { version: { const: number }; arms: { allOf?: unknown[] } };
       $defs: {
         arm: { allOf?: unknown[]; properties: { tiers: { allOf?: unknown[] } } };
         tier: { allOf?: unknown[] };
+        tier3Witnesses: { required?: string[] };
+        pointSpaceGeometry: { properties: { coordinateSpace: { const: string }; screens: { minItems: number; maxItems: number } } };
       };
     };
+    expect(schema.properties.version.const).toBe(2);
     expect(schema.properties.arms.allOf).toHaveLength(2);
     expect(schema.$defs.arm.allOf).toHaveLength(2);
     expect(schema.$defs.arm.properties.tiers.allOf).toHaveLength(6);
-    expect(schema.$defs.tier.allOf).toHaveLength(1);
+    expect(schema.$defs.tier.allOf).toHaveLength(2);
+    expect(schema.$defs.tier3Witnesses.required).toEqual(expect.arrayContaining([
+      "behaviorDisposition",
+      "visualDisposition",
+    ]));
+    expect(schema.$defs.pointSpaceGeometry.properties.coordinateSpace.const).toBe("points");
+    expect(schema.$defs.pointSpaceGeometry.properties.screens).toMatchObject({ minItems: 3, maxItems: 3 });
   });
 
   it("enforces date-time, additionalProperties, and RFC 3339 calendar rules", () => {

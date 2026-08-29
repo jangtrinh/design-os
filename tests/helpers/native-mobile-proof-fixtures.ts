@@ -19,6 +19,31 @@ export interface MutableTier {
     blockers?: string[];
     physicalDevice?: string;
     ownerDisposition?: string;
+    behaviorDisposition?: string;
+    visualDisposition?: string;
+    behavior?: {
+      subject?: {
+        capabilityId?: string;
+        artifact?: string;
+        briefId?: string;
+        briefSha256?: string;
+        sourceTreeSha256?: string;
+      };
+      controllerVerification?: {
+        unitTests?: number;
+        uiTests?: number;
+        failures?: number;
+        exitCode?: number;
+      };
+      environment?: string;
+      evidence?: Array<{ path: string; sha256: string }>;
+    };
+    visual?: {
+      reason?: string;
+      currentCuration?: { path: string; sha256: string };
+      reviewReceipt?: { path: string; sha256: string };
+      captureLedger?: { path: string; sha256: string };
+    };
   };
 }
 
@@ -45,11 +70,15 @@ function evidence(path: string, body: string) {
 }
 
 export function validManifest(): MutableManifest {
-  const makeArm = (capabilityId: "native-ios" | "native-ipados", artifact: string): MutableArm => ({
-    capabilityId,
-    artifact,
-    brief: evidence(`briefs/${capabilityId}.json`, `${capabilityId}-brief`),
-    tiers: [
+  const makeArm = (capabilityId: "native-ios" | "native-ipados", artifact: string): MutableArm => {
+    const brief = evidence(`briefs/${capabilityId}.json`, `${capabilityId}-brief`);
+    const sourceTreeSha256 = sha256(`${capabilityId}-source`);
+    const behaviorEvidence = evidence(`evidence/${capabilityId}/tier-3.json`, `${capabilityId}-tier-3`);
+    return {
+      capabilityId,
+      artifact,
+      brief,
+      tiers: [
       {
         id: 1,
         status: "PASS",
@@ -67,9 +96,27 @@ export function validManifest(): MutableManifest {
       {
         id: 3,
         status: "PENDING",
-        authorizedClaim: "No visual or responsive claim is authorized until this tier passes.",
+        authorizedClaim: "No visual craft claim is authorized until an independent v2 review passes.",
         environment: "iOS 26.5 simulator matrix",
-        evidence: [],
+        evidence: [behaviorEvidence],
+        witnesses: {
+          generatorId: `${capabilityId}-generator`,
+          behaviorDisposition: "PASS",
+          visualDisposition: "UNASSESSED",
+          behavior: {
+            subject: {
+              capabilityId,
+              artifact,
+              briefId: `${capabilityId}-brief`,
+              briefSha256: brief.sha256,
+              sourceTreeSha256,
+            },
+            controllerVerification: { unitTests: 1, uiTests: 1, failures: 0, exitCode: 0 },
+            environment: "iOS 26.5 simulator matrix",
+            evidence: [behaviorEvidence],
+          },
+          visual: { reason: "No v2 visual curation exists." },
+        },
       },
       {
         id: 4,
@@ -93,11 +140,12 @@ export function validManifest(): MutableManifest {
         evidence: [],
       },
     ],
-  });
+    };
+  };
 
   return {
     kind: "design-os.native-mobile-proof",
-    version: 1,
+    version: 2,
     routingBaseGitSha: "a".repeat(40),
     assurance: "PROVISIONAL",
     claimPolicy: "QUALIFIED_DELIVERY_FORBIDDEN",

@@ -1,6 +1,6 @@
 {
   "kind": "design-os.native-mobile-proof",
-  "version": 1,
+  "version": 2,
   "routingBaseGitSha": "967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6",
   "assurance": "PROVISIONAL",
   "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
@@ -56,47 +56,44 @@
         },
         {
           "id": 3,
-          "status": "PASS",
-          "authorizedClaim": "The retained iPhone simulator matrix supports bounded layout, appearance, accessibility-size Retry operability, and local recovery claims.",
+          "status": "PENDING",
+          "authorizedClaim": "Controller-replayed simulator behavior evidence supports accessibility-size Retry operability and local recovery at the exact source digest; visual craft remains unassessed.",
           "environment": "iPhone 17e and iPhone 17 Pro simulator matrix",
           "evidence": [
             {
               "path": "evidence/tier-03-simulator-captures.json",
               "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-01.json",
-              "sha256": "e9707069e69c6a2843b23d4bc08fffcc96672b6c825270be5b3fb9628e1759c8"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-02.json",
-              "sha256": "43bc4df49cca5933590eefca32703e803a5a4fa90fdc2074833b950669af443b"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-03.json",
-              "sha256": "c9510dc2c21492e6db5fa98f830a361a276cb79162f321e540a33db403dd5489"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-04.json",
-              "sha256": "15391fcba3263b1da21e101ab69b003666d2dd1366c169805fd2d11e9dcd0630"
-            },
-            {
-              "path": "evidence/screenshots/native-ios-iphone-17e-results-light.png",
-              "sha256": "63f8c4b872148bae4716324b4a36feda209f9efc33edf84904348fdd5b39e31d"
-            },
-            {
-              "path": "evidence/screenshots/native-ios-iphone-17-pro-offline-dark-ax.png",
-              "sha256": "1d72767a3acf5abd6d85242fd1a5bb962c33366e862ce10b406bd14a244cfa1e"
-            },
-            {
-              "path": "evidence/screenshots/native-ios-offline-ax-retry-hittable.png",
-              "sha256": "7870662afe2008f811b50cc38962fe516835adc3c742231bf582cbec5ec48539"
             }
           ],
           "witnesses": {
             "generatorId": "terra-native-ios-pilot-01",
-            "independentReviewerId": "luna-native-mobile-curator-04",
-            "blockers": []
+            "behaviorDisposition": "PASS",
+            "visualDisposition": "UNASSESSED",
+            "behavior": {
+              "subject": {
+                "capabilityId": "native-ios",
+                "artifact": "native-ios-application",
+                "briefId": "native-ios-dictionary-search-v1",
+                "briefSha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04",
+                "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5"
+              },
+              "controllerVerification": {
+                "unitTests": 7,
+                "uiTests": 7,
+                "failures": 0,
+                "exitCode": 0
+              },
+              "environment": "iPhone 17e and iPhone 17 Pro simulator matrix",
+              "evidence": [
+                {
+                  "path": "evidence/tier-03-simulator-captures.json",
+                  "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
+                }
+              ]
+            },
+            "visual": {
+              "reason": "Retained v1 curation is not a v2 independent visual review."
+            }
           }
         },
         {
@@ -179,47 +176,44 @@
         },
         {
           "id": 3,
-          "status": "PASS",
-          "authorizedClaim": "The retained iPad simulator matrix supports bounded split-layout, independent scene-state, appearance, and orientation-preservation claims.",
+          "status": "PENDING",
+          "authorizedClaim": "Controller-replayed simulator behavior evidence supports independent scene-state and orientation-preservation claims at the exact source digest; visual craft remains unassessed.",
           "environment": "iPad mini (A17 Pro) and iPad Pro 13-inch (M5) simulator matrix",
           "evidence": [
             {
               "path": "evidence/tier-03-simulator-captures.json",
               "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-01.json",
-              "sha256": "e9707069e69c6a2843b23d4bc08fffcc96672b6c825270be5b3fb9628e1759c8"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-02.json",
-              "sha256": "43bc4df49cca5933590eefca32703e803a5a4fa90fdc2074833b950669af443b"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-03.json",
-              "sha256": "c9510dc2c21492e6db5fa98f830a361a276cb79162f321e540a33db403dd5489"
-            },
-            {
-              "path": "evidence/tier-03-curation-round-04.json",
-              "sha256": "15391fcba3263b1da21e101ab69b003666d2dd1366c169805fd2d11e9dcd0630"
-            },
-            {
-              "path": "evidence/screenshots/native-ipados-ipad-mini-searching-light.png",
-              "sha256": "0aa3f2ffe164b476e83e24781f8d10498139e6ed069f01a2e01d48a4d2659a39"
-            },
-            {
-              "path": "evidence/screenshots/native-ipados-independent-scene-proven.png",
-              "sha256": "01034f5d4d43b458805f222b70ef56e57c8ba810a0fbfd86e769f0ef257745bc"
-            },
-            {
-              "path": "evidence/screenshots/native-ipados-responsive-selection-preserved.png",
-              "sha256": "766ef73e76e51d1d0cba4ab252f85b5eb3cdd090adf9d6e49c512e036f803c3a"
             }
           ],
           "witnesses": {
             "generatorId": "terra-native-ipados-pilot-01",
-            "independentReviewerId": "luna-native-mobile-curator-04",
-            "blockers": []
+            "behaviorDisposition": "PASS",
+            "visualDisposition": "UNASSESSED",
+            "behavior": {
+              "subject": {
+                "capabilityId": "native-ipados",
+                "artifact": "native-ipados-application",
+                "briefId": "native-ipados-project-workspace-v1",
+                "briefSha256": "77d3c3959ae478549c6d6715dd2fa072e9ea3bad22787779bbfdf8d288b39771",
+                "sourceTreeSha256": "252ffa7bb609714e336047f8ca2eafd27f1a8c1ced509626480c6aa4f94fac6f"
+              },
+              "controllerVerification": {
+                "unitTests": 7,
+                "uiTests": 5,
+                "failures": 0,
+                "exitCode": 0
+              },
+              "environment": "iPad mini (A17 Pro) and iPad Pro 13-inch (M5) simulator matrix",
+              "evidence": [
+                {
+                  "path": "evidence/tier-03-simulator-captures.json",
+                  "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
+                }
+              ]
+            },
+            "visual": {
+              "reason": "Retained v1 curation is not a v2 independent visual review."
+            }
           }
         },
         {

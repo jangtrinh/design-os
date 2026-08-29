@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, normalize } from "node:path";
 
 import { resolveContainedPath } from "./proof-path-integrity.mjs";
+import { validateTier3Witnesses } from "./tier-03-dispositions.mjs";
 import { verifyProofSubjects } from "./verify-proof-subjects.mjs";
 
 const STATUSES = new Set(["PASS", "FAIL", "PENDING", "NOT RUN"]);
@@ -83,12 +84,7 @@ function validateTier(armId, tier) {
       findings.push(`${label} PASS requires generator identity, source digest, and zero controller source edits`);
     }
   }
-  if (tier.status === "PASS" && tier.id === 3) {
-    if (typeof witnesses.generatorId !== "string" || typeof witnesses.independentReviewerId !== "string"
-      || witnesses.generatorId === witnesses.independentReviewerId || !Array.isArray(witnesses.blockers) || witnesses.blockers.length !== 0) {
-      findings.push(`${label} PASS requires an independent zero-blocker visual witness`);
-    }
-  }
+  if (tier.id === 3) findings.push(...validateTier3Witnesses(armId, tier));
   if (tier.status === "PASS" && (tier.id === 4 || tier.id === 5)) {
     if (typeof witnesses.physicalDevice !== "string" || witnesses.physicalDevice.length === 0) findings.push(`${label} PASS requires physical device evidence`);
   }
@@ -102,7 +98,7 @@ export function validateNativeMobileProofManifest(manifest) {
   const findings = [];
   if (!isRecord(manifest)) return ["manifest must be an object"];
   findings.push(...unexpectedProperties(manifest, TOP_LEVEL_KEYS, "manifest"));
-  if (manifest.kind !== "design-os.native-mobile-proof" || manifest.version !== 1) findings.push("manifest identity is invalid");
+  if (manifest.kind !== "design-os.native-mobile-proof" || manifest.version !== 2) findings.push("manifest identity is invalid");
   if (!/^[a-f0-9]{40}$/.test(manifest.routingBaseGitSha ?? "")) findings.push("routingBaseGitSha must be a full Git SHA");
   if (!isDateTime(manifest.generatedAt)) findings.push("generatedAt must be a date-time");
   if (manifest.assurance !== "PROVISIONAL") findings.push("assurance must remain PROVISIONAL");

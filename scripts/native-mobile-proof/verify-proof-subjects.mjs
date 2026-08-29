@@ -5,6 +5,7 @@ import { verifyCaptureLedger } from "./capture-ledger-integrity.mjs";
 import { PILOT_POLICY, ROUTING_BASE_GIT_SHA } from "./native-mobile-proof-policy.mjs";
 import { verifyRoutingEvidence } from "./routing-evidence-integrity.mjs";
 import { computeSourceTree } from "./source-tree-integrity.mjs";
+import { verifyTier3Evidence } from "./tier-03-evidence-integrity.mjs";
 
 export { computeSourceTree, PILOT_POLICY };
 
@@ -78,37 +79,6 @@ function verifyGeneratedEvidence(arm, policy, tier, root, sourceTree) {
     && verification?.exitCode === 0;
 }
 
-function verifyCuratorEvidence(arm, policy, tier, root, sourceTree, captureLedgerValid) {
-  if (!Array.isArray(tier?.evidence)) return false;
-  const expectedSubject = {
-    capabilityId: arm.capabilityId,
-    artifact: policy.artifact,
-    briefId: policy.briefId,
-    briefSha256: policy.briefSha256,
-    sourceTreeSha256: sourceTree.sha256,
-  };
-  const reviewerId = tier.witnesses?.independentReviewerId;
-  const captureRef = tier.evidence.find((ref) => ref?.path === "evidence/tier-03-simulator-captures.json");
-  const capture = captureRef ? readJson(root, captureRef) : null;
-  if (!hasExactCapabilitySet(capture?.subjects)) return false;
-  const captureSubject = capture?.subjects?.find((subject) => subject.capabilityId === arm.capabilityId);
-  const curation = tier.evidence
-    .filter((ref) => ref?.path?.includes("curation") && ref.path.endsWith(".json"))
-    .map((ref) => readJson(root, ref))
-    .find((item) => item?.reviewerId === reviewerId && hasExactCapabilitySet(item?.arms));
-  const disposition = curation?.arms?.find((item) => item.capabilityId === arm.capabilityId);
-  return reviewerId === "luna-native-mobile-curator-04"
-    && reviewerId !== policy.generatorId
-    && tier.witnesses?.generatorId === policy.generatorId
-    && captureLedgerValid
-    && sameSubject(captureSubject, expectedSubject)
-    && disposition?.disposition === "PASS"
-    && Array.isArray(disposition?.blockers)
-    && disposition.blockers.length === 0
-    && sameSubject(disposition?.subject, expectedSubject)
-    && disposition?.captureLedgerSha256 === captureRef?.sha256;
-}
-
 function hasPhysicalReceipt(arm, tier, root, sourceTree) {
   return Array.isArray(tier?.evidence) && tier.evidence.some((ref) => {
     const receipt = ref.path.endsWith(".json") ? readJson(root, ref) : null;
@@ -168,10 +138,7 @@ export function verifyProofSubjects(manifest, root) {
     }
 
     const tier3 = tierById(arm, 3);
-    const captureLedgerValid = !captureFindings.some((finding) => finding.startsWith(`${arm.capabilityId} tier 3`));
-    if (tier3?.status === "PASS" && !verifyCuratorEvidence(arm, policy, tier3, root, sourceTree, captureLedgerValid)) {
-      findings.push(`${arm.capabilityId} tier 3 reviewer is not backed by retained PASS curation`);
-    }
+    if (tier3) findings.push(...verifyTier3Evidence({ arm, policy, tier: tier3, root, sourceTree, capture }));
     for (const tierId of [4, 5]) {
       const tier = tierById(arm, tierId);
       if (tier?.status === "PASS" && !hasPhysicalReceipt(arm, tier, root, sourceTree)) {
