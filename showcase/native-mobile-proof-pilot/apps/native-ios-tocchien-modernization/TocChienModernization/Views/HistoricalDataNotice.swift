@@ -2,14 +2,22 @@ import SwiftUI
 
 struct HistoricalDataNotice: View {
     let metadata: ContentMetadata
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var layout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 6))
+    }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        layout {
             Image(systemName: "clock.arrow.circlepath")
+                .font(.caption)
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             Text(metadata.historicalNotice)
-                .font(.footnote)
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)

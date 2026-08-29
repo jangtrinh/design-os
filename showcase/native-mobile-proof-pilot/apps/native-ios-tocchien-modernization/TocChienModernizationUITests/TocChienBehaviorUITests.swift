@@ -47,8 +47,11 @@ final class TocChienBehaviorUITests: XCTestCase {
         field.typeText("ZZZ")
         XCTAssertTrue(app.staticTexts["Không có thuật ngữ phù hợp"].exists)
         field.tap()
-        app.buttons["Clear text"].tap()
-        XCTAssertEqual(allRowIDs(in: app).count, 24)
+        let clearButton = app.buttons["Clear text"]
+        clearButton.tap()
+        XCTAssertTrue(clearButton.waitForNonExistence(timeout: 2))
+        XCTAssertFalse(app.staticTexts["Không có thuật ngữ phù hợp"].exists)
+        XCTAssertTrue(dictionaryRow("ACE", in: app).waitForExistence(timeout: 2))
     }
 
     func testHistoricalNoticeExistsOnAllThreeScreens() {

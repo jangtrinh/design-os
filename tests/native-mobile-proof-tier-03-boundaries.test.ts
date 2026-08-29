@@ -30,6 +30,14 @@ interface MutableScreenCuration {
 }
 
 describe("native mobile Tier 3 v2 identity and threshold boundaries", () => {
+  it("accepts an explicitly normal-only visual scope without AX stress captures", () => {
+    const proof = copyCheckedProofTree();
+    installPassingV2VisualEvidence(proof.manifest, proof.root, "native-ios", { includeStress: false });
+    expect(verifyNativeMobileProofManifest(proof.manifest, proof.root).filter(
+      (finding) => !finding.includes("state, claim, evidence, or witness contract mismatch"),
+    )).toEqual([]);
+  });
+
   it("rejects absent independence and invalid point-space geometry", () => {
     const receipt = copyCheckedProofTree();
     const receiptPaths = installPassingV2VisualEvidence(receipt.manifest, receipt.root);

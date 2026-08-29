@@ -6,45 +6,64 @@ struct ChampionDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 if let asset = ChampionAsset(championID: champion.id) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(.quaternary)
-                        Image(asset.previewName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 190)
+                    GeometryReader { geometry in
+                        ZStack(alignment: .bottomLeading) {
+                            Image(asset.thumbName)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                                .clipped()
+                                .accessibilityHidden(true)
+                            LinearGradient(
+                                colors: [.black.opacity(0.06), .black.opacity(0.88)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            Image(asset.previewName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: geometry.size.width * 0.58, height: geometry.size.height - 8)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                                .accessibilityHidden(true)
+                            Color.clear
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityIdentifier("champion-detail-hero")
+                                .accessibilityLabel("Ảnh minh họa \(champion.legacyName)")
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(champion.legacyName)
+                                    .font(.title2.weight(.bold))
+                                    .foregroundStyle(.white)
+                                    .accessibilityIdentifier("champion-name-\(champion.id)")
+                                Text(champion.subtitle)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.86))
+                            }
+                            .padding(14)
+                        }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 190)
-                    .clipShape(.rect(cornerRadius: 20))
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityIdentifier("champion-detail-hero")
-                    .accessibilityLabel("Ảnh minh họa \(champion.legacyName)")
+                    .frame(height: 216)
+                    .clipShape(.rect(cornerRadius: 18))
                 }
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(champion.legacyName)
-                        .font(.largeTitle.weight(.bold))
-                        .accessibilityIdentifier("champion-name-\(champion.id)")
-                    Text(champion.subtitle)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.tint)
-                    Text(champion.role + " · " + champion.damageType)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                Text(champion.role + " · " + champion.damageType)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 Divider()
                 Text("Chi tiết lịch sử")
-                    .font(.title3.weight(.semibold))
+                    .font(.headline)
                 Text(champion.summary)
-                    .font(.body)
+                    .font(.callout)
                 HistoricalDataNotice(metadata: metadata)
             }
-            .padding(16)
+            .padding(14)
         }
         .navigationTitle("Chi tiết tướng")
         .navigationBarTitleDisplayMode(.inline)
+        .stableNavigationChrome()
+        .toolbar(.hidden, for: .tabBar)
         .accessibilityIdentifier("screen-detail")
     }
 }

@@ -110,6 +110,32 @@ describe("native mobile Tier 3 v2 adversarial integrity", () => {
     }
   });
 
+  it("rejects unauditable or overlapping accessibility stress states", () => {
+    const mutations: Array<{ mutate: (capture: Record<string, unknown>) => void; finding: string }> = [
+      {
+        mutate: (capture) => { capture.captureState = "top-of-scroll"; },
+        finding: "native-ios tier 3 catalog stress capture lacks auditable representative-content state",
+      },
+      {
+        mutate: (capture) => { capture.minimumGapPoints = 2; },
+        finding: "native-ios tier 3 catalog stress capture lacks auditable representative-content state",
+      },
+      {
+        mutate: (capture) => { capture.targetFramePoints = { minX: 16, minY: 220, maxX: 374, maxY: 656 }; },
+        finding: "native-ios tier 3 catalog stress target is not fully visible above persistent chrome",
+      },
+    ];
+    for (const { mutate, finding } of mutations) {
+      const proof = copyCheckedProofTree();
+      const paths = installPassingV2VisualEvidence(proof.manifest, proof.root);
+      mutateCaptureLedger(proof, paths.capturePath, paths.receiptPath, paths.curationPath, (document) => {
+        const captures = document.captures as Array<Record<string, unknown>>;
+        mutate(captures.find((capture) => capture.captureClass === "stress" && capture.screenId === "catalog-screen")!);
+      });
+      expect(verifyNativeMobileProofManifest(proof.manifest, proof.root)).toContain(finding);
+    }
+  });
+
   it("requires non-empty distinct controller, generator, and reviewer identities", () => {
     const mutations: Array<{ mutate: (document: Record<string, unknown>) => void; finding: string }> = [
       { mutate: (document) => { (document.generator as Record<string, unknown>).sessionId = ""; }, finding: "native-ios tier 3 v2 receipt lacks controller or independent reviewer identity" },

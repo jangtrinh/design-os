@@ -1,8 +1,18 @@
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import {
+  allFiles,
+  expectedSourcePaths,
+  gitBlobOid,
+  legacyArchive,
+  provenanceProblems,
+  type TocChienProvenance,
+} from "./helpers/tocchien-provenance-integrity.js";
 
 const appRoot = "showcase/native-mobile-proof-pilot/apps/native-ios-tocchien-modernization";
 const contentRoot = join(appRoot, "Resources/Content");
@@ -25,15 +35,15 @@ const dictionaryTerms = [
   "Wild Cores",
 ];
 
-type Champion = { id: string; thumbAsset: string; previewAsset: string; historicalAsOf: string };
-type DictionaryEntry = { term: string; definition: string; sourceAnchor: { line: number } };
-type Provenance = {
-  legacy: { commit: string; committedAt: string; extraction: string };
-  ownerAuthorization: string;
-  importedFiles: Array<{ sourcePath: string; destinationPath: string; blobOid: string; byteCount: number; sha256: string }>;
-  fixtureFiles: Array<{ path: string; sha256: string }>;
+type SourceAnchor = { path: string; blobOid: string };
+type Champion = {
+  id: string;
+  thumbAsset: string;
+  previewAsset: string;
+  historicalAsOf: string;
+  sourceAnchors: { catalogue: SourceAnchor; overview: SourceAnchor };
 };
-
+type DictionaryEntry = { term: string; definition: string; sourceAnchor: SourceAnchor & { line: number } };
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, "utf8")) as T;
 const sha256 = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
 
@@ -59,32 +69,96 @@ describe("TocChien candidate fixtures", () => {
     expect(dictionary.every((entry) => entry.definition.length > 0 && entry.sourceAnchor.line > 0)).toBe(true);
   });
 
-  it("owns the historical disclosure once and binds it into the frozen brief/request", () => {
+  it("owns the historical disclosure once and keeps the activation request schema exact", () => {
     const metadata = readJson<{ historicalNotice: string; historicalAsOf: string }>(join(contentRoot, "content-metadata.json"));
     const briefPath = "showcase/native-mobile-proof-pilot/briefs/native-ios-tocchien-modernization.json";
     const brief = readJson<{ content: { historicalNotice: string; championCount: number; dictionaryCount: number } }>(briefPath);
-    const request = readJson<{ brief: { path: string; sha256: string } }>(
+    const request = readJson<Record<string, unknown>>(
       "showcase/native-mobile-proof-pilot/generator-packets/native-ios-tocchien-modernization-activation-request.json",
     );
     expect(metadata).toMatchObject({ historicalNotice, historicalAsOf: "2021-05-04" });
     expect(brief.content).toMatchObject({ historicalNotice, championCount: 6, dictionaryCount: 24 });
-    expect(request.brief).toEqual({ path: briefPath, sha256: sha256(briefPath) });
+    expect(sha256(briefPath)).toBe("6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246");
+    expect(Object.keys(request).sort()).toEqual([
+      "inputKind", "kind", "rawRequest", "requestedSurface", "selectionEvidence", "version",
+    ]);
+    expect(request).toMatchObject({
+      kind: "capability-activation-request",
+      version: 1,
+      requestedSurface: "native-ios",
+      inputKind: "words",
+      selectionEvidence: {
+        kind: "quoted-request",
+        quote: "native iOS 26 SwiftUI candidate",
+        role: "requested-artifact",
+      },
+    });
   });
 
   it("binds every imported asset to the pinned legacy object rather than checkout bytes", () => {
-    const provenance = readJson<Provenance>(join(contentRoot, "content-provenance.json"));
+    const provenance = readJson<TocChienProvenance>(join(contentRoot, "content-provenance.json"));
+    const champions = readJson<Champion[]>(join(contentRoot, "champions.json"));
+    const dictionary = readJson<DictionaryEntry[]>(join(contentRoot, "dictionary.json"));
     expect(provenance.legacy).toMatchObject({
       commit: legacyCommit, committedAt: "2021-05-04T16:03:35+07:00", extraction: "git show/git archive",
     });
     expect(provenance.ownerAuthorization).toContain("selected 24 text entries and 12 imagesets");
+    expect(provenanceProblems(provenance)).toEqual([]);
+    expect(provenance.sourceTextFiles).toHaveLength(3);
     expect(provenance.importedFiles).toHaveLength(24);
+
+    const archive = readFileSync(legacyArchive);
+    expect(spawnSync("git", ["get-tar-commit-id"], { input: archive, encoding: "utf8" }).stdout.trim()).toBe(legacyCommit);
+    const archiveFiles = spawnSync("tar", ["-tf", legacyArchive], { encoding: "utf8" }).stdout
+      .trim().split("\n").filter((path) => !path.endsWith("/"));
+    expect(archiveFiles.sort()).toEqual([
+      ...expectedSourcePaths,
+      ...provenance.importedFiles.map(({ sourcePath }) => sourcePath),
+    ].sort());
+    for (const file of provenance.sourceTextFiles) {
+      const body = spawnSync("tar", ["-xOf", legacyArchive, file.path]).stdout;
+      expect(body.length).toBe(file.byteCount);
+      expect(createHash("sha256").update(body).digest("hex")).toBe(file.sha256);
+      expect(gitBlobOid(body)).toBe(file.blobOid);
+    }
+
+    const sourceRecords = new Map(provenance.sourceTextFiles.map((file) => [file.path, file]));
+    const anchors = [
+      ...champions.flatMap(({ sourceAnchors }) => [sourceAnchors.catalogue, sourceAnchors.overview]),
+      ...dictionary.map(({ sourceAnchor }) => sourceAnchor),
+    ];
+    expect(anchors.every((anchor) => sourceRecords.get(anchor.path)?.blobOid === anchor.blobOid)).toBe(true);
+
+    const assetRoot = join(appRoot, "Resources/Assets.xcassets");
+    const retainedAssetPaths = allFiles(assetRoot)
+      .filter((path) => path !== "Contents.json")
+      .map((path) => `Resources/Assets.xcassets/${path}`)
+      .sort();
+    expect(provenance.importedFiles.map(({ destinationPath }) => destinationPath).sort()).toEqual(retainedAssetPaths);
     for (const file of provenance.importedFiles) {
-      expect(file.blobOid).toMatch(/^[0-9a-f]{40}$/);
-      expect(file.byteCount).toBeGreaterThan(0);
-      expect(file.sha256).toMatch(/^[0-9a-f]{64}$/);
-      expect(sha256(join(appRoot, file.destinationPath))).toBe(file.sha256);
+      const destinationBody = readFileSync(join(appRoot, file.destinationPath));
+      const sourceBody = spawnSync("tar", ["-xOf", legacyArchive, file.sourcePath]).stdout;
+      expect(sourceBody.equals(destinationBody)).toBe(true);
+      expect(sourceBody.length).toBe(file.byteCount);
+      expect(createHash("sha256").update(sourceBody).digest("hex")).toBe(file.sha256);
+      expect(gitBlobOid(sourceBody)).toBe(file.blobOid);
     }
     for (const fixture of provenance.fixtureFiles) expect(sha256(join(appRoot, fixture.path))).toBe(fixture.sha256);
+  });
+
+  it("rejects empty source lineage and zero object identities", () => {
+    const provenance = readJson<TocChienProvenance>(join(contentRoot, "content-provenance.json"));
+    const emptySources = structuredClone(provenance);
+    emptySources.sourceTextFiles = [];
+    expect(provenanceProblems(emptySources)).toContain("source text exact set");
+
+    const zeroOid = structuredClone(provenance);
+    zeroOid.importedFiles[0]!.blobOid = "0".repeat(40);
+    expect(provenanceProblems(zeroOid)).toContain("imported object identity");
+
+    const forgedSourcePath = structuredClone(provenance);
+    forgedSourcePath.importedFiles[0]!.sourcePath = "Shared/Assets.xcassets/forged.imageset/forged.png";
+    expect(provenanceProblems(forgedSourcePath)).toContain("imported source path identity");
   });
 
   it("rejects omitted or substituted authorized content", () => {

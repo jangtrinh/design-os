@@ -1,0 +1,158 @@
+{
+  "kind": "design-os.native-mobile-tier-03-visual-curation",
+  "version": 2,
+  "capabilityId": "native-ios",
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7"
+  },
+  "captureLedgerSha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487",
+  "reviewReceiptSha256": "5dd09cf5a6e95c0b8e49aee46ff0e3da0ece6be555a04ae68ecec09e39783966",
+  "reviewer": {
+    "role": "independent-curator",
+    "sessionId": "/root/luna_image_first_final_visual_review",
+    "workerId": "Parfit"
+  },
+  "screenReviews": [
+    {
+      "screenId": "champion-catalogue",
+      "normalCaptureHashes": {
+        "light": "611913df9323a6f052ffbc0897390ef994b99c838da370f774de1da3bf9bd341",
+        "dark": "aa904faf28789bfcc5e0ede410a317cbc506806b0ed3d5f476f486f8652923cc"
+      },
+      "appearanceObservations": {
+        "light": "White mode presents six complete square, full-bleed champion thumbnails in a compact two-column catalogue; bottom gradients keep names and roles readable without hiding the art, and the final row clears persistent chrome",
+        "dark": "Black mode preserves all six image-first cards, identical geometry, readable gradient labels, and the selected tab state with no clipping or content-chrome overlap"
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "Two-column square thumbnails create a clear image-led scan order; all six cards and three complete rows are visible above persistent chrome"
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Card names use bold white headlines and roles use quieter white captions over controlled bottom gradients; page title and notice remain subordinate to imagery"
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Fourteen-point page margins, ten-point gutters, twelve-point label insets, and compact bottom reservation form a consistent rhythm without wasted card padding"
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Light and dark captures retain the same card geometry, corner treatment, navigation placement, canonical labels, and historical notice"
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "Still PNGs contain no transition witness; motion cannot be scored without runtime animation evidence"
+        },
+        "Iconography": {
+          "score": 8,
+          "evidence": "History, tab, and search glyphs form one coherent system with consistent optical scale and active-state treatment"
+        },
+        "Depth-Surface": {
+          "score": 8,
+          "evidence": "Full-bleed art, restrained corner strokes, and bottom gradients create depth without heavy shadows or generic container surfaces"
+        }
+      }
+    },
+    {
+      "screenId": "champion-detail",
+      "normalCaptureHashes": {
+        "light": "ea593b9d595822a82b96530f099f730e01c3fc310087fafcd20daa3d32b2bf52",
+        "dark": "f4e50b80c134957bc796f60b3d970f30d03bc4bd81624f0979754e6b7f83878f"
+      },
+      "appearanceObservations": {
+        "light": "White mode leads with a composed 216-point Miss Fortune hero: full-bleed thumbnail, silhouette overlay, integrated identity and subtitle, followed immediately by role, history, and provenance notice",
+        "dark": "Black mode preserves the same authored hero composition and readable integrated labels; role, history, and notice remain visible with no clipping"
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "A composed 216-point hero leads directly into role metadata and the history section; measured history starts at 387.33 points and remains above the fold"
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "White title and subtitle are integrated over the hero gradient while muted role metadata, section heading, and callout copy establish clear scale contrast"
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Shared side insets and regular hero-to-identity-to-history spacing create a comfortable rhythm; measured hero and next-section geometry remain above the content reservation"
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Light and dark modes share canonical labels, history notice, hero/card geometry, corner treatment, and navigation conventions with the catalogue"
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "Still PNGs contain no transition witness; motion cannot be scored without runtime animation evidence"
+        },
+        "Iconography": {
+          "score": 8,
+          "evidence": "Back and history glyphs use one restrained icon language and remain optically aligned with adjacent controls and text"
+        },
+        "Depth-Surface": {
+          "score": 8,
+          "evidence": "Layered thumbnail, silhouette, and gradient form one authored hero surface without a generic card shadow or duplicated chrome"
+        }
+      }
+    },
+    {
+      "screenId": "game-dictionary",
+      "normalCaptureHashes": {
+        "light": "dd0a47fd86174334e150844eec1a9b5c3235c290f88bfe12f5efb2a655a060b3",
+        "dark": "64e6b6852746d0657cd3945d32302b903b6071a47142ba0498829f0111695f55"
+      },
+      "appearanceObservations": {
+        "light": "White mode keeps the glossary appropriately text-first: title, provenance notice, five complete term-definition rows through AoE, divider, and a separate bottom search surface with no following-row fragment",
+        "dark": "Black mode preserves the same five complete rows and hierarchy; AoE term, definition, and divider remain fully visible while the next AP row is fully outside the viewport"
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "Centered title and notice lead into five complete term-definition rows separated by dividers; AoE clears the 76-point search reservation"
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Bold terms contrast with large muted definitions and the title/notice hierarchy remains legible in both normal appearances"
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Compact row padding, regular dividers, side insets, and the measured 76-point bottom reservation keep content clear of search chrome"
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Dictionary reuses the catalogue/detail typography, historical notice, icon treatment, adaptive light/dark surfaces, and canonical labels"
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "Still PNGs contain no transition witness; motion cannot be scored without runtime animation evidence"
+        },
+        "Iconography": {
+          "score": 8,
+          "evidence": "History, people-tab, and search glyphs share one restrained family and consistent sizing across the normal appearances"
+        },
+        "Depth-Surface": {
+          "score": 8,
+          "evidence": "White and black page surfaces use restrained dividers and a consistent bottom search material without harsh shadows or invisible same-mode boundaries"
+        }
+      }
+    }
+  ],
+  "stressObservations": [],
+  "autoFails": {
+    "duplicate-screen-title": false,
+    "duplicate-search-surface": false,
+    "wrong-or-missing-authorized-asset": false,
+    "missing-historical-notice": false,
+    "normal-large-clipping-or-overlap": false,
+    "excessive-chrome-or-padding": false,
+    "below-fold-density": false,
+    "oversized-detail-hero": false,
+    "placeholder-or-generic-scaffold": false,
+    "below-axis-threshold": false
+  },
+  "blockers": []
+}

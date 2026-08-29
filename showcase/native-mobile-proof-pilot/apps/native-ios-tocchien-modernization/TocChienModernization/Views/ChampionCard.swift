@@ -2,30 +2,46 @@ import SwiftUI
 
 struct ChampionCard: View {
     let champion: Champion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         let asset = ChampionAsset(championID: champion.id)
-        VStack(alignment: .leading, spacing: 8) {
-            if let asset {
-                Image(asset.thumbName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 82)
-                    .clipShape(.rect(cornerRadius: 12))
-                    .accessibilityHidden(true)
+        GeometryReader { geometry in
+            ZStack(alignment: .bottomLeading) {
+                if let asset {
+                    Image(asset.thumbName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .accessibilityHidden(true)
+                }
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.82)],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(champion.legacyName)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                    Text(champion.role)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                }
+                .padding(12)
             }
-            Text(champion.legacyName)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-            Text(champion.role)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
         }
-        .frame(maxWidth: .infinity, minHeight: 142, alignment: .topLeading)
-        .padding(12)
-        .background(.quaternary, in: .rect(cornerRadius: 16))
+        .aspectRatio(1, contentMode: .fit)
+        .clipShape(.rect(cornerRadius: 14))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(.white.opacity(0.12), lineWidth: 0.5)
+        }
         .contentShape(.rect)
     }
 }

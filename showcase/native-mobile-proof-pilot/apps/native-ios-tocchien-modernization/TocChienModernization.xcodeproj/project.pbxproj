@@ -386,7 +386,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.designos.proofpilot.tocchien-modernization.uitests";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = TocChienModernization;
 			};
 			name = Debug;
@@ -403,7 +403,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.designos.proofpilot.tocchien-modernization.uitests";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = TocChienModernization;
 			};
 			name = Release;
@@ -478,7 +478,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.designos.proofpilot.tocchien-modernization.tests";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TocChienModernization.app/TocChienModernization";
 			};
 			name = Release;
@@ -498,7 +498,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.designos.proofpilot.tocchien-modernization";
 				PRODUCT_NAME = TocChienModernization;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -582,7 +582,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.designos.proofpilot.tocchien-modernization";
 				PRODUCT_NAME = TocChienModernization;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -598,7 +598,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.designos.proofpilot.tocchien-modernization.tests";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TocChienModernization.app/TocChienModernization";
 			};
 			name = Debug;

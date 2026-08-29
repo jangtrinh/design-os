@@ -1,0 +1,42 @@
+{
+  "kind": "design-os.native-mobile-tier-03-review-receipt",
+  "version": 2,
+  "createdAt": "2026-08-29T15:26:00Z",
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7"
+  },
+  "controller": {
+    "role": "controller",
+    "sessionId": "run_7999d4efbd29",
+    "workerId": "term_8f2e202e-71d1-451f-8891-370a1898fd12"
+  },
+  "generator": {
+    "id": "terra-native-ios-tocchien-generator-03",
+    "sessionId": "ctx_be02cdb3cde8",
+    "workerId": "term_2f90ef60-4b69-4fc3-8c92-56b7e2ddd197"
+  },
+  "reviewer": {
+    "role": "independent-curator",
+    "sessionId": "/root/luna_image_first_final_visual_review",
+    "workerId": "Parfit"
+  },
+  "inputHashes": {
+    "tasteRubricSha256": "da781189d09782894327bbf95531a3bda28c8fff597747ad6ddbf093a152c154",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7",
+    "captureLedgerSha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
+  },
+  "normalCapturePaths": [
+    "screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-dark-large.png",
+    "screenshots/native-ios-tocchien-iphone-17e-champion-detail-light-large.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png",
+    "screenshots/native-ios-tocchien-iphone-17e-game-dictionary-light-large.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-dark-large.png"
+  ],
+  "stressCapturePaths": []
+}

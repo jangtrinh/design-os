@@ -21,6 +21,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.designos.proofpilot.tocchien-modernization
         PRODUCT_NAME: TocChienModernization
+        TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Tốc Chiến
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
@@ -35,6 +36,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.designos.proofpilot.tocchien-modernization.tests
+        TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
   TocChienModernizationUITests:
     type: bundle.ui-testing
@@ -46,6 +48,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.designos.proofpilot.tocchien-modernization.uitests
+        TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
 schemes:
   TocChienModernization:

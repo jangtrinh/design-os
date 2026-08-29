@@ -1,54 +1,44 @@
 {
-  "kind": "capability-activation-receipt",
-  "version": 1,
-  "generatedOn": "2026-08-29",
-  "generatorIdentity": "Orca dispatched implementation worker",
-  "request": {
-    "path": "showcase/native-mobile-proof-pilot/generator-packets/native-ios-tocchien-modernization-activation-request.json",
-    "sha256": "8db84d6e6def441d87f2841b9e805971d41ed85adce9b9cf865841f88d906b6a"
-  },
-  "requestedSurface": "native-ios",
-  "requestedArtifact": "native-ios-application",
-  "candidateAppRoot": "showcase/native-mobile-proof-pilot/apps/native-ios-tocchien-modernization",
-  "candidateStatus": "non-authoritative",
-  "sourceInputs": {
-    "briefPath": "showcase/native-mobile-proof-pilot/briefs/native-ios-tocchien-modernization.json",
-    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
-    "legacyCommit": "8d095f576cf41b8d6af4cb4186b4db8ffaa89c4b",
-    "championCount": 6,
-    "dictionaryCount": 24,
-    "imagesetCount": 12,
-    "candidateSourceDigest": "9d2b2f333a4776c25215e4ea4446f867ec8ecb4f66da5ac9f73449459f01baab",
-    "digestInput": "SHA-256 of sorted per-file SHA-256 rows for candidate files excluding generated xcodeproj, activation-receipt.json, and generation-report.md"
-  },
-  "toolchain": {
-    "xcode": "26.5 (17F42)",
-    "swift": "6.3.2",
-    "swiftLanguageMode": "Swift 6",
-    "deploymentTarget": "iOS 26.0",
-    "deviceFamily": "iPhone"
-  },
-  "verification": {
-    "vitest": {
-      "tests": 12,
-      "result": "PASS"
+  "ok": true,
+  "command": "knowledge activate",
+  "data": {
+    "kind": "capability-activation",
+    "version": 2,
+    "requestDigest": "sha256:4cba025859c2e7463cfcc530d62a2dedae377a693d8fe413df12c5ef9d005223",
+    "catalogDigest": "sha256:80980ec7c9c6af161a0f737d6db60bd94a9e05699a4f35427034900035ad1b81",
+    "requestedSurface": "native-ios",
+    "inputKind": "words",
+    "selectionEvidence": {
+      "kind": "quoted-request",
+      "quote": "native iOS 26 SwiftUI candidate",
+      "role": "requested-artifact"
     },
-    "xcodebuild": {
-      "destination": "iPhone 17 Pro, iOS 26.5 Simulator",
-      "swiftTestingTests": 8,
-      "uiTests": 8,
-      "result": "PASS"
-    }
-  },
-  "evidenceBoundary": {
-    "behavior": "candidate technical evidence only",
-    "visual": "PENDING independent Phase 3 review",
-    "device": "NOT RUN",
-    "owner": "PENDING"
-  },
-  "promotion": {
-    "requested": false,
-    "reason": "Phases 1 and 2 do not alter proof policy, manifest, board, or current native-ios authority."
-  },
-  "controllerSourceEdits": 0
+    "routingDisposition": "ROUTED",
+    "assurance": "PROVISIONAL",
+    "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
+    "route": "native-ios",
+    "artifact": "native-ios-application",
+    "selectedKnowledge": [
+      "need-routing",
+      "apple-swiftui-craft",
+      "native-ios-craft",
+      "content-design",
+      "design-review",
+      "verification-honesty"
+    ],
+    "machineWitnesses": [
+      "knowledge activate"
+    ],
+    "renderedWitnesses": [
+      "iphone-simulator-capture",
+      "accessibility-tree-observation"
+    ],
+    "manualWitnesses": [
+      "VoiceOver",
+      "real-device",
+      "independent-curator",
+      "owner-visible-acceptance"
+    ],
+    "action": "Proceed with the native-ios workflow under provisional assurance. Owner and live-device witnesses remain pending; qualified platform delivery is forbidden."
+  }
 }
