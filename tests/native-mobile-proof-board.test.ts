@@ -57,8 +57,21 @@ describe("native mobile proof board", () => {
     expect(html).toContain('data-behavior-disposition="PASS"');
     expect(html).toContain('data-visual-disposition="UNASSESSED"');
     expect(html).toContain("Behavior: PASS");
+    expect(html).toContain("Visual: PASS");
     expect(html).toContain("Visual: UNASSESSED");
     expect(html).toContain("PENDING");
-    expect(html).not.toContain("Visual: PASS");
+  });
+
+  it("renders each exact Tier 6 owner verdict and appearance review basis", () => {
+    const html = renderNativeMobileProofBoard(manifest);
+    for (const screenId of ["champion-catalogue", "champion-detail", "game-dictionary"]) {
+      expect(html).toContain(`data-screen-id="${screenId}"`);
+    }
+    expect(html.match(/Light: owner-direct/g)).toHaveLength(3);
+    expect(html.match(/Dark: independent-tier-03/g)).toHaveLength(3);
+
+    const withoutVerdicts = structuredClone(manifest);
+    delete withoutVerdicts.arms[0].tiers[5].witnesses.ownerScreenVerdicts;
+    expect(renderNativeMobileProofBoard(withoutVerdicts)).not.toContain("Tier 6 owner screen verdicts");
   });
 });

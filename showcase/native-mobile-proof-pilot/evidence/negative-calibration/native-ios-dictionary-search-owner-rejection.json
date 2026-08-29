@@ -1,0 +1,32 @@
+{
+  "kind": "design-os.native-mobile-owner-rejection",
+  "version": 1,
+  "subject": "native-ios-dictionary-search",
+  "decision": "REJECT",
+  "owner": "Jang",
+  "recordedFor": "native-ios modernization negative calibration",
+  "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5",
+  "screenshots": [
+    {
+      "path": "evidence/screenshots/native-ios-iphone-17e-results-light.png",
+      "sha256": "63f8c4b872148bae4716324b4a36feda209f9efc33edf84904348fdd5b39e31d"
+    },
+    {
+      "path": "evidence/screenshots/native-ios-iphone-17-pro-results-light.png",
+      "sha256": "db92c2c4a3513c9f01f56d081436093fddbb3a2a841d942db58d1c39dd55853a"
+    },
+    {
+      "path": "evidence/screenshots/native-ios-offline-ax-retry-hittable.png",
+      "sha256": "7870662afe2008f811b50cc38962fe516835adc3c742231bf582cbec5ec48539"
+    },
+    {
+      "path": "evidence/screenshots/native-ios-iphone-17-pro-offline-dark-ax.png",
+      "sha256": "1d72767a3acf5abd6d85242fd1a5bb962c33366e862ce10b406bd14a244cfa1e"
+    }
+  ],
+  "reasonCodes": [
+    "DUPLICATE_SEARCH_SURFACE",
+    "VISUAL_TASTE_BELOW_BAR"
+  ],
+  "candidateRelationship": "This immutable rejection describes only the old subject; it is not a verdict on native-ios-tocchien-modernization."
+}

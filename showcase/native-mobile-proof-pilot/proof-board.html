@@ -1,12 +1,13 @@
 <!doctype html>
-<html lang="en" data-manifest-sha256="0f3d8b4e461f321f4e44101f5e0800cfc1011398be68254c09320f681a3029b5">
+<html lang="en" data-manifest-sha256="305f3cdf5b9f10506248f73681a886a30b716e0339a5fffe87a4a9d88aa209cc">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DESIGN:OS native mobile proof</title>
 <style>
 :root{color-scheme:dark;--ink:#f2efe8;--muted:#aaa59a;--line:#3b3935;--panel:#181817;--pass:#8ed7aa;--fail:#ff8d7f;--pending:#e6bd69;--idle:#99948b}*{box-sizing:border-box}body{margin:0;background:#0d0d0c;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}main{width:min(1460px,calc(100% - 32px));margin:auto;padding:52px 0 80px}header{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,.7fr);gap:48px;border-top:1px solid var(--ink);padding-top:18px;margin-bottom:44px}.eyebrow,.stamp{font:600 11px/1.4 ui-monospace,SFMono-Regular,monospace;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}h1{font:500 clamp(42px,7vw,94px)/.92 Georgia,serif;letter-spacing:-.055em;margin:18px 0 24px;max-width:10ch}.boundary{font:650 12px/1.4 ui-monospace,SFMono-Regular,monospace;color:var(--pending);border-left:3px solid var(--pending);padding-left:12px}.intro{color:var(--muted);font-size:16px;line-height:1.6;max-width:56ch}.meta{align-self:end;border-top:1px solid var(--line);padding-top:16px}.meta dl{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;margin:0;font-size:13px}.meta dt{color:var(--muted)}.meta dd{margin:0;font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}.known{border:1px solid var(--fail);padding:16px 18px;margin:0 0 24px}.known h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--fail);margin:0 0 8px}.known ul{margin:0;padding-left:18px;color:#f4c1ba}table{width:100%;border-collapse:collapse;table-layout:fixed}caption{text-align:left;padding:0 0 12px;color:var(--muted);font-size:13px}thead th{font:600 12px/1.4 ui-monospace,SFMono-Regular,monospace;text-transform:uppercase;letter-spacing:.08em;text-align:left;border-bottom:1px solid var(--ink);padding:14px 16px}thead th:first-child{width:19%}thead small{display:block;color:var(--muted);text-transform:none;letter-spacing:0;margin-top:4px}tbody th,tbody td{vertical-align:top;text-align:left;border-bottom:1px solid var(--line);padding:20px 16px}tbody th{font-size:14px;font-weight:600}tbody th span{display:block;color:var(--muted);font:11px ui-monospace,SFMono-Regular,monospace;margin-bottom:8px}.status{font:700 12px ui-monospace,SFMono-Regular,monospace;letter-spacing:.06em}.status span{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--idle);margin-right:8px}[data-status="PASS"] .status{color:var(--pass)}[data-status="PASS"] .status span{background:var(--pass)}[data-status="FAIL"] .status{color:var(--fail)}[data-status="FAIL"] .status span{background:var(--fail)}[data-status="PENDING"] .status{color:var(--pending)}[data-status="PENDING"] .status span{background:var(--pending)}.claim{font-size:14px;line-height:1.5;margin:12px 0 8px}.environment,.empty,.visual-reason{font-size:12px;line-height:1.5;color:var(--muted)}.tier3-dispositions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;border-left:2px solid var(--pending);margin:12px 0;padding-left:10px}.disposition{font:700 11px/1.4 ui-monospace,SFMono-Regular,monospace;margin:0}.visual-reason{grid-column:1/-1;margin:2px 0 0}td ul{list-style:none;padding:0;margin:12px 0 0;font-size:11px;line-height:1.55}td img{display:block;width:100%;max-height:380px;object-fit:contain;background:var(--panel);margin-top:8px;border:1px solid var(--line)}a{color:inherit;text-underline-offset:3px}footer{display:flex;justify-content:space-between;gap:24px;margin-top:28px;color:var(--muted);font:11px/1.5 ui-monospace,SFMono-Regular,monospace}@media(max-width:860px){header{grid-template-columns:1fr}table,thead,tbody,tr,th,td{display:block}thead{position:absolute;clip:rect(0 0 0 0)}tbody tr{border-top:1px solid var(--ink);padding:18px 0}tbody th,tbody td{border:0;padding:10px 4px}tbody td:before{content:attr(data-status) " · " attr(data-tier);font:10px ui-monospace,SFMono-Regular,monospace;color:var(--muted)}footer{display:block}}
+.tier6-dispositions{border-left:2px solid var(--pass);margin:12px 0;padding-left:10px}.tier6-dispositions ul{margin:0}.tier6-dispositions li{margin:0 0 8px}.tier6-dispositions strong,.tier6-dispositions span{display:block}.tier6-dispositions strong{font:700 11px/1.4 ui-monospace,SFMono-Regular,monospace}.tier6-dispositions span{color:var(--muted)}
 </style></head><body><main>
-<header><section><p class="eyebrow">DESIGN:OS / native evidence / pilot 01</p><h1>Proof before promise.</h1><p class="boundary">AVAILABLE · PROVISIONAL · QUALIFIED DELIVERY FORBIDDEN</p><p class="intro">Two held-out SwiftUI products. Six independent evidence tiers. A lower-tier pass never authorizes a higher-tier claim.</p></section><aside class="meta"><p class="stamp">Integrity manifest</p><dl><dt>Routing base commit</dt><dd>967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6</dd><dt>Proof identity</dt><dd>0f3d8b4e461f321f4e44101f5e0800cfc1011398be68254c09320f681a3029b5</dd><dt>Generated</dt><dd>2026-08-29T06:28:05.000Z</dd></dl></aside></header>
-<section class="known" aria-labelledby="known-title"><h2 id="known-title">Known failures remain visible</h2><ul><li>unfiltered Xcode 26.5 accessibility audit</li></ul></section>
+<header><section><p class="eyebrow">DESIGN:OS / native evidence / pilot 01</p><h1>Proof before promise.</h1><p class="boundary">AVAILABLE · PROVISIONAL · QUALIFIED DELIVERY FORBIDDEN</p><p class="intro">Two held-out SwiftUI products. Six independent evidence tiers. A lower-tier pass never authorizes a higher-tier claim.</p></section><aside class="meta"><p class="stamp">Integrity manifest</p><dl><dt>Routing base commit</dt><dd>967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6</dd><dt>Proof identity</dt><dd>305f3cdf5b9f10506248f73681a886a30b716e0339a5fffe87a4a9d88aa209cc</dd><dt>Generated</dt><dd>2026-08-29T15:43:57Z</dd></dl></aside></header>
+<section class="known" aria-labelledby="known-title"><h2 id="known-title">Known failures remain visible</h2><ul><li>unfiltered Xcode 26.5 accessibility audit</li><li>native-ios Tier 2 generation provenance is unqualified because the retained history has an unverified Terra/Sol intermediate checkpoint</li></ul></section>
 <table><caption>PASS, FAIL, PENDING, or NOT RUN — no aggregate score.</caption><thead><tr><th>Evidence tier</th><th>iOS<small>native-ios-application</small></th><th>iPadOS<small>native-ipados-application</small></th></tr></thead><tbody><tr>
     <th scope="row"><span>1</span>Routing &amp; admission</th>
     <td data-tier="1" data-status="PASS">
@@ -23,30 +24,29 @@
   </td>
   </tr><tr>
     <th scope="row"><span>2</span>Generated build &amp; run</th>
-    <td data-tier="2" data-status="PASS">
-    <div class="status"><span aria-hidden="true"></span>PASS</div>
-    <p class="claim">The generated native iOS SwiftUI application builds and its seven unit plus seven UI simulator tests pass at the recorded source digest.</p>
+    <td data-tier="2" data-status="FAIL">
+    <div class="status"><span aria-hidden="true"></span>FAIL</div>
+    <p class="claim">No pure-generator Tier 2 claim is authorized. The retained origin checkpoint is valid, but final production paths have mixed Terra/Sol authorship without an immutable intermediate checkpoint.</p>
     <p class="environment">Xcode 26.5 (17F42), Swift 6.3.2, iOS 26.5</p>
-    <ul><li><a href="evidence/tier-02-generated-apps.json"><code>9796049eb363</code> evidence/tier-02-generated-apps.json</a></li><li><a href="apps/native-ios-dictionary-search/activation-receipt.json"><code>661da541effc</code> apps/native-ios-dictionary-search/activation-receipt.json</a></li><li><a href="apps/native-ios-dictionary-search/generation-report.md"><code>110ff7ea87d4</code> apps/native-ios-dictionary-search/generation-report.md</a></li></ul>
+    <ul><li><a href="evidence/tier-02-generated-apps.json"><code>3bbe22873120</code> evidence/tier-02-generated-apps.json</a></li><li><a href="apps/native-ios-tocchien-modernization/activation-receipt.json"><code>975aae6354d7</code> apps/native-ios-tocchien-modernization/activation-receipt.json</a></li><li><a href="apps/native-ios-tocchien-modernization/generation-report.md"><code>9c336a684900</code> apps/native-ios-tocchien-modernization/generation-report.md</a></li><li><a href="evidence/tier-02-source-lineage-tocchien-v1.json"><code>7f746045017e</code> evidence/tier-02-source-lineage-tocchien-v1.json</a></li></ul>
   </td>
     <td data-tier="2" data-status="PASS">
     <div class="status"><span aria-hidden="true"></span>PASS</div>
     <p class="claim">The generated native iPadOS SwiftUI application builds and its seven unit plus five UI simulator tests pass at the recorded source digest.</p>
     <p class="environment">Xcode 26.5 (17F42), Swift 6.3.2, iPadOS 26.5</p>
-    <ul><li><a href="evidence/tier-02-generated-apps.json"><code>9796049eb363</code> evidence/tier-02-generated-apps.json</a></li><li><a href="apps/native-ipados-project-workspace/capability-activation.json"><code>51b090bfc48a</code> apps/native-ipados-project-workspace/capability-activation.json</a></li><li><a href="apps/native-ipados-project-workspace/generation-report.md"><code>2e53cb266d55</code> apps/native-ipados-project-workspace/generation-report.md</a></li></ul>
+    <ul><li><a href="evidence/tier-02-generated-apps.json"><code>3bbe22873120</code> evidence/tier-02-generated-apps.json</a></li><li><a href="apps/native-ipados-project-workspace/capability-activation.json"><code>51b090bfc48a</code> apps/native-ipados-project-workspace/capability-activation.json</a></li><li><a href="apps/native-ipados-project-workspace/generation-report.md"><code>2e53cb266d55</code> apps/native-ipados-project-workspace/generation-report.md</a></li></ul>
   </td>
   </tr><tr>
     <th scope="row"><span>3</span>Simulator visual &amp; responsive</th>
-    <td data-tier="3" data-status="PENDING">
-    <div class="status"><span aria-hidden="true"></span>PENDING</div>
-    <p class="claim">Controller-replayed simulator behavior evidence supports accessibility-size Retry operability and local recovery at the exact source digest; visual craft remains unassessed.</p>
-    <p class="environment">iPhone 17e and iPhone 17 Pro simulator matrix</p>
+    <td data-tier="3" data-status="PASS">
+    <div class="status"><span aria-hidden="true"></span>PASS</div>
+    <p class="claim">Controller-replayed simulator behavior and independent visual review pass for the three TocChien screens at the exact recorded source and capture digests.</p>
+    <p class="environment">iPhone 17e and iPhone 17 Pro, iOS 26.5 simulators; Large visual captures plus internal AX XXXL reachability smoke</p>
 <section class="tier3-dispositions" aria-label="Tier 3 dispositions">
     <p class="disposition" data-behavior-disposition="PASS">Behavior: PASS</p>
-    <p class="disposition" data-visual-disposition="UNASSESSED">Visual: UNASSESSED</p>
-    <p class="visual-reason">Retained v1 curation is not a v2 independent visual review.</p>
+    <p class="disposition" data-visual-disposition="PASS">Visual: PASS</p>
   </section>
-    <ul><li><a href="evidence/tier-03-simulator-captures.json"><code>1bfded50833f</code> evidence/tier-03-simulator-captures.json</a></li></ul>
+    <ul><li><a href="evidence/tier-03-simulator-captures.json"><code>5001eb5431c1</code> evidence/tier-03-simulator-captures.json</a></li><li><a href="evidence/tier-03-review-receipt-tocchien-v2.json"><code>5dd09cf5a6e9</code> evidence/tier-03-review-receipt-tocchien-v2.json</a></li><li><a href="evidence/tier-03-curation-tocchien-v2.json"><code>38cd88d51425</code> evidence/tier-03-curation-tocchien-v2.json</a></li></ul>
   </td>
     <td data-tier="3" data-status="PENDING">
     <div class="status"><span aria-hidden="true"></span>PENDING</div>
@@ -57,7 +57,7 @@
     <p class="disposition" data-visual-disposition="UNASSESSED">Visual: UNASSESSED</p>
     <p class="visual-reason">Retained v1 curation is not a v2 independent visual review.</p>
   </section>
-    <ul><li><a href="evidence/tier-03-simulator-captures.json"><code>1bfded50833f</code> evidence/tier-03-simulator-captures.json</a></li></ul>
+    <ul><li><a href="evidence/tier-03-simulator-captures.json"><code>5001eb5431c1</code> evidence/tier-03-simulator-captures.json</a></li></ul>
   </td>
   </tr><tr>
     <th scope="row"><span>4</span>Physical iPhone &amp; VoiceOver</th>
@@ -89,11 +89,21 @@
   </td>
   </tr><tr>
     <th scope="row"><span>6</span>Owner acceptance</th>
-    <td data-tier="6" data-status="PENDING">
-    <div class="status"><span aria-hidden="true"></span>PENDING</div>
-    <p class="claim">No owner-acceptance claim is authorized.</p>
-    <p class="environment">Owner review not performed</p>
-    <span class="empty">No evidence claimed</span>
+    <td data-tier="6" data-status="PASS">
+    <div class="status"><span aria-hidden="true"></span>PASS</div>
+    <p class="claim">Owner accepted the three recorded TocChien iOS screen groups at the exact source and capture hashes. Scope is simulator-rendered screen design only; physical-device, live assistive-technology, iPad visual, and assurance claims remain unavailable.</p>
+    <p class="environment">Owner reviewed three full-resolution light captures; paired dark captures are bound to the current independent Tier 3 review.</p>
+<section class="tier6-dispositions" aria-label="Tier 6 owner screen verdicts"><ul><li data-screen-id="champion-catalogue">
+      <strong>champion-catalogue</strong> · ACCEPT
+      <span>Light: owner-direct · Dark: independent-tier-03</span>
+    </li><li data-screen-id="champion-detail">
+      <strong>champion-detail</strong> · ACCEPT
+      <span>Light: owner-direct · Dark: independent-tier-03</span>
+    </li><li data-screen-id="game-dictionary">
+      <strong>game-dictionary</strong> · ACCEPT
+      <span>Light: owner-direct · Dark: independent-tier-03</span>
+    </li></ul></section>
+    <ul><li><a href="evidence/tier-06-owner-verdict-tocchien-v1.json"><code>5836e5487992</code> evidence/tier-06-owner-verdict-tocchien-v1.json</a></li></ul>
   </td>
     <td data-tier="6" data-status="PENDING">
     <div class="status"><span aria-hidden="true"></span>PENDING</div>
@@ -102,5 +112,5 @@
     <span class="empty">No evidence claimed</span>
   </td>
   </tr></tbody></table>
-<footer><span>Owner verdicts are separate per exact artifact hash.</span><span>Manifest SHA-256 0f3d8b4e461f321f4e44101f5e0800cfc1011398be68254c09320f681a3029b5</span></footer>
+<footer><span>Owner verdicts are separate per exact artifact hash.</span><span>Manifest SHA-256 305f3cdf5b9f10506248f73681a886a30b716e0339a5fffe87a4a9d88aa209cc</span></footer>
 </main></body></html>

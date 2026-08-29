@@ -50,24 +50,31 @@ accessibility, hardware/device evidence, and owner acceptance remain separate qu
 
 ### Native mobile proof, retained
 
-The iOS and iPadOS arms now carry a [content-addressed proof board](showcase/native-mobile-proof-pilot/proof-board.html),
-not a promise based on source shape. Two held-out SwiftUI apps pass **26 simulator tests**
-(14 iOS + 12 iPadOS), with screenshots and independent curation retained beside the exact
-generator, source, environment, and failure history. The evidence remains provisional: it does
-not stand in for physical-device, live assistive-technology, or owner-acceptance witnesses.
+The [content-addressed proof board](showcase/native-mobile-proof-pilot/proof-board.html)
+retains the current evidence boundary. **TocChien** is the iOS proof: its three image-first
+screens — [champion catalogue](showcase/native-mobile-proof-pilot/evidence/screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png), champion detail, and game dictionary — carry
+**16 controller-replayed simulator tests**, paired light/dark captures, independent visual review,
+and owner acceptance bound to exact source and capture hashes. iPadOS retains **12 simulator
+tests**, for **28 simulator tests** across the board, but its visual review and owner acceptance
+remain pending.
+
+**This proof remains `PROVISIONAL`.** iOS Tier 2 provenance is unqualified: the final paths have
+mixed Terra/Sol authorship without an immutable intermediate checkpoint. It does not authorize
+physical-device, live assistive-technology, iPad visual, release-qualification, assurance-upgrade,
+or qualified-delivery claims.
 
 <table>
   <tr>
-    <th align="left">iOS — compact dictionary search</th>
+    <th align="left">iOS — TocChien three-screen proof</th>
     <th align="left">iPadOS — resizable project workspace</th>
   </tr>
   <tr>
-    <td><a href="showcase/native-mobile-proof-pilot/evidence/screenshots/native-ios-iphone-17e-results-light.png"><img src="showcase/native-mobile-proof-pilot/evidence/screenshots/native-ios-iphone-17e-results-light.png" alt="Native SwiftUI dictionary results rendered on the iPhone 17e simulator" /></a></td>
+    <td><a href="showcase/native-mobile-proof-pilot/evidence/screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png"><img src="showcase/native-mobile-proof-pilot/evidence/screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png" alt="TocChien champion catalogue in light appearance on the iPhone 17e simulator" /></a></td>
     <td><a href="showcase/native-mobile-proof-pilot/evidence/screenshots/native-ipados-ipad-mini-searching-light.png"><img src="showcase/native-mobile-proof-pilot/evidence/screenshots/native-ipados-ipad-mini-searching-light.png" alt="Native SwiftUI project workspace rendered on the iPad mini simulator" /></a></td>
   </tr>
   <tr>
-    <td><sub>Compact navigation, local search, loading and offline recovery, dark appearance, and accessibility-size Retry activation.</sub></td>
-    <td><sub>Split navigation, mixed-input affordances, real independent scenes, and selection preserved across orientation changes.</sub></td>
+    <td><sub>Champion catalogue, champion detail, and game dictionary retain paired light/dark captures, independent visual review, and exact-hash owner acceptance.</sub></td>
+    <td><sub>Simulator behavior evidence is retained; independent visual review and owner acceptance remain pending.</sub></td>
   </tr>
 </table>
 
@@ -1070,6 +1077,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-29 | **TocChien becomes the retained iOS proof** — three image-first SwiftUI screens, 16 controller-replayed simulator tests, paired light/dark evidence, independent visual review, and exact-hash owner acceptance; Tier 2 provenance and physical/live-accessibility limits remain explicit | `#242` |
 | 2026-08-29 | **Native iOS and iPadOS proof becomes inspectable** — two held-out SwiftUI apps, 26 passing simulator tests, retained render evidence, independent fail-then-pass curation, and a content-addressed board; hardware and owner gates remain explicitly open | `#240` |
 | 2026-08-28 | **The tell rules are kept honest by measurement** — a field corpus of real pages with adjudicated verdicts (a fix that silences a true positive goes red, naming it and quoting the reason), a printed live false-positive rate, a fact census so a zero can be read, every threshold in one table pinned by an executable boundary pair, three metamorphic laws, and a nightly mutation audit | `feat/design-facts-ir` |
 | 2026-08-27 | **Native macOS becomes an official DESIGN:OS arm** — `/ui:native-macos` now routes to its own SwiftUI-first workflow with provisional assurance, pinned activation evidence, and a fail-closed ban on qualified platform-delivery claims | `#231` |

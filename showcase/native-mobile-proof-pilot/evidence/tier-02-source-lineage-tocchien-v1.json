@@ -1,0 +1,73 @@
+{
+  "kind": "design-os.native-mobile-source-lineage",
+  "version": 1,
+  "capabilityId": "native-ios",
+  "artifact": "native-ios-application",
+  "briefId": "native-ios-tocchien-modernization-v1",
+  "originGenerator": "terra-native-ios-tocchien-generator-03",
+  "controller": "sol-controller-final-verifier-03",
+  "disposition": "MIXED_AUTHORSHIP_UNQUALIFIED",
+  "originCheckpoint": {
+    "sourceTreeAlgorithm": "design-os-source-tree-v1",
+    "sourceTreeSha256": "8ebbaaa431fd16d3c7b562d2ae02679f9b36d90908b4f7b826da16201a951c88",
+    "retainedEvidencePath": "evidence/tier-02-generated-apps.json"
+  },
+  "finalCheckpoint": {
+    "sourceTreeAlgorithm": "design-os-source-tree-v1",
+    "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7"
+  },
+  "productionRepairs": [
+    {
+      "path": "TocChienModernization/Views/ChampionCard.swift",
+      "originSha256": "56b040423534ad8b8fe89f13ce8513092700fc42e73a34ca17341c34ca24cb42",
+      "finalSha256": "22125d27d864392c7d6db923878f8f7b4181cfaa5398fc6684feb58bfeff810c"
+    },
+    {
+      "path": "TocChienModernization/Views/ChampionCatalogView.swift",
+      "originSha256": "e6323d21c3b8af0f7bd4ce67789e866ca6d7c14a3254cd42fdbcde29f007eec5",
+      "finalSha256": "610b01f5789f9906cfb2f8f5b04b3ba63b0fafadadd1c1a203729a6279c135e6"
+    },
+    {
+      "path": "TocChienModernization/Views/ChampionDetailView.swift",
+      "originSha256": "a6826cdfe475c3f6b3d089515bf505e8a9cfea8660d7b55c3cdcdeee0a8e09a1",
+      "finalSha256": "6f931ac62306d286ad13a8dcafdcc4ca564a4c1e91f61509c6e05b6f9507e4ad"
+    },
+    {
+      "path": "TocChienModernization/Views/GameDictionaryView.swift",
+      "originSha256": "dad09c2aeda05dc62444963427c1a1e2b94a3a1feb35b8e13486510164d51531",
+      "finalSha256": "efb701b592db7497dcf2982c1303ea407582d5f6714005286c48e3992df4df5b"
+    },
+    {
+      "path": "TocChienModernization/Views/HistoricalDataNotice.swift",
+      "originSha256": "b32af1434234d28464672dbb12230fec59b1823bd8d44907aba0aa1472a41dca",
+      "finalSha256": "757b5b36640afb70f1eaac4178bd94c85eb8480c946b33d301d8e5f9accc938e"
+    }
+  ],
+  "additionalChangedPaths": [
+    {
+      "path": "project.yml",
+      "originSha256": "4200ba768c085d006096e8bde2fca533349af8d259b967b7a7a09eb77f948a6d",
+      "finalSha256": "0cf925f0d82ad4f1a43b1549895ae8e051d0f10d6e8af9065a2d4d207af9463e",
+      "attribution": "REPORTED_TERRA_UNVERIFIED"
+    }
+  ],
+  "controllerVerificationHarness": [
+    {
+      "path": "TocChienModernizationUITests/TocChienLayoutUITests.swift",
+      "originSha256": "c7ef1a6c2955271f8ae96c2479196862aed91422e9f5c74dc7d2ad036dd06226",
+      "finalSha256": "33b0cc43e0da79b419657132d8ba8a7839b5172db4ff6a5d75c50bb3d9c1ec2c"
+    }
+  ],
+  "postGenerationVerificationHarness": [
+    {
+      "path": "TocChienModernizationUITests/TocChienBehaviorUITests.swift",
+      "originSha256": "694200900726f4df2b48300006fb7cefdadd7cf53bba666615a8549bd44c8bdd",
+      "finalSha256": "2354095a4256f447b3a7e765c891984f72b3b13cc8fafab5c0c69ac4ba57ae36"
+    }
+  ],
+  "intermediateCheckpoint": "UNVERIFIED_INTERMEDIATE",
+  "qualification": {
+    "tier2GenerationProvenance": "FAIL",
+    "reason": "Terra and Sol touched overlapping production paths after the retained origin checkpoint, but no intermediate checkpoint separates their edits. The final app remains eligible for exact-source build, behavior, and visual verification only."
+  }
+}

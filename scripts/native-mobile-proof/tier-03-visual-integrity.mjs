@@ -146,7 +146,14 @@ export function verifyTier3VisualEvidence({ arm, policy, tier, root, sourceTree,
   const curation = readJsonRef(root, refs.currentCuration, `${label} current curation`, findings);
   const receipt = readJsonRef(root, refs.reviewReceipt, `${label} review receipt`, findings);
   const ledger = readJsonRef(root, refs.captureLedger, `${label} capture ledger`, findings);
-  const { normal, stress, screenIds } = verifyTier3CaptureLedger(label, ledger, root, expectedSubject, findings);
+  const { normal, stress, screenIds } = verifyTier3CaptureLedger(
+    label,
+    ledger,
+    root,
+    expectedSubject,
+    findings,
+    { stressRequired: policy.visualStressRequired === true },
+  );
   verifyReceipt(label, receipt, refs, expectedSubject, policy, tasteRubricSha256, normal, stress, findings);
   verifyCuration(label, curation, refs, expectedSubject, receipt, normal, stress, screenIds, findings);
   return findings;

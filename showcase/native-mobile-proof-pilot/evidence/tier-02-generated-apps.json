@@ -1,7 +1,7 @@
 {
   "kind": "design-os.native-mobile-generated-app-evidence",
   "version": 1,
-  "capturedAt": "2026-08-29T05:07:33Z",
+  "capturedAt": "2026-08-29T12:00:00Z",
   "routingBaseGitSha": "967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6",
   "environment": {
     "xcode": "26.5 (17F42)",
@@ -12,45 +12,284 @@
   "arms": [
     {
       "capabilityId": "native-ios",
-      "generatorId": "terra-native-ios-pilot-01",
+      "generatorId": "terra-native-ios-tocchien-generator-03",
       "subject": {
         "capabilityId": "native-ios",
         "artifact": "native-ios-application",
-        "briefId": "native-ios-dictionary-search-v1",
-        "briefSha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04",
-        "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5"
+        "briefId": "native-ios-tocchien-modernization-v1",
+        "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+        "sourceTreeSha256": "8ebbaaa431fd16d3c7b562d2ae02679f9b36d90908b4f7b826da16201a951c88"
       },
       "sourceTreeAlgorithm": "design-os-source-tree-v1",
-      "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5",
+      "sourceTreeSha256": "8ebbaaa431fd16d3c7b562d2ae02679f9b36d90908b4f7b826da16201a951c88",
       "sourceFiles": [
-        { "path": "TocChienDictionary/Models/DictionaryEntry.swift", "byteCount": 1671, "sha256": "0503e5a031b8db00bb51cda485a1c3562f09cfce08ef86e61f226f7746024989" },
-        { "path": "TocChienDictionary/Models/DictionarySearchState.swift", "byteCount": 500, "sha256": "4c86767a1bb8c2518e1268f2ad9a9734cda9ef1940f6e9c861508fa91c179d25" },
-        { "path": "TocChienDictionary/Store/DictionarySearchStore.swift", "byteCount": 3468, "sha256": "37afd69ec0b0fbd988bec0f54db1da52326ab2ce37d4375d4e4186d88c9cf087" },
-        { "path": "TocChienDictionary/Support/LaunchConfiguration.swift", "byteCount": 1258, "sha256": "993d1a21a717be40da8e0c24855624a37df2b8150dd1d3a5b4860dcd2f81415a" },
-        { "path": "TocChienDictionary/TocChienDictionaryApp.swift", "byteCount": 431, "sha256": "e3e94848a5c9e051cdec7a84d52f0eb5ed89d2139cd2f2dce4e57a8ab9b90a25" },
-        { "path": "TocChienDictionary/Views/DictionaryDetailView.swift", "byteCount": 1784, "sha256": "b177e3c11af02438380d071916b2c7feec073668b81f5b168b4a1d3a2f3c326b" },
-        { "path": "TocChienDictionary/Views/DictionaryResultRow.swift", "byteCount": 1216, "sha256": "f188ee80274b5fc7755309e26a4a18f5e8ec9e3a2aba6b308e185ffcca346829" },
-        { "path": "TocChienDictionary/Views/DictionarySearchHeader.swift", "byteCount": 2394, "sha256": "55bd1e815af7856c8d2801979fad3771abd0692654ea6b3c7d6f054614bcd220" },
-        { "path": "TocChienDictionary/Views/DictionarySearchView.swift", "byteCount": 3789, "sha256": "13f125bf381779c15a604c7c5952d67e3ebd6436637c1b1f19da7005c2288cc6" },
-        { "path": "TocChienDictionary/Views/DictionaryStateContent.swift", "byteCount": 3342, "sha256": "2266d1897ae1029c91a8af80351814f272f8971b298467ea951c736b52aa765e" },
-        { "path": "TocChienDictionaryTests/DictionarySearchStoreTests.swift", "byteCount": 2246, "sha256": "441e90c587a630fb5cdf5fd62f8df2214811cb55b56936b8e22763d8165366e8" },
-        { "path": "TocChienDictionaryUITests/TocChienDictionaryUITests.swift", "byteCount": 3604, "sha256": "9b0dee1c6f793f9bba1a659a9cacee62657e21e3ed1c04e4ab218211c6d19d2d" },
-        { "path": "project.yml", "byteCount": 1523, "sha256": "6eaf4ef39271f06eea2b8d4d72ae5c24fecae24404ec60af2fc674af806d3b2a" }
+        {
+          "path": "Resources/Assets.xcassets/Contents.json",
+          "byteCount": 63,
+          "sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b"
+        },
+        {
+          "path": "Resources/Assets.xcassets/blitzcrank_champthumb.imageset/Contents.json",
+          "byteCount": 319,
+          "sha256": "5107448021e5506b148cdcd3ef893bf1d7694cbdaac38785326156ba740c6b07"
+        },
+        {
+          "path": "Resources/Assets.xcassets/blitzcrank_champthumb.imageset/blitzcrank_champthumb.jpg",
+          "byteCount": 44064,
+          "sha256": "87f26b32494e0c18e70e81db1a154423ad98de848191cd613e9d1e9d6961e6a2"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_blitzcrank.imageset/Contents.json",
+          "byteCount": 326,
+          "sha256": "4336338055e9d374159d02e92d3476e7059b065a56108abc709617f85ca6f9d0"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_blitzcrank.imageset/champion_overview_blitzcrank.png",
+          "byteCount": 213981,
+          "sha256": "fbde4b099a5478ff73f5451cbca9d7a9cec7aab87ac89c21b3f7ab55d7600fbe"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_jinx_zombieslay.imageset/Contents.json",
+          "byteCount": 331,
+          "sha256": "5dbd3a1cb0c722595a6d61b17ff0e2be3188b776c1ad5b7a5c83345cea859c7d"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_jinx_zombieslay.imageset/champion_overview_jinx_zombieslay.png",
+          "byteCount": 381397,
+          "sha256": "9a4847360e52bc200dda62d0490314187bba8a9204bbbfeb9579ac8bf038dd89"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_lux_spellthief.imageset/Contents.json",
+          "byteCount": 330,
+          "sha256": "b2ab09e42beca26fcedec1e39727d5fa7a250378205785f5fff693298b523a6b"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_lux_spellthief.imageset/champion_overview_lux_spellthief.png",
+          "byteCount": 224567,
+          "sha256": "21ff06accd6c2c0e49355cc48ca1e12cea7dd2bf5e34b16d248de3bbd1dbf2c4"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_ms.imageset/Contents.json",
+          "byteCount": 318,
+          "sha256": "1ac4a6f0072fb4a5f5312c9defff056b2f110800b0db1e34ac7b3b4b8c43e212"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_ms.imageset/champion_overview_ms.png",
+          "byteCount": 229877,
+          "sha256": "9662addf5187d0306a647dc08da9ee7c9eff1ec69f515115bdc068ff898f41bd"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_zed_deathsworn.imageset/Contents.json",
+          "byteCount": 330,
+          "sha256": "1f6b303d9e19e79be173b16e14bf1efe18f369a31d575944819ae9969c7bf68d"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_zed_deathsworn.imageset/champion_overview_zed_deathsworn.png",
+          "byteCount": 475172,
+          "sha256": "273eee9b247b3ba969819a302b8f0db6547ad695b6178dd7579c226272071c16"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_ziggs.imageset/Contents.json",
+          "byteCount": 321,
+          "sha256": "3c2b3b584e3772e8c9dd1594706d32313e163223c3bea72978fd0f883ac2cf7e"
+        },
+        {
+          "path": "Resources/Assets.xcassets/champion_overview_ziggs.imageset/champion_overview_ziggs.png",
+          "byteCount": 250941,
+          "sha256": "b619581b8cc2099da82904ca48b284fef325c3dd1ca67fef9f989bf057edc741"
+        },
+        {
+          "path": "Resources/Assets.xcassets/jinx_champthumb.imageset/Contents.json",
+          "byteCount": 313,
+          "sha256": "ae94e34bacbbe3e1dacb805e67568a06e2ee34b603f9a032c95661ceb059761e"
+        },
+        {
+          "path": "Resources/Assets.xcassets/jinx_champthumb.imageset/jinx_champthumb.jpg",
+          "byteCount": 38741,
+          "sha256": "1d0f94351bfb2cfe540eed46282ad198889bac73e72f2c51c54717b1d466c1cb"
+        },
+        {
+          "path": "Resources/Assets.xcassets/lux_champthumb.imageset/Contents.json",
+          "byteCount": 312,
+          "sha256": "bb60d55c172398a034d97bce374e8004a4ff5474a65b962162a9b82423d53714"
+        },
+        {
+          "path": "Resources/Assets.xcassets/lux_champthumb.imageset/lux_champthumb.jpg",
+          "byteCount": 41517,
+          "sha256": "64cf0362ec310969920e3f16787d0d6effbc38781327c3127e389c7b0cab541c"
+        },
+        {
+          "path": "Resources/Assets.xcassets/missfortune_champthumb.imageset/Contents.json",
+          "byteCount": 320,
+          "sha256": "37f1b0a3d7e98ffe2b1aae40b549dc052cf63312a15b5e197d571fb678ac1633"
+        },
+        {
+          "path": "Resources/Assets.xcassets/missfortune_champthumb.imageset/missfortune_champthumb.jpg",
+          "byteCount": 41454,
+          "sha256": "1d794a025b7d27f553628b1a32f2416ae2456a6f121b4382577067cfda6aec6a"
+        },
+        {
+          "path": "Resources/Assets.xcassets/zed_champthumb.imageset/Contents.json",
+          "byteCount": 312,
+          "sha256": "16379f60a8b0e06c5b4af0557f68fdc5a842cf38cc4c6d4c0f2bdb5bcdf3f0b7"
+        },
+        {
+          "path": "Resources/Assets.xcassets/zed_champthumb.imageset/zed_champthumb.jpg",
+          "byteCount": 40756,
+          "sha256": "aa4e563d29acbd89b3490b0c94eeb58041d0adefeaa1c35842fc182dcec442a1"
+        },
+        {
+          "path": "Resources/Assets.xcassets/ziggs_champthumb.imageset/Contents.json",
+          "byteCount": 314,
+          "sha256": "2e165ef91963deba740aa82edc9486040137579bfaef53137c8e35ca9607994e"
+        },
+        {
+          "path": "Resources/Assets.xcassets/ziggs_champthumb.imageset/ziggs_champthumb.jpg",
+          "byteCount": 35914,
+          "sha256": "080c501071905703f510f8a6eddf1abc3472b639556c2c6586c22262844a949f"
+        },
+        {
+          "path": "Resources/Content/champions.json",
+          "byteCount": 5160,
+          "sha256": "7c68541a0da3f05a76b5bf97fe0eac1a5222973f62bb59a036504253729d4567"
+        },
+        {
+          "path": "Resources/Content/content-metadata.json",
+          "byteCount": 299,
+          "sha256": "c913a31dd6e88835c4899a5e3d411bbdfacc13a0a7da5504b192d96e3843d62b"
+        },
+        {
+          "path": "Resources/Content/content-provenance.json",
+          "byteCount": 10386,
+          "sha256": "2025cd27c2488309e8878c24efc73a8df7c615afe2d5773befd26933be9194d0"
+        },
+        {
+          "path": "Resources/Content/dictionary.json",
+          "byteCount": 9045,
+          "sha256": "b05a5daf34689ae8cf16c7c5d7ee8455e7d0de4c08d644a630fa1479c62d1ff4"
+        },
+        {
+          "path": "TocChienModernization/App/TocChienSceneView.swift",
+          "byteCount": 598,
+          "sha256": "22a6715691b607fcb248883bafa0f11bdd1f6f8bf686a0402194dd5e02fbaa64"
+        },
+        {
+          "path": "TocChienModernization/Data/LocalContentRepository.swift",
+          "byteCount": 3211,
+          "sha256": "33761fdd90a5eabf9ddfdebd9b8c0e92afb157804bc90fc4618aa86e673616e0"
+        },
+        {
+          "path": "TocChienModernization/Models/Champion.swift",
+          "byteCount": 326,
+          "sha256": "7d6c3f632c939dcf02c5e5e3a39c7e935de6d6d53a8ace9d1fccfca0344f451d"
+        },
+        {
+          "path": "TocChienModernization/Models/ChampionAsset.swift",
+          "byteCount": 1168,
+          "sha256": "55064843365c1a4a9969c620475ba83ab43ec435b563fb70bb1730e551439693"
+        },
+        {
+          "path": "TocChienModernization/Models/ChampionRoute.swift",
+          "byteCount": 80,
+          "sha256": "9fbd971c4ec31579318015c435ef85265e9e92ecd660fe369728bc6d567a7046"
+        },
+        {
+          "path": "TocChienModernization/Models/DictionaryEntry.swift",
+          "byteCount": 267,
+          "sha256": "806cddb932affbf448da7040a8f9ad3776803faea8ec309ad2f3cadb37f94b36"
+        },
+        {
+          "path": "TocChienModernization/State/TocChienStore.swift",
+          "byteCount": 1831,
+          "sha256": "703494d072e8cad693a6eb6f3afaa26121305288546a45423e4c2bb9eefdea6e"
+        },
+        {
+          "path": "TocChienModernization/Support/UITestLaunchConfiguration.swift",
+          "byteCount": 866,
+          "sha256": "5594729ddf4ee00db9b4aa83e7762781ea75017b4ed64043198a8e560cc6d21f"
+        },
+        {
+          "path": "TocChienModernization/TocChienModernizationApp.swift",
+          "byteCount": 160,
+          "sha256": "6186c6195640a93597df0238aa1dce35ce6470afa0822c193488ce63fb7f906a"
+        },
+        {
+          "path": "TocChienModernization/Views/ChampionCard.swift",
+          "byteCount": 1325,
+          "sha256": "56b040423534ad8b8fe89f13ce8513092700fc42e73a34ca17341c34ca24cb42"
+        },
+        {
+          "path": "TocChienModernization/Views/ChampionCatalogView.swift",
+          "byteCount": 1221,
+          "sha256": "e6323d21c3b8af0f7bd4ce67789e866ca6d7c14a3254cd42fdbcde29f007eec5"
+        },
+        {
+          "path": "TocChienModernization/Views/ChampionDetailView.swift",
+          "byteCount": 2099,
+          "sha256": "a6826cdfe475c3f6b3d089515bf505e8a9cfea8660d7b55c3cdcdeee0a8e09a1"
+        },
+        {
+          "path": "TocChienModernization/Views/GameDictionaryView.swift",
+          "byteCount": 2004,
+          "sha256": "dad09c2aeda05dc62444963427c1a1e2b94a3a1feb35b8e13486510164d51531"
+        },
+        {
+          "path": "TocChienModernization/Views/HistoricalDataNotice.swift",
+          "byteCount": 897,
+          "sha256": "b32af1434234d28464672dbb12230fec59b1823bd8d44907aba0aa1472a41dca"
+        },
+        {
+          "path": "TocChienModernization/Views/RootTabView.swift",
+          "byteCount": 1117,
+          "sha256": "b07c985e17856a212a9681f130e2cec484a3fec816c55420cd10ee20a19304d5"
+        },
+        {
+          "path": "TocChienModernizationTests/ContentRepositoryTests.swift",
+          "byteCount": 3385,
+          "sha256": "7f6b7e3c1f0d017234ad09250c3c24a832468fe5ec563cd15ccc3842904d3b29"
+        },
+        {
+          "path": "TocChienModernizationTests/TocChienStoreTests.swift",
+          "byteCount": 2006,
+          "sha256": "9a95d57d03a9d542d8340d93bf33c9bc2da1c1788917831c2b019864e181ba1e"
+        },
+        {
+          "path": "TocChienModernizationUITests/TocChienBehaviorUITests.swift",
+          "byteCount": 4300,
+          "sha256": "694200900726f4df2b48300006fb7cefdadd7cf53bba666615a8549bd44c8bdd"
+        },
+        {
+          "path": "TocChienModernizationUITests/TocChienLayoutUITests.swift",
+          "byteCount": 6032,
+          "sha256": "c7ef1a6c2955271f8ae96c2479196862aed91422e9f5c74dc7d2ad036dd06226"
+        },
+        {
+          "path": "project.yml",
+          "byteCount": 1754,
+          "sha256": "4200ba768c085d006096e8bde2fca533349af8d259b967b7a7a09eb77f948a6d"
+        }
       ],
       "controllerSourceEdits": 0,
+      "controllerVerificationHarnessEdits": 1,
+      "controllerVerificationHarnessFiles": [
+        {
+          "path": "TocChienModernizationUITests/TocChienLayoutUITests.swift",
+          "sha256": "c7ef1a6c2955271f8ae96c2479196862aed91422e9f5c74dc7d2ad036dd06226"
+        }
+      ],
       "activationReceipt": {
-        "path": "../apps/native-ios-dictionary-search/activation-receipt.json",
-        "sha256": "661da541effc4b05e6ae7d41e1393c0ec6102dfc6d6879295de2e9e37f8d183a"
+        "path": "../apps/native-ios-tocchien-modernization/activation-receipt.json",
+        "sha256": "975aae6354d7cac0566df58ae76fcf6466e4cdab125b8e44485260bab6f970c6"
       },
       "generationReport": {
-        "path": "../apps/native-ios-dictionary-search/generation-report.md",
-        "sha256": "110ff7ea87d4c095af9577afed49c7c7f459f94304d22026ca5f1f3329eb8bdb"
+        "path": "../apps/native-ios-tocchien-modernization/generation-report.md",
+        "sha256": "9c336a68490060c63985314946ecb64b60be6b2b0c4a8501f5abc47c146fd0c8"
       },
       "controllerVerification": {
-        "verifierId": "sol-controller-final-verifier-01",
+        "verifierId": "sol-controller-final-verifier-03",
         "destination": "iPhone 17 Pro, iOS 26.5",
-        "unitTests": 7,
-        "uiTests": 7,
+        "unitTests": 8,
+        "uiTests": 8,
         "failures": 0,
         "exitCode": 0
       }
@@ -68,18 +307,66 @@
       "sourceTreeAlgorithm": "design-os-source-tree-v1",
       "sourceTreeSha256": "252ffa7bb609714e336047f8ca2eafd27f1a8c1ced509626480c6aa4f94fac6f",
       "sourceFiles": [
-        { "path": "Sources/ProjectBriefWorkspace/Info.plist", "byteCount": 816, "sha256": "9e746732ee7c49d67462c76f7cd58afd69a1fe8949ee8d33ca7cd2eb353fce6d" },
-        { "path": "Sources/ProjectBriefWorkspace/ProjectBriefWorkspaceApp.swift", "byteCount": 946, "sha256": "d2a556365c86f31a4971a50164e8aa8fe55220047172e6fc768d732cf5576ec2" },
-        { "path": "Sources/ProjectBriefWorkspace/ProjectDetailView.swift", "byteCount": 4865, "sha256": "1f3bb21b4193a5e2dcf04e259ee005fa8f327ce4660e4945111fe0e3def275d4" },
-        { "path": "Sources/ProjectBriefWorkspace/ProjectModels.swift", "byteCount": 3022, "sha256": "92792727558885d5a2c4a5d7aa1906faae76bf7bf37cca477ca2174007957b81" },
-        { "path": "Sources/ProjectBriefWorkspace/ProjectSidebarView.swift", "byteCount": 4814, "sha256": "20473953cb5333b9904825ba403b45722dffddcdddcaee6c245bf427d1280c46" },
-        { "path": "Sources/ProjectBriefWorkspace/SceneSessionIDReader.swift", "byteCount": 866, "sha256": "4dbebb482bef6cfd6cf049e2c11f4bb0dcc3a1bc6fa52d2f0a9470f9245d0651" },
-        { "path": "Sources/ProjectBriefWorkspace/WorkspaceSceneRegistry.swift", "byteCount": 1847, "sha256": "19360d1a7458de9a983f94cafb57d6c6d87d2b2c7ceb87d47cc028709934093b" },
-        { "path": "Sources/ProjectBriefWorkspace/WorkspaceSceneView.swift", "byteCount": 7277, "sha256": "ddd37b5e0e76b8ba56725073784e14512591d74ee342022b820583a9438e0826" },
-        { "path": "Sources/ProjectBriefWorkspace/WorkspaceStateBanner.swift", "byteCount": 1763, "sha256": "82b1f8cf9e68432cb00d4e8a3d71e95deffb3db5aa04aab72e402dcddeefecc4" },
-        { "path": "Tests/ProjectBriefWorkspaceTests/ProjectModelsTests.swift", "byteCount": 2251, "sha256": "2362bc38c3b1004e8e3cbf5b024bba343b0821b8a1bbe944c285a324d6c3a283" },
-        { "path": "Tests/ProjectBriefWorkspaceUITests/ProjectBriefWorkspaceUITests.swift", "byteCount": 6426, "sha256": "17b24ff5c719ff29f6367c53efc59e43f0961f7801475cba46c47a3974d43504" },
-        { "path": "project.yml", "byteCount": 1842, "sha256": "1f0ad22f675538c22c977aed46978353de6b76489e0739c993ee438530004ef0" }
+        {
+          "path": "Sources/ProjectBriefWorkspace/Info.plist",
+          "byteCount": 816,
+          "sha256": "9e746732ee7c49d67462c76f7cd58afd69a1fe8949ee8d33ca7cd2eb353fce6d"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/ProjectBriefWorkspaceApp.swift",
+          "byteCount": 946,
+          "sha256": "d2a556365c86f31a4971a50164e8aa8fe55220047172e6fc768d732cf5576ec2"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/ProjectDetailView.swift",
+          "byteCount": 4865,
+          "sha256": "1f3bb21b4193a5e2dcf04e259ee005fa8f327ce4660e4945111fe0e3def275d4"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/ProjectModels.swift",
+          "byteCount": 3022,
+          "sha256": "92792727558885d5a2c4a5d7aa1906faae76bf7bf37cca477ca2174007957b81"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/ProjectSidebarView.swift",
+          "byteCount": 4814,
+          "sha256": "20473953cb5333b9904825ba403b45722dffddcdddcaee6c245bf427d1280c46"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/SceneSessionIDReader.swift",
+          "byteCount": 866,
+          "sha256": "4dbebb482bef6cfd6cf049e2c11f4bb0dcc3a1bc6fa52d2f0a9470f9245d0651"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/WorkspaceSceneRegistry.swift",
+          "byteCount": 1847,
+          "sha256": "19360d1a7458de9a983f94cafb57d6c6d87d2b2c7ceb87d47cc028709934093b"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/WorkspaceSceneView.swift",
+          "byteCount": 7277,
+          "sha256": "ddd37b5e0e76b8ba56725073784e14512591d74ee342022b820583a9438e0826"
+        },
+        {
+          "path": "Sources/ProjectBriefWorkspace/WorkspaceStateBanner.swift",
+          "byteCount": 1763,
+          "sha256": "82b1f8cf9e68432cb00d4e8a3d71e95deffb3db5aa04aab72e402dcddeefecc4"
+        },
+        {
+          "path": "Tests/ProjectBriefWorkspaceTests/ProjectModelsTests.swift",
+          "byteCount": 2251,
+          "sha256": "2362bc38c3b1004e8e3cbf5b024bba343b0821b8a1bbe944c285a324d6c3a283"
+        },
+        {
+          "path": "Tests/ProjectBriefWorkspaceUITests/ProjectBriefWorkspaceUITests.swift",
+          "byteCount": 6426,
+          "sha256": "17b24ff5c719ff29f6367c53efc59e43f0961f7801475cba46c47a3974d43504"
+        },
+        {
+          "path": "project.yml",
+          "byteCount": 1842,
+          "sha256": "1f0ad22f675538c22c977aed46978353de6b76489e0739c993ee438530004ef0"
+        }
       ],
       "controllerSourceEdits": 0,
       "activationReceipt": {

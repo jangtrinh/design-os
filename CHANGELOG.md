@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-29 - TocChien becomes the retained iOS proof
+
+### Changed
+- The public [native mobile proof](showcase/native-mobile-proof-pilot/proof-board.html) now centers
+  on the three-screen TocChien iOS evidence, including the [accepted light catalogue
+  capture](showcase/native-mobile-proof-pilot/evidence/screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png).
+  It records 16 controller-replayed iOS simulator tests and 12 iPadOS simulator tests (28 total);
+  paired iOS light/dark captures, independent visual review, and owner acceptance are bound to
+  exact source and capture hashes.
+- The proof remains **PROVISIONAL**: iOS Tier 2 stays unqualified because the final paths have
+  mixed Terra/Sol authorship without an immutable intermediate checkpoint; iPadOS visual review
+  and owner acceptance remain pending. It makes no physical-device, live assistive-technology,
+  release-qualification, assurance-upgrade, or qualified-delivery claim.
+
 ## 2026-08-28 - the rules are now kept honest by measurement, not by memory
 
 ### Added
