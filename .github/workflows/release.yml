@@ -52,6 +52,7 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test
+      - run: npm run proof:native-mobile
 
       # OIDC trusted publishing (configured on npmjs.com for this repo+workflow):
       # no token secret — npm exchanges the Actions OIDC identity directly.

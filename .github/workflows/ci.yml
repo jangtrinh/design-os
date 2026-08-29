@@ -19,6 +19,7 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test
+      - run: npm run proof:native-mobile
       # The knowledge-core linter (spec 002 P2) — the "unit tier" for knowledge/.
       # Runs the built binary against the repo's own knowledge/ so index/persona/
       # xref/provenance drift fails CI. Free, deterministic, no model call.

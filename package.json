@@ -49,8 +49,10 @@
     "audit:mutation": "stryker run",
     "personas:verify": "node scripts/derive-personas-json.mjs",
     "verify:examples": "node scripts/normalize-example-theme.mjs --check && node scripts/normalize-example-roles.mjs --check && node scripts/build-examples-gallery.mjs --check && node scripts/capture-example-images.mjs --check",
+    "proof:native-mobile": "node scripts/native-mobile-proof/verify-proof-manifest.mjs && node scripts/native-mobile-proof/render-proof-board.mjs --check",
+    "proof:native-mobile:render": "node scripts/native-mobile-proof/render-proof-board.mjs",
     "prereg:022": "node tests/fixtures/spec-022-prereg/scripts/validate-prereg.mjs",
-    "prepublishOnly": "npm run typecheck && npm run lint && npm run build && npm test"
+    "prepublishOnly": "npm run typecheck && npm run lint && npm run build && npm test && npm run proof:native-mobile"
   },
   "license": "MIT",
   "devDependencies": {
