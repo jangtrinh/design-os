@@ -1,0 +1,21 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Modernize the selected TocChien historical guide slice as a native iOS 26 SwiftUI candidate for iPhone.",
+  "requestedSurface": "native-ios",
+  "requestedArtifact": "native-ios-application",
+  "inputKind": "owner-authorized-historical-content",
+  "selectionEvidence": {
+    "kind": "owner-authorization",
+    "quote": "Cứ mang sang đi.",
+    "role": "selected-legacy-content-copy"
+  },
+  "brief": {
+    "path": "showcase/native-mobile-proof-pilot/briefs/native-ios-tocchien-modernization.json",
+    "sha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246"
+  },
+  "promotion": {
+    "requested": false,
+    "reason": "Phase 1 and Phase 2 create a non-authoritative candidate only; proof policy and manifest remain unchanged."
+  }
+}

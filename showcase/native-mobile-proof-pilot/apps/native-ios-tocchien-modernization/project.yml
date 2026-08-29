@@ -1,0 +1,60 @@
+name: TocChienModernization
+options:
+  bundleIdPrefix: com.designos.proofpilot
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  TocChienModernization:
+    type: application
+    platform: iOS
+    sources:
+      - path: TocChienModernization
+      - path: Resources
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.designos.proofpilot.tocchien-modernization
+        PRODUCT_NAME: TocChienModernization
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Tốc Chiến
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+  TocChienModernizationTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: TocChienModernizationTests
+    dependencies:
+      - target: TocChienModernization
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.designos.proofpilot.tocchien-modernization.tests
+        GENERATE_INFOPLIST_FILE: YES
+  TocChienModernizationUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: TocChienModernizationUITests
+    dependencies:
+      - target: TocChienModernization
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.designos.proofpilot.tocchien-modernization.uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  TocChienModernization:
+    build:
+      targets:
+        TocChienModernization: all
+        TocChienModernizationTests: [test]
+        TocChienModernizationUITests: [test]
+    test:
+      targets:
+        - TocChienModernizationTests
+        - TocChienModernizationUITests
