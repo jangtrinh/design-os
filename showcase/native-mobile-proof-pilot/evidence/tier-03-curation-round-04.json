@@ -1,0 +1,53 @@
+{
+  "kind": "design-os.native-mobile-curation",
+  "version": 1,
+  "round": 4,
+  "reviewerId": "luna-native-mobile-curator-04",
+  "capturedAt": "2026-08-29T06:57:05Z",
+  "arms": [
+    {
+      "capabilityId": "native-ios",
+      "subject": {
+        "capabilityId": "native-ios",
+        "artifact": "native-ios-application",
+        "briefId": "native-ios-dictionary-search-v1",
+        "briefSha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04",
+        "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5"
+      },
+      "captureLedgerSha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5",
+      "disposition": "PASS",
+      "blockers": [],
+      "supportedClaims": [
+        "Retained iPhone simulator captures coherently show results and offline states across light, dark, and accessibility-size conditions.",
+        "Retained XCTest proves the accessibility-sized Retry control is reachable, hittable, activates, and recovers local results.",
+        "The exact source retains semantic labels, focus management, minimum target sizing, and reduced-motion and reduced-transparency branches."
+      ],
+      "observations": [
+        "The largest-text screenshot is captured mid-scroll and does not itself show the Retry button; XCTest supplies the interaction witness."
+      ]
+    },
+    {
+      "capabilityId": "native-ipados",
+      "subject": {
+        "capabilityId": "native-ipados",
+        "artifact": "native-ipados-application",
+        "briefId": "native-ipados-project-workspace-v1",
+        "briefSha256": "77d3c3959ae478549c6d6715dd2fa072e9ea3bad22787779bbfdf8d288b39771",
+        "sourceTreeSha256": "252ffa7bb609714e336047f8ca2eafd27f1a8c1ced509626480c6aa4f94fac6f"
+      },
+      "captureLedgerSha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5",
+      "disposition": "PASS",
+      "blockers": [],
+      "supportedClaims": [
+        "Retained iPad simulator captures coherently show split layouts on iPad mini and iPad Pro in light and dark appearances.",
+        "Retained XCTest proves two connected scenes preserve distinct selections and that selection survives orientation transitions.",
+        "The exact source uses public scene-session identity and prunes closed-scene selections while retaining live scenes."
+      ],
+      "observations": [
+        "The source ledger now includes the unchanged 816-byte XcodeGen-produced Info.plist build input; no Swift record changed.",
+        "The independent-scene still image alone does not prove two windows; XCTest supplies that witness."
+      ]
+    }
+  ],
+  "claimBoundary": "Tier 3 is simulator-bounded. No physical-device, live assistive-technology, Stage Manager, hardware-input, owner-acceptance, or qualified-delivery claim is authorized."
+}

@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build the held-out Project Brief workspace as a native iPadOS SwiftUI application for iPad",
+  "requestedSurface": "native-ipados",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "native iPadOS SwiftUI application",
+    "role": "requested-artifact"
+  }
+}

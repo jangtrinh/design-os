@@ -1,0 +1,52 @@
+{
+  "kind": "design-os.native-mobile-curation",
+  "version": 1,
+  "round": 3,
+  "reviewerId": "luna-native-mobile-curator-03",
+  "capturedAt": "2026-08-29T06:28:05Z",
+  "arms": [
+    {
+      "capabilityId": "native-ios",
+      "subject": {
+        "capabilityId": "native-ios",
+        "artifact": "native-ios-application",
+        "briefId": "native-ios-dictionary-search-v1",
+        "briefSha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04",
+        "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5"
+      },
+      "captureLedgerSha256": "bab2ebc470036744e86607881a0735e254dfc9aa1fecbcf9a5e1d3d9c573ce7b",
+      "disposition": "PASS",
+      "blockers": [],
+      "supportedClaims": [
+        "The retained iPhone simulator matrix renders coherent results and offline states in light, dark, and accessibility-size conditions.",
+        "XCTest proves the accessibility-sized Retry control becomes hittable, activates, and recovers local results.",
+        "The current exact source retains semantic labels, focus, minimum targets, and reduced motion and transparency branches."
+      ],
+      "observations": [
+        "The largest-text screenshot is captured mid-scroll; XCTest supplies the interaction witness that the still image cannot."
+      ]
+    },
+    {
+      "capabilityId": "native-ipados",
+      "subject": {
+        "capabilityId": "native-ipados",
+        "artifact": "native-ipados-application",
+        "briefId": "native-ipados-project-workspace-v1",
+        "briefSha256": "77d3c3959ae478549c6d6715dd2fa072e9ea3bad22787779bbfdf8d288b39771",
+        "sourceTreeSha256": "532a4635150a29cf129d2b47861efc0b1807872e6200530148abad5dc63dff58"
+      },
+      "captureLedgerSha256": "bab2ebc470036744e86607881a0735e254dfc9aa1fecbcf9a5e1d3d9c573ce7b",
+      "disposition": "PASS",
+      "blockers": [],
+      "supportedClaims": [
+        "The retained iPad simulator matrix renders coherent split layouts on iPad mini and iPad Pro in light and dark appearances.",
+        "XCTest proves two connected scenes retain distinct scene-scoped selections and that selection survives orientation transitions.",
+        "The current exact source reads public scene-session identity and prunes closed-scene selections while retaining live scenes."
+      ],
+      "observations": [
+        "Closed-scene pruning is supported by production lifecycle wiring and unit coverage rather than a retained UI screenshot."
+      ]
+    }
+  ],
+  "claimBoundary": "Tier 3 is simulator-bounded. No physical-device, live assistive-technology, Stage Manager, hardware-input, owner-acceptance, or qualified-delivery claim is authorized."
+}
