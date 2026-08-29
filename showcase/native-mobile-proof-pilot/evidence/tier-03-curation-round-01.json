@@ -1,0 +1,36 @@
+{
+  "kind": "design-os.native-mobile-curation",
+  "version": 1,
+  "round": 1,
+  "reviewerId": "luna-native-mobile-curator-01",
+  "capturedAt": "2026-08-29T05:13:00Z",
+  "arms": [
+    {
+      "capabilityId": "native-ios",
+      "disposition": "FAIL",
+      "blockers": [
+        "The accessibility-sized offline capture does not retain the Retry local lookup control in frame.",
+        "The UI test checks retry existence but not hittability, activation, and successful recovery."
+      ],
+      "supportedClaims": [
+        "Light results layouts render without visible clipping on iPhone 17e and iPhone 17 Pro.",
+        "Dark offline hierarchy renders coherently at accessibility-extra-large.",
+        "Semantic navigation, labels, focus, minimum targets, and motion/transparency branches exist in source."
+      ]
+    },
+    {
+      "capabilityId": "native-ipados",
+      "disposition": "FAIL",
+      "blockers": [
+        "The second-window capture and UI test exercise a visual state, not two proven independent scenes.",
+        "No simulator assertion proves collapse/expand or compact/full transition selection preservation."
+      ],
+      "supportedClaims": [
+        "Captured mini and Pro layouts show coherent split columns in light and dark modes.",
+        "Selected rows, detail hierarchy, cards, and primary actions fit without visible clipping.",
+        "Native split navigation, scene storage, keyboard shortcuts, focus, hover, context menu, and motion/transparency branches exist in source."
+      ]
+    }
+  ],
+  "claimBoundary": "No physical-device, live assistive-technology, owner-acceptance, or qualified-delivery claim is authorized."
+}

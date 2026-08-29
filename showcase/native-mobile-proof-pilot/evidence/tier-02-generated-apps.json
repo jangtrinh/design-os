@@ -1,0 +1,112 @@
+{
+  "kind": "design-os.native-mobile-generated-app-evidence",
+  "version": 1,
+  "capturedAt": "2026-08-29T05:07:33Z",
+  "routingBaseGitSha": "967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6",
+  "environment": {
+    "xcode": "26.5 (17F42)",
+    "swift": "6.3.2",
+    "xcodegen": "2.45.4",
+    "simulatorRuntime": "iOS 26.5"
+  },
+  "arms": [
+    {
+      "capabilityId": "native-ios",
+      "generatorId": "terra-native-ios-pilot-01",
+      "subject": {
+        "capabilityId": "native-ios",
+        "artifact": "native-ios-application",
+        "briefId": "native-ios-dictionary-search-v1",
+        "briefSha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04",
+        "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5"
+      },
+      "sourceTreeAlgorithm": "design-os-source-tree-v1",
+      "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5",
+      "sourceFiles": [
+        { "path": "TocChienDictionary/Models/DictionaryEntry.swift", "byteCount": 1671, "sha256": "0503e5a031b8db00bb51cda485a1c3562f09cfce08ef86e61f226f7746024989" },
+        { "path": "TocChienDictionary/Models/DictionarySearchState.swift", "byteCount": 500, "sha256": "4c86767a1bb8c2518e1268f2ad9a9734cda9ef1940f6e9c861508fa91c179d25" },
+        { "path": "TocChienDictionary/Store/DictionarySearchStore.swift", "byteCount": 3468, "sha256": "37afd69ec0b0fbd988bec0f54db1da52326ab2ce37d4375d4e4186d88c9cf087" },
+        { "path": "TocChienDictionary/Support/LaunchConfiguration.swift", "byteCount": 1258, "sha256": "993d1a21a717be40da8e0c24855624a37df2b8150dd1d3a5b4860dcd2f81415a" },
+        { "path": "TocChienDictionary/TocChienDictionaryApp.swift", "byteCount": 431, "sha256": "e3e94848a5c9e051cdec7a84d52f0eb5ed89d2139cd2f2dce4e57a8ab9b90a25" },
+        { "path": "TocChienDictionary/Views/DictionaryDetailView.swift", "byteCount": 1784, "sha256": "b177e3c11af02438380d071916b2c7feec073668b81f5b168b4a1d3a2f3c326b" },
+        { "path": "TocChienDictionary/Views/DictionaryResultRow.swift", "byteCount": 1216, "sha256": "f188ee80274b5fc7755309e26a4a18f5e8ec9e3a2aba6b308e185ffcca346829" },
+        { "path": "TocChienDictionary/Views/DictionarySearchHeader.swift", "byteCount": 2394, "sha256": "55bd1e815af7856c8d2801979fad3771abd0692654ea6b3c7d6f054614bcd220" },
+        { "path": "TocChienDictionary/Views/DictionarySearchView.swift", "byteCount": 3789, "sha256": "13f125bf381779c15a604c7c5952d67e3ebd6436637c1b1f19da7005c2288cc6" },
+        { "path": "TocChienDictionary/Views/DictionaryStateContent.swift", "byteCount": 3342, "sha256": "2266d1897ae1029c91a8af80351814f272f8971b298467ea951c736b52aa765e" },
+        { "path": "TocChienDictionaryTests/DictionarySearchStoreTests.swift", "byteCount": 2246, "sha256": "441e90c587a630fb5cdf5fd62f8df2214811cb55b56936b8e22763d8165366e8" },
+        { "path": "TocChienDictionaryUITests/TocChienDictionaryUITests.swift", "byteCount": 3604, "sha256": "9b0dee1c6f793f9bba1a659a9cacee62657e21e3ed1c04e4ab218211c6d19d2d" },
+        { "path": "project.yml", "byteCount": 1523, "sha256": "6eaf4ef39271f06eea2b8d4d72ae5c24fecae24404ec60af2fc674af806d3b2a" }
+      ],
+      "controllerSourceEdits": 0,
+      "activationReceipt": {
+        "path": "../apps/native-ios-dictionary-search/activation-receipt.json",
+        "sha256": "661da541effc4b05e6ae7d41e1393c0ec6102dfc6d6879295de2e9e37f8d183a"
+      },
+      "generationReport": {
+        "path": "../apps/native-ios-dictionary-search/generation-report.md",
+        "sha256": "110ff7ea87d4c095af9577afed49c7c7f459f94304d22026ca5f1f3329eb8bdb"
+      },
+      "controllerVerification": {
+        "verifierId": "sol-controller-final-verifier-01",
+        "destination": "iPhone 17 Pro, iOS 26.5",
+        "unitTests": 7,
+        "uiTests": 7,
+        "failures": 0,
+        "exitCode": 0
+      }
+    },
+    {
+      "capabilityId": "native-ipados",
+      "generatorId": "terra-native-ipados-pilot-01",
+      "subject": {
+        "capabilityId": "native-ipados",
+        "artifact": "native-ipados-application",
+        "briefId": "native-ipados-project-workspace-v1",
+        "briefSha256": "77d3c3959ae478549c6d6715dd2fa072e9ea3bad22787779bbfdf8d288b39771",
+        "sourceTreeSha256": "252ffa7bb609714e336047f8ca2eafd27f1a8c1ced509626480c6aa4f94fac6f"
+      },
+      "sourceTreeAlgorithm": "design-os-source-tree-v1",
+      "sourceTreeSha256": "252ffa7bb609714e336047f8ca2eafd27f1a8c1ced509626480c6aa4f94fac6f",
+      "sourceFiles": [
+        { "path": "Sources/ProjectBriefWorkspace/Info.plist", "byteCount": 816, "sha256": "9e746732ee7c49d67462c76f7cd58afd69a1fe8949ee8d33ca7cd2eb353fce6d" },
+        { "path": "Sources/ProjectBriefWorkspace/ProjectBriefWorkspaceApp.swift", "byteCount": 946, "sha256": "d2a556365c86f31a4971a50164e8aa8fe55220047172e6fc768d732cf5576ec2" },
+        { "path": "Sources/ProjectBriefWorkspace/ProjectDetailView.swift", "byteCount": 4865, "sha256": "1f3bb21b4193a5e2dcf04e259ee005fa8f327ce4660e4945111fe0e3def275d4" },
+        { "path": "Sources/ProjectBriefWorkspace/ProjectModels.swift", "byteCount": 3022, "sha256": "92792727558885d5a2c4a5d7aa1906faae76bf7bf37cca477ca2174007957b81" },
+        { "path": "Sources/ProjectBriefWorkspace/ProjectSidebarView.swift", "byteCount": 4814, "sha256": "20473953cb5333b9904825ba403b45722dffddcdddcaee6c245bf427d1280c46" },
+        { "path": "Sources/ProjectBriefWorkspace/SceneSessionIDReader.swift", "byteCount": 866, "sha256": "4dbebb482bef6cfd6cf049e2c11f4bb0dcc3a1bc6fa52d2f0a9470f9245d0651" },
+        { "path": "Sources/ProjectBriefWorkspace/WorkspaceSceneRegistry.swift", "byteCount": 1847, "sha256": "19360d1a7458de9a983f94cafb57d6c6d87d2b2c7ceb87d47cc028709934093b" },
+        { "path": "Sources/ProjectBriefWorkspace/WorkspaceSceneView.swift", "byteCount": 7277, "sha256": "ddd37b5e0e76b8ba56725073784e14512591d74ee342022b820583a9438e0826" },
+        { "path": "Sources/ProjectBriefWorkspace/WorkspaceStateBanner.swift", "byteCount": 1763, "sha256": "82b1f8cf9e68432cb00d4e8a3d71e95deffb3db5aa04aab72e402dcddeefecc4" },
+        { "path": "Tests/ProjectBriefWorkspaceTests/ProjectModelsTests.swift", "byteCount": 2251, "sha256": "2362bc38c3b1004e8e3cbf5b024bba343b0821b8a1bbe944c285a324d6c3a283" },
+        { "path": "Tests/ProjectBriefWorkspaceUITests/ProjectBriefWorkspaceUITests.swift", "byteCount": 6426, "sha256": "17b24ff5c719ff29f6367c53efc59e43f0961f7801475cba46c47a3974d43504" },
+        { "path": "project.yml", "byteCount": 1842, "sha256": "1f0ad22f675538c22c977aed46978353de6b76489e0739c993ee438530004ef0" }
+      ],
+      "controllerSourceEdits": 0,
+      "activationReceipt": {
+        "path": "../apps/native-ipados-project-workspace/capability-activation.json",
+        "sha256": "51b090bfc48af8bc24a1b15d436edf1fa1d5d13ab4820f92eebe036a28a426df"
+      },
+      "generationReport": {
+        "path": "../apps/native-ipados-project-workspace/generation-report.md",
+        "sha256": "2e53cb266d5539c10c43cdae16d18a77cd594fd25c70bbcdc46ba9f7e50da77d"
+      },
+      "controllerVerification": {
+        "verifierId": "sol-controller-final-verifier-01",
+        "destination": "iPad Pro 13-inch (M5), iOS 26.5",
+        "unitTests": 7,
+        "uiTests": 5,
+        "failures": 0,
+        "exitCode": 0
+      },
+      "builtPlistEvidence": {
+        "UIApplicationSceneManifest.UIApplicationSupportsMultipleScenes": true,
+        "rootUIApplicationSupportsMultipleScenes": "absent"
+      }
+    }
+  ],
+  "limitations": [
+    "Simulator build and XCTest evidence does not prove physical-device behavior.",
+    "No live assistive-technology witness was performed.",
+    "No owner acceptance is implied."
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-os.dev/schemas/native-mobile-proof-manifest.schema.json",
+  "title": "DESIGN:OS native mobile proof manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "version", "routingBaseGitSha", "assurance", "claimPolicy", "generatedAt", "knownFailures", "arms"],
+  "properties": {
+    "kind": { "const": "design-os.native-mobile-proof" },
+    "version": { "const": 1 },
+    "routingBaseGitSha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "assurance": { "const": "PROVISIONAL" },
+    "claimPolicy": { "const": "QUALIFIED_DELIVERY_FORBIDDEN" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "knownFailures": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true },
+    "arms": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/arm" },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": ["capabilityId"],
+            "properties": { "capabilityId": { "const": "native-ios" } }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["capabilityId"],
+            "properties": { "capabilityId": { "const": "native-ipados" } }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "digestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "tier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "authorizedClaim", "environment", "evidence"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "status": { "enum": ["PASS", "FAIL", "PENDING", "NOT RUN"] },
+        "authorizedClaim": { "type": "string", "minLength": 1 },
+        "environment": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/digestRef" }, "uniqueItems": true },
+        "witnesses": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "PASS" } }, "required": ["status"] },
+          "then": { "properties": { "evidence": { "minItems": 1 } } }
+        }
+      ]
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capabilityId", "artifact", "brief", "tiers"],
+      "properties": {
+        "capabilityId": { "enum": ["native-ios", "native-ipados"] },
+        "artifact": { "enum": ["native-ios-application", "native-ipados-application"] },
+        "brief": { "$ref": "#/$defs/digestRef" },
+        "tiers": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/tier" },
+          "allOf": [
+            { "contains": { "properties": { "id": { "const": 1 } }, "required": ["id"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "id": { "const": 2 } }, "required": ["id"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "id": { "const": 3 } }, "required": ["id"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "id": { "const": 4 } }, "required": ["id"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "id": { "const": 5 } }, "required": ["id"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "id": { "const": 6 } }, "required": ["id"] }, "minContains": 1, "maxContains": 1 }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "capabilityId": { "const": "native-ios" } }, "required": ["capabilityId"] },
+          "then": { "properties": { "artifact": { "const": "native-ios-application" } } }
+        },
+        {
+          "if": { "properties": { "capabilityId": { "const": "native-ipados" } }, "required": ["capabilityId"] },
+          "then": { "properties": { "artifact": { "const": "native-ipados-application" } } }
+        }
+      ]
+    }
+  }
+}

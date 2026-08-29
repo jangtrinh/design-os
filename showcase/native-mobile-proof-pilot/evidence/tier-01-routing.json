@@ -1,0 +1,215 @@
+{
+  "kind": "design-os.native-mobile-routing-evidence",
+  "version": 1,
+  "capturedAt": "2026-08-29T04:07:06.529Z",
+  "routingBaseGitSha": "967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6",
+  "environment": {
+    "node": "v22.23.1",
+    "npm": "10.9.8",
+    "macOS": "26.5.2",
+    "xcode": "Xcode 26.5 / Build version 17F42"
+  },
+  "cleanConsumer": {
+    "initCommand": "ui init --all --cwd <fresh-temp-dir> --json",
+    "installedArtifacts": [
+      {
+        "path": ".claude/commands/ui/native-ios.md",
+        "sha256": "eda95956d28ab9521650d2fc289000d9c839efcca9d96073a52ec9825a513adb"
+      },
+      {
+        "path": ".claude/commands/ui/native-ipados.md",
+        "sha256": "987ad69d759e13cfedf32c0c0973d10c7c01e54fe7a9a3f9df70ab33a41648cd"
+      },
+      {
+        "path": ".claude/skills/design-os-native-ios-craft/SKILL.md",
+        "sha256": "07e6d0e1a431b7196a6bfd15c34130fe335773023f33114e80953db27da42319"
+      },
+      {
+        "path": ".claude/skills/design-os-native-ipados-craft/SKILL.md",
+        "sha256": "e281c5909993eb6d28cb079fde50935060c2828c76daee8432f354d0da6518ce"
+      },
+      {
+        "path": ".agent/workflows/ui-native-ios.md",
+        "sha256": "1c8b7436533cae8cd3afd4eea557c96cbbcd89a4db16c5d45d5ec71e38f506f9"
+      },
+      {
+        "path": ".agent/workflows/ui-native-ipados.md",
+        "sha256": "a3f584bfb14fce7eda9663bfaeddc56d4fd5a73428e3867ee49f2cc239e0e19e"
+      },
+      {
+        "path": ".agent/skills/design-os-native-ios-craft/SKILL.md",
+        "sha256": "07e6d0e1a431b7196a6bfd15c34130fe335773023f33114e80953db27da42319"
+      },
+      {
+        "path": ".agent/skills/design-os-native-ipados-craft/SKILL.md",
+        "sha256": "e281c5909993eb6d28cb079fde50935060c2828c76daee8432f354d0da6518ce"
+      },
+      {
+        "path": "AGENTS.ease-design.json",
+        "sha256": "2e3be268f3543ce9c36b136d377b157b7dd690d71e16a308d02d814f6e35830e"
+      },
+      {
+        "path": "AGENTS.md",
+        "sha256": "301193455ad58231c1133cb09ae9f8f3ebd08e294774f089565cbc67632baddf"
+      }
+    ]
+  },
+  "activations": [
+    {
+      "request": {
+        "kind": "capability-activation-request",
+        "version": 1,
+        "rawRequest": "Build a native iOS app for iPhone in SwiftUI",
+        "requestedSurface": "native-ios",
+        "inputKind": "words",
+        "selectionEvidence": {
+          "kind": "quoted-request",
+          "quote": "native iOS app",
+          "role": "requested-artifact"
+        }
+      },
+      "receipt": {
+        "kind": "capability-activation",
+        "version": 2,
+        "requestDigest": "sha256:a1ec2bb4a9cf7b52de35e5bce679d6f469ca95a878cac5ae8710a68a4370d901",
+        "catalogDigest": "sha256:80980ec7c9c6af161a0f737d6db60bd94a9e05699a4f35427034900035ad1b81",
+        "requestedSurface": "native-ios",
+        "inputKind": "words",
+        "selectionEvidence": {
+          "kind": "quoted-request",
+          "quote": "native iOS app",
+          "role": "requested-artifact"
+        },
+        "routingDisposition": "ROUTED",
+        "assurance": "PROVISIONAL",
+        "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
+        "route": "native-ios",
+        "artifact": "native-ios-application",
+        "selectedKnowledge": [
+          "need-routing",
+          "apple-swiftui-craft",
+          "native-ios-craft",
+          "content-design",
+          "design-review",
+          "verification-honesty"
+        ],
+        "machineWitnesses": [
+          "knowledge activate"
+        ],
+        "renderedWitnesses": [
+          "iphone-simulator-capture",
+          "accessibility-tree-observation"
+        ],
+        "manualWitnesses": [
+          "VoiceOver",
+          "real-device",
+          "independent-curator",
+          "owner-visible-acceptance"
+        ],
+        "action": "Proceed with the native-ios workflow under provisional assurance. Owner and live-device witnesses remain pending; qualified platform delivery is forbidden."
+      }
+    },
+    {
+      "request": {
+        "kind": "capability-activation-request",
+        "version": 1,
+        "rawRequest": "Build a native iPadOS workspace in SwiftUI",
+        "requestedSurface": "native-ipados",
+        "inputKind": "words",
+        "selectionEvidence": {
+          "kind": "quoted-request",
+          "quote": "native iPadOS workspace",
+          "role": "requested-artifact"
+        }
+      },
+      "receipt": {
+        "kind": "capability-activation",
+        "version": 2,
+        "requestDigest": "sha256:85d9d360ec99496534bdd1ddbc269a506268ed94b2388b1a3e13355ace474378",
+        "catalogDigest": "sha256:80980ec7c9c6af161a0f737d6db60bd94a9e05699a4f35427034900035ad1b81",
+        "requestedSurface": "native-ipados",
+        "inputKind": "words",
+        "selectionEvidence": {
+          "kind": "quoted-request",
+          "quote": "native iPadOS workspace",
+          "role": "requested-artifact"
+        },
+        "routingDisposition": "ROUTED",
+        "assurance": "PROVISIONAL",
+        "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
+        "route": "native-ipados",
+        "artifact": "native-ipados-application",
+        "selectedKnowledge": [
+          "need-routing",
+          "apple-swiftui-craft",
+          "native-ipados-craft",
+          "content-design",
+          "design-review",
+          "verification-honesty"
+        ],
+        "machineWitnesses": [
+          "knowledge activate"
+        ],
+        "renderedWitnesses": [
+          "ipad-windowed-simulator-capture",
+          "accessibility-tree-observation"
+        ],
+        "manualWitnesses": [
+          "VoiceOver",
+          "Full Keyboard Access",
+          "hardware-keyboard-and-pointer",
+          "resizable-window-transitions",
+          "real-device",
+          "independent-curator",
+          "owner-visible-acceptance"
+        ],
+        "action": "Proceed with the native-ipados workflow under provisional assurance. Owner, live-device, keyboard, pointer, and window-transition witnesses remain pending; qualified platform delivery is forbidden."
+      }
+    }
+  ],
+  "hostileCases": [
+    {
+      "request": {
+        "kind": "capability-activation-request",
+        "version": 1,
+        "rawRequest": "Build an Apple mobile app",
+        "requestedSurface": "native-mobile",
+        "inputKind": "words",
+        "selectionEvidence": {
+          "kind": "quoted-request",
+          "quote": "Apple mobile app",
+          "role": "requested-artifact"
+        }
+      },
+      "result": {
+        "ok": false,
+        "command": "knowledge activate",
+        "data": {
+          "supportedProfiles": [
+            "native-ios",
+            "native-ipados",
+            "native-macos",
+            "web-marketing"
+          ]
+        },
+        "error": {
+          "code": "UNKNOWN_CAPABILITY",
+          "message": "unknown capability 'native-mobile'"
+        }
+      },
+      "expected": "UNKNOWN_CAPABILITY; caller must clarify native-ios versus native-ipados"
+    }
+  ],
+  "focusedGate": {
+    "files": [
+      "tests/capability-pilot-receipt.test.ts",
+      "tests/capability-profile-resolution.test.ts",
+      "tests/cmd-init-built-binary.test.ts",
+      "tests/native-mobile-arms.test.ts"
+    ],
+    "totalTests": 43,
+    "passedTests": 43,
+    "failedTests": 0,
+    "success": true
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "kind": "design-os.held-out-native-brief",
+  "version": 1,
+  "id": "native-ipados-project-workspace-v1",
+  "surface": "native-ipados",
+  "artifact": "native-ipados-application",
+  "title": "Project Brief Workspace",
+  "heldOut": true,
+  "audience": "A product designer reviewing active briefs across touch, keyboard, and pointer workflows.",
+  "productContract": {
+    "primaryTask": "Find a project, inspect its brief, change status, and keep independent selections in two windows.",
+    "projects": [
+      { "name": "Commonplace", "status": "In review", "owner": "Jang", "summary": "A calm notes workspace with resilient sync states." },
+      { "name": "DESIGN:OS Mobile", "status": "Active", "owner": "Native team", "summary": "Evidence-driven SwiftUI arms for iPhone and iPad." },
+      { "name": "OmniAct", "status": "Draft", "owner": "Product", "summary": "A focused command surface for macOS." }
+    ]
+  },
+  "requiredFlows": [
+    "sidebar search to list selection to detail",
+    "empty and offline recovery",
+    "collapse and expand split columns without losing selection",
+    "continuous narrow, intermediate, and full-width resizing",
+    "open a second independent window",
+    "keyboard commands and visible focus",
+    "pointer hover plus context menu without hover-only meaning",
+    "background and per-scene state restoration"
+  ],
+  "requiredStates": ["ready", "searching", "selection", "empty", "offline", "second-window"],
+  "platformContract": [
+    "NavigationSplitView owns adaptive column behavior",
+    "touch, hardware keyboard, pointer, Full Keyboard Access, and VoiceOver have equivalent essential outcomes",
+    "selection survives column collapse and expansion",
+    "each scene keeps independent state",
+    "semantic system controls and colors",
+    "44 by 44 point minimum interactive targets",
+    "Dynamic Type through the largest accessibility category",
+    "Reduce Motion and Reduce Transparency are honored"
+  ],
+  "constraints": [
+    "SwiftUI-first; UIKit only for a documented missing capability",
+    "local sanitized content; no network dependency",
+    "no HTML or sibling-platform fallback",
+    "no rubric, reference screenshot, sibling output, or reviewer feedback is supplied to the generator"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "command": "knowledge activate",
+  "data": {
+    "kind": "capability-activation",
+    "version": 2,
+    "requestDigest": "sha256:5fcac64edc5dec469d89070654b3893f7b1f14e50397af705937b16bc3f013d6",
+    "catalogDigest": "sha256:80980ec7c9c6af161a0f737d6db60bd94a9e05699a4f35427034900035ad1b81",
+    "requestedSurface": "native-ipados",
+    "inputKind": "words",
+    "selectionEvidence": {
+      "kind": "quoted-request",
+      "quote": "native iPadOS SwiftUI application",
+      "role": "requested-artifact"
+    },
+    "routingDisposition": "ROUTED",
+    "assurance": "PROVISIONAL",
+    "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
+    "route": "native-ipados",
+    "artifact": "native-ipados-application",
+    "selectedKnowledge": [
+      "need-routing",
+      "apple-swiftui-craft",
+      "native-ipados-craft",
+      "content-design",
+      "design-review",
+      "verification-honesty"
+    ],
+    "machineWitnesses": [
+      "knowledge activate"
+    ],
+    "renderedWitnesses": [
+      "ipad-windowed-simulator-capture",
+      "accessibility-tree-observation"
+    ],
+    "manualWitnesses": [
+      "VoiceOver",
+      "Full Keyboard Access",
+      "hardware-keyboard-and-pointer",
+      "resizable-window-transitions",
+      "real-device",
+      "independent-curator",
+      "owner-visible-acceptance"
+    ],
+    "action": "Proceed with the native-ipados workflow under provisional assurance. Owner, live-device, keyboard, pointer, and window-transition witnesses remain pending; qualified platform delivery is forbidden."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "kind": "design-os.native-mobile-curation",
+  "version": 1,
+  "round": 2,
+  "reviewerId": "luna-native-mobile-curator-02",
+  "capturedAt": "2026-08-29T05:59:43Z",
+  "arms": [
+    {
+      "capabilityId": "native-ios",
+      "disposition": "PASS",
+      "blockers": [],
+      "supportedClaims": [
+        "Simulator evidence shows coherent light results layouts on iPhone 17e and iPhone 17 Pro without visible clipping.",
+        "The accessibility-sized offline state keeps Retry reachable; XCTest proves that it is hittable, activates, and recovers local results.",
+        "Dark mode, accessibility text sizing, semantic labels, focus, minimum targets, and reduced motion/transparency branches are represented in retained source and evidence."
+      ],
+      "observations": [
+        "The retained accessibility Retry screenshot is mid-scroll and partially obscures upper content; this does not block the bounded operability claim because the control and its result are asserted by XCTest."
+      ]
+    },
+    {
+      "capabilityId": "native-ipados",
+      "disposition": "PASS",
+      "blockers": [],
+      "supportedClaims": [
+        "Simulator evidence shows coherent split layouts on iPad mini and iPad Pro in light and dark appearances.",
+        "The built scene manifest enables multiple scenes and XCTest proves two connected scenes retain distinct scene-scoped selections.",
+        "XCTest proves the OmniAct selection survives portrait to landscape to portrait on the iPad Pro simulator."
+      ],
+      "observations": []
+    }
+  ],
+  "claimBoundary": "Tier 3 is simulator-bounded. No physical-device, live assistive-technology, Stage Manager, hardware-input, owner-acceptance, or qualified-delivery claim is authorized."
+}

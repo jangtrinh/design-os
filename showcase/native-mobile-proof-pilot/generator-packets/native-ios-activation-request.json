@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Build the held-out TocChien dictionary search as a native iOS SwiftUI application for iPhone",
+  "requestedSurface": "native-ios",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "native iOS SwiftUI application",
+    "role": "requested-artifact"
+  }
+}

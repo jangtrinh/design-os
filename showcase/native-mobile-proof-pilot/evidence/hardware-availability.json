@@ -1,0 +1,30 @@
+{
+  "kind": "design-os.native-mobile-hardware-availability",
+  "version": 1,
+  "capturedAt": "2026-08-29T04:13:24.005Z",
+  "physicalDevices": [],
+  "physicalDeviceCommandResult": "No devices found.",
+  "simulatorAnchors": [
+    {
+      "name": "iPhone 17 Pro",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "state": "Shutdown"
+    },
+    {
+      "name": "iPhone 17e",
+      "udid": "F8D467DB-B09B-4705-AF67-6C9EFF8FB646",
+      "state": "Shutdown"
+    },
+    {
+      "name": "iPad Pro 13-inch (M5)",
+      "udid": "128BCB39-C380-4C13-AD6C-E033AB5DF4C2",
+      "state": "Shutdown"
+    },
+    {
+      "name": "iPad mini (A17 Pro)",
+      "udid": "7BD1E89A-07BD-4528-84DC-9191627ECE4D",
+      "state": "Shutdown"
+    }
+  ],
+  "disposition": "PHYSICAL_DEVICE_TIERS_NOT_RUN"
+}
