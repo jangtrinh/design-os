@@ -28,6 +28,12 @@ Every arm/tier cell is `PASS`, `FAIL`, `PENDING`, or `NOT RUN`. A pass needs con
 evidence, an exact environment, and a bounded authorized claim. Hardware identity is mandatory for
 Tiers 4–5; explicit owner `ACCEPT` is mandatory for Tier 6.
 
+Tier 3 records behavior and visual craft independently. `behaviorDisposition` is `PASS`, `FAIL`,
+or `NOT_RUN`; `visualDisposition` is `PASS`, `FAIL`, or `UNASSESSED`. The aggregate can be `PASS`
+only when both are `PASS`; either failure makes it `FAIL`, and an unassessed visual review leaves it
+`PENDING` (or `NOT RUN` when behavior was not run). A behavior pass proves controller-replayed tests,
+the exact source subject, environment, and retained behavior evidence. It never creates a taste pass.
+
 ## Frozen pilot boundary
 
 - Brief bytes are hashed before generators start.
@@ -35,7 +41,21 @@ Tiers 4–5; explicit owner `ACCEPT` is mandatory for Tier 6.
 - Same-run agent self-repair is recorded. Controller source repair fails Tier 2.
 - Existing gallery PNGs are reference provenance only; they are not generated-app or owner proof.
 - The known unfiltered Xcode 26.5 accessibility audit remains visible until resolved and independently rerun.
-- No numeric aesthetic score. Tier 3 requires a reviewer who did not generate or repair the app and zero blockers.
+- A visual `PASS` requires a controller-issued receipt with controller/reviewer Orca session and worker identities,
+  a distinct non-empty generator identity, immutable rubric/brief/source/ledger hashes, and exact six normal plus three
+  stress capture paths. Display names are not an independence proof.
+- A visual `PASS` requires one v2 current curation, three exact scored screens, both light and dark normal hashes
+  per screen, zero blockers, and all auto-fails explicitly false. Stress captures are inspection-only and cannot
+  supply normal taste scores. Normal captures use content-size class `large`; stress captures use
+  `accessibility-extra-extra-extra-large`.
+- Layout, Typography, Spacing, and Consistency score at least 8 per screen. Motion, Iconography, and
+  Depth-Surface score at least 7 when applicable; `NOT_APPLICABLE` needs a rationale and never applies to the
+  four 8-point axes. Every score includes non-whitespace evidence, and scored/N/A result shapes are exclusive. No
+  average, rounding, or score substitution is accepted.
+- The v2 capture ledger records point-space above-fold geometry: viewport dimensions, complete rows, detail hero
+  and next-section positions, and dictionary chrome height. Declared pixel dimensions must match each PNG IHDR, and
+  ledger subjects must match captured capabilities exactly. Legacy v1 curation remains retained history and is
+  explicitly `UNASSESSED` for visual craft until a v2 receipt-bound review exists.
 
 ## Current environment boundary
 

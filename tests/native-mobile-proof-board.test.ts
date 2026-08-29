@@ -51,4 +51,14 @@ describe("native mobile proof board", () => {
     expect(html).toContain('<img src="evidence/screenshots/native-ios-proof.png"');
     expect(html).toContain('alt="Visual witness for native-ios-proof.png"');
   });
+
+  it("renders Tier 3 behavior and visual dispositions separately from its aggregate status", () => {
+    const html = renderNativeMobileProofBoard(manifest);
+    expect(html).toContain('data-behavior-disposition="PASS"');
+    expect(html).toContain('data-visual-disposition="UNASSESSED"');
+    expect(html).toContain("Behavior: PASS");
+    expect(html).toContain("Visual: UNASSESSED");
+    expect(html).toContain("PENDING");
+    expect(html).not.toContain("Visual: PASS");
+  });
 });
