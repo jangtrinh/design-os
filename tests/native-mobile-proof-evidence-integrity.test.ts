@@ -24,13 +24,18 @@ describe("native mobile proof evidence integrity", () => {
     ]));
   });
 
-  it("binds a Tier 3 PASS reviewer to retained zero-blocker curation", () => {
+  it("keeps retained v1 curation out of the current Tier 3 visual decision", () => {
     const { manifest, root } = copyCheckedProofTree();
     const ios = manifest.arms.find((arm) => arm.capabilityId === "native-ios")!;
-    ios.tiers[2]!.witnesses ??= {};
-    ios.tiers[2]!.witnesses.independentReviewerId = "invented-reviewer";
+    const tier3 = ios.tiers[2]!;
+    expect(tier3).toMatchObject({
+      status: "PENDING",
+      witnesses: { behaviorDisposition: "PASS", visualDisposition: "UNASSESSED" },
+    });
+    expect(tier3.evidence.map(({ path }) => path)).not.toContain("evidence/tier-03-curation-round-04.json");
+    tier3.status = "PASS";
     expect(verifyNativeMobileProofManifest(manifest, root)).toContain(
-      "native-ios tier 3 reviewer is not backed by retained PASS curation",
+      "native-ios tier 3 aggregate status must be PENDING",
     );
   });
 

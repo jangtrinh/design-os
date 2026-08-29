@@ -7,7 +7,7 @@
   "required": ["kind", "version", "routingBaseGitSha", "assurance", "claimPolicy", "generatedAt", "knownFailures", "arms"],
   "properties": {
     "kind": { "const": "design-os.native-mobile-proof" },
-    "version": { "const": 1 },
+    "version": { "const": 2 },
     "routingBaseGitSha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
     "assurance": { "const": "PROVISIONAL" },
     "claimPolicy": { "const": "QUALIFIED_DELIVERY_FORBIDDEN" },
@@ -50,6 +50,115 @@
         "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capabilityId", "artifact", "briefId", "briefSha256", "sourceTreeSha256"],
+      "properties": {
+        "capabilityId": { "enum": ["native-ios", "native-ipados"] },
+        "artifact": { "enum": ["native-ios-application", "native-ipados-application"] },
+        "briefId": { "type": "string", "minLength": 1 },
+        "briefSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sourceTreeSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "controllerVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unitTests", "uiTests", "failures", "exitCode"],
+      "properties": {
+        "unitTests": { "type": "integer", "minimum": 0 },
+        "uiTests": { "type": "integer", "minimum": 0 },
+        "failures": { "type": "integer", "minimum": 0 },
+        "exitCode": { "type": "integer" }
+      }
+    },
+    "tier3Behavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject", "controllerVerification", "environment", "evidence"],
+      "properties": {
+        "subject": { "$ref": "#/$defs/subject" },
+        "controllerVerification": { "$ref": "#/$defs/controllerVerification" },
+        "environment": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/digestRef" } }
+      }
+    },
+    "tier3Visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reason": { "type": "string", "minLength": 1 },
+        "currentCuration": { "$ref": "#/$defs/digestRef" },
+        "reviewReceipt": { "$ref": "#/$defs/digestRef" },
+        "captureLedger": { "$ref": "#/$defs/digestRef" }
+      }
+    },
+    "tier3Witnesses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generatorId", "behaviorDisposition", "visualDisposition", "behavior", "visual"],
+      "properties": {
+        "generatorId": { "type": "string", "minLength": 1 },
+        "behaviorDisposition": { "enum": ["PASS", "FAIL", "NOT_RUN"] },
+        "visualDisposition": { "enum": ["PASS", "FAIL", "UNASSESSED"] },
+        "behavior": { "type": "object" },
+        "visual": { "$ref": "#/$defs/tier3Visual" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "behaviorDisposition": { "const": "PASS" } }, "required": ["behaviorDisposition"] },
+          "then": { "properties": { "behavior": { "$ref": "#/$defs/tier3Behavior" } } }
+        },
+        {
+          "if": { "properties": { "visualDisposition": { "const": "PASS" } }, "required": ["visualDisposition"] },
+          "then": { "properties": { "visual": { "allOf": [{ "$ref": "#/$defs/tier3Visual" }, { "required": ["currentCuration", "reviewReceipt", "captureLedger"] }] } } }
+        },
+        {
+          "if": { "properties": { "visualDisposition": { "const": "UNASSESSED" } }, "required": ["visualDisposition"] },
+          "then": { "properties": { "visual": { "allOf": [{ "$ref": "#/$defs/tier3Visual" }, { "required": ["reason"] }] } } }
+        }
+      ]
+    },
+    "pointSpaceGeometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coordinateSpace", "screens"],
+      "properties": {
+        "coordinateSpace": { "const": "points" },
+        "screens": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["screenId", "kind", "viewport", "aboveFold"],
+            "properties": {
+              "screenId": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["catalog", "detail", "dictionary"] },
+              "viewport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["widthPoints", "heightPoints"],
+                "properties": { "widthPoints": { "type": "number", "exclusiveMinimum": 0 }, "heightPoints": { "type": "number", "exclusiveMinimum": 0 } }
+              },
+              "aboveFold": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["completeRows"],
+                "properties": {
+                  "completeRows": { "type": "integer", "minimum": 0 },
+                  "heroHeightPoints": { "type": "number", "minimum": 0 },
+                  "nextSectionStartYPoints": { "type": "number", "minimum": 0 },
+                  "chromeHeightPoints": { "type": "number", "minimum": 0 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "tier": {
       "type": "object",
       "additionalProperties": false,
@@ -66,6 +175,10 @@
         {
           "if": { "properties": { "status": { "const": "PASS" } }, "required": ["status"] },
           "then": { "properties": { "evidence": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": 3 } }, "required": ["id"] },
+          "then": { "required": ["witnesses"], "properties": { "witnesses": { "$ref": "#/$defs/tier3Witnesses" } } }
         }
       ]
     },
