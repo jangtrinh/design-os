@@ -1,0 +1,239 @@
+{
+  "kind": "design-os.native-mobile-tier-03-visual-curation",
+  "version": 2,
+  "capabilityId": "native-ios",
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "1cab8287d9906ebae4f7b30cdcda2fedcb3b99c41a97ef53c1a94cc6790508a0"
+  },
+  "captureLedgerSha256": "0c226674b2734fe789e46a62235aecc6603b638ad2d740618e3190fa7d3246b3",
+  "reviewReceiptSha256": "3472cb55ecf5f41e9aa6dcf782c23f15489ea099556f5913232e304709573e90",
+  "reviewer": {
+    "sessionId": "ctx_14e13fc065d3",
+    "workerId": "term_15eb730a-811f-459e-a2c3-db62e547725a"
+  },
+  "blockers": [
+    "stress accessibility clipping: screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png cuts the first one-column card off after its artwork; the BlitzCrank name and role are absent before the persistent lower chrome, so the card identity is not readable in the retained AX XXXL frame.",
+    "stress accessibility clipping: screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png cuts the second line of the ACE definition beneath an opaque white lower inset above the search chrome; only the tops of the Quét Sạch. glyphs remain visible."
+  ],
+  "autoFails": {
+    "duplicate-screen-title": false,
+    "duplicate-search-surface": false,
+    "wrong-or-missing-authorized-asset": false,
+    "missing-historical-notice": false,
+    "normal-large-clipping-or-overlap": false,
+    "excessive-chrome-or-padding": false,
+    "below-fold-density": false,
+    "oversized-detail-hero": false,
+    "placeholder-or-generic-scaffold": false,
+    "below-axis-threshold": false
+  },
+  "screenReviews": [
+    {
+      "screenId": "champion-catalogue",
+      "normalCaptures": {
+        "lightLarge": {
+          "path": "screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png",
+          "sha256": "f4bedc0cab43e78d537d73d8add6bd17db378330597cf06b70ba7528e45b7aba"
+        },
+        "darkLarge": {
+          "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-dark-large.png",
+          "sha256": "d9c5d11f337087a83d446eae509e3601e80b8d320852a690dd0dca8d2b81c470"
+        }
+      },
+      "appearanceObservations": [
+        "Normal Large light: Tướng, the historical notice, four fully labeled champion cards across two rows, the partially visible third-row artwork, selected Tướng, and search are legible with no normal chrome overlap.",
+        "Normal Large dark: white Tướng, muted historical notice, four fully labeled champion cards, charcoal surfaces, selected Tướng, and search retain contrast; the third-row artwork is only a below-fold viewport continuation."
+      ],
+      "scores": {
+        "Layout": {
+          "score": 8,
+          "evidence": "The title and historical notice establish a clear focal order before the two-column catalogue; two complete rows and four labeled cards are visible, with the lower artwork continuing below the fold."
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Tướng is the dominant heading, champion names form a distinct bold level, and role plus historical notice are muted body levels; Vietnamese diacritics remain readable in both normal appearances."
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Card gutters, image insets, row gaps, and bottom controls repeat a coherent 4/8-based rhythm; the normal captures keep the labeled rows clear of the persistent controls."
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "The catalogue uses the brief vocabulary and shared system: historical notice treatment, blue selected Tướng state, platform symbols, rounded card surfaces, and paired light/dark modes."
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "The receipt-bound evidence is still imagery only and supplies no temporal witness for easing, duration, or transition choreography."
+        },
+        "Iconography": {
+          "score": 7,
+          "evidence": "History, people, and search symbols are one coherent SF Symbols family; the filled people state communicates the selected Tướng tab rather than an unrelated icon style."
+        },
+        "Depth-Surface": {
+          "score": 7,
+          "evidence": "Light white and dark black canvases use clearly separated light and charcoal card surfaces with restrained borders and no harsh shadow or border-shadow doubling."
+        }
+      },
+      "autoFails": {
+        "duplicate-screen-title": false,
+        "duplicate-search-surface": false,
+        "wrong-or-missing-authorized-asset": false,
+        "missing-historical-notice": false,
+        "normal-large-clipping-or-overlap": false,
+        "excessive-chrome-or-padding": false,
+        "below-fold-density": false,
+        "oversized-detail-hero": false,
+        "placeholder-or-generic-scaffold": false,
+        "below-axis-threshold": false
+      },
+      "verdict": "PASS"
+    },
+    {
+      "screenId": "champion-detail",
+      "normalCaptures": {
+        "lightLarge": {
+          "path": "screenshots/native-ios-tocchien-iphone-17e-champion-detail-light-large.png",
+          "sha256": "a0d33bf89fa1453c4214b458ae3d888c916e7e59cb2f0a5f05413e10ff2c54b1"
+        },
+        "darkLarge": {
+          "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png",
+          "sha256": "28444048629e69b774e89338183e9a53b686814eef2549aa2cce3d712db1e4f0"
+        }
+      },
+      "appearanceObservations": [
+        "Normal Large light: back control, centered Chi tiết tướng title, 190pt hero, Miss Fortune identity, role, metadata, history section, body copy, and historical notice are all readable without overlap.",
+        "Normal Large dark: back/title chrome, charcoal hero, white identity text, blue role label, muted metadata, divider, history copy, and historical notice retain hierarchy and contrast."
+      ],
+      "scores": {
+        "Layout": {
+          "score": 8,
+          "evidence": "The screen leads from back/title chrome to the bounded hero, Miss Fortune identity, role metadata, divider, and history; the ledger places the next section at y=454pt within the 844pt viewport."
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Miss Fortune is the dominant name, the uppercase role label is a separate accent level, metadata is muted, and history/body text step down with readable Vietnamese diacritics."
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "The 190pt hero is 22.5 percent of the 844pt viewport and below the 33 percent cap; repeated gutters and the y=454pt next-section position avoid normal overlap."
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Back, historical notice, blue accent, rounded hero treatment, typography roles, and light/dark surfaces match the catalogue and dictionary system."
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "The receipt-bound evidence is still imagery only and supplies no temporal witness for easing, duration, or transition choreography."
+        },
+        "Iconography": {
+          "score": 7,
+          "evidence": "Back, history, people, and search symbols stay within one platform family and optical language; the filled people icon is reserved for selected navigation."
+        },
+        "Depth-Surface": {
+          "score": 7,
+          "evidence": "The hero panel, light/dark canvases, and fine divider form a restrained flat elevation system without harsh black shadows or doubled heavy borders."
+        }
+      },
+      "autoFails": {
+        "duplicate-screen-title": false,
+        "duplicate-search-surface": false,
+        "wrong-or-missing-authorized-asset": false,
+        "missing-historical-notice": false,
+        "normal-large-clipping-or-overlap": false,
+        "excessive-chrome-or-padding": false,
+        "below-fold-density": false,
+        "oversized-detail-hero": false,
+        "placeholder-or-generic-scaffold": false,
+        "below-axis-threshold": false
+      },
+      "verdict": "PASS"
+    },
+    {
+      "screenId": "game-dictionary",
+      "normalCaptures": {
+        "lightLarge": {
+          "path": "screenshots/native-ios-tocchien-iphone-17e-game-dictionary-light-large.png",
+          "sha256": "62a444638e3941b815eb4cf897fd8c060712b6d66d485f0292594f3c13c9d988"
+        },
+        "darkLarge": {
+          "path": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-dark-large.png",
+          "sha256": "9bbf4e252c34602da131ce3622d9ae53640be1e8fb0eae9b4f53d225270a818e"
+        }
+      },
+      "appearanceObservations": [
+        "Normal Large light: centered dictionary title, historical notice, four complete definition rows ACE through AFK, dividers, people control, and search field are all legible with clear inset above the lower chrome.",
+        "Normal Large dark: title, historical notice, four complete definition rows ACE through AFK, dividers, and dark search chrome preserve contrast; a fifth row begins below the fold without intersecting the search field."
+      ],
+      "scores": {
+        "Layout": {
+          "score": 8,
+          "evidence": "The centered title and historical notice lead into a regular reference list; four complete rows remain visible above the 101pt dictionary chrome with no normal overlap."
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "The centered display title, bold acronym headings, and larger muted definitions create clear role contrast; normal Large text and Vietnamese diacritics are readable in both appearances."
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Definition gutters and dividers repeat consistently, and the measured 101pt dictionary chrome stays under the 160pt cap with visible content inset."
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "The dictionary reuses the historical notice, platform symbols, rounded search surface, selected navigation language, typography roles, and light/dark pairing established by the other screens."
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "The receipt-bound evidence is still imagery only and supplies no temporal witness for easing, duration, or transition choreography."
+        },
+        "Iconography": {
+          "score": 7,
+          "evidence": "History, people, and search symbols use one coherent platform family with consistent optical scale; filled people marks selected navigation and outline search indicates action."
+        },
+        "Depth-Surface": {
+          "score": 7,
+          "evidence": "The screen uses a restrained flat treatment with light/dark canvas contrast, fine row dividers, and one persistent search surface; no harsh shadow stack is visible."
+        }
+      },
+      "autoFails": {
+        "duplicate-screen-title": false,
+        "duplicate-search-surface": false,
+        "wrong-or-missing-authorized-asset": false,
+        "missing-historical-notice": false,
+        "normal-large-clipping-or-overlap": false,
+        "excessive-chrome-or-padding": false,
+        "below-fold-density": false,
+        "oversized-detail-hero": false,
+        "placeholder-or-generic-scaffold": false,
+        "below-axis-threshold": false
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "stressObservations": [
+    {
+      "screenId": "champion-catalogue",
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png",
+      "captureSha256": "4e743d797b294e87cbd2667da49b90842fd3538ed69f2a125e34e964cfad8750",
+      "verdict": "FAIL",
+      "observation": "AX XXXL catalogue switches to one column and keeps the title, notice, and artwork visible, but the first card is cut immediately after its image by the lower content boundary; BlitzCrank and its role do not appear in the retained frame, so the card identity is not readable before the persistent chrome."
+    },
+    {
+      "screenId": "champion-detail",
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-axxxl.png",
+      "captureSha256": "bb3064b6a64b07a404236b35f7c9a0bf4eaa9af3fc47d091a0892ffca5d02331",
+      "verdict": "PASS",
+      "observation": "AX XXXL detail keeps the back/title chrome, bounded hero, Miss Fortune name, wrapped role, metadata, divider, and history heading legible with no persistent tab chrome; body continuation below the viewport is ordinary scroll content, not an observed overlap."
+    },
+    {
+      "screenId": "game-dictionary",
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png",
+      "captureSha256": "2b0b93edf05a884f495a08ca29a9285c01f91b7d52ce450c7c4c51d52e9d1f7d",
+      "verdict": "FAIL",
+      "observation": "AX XXXL dictionary keeps the title, notice, and ACE heading readable, but the ACE definition is clipped mid-entry at the lower content boundary: only the top of the second line remains above the opaque white inset before the search chrome."
+    }
+  ]
+}

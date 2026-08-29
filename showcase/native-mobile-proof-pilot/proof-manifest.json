@@ -4,17 +4,18 @@
   "routingBaseGitSha": "967f1cffd7a5e3bb3eaaf20f3210c6629b01a7b6",
   "assurance": "PROVISIONAL",
   "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
-  "generatedAt": "2026-08-29T06:28:05.000Z",
+  "generatedAt": "2026-08-29T15:43:57Z",
   "knownFailures": [
-    "unfiltered Xcode 26.5 accessibility audit"
+    "unfiltered Xcode 26.5 accessibility audit",
+    "native-ios Tier 2 generation provenance is unqualified because the retained history has an unverified Terra/Sol intermediate checkpoint"
   ],
   "arms": [
     {
       "capabilityId": "native-ios",
       "artifact": "native-ios-application",
       "brief": {
-        "path": "briefs/native-ios-dictionary-search.json",
-        "sha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04"
+        "path": "briefs/native-ios-tocchien-modernization.json",
+        "sha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246"
       },
       "tiers": [
         {
@@ -31,68 +32,94 @@
         },
         {
           "id": 2,
-          "status": "PASS",
-          "authorizedClaim": "The generated native iOS SwiftUI application builds and its seven unit plus seven UI simulator tests pass at the recorded source digest.",
+          "status": "FAIL",
+          "authorizedClaim": "No pure-generator Tier 2 claim is authorized. The retained origin checkpoint is valid, but final production paths have mixed Terra/Sol authorship without an immutable intermediate checkpoint.",
           "environment": "Xcode 26.5 (17F42), Swift 6.3.2, iOS 26.5",
           "evidence": [
             {
               "path": "evidence/tier-02-generated-apps.json",
-              "sha256": "9796049eb3637d948bf6ce1040dd1a315412a298c3063183b1a03f61b6152b16"
+              "sha256": "3bbe22873120aa1687cef16b15a356759362caead91205a810bf4661f068797d"
             },
             {
-              "path": "apps/native-ios-dictionary-search/activation-receipt.json",
-              "sha256": "661da541effc4b05e6ae7d41e1393c0ec6102dfc6d6879295de2e9e37f8d183a"
+              "path": "apps/native-ios-tocchien-modernization/activation-receipt.json",
+              "sha256": "975aae6354d7cac0566df58ae76fcf6466e4cdab125b8e44485260bab6f970c6"
             },
             {
-              "path": "apps/native-ios-dictionary-search/generation-report.md",
-              "sha256": "110ff7ea87d4c095af9577afed49c7c7f459f94304d22026ca5f1f3329eb8bdb"
+              "path": "apps/native-ios-tocchien-modernization/generation-report.md",
+              "sha256": "9c336a68490060c63985314946ecb64b60be6b2b0c4a8501f5abc47c146fd0c8"
+            },
+            {
+              "path": "evidence/tier-02-source-lineage-tocchien-v1.json",
+              "sha256": "7f746045017e7d2d2489b5e69c860c6a09611b247398b914dfd21e4992c8d390"
             }
           ],
           "witnesses": {
-            "generatorId": "terra-native-ios-pilot-01",
-            "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5",
-            "controllerSourceEdits": 0
+            "generatorId": "terra-native-ios-tocchien-generator-03",
+            "originSourceTreeSha256": "8ebbaaa431fd16d3c7b562d2ae02679f9b36d90908b4f7b826da16201a951c88",
+            "finalSourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7",
+            "controllerSourceEdits": 5,
+            "controllerVerificationHarnessEdits": 2,
+            "lineageDisposition": "UNVERIFIED_INTERMEDIATE"
           }
         },
         {
           "id": 3,
-          "status": "PENDING",
-          "authorizedClaim": "Controller-replayed simulator behavior evidence supports accessibility-size Retry operability and local recovery at the exact source digest; visual craft remains unassessed.",
-          "environment": "iPhone 17e and iPhone 17 Pro simulator matrix",
+          "status": "PASS",
+          "authorizedClaim": "Controller-replayed simulator behavior and independent visual review pass for the three TocChien screens at the exact recorded source and capture digests.",
+          "environment": "iPhone 17e and iPhone 17 Pro, iOS 26.5 simulators; Large visual captures plus internal AX XXXL reachability smoke",
           "evidence": [
             {
               "path": "evidence/tier-03-simulator-captures.json",
-              "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
+              "sha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
+            },
+            {
+              "path": "evidence/tier-03-review-receipt-tocchien-v2.json",
+              "sha256": "5dd09cf5a6e95c0b8e49aee46ff0e3da0ece6be555a04ae68ecec09e39783966"
+            },
+            {
+              "path": "evidence/tier-03-curation-tocchien-v2.json",
+              "sha256": "38cd88d514258e512d526e733311a6a1a10e23cd3f3e34bbb82e35d5aafbb8fe"
             }
           ],
           "witnesses": {
-            "generatorId": "terra-native-ios-pilot-01",
+            "generatorId": "terra-native-ios-tocchien-generator-03",
             "behaviorDisposition": "PASS",
-            "visualDisposition": "UNASSESSED",
+            "visualDisposition": "PASS",
             "behavior": {
               "subject": {
                 "capabilityId": "native-ios",
                 "artifact": "native-ios-application",
-                "briefId": "native-ios-dictionary-search-v1",
-                "briefSha256": "e675eadae50086486252a58310fc43cf4cb07b4141ef008003f0f451b3f2ad04",
-                "sourceTreeSha256": "8628f50502cec85e5d5f07a12f6e9714ee7876fe0b564eaf2b15c9cd96d612f5"
+                "briefId": "native-ios-tocchien-modernization-v1",
+                "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+                "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7"
               },
               "controllerVerification": {
-                "unitTests": 7,
-                "uiTests": 7,
+                "unitTests": 8,
+                "uiTests": 8,
                 "failures": 0,
                 "exitCode": 0
               },
-              "environment": "iPhone 17e and iPhone 17 Pro simulator matrix",
+              "environment": "iPhone 17e and iPhone 17 Pro, iOS 26.5 simulators; Large visual captures plus internal AX XXXL reachability smoke",
               "evidence": [
                 {
                   "path": "evidence/tier-03-simulator-captures.json",
-                  "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
+                  "sha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
                 }
               ]
             },
             "visual": {
-              "reason": "Retained v1 curation is not a v2 independent visual review."
+              "currentCuration": {
+                "path": "evidence/tier-03-curation-tocchien-v2.json",
+                "sha256": "38cd88d514258e512d526e733311a6a1a10e23cd3f3e34bbb82e35d5aafbb8fe"
+              },
+              "reviewReceipt": {
+                "path": "evidence/tier-03-review-receipt-tocchien-v2.json",
+                "sha256": "5dd09cf5a6e95c0b8e49aee46ff0e3da0ece6be555a04ae68ecec09e39783966"
+              },
+              "captureLedger": {
+                "path": "evidence/tier-03-simulator-captures.json",
+                "sha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
+              }
             }
           }
         },
@@ -122,10 +149,43 @@
         },
         {
           "id": 6,
-          "status": "PENDING",
-          "authorizedClaim": "No owner-acceptance claim is authorized.",
-          "environment": "Owner review not performed",
-          "evidence": []
+          "status": "PASS",
+          "authorizedClaim": "Owner accepted the three recorded TocChien iOS screen groups at the exact source and capture hashes. Scope is simulator-rendered screen design only; physical-device, live assistive-technology, iPad visual, and assurance claims remain unavailable.",
+          "environment": "Owner reviewed three full-resolution light captures; paired dark captures are bound to the current independent Tier 3 review.",
+          "evidence": [
+            {
+              "path": "evidence/tier-06-owner-verdict-tocchien-v1.json",
+              "sha256": "5836e54879921cb2024a19ee99de6dfc60b2c3d745582914c1749ab3009daa1c"
+            }
+          ],
+          "witnesses": {
+            "ownerDisposition": "ACCEPT",
+            "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7",
+            "ownerVerdict": {
+              "path": "evidence/tier-06-owner-verdict-tocchien-v1.json",
+              "sha256": "5836e54879921cb2024a19ee99de6dfc60b2c3d745582914c1749ab3009daa1c"
+            },
+            "ownerScreenVerdicts": [
+              {
+                "screenId": "champion-catalogue",
+                "disposition": "ACCEPT",
+                "lightReviewBasis": "owner-direct",
+                "darkReviewBasis": "independent-tier-03"
+              },
+              {
+                "screenId": "champion-detail",
+                "disposition": "ACCEPT",
+                "lightReviewBasis": "owner-direct",
+                "darkReviewBasis": "independent-tier-03"
+              },
+              {
+                "screenId": "game-dictionary",
+                "disposition": "ACCEPT",
+                "lightReviewBasis": "owner-direct",
+                "darkReviewBasis": "independent-tier-03"
+              }
+            ]
+          }
         }
       ]
     },
@@ -157,7 +217,7 @@
           "evidence": [
             {
               "path": "evidence/tier-02-generated-apps.json",
-              "sha256": "9796049eb3637d948bf6ce1040dd1a315412a298c3063183b1a03f61b6152b16"
+              "sha256": "3bbe22873120aa1687cef16b15a356759362caead91205a810bf4661f068797d"
             },
             {
               "path": "apps/native-ipados-project-workspace/capability-activation.json",
@@ -182,7 +242,7 @@
           "evidence": [
             {
               "path": "evidence/tier-03-simulator-captures.json",
-              "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
+              "sha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
             }
           ],
           "witnesses": {
@@ -207,7 +267,7 @@
               "evidence": [
                 {
                   "path": "evidence/tier-03-simulator-captures.json",
-                  "sha256": "1bfded50833f6d72df420c46985429e9d526f3d9688d568987064ca9ab0a71a5"
+                  "sha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
                 }
               ]
             },

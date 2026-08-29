@@ -1,0 +1,241 @@
+{
+  "kind": "design-os.native-mobile-simulator-capture-evidence",
+  "version": 2,
+  "capturedAt": "2026-08-29T12:20:00Z",
+  "environment": "macOS 26.5.2, Xcode 26.5 (17F42), iOS 26.5 simulators",
+  "subjects": [
+    {
+      "capabilityId": "native-ios",
+      "artifact": "native-ios-application",
+      "briefId": "native-ios-tocchien-modernization-v1",
+      "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb"
+    },
+    {
+      "capabilityId": "native-ipados",
+      "artifact": "native-ipados-application",
+      "briefId": "native-ipados-project-workspace-v1",
+      "briefSha256": "77d3c3959ae478549c6d6715dd2fa072e9ea3bad22787779bbfdf8d288b39771",
+      "sourceTreeSha256": "252ffa7bb609714e336047f8ca2eafd27f1a8c1ced509626480c6aa4f94fac6f"
+    }
+  ],
+  "captures": [
+    {
+      "capabilityId": "native-ios",
+      "screenId": "champion-catalogue",
+      "captureClass": "normal",
+      "device": "iPhone 17e",
+      "runtime": "iOS 26.5",
+      "udid": "F8D467DB-B09B-4705-AF67-6C9EFF8FB646",
+      "appearance": "light",
+      "contentSize": "large",
+      "path": "screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png",
+      "sha256": "9d2ea58da04cfdaf34b7ba29acc1db9be1f0114e0299fde5e1399d9c3e741398",
+      "pixels": { "width": 1170, "height": 2532 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "champion-catalogue",
+      "captureClass": "normal",
+      "device": "iPhone 17 Pro",
+      "runtime": "iOS 26.5",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "appearance": "dark",
+      "contentSize": "large",
+      "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-dark-large.png",
+      "sha256": "1effd7b2dd677c2c32476ed732d6ceb11070a619bc84d99e0be186902ca2023a",
+      "pixels": { "width": 1206, "height": 2622 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "champion-detail",
+      "captureClass": "normal",
+      "device": "iPhone 17e",
+      "runtime": "iOS 26.5",
+      "udid": "F8D467DB-B09B-4705-AF67-6C9EFF8FB646",
+      "appearance": "light",
+      "contentSize": "large",
+      "path": "screenshots/native-ios-tocchien-iphone-17e-champion-detail-light-large.png",
+      "sha256": "9ef7a7eadfc3a6215f54fdc862fb8a8771894cafe91828c167ef985e8aa057b5",
+      "pixels": { "width": 1170, "height": 2532 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state", "-ui-champion", "miss-fortune"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "champion-detail",
+      "captureClass": "normal",
+      "device": "iPhone 17 Pro",
+      "runtime": "iOS 26.5",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "appearance": "dark",
+      "contentSize": "large",
+      "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png",
+      "sha256": "f9127224624bf9876ed4d60ebeb42fc88a2586038a65956310b5dd4fa4fb8429",
+      "pixels": { "width": 1206, "height": 2622 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state", "-ui-champion", "miss-fortune"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "game-dictionary",
+      "captureClass": "normal",
+      "device": "iPhone 17e",
+      "runtime": "iOS 26.5",
+      "udid": "F8D467DB-B09B-4705-AF67-6C9EFF8FB646",
+      "appearance": "light",
+      "contentSize": "large",
+      "path": "screenshots/native-ios-tocchien-iphone-17e-game-dictionary-light-large.png",
+      "sha256": "3f45cf2e647d125933417f832bfb78bbc0b49c8facf3951a3582fcb289845c49",
+      "pixels": { "width": 1170, "height": 2532 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state", "-ui-screen", "dictionary"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "game-dictionary",
+      "captureClass": "normal",
+      "device": "iPhone 17 Pro",
+      "runtime": "iOS 26.5",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "appearance": "dark",
+      "contentSize": "large",
+      "path": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-dark-large.png",
+      "sha256": "0e1fb08e8caebd5b5162d3618eed0553cc72eee45f3b9e25dfcdcece3be26d84",
+      "pixels": { "width": 1206, "height": 2622 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state", "-ui-screen", "dictionary"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "champion-catalogue",
+      "captureClass": "stress",
+      "device": "iPhone 17 Pro",
+      "runtime": "iOS 26.5",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "appearance": "light",
+      "contentSize": "accessibility-extra-extra-extra-large",
+      "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png",
+      "sha256": "5139c3a53e4eb318d5d8855a5ddc0b03dc3763613ba594a8e208181f6bb55c7b",
+      "pixels": { "width": 1206, "height": 2622 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "champion-detail",
+      "captureClass": "stress",
+      "device": "iPhone 17 Pro",
+      "runtime": "iOS 26.5",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "appearance": "light",
+      "contentSize": "accessibility-extra-extra-extra-large",
+      "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-axxxl.png",
+      "sha256": "35f2e45d3c23f7cf2cc6d48162bfd5e263e075df329308b6a9074a0517305fca",
+      "pixels": { "width": 1206, "height": 2622 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state", "-ui-champion", "miss-fortune"]
+    },
+    {
+      "capabilityId": "native-ios",
+      "screenId": "game-dictionary",
+      "captureClass": "stress",
+      "device": "iPhone 17 Pro",
+      "runtime": "iOS 26.5",
+      "udid": "F412E27A-CB87-4207-8DE4-72DD8B993AE3",
+      "appearance": "light",
+      "contentSize": "accessibility-extra-extra-extra-large",
+      "path": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png",
+      "sha256": "6cabb44879a42edb6d11b34807747ac0b389684123a6dc02dcf77f975bc0b287",
+      "pixels": { "width": 1206, "height": 2622 },
+      "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb",
+      "launchArguments": ["-ui-reset-state", "-ui-screen", "dictionary"]
+    },
+    {
+      "capabilityId": "native-ipados",
+      "device": "iPad mini (A17 Pro)",
+      "udid": "7BD1E89A-07BD-4528-84DC-9191627ECE4D",
+      "state": "searching",
+      "appearance": "light",
+      "contentSize": "large",
+      "path": "screenshots/native-ipados-ipad-mini-searching-light.png",
+      "sha256": "0aa3f2ffe164b476e83e24781f8d10498139e6ed069f01a2e01d48a4d2659a39",
+      "pixels": "1488x2266"
+    },
+    {
+      "capabilityId": "native-ipados",
+      "device": "iPad Pro 13-inch (M5)",
+      "udid": "128BCB39-C380-4C13-AD6C-E033AB5DF4C2",
+      "state": "second-window",
+      "appearance": "dark",
+      "contentSize": "extra-extra-extra-large",
+      "path": "screenshots/native-ipados-ipad-pro-second-window-dark.png",
+      "sha256": "6c44ffd240d38f7561ee19eb4804a31ecbae433130560f2b5db6c4051d406bd6",
+      "pixels": "2064x2752"
+    },
+    {
+      "capabilityId": "native-ipados",
+      "device": "iPad Pro 13-inch (M5)",
+      "udid": "128BCB39-C380-4C13-AD6C-E033AB5DF4C2",
+      "state": "independent-scene",
+      "appearance": "dark",
+      "contentSize": "large",
+      "path": "screenshots/native-ipados-independent-scene-proven.png",
+      "sha256": "01034f5d4d43b458805f222b70ef56e57c8ba810a0fbfd86e769f0ef257745bc",
+      "pixels": "2064x2752",
+      "xctestAssertion": "Two connected scenes retain distinct OmniAct and DESIGN:OS Mobile selections."
+    },
+    {
+      "capabilityId": "native-ipados",
+      "device": "iPad Pro 13-inch (M5)",
+      "udid": "128BCB39-C380-4C13-AD6C-E033AB5DF4C2",
+      "state": "responsive-selection-preserved",
+      "appearance": "dark",
+      "contentSize": "large",
+      "path": "screenshots/native-ipados-responsive-selection-preserved.png",
+      "sha256": "766ef73e76e51d1d0cba4ab252f85b5eb3cdd090adf9d6e49c512e036f803c3a",
+      "pixels": "2064x2752",
+      "xctestAssertion": "OmniAct selection survives portrait to landscape to portrait."
+    }
+  ],
+  "pointSpaceGeometry": {
+    "coordinateSpace": "points",
+    "measuredOn": "iPhone 17e, iOS 26.5, Large, 390x844pt",
+    "method": "Orca normalized accessibility frames converted against the exact simulator viewport",
+    "screens": [
+      {
+        "screenId": "champion-catalogue",
+        "kind": "catalog",
+        "viewport": { "widthPoints": 390, "heightPoints": 844 },
+        "aboveFold": { "completeRows": 3 }
+      },
+      {
+        "screenId": "champion-detail",
+        "kind": "detail",
+        "viewport": { "widthPoints": 390, "heightPoints": 844 },
+        "aboveFold": { "completeRows": 1, "heroHeightPoints": 190, "nextSectionStartYPoints": 454 }
+      },
+      {
+        "screenId": "game-dictionary",
+        "kind": "dictionary",
+        "viewport": { "widthPoints": 390, "heightPoints": 844 },
+        "aboveFold": { "completeRows": 5, "chromeHeightPoints": 101 }
+      }
+    ]
+  },
+  "structuralAccessibilityScan": {
+    "catalogueLargeCompleteRows": 3,
+    "detailHeroHeightPoints": 190,
+    "dictionaryLargeCompleteRows": 5,
+    "accessibilityXXXLUsesSingleColumnCatalogue": true
+  },
+  "limitations": [
+    "Screenshots are simulator renders, not physical-device captures.",
+    "Accessibility trees and XCTest are not live VoiceOver or Full Keyboard Access witnesses.",
+    "Visual curation and owner acceptance are separate gates."
+  ]
+}

@@ -37,6 +37,7 @@ export function installPassingV2VisualEvidence(
   manifest: MutableManifest,
   root: string,
   capabilityId: "native-ios" | "native-ipados" = "native-ios",
+  options: { includeStress?: boolean } = {},
 ): V2VisualFixture {
   const arm = manifest.arms.find((item) => item.capabilityId === capabilityId)!;
   const tier3 = arm.tiers.find((item) => item.id === 3)!;
@@ -73,7 +74,18 @@ export function installPassingV2VisualEvidence(
     capture(screenId, "normal", "light", "iPhone 17e"),
     capture(screenId, "normal", "dark", "iPhone 17 Pro"),
   ]);
-  const stress = screens.map(({ screenId }) => capture(screenId, "stress", "dark", "iPhone 17 Pro"));
+  const stress = options.includeStress === false ? [] : screens.map(({ screenId, kind }) => ({
+    ...capture(screenId, "stress", "dark", "iPhone 17 Pro"),
+    ...(kind === "detail" ? { captureState: "top-of-scroll" } : {
+      captureState: "representative-content-fully-visible",
+      scrollTargetId: kind === "catalog" ? "champion-card-blitzcrank" : "dictionary-row-ACE",
+      lowerBoundaryId: kind === "catalog" ? "tab-bar" : "search-field",
+      minimumGapPoints: 8,
+      targetFrameIntersectsChrome: false,
+      targetFramePoints: { minX: 16, minY: 220, maxX: 374, maxY: 620 },
+      lowerBoundaryFramePoints: { minX: 0, minY: 660, maxX: 390, maxY: 844 },
+    }),
+  }));
   const capturePath = "evidence/tier-03-v2-test-captures.json";
   const captureDocument = {
     kind: "design-os.native-mobile-simulator-capture-evidence",
@@ -150,5 +162,11 @@ export function installPassingV2VisualEvidence(
   tier3.evidence.push(...Object.values(refs));
   tier3.witnesses!.visualDisposition = "PASS";
   tier3.witnesses!.visual = refs;
+  const tier6 = arm.tiers.find((item) => item.id === 6)!;
+  tier6.status = "PENDING";
+  tier6.authorizedClaim = "No owner-acceptance claim is authorized for substituted Tier 3 fixtures.";
+  tier6.environment = "Owner review not performed for substituted Tier 3 fixtures";
+  tier6.evidence = [];
+  delete tier6.witnesses;
   return { capturePath, curationPath, receiptPath };
 }

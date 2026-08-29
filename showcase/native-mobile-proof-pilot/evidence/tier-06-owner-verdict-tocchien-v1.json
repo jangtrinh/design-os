@@ -1,0 +1,98 @@
+{
+  "kind": "design-os.native-mobile-tier-06-owner-verdict",
+  "version": 1,
+  "recordedAt": "2026-08-29T15:43:57Z",
+  "owner": {
+    "id": "Jang",
+    "role": "product-owner"
+  },
+  "statement": {
+    "verbatim": "OK, ổn rồi.",
+    "language": "vi",
+    "scope": "all-three-presented-screen-groups"
+  },
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "ee7a1dcfc04bc412a0d589fa705f9bbda4ff9ec16e3fe3e07130ced0a336e5f7"
+  },
+  "tier3Evidence": {
+    "captureLedger": {
+      "path": "evidence/tier-03-simulator-captures.json",
+      "sha256": "5001eb5431c1ab5d0ab10c80d2c2f7a93d04da4129ca198be138c43f74415487"
+    },
+    "reviewReceipt": {
+      "path": "evidence/tier-03-review-receipt-tocchien-v2.json",
+      "sha256": "5dd09cf5a6e95c0b8e49aee46ff0e3da0ece6be555a04ae68ecec09e39783966"
+    },
+    "curation": {
+      "path": "evidence/tier-03-curation-tocchien-v2.json",
+      "sha256": "38cd88d514258e512d526e733311a6a1a10e23cd3f3e34bbb82e35d5aafbb8fe"
+    }
+  },
+  "screenVerdicts": [
+    {
+      "screenId": "champion-catalogue",
+      "disposition": "ACCEPT",
+      "normalCaptures": [
+        {
+          "appearance": "light",
+          "path": "screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png",
+          "sha256": "611913df9323a6f052ffbc0897390ef994b99c838da370f774de1da3bf9bd341",
+          "reviewBasis": "owner-direct"
+        },
+        {
+          "appearance": "dark",
+          "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-dark-large.png",
+          "sha256": "aa904faf28789bfcc5e0ede410a317cbc506806b0ed3d5f476f486f8652923cc",
+          "reviewBasis": "independent-tier-03"
+        }
+      ]
+    },
+    {
+      "screenId": "champion-detail",
+      "disposition": "ACCEPT",
+      "normalCaptures": [
+        {
+          "appearance": "light",
+          "path": "screenshots/native-ios-tocchien-iphone-17e-champion-detail-light-large.png",
+          "sha256": "ea593b9d595822a82b96530f099f730e01c3fc310087fafcd20daa3d32b2bf52",
+          "reviewBasis": "owner-direct"
+        },
+        {
+          "appearance": "dark",
+          "path": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png",
+          "sha256": "f4e50b80c134957bc796f60b3d970f30d03bc4bd81624f0979754e6b7f83878f",
+          "reviewBasis": "independent-tier-03"
+        }
+      ]
+    },
+    {
+      "screenId": "game-dictionary",
+      "disposition": "ACCEPT",
+      "normalCaptures": [
+        {
+          "appearance": "light",
+          "path": "screenshots/native-ios-tocchien-iphone-17e-game-dictionary-light-large.png",
+          "sha256": "dd0a47fd86174334e150844eec1a9b5c3235c290f88bfe12f5efb2a655a060b3",
+          "reviewBasis": "owner-direct"
+        },
+        {
+          "appearance": "dark",
+          "path": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-dark-large.png",
+          "sha256": "64e6b6852746d0657cd3945d32302b903b6071a47142ba0498829f0111695f55",
+          "reviewBasis": "independent-tier-03"
+        }
+      ]
+    }
+  ],
+  "excludedClaims": [
+    "physical-device",
+    "live-assistive-technology",
+    "native-ipados-visual",
+    "assurance-upgrade",
+    "qualified-delivery"
+  ]
+}

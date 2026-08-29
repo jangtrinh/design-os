@@ -1,0 +1,46 @@
+{
+  "kind": "design-os.native-mobile-tier-03-review-receipt",
+  "version": 2,
+  "createdAt": "2026-08-29T13:04:30Z",
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "1cab8287d9906ebae4f7b30cdcda2fedcb3b99c41a97ef53c1a94cc6790508a0"
+  },
+  "controller": {
+    "role": "controller",
+    "sessionId": "run_7999d4efbd29",
+    "workerId": "term_8f2e202e-71d1-451f-8891-370a1898fd12"
+  },
+  "generator": {
+    "id": "terra-native-ios-tocchien-generator-03",
+    "sessionId": "ctx_be02cdb3cde8",
+    "workerId": "term_2f90ef60-4b69-4fc3-8c92-56b7e2ddd197"
+  },
+  "reviewer": {
+    "role": "independent-curator",
+    "sessionId": "ctx_14e13fc065d3",
+    "workerId": "term_15eb730a-811f-459e-a2c3-db62e547725a"
+  },
+  "inputHashes": {
+    "tasteRubricSha256": "da781189d09782894327bbf95531a3bda28c8fff597747ad6ddbf093a152c154",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "1cab8287d9906ebae4f7b30cdcda2fedcb3b99c41a97ef53c1a94cc6790508a0",
+    "captureLedgerSha256": "0c226674b2734fe789e46a62235aecc6603b638ad2d740618e3190fa7d3246b3"
+  },
+  "normalCapturePaths": [
+    "screenshots/native-ios-tocchien-iphone-17e-champion-catalog-light-large.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-dark-large.png",
+    "screenshots/native-ios-tocchien-iphone-17e-champion-detail-light-large.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png",
+    "screenshots/native-ios-tocchien-iphone-17e-game-dictionary-light-large.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-dark-large.png"
+  ],
+  "stressCapturePaths": [
+    "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-axxxl.png",
+    "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png"
+  ]
+}

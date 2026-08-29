@@ -30,16 +30,20 @@ function enumerateSourceFiles(directory, current = "") {
   return records.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
 }
 
-export function computeSourceTree(root, capabilityId) {
-  const policy = PILOT_POLICY[capabilityId];
-  if (!policy) throw new Error(`unknown proof arm: ${capabilityId}`);
+export function computeSourceTreeForAppRoot(root, appRoot) {
   let directory;
   try {
-    directory = resolveContainedPath(root, policy.appRoot, "directory");
+    directory = resolveContainedPath(root, appRoot, "directory");
   } catch {
     throw new Error("source tree root must be a real directory inside the proof root");
   }
   const files = enumerateSourceFiles(directory);
   const canonical = JSON.stringify({ algorithm: SOURCE_ALGORITHM, files });
   return { algorithm: SOURCE_ALGORITHM, files, sha256: sha256(canonical) };
+}
+
+export function computeSourceTree(root, capabilityId) {
+  const policy = PILOT_POLICY[capabilityId];
+  if (!policy) throw new Error(`unknown proof arm: ${capabilityId}`);
+  return computeSourceTreeForAppRoot(root, policy.appRoot);
 }

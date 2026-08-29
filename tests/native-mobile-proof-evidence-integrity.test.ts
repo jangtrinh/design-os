@@ -24,19 +24,17 @@ describe("native mobile proof evidence integrity", () => {
     ]));
   });
 
-  it("keeps retained v1 curation out of the current Tier 3 visual decision", () => {
+  it("uses only the current v2 curation for the promoted Tier 3 visual decision", () => {
     const { manifest, root } = copyCheckedProofTree();
     const ios = manifest.arms.find((arm) => arm.capabilityId === "native-ios")!;
     const tier3 = ios.tiers[2]!;
     expect(tier3).toMatchObject({
-      status: "PENDING",
-      witnesses: { behaviorDisposition: "PASS", visualDisposition: "UNASSESSED" },
+      status: "PASS",
+      witnesses: { behaviorDisposition: "PASS", visualDisposition: "PASS" },
     });
     expect(tier3.evidence.map(({ path }) => path)).not.toContain("evidence/tier-03-curation-round-04.json");
-    tier3.status = "PASS";
-    expect(verifyNativeMobileProofManifest(manifest, root)).toContain(
-      "native-ios tier 3 aggregate status must be PENDING",
-    );
+    expect(tier3.evidence.map(({ path }) => path)).toContain("evidence/tier-03-curation-tocchien-v2.json");
+    expect(verifyNativeMobileProofManifest(manifest, root)).toEqual([]);
   });
 
   it("requires the Tier 2 ledger to contain each exact arm once", () => {
@@ -49,6 +47,33 @@ describe("native mobile proof evidence integrity", () => {
     expect(verifyNativeMobileProofManifest(manifest, root)).toContain("native-ios tier 2 generated evidence identity mismatch");
   });
 
+  it("rejects missing, extra, or production-path controller harness declarations", () => {
+    const mutations = [
+      (entry: Record<string, unknown>) => { delete entry.controllerVerificationHarnessFiles; },
+      (entry: Record<string, unknown>) => {
+        const files = entry.controllerVerificationHarnessFiles as Array<Record<string, unknown>>;
+        files.push({ ...files[0] });
+      },
+      (entry: Record<string, unknown>) => {
+        entry.controllerVerificationHarnessFiles = [{
+          path: "TocChienModernization/Views/ChampionCatalogView.swift",
+          sha256: "e6323d21c3b8af0f7bd4ce67789e866ca6d7c14a3254cd42fdbcde29f007eec5",
+        }];
+      },
+    ];
+    for (const mutate of mutations) {
+      const { manifest, root } = copyCheckedProofTree();
+      const evidencePath = "evidence/tier-02-generated-apps.json";
+      const absolute = join(root, evidencePath);
+      const run = JSON.parse(readFileSync(absolute, "utf8")) as { arms: Array<Record<string, unknown>> };
+      mutate(run.arms.find((arm) => arm.capabilityId === "native-ios")!);
+      replaceEvidenceDigest(manifest, evidencePath, writeJson(absolute, run));
+      expect(verifyNativeMobileProofManifest(manifest, root)).toContain(
+        "native-ios tier 2 generated evidence identity mismatch",
+      );
+    }
+  });
+
   it("verifies every exact screenshot path and digest in the capture ledger", () => {
     const { manifest, root } = copyCheckedProofTree();
     const capturePath = "evidence/tier-03-simulator-captures.json";
@@ -56,17 +81,12 @@ describe("native mobile proof evidence integrity", () => {
     const capture = JSON.parse(readFileSync(captureAbsolute, "utf8")) as {
       captures: Array<{ path: string; sha256: string }>;
     };
-    const omitted = capture.captures.find(({ path }) => path.endsWith("native-ios-iphone-17-pro-results-light.png"))!;
+    const omitted = capture.captures.find(({ path }) => path.endsWith("native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png"))!;
     omitted.sha256 = "f".repeat(64);
     const captureDigest = writeJson(captureAbsolute, capture);
     replaceEvidenceDigest(manifest, capturePath, captureDigest);
-    const curationPath = "evidence/tier-03-curation-round-04.json";
-    const curationAbsolute = join(root, curationPath);
-    const curation = JSON.parse(readFileSync(curationAbsolute, "utf8")) as { arms: Array<{ captureLedgerSha256: string }> };
-    for (const arm of curation.arms) arm.captureLedgerSha256 = captureDigest;
-    replaceEvidenceDigest(manifest, curationPath, writeJson(curationAbsolute, curation));
     expect(verifyNativeMobileProofManifest(manifest, root)).toContain(
-      "native-ios tier 3 capture digest mismatch: screenshots/native-ios-iphone-17-pro-results-light.png",
+      "native-ios tier 3 capture digest mismatch: screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-dark-large.png",
     );
   });
 
@@ -108,5 +128,73 @@ describe("native mobile proof evidence integrity", () => {
       "native-ios tier 4 physical witness is not backed by retained device evidence",
       "native-ios tier 6 owner ACCEPT is not bound to the exact source artifact",
     ]));
+  });
+
+  it("rejects drift from every policy-owned tier state and authorized claim", () => {
+    const mutations: Array<{
+      armId: "native-ios" | "native-ipados";
+      tierId: number;
+      mutate: (tier: { status: string; authorizedClaim: string }) => void;
+    }> = [
+      { armId: "native-ios", tierId: 6, mutate: (tier) => { tier.status = "PENDING"; } },
+      { armId: "native-ios", tierId: 2, mutate: (tier) => { tier.status = "PENDING"; } },
+      { armId: "native-ios", tierId: 4, mutate: (tier) => { tier.status = "PENDING"; } },
+      { armId: "native-ipados", tierId: 6, mutate: (tier) => { tier.status = "NOT RUN"; } },
+      {
+        armId: "native-ios",
+        tierId: 4,
+        mutate: (tier) => { tier.authorizedClaim = "Physical iPhone and VoiceOver are verified."; },
+      },
+    ];
+    for (const { armId, tierId, mutate } of mutations) {
+      const { manifest, root } = copyCheckedProofTree();
+      const tier = manifest.arms.find((arm) => arm.capabilityId === armId)!.tiers.find((item) => item.id === tierId)!;
+      mutate(tier);
+      expect(verifyNativeMobileProofManifest(manifest, root)).toContain(
+        `${armId} tier ${tierId} state, claim, evidence, or witness contract mismatch`,
+      );
+    }
+  });
+
+  it("binds owner ACCEPT to the exact subject, Tier 3 refs, and paired screen captures", () => {
+    interface OwnerRecord {
+      recordedAt: string;
+      statement: { verbatim: string };
+      subject: { sourceTreeSha256: string };
+      tier3Evidence: { curation: { sha256: string } };
+      screenVerdicts: Array<{
+        screenId: string;
+        disposition: string;
+        normalCaptures: Array<{ appearance: string; sha256: string }>;
+      }>;
+      excludedClaims: string[];
+    }
+    const mutations: Array<(record: OwnerRecord) => void> = [
+      (record) => { record.screenVerdicts.pop(); },
+      (record) => { record.screenVerdicts.push(structuredClone(record.screenVerdicts[0]!)); },
+      (record) => { record.screenVerdicts[0]!.disposition = "REJECT"; },
+      (record) => { record.screenVerdicts[0]!.normalCaptures[0]!.appearance = "dark"; },
+      (record) => { record.subject.sourceTreeSha256 = "f".repeat(64); },
+      (record) => { record.tier3Evidence.curation.sha256 = "f".repeat(64); },
+      (record) => { record.screenVerdicts[0]!.normalCaptures[0]!.sha256 = "f".repeat(64); },
+      (record) => { record.statement.verbatim = "looks fine"; },
+      (record) => { record.excludedClaims.pop(); },
+      (record) => { record.recordedAt = "2000-01-01T00:00:00Z"; },
+    ];
+    for (const mutate of mutations) {
+      const { manifest, root } = copyCheckedProofTree();
+      const ownerPath = "evidence/tier-06-owner-verdict-tocchien-v1.json";
+      const ownerAbsolute = join(root, ownerPath);
+      const record = JSON.parse(readFileSync(ownerAbsolute, "utf8")) as OwnerRecord;
+      mutate(record);
+      const digest = writeJson(ownerAbsolute, record);
+      replaceEvidenceDigest(manifest, ownerPath, digest);
+      const tier6 = manifest.arms.find((arm) => arm.capabilityId === "native-ios")!.tiers[5]!;
+      const witnesses = tier6.witnesses as typeof tier6.witnesses & { ownerVerdict: { sha256: string } };
+      witnesses.ownerVerdict.sha256 = digest;
+      expect(verifyNativeMobileProofManifest(manifest, root)).toContain(
+        "native-ios tier 6 owner ACCEPT is not bound to the exact source artifact",
+      );
+    }
   });
 });

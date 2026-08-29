@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "command": "knowledge activate",
+  "data": {
+    "kind": "capability-activation",
+    "version": 2,
+    "requestDigest": "sha256:4cba025859c2e7463cfcc530d62a2dedae377a693d8fe413df12c5ef9d005223",
+    "catalogDigest": "sha256:80980ec7c9c6af161a0f737d6db60bd94a9e05699a4f35427034900035ad1b81",
+    "requestedSurface": "native-ios",
+    "inputKind": "words",
+    "selectionEvidence": {
+      "kind": "quoted-request",
+      "quote": "native iOS 26 SwiftUI candidate",
+      "role": "requested-artifact"
+    },
+    "routingDisposition": "ROUTED",
+    "assurance": "PROVISIONAL",
+    "claimPolicy": "QUALIFIED_DELIVERY_FORBIDDEN",
+    "route": "native-ios",
+    "artifact": "native-ios-application",
+    "selectedKnowledge": [
+      "need-routing",
+      "apple-swiftui-craft",
+      "native-ios-craft",
+      "content-design",
+      "design-review",
+      "verification-honesty"
+    ],
+    "machineWitnesses": [
+      "knowledge activate"
+    ],
+    "renderedWitnesses": [
+      "iphone-simulator-capture",
+      "accessibility-tree-observation"
+    ],
+    "manualWitnesses": [
+      "VoiceOver",
+      "real-device",
+      "independent-curator",
+      "owner-visible-acceptance"
+    ],
+    "action": "Proceed with the native-ios workflow under provisional assurance. Owner and live-device witnesses remain pending; qualified platform delivery is forbidden."
+  }
+}

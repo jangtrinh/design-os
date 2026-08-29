@@ -54,7 +54,37 @@ function verifyGeometry(label, geometry, screenIds, findings) {
   }
 }
 
-export function verifyTier3CaptureLedger(label, ledger, root, expectedSubject, findings) {
+function validFrame(frame) {
+  return Number.isFinite(frame?.minX) && Number.isFinite(frame?.minY)
+    && Number.isFinite(frame?.maxX) && Number.isFinite(frame?.maxY)
+    && frame.maxX > frame.minX && frame.maxY > frame.minY;
+}
+
+function verifyStressCaptureState(label, stress, geometry, findings) {
+  const kindByScreen = new Map((geometry?.screens ?? []).map((screen) => [screen?.screenId, screen?.kind]));
+  for (const capture of stress) {
+    const kind = kindByScreen.get(capture?.screenId);
+    if (kind === "detail") {
+      if (capture?.captureState !== "top-of-scroll") findings.push(`${label} detail stress capture must preserve the top-of-scroll state`);
+      continue;
+    }
+    if (!["catalog", "dictionary"].includes(kind)) continue;
+    const target = capture?.targetFramePoints;
+    const boundary = capture?.lowerBoundaryFramePoints;
+    if (capture?.captureState !== "representative-content-fully-visible"
+      || !nonBlank(capture?.scrollTargetId) || !nonBlank(capture?.lowerBoundaryId)
+      || !Number.isFinite(capture?.minimumGapPoints) || capture.minimumGapPoints < 8
+      || capture?.targetFrameIntersectsChrome !== false || !validFrame(target) || !validFrame(boundary)) {
+      findings.push(`${label} ${kind} stress capture lacks auditable representative-content state`);
+      continue;
+    }
+    if (target.maxY > boundary.minY - capture.minimumGapPoints) {
+      findings.push(`${label} ${kind} stress target is not fully visible above persistent chrome`);
+    }
+  }
+}
+
+export function verifyTier3CaptureLedger(label, ledger, root, expectedSubject, findings, options = {}) {
   if (ledger?.kind !== "design-os.native-mobile-simulator-capture-evidence" || ledger?.version !== 2) {
     findings.push(`${label} visual evidence requires a v2 capture ledger`);
     return { normal: [], stress: [], screenIds: [] };
@@ -73,7 +103,9 @@ export function verifyTier3CaptureLedger(label, ledger, root, expectedSubject, f
   const normal = captures.filter((capture) => capture.captureClass === "normal");
   const stress = captures.filter((capture) => capture.captureClass === "stress");
   const key = (capture) => [capture?.screenId, capture?.captureClass, capture?.appearance, capture?.device].join("|");
-  if (captures.length !== 9 || normal.length !== 6 || stress.length !== 3
+  const validStressSet = stress.length === 0 || stress.length === 3;
+  if (captures.length !== normal.length + stress.length || normal.length !== 6 || !validStressSet
+    || (options.stressRequired === true && stress.length !== 3)
     || new Set(captures.map((capture) => capture?.path)).size !== captures.length
     || new Set(captures.map(key)).size !== captures.length) {
     findings.push(`${label} v2 capture ledger has invalid normal/stress set`);
@@ -106,13 +138,16 @@ export function verifyTier3CaptureLedger(label, ledger, root, expectedSubject, f
       findings.push(`${label} ${screenId} must have light and dark normal captures`);
     }
   }
-  if (stress.some((capture) => captureMetadataIncomplete(capture, expectedSubject))) findings.push(`${label} v2 stress capture metadata is incomplete`);
-  if (stress.some((capture) => capture.contentSize !== "accessibility-extra-extra-extra-large")) {
-    findings.push(`${label} v2 stress captures require the exact content-size class`);
-  }
-  if (!sameStrings(stress.map((capture) => capture?.screenId), screenIds)) {
-    findings.push(`${label} v2 stress captures must cover each normal screen exactly once`);
+  if (stress.length > 0) {
+    if (stress.some((capture) => captureMetadataIncomplete(capture, expectedSubject))) findings.push(`${label} v2 stress capture metadata is incomplete`);
+    if (stress.some((capture) => capture.contentSize !== "accessibility-extra-extra-extra-large")) {
+      findings.push(`${label} v2 stress captures require the exact content-size class`);
+    }
+    if (!sameStrings(stress.map((capture) => capture?.screenId), screenIds)) {
+      findings.push(`${label} v2 stress captures must cover each normal screen exactly once`);
+    }
   }
   verifyGeometry(label, ledger.pointSpaceGeometry, screenIds, findings);
+  verifyStressCaptureState(label, stress, ledger.pointSpaceGeometry, findings);
   return { normal, stress, screenIds };
 }

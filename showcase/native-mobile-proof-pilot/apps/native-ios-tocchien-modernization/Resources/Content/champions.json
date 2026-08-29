@@ -1,0 +1,98 @@
+[
+  {
+    "id": "blitzcrank",
+    "legacyName": "BlitzCrank",
+    "role": "Đỡ đòn / Hỗ trợ",
+    "difficulty": 1,
+    "damageType": "100% Phép Thuật",
+    "thumbAsset": "blitzcrank_champthumb",
+    "previewAsset": "champion_overview_blitzcrank",
+    "subtitle": "NGƯỜI MÁY HƠI NƯỚC",
+    "summary": "Là tướng hỗ trợ, Blitzcrank luôn sẵn sàng ra tay tương trợ bạn theo đúng nghĩa đen. Bằng cách kéo mục tiêu địch vào giữa giao tranh, hắn sẽ mở đầu trận chiến dù kẻ địch có sẵn sàng hay chưa.",
+    "historicalAsOf": "2021-05-04",
+    "sourceAnchors": {
+      "catalogue": { "path": "Shared/Model/Champion.swift", "lines": "94-103", "blobOid": "2e9553a534065b4de2de3dca576274669ede9c0f" },
+      "overview": { "path": "Shared/Model/ChampionHomeModel.swift", "lines": "44-47", "blobOid": "c50fe3cf3446c6bc94279a5276203048335e195a" }
+    }
+  },
+  {
+    "id": "jinx",
+    "legacyName": "Jinx",
+    "role": "Xạ thủ",
+    "difficulty": 2,
+    "damageType": "100% Vật Lý",
+    "thumbAsset": "jinx_champthumb",
+    "previewAsset": "champion_overview_jinx_zombieslay",
+    "subtitle": "KHẨU PHÁO NỔI LOẠN",
+    "summary": "Jinx là xạ thủ với lối chơi Thích là bắn và kho vũ khí đầy các khẩu súng và công cụ nguy hiểm. Cháy nổ là chuyện miễn bàn với cô nàng.",
+    "historicalAsOf": "2021-05-04",
+    "sourceAnchors": {
+      "catalogue": { "path": "Shared/Model/Champion.swift", "lines": "274-282", "blobOid": "2e9553a534065b4de2de3dca576274669ede9c0f" },
+      "overview": { "path": "Shared/Model/ChampionHomeModel.swift", "lines": "25-29", "blobOid": "c50fe3cf3446c6bc94279a5276203048335e195a" }
+    }
+  },
+  {
+    "id": "lux",
+    "legacyName": "Lux",
+    "role": "Pháp sư / Hỗ trợ",
+    "difficulty": 1,
+    "damageType": "100% Phép Thuật",
+    "thumbAsset": "lux_champthumb",
+    "previewAsset": "champion_overview_lux_spellthief",
+    "subtitle": "TIỂU THƯ ÁNH SÁNG",
+    "summary": "Lux là pháp sư ánh sáng chuyên trói chân địch, tạo lá chắn cho đồng minh và gây sát thương cực lớn. Thứ duy nhất tỏa sáng chói lóa hơn phép thuật là thái độ tươi vui của cô.",
+    "historicalAsOf": "2021-05-04",
+    "sourceAnchors": {
+      "catalogue": { "path": "Shared/Model/Champion.swift", "lines": "335-343", "blobOid": "2e9553a534065b4de2de3dca576274669ede9c0f" },
+      "overview": { "path": "Shared/Model/ChampionHomeModel.swift", "lines": "19-23", "blobOid": "c50fe3cf3446c6bc94279a5276203048335e195a" }
+    }
+  },
+  {
+    "id": "miss-fortune",
+    "legacyName": "Miss Fortune",
+    "role": "Xạ thủ / Pháp sư",
+    "difficulty": 1,
+    "damageType": "25% Phép Thuật - 75% Vật Lý",
+    "thumbAsset": "missfortune_champthumb",
+    "previewAsset": "champion_overview_ms",
+    "subtitle": "THỢ SĂN TIỀN THƯỞNG",
+    "summary": "Miss Fortune là xạ thủ tàn nhẫn với hai khẩu súng lục vung vẩy, vừa đường hoàng tự tin vừa cool ngầu bá đạo. Cô luôn sẵn sàng làm mưa tuôn rơi. Mưa đạn đó.",
+    "historicalAsOf": "2021-05-04",
+    "sourceAnchors": {
+      "catalogue": { "path": "Shared/Model/Champion.swift", "lines": "365-373", "blobOid": "2e9553a534065b4de2de3dca576274669ede9c0f" },
+      "overview": { "path": "Shared/Model/ChampionHomeModel.swift", "lines": "37-41", "blobOid": "c50fe3cf3446c6bc94279a5276203048335e195a" }
+    }
+  },
+  {
+    "id": "zed",
+    "legacyName": "Zed",
+    "role": "Sát thủ",
+    "difficulty": 3,
+    "damageType": "100% Vật Lý",
+    "thumbAsset": "zed_champthumb",
+    "previewAsset": "champion_overview_zed_deathsworn",
+    "subtitle": "HỘI TỬ THẦN",
+    "summary": "Là một tên sát thủ đáng sợ, Zed hạ thủ kẻ địch từ trong bóng tối, rồi biến mất. Nếu bạn thấy hắn tức là mọi thứ đã quá trễ rồi.",
+    "historicalAsOf": "2021-05-04",
+    "sourceAnchors": {
+      "catalogue": { "path": "Shared/Model/Champion.swift", "lines": "585-593", "blobOid": "2e9553a534065b4de2de3dca576274669ede9c0f" },
+      "overview": { "path": "Shared/Model/ChampionHomeModel.swift", "lines": "31-35", "blobOid": "c50fe3cf3446c6bc94279a5276203048335e195a" }
+    }
+  },
+  {
+    "id": "ziggs",
+    "legacyName": "Ziggs",
+    "role": "Pháp sư",
+    "difficulty": 2,
+    "damageType": "100% Phép Thuật",
+    "thumbAsset": "ziggs_champthumb",
+    "previewAsset": "champion_overview_ziggs",
+    "subtitle": "CHUYÊN GIA CHẤT NỔ",
+    "summary": "Ziggs là pháp sư thuốc nổ luôn thủ sẵn 1 (hoặc cũng có thể là 4) quả bom trong ống tay áo. Hắn chuyên sử dụng các loại bom ngòi nổ ngắn, bom to và cho địch banh xác thành từng mảnh.",
+    "historicalAsOf": "2021-05-04",
+    "sourceAnchors": {
+      "catalogue": { "path": "Shared/Model/Champion.swift", "lines": "595-603", "blobOid": "2e9553a534065b4de2de3dca576274669ede9c0f" },
+      "overview": { "path": "Shared/Model/ChampionHomeModel.swift", "lines": "49-53", "blobOid": "c50fe3cf3446c6bc94279a5276203048335e195a" }
+    }
+  }
+]

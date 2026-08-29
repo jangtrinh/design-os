@@ -1,0 +1,49 @@
+{
+  "kind": "design-os.native-mobile-candidate-brief",
+  "version": 1,
+  "id": "native-ios-tocchien-modernization-v1",
+  "surface": "native-ios",
+  "artifact": "native-ios-application",
+  "title": "TocChien native iOS modernization",
+  "status": "candidate-only",
+  "platform": {
+    "minimumOS": "iOS 26.0",
+    "deviceFamily": "iPhone",
+    "swiftLanguageMode": "Swift 6",
+    "offline": true
+  },
+  "content": {
+    "championCount": 6,
+    "dictionaryCount": 24,
+    "imagesetCount": 12,
+    "historicalNotice": "Dữ liệu lịch sử từ bản hướng dẫn Tốc Chiến (2021), không phải dữ liệu trực tiếp.",
+    "sourceDate": "2021-05-04"
+  },
+  "screens": [
+    { "id": "champion-catalogue", "title": "Tướng", "role": "catalogue" },
+    { "id": "champion-detail", "title": "Chi tiết tướng", "role": "typed-detail" },
+    { "id": "game-dictionary", "title": "Từ điển Tốc Chiến", "role": "searchable-reference" }
+  ],
+  "shell": {
+    "tabs": ["Tướng", "Từ điển"],
+    "detailRoute": "ChampionRoute.detail(id:)",
+    "dictionarySearch": "native-searchable-only"
+  },
+  "geometry": {
+    "canonicalViewportPoints": "390x844",
+    "catalogueCompleteCards": 4,
+    "detailHeroMaxUsableHeight": 0.33,
+    "dictionaryChromeMaxPoints": 160,
+    "dictionaryCompleteRows": 4
+  },
+  "forbidden": [
+    "network", "WebView", "WKWebView", "SwiftData", "packages", "HTML",
+    "Home", "news", "video", "items", "live-current-data", "App Store qualification", "physical-device qualification"
+  ],
+  "evidenceBoundary": {
+    "behavior": "candidate technical evidence only",
+    "visual": "PENDING independent Phase 3 review",
+    "device": "NOT RUN",
+    "owner": "PENDING"
+  }
+}

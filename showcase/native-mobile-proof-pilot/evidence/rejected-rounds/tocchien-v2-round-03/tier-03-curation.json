@@ -1,0 +1,171 @@
+{
+  "kind": "design-os.native-mobile-tier-03-visual-curation",
+  "version": 2,
+  "capabilityId": "native-ios",
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "8ebbaaa431fd16d3c7b562d2ae02679f9b36d90908b4f7b826da16201a951c88"
+  },
+  "captureLedgerSha256": "48278279dc606f7738e133854911c02336364164457377437b23ddcc9c42730c",
+  "reviewReceiptSha256": "9902a07a36344b64fcc7b8548fe3769ea52e44ab3ccf27d051bf482c1097dd88",
+  "reviewer": {
+    "role": "independent-curator",
+    "sessionId": "ctx_399ffe9dab22",
+    "workerId": "term_cd830ab6-31a9-4371-aa4b-bd12beb62be3"
+  },
+  "screenReviews": [
+    {
+      "screenId": "champion-catalogue",
+      "normalCaptureHashes": {
+        "light": "13d44dc9c12db8b7b78262b1db38bc2e1171a0c76f37ea7ec194d188e70e72a9",
+        "dark": "e7d3882344a58002644018489055245f5a5b60ed739151fa7e2deedc9688bae6"
+      },
+      "appearanceObservations": {
+        "light": "White mode has a clear title-to-history-notice-to-two-column-card hierarchy with authorized champion art and readable black/gray text; only the third row continues below the offset-zero scroll viewport and it does not intersect bottom chrome",
+        "dark": "Black mode preserves the same hierarchy with dark cards, white headings, muted role text, and a blue selected tab; the third row is a scroll-reachable continuation below the offset-zero viewport, not overlap"
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "Two-column cards create clear scan order and focal hierarchy; three complete point-space rows are recorded and the partial third row is a scroll-reachable continuation rather than a clipped frame"
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Title, historical notice, card names, and role labels use a coherent size and weight hierarchy with readable mixed-case body text in both modes"
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Card gutters, image insets, card padding, row gaps, and bottom reservation read as a consistent rhythm; no normal content overlaps persistent chrome"
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Light and dark captures retain the same card geometry, corner treatment, navigation placement, canonical labels, and historical notice"
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "Still PNGs contain no transition witness; motion cannot be scored without runtime animation evidence"
+        },
+        "Iconography": {
+          "score": 8,
+          "evidence": "History, tab, and search glyphs form one coherent system with consistent optical scale and active-state treatment"
+        },
+        "Depth-Surface": {
+          "score": 8,
+          "evidence": "Neutral light and dark card surfaces provide a deliberate flat elevation treatment with consistent rounded surfaces and no harsh shadow or doubled border"
+        }
+      }
+    },
+    {
+      "screenId": "champion-detail",
+      "normalCaptureHashes": {
+        "light": "4817f170eb26a57021e0420d86a1a803fa8a15d89ce2e2b5828cfc20928a43bd",
+        "dark": "0ee93efaab61ebe1758a0349fa50c28aaf7b23d23d22503fd67a55b21fba327b"
+      },
+      "appearanceObservations": {
+        "light": "White mode shows the back control, centered title, full Miss Fortune hero asset, champion identity, role, metadata, history copy, and historical notice with clear contrast and no bottom-reservation overlap",
+        "dark": "Black mode preserves the same authored hierarchy with a mode-adapted hero surface, white identity text, blue role label, muted metadata, readable history copy, and visible historical notice above the bottom reservation"
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "Single hero leads into identity, role, metadata, history, and notice in an intentional vertical sequence; the measured 190pt hero stays below the 33% bound"
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Large identity heading, blue uppercase role label, muted metadata, section heading, and body copy establish clear weight and scale contrast"
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Shared side insets and regular hero-to-identity-to-history spacing create a comfortable rhythm; measured hero and next-section geometry remain above the content reservation"
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Light and dark modes share canonical labels, history notice, hero/card geometry, corner treatment, and navigation conventions with the catalogue"
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "Still PNGs contain no transition witness; motion cannot be scored without runtime animation evidence"
+        },
+        "Iconography": {
+          "score": 8,
+          "evidence": "Back and history glyphs use one restrained icon language and remain optically aligned with adjacent controls and text"
+        },
+        "Depth-Surface": {
+          "score": 8,
+          "evidence": "One neutral hero surface separates the authorized art from the page with a restrained, mode-adapted material treatment and no harsh shadow"
+        }
+      }
+    },
+    {
+      "screenId": "game-dictionary",
+      "normalCaptureHashes": {
+        "light": "4b776d0bdc904a7ef4b7e884f75227e6fcad8925f3923cef891bd2d29e5a92f3",
+        "dark": "3e79533d2474a620dc3098d267ded6e3a351af4ff501a96c67e040958f385aca"
+      },
+      "appearanceObservations": {
+        "light": "White mode has a centered dictionary title, separated historical notice, readable ACE/AD/ADC/AFK terms and definitions, and a reserved bottom search surface; any lower continuation is scroll-reachable",
+        "dark": "Black mode preserves the title, notice, term-definition hierarchy, dividers, and bottom search surface with sufficient contrast; the partial next entry at the offset-zero edge is scroll-reachable, not clipping"
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "Centered title and notice lead into distinct term-definition rows separated by dividers; the ledger records four complete above-fold rows"
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Bold terms contrast with large muted definitions and the title/notice hierarchy remains legible in both normal appearances"
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Row padding, divider intervals, side insets, and bottom search reservation follow a stable rhythm without content-chrome overlap"
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Dictionary reuses the catalogue/detail typography, historical notice, icon treatment, adaptive light/dark surfaces, and canonical labels"
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "Still PNGs contain no transition witness; motion cannot be scored without runtime animation evidence"
+        },
+        "Iconography": {
+          "score": 8,
+          "evidence": "History, people-tab, and search glyphs share one restrained family and consistent sizing across the normal appearances"
+        },
+        "Depth-Surface": {
+          "score": 8,
+          "evidence": "White and black page surfaces use restrained dividers and a consistent bottom search material without harsh shadows or invisible same-mode boundaries"
+        }
+      }
+    }
+  ],
+  "stressObservations": [
+    {
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png",
+      "observation": "AX XXXL catalogue: BlitzCrank is fully visible in the audited representative state; frame maxY 520.03pt sits above persistent-boundary minY 686.97pt for a 166.94pt gap, far above the 8pt minimum, with no frame/chrome intersection. Jinx is a partial lower continuation at offset zero and remains scroll-reachable; it is not clipping or overlap"
+    },
+    {
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-axxxl.png",
+      "observation": "AX XXXL detail preserves the required top-of-scroll state; the full Miss Fortune hero and top detail structure are visible, while the enlarged role and metadata wrap and later history content continues below as expected for accessibility text sizing"
+    },
+    {
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png",
+      "observation": "AX XXXL dictionary: ACE and its definition are fully visible in the audited representative state; frame maxY 588.99pt sits above persistent-boundary minY 686.97pt for a 97.98pt gap, above the 8pt minimum, with no frame/chrome intersection. AD is a partial lower continuation at offset zero and remains scroll-reachable, not clipping"
+    }
+  ],
+  "autoFails": {
+    "duplicate-screen-title": false,
+    "duplicate-search-surface": false,
+    "wrong-or-missing-authorized-asset": false,
+    "missing-historical-notice": false,
+    "normal-large-clipping-or-overlap": false,
+    "excessive-chrome-or-padding": false,
+    "below-fold-density": false,
+    "oversized-detail-hero": false,
+    "placeholder-or-generic-scaffold": false,
+    "below-axis-threshold": false
+  },
+  "blockers": []
+}

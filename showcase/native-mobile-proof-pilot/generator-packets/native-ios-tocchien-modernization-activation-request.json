@@ -1,0 +1,12 @@
+{
+  "kind": "capability-activation-request",
+  "version": 1,
+  "rawRequest": "Modernize the selected TocChien historical guide slice as a native iOS 26 SwiftUI candidate for iPhone.",
+  "requestedSurface": "native-ios",
+  "inputKind": "words",
+  "selectionEvidence": {
+    "kind": "quoted-request",
+    "quote": "native iOS 26 SwiftUI candidate",
+    "role": "requested-artifact"
+  }
+}

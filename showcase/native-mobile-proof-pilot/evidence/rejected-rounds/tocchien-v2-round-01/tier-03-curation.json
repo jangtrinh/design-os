@@ -1,0 +1,173 @@
+{
+  "kind": "design-os.native-mobile-tier-03-visual-curation",
+  "version": 2,
+  "capabilityId": "native-ios",
+  "subject": {
+    "capabilityId": "native-ios",
+    "artifact": "native-ios-application",
+    "briefId": "native-ios-tocchien-modernization-v1",
+    "briefSha256": "6a07e697b0688877984a8147f05530f5f432c18e1be0ec54d7a52ee54bc87246",
+    "sourceTreeSha256": "9dd64b3e877208d9ff575cf38da3c0484c251b0a7080a6a90942c5efcc9f95cb"
+  },
+  "captureLedgerSha256": "24916f6eb0ab7f34abba1c104208de0cf8ed06e585a52448aaec298baef9f19c",
+  "reviewReceiptSha256": "9c108b0951208b75293d9cdc09e31eda4f3b606d943e3d49499ba2c058b99590",
+  "reviewer": {
+    "sessionId": "ctx_71f7208e2572",
+    "workerId": "term_f3e88973-8d46-46d7-90eb-f6e36828df80"
+  },
+  "blockers": [
+    "normal-large-clipping-or-overlap: the persistent bottom search/navigation chrome covers the AP (Ability Power) row content in screenshots/native-ios-tocchien-iphone-17e-game-dictionary-light-large.png and screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-dark-large.png; add bottom content inset or constrain the overlay, then recapture both normal appearances.",
+    "accessibility-extra-extra-extra-large overflow: screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png, screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-axxxl.png, and screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png show oversized text running beneath persistent chrome or beyond the usable viewport; repair Dynamic Type layout and safe-area/content-inset handling, then recapture all three stress paths."
+  ],
+  "autoFails": {
+    "duplicate-screen-title": false,
+    "duplicate-search-surface": false,
+    "wrong-or-missing-authorized-asset": false,
+    "missing-historical-notice": false,
+    "normal-large-clipping-or-overlap": true,
+    "excessive-chrome-or-padding": false,
+    "below-fold-density": false,
+    "oversized-detail-hero": false,
+    "placeholder-or-generic-scaffold": false,
+    "below-axis-threshold": true
+  },
+  "screenReviews": [
+    {
+      "screenId": "champion-catalogue",
+      "normalCaptureHashes": {
+        "light": "9d2ea58da04cfdaf34b7ba29acc1db9be1f0114e0299fde5e1399d9c3e741398",
+        "dark": "1effd7b2dd677c2c32476ed732d6ceb11070a619bc84d99e0be186902ca2023a"
+      },
+      "appearanceObservations": {
+        "light": "Normal Large light: the Tướng heading, historical notice, six authorized champion artworks, three complete two-column rows, selected Tướng control, and search control are legible with no visible clipping.",
+        "dark": "Normal Large dark: the same title, notice, six-card grid, selected Tướng control, and search control retain hierarchy and contrast on the black canvas with charcoal cards."
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "The 390x844pt geometry ledger reports three complete rows; the title-to-notice-to-two-column catalogue creates a clear focal order and an intentional dense composition for six champions."
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Tướng is a high-weight display heading, champion names are a distinct bold level, and role text plus the historical notice are muted body levels; Vietnamese diacritics remain legible in both normal captures."
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "Card gutters, image insets, concentric rounded corners, card row gaps, and bottom controls repeat as a coherent rhythm; the measured catalogue retains three complete rows without normal clipping."
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "The catalogue establishes the same visible system used by the other screens: historical-notice treatment, blue selected tab, circular search affordance, platform symbols, and rounded surfaces."
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "The receipt-bound evidence is still imagery only and contains no temporal witness for easing, duration, or transition choreography; no motion claim is made."
+        },
+        "Iconography": {
+          "score": 7,
+          "evidence": "History, people, and search symbols use one coherent platform icon family and fixed optical scale; the filled people state communicates the selected Tướng tab rather than introducing a second style."
+        },
+        "Depth-Surface": {
+          "score": 7,
+          "evidence": "Light uses a white canvas with a single light card surface and dark uses a black canvas with a single charcoal card surface; rounded boundaries stay legible without harsh shadows or doubled borders."
+        }
+      }
+    },
+    {
+      "screenId": "champion-detail",
+      "normalCaptureHashes": {
+        "light": "9ef7a7eadfc3a6215f54fdc862fb8a8771894cafe91828c167ef985e8aa057b5",
+        "dark": "f9127224624bf9876ed4d60ebeb42fc88a2586038a65956310b5dd4fa4fb8429"
+      },
+      "appearanceObservations": {
+        "light": "Normal Large light: back control, centered Chi tiết tướng title, Miss Fortune hero, role label, metadata, history section, body copy, and historical notice are visible; the hero is 190pt and the next section begins at measured y=454pt.",
+        "dark": "Normal Large dark: the detail hierarchy survives the dark surface treatment, with white identity text, blue role label, charcoal hero, divider, body copy, and historical notice remaining readable above the bottom shell."
+      },
+      "axes": {
+        "Layout": {
+          "score": 8,
+          "evidence": "The screen leads from back/title chrome to a 190pt hero, Miss Fortune identity, role metadata, divider, and history; the 454pt next-section position keeps the content sequence above the 844pt fold."
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "Miss Fortune is the dominant name, the uppercase role label is a separate accent level, metadata is muted, and history/body text steps down clearly with readable Vietnamese diacritics."
+        },
+        "Spacing": {
+          "score": 8,
+          "evidence": "The hero remains within the 33% maximum at 190/844pt, content gutters repeat around the hero and prose, and the next section starts at 454pt without normal Large overlap."
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "Back, history notice, selected Tướng/search shell, blue accent, rounded hero treatment, and typography roles visibly match the catalogue and dictionary system."
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "The receipt-bound evidence is still imagery only and contains no temporal witness for easing, duration, or transition choreography; no motion claim is made."
+        },
+        "Iconography": {
+          "score": 7,
+          "evidence": "Back, history, people, and search symbols remain in one platform family with consistent optical weight; the filled people icon is reserved for the selected tab state."
+        },
+        "Depth-Surface": {
+          "score": 7,
+          "evidence": "The hero panel, light/dark canvases, and fine history divider form a restrained flat elevation system; surfaces are separated without harsh black shadow treatment or border-shadow doubling."
+        }
+      }
+    },
+    {
+      "screenId": "game-dictionary",
+      "normalCaptureHashes": {
+        "light": "3f45cf2e647d125933417f832bfb78bbc0b49c8facf3951a3582fcb289845c49",
+        "dark": "0e1fb08e8caebd5b5162d3618eed0553cc72eee45f3b9e25dfcdcece3be26d84"
+      },
+      "appearanceObservations": {
+        "light": "Normal Large light: the centered dictionary title, historical notice, acronym headings, and five complete rows are legible, but the persistent bottom search field visibly covers the lower AP row content.",
+        "dark": "Normal Large dark: title, notice, definition rows, and 101pt dictionary chrome retain contrast, but the persistent bottom search field visibly covers the lower AP row content."
+      },
+      "axes": {
+        "Layout": {
+          "score": 7,
+          "evidence": "The title-to-notice-to-definition-row hierarchy is clear and the ledger reports five complete rows, but the fixed bottom search surface overlaps the AP row in both normal appearances, breaking the intended reading composition."
+        },
+        "Typography": {
+          "score": 8,
+          "evidence": "A centered display title, bold acronym headings, and larger muted definitions create clear role contrast; normal Large text and Vietnamese diacritics are readable before the lower row is covered by chrome."
+        },
+        "Spacing": {
+          "score": 7,
+          "evidence": "Definition row gutters and dividers are regular and dictionary chrome measures 101pt, but the bottom search field has no sufficient content inset and occludes AP body text in both normal captures."
+        },
+        "Consistency": {
+          "score": 8,
+          "evidence": "The dictionary reuses the same historical-notice treatment, platform symbol language, blue selected Tướng tab, search affordance, rounded surfaces, and light/dark pairing as the other two screens."
+        },
+        "Motion": {
+          "disposition": "NOT_APPLICABLE",
+          "rationale": "The receipt-bound evidence is still imagery only and contains no temporal witness for easing, duration, or transition choreography; no motion claim is made."
+        },
+        "Iconography": {
+          "score": 7,
+          "evidence": "History, people, and search symbols use one coherent platform family with a consistent optical scale; the selected people symbol is the only filled state and has semantic selection meaning."
+        },
+        "Depth-Surface": {
+          "score": 7,
+          "evidence": "The dictionary uses a restrained flat treatment: light/dark canvas contrast, fine dividers, and a single persistent search surface; no harsh shadows or arbitrary elevation variants are visible."
+        }
+      }
+    }
+  ],
+  "stressObservations": [
+    {
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-champion-catalog-axxxl.png",
+      "observation": "AX XXXL catalogue collapses to one column as recorded, but the oversized historical notice consumes most of the viewport and the first card role text runs beneath the persistent bottom controls; the next card is only partially usable. Repair Dynamic Type wrapping and bottom content inset before recapture."
+    },
+    {
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-champion-detail-axxxl.png",
+      "observation": "AX XXXL detail keeps the hero bounded, but the Miss Fortune identity and role/metadata expand beyond the usable viewport; the role and following history content are obscured by persistent bottom chrome. Repair scalable hierarchy and safe-area/content-inset handling before recapture."
+    },
+    {
+      "capturePath": "screenshots/native-ios-tocchien-iphone-17-pro-game-dictionary-axxxl.png",
+      "observation": "AX XXXL dictionary text expands into oversized multi-line blocks; the AP entry and subsequent content are hidden beneath the persistent bottom search field, so the stress state is not readable end-to-end. Repair Dynamic Type row layout and bottom inset before recapture."
+    }
+  ]
+}
