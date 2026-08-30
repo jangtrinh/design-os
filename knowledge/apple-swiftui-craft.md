@@ -35,6 +35,33 @@ Use SwiftUI for normal surface structure. A UIKit bridge is allowed only when a 
 capability is unavailable in SwiftUI. Record the missing capability, the smallest bridge, state
 ownership, accessibility ownership, and the condition for deleting the bridge.
 
+## Authorized product language continuity
+
+When modernizing an existing product, inventory its authorized product language before composing a new
+surface: content roles, dominant visual medium, canonical labels, information rhythm, and recognizable
+interaction conventions. Treat those elements as a content and interaction contract, not as optional
+styling references.
+
+Preserve the product's intent and recognition path, not its legacy pixels. Typography, spacing,
+materials, and container behavior may become more native and adaptive without replacing an image-led
+experience with generic cards, renaming canonical concepts, flattening authored hierarchy, or moving
+familiar actions without a product reason.
+
+## Content-shaped composition
+
+Choose composition from the content's primary job:
+
+- **Image-led collections** let authorized imagery carry identity and scan order. Labels support the
+  imagery instead of turning every item into a padded text container.
+- **Authored detail surfaces** compose media, identity, metadata, and narrative as one hierarchy. Keep
+  the next meaningful section discoverable so the opening surface does not become an isolated poster.
+- **Text-led reference lists** prioritize complete term-definition or label-value units, predictable
+  dividers, and rapid scanning. Decorative media must not displace the reference task.
+
+Reserve safe areas and persistent chrome before assigning space to content. At a viewport boundary,
+finish the current content unit; use a meaningful section heading or deliberate continuation cue for
+discoverability rather than an accidentally clipped row.
+
 ## Layout is proposal-driven
 
 - Derive composition from the container's available space, safe areas, content, locale, and Dynamic
@@ -69,6 +96,17 @@ Motion, Reduce Transparency, Increased Contrast, Differentiate Without Color, an
 `manualWitnesses` names required evidence that remains outstanding; presence in an activation receipt
 never means the witness passed. Accessibility Inspector/tree output supplements live assistive-
 technology use. It does not replace VoiceOver, Switch Control, Full Keyboard Access, or device testing.
+
+## Evidence is subject-bound
+
+Evidence must bind the exact subject, appearance, and reviewer it supports. Record the capability and
+artifact plus the relevant content or source revision; the rendered state, appearance, and container;
+and the reviewer's identity, role, and review basis.
+
+Do not transfer a verdict across a changed source, a different capture, light and dark appearances,
+normal and stress states, or different reviewers. Owner-direct acceptance and independent review are
+separate witnesses: report each at its actual scope, and never relabel one as the other or infer owner
+acceptance for an appearance the owner did not directly review.
 
 ## Evidence ladder
 

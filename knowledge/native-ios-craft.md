@@ -21,6 +21,21 @@ safe-area changes, and keyboard-driven height loss.
 Let proposals and content choose the layout. Avoid hard-coded screen bounds, model checks, or a
 geometry reader used as a global layout engine. Preserve content state when a container adapts.
 
+## Compact vertical budget and structural reflow
+
+On iPhone, allocate the compact vertical budget after safe areas, navigation, persistent bottom chrome,
+and any active keyboard reservation. Media may remain the dominant visual language without consuming
+the opening surface: keep identity readable and the next meaningful section discoverable.
+
+Collections and text-led lists should end the visible content region on complete rows or complete
+content units. Keep those units clear of persistent chrome; a clipped next item is not a valid cue that
+more content exists.
+
+Accessibility-triggered reflow is structural, not a scaled-down copy of the default layout. When text
+growth or reduced height makes the composition fail, change multi-column collections to one column,
+stack side-by-side regions, rebalance media, and preserve semantic reading order. Do not recover space
+by clipping primary content, shrinking text, or letting a hero dominate the task.
+
 ## Navigation and presentation
 
 Use `NavigationStack` for hierarchical push navigation and value-based destinations. Use tabs only for
