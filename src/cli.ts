@@ -65,7 +65,7 @@ import { promptPlanCommand } from "./commands/prompt-plan.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 
 // ─── Command registry ─────────────────────────────────────────────────────────
 

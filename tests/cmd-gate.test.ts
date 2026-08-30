@@ -9,6 +9,8 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
+import { GATE_FAMILIES } from "../src/core/gate.js";
+import { GATE_HELP } from "../src/commands/gate.js";
 
 function capture(args: string[]): { code: number; out: string } {
   let out = "";
@@ -203,5 +205,29 @@ describe("nodeRef stability — the stuck detector's identity contract", () => {
       .map((x: { nodeRef: string }) => x.nodeRef);
     expect(refs).toHaveLength(2);
     expect(new Set(refs).size).toBe(2);
+  });
+});
+
+describe("the help text lists every family the gate actually runs", () => {
+  /**
+   * `tell` shipped inside `ui gate` while `ui gate --help` still listed five families.
+   * The gate ran six; a reader of the help had no way to know the sixth existed. Caught
+   * by smoking a fresh clone before a release tag, not by any test — so this is the test.
+   *
+   * Derived from GATE_FAMILIES rather than hand-listed, for the same reason the README
+   * check counts are derived from CHECK_CATALOG: a hand-kept copy of a list drifts from
+   * the list, and the drift is silent.
+   */
+  it("names each of GATE_FAMILIES in the help output", () => {
+    const missing = GATE_FAMILIES.filter((f) => !new RegExp(`^\\s+${f}\\s`, "m").test(GATE_HELP));
+    expect(missing, `families that run but are undocumented in \`ui gate --help\``).toEqual([]);
+  });
+
+  it("does not advertise a family the gate cannot run", () => {
+    // The other direction: a family deleted from the runner but left in the help would
+    // promise a check that never happens, which is worse than an undocumented one.
+    const advertised = [...GATE_HELP.matchAll(/^ {2}([a-z0-9-]+) {2,}(?:ui |DRY-RUN)/gm)].map((m) => m[1] as string);
+    expect(advertised.length).toBeGreaterThan(0);
+    expect(advertised.filter((f) => !(GATE_FAMILIES as readonly string[]).includes(f))).toEqual([]);
   });
 });

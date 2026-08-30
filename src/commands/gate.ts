@@ -26,6 +26,7 @@ Runs, in one call:
   layout    ui validate-layout   (structure + mobile + hover floors)
   a11y      ui a11y-lint         (Tier-1 WCAG floors)
   taste     ui taste-lint        (rubric machine floors; --tokens enables raw-hex)
+  tell      ui tell-lint         (generated-UI tells; mostly advisory)
   content   ui content-lint      (UX-writing floors)
   autofix   DRY-RUN cleanliness  (pending repairs = error "autofix-not-clean")
 
