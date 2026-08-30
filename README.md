@@ -1077,6 +1077,7 @@ The recent wave, newest first — full history in [CHANGELOG.md](CHANGELOG.md).
 
 | Date | Change | Commit |
 |---|---|---|
+| 2026-08-30 | **`ease-design@0.6.0`** — the polyglot release: `ui tell-lint` reads HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI and Flutter with 43 rules written once; `tell` joins `ui gate`; native macOS/iOS/iPadOS arms; and the instruments that keep the verdicts honest — an adjudicated field corpus, a fact census, thresholds pinned by executable boundary pairs, and a nightly mutation audit | `v0.6.0` |
 | 2026-08-29 | **TocChien becomes the retained iOS proof** — three image-first SwiftUI screens, 16 controller-replayed simulator tests, paired light/dark evidence, independent visual review, and exact-hash owner acceptance; Tier 2 provenance and physical/live-accessibility limits remain explicit | `#242` |
 | 2026-08-29 | **Native iOS and iPadOS proof becomes inspectable** — two held-out SwiftUI apps, 26 passing simulator tests, retained render evidence, independent fail-then-pass curation, and a content-addressed board; hardware and owner gates remain explicitly open | `#240` |
 | 2026-08-28 | **The tell rules are kept honest by measurement** — a field corpus of real pages with adjudicated verdicts (a fix that silences a true positive goes red, naming it and quoting the reason), a printed live false-positive rate, a fact census so a zero can be read, every threshold in one table pinned by an executable boundary pair, three metamorphic laws, and a nightly mutation audit | `feat/design-facts-ir` |
