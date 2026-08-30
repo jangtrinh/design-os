@@ -63,7 +63,7 @@ export type WorkflowVerb = (typeof WORKFLOW_VERBS)[number];
  * dead config, pruned by review.
  */
 export const AGENT_TEMPLATE_COMMAND_ALLOWLIST: Record<string, readonly string[]> = {
-  designer: ["ui ds context", "ui gate", "ui memory record", "ui schema"],
+  designer: ["ui ds context", "ui gate", "ui knowledge activate", "ui memory record", "ui schema"],
   curator: ["ui ds context", "ui gate", "ui ds a11y", "ui memory record", "ui schema", "design-os audit"],
   "figma-hand": ["ui ds context", "ui memory record", "ui schema"],
 };

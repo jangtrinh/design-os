@@ -27,13 +27,17 @@ Stop on non-zero. Proceed only when the receipt has every value below:
 - `route: "native-ios"`; and
 - `artifact: "native-ios-application"`.
 
-Do not substitute iPadOS or web. Preserve the receipt beside the work.
+Do not substitute iPadOS or web. Preserve the receipt beside the work. Its
+`selectedKnowledge` is the exclusive knowledge index for this capability work.
 
 ## 1. Establish the app contract
 
-Read `knowledge/apple-swiftui-craft.md` and `knowledge/native-ios-craft.md`. Define the primary task,
-content hierarchy, navigation ownership, loading/empty/error/recovery states, editable focus flow, and
-supported orientation before styling.
+Read the packets named in the receipt's `selectedKnowledge`, including
+`knowledge/apple-swiftui-craft.md` and `knowledge/native-ios-craft.md`. Those packets own
+product-language continuity, content-shaped composition, compact vertical budget,
+accessibility reflow, and evidence binding; apply them here without restating their doctrine.
+Then define the primary task, content hierarchy, navigation ownership,
+loading/empty/error/recovery states, editable focus flow, and supported orientation before styling.
 
 Use SwiftUI semantic controls and app-owned route/state data. Escalate to UIKit only for a documented
 SwiftUI capability gap, with the smallest bridge and explicit accessibility ownership.

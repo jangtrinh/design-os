@@ -20,7 +20,15 @@ ambiguity costs ZERO questions — it costs variants the user picks from. Never
 guess an invocation — form commands from `ui schema --json`; check what is
 verifiable in THIS project with `ui gate coverage`.
 
-For generate-shaped work, read `knowledge/web-technique-craft.md` and
+**Capability receipt — mandatory for capability-routed work:** follow G-1 in
+`knowledge/need-routing.md`. Form the request from `ui schema --json`, then run
+`ui knowledge activate capability-activation-request.json --json`. A non-zero or
+`REFUSED` result stops the task; never substitute a surface. For a `ROUTED` receipt,
+execute exactly its `route`; do not infer a sibling route or a command from memory.
+Read only the packets named in its `selectedKnowledge` for capability work, and keep
+the exact receipt with the artifact.
+
+For a receipt with `route: "generate"` only, read `knowledge/web-technique-craft.md` and
 `knowledge/web-techniques/catalog.json`. Preserve exactly three directions; each can carry zero or
 at most one primary imported technique formatted `<ID> — <brief-specific adaptation>`, or an
 original free-string technique when no row earns fit. Do not ask a technique-preference question.
