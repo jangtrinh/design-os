@@ -1,0 +1,38 @@
+{
+  "page": "page.html",
+  "pinnedBy": "snapshot",
+  "why": "Owner-curated EaseUI master reference sample (kinetic set). Human-authored and deliberate, which is the bucket that decides whether the tell family is trustworthy: its fatal failure mode is flagging a good designer's choice. Self-contained — no linked stylesheet. Origin: EaseUI/app/public/samples/kinetic/03-hyper-gloss-y3k-chrome.html, copied 2026-08-30, finding count verified identical to source.",
+  "sha256": "cc0dc6243564077e37b823672b46690de1297619f31846a79429c6d69f880619",
+  "extractor": "html-cascade",
+  "censusFloor": { "total": 203, "kinds": ["border", "color", "gradient", "motion", "shadow", "structure", "text", "typography"] },
+  "adjudicatedOn": "2026-08-30",
+  "adjudicatedBy": "tell-family author",
+  "needsOwnerReview": true,
+  "reviewNote": "Owner-authored page: on his own work the owner's verdicts are ground truth, not mine. Both fp-open rows below are the ones to check first.",
+  "verdicts": [
+    {
+      "key": "line-length@line:6#8946 characters in one run",
+      "verdict": "fp-open",
+      "reason": "Line 6 is the <title> tag and is 123 characters long. The reported 8,946-character 'body run' is the page's text aggregated into one fact, attributed to the first text fact's line. No single unconstrained line exists here. Mechanism: the rule reads one text fact whose content spans the document rather than a per-element run.",
+      "message": "1 body run(s) over 400 characters with no container constraint visible to this tier"
+    },
+    {
+      "key": "overused-font@line:366#Inter",
+      "verdict": "tp",
+      "reason": "The page really does set `font-family: 'Inter', sans-serif` for body, with JetBrains Mono as the accent. On a sample whose whole identity is 'Hyper-Gloss Y3K Chrome', Inter is the reflex neutral — exactly the thing the rule names. A deliberate face would carry the aesthetic instead of sitting under it.",
+      "message": "Inter is on so many surfaces it no longer carries personality"
+    },
+    {
+      "key": "gpt-thin-border-wide-shadow@line:381#1px border + 32px shadow",
+      "verdict": "tp",
+      "reason": "Verified at line 381: `border: 1px solid rgba(255,255,255,0.08)` carrying a 32px shadow. A hairline edge and a wide soft shadow are two competing treatments of the same boundary — the named tell, present as described.",
+      "message": "1px border paired with a 32px shadow — two competing edge treatments on one element"
+    },
+    {
+      "key": "marquee@line:400#8000ms infinite",
+      "verdict": "fp-open",
+      "reason": "Line 400 is `animation: scan 8s linear infinite` — a decorative scanline sweep, part of the Y2K chrome aesthetic. Nothing the reader must read is moving. The rule's own message claims 'auto-scrolling content the reader cannot pause', but it matches any 8s infinite animation without checking that CONTENT is what moves.",
+      "message": "auto-scrolling content on a 8s infinite loop the reader cannot pause"
+    }
+  ]
+}

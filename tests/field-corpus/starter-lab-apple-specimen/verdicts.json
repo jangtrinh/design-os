@@ -1,0 +1,20 @@
+{
+  "page": "page.html",
+  "pinnedBy": "snapshot",
+  "why": "LLM-generated in the wild — Antigravity/Gemini dogfood output from design-starter-lab, a DIFFERENT generator family than the one the tell rules were tuned against. The corpus is otherwise made of pages this repo or its owner produced; without a foreign generator the rules can overfit to one model's slop. Origin: design-starter-lab/work/apple/design/preview/specimen.html, copied 2026-08-30, parity verified.",
+  "sha256": "a5d8e3b3e6965da1291e181e03656beb3a99ac6fc20010afa1a90a60f1c6aa57",
+  "extractor": "html-cascade",
+  "censusFloor": { "total": 381, "kinds": ["color", "radius", "spacing", "structure", "text", "typography"] },
+  "adjudicatedOn": "2026-08-30",
+  "adjudicatedBy": "tell-family author",
+  "needsOwnerReview": true,
+  "reviewNote": "One finding, and it is a false positive with a counted mechanism. Worth a look because it is the same class as the repo's `-an`-in-a-comment scar.",
+  "verdicts": [
+    {
+      "key": "em-dash-overuse@line:6#4.0 per 100 words",
+      "verdict": "fp-open",
+      "reason": "Counted: the file contains EXACTLY ONE em dash (U+2014), and it sits inside a CSS comment — `/* ── Specimen chrome — every value resolves through the compiler */`. The rule reports five. Two mechanisms, either or both: it counts U+2500 box-drawing characters (`──`, used as a comment rule) as em dashes, and it reads text inside CSS comments as prose. This is the repo's own scar — a check matching the commentary rather than the thing — landing in a content rule instead of a test.",
+      "message": "5 em dashes in 125 words (4.0 per 100) — a rate, not a choice"
+    }
+  ]
+}
