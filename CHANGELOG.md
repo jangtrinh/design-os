@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-08-30 - ease-design 0.6.0
+
+The polyglot release. Ten weeks of work reaches npm: design:os can now read an app in
+any language its registry knows, judge it against rules written once, and it carries the
+instruments that keep those judgements honest.
+
+### Added
+- **`ui tell-lint`** — 43 design-tell rules over 8 extractors (HTML cascade, JSX/Tailwind,
+  Vue/Svelte SFC, bare CSS, SwiftUI, Flutter, Figma nodes, a rendered CDP tier). One
+  DesignFacts IR, N readers, no rule edited per language.
+- **`tell` joins `ui gate`** as a sixth family, so one call still gives one verdict.
+- **Native execution arms** for macOS, iOS and iPadOS, each with its own craft knowledge
+  and evidence contract.
+- **A capability-activation boundary** that fails closed on an unsupported surface rather
+  than routing it anyway.
+- **The honesty instruments**: a field corpus of real pages with adjudicated verdicts, a
+  fact census so `0 findings` can be read as clean-or-blind, every rule threshold in one
+  table pinned by an executable boundary pair, three metamorphic laws, and a nightly
+  mutation audit.
+
+### Fixed
+- stdout no longer truncates at 64KB when piped (#209).
+- `tight-leading` no longer reports `clamp()` display headlines as 16px body copy.
+- A page whose stylesheets all fail to load is reported UNDERCOUNT instead of clean.
+- `ui gate --help` listed five families while the gate ran six; the list is now derived
+  from `GATE_FAMILIES` and a test fails on drift in either direction.
+
+### Note for 0.5.0 users
+`ui gate` gained a family, and three tell rules carry `error` severity. A project that
+passed the gate on 0.5.0 can fail on 0.6.0 — that is the point of the new family, not a
+regression. Most tell findings are advisory and never affect the exit code.
+
 ## 2026-08-29 - TocChien becomes the retained iOS proof
 
 ### Changed
