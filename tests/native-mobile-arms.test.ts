@@ -44,11 +44,42 @@ const EXPECTED_PILOT_IDENTITIES = {
   },
 } as const;
 
+const NATIVE_ARM_CASES = [
+  {
+    name: "native-ios",
+    artifact: "native-ios-application",
+    siblingCraft: "native-ipados-craft",
+    selectedKnowledge: [
+      "need-routing",
+      "apple-swiftui-craft",
+      "native-ios-craft",
+      "content-design",
+      "design-review",
+      "verification-honesty",
+    ],
+  },
+  {
+    name: "native-ipados",
+    artifact: "native-ipados-application",
+    siblingCraft: "native-ios-craft",
+    selectedKnowledge: [
+      "need-routing",
+      "apple-swiftui-craft",
+      "native-ipados-craft",
+      "content-design",
+      "design-review",
+      "verification-honesty",
+    ],
+  },
+] as const;
+
 describe("native iOS and iPadOS arms", () => {
-  it.each([
-    ["native-ios", "native-ios-application", "native-ios-craft"],
-    ["native-ipados", "native-ipados-application", "native-ipados-craft"],
-  ])("routes %s only through its provisional native arm", (name, artifact, craft) => {
+  it.each(NATIVE_ARM_CASES)("routes $name only through its provisional native arm", ({
+    name,
+    artifact,
+    siblingCraft,
+    selectedKnowledge,
+  }) => {
     const result = capture(["knowledge", "activate", activationFixture(`${name}-words`), "--json"]);
     expect(result.code).toBe(0);
     const receipt = JSON.parse(result.out).data as Record<string, unknown>;
@@ -60,7 +91,8 @@ describe("native iOS and iPadOS arms", () => {
       route: name,
       artifact,
     });
-    expect(receipt["selectedKnowledge"]).toEqual(expect.arrayContaining(["apple-swiftui-craft", craft]));
+    expect(receipt["selectedKnowledge"]).toEqual(selectedKnowledge);
+    expect(receipt["selectedKnowledge"]).not.toContain(siblingCraft);
     expect(receipt["route"]).not.toBe("generate");
     expect(receipt["artifact"]).not.toBe("html");
   });
@@ -144,5 +176,25 @@ describe("native iOS and iPadOS arms", () => {
     expect(ipad).toContain("NavigationSplitView");
     expect(ipad).toContain("pointer");
     expect(ipad).toContain("hardware keyboard");
+  });
+
+  it("keeps retained iOS doctrine product-neutral, content-shaped, and evidence-bound", () => {
+    const shared = readRepositoryFile("knowledge/apple-swiftui-craft.md").replace(/\s+/g, " ");
+    const ios = readRepositoryFile("knowledge/native-ios-craft.md").replace(/\s+/g, " ");
+
+    expect(shared).toContain("Preserve the product's intent and recognition path, not its legacy pixels.");
+    expect(shared).toContain("Image-led collections");
+    expect(shared).toContain("Authored detail surfaces");
+    expect(shared).toContain("Text-led reference lists");
+    expect(shared).toContain("Reserve safe areas and persistent chrome before assigning space to content.");
+    expect(shared).toContain("finish the current content unit");
+    expect(shared).toContain("Do not transfer a verdict across a changed source, a different capture, light and dark appearances");
+    expect(shared).toContain("Owner-direct acceptance and independent review are separate witnesses");
+    expect(ios).toContain("allocate the compact vertical budget after safe areas, navigation, persistent bottom chrome");
+    expect(ios).toContain("complete rows or complete content units");
+    expect(ios).toContain("Accessibility-triggered reflow is structural");
+    expect(ios).toContain("change multi-column collections to one column");
+    expect(ios).toContain("stack side-by-side regions, rebalance media, and preserve semantic reading order");
+    expect(ios).toContain("Do not recover space by clipping primary content, shrinking text, or letting a hero dominate the task.");
   });
 });

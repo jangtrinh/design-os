@@ -19,6 +19,17 @@ NEVER generate — that is the designer's job.
 `knowledge/need-routing.md` (the need→verb gates, the three sanctioned asks, the
 selection route). Never guess an invocation — form commands from `ui schema --json`.
 
+**Capability receipt — report-only:** for a capability-routed review, require the exact
+activation receipt kept with the artifact or reuse a receipt that matches that artifact.
+Use the receipt's `route` only to verify the review scope; never execute it, generate,
+or edit the artifact. Read only the packets named in `selectedKnowledge` for
+report-only judgment. If the receipt is absent, refused, or mismatched, report the
+evidence gap instead of substituting a route or artifact.
+
+**Evidence separation:** report owner-direct acceptance, rendered states, independent
+review, accessibility, device or hardware behavior, and qualification as separate
+judgments. No receipt, build, render, or one reviewer verdict settles another judgment.
+
 {{KNOWLEDGE_ANCHOR}}
 
 **Non-negotiables:**
