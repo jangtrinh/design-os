@@ -52,6 +52,18 @@ export const LEADING: Record<string, number> = {
 export const BORDER_WIDTHS: Record<string, number> = { "": 1, "0": 0, "2": 2, "4": 4, "8": 8 };
 
 /**
+ * Tailwind's text-transform utilities, mapped to the CSS values `TextTransform`
+ * already names. `normal-case` is the explicit reset and resolves to `none`, so a
+ * later utility can undo an earlier one rather than leaving the field undefined.
+ */
+export const TEXT_TRANSFORMS: Record<string, "uppercase" | "lowercase" | "capitalize" | "none"> = {
+  uppercase: "uppercase",
+  lowercase: "lowercase",
+  capitalize: "capitalize",
+  "normal-case": "none",
+};
+
+/**
  * The default palette, abbreviated to the hues a tell actually keys on.
  *
  * Not the whole palette: the rules that read colour ask "is this the AI purple",
@@ -71,7 +83,7 @@ export const PALETTE: Record<string, string> = {
 };
 
 export interface Resolved {
-  kind: "spacing" | "radius" | "fontSize" | "weight" | "tracking" | "leading" | "borderWidth" | "color" | "align" | "italic";
+  kind: "spacing" | "radius" | "fontSize" | "weight" | "tracking" | "leading" | "borderWidth" | "color" | "align" | "italic" | "transform";
   /** Numeric value, in px or em or a ratio depending on kind. */
   value?: number;
   hex?: string;
@@ -216,6 +228,17 @@ export function resolveClass(raw: string, overrides: Partial<Record<string, numb
   }
 
   if (token === "italic") out.push({ kind: "italic", value: 1 });
+
+  // text-transform. Bare tokens, like `italic` — no `text-` prefix to key on.
+  //
+  // These are not cosmetic to resolve. `wide-tracking` already EXEMPTS uppercase
+  // text, because wide tracking on small all-caps is correct typography; that
+  // exemption simply never fired, because this resolver dropped the token and the
+  // rule saw `transform: undefined`. An exemption that cannot fire does not read
+  // as NOT-EVALUATED — it reads as a false positive, silently, because `needs` is
+  // kind-granular and `typography` was present all along.
+  const transform = TEXT_TRANSFORMS[token];
+  if (transform !== undefined) out.push({ kind: "transform", text: transform });
   return out;
 }
 
