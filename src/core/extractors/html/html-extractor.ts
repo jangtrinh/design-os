@@ -140,6 +140,13 @@ function emitStructure(
 
 const HEADINGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
 const LABELISH = new Set(["label", "button", "th", "figcaption", "legend", "summary"]);
+/**
+ * Document chrome, not copy. `<style>` and `<script>` are skipped outright by the
+ * element loop, so `<title>` is the only head element that reaches here carrying
+ * own text — but it is named in a set so the next one is an obvious edit rather
+ * than a new condition.
+ */
+const HEAD_METADATA = new Set(["title"]);
 
 function emitText(c: FactCollector, el: Element, tag: string, at: Provenance): void {
   // Own text only: a wrapper must not claim its children's copy as its own.
@@ -150,7 +157,13 @@ function emitText(c: FactCollector, el: Element, tag: string, at: Provenance): v
     .replace(/\s+/g, " ")
     .trim();
   if (own === "") return;
-  const role = HEADINGS.has(tag) ? "heading" : LABELISH.has(tag) ? "label" : "body";
+  const role = HEAD_METADATA.has(tag)
+    ? "metadata"
+    : HEADINGS.has(tag)
+      ? "heading"
+      : LABELISH.has(tag)
+        ? "label"
+        : "body";
   c.add({
     kind: "text",
     content: own === textOf(el) ? own : own,

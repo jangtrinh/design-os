@@ -118,7 +118,15 @@ export interface MotionFact {
 }
 
 /** What a run of text is doing on the page. */
-export type TextRole = "heading" | "body" | "label" | "unknown";
+/**
+ * `metadata` is document chrome the reader never sees rendered as copy — `<title>`
+ * above all. It is a separate role rather than a dropped fact because the census
+ * must still count it (a page's facts are its evidence), while every rule that
+ * judges PROSE has to be able to exclude it. One real page carried a 9,334-character
+ * `<title>` holding a leaked generation prompt; read as body copy it produced a
+ * line-length finding and an em dash that no reader could ever have seen.
+ */
+export type TextRole = "heading" | "body" | "label" | "metadata" | "unknown";
 
 export interface TextFact {
   kind: "text";
