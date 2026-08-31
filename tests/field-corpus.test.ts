@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 import { lintFileByExtractor } from "../src/core/lint-file-by-extractor.js";
 import type { FactCensus } from "../src/core/lint-file-by-extractor.js";
 import { extractorById, EXTRACTOR_PROFILES } from "../src/core/design-facts/index.js";
+import { withOrdinals } from "./helpers/finding-key.js";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const CORPUS = join(ROOT, "tests", "field-corpus");
@@ -49,31 +50,10 @@ interface CorpusPage {
   verdicts: VerdictRow[];
 }
 
-/**
- * The verdict key.
- *
- * Built from the stable half of the dedup key the linter already uses at
- * `tell-lint.ts:101` (`checkId ∥ line ∥ nodeRef ∥ message`). `message` is deliberately
- * excluded: `collapseRepeated` folds an element count into it, so keying on message
- * would turn every count change into a phantom new finding.
- *
- * Measured over 73 real files / 263 findings, this key collides once when scoped per
- * page — hence the ordinal, which is inert whenever the key is already unique.
- */
-function keyOf(f: { checkId: string; line?: number; nodeRef?: string; actual?: string }): string {
-  const locator = f.nodeRef ?? (f.line !== undefined && f.line !== null ? `line:${f.line}` : "doc");
-  return `${f.checkId}@${locator}#${f.actual ?? "-"}`;
-}
-
-function withOrdinals(findings: ReadonlyArray<{ checkId: string; line?: number; nodeRef?: string; actual?: string }>): string[] {
-  const seen = new Map<string, number>();
-  return findings.map((f) => {
-    const base = keyOf(f);
-    const n = seen.get(base) ?? 0;
-    seen.set(base, n + 1);
-    return n === 0 ? base : `${base}~${n}`;
-  });
-}
+// The verdict key and its ordinal disambiguation live in one shared place —
+// `tests/helpers/finding-key.ts` — because the metamorphic laws need the SAME
+// notion of "the same finding". Two copies of an identity function drift, and the
+// drift would surface as a law and this corpus disagreeing about what they mean.
 
 function pageDirs(): string[] {
   if (!existsSync(CORPUS)) return [];
