@@ -71,3 +71,29 @@ describe("a <title> is metadata, never body copy", () => {
     expect(bodyRuns.some((f) => f.content.includes("Vegan meal prep"))).toBe(true);
   });
 });
+
+describe("an SVG <title> is not head metadata", () => {
+  /**
+   * `elements()` walks the whole tree, so a tag-name test alone also catches
+   * `<svg><title>` — which is the opposite of chrome. It is the graphic's
+   * accessible name: real text a screen-reader user hears. Two files in this
+   * repo's own `examples/diagrams/` carry one, and they are what proved a
+   * tag-only test wrong. Scoping is by POSITION: parent must be `<head>`.
+   */
+  const SVG_PAGE = `<!doctype html>
+<html><head><title>Org chart</title></head><body>
+<svg viewBox="0 0 10 10"><title>Reporting lines across the org</title><rect/></svg>
+</body></html>`;
+
+  const facts = extractHtml(SVG_PAGE, "page.html").collector.facts();
+
+  it("keeps the svg title as readable copy", () => {
+    const bodyRuns = textFacts(facts).filter((f) => f.role === "body");
+    expect(bodyRuns.some((f) => f.content.includes("Reporting lines"))).toBe(true);
+  });
+
+  it("still treats the head title as metadata", () => {
+    const meta = textFacts(facts).filter((f) => f.role === "metadata");
+    expect(meta.map((f) => f.content)).toEqual(["Org chart"]);
+  });
+});

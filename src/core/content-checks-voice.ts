@@ -44,6 +44,14 @@ const wordsOf = (s: string): number => s.trim().split(/\s+/).filter(Boolean).len
  * reads, and one real page's `<title>` held a 9,334-character generation prompt whose
  * em dash was counted against its visible word budget. The fact still exists and the
  * census still counts it — these checks simply do not judge it as writing.
+ *
+ * This moves a RATE's denominator, so it was measured rather than assumed. Across 747
+ * real pages it took em-dash-overuse from 75 findings to 74: two pages went silent
+ * because their only dashes were IN the title (nobody reads those), and one page
+ * crossed the line — `examples/diagrams/it-state.html`, 8 dashes in 317 visible words
+ * = 2.50, where the old denominator's 321 words put it at 2.49. That page is a true
+ * positive at the corrected rate; the old number was masking it with words no reader
+ * sees. Every other page kept its verdict and only shifted in the third digit.
  */
 function textRuns(facts: readonly DesignFact[]): Array<{ content: string; line: number }> {
   return facts

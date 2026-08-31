@@ -141,12 +141,21 @@ function emitStructure(
 const HEADINGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
 const LABELISH = new Set(["label", "button", "th", "figcaption", "legend", "summary"]);
 /**
- * Document chrome, not copy. `<style>` and `<script>` are skipped outright by the
- * element loop, so `<title>` is the only head element that reaches here carrying
- * own text — but it is named in a set so the next one is an obvious edit rather
- * than a new condition.
+ * Document chrome, not copy — and scoped by POSITION, not by tag name.
+ *
+ * `elements()` walks the whole tree, so a bare `tag === "title"` test also catches
+ * `<svg><title>`, which is the opposite of chrome: it is the graphic's accessible
+ * name, real text a screen-reader user hears. Two files in this repo's own
+ * `examples/diagrams/` have one, and they are what proved the tag-only test wrong.
+ *
+ * `<noscript>` is deliberately absent: it is legal in `<head>` but its content is
+ * shown to readers, so it is copy wherever it appears.
  */
-const HEAD_METADATA = new Set(["title"]);
+function isHeadMetadata(el: Element, tag: string): boolean {
+  if (tag !== "title") return false;
+  const parent = el.parent as Element | null;
+  return parent !== null && parent.type === "tag" && parent.tagName.toLowerCase() === "head";
+}
 
 function emitText(c: FactCollector, el: Element, tag: string, at: Provenance): void {
   // Own text only: a wrapper must not claim its children's copy as its own.
@@ -157,7 +166,7 @@ function emitText(c: FactCollector, el: Element, tag: string, at: Provenance): v
     .replace(/\s+/g, " ")
     .trim();
   if (own === "") return;
-  const role = HEAD_METADATA.has(tag)
+  const role = isHeadMetadata(el, tag)
     ? "metadata"
     : HEADINGS.has(tag)
       ? "heading"
