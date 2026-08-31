@@ -72,7 +72,7 @@ Error codes:
   FILE_NOT_FOUND  A named path does not exist (also reported per-target as a skip)
   READ_ERROR      A target could not be read`;
 
-interface PerFile {
+export interface PerFile {
   file: string;
   extractor: string;
   tier: string;
@@ -87,6 +87,49 @@ interface PerFile {
   /** What the reader actually saw. A zero finding count is only readable next to this. */
   census: FactCensus;
   unresolvedSheets: string[];
+}
+
+/** The rendered tier's findings, kept with the target whose capture produced them. */
+export interface RenderedPerTarget {
+  targetPath: string;
+  findings: RenderedFinding[];
+}
+
+/**
+ * Fold the rendered tier back into the per-file records, each finding landing on
+ * the page it was captured from.
+ *
+ * `perFile` and `targetPaths` are parallel: index i of one describes index i of the
+ * other. The pairing is kept out here rather than added to `PerFile` because
+ * `PerFile` is the command's serialized JSON contract and an absolute local path
+ * has no business in it.
+ *
+ * Anything that cannot be attributed is RETURNED, never dropped — a rendered
+ * capture with no matching per-file record means the caller's two lists disagree,
+ * and a silently swallowed finding is worse than a loud one.
+ */
+export function mergeRenderedFindings(
+  perFile: PerFile[],
+  targetPaths: readonly string[],
+  byTarget: readonly RenderedPerTarget[],
+): { unattributed: RenderedPerTarget[] } {
+  const indexByPath = new Map<string, number>();
+  targetPaths.forEach((p, i) => {
+    if (!indexByPath.has(p)) indexByPath.set(p, i);
+  });
+
+  const unattributed: RenderedPerTarget[] = [];
+  for (const entry of byTarget) {
+    if (entry.findings.length === 0) continue;
+    const i = indexByPath.get(entry.targetPath);
+    const dest = i === undefined ? undefined : perFile[i];
+    if (dest === undefined) {
+      unattributed.push(entry);
+      continue;
+    }
+    dest.findings.push(...(entry.findings as unknown as TellFinding[]));
+  }
+  return { unattributed };
 }
 
 /** Extract facts for one target. Only the HTML tier is implemented so far. */
@@ -160,9 +203,16 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
   const hideAdvisory = args.flags["no-advisory"] === true;
 
   const perFile: PerFile[] = [];
+  // Parallel to `perFile`: the absolute path each record came from, so the rendered
+  // tier can be folded back onto the right page without putting a local path in the
+  // command's JSON contract.
+  const targetPaths: string[] = [];
   for (const target of resolution.targets) {
     const r = analyze(target, cwd);
-    if (r !== undefined) perFile.push(r);
+    if (r !== undefined) {
+      perFile.push(r);
+      targetPaths.push(target.path);
+    }
   }
 
   // The rendered tier. Without --render its seven rules stay NOT-EVALUATED and
@@ -178,9 +228,12 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
     });
     renderedNote = pass.notEvaluated;
     renderedEngine = pass.engine;
-    if (pass.findings.length > 0) {
-      const byFile = perFile[0];
-      if (byFile !== undefined) byFile.findings.push(...(pass.findings as unknown as TellFinding[]));
+    const { unattributed } = mergeRenderedFindings(perFile, targetPaths, pass.byTarget);
+    if (unattributed.length > 0) {
+      const n = unattributed.reduce((sum, u) => sum + u.findings.length, 0);
+      const where = unattributed.map((u) => u.targetPath).join(", ");
+      const lost = `${n} rendered finding(s) had no per-file record and were not attributed: ${where}`;
+      renderedNote = renderedNote === undefined ? lost : `${renderedNote}; ${lost}`;
     }
   }
 
@@ -284,17 +337,17 @@ export const tellLintCommand = {
 export async function runRenderedPass(
   targets: readonly LintTarget[],
   opts: { browser?: string; viewport?: { width: number; height: number } },
-): Promise<{ findings: RenderedFinding[]; notEvaluated?: string; engine?: string }> {
+): Promise<{ byTarget: RenderedPerTarget[]; notEvaluated?: string; engine?: string }> {
   // Two independent reasons the tier cannot run, and BOTH are reported by name rather
   // than counted as clean. The runtime check exists because `WebSocket` only became a
   // Node global in 22 while this package supports >=20 — found by CI, not by a laptop.
   const runtimeBlocked = cdpUnavailableReason();
-  if (runtimeBlocked !== undefined) return { findings: [], notEvaluated: runtimeBlocked };
+  if (runtimeBlocked !== undefined) return { byTarget: [], notEvaluated: runtimeBlocked };
 
   const located = locateBrowser(opts.browser);
-  if (located.path === undefined) return { findings: [], notEvaluated: located.reason };
+  if (located.path === undefined) return { byTarget: [], notEvaluated: located.reason };
 
-  const findings: RenderedFinding[] = [];
+  const byTarget: RenderedPerTarget[] = [];
   let engine: string | undefined;
   for (const target of targets) {
     if (target.extractorId !== "html-cascade") continue;
@@ -305,14 +358,16 @@ export async function runRenderedPass(
         viewport: opts.viewport,
       });
       engine = capture.engine.browser;
-      findings.push(...lintRendered(capture));
+      // Kept with its target: a multi-page run must not report page B against page A.
+      byTarget.push({ targetPath: target.path, findings: lintRendered(capture) });
     } catch (err) {
       // A browser or protocol failure mid-run must not take the whole command down and
       // must not read as a clean page. Report the tier NOT-EVALUATED, naming the cause.
-      return { findings, notEvaluated: `rendered capture failed: ${(err as Error).message}` };
+      // Captures already taken keep their attribution rather than being discarded.
+      return { byTarget, notEvaluated: `rendered capture failed: ${(err as Error).message}` };
     }
   }
-  return { findings, engine };
+  return { byTarget, engine };
 }
 
 /** `--viewport 390x844` → a size, or undefined when unparseable. */
