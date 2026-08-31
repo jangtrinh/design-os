@@ -147,6 +147,9 @@ export const gateCommand = {
       }
     }
     for (const s of result.skipped) lines.push(`  skipped ${s}`);
+    // A family that RAN but read only part of the artifact. Printed beside the
+    // skips because a partial verdict and an absent one are both "not a clean bill".
+    for (const s of result.partial) lines.push(`  PARTIAL ${s}`);
 
     const data = { file, ...result };
     const out = useJson ? okJsonWithExit(CMD, data, exitCode) : { exitCode, stdout: lines.join("\n") + "\n" };
