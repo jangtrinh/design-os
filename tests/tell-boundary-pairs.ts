@@ -142,4 +142,12 @@ export const BOUNDARY_PAIRS: Partial<Record<ThresholdKey, BoundaryPair>> = {
     page("", `<div>${"a".repeat(24)}</div>`.repeat(3)),
     "23 characters is one below the floor and repeats legitimately; 24 is AT it. Exact, " +
     "for the same reason as LINE_LENGTH_MAX_CHARS — 13-vs-56 left ten values of slack"),
+  // ── Content ─────────────────────────────────────────────────────────────────
+  METADATA_MAX_CHARS: css(
+    "prompt-leak-metadata",
+    `<!doctype html><html><head><title>TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</title></head><body><p>ok</p></body></html>`,
+    `<!doctype html><html><head><title>TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</title></head><body><p>ok</p></body></html>`,
+    "a 200-character title is silent; 201 fires — the pair runs the real extractor, so a title\n     that stopped being emitted as metadata would fail here rather than pass",
+  ),
+
 };

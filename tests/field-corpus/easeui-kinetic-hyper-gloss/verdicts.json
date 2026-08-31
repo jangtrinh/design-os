@@ -33,6 +33,12 @@
       "verdict": "fp",
       "reason": "FIXED. Read the element rather than trusting the finding: `.scanline` is `height: 1px` with a transparent-white-transparent gradient (page.html:395-401), and its only use is `<div class=\"scanline\"></div>` at line 502 — literally empty. Nothing a reader must read was ever moving. `marquee` now REFUTES itself when the animated node's subtree provably carries no text run and no img; where the evidence is missing it still fires, so `needs` stays [\"motion\"] and the rule keeps running on css-only, swiftui and flutter, which supply motion without structure. Measured across 747 real pages: 39 findings become 1, and every silenced one is a childless decorative node — two more `div.scanline` hairlines, a `div.orbit`, and a `<div id=\"ambient\" aria-hidden=\"true\"></div>` whose own page declares it is not content. Zero created. The survivor is a `.float-note` carrying an icon and copy on a 4s loop, which is the real thing this rule is for.",
       "message": "auto-scrolling content on a 8s infinite loop the reader cannot pause"
+    },
+    {
+      "key": "prompt-leak-metadata@line:6#8946 characters starting \"[var-3] Hyper-Gloss Y3K Chrome - Web - Landing page - AI des\"",
+      "verdict": "tp",
+      "reason": "TRUE POSITIVE, and the finding this rule was written from. The <title> opens at line 6 and closes at line 358 — 353 lines, 11,028 raw / 8,946 as the extractor normalizes it — and it is the generation brief itself, beginning \"[var-3] Hyper-Gloss Y3K Chrome - Web - Landing page - AI design - Reference the background from this codebase\" and naming an internal path. That string is the browser tab, the search result and the social card. It is not a habit or a taste call, which is why this one check is severity error in a family of advisories: scaffolding that was meant to be replaced and was shipped instead. The threshold is 200 characters and carries no judgement — across 699 real titles the median is 43, the longest legitimate one is 120, and NOTHING falls between 120 and 1000.",
+      "message": "8946 characters of document metadata — a title this long is a prompt or a note that was never replaced"
     }
   ]
 }
