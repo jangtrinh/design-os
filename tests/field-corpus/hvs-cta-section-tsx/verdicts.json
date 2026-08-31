@@ -1,10 +1,10 @@
 {
   "page": "CtaSection.tsx",
   "pinnedBy": "snapshot",
-  "why": "A real working product screen from hvs — a marketing CTA with a form, which is a different component genre from the settings panel already pinned from dana-ui. Genre drives which rules can fire, so a second jsx-tailwind page of the same kind would have added nothing. Origin: hvs/components/marketing/cta-section.tsx, copied 2026-08-30, parity verified.",
+  "why": "A real working product screen from hvs — a marketing CTA with a form, which is a different component genre from the settings panel already pinned from dana-ui. Genre drives which rules can fire, so a second jsx-tailwind page of the same kind would have added nothing. Origin: hvs/components/marketing/cta-section.tsx, copied 2026-08-30, parity verified. CENSUS FLOOR LOWERED 102 -> 92 on 2026-08-31, and the reason is consolidation, not blindness: the jsx-tailwind extractor now emits ONE typography fact per element (as the html-cascade reference extractor always has) instead of one per utility. Measured on this page before and after: 24 typography facts carrying 24 field values became 14 facts carrying 32. The reader sees MORE than before: the 8 extra field values are text-transform, which the resolver used to drop on the floor. The fact-count delta of 10 is exactly the drop in the census.",
   "sha256": "08b6912138cd681fdb4cb44b738a55f1f7a68a013369077b5ac433207b39dc02",
   "extractor": "jsx-tailwind",
-  "censusFloor": { "total": 102, "kinds": ["border", "color", "radius", "spacing", "structure", "text", "typography"] },
+  "censusFloor": { "total": 92, "kinds": ["border", "color", "radius", "spacing", "structure", "text", "typography"] },
   "adjudicatedOn": "2026-08-30",
   "adjudicatedBy": "tell-family author",
   "needsOwnerReview": true,
@@ -12,8 +12,8 @@
   "verdicts": [
     {
       "key": "wide-tracking@line:97#0.20em",
-      "verdict": "fp-open",
-      "reason": "The element is `className=\"text-[12px] font-sans font-[900] uppercase tracking-[0.2em] ...\"` — it IS uppercase, and `wide-tracking` already exempts uppercase text (`t.transform !== \"uppercase\"`). Wide tracking on small all-caps is correct typography, which the rule knows. The exemption never applies because the jsx-tailwind extractor does not resolve Tailwind's `uppercase` utility into a `text-transform` fact, so the rule cannot see what it is designed to check. Fixable in the extractor, not the rule.",
+      "verdict": "fp",
+      "reason": "FIXED, and one layer deeper than the row first recorded. The element is className=\"text-[12px] font-sans font-[900] uppercase tracking-[0.2em] ...\": it IS uppercase, and wide-tracking already exempts uppercase because wide tracking on small all-caps is correct typography. Two things had to change. The resolver never mapped Tailwind's uppercase utility to a text-transform value, so the field was empty; and even once it did, the exemption still could not fire, because this extractor emitted ONE TYPOGRAPHY FACT PER UTILITY — the tracking fact and the transform fact were different facts, and no rule that correlates two typography properties on one element could ever work here. The extractor now emits one typography fact per element, as the html-cascade reference extractor always has. tight-leading, which needs lineHeight and sizePx together, was blind on this extractor for the same reason and is fixed by the same change. Note the shape of this class of bug: needs is kind-granular, so typography was present and the rule RAN; an exemption whose field is never populated does not report NOT-EVALUATED, it reports a false positive, silently. The corpus is the only instrument that catches it.",
       "message": "letter-spacing 0.20em on non-uppercase text — 3 elements, first at line 97"
     }
   ]
