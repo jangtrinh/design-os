@@ -113,3 +113,12 @@ any image whose ground is not perfectly black then shows its bounding box. A pla
 only where the image IS the evidence for that surface's claim.
 _Avoid_: background image (that names the mechanism a plate deliberately avoids), hero image,
 texture, decoration
+
+**Refutation check**:
+A clause inside a rule that can only ever REMOVE a finding, and only on positive evidence.
+It answers "no" when the facts show the finding is wrong; on every path where the evidence
+is missing or unusable it answers "yes" and the finding stands. Distinct from a `needs`
+entry, which states what a rule REQUIRES to run at all — promoting refutation evidence into
+`needs` turns the rule NOT-EVALUATED wherever that evidence is absent, which silences
+findings under cover of a coverage change.
+_Avoid_: guard, filter, exemption (all three read as symmetric; the asymmetry is the point)
