@@ -1,0 +1,20 @@
+{
+  "page": "page.html",
+  "pinnedBy": "snapshot",
+  "why": "LLM-generated in the wild — Antigravity/Gemini dogfood output from design-starter-lab, a DIFFERENT generator family than the one the tell rules were tuned against. The corpus is otherwise made of pages this repo or its owner produced; without a foreign generator the rules can overfit to one model's slop. Origin: design-starter-lab/work/apple/design/preview/specimen.html, copied 2026-08-30, parity verified.",
+  "sha256": "a5d8e3b3e6965da1291e181e03656beb3a99ac6fc20010afa1a90a60f1c6aa57",
+  "extractor": "html-cascade",
+  "censusFloor": { "total": 381, "kinds": ["color", "radius", "spacing", "structure", "text", "typography"] },
+  "adjudicatedOn": "2026-08-30",
+  "adjudicatedBy": "tell-family author",
+  "needsOwnerReview": true,
+  "reviewNote": "One finding, and it is a false positive with a counted mechanism. Worth a look because it is the same class as the repo's `-an`-in-a-comment scar.",
+  "verdicts": [
+    {
+      "key": "em-dash-overuse@line:6#4.0 per 100 words",
+      "verdict": "fp-open",
+      "reason": "ADJUDICATION PENDING A FIELD MEASUREMENT — kept fp-open so it stays a tripwire, but the recorded mechanism below replaces a refuted one. Counted this time WITH entity decoding: the file holds FIVE \"&mdash;\" entities, at lines 6 (<title>), 182 (<p>), and 186/195/210 (<h2 class=\"kicker\">). The rule's count of 5 is CORRECT. Both mechanisms originally recorded here are refuted: the counter is U+2014-only, so the 4 U+2500 box-drawing characters cannot match it, and the single raw U+2014 sits in a CSS comment inside <style>, which yields no text fact at all. Removing the <title> dash (see the metadata-role fix) still leaves 4 dashes in ~117 visible words = 3.4 per 100, over the 2.5 threshold. The open question is therefore narrower, and is a taste call: 3 of the 4 survivors are heading kickers (\"Color — paired roles\"), which read as separators rather than prose cadence. Resolve by counting dashes in role:\"body\" runs only, MEASURED across the field set with every silenced finding adjudicated; if real prose pages go silent, re-adjudicate this row tp instead.",
+      "message": "5 em dashes in 125 words (4.0 per 100) — a rate, not a choice"
+    }
+  ]
+}

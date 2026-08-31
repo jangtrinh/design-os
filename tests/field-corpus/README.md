@@ -92,10 +92,41 @@ advisory findings cannot guard the tier that actually fails the gate.
 The runner prints a line like:
 
 ```
-field corpus: 4 page(s), 28 adjudicated findings — 25 true positive, 3 open false positive,
-0 fixed false positive (live FP rate 10.7%)
+field corpus: 9 page(s), 42 adjudicated findings — 34 true positive, 8 open false positive,
+0 fixed false positive (live FP rate 19.0%)
 ```
 
-The FP rate is real and worth watching. The corpus is finite, so any **recall** computed on
-it is a **lower bound**, never an accuracy score. It answers "did we break something we
-already judged?" — not "do we catch everything". Do not quote it as accuracy.
+**The FP rate is not the health number.** A binomial interval on 8/42 is roughly 9–33%; fifty
+more verdicts would still leave it ±8 points. Worse, an *unconditional* FP rate mostly measures
+the page mix — add slop pages and it falls, add impeccable pages and it rises. It rose from 9.7%
+to 19.0% when this corpus grew, and that is not a regression.
+
+Three numbers do matter:
+
+**1. Rule coverage — `20/43` tell rules have at least one adjudicated firing.**
+A rule with zero corpus firings has no drift guard at all: it can break and nothing goes red.
+This is the number to drive up. Of the 23 unguarded, **7 are `rendered-cdp`-only** (they need a
+live browser, so they are not corpus-guardable until captures are pinned) — leaving **16
+realistically guardable**. The corpus also guards 4 adjacent checks that ride along in `lintTell`
+but keep their own family: `low-contrast`, `em-dash-overuse`, `marketing-buzzword`,
+`theater-slop-phrase`.
+
+**2. The `fp-open` list is a debt register, not a score.** Each one is a concrete, fixable work
+item and — once fixed and flipped to `fp` — a permanent regression tripwire. Read them; they are
+the most useful thing in this directory.
+
+**3. Precision on impeccable, human-authored pages.** The tell family claims to detect generated
+slop. Its fatal failure is flagging a good designer's deliberate choice. FP rate *conditional on
+page quality* is the trustworthy-product number; that is why owner-authored EaseUI and
+jang-personal-site pages have slots here.
+
+Any **recall** computed on this corpus is a lower bound, never an accuracy score. Do not quote it
+as accuracy.
+
+## Owner review
+
+Rows carrying `"needsOwnerReview": true` were adjudicated by the rule author on pages the *owner*
+wrote. On his own work his verdicts are ground truth and mine are provisional — the corpus exists
+to escape the author's own model of the world, and an author grading his own detector against his
+own taste is the circularity in a new hat. Review every `fp-open` first; they are the claims most
+likely to be wrong.

@@ -1,0 +1,20 @@
+{
+  "page": "CtaSection.tsx",
+  "pinnedBy": "snapshot",
+  "why": "A real working product screen from hvs — a marketing CTA with a form, which is a different component genre from the settings panel already pinned from dana-ui. Genre drives which rules can fire, so a second jsx-tailwind page of the same kind would have added nothing. Origin: hvs/components/marketing/cta-section.tsx, copied 2026-08-30, parity verified.",
+  "sha256": "08b6912138cd681fdb4cb44b738a55f1f7a68a013369077b5ac433207b39dc02",
+  "extractor": "jsx-tailwind",
+  "censusFloor": { "total": 102, "kinds": ["border", "color", "radius", "spacing", "structure", "text", "typography"] },
+  "adjudicatedOn": "2026-08-30",
+  "adjudicatedBy": "tell-family author",
+  "needsOwnerReview": true,
+  "reviewNote": "The single finding is a false positive caused by an extractor gap, not a rule-logic gap — the most actionable row in this batch.",
+  "verdicts": [
+    {
+      "key": "wide-tracking@line:97#0.20em",
+      "verdict": "fp-open",
+      "reason": "The element is `className=\"text-[12px] font-sans font-[900] uppercase tracking-[0.2em] ...\"` — it IS uppercase, and `wide-tracking` already exempts uppercase text (`t.transform !== \"uppercase\"`). Wide tracking on small all-caps is correct typography, which the rule knows. The exemption never applies because the jsx-tailwind extractor does not resolve Tailwind's `uppercase` utility into a `text-transform` fact, so the rule cannot see what it is designed to check. Fixable in the extractor, not the rule.",
+      "message": "letter-spacing 0.20em on non-uppercase text — 3 elements, first at line 97"
+    }
+  ]
+}
