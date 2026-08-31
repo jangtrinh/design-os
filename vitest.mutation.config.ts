@@ -25,10 +25,14 @@
  * the sources have changed since it was taken. It was re-measured rather than reused.
  *
  * CAVEAT, because the number is otherwise easy to over-read: three `fp-open` rows remain
- * on `showcase-d03-orchestrated-r2`. Those kills defend behavior nobody has yet agreed is
- * correct, so 74.16% is slightly generous and will move when they are adjudicated. Never
- * quote the fixtures-only figure as rule coverage either — it answers a different
- * question, which is the whole reason both are printed.
+ * on `showcase-d03-orchestrated-r2`. An `fp-open` row is a MUST-FIRE row, so it kills
+ * mutants exactly as a `tp` row does — the kills are real, and what they defend is a
+ * finding already judged wrong. A mutant that would have removed one of those false
+ * positives is therefore counted as caught. So 74.16% is slightly generous, and it moves
+ * when the CODE is fixed, not when the rows are adjudicated: all three were adjudicated on
+ * 2026-08-31 and each names its root cause. Never quote the fixtures-only figure as rule
+ * coverage either — it answers a different question, which is the whole reason both are
+ * printed.
  */
 import { defineConfig } from "vitest/config";
 
