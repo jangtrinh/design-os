@@ -12,7 +12,8 @@
     "!tsconfig.json",
     "!vitest.config.ts",
     "!vitest.mutation.config.ts",
-    "tests/field-corpus/**"
+    "!showcase/world-class-benchmark/evidence/repeatability-study/runs/d03-orchestrated-r2/**",
+    "!site/deck.css"
   ],
   "testRunner": "vitest",
   "vitest": {
@@ -49,7 +50,9 @@
   },
   "timeoutMS": 60000,
   "concurrency": 4,
-  "sandbox_comment": "Stryker copies the repo into a sandbox per run, and this repo root holds things that cannot be copied \u2014 a socket named `taste`, and Swift .build sockets under plans/. Rather than chase each one, the sandbox is an ALLOW-LIST: nothing enters except the sources, the tests and the config the audit actually needs.",
+  "sandbox_comment": "Stryker copies the repo into a sandbox per run, and this repo root holds things that cannot be copied \u2014 a socket named `taste`, and Swift .build sockets under plans/. Rather than chase each one, the sandbox is an ALLOW-LIST: nothing enters except the sources, the tests and the config the audit actually needs. tests/field-corpus/** used to be re-excluded here, which quietly made the corpus unusable by the audit; it is 352K and now enters. The two pages the corpus pins by repo-path are allow-listed EXACTLY rather than by taking showcase/** wholesale, which is 72M of sandbox copy per run.",
   "mutations_comment": "String, regex and object-literal mutants are excluded deliberately. Mutating a fixHint or a message produces noise with no signal \u2014 the guards live in the predicates, and mutation testing is known to over-report on cosmetic code.",
-  "audit_comment": "Mutation audit, NOT a gate. It automates the red-probe discipline that failed 13 times out of 63 by hand: it mutates a rule predicate and reports whether any test noticed. Run nightly or on demand, never per-PR \u2014 per-PR it is slow, noisy, and gets argued with until someone disables it. As an audit it prints 'these guards do not guard', which is exactly the list that was previously compiled by hand."
+  "audit_comment": "Mutation audit, NOT a gate. It automates the red-probe discipline that failed 13 times out of 63 by hand: it mutates a rule predicate and reports whether any test noticed. Run nightly or on demand, never per-PR \u2014 per-PR it is slow, noisy, and gets argued with until someone disables it. As an audit it prints 'these guards do not guard', which is exactly the list that was previously compiled by hand.",
+  "disableTypeChecks": "src/**/*.ts",
+  "disable_type_checks_comment": "Scoped to src/ deliberately. Stryker's default rewrites every TS file in the sandbox to prepend @ts-nocheck, and two field-corpus pages ARE TypeScript \u2014 so the harness edited the very evidence the corpus pins by sha256, and the corpus correctly failed the dry run saying the page had changed. Only the mutated sources need type checks off."
 }
