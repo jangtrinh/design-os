@@ -47,6 +47,14 @@ const CASES: Record<string, DesignFact[]> = {
   "tight-leading": [
     { kind: "typography", sizePx: 16, lineHeight: 1.0, at: at(5, "n3") },
   ],
+  // Reaches a rule that prints a FACT COUNT into `actual`, which is what makes the
+  // difference between L3's two forms observable. See the L3 docblock.
+  "image-hover-transform": [
+    { kind: "structure", node: "img", depth: 1, ref: "i1", at: at(10, "i1") },
+    { kind: "structure", node: "img", depth: 1, ref: "i2", at: at(11, "i2") },
+    { kind: "structure", node: "img", depth: 1, ref: "i3", at: at(12, "i3") },
+    { kind: "motion", motionKind: "transition", durationMs: 200, props: ["transform"], at: at(13, "m1") },
+  ],
   "dark-glow": [
     { kind: "color", role: "bg", hex: "141c17", at: at(6, "n4") },
     { kind: "shadow", offsetXPx: 0, offsetYPx: 0, blurPx: 40, hex: "9ef5b4", at: at(6, "n4") },
@@ -141,25 +149,36 @@ describe("metamorphic law L3 — a duplicated fact changes no finding", () => {
    * is an equally real bug (a dedup key collision swallowing a distinct finding).
    * Comparing the SET of stable keys closes both directions.
    *
-   * HONESTY ABOUT WHAT THIS STRENGTHENING IS PROVEN TO ADD: nothing yet, on this
-   * engine. Three sabotages were run trying to find an input where set equality
-   * reddens and the ceiling stays green, and none of them separated the two laws:
+   * WHAT THIS STRENGTHENING CAUGHT, and how nearly it was missed.
    *
-   *   1. dedup key reduced to `checkId` alone      -> both stayed green
-   *   2. `collapseRepeated` made to DROP repeated groups instead of folding them
-   *      (the literal "duplicate-induced removal" shape)  -> both stayed green,
-   *      because the dedup pass upstream removes the duplicates before collapse
-   *      ever sees them
-   *   3. both of the above at once                 -> L3 still green; the vacuity
-   *      guard below fired instead, which is a different guard doing its job
+   * The first attempt to justify it searched the SABOTAGE axis: break a guard, see
+   * whether set equality reddens where the ceiling stays green. Three sabotages —
+   * dedup key reduced to `checkId`, `collapseRepeated` made to drop repeated groups
+   * instead of folding them, then both at once — and none separated the two laws.
+   * The conclusion drawn from that, and written here, was that the strengthening was
+   * unfalsifiable on this engine. **That was wrong**, and it was wrong because the
+   * search was on the wrong axis.
    *
-   * The reason is structural, and the file header already names it: L3 is guarded
-   * twice, and both guards are insensitive to duplication, so neither can produce a
-   * once-vs-twice difference. A rule with an UPPER bound on a fact count could —
-   * doubling would push it past the bound and the finding would vanish — and no such
-   * rule exists today. So this assertion is stronger BY CONSTRUCTION for the class
-   * the issue names, and is currently unfalsifiable in practice. It is written this
-   * way so that the day such a rule is added, the law is already waiting for it.
+   * The laws are separated by the INPUTS, not by breaking anything. `keyOf` includes
+   * `actual`, and some rules print a fact COUNT into `actual`:
+   *
+   *     image-hover-transform  once: "1 transform transitions over 3 images"
+   *                            twice: "2 transform transitions over 6 images"
+   *
+   * One finding either way, so `twice.length <= once.length` is green. A different
+   * finding, so set equality is red. The `image-hover-transform` case in CASES exists
+   * for exactly this: it is the shortest input that tells the two forms apart, and it
+   * failed on the first run.
+   *
+   * That red was a real defect, not a strictness artefact — duplicated facts changed
+   * what the engine reported. It is fixed at the sink, in `indexFacts`, which now
+   * collapses structurally identical facts before any rule sees them. Fixing it
+   * inside `image-hover-transform` would have left `shape-assembled-illustration`
+   * ("N stacked shapes") and every future count-printing rule exposed.
+   *
+   * The lesson worth keeping: a probe that only breaks the code searches half the
+   * space. "No input distinguishes these" is a claim about inputs, and it has to be
+   * tested by varying inputs.
    */
   it.each(Object.entries(CASES))("%s reports the same finding SET when its facts are duplicated", (_name, facts) => {
     const once = keysFor(facts);
