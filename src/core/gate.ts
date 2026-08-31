@@ -44,6 +44,14 @@ export interface GateResult {
   advisoryCount: number;
   /** Declared partial gating: "<family>: <reason>" per skipped family. */
   skipped: string[];
+  /**
+   * Families that RAN but could not see the whole artifact — "<family>: <reason>".
+   *
+   * Distinct from `skipped`, which is a family nobody ran. A pass that read half its
+   * input and found nothing is not a clean verdict, and saying so is the difference
+   * between a floor and a claim.
+   */
+  partial: string[];
   errorCount: number;
   warningCount: number;
   /** true iff no error-severity finding in any run family. */
@@ -67,6 +75,8 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
   const skip = opts.skip ?? {};
   const families: GateResult["families"] = {};
   const skipped: string[] = [];
+  /** Checks that RAN but could not see everything — a partial verdict, not a clean one. */
+  const partial: string[] = [];
 
   // One extraction, two families. `tell` and `content` both read facts, and running
   // the cascade twice would be both slower and a place for them to disagree.
@@ -91,7 +101,23 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
       const r = lintLayout(html);
       families.layout = familyResult(r.findings);
     } else if (fam === "a11y") {
-      families.a11y = familyResult(lintA11y(html).findings);
+      // Two producers, not one. `lintA11y` reads the document; `low-contrast` is
+      // COMPUTED — it needs a resolved background, so it comes off the same fact pass
+      // the tell and content families use. It had a catalog row and `gate coverage`
+      // called it active while `runGate` could never emit it.
+      //
+      // Measured before wiring it, across 747 real pages: 52 pass the gate today and
+      // exactly ONE of them newly fails — white on Airbnb's brand pink at 3.52:1,
+      // under the 4.5:1 AA floor. A true positive, which is the point.
+      const pass = factPass();
+      families.a11y = familyResult([...lintA11y(html).findings, ...(pass?.contrast ?? [])]);
+      // A background nobody could resolve makes that pass PARTIAL. 342 of those 747
+      // pages have one. Printing a clean a11y verdict over them would be the
+      // zero-from-a-half-read-run this repo refuses everywhere else.
+      const nc = pass?.contrastNotComputable.length ?? 0;
+      if (nc > 0) {
+        partial.push(`a11y: ${nc} contrast pair(s) NOT COMPUTABLE — a background could not be resolved, so this verdict is a floor`);
+      }
     } else if (fam === "taste") {
       families.taste = familyResult(lintTaste(html, { knownHexes: opts.knownHexes }).findings);
     } else if (fam === "tell") {
@@ -136,7 +162,7 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
     advisoryCount += r.advisoryCount;
   }
   // pass keys on errors alone: an advisory finding prints and never fails.
-  return { families, skipped, errorCount, warningCount, advisoryCount, pass: errorCount === 0 };
+  return { families, skipped, partial, errorCount, warningCount, advisoryCount, pass: errorCount === 0 };
 }
 
 // ─── Coverage — the registry triage routes on ─────────────────────────────────
