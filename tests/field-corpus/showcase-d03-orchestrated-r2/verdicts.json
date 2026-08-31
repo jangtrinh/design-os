@@ -43,7 +43,7 @@
     {
       "key": "cramped-padding@html > body > main > div.wrap[0] > div.product[1] > div.canvas[1] > div.impact > span.state#7px on 2 side(s)",
       "verdict": "fp-open",
-      "reason": "The surface has a 99px radius — it is a PILL state badge, and 7px vertical padding is correct for one. This is the exact near-miss named in the fixture contract; cramped-padding has no pill exclusion yet.",
+      "reason": "The element is `.impact .state` — a status pill (`font: 10px DM Mono; padding: 7px 9px; border-radius: 99px`, page line 23). Only the 7px top/bottom sides fall under the 8px CRAMPED_PADDING_MAX_PX floor; the 9px sides pass. 7px of vertical padding on a 10px-font pill badge is balanced, not cramped, and the rule's own comment concedes the case ('a pill legitimately has 4px'). REASON REPLACED 2026-08-31: the previous text said no pill exclusion existed yet. It does — tell-rules-surface.ts:171-172 — and it misses this page by ONE PIXEL, because the guard is `r.px < PILL_RADIUS` with PILL_RADIUS = 100 and this page's fully-rounded idiom is 99px. Root cause is shared with the nested-cards row: the repo holds three disagreeing notions of 'fully rounded' and none of them is a shared fact — a raw literal 100 here, another raw literal 100 in audit-detect.ts:93, and PILL_RADIUS_PX = 999 in tell-thresholds.ts. Stays fp-open rather than fp because the finding still fires; fp means MUST NOT FIRE.",
       "message": "7px padding (bottom, top) on a 99px-radius surface"
     },
     {
@@ -67,7 +67,7 @@
     {
       "key": "hero-eyebrow-chip@line:39#chip \"Get a demo\"",
       "verdict": "fp-open",
-      "reason": "Line 39 is <nav class=\"navlinks\"> and the element is <button class=\"btn dark demo-open\">Get a demo</button> — a navigation CTA, not an eyebrow chip above the headline. The rule matches a pill near the hero without checking that it sits above the h1 or that it is non-interactive.",
+      "reason": "Line 39 is the NAV, and the matched text is `<button class=\"btn dark demo-open\">Get a demo</button>` — an interactive call to action at 14px/700 with a 99px radius, not a decorative eyebrow. The page's real eyebrow is `div.eyebrow` ('Decision context, intact', line 44), it carries no radius of its own, and it correctly does not match. The predicate (tell-rules-labels.ts:89-97) accepts any non-heading text within EYEBROW_MAX_LINE_GAP = 6 SOURCE LINES above the h1 — the h1 is line 45, so the gap is exactly 6 — at 40 characters or fewer, with a >=12px same-owner radius and <=14px type. It never excludes interactive elements. Two root causes: no button/anchor exclusion, and source-line distance used as a proxy for 'visually above the headline', which reaches out of the hero and into the nav. Stays fp-open because the finding still fires.",
       "message": "pill-shaped eyebrow chip above the hero headline — a launch-announcement device with nothing to announce"
     },
     {
@@ -79,7 +79,7 @@
     {
       "key": "nested-cards@html > body > main > div.wrap[0] > div.product[1] > div.appbar[0] > div.avatars > div.avatar[0]#card at depth 7 inside div.product[1]",
       "verdict": "fp-open",
-      "reason": ".avatar is 24x24 with border-radius:50% and a 2px border — it satisfies looksLikeCard (border AND radius) but is a 24px ornament, not a surface holding content. role-synthesis.ts documents the reference implementation's size window; we did not implement it. This is the predicted property-based-detection edge case.",
+      "reason": "`.avatar` is a 24x24 circle (`border: 2px solid #141c17; border-radius: 50%; background: var(--mint)`, page line 20). `looksLikeCard` passes on a border plus an own opaque background alone, `hasDistinctSurface` passes on the opaque background, and `div.product` (dark background, 24px radius, drop shadow) is a card ancestor — so a stacked avatar in the depicted app bar registers as a card nested inside a card. A 24px circular avatar is an ornament, not a content-holding surface: the same class as this rule's documented card-title history, surfacing again through role generosity. REASON REPLACED 2026-08-31: the previous text cited a 'size window' documented in role-synthesis.ts. No such text exists at HEAD (grep across src/: zero hits), and the Surface model carries no width or height, so a size window is not currently expressible at this fact fidelity. Root cause: `looksLikeCard` has no notion of fully-rounded/ornament geometry — a bordered 50% circle with a background counts as a card. Stays fp-open because the finding still fires.",
       "message": "card nested inside another card (div.product[1]) — 2 elements, first at html > body > main > div.wrap[0] > div.product[1] > div.appbar[0] > div.avatars > div.avatar[0]"
     },
     {
