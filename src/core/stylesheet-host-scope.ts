@@ -29,7 +29,11 @@ const FONT_CDN_HOSTS = new Set([
   "use.typekit.net",
   "p.typekit.net",
   "fonts.bunny.net",
-  "use.fontawesome.com",
+  // `use.fontawesome.com` was here and is deliberately NOT: its all.css ships
+  // border, border-radius, padding, margin, float, position, width and
+  // line-height — plus `.fa-spin { animation: fa-spin 2s linear infinite }`,
+  // which is a `marquee` input. An icon CDN is a layout CDN. Checked against the
+  // served file rather than assumed from the name, which is how it got in.
 ]);
 
 /**

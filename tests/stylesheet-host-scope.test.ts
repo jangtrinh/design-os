@@ -45,6 +45,15 @@ describe("a font CDN can cost a family name, not a layout", () => {
     expect(isFontCdnHref("https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css")).toBe(false);
   });
 
+  it("refuses an icon CDN, because an icon CDN is a layout CDN", () => {
+    // `use.fontawesome.com` was on the allowlist and had to come off. Its all.css
+    // ships border, border-radius, padding, margin, float, position, width and
+    // line-height — and `.fa-spin { animation: fa-spin 2s linear infinite }`,
+    // which is a `marquee` input. Checked against the served file rather than
+    // assumed from the name, which is exactly how it got on the list.
+    expect(isFontCdnHref("https://use.fontawesome.com/releases/v5.15.4/css/all.css")).toBe(false);
+  });
+
   it("does not crash on an unparseable href", () => {
     expect(isFontCdnHref("")).toBe(false);
     expect(isFontCdnHref("http://[not a url")).toBe(false);
