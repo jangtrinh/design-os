@@ -30,8 +30,8 @@
     },
     {
       "key": "marquee@line:400#8000ms infinite",
-      "verdict": "fp-open",
-      "reason": "Line 400 is `animation: scan 8s linear infinite` — a decorative scanline sweep, part of the Y2K chrome aesthetic. Nothing the reader must read is moving. The rule's own message claims 'auto-scrolling content the reader cannot pause', but it matches any 8s infinite animation without checking that CONTENT is what moves.",
+      "verdict": "fp",
+      "reason": "FIXED. Read the element rather than trusting the finding: `.scanline` is `height: 1px` with a transparent-white-transparent gradient (page.html:395-401), and its only use is `<div class=\"scanline\"></div>` at line 502 — literally empty. Nothing a reader must read was ever moving. `marquee` now REFUTES itself when the animated node's subtree provably carries no text run and no img; where the evidence is missing it still fires, so `needs` stays [\"motion\"] and the rule keeps running on css-only, swiftui and flutter, which supply motion without structure. Measured across 747 real pages: 39 findings become 1, and every silenced one is a childless decorative node — two more `div.scanline` hairlines, a `div.orbit`, and a `<div id=\"ambient\" aria-hidden=\"true\"></div>` whose own page declares it is not content. Zero created. The survivor is a `.float-note` carrying an icon and copy on a 4s loop, which is the real thing this rule is for.",
       "message": "auto-scrolling content on a 8s infinite loop the reader cannot pause"
     }
   ]
