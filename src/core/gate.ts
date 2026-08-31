@@ -68,6 +68,19 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
   const families: GateResult["families"] = {};
   const skipped: string[] = [];
 
+  // One extraction, two families. `tell` and `content` both read facts, and running
+  // the cascade twice would be both slower and a place for them to disagree.
+  let factPassCache: ReturnType<typeof lintTell> | null | undefined;
+  const factPass = (): ReturnType<typeof lintTell> | null => {
+    if (factPassCache === undefined) {
+      const profile = extractorById("html-cascade");
+      factPassCache = profile === undefined
+        ? null
+        : lintTell(extractHtml(html, opts.file ?? "artifact.html").collector.facts(), profile);
+    }
+    return factPassCache;
+  };
+
   for (const fam of GATE_FAMILIES) {
     const reason = skip[fam];
     if (reason !== undefined) {
@@ -86,14 +99,20 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
       // extractor. Rules whose fact kinds it cannot supply would be reported
       // NOT-EVALUATED — with html-cascade there are none, which is why the
       // richer extractor is also the one the gate uses.
-      const extraction = extractHtml(html, opts.file ?? "artifact.html");
-      const profile = extractorById("html-cascade");
-      families.tell = profile === undefined
-        ? familyResult([])
-        : familyResult(lintTell(extraction.collector.facts(), profile).findings);
+      families.tell = familyResult(factPass()?.findings ?? []);
     } else if (fam === "content") {
+      // BOTH halves of the content family, because there are two.
+      //
+      // The regex checks read the raw document. The rest — the voice tells and
+      // `prompt-leak-metadata` — are computed from FACTS and reach the gate only
+      // through the tell pass. Composing this family from the regex roster alone
+      // left six catalog rows reported active by `gate coverage` that `ui gate`
+      // could never emit, and one of them is severity `error`. A check the
+      // coverage report claims to run and does not is the silent gate weakening
+      // this module's own docblock names as its first risk.
       const all: ContentFinding[] = [];
       for (const check of allContentChecks) all.push(...check(html));
+      all.push(...((factPass()?.content ?? []) as unknown as ContentFinding[]));
       families.content = familyResult(all);
     } else {
       // Dry-run cleanliness: any repair the autofixer WOULD apply is a floor the

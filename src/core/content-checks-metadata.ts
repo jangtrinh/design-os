@@ -39,6 +39,7 @@
 import type { DesignFact } from "./design-facts/index.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { thr } from "./tell-thresholds.js";
+import { forTerminal } from "./output.js";
 
 export type MetadataFinding = FloorFindingBase;
 
@@ -50,14 +51,17 @@ export function checkPromptLeakMetadata(facts: readonly DesignFact[]): MetadataF
     if (f.content.length <= limit) continue;
     out.push({
       checkId: "prompt-leak-metadata",
-      // The one error in a family of advisories. A tell is evidence of inattention and
-      // prints without failing a build; this is scaffolding shipped to production on a
+      // Error, like `lorem-ipsum` and `placeholder-copy` — the other content checks
+      // that catch scaffolding shipped by accident. A TELL is evidence of inattention
+      // and prints without failing a build; this is not a tell. It is a brief on the
       // surface the reader, the crawler and the social card all see.
       severity: "error",
       message: `${f.content.length} characters of document metadata — a title this long is a prompt or a note that was never replaced`,
       line: f.at.line,
       expected: "a title a reader could read",
-      actual: `${f.content.length} characters starting "${f.content.slice(0, 60)}"`,
+      // The quote is page-controlled text and rides into `--json` and into the field
+      // corpus key. `emitText` normalises whitespace, and ESC is not whitespace.
+      actual: `${f.content.length} characters starting "${forTerminal(f.content.slice(0, 60), 60)}"`,
       fixHint: "replace the title with the page's own name; the generation brief does not ship",
     });
   }

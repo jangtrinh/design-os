@@ -141,7 +141,11 @@ export function lintFileByExtractor(
   const result = lintTell(exFacts, profile);
   const { kept, waived } = applyInlineIgnores(result.findings, scanInlineIgnores(src));
   return {
-    findings: kept as TellFinding[],
+    // The content half rides along here too. Dropping it was silent: a SwiftUI file
+    // with three voice findings returned none, while `check-catalog.ts` promises these
+    // rules "read Swift and Dart too". Contrast is deliberately absent — it needs a
+    // resolved background, which no reader below the cascade has.
+    findings: [...kept, ...result.content] as TellFinding[],
     notEvaluated: result.notEvaluated,
     unresolvedCount: ex.collector.unresolvedCount,
     waived: waived.length,

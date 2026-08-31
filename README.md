@@ -751,7 +751,7 @@ language. Adding a platform is one extractor, and no rule is edited.
 |---|---|
 | `ui taste-lint` — 34 absolute checks | The generated-UI tells: `transition: all`, layout-property keyframes, missing reduced-motion, overshoot easing, italic display headings, uppercase line-height < 1, focus rings that fade in, z-index inflation, off-grid spacing, mixed icon sets… |
 | `ui validate-layout` — 20 checks | Structural + overflow safety: unclosed tags, fixed-width overflow, `100vw` traps, root `overflow-x: hidden` breaking sticky. |
-| `ui content-lint` — 17 checks | Honest copy: lorem-ipsum, placeholder copy, placeholder names (Jane Doe / Acme), click-here links, all-caps shouting. |
+| `ui content-lint` — 12 checks | Honest copy: lorem-ipsum, placeholder copy, placeholder names (Jane Doe / Acme), click-here links, all-caps shouting. |
 | `ui a11y-lint` + `ui ds a11y` | Tier-1 static WCAG checks + **token-pair contrast** (every `{role}/{role}-foreground` pair ≥ AA, hover/active states included). Never claims "compliant" — says exactly what it checked. |
 | `ui tell-lint` — 43 checks, any language | The **design tells**: the side-tab accent, the stock purple palette, nested cards, a kicker above every heading, a pulsing dot that reports nothing, an overused face (including Flutter's default Roboto — SF is not a tell). Mostly advisory: a tell prints, it never fails a build. |
 | `ui a11y-lint` — computed contrast | The real WCAG ratio against the nearest opaque ancestor, from a resolved cascade. It refuses where the answer would be a fiction — a gradient background, a translucent veil — and says the run was partial. |

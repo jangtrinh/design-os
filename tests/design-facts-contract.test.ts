@@ -23,6 +23,7 @@ import type {
 } from "../src/core/design-facts/index.js";
 import { CHECK_CATALOG, isLegacyRequires } from "../src/core/check-catalog.js";
 import type { AuditNode } from "../src/core/audit-detect.js";
+import { allContentChecks } from "../src/core/content-checks.js";
 
 const at = (extractor: string, confidence: Provenance["confidence"] = "resolved"): Provenance => ({
   file: "a.html", line: 1, extractor, confidence,
@@ -294,6 +295,16 @@ describe("README states what the catalog actually holds", () => {
     const readme = readFileSync(join(fileURLToPath(new URL("..", import.meta.url)), "README.md"), "utf8");
     const byFamily: Record<string, number> = {};
     for (const e of CHECK_CATALOG) byFamily[e.family] = (byFamily[e.family] ?? 0) + 1;
+    // Each row of that README table names a COMMAND, so the number it quotes is what
+    // that command runs — which is the family count only where the two coincide.
+    //
+    // `content` is the one place they do not, and asserting otherwise was itself a
+    // drifted claim: `ui content-lint` runs the 12 regex checks, while the five
+    // fact-based content rows (the voice tells and `prompt-leak-metadata`) are
+    // computed from facts and reach the reader through `ui tell-lint`. Comparing the
+    // command's advertised number to the family total forced the README to overstate
+    // the command by five.
+    const expected: Record<string, number> = { ...byFamily, content: allContentChecks.length };
     const claims: Array<[string, string]> = [
       ["taste", "`ui taste-lint` — "],
       ["layout", "`ui validate-layout` — "],
@@ -301,11 +312,11 @@ describe("README states what the catalog actually holds", () => {
       ["tell", "`ui tell-lint` — "],
     ];
     for (const [family, prefix] of claims) {
-      const n = byFamily[family] as number;
+      const n = expected[family] as number;
       const i = readme.indexOf(prefix);
       expect(i, `README does not mention ${prefix}`).toBeGreaterThan(-1);
       const quoted = Number.parseInt(readme.slice(i + prefix.length), 10);
-      expect(quoted, `README says ${quoted} ${family} checks; the catalog holds ${n}`).toBe(n);
+      expect(quoted, `README says ${quoted} for the ${family} command; it runs ${n}`).toBe(n);
     }
   });
 });
