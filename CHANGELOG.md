@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-01 - the gate emits what its coverage report claims
+
+### Fixed
+- **`ui gate` runs `low-contrast`.** It is COMPUTED — it needs a resolved background —
+  so it comes off the fact pass, and the a11y family was composed from `lintA11y`
+  alone. This was the last of six catalog rows `gate coverage` reported active and the
+  gate could never emit. Measured across 747 real pages before wiring it: 52 pass the
+  gate today and exactly **one** newly fails — white on a brand pink at 3.52:1 against
+  the 4.5:1 AA floor, which is a true positive and the reason to do it.
+
+### Added
+- **A `PARTIAL` channel, separate from `skipped`.** A family nobody ran and a family
+  that ran half-blind are different things. 342 of those 747 pages carry at least one
+  background the cascade cannot resolve, and a clean a11y verdict printed over them is
+  the zero-from-a-half-read-run this repo refuses everywhere else.
+- **A guard for the whole class.** The catalog pairing test compares rows against ids
+  in the SOURCES, so a check that exists, is registered and is never reached passes it
+  cleanly — all six dead rows did. Reachability now has its own probe: one artifact
+  built to trip every ride-along producer, run through the real gate, each finding
+  demanded back under its own family.
+
 ## 2026-08-31 - a prompt in the title, and the half of a family the gate never ran
 
 ### Added
