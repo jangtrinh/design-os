@@ -106,9 +106,30 @@ function kebab(prop: string): string {
   return prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 }
 
+/** Typography fields an element's utilities contribute, before they become one fact. */
+type TypeAccum = {
+  sizePx?: number;
+  weight?: number;
+  letterSpacingEm?: number;
+  lineHeight?: number;
+  align?: never;
+  italic?: boolean;
+  transform?: never;
+};
+
 function emitClasses(c: FactCollector, classes: readonly string[], at: Provenance): void {
   const sides: Side[] = [];
   let borderWidth: number | undefined;
+  // ONE typography fact per element, exactly as the html-cascade extractor emits
+  // it — the reference every other extractor is measured against.
+  //
+  // These used to be one fact per utility, which silently broke every rule that
+  // correlates two typography properties on the same element. `wide-tracking`
+  // exempts uppercase text and could never see `uppercase`; `tight-leading` needs
+  // lineHeight AND sizePx together and never had both. Neither showed up as
+  // NOT-EVALUATED, because `needs` is kind-granular and `typography` was present
+  // the whole time — they just quietly read `undefined` and fired anyway.
+  const type: TypeAccum = {};
 
   for (const token of classes) {
     const resolved = resolveClass(token);
@@ -130,22 +151,25 @@ function emitClasses(c: FactCollector, classes: readonly string[], at: Provenanc
           if (r.value !== undefined) c.add({ kind: "radius", px: r.value, at });
           break;
         case "fontSize":
-          if (r.value !== undefined) c.add({ kind: "typography", sizePx: r.value, at });
+          if (r.value !== undefined) type.sizePx = r.value;
           break;
         case "weight":
-          if (r.value !== undefined) c.add({ kind: "typography", weight: r.value, at });
+          if (r.value !== undefined) type.weight = r.value;
           break;
         case "tracking":
-          if (r.value !== undefined) c.add({ kind: "typography", letterSpacingEm: r.value, at });
+          if (r.value !== undefined) type.letterSpacingEm = r.value;
           break;
         case "leading":
-          if (r.value !== undefined) c.add({ kind: "typography", lineHeight: r.value, at });
+          if (r.value !== undefined) type.lineHeight = r.value;
           break;
         case "align":
-          if (r.text !== undefined) c.add({ kind: "typography", align: r.text as never, at });
+          if (r.text !== undefined) type.align = r.text as never;
           break;
         case "italic":
-          c.add({ kind: "typography", italic: true, at });
+          type.italic = true;
+          break;
+        case "transform":
+          if (r.text !== undefined) type.transform = r.text as never;
           break;
         case "color":
           if (r.hex !== undefined && r.role !== undefined) c.add({ kind: "color", hex: r.hex, role: r.role, at });
@@ -159,6 +183,8 @@ function emitClasses(c: FactCollector, classes: readonly string[], at: Provenanc
       }
     }
   }
+
+  if (Object.keys(type).length > 0) c.add({ kind: "typography", ...type, at });
 
   // One border fact per element, carrying every side the classes named — this is
   // what makes `border-l-4 rounded-2xl` readable as a side-tab.

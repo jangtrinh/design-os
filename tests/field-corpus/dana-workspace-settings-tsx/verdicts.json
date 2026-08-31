@@ -1,11 +1,11 @@
 {
   "page": "WorkspaceSettings.tsx",
   "pinnedBy": "snapshot",
-  "why": "Real React from the dana-ui product, outside this repo. Snapshotted because a corpus that follows a live external project is not a measurement — it drifts under you and the verdicts stop meaning anything. Origin: dana-ui/src/desktop-ui/components/WorkspaceSettings.tsx, copied 2026-08-28.",
+  "why": "Real React from the dana-ui product, outside this repo. Snapshotted because a corpus that follows a live external project is not a measurement — it drifts under you and the verdicts stop meaning anything. Origin: dana-ui/src/desktop-ui/components/WorkspaceSettings.tsx, copied 2026-08-28. CENSUS FLOOR LOWERED 219 -> 210 on 2026-08-31, and the reason is consolidation, not blindness: the jsx-tailwind extractor now emits ONE typography fact per element (as the html-cascade reference extractor always has) instead of one per utility. Measured on this page before and after: 31 typography facts carrying 31 field values became 22 facts carrying 31. Not one field value was lost, and the fact-count delta of 9 is exactly the drop in the census.",
   "sha256": "60129e8874d9d2843c9fab3a9d0e4ee258c86ddf4454e7be39b76ea93e578746",
   "extractor": "jsx-tailwind",
   "censusFloor": {
-    "total": 219,
+    "total": 210,
     "kinds": [
       "border",
       "radius",
