@@ -69,20 +69,36 @@ export const blinkingCursor: TellRule = {
 };
 
 /**
- * Does anything a reader must READ live under this node?
+ * Nodes that are content in themselves, with no text underneath them.
+ *
+ * There is no `img` fact kind, so a picture is a `structure` fact whose node names
+ * it. An inline `<svg>` is the one that matters most in practice: a partner-logo
+ * marquee is a band of SVGs and not a word of copy, and it is the canonical thing
+ * this rule exists to catch.
+ */
+const CONTENT_NODES = new Set(["img", "svg", "picture", "video", "canvas", "iframe", "object", "embed"]);
+
+/**
+ * Does anything a reader must READ or LOOK AT live under this node?
  *
  * The rule below claims "auto-scrolling CONTENT the reader cannot pause", so it
- * owes a check that content is what moves. Content means a text run or an image —
- * there is no `img` fact kind, so an image is a `structure` fact whose node is `img`.
+ * owes a check that content is what moves.
  *
- * REFUTATION, not a requirement. It answers false only when the facts positively
- * show an empty subtree; every path where the evidence is missing answers TRUE and
- * the finding stands. That asymmetry is deliberate and it is why `needs` stays
- * `["motion"]`: `css-only` supplies motion with no structure and no text, and
- * `swiftui`/`flutter` supply motion and text with no structure. Adding those kinds
- * to `needs` would turn this rule NOT-EVALUATED on three extractors that run it
- * today — silencing real findings under the cover of a coverage change, which is
- * exactly the mistake this repo has already paid for twice.
+ * REFUTATION, not a requirement: it answers false only when the facts positively
+ * show a subtree with nothing in it. Every path where the evidence is missing or
+ * unusable answers TRUE and the finding stands. That asymmetry is the whole design
+ * — a rule must not go quiet because a reader was blind.
+ *
+ * `needs` stays `["motion"]` because that is what the rule REQUIRES to run;
+ * structure and text are refutation evidence, not inputs. An earlier version of
+ * this comment justified that by claiming `css-only`, `swiftui` and `flutter` would
+ * lose findings if those kinds were promoted. **That justification was false** and
+ * is recorded here so nobody rebuilds on it: `sfc-extractor` (which serves both
+ * `sfc` and `css-only`) emits `repeatsForever` and never sets `durationMs`, and
+ * `flutter` emits easing, duration and repeat as three DISJOINT motion facts — so
+ * on all three, `repeatsForever && durationMs >= SLOW_LOOP_MIN_MS` cannot be true
+ * of one fact, and none of them can fire this rule at all. In practice `marquee` is
+ * html-cascade-only. The conclusion happened to be right; the reason was not.
  */
 function subtreeHasReadableContent(facts: Parameters<TellRule["run"]>[0], ownerRef: string | undefined): boolean {
   if (ownerRef === undefined) return true; // the extractor cannot name the owner
@@ -96,13 +112,18 @@ function subtreeHasReadableContent(facts: Parameters<TellRule["run"]>[0], ownerR
     if (list === undefined) childrenOf.set(s.parentRef, [s.ref]);
     else list.push(s.ref);
   }
+  // An extractor that names nodes but not their parents gives a tree with no edges,
+  // and a walk over it reaches exactly one node and reports "empty" for every
+  // element on the page. That is blindness reported as a verdict. If nothing here
+  // carries a parent link, refuse to refute.
+  if (childrenOf.size === 0) return true;
 
   const carriesContent = new Set<string>();
   for (const t of facts.by("text")) {
     // Head metadata is not copy anyone reads; it cannot make a marquee.
     if (t.role !== "metadata" && t.at.nodeRef !== undefined) carriesContent.add(t.at.nodeRef);
   }
-  for (const s of structures) if (s.node.toLowerCase() === "img") carriesContent.add(s.ref);
+  for (const s of structures) if (CONTENT_NODES.has(s.node.toLowerCase())) carriesContent.add(s.ref);
 
   const seen = new Set<string>([ownerRef]);
   const queue = [ownerRef];

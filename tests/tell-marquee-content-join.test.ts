@@ -68,4 +68,16 @@ describe("marquee fires only when content moves", () => {
     // There is no `img` fact kind; an image is a structure fact whose node is img.
     expect(marqueeOn(page(`<div class="a"><img src="x.png" alt="logo"></div>`)).length).toBeGreaterThan(0);
   });
+
+  it("still fires on a partner-logo band of inline SVGs and no copy", () => {
+    // The canonical case, and the one an img-only check missed: a logo marquee is
+    // a row of inline <svg> with not a word of text in it.
+    const logos = `<svg viewBox="0 0 10 10"><rect/></svg>`.repeat(4);
+    expect(marqueeOn(page(`<div class="a">${logos}</div>`)).length).toBeGreaterThan(0);
+  });
+
+  it("still fires on a looping video or canvas", () => {
+    expect(marqueeOn(page(`<div class="a"><video src="x.mp4"></video></div>`)).length).toBeGreaterThan(0);
+    expect(marqueeOn(page(`<div class="a"><canvas></canvas></div>`)).length).toBeGreaterThan(0);
+  });
 });

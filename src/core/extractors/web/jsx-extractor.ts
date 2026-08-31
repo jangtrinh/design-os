@@ -16,6 +16,7 @@
 import { FactCollector } from "../../design-facts/fact-collector.js";
 import { extractorById } from "../../design-facts/extractor-registry.js";
 import type { Provenance, SpacingProp, Side } from "../../design-facts/index.js";
+import type { TypographyFact } from "../../design-facts/fact-kinds.js";
 import { stripNoise, lineIndex, scan, num, UNRESOLVABLE } from "../scanner/line-scanner.js";
 import { resolveClass, looksLikeUtility } from "./tailwind-resolver.js";
 import { parseColor, parseLengthPx } from "../html/css-values.js";
@@ -106,16 +107,18 @@ function kebab(prop: string): string {
   return prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 }
 
-/** Typography fields an element's utilities contribute, before they become one fact. */
-type TypeAccum = {
-  sizePx?: number;
-  weight?: number;
-  letterSpacingEm?: number;
-  lineHeight?: number;
-  align?: never;
-  italic?: boolean;
-  transform?: never;
-};
+/**
+ * Typography fields an element's utilities contribute, before they become one fact.
+ *
+ * Typed off the fact's own payload rather than restated. The first version declared
+ * `align?: never` and `transform?: never` and then wrote through `as never`, which
+ * type-checks by asserting the values do not exist instead of checking that they are
+ * the values the fact accepts — so a resolver typo would have compiled.
+ */
+type TypeAccum = Partial<Pick<
+  TypographyFact,
+  "sizePx" | "weight" | "letterSpacingEm" | "lineHeight" | "align" | "italic" | "transform"
+>>;
 
 function emitClasses(c: FactCollector, classes: readonly string[], at: Provenance): void {
   const sides: Side[] = [];
@@ -163,13 +166,13 @@ function emitClasses(c: FactCollector, classes: readonly string[], at: Provenanc
           if (r.value !== undefined) type.lineHeight = r.value;
           break;
         case "align":
-          if (r.text !== undefined) type.align = r.text as never;
+          if (r.text !== undefined) type.align = r.text as TypographyFact["align"];
           break;
         case "italic":
           type.italic = true;
           break;
         case "transform":
-          if (r.text !== undefined) type.transform = r.text as never;
+          if (r.text !== undefined) type.transform = r.text as TypographyFact["transform"];
           break;
         case "color":
           if (r.hex !== undefined && r.role !== undefined) c.add({ kind: "color", hex: r.hex, role: r.role, at });
