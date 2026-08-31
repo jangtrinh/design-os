@@ -37,10 +37,26 @@ const APHORISM = /\bnot\s+(?:just|only|merely)\s+[^.—-]{3,60}[—-]\s*(?:it['�
 
 const wordsOf = (s: string): number => s.trim().split(/\s+/).filter(Boolean).length;
 
-/** All text facts joined into one document view, keeping the first line of each. */
+/**
+ * All PROSE text facts joined into one document view, keeping the first line of each.
+ *
+ * Head metadata is excluded: a `<title>` is document chrome, never copy the reader
+ * reads, and one real page's `<title>` held a 9,334-character generation prompt whose
+ * em dash was counted against its visible word budget. The fact still exists and the
+ * census still counts it — these checks simply do not judge it as writing.
+ *
+ * This moves a RATE's denominator, so it was measured rather than assumed. Across 747
+ * real pages it took em-dash-overuse from 75 findings to 74: two pages went silent
+ * because their only dashes were IN the title (nobody reads those), and one page
+ * crossed the line — `examples/diagrams/it-state.html`, 8 dashes in 317 visible words
+ * = 2.50, where the old denominator's 321 words put it at 2.49. That page is a true
+ * positive at the corrected rate; the old number was masking it with words no reader
+ * sees. Every other page kept its verdict and only shifted in the third digit.
+ */
 function textRuns(facts: readonly DesignFact[]): Array<{ content: string; line: number }> {
   return facts
     .filter((f): f is Extract<DesignFact, { kind: "text" }> => f.kind === "text")
+    .filter((f) => f.role !== "metadata")
     .map((f) => ({ content: f.content, line: f.at.line }));
 }
 
@@ -74,6 +90,16 @@ export function checkMarketingBuzzword(facts: readonly DesignFact[]): VoiceFindi
  * occurrences would flag a long, well-written page and miss a short saturated one.
  */
 export function checkEmDashOveruse(facts: readonly DesignFact[]): VoiceFinding[] {
+  // Every prose run, heading and body alike — a deliberate NON-change, recorded
+  // because the obvious alternative was tried and measured.
+  //
+  // Restricting the rate to role "body" (the theory: a dash in a kicker like
+  // "Color — paired roles" is a separator, not cadence) was measured across 747
+  // real pages. It silenced 8 findings and CREATED 1: a page whose five kickers
+  // are `<div>` rather than `<h2>` crossed the threshold once heading words left
+  // the denominator. Identical content, opposite verdict, decided by which tag the
+  // author happened to reach for. That is a tag lottery, not a rule about prose,
+  // so the cut was rejected and the rate still spans all visible copy.
   const runs = textRuns(facts);
   const words = runs.reduce((n, r) => n + wordsOf(r.content), 0);
   const dashes = runs.reduce((n, r) => n + (r.content.match(/—/g) ?? []).length, 0);

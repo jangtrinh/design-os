@@ -11,11 +11,11 @@
   "reviewNote": "Owner-authored page: on his own work the owner's verdicts are ground truth, not mine. Both fp-open rows below are the ones to check first.",
   "verdicts": [
     {
-      "key": "line-length@line:6#8946 characters in one run",
-      "verdict": "fp-open",
-      "reason": "Measured: the <title> element opens at line 6 and closes at line 358 \u2014 353 lines, 11,028 raw / 9,334 whitespace-normalized characters, holding a leaked generation-prompt dump (\"[var-3] Hyper-Gloss Y3K Chrome ... Reference the background from this codebase\"). So the long run is real; what is wrong is WHERE it is read from. The rule prints long[0] faithfully. Root cause: html-extractor's emitText gives head metadata role:\"body\", so non-rendered <title> text is judged as prose. Fix in the extractor with a \"metadata\" TextRole, not in the rule. (An earlier reading of this row said line 6 is 123 characters and that the document's text was aggregated into one fact; both were wrong \u2014 123 was one physical line of a multi-line element, and emitText emits own-text per element.)",
-      "message": "1 body run(s) over 400 characters with no container constraint visible to this tier"
-    },
+        "key": "line-length@line:6#8946 characters in one run",
+        "verdict": "fp",
+        "reason": "FIXED. The <title> opens at line 6 and closes at line 358 — 353 lines, 11,028 raw / 9,334 normalized characters of a leaked generation prompt. The long run was real; what was wrong is that head metadata reached a prose rule at all, because emitText gave <title> role \"body\". <title> now carries the \"metadata\" role, the fact is still emitted and still counted by the census, and line-length's existing role === \"body\" filter excludes it for free. This row is now a regression tripwire: if it fires again, head metadata is being read as copy. (The original reason recorded here said line 6 was 123 characters and that the document's text had been aggregated into one fact; both were refuted by measurement.)",
+        "message": "1 body run(s) over 400 characters with no container constraint visible to this tier"
+      },
     {
       "key": "overused-font@line:366#Inter",
       "verdict": "tp",

@@ -12,8 +12,8 @@
   "verdicts": [
     {
       "key": "line-length@line:6#8941 characters in one run",
-      "verdict": "fp-open",
-      "reason": "Same root cause as the hyper-gloss row, and measured the same way: the <title> is a multi-line leaked prompt dump, not the document's text aggregated into one fact. Head metadata carries role:\"body\" out of html-extractor's emitText and is therefore judged as prose. Two independent pages producing the identical shape is what makes this a rule-input defect rather than a page defect. Fixed at the extractor with a \"metadata\" TextRole.",
+      "verdict": "fp",
+      "reason": "FIXED by the same one-line root cause as the hyper-gloss row: head metadata now carries the \"metadata\" text role instead of \"body\", so a <title> is no longer judged as prose. Two independent pages sharing the shape is what made it a rule-input defect; both are now regression tripwires.",
       "message": "1 body run(s) over 400 characters with no container constraint visible to this tier"
     },
     {
