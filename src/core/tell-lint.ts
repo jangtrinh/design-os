@@ -24,6 +24,8 @@ import { checkComputedContrast } from "./a11y-checks-contrast.js";
 import type { ContrastFinding, ContrastResult } from "./a11y-checks-contrast.js";
 import { checkVoice } from "./content-checks-voice.js";
 import type { VoiceFinding } from "./content-checks-voice.js";
+import { checkPromptLeakMetadata } from "./content-checks-metadata.js";
+import type { MetadataFinding } from "./content-checks-metadata.js";
 import { synthesizeRoles } from "./design-facts/role-synthesis.js";
 import { indexFacts } from "./tell-rules.js";
 import type { TellRule, TellFinding } from "./tell-rules.js";
@@ -60,8 +62,15 @@ export interface TellLintResult extends SeverityCounts {
   contrast: ContrastFinding[];
   /** Text nodes whose background could not be resolved: a PARTIAL evaluation. */
   contrastNotComputable: ContrastResult["notComputable"];
-  /** Voice findings — content family, advisory, readable in any language. */
-  voice: VoiceFinding[];
+  /**
+   * Content-family findings computed from facts.
+   *
+   * Named for the FAMILY, not for one of its members: the voice tells live here and so
+   * does `prompt-leak-metadata`, which is not a voice tell at all. They ride along with
+   * the tell pass because this is where the facts already are, and they keep their own
+   * family so `ui gate` attributes them correctly.
+   */
+  content: Array<VoiceFinding | MetadataFinding>;
   /** Rules that could not run here, and why. Never silently absent. */
   notEvaluated: NotEvaluatedRule[];
 }
@@ -121,21 +130,21 @@ export function lintTell(
       a.message.localeCompare(b.message),
   );
 
-  // low-contrast is an a11y check and the voice tells are content checks: they
-  // ride along here because this is where the facts are, but they keep their own
-  // family so `ui gate` attributes them correctly.
+  // low-contrast is an a11y check and these are content checks: they ride along here
+  // because this is where the facts are, but they keep their own family so `ui gate`
+  // attributes them correctly.
   const contrastResult = checkComputedContrast(resolved, profile.supplies.color);
-  const voice = checkVoice(resolved);
+  const content = [...checkVoice(resolved), ...checkPromptLeakMetadata(resolved)];
 
   const contrast = collapseRepeated(contrastResult.findings);
-  const collapsedVoice = collapseRepeated(voice);
+  const collapsedContent = collapseRepeated(content);
 
   return {
     findings,
     contrast,
     contrastNotComputable: contrastResult.notComputable,
-    voice: collapsedVoice,
-    ...countBySeverity([...findings, ...contrast, ...collapsedVoice]),
+    content: collapsedContent,
+    ...countBySeverity([...findings, ...contrast, ...collapsedContent]),
     notEvaluated: notEvaluated.map((n) => ({ id: n.id, reason: n.reason })),
   };
 }
