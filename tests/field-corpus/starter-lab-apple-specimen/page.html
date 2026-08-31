@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>apple &mdash; Design System Specimen</title>
+<style>
+:root {
+  --colors-apple-blue: #0071e3;
+  --colors-black-48: rgba(0,0,0,0.48);
+  --colors-black-80: rgba(0,0,0,0.8);
+  --colors-bright-blue: #2997ff;
+  --colors-button-active: #ededf2;
+  --colors-button-default-light: #fafafc;
+  --colors-dark-page: #000000;
+  --colors-dark-page-foreground: #ffffff;
+  --colors-dark-surface-1: #272729;
+  --colors-dark-surface-2: #262628;
+  --colors-dark-surface-3: #28282a;
+  --colors-dark-surface-4: #2a2a2d;
+  --colors-dark-surface-5: #242426;
+  --colors-light-gray: #f5f5f7;
+  --colors-light-page: #f5f5f7;
+  --colors-light-page-foreground: #1d1d1f;
+  --colors-link-blue: #0066cc;
+  --colors-media-control: rgba(210,210,215,0.64);
+  --colors-media-control-foreground: rgba(0,0,0,0.48);
+  --colors-near-black: #1d1d1f;
+  --colors-overlay: rgba(210,210,215,0.64);
+  --colors-primary-blue-cta: #0071e3;
+  --colors-primary-blue-cta-foreground: #ffffff;
+  --colors-primary-dark-cta: #1d1d1f;
+  --colors-primary-dark-cta-foreground: #ffffff;
+  --colors-pure-black: #000000;
+  --colors-white: #ffffff;
+  --colors-white-32: rgba(255,255,255,0.32);
+  --radius-circle: 50%;
+  --radius-comfortable: 11px;
+  --radius-full-pill: 980px;
+  --radius-large: 12px;
+  --radius-micro: 5px;
+  --radius-standard: 8px;
+  --spacing-space-10: 10px;
+  --spacing-space-11: 11px;
+  --spacing-space-14: 14px;
+  --spacing-space-15: 15px;
+  --spacing-space-17: 17px;
+  --spacing-space-2: 2px;
+  --spacing-space-20: 20px;
+  --spacing-space-24: 24px;
+  --spacing-space-4: 4px;
+  --spacing-space-5: 5px;
+  --spacing-space-6: 6px;
+  --spacing-space-7: 7px;
+  --spacing-space-8: 8px;
+  --spacing-space-9: 9px;
+  --typography-family-body: SF Pro Text, SF Pro Icons, Helvetica Neue, Helvetica, Arial, sans-serif;
+  --typography-family-display: SF Pro Display, SF Pro Icons, Helvetica Neue, Helvetica, Arial, sans-serif;
+  --typography-letter-spacing-body: -0.374px;
+  --typography-letter-spacing-body-emphasis: -0.374px;
+  --typography-letter-spacing-caption: -0.224px;
+  --typography-letter-spacing-caption-bold: -0.224px;
+  --typography-letter-spacing-card-title: 0.231px;
+  --typography-letter-spacing-display-hero: -0.28px;
+  --typography-letter-spacing-link: -0.224px;
+  --typography-letter-spacing-micro: -0.12px;
+  --typography-letter-spacing-micro-bold: -0.12px;
+  --typography-letter-spacing-nano: -0.08px;
+  --typography-letter-spacing-nav-heading: -0.374px;
+  --typography-letter-spacing-sub-heading: 0.231px;
+  --typography-letter-spacing-tile-heading: 0.196px;
+  --typography-line-height-body: 1.47px;
+  --typography-line-height-body-emphasis: 1.24px;
+  --typography-line-height-button: 2.41px;
+  --typography-line-height-button-large: 1px;
+  --typography-line-height-caption: 1.29px;
+  --typography-line-height-caption-bold: 1.29px;
+  --typography-line-height-card-title: 1.19px;
+  --typography-line-height-display-hero: 1.07px;
+  --typography-line-height-link: 1.43px;
+  --typography-line-height-micro: 1.33px;
+  --typography-line-height-nano: 1.47px;
+  --typography-line-height-nav-heading: 1.47px;
+  --typography-line-height-section-heading: 1.1px;
+  --typography-line-height-sub-heading: 1.19px;
+  --typography-line-height-sub-nav: 1.5px;
+  --typography-line-height-tile-heading: 1.14px;
+  --typography-size-body: 17px;
+  --typography-size-body-emphasis: 17px;
+  --typography-size-button: 17px;
+  --typography-size-button-large: 18px;
+  --typography-size-caption: 14px;
+  --typography-size-caption-bold: 14px;
+  --typography-size-card-title: 21px;
+  --typography-size-display-hero: 56px;
+  --typography-size-link: 14px;
+  --typography-size-micro: 12px;
+  --typography-size-micro-bold: 12px;
+  --typography-size-nano: 10px;
+  --typography-size-nav-heading: 34px;
+  --typography-size-section-heading: 40px;
+  --typography-size-sub-heading: 21px;
+  --typography-size-sub-nav: 24px;
+  --typography-size-tile-heading: 28px;
+  --typography-weight-bold: 700;
+  --typography-weight-light: 300;
+  --typography-weight-regular: 400;
+  --typography-weight-semibold: 600;
+}
+
+/* ── Specimen chrome — every value resolves through the compiled semantic tier ── */
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--color-background); color: var(--color-foreground);
+  font-family: var(--font-family-body); font-size: var(--font-size-sm);
+  line-height: 1.55; padding: 56px 24px 96px;
+}
+main { max-width: 1040px; margin: 0 auto; }
+:focus-visible { outline: 2px solid var(--color-ring, var(--color-primary)); outline-offset: 2px; }
+h1 { font-family: var(--font-family-display); font-size: var(--font-size-4xl); font-weight: var(--font-weight-bold); letter-spacing: -0.02em; }
+.meta { color: var(--color-muted-foreground); font-size: var(--font-size-xs); }
+.muted { color: var(--color-muted-foreground); }
+.lead { max-width: 660px; margin-top: 14px; }
+.badge-aa {
+  display: inline-block; padding: 2px 10px; border-radius: var(--radius-full);
+  background: var(--color-success); color: var(--color-success-foreground);
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+}
+section { margin-top: 64px; }
+.kicker {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-muted-foreground);
+  border-bottom: 1px solid var(--color-border); padding-bottom: 8px; margin-bottom: 20px;
+}
+.section-note { color: var(--color-muted-foreground); font-size: var(--font-size-xs); margin: 18px 0 10px; }
+
+/* Color pairs */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.swatch { border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; background: var(--color-card); }
+.swatch .chip { height: 76px; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+.swatch .info { padding: 8px 12px; font-size: var(--font-size-xs); color: var(--color-card-foreground); }
+.swatch .info code { color: var(--color-muted-foreground); font-family: ui-monospace, Menlo, monospace; }
+
+/* Typography ramp */
+.type-row { display: flex; align-items: baseline; gap: 20px; padding: 10px 0; border-bottom: 1px dashed var(--color-border); }
+.type-row .tag { width: 150px; flex: none; }
+
+/* Shape, depth, motion */
+.chips { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.rchip { background: var(--color-card); border: 1px solid var(--color-border); padding: 18px 22px; font-size: var(--font-size-xs); color: var(--color-card-foreground); }
+.echip { background: var(--color-card); border-radius: var(--radius-card); padding: 18px 22px; font-size: var(--font-size-xs); color: var(--color-card-foreground); }
+.dchip { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-button); padding: 10px 14px; font-size: var(--font-size-xs); color: var(--color-card-foreground); font-family: ui-monospace, Menlo, monospace; }
+
+/* Components */
+.comp { margin-top: 36px; }
+.comp-kicker {
+  font-size: var(--font-size-md); font-weight: var(--font-weight-semibold);
+  color: var(--color-foreground); border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+}
+.comp-variants { margin-bottom: 16px; }
+.status-tag {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+  padding: 1px 8px; border-radius: var(--radius-full);
+  background: var(--color-muted); color: var(--color-muted-foreground);
+}
+.ui-specimen__frame { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-6); }
+
+/* Motion floor (taste-rubric): every animated fragment stops under reduced-motion. */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Footer */
+.foot { margin-top: 72px; border-top: 1px solid var(--color-border); padding-top: 16px; }
+.foot code { font-family: ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="kicker">apple &middot; Design System Specimen</p>
+    <h1>apple</h1>
+    <p class="meta" style="margin-top:10px">generation 1 &middot; persona <strong>imported</strong> &middot; 100 tokens &middot; <span class="badge-aa">paired AA &mdash; 4 pairs &middot; 0 failures &middot; min 4.7:1</span></p>
+    <p class="lead">imported from work/apple/tokens.json</p>
+  </header>
+  <section aria-labelledby="s-color">
+    <h2 class="kicker" id="s-color">Color &mdash; paired roles</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:var(--colors-dark-page);color:var(--colors-dark-page-foreground)">Aa</div><div class="info">colors.dark-page / colors.dark-page-foreground<br><code>#000000 / #ffffff &middot; 21:1</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--colors-light-page);color:var(--colors-light-page-foreground)">Aa</div><div class="info">colors.light-page / colors.light-page-foreground<br><code>#f5f5f7 / #1d1d1f &middot; 15.46:1</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--colors-primary-blue-cta);color:var(--colors-primary-blue-cta-foreground)">Aa</div><div class="info">colors.primary-blue-cta / colors.primary-blue-cta-foreground<br><code>#0071e3 / #ffffff &middot; 4.7:1</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--colors-primary-dark-cta);color:var(--colors-primary-dark-cta-foreground)">Aa</div><div class="info">colors.primary-dark-cta / colors.primary-dark-cta-foreground<br><code>#1d1d1f / #ffffff &middot; 16.83:1</code></div></div>
+    </div>
+  </section>
+  <section aria-labelledby="s-type">
+    <h2 class="kicker" id="s-type">Typography &mdash; the size ramp</h2>
+  </section>
+  <section aria-labelledby="s-shape">
+    <h2 class="kicker" id="s-shape">Shape &amp; depth</h2>
+    <div class="chips">
+      <div class="rchip" style="border-radius:var(--radius-circle)">radius-circle &middot; 50%</div>
+      <div class="rchip" style="border-radius:var(--radius-comfortable)">radius-comfortable &middot; 11px</div>
+      <div class="rchip" style="border-radius:var(--radius-full-pill)">radius-full-pill &middot; 980px</div>
+      <div class="rchip" style="border-radius:var(--radius-large)">radius-large &middot; 12px</div>
+      <div class="rchip" style="border-radius:var(--radius-micro)">radius-micro &middot; 5px</div>
+      <div class="rchip" style="border-radius:var(--radius-standard)">radius-standard &middot; 8px</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-components">
+    <h2 class="kicker" id="s-components">Components &mdash; from the registry</h2>
+    <p class="section-note">No components registered in this design system.</p>
+  </section>
+  <footer class="foot">
+    <p class="meta">Generated by <code>ui ds preview</code> from the compiled design system &middot; registry SSt6U5_2txSL</p>
+  </footer>
+</main>
+</body>
+</html>

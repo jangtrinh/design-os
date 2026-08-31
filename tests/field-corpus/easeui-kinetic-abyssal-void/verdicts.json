@@ -1,0 +1,44 @@
+{
+  "page": "page.html",
+  "pinnedBy": "snapshot",
+  "why": "Second owner-curated EaseUI kinetic sample. Paired with the hyper-gloss row on purpose: same author, same set, different aesthetic, so a rule that fires on both is reading the house style rather than the page. Self-contained. Origin: EaseUI/app/public/samples/kinetic/01-abyssal-void-tech.html, copied 2026-08-30, parity verified.",
+  "sha256": "77e12ed7156898816788def7722280234384094c6124dbd519a95efdb3428140",
+  "extractor": "html-cascade",
+  "censusFloor": { "total": 235, "kinds": ["border", "color", "gradient", "structure", "text", "typography"] },
+  "adjudicatedOn": "2026-08-30",
+  "adjudicatedBy": "tell-family author",
+  "needsOwnerReview": true,
+  "reviewNote": "Owner-authored. The three copy-tell rows (theater-slop, marketing-buzzword) are taste calls on his own words — worth his eye even though I ruled them tp.",
+  "verdicts": [
+    {
+      "key": "line-length@line:6#8941 characters in one run",
+      "verdict": "fp-open",
+      "reason": "Same root cause as the hyper-gloss row, and measured the same way: the <title> is a multi-line leaked prompt dump, not the document's text aggregated into one fact. Head metadata carries role:\"body\" out of html-extractor's emitText and is therefore judged as prose. Two independent pages producing the identical shape is what makes this a rule-input defect rather than a page defect. Fixed at the extractor with a \"metadata\" TextRole.",
+      "message": "1 body run(s) over 400 characters with no container constraint visible to this tier"
+    },
+    {
+      "key": "overused-font@line:365#Inter",
+      "verdict": "tp",
+      "reason": "Inter again, on a second sample with a completely different look. That is the finding: the aesthetic changes and the typeface does not, so the face is carrying none of it.",
+      "message": "Inter is on so many surfaces it no longer carries personality"
+    },
+    {
+      "key": "radial-halo@line:378#1 radial gradient(s)",
+      "verdict": "tp",
+      "reason": "Line 378 is `radial-gradient(circle at center, transparent 0%, #050505 80%)` — a centred vignette behind the hero, ambient depth with no light source. The rule's exact target, present as described.",
+      "message": "1 radial gradient(s) used as ambient depth"
+    },
+    {
+      "key": "theater-slop-phrase@line:444#stunning",
+      "verdict": "tp",
+      "reason": "\"stunning\" in the hero paragraph promises the reader a feeling instead of saying what the thing does. A taste call rather than arithmetic, so flagged for owner review — but the rule is reading the word correctly.",
+      "message": "theatrical intensifier(s): \"stunning\" — promises a feeling instead of describing the thing"
+    },
+    {
+      "key": "marketing-buzzword@line:490#next-generation",
+      "verdict": "tp",
+      "reason": "Line 490 reads \"Next-generation primitives built for the modern web stack.\" — a sentence that survives having its subject swapped for any other product. Textbook for this rule.",
+      "message": "1 generic SaaS phrase(s): \"next-generation\" — say what the product literally does"
+    }
+  ]
+}
