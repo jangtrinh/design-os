@@ -68,6 +68,57 @@ export const blinkingCursor: TellRule = {
   },
 };
 
+/**
+ * Does anything a reader must READ live under this node?
+ *
+ * The rule below claims "auto-scrolling CONTENT the reader cannot pause", so it
+ * owes a check that content is what moves. Content means a text run or an image —
+ * there is no `img` fact kind, so an image is a `structure` fact whose node is `img`.
+ *
+ * REFUTATION, not a requirement. It answers false only when the facts positively
+ * show an empty subtree; every path where the evidence is missing answers TRUE and
+ * the finding stands. That asymmetry is deliberate and it is why `needs` stays
+ * `["motion"]`: `css-only` supplies motion with no structure and no text, and
+ * `swiftui`/`flutter` supply motion and text with no structure. Adding those kinds
+ * to `needs` would turn this rule NOT-EVALUATED on three extractors that run it
+ * today — silencing real findings under the cover of a coverage change, which is
+ * exactly the mistake this repo has already paid for twice.
+ */
+function subtreeHasReadableContent(facts: Parameters<TellRule["run"]>[0], ownerRef: string | undefined): boolean {
+  if (ownerRef === undefined) return true; // the extractor cannot name the owner
+  const structures = facts.by("structure");
+  if (structures.length === 0) return true; // no tree to walk: not evidence of emptiness
+
+  const childrenOf = new Map<string, string[]>();
+  for (const s of structures) {
+    if (s.parentRef === undefined) continue;
+    const list = childrenOf.get(s.parentRef);
+    if (list === undefined) childrenOf.set(s.parentRef, [s.ref]);
+    else list.push(s.ref);
+  }
+
+  const carriesContent = new Set<string>();
+  for (const t of facts.by("text")) {
+    // Head metadata is not copy anyone reads; it cannot make a marquee.
+    if (t.role !== "metadata" && t.at.nodeRef !== undefined) carriesContent.add(t.at.nodeRef);
+  }
+  for (const s of structures) if (s.node.toLowerCase() === "img") carriesContent.add(s.ref);
+
+  const seen = new Set<string>([ownerRef]);
+  const queue = [ownerRef];
+  while (queue.length > 0) {
+    const ref = queue.shift() as string;
+    if (carriesContent.has(ref)) return true;
+    for (const child of childrenOf.get(ref) ?? []) {
+      if (!seen.has(child)) {
+        seen.add(child);
+        queue.push(child);
+      }
+    }
+  }
+  return false;
+}
+
 export const marquee: TellRule = {
   id: "marquee",
   needs: ["motion"],
@@ -78,6 +129,9 @@ export const marquee: TellRule = {
       .by("motion")
       // Long, infinite, and not a micro-interaction: an auto-scrolling band.
       .filter((m) => m.repeatsForever === true && (m.durationMs ?? 0) >= thr("SLOW_LOOP_MIN_MS"))
+      // ...and carrying something to read. A decorative scanline sweeping an empty
+      // overlay loops forever too, and nothing the reader needs is moving.
+      .filter((m) => subtreeHasReadableContent(facts, m.at.nodeRef))
       .map((m) =>
         finding(marquee, {
           message: `auto-scrolling content on a ${Math.round((m.durationMs as number) / 1000)}s infinite loop the reader cannot pause`,
