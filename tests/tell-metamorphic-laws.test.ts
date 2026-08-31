@@ -29,6 +29,7 @@ import { lintTell, TELL_RULES } from "../src/core/tell-lint.js";
 import { extractorById } from "../src/core/design-facts/index.js";
 import type { DesignFact } from "../src/core/design-facts/fact-kinds.js";
 import type { Provenance } from "../src/core/design-facts/fact-model.js";
+import { withOrdinals } from "./helpers/finding-key.js";
 
 const html = extractorById("html-cascade");
 if (html === undefined) throw new Error("html-cascade must be registered");
@@ -65,6 +66,19 @@ function findingsFor(facts: DesignFact[]): string[] {
   return lintTell(facts, html as never)
     .findings.map((f) => `${f.checkId}|${f.message}`)
     .sort();
+}
+
+/**
+ * The finding SET, by stable key, for L3.
+ *
+ * Deliberately not `findingsFor`: that keys on `message`, and `collapseRepeated`
+ * folds an element count into the message. Under duplication a count legitimately
+ * changes, so a message-keyed set would be red for a reason that is not a defect.
+ * `keyOf` is the identity the field corpus already uses — shared from one file so
+ * a law and the corpus cannot drift apart about what "the same finding" means.
+ */
+function keysFor(facts: DesignFact[]): string[] {
+  return withOrdinals(lintTell(facts, html as never).findings).sort();
 }
 
 /**
@@ -115,24 +129,50 @@ describe("metamorphic law L2 — fact order changes nothing", () => {
   });
 });
 
-describe("metamorphic law L3 — a duplicated fact never doubles a finding", () => {
+describe("metamorphic law L3 — a duplicated fact changes no finding", () => {
   /**
    * The law that closes a class. 210 duplicate facts once produced 54 findings where
    * they should have produced far fewer, and the fix went in inside one rule. Asserting
    * it at the sink covers every rule, including ones not yet written.
+   *
+   * WHY SET EQUALITY AND NOT A COUNT CEILING. The first form was
+   * `twice.length <= once.length`. That catches doubling — the defect it was written
+   * for — but passes just as happily if duplication makes a finding DISAPPEAR, which
+   * is an equally real bug (a dedup key collision swallowing a distinct finding).
+   * Comparing the SET of stable keys closes both directions.
+   *
+   * HONESTY ABOUT WHAT THIS STRENGTHENING IS PROVEN TO ADD: nothing yet, on this
+   * engine. Three sabotages were run trying to find an input where set equality
+   * reddens and the ceiling stays green, and none of them separated the two laws:
+   *
+   *   1. dedup key reduced to `checkId` alone      -> both stayed green
+   *   2. `collapseRepeated` made to DROP repeated groups instead of folding them
+   *      (the literal "duplicate-induced removal" shape)  -> both stayed green,
+   *      because the dedup pass upstream removes the duplicates before collapse
+   *      ever sees them
+   *   3. both of the above at once                 -> L3 still green; the vacuity
+   *      guard below fired instead, which is a different guard doing its job
+   *
+   * The reason is structural, and the file header already names it: L3 is guarded
+   * twice, and both guards are insensitive to duplication, so neither can produce a
+   * once-vs-twice difference. A rule with an UPPER bound on a fact count could —
+   * doubling would push it past the bound and the finding would vanish — and no such
+   * rule exists today. So this assertion is stronger BY CONSTRUCTION for the class
+   * the issue names, and is currently unfalsifiable in practice. It is written this
+   * way so that the day such a rule is added, the law is already waiting for it.
    */
-  it.each(Object.entries(CASES))("%s does not double when its facts are duplicated", (_name, facts) => {
-    const once = findingsFor(facts);
+  it.each(Object.entries(CASES))("%s reports the same finding SET when its facts are duplicated", (_name, facts) => {
+    const once = keysFor(facts);
     // Same nodeRef, same values — the same authored decision seen twice.
-    const twice = findingsFor([...facts, ...facts.map((f) => ({ ...f }))]);
-    expect(twice.length, "duplicating a fact multiplied the findings").toBeLessThanOrEqual(once.length);
+    const twice = keysFor([...facts, ...facts.map((f) => ({ ...f }))]);
+    expect(twice, "duplicating a fact changed which findings were reported").toEqual(once);
   });
 
   it("holds across the whole set at once", () => {
     const all = Object.values(CASES).flat();
-    const once = findingsFor(all);
-    const twice = findingsFor([...all, ...all.map((f) => ({ ...f }))]);
-    expect(twice.length).toBeLessThanOrEqual(once.length);
+    const once = keysFor(all);
+    const twice = keysFor([...all, ...all.map((f) => ({ ...f }))]);
+    expect(twice).toEqual(once);
   });
 });
 

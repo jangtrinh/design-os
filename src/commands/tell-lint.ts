@@ -27,6 +27,7 @@ import { locateBrowser } from "../core/rendered/browser-session.js";
 import { capturePage } from "../core/rendered/capture-page.js";
 import { cdpUnavailableReason } from "../core/rendered/cdp-client.js";
 import { lintRendered } from "../core/tell-rules-rendered.js";
+import { splitUnresolvedSheets } from "../core/stylesheet-host-scope.js";
 import type { RenderedFinding } from "../core/tell-rules-rendered.js";
 
 const CMD = "tell-lint";
@@ -269,8 +270,22 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
     if (f.unresolvedCount > 0) notes.push(`${f.unresolvedCount} unresolved read(s)`);
     // Named, not just counted: "3 stylesheets did not load" is actionable where a
     // bare undercount flag is not.
-    if (f.unresolvedSheets.length > 0) {
-      notes.push(`${f.unresolvedSheets.length} stylesheet(s) NOT LOADED — findings here are a floor, not a verdict`);
+    //
+    // And scoped, because an unscoped caveat is one the reader learns to skip: on
+    // 123 real pages this fired on 27% of them and about a third of those were a
+    // webfont loader and nothing else. A font sheet can cost a family name, so
+    // `overused-font` may under-fire; it cannot hide a layout. An unknown host can
+    // hide anything and keeps the strict wording. Both are still counted and named.
+    const sheets = splitUnresolvedSheets(f.unresolvedSheets);
+    if (sheets.strict.length > 0) {
+      notes.push(
+        `${sheets.strict.length} stylesheet(s) NOT LOADED (${sheets.strict.join(", ")}) — findings here are a floor, not a verdict`,
+      );
+    }
+    if (sheets.fontOnly.length > 0) {
+      notes.push(
+        `${sheets.fontOnly.length} font stylesheet(s) not loaded (${sheets.fontOnly.join(", ")}) — family facts may be missing, so overused-font may under-fire`,
+      );
     }
     if (f.waived > 0) notes.push(`${f.waived} waived in-file`);
     if (f.notEvaluated.length > 0) notes.push(`${f.notEvaluated.length} rule(s) NOT-EVALUATED`);
