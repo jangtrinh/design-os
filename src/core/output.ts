@@ -117,3 +117,33 @@ export function internalErr(message: string, useJson: boolean, command: string):
   }
   return { exitCode: 2, stderr: `ui: internal error: ${message}\n` };
 }
+
+/**
+ * Make a string lifted out of an artifact safe to print.
+ *
+ * `ui` stdout is a machine channel — an agent parses these lines — and a human
+ * reads them in a terminal. A value taken from a file (a stylesheet href, a class
+ * name, a font family) is AUTHOR-controlled, so printing it verbatim lets the
+ * artifact forge output: a newline manufactures a line that reads as the engine
+ * speaking, and an ESC sequence repaints the terminal.
+ *
+ * Every C0/C1 control becomes a visible escape, and the result is capped. The
+ * truncation is MARKED, because a value cut without a mark is one the reader will
+ * take as complete.
+ *
+ * Deliberately not HTML-escaping and not quoting. The goal is only that the value
+ * occupies one line and moves no cursor, while staying recognisable to whoever has
+ * to go and fix the file it came from.
+ */
+export function forTerminal(raw: string, maxLength = 120): string {
+  // Scanned rather than matched with a regex: a character class holding literal
+  // control characters is unreadable in the source and `no-control-regex` refuses
+  // it, correctly. The predicate below says the same thing in words.
+  let escaped = "";
+  for (const ch of raw) {
+    const code = ch.codePointAt(0) ?? 0;
+    const isControl = code < 0x20 || (code >= 0x7f && code <= 0x9f);
+    escaped += isControl ? `\\x${code.toString(16).padStart(2, "0")}` : ch;
+  }
+  return escaped.length <= maxLength ? escaped : `${escaped.slice(0, maxLength - 1)}\u2026`;
+}

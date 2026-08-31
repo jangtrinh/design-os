@@ -14,7 +14,7 @@
 import { relative } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
-import { errJson, errText, okJsonWithExit } from "../core/output.js";
+import { errJson, errText, okJsonWithExit, forTerminal } from "../core/output.js";
 import { resolveTargets, describeResolution } from "../core/lint-target.js";
 import type { LintTarget } from "../core/lint-target.js";
 import { lintFileByExtractor } from "../core/lint-file-by-extractor.js";
@@ -265,7 +265,13 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
   for (const f of perFile) {
     const shown = hideAdvisory ? f.findings.filter((x) => x.severity !== "advisory") : f.findings;
     const notes: string[] = [];
-    if (f.undercount) notes.push("UNDERCOUNT");
+    const sheets = splitUnresolvedSheets(f.unresolvedSheets);
+    // The flag itself carries the scope, not just the sentence after it. A page
+    // whose only gap is a webfont loader IS an undercount and says so — but a
+    // reader who cannot tell that from a missing layout sheet at a glance learns
+    // to skip the word, and then it protects nothing.
+    const fontScopedOnly = sheets.fontOnly.length > 0 && sheets.strict.length === 0 && f.degraded === undefined;
+    if (f.undercount) notes.push(fontScopedOnly ? "UNDERCOUNT (font-scoped)" : "UNDERCOUNT");
     if (f.degraded !== undefined) notes.push(`DEGRADED: ${f.degraded}`);
     if (f.unresolvedCount > 0) notes.push(`${f.unresolvedCount} unresolved read(s)`);
     // Named, not just counted: "3 stylesheets did not load" is actionable where a
@@ -276,15 +282,17 @@ export async function runTellLint(args: ParsedArgs, cwd = process.cwd()): Promis
     // webfont loader and nothing else. A font sheet can cost a family name, so
     // `overused-font` may under-fire; it cannot hide a layout. An unknown host can
     // hide anything and keeps the strict wording. Both are still counted and named.
-    const sheets = splitUnresolvedSheets(f.unresolvedSheets);
+    // Hrefs come out of the artifact, so they are author-controlled and go through
+    // `forTerminal`: a raw newline in an href would forge a line that reads as the
+    // engine speaking, and an ESC sequence would repaint the reader's terminal.
     if (sheets.strict.length > 0) {
       notes.push(
-        `${sheets.strict.length} stylesheet(s) NOT LOADED (${sheets.strict.join(", ")}) — findings here are a floor, not a verdict`,
+        `${sheets.strict.length} stylesheet(s) NOT LOADED (${sheets.strict.map((s) => forTerminal(s)).join(", ")}) — findings here are a floor, not a verdict`,
       );
     }
     if (sheets.fontOnly.length > 0) {
       notes.push(
-        `${sheets.fontOnly.length} font stylesheet(s) not loaded (${sheets.fontOnly.join(", ")}) — family facts may be missing, so overused-font may under-fire`,
+        `${sheets.fontOnly.length} font stylesheet(s) not loaded (${sheets.fontOnly.map((s) => forTerminal(s)).join(", ")}) — family facts may be missing, so overused-font may under-fire`,
       );
     }
     if (f.waived > 0) notes.push(`${f.waived} waived in-file`);
