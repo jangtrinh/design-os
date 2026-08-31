@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-08-31 - the tell family stops lying in seven specific ways
+
+Seven open defects in `ui tell-lint` closed. The interesting part is not the count: **two
+of the seven were misdiagnosed** in their own issue, a third was one layer deeper than
+reported, and an independent review then found four more defects in the fixes themselves.
+Each fix landed with a red-before-green probe, and every predicate change was measured
+across 747 real pages before it shipped.
+
+### Fixed
+- **A `<title>` is metadata, not prose.** One page's title held a 9,334-character leaked
+  generation prompt, read as body copy: it produced a `line-length` finding and spent an
+  em dash against the page's visible word budget. `TextRole` gains `metadata`, scoped by
+  POSITION (inside `<head>`) rather than by tag name — an `<svg><title>` is an accessible
+  name and stays copy. The fact is still emitted and still counted by the census. (#252, #255)
+- **`marquee` fires only when something readable is moving.** It promised "auto-scrolling
+  content the reader cannot pause" and matched any long infinite animation, including a
+  1px decorative scanline in an empty div. It now refutes itself when the animated node's
+  subtree provably carries no text, image, SVG, video or canvas. (#253)
+- **Tailwind `uppercase` reaches the rule that exempts it — and the cause was one layer
+  down.** `wide-tracking` already forgave small all-caps; the resolver dropped the token,
+  and even once it did not, the JSX extractor emitted one typography fact PER UTILITY, so
+  no rule correlating two typography properties on one element could work. It now emits
+  one fact per element, as the HTML extractor always has. `tight-leading` was blind the
+  same way and is fixed by the same change. (#254)
+- **A two-file `--render` run blames the right page.** Rendered findings were folded into
+  the first file's record. (#237)
+- **Identical facts collapse before any rule sees them.** Duplicated facts changed what
+  rules that print a fact COUNT reported. Fixed at the sink rather than in either rule. (#238)
+- **The unresolved-stylesheet caveat says what the sheet could have hidden.** A font CDN
+  can cost a family name; it cannot hide a layout. Classified by HOST, never by URL shape —
+  and `use.fontawesome.com` is not on that list, because its `all.css` ships `border`,
+  `padding`, `float` and an infinite `animation`. Of 401 pages carrying an unresolved
+  sheet, 337 narrow and 64 stay strict. (#238)
+- **Artifact text can no longer forge engine output.** Stylesheet hrefs are author-written
+  and were printed verbatim; a newline in one manufactured a line that read as the engine
+  speaking, and an ESC sequence repainted the terminal.
+
+### Changed
+- **Metamorphic law L3 compares finding SETS**, not a count ceiling — the old form caught
+  duplication multiplying a finding and missed duplication removing one. (#238)
+- **The mutation audit runs against the field corpus** and prints two numbers instead of
+  one: **60.74%** from fixtures alone and **74.16%** with the corpus — +13.42 points, and
+  38 mutants that no fixture ever reached. (#236)
+
+### Corpus
+Five pinned `fp-open` rows resolved: four to `fp` (now regression tripwires) and one
+re-adjudicated `tp` after measurement rejected the alternative fix.
+
 ## 2026-08-30 - ease-design 0.6.0
 
 The polyglot release. Ten weeks of work reaches npm: design:os can now read an app in
