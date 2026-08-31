@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-08-31 - a prompt in the title, and the half of a family the gate never ran
+
+### Added
+- **`prompt-leak-metadata`** — a generation brief shipped in the page's `<title>` is
+  scaffolding, not a habit, so it is severity `error` in the `content` family rather
+  than another advisory tell. Two real pages carry an ~8,900-character title that is
+  the brief itself, naming an internal path, on the surface the browser tab, the
+  search result and the social card all read. The threshold carries no judgement:
+  across 699 real titles the median is 43, the longest legitimate one is 120, and
+  **nothing falls between 120 and 1000**. Length only — matching one generator's
+  phrasing would overfit, and the audience of a shared linter is every generator that
+  makes this mistake. (#262)
+
+### Fixed
+- **`ui gate` runs both halves of the content family.** It composed that family from
+  the twelve regex checks alone, so the four voice tells and the new check reached it
+  through nothing at all — while `gate coverage` reported the family fully active.
+  Six catalog rows were unreachable-but-reported-active. The gate now runs one
+  memoised fact pass that both `tell` and `content` read from. (#274 tracks the sixth
+  row, `low-contrast`, whose fix changes what the gate FAILS on and needs its own
+  measurement.)
+- **Content findings survive a non-HTML reader.** `lintFileByExtractor` returned them
+  for HTML and discarded them silently everywhere else, while the catalog promises
+  those rules read Swift and Dart too. A SwiftUI file with three voice findings
+  returned none.
+- **`ui content-lint` advertises 12 checks, which is what it runs** — it said 17. The
+  contract test that forced that number was itself comparing a *command's* count to a
+  *family* total; those coincide only where a command runs its whole family, and
+  content is the one place it does not.
+
 ## 2026-08-31 - the tell family stops lying in seven specific ways
 
 Seven open defects in `ui tell-lint` closed. The interesting part is not the count: **two
