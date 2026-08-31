@@ -24,9 +24,45 @@ export interface FactIndex {
   by: <K extends FactKind>(kind: K) => Array<Extract<DesignFact, { kind: K }>>;
 }
 
+/**
+ * A structurally identical fact, for the dedupe below.
+ *
+ * Keys are sorted so two objects that differ only in property order collapse
+ * together — an extractor is free to build a fact in whatever order suits it, and
+ * that ordering is not part of what the fact SAYS.
+ */
+function identityOf(fact: DesignFact): string {
+  return JSON.stringify(fact, (_k, v: unknown) =>
+    v !== null && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)))
+      : v,
+  );
+}
+
 export function indexFacts(facts: readonly DesignFact[]): FactIndex {
+  // Identical facts collapse before any rule sees them.
+  //
+  // The same authored decision read twice is one decision. Two facts that agree on
+  // every field INCLUDING their provenance came from one place in one file, so a
+  // rule counting them counts the reader's stutter, not the page.
+  //
+  // This is the sink fix for a real defect, found by a metamorphic law once its
+  // inputs were widened rather than its guards weakened. Rules that print a fact
+  // COUNT into `actual` — `image-hover-transform` says "N transitions over M
+  // images", `shape-assembled-illustration` says "N stacked shapes" — changed their
+  // finding when facts were duplicated, so a `<=` count ceiling stayed green while
+  // the finding SET genuinely differed. Guarding it in either rule would leave the
+  // next count-printing rule exposed; the repo's own rule is to fix at the shared
+  // layer, and this is that layer.
+  //
+  // Two facts on DIFFERENT nodes or lines are not identical and both survive: this
+  // collapses stutter, never evidence.
+  const seen = new Set<string>();
   const buckets = new Map<FactKind, DesignFact[]>();
   for (const f of facts) {
+    const identity = identityOf(f);
+    if (seen.has(identity)) continue;
+    seen.add(identity);
     const list = buckets.get(f.kind);
     if (list === undefined) buckets.set(f.kind, [f]);
     else list.push(f);
