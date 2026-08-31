@@ -128,6 +128,9 @@ export const TELL_THRESHOLDS = {
   PILL_RADIUS_PX: t(999, "px", "pill detection", "The conventional fully-rounded radius."),
   CHIP_RADIUS_MIN_PX: t(12, "px", "hero-eyebrow-chip", "Rounded enough to read as a chip."),
 
+  METADATA_MAX_CHARS: t(200, "chars", "prompt-leak-metadata",
+    "Measured over 699 real titles: median 43, longest legitimate 120, and NOTHING between 120 and 1000. The gap makes the number free — anything in 150-900 classifies that corpus identically. 200 sits near the legitimate side, past the longest real title and past what a search result displays."),
+
   // ── Motion ──────────────────────────────────────────────────────────────────
 
   FAST_LOOP_MAX_MS: t(1200, "ms", "pulsing-dot", "A forever-loop faster than this reads as an alert that never resolves."),

@@ -39,6 +39,12 @@
       "verdict": "tp",
       "reason": "Line 490 reads \"Next-generation primitives built for the modern web stack.\" — a sentence that survives having its subject swapped for any other product. Textbook for this rule.",
       "message": "1 generic SaaS phrase(s): \"next-generation\" — say what the product literally does"
+    },
+    {
+      "key": "prompt-leak-metadata@line:6#8941 characters starting \"[var-1] Abyssal Void-Tech - Web - Landing page - AI design -\"",
+      "verdict": "tp",
+      "reason": "TRUE POSITIVE, same leak on a second page by the same generator. Paired with the hyper-gloss row deliberately: one page could be an accident, and two independent pages carrying the same 8,900-character brief in their <title> is the class. Together they are this rule's FIRES proof; the seven other corpus pages are the stays-silent proof, enforced by the runner's own unadjudicated guard rather than by a fixture anyone has to remember to write.",
+      "message": "8941 characters of document metadata — a title this long is a prompt or a note that was never replaced"
     }
   ]
 }

@@ -184,7 +184,7 @@ describe("voice tells", () => {
       "v.swift",
     );
     const r = lintTell(swift.collector.facts(), swiftui);
-    expect(r.voice.map((f) => f.checkId)).toContain("marketing-buzzword");
+    expect(r.content.map((f) => f.checkId)).toContain("marketing-buzzword");
   });
 
   it("orders deterministically", () => {

@@ -115,7 +115,7 @@ export function lintFileByExtractor(
     return {
       // Contrast and voice run only on the resolved cascade; the other readers cannot
       // resolve a background, and a guess there is worse than an admitted gap.
-      findings: [...kept, ...result.contrast, ...result.voice] as TellFinding[],
+      findings: [...kept, ...result.contrast, ...result.content] as TellFinding[],
       notEvaluated: result.notEvaluated,
       unresolvedCount: extraction.collector.unresolvedCount,
       waived: waived.length,

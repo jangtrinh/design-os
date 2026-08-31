@@ -144,6 +144,7 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = [
   { id: "em-dash-overuse", family: "content", requires: { facts: ["text"] } },
   { id: "theater-slop-phrase", family: "content", requires: { facts: ["text"] } },
   { id: "aphoristic-cadence", family: "content", requires: { facts: ["text"] } },
+  { id: "prompt-leak-metadata", family: "content", requires: { facts: ["text"] } },
   // ── tell: generated-UI tells (knowledge/design-tells.md). Most are advisory:
   // a tell is evidence of inattention, not a defect, so it prints without
   // failing a build. `requires` names the DesignFacts kinds each rule reads —
