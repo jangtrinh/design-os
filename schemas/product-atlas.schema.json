@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/product-atlas.schema.json",
+  "title": "Product Atlas v1",
+  "$comment": "Digest/reference/counter coherence, ASCII ordering, and candidate-status semantics are enforced by replay lint in the deterministic core.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "version", "productId", "inputSetDigest", "receipts", "fields", "coverage"],
+  "properties": {
+    "kind": { "const": "product-atlas" }, "version": { "const": 1 },
+    "productId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+    "inputSetDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "receipts": { "type": "array", "minItems": 1, "maxItems": 1024, "items": { "$ref": "#/definitions/embeddedReceipt" } },
+    "fields": {
+      "type": "array", "minItems": 10, "maxItems": 10, "additionalItems": false,
+      "items": [
+        { "$ref": "#/definitions/field-flow.entryPoints" }, { "$ref": "#/definitions/field-flow.screens" },
+        { "$ref": "#/definitions/field-flow.transitions" }, { "$ref": "#/definitions/field-productTruth.audienceSituation" },
+        { "$ref": "#/definitions/field-productTruth.availableProof" }, { "$ref": "#/definitions/field-productTruth.contentInventory" },
+        { "$ref": "#/definitions/field-productTruth.desiredChange" }, { "$ref": "#/definitions/field-productTruth.primaryAction" },
+        { "$ref": "#/definitions/field-productTruth.primaryOutcome" }, { "$ref": "#/definitions/field-productTruth.prohibitedClaims" }
+      ]
+    },
+    "coverage": { "$ref": "#/definitions/coverage" }
+  },
+  "definitions": {
+    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+    "productText": { "$comment": "The core enforces Unicode scalar counts and rejects lone UTF-16 surrogates.", "type": "string", "minLength": 1, "maxLength": 2000 },
+    "productTextList": { "type": "array", "maxItems": 256, "items": { "$ref": "#/definitions/productText" } },
+    "flowString": { "$comment": "The core enforces Unicode scalar counts and rejects lone UTF-16 surrogates.", "type": "string", "minLength": 0, "maxLength": 500 },
+    "flowIdentifier": { "allOf": [{ "$ref": "#/definitions/flowString" }, { "minLength": 1 }] },
+    "screen": { "type": "object", "additionalProperties": false, "required": ["id"], "properties": { "id": { "$ref": "#/definitions/flowIdentifier" }, "name": { "$ref": "#/definitions/flowString" }, "mode": { "$ref": "#/definitions/flowString" }, "artifact": { "$ref": "#/definitions/flowString" }, "states": { "type": "array", "maxItems": 64, "items": { "$ref": "#/definitions/flowString" } }, "terminal": { "type": "boolean" } } },
+    "transition": { "type": "object", "additionalProperties": false, "required": ["id", "from", "to", "trigger"], "properties": { "id": { "$ref": "#/definitions/flowIdentifier" }, "from": { "$ref": "#/definitions/flowIdentifier" }, "to": { "$ref": "#/definitions/flowIdentifier" }, "trigger": { "enum": ["ON_CLICK", "ON_HOVER", "ON_PRESS", "AFTER_DELAY", "ON_KEY", "ON_SUBMIT"] }, "label": { "$ref": "#/definitions/flowString" }, "source": { "$ref": "#/definitions/flowString" }, "guard": { "$ref": "#/definitions/flowString" }, "async": { "type": "boolean" } } },
+    "entryPoint": { "type": "object", "additionalProperties": false, "required": ["id", "screen"], "properties": { "id": { "$ref": "#/definitions/flowIdentifier" }, "screen": { "$ref": "#/definitions/flowIdentifier" }, "name": { "$ref": "#/definitions/flowString" } } },
+    "flowScreens": { "type": "array", "maxItems": 4096, "items": { "$ref": "#/definitions/screen" } },
+    "flowTransitions": { "type": "array", "maxItems": 4096, "items": { "$ref": "#/definitions/transition" } },
+    "flowEntryPoints": { "type": "array", "maxItems": 1024, "items": { "$ref": "#/definitions/entryPoint" } },
+    "typedClaimValue": { "allOf": [
+      { "if": { "properties": { "field": { "const": "productTruth.audienceSituation" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } } },
+      { "if": { "properties": { "field": { "const": "productTruth.desiredChange" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } } },
+      { "if": { "properties": { "field": { "const": "productTruth.primaryOutcome" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } } },
+      { "if": { "properties": { "field": { "const": "productTruth.primaryAction" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } } },
+      { "if": { "properties": { "field": { "const": "productTruth.availableProof" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productTextList" } } } },
+      { "if": { "properties": { "field": { "const": "productTruth.prohibitedClaims" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productTextList" } } } },
+      { "if": { "properties": { "field": { "const": "productTruth.contentInventory" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/productTextList" } } } },
+      { "if": { "properties": { "field": { "const": "flow.screens" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/flowScreens" } } } },
+      { "if": { "properties": { "field": { "const": "flow.transitions" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/flowTransitions" } } } },
+      { "if": { "properties": { "field": { "const": "flow.entryPoints" } }, "required": ["field"] }, "then": { "properties": { "value": { "$ref": "#/definitions/flowEntryPoints" } } } }
+    ] },
+    "claim": {
+      "type": "object", "additionalProperties": false, "required": ["claimId", "field", "required", "disposition", "value", "reason", "supersedes"],
+      "properties": {
+        "claimId": { "$ref": "#/definitions/identifier" },
+        "field": { "enum": ["flow.entryPoints", "flow.screens", "flow.transitions", "productTruth.audienceSituation", "productTruth.availableProof", "productTruth.contentInventory", "productTruth.desiredChange", "productTruth.primaryAction", "productTruth.primaryOutcome", "productTruth.prohibitedClaims"] },
+        "required": { "type": "boolean" }, "disposition": { "enum": ["present", "missing", "empty", "stale", "rejected", "malformed", "partial", "not-evaluated"] },
+        "value": { "$comment": "claim disposition controls null versus field-typed value: missing/empty/malformed/not-evaluated are null; present/partial/stale/rejected are typed." },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "supersedes": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}#[a-z0-9][a-z0-9._-]{0,127}$" } }
+      },
+      "allOf": [
+        { "if": { "properties": { "disposition": { "enum": ["missing", "empty", "malformed", "not-evaluated"] } }, "required": ["disposition"] }, "then": { "properties": { "value": { "type": "null" } } } },
+        { "if": { "properties": { "disposition": { "enum": ["present", "partial", "stale", "rejected"] } }, "required": ["disposition"] }, "then": { "$ref": "#/definitions/typedClaimValue" } }
+      ]
+    },
+    "receiptLifecycle": { "allOf": [
+      { "if": { "properties": { "captureDisposition": { "const": "captured" } }, "required": ["captureDisposition"] }, "then": { "properties": { "sourceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }, "omittedCount": { "const": 0 }, "reasonCodes": { "maxItems": 0 }, "claims": { "minItems": 1 } } } },
+      { "if": { "properties": { "captureDisposition": { "const": "capped" } }, "required": ["captureDisposition"] }, "then": { "properties": { "sourceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }, "omittedCount": { "minimum": 1, "maximum": 9007199254740991 }, "reasonCodes": { "minItems": 1 } } } },
+      { "if": { "properties": { "captureDisposition": { "enum": ["skipped", "blocked", "failed"] } }, "required": ["captureDisposition"] }, "then": { "properties": { "omittedCount": { "const": 0 }, "reasonCodes": { "minItems": 1 }, "claims": { "maxItems": 0 } } } }
+    ] },
+    "embeddedReceipt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "version", "receiptId", "productId", "sourceRef", "sourceDigest", "capturedAt", "captureDisposition", "omittedCount", "reasonCodes", "claims", "receiptDigest"],
+      "properties": {
+        "kind": { "const": "product-context-receipt" }, "version": { "const": 1 }, "receiptId": { "$ref": "#/definitions/identifier" }, "productId": { "$ref": "#/definitions/identifier" }, "sourceRef": { "$ref": "#/definitions/identifier" },
+        "sourceDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" }, "capturedAt": { "type": ["string", "null"], "format": "date-time" },
+        "captureDisposition": { "enum": ["captured", "capped", "skipped", "blocked", "failed"] }, "omittedCount": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "reasonCodes": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" } }, "claims": { "type": "array", "maxItems": 256, "items": { "$ref": "#/definitions/claim" } },
+        "receiptDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      },
+      "allOf": [{ "$ref": "#/definitions/receiptLifecycle" }]
+    },
+    "claim-productTruth.audienceSituation": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.audienceSituation" } } }] },
+    "claim-productTruth.desiredChange": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.desiredChange" } } }] },
+    "claim-productTruth.primaryOutcome": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.primaryOutcome" } } }] },
+    "claim-productTruth.primaryAction": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.primaryAction" } } }] },
+    "claim-productTruth.availableProof": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.availableProof" } } }] },
+    "claim-productTruth.prohibitedClaims": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.prohibitedClaims" } } }] },
+    "claim-productTruth.contentInventory": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "productTruth.contentInventory" } } }] },
+    "claim-flow.screens": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "flow.screens" } } }] },
+    "claim-flow.transitions": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "flow.transitions" } } }] },
+    "claim-flow.entryPoints": { "allOf": [{ "$ref": "#/definitions/claim" }, { "properties": { "field": { "const": "flow.entryPoints" } } }] },
+    "candidate-productTruth.audienceSituation": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.audienceSituation" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-productTruth.desiredChange": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.desiredChange" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-productTruth.primaryOutcome": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.primaryOutcome" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-productTruth.primaryAction": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.primaryAction" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-productTruth.availableProof": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.availableProof" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-productTruth.prohibitedClaims": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.prohibitedClaims" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-productTruth.contentInventory": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-productTruth.contentInventory" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-flow.screens": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-flow.screens" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-flow.transitions": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-flow.transitions" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "candidate-flow.entryPoints": { "type": "object", "additionalProperties": false, "required": ["receiptId", "claim", "status"], "properties": { "receiptId": { "$ref": "#/definitions/identifier" }, "claim": { "$ref": "#/definitions/claim-flow.entryPoints" }, "status": { "enum": ["selected", "coalesced", "superseded", "excluded", "conflicted"] } } },
+    "field-productTruth.audienceSituation": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.audienceSituation" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.audienceSituation" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-productTruth.desiredChange": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.desiredChange" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.desiredChange" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-productTruth.primaryOutcome": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.primaryOutcome" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.primaryOutcome" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-productTruth.primaryAction": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.primaryAction" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.primaryAction" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productText" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-productTruth.availableProof": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.availableProof" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.availableProof" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productTextList" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-productTruth.prohibitedClaims": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.prohibitedClaims" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.prohibitedClaims" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productTextList" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-productTruth.contentInventory": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "productTruth.contentInventory" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-productTruth.contentInventory" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/productTextList" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-flow.screens": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "flow.screens" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-flow.screens" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/flowScreens" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-flow.transitions": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "flow.transitions" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-flow.transitions" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/flowTransitions" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "field-flow.entryPoints": { "type": "object", "additionalProperties": false, "required": ["field", "resolution", "value", "candidates"], "properties": { "field": { "const": "flow.entryPoints" }, "resolution": { "enum": ["resolved", "missing", "unresolved", "conflicting"] }, "value": {}, "candidates": { "type": "array", "items": { "$ref": "#/definitions/candidate-flow.entryPoints" } } }, "allOf": [{ "if": { "properties": { "resolution": { "const": "resolved" } } }, "then": { "properties": { "value": { "$ref": "#/definitions/flowEntryPoints" } } }, "else": { "properties": { "value": { "type": "null" } } } }] },
+    "counter": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "coverage": {
+      "type": "object", "additionalProperties": false, "required": ["captureDispositions", "claimDispositions", "candidateStatuses", "resolutions", "omittedCount"],
+      "properties": {
+        "captureDispositions": { "type": "object", "additionalProperties": false, "required": ["captured", "capped", "skipped", "blocked", "failed"], "properties": { "captured": { "$ref": "#/definitions/counter" }, "capped": { "$ref": "#/definitions/counter" }, "skipped": { "$ref": "#/definitions/counter" }, "blocked": { "$ref": "#/definitions/counter" }, "failed": { "$ref": "#/definitions/counter" } } },
+        "claimDispositions": { "type": "object", "additionalProperties": false, "required": ["present", "missing", "empty", "stale", "rejected", "malformed", "partial", "not-evaluated"], "properties": { "present": { "$ref": "#/definitions/counter" }, "missing": { "$ref": "#/definitions/counter" }, "empty": { "$ref": "#/definitions/counter" }, "stale": { "$ref": "#/definitions/counter" }, "rejected": { "$ref": "#/definitions/counter" }, "malformed": { "$ref": "#/definitions/counter" }, "partial": { "$ref": "#/definitions/counter" }, "not-evaluated": { "$ref": "#/definitions/counter" } } },
+        "candidateStatuses": { "type": "object", "additionalProperties": false, "required": ["selected", "coalesced", "superseded", "excluded", "conflicted"], "properties": { "selected": { "$ref": "#/definitions/counter" }, "coalesced": { "$ref": "#/definitions/counter" }, "superseded": { "$ref": "#/definitions/counter" }, "excluded": { "$ref": "#/definitions/counter" }, "conflicted": { "$ref": "#/definitions/counter" } } },
+        "resolutions": { "type": "object", "additionalProperties": false, "required": ["resolved", "missing", "unresolved", "conflicting"], "properties": { "resolved": { "$ref": "#/definitions/counter" }, "missing": { "$ref": "#/definitions/counter" }, "unresolved": { "$ref": "#/definitions/counter" }, "conflicting": { "$ref": "#/definitions/counter" } } },
+        "omittedCount": { "$ref": "#/definitions/counter" }
+      }
+    }
+  }
+}

@@ -68,6 +68,13 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  "product-context": {
+    summary: "Compile and replay-lint Product Context Atlases",
+    subcommands: {
+      compile: { summary: "Compile receipts into a canonical Product Atlas", positionals: [{ name: "<receipt.json>", required: true, variadic: true, summary: "Product context receipt" }], flags: [], errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_PRODUCT_CONTEXT", "PRODUCT_ID_MISMATCH", "PRODUCT_CONTEXT_RECEIPT_TOO_LARGE", "PRODUCT_CONTEXT_INPUT_TOO_LARGE", "PRODUCT_CONTEXT_OMITTED_COUNT_OVERFLOW", "PRODUCT_ATLAS_OUTPUT_TOO_LARGE"] },
+      lint: { summary: "Replay and byte-compare a Product Atlas", positionals: [{ name: "<atlas.json>", required: true, summary: "Product Atlas" }], flags: [], errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_PRODUCT_ATLAS", "PRODUCT_ATLAS_INPUT_TOO_LARGE"] },
+    },
+  },
   gflow: {
     summary: "Run the safe gflow i2v + ffmpeg Architecture-A asset path",
     subcommands: {
