@@ -122,3 +122,12 @@ entry, which states what a rule REQUIRES to run at all — promoting refutation 
 `needs` turns the rule NOT-EVALUATED wherever that evidence is absent, which silences
 findings under cover of a coverage change.
 _Avoid_: guard, filter, exemption (all three read as symmetric; the asymmetry is the point)
+
+**Product Atlas**:
+The canonical artifact `ui product-context compile` derives from capture receipts: it embeds
+every normalized receipt and its digest, and resolves each product-truth and Flow field from
+them. Derived and rebuildable — discard it and recompile from the receipts, which stay the
+authoritative inputs. It carries no projection, no findings and no verdict, and its bytes never
+depend on argv order, a requested projection, or the clock.
+_Avoid_: product map, source of truth, product model (all three read as authority — the Atlas
+is derived), strategy, qualification record (that names a different, existing contract)

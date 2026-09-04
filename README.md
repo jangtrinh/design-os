@@ -19,7 +19,7 @@
 </p>
 
 <p align="center"><sub>
-Node ≥ 20 · MIT · deterministic <code>ui</code> kernel · 46 commands · 3,955 kernel tests green ·
+Node ≥ 20 · MIT · deterministic <code>ui</code> kernel · 47 commands · 3,955 kernel tests green ·
 a <a href="https://github.com/jangtrinh/design-os-figma-plugin">1,675-test Figma plugin</a> ·
 26 personas · a 27-component kit · deterministic static + rendered gates · a 1:1 Figma mirror
 </sub></p>
@@ -610,6 +610,27 @@ product truth, three structurally divergent directions, complete region briefs, 
 DNA, and controlled content-led versus golden-ratio candidates. `ui prompt-plan validate` and
 `ui prompt-plan preflight` block incomplete, generic, forced-ratio, or over-budget builder plans.
 
+Product truth can also arrive as **evidence** instead of one inline object. `ui product-context`
+compiles lifecycle-aware capture receipts into a canonical **Product Atlas**: one derived,
+byte-reproducible artifact that embeds every normalized receipt and resolves each field without
+picking an order winner — equal active values coalesce, distinct ones conflict with a `null`
+value, and a field with no candidate stays `unresolved` rather than being inferred missing.
+
+```sh
+ui product-context compile capture-receipt.json more-receipts.json > atlas.json
+ui product-context lint atlas.json
+ui product-context project-flow atlas.json
+```
+
+`lint` recompiles the receipts the Atlas embeds and byte-compares the whole derived artifact, so
+an isolated mutation fails. It proves internal self-consistency, **not** unchanged history: a
+coordinated rewrite is a new valid Atlas with a different external `atlasDigest`, and only
+comparing that digest against a trusted one detects substitution. `project-flow` returns a
+separate Flow projection that never enters the Atlas and always reports
+`truthStatus: "not-evaluated"`. The Atlas is rebuildable derived context — never a third source
+of truth, routing authority, readiness verdict, or qualification proof. Prompt plans still carry
+their inline `productTruth`; that contract is unchanged.
+
 The world-class learning loop adds controlled orchestrated and `art-directed` variants after
 qualification. It keeps critical floor failures separate from ceiling judgments, compares raw /
 enhanced / qualified / orchestrated content-led / orchestrated golden / selected / art-directed
@@ -623,7 +644,9 @@ The schemas are public contracts:
 [design brief](schemas/design-brief.schema.json) ·
 [prompt plan](schemas/prompt-plan.schema.json) ·
 [generation contract](schemas/generation-contract.schema.json) ·
-[qualification record](schemas/qualification-record.schema.json).
+[qualification record](schemas/qualification-record.schema.json) ·
+[product context receipt](schemas/product-context-receipt.schema.json) ·
+[product atlas](schemas/product-atlas.schema.json).
 
 ---
 
@@ -830,7 +853,7 @@ flowchart LR
     E5 --> W
     E6 --> W
     W --> H["Host model + DESIGN:OS knowledge and installed skills"]
-    H --> K["42-command deterministic ui kernel"]
+    H --> K["47-command deterministic ui kernel"]
     H --> O1["Responsive production UI"]
     H --> O2["Idiomatic Figma canvas"]
     H --> O3["Design-system artifacts"]
@@ -986,7 +1009,7 @@ instead of falling into the accepting branch.
 
 | Surface | Path | What it is | Tests |
 |---|---|---|---|
-| **`ui` kernel** | `src/` | 45 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 3,699 |
+| **`ui` kernel** | `src/` | 47 deterministic commands — prompt-plan and delivery validation, DS compile/mutate/preview, tokens, OKLCH color math, static gates, VR, memory, evidence. Zero runtime dependencies, no network, no model calls. | 3,699 |
 | **`design-os` conductor** | `design-os/` | Python/Typer umbrella that composes everything: `doctor` · `audit` · `heartbeat` (deterministic design-health rhythm — due/compare/notify, zero model calls) · `reference` · `vr-matrix` · `figma status/scan/audit` · `update` (one-command toolchain refresh on any machine) · entry-point plugins. Re-emits every underlying envelope **verbatim** — one source of truth per verdict. | 312 |
 | **`figma-agent` hand** | [external repo](https://github.com/jangtrinh/design-os-figma-plugin) | CLI + WS broker + Figma plugin: canvas authoring, DS scan, the 10-detector hygiene audit, exec-js, capture. Split out so it can version independently of this kernel. | 1,675 (own repo) |
 | **rendered-tier hands** | `a11y/` | `a11y-audit` (axe-core over installed Chrome — wording never claims "compliant") + `page-shot` (deterministic full-page PNG). | — |
@@ -994,7 +1017,7 @@ instead of falling into the accepting branch.
 | **`knowledge/` core** | `knowledge/` | The model-facing brain: 6+1-axis taste rubric, 26 personas / 7 families, page-structures (21 shapes + diversification + honest copy), two-tier a11y model, color science, token taxonomy, `figma-craft/` construction tree. | — |
 
 <details>
-<summary><b>All 45 <code>ui</code> commands</b></summary>
+<summary><b>All 47 <code>ui</code> commands</b></summary>
 
 | Command | Summary |
 |---|---|
@@ -1033,6 +1056,7 @@ instead of falling into the accepting branch.
 | `ui knowledge` | Check knowledge-core indexing, provenance, and cross-reference drift |
 | `ui delivery` | Validate briefs, generation contracts, qualification records, and learning records |
 | `ui prompt-plan` | Validate and preflight prompt-plan orchestration contracts |
+| `ui product-context` | Compile capture receipts into a replayable Product Atlas, replay-lint it, project Flow |
 | `ui designmd` | Extract tokens, snapshot, audit DESIGN.md folders |
 | `ui registry` | Component registry store: register, lookup, list |
 | `ui edit-strategy` | Select edit strategy, number lines, apply ln-diff patch |
