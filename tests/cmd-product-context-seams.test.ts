@@ -46,21 +46,32 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(overflowCloseFailure.state.closeCount).toBe(1);
   });
 
-  it("surfaces unexpected JSON parser failures through the public compile and lint commands", () => {
+  it("surfaces unexpected JSON parser failures through the public compile and lint commands", async () => {
     const receiptPath = writeCompact("unexpected-parser-receipt.json", receipt());
     const atlasPath = write("unexpected-parser-atlas.json", compileText([receipt()]));
     const parse = JSON.parse;
     let compileResult: Capture;
     let lintResult: Capture;
+    let projectFlowResult: Capture;
+    let dispatcherResult: Capture;
     JSON.parse = (() => { throw new Error("forced-parser-failure"); }) as typeof JSON.parse;
     try {
       compileResult = capture(["product-context", "compile", receiptPath, "--json"]);
       lintResult = capture(["product-context", "lint", atlasPath, "--json"]);
+      projectFlowResult = capture(["product-context", "project-flow", atlasPath, "--json"]);
     } finally {
       JSON.parse = parse;
     }
     expect(compileResult!).toEqual({ code: 2, out: "", err: "ui: internal error: forced-parser-failure\n" });
     expect(lintResult!).toEqual({ code: 2, out: "", err: "ui: internal error: forced-parser-failure\n" });
+    expect(projectFlowResult!).toEqual({ code: 2, out: "", err: "ui: internal error: forced-parser-failure\n" });
+    const seams = await productContextSeams();
+    expect(seams?.productContextCommand?.run, "missing product-context dispatcher seam").toBeTypeOf("function");
+    if (seams?.productContextCommand?.run === undefined) return;
+    const dispatch = seams.productContextCommand.run;
+    seams.productContextCommand.run = () => { throw new Error("forced-dispatcher-failure"); };
+    try { dispatcherResult = capture(["product-context", "project-flow", atlasPath]); } finally { seams.productContextCommand.run = dispatch; }
+    expect(dispatcherResult!).toEqual({ code: 2, out: "", err: "ui: internal error: forced-dispatcher-failure\n" });
   });
 
   it("requires core normalizer and finalizer seams while terminal escaping remains a copied-output boundary", async () => {

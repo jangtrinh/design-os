@@ -142,10 +142,13 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
 
   it("lets an exact-size Atlas reach replay validation but rejects max plus one before parse", () => {
     const canonical = compileText([receipt()]);
-    lintFailure(write("atlas-exact.json", canonical + " ".repeat(ATLAS_MAX - Buffer.byteLength(canonical))), "BAD_PRODUCT_ATLAS");
-    lintFailure(write("atlas-too-large.json", canonical + " ".repeat(ATLAS_MAX + 1 - Buffer.byteLength(canonical))), "PRODUCT_ATLAS_INPUT_TOO_LARGE");
+    const exact = write("atlas-exact.json", canonical + " ".repeat(ATLAS_MAX - Buffer.byteLength(canonical))), large = write("atlas-too-large.json", canonical + " ".repeat(ATLAS_MAX + 1 - Buffer.byteLength(canonical)));
+    lintFailure(exact, "BAD_PRODUCT_ATLAS"); lintFailure(large, "PRODUCT_ATLAS_INPUT_TOO_LARGE");
+    const projectedExact = capture(["product-context", "project-flow", exact, "--json"]);
+    expect(json(projectedExact, "exact project-flow size")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.any(String) } });
+    const projectedLarge = capture(["product-context", "project-flow", large, "--json"]);
+    expect(json(projectedLarge, "large project-flow size")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "PRODUCT_ATLAS_INPUT_TOO_LARGE", message: expect.any(String) } });
   });
-
   it("requires the output guard seam at exact and max-plus-one Atlas bytes", async () => {
     const seams = await productContextSeams();
     expect(seams?.assertAtlasOutputSize, "missing expected assertAtlasOutputSize command seam").toBeTypeOf("function");

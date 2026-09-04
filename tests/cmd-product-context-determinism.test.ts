@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canonicalStringify } from "../src/core/ds-manifest.js";
+import { forTerminal } from "../src/core/output.js";
 import {
   asObject, canonicalText, claim, clone, compareFindingTriples, createProductContextHarness,
   exactKeys, findingTripleIdentity, PRODUCT_CONTEXT_SUITE, receipt, reverseNestedKeys,
@@ -7,7 +8,7 @@ import {
 } from "./helpers/product-context-fixtures.js";
 
 const context = createProductContextHarness();
-const { atlas, compileOk, compileSemantic, compileText, json, lint, lintFailure, lintOk, write } = context;
+const { atlas, capture, compileOk, compileSemantic, compileText, json, lint, lintFailure, lintOk, write } = context;
 
 describe(PRODUCT_CONTEXT_SUITE, () => {
   it("canonicalizes argv order, object keys, Flow collections, and Flow state order", () => {
@@ -137,5 +138,32 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
       expect.stringContaining(rawA),
       expect.stringContaining(rawB),
     ]));
+  });
+
+  it("keeps project-flow raw exact finding union distinct in JSON while text uses a sanitized copy", () => {
+    const prefix = "x".repeat(130);
+    const rawA = `${prefix}\nraw\r\u001bA`, rawB = `${prefix}\nraw\r\u001bB`;
+    const source = receipt({ claims: [
+      claim("claim-001", "flow.screens", [{ id: "home", terminal: true }]),
+      claim("claim-002", "flow.transitions", [{ id: rawA, from: "home", to: "absent", trigger: "ON_CLICK" }, { id: rawB, from: "home", to: "absent", trigger: "ON_CLICK" }]),
+      claim("claim-003", "flow.entryPoints", [{ id: "entry", screen: "home" }]),
+    ] });
+    const atlasBytes = compileText([source]);
+    const projected = capture(["product-context", "project-flow", write("raw-project-flow.json", atlasBytes), "--json"]);
+    expect(projected).toMatchObject({ code: 1, err: "" });
+    const data = asObject(json(projected, "raw project-flow").data);
+    const findings = data["findings"] as Json[];
+    expect(findings).toEqual([...findings].sort(compareFindingTriples));
+    const rawMessages = [rawA, rawB].map((marker) => String(findings.find((finding) => String(finding["message"]).includes(marker))?.["message"]));
+    expect(rawMessages).toEqual(expect.arrayContaining([expect.stringContaining(rawA), expect.stringContaining(rawB)]));
+    expect(data["errorCount"]).toBe(findings.filter((finding) => finding["severity"] === "error").length);
+    expect(data["warningCount"]).toBe(findings.filter((finding) => finding["severity"] === "warning").length);
+    const text = capture(["product-context", "project-flow", write("raw-project-flow-text.json", atlasBytes)]);
+    expect(text).toMatchObject({ code: 1, out: "" });
+    for (const message of rawMessages) expect(text.err).toContain(forTerminal(message));
+    const lines = text.err.trimEnd().split("\n");
+    expect(lines).toEqual(expect.arrayContaining([expect.stringMatching(/^error \[dangling-ref\] /), expect.stringMatching(/^warning \[context-not-evaluated\] /)]));
+    expect(rawMessages.every((message) => !text.err.includes(message))).toBe(true);
+    expect(text.err.split("\n").every((line) => ![...line].some((character) => character === "\r" || character.codePointAt(0) === 0x1b))).toBe(true);
   });
 });

@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { lintFlow } from "../src/core/flow-lint.js";
+import { parseFlow } from "../src/core/flow-model.js";
 import {
-  asObject, claim, createProductContextHarness, DIGEST, lifecycle, PRODUCT_CONTEXT_SUITE, receipt,
+  allClaims, asObject, claim, compareFindingTriples, createProductContextHarness, DIGEST, lifecycle, PRODUCT_CONTEXT_SUITE, receipt,
   type Json,
 } from "./helpers/product-context-fixtures.js";
 import { productContextCoreSeams } from "./helpers/product-context-seams.js";
 
 const context = createProductContextHarness();
-const { atlas, compileFailure, compileOk, compileSemantic, count, findingCodes } = context;
+const { atlas, capture, compileFailure, compileOk, compileSemantic, compileText, count, findingCodes, json, lint, write } = context;
 
 describe(PRODUCT_CONTEXT_SUITE, () => {
   it.each([
@@ -104,5 +106,44 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(embeddedClaims.find((item) => item["claimId"] === "claim-005")).toMatchObject({ disposition: "rejected", value: ["proof-001"] });
     expect(embeddedClaims.find((item) => item["claimId"] === "claim-006")).toMatchObject({ disposition: "malformed", value: null });
     expect(findingCodes(data)).toEqual(expect.arrayContaining(["context-empty", "context-stale", "context-rejected", "context-malformed"]));
+  });
+
+  it.each([
+    ["no candidate", "flow.screens", [], 0], ["no candidate", "flow.transitions", [], 0], ["no candidate", "flow.entryPoints", [], 0],
+    ["explicit missing", "flow.screens", [claim("missing-screens", "flow.screens", null, { disposition: "missing", required: false })], 0], ["explicit missing", "flow.transitions", [claim("missing-transitions", "flow.transitions", null, { disposition: "missing", required: false })], 0], ["explicit missing", "flow.entryPoints", [claim("missing-entries", "flow.entryPoints", null, { disposition: "missing", required: false })], 0],
+    ["partial", "flow.screens", [claim("partial-screens", "flow.screens", [], { disposition: "partial", required: false })], 0], ["partial", "flow.transitions", [claim("partial-transitions", "flow.transitions", [], { disposition: "partial", required: false })], 0], ["partial", "flow.entryPoints", [claim("partial-entries", "flow.entryPoints", [], { disposition: "partial", required: false })], 0],
+    ["conflicting", "flow.screens", [claim("left-screens", "flow.screens", [{ id: "left", terminal: true }]), claim("right-screens", "flow.screens", [{ id: "right", terminal: true }])], 1], ["conflicting", "flow.transitions", [claim("left-transitions", "flow.transitions", []), claim("right-transitions", "flow.transitions", [{ id: "right", from: "screen-001", to: "screen-001", trigger: "ON_CLICK" }])], 1], ["conflicting", "flow.entryPoints", [claim("left-entries", "flow.entryPoints", [{ id: "left", screen: "screen-001" }]), claim("right-entries", "flow.entryPoints", [{ id: "right", screen: "screen-001" }])], 1],
+  ])("blocks project-flow for %s %s resolution", (label, field, replacement, compileExit) => {
+    const claims = [...allClaims().filter((item) => item["field"] !== field), ...replacement];
+    const bytes = compileText([receipt({ claims })], compileExit);
+    const result = capture(["product-context", "project-flow", write(`${label}.json`, bytes), "--json"]);
+    expect(result).toMatchObject({ code: 1, err: "" });
+    const envelope = json(result, `${label} project-flow`);
+    expect(envelope).toMatchObject({ ok: true, command: "product-context project-flow" });
+    const checkId = label === "conflicting" ? "atlas-conflict" : "flow-entry-unavailable";
+    expect(asObject(envelope.data)).toMatchObject({ status: "blocked", flow: null, findings: expect.arrayContaining([expect.objectContaining({ checkId, severity: "error" })]) });
+  });
+
+  it("replay errors block before Flow while replay and direct warnings form the raw union", () => {
+    const conflict = compileText([receipt({ claims: [...allClaims(), claim("conflict", "productTruth.primaryOutcome", "other-outcome")] })], 1);
+    const conflictResult = capture(["product-context", "project-flow", write("conflict.json", conflict), "--json"]);
+    expect(conflictResult).toMatchObject({ code: 1, err: "" });
+    expect(asObject(json(conflictResult, "conflict project-flow").data)).toMatchObject({ status: "blocked", flow: null, findings: expect.arrayContaining([expect.objectContaining({ checkId: "atlas-conflict", severity: "error" })]) });
+    const duplicate = compileText([receipt({ claims: [...allClaims().filter((item) => !String(item["field"]).startsWith("flow.")), claim("screens", "flow.screens", [{ id: "home", terminal: true }, { id: "home", terminal: true }]), claim("transitions", "flow.transitions", [{ id: "same", from: "home", to: "home", trigger: "ON_CLICK" }, { id: "same", from: "home", to: "home", trigger: "ON_CLICK" }]), claim("entries", "flow.entryPoints", [{ id: "entry", screen: "home" }])] })]);
+    const mismatch = capture(["product-context", "project-flow", write("mismatch.json", `${duplicate} `), "--json"]);
+    expect(json(mismatch, "mismatched project-flow")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.any(String) } });
+    const warningReceipt = receipt({ claims: [...allClaims().filter((item) => !["productTruth.primaryOutcome", "flow.screens"].includes(String(item["field"]))), claim("optional", "productTruth.primaryOutcome", null, { disposition: "missing", required: false }), claim("screens", "flow.screens", [{ id: "screen-001", mode: "dashboard", terminal: true, states: ["idle", "idle"] }])] });
+    const warningPath = write("warning-union.json", compileText([warningReceipt]));
+    const replay = asObject(json(lint(warningPath), "warning replay").data), replayAtlas = atlas(replay);
+    const values = (field: string): unknown => asObject((replayAtlas["fields"] as Json[]).find((item) => item["field"] === field))["value"];
+    const flow = parseFlow({ screens: values("flow.screens"), transitions: values("flow.transitions"), entryPoints: values("flow.entryPoints") });
+    const direct = lintFlow(flow).findings as unknown as Json[], duplicated = direct.filter((item) => item["checkId"] === "unreachable-state");
+    expect(duplicated).toHaveLength(2); expect(duplicated[0]).toEqual(duplicated[1]);
+    const expected = [...(replay["findings"] as Json[]), ...direct].sort(compareFindingTriples).filter((item, index, all) => index === 0 || compareFindingTriples(item, all[index - 1]!) !== 0);
+    const projected = capture(["product-context", "project-flow", warningPath, "--json"]), envelope = json(projected, "warning union project-flow"), data = asObject(envelope.data);
+    expect(projected).toMatchObject({ code: 0, err: "" });
+    expect(data).toMatchObject({ status: "available", flow: expect.any(Object), findings: expected });
+    expect((data["findings"] as Json[]).filter((item) => item["checkId"] === "unreachable-state")).toHaveLength(1);
+    expect(data["errorCount"]).toBe(0); expect(data["warningCount"]).toBe(expected.length);
   });
 });

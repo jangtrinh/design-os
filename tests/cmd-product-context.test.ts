@@ -1,14 +1,17 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalStringify } from "../src/core/ds-manifest.js";
 import { COMMAND_SIGNATURES } from "../src/core/command-signatures.js";
+import { lintFlow } from "../src/core/flow-lint.js";
+import { parseFlow } from "../src/core/flow-model.js";
 import {
-  asObject, canonicalText, claim, clone, createProductContextHarness, exactKeys, PRODUCT,
+  allClaims, asObject, claim, clone, compareFindingTriples, createProductContextHarness, exactKeys, PRODUCT,
   PRODUCT_CONTEXT_SUITE, receipt, sha256, type Json,
 } from "./helpers/product-context-fixtures.js";
-import { productContextCoreSeams, productContextSeams } from "./helpers/product-context-seams.js";
 
 const context = createProductContextHarness();
-const { atlas, capture, compileFailure, compileOk, compileSemantic, compileText, count, json, lintFailure, write } = context;
+const { atlas, capture, compileFailure, compileOk, count, json, lint, write } = context;
 
 describe(PRODUCT_CONTEXT_SUITE, () => {
   it("registers compile and lint with their exact public signatures", () => {
@@ -27,17 +30,24 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
           flags: [],
           errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_PRODUCT_ATLAS", "PRODUCT_ATLAS_INPUT_TOO_LARGE"],
         },
+        "project-flow": {
+          summary: "Project a replayed Product Atlas into Flow",
+          positionals: [{ name: "<atlas.json>", required: true, summary: "Product Atlas" }],
+          flags: [],
+          errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_PRODUCT_ATLAS", "PRODUCT_ATLAS_INPUT_TOO_LARGE"],
+        },
       },
     });
     const result = capture(["product-context", "--help"]);
     expect(result.code, "product-context dispatcher must be registered").toBe(0);
     expect(result.out).toContain("ui product-context compile <receipt.json>... [--json]");
     expect(result.out).toContain("ui product-context lint <atlas.json> [--json]");
-    expect(result.out).not.toContain("project-flow");
+    expect(result.out).toContain("ui product-context project-flow <atlas.json> [--json]");
     expect(result.err).toBe("");
     for (const args of [
       ["product-context", "compile", "--unknown-product-context-flag", "--json"],
       ["product-context", "lint", "atlas.json", "--unknown-product-context-flag", "--json"],
+      ["product-context", "project-flow", "atlas.json", "--unknown-product-context-flag", "--json"],
     ]) {
       const unknownFlag = capture(args);
       expect(unknownFlag.code).toBe(1);
@@ -99,66 +109,36 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     ["unknown Flow transition trigger", () => receipt({ claims: [claim("claim-001", "flow.transitions", [{ id: "transition-001", from: "screen-001", to: "screen-001", trigger: "UNKNOWN" }])] })],
   ])("rejects strict receipt shape: %s", (_label, makeReceipt) => { compileFailure([makeReceipt()], "BAD_PRODUCT_CONTEXT"); });
 
-  it("rejects both extra and missing keys at every strict Atlas schema boundary before replay", async () => {
-    const core = await productContextCoreSeams();
-    const command = await productContextSeams();
-    expect(core?.normalizeProductAtlas, "missing expected normalizeProductAtlas strict Atlas seam").toBeTypeOf("function");
-    expect(command?.productContextCommand?.run, "missing expected productContextCommand dispatcher").toBeTypeOf("function");
-    expect(command?.runProductContextCompile, "missing expected runProductContextCompile handler").toBeTypeOf("function");
-    expect(command?.runProductContextLint, "missing expected runProductContextLint handler").toBeTypeOf("function");
-    if (core?.normalizeProductAtlas === undefined || command?.productContextCommand?.run === undefined || command.runProductContextCompile === undefined || command.runProductContextLint === undefined) return;
-    const normalizeAtlas = core.normalizeProductAtlas;
-    expect(command.productContextCommand.run.toString()).toMatch(/\brunProductContextCompile\s*\(/);
-    expect(command.productContextCommand.run.toString()).toMatch(/\brunProductContextLint\s*\(/);
-    expect(command.runProductContextLint.toString()).toMatch(/\bnormalizeProductAtlas\s*\(/);
-    const bytes = compileText([receipt()]);
-    const cases: Array<[string, (value: Json) => void]> = [
-      ["Atlas extra", (value) => { value["unexpected"] = true; }],
-      ["Atlas missing", (value) => { delete value["coverage"]; }],
-      ["Atlas kind", (value) => { value["kind"] = "wrong"; }],
-      ["Atlas version", (value) => { value["version"] = 2; }],
-      ["Atlas product ID grammar", (value) => { value["productId"] = "Product-001"; }],
-      ["Atlas input digest malformed", (value) => { value["inputSetDigest"] = "not-a-digest"; }],
-      ["Atlas input digest uppercase", (value) => { value["inputSetDigest"] = `sha256:${"A".repeat(64)}`; }],
-      ["embedded receipt extra", (value) => { asObject((value["receipts"] as Json[])[0])["unexpected"] = true; }],
-      ["embedded receipt missing", (value) => { delete asObject((value["receipts"] as Json[])[0])["sourceRef"]; }],
-      ["embedded receipt enum", (value) => { asObject((value["receipts"] as Json[])[0])["captureDisposition"] = "unknown"; }],
-      ["embedded receipt digest", (value) => { asObject((value["receipts"] as Json[])[0])["receiptDigest"] = `sha256:${"A".repeat(64)}`; }],
-      ["embedded claim extra", (value) => { asObject((asObject((value["receipts"] as Json[])[0])["claims"] as Json[])[0])["unexpected"] = true; }],
-      ["embedded claim missing", (value) => { delete asObject((asObject((value["receipts"] as Json[])[0])["claims"] as Json[])[0])["reason"]; }],
-      ["embedded claim field enum", (value) => { asObject((asObject((value["receipts"] as Json[])[0])["claims"] as Json[])[0])["field"] = "productTruth.unknown"; }],
-      ["embedded claim disposition enum", (value) => { asObject((asObject((value["receipts"] as Json[])[0])["claims"] as Json[])[0])["disposition"] = "unknown"; }],
-      ["embedded claim required type", (value) => { asObject((asObject((value["receipts"] as Json[])[0])["claims"] as Json[])[0])["required"] = "true"; }],
-      ["embedded claim value type", (value) => { asObject((asObject((value["receipts"] as Json[])[0])["claims"] as Json[])[0])["value"] = ["audience-001"]; }],
-      ["field extra", (value) => { asObject((value["fields"] as Json[])[0])["unexpected"] = true; }],
-      ["field missing", (value) => { delete asObject((value["fields"] as Json[])[0])["resolution"]; }],
-      ["field resolution enum", (value) => { asObject((value["fields"] as Json[])[0])["resolution"] = "unknown"; }],
-      ["candidate extra", (value) => { asObject((asObject((value["fields"] as Json[])[0])["candidates"] as Json[])[0])["unexpected"] = true; }],
-      ["candidate missing", (value) => { delete asObject((asObject((value["fields"] as Json[])[0])["candidates"] as Json[])[0])["status"]; }],
-      ["candidate status enum", (value) => { asObject((asObject((value["fields"] as Json[])[0])["candidates"] as Json[])[0])["status"] = "unknown"; }],
-      ["coverage extra", (value) => { asObject(value["coverage"])["unexpected"] = 0; }],
-      ["coverage missing", (value) => { delete asObject(value["coverage"])["resolutions"]; }],
-    ];
-    for (const [bucket, counter] of [
-      ["captureDispositions", "captured"],
-      ["claimDispositions", "present"],
-      ["candidateStatuses", "selected"],
-      ["resolutions", "resolved"],
-    ] as Array<[string, string]>) {
-      cases.push(
-        [`${bucket} counter extra`, (value) => { asObject(asObject(value["coverage"])[bucket])["unexpected"] = 0; }],
-        [`${bucket} counter missing`, (value) => { delete asObject(asObject(value["coverage"])[bucket])[counter]; }],
-        [`${bucket} counter type`, (value) => { asObject(asObject(value["coverage"])[bucket])[counter] = "0"; }],
-      );
-    }
-    cases.push(["coverage omitted count type", (value) => { asObject(value["coverage"])["omittedCount"] = "0"; }]);
-    for (const [index, [label, mutate]] of cases.entries()) {
-      const value = clone(canonicalText(bytes));
-      mutate(value);
-      expect(() => normalizeAtlas(value), `${label} must fail strict Atlas normalization before replay`).toThrow();
-      lintFailure(write(`atlas-shape-${index}-${label}.json`, canonicalStringify(value)), "BAD_PRODUCT_ATLAS");
-    }
-    const semantic = compileSemantic([receipt({ claims: [claim("claim-001", "productTruth.primaryOutcome", null, { disposition: "missing" })] })], 1);
-    for (const finding of semantic["findings"] as Json[]) exactKeys(finding, ["checkId", "severity", "message"]);
+  it("product-context project-flow matches committed Flow fixture and replay finding union", () => {
+    const source = readFileSync(join(process.cwd(), "tests/fixtures/diagram/product-flow-real.json"));
+    const raw = JSON.parse(source.toString("utf8"));
+    const receipts = [["screens", raw.screens], ["transitions", raw.transitions], ["entryPoints", raw.entryPoints]].map(([member, value], index) => receipt({ receiptId: `receipt-00${index + 1}`, sourceDigest: sha256(source), claims: [...allClaims().filter((item) => !String(item["field"]).startsWith("flow.")), claim(`flow-claim-00${index + 1}`, `flow.${member}`, value)] }));
+    const compiled = compileOk(receipts);
+    const atlasPath = write("committed-flow-atlas.json", canonicalStringify(atlas(compiled)));
+    const before = readFileSync(atlasPath), fields = atlas(compiled)["fields"] as Json[];
+    const resolved = (field: string): unknown => asObject(fields.find((item) => item["field"] === field))["value"];
+    const expectedFlow = parseFlow({ screens: resolved("flow.screens"), transitions: resolved("flow.transitions"), entryPoints: resolved("flow.entryPoints") }, "replayed-flow.json");
+    const replay = lint(atlasPath);
+    expect(replay).toMatchObject({ code: 0, err: "" });
+    const replayData = asObject(json(replay, "committed fixture replay").data);
+    const result = capture(["product-context", "project-flow", atlasPath, "--json"]);
+    expect(result).toMatchObject({ code: 0, err: "" });
+    const envelope = json(result, "project-flow committed fixture");
+    exactKeys(asObject(envelope), ["ok", "command", "data"]);
+    expect(envelope).toMatchObject({ ok: true, command: "product-context project-flow" });
+    const data = asObject(envelope.data);
+    exactKeys(data, ["kind", "version", "status", "productId", "atlasDigest", "truthStatus", "flow", "findings", "errorCount", "warningCount"]);
+    expect(data).toMatchObject({ kind: "product-context-flow-projection", version: 1, status: "available", productId: PRODUCT, atlasDigest: sha256(before), truthStatus: "not-evaluated" });
+    const projected = asObject(data["flow"]);
+    expect(projected["screens"]).toEqual(expectedFlow.screens);
+    expect(projected["transitions"]).toEqual(expectedFlow.transitions);
+    expect(projected["entryPoints"]).toEqual(expectedFlow.entryPoints);
+    expect(readFileSync(atlasPath)).toEqual(before);
+    const expected = [...(replayData["findings"] as Json[]), ...(lintFlow(expectedFlow).findings as unknown as Json[])].sort(compareFindingTriples).filter((item, index, values) => index === 0 || compareFindingTriples(item, values[index - 1]!) !== 0);
+    expect(data["findings"]).toEqual(expected);
+    expect(data["errorCount"]).toBe(expected.filter((finding) => finding["severity"] === "error").length);
+    expect(data["warningCount"]).toBe(expected.filter((finding) => finding["severity"] === "warning").length);
+    const text = capture(["product-context", "project-flow", atlasPath]);
+    expect(text).toEqual({ code: 0, out: canonicalStringify(expectedFlow), err: "" });
   });
 });

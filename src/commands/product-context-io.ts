@@ -1,4 +1,7 @@
 import { closeSync, fstatSync, openSync, readSync } from "node:fs";
+import { errJson, errText } from "../core/output.js";
+import type { CommandResult } from "../core/output.js";
+import type { ParsedArgs } from "../core/cli-args.js";
 
 export const MAX_RECEIPT_FILE_BYTES = 131_072;
 export const MAX_COMPILE_INPUT_BYTES = 524_288;
@@ -84,4 +87,36 @@ export function decodeUtf8(bytes: Buffer): string {
     if (error instanceof TypeError) throw new InvalidUtf8Error();
     throw error;
   }
+}
+
+export type ProductContextMode = "text" | "json";
+
+export function productContextFailure(
+  command: string,
+  mode: ProductContextMode,
+  code: string,
+  message = code,
+): CommandResult {
+  if (mode === "json") {
+    return errJson(command, code, message);
+  }
+  return errText(`ui: ${command}: ${message}\n`);
+}
+
+export function localProductContextArgs(
+  parsed: ParsedArgs,
+  command: string,
+  min: number,
+  max: number,
+): { mode: ProductContextMode; bad?: CommandResult } {
+  const mode = parsed.json ? "json" : "text";
+  const invalidJson = parsed.flags.json !== undefined && parsed.flags.json !== true;
+  const invalidArity = parsed.positionals.length < min || parsed.positionals.length > max;
+  if (invalidJson || parsed.repeatedFlags.has("json") || invalidArity) {
+    return {
+      mode,
+      bad: productContextFailure(command, mode, "BAD_ARG", `${command}: invalid arguments`),
+    };
+  }
+  return { mode };
 }

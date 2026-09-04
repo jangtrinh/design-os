@@ -107,4 +107,25 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
       error: { code: "BAD_ARG", message: expect.any(String) },
     });
   });
+
+  it.each([
+    ["missing input", ["product-context", "project-flow", "--json"], true],
+    ["extra input", ["product-context", "project-flow", "one.json", "two.json", "--json"], true],
+    ["string json", ["product-context", "project-flow", "one.json", "--json=false"], false],
+    ["repeated json", ["product-context", "project-flow", "one.json", "--json", "--json"], true],
+    ["flag before input", ["product-context", "project-flow", "--json", "one.json"], false],
+  ])("rejects project-flow local argv: %s", (_label, args, useJson) => {
+    const result = capture(args);
+    if (!useJson) return expect(result).toMatchObject({ code: 1, out: "", err: expect.stringContaining("product-context project-flow") });
+    expect(result).toMatchObject({ code: 1, err: "" });
+    expect(json(result, "project-flow argv")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_ARG", message: expect.any(String) } });
+  });
+
+  it("rejects project-flow unknown flag and invalid Atlas before projection", () => {
+    const unknown = capture(["product-context", "project-flow", "atlas.json", "--unknown-product-context-flag", "--json"]);
+    expect(json(unknown, "project-flow unknown")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "UNKNOWN_FLAG", message: expect.any(String) } });
+    const invalid = capture(["product-context", "project-flow", write("bad-project-flow-atlas.json", "{not-json"), "--json"]);
+    expect(invalid).toMatchObject({ code: 1, err: "" });
+    expect(json(invalid, "project-flow bad atlas")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.any(String) } });
+  });
 });

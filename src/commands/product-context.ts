@@ -1,9 +1,10 @@
-import { errJson, errText, okJsonWithExit } from "../core/output.js";
+import { okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { compileProductContext } from "../core/product-context-compile.js";
 import { lintProductContext } from "../core/product-context-lint.js";
 import { ProductContextError, canonicalDigest, normalizeProductAtlas as normalizeAtlas } from "../core/product-context-model.js";
+import { runProductContextProjectFlow } from "./product-context-flow.js";
 import {
   InvalidUtf8Error,
   MAX_ATLAS_FILE_BYTES,
@@ -11,6 +12,8 @@ import {
   MAX_RECEIPT_FILE_BYTES,
   assertAtlasOutputSize,
   decodeUtf8,
+  localProductContextArgs,
+  productContextFailure,
   readBoundedFile,
 } from "./product-context-io.js";
 export { assertAtlasOutputSize, readBoundedFile } from "./product-context-io.js";
@@ -21,10 +24,12 @@ export const PRODUCT_CONTEXT_HELP = `ui product-context — compile and replay-l
 Usage:
   ui product-context compile <receipt.json>... [--json]
   ui product-context lint <atlas.json> [--json]
+  ui product-context project-flow <atlas.json> [--json]
 
 Subcommands:
   compile  Compile receipts into a canonical Product Atlas
   lint     Replay and byte-compare a canonical Product Atlas
+  project-flow  Project a replayed Product Atlas into Flow
 
 Options:
   --json      Emit a JSON envelope
@@ -36,11 +41,6 @@ Error codes:
   PRODUCT_CONTEXT_OMITTED_COUNT_OVERFLOW BAD_PRODUCT_CONTEXT BAD_PRODUCT_ATLAS
   PRODUCT_ID_MISMATCH FILE_NOT_FOUND READ_ERROR UNKNOWN_FLAG
 `;
-function failure(command: string, mode: "text" | "json", code: string, message = code): CommandResult {
-  return mode === "json"
-    ? errJson(command, code, message)
-    : errText(`ui: ${command}: ${message}\n`);
-}
 export function buildProductContextCompileResult(context: {
   command: "product-context compile";
   mode: "text" | "json";
@@ -48,47 +48,27 @@ export function buildProductContextCompileResult(context: {
   data: Record<string, unknown>;
 }): CommandResult {
   const tooLarge = assertAtlasOutputSize(context.atlasBytes);
-  if (tooLarge !== undefined)
-    return failure(context.command, context.mode, tooLarge);
+  if (tooLarge !== undefined) {
+    return productContextFailure(context.command, context.mode, tooLarge);
+  }
   const exitCode = Number(context.data.errorCount ?? 0) > 0 ? 1 : 0;
   return context.mode === "text"
     ? { exitCode, stdout: context.atlasBytes.toString("utf8") }
     : okJsonWithExit(context.command, context.data, exitCode);
 }
-function local(
-  parsed: ParsedArgs,
-  command: string,
-  min: number,
-  max: number,
-): { mode: "text" | "json"; bad?: CommandResult } {
-  const mode = parsed.json ? "json" : "text";
-  if (
-    (parsed.flags.json !== undefined && parsed.flags.json !== true) ||
-    parsed.repeatedFlags.has("json") ||
-    parsed.positionals.length < min ||
-    parsed.positionals.length > max
-  )
-    return {
-      mode,
-      bad: failure(command, mode, "BAD_ARG", `${command}: invalid arguments`),
-    };
-  return { mode };
-}
-function normalizeProductAtlas(value: unknown): ReturnType<typeof normalizeAtlas> {
-  return normalizeAtlas(value);
-}
 function compileError(error: unknown): string {
-  if (error instanceof ProductContextError)
+  if (error instanceof ProductContextError) {
     return error.name === "ProductIdMismatch"
       ? "PRODUCT_ID_MISMATCH"
       : error.name === "OmittedOverflow"
         ? "PRODUCT_CONTEXT_OMITTED_COUNT_OVERFLOW"
         : "BAD_PRODUCT_CONTEXT";
+  }
   return "BAD_PRODUCT_CONTEXT";
 }
 export function runProductContextCompile(parsed: ParsedArgs): CommandResult {
   const command = "product-context compile";
-  const checked = local(parsed, command, 1, 1024);
+  const checked = localProductContextArgs(parsed, command, 1, 1024);
   if (checked.bad !== undefined) return checked.bad;
   const raw: Buffer[] = [];
   let total = 0;
@@ -98,9 +78,12 @@ export function runProductContextCompile(parsed: ParsedArgs): CommandResult {
       MAX_RECEIPT_FILE_BYTES,
       "PRODUCT_CONTEXT_RECEIPT_TOO_LARGE",
     );
-    if (!read.ok) return failure(command, checked.mode, read.code);
-    if (read.bytes.length > MAX_COMPILE_INPUT_BYTES - total)
-      return failure(command, checked.mode, "PRODUCT_CONTEXT_INPUT_TOO_LARGE");
+    if (!read.ok) {
+      return productContextFailure(command, checked.mode, read.code);
+    }
+    if (read.bytes.length > MAX_COMPILE_INPUT_BYTES - total) {
+      return productContextFailure(command, checked.mode, "PRODUCT_CONTEXT_INPUT_TOO_LARGE");
+    }
     total += read.bytes.length;
     raw.push(read.bytes);
   }
@@ -114,13 +97,15 @@ export function runProductContextCompile(parsed: ParsedArgs): CommandResult {
       error instanceof SyntaxError ||
       error instanceof InvalidUtf8Error ||
       error instanceof ProductContextError
-    )
-      return failure(command, checked.mode, compileError(error));
+    ) {
+      return productContextFailure(command, checked.mode, compileError(error));
+    }
     throw error;
   }
   const outputCode = assertAtlasOutputSize(result.atlasBytes);
-  if (outputCode !== undefined)
-    return failure(command, checked.mode, outputCode);
+  if (outputCode !== undefined) {
+    return productContextFailure(command, checked.mode, outputCode);
+  }
   return buildProductContextCompileResult({
     command,
     mode: checked.mode,
@@ -136,20 +121,20 @@ export function runProductContextCompile(parsed: ParsedArgs): CommandResult {
 }
 export function runProductContextLint(parsed: ParsedArgs): CommandResult {
   const command = "product-context lint";
-  const checked = local(parsed, command, 1, 1);
+  const checked = localProductContextArgs(parsed, command, 1, 1);
   if (checked.bad !== undefined) return checked.bad;
   const path = parsed.positionals[0];
-  if (path === undefined) return failure(command, checked.mode, "BAD_ARG");
+  if (path === undefined) return productContextFailure(command, checked.mode, "BAD_ARG");
   const read = readBoundedFile(
     path,
     MAX_ATLAS_FILE_BYTES,
     "PRODUCT_ATLAS_INPUT_TOO_LARGE",
   );
-  if (!read.ok) return failure(command, checked.mode, read.code);
+  if (!read.ok) return productContextFailure(command, checked.mode, read.code);
   let result;
   try {
     const raw = JSON.parse(decodeUtf8(read.bytes));
-    normalizeProductAtlas(raw);
+    normalizeAtlas(raw);
     result = lintProductContext(raw, read.bytes);
   } catch (error) {
     if (
@@ -157,8 +142,9 @@ export function runProductContextLint(parsed: ParsedArgs): CommandResult {
       error instanceof InvalidUtf8Error ||
       error instanceof ProductContextError ||
       (error instanceof Error && error.message === "BAD_PRODUCT_ATLAS")
-    )
-      return failure(command, checked.mode, "BAD_PRODUCT_ATLAS");
+    ) {
+      return productContextFailure(command, checked.mode, "BAD_PRODUCT_ATLAS");
+    }
     throw error;
   }
   const data = {
@@ -184,12 +170,14 @@ export const productContextCommand = {
         return runProductContextCompile(parsed);
       case "lint":
         return runProductContextLint(parsed);
+      case "project-flow":
+        return runProductContextProjectFlow(parsed);
       default:
-        return failure(
+        return productContextFailure(
           CMD,
           parsed.json ? "json" : "text",
           "BAD_ARG",
-          "product-context requires compile or lint",
+          "product-context requires compile, lint, or project-flow",
         );
     }
   },

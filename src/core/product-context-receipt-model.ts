@@ -82,7 +82,7 @@ function normalizeEntryPoint(item: Record<string, unknown>): Json {
   } as Json;
 }
 
-function normalizeFlow(value: unknown, field: string): Json[] {
+export function normalizeProductContextFlowValue(value: unknown, field: "flow.screens" | "flow.transitions" | "flow.entryPoints"): Json[] {
   if (!Array.isArray(value)) badProductContext();
   const max = field === "flow.entryPoints" ? 1024 : 4096;
   if (value.length > max) badProductContext();
@@ -98,7 +98,7 @@ export function normalizeProductContextClaim(value: unknown): Obj {
   if (typeof claim.required !== "boolean") badProductContext();
   const hasValue = ["present", "partial", "stale", "rejected"].includes(disposition);
   if ((hasValue && claim.value === null) || (!hasValue && claim.value !== null)) badProductContext();
-  const normalizedValue = !hasValue ? null : field.startsWith("productTruth.") ? PRODUCT_TRUTH_LIST_FIELDS.includes(field) ? requireStringList(claim.value) : requireScalar(claim.value, 1, 2000) : normalizeFlow(claim.value, field);
+  const normalizedValue = !hasValue ? null : field.startsWith("productTruth.") ? PRODUCT_TRUTH_LIST_FIELDS.includes(field) ? requireStringList(claim.value) : requireScalar(claim.value, 1, 2000) : normalizeProductContextFlowValue(claim.value, field as "flow.screens" | "flow.transitions" | "flow.entryPoints");
   return {
     claimId: requireIdentifier(claim.claimId),
     field,

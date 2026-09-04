@@ -1,9 +1,14 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { canonicalStringify } from "../src/core/ds-manifest.js";
+import { asObject, canonicalText, claim, clone, createProductContextHarness, receipt, type Json as FixtureJson } from "./helpers/product-context-fixtures.js";
 import { PRODUCT_CONTEXT_SUITE } from "./helpers/product-context-fixtures.js";
+import { productContextCoreSeams, productContextSeams } from "./helpers/product-context-seams.js";
 
 type Json = Record<string, unknown>;
+const context = createProductContextHarness();
+const { compileSemantic, compileText, lintFailure, write } = context;
 
 const fields = [
   "flow.entryPoints", "flow.screens", "flow.transitions", "productTruth.audienceSituation", "productTruth.availableProof",
@@ -99,5 +104,25 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
       }
     }
     expect(object(object(coverage["properties"])["omittedCount"])["$ref"]).toBe("#/definitions/counter");
+  });
+
+  it("rejects both extra and missing keys at every strict Atlas schema boundary before replay", async () => {
+    const core = await productContextCoreSeams(), command = await productContextSeams();
+    expect(core?.normalizeProductAtlas, "missing expected normalizeProductAtlas strict Atlas seam").toBeTypeOf("function");
+    expect(command?.productContextCommand?.run, "missing expected productContextCommand dispatcher").toBeTypeOf("function");
+    expect(command?.runProductContextCompile, "missing expected runProductContextCompile handler").toBeTypeOf("function");
+    expect(command?.runProductContextLint, "missing expected runProductContextLint handler").toBeTypeOf("function");
+    if (core?.normalizeProductAtlas === undefined || command?.productContextCommand?.run === undefined || command.runProductContextCompile === undefined || command.runProductContextLint === undefined) return;
+    const normalizeAtlas = core.normalizeProductAtlas;
+    const cases: Array<[string, (value: FixtureJson) => void]> = [
+      ["Atlas extra", (value) => { value["unexpected"] = true; }], ["Atlas missing", (value) => { delete value["coverage"]; }], ["Atlas kind", (value) => { value["kind"] = "wrong"; }], ["Atlas version", (value) => { value["version"] = 2; }], ["Atlas product ID grammar", (value) => { value["productId"] = "Product-001"; }], ["Atlas input digest malformed", (value) => { value["inputSetDigest"] = "not-a-digest"; }], ["Atlas input digest uppercase", (value) => { value["inputSetDigest"] = `sha256:${"A".repeat(64)}`; }],
+      ["embedded receipt extra", (value) => { asObject((value["receipts"] as FixtureJson[])[0])["unexpected"] = true; }], ["embedded receipt missing", (value) => { delete asObject((value["receipts"] as FixtureJson[])[0])["sourceRef"]; }], ["embedded receipt enum", (value) => { asObject((value["receipts"] as FixtureJson[])[0])["captureDisposition"] = "unknown"; }], ["embedded receipt digest", (value) => { asObject((value["receipts"] as FixtureJson[])[0])["receiptDigest"] = `sha256:${"A".repeat(64)}`; }],
+      ["embedded claim extra", (value) => { asObject((asObject((value["receipts"] as FixtureJson[])[0])["claims"] as FixtureJson[])[0])["unexpected"] = true; }], ["embedded claim missing", (value) => { delete asObject((asObject((value["receipts"] as FixtureJson[])[0])["claims"] as FixtureJson[])[0])["reason"]; }], ["embedded claim field enum", (value) => { asObject((asObject((value["receipts"] as FixtureJson[])[0])["claims"] as FixtureJson[])[0])["field"] = "productTruth.unknown"; }], ["embedded claim disposition enum", (value) => { asObject((asObject((value["receipts"] as FixtureJson[])[0])["claims"] as FixtureJson[])[0])["disposition"] = "unknown"; }], ["embedded claim required type", (value) => { asObject((asObject((value["receipts"] as FixtureJson[])[0])["claims"] as FixtureJson[])[0])["required"] = "true"; }], ["embedded claim value type", (value) => { asObject((asObject((value["receipts"] as FixtureJson[])[0])["claims"] as FixtureJson[])[0])["value"] = ["audience-001"]; }],
+      ["field extra", (value) => { asObject((value["fields"] as FixtureJson[])[0])["unexpected"] = true; }], ["field missing", (value) => { delete asObject((value["fields"] as FixtureJson[])[0])["resolution"]; }], ["field resolution enum", (value) => { asObject((value["fields"] as FixtureJson[])[0])["resolution"] = "unknown"; }], ["candidate extra", (value) => { asObject((asObject((value["fields"] as FixtureJson[])[0])["candidates"] as FixtureJson[])[0])["unexpected"] = true; }], ["candidate missing", (value) => { delete asObject((asObject((value["fields"] as FixtureJson[])[0])["candidates"] as FixtureJson[])[0])["status"]; }], ["candidate status enum", (value) => { asObject((asObject((value["fields"] as FixtureJson[])[0])["candidates"] as FixtureJson[])[0])["status"] = "unknown"; }],
+      ["coverage extra", (value) => { asObject(value["coverage"])["unexpected"] = 0; }], ["coverage missing", (value) => { delete asObject(value["coverage"])["resolutions"]; }], ["coverage omitted count type", (value) => { asObject(value["coverage"])["omittedCount"] = "0"; }],
+    ];
+    for (const [bucket, counter] of [["captureDispositions", "captured"], ["claimDispositions", "present"], ["candidateStatuses", "selected"], ["resolutions", "resolved"]] as Array<[string, string]>) cases.push([`${bucket} counter extra`, (value) => { asObject(asObject(value["coverage"])[bucket])["unexpected"] = 0; }], [`${bucket} counter missing`, (value) => { delete asObject(asObject(value["coverage"])[bucket])[counter]; }], [`${bucket} counter type`, (value) => { asObject(asObject(value["coverage"])[bucket])[counter] = "0"; }]);
+    for (const [index, [label, mutate]] of cases.entries()) { const value = clone(canonicalText(compileText([receipt()]))); mutate(value); expect(() => normalizeAtlas(value), `${label} must fail strict Atlas normalization before replay`).toThrow(); lintFailure(write(`atlas-shape-${index}-${label}.json`, canonicalStringify(value)), "BAD_PRODUCT_ATLAS"); }
+    for (const finding of compileSemantic([receipt({ claims: [claim("claim-001", "productTruth.primaryOutcome", null, { disposition: "missing" })] })], 1)["findings"] as FixtureJson[]) expect(Object.keys(finding).sort()).toEqual(["checkId", "message", "severity"]);
   });
 });

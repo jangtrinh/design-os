@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  asObject, claim, createProductContextHarness, PRODUCT_CONTEXT_SUITE, receipt,
+  asObject, claim, createProductContextHarness, exactKeys, PRODUCT_CONTEXT_SUITE, receipt,
   type Json,
 } from "./helpers/product-context-fixtures.js";
 
 const context = createProductContextHarness();
-const { atlas, compileFailure, compileOk, compileSemantic, count, findingCodes } = context;
+const { atlas, capture, compileFailure, compileOk, compileSemantic, compileText, count, findingCodes, json, write } = context;
 
 describe(PRODUCT_CONTEXT_SUITE, () => {
   it("derives all candidate statuses and resolutions without choosing a conflict winner", () => {
@@ -129,4 +129,22 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     ["cross field", () => [receipt({ claims: [claim("claim-001", "productTruth.primaryOutcome", null, { disposition: "missing" })] }), receipt({ receiptId: "receipt-002", claims: [claim("claim-002", "productTruth.primaryAction", "action-001", { supersedes: ["receipt-001#claim-001"] })] })], "BAD_PRODUCT_CONTEXT"],
     ["cycle", () => [receipt({ claims: [claim("claim-001", "productTruth.primaryOutcome", "one-001", { supersedes: ["receipt-002#claim-002"] })] }), receipt({ receiptId: "receipt-002", claims: [claim("claim-002", "productTruth.primaryOutcome", "two-001", { supersedes: ["receipt-001#claim-001"] })] })], "BAD_PRODUCT_CONTEXT"],
   ])("rejects containment or supersession attack: %s", (_label, makeReceipts, code) => { compileFailure(makeReceipts(), code); });
+
+  it.each([
+    ["dangling reference", [{ id: "home", terminal: true }], [{ id: "bad", from: "home", to: "absent", trigger: "ON_CLICK" }], [{ id: "entry", screen: "home" }], "dangling-ref"],
+    ["no entry", [{ id: "home", terminal: true }], [], [], "no-entry"],
+    ["dead end", [{ id: "home" }], [], [{ id: "entry", screen: "home" }], "dead-end"],
+    ["duplicate screen", [{ id: "home", terminal: true }, { id: "home", terminal: true }], [], [{ id: "entry", screen: "home" }], "flow-projection-invalid"],
+    ["duplicate transition", [{ id: "home", terminal: true }], [{ id: "same", from: "home", to: "home", trigger: "ON_CLICK" }, { id: "same", from: "home", to: "home", trigger: "ON_CLICK" }], [{ id: "entry", screen: "home" }], "flow-projection-invalid"],
+  ])("blocks schema-valid project-flow %s", (_label, screens, transitions, entryPoints, checkId) => {
+    const atlas = compileText([receipt({ claims: [claim("claim-001", "flow.screens", screens), claim("claim-002", "flow.transitions", transitions), claim("claim-003", "flow.entryPoints", entryPoints)] })]);
+    const result = capture(["product-context", "project-flow", write(`${checkId}.json`, atlas), "--json"]);
+    expect(result).toMatchObject({ code: 1, err: "" });
+    const envelope = json(result, `${checkId} project-flow`);
+    exactKeys(asObject(envelope), ["ok", "command", "data"]);
+    const data = asObject(envelope.data);
+    exactKeys(data, ["kind", "version", "status", "productId", "atlasDigest", "truthStatus", "flow", "findings", "errorCount", "warningCount"]);
+    expect(envelope).toMatchObject({ ok: true, command: "product-context project-flow" });
+    expect(data).toMatchObject({ status: "blocked", flow: null, findings: expect.arrayContaining([expect.objectContaining({ checkId, severity: "error" })]) });
+  });
 });
