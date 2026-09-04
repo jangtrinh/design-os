@@ -33,8 +33,11 @@
   coordinated rewrite is a new valid Atlas with a different external `atlasDigest`; only comparing
   that digest against a trusted one detects substitution. README and `CONTEXT.md` say this
   explicitly, and `CONTEXT.md` rejects the synonyms that would read the Atlas as authority.
-- README command counts are measured from the built binary's own schema keys (47) rather than
-  copied between surfaces. Prompt plans keep their inline `productTruth`; that contract, the Flow
+- README command counts are measured, never copied between surfaces: **47** for the current
+  kernel from the built binary's own schema keys, **46** for the binary `npm i -g` installs
+  and **42** for `v0.3.0`, each counted from that tag's own command registrations. The
+  command table now lists all 47 — `tell-lint` had no row, so the header and the table had
+  disagreed. Prompt plans keep their inline `productTruth`; that contract, the Flow
   command and the Flow schema are unchanged.
 
 ## 2026-09-01 - the gate emits what its coverage report claims

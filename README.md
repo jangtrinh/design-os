@@ -510,7 +510,7 @@ before compilation instead of silently falling back to HTML. Have an existing ap
 `/ui:learn` first so the DS is compiled from your product's own evidence.
 
 `ease-design` is DESIGN:OS's npm name — the package ships the `ui` kernel. `v0.3.0`
-(published from CI with sigstore provenance) carries all 45 commands, including the tenant
+(published from CI with sigstore provenance) carried all 42 commands, including the tenant
 scroll engine and the asset gates behind the showcase grid.
 
 ### Full studio (clone)
@@ -536,7 +536,7 @@ reports the gap up front instead of failing mid-generation.
 
 | Get it | How | What you get | Update |
 |---|---|---|---|
-| **Kernel** | `npm i -g ease-design` | the 42-command `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS, tenant scroll engine | `npm i -g ease-design@latest` |
+| **Kernel** | `npm i -g ease-design` | the 46-command `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS, tenant scroll engine | `npm i -g ease-design@latest` |
 | **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD + recall, rendered a11y, heartbeat/evolution, and the opt-in gflow browser hand | `git pull` + `design-os update` |
 | **Figma plugin** | [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) | the plugin + `figma-agent` CLI + the 1:1 mirror — versioned in its own repo | its own repo's releases |
 
@@ -1031,6 +1031,7 @@ instead of falling into the accepting branch.
 | `ui tokens` | Compile a DTCG token file to CSS / Tailwind / Figma variables |
 | `ui color` | OKLCH color math: convert, scale, contrast, semantic palette |
 | `ui taste-lint` | 14 absolute taste checks across 6 axes |
+| `ui tell-lint` | Absolute design-tell checks over produced HTML |
 | `ui validate-layout` | 12 structural/overflow checks |
 | `ui gate` | Composed floor judge — every linter family plus autofix dry-run, one verdict |
 | `ui tenant-lint` | Enforce the Tenant Law on embeddable motion sections (scroll-scrub, parallax, exploded view) |
