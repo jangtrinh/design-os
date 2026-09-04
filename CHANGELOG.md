@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-09-04 - product truth as evidence, not one inline object
+
+### Added
+- **`ui product-context` — compile, replay-lint, project.** Lifecycle-aware capture receipts
+  compile into a canonical `product-atlas` v1 that embeds every normalized receipt and its
+  digest. Resolution has no order winner: equal active values coalesce, distinct active values
+  conflict with a `null` value and no candidate chosen, and a field with no candidate stays
+  `unresolved` rather than being inferred `missing`. Atlas bytes depend only on validated
+  receipt semantics — never on argv order, a requested projection, the source path, or the clock.
+- **Two public schemas**, `product-context-receipt` and `product-atlas`, both v1 and
+  version-pinned: a later change gets a new version rather than reinterpreting these.
+- **`project-flow` as a separate artifact.** It replays the Atlas, then returns a Flow projection
+  that never enters the Atlas and always reports `truthStatus: "not-evaluated"`. Requesting a
+  projection cannot change the Atlas it was read from.
+- **Exact byte ceilings, refused before `JSON.parse`.** 131,072 per receipt, 524,288 across
+  compile inputs, 2,097,152 for an Atlas in or out — each with its own error code, each accepting
+  its exact maximum and rejecting maximum-plus-one. Output is measured before emission, so every
+  Atlas that ships fits the consumer ceiling. The reader allocates one `limit + 1` buffer and
+  loops descriptor reads through partial reads and growth after `fstat`.
+- **A built-binary proof read through a real pipe.** The canonical Atlas leaves through the
+  entrypoint's stdout, so a source-level test can never see truncation: four spawned cases at a
+  fixed 4 MiB `maxBuffer` cover a 263 KiB clean Atlas at exit 0, the conflict Atlas at exit 1
+  with an empty stderr, byte-identical buffers under reversed receipt argv, and a projection that
+  leaves the Atlas bytes untouched. They do not skip when the binary is absent — build precedes
+  test in CI, so a missing binary is a broken prerequisite, not a green run. Each of the five
+  product behaviours they depend on was deliberately broken and confirmed red.
+
+### Changed
+- **Replay is documented as self-consistency, not history.** `lint` recompiles the embedded
+  receipts and byte-compares the whole derived artifact, so an isolated mutation fails. A
+  coordinated rewrite is a new valid Atlas with a different external `atlasDigest`; only comparing
+  that digest against a trusted one detects substitution. README and `CONTEXT.md` say this
+  explicitly, and `CONTEXT.md` rejects the synonyms that would read the Atlas as authority.
+- README command counts are measured, never copied between surfaces: **47** for the current
+  kernel from the built binary's own schema keys, **46** for the binary `npm i -g` installs
+  and **42** for `v0.3.0`, each counted from that tag's own command registrations. The
+  command table now lists all 47 — `tell-lint` had no row, so the header and the table had
+  disagreed. Prompt plans keep their inline `productTruth`; that contract, the Flow
+  command and the Flow schema are unchanged.
+
 ## 2026-09-01 - the gate emits what its coverage report claims
 
 ### Fixed
