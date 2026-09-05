@@ -1,5 +1,5 @@
 import { closeSync, fstatSync, openSync, readSync } from "node:fs";
-import { errJson, errText } from "../core/output.js";
+import { errJson, errText, forTerminal } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 
@@ -91,16 +91,28 @@ export function decodeUtf8(bytes: Buffer): string {
 
 export type ProductContextMode = "text" | "json";
 
+/**
+ * The code names the class of failure; the message must name the instance.
+ *
+ * A message defaulted to its own code tells the operator nothing the code did not
+ * already say — which file, which ceiling, which of the causes one code covers. So
+ * callers pass one explicitly, and the two channels treat it differently: JSON
+ * carries the raw string for an agent to parse, while the terminal gets a copy
+ * through `forTerminal`, because a value lifted out of a path or an artifact can
+ * otherwise forge a line or move the cursor. The cap is raised from the default
+ * because a whole message legitimately runs longer than one lifted value; escaping,
+ * not the cap, is what keeps it to a single line.
+ */
 export function productContextFailure(
   command: string,
   mode: ProductContextMode,
   code: string,
-  message = code,
+  message: string,
 ): CommandResult {
   if (mode === "json") {
     return errJson(command, code, message);
   }
-  return errText(`ui: ${command}: ${message}\n`);
+  return errText(`ui: ${command}: ${forTerminal(message, 512)}\n`);
 }
 
 export function localProductContextArgs(
@@ -113,10 +125,44 @@ export function localProductContextArgs(
   const invalidJson = parsed.flags.json !== undefined && parsed.flags.json !== true;
   const invalidArity = parsed.positionals.length < min || parsed.positionals.length > max;
   if (invalidJson || parsed.repeatedFlags.has("json") || invalidArity) {
-    return {
-      mode,
-      bad: productContextFailure(command, mode, "BAD_ARG", `${command}: invalid arguments`),
-    };
+    // `productContextFailure` already prefixes the command on the text channel, so the
+    // message says only what is wrong — repeating the command printed it twice.
+    const bound = min === max
+      ? `exactly ${min}`
+      : parsed.positionals.length < min ? `at least ${min}` : `at most ${max}`;
+    const reason = invalidJson
+      ? "--json takes no value"
+      : parsed.repeatedFlags.has("json")
+        ? "repeated flag: --json"
+        : `expects ${bound} positional argument(s), got ${parsed.positionals.length}`;
+    return { mode, bad: productContextFailure(command, mode, "BAD_ARG", reason) };
   }
   return { mode };
+}
+
+export type DecodedReceipts =
+  | { ok: true; documents: unknown[] }
+  | { ok: false; error: unknown; path: string };
+
+/**
+ * Decode and parse receipts ONE FILE AT A TIME.
+ *
+ * A single `map()` over the whole set collapses every malformed input into the same
+ * anonymous throw, so a bad seventh receipt among twelve is indistinguishable from a
+ * bad first one — precisely what the operator cannot act on. Pairing each buffer with
+ * the path it came from costs one loop and makes the failure nameable.
+ */
+export function decodeReceipts(buffers: Buffer[], paths: string[]): DecodedReceipts {
+  const documents: unknown[] = [];
+  for (const [index, bytes] of buffers.entries()) {
+    try {
+      documents.push(JSON.parse(decodeUtf8(bytes)));
+    } catch (error) {
+      if (error instanceof SyntaxError || error instanceof InvalidUtf8Error) {
+        return { ok: false, error, path: String(paths[index]) };
+      }
+      throw error;
+    }
+  }
+  return { ok: true, documents };
 }

@@ -5,6 +5,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import { projectProductContextFlow } from "../core/product-context-flow-projection.js";
 import { lintProductContext } from "../core/product-context-lint.js";
 import { ProductContextError, normalizeProductAtlas } from "../core/product-context-model.js";
+import { atlasFailureMessage, fileFailureMessage } from "./product-context-errors.js";
 import {
   InvalidUtf8Error,
   MAX_ATLAS_FILE_BYTES,
@@ -27,14 +28,18 @@ export function runProductContextProjectFlow(parsed: ParsedArgs): CommandResult 
   if (checked.bad !== undefined) return checked.bad;
 
   const path = parsed.positionals[0];
-  if (path === undefined) return productContextFailure(COMMAND, checked.mode, "BAD_ARG");
+  if (path === undefined) {
+    return productContextFailure(COMMAND, checked.mode, "BAD_ARG", "expects exactly 1 positional argument, got 0");
+  }
 
   const read = readBoundedFile(
     path,
     MAX_ATLAS_FILE_BYTES,
     "PRODUCT_ATLAS_INPUT_TOO_LARGE",
   );
-  if (!read.ok) return productContextFailure(COMMAND, checked.mode, read.code);
+  if (!read.ok) {
+    return productContextFailure(COMMAND, checked.mode, read.code, fileFailureMessage(read.code, path));
+  }
 
   let replay: ReturnType<typeof lintProductContext>;
   try {
@@ -48,7 +53,9 @@ export function runProductContextProjectFlow(parsed: ParsedArgs): CommandResult 
       error instanceof ProductContextError ||
       (error instanceof Error && error.message === "BAD_PRODUCT_ATLAS")
     ) {
-      return productContextFailure(COMMAND, checked.mode, "BAD_PRODUCT_ATLAS");
+      return productContextFailure(
+        COMMAND, checked.mode, "BAD_PRODUCT_ATLAS", atlasFailureMessage(error, path),
+      );
     }
     throw error;
   }
