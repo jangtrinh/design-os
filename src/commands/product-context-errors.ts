@@ -36,6 +36,9 @@ export function fileFailureMessage(code: string, path: string): string {
 export function atlasFailureMessage(error: unknown, path: string): string {
   if (error instanceof InvalidUtf8Error) return `atlas is not valid UTF-8: '${path}'`;
   if (error instanceof SyntaxError) return `atlas is not valid JSON: '${path}'`;
+  if (error instanceof Error && error.message === "ATLAS_NOT_CANONICAL") {
+    return `atlas is not in canonical form, so its bytes cannot be compared: '${path}'`;
+  }
   if (error instanceof Error && error.message === "BAD_PRODUCT_ATLAS") {
     return `replay mismatch: recompiling the embedded receipts did not reproduce '${path}'`;
   }
@@ -61,4 +64,10 @@ export function compileErrorCode(error: unknown): string {
     if (error.name === "OmittedOverflow") return "PRODUCT_CONTEXT_OMITTED_COUNT_OVERFLOW";
   }
   return "BAD_PRODUCT_CONTEXT";
+}
+
+/** Both replay defects are expected input errors, and both answer to BAD_PRODUCT_ATLAS. */
+export function isAtlasReplayFailure(error: unknown): boolean {
+  return error instanceof Error
+    && (error.message === "BAD_PRODUCT_ATLAS" || error.message === "ATLAS_NOT_CANONICAL");
 }

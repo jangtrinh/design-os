@@ -73,6 +73,17 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
       .toMatch(/replay mismatch/);
   });
 
+  it.each([
+    ["a trailing byte", (raw: string) => `${raw} `],
+    ["re-indentation that changes no meaning", (raw: string) => `${JSON.stringify(JSON.parse(raw), null, 4)}\n`],
+  ])("blames the bytes, not the receipts, when the atlas is only non-canonical: %s", (_label, mangle) => {
+    const path = write("non-canonical-atlas.json", mangle(compileText([receipt()])));
+    const message = failure(["product-context", "lint", path], "BAD_PRODUCT_ATLAS");
+    // The receipts replay perfectly here; the repair is to re-emit the file, not to audit them.
+    expect(message).toMatch(/not in canonical form/);
+    expect(message, "a wrong cause sends the operator to the wrong repair").not.toMatch(/replay mismatch/);
+  });
+
   it("forwards the cross-receipt reason instead of restating the code", () => {
     const paths = [
       write("product-a.json", receipt({ receiptId: "receipt-001" })),
@@ -88,8 +99,9 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     ["refuses a value on --json", ["product-context", "lint", "a.json", "--json=false"], /--json takes no value/],
     ["refuses a repeated flag", ["product-context", "compile", "a.json", "--json", "--json"], /repeated flag/],
   ])("says what is wrong with the arguments: %s", (_label, args, match) => {
-    // --json=false and a repeated --json both make the JSON channel itself untrustworthy,
-    // so these are read on stderr, where the command speaks when it cannot speak JSON.
+    // `--json=false` never turns the JSON channel on, so its failure lands on stderr; a
+    // repeated `--json` does, so that one still answers in the envelope. Read whichever
+    // channel actually spoke rather than assuming one of them.
     const result = capture(args);
     expect(result.code).toBe(1);
     const channel = result.out === "" ? result.err : result.out;

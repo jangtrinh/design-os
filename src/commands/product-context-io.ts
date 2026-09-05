@@ -101,7 +101,9 @@ export type ProductContextMode = "text" | "json";
  * through `forTerminal`, because a value lifted out of a path or an artifact can
  * otherwise forge a line or move the cursor. The cap is raised from the default
  * because a whole message legitimately runs longer than one lifted value; escaping,
- * not the cap, is what keeps it to a single line.
+ * not the cap, is what keeps it to a single line. The code is printed alongside it:
+ * it used to BE the message, the help text advertises the vocabulary, and dropping it
+ * from the human channel would remove information nothing else there carries.
  */
 export function productContextFailure(
   command: string,
@@ -112,7 +114,7 @@ export function productContextFailure(
   if (mode === "json") {
     return errJson(command, code, message);
   }
-  return errText(`ui: ${command}: ${forTerminal(message, 512)}\n`);
+  return errText(`ui: ${command}: ${code}: ${forTerminal(message, 512)}\n`);
 }
 
 export function localProductContextArgs(

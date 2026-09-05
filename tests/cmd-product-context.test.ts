@@ -55,7 +55,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
       expect(json(unknownFlag, "product-context unknown flag")).toEqual({
         ok: false,
         command: `product-context ${args[1]}`,
-        error: { code: "UNKNOWN_FLAG", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) },
+        error: { code: "UNKNOWN_FLAG", message: expect.stringMatching(/[a-z]{3}/) },
       });
     }
   });

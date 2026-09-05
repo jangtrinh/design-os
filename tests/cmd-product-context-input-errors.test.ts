@@ -23,7 +23,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(resultJson).toEqual({
       ok: false,
       command: args[1] === "compile" ? "product-context compile" : "product-context lint",
-      error: { code: "BAD_ARG", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) },
+      error: { code: "BAD_ARG", message: expect.stringMatching(/[a-z]{3}/) },
     });
   });
 
@@ -77,7 +77,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(json(receiptCapture.result, "invalid receipt UTF-8")).toEqual({
       ok: false,
       command: "product-context compile",
-      error: { code: "BAD_PRODUCT_CONTEXT", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) },
+      error: { code: "BAD_PRODUCT_CONTEXT", message: expect.stringMatching(/[a-z]{3}/) },
     });
   });
 
@@ -91,7 +91,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(json(atlasCapture.result, "invalid Atlas UTF-8")).toEqual({
       ok: false,
       command: "product-context lint",
-      error: { code: "BAD_PRODUCT_ATLAS", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) },
+      error: { code: "BAD_PRODUCT_ATLAS", message: expect.stringMatching(/[a-z]{3}/) },
     });
   });
 
@@ -104,7 +104,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(json(result, "compile arity")).toEqual({
       ok: false,
       command: "product-context compile",
-      error: { code: "BAD_ARG", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) },
+      error: { code: "BAD_ARG", message: expect.stringMatching(/[a-z]{3}/) },
     });
   });
 
@@ -118,14 +118,14 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     const result = capture(args);
     if (!useJson) return expect(result).toMatchObject({ code: 1, out: "", err: expect.stringContaining("product-context project-flow") });
     expect(result).toMatchObject({ code: 1, err: "" });
-    expect(json(result, "project-flow argv")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_ARG", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) } });
+    expect(json(result, "project-flow argv")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_ARG", message: expect.stringMatching(/[a-z]{3}/) } });
   });
 
   it("rejects project-flow unknown flag and invalid Atlas before projection", () => {
     const unknown = capture(["product-context", "project-flow", "atlas.json", "--unknown-product-context-flag", "--json"]);
-    expect(json(unknown, "project-flow unknown")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "UNKNOWN_FLAG", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) } });
+    expect(json(unknown, "project-flow unknown")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "UNKNOWN_FLAG", message: expect.stringMatching(/[a-z]{3}/) } });
     const invalid = capture(["product-context", "project-flow", write("bad-project-flow-atlas.json", "{not-json"), "--json"]);
     expect(invalid).toMatchObject({ code: 1, err: "" });
-    expect(json(invalid, "project-flow bad atlas")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.not.stringMatching(/^[A-Z][A-Z_]+$/) } });
+    expect(json(invalid, "project-flow bad atlas")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.stringMatching(/[a-z]{3}/) } });
   });
 });

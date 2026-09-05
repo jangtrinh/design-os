@@ -15,11 +15,19 @@
 - **Argument errors say what is wrong** — `expects at least 1 positional argument(s), got 0`,
   `--json takes no value`, `repeated flag: --json` — instead of `invalid arguments`, and the
   human channel no longer prints the command name twice.
+- **A non-canonical atlas is no longer blamed on its receipts.** `lint` and `project-flow`
+  raised one error for two defects, so a pretty-printed or hand-edited file — whose receipts
+  replay perfectly — was reported as a replay mismatch. That is a wrong cause, which sends the
+  operator to audit receipts when the repair is to re-emit the file. The two causes are now
+  told apart and named; the public code stays `BAD_PRODUCT_ATLAS`.
 
 ### Changed
 - **The text channel escapes the message; the machine channel does not.** A newline inside a
   path could otherwise forge a line that reads as the engine speaking, so stderr now gets a
   copy through `forTerminal` while the JSON envelope keeps the raw string an agent parses.
+  Stderr also keeps printing the error code — it used to BE the message there, and the help
+  text advertises that vocabulary, so dropping it would have removed information nothing else
+  on that channel carries.
 - **Message shaping moved to its own module.** Reading bytes and deciding what to tell the
   operator are different jobs, and only the second one grew. Dropping the `message = code`
   default made the compiler enumerate every call site that had nothing to say.

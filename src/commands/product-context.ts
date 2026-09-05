@@ -10,6 +10,7 @@ import {
   aggregateTooLargeMessage,
   atlasFailureMessage,
   compileErrorCode,
+  isAtlasReplayFailure,
   compileReason,
   fileFailureMessage,
   receiptDecodeMessage,
@@ -151,7 +152,7 @@ export function runProductContextLint(parsed: ParsedArgs): CommandResult {
       error instanceof SyntaxError ||
       error instanceof InvalidUtf8Error ||
       error instanceof ProductContextError ||
-      (error instanceof Error && error.message === "BAD_PRODUCT_ATLAS")
+      isAtlasReplayFailure(error)
     ) {
       return productContextFailure(
         command, checked.mode, "BAD_PRODUCT_ATLAS", atlasFailureMessage(error, path),
