@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-09-05 - a failure that names the file, and tests that can see the message
+
+### Fixed
+- **Every product-context error message was byte-identical to its own code.** Compiling
+  twelve receipts with one malformed file printed `BAD_PRODUCT_CONTEXT` and nothing else —
+  not which file, not which layer refused it — while `BAD_PRODUCT_ATLAS` covered bad bytes,
+  a bad shape and a failed replay with one undifferentiated string. Messages now name the
+  file, the ceiling that was passed, and which of the causes fired. The sibling `flow` and
+  `prompt-plan` commands have named the file since they were written; this one had diverged.
+- **Receipts are decoded one file at a time.** A single `map()` over the whole set collapsed
+  every malformed input into the same anonymous throw, so a bad seventh receipt among twelve
+  was indistinguishable from a bad first one.
+- **Argument errors say what is wrong** — `expects at least 1 positional argument(s), got 0`,
+  `--json takes no value`, `repeated flag: --json` — instead of `invalid arguments`, and the
+  human channel no longer prints the command name twice.
+
+### Changed
+- **The text channel escapes the message; the machine channel does not.** A newline inside a
+  path could otherwise forge a line that reads as the engine speaking, so stderr now gets a
+  copy through `forTerminal` while the JSON envelope keeps the raw string an agent parses.
+- **Message shaping moved to its own module.** Reading bytes and deciding what to tell the
+  operator are different jobs, and only the second one grew. Dropping the `message = code`
+  default made the compiler enumerate every call site that had nothing to say.
+
+### Added
+- **Assertions that can see a message at all.** All twelve error assertions were
+  `message: expect.any(String)` — green whether the message was useful, meaningless, or
+  leaking an absolute path. They now refuse a bare code, and a new suite pins a
+  distinguishing substring per code, including which of twelve files failed and the split
+  between the raw JSON value and its escaped terminal copy. Each of the seven behaviours
+  those cases depend on was deliberately broken and confirmed red.
+
+Public error codes and exit codes are unchanged.
+
 ## 2026-09-04 - product truth as evidence, not one inline object
 
 ### Added
