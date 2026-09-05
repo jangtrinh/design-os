@@ -153,6 +153,8 @@ export function createProductContextHarness() {
     expect(resultJson).toMatchObject({ ok: false, command: "product-context compile" });
     exactKeys(asObject(resultJson.error), ["code", "message"]);
     expect(asObject(resultJson.error)["code"]).toBe(code);
+    // A message equal to its own code tells the operator nothing; the code already said that.
+    expect(asObject(resultJson.error)["message"], "the message must say more than the code").not.toBe(code);
     expect(resultJson.data).toBeUndefined();
   }
   function compileText(receipts: Json[], expectedExit = 0): string {
@@ -183,6 +185,8 @@ export function createProductContextHarness() {
     expect(resultJson).toMatchObject({ ok: false, command: "product-context lint" });
     exactKeys(asObject(resultJson.error), ["code", "message"]);
     expect(asObject(resultJson.error)["code"]).toBe(code);
+    // A message equal to its own code tells the operator nothing; the code already said that.
+    expect(asObject(resultJson.error)["message"], "the message must say more than the code").not.toBe(code);
     expect(resultJson.data).toBeUndefined();
   }
   function atlas(data: Json): Json { return asObject(data["atlas"]); }

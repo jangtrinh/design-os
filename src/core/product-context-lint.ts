@@ -15,10 +15,15 @@ export function lintProductContext(
     },
   );
   const rebuilt = compileProductContext(receipts);
-  if (
-    !Buffer.from(canonicalStringify(atlas), "utf8").equals(supplied) ||
-    !rebuilt.atlasBytes.equals(supplied)
-  )
+  // Two different defects, and telling them apart decides which repair to reach for.
+  // Non-canonical bytes are checked FIRST: a pretty-printed or hand-edited file also
+  // fails the replay comparison, so testing replay first would blame the receipts for
+  // whitespace. Both surface as BAD_PRODUCT_ATLAS; only the message differs.
+  if (!Buffer.from(canonicalStringify(atlas), "utf8").equals(supplied)) {
+    throw new Error("ATLAS_NOT_CANONICAL");
+  }
+  if (!rebuilt.atlasBytes.equals(supplied)) {
     throw new Error("BAD_PRODUCT_ATLAS");
+  }
   return rebuilt;
 }
