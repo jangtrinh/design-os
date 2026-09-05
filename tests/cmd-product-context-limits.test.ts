@@ -97,6 +97,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     const tooLarge = compilePaths([write("receipt-too-large.json", " ".repeat(RECEIPT_MAX + 1))]);
     expect(tooLarge.code).toBe(1);
     expect(json(tooLarge, "receipt overflow").error?.code).toBe("PRODUCT_CONTEXT_RECEIPT_TOO_LARGE");
+    expect(json(tooLarge, "receipt overflow").error?.message).toContain(`exceeds ${RECEIPT_MAX} bytes`);
     const aggregate = [0, 1, 2, 3].map((index) => padded(`aggregate-${index}.json`, lifecycle(`receipt-${index + 1}`, "capped"), RECEIPT_MAX));
     const exactAggregate = compilePaths(aggregate);
     expect(exactAggregate).toMatchObject({ code: 0, err: "" });
@@ -104,6 +105,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     const aggregateOverflow = compilePaths([...aggregate, write("aggregate-overflow.json", " ")]);
     expect(aggregateOverflow.code).toBe(1);
     expect(json(aggregateOverflow, "aggregate overflow").error?.code).toBe("PRODUCT_CONTEXT_INPUT_TOO_LARGE");
+    expect(json(aggregateOverflow, "aggregate overflow").error?.message).toContain(`exceed ${INPUT_MAX} bytes in total`);
     expect(aggregate.reduce((total, path) => total + Buffer.byteLength(readFileSync(path)), 0)).toBe(INPUT_MAX);
   });
 
@@ -145,9 +147,9 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     const exact = write("atlas-exact.json", canonical + " ".repeat(ATLAS_MAX - Buffer.byteLength(canonical))), large = write("atlas-too-large.json", canonical + " ".repeat(ATLAS_MAX + 1 - Buffer.byteLength(canonical)));
     lintFailure(exact, "BAD_PRODUCT_ATLAS"); lintFailure(large, "PRODUCT_ATLAS_INPUT_TOO_LARGE");
     const projectedExact = capture(["product-context", "project-flow", exact, "--json"]);
-    expect(json(projectedExact, "exact project-flow size")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.any(String) } });
+    expect(json(projectedExact, "exact project-flow size")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "BAD_PRODUCT_ATLAS", message: expect.stringMatching(/[a-z]{3}/) } });
     const projectedLarge = capture(["product-context", "project-flow", large, "--json"]);
-    expect(json(projectedLarge, "large project-flow size")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "PRODUCT_ATLAS_INPUT_TOO_LARGE", message: expect.any(String) } });
+    expect(json(projectedLarge, "large project-flow size")).toEqual({ ok: false, command: "product-context project-flow", error: { code: "PRODUCT_ATLAS_INPUT_TOO_LARGE", message: expect.stringMatching(/[a-z]{3}/) } });
   });
   it("requires the output guard seam at exact and max-plus-one Atlas bytes", async () => {
     const seams = await productContextSeams();
@@ -186,7 +188,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(textOverflow).toEqual({
       code: 1,
       out: "",
-      err: "ui: product-context compile: PRODUCT_ATLAS_OUTPUT_TOO_LARGE\n",
+      err: `ui: product-context compile: PRODUCT_ATLAS_OUTPUT_TOO_LARGE: compiled atlas exceeds ${ATLAS_MAX} bytes\n`,
     });
     const jsonOverflow = capture(["product-context", "compile", ...overflowPaths, "--json"]);
     expect(jsonOverflow.code).toBe(1);
@@ -194,7 +196,7 @@ describe(PRODUCT_CONTEXT_SUITE, () => {
     expect(json(jsonOverflow, "over-limit Atlas JSON")).toEqual({
       ok: false,
       command: "product-context compile",
-      error: { code: "PRODUCT_ATLAS_OUTPUT_TOO_LARGE", message: expect.any(String) },
+      error: { code: "PRODUCT_ATLAS_OUTPUT_TOO_LARGE", message: expect.stringMatching(/[a-z]{3}/) },
     });
   });
 });
