@@ -2,7 +2,9 @@
 
 <h1 align="center">DESIGN:OS</h1>
 
-<p align="center"><b>One design system. Web, Figma, and Apple-native execution.</b></p>
+<p align="center"><b>Design CLI for Claude Code, Codex and Antigravity: describe the UI in plain words, get production-grade web, Figma and SwiftUI output through deterministic taste gates.</b></p>
+
+<p align="center"><sub>One design system. Web, Figma, and Apple-native execution. Live: <a href="https://jangtrinh.github.io/design-os/">jangtrinh.github.io/design-os</a></sub></p>
 
 <p align="center">
   [<a href="#quick-start">Quick start</a>] ·
@@ -42,6 +44,19 @@ surface-specific craft and design-system context, and keeps delivery claims hone
 Your host agent writes the implementation. The deterministic `ui` kernel handles routing,
 contract validation, and fail-closed claim boundaries; it does not call a model or generate
 Swift. **No API keys, no design tokens to hand-edit, no taste vocabulary to learn.**
+
+## Compared with the alternatives
+
+What DESIGN:OS does that a DESIGN.md file, an IDE design agent or a hosted builder does not, or does differently:
+
+- **The floor is code.** Deterministic linters run on every delivery and a blocking breach cannot receive a `QUALIFIED` verdict. A prose design file cannot refuse output; this can. ([The machine floor](#the-machine-floor))
+- **One system, three runtimes.** The same design system compiles to production HTML, idiomatic Figma through the Figma hand, and SwiftUI-first native routes. ([The surfaces](#the-surfaces))
+- **Model-free kernel, no API keys.** Routing, contract validation and claim boundaries are deterministic and network-free; your agent CLI writes the implementation.
+- **Brownfield first.** `/ui:learn` compiles the design system from your own code, URL or Figma file; `/ui:why` answers with provenance from the design memory.
+- **Measured, with the misses published.** A controlled three-way study and a nine-run repeatability study, including the two mobile overflow failures they found. ([Evidence](#generated-by-designos))
+- **A designer and an agent in one Figma file.** The separate plugin gives a free write path on Figma Free with one undo step per mutation and a verified 1:1 mirror. ([The plugin](#the-plugin--an-agent-and-a-designer-in-the-same-figma-file))
+
+Where the alternatives win, stated plainly: a DESIGN.md corpus or Claude Design scaffolds a first screen faster with no install; an IDE canvas agent gives a visual editing surface this CLI does not; hosted builders deploy for you. What is still open here is listed under [Status & honest boundaries](#status--honest-boundaries).
 
 **Apple-native arms are available, not overclaimed.** macOS, iOS, and iPadOS have separate
 routes, artifacts, evidence, and assurance. They share SwiftUI fundamentals without flattening

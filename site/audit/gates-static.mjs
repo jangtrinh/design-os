@@ -22,7 +22,7 @@ function stripMedia(css) {
 export function runStatic(dir) {
   const css = readFileSync(`${dir}/deck.css`, 'utf8');
   const i18nRaw = existsSync(`${dir}/translations.js`) ? readFileSync(`${dir}/translations.js`, 'utf8') : null;
-  const html = readFileSync(`${dir}/index.html`, 'utf8');
+  const html = readFileSync(`${dir}/slides.html`, 'utf8');
   const body = stripMedia(css);
   const results = [];
   const gate = (name, failures, note) =>

@@ -22,7 +22,7 @@ if (!staticOnly) {
     process.exit(2);
   }
   const { runRendered, runViewportParity, runInteractive, runMultilingualFit } = await import('./gates-rendered.mjs');
-  const url = pathToFileURL(`${DIR}/index.html`).href;
+  const url = pathToFileURL(`${DIR}/slides.html`).href;
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   try {
