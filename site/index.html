@@ -1,1067 +1,212 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<script>document.documentElement.classList.add('js','is-booting');</script>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DESIGN:OS Masterclass — 28-Slide Complete Architecture Deck</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./deck.css">
-<style>
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .svg-flow-active,
-  .svg-packet-1,
-  .svg-packet-2,
-  .svg-radar-ring {
-    animation: none !important;
-  }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DESIGN:OS — design CLI for Claude Code, Codex and Antigravity (npm ease-design)</title>
+<meta name="description" content="Design CLI for Claude Code, Codex and Antigravity: describe the UI in plain words, get production-grade web, Figma and SwiftUI output through deterministic taste gates.">
+<link rel="canonical" href="https://jangtrinh.github.io/design-os/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DESIGN:OS — design CLI for Claude Code, Codex and Antigravity">
+<meta property="og:description" content="Design CLI for Claude Code, Codex and Antigravity: describe the UI in plain words, get production-grade web, Figma and SwiftUI output through deterministic taste gates.">
+<meta property="og:url" content="https://jangtrinh.github.io/design-os/">
+<meta property="og:image" content="https://jangtrinh.github.io/design-os/assets/examples/opah-poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "DESIGN:OS",
+      "alternateName": "ease-design",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "description": "Design CLI for Claude Code, Codex and Antigravity: describe the UI in plain words, get production-grade web, Figma and SwiftUI output through deterministic taste gates.",
+      "url": "https://jangtrinh.github.io/design-os/",
+      "downloadUrl": "https://www.npmjs.com/package/ease-design",
+      "softwareVersion": "0.6.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "author": { "@type": "Person", "name": "Jang Trịnh", "url": "https://github.com/jangtrinh" },
+      "sameAs": ["https://github.com/jangtrinh/design-os", "https://www.npmjs.com/package/ease-design"],
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Does the kernel call a model or need an API key?", "acceptedAnswer": { "@type": "Answer", "text": "No. The deterministic ui kernel handles routing, contract validation and the fail-closed claim boundary; your own agent CLI writes the implementation. No API keys, no phone-home." } },
+        { "@type": "Question", "name": "Which agent CLIs does it work with?", "acceptedAnswer": { "@type": "Answer", "text": "Claude Code, Codex CLI and Antigravity, through plain-language /ui:* commands installed by ui init --runtime <name>." } },
+        { "@type": "Question", "name": "What does it output?", "acceptedAnswer": { "@type": "Answer", "text": "Production HTML for web surfaces, idiomatic Figma through the opt-in Figma hand, and SwiftUI-first native macOS, iOS and iPadOS routes marked provisional." } },
+        { "@type": "Question", "name": "What does \u201cprovisional\u201d mean for the native arms?", "acceptedAnswer": { "@type": "Answer", "text": "The arm can route and produce work today, while live accessibility, device evidence and owner acceptance remain separate qualification gates. It is stated, not hidden." } },
+        { "@type": "Question", "name": "Where is the Figma plugin?", "acceptedAnswer": { "@type": "Answer", "text": "In its own repository, design-os-figma-plugin: the plugin, the figma-agent CLI and the 1:1 mirror, versioned and released separately." } },
+        { "@type": "Question", "name": "How is it different from a DESIGN.md file or a hosted UI builder?", "acceptedAnswer": { "@type": "Answer", "text": "The floor is code: deterministic linters run on every delivery and a blocking breach cannot receive a QUALIFIED verdict. A prose design file cannot refuse output; this can." } }
+      ]
+    }
+  ]
 }
+</script>
+<style>
+/* Landing-only rules on top of assets/site.css: the examples grid and the machine-floor register. */
+.examples{display:grid;grid-template-columns:1fr;gap:var(--s-8);margin:0;padding:0;list-style:none}
+@media(min-width:640px){.examples{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.examples .ds-card{margin:0;height:100%}
+.examples .capture-stage{aspect-ratio:16/10}
+.examples .capture-stage img{width:100%;height:100%;object-fit:cover;object-position:top}
+.tile{display:block}
+/* One head rule per block: the eyebrow already drew it. */
+.ds-heading[data-level="3"]+.register{border-top:0}
+.case-plate-caption cite a{color:var(--c-gray-1000)}
+.floor .register-row h3{font-family:var(--stack-mono);font-weight:var(--fw-medium);font-size:var(--t-14)}
 </style>
 </head>
 <body>
-
-  <!-- Liquid Gooey SVG Filter Engine (Jakub Antalik Liquid UI Spec) -->
-  <svg class="gooey-filter-def" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="liquid-gooey-heavy">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo" />
-        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-      </filter>
-      <filter id="liquid-gooey-subtle">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
-        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-      </filter>
-      <filter id="liquid-gooey-nav">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo" />
-        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-      </filter>
-    </defs>
-  </svg>
-
-
-  <main class="deck-viewport">
-    <div class="slide-stage" id="slideStage">
-
-<article class="slide-item active slide-layout-hero" id="slide-1" data-index="1">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Masterclass Operating Manual • V1.0</span></div>
-    <div>01 / 28 • Hero Gateway</div>
-  </header>
-
-  <section class="hero-gateway-grid">
-    <div class="hero-left-col">
-      <div class="hero-main-card">
-        <div class="hero-card-top">
-          <div class="radiant-dots" aria-hidden="true"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-          <div class="hero-eyebrow">Act 0 &middot; Start Here</div>
-        </div>
-        <div class="hero-lede">
-          <h1 class="radiant-display-title">Mastering<br>Design:OS</h1>
-          <p class="radiant-body-text">The definitive multi-runtime operating manual. Transition from stochastic LLM luck to deterministic color science, live Figma synchronization, and vector memory recall.</p>
-        </div>
-        <div class="hero-card-foot">
-          <div class="hero-stat-pill">
-            <span class="stat-pill-num">0%</span>
-            <span class="stat-pill-label">LLM Luck Required</span>
-          </div>
-        </div>
-      </div>
+<a class="ds-skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-shell-nav" aria-label="Primary">
+    <a class="wordmark" href="https://jang-personal-site.vercel.app/">JANG<span>®</span></a>
+    <div class="home-nav-links">
+      <a class="ds-tab" href="#why">Why</a>
+      <a class="ds-tab" href="#install">Install</a>
+      <a class="ds-tab" href="#examples">Examples</a>
+      <a class="ds-tab" href="slides.html"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176Z"/></svg>Deck</a>
+      <a class="ds-tab" href="https://github.com/jangtrinh/design-os"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"/></svg>GitHub <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
     </div>
-    <div class="hero-right-orbs">
-      <div class="orb-axis" aria-hidden="true"></div>
-      <div class="orb-hero-lime">
-        <div class="orb-arrow">→</div>
-        <div class="orb-stat-huge">100%</div>
-        <div class="orb-label-main">Deterministic Floor</div>
-      </div>
-      <div class="orb-hero-dark-1">
-        <div class="orb-stat-secondary">7 Acts</div>
-        <div class="orb-label-secondary">Strategic Chapters</div>
-      </div>
-      <div class="orb-hero-dark-2">
-        <div class="orb-stat-secondary">28</div>
-        <div class="orb-label-secondary">Bespoke Slides</div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Hero Gateway</div><div>01 / 28</div></footer>
-  <div data-speaker-notes="Welcome to the DESIGN:OS 28-Slide Complete Masterclass. Today we establish the complete operating manual for deterministic AI UI generation."></div>
-</article>
-
-<article class="slide-item slide-layout-triad" id="slide-2" data-index="2">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 1 • Core Philosophy</span></div>
-    <div>02 / 28 • Triad Stagger</div>
-  </header>
-
-  <section class="triad-stagger-grid">
-    <div class="triad-card-col">
-      <div class="radiant-master-card">
-        <div class="radiant-card-top">
-          <div class="radiant-dots" aria-hidden="true"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-          <h2 class="radiant-display-title">3 Supreme<br>Truths</h2>
-          <p class="radiant-body-text">Eliminating reliance on stochastic luck. Every token is derived from perceptual color math, strict labor division, and a 14-linter machine floor.</p>
-        </div>
-        <div class="radiant-card-bottom">
-          <div class="radiant-hero-number">14</div>
-          <div class="radiant-hero-label">Machine Floor Linters</div>
-          <div class="radiant-progress-track"><div class="radiant-progress-fill"></div></div>
-        </div>
-      </div>
-    </div>
-    <ul class="triad-orbs-col">
-      <li class="triad-orb triad-orb-1">
-        <div class="orb-stat-huge">360°</div>
-        <div class="orb-label-main">OKLCH Uniformity</div>
-      </li>
-      <li class="triad-orb triad-orb-2">
-        <div class="orb-stat-huge">1 Engine</div>
-        <div class="orb-label-main">Deterministic UI Kernel</div>
-      </li>
-      <li class="triad-orb triad-orb-3">
-        <div class="orb-stat-huge">0.02</div>
-        <div class="orb-label-main">ΔEOK Precision Floor</div>
-      </li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 3 Supreme Truths</div><div>02 / 28</div></footer>
-  <div data-speaker-notes="The 3 core truths form our engineering compass: converting stochastic LLM chaos into reliable, deterministic release code."></div>
-</article>
-
-<article class="slide-item slide-layout-duality" id="slide-3" data-index="3">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 1 • Architecture Split</span></div>
-    <div>03 / 28 • Bipolar Split</div>
-  </header>
-
-  <section class="duality-split-grid">
-    <article class="duality-pole duality-left">
-      <div class="duality-tag">Organ 01 • Reasoning</div>
-      <h3 class="duality-title">Host AI Agent</h3>
-      <p class="duality-desc">Creative synthesis, intent parsing, persona resolution, and semantic DOM structuring.</p>
-      <div class="duality-metric">
-        <span class="duality-num">1</span>
-        <span class="duality-label">Creative Brain</span>
-      </div>
-    </article>
-
-    <div class="duality-center-bridge">
-      <div class="bridge-line"></div>
-      <div class="bridge-badge">Prompt → AST</div>
-      <div class="bridge-line"></div>
-    </div>
-
-    <article class="duality-pole duality-right">
-      <div class="duality-tag">Organ 02 • Compliance</div>
-      <h3 class="duality-title">UI Kernel Engine</h3>
-      <p class="duality-desc">Deterministic DTCG compilation, OKLCH color math, and 14 linting gates with 0 stochastic code.</p>
-      <div class="duality-metric">
-        <span class="duality-num">100%</span>
-        <span class="duality-label">Machine Floor</span>
-      </div>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Division of Labor</div><div>03 / 28</div></footer>
-  <div data-speaker-notes="Never allow the LLM to guess hex colors or calculate contrast math. The UI Kernel guarantees mathematically provable output."></div>
-</article>
-
-<article class="slide-item slide-layout-orbit" id="slide-4" data-index="4">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 1 • Hands Ecosystem</span></div>
-    <div>04 / 28 • Modular Orbit</div>
-  </header>
-
-  <section class="orbit-layout-grid">
-    <div class="orbit-center-card">
-      <div class="radiant-dots"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-      <h2 class="radiant-display-title">6 Specialized<br>Optional Hands</h2>
-      <p class="radiant-body-text">Modular hands extend multi-dimensional capabilities without bloating the core bundle.</p>
-      <div class="orbit-center-stat">6 Multi-Runtime Hands • 0 ms Overhead</div>
-    </div>
-    <ul class="orbit-satellites-grid">
-      <li class="orbit-chip"><svg class="ph-svg ph-git-branch" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64a32,32,0,1,0-40,31v17a8,8,0,0,1-8,8H96a23.84,23.84,0,0,0-8,1.38V95a32,32,0,1,0-16,0v66a32,32,0,1,0,16,0V144a8,8,0,0,1,8-8h88a24,24,0,0,0,24-24V95A32.06,32.06,0,0,0,232,64ZM64,64A16,16,0,1,1,80,80,16,16,0,0,1,64,64ZM96,192a16,16,0,1,1-16-16A16,16,0,0,1,96,192ZM200,80a16,16,0,1,1,16-16A16,16,0,0,1,200,80Z"/></svg><strong>Figma Hand</strong><small>Port 9410 WS</small></li>
-      <li class="orbit-chip"><svg class="ph-svg ph-film-strip" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,88h80v80H40Zm96-16V56h32V72Zm-16,0H88V56h32Zm0,112v16H88V184Zm16,0h32v16H136Zm0-16V88h80v80Zm80-96H184V56h32ZM72,56V72H40V56ZM40,184H72v16H40Zm176,16H184V184h32v16Z"/></svg><strong>GSAP Hand</strong><small>T5 Timelines</small></li>
-      <li class="orbit-chip"><svg class="ph-svg ph-cube" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M223.68,66.15,135.68,18h0a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32h0l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.82Zm96,129.57V133.82L216,90v85.78Z"/></svg><strong>GFlow Hand</strong><small>3D WebGL</small></li>
-      <li class="orbit-chip"><svg class="ph-svg ph-brain" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M248,124a56.11,56.11,0,0,0-32-50.61V72a48,48,0,0,0-88-26.49A48,48,0,0,0,40,72v1.39a56,56,0,0,0,0,101.2V176a48,48,0,0,0,88,26.49A48,48,0,0,0,216,176v-1.41A56.09,56.09,0,0,0,248,124ZM88,208a32,32,0,0,1-31.81-28.56A55.87,55.87,0,0,0,64,180h8a8,8,0,0,0,0-16H64A40,40,0,0,1,50.67,86.27,8,8,0,0,0,56,78.73V72a32,32,0,0,1,64,0v68.26A47.8,47.8,0,0,0,88,128a8,8,0,0,0,0,16,32,32,0,0,1,0,64Zm104-44h-8a8,8,0,0,0,0,16h8a55.87,55.87,0,0,0,7.81-.56A32,32,0,1,1,168,144a8,8,0,0,0,0-16,47.8,47.8,0,0,0-32,12.26V72a32,32,0,0,1,64,0v6.73a8,8,0,0,0,5.33,7.54A40,40,0,0,1,192,164Zm16-52a8,8,0,0,1-8,8h-4a36,36,0,0,1-36-36V80a8,8,0,0,1,16,0v4a20,20,0,0,0,20,20h4A8,8,0,0,1,208,112ZM60,120H56a8,8,0,0,1,0-16h4A20,20,0,0,0,80,84V80a8,8,0,0,1,16,0v4A36,36,0,0,1,60,120Z"/></svg><strong>Memory Hand</strong><small>Vector Recall</small></li>
-      <li class="orbit-chip"><svg class="ph-svg ph-palette" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,24,128c0,43,26.58,79.06,69.36,94.17A32,32,0,0,0,136,192a16,16,0,0,1,16-16h46.21a31.81,31.81,0,0,0,31.2-24.88,104.43,104.43,0,0,0,2.59-24A103.28,103.28,0,0,0,200.77,53.89Zm13,93.71A15.89,15.89,0,0,1,198.21,160H152a32,32,0,0,0-32,32,16,16,0,0,1-21.31,15.07C62.49,194.3,40,164,40,128a88,88,0,0,1,87.09-88h.9a88.35,88.35,0,0,1,88,87.25A88.86,88.86,0,0,1,213.81,147.6ZM140,76a12,12,0,1,1-12-12A12,12,0,0,1,140,76ZM96,100A12,12,0,1,1,84,88,12,12,0,0,1,96,100Zm0,56a12,12,0,1,1-12-12A12,12,0,0,1,96,156Zm88-56a12,12,0,1,1-12-12A12,12,0,0,1,184,100Z"/></svg><strong>Color Hand</strong><small>P3 OKLCH</small></li>
-      <li class="orbit-chip"><svg class="ph-svg ph-shield-check" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"/></svg><strong>Audit Hand</strong><small>14 Linters</small></li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Hands Ecosystem</div><div>04 / 28</div></footer>
-  <div data-speaker-notes="The optional hands architecture ensures zero bloat for simple web projects while providing industrial power when invoked."></div>
-</article>
-
-<article class="slide-item slide-layout-cascade" id="slide-5" data-index="5">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 2 • Design Soul</span></div>
-    <div>05 / 28 • Sovereignty Cascade</div>
-  </header>
-
-  <section class="cascade-slabs-grid">
-    <div class="cascade-header-block">
-      <h2 class="radiant-display-title">3-Tier Soul Precedence</h2>
-      <p class="radiant-body-text">Project brief holds supreme veto power, but Factory invariants remain mathematically unbreakable.</p>
-    </div>
-
-    <ul class="cascade-slabs-stack">
-      <li class="cascade-slab slab-factory">
-        <div class="slab-badge">Tier 0 • Factory (WT 0)</div>
-        <div class="slab-main"><strong>Factory Invariants (Immutable)</strong><span>Banned anti-patterns (no purple-on-dark, container soup ≤ 2)</span></div>
-        <div class="slab-stat">Absolute Floor</div>
-      </li>
-      <li class="cascade-slab slab-studio">
-        <div class="slab-badge">Tier 1 • Studio (WT 50)</div>
-        <div class="slab-main"><strong>Studio Standards</strong><span>Workspace shared conventions (8px grid, token aliases, default icon font)</span></div>
-        <div class="slab-stat">Shared Base</div>
-      </li>
-      <li class="cascade-slab slab-project">
-        <div class="slab-badge">Tier 2 • Project (WT 75)</div>
-        <div class="slab-main"><strong>Project Soul (Highest Precedence)</strong><span>Bespoke brand persona, custom color scales, explicit overrides</span></div>
-        <div class="slab-stat">Supreme Veto</div>
-      </li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Design Soul</div><div>05 / 28</div></footer>
-  <div data-speaker-notes="Project briefs win over Studio conventions, but Factory anti-pattern bans are mathematically immutable."></div>
-</article>
-
-<article class="slide-item slide-layout-roads" id="slide-6" data-index="6">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 2 • Onboarding</span></div>
-    <div>06 / 28 • 6 Entry Roads</div>
-  </header>
-
-  <section class="roads-matrix-layout">
-    <div class="roads-top-bar">
-      <h2 class="radiant-display-title">6 Entry Roads (E1–E6)</h2>
-      <div class="roads-cmd-pill"><code>ui scan --json</code> Auto-detects project state</div>
-    </div>
-
-    <ul class="roads-grid-6">
-      <li class="road-card"><span class="road-id">E1</span><strong>Greenfield</strong><p>Blank slate with zero existing code</p></li>
-      <li class="road-card"><span class="road-id">E2</span><strong>Existing Code</strong><p>Adopt into live React/HTML codebase</p></li>
-      <li class="road-card"><span class="road-id">E3</span><strong>Live URL</strong><p>Harvest tokens directly from web address</p></li>
-      <li class="road-card"><span class="road-id">E4</span><strong>Figma Tokens</strong><p>Import DTCG variables from Figma file</p></li>
-      <li class="road-card"><span class="road-id">E5</span><strong>Reference Shot</strong><p>Match aesthetic from visual image</p></li>
-      <li class="road-card"><span class="road-id">E6</span><strong>Tokens Only</strong><p>Compile standalone DTCG JSON tokens</p></li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 6 Entry Roads</div><div>06 / 28</div></footer>
-  <div data-speaker-notes="Never guess project initialization. The scan command detects framework, design tokens, and existing style files automatically."></div>
-</article>
-
-<article class="slide-item slide-layout-pipeline5" id="slide-7" data-index="7">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 2 • Setup Protocol</span></div>
-    <div>07 / 28 • 5-Step Protocol</div>
-  </header>
-
-  <section class="pipeline5-layout">
-    <div class="pipeline5-header">
-      <h2 class="radiant-display-title">5-Step Setup Protocol</h2>
-      <p class="radiant-body-text">Sequential onboarding guarded by mandatory STOP-Gates to prevent token hash drift.</p>
-    </div>
-
-    <ul class="pipeline5-track">
-      <li class="pipe5-step"><span class="pipe5-num">1</span><strong>ui doctor</strong><small>Verify toolchain</small></li>
-      <li class="pipe5-gate">STOP</li>
-      <li class="pipe5-step"><span class="pipe5-num">2</span><strong>ui ds compile</strong><small>DTCG tokens</small></li>
-      <li class="pipe5-gate">STOP</li>
-      <li class="pipe5-step"><span class="pipe5-num">3</span><strong>DESIGN.md</strong><small>Declare soul</small></li>
-      <li class="pipe5-gate">STOP</li>
-      <li class="pipe5-step"><span class="pipe5-num">4</span><strong>ui agents init</strong><small>Wire staff</small></li>
-      <li class="pipe5-gate">STOP</li>
-      <li class="pipe5-step"><span class="pipe5-num">5</span><strong>ui figma</strong><small>Open bridge</small></li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Setup Protocol</div><div>07 / 28</div></footer>
-  <div data-speaker-notes="Following the sequential order eliminates hash drift, broken token pointers, and misconfigured agent personas."></div>
-</article>
-
-<article class="slide-item slide-layout-staff" id="slide-8" data-index="8">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 2 • Virtual Staff</span></div>
-    <div>08 / 28 • Virtual Staff</div>
-  </header>
-
-  <section class="staff-triptych-grid">
-    <article class="staff-card staff-architect">
-      <div class="staff-avatar"><svg class="ph-svg ph-ruler" width="32" height="32" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M235.32,73.37,182.63,20.69a16,16,0,0,0-22.63,0L20.68,160a16,16,0,0,0,0,22.63l52.69,52.68a16,16,0,0,0,22.63,0L235.32,96A16,16,0,0,0,235.32,73.37ZM84.68,224,32,171.31l32-32,26.34,26.35a8,8,0,0,0,11.32-11.32L75.31,128,96,107.31l26.34,26.35a8,8,0,0,0,11.32-11.32L107.31,96,128,75.31l26.34,26.35a8,8,0,0,0,11.32-11.32L139.31,64l32-32L224,84.69Z"/></svg></div>
-      <h3 class="staff-name">System Architect</h3>
-      <div class="staff-role">Role: Structural Layout</div>
-      <p class="staff-desc">Owns DOM tree hierarchy, grid tokens, fluid responsive breakpoints, and semantic landmarks.</p>
-      <div class="staff-badge">Boundary: No Color</div>
-    </article>
-
-    <article class="staff-card staff-stylist">
-      <div class="staff-avatar"><svg class="ph-svg ph-paint-brush" width="32" height="32" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,32a8,8,0,0,0-8-8c-44.08,0-89.31,49.71-114.43,82.63A60,60,0,0,0,32,164c0,30.88-19.54,44.73-20.47,45.37A8,8,0,0,0,16,224H92a60,60,0,0,0,57.37-77.57C182.3,121.31,232,76.08,232,32ZM92,208H34.63C41.38,198.41,48,183.92,48,164a44,44,0,1,1,44,44Zm32.42-94.45q5.14-6.66,10.09-12.55A76.23,76.23,0,0,1,155,121.49q-5.9,4.94-12.55,10.09A60.54,60.54,0,0,0,124.42,113.55Zm42.7-2.68a92.57,92.57,0,0,0-22-22c31.78-34.53,55.75-45,69.9-47.91C212.17,55.12,201.65,79.09,167.12,110.87Z"/></svg></div>
-      <h3 class="staff-name">Craft Stylist</h3>
-      <div class="staff-role">Role: Visual Polish</div>
-      <p class="staff-desc">Owns OKLCH color scales, typographic rhythm, elevation shadows, and micro-interactions.</p>
-      <div class="staff-badge">Boundary: No Layout</div>
-    </article>
-
-    <article class="staff-card staff-auditor">
-      <div class="staff-avatar"><svg class="ph-svg ph-shield" width="32" height="32" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.27,47,25.53a8,8,0,0,0,4.2,0c1-.26,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0Z"/></svg></div>
-      <h3 class="staff-name">Release Auditor</h3>
-      <div class="staff-role">Role: Quality Gates</div>
-      <p class="staff-desc">Executes the 14 linters, audits WCAG 2.2 AA compliance, and enforces Exit 0 release rule.</p>
-      <div class="staff-badge">Boundary: No Code Edits</div>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Virtual Staff</div><div>08 / 28</div></footer>
-  <div data-speaker-notes="Clear separation of duties prevents cognitive confusion. The Auditor never writes code; the Architect never polishes colors."></div>
-</article>
-
-<article class="slide-item slide-layout-verbs" id="slide-9" data-index="9">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 3 • Daily Operations</span></div>
-    <div>09 / 28 • 6 Daily Verbs</div>
-  </header>
-
-  <section class="verbs-matrix-grid">
-    <div class="verbs-terminal-card">
-      <div class="terminal-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span><span>zsh • design-os CLI</span></div>
-      <div class="terminal-body">
-        <div class="t-row"><code>/ui:generate &lt;prompt&gt;</code><span>Synthesize full semantic view</span></div>
-        <div class="t-row"><code>/ui:iterate &lt;feedback&gt;</code><span>Targeted surgical refinement</span></div>
-        <div class="t-row"><code>/ui:audit [surface]</code><span>Execute quality sieve floor</span></div>
-        <div class="t-row"><code>/ui:design &lt;variants&gt;</code><span>Generate contrasting explorations</span></div>
-        <div class="t-row"><code>/ui:tokens &lt;action&gt;</code><span>Compile W3C DTCG variables</span></div>
-        <div class="t-row"><code>/ui:figma &lt;push|pull&gt;</code><span>Synchronize code &amp; desktop canvas</span></div>
-      </div>
-    </div>
-    <div class="verbs-stat-card">
-      <div class="radiant-master-card">
-        <div class="radiant-card-top">
-          <div class="radiant-dots"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-          <h2 class="radiant-display-title">6 Core<br>Daily Verbs</h2>
-          <p class="radiant-body-text">High-velocity CLI ergonomics translating natural language prompts into production code.</p>
-        </div>
-        <div class="radiant-card-bottom">
-          <div class="radiant-hero-number">100%</div>
-          <div class="radiant-hero-label">Natural Language CLI</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 6 Core Daily Verbs</div><div>09 / 28</div></footer>
-  <div data-speaker-notes="Agents translate user intent into structured DTCG tokens and semantic HTML without manual boilerplate overhead."></div>
-</article>
-
-<article class="slide-item slide-layout-figmabridge" id="slide-10" data-index="10">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 3 • Figma Bridge</span></div>
-    <div>10 / 28 • Two-Way Bridge</div>
-  </header>
-
-  <section class="bridge-spatial-grid">
-    <article class="bridge-bank bank-west">
-      <div class="bank-header">West Bank • Code</div>
-      <div class="bank-stat">DTCG JSON</div>
-      <p class="bank-desc">Single source of truth in <code>design/tokens.json</code> compiled to CSS variables.</p>
-      <div class="bank-pill">Push AST →</div>
-    </article>
-
-    <div class="bridge-center-commutator">
-      <div class="commutator-ring">
-        <div class="commutator-port">9410</div>
-        <div class="commutator-label">WS Broker</div>
-      </div>
-      <div class="commutator-lock">Mutex Lock: Active</div>
-    </div>
-
-    <article class="bridge-bank bank-east">
-      <div class="bank-header">East Bank • Canvas</div>
-      <div class="bank-stat">Figma Desktop</div>
-      <p class="bank-desc">Native Figma Variables &amp; Auto-Layout frames syncing in real-time.</p>
-      <div class="bank-pill">← Pull Frames</div>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Figma Desktop Bridge</div><div>10 / 28</div></footer>
-  <div data-speaker-notes="The 2-way bridge guarantees seamless collaboration between developers in IDE and designers in Figma Desktop."></div>
-</article>
-
-<article class="slide-item slide-layout-tokens" id="slide-11" data-index="11">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 3 • Token Pipeline</span></div>
-    <div>11 / 28 • Canonical Tokens</div>
-  </header>
-
-  <section class="tokens-pipeline-grid">
-    <div class="tokens-source-diamond">
-      <div class="source-tag">Canonical Single Source of Truth</div>
-      <div class="source-file">design/tokens.json</div>
-      <div class="source-spec">W3C Design Tokens Community Group (DTCG) Standard</div>
-    </div>
-
-    <ul class="tokens-emit-row">
-      <li class="token-emit-card"><svg class="ph-svg ph-file-code" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,146.34a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L164.69,152l-18.35-18.34a8,8,0,0,1,11.32-11.32Zm-72-24a8,8,0,0,0-11.32,0l-24,24a8,8,0,0,0,0,11.32l24,24a8,8,0,0,0,11.32-11.32L91.31,152l18.35-18.34A8,8,0,0,0,109.66,122.34ZM216,88V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-56-8h28.69L160,51.31Zm40,136V96H152a8,8,0,0,1-8-8V40H56V216H200Z"/></svg><strong>CSS Custom Props</strong><p><code>:root { --color-brand: oklch(...) }</code></p></li>
-      <li class="token-emit-card"><svg class="ph-svg ph-lightning" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"/></svg><strong>Tailwind Plugin</strong><p>theme.extend.colors.brand</p></li>
-      <li class="token-emit-card"><svg class="ph-svg ph-diamonds-four" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M122.34,109.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0,0-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40a8,8,0,0,0,0,11.32ZM128,35.31,156.69,64,128,92.69,99.31,64Zm5.66,111a8,8,0,0,0-11.32,0l-40,40a8,8,0,0,0,0,11.32l40,40a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0,0-11.32ZM128,220.69,99.31,192,128,163.31,156.69,192Zm109.66-98.35-40-40a8,8,0,0,0-11.32,0l-40,40a8,8,0,0,0,0,11.32l40,40a8,8,0,0,0,11.32,0l40-40A8,8,0,0,0,237.66,122.34ZM192,156.69,163.31,128,192,99.31,220.69,128Zm-82.34-34.35-40-40a8,8,0,0,0-11.32,0l-40,40a8,8,0,0,0,0,11.32l40,40a8,8,0,0,0,11.32,0l40-40A8,8,0,0,0,109.66,122.34ZM64,156.69,35.31,128,64,99.31,92.69,128Z"/></svg><strong>Figma Variables</strong><p>Collection: “Brand / Primary”</p></li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Canonical Tokens</div><div>11 / 28</div></footer>
-  <div data-speaker-notes="Never hardcode raw values in code or canvas. All dimensions, colors, and elevations must resolve through DTCG alias tokens."></div>
-</article>
-
-<article class="slide-item slide-layout-sieve" id="slide-12" data-index="12">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 4 • Quality Audit</span></div>
-    <div>12 / 28 • 4 Quality Surfaces</div>
-  </header>
-
-  <section class="sieve-quadrant-grid">
-    <article class="sieve-card chamber-1">
-      <div class="sieve-badge">Surface 01</div>
-      <h3>taste-lint</h3>
-      <p>Catches 14 banned anti-patterns (no purple-on-dark, no glowing borders).</p>
-      <div class="sieve-metric">6-Axis Floor</div>
-    </article>
-
-    <article class="sieve-card chamber-2">
-      <div class="sieve-badge">Surface 02</div>
-      <h3>validate-layout</h3>
-      <p>Structural DOM analysis preventing container soup &gt; 2 and overflow.</p>
-      <div class="sieve-metric">Soup ≤ 2</div>
-    </article>
-
-    <article class="sieve-card chamber-3">
-      <div class="sieve-badge">Surface 03</div>
-      <h3>a11y-lint</h3>
-      <p>Tier-1 accessibility checks for ARIA labels, contrast, and focus targets.</p>
-      <div class="sieve-metric">WCAG 2.2 AA</div>
-    </article>
-
-    <article class="sieve-card chamber-4">
-      <div class="sieve-badge">Surface 04</div>
-      <h3>design-os audit</h3>
-      <p>Full 10-tool release suite required to produce zero static errors.</p>
-      <div class="sieve-metric">Exit 0 Ship</div>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 4 Quality Surfaces</div><div>12 / 28</div></footer>
-  <div data-speaker-notes="Each surface focuses on a distinct defect domain. Full audit must produce Exit 0 before any PR merge."></div>
-</article>
-
-<article class="slide-item slide-layout-triage" id="slide-13" data-index="13">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 4 • Triage Protocol</span></div>
-    <div>13 / 28 • 3-Turn Triage</div>
-  </header>
-
-  <section class="triage-tree-grid">
-    <div class="triage-master-card">
-      <div class="radiant-dots"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-      <h2 class="radiant-display-title">Triage &amp;<br>Autodetect</h2>
-      <p class="radiant-body-text">Every finding follows a strict 3-tier triage rule to avoid infinite refactor loops.</p>
-      <div class="radiant-hero-number">≤ 3 Turns</div>
-      <div class="radiant-hero-label">Max Convergence Loop</div>
-    </div>
-
-    <ul class="triage-tiers-col">
-      <li class="triage-tier-box tier-auto">
-        <span class="t-tag">Tier 1 • Autofix</span>
-        <strong>ui autofix</strong>
-        <p>Deterministic fixes for viewport, image tags, Lucide icons, CDN links.</p>
-      </li>
-      <li class="triage-tier-box tier-refactor">
-        <span class="t-tag">Tier 2 • Refactor</span>
-        <strong>Agent Self-Healing</strong>
-        <p>Refactor layout and component tokens within max 3 turns.</p>
-      </li>
-      <li class="triage-tier-box tier-escalate">
-        <span class="t-tag">Tier 3 • Escalate</span>
-        <strong>Human Review</strong>
-        <p>Escalate unresolvable architectural trade-offs directly to user.</p>
-      </li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Triage Protocol</div><div>13 / 28</div></footer>
-  <div data-speaker-notes="Never enter infinite loop refactors. If an issue cannot be resolved in 3 turns, request human guidance."></div>
-</article>
-
-<article class="slide-item slide-layout-memory" id="slide-14" data-index="14">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 4 • Vector Memory</span></div>
-    <div>14 / 28 • Vector Memory</div>
-  </header>
-
-  <section class="memory-ring-layout">
-    <div class="memory-left-manifold">
-      <div class="manifold-core">
-        <div class="manifold-stat">0.85</div>
-        <div class="manifold-label">Cosine Threshold</div>
-      </div>
-      <div class="manifold-subtext">Local ONNX Embeddings • 100% On-Device Privacy</div>
-    </div>
-
-    <ol class="memory-right-flow">
-      <li class="mem-flow-step">
-        <span class="step-num">01</span>
-        <strong>Recall Query</strong>
-        <p>Incoming brief scans vector space for similar past solutions &amp; critiques.</p>
-      </li>
-      <li class="mem-flow-step">
-        <span class="step-num">02</span>
-        <strong>Primed Work Execution</strong>
-        <p>Host agent generates view primed with distilled lessons to prevent repeat bugs.</p>
-      </li>
-      <li class="mem-flow-step">
-        <span class="step-num">03</span>
-        <strong>Crucible Distillation</strong>
-        <p>Post-generation reflection captures new invariants into <code>.design/memory.json</code>.</p>
-      </li>
-    </ol>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Vector Memory Loop</div><div>14 / 28</div></footer>
-  <div data-speaker-notes="Every design critique and user correction is distilled into permanent memory, compounding organizational craft over time."></div>
-</article>
-
-<article class="slide-item slide-layout-crucible" id="slide-15" data-index="15">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 4 • Crucible</span></div>
-    <div>15 / 28 • Crucible Capture</div>
-  </header>
-
-  <section class="crucible-split-layout">
-    <ul class="crucible-inputs-col">
-      <li class="input-card"><svg class="ph-svg ph-pencil-simple" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg><strong>User Edits</strong><p>Direct manual code corrections</p></li>
-      <li class="input-card"><svg class="ph-svg ph-chat-circle-dots" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"/></svg><strong>Critique Prompts</strong><p>Natural language design feedback</p></li>
-      <li class="input-card"><svg class="ph-svg ph-git-pull-request" width="28" height="28" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M104,64A32,32,0,1,0,64,95v66a32,32,0,1,0,16,0V95A32.06,32.06,0,0,0,104,64ZM56,64A16,16,0,1,1,72,80,16,16,0,0,1,56,64ZM88,192a16,16,0,1,1-16-16A16,16,0,0,1,88,192Zm120-31V110.63a23.85,23.85,0,0,0-7-17L163.31,56H192a8,8,0,0,0,0-16H144a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31L189.66,105a8,8,0,0,1,2.34,5.66V161a32,32,0,1,0,16,0Zm-8,47a16,16,0,1,1,16-16A16,16,0,0,1,200,208Z"/></svg><strong>Merged PR Diffs</strong><p>Approved production changes</p></li>
-    </ul>
-
-    <div class="crucible-vessel">
-      <div class="vessel-badge">Crucible Engine</div>
-      <div class="vessel-output">
-        <code>.design/memory.json</code>
-        <p>Deduplicated, structured, and ranked design memory corpus</p>
-      </div>
-      <div class="vessel-stat">0 Repeat Defects</div>
-    </div>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Crucible Distillation</div><div>15 / 28</div></footer>
-  <div data-speaker-notes="Distilled lessons are structured, tagged by component type, and ranked by frequency of occurrence."></div>
-</article>
-
-<article class="slide-item slide-layout-color" id="slide-16" data-index="16">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 5 • Color Science</span></div>
-    <div>16 / 28 • Color Science</div>
-  </header>
-
-  <section class="color-spectrum-grid">
-    <article class="color-col col-hsl">
-      <div class="color-tag tag-flaw">Legacy HSL Flaw</div>
-      <h3 class="color-title">Perceptual Distortion</h3>
-      <p class="color-desc">Yellow at L=50% is 3x brighter to human eyes than Blue at L=50%, corrupting contrast ratios.</p>
-      <div class="color-stat-box stat-bad">Uneven Lightness</div>
-    </article>
-
-    <article class="color-col col-oklch">
-      <div class="color-tag tag-pass">OKLCH Standard</div>
-      <h3 class="color-title">Perceptual Uniformity</h3>
-      <p class="color-desc">Constant perceived brightness across all 360 hues in Display P3 wide color gamut.</p>
-      <div class="color-stat-box stat-good">ΔEOK ≤ 0.02 Patch</div>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Color Science</div><div>16 / 28</div></footer>
-  <div data-speaker-notes="Color changes are governed by semantic versioning: Delta E under 0.02 is patch, under 0.05 is minor, above 0.05 is major."></div>
-</article>
-
-<article class="slide-item slide-layout-radar" id="slide-17" data-index="17">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 5 • Taste Rubric</span></div>
-    <div>17 / 28 • Taste Radar</div>
-  </header>
-
-  <section class="radar-resonator-grid">
-    <div class="radar-core-card">
-      <div class="core-anchor-badge">Core 0 Mandate</div>
-      <h2 class="radiant-display-title">Consistency</h2>
-      <p class="radiant-body-text">100% token binding and component registry reuse. Breaching Core 0 vetoes release.</p>
-      <div class="core-score-num">≥ 8.0 / 10</div>
-      <div class="core-score-label">Release Quality Floor</div>
-    </div>
-
-    <ul class="radar-axes-ring">
-      <li class="radar-axis-pill"><strong>Layout</strong><span>No soup &gt; 2</span></li>
-      <li class="radar-axis-pill"><strong>Typography</strong><span>Modular scale</span></li>
-      <li class="radar-axis-pill"><strong>Spacing</strong><span>8px rhythm</span></li>
-      <li class="radar-axis-pill"><strong>Iconography</strong><span>Single family</span></li>
-      <li class="radar-axis-pill"><strong>Motion</strong><span>Ladder bounded</span></li>
-      <li class="radar-axis-pill"><strong>Depth</strong><span>Tonal surfaces</span></li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 6+1 Taste Rubric Radar</div><div>17 / 28</div></footer>
-  <div data-speaker-notes="A design cannot ship if Consistency Core 0 is breached, regardless of how high individual aesthetic axes score."></div>
-</article>
-
-<article class="slide-item slide-layout-laws" id="slide-18" data-index="18">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 5 • UX Laws</span></div>
-    <div>18 / 28 • 12 UX Laws</div>
-  </header>
-
-  <section class="laws-cloud-grid">
-    <div class="laws-featured-row">
-    <article class="law-card">
-      <div class="law-num">≥ 44px</div>
-      <strong>Fitts’s Law</strong>
-      <p>Touch target floor for mobile ergonomics.</p>
-    </article>
-    <article class="law-card">
-      <div class="law-num">7 ± 2</div>
-      <strong>Miller’s Law</strong>
-      <p>Cognitive chunking limit in navigation lists.</p>
-    </article>
-    <article class="law-card">
-      <div class="law-num">O(log n)</div>
-      <strong>Hick’s Law</strong>
-      <p>Minimizing decision choices per viewport.</p>
-    </article>
-    <article class="law-card">
-      <div class="law-num">100%</div>
-      <strong>Jakob’s Law</strong>
-      <p>Familiar platform mental models and conventions.</p>
-    </article>
-  </div>
-    <ul class="laws-roster" aria-label="The remaining eight cognitive laws encoded in the linters">
-      <li>Von Restorff</li>
-      <li>Serial Position</li>
-      <li>Tesler’s</li>
-      <li>Parkinson’s</li>
-      <li>Postel’s</li>
-      <li>Zeigarnik</li>
-      <li>Goal Gradient</li>
-      <li>Aesthetic&ndash;Usability</li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 12 Cognitive UX Laws</div><div>18 / 28</div></footer>
-  <div data-speaker-notes="UX laws are encoded into deterministic linter rules so accessibility and ergonomics cannot be bypassed."></div>
-</article>
-
-<article class="slide-item slide-layout-personas" id="slide-19" data-index="19">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 5 • Personas</span></div>
-    <div>19 / 28 • 11 Personas</div>
-  </header>
-
-  <section class="personas-fan-grid">
-    <article class="persona-swatch swatch-swiss">
-      <div class="p-tag">Swiss Editorial</div>
-      <div class="p-sample">Grotesk • Asymmetric</div>
-      <div class="p-stat">Max Contrast</div>
-    </article>
-    <article class="persona-swatch swatch-hyper">
-      <div class="p-tag">Hyper-Density</div>
-      <div class="p-sample">Monospace • 12px Grid</div>
-      <div class="p-stat">Data Heavy</div>
-    </article>
-    <article class="persona-swatch swatch-brutalist">
-      <div class="p-tag">Neo-Brutalist</div>
-      <div class="p-sample">Hard Borders • 0 Radius</div>
-      <div class="p-stat">High Impact</div>
-    </article>
-    <article class="persona-swatch swatch-spatial">
-      <div class="p-tag">Spatial Glass</div>
-      <div class="p-sample">Backdrop Blur • Depth</div>
-      <div class="p-stat">Tonal Glow</div>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 11 Design Personas</div><div>19 / 28</div></footer>
-  <div data-speaker-notes="Explicit persona declarations prevent generic corporate dashboard syndrome."></div>
-</article>
-
-<article class="slide-item slide-layout-motion" id="slide-20" data-index="20">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 6 • Motion Ladder</span></div>
-    <div>20 / 28 • Motion Ladder</div>
-  </header>
-
-  <ul class="motion-ladder-grid">
-    <li class="motion-step step-t1">
-      <span class="m-tier">T1</span>
-      <strong>Micro-Feedback</strong>
-      <p>150ms CSS hover/active</p>
-    </li>
-    <li class="motion-step step-t2">
-      <span class="m-tier">T2</span>
-      <strong>View Transitions</strong>
-      <p>State &amp; route swaps</p>
-    </li>
-    <li class="motion-step step-t3">
-      <span class="m-tier">T3</span>
-      <strong>Entrance Reveal</strong>
-      <p>Scroll-driven CSS</p>
-    </li>
-    <li class="motion-step step-t4">
-      <span class="m-tier">T4</span>
-      <strong>Motion / anime.js</strong>
-      <p>Orchestrated sequences</p>
-    </li>
-    <li class="motion-step step-t5">
-      <span class="m-tier">T5</span>
-      <strong>GSAP Timeline</strong>
-      <p>Pinning &amp; scrubbing</p>
-    </li>
-    <li class="motion-step step-t6">
-      <span class="m-tier">T6</span>
-      <strong>Scroll-Cinema</strong>
-      <p>3D WebGL camera</p>
-    </li>
-  </ul>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • The Motion Ladder</div><div>20 / 28</div></footer>
-  <div data-speaker-notes="Animations must serve narrative purpose. Decorative motion without function is classified as code debt."></div>
-</article>
-
-<article class="slide-item slide-layout-cinema" id="slide-21" data-index="21">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 6 • Scroll Cinema</span></div>
-    <div>21 / 28 • Scroll-Cinema</div>
-  </header>
-
-  <section class="cinema-flight-ribbon">
-    <article class="cinema-leg leg-1">
-      <div class="leg-tag">Leg 01</div>
-      <h3>Hero Orbit</h3>
-      <p>Continuous spatial camera rotation at 60fps.</p>
-    </article>
-    <div class="cinema-seam">
-      <span>Seam 1</span>
-      <strong>Velocity Lock</strong>
-    </div>
-    <article class="cinema-leg leg-2">
-      <div class="leg-tag">Leg 02</div>
-      <h3>Exploded View</h3>
-      <p>Internal geometry breakdown along Z-axis.</p>
-    </article>
-    <div class="cinema-seam">
-      <span>Seam 2</span>
-      <strong>Vector Match</strong>
-    </div>
-    <article class="cinema-leg leg-3">
-      <div class="leg-tag">Leg 03</div>
-      <h3>Macro Core</h3>
-      <p>2K subpixel texture dive with zero rewind.</p>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Scroll-Cinema Flight</div><div>21 / 28</div></footer>
-  <div data-speaker-notes="Seam physics guarantee velocity vector alignment between Hero Orbit, Exploded View, and Macro Core."></div>
-</article>
-
-<article class="slide-item slide-layout-gflow" id="slide-22" data-index="22">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 6 • 3D GFlow</span></div>
-    <div>22 / 28 • 3D GFlow</div>
-  </header>
-
-  <section class="gflow-viewport-grid">
-    <div class="gflow-canvas-card">
-      <div class="gflow-hud-badge">Hardware Accelerated WebGL</div>
-      <div class="gflow-stat-hero">2K</div>
-      <div class="gflow-stat-label">Subpixel Texture Detail</div>
-    </div>
-    <div class="gflow-specs-card">
-      <div class="radiant-master-card">
-        <div class="radiant-card-top">
-          <div class="radiant-dots"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-          <h2 class="radiant-display-title">3D Spatial<br>GFlow</h2>
-          <p class="radiant-body-text">Hardware accelerated shaders with Draco geometry compression and strict lifecycle disposal.</p>
-        </div>
-        <div class="radiant-card-bottom">
-          <div class="radiant-hero-number">0 MB</div>
-          <div class="radiant-hero-label">GPU Memory Leaks</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • 3D Spatial GFlow</div><div>22 / 28</div></footer>
-  <div data-speaker-notes="All WebGL contexts must implement explicit destroy and dispose lifecycles on slide or view unmount."></div>
-</article>
-
-<article class="slide-item slide-layout-vr" id="slide-23" data-index="23">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 6 • Visual Regression</span></div>
-    <div>23 / 28 • VR Baseline</div>
-  </header>
-
-  <section class="vr-matrix-grid">
-    <article class="vr-device-card dev-desktop">
-      <div class="dev-header">Desktop • 1920 × 1080</div>
-      <div class="dev-stat">Pass</div>
-      <p>Zero overflow &amp; full stage scaling</p>
-    </article>
-    <article class="vr-device-card dev-laptop">
-      <div class="dev-header">Laptop • 1440 × 900</div>
-      <div class="dev-stat">Pass</div>
-      <p>Fluid container query responsiveness</p>
-    </article>
-    <article class="vr-device-card dev-mobile">
-      <div class="dev-header">Mobile • 390 × 844</div>
-      <div class="dev-stat">Pass</div>
-      <p>Touch targets ≥ 44px &amp; 0 horizontal clip</p>
-    </article>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Visual Regression</div><div>23 / 28</div></footer>
-  <div data-speaker-notes="Automated headless Playwright sweeps catch subtle overflow and clipping before human review."></div>
-</article>
-
-<article class="slide-item slide-layout-compounding" id="slide-24" data-index="24">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 6 • Taste Voting</span></div>
-    <div>24 / 28 • Compounded Craft</div>
-  </header>
-
-  <section class="compounding-layout-grid">
-    <div class="compounding-hero-card">
-      <div class="radiant-master-card">
-        <div class="radiant-card-top">
-          <div class="radiant-dots"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-          <h2 class="radiant-display-title">Compounded<br>Craft Velocity</h2>
-          <p class="radiant-body-text">Every delivery pass compounds design taste directly into the shared organizational memory.</p>
-        </div>
-        <div class="radiant-card-bottom">
-          <div class="radiant-hero-number">10X</div>
-          <div class="radiant-hero-label">Team Design Velocity</div>
-        </div>
-      </div>
-    </div>
-    <ul class="compounding-stats-col">
-      <li class="c-stat-box"><strong>N Parallel Variants</strong><p>AI synthesizes competing approaches simultaneously</p></li>
-      <li class="c-stat-box"><strong>Taste Vote Gate</strong><p>Scored against 6+1 aesthetic rubric</p></li>
-      <li class="c-stat-box"><strong>Permanent Growth</strong><p>Lessons stored in local vector corpus</p></li>
-    </ul>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Compounded Craft</div><div>24 / 28</div></footer>
-  <div data-speaker-notes="Compounding craft transforms single-use generations into permanent organizational capability."></div>
-</article>
-
-<article class="slide-item slide-layout-refinery" id="slide-25" data-index="25">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 7 • Delivery Pipeline</span></div>
-    <div>25 / 28 • Delivery Refinery</div>
-  </header>
-
-  <ol class="refinery-tower-grid">
-    <li class="refinery-step step-6"><span>06</span><strong>Full-Stack Audit</strong><small>design-os audit (Exit 0)</small></li>
-    <li class="refinery-step step-5"><span>05</span><strong>Rendered A11y</strong><small>WCAG 2.2 AA Contrast</small></li>
-    <li class="refinery-step step-4"><span>04</span><strong>Paired Tokens</strong><small>Dark &amp; Light token pairs</small></li>
-    <li class="refinery-step step-3"><span>03</span><strong>VR Baseline</strong><small>3-Viewport Matrix</small></li>
-    <li class="refinery-step step-2"><span>02</span><strong>Evidence</strong><small>Research grounding</small></li>
-    <li class="refinery-step step-1"><span>01</span><strong>Flow Lint</strong><small>Multi-screen state machine</small></li>
-  </ol>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Delivery Pipeline</div><div>25 / 28</div></footer>
-  <div data-speaker-notes="Never invert the pipeline order. Flow validation must precede token checks to avoid wasted lint runs."></div>
-</article>
-
-<article class="slide-item slide-layout-semver" id="slide-26" data-index="26">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 7 • Semver Matrix</span></div>
-    <div>26 / 28 • Semver Matrix</div>
-  </header>
-
-  <ul class="semver-table-grid">
-    <li class="semver-row semver-patch">
-      <div class="semver-badge">Patch</div>
-      <div class="semver-scope">Non-breaking token tweak, typo fix</div>
-      <div class="semver-metric">ΔEOK ≤ 0.02</div>
-    </li>
-    <li class="semver-row semver-minor">
-      <div class="semver-badge">Minor</div>
-      <div class="semver-scope">New component variant, non-breaking feature</div>
-      <div class="semver-metric">ΔEOK ≤ 0.05</div>
-    </li>
-    <li class="semver-row semver-major">
-      <div class="semver-badge">Major</div>
-      <div class="semver-scope">Brand color overhaul, deleted token alias</div>
-      <div class="semver-metric">ΔEOK &gt; 0.05</div>
-    </li>
-  </ul>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Semver PR Matrix</div><div>26 / 28</div></footer>
-  <div data-speaker-notes="Mathematical Semver prevents downstream web apps from silently breaking on upstream token changes."></div>
-</article>
-
-<article class="slide-item slide-layout-fables" id="slide-27" data-index="27">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 7 • The 5 Fables</span></div>
-    <div>27 / 28 • 5 Design Fables</div>
-  </header>
-
-  <ul class="fables-constellation-grid">
-    <li class="fable-box f1"><strong>Fable 1</strong><span>The Seamless Flight (Kinetic Seams)</span></li>
-    <li class="fable-box f2"><strong>Fable 2</strong><span>The Two-Way Bridge (Port 9410)</span></li>
-    <li class="fable-box f3"><strong>Fable 3</strong><span>The 14-Plank Floor (Zero Luck)</span></li>
-    <li class="fable-box f4"><strong>Fable 4</strong><span>The Motion Ladder (Clamped 60fps)</span></li>
-    <li class="fable-box f5"><strong>Fable 5</strong><span>Sol Vector Distillation (.json)</span></li>
-  </ul>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • The 5 Design Fables</div><div>27 / 28</div></footer>
-  <div data-speaker-notes="Every diagram in DESIGN:OS tells a functional spatial story, rejecting isomorphic card templates."></div>
-</article>
-
-<article class="slide-item slide-layout-launch" id="slide-28" data-index="28">
-  <div class="chrome-accent-strip"></div>
-  <header class="chrome-header">
-    <div class="chrome-brand"><span class="chrome-brand-badge">DESIGN:OS</span><span>Act 7 • Production Ready</span></div>
-    <div>28 / 28 • Ready to Ship</div>
-  </header>
-
-  <section class="launch-monolith-grid">
-    <div class="launch-card">
-      <div class="radiant-dots"><span class="radiant-dot"></span><span class="radiant-dot"></span><span class="radiant-dot"></span></div>
-      <h2 class="radiant-display-title">Ready for<br>Production</h2>
-      <p class="radiant-body-text">Your multi-runtime design system is compiled, audited, and ready to deploy.</p>
-      
-      <div class="launch-cmd-box">
-        <code>/ui:generate landing page for my next big idea</code>
-      </div>
-
-      <div class="launch-stamp">Ship Today • 100% Deterministic</div>
-    </div>
-  </section>
-
-  <footer class="chrome-footer"><div>DESIGN:OS Operating Manual • Production Ready</div><div>28 / 28</div></footer>
-  <div data-speaker-notes="Thank you for completing the DESIGN:OS 28-Slide Masterclass. Build something extraordinary today!"></div>
-</article>
-
-    </div>
-  </main>
-
-  <!-- Presenter Floating Navigation Controls -->
-  <nav class="nav-overlay" aria-label="Deck Controls">
-    <div class="nav-liquid-track">
-      <div class="nav-liquid-blob" id="navLiquidBlob"></div>
-    </div>
-
-    <button class="nav-btn" id="btn-prev" title="Slide trước (←)">
-      <svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </button>
-    <button class="nav-btn" id="btn-next" title="Slide tiếp (→)">
-      <svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-    </button>
-    <button class="nav-btn" id="btn-overview" title="Tổng quan Slide (O)">
-      <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-    </button>
-        <button class="nav-btn" id="btn-lang" title="Select Language (L)" aria-label="Select Language">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-    </button>
-    <button class="nav-btn" id="btn-notes" title="Ghi chú diễn giả (S)">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-    </button>
-    <button class="nav-btn" id="btn-theme" title="Đổi Theme Sáng/Tối (T)">
-      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-    </button>
-    <button class="nav-btn" id="btn-fullscreen" title="Toàn màn hình (F)">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
-    </button>
   </nav>
 
-  
-  <!-- Language Selection Modal (i18n) -->
-  <div class="lang-modal" id="langModal" role="dialog" aria-modal="true" aria-labelledby="langModalTitle">
-    <div class="lang-dialog">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 id="langModalTitle" style="font-size:1.25rem; font-weight:700;">Select Language / 언어 선택 / 言語 / Idioma / Langue / 语言</h2>
-        <button type="button" class="nav-btn" id="btnCloseLang" title="Close" aria-label="Close"><svg class="ph-svg ph-x" width="18" height="18" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
+  <main id="main" class="ds-shell-main">
+    <section aria-labelledby="title">
+      <p class="ds-heading eyebrow" data-level="3">design:os · design CLI · npm ease-design</p>
+      <h1 id="title" class="ds-heading" data-level="1">Describe the interface in plain words. Get production-grade UI back, gated by code.</h1>
+      <p class="lede">A multi-runtime design CLI you drive from Claude Code, Codex CLI or Antigravity with <code>/ui:*</code> commands. One design system; web, Figma and Apple-native execution. The deterministic <code>ui</code> kernel routes, validates contracts and refuses unqualified claims; it never calls a model.</p>
+      <p class="badges"><a href="https://www.npmjs.com/package/ease-design"><img src="https://img.shields.io/npm/v/ease-design?style=for-the-badge&label=npm%20ease-design" alt="npm ease-design: v0.6.0" height="28" onerror="this.onerror=null;this.hidden=true"></a>
+        <a href="https://github.com/jangtrinh/design-os/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/jangtrinh/design-os/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" height="28" onerror="this.onerror=null;this.hidden=true"></a>
+        <a href="https://github.com/jangtrinh/design-os/releases"><img src="https://img.shields.io/github/v/release/jangtrinh/design-os?style=for-the-badge" alt="Latest release" height="28" onerror="this.onerror=null;this.hidden=true"></a>
+        <a href="https://github.com/jangtrinh/design-os/blob/main/LICENSE"><img src="https://img.shields.io/github/license/jangtrinh/design-os?style=for-the-badge" alt="License: MIT" height="28" onerror="this.onerror=null;this.hidden=true"></a>
+        <img src="https://img.shields.io/badge/node-%E2%89%A5%2020-6DA55F?style=for-the-badge&logo=node.js&logoColor=white" alt="Node ≥ 20" height="28" onerror="this.onerror=null;this.hidden=true">
+        <img src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" height="28" onerror="this.onerror=null;this.hidden=true">
+        <img src="https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white" alt="Figma" height="28" onerror="this.onerror=null;this.hidden=true">
+        <img src="https://img.shields.io/badge/Claude_Code-Codex_·_Antigravity-202020?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude Code · Codex · Antigravity" height="28" onerror="this.onerror=null;this.hidden=true">
+        <img src="https://img.shields.io/badge/kernel-no_model_calls-202020?style=for-the-badge" alt="kernel: no model calls" height="28" onerror="this.onerror=null;this.hidden=true"</p>
+      <div class="hero-actions">
+        <a class="ds-btn-pill" data-tone="solid" href="#install"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"/></svg>npm i -g ease-design</a>
+        <a class="text-link" href="https://github.com/jangtrinh/design-os#readme"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"/></svg>Read the README on GitHub <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
       </div>
-      <div class="lang-grid" id="langGrid"></div>
+    </section>
+
+    <section data-pace="tight" aria-labelledby="facts-h">
+      <h2 id="facts-h" class="ds-heading" data-level="3">What it is</h2>
+      <dl class="facts">
+        <div><dt><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></svg>Install</dt><dd><code>npm i -g ease-design</code><small>the <code>ui</code> binary, zero runtime deps</small></dd></div>
+        <div><dt><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M223.68,66.15,135.68,18h0a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32h0l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.82Zm96,129.57V133.82L216,90v85.78Z"/></svg>Kernel</dt><dd>47 commands<small>deterministic, network-free, no model calls</small></dd></div>
+        <div><dt><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H128a8,8,0,0,1,0-16h88A8,8,0,0,1,224,128ZM128,72h88a8,8,0,0,0,0-16H128a8,8,0,0,0,0,16Zm88,112H128a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16ZM82.34,42.34,56,68.69,45.66,58.34A8,8,0,0,0,34.34,69.66l16,16a8,8,0,0,0,11.32,0l32-32A8,8,0,0,0,82.34,42.34Zm0,64L56,132.69,45.66,122.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Zm0,64L56,196.69,45.66,186.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"/></svg>Tests</dt><dd>3,955 kernel tests<small>plus deterministic static and rendered gates</small></dd></div>
+        <div><dt><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,72H208V64a24,24,0,0,0-24-24H40A24,24,0,0,0,16,64v96a24,24,0,0,0,24,24H152v8a24,24,0,0,0,24,24h48a24,24,0,0,0,24-24V96A24,24,0,0,0,224,72ZM40,168a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H184a8,8,0,0,1,8,8v8H176a24,24,0,0,0-24,24v72Zm192,24a8,8,0,0,1-8,8H176a8,8,0,0,1-8-8V96a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Zm-96,16a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h40A8,8,0,0,1,136,208Zm80-96a8,8,0,0,1-8,8H192a8,8,0,0,1,0-16h16A8,8,0,0,1,216,112Z"/></svg>Surfaces</dt><dd>Web · Figma · SwiftUI<small>macOS, iOS, iPadOS marked provisional</small></dd></div>
+        <div><dt><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.31,134l-72,64a8,8,0,1,1-10.63-12L100,128,34.69,70A8,8,0,1,1,45.32,58l72,64a8,8,0,0,1,0,12ZM216,184H120a8,8,0,0,0,0,16h96a8,8,0,0,0,0-16Z"/></svg>Agents</dt><dd>Claude Code · Codex · Antigravity<small><code>ui init --runtime &lt;name&gt;</code></small></dd></div>
+        <div><dt><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M239.43,133l-32-80h0a8,8,0,0,0-9.16-4.84L136,62V40a8,8,0,0,0-16,0V65.58L54.26,80.19A8,8,0,0,0,48.57,85h0v.06L16.57,165a7.92,7.92,0,0,0-.57,3c0,23.31,24.54,32,40,32s40-8.69,40-32a7.92,7.92,0,0,0-.57-3L66.92,93.77,120,82V208H104a8,8,0,0,0,0,16h48a8,8,0,0,0,0-16H136V78.42L187,67.1,160.57,133a7.92,7.92,0,0,0-.57,3c0,23.31,24.54,32,40,32s40-8.69,40-32A7.92,7.92,0,0,0,239.43,133ZM56,184c-7.53,0-22.76-3.61-23.93-14.64L56,109.54l23.93,59.82C78.76,180.39,63.53,184,56,184Zm144-32c-7.53,0-22.76-3.61-23.93-14.64L200,77.54l23.93,59.82C222.76,148.39,207.53,152,200,152Z"/></svg>License</dt><dd>MIT<small>Node ≥ 20</small></dd></div>
+      </dl>
+    </section>
+
+    <section id="why" data-pace="chapter" aria-labelledby="why-h">
+      <h2 id="why-h" class="ds-heading" data-level="2">Why this, compared with a DESIGN.md file, an IDE design agent or a hosted builder</h2>
+      <p>What DESIGN:OS does that the alternatives do not, or do differently. Every claim below is stated in the README with its evidence.</p>
+      <div class="register">
+        <div class="register-row"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-size="20"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"/></svg><h3>The floor is code</h3><p>Deterministic linters run on every delivery; a blocking breach cannot receive a <code>QUALIFIED</code> verdict. Prose guidance a model can talk itself past; a linter it cannot.</p></div>
+        <div class="register-row"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-size="20"><path d="M224,72H208V64a24,24,0,0,0-24-24H40A24,24,0,0,0,16,64v96a24,24,0,0,0,24,24H152v8a24,24,0,0,0,24,24h48a24,24,0,0,0,24-24V96A24,24,0,0,0,224,72ZM40,168a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H184a8,8,0,0,1,8,8v8H176a24,24,0,0,0-24,24v72Zm192,24a8,8,0,0,1-8,8H176a8,8,0,0,1-8-8V96a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Zm-96,16a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h40A8,8,0,0,1,136,208Zm80-96a8,8,0,0,1-8,8H192a8,8,0,0,1,0-16h16A8,8,0,0,1,216,112Z"/></svg><h3>One system, three runtimes</h3><p>The same design system compiles to production HTML, idiomatic Figma through the Figma hand, and SwiftUI-first native routes.</p></div>
+        <div class="register-row"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-size="20"><path d="M223.68,66.15,135.68,18h0a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32h0l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.82Zm96,129.57V133.82L216,90v85.78Z"/></svg><h3>Model-free kernel</h3><p>Routing, contract validation and claim boundaries are deterministic and network-free. Your agent writes the code; the kernel decides whether it qualifies. No API keys.</p></div>
+        <div class="register-row"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-size="20"><path d="M248,124a56.11,56.11,0,0,0-32-50.61V72a48,48,0,0,0-88-26.49A48,48,0,0,0,40,72v1.39a56,56,0,0,0,0,101.2V176a48,48,0,0,0,88,26.49A48,48,0,0,0,216,176v-1.41A56.09,56.09,0,0,0,248,124ZM88,208a32,32,0,0,1-31.81-28.56A55.87,55.87,0,0,0,64,180h8a8,8,0,0,0,0-16H64A40,40,0,0,1,50.67,86.27,8,8,0,0,0,56,78.73V72a32,32,0,0,1,64,0v68.26A47.8,47.8,0,0,0,88,128a8,8,0,0,0,0,16,32,32,0,0,1,0,64Zm104-44h-8a8,8,0,0,0,0,16h8a55.87,55.87,0,0,0,7.81-.56A32,32,0,1,1,168,144a8,8,0,0,0,0-16,47.8,47.8,0,0,0-32,12.26V72a32,32,0,0,1,64,0v6.73a8,8,0,0,0,5.33,7.54A40,40,0,0,1,192,164Zm16-52a8,8,0,0,1-8,8h-4a36,36,0,0,1-36-36V80a8,8,0,0,1,16,0v4a20,20,0,0,0,20,20h4A8,8,0,0,1,208,112ZM60,120H56a8,8,0,0,1,0-16h4A20,20,0,0,0,80,84V80a8,8,0,0,1,16,0v4A36,36,0,0,1,60,120Z"/></svg><h3>Brownfield first</h3><p><code>/ui:learn</code> compiles the design system from your own code, URL or Figma file instead of a persona default. <code>/ui:why</code> answers with provenance from the design memory.</p></div>
+        <div class="register-row"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-size="20"><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z"/></svg><h3>Measured, with the misses published</h3><p>A controlled three-way study: orchestration beat raw prompting by a 1.77-point mean lift in blind review; nine repeat runs scored 8.96 / 10. The same study found two mobile overflow failures, and says so.</p></div>
+        <div class="register-row"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-size="20"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"/></svg><h3>A designer and an agent in one Figma file</h3><p>The separate plugin gives a free write path on Figma Free with one undo step per mutation and a verified 1:1 mirror. <a href="https://jangtrinh.github.io/design-os-figma-plugin/">Its own page</a>.</p></div>
+      </div>
+      <div class="aside">
+        <p><strong>Where the alternatives win, stated plainly:</strong> a DESIGN.md corpus or Claude Design scaffolds a first screen faster with no install; an IDE canvas agent gives a visual editing surface this CLI does not; hosted builders deploy for you. Still open here: Qualified Delivery calibration, the ≥ 7 taste threshold tuned only by reasoning, and native arms at provisional assurance. <a href="https://github.com/jangtrinh/design-os#status--honest-boundaries">Status and honest boundaries</a>.</p>
+      </div>
+    </section>
+
+    <section class="floor" data-pace="default" aria-labelledby="floor-h">
+      <h2 id="floor-h" class="ds-heading" data-level="2">The machine floor</h2>
+      <p>Every standard ships an emitter and a linter in the same commit. Each run reports what it could not do as loudly as what it found.</p>
+      <div class="register">
+        <div class="register-row" data-icon="none"><h3>ui taste-lint · 34</h3><p>The generated-UI tells: <code>transition: all</code>, layout keyframes, missing reduced-motion, overshoot easing, italic display headings, the violet gradient.</p></div>
+        <div class="register-row" data-icon="none"><h3>ui tell-lint · 43</h3><p>Design tells in any language: the side-tab accent, the stock purple palette, nested cards, a kicker above every heading, a pulsing dot that reports nothing.</p></div>
+        <div class="register-row" data-icon="none"><h3>ui validate-layout · 20</h3><p>Structural and overflow safety: unclosed tags, fixed-width overflow, <code>100vw</code> traps, root <code>overflow-x: hidden</code> breaking sticky.</p></div>
+        <div class="register-row" data-icon="none"><h3>ui content-lint · 12</h3><p>Honest copy: placeholder Latin, placeholder names, click-here links, all-caps shouting, typewriter quotes.</p></div>
+        <div class="register-row" data-icon="none"><h3>ui a11y-lint · ds a11y</h3><p>Tier-1 static WCAG checks and token-pair contrast at AA, hover and active included. It never says “compliant”; it says exactly what it checked.</p></div>
+        <div class="register-row" data-icon="none"><h3>a11y-audit · page-shot · ui vr</h3><p>The rendered tier: axe-core over live Chrome, deterministic PNG renders, pixel-level visual-regression gates per component.</p></div>
+      </div>
+    </section>
+
+    <section id="install" data-pace="chapter" aria-labelledby="install-h">
+      <h2 id="install-h" class="ds-heading" data-level="2">Install once</h2>
+<pre class="ds-code"><code>npm install -g ease-design     # installs the ui kernel (zero runtime deps)
+ui doctor                      # verify the install is healthy</code></pre>
+      <p>Wire it into the project you want to design for, then open your agent CLI in that project.</p>
+<pre class="ds-code"><code>cd ~/code/your-app
+ui init --runtime claude       # or: --runtime codex | --runtime antigravity</code></pre>
+<pre class="ds-code"><code>/ui:generate a pricing page for a developer-tools SaaS, 3 tiers, dark theme</code></pre>
+      <p>That is the whole loop: describe, activate, compile, qualify. Have an existing app? Run <code>/ui:learn</code> first so the design system is compiled from your product’s own evidence. The full studio (recall, rendered a11y, the Figma hand) is <code>git clone</code> plus <code>./setup.sh</code>, Node ≥ 22.</p>
+    </section>
+
+    <section data-pace="tight" aria-labelledby="verbs-h">
+      <h2 id="verbs-h" class="ds-heading" data-level="3">Six daily verbs</h2>
+      <div class="register">
+        <div class="register-row" data-icon="none"><h3><code>/ui:generate</code></h3><p>Weak intent compiled into a typed brief and generation contract; one candidate rendered, repaired and delivered by qualification status.</p></div>
+        <div class="register-row" data-icon="none"><h3><code>/ui:learn</code></h3><p>Brownfield onboarding: compile the design system from your project’s own evidence.</p></div>
+        <div class="register-row" data-icon="none"><h3><code>/ui:iterate</code> · <code>/ui:refine</code></h3><p>Tweak in plain words; surgical line-diffs, re-scored; the hash-seal on the design system stays intact.</p></div>
+        <div class="register-row" data-icon="none"><h3><code>/ui:from-url</code></h3><p>Extract a live site’s design system into a portable folder: spec, tokens, audit.</p></div>
+        <div class="register-row" data-icon="none"><h3><code>/ui:to-figma</code></h3><p>Author idiomatic Figma on the canvas: auto-layout, real instances, token-bound variables.</p></div>
+        <div class="register-row" data-icon="none"><h3><code>/ui:why</code></h3><p>Ask why a past design decision was made; the answer carries provenance from the design memory.</p></div>
+      </div>
+    </section>
+
+    <section id="examples" data-pace="chapter" aria-labelledby="ex-h">
+      <h2 id="ex-h" class="ds-heading" data-level="2">Generated by DESIGN:OS</h2>
+      <p>Public sites shipped end to end with this toolchain; each repository documents how to reproduce it. Posters are the first frame of each recording; the live sites are one click away.</p>
+      <ul class="examples">
+        <li><figure class="ds-card"><a class="tile" href="https://jangtrinh.github.io/design-os-drone-showcase/"><div class="ds-card-stage capture-stage"><span class="ds-chip case-plate-chip" data-variant="mono">OPAH ONE</span><img src="assets/examples/opah-poster.jpg" width="1040" height="584" alt="First frame of the OPAH ONE recording: scroll-scrub drone product page" loading="lazy" onerror="this.onerror=null;this.closest('figure').hidden=true"></div></a><figcaption class="case-plate-caption"><p>343 WebP frames in two tiers, accent derived from the footage, five declared lint gates green.</p><cite><a href="https://jangtrinh.github.io/design-os-drone-showcase/">live site</a></cite></figcaption></figure></li>
+        <li><figure class="ds-card"><a class="tile" href="https://jangtrinh.github.io/aura-scrollcinema-demo/"><div class="ds-card-stage capture-stage"><span class="ds-chip case-plate-chip" data-variant="mono">AURA</span><img src="assets/examples/aura-poster.jpg" width="1040" height="585" alt="First frame of the AURA recording: cinematic scroll-film product page" loading="lazy" onerror="this.onerror=null;this.closest('figure').hidden=true"></div></a><figcaption class="case-plate-caption"><p>One scroll value scrubs a 289-frame exploded-view film under the Liquid Glass persona.</p><cite><a href="https://jangtrinh.github.io/aura-scrollcinema-demo/">live site</a></cite></figcaption></figure></li>
+        <li><figure class="ds-card"><a class="tile" href="https://design-os-animejs.vercel.app"><div class="ds-card-stage capture-stage"><span class="ds-chip case-plate-chip" data-variant="mono">Robotic Arm</span><img src="assets/examples/arm-poster.jpg" width="1040" height="584" alt="First frame of the Robotic Arm recording: anime.js-style 3D scrollytelling" loading="lazy" onerror="this.onerror=null;this.closest('figure').hidden=true"></div></a><figcaption class="case-plate-caption"><p>A Three.js arm assembles from wireframe and explodes into a labelled blueprint on one scroll value.</p><cite><a href="https://design-os-animejs.vercel.app">live site</a></cite></figcaption></figure></li>
+        <li><figure class="ds-card"><a class="tile" href="https://jangtrinh.github.io/design-os-rill-architecture/"><div class="ds-card-stage capture-stage"><span class="ds-chip case-plate-chip" data-variant="mono">Rill Architecture</span><img src="assets/examples/rill-poster.jpg" width="1040" height="650" alt="First frame of the Rill Architecture recording: premium service page" loading="lazy" onerror="this.onerror=null;this.closest('figure').hidden=true"></div></a><figcaption class="case-plate-caption"><p>Image-led spatial narrative under GSAP parallax: hero, site analysis, a sticky lived sequence.</p><cite><a href="https://jangtrinh.github.io/design-os-rill-architecture/">live site</a></cite></figcaption></figure></li>
+      </ul>
+      <p style="margin-top:var(--s-12)"><a class="text-link" href="examples/"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40H72A16,16,0,0,0,56,56V72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V184h16a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM72,56H216v62.75l-10.07-10.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L72,109.37ZM184,200H40V88H56v80a16,16,0,0,0,16,16H184Zm32-32H72V132l36-36,49.66,49.66a8,8,0,0,0,11.31,0L194.63,120,216,141.38V168ZM160,84a12,12,0,1,1,12,12A12,12,0,0,1,160,84Z"/></svg>Diagram and chart gallery, built from the repository’s own examples <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></a></p>
+    </section>
+
+    <section id="faq" class="faq" data-pace="chapter" aria-labelledby="faq-h">
+      <h2 id="faq-h" class="ds-heading" data-level="2">FAQ</h2>
+      <details><summary>Does the kernel call a model or need an API key? <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></summary><p>No. The deterministic ui kernel handles routing, contract validation and the fail-closed claim boundary; your own agent CLI writes the implementation. No API keys, no phone-home.</p></details>
+      <details><summary>Which agent CLIs does it work with? <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></summary><p>Claude Code, Codex CLI and Antigravity, through plain-language /ui:* commands installed by ui init --runtime <name>.</p></details>
+      <details><summary>What does it output? <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></summary><p>Production HTML for web surfaces, idiomatic Figma through the opt-in Figma hand, and SwiftUI-first native macOS, iOS and iPadOS routes marked provisional.</p></details>
+      <details><summary>What does “provisional” mean for the native arms? <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></summary><p>The arm can route and produce work today, while live accessibility, device evidence and owner acceptance remain separate qualification gates. It is stated, not hidden.</p></details>
+      <details><summary>Where is the Figma plugin? <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></summary><p>In its own repository, design-os-figma-plugin: the plugin, the figma-agent CLI and the 1:1 mirror, versioned and released separately.</p></details>
+      <details><summary>How is it different from a DESIGN.md file or a hosted UI builder? <svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></summary><p>The floor is code: deterministic linters run on every delivery and a blocking breach cannot receive a QUALIFIED verdict. A prose design file cannot refuse output; this can.</p></details>
+    </section>
+
+    <section aria-labelledby="read-h">
+      <h2 id="read-h" class="ds-heading" data-level="3">Read next</h2>
+      <div class="link-list">
+        <a class="ds-icon-row" href="https://github.com/jangtrinh/design-os#readme"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-lead="true"><path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"/></svg><span class="ds-icon-row-label">README: surfaces, quick start, the machine floor, honest boundaries</span><span class="ds-icon-row-meta">github</span><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
+        <a class="ds-icon-row" href="slides.html"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-lead="true"><path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176Z"/></svg><span class="ds-icon-row-label">Masterclass deck: the complete architecture in 28 slides</span><span class="ds-icon-row-meta">deck</span><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></a>
+        <a class="ds-icon-row" href="examples/"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-lead="true"><path d="M216,40H72A16,16,0,0,0,56,56V72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V184h16a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM72,56H216v62.75l-10.07-10.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L72,109.37ZM184,200H40V88H56v80a16,16,0,0,0,16,16H184Zm32-32H72V132l36-36,49.66,49.66a8,8,0,0,0,11.31,0L194.63,120,216,141.38V168ZM160,84a12,12,0,1,1,12,12A12,12,0,0,1,160,84Z"/></svg><span class="ds-icon-row-label">Diagram and chart gallery</span><span class="ds-icon-row-meta">gallery</span><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></a>
+        <a class="ds-icon-row" href="https://github.com/jangtrinh/design-os/blob/main/CHANGELOG.md"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-lead="true"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg><span class="ds-icon-row-label">Changelog</span><span class="ds-icon-row-meta">github</span><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
+        <a class="ds-icon-row" href="https://www.npmjs.com/package/ease-design"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-lead="true"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></svg><span class="ds-icon-row-label">ease-design on npm</span><span class="ds-icon-row-meta">npm</span><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
+        <a class="ds-icon-row" href="https://jangtrinh.github.io/design-os-figma-plugin/"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" data-lead="true"><path d="M237.66,18.34a8,8,0,0,0-11.32,0l-52.4,52.41-5.37-5.38a32.05,32.05,0,0,0-45.26,0L100,88.69l-6.34-6.35A8,8,0,0,0,82.34,93.66L88.69,100,65.37,123.31a32,32,0,0,0,0,45.26l5.38,5.37-52.41,52.4a8,8,0,0,0,11.32,11.32l52.4-52.41,5.37,5.38a32,32,0,0,0,45.26,0L156,167.31l6.34,6.35a8,8,0,0,0,11.32-11.32L167.31,156l23.32-23.31a32,32,0,0,0,0-45.26l-5.38-5.37,52.41-52.4A8,8,0,0,0,237.66,18.34Zm-116.29,161a16,16,0,0,1-22.62,0L76.69,157.25a16,16,0,0,1,0-22.62L100,111.31,144.69,156Zm57.94-57.94L156,144.69,111.31,100l23.32-23.31a16,16,0,0,1,22.62,0l22.06,22A16,16,0,0,1,179.31,121.37ZM88.57,35A8,8,0,0,1,103.43,29l8,20A8,8,0,0,1,96.57,55ZM24.57,93A8,8,0,0,1,35,88.57l20,8A8,8,0,0,1,49,111.43l-20-8A8,8,0,0,1,24.57,93ZM231.43,163a8,8,0,0,1-10.4,4.46l-20-8A8,8,0,1,1,207,144.57l20,8A8,8,0,0,1,231.43,163Zm-64,58.06A8,8,0,0,1,152.57,227l-8-20A8,8,0,0,1,159.43,201Z"/></svg><span class="ds-icon-row-label">The Figma plugin and figma-agent CLI</span><span class="ds-icon-row-meta">plugin</span><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ds-shell-footer">
+    <div class="ds-shell-footer-inner">
+      <a class="wordmark" href="https://jang-personal-site.vercel.app/">JANG<span>®</span></a>
+      <nav class="ds-shell-footer-nav" aria-label="Footer">
+        <a class="ds-tab" href="https://github.com/jangtrinh/design-os"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"/></svg>GitHub</a>
+        <a class="ds-tab" href="https://www.npmjs.com/package/ease-design">npm</a>
+        <a class="ds-tab" href="https://github.com/jangtrinh/design-os/blob/main/LICENSE">MIT</a>
+        <a class="ds-tab" href="#main">Back to top</a>
+      </nav>
     </div>
-  </div>
-
-  <!-- Speaker Notes Drawer -->
-  <aside class="speaker-notes-drawer" id="speakerNotesDrawer" aria-label="Presenter Speaker Notes">
-    <div class="notes-tag">Speaker Notes (Press 'S' to toggle)</div>
-    <div id="speakerNotesText" style="line-height: 1.6;"></div>
-  </aside>
-
-  <!-- Progress Bar -->
-  <div class="progress-bar-deck" id="progressBarDeck"></div>
-
-  <!-- Overview Grid Modal -->
-  <div class="overview-modal" id="overviewModal">
-    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 100%; margin: 0 auto; width: 100%;">
-      <h2 style="font-size: var(--font-size-xl); font-weight: 800;">Tổng Quan 28 Slide Masterclass</h2>
-    </div>
-    <div class="overview-grid" id="overviewGrid" style="max-width: 100%; margin: 0 auto; width: 100%;">
-      <!-- Injected via JS -->
-    </div>
-  </div>
-
-  
-  
-
-  <!-- Deck orchestration (vanilla; no animation library) -->
-      <!-- Deck Translations Dictionary (i18n) -->
-  <script src="./translations.js"></script>
-
-  <!-- Deck orchestration (vanilla; no animation library) -->
-  <script src="./deck.js" defer></script>
+  </footer>
+</div>
 </body>
 </html>
