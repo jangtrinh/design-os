@@ -1,0 +1,18 @@
+# DESIGN:OS (ease-design)
+
+> Design CLI for Claude Code, Codex and Antigravity: describe the interface in plain words, get production-grade UI back, gated by code.
+
+A multi-runtime design CLI driven from Claude Code, Codex CLI or Antigravity with `/ui:*` commands. One design system; web, Figma and Apple-native execution. The deterministic UI kernel routes, validates contracts, and refuses unqualified claims without calling external models.
+
+## Documentation
+
+- [Landing Page](https://jangtrinh.github.io/design-os/): Overview of design CLI, runtime gates, examples, and installation.
+- [Design OS Slides](https://jangtrinh.github.io/design-os/slides.html): Interactive slide deck detailing system design and architecture.
+- [GitHub Repository](https://github.com/jangtrinh/design-os): Source code, package distribution, and contribution guide.
+- [npm Package](https://www.npmjs.com/package/ease-design): Official npm registry package for ease-design.
+
+## Core Capabilities
+
+- **Command Surface**: `/ui:draft`, `/ui:spec`, `/ui:gate`, `/ui:render`, `/ui:inspect`.
+- **Deterministic Taste Gates**: Enforces layout, contrast, accessibility, typography ladders, and token compliance.
+- **Cross-Platform**: Compiles to clean HTML/CSS/Tailwind, Figma Desktop via local bridge, and native SwiftUI.
