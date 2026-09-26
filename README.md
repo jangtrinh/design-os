@@ -503,7 +503,7 @@ geometry never reaches the artifact, and the redraw carries a ledger of what it 
 ## Quick start
 
 ```sh
-npm install -g ease-design     # installs the `ui` kernel (zero runtime deps)
+npm i -g ease-design           # installs the `ui` kernel (zero runtime deps)
 ui doctor                      # verify the install is healthy
 ```
 
@@ -530,29 +530,14 @@ scroll engine and the asset gates behind the showcase grid.
 
 ### Full studio (clone)
 
-```sh
-git clone https://github.com/jangtrinh/design-os.git && cd design-os && ./setup.sh
-```
-
-One idempotent script builds and links the whole studio, not just the kernel: semantic
-recall, the living-agent evolution/heartbeat/harvest loop, rendered accessibility audits,
-and the tenant + gflow scroll-cinema toolchain — repo-only hands the npm kernel doesn't
-ship. The Figma plugin (and its 1:1 mirror) installs from
-[its own repo](https://github.com/jangtrinh/design-os-figma-plugin). Needs
-**Node ≥ 22** (the recall hand) and [`uv`](https://docs.astral.sh/uv/) for the `design-os`
-umbrella; `./setup.sh --check` verifies prerequisites without changing anything.
-
-One hand is **opt-in, never silent**: `gflow` (Google Flow — the scroll-cinema asset
-generator). An interactive run explains what it is, that it needs a paid AI Ultra/Pro
-subscription, and that it automates a real browser session on *your* Google account — then
-asks. A non-interactive run skips it. `--with-gflow` / `--no-gflow` answer ahead of time.
-Skipping costs nothing but the ability to generate *new* footage, and `design-os doctor`
-reports the gap up front instead of failing mid-generation.
+Maintainer-only. Using DESIGN:OS on a project needs only the two commands above; the
+clone-and-`./setup.sh` studio build is documented under
+[Contributing / full studio](#contributing--full-studio).
 
 | Get it | How | What you get | Update |
 |---|---|---|---|
 | **Kernel** | `npm i -g ease-design` | the 46-command `ui` binary + `/ui:*` adapters — generate, gates, tokens, DS, tenant scroll engine | `npm i -g ease-design@latest` |
-| **Full studio** | `git clone` + `./setup.sh` | everything above at HEAD + recall, rendered a11y, heartbeat/evolution, and the opt-in gflow browser hand | `git pull` + `design-os update` |
+| **Full studio** (maintainers) | `git clone` + `./setup.sh` | everything above at HEAD + recall, rendered a11y, heartbeat/evolution, and the opt-in gflow browser hand | `git pull` + `design-os update` |
 | **Figma plugin** | [design-os-figma-plugin](https://github.com/jangtrinh/design-os-figma-plugin) | the plugin + `figma-agent` CLI + the 1:1 mirror — versioned in its own repo | its own repo's releases |
 
 The `ui` kernel never phones home — it is deterministic and network-free by design, so it
@@ -1224,6 +1209,27 @@ Four gates stay green (`typecheck` · `lint` · `build` · `test`), the `ui` ker
 zero-runtime-dependency and deterministic, and **every new standard ships its emitter and
 its linter in the same commit**. See [CONTRIBUTING.md](CONTRIBUTING.md) and
 [CHANGELOG.md](CHANGELOG.md).
+
+### Contributing / full studio
+
+```sh
+git clone https://github.com/jangtrinh/design-os.git && cd design-os && ./setup.sh
+```
+
+One idempotent script builds and links the whole studio, not just the kernel: semantic
+recall, the living-agent evolution/heartbeat/harvest loop, rendered accessibility audits,
+and the tenant + gflow scroll-cinema toolchain — repo-only hands the npm kernel doesn't
+ship. The Figma plugin (and its 1:1 mirror) installs from
+[its own repo](https://github.com/jangtrinh/design-os-figma-plugin). Needs
+**Node ≥ 22** (the recall hand) and [`uv`](https://docs.astral.sh/uv/) for the `design-os`
+umbrella; `./setup.sh --check` verifies prerequisites without changing anything.
+
+One hand is **opt-in, never silent**: `gflow` (Google Flow — the scroll-cinema asset
+generator). An interactive run explains what it is, that it needs a paid AI Ultra/Pro
+subscription, and that it automates a real browser session on *your* Google account — then
+asks. A non-interactive run skips it. `--with-gflow` / `--no-gflow` answer ahead of time.
+Skipping costs nothing but the ability to generate *new* footage, and `design-os doctor`
+reports the gap up front instead of failing mid-generation.
 
 ## License
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
+
+### Added
+- **`schemas/rulings.schema.json` (draft)** — the seven fields every ruling already carries plus an
+  optional `approved_by[]` trail (`role`: PM | design-lead | BA | owner | source, `person`, `at`).
+  Schema only: nothing in `ui` validates it yet. All 314 rulings in a real project ledger conform;
+  one has `since: null`, which the draft accepts.
+- **`docs/team-review-door.md`** — the approval matrix, the CODEOWNERS pattern a project adds on
+  `design/`, and how `approved_by` is filled.
+
+### Changed
+- **README install path** — `npm i -g ease-design` + `ui init` is the way to use DESIGN:OS on a
+  project. The clone + `./setup.sh` studio build is documented as maintainer-only under
+  "Contributing / full studio".
+
 ## 2026-09-05 - a failure that names the file, and tests that can see the message
 
 ### Fixed
