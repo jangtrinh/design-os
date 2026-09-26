@@ -26,6 +26,8 @@
 - **`templates/hooks/design-os-read-trace.cjs`**, a Claude PreToolUse/PostToolUse hook that
   appends the trace: paths, byte counts and event kinds only — never contents, prompts or
   command text, never `.env*`. It is append-only, silent and exits 0 on every path.
+  A redirect into `/dev/null` is not counted as a mutation, and `readmeOpened` is true only for the
+  repository root `README.md`, not a nested one.
 
 ## 2026-09-05 - a failure that names the file, and tests that can see the message
 

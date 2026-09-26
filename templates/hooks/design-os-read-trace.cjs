@@ -29,6 +29,8 @@ const MUTATING_BASH_RE = new RegExp(
   'npm\\s+(i|install|uninstall|update)|git\\s+(add|commit|checkout|reset|apply|stash|rm|mv|merge|rebase|restore))(\\s|$)' +
   '|sed\\s+(-[a-zA-Z]*i|--in-place)|(^|[^0-9&>])>{1,2}\\s*[^&\\s]'
 );
+// A redirect into /dev/null discards output and changes nothing on disk; drop it before matching.
+const DEV_NULL_REDIRECT_RE = /(^|[^>])&?\d*>{1,2}\s*\/dev\/null(?=[\s;&|)]|$)/g;
 const READ_BASH_RE = /(^|[\s;&|(])(cat|head|tail|less|more|bat|sed\s+-n)\s/;
 
 function tracked(rel) {
@@ -54,7 +56,7 @@ function decide(input, root) {
   if (post) {
     if (MUTATING_TOOLS.has(tool)) out.push({ kind: 'mutate', tool });
     else if (tool === 'Bash' && typeof ti.command === 'string' && !GATE_RE.test(ti.command) &&
-             MUTATING_BASH_RE.test(ti.command)) out.push({ kind: 'mutate', tool });
+             MUTATING_BASH_RE.test(ti.command.replace(DEV_NULL_REDIRECT_RE, '$1 '))) out.push({ kind: 'mutate', tool });
     return out;
   }
   if (tool === 'Skill') {

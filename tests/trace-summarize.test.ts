@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -48,6 +48,11 @@ describe("summarizeTrace — context loaded before the first mutation", () => {
     expect(summarizeTrace([read("design/soul.md", 10)])).toMatchObject({ readmeOpened: false, indexOpened: false });
     expect(summarizeTrace([read("README.md", 10), read("knowledge/index.json", 5)]))
       .toMatchObject({ readmeOpened: true, indexOpened: true });
+  });
+
+  it("readmeOpened means the repository root README.md, not a nested one", () => {
+    expect(summarizeTrace([read("knowledge/x/README.md", 10)]).readmeOpened).toBe(false);
+    expect(summarizeTrace([read("README.md", 10)]).readmeOpened).toBe(true);
   });
 
   it("a read that happens only AFTER the first mutate still counts as opened, not as pre-mutate context", () => {
@@ -222,5 +227,18 @@ describe("design-os-read-trace hook → ui trace summarize (emitter/reader round
     const text = readFileSync(TRACE(dir), "utf8");
     expect(text).toContain('"kind":"mutate"');
     expect(text).not.toContain("echo x");
+  });
+
+  it("a redirect into /dev/null is not a mutation; any other redirect still is", () => {
+    const dir = projectWithFiles();
+    const mutates = (command: string): boolean => {
+      rmSync(join(dir, ".design-os"), { recursive: true, force: true });
+      call(dir, "PostToolUse", "Bash", { command });
+      return existsSync(TRACE(dir)) && readFileSync(TRACE(dir), "utf8").includes('"kind":"mutate"');
+    };
+    for (const c of ["npm test > /dev/null", "npm test >> /dev/null", "npm test 2>/dev/null", "npm test &> /dev/null",
+      "npm test >/dev/null 2>&1", "git status", "cmd 2>&1"]) expect([c, mutates(c)]).toEqual([c, false]);
+    for (const c of ["echo x > file.txt", "echo x >> file.txt", "echo x > /dev/nullx", "echo x > /dev/null; echo y > out.txt"])
+      expect([c, mutates(c)]).toEqual([c, true]);
   });
 });

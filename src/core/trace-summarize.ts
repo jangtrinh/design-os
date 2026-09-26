@@ -57,7 +57,6 @@ function parseLines(lines: readonly string[]): { records: TraceRecord[]; malform
 }
 
 const toPosix = (p: string): string => p.replace(/\\/g, "/");
-const basename = (p: string): string => p.slice(p.lastIndexOf("/") + 1);
 
 /** `es:designer`, `es-designer` and a plugin-prefixed `x:es-designer` are the same skill. */
 function isEsDesigner(name: unknown): boolean {
@@ -112,7 +111,7 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
           filesBeforeFirstMutate.push(path);
         }
       }
-      if (basename(path) === "README.md") readmeOpened = true;
+      if (path === "README.md") readmeOpened = true;
       if (path === "knowledge/index.json" || path.endsWith("/knowledge/index.json")) indexOpened = true;
       if (esDesignerLoaded && path.endsWith("es-designer/checklist.md")) checklistRead = true;
     }
