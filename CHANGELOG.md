@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-26 - a rulings contract you can lint and render
+
+### Added
+- **`schemas/rulings.schema.json`** — the contract for curated design rulings: required
+  `id, category, text, scope, source[], since, verified_by`; optional `status`
+  (`active|superseded|retired`), `verified_at`, `approved_by[]` (role, person, date),
+  `principle[]`, `supersedes[]`, `superseded_by`, `scope.screens[]`. `scope` accepts
+  `"global"` and the `{apps, features}` shape real projects already use.
+- **`ui knowledge lint <rulings.json> [--root <dir>] [--json]`** — schema validation, dead
+  source-anchor check (repo-path `source[]` entries must exist under `--root`), duplicate and
+  dangling ruling ids, and a warning when a ruling's text says `SUPERSEDED` but it has no
+  `superseded_by`. Exits 1 on errors. Deterministic, no network.
+- **`ui knowledge render <rulings.json> --out <dir> [--lang en,vi]`** — writes
+  `rulings.<lang>.md` grouped by category then id. English is the only source of truth; `vi`
+  translates the fixed headings and labels only, never the ruling text.
+
 ## 2026-09-05 - a failure that names the file, and tests that can see the message
 
 ### Fixed

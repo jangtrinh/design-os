@@ -18,6 +18,8 @@ import { runEffectMatrix } from "./knowledge-effect-matrix.js";
 import { runGradientMatrix } from "./knowledge-gradient-matrix.js";
 import { runKnowledgeCheck, walkKnowledge } from "./knowledge-check.js";
 import { runKnowledgeActivate } from "./knowledge-activate.js";
+import { runRulingsLint } from "./knowledge-rulings-lint.js";
+import { runRulingsRender } from "./knowledge-rulings-render.js";
 
 const CMD = "knowledge";
 
@@ -29,6 +31,8 @@ Usage:
   ui knowledge effect-matrix [--dir <repo-root>] [--json]
   ui knowledge gradient-matrix [--dir <repo-root>] [--json]
   ui knowledge index [--dir <repo-root>] [--emit]
+  ui knowledge lint <rulings.json> [--root <repo-root>] [--json]
+  ui knowledge render <rulings.json> --out <dir> [--lang en,vi] [--json]
 
 Subcommands:
   activate       Route an available typed surface with explicit assurance; fail closed when unavailable or invalid
@@ -37,6 +41,11 @@ Subcommands:
                  Without --emit it prints to stdout; with --emit it writes
                  knowledge/index.json — one small map an agent reads to pick a
                  knowledge file, instead of loading README's prose table
+  lint           Validate a rulings file against schemas/rulings.schema.json, check that repo-path
+                 source[] entries exist under --root (default cwd), and warn on SUPERSEDED text
+                 without superseded_by; exit 1 on errors
+  render         Render rulings.<lang>.md (grouped by category, then id) into --out; 'vi' translates
+                 only the fixed headings/labels, never the English ruling text
   effect-matrix  Emit the Canvas UI effect matrix's machine columns (Effect/slug/family)
                  from knowledge/canvas-ui/catalog.json to stdout — never writes into
                  knowledge/canvas-effect-direction.md
@@ -95,6 +104,9 @@ Error codes (activate):
   UNKNOWN_CAPABILITY | UNSUPPORTED_INPUT | CAPABILITY_UNQUALIFIED
   Successful receipts report route availability separately from assurance and qualified-delivery claim policy.
 
+Error codes (lint / render):
+  BAD_ARG | UNKNOWN_FLAG | FILE_NOT_FOUND | BAD_JSON (lint) | BAD_LANG | BAD_RULINGS (render) | WRITE_ERROR
+
 Error codes (effect-matrix / gradient-matrix):
   BAD_ARG       Missing/unknown subcommand
   UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
@@ -151,8 +163,10 @@ export const knowledgeCommand = {
       case "effect-matrix": return runEffectMatrix(parsed);
       case "gradient-matrix": return runGradientMatrix(parsed);
       case "index": return runIndex(parsed);
+      case "lint": return runRulingsLint(parsed);
+      case "render": return runRulingsRender(parsed);
       case undefined: {
-        const msg = "ui knowledge requires a subcommand (activate, check, effect-matrix, gradient-matrix, index). Run 'ui knowledge --help'.";
+        const msg = "ui knowledge requires a subcommand (activate, check, effect-matrix, gradient-matrix, index, lint, render). Run 'ui knowledge --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
       }
       default: {
