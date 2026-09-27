@@ -11,8 +11,54 @@
 import type { TellRule } from "./tell-rules.js";
 import { finding, sameOwner, isAiPurple, isAiCyan, isCream, isGrey, isSaturated } from "./tell-rules.js";
 import { thr } from "./tell-thresholds.js";
+import { hexToOKLCH } from "./color-convert.js";
 
 const SECTION = "Colour and light";
+
+/**
+ * A persona family's declared accent, set by the `ui gate --family <slug>`
+ * plumbing (PR-FU5b A1) before a run and cleared after. `FloorSeverity` has no
+ * fourth tier (finding-schema.ts is deliberately out of this change's scope —
+ * see the PR report), so legitimacy is expressed as a DIFFERENT, unalarmed
+ * message at the rule's existing non-failing `advisory` severity, never a new
+ * severity string: `advisory` already never fails a build, which is the
+ * behaviour a hypothetical "info" tier would describe here.
+ */
+export interface FamilyAccentContext {
+  slug: string;
+  /** OKLCH hue (0–360) of the family's declared `color.accent` token. */
+  hueDeg: number;
+}
+
+let familyAccentContext: FamilyAccentContext | undefined;
+
+/** Set (or clear, with `undefined`) the family-accent context for the next run. */
+export function setFamilyAccentContext(ctx: FamilyAccentContext | undefined): void {
+  familyAccentContext = ctx;
+}
+
+/** Read-only for tests: the family-accent context currently configured. */
+export function getFamilyAccentContext(): FamilyAccentContext | undefined {
+  return familyAccentContext;
+}
+
+const FAMILY_ACCENT_HUE_TOLERANCE_DEG = 15;
+
+/** Shortest distance between two hue angles on the 360° wheel. */
+function circularHueDistance(a: number, b: number): number {
+  const d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+/** Is `hex` within the configured family's accent-hue tolerance? False with no context. */
+function isFamilyAccentHue(hex: string): boolean {
+  if (familyAccentContext === undefined) return false;
+  try {
+    return circularHueDistance(hexToOKLCH(`#${hex}`).h, familyAccentContext.hueDeg) <= FAMILY_ACCENT_HUE_TOLERANCE_DEG;
+  } catch {
+    return false;
+  }
+}
 
 export const aiColorPalette: TellRule = {
   id: "ai-color-palette",
@@ -27,20 +73,54 @@ export const aiColorPalette: TellRule = {
     const cyan = colors.filter((c) => isAiCyan(c.hex));
     const hits = [...purple, ...cyan];
     if (hits.length === 0 && gradientPurple.length === 0) return [];
-    const swatches = [...new Set([
-      ...purple.map((c) => `#${c.hex}`),
-      ...cyan.map((c) => `#${c.hex}`),
-      ...gradientPurple.flatMap((g) => g.stops.filter((s) => isAiPurple(s.hex)).map((s) => `#${s.hex}`)),
-    ])];
-    return [
-      finding(aiColorPalette, {
-        message: `purple/violet or cyan-on-dark accents (${swatches.slice(0, 4).join(", ")}) — the most recognisable palette tell`,
-        line: (hits[0] ?? gradientPurple[0])?.at.line,
-        expected: "a palette chosen for this product",
-        actual: swatches.join(", "),
-        fixHint: "pick a hue the brand can defend and derive the scale from it",
-      }),
-    ];
+
+    // A1 (PR-FU5b): a hit whose hue is within tolerance of the configured
+    // family's declared accent is the family's OWN choice, not a generic
+    // AI-generation tell — split hits into illegitimate (still flagged) and
+    // legitimate (acknowledged, not alarmed) rather than filtering silently,
+    // so a family run and a bare run never disagree about what was SEEN.
+    const illegitimateHits = hits.filter((c) => !isFamilyAccentHue(c.hex));
+    const legitimateHits = hits.filter((c) => isFamilyAccentHue(c.hex));
+    const illegitimateGradientPurple = gradientPurple.filter(
+      (g) => !g.stops.filter((s) => isAiPurple(s.hex)).every((s) => isFamilyAccentHue(s.hex)),
+    );
+    const legitimateGradientPurple = gradientPurple.filter((g) => !illegitimateGradientPurple.includes(g));
+
+    const findings = [];
+
+    if (illegitimateHits.length > 0 || illegitimateGradientPurple.length > 0) {
+      const swatches = [...new Set([
+        ...illegitimateHits.map((c) => `#${c.hex}`),
+        ...illegitimateGradientPurple.flatMap((g) => g.stops.filter((s) => isAiPurple(s.hex)).map((s) => `#${s.hex}`)),
+      ])];
+      findings.push(
+        finding(aiColorPalette, {
+          message: `purple/violet or cyan-on-dark accents (${swatches.slice(0, 4).join(", ")}) — the most recognisable palette tell`,
+          line: (illegitimateHits[0] ?? illegitimateGradientPurple[0])?.at.line,
+          expected: "a palette chosen for this product",
+          actual: swatches.join(", "),
+          fixHint: "pick a hue the brand can defend and derive the scale from it",
+        }),
+      );
+    }
+
+    if (familyAccentContext !== undefined && (legitimateHits.length > 0 || legitimateGradientPurple.length > 0)) {
+      const swatches = [...new Set([
+        ...legitimateHits.map((c) => `#${c.hex}`),
+        ...legitimateGradientPurple.flatMap((g) => g.stops.filter((s) => isAiPurple(s.hex)).map((s) => `#${s.hex}`)),
+      ])];
+      findings.push(
+        finding(aiColorPalette, {
+          message: `family accent (${familyAccentContext.slug}) — ${swatches.slice(0, 4).join(", ")} within ${FAMILY_ACCENT_HUE_TOLERANCE_DEG}° of the declared palette hue, not the generated-UI tell`,
+          line: (legitimateHits[0] ?? legitimateGradientPurple[0])?.at.line,
+          expected: "the family's own declared accent",
+          actual: swatches.join(", "),
+          fixHint: "no action — this hue is licensed by the family's declared accent",
+        }),
+      );
+    }
+
+    return findings;
   },
 };
 

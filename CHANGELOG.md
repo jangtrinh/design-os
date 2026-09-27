@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-27 - the gate knows the family: accent legitimacy and the thin-family floor (PR-FU5b)
+
+### Added
+- **`ui gate --family <slug>` now legitimizes the family's own accent for `ai-color-palette`**:
+  a purple/violet or cyan hit whose OKLCH hue is within ±15° of the family's declared
+  `starting_tokens.tokens.color.accent.$value` (`knowledge/personas/families.json`) is reported
+  as `family accent (<slug>) — …, not the generated-UI tell` instead of the generic
+  "most recognisable palette tell" alarm — the same non-failing `advisory` severity either way.
+  Absent `--family`, or a hue outside tolerance, the alarm is unchanged (`src/core/tell-rules-color.ts`'s
+  `setFamilyAccentContext`, wired from `src/commands/gate.ts` around the existing `--family` /
+  `gate_policy` plumbing (PR-FU3-r2 A8) — no new CLI flag).
+- **`ui persona lint <families.json> [--min-screens-per-app 6] [--json]`** (new command,
+  `src/commands/persona.ts` + `src/core/persona-lint-thin-family.ts`): the thin-family floor.
+  Reports every family's `screens/apps` ratio and flags `thin` when it is below the floor
+  (default 6) or `apps < 3`; exits 1 when a thin family lacks a `history` entry whose note
+  contains "thin" or "provisional" — a declared gap, not a silent one.
+- `knowledge/personas/README.md`: one sentence each on the accent-legitimacy rule and the
+  thin-family floor.
+
 ## 2026-09-27 - the gate must honour its own inputs (PR-FU3-r2)
 
 ### Fixed
