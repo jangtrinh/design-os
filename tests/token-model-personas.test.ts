@@ -89,4 +89,72 @@ describe("PR-FU3-r2 A6 — nested groups, $type: 'string', and fontFamily arrays
     const css = emitCss(resolveTokens(tree));
     expect(css).toContain("--elevation-shadow-color: #0000001f;");
   });
+
+  // Controller fix round: an alias written against the NESTED JSON path (as a
+  // human/generator would naturally write it) must resolve, not just an alias
+  // written against the flattened tokenName.
+  it("resolves an alias written against the nested path, not only the flattened name", () => {
+    const tree = parseTokenFile({
+      color: { text: { primary: { $type: "color", $value: "#111111" } } },
+      semantic: { text: { $type: "color", $value: "{color.text.primary}" } },
+    });
+    const resolved = resolveTokens(tree);
+    const semanticText = resolved.find((t) => t.path === "semantic.text");
+    expect(semanticText?.value).toBe("#111111");
+  });
+
+  it("resolves the same alias when written against the flattened name too", () => {
+    const tree = parseTokenFile({
+      color: { text: { primary: { $type: "color", $value: "#111111" } } },
+      semantic: { text: { $type: "color", $value: "{color.text-primary}" } },
+    });
+    const resolved = resolveTokens(tree);
+    const semanticText = resolved.find((t) => t.path === "semantic.text");
+    expect(semanticText?.value).toBe("#111111");
+  });
+
+  it("a composite member alias also resolves against the nested path", () => {
+    const tree = parseTokenFile({
+      color: { border: { subtle: { $type: "color", $value: "#0000001f" } } },
+      elevation: {
+        shadow: {
+          $type: "shadow",
+          $value: { color: "{color.border.subtle}", offsetX: "0px", offsetY: "2px", blur: "8px", spread: "0px" },
+        },
+      },
+    });
+    const resolved = resolveTokens(tree);
+    const shadow = resolved.find((t) => t.path === "elevation.shadow");
+    expect((shadow?.value as { color: string }).color).toBe("#0000001f");
+  });
+});
+
+describe("PR-FU3-r2 A6 (controller fix round) — shadow compiles to one box-shadow value", () => {
+  it("emits ONE box-shadow value (offsetX offsetY blur spread color) in addition to the per-member vars", () => {
+    const tree = parseTokenFile({
+      elevation: {
+        shadow: {
+          $type: "shadow",
+          $value: { color: "#0000001f", offsetX: "0px", offsetY: "2px", blur: "8px", spread: "0px" },
+        },
+      },
+    });
+    const css = emitCss(resolveTokens(tree));
+    // The composite value.
+    expect(css).toContain("--elevation-shadow: 0px 2px 8px 0px #0000001f;");
+    // The per-member vars remain (ds-preview-sections.ts's shadowValue() composes from them).
+    expect(css).toContain("--elevation-shadow-offset-x: 0px;");
+    expect(css).toContain("--elevation-shadow-offset-y: 2px;");
+    expect(css).toContain("--elevation-shadow-blur: 8px;");
+    expect(css).toContain("--elevation-shadow-spread: 0px;");
+    expect(css).toContain("--elevation-shadow-color: #0000001f;");
+  });
+
+  it("real data: web-serif-display-plus-sans's elevation.shadow compiles to one box-shadow value", () => {
+    const family = FAMILIES.families.find((f) => f.slug === "web-serif-display-plus-sans");
+    expect(family).toBeDefined();
+    const tree = parseTokenFile(family!.starting_tokens.tokens);
+    const css = emitCss(resolveTokens(tree));
+    expect(css).toContain("--elevation-shadow: 0px 2px 8px 0px #0000001f;");
+  });
 });

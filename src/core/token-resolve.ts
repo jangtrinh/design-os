@@ -62,6 +62,28 @@ function aliasPath(alias: string): string {
   return alias.slice(1, -1); // strip { }
 }
 
+/**
+ * Resolve an alias's dotted path to an index entry, trying the NESTED path
+ * exactly as written first, falling back to its FLATTENED form (PR-FU3-r2
+ * A6): `token-model.ts`'s parser flattens a category's nested groups into one
+ * tokenName joined by "-" (`font.family.body` → `font.family-body`), so an
+ * alias written against the original JSON nesting (`{color.text.primary}`,
+ * 3+ segments) would otherwise never match the flattened index key
+ * (`color.text-primary`). The category (first segment) never gets flattened,
+ * so the fallback rejoins every segment AFTER it with "-".
+ */
+function lookupAliasTarget(targetPath: string, index: Map<string, Token>): { path: string; token: Token } | undefined {
+  const direct = index.get(targetPath);
+  if (direct !== undefined) return { path: targetPath, token: direct };
+
+  const dot = targetPath.indexOf(".");
+  if (dot === -1) return undefined;
+  const flattened = `${targetPath.slice(0, dot)}.${targetPath.slice(dot + 1).replace(/\./g, "-")}`;
+  if (flattened === targetPath) return undefined;
+  const viaFlattened = index.get(flattened);
+  return viaFlattened !== undefined ? { path: flattened, token: viaFlattened } : undefined;
+}
+
 // ─── Core resolver ────────────────────────────────────────────────────────────
 
 /**
@@ -89,13 +111,14 @@ function resolveValue(
     for (const [memberKey, memberVal] of Object.entries(v)) {
       if (isAlias(memberVal)) {
         const targetPath = memberVal.slice(1, -1);
-        const targetToken = index.get(targetPath);
-        if (targetToken === undefined) {
+        const found = lookupAliasTarget(targetPath, index);
+        if (found === undefined) {
           throw new TokenError(
             "DANGLING_ALIAS",
             `dangling alias: '${memberVal}' in composite member '${currentPath}.${memberKey}' — '${targetPath}' not found`,
           );
         }
+        const targetToken = found.token;
         // Validate the alias target's type against the required type for this
         // member slot. If no requirement is defined for this slot, fall back to
         // the target's own type (permissive) so unknown/future composite types
@@ -136,20 +159,24 @@ function resolveAlias(
   visited: Set<string>,
   expectedType: TokenType,
 ): Token["$value"] {
-  const targetPath = aliasPath(alias);
+  const aliasWritten = aliasPath(alias);
+  const found = lookupAliasTarget(aliasWritten, index);
+  if (found === undefined) {
+    throw new TokenError(
+      "DANGLING_ALIAS",
+      `dangling alias: '${alias}' in token '${originPath}' — '${aliasWritten}' not found`,
+    );
+  }
+  // Cycle detection keys on the RESOLVED index path, not the alias as written
+  // (PR-FU3-r2 A6): the nested and flattened spellings of the same target must
+  // count as the same node, or a chain could revisit it under the other name.
+  const targetPath = found.path;
+  const target = found.token;
 
   if (visited.has(targetPath)) {
     throw new TokenError(
       "ALIAS_CYCLE",
       `alias cycle detected: ${originPath} → ${targetPath} (already visited: ${[...visited].join(" → ")})`,
-    );
-  }
-
-  const target = index.get(targetPath);
-  if (target === undefined) {
-    throw new TokenError(
-      "DANGLING_ALIAS",
-      `dangling alias: '${alias}' in token '${originPath}' — '${targetPath}' not found`,
     );
   }
 

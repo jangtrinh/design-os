@@ -19,7 +19,19 @@
   (`family.body` → `family-body`), so the emitted CSS variable name is unaffected either way.
   `$type: "string"` (a non-design-value leaf, e.g. `elevation.shadow: "none"`) is now accepted
   and passed through verbatim. A `fontFamily` token's `$value` may now be a font-stack array;
-  it compiles to ONE comma-separated CSS value, never split into `-0`/`-1`/`-2` variables.
+  it compiles to ONE comma-separated CSS value, never split into `-0`/`-1`/`-2` variables. A
+  `shadow` composite (`src/core/token-emit.ts`) now ALSO emits one `box-shadow` CSS value
+  (`offsetX offsetY blur spread color`) under its own path's variable name, alongside the
+  existing per-member variables (an existing consumer, `ds-preview-sections.ts`'s
+  `shadowValue()`, composes its own `box-shadow` string from those). An alias whose path is
+  written against the NESTED source JSON (`{color.text.primary}`, matching how a human or
+  generator would naturally spell a path into `font.family.body`-shaped groups) now resolves
+  correctly — `src/core/token-resolve.ts`'s alias lookup tries the alias exactly as written
+  first, falling back to its flattened form (`color.text-primary`) — cycle detection keys on
+  the resolved index path so the two spellings of one target are never treated as different
+  nodes. (Controller fix round, same PR: the first pass only made the flattened spelling
+  resolve; the nested spelling — the one a persona token file, and a human, would actually
+  write — still threw `DANGLING_ALIAS`.)
 - **`ui tell-lint`'s `shape-assembled-illustration`** no longer fires on a cluster of rounded
   sibling containers that carry text in their own children (a `<dl>` of metric cards, each a
   `div` wrapping a `dt`/`dd` pair) — the "textless" check compared a structure fact's own line
