@@ -11,7 +11,7 @@
  * must handle null to produce a synthetic body.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 
 // ─── Registries ───────────────────────────────────────────────────────────────
@@ -134,46 +134,45 @@ export function resolveTemplatePath(
   return absPath;
 }
 
-// ─── Frontmatter description ──────────────────────────────────────────────────
+// ─── Discovery description ────────────────────────────────────────────────────
+
+const TEMPLATE_KINDS = new Set(["workflows", "skills", "journeys"]);
+const catalogueCache = new Map<string, Map<string, string | null>>();
+
+function loadDescriptionCatalogue(path: string): Map<string, string | null> {
+  const cached = catalogueCache.get(path);
+  if (cached !== undefined) return cached;
+  let doc: { templates: Array<{ path: string; description: string | null }> };
+  try {
+    doc = JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    throw new Error(
+      `template description catalogue unreadable at ${path}; regenerate it with ` +
+        "`ui templates catalogue --out schemas/template-descriptions.json`",
+    );
+  }
+  const map = new Map(doc.templates.map((t) => [t.path, t.description] as const));
+  catalogueCache.set(path, map);
+  return map;
+}
 
 /**
- * Read the `description:` value from a template's YAML frontmatter, or null
- * when the file has no frontmatter / no description line.
+ * The `description` of a registered template (what + when + trigger terms), or
+ * null when the template carries none or `absPath` is not a template location
+ * (<root>/templates/{workflows,skills,journeys}/<name>.md).
  *
- * This is the single source of the wrapper discovery descriptions (what +
- * when + trigger terms). The wrapper builders (wrapper-shapes.ts) stay pure
- * string functions — the fs read lives here, next to the other template fs
- * access, and the adapters pass the result in explicitly.
- *
- * Deterministic, intentionally narrow parse: a leading `---` line, a closing
- * `---` line, and a single-line `description:` between them. Surrounding
- * single/double quotes are stripped.
+ * The value comes from <root>/schemas/template-descriptions.json, emitted from
+ * the template frontmatter by `ui templates catalogue`; the kernel never parses
+ * template Markdown at runtime. A missing or unparseable catalogue throws.
  */
 export function readTemplateDescription(absPath: string): string | null {
-  let raw: string;
-  try {
-    raw = readFileSync(absPath, "utf8");
-  } catch {
-    return null;
-  }
-  if (!raw.startsWith("---\n")) return null;
-  const closeIdx = raw.indexOf("\n---", 4);
-  if (closeIdx === -1) return null;
-  const block = raw.slice(4, closeIdx);
-  for (const line of block.split("\n")) {
-    const m = /^description:\s*(.+)\s*$/.exec(line);
-    if (m !== null && m[1] !== undefined) {
-      let v = m[1].trim();
-      if (
-        (v.startsWith('"') && v.endsWith('"')) ||
-        (v.startsWith("'") && v.endsWith("'"))
-      ) {
-        v = v.slice(1, -1).replace(/\\"/g, '"');
-      }
-      return v.length > 0 ? v : null;
-    }
-  }
-  return null;
+  const kindDir = dirname(absPath);
+  const templatesDir = dirname(kindDir);
+  if (basename(templatesDir) !== "templates" || !TEMPLATE_KINDS.has(basename(kindDir))) return null;
+  const catalogue = loadDescriptionCatalogue(
+    join(dirname(templatesDir), "schemas", "template-descriptions.json"),
+  );
+  return catalogue.get(`${basename(kindDir)}/${basename(absPath)}`) ?? null;
 }
 
 // ─── Hasher ───────────────────────────────────────────────────────────────────

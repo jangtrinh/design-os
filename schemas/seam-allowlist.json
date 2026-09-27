@@ -2,20 +2,13 @@
   "version": 1,
   "reads": [
     {
-      "file": "src/adapters/templates.ts",
-      "line": 155,
-      "readCall": "readFileSync(absPath, \"utf8\")",
+      "file": "src/commands/templates-catalogue.ts",
+      "line": 48,
+      "readCall": "readFileSync(join(root, \"templates\", rel))",
       "paths": [
-        "*/templates/*/*.md",
-        "*/templates/journeys/*.md",
-        "*/templates/skills/*.md",
-        "*/templates/workflows/*.md",
-        "templates/*/*.md",
-        "templates/journeys/*.md",
-        "templates/skills/*.md",
-        "templates/workflows/*.md"
+        "*/templates/*"
       ],
-      "data": "Discovery descriptions extracted from template YAML frontmatter for runtime wrappers",
+      "data": "Template bytes and frontmatter descriptions read by the maintainer emitter (ui templates catalogue) to write and check the catalogue; authoring-time only, the kernel runtime reads the JSON",
       "proposedJsonHome": "schemas/template-descriptions.json"
     },
     {

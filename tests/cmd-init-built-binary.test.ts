@@ -215,6 +215,8 @@ describe("templates walk: sentinel sniff rejects decoy and finds real templates"
     const repoTemplates = join(REPO_ROOT, "templates");
     const realTemplatesLink = join(root, "templates");
     symlinkSync(repoTemplates, realTemplatesLink, "dir");
+    // schemas/ is templates/'s sibling in a real package; descriptions are read from it
+    symlinkSync(join(REPO_ROOT, "schemas"), join(root, "schemas"), "dir");
 
     // fake-pkg/dist/cli.js — copy the real binary one level deeper
     const fakePkgDir = join(root, "fake-pkg");

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-27 - template descriptions move from prose to JSON
+
+### Added
+- **`ui templates catalogue [--out <file>] [--check]`** — the only code that parses
+  template frontmatter; emits `schemas/template-descriptions.json` (path, description
+  or explicit null, source SHA-256). `--check` writes nothing and exits 1 on schema
+  violation or drift; `npm run build` now runs it, so CI catches a stale catalogue.
+- **`ui templates lint [catalogue.json]`** — validates the catalogue against
+  `schemas/template-descriptions.schema.json`, plus uniqueness, path order and
+  registry coverage.
+
+### Changed
+- `readTemplateDescription` reads the catalogue instead of the template Markdown;
+  every registered template returns the same description as before. A missing or
+  unparseable catalogue now throws and names the regenerate command.
+- `schemas/seam-allowlist.json`: the runtime read of template frontmatter is gone
+  (kernel runtime prose reads 5 → 4); the emitter's authoring-time read is listed
+  as its own entry, so `ui seam lint` reports reads 5 / allowed 5 / new 0.
+
 ## 2026-09-27 - the `design/` directory contract
 
 ### Added
