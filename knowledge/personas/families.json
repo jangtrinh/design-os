@@ -300,10 +300,18 @@
     {
       "slug": "ios-quiet-single-accent-neo-grotesque",
       "platform": "ios",
-      "apps": 10,
-      "screens": 23,
+      "apps": 4,
+      "screens": 28,
       "medoid": "Perplexity",
       "nearest": "ios-cool-blue-single-accent",
+      "history": [
+        {
+          "action": "narrowed",
+          "removed": ["Grok Bot", "LINE", "Mesh", "Noom", "Notion Mail", "Oura"],
+          "kept": ["Perplexity", "Brink", "corner", "Rodeo"],
+          "note": "Executes the owner decision Q3 'run one more extraction round' (2026-09-27 afternoon, candidates/README.md Blind-review follow-up; source plans/260926-2257-persona-rebuild-research/evidence/q3-q4/q3-per-app.md). 54 more Mobbin screens thickened the 6 thin members; the family shrinks to a 4-app core (Perplexity, Brink, corner, Rodeo) that stays nearest Perplexity under both the re-run and the fixed-medoid test (Brink 2.0, Rodeo 4.0, corner 3.0 from Perplexity). apps/screens recomputed from the kept members' measured screen totals (Perplexity 2 + Brink 13 + corner 7 + Rodeo 6 = 28; Rodeo excludes screen 043, timed out twice). LINE (8 screens) moves to ios-hairline-neutral-neo-grotesque, its nearest old medoid (LinkedIn, distance 3.5-5.0 depending on reading) — see that family's own history entry. NOT silently re-homed: Grok Bot (via Grok, 12 screens, nearest LinkedIn 1.5 vs Perplexity 8.0 — never belonged to this family; the single baseline Grok Bot screen was the only link) drops out of every family, unassigned. Residual (equidistant or ambiguous, deliberately left unassigned rather than re-homed): Noom (7 screens, nearest old medoid Lloyds Mobile Banking, distance 8.5 — moves toward serif, see the Q4 candidate dossier ios-serif-display-plus-sans.md), Notion Mail (7 screens, tied Perplexity 5.5 = LinkedIn 5.5 — no longer anchored), Mesh (12 screens, nearest Perplexity 5.0 / LinkedIn 5.5 — tie-distance region, stays weakly), Oura (7 screens, nearest Perplexity 4.0 / Starbucks 4.5 by the majority signature, but 2 of 7 screens are serif-display dark-mode heroes — an editorial outlier, not a quiet-neo-grotesque member). attributes and starting_tokens are NOT recomputed: no `ui persona`/extraction emitter for these fields exists in this repo, so the pre-Q3 (10-app) values are left in place and are now stale for this narrower member set pending a future re-extraction pass."
+        }
+      ],
       "attributes": [
         {"attribute": "brand_volume", "value": "quiet", "share": 0.83, "platformShare": 0.45, "weak": false},
         {"attribute": "letterform", "value": "neo-grotesque", "share": 0.83, "platformShare": 0.53, "weak": false},
@@ -355,13 +363,20 @@
     {
       "slug": "ios-hairline-neutral-neo-grotesque",
       "platform": "ios",
-      "apps": 8,
-      "screens": 39,
+      "apps": 9,
+      "screens": 47,
       "medoid": "LinkedIn",
       "nearest": "ios-geometric-high-contrast",
       "gate_policy": {
         "gpt-thin-border-wide-shadow": "error"
       },
+      "history": [
+        {
+          "action": "moved-in",
+          "added": ["LINE"],
+          "note": "LINE moved in from ios-quiet-single-accent-neo-grotesque (see that family's own history entry), executing the owner decision Q3 'run one more extraction round' (2026-09-27 afternoon, candidates/README.md Blind-review follow-up; source plans/260926-2257-persona-rebuild-research/evidence/q3-q4/q3-per-app.md). LINE thickened from 2 to 8 screens (icons-only imagery, hairline borders, green accent on 4/8) and its nearest old medoid is LinkedIn (distance 3.5-5.0 depending on reading), which is this family's medoid. apps 8->9, screens 39->47 (+1 app, +8 screens = LINE's full measured total, not previously counted here). attributes and starting_tokens are NOT recomputed: no `ui persona`/extraction emitter for these fields exists in this repo, so the pre-Q3 (8-app) values are left in place and are now stale for this member set pending a future re-extraction pass."
+        }
+      ],
       "attributes": [
         {"attribute": "elevation", "value": "hairline-borders", "share": 0.79, "platformShare": 0.51, "weak": false},
         {"attribute": "letterform", "value": "neo-grotesque", "share": 0.74, "platformShare": 0.53, "weak": false},

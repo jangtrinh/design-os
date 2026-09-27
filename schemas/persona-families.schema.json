@@ -53,12 +53,20 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["action", "merged", "note"],
+              "required": ["action", "note"],
               "properties": {
-                "action": { "enum": ["merged"] },
+                "action": { "enum": ["merged", "narrowed", "moved-in"] },
                 "merged": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+                "kept": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+                "removed": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+                "added": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
                 "note": { "type": "string", "minLength": 1 }
-              }
+              },
+              "allOf": [
+                { "if": { "properties": { "action": { "const": "merged" } } }, "then": { "required": ["merged"] } },
+                { "if": { "properties": { "action": { "const": "narrowed" } } }, "then": { "required": ["removed", "kept"] } },
+                { "if": { "properties": { "action": { "const": "moved-in" } } }, "then": { "required": ["added"] } }
+              ]
             }
           },
           "starting_tokens": {

@@ -34,8 +34,8 @@ describe("knowledge/personas/families.json", () => {
     expect(by("ios")).toHaveLength(6);
     expect(by("web").reduce((n, f) => n + f.apps, 0)).toBe(31);
     expect(by("web").reduce((n, f) => n + f.screens, 0)).toBe(153);
-    expect(by("ios").reduce((n, f) => n + f.apps, 0)).toBe(36);
-    expect(by("ios").reduce((n, f) => n + f.screens, 0)).toBe(156);
+    expect(by("ios").reduce((n, f) => n + f.apps, 0)).toBe(31);
+    expect(by("ios").reduce((n, f) => n + f.screens, 0)).toBe(169);
     const unreliable = FAMILIES.unreliableAttributes.map((a) => a.attribute).sort();
     expect(unreliable).toEqual(["corner_radius", "weight_contrast"]);
     for (const f of FAMILIES.families) {
