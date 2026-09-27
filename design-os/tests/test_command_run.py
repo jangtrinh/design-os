@@ -120,3 +120,34 @@ def test_missing_kernel_exits_1(runner: CliRunner, fake_bin, tmp_path: Path) -> 
     res = runner.invoke(app, ["run", str(_brief(tmp_path)), "--out", str(tmp_path / "o"), "--json"])
     assert res.exit_code == 1
     assert json.loads(res.stdout)["error"]["code"] == "KERNEL_NOT_FOUND"
+
+
+def test_relative_screens_and_out_resolve_against_project_not_the_conductor_cwd(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A relative --screens/--out must resolve against --project, never process cwd
+    (reports/acceptance-rerun-2.md finding 3): the README's own invocation shape
+    (`cd design-os && design-os run ... --screens acceptance/...`) is exactly this trap."""
+    project = tmp_path / "project"
+    project.mkdir()
+    screens = _screens(project, a="ok")
+    brief = _brief(project)
+
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+
+    args = [
+        "run", str(brief), "--project", str(project),
+        "--out", "run-out", "--screens", "screens", "--json",
+    ]
+    res = runner.invoke(app, args)
+    assert res.exit_code == 0, res.stdout
+
+    out = project / "run-out"
+    assert out.is_dir(), "run-out must be written under --project, not the conductor's cwd"
+    assert not (elsewhere / "run-out").exists()
+    run_doc = json.loads((out / "run.json").read_text())
+    assert run_doc["steps"]["verify"]["status"] == "done"
+    gates = json.loads((out / "gates.json").read_text())
+    assert gates["screens"][0]["screen"] == "a"

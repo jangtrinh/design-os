@@ -60,10 +60,19 @@ def _rel(path: Path, start: Path) -> str:
     return os.path.relpath(path, start)
 
 
+def _under_project(path: Path | None, project: Path) -> Path | None:
+    """A relative ``--screens``/``--out`` resolves against ``--project``, never the process cwd."""
+    if path is None or path.is_absolute():
+        return path
+    return project / path
+
+
 def conduct(
     *, brief_path: Path, project: Path, out: Path, screens_dir: Path | None,
     candidates: Path | None, feature: str | None, clock: kc.Clock = kc.utc_now,
 ) -> RunResult:
+    out = _under_project(out, project) or out
+    screens_dir = _under_project(screens_dir, project)
     out.mkdir(parents=True, exist_ok=True)
     started = clock().isoformat()
     spans: dict[str, list[dict[str, Any]]] = {s: [] for s in STEPS}
