@@ -1,0 +1,6 @@
+{
+  "screen": "Org Usage / Summary",
+  "what_was_wrong": "Empty state showed a blank chart area with no explanation.",
+  "what_is_right": "Show an inline empty state with the reason and one next action.",
+  "evidence": ["figma-comment:approved-2026-09-27", "docs/alpha.md#one"]
+}
