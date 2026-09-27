@@ -16,7 +16,7 @@ import sys
 import typer
 
 from design_os import plugins
-from design_os.commands import audit as audit_cmd
+from design_os.commands.audit_group import audit_app
 from design_os.commands import doctor as doctor_cmd
 from design_os.commands import evolution as evolution_cmd
 from design_os.commands import harvest as harvest_cmd
@@ -69,7 +69,7 @@ def root() -> None:
 # Central registration keeps ``app`` in one module and avoids a commands→cli circular
 # import (mirrors the doctor pattern). The ui passthrough needs Click context settings so
 # raw args / unknown options reach ``ctx.args`` untouched.
-app.command(name="audit")(audit_cmd.audit)
+app.add_typer(audit_app, name="audit")
 app.command(name="doctor")(doctor_cmd.doctor)
 app.command(name="evolution")(evolution_cmd.evolution)
 app.command(name="harvest")(harvest_cmd.harvest)

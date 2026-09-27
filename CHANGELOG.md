@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-09-28 - audit.batch.v1: the batch audit runner in CI (PR-W10b)
+
+### Added
+- **`design-os audit batch <project> --caps <caps.json> --out <dir> [--json]`** (new
+  `design-os/src/design_os/commands/audit_batch/` package): walks a project's HTML pages
+  (respecting the kernel's own SKIP_DIRS), runs the frozen gate set — `ui gate`,
+  `ui token-coverage`, `ui build-evidence lint` when a sibling `evidence/` dir exists —
+  through the UNCHANGED `ui` kernel, and writes one JSON receipt per page plus a run
+  manifest. Deterministic, no network, no model calls. `design-os audit <target>` (the
+  existing single-file/project audit) is unchanged and now reachable as `design-os audit page
+  <target>`, the default leaf of the new `audit` command group.
+- **Frozen caps, fail-closed**: `design-os/caps/audit-batch.caps.json` ships `maxPages`,
+  `maxSecondsPerPage`, `totalBudgetSeconds`. Exceeding any of them aborts the run with the cap
+  named in the error (`CAP_EXCEEDED`); it never silently truncates or keeps going past a cap.
+  A single page's own tool crash (a non-`ok:true` kernel envelope) is NOT a cap violation — its
+  receipt records the error and the run continues; the batch exits non-zero only on a genuine
+  runner error, never on a page finding or a page crash.
+- **Re-run state (SQLite, TP-00B durability discipline)**: `<out>/state.sqlite3`
+  (WAL journal mode, `synchronous=FULL`, bounded busy-timeout) tracks each page's content
+  hash; an unchanged page is skipped on the next run instead of re-audited.
+- **CI**: a new step in the existing `design-os` job runs `audit.batch.v1` on this repository's
+  own `site/` pages with the checked-in caps and uploads the receipts + manifest as a build
+  artifact. The batch is an audit, not a gate — it cannot fail CI on a page finding.
+- `evidence/w10b/tp-02-review.md` (plan folder): reviews the TP-01/TP-00B/TP-02 contracts this
+  runner draws on and states, per contract, what is reused, rewritten, or not applicable.
+
 ## 2026-09-27 - the gate knows the family: accent legitimacy and the thin-family floor (PR-FU5b)
 
 ### Added
