@@ -19,6 +19,41 @@
 - `knowledge/personas/README.md`: one sentence each on the accent-legitimacy rule and the
   thin-family floor.
 
+## 2026-09-27 - Persuade evidence: r7 fix, r8 rule, scroll-story probe (PR-FU5a)
+
+### Fixed
+- **`ui build-evidence lint`'s r7** (font check) no longer passes a font-check value that is a plain
+  JS object with a `false` member. The old check did `Boolean(data[key])`, and `Boolean({...})` is
+  always `true` for any non-null object — so `{"fontsCheck": {"serif": true, "sans": false}}` PASSed
+  even though the sans face never rendered. r7 now requires the value to be a bare `true`, or an
+  object whose EVERY member is `true`; any `false`, non-boolean member, or non-boolean top-level
+  value now FAILs, naming the offending key in the reason (`fontsCheck.sans`) so the operator does
+  not have to open the JSON (`src/core/build-evidence-rules-probe.ts`).
+
+### Added
+- **`ui build-evidence lint` r8 "Persuade evidence"**: a new rule for marketing/landing-page evidence
+  folders, on when the folder holds `contact-sheet-build.png`, `concept.md`, or `--mode persuade` is
+  passed (SKIPPED otherwise — an "Operate" folder). Requires both `contact-sheet-build.png` and
+  `contact-sheet-bar.png` (or a non-empty `contact-sheet-bar.NOT-CAPTURED.txt` naming the capture
+  error), a `critic-*.md` carrying a rubric total `N/16` and one of `SHIP-CANDIDATE|REVISE|REJECT`,
+  and a scroll-story probe output in the folder (`src/core/build-evidence-rules-persuade.ts`).
+- **`ui scroll-story <frames-dir> [--json]`**: reads a scroll capture's ordered frames
+  (`f0001.png`, `f0002.png`, … — `scroll-frames.mjs`'s output), decodes each PNG with `node:zlib`
+  only (reusing the existing zero-dependency codec in `src/core/png-codec.ts`), downsamples every
+  frame to a 32xN grey grid, and reports `changeRatios` (mean abs grey diff / 255 between adjacent
+  frames), `staticRun` (longest run of near-identical adjacent pairs — a frozen/paused capture), and
+  `layoutVariance` (variance of the row-energy profile across the whole sequence), then an
+  informational `story: ACTIVE | FLAT` verdict — never a gate; exit 0 for any readable directory,
+  exit 2 only when the directory itself is missing or unreadable (`src/core/scroll-story-kernel.ts`,
+  `src/commands/scroll-story.ts`). r8's scroll-story check greps for the same report markers the
+  command's text output emits, so the emitter and the linter cannot drift apart.
+- Real run on `plans/260926-2305-design-os-revamp/evidence/landing-1/{scroll-build,scroll-bar-white-desert}`
+  (table: `plans/260926-2305-design-os-revamp/evidence/fu5a/real-run.md`): both captures read
+  `ACTIVE` under this probe; `scroll-build`'s `layoutVariance` (4868.24) is actually HIGHER than
+  `scroll-bar-white-desert`'s (3092.96) — the opposite of the critic's "story told by scrolling"
+  ranking in `critic-taste-duel.md`. Recorded as measured; thresholds were fixed from the synthetic
+  red-first fixtures before this run and were not adjusted to fit the narrative.
+
 ## 2026-09-27 - the gate must honour its own inputs (PR-FU3-r2)
 
 ### Fixed

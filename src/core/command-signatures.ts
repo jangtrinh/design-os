@@ -68,6 +68,19 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  persona: {
+    summary: "Persona-family corpus checks (thin-family floor)",
+    subcommands: {
+      lint: {
+        summary: "Thin-family floor: flag families below the screens/app ratio or the min app-count floor",
+        positionals: [{ name: "<families.json>", required: true, summary: "Persona-families file to check" }],
+        flags: [
+          { name: "min-screens-per-app", type: "string", summary: "Minimum screens/apps ratio before a family is flagged thin (default 6)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON"],
+      },
+    },
+  },
   templates: {
     summary: "Emit and lint the template description catalogue",
     subcommands: {
@@ -440,28 +453,26 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     summary: "The build-loop standard's linter half (knowledge/build-loop.md)",
     subcommands: {
       lint: {
-        summary: "Check r1-r7 over a builder's evidence folder; PASS/FAIL/SKIPPED per rule",
+        summary: "Check r1-r8 over a builder's evidence folder; PASS/FAIL/SKIPPED per rule",
         positionals: [{ name: "<dir>", required: true, summary: "Evidence folder to check" }],
-        flags: [{ name: "widths", type: "string", summary: "Comma-separated required widths (default 375,768,1440)" }],
+        flags: [
+          { name: "widths", type: "string", summary: "Comma-separated required widths (default 375,768,1440)" },
+          { name: "mode", type: "string", summary: "\"persuade\" forces r8 (Persuade evidence) on" },
+        ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DIR_NOT_FOUND"],
       },
     },
   },
 
-  persona: {
-    summary: "Persona-family corpus checks (thin-family floor)",
-    subcommands: {
-      lint: {
-        summary: "Thin-family floor: flag families below the screens/app ratio or the min app-count floor",
-        positionals: [{ name: "<families.json>", required: true, summary: "Persona-families file to check" }],
-        flags: [
-          { name: "min-screens-per-app", type: "string", summary: "Minimum screens/apps ratio before a family is flagged thin (default 6)" },
-        ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON"],
-      },
+  "scroll-story": {
+    summary: "Reads a scroll capture's ordered frames and reports ACTIVE or FLAT (informational, not a gate)",
+    signature: {
+      summary: "Downsample+diff f<NNNN>.png frames and report changeRatios/staticRun/layoutVariance/verdict",
+      positionals: [{ name: "<frames-dir>", required: true, summary: "Directory holding the ordered f0001.png… frames" }],
+      flags: [],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DIR_NOT_FOUND"],
     },
   },
-
   "scrub-lint": {
     summary: "The scrub-encode floor checked on an encoded clip",
     signature: {

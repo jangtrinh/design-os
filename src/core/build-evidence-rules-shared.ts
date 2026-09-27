@@ -11,6 +11,7 @@ import { ruleR1, ruleR2 } from "./build-evidence-rules-shots.js";
 import { ruleR3, ruleR7 } from "./build-evidence-rules-probe.js";
 import { ruleR4, ruleR6 } from "./build-evidence-rules-gates.js";
 import { readDeviationsText, ruleR5 } from "./build-evidence-rules-deviations.js";
+import { ruleR8 } from "./build-evidence-rules-persuade.js";
 
 export type RuleVerdict = "PASS" | "FAIL" | "SKIPPED";
 
@@ -111,7 +112,7 @@ export function summarize(dir: string, widths: number[], rules: RuleResult[]): E
  * (one walk, read once); the caller (`ui evidence lint`) owns exit-code and
  * envelope shaping.
  */
-export function runEvidenceLint(dir: string, widths: number[]): EvidenceLintReport {
+export function runEvidenceLint(dir: string, widths: number[], mode?: string): EvidenceLintReport {
   const files = walkFiles(dir);
   const deviationsText = readDeviationsText(files);
   const rules: RuleResult[] = [
@@ -122,6 +123,7 @@ export function runEvidenceLint(dir: string, widths: number[]): EvidenceLintRepo
     ruleR5(files),
     ruleR6(files),
     ruleR7(files, deviationsText),
+    ruleR8(files, mode),
   ];
   return summarize(dir, widths, rules);
 }
