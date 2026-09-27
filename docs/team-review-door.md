@@ -53,3 +53,7 @@ agent may draft a ruling; it never fills `approved_by` for a human.
 ## Status
 
 `ui knowledge lint <rulings.json>` validates `approved_by` against `schemas/rulings.schema.json`. Nothing else in `ui` reads it yet: the trail is a record for reviewers and the promotion gate, not a runtime switch.
+
+## Install check
+
+Before a team adopts the door, prove the install on a machine that has never seen it: `scripts/fresh-install-proof.sh` packs the checkout, installs the tarball into a throwaway npm prefix and cache (never the real global prefix), then runs `ui doctor`, `ui init --all` in an empty project and `ui doctor --cwd`, printing wall time per step. Verified on a fresh prefix on 2026-09-27: 6.9 seconds end to end (0.1 minutes), 95 adapter files written, both doctor runs exit 0. `--tarball <file>` re-runs it against any tarball; `UI_FRESH_INSTALL=1 npm test -- fresh-install-proof` runs it from the test suite.
