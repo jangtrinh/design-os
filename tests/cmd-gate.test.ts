@@ -326,3 +326,48 @@ describe("ui gate — --family applies a persona's gate_policy (PR-FU3-r2 A8)", 
     expect(JSON.parse(r.out).error.code).toBe("FAMILY_NOT_FOUND");
   });
 });
+
+describe("ui gate — --family legitimizes the family's own accent for ai-color-palette (PR-FU5b A1)", () => {
+  // #735acc is web-serif-display-plus-sans's real declared accent
+  // (knowledge/personas/families.json starting_tokens.tokens.color.accent.$value).
+  const PURPLE_ACCENT_PAGE = CLEAN(
+    '<style>.hero { background: #735acc; }</style>' +
+    '<div class="hero"><h1>Alpha</h1><p>Welcome back. Everything is ready.</p></div>',
+  );
+
+  interface Findings { checkId: string; severity: string; message: string }
+  interface Tell { findings: Findings[] }
+  interface GateData { families: { tell?: Tell } }
+
+  const familySlug = "web-serif-display-plus-sans";
+
+  it("without --family, ai-color-palette alarms on the family's own accent", () => {
+    const r = capture(["gate", write("no-family-accent.html", PURPLE_ACCENT_PAGE), "--json"]);
+    const d = JSON.parse(r.out).data as GateData;
+    const f = d.families.tell?.findings.find((x) => x.checkId === "ai-color-palette");
+    expect(f?.message).toMatch(/most recognisable palette tell/);
+  });
+
+  it("--family <slug> reports the SAME hex as the family's own accent instead", () => {
+    const r = capture(["gate", write("family-accent.html", PURPLE_ACCENT_PAGE), "--family", familySlug, "--json"]);
+    const d = JSON.parse(r.out).data as GateData;
+    const f = d.families.tell?.findings.find((x) => x.checkId === "ai-color-palette");
+    expect(f?.message).toContain(`family accent (${familySlug})`);
+    expect(f?.message).not.toMatch(/most recognisable palette tell/);
+    // Legitimacy never turns into an ERROR — it stays the rule's own advisory severity.
+    expect(f?.severity).toBe("advisory");
+  });
+
+  it("a DIFFERENT family's slug (no matching hue) still alarms on the same page", () => {
+    const families = JSON.parse(readFileSync(join(process.cwd(), "knowledge", "personas", "families.json"), "utf8")) as {
+      families: Array<{ slug: string; starting_tokens?: { tokens?: { color?: { accent?: { $value?: unknown } } } } }>;
+    };
+    // Any family whose accent isn't near #735acc's ~290° hue (or that declares none).
+    const other = families.families.find((f) => f.slug !== familySlug);
+    expect(other).toBeDefined();
+    const r = capture(["gate", write("other-family-accent.html", PURPLE_ACCENT_PAGE), "--family", other!.slug, "--json"]);
+    const d = JSON.parse(r.out).data as GateData;
+    const f = d.families.tell?.findings.find((x) => x.checkId === "ai-color-palette");
+    expect(f?.message).toMatch(/most recognisable palette tell/);
+  });
+});

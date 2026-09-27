@@ -68,6 +68,19 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  persona: {
+    summary: "Persona-family corpus checks (thin-family floor)",
+    subcommands: {
+      lint: {
+        summary: "Thin-family floor: flag families below the screens/app ratio or the min app-count floor",
+        positionals: [{ name: "<families.json>", required: true, summary: "Persona-families file to check" }],
+        flags: [
+          { name: "min-screens-per-app", type: "string", summary: "Minimum screens/apps ratio before a family is flagged thin (default 6)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON"],
+      },
+    },
+  },
   templates: {
     summary: "Emit and lint the template description catalogue",
     subcommands: {
