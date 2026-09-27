@@ -5,7 +5,7 @@
  * family, a clean fixture that stays green, declared skips, and the envelope.
  */
 import { describe, expect, it, beforeEach } from "vitest";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
@@ -252,5 +252,77 @@ describe("ui gate — token-coverage required check (PR-TG, A2)", () => {
     const d = JSON.parse(r.out).data as { tokenCoverage: unknown; pass: boolean };
     expect(d.tokenCoverage).toBeUndefined();
     expect(d.pass).toBe(true);
+  });
+});
+
+describe("ui gate — --tokens grades coverage against THAT file (PR-FU3-r2 A5)", () => {
+  it("a page styled entirely with a custom token file scores >= 0.8 with --tokens and < 0.8 without", () => {
+    // The auto-detected token file the gate would grade against absent --tokens.
+    mkdirSync(join(dir, "brand", "design"), { recursive: true });
+    writeFileSync(join(dir, "brand", "design", "design.tokens.json"), JSON.stringify({
+      color: { primary: { $type: "color", $value: "#111111" } },
+    }), "utf8");
+    // A different, project-specific token file the page actually styles with.
+    const customTokens = join(dir, "custom.tokens.json");
+    writeFileSync(customTokens, JSON.stringify({
+      color: { accent: { $type: "color", $value: "#ff00ff" } },
+    }), "utf8");
+    const file = write("custom-styled.html", CLEAN(
+      '<style>.card { color: #ff00ff; background: #ff00ff; }</style><h1>Alpha</h1><p>Welcome back. Everything is ready.</p>',
+    ));
+
+    const withoutTokens = JSON.parse(capture(["gate", file, "--json"]).out).data as {
+      tokenCoverage: { overall: { coverage: number } };
+    };
+    const withTokens = JSON.parse(capture(["gate", file, "--tokens", customTokens, "--json"]).out).data as {
+      tokenCoverage: { overall: { coverage: number } };
+    };
+
+    expect(withTokens.tokenCoverage.overall.coverage).toBeGreaterThanOrEqual(0.8);
+    expect(withoutTokens.tokenCoverage.overall.coverage).toBeLessThan(0.8);
+  });
+
+  it("a bad --tokens value still fails loud on the coverage path, not just the raw-hex path", () => {
+    // A file that reads as JSON with a color hex (so loadTokenHexes succeeds)
+    // but fails DTCG token-shape validation (so scoreTokenCoverage must throw).
+    const badTokens = join(dir, "bad.tokens.json");
+    writeFileSync(badTokens, JSON.stringify({ color: { primary: "#123456" } }), "utf8");
+    const r = capture(["gate", write("bad-tok.html", BASE), "--tokens", badTokens, "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).error.code).toBe("TOKENS_NOT_READABLE");
+  });
+});
+
+describe("ui gate — --family applies a persona's gate_policy (PR-FU3-r2 A8)", () => {
+  const HAIRLINE_SHADOW_PAGE = CLEAN(
+    '<style>.card { border: 1px solid #ccc; box-shadow: 0 2px 24px rgba(0,0,0,0.12); }</style>' +
+    '<div class="card"><h1>Alpha</h1><p>Welcome back. Everything is ready.</p></div>',
+  );
+
+  it("without --family, gpt-thin-border-wide-shadow stays advisory (default) and the gate passes", () => {
+    const r = capture(["gate", write("no-family.html", HAIRLINE_SHADOW_PAGE), "--json"]);
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.out).data.pass).toBe(true);
+  });
+
+  it("--family <hairline slug> upgrades gpt-thin-border-wide-shadow to error and fails the gate", () => {
+    const families = JSON.parse(readFileSync(join(process.cwd(), "knowledge", "personas", "families.json"), "utf8")) as {
+      families: Array<{ slug: string; gate_policy?: Record<string, string> }>;
+    };
+    const hairline = families.families.find((f) => f.gate_policy?.["gpt-thin-border-wide-shadow"] === "error");
+    expect(hairline).toBeDefined();
+
+    const r = capture(["gate", write("family.html", HAIRLINE_SHADOW_PAGE), "--family", hairline!.slug, "--json"]);
+    expect(r.code).toBe(1);
+    const d = JSON.parse(r.out).data as { pass: boolean; families: { tell: { errorCount: number; findings: Array<{ checkId: string; severity: string }> } } };
+    expect(d.pass).toBe(false);
+    const finding = d.families.tell.findings.find((f) => f.checkId === "gpt-thin-border-wide-shadow");
+    expect(finding?.severity).toBe("error");
+  });
+
+  it("unknown --family slug is FAMILY_NOT_FOUND, never a silent no-op", () => {
+    const r = capture(["gate", write("unknown-family.html", BASE), "--family", "not-a-real-slug", "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).error.code).toBe("FAMILY_NOT_FOUND");
   });
 });

@@ -22,8 +22,8 @@
   "verdicts": [
     {
       "key": "shape-assembled-illustration@doc#16 stacked shapes",
-      "verdict": "tp",
-      "reason": "16 rounded, textless sibling shapes stacked under one grid — an illustration built from primitives rather than drawn. Note the locator is `doc`: this finding carries neither a line nor a nodeRef, so this row exercises the third fallback rung of the verdict key (measured at 2 in 86 findings).",
+      "verdict": "fp",
+      "reason": "FIXED (PR-FU3-r2 A7). The original 'tp' call took the finding's own words ('textless') at face value; read against the element, the 16 siblings are `<a class=\"card\">` Magazine-issue links, each carrying a title, a description, an issue badge and an 'Open →' label in nested children — an ordinary content-card grid, never a textless illustration. The rule compared a structure fact's OWN line against every text fact's line; the cards' copy sits on the nested title/desc/badge/link lines, never the `<a>`'s own line, so every card read as textless. A real persona page's `<dl>` of five metric cards hit the identical shape (a `dt`/`dd` pair nested inside each card `div`) and is what surfaced the bug. Fixed by checking the structure's hierarchical `nodeRef` for a text-fact descendant instead of line equality (src/core/tell-rules-motion.ts). This row is now a regression tripwire: if it fires again, the descendant-text check has regressed to line-equality.",
       "message": "16 rounded, textless sibling shapes under html > body > div.grid[1] — an illustration assembled from primitives"
     },
     {

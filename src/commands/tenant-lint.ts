@@ -17,6 +17,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { lintTenant } from "../core/tenant-lint.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 
 const CMD = "tenant-lint";
 
@@ -102,10 +103,19 @@ export const tenantLintCommand = {
       return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
     }
 
-    // 3. Run the linter — baseDir enables local <script src>/<link href> resolution
-    //    (the shipped section engine is always linked, not inlined, so this is
-    //    where the real coverage lives; see core/tenant-lint.ts's module header).
-    const { findings, errorCount } = lintTenant(raw, { baseDir: dirname(resolve(filePath)) });
+    // 3. A10: route the page's <link rel=stylesheet> CSS through the shared
+    //    loader like the six FU3 commands — an unreadable linked stylesheet is
+    //    an error finding, never silence. Local <script src> resolution stays
+    //    core/tenant-lint.ts's own job (html-css-loader.ts is CSS-only); once a
+    //    <link> is inlined as a <style> block here, lintTenant's own <link>
+    //    scan finds nothing left to read twice.
+    const loaded = inlineLinkedCss(filePath, raw);
+    const linted = lintTenant(loaded.html, { baseDir: dirname(resolve(filePath)) });
+    const findings = [
+      ...loaded.errors.map((e) => ({ rule: e.checkId, line: e.line ?? 0, detail: e.message, severity: "error" as const })),
+      ...linted.findings,
+    ];
+    const errorCount = linted.errorCount + loaded.errors.length;
 
     // 4. Exit 1 iff any finding (no warnings tier here).
     const exitCode = errorCount > 0 ? 1 : 0;

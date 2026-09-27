@@ -281,12 +281,13 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       summary: "Run all linter families + autofix dry-run over an HTML file; exit 1 on any error-severity finding",
       positionals: [htmlFile("HTML file to gate")],
       flags: [
-        { name: "tokens", type: "string", summary: "DS token file; enables the taste Consistency raw-hex check" },
+        { name: "tokens", type: "string", summary: "DS token file; enables the taste Consistency raw-hex check and grades required token-coverage against THIS file" },
+        { name: "family", type: "string", summary: "Persona family slug — applies its gate_policy from knowledge/personas/families.json" },
         { name: "skip", type: "string", summary: "Comma-separated <family>:<reason> pairs — declared partial gating" },
         { name: "dir", type: "string", summary: "coverage mode: project directory to probe for tokens/DS (default: cwd)" },
         { name: "token-coverage-floor", type: "string", summary: "Minimum ui token-coverage score before the gate fails (default: 0.8)" },
       ],
-      errorCodes: [...IO_CODES, "TOKENS_NOT_READABLE"],
+      errorCodes: [...IO_CODES, "TOKENS_NOT_READABLE", "FAMILY_NOT_FOUND"],
     },
   },
 
