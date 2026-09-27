@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-27 - gates must read linked stylesheets (PR-FU3)
+
+### Fixed
+- **`ui gate`, `ui taste-lint`, `ui a11y-lint`, `ui validate-layout`, `ui content-lint` and
+  `ui token-coverage`** now resolve a local `<link rel="stylesheet" href>` relative to the
+  HTML file and `@import` one level deep, and judge the union of inline + linked CSS exactly
+  as if it had been hand-inlined at the `<link>` tag's own position. Before this fix, every
+  family except `token-coverage`'s own ad hoc reader judged only the HTML file's own text — a
+  violation living only in a linked stylesheet gated green. New shared loader:
+  `src/core/html-css-loader.ts` (`loadLinkedCss`/`inlineLinkedCss`), the ONE place every
+  command's load path now routes through, so a future linter never re-introduces the gap.
+- A locally linked stylesheet (or its one-level `@import` target) that cannot be read is now
+  an **error-severity finding** (`linked-css-unreadable`) on every affected command — never
+  silent. `token-coverage`'s previous ad hoc reader (`token-coverage-io.ts`) skipped an
+  unreadable linked file and kept scoring on what it could read; it now surfaces the error and
+  fails the check.
+- **`ui tokens compile`**: a "null" shadow token (zero blur/offset/spread — no visible effect)
+  is now omitted from CSS/Tailwind output entirely, instead of emitting a raw hex `color`
+  member the token model has no way to alias back to a color token (a shadow's `$value` is a
+  plain object, never walked for embedded hexes by the token-hex harvester). Without this, a
+  freshly-compiled `tokens.css` linked from a page would trip `raw-hex-when-token-exists` the
+  moment gates started reading linked CSS — confirmed on real data: two acceptance worktrees'
+  pre-fix `tokens.css` files fire 5× `raw-hex-when-token-exists` on `#0D0D0D` once judged.
+- Motivation: the owner rejected gate-green builds; Opus traced the cause class to unread
+  linked CSS. Re-gated the six real acceptance sets with linked stylesheets before/after —
+  **6 of 8** flipped from gate-green to gate-red purely from reading CSS the browser was
+  already reading. Full table: `plans/260926-2305-design-os-revamp/evidence/fu3/regate.md`.
+
 ## 2026-09-27 — build-loop knowledge file
 
 ### Added

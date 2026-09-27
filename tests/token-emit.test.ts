@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { parseTokenFile } from "../src/core/token-model.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
 import { emitCss, emitTailwind, emitFigma } from "../src/core/token-emit.js";
@@ -124,5 +126,54 @@ describe("number-typed token emission", () => {
     const obj = JSON.parse(emitFigma(map)) as Record<string, Record<string, { type: string; value: unknown }>>;
     expect(obj["leading"]?.["tight"]?.type).toBe("number");
     expect(obj["leading"]?.["tight"]?.value).toBe(1.25);
+  });
+});
+
+// PR-FU3 A3 — a "null" shadow (zero blur/offset/spread — no visible effect)
+// is omitted entirely: emitting its raw `color` member (a shadow's $value is
+// a plain object, never walked for embedded hexes by the token-hex harvester)
+// would put a raw hex in the compiled CSS that the gate's
+// raw-hex-when-token-exists check rejects once linked CSS is judged (A1).
+describe("emitCss — null shadow tokens are omitted (PR-FU3 A3)", () => {
+  const NULL_SHADOW_JSON = {
+    shadow: {
+      sm: {
+        $type: "shadow",
+        $value: { blur: "0px", color: "#0D0D0D", offsetX: "0px", offsetY: "0px", spread: "0px" },
+      },
+    },
+  };
+
+  it("emits no --shadow-sm-* declarations and no raw hex for a null shadow", () => {
+    const map = resolveFixture(NULL_SHADOW_JSON);
+    const css = emitCss(map);
+    expect(css).not.toContain("--shadow-sm");
+    expect(css).not.toContain("#0D0D0D");
+    expect(css).not.toContain("#0d0d0d");
+  });
+
+  it("emitTailwind also omits it", () => {
+    const map = resolveFixture(NULL_SHADOW_JSON);
+    expect(emitTailwind(map)).not.toContain("--shadow-sm");
+  });
+
+  it("a real (non-null) shadow still emits its color member", () => {
+    const map = resolveFixture({
+      shadow: {
+        lg: {
+          $type: "shadow",
+          $value: { blur: "8px", color: "#0D0D0D", offsetX: "0px", offsetY: "4px", spread: "0px" },
+        },
+      },
+    });
+    const css = emitCss(map);
+    expect(css).toContain("--shadow-lg-color: #0D0D0D");
+  });
+
+  it("real brand tokens compile with no raw shadow hex left for the gate to reject", () => {
+    const tokensPath = resolve(__dirname, "..", "brand", "design", "design.tokens.json");
+    const map = resolveFixture(JSON.parse(readFileSync(tokensPath, "utf8")));
+    const css = emitCss(map);
+    expect(css).not.toMatch(/--shadow-\w+-color:/);
   });
 });

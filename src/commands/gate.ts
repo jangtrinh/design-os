@@ -11,6 +11,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import { runGate, gateCoverage, GATE_FAMILIES } from "../core/gate.js";
 import type { GateFamily, GateOptions } from "../core/gate.js";
 import { loadTokenHexes } from "./taste-lint.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { tryDiscoverDesignSystem } from "../core/design-system.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 import { autoScoreTokenCoverage } from "../core/token-coverage-io.js";
@@ -124,6 +125,12 @@ export const gateCommand = {
       const msg = isNotFound ? `file not found: '${file}'` : `cannot read '${file}': ${e instanceof Error ? e.message : String(e)}`;
       return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
     }
+    // A1: judge the union of inline + LOCAL linked CSS exactly as if inlined;
+    // an unreadable linked stylesheet is an error finding, never silence —
+    // every family below reads `html` post-inlining, so a violation living
+    // only in a linked stylesheet is no longer invisible to the gate.
+    const loaded = inlineLinkedCss(file, html);
+    html = loaded.html;
 
     const skipFlag = parsed.flags["skip"];
     let skip: GateOptions["skip"];
@@ -165,10 +172,12 @@ export const gateCommand = {
     const tokenCoverageFails = tokenCoverage !== undefined && tokenCoverage.overall.coverage < tokenCoverageFloor;
 
     const result = runGate(html, { knownHexes, skip });
-    const pass = result.pass && !tokenCoverageFails;
+    result.errorCount += loaded.errors.length;
+    const pass = result.pass && loaded.errors.length === 0 && !tokenCoverageFails;
     const exitCode = pass ? 0 : 1;
 
     const lines: string[] = [`gate: ${file} — ${result.errorCount} error(s), ${result.warningCount} warning(s)${pass ? " — PASS" : ""}`];
+    for (const e of loaded.errors) lines.push(`  ✗ [${e.checkId}]: ${e.message}`);
     if (tokenCoverage !== undefined) {
       const pct = Math.round(tokenCoverage.overall.coverage * 100);
       lines.push(`  token-coverage: ${pct}% (floor ${Math.round(tokenCoverageFloor * 100)}%)${tokenCoverageFails ? " — FAIL" : ""}`);
@@ -187,7 +196,7 @@ export const gateCommand = {
     // skips because a partial verdict and an absent one are both "not a clean bill".
     for (const s of result.partial) lines.push(`  PARTIAL ${s}`);
 
-    const data = { file, ...result, pass, tokenCoverage, tokenCoverageFloor };
+    const data = { file, ...result, pass, tokenCoverage, tokenCoverageFloor, linkedCssErrors: loaded.errors };
     const out = useJson ? okJsonWithExit(CMD, data, exitCode) : { exitCode, stdout: lines.join("\n") + "\n" };
     return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: Object.values(result.families).flatMap((r) => r.findings), errorCount: result.errorCount, warningCount: result.warningCount }) });
   },

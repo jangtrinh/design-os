@@ -11,10 +11,18 @@ import { parseTokenFile } from "./token-model.js";
 import { resolveTokens } from "./token-resolve.js";
 import { scoreCssSources } from "./token-coverage.js";
 import type { TokenCoverageResult } from "./token-coverage.js";
+import { loadLinkedCss } from "./html-css-loader.js";
+import type { FloorFindingBase } from "./finding-schema.js";
 
 export interface CssSource {
   text: string;
   isHtmlSource: boolean;
+}
+
+export interface CssSourceCollection {
+  sources: CssSource[];
+  /** Linked stylesheets or their one-level @imports that could not be read — never silence (PR-FU3 C1). */
+  errors: FloorFindingBase[];
 }
 
 /**
@@ -43,38 +51,20 @@ export function resolveProjectTokensPath(startDir: string): string | undefined {
   return undefined;
 }
 
-function extractLinkedStylesheetPaths(html: string, baseDir: string): string[] {
-  const out: string[] = [];
-  for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
-    const tag = m[0];
-    const rel = /\brel\s*=\s*["']([^"']*)["']/i.exec(tag)?.[1];
-    const href = /\bhref\s*=\s*["']([^"']*)["']/i.exec(tag)?.[1];
-    if (rel === undefined || href === undefined || !/stylesheet/i.test(rel)) continue;
-    // Read-only local files: skip remote (http(s)://, protocol-relative //) and data: URLs.
-    if (/^([a-z][a-z0-9+.-]*:)?\/\//i.test(href) || href.startsWith("data:")) continue;
-    out.push(resolve(baseDir, href));
-  }
-  return out;
-}
-
 /**
  * Every CSS source an HTML file's own markup pulls in: the HTML text itself
  * (inline style="" attributes and <style> blocks both live inside it — see
- * extractDeclarations) plus every local linked stylesheet, read best-effort —
- * a missing or unreadable linked file is skipped, never a hard error, so the
- * check still judges everything it COULD read.
+ * extractDeclarations) plus every local linked stylesheet (one level of
+ * @import deep), read through the shared `html-css-loader` (PR-FU3) — the
+ * same resolver every other linter now uses. An unreadable linked file is
+ * NEVER skipped in silence: it comes back as an error finding the caller
+ * must surface (PR-FU3 C1), replacing this module's former best-effort skip.
  */
-export function collectCssSources(htmlPath: string, html: string): CssSource[] {
-  const baseDir = dirname(resolve(htmlPath));
+export function collectCssSources(htmlPath: string, html: string): CssSourceCollection {
+  const { sheets, errors } = loadLinkedCss(htmlPath, html);
   const sources: CssSource[] = [{ text: html, isHtmlSource: true }];
-  for (const cssPath of extractLinkedStylesheetPaths(html, baseDir)) {
-    try {
-      sources.push({ text: readFileSync(cssPath, "utf8"), isHtmlSource: false });
-    } catch {
-      // unreadable/missing linked stylesheet — skip, don't fail the read.
-    }
-  }
-  return sources;
+  for (const s of sheets) sources.push({ text: s.text, isHtmlSource: false });
+  return { sources, errors };
 }
 
 /**
@@ -83,14 +73,16 @@ export function collectCssSources(htmlPath: string, html: string): CssSource[] {
  * when no token file is auto-detectable, or when the auto-detected file is
  * unreadable/invalid — best-effort, same posture as "not found" (an EXPLICIT
  * `--tokens` path stays the caller's job to validate loudly; this one was
- * never asked for).
+ * never asked for). `html` is expected to already be `ui gate`'s inlined,
+ * link-free document, so no linked stylesheet remains to (re-)report errors
+ * for here — the caller already surfaced those from its own inlining pass.
  */
 export function autoScoreTokenCoverage(htmlPath: string, html: string): TokenCoverageResult | undefined {
   const tokensPath = resolveProjectTokensPath(dirname(resolve(htmlPath)));
   if (tokensPath === undefined) return undefined;
   try {
     const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(tokensPath, "utf8"))));
-    return scoreCssSources(collectCssSources(htmlPath, html), resolved);
+    return scoreCssSources(collectCssSources(htmlPath, html).sources, resolved);
   } catch {
     return undefined;
   }

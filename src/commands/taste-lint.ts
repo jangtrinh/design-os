@@ -16,7 +16,9 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { lintTaste } from "../core/taste-lint.js";
+import type { TasteFinding } from "../core/taste-lint.js";
 import { isTokenLeaf } from "../core/token-model.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 
 const CMD = "taste-lint";
@@ -182,10 +184,22 @@ export const tasteLintCommand = {
     const knownHexes =
       typeof tokensFlag === "string" ? loadTokenHexes(tokensFlag) : undefined;
 
-    // 4. Run the linter (pure transform).
-    const { findings, errorCount, warningCount, axesAffected } = lintTaste(raw, { knownHexes });
+    // 4. A1: judge the union of inline + LOCAL linked CSS exactly as if
+    // inlined; an unreadable linked stylesheet is an error finding, never
+    // silence.
+    const loaded = inlineLinkedCss(filePath, raw);
+    const linkFindings: TasteFinding[] = loaded.errors.map((e) => ({ ...e, axis: "Consistency" as const }));
 
-    // 5. Exit 1 iff any error-severity violation; warnings never fail the build.
+    // 5. Run the linter (pure transform).
+    const lintResult = lintTaste(loaded.html, { knownHexes });
+    const findings = [...linkFindings, ...lintResult.findings];
+    const errorCount = lintResult.errorCount + linkFindings.length;
+    const { warningCount } = lintResult;
+    const axesAffected = linkFindings.length > 0 && !lintResult.axesAffected.includes("Consistency")
+      ? [...lintResult.axesAffected, "Consistency" as const]
+      : lintResult.axesAffected;
+
+    // 6. Exit 1 iff any error-severity violation; warnings never fail the build.
     const exitCode = errorCount > 0 ? 1 : 0;
 
     // 6. Shape output.
