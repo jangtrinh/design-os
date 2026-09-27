@@ -440,14 +440,26 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     summary: "The build-loop standard's linter half (knowledge/build-loop.md)",
     subcommands: {
       lint: {
-        summary: "Check r1-r7 over a builder's evidence folder; PASS/FAIL/SKIPPED per rule",
+        summary: "Check r1-r8 over a builder's evidence folder; PASS/FAIL/SKIPPED per rule",
         positionals: [{ name: "<dir>", required: true, summary: "Evidence folder to check" }],
-        flags: [{ name: "widths", type: "string", summary: "Comma-separated required widths (default 375,768,1440)" }],
+        flags: [
+          { name: "widths", type: "string", summary: "Comma-separated required widths (default 375,768,1440)" },
+          { name: "mode", type: "string", summary: "\"persuade\" forces r8 (Persuade evidence) on" },
+        ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DIR_NOT_FOUND"],
       },
     },
   },
 
+  "scroll-story": {
+    summary: "Reads a scroll capture's ordered frames and reports ACTIVE or FLAT (informational, not a gate)",
+    signature: {
+      summary: "Downsample+diff f<NNNN>.png frames and report changeRatios/staticRun/layoutVariance/verdict",
+      positionals: [{ name: "<frames-dir>", required: true, summary: "Directory holding the ordered f0001.png… frames" }],
+      flags: [],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DIR_NOT_FOUND"],
+    },
+  },
   "scrub-lint": {
     summary: "The scrub-encode floor checked on an encoded clip",
     signature: {
