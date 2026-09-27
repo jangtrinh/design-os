@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-27 - temporary native mobile proof fixtures are cleaned up
+
+### Fixed
+- Native mobile proof test fixtures now remove their temporary proof trees after each test.
+
 ## 2026-09-26 - the learning loop is measured by flow, and the agent's read trace becomes a number
 
 ### Changed

@@ -1,9 +1,16 @@
 import { createHash } from "node:crypto";
-import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { afterEach } from "vitest";
 
 const sha256 = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
+const temporaryRoots = new Set<string>();
+
+afterEach(() => {
+  for (const root of temporaryRoots) rmSync(root, { recursive: true, force: true });
+  temporaryRoots.clear();
+});
 
 export interface MutableTier {
   id: number;
@@ -160,6 +167,7 @@ export function validManifest(): MutableManifest {
 
 export function copyCheckedProofTree(): { manifest: MutableManifest; root: string } {
   const parent = mkdtempSync(join(tmpdir(), "native-mobile-proof-checked-"));
+  temporaryRoots.add(parent);
   const root = join(parent, "proof");
   cpSync("showcase/native-mobile-proof-pilot", root, { recursive: true });
   return {
