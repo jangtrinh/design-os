@@ -1,0 +1,4 @@
+scroll-story: scroll-build — 17 frames, 16 pair(s), grid 32x20
+  staticRun=1/16 (threshold changeRatio<0.02, run-ratio>=0.5)
+  layoutVariance=12.30 (threshold >=40)
+  story: FLAT

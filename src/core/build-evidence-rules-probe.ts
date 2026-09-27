@@ -40,9 +40,25 @@ export function ruleR3(files: WalkedFile[]): RuleResult {
 
 const FONT_KEYS = ["fontsCheck", "firstFamilyRenders", "fontCheck", "fontOk", "fontsLoaded"] as const;
 
-function fontCheckValue(data: Record<string, unknown>): boolean | undefined {
-  for (const k of FONT_KEYS) if (k in data) return Boolean(data[k]);
-  return undefined;
+/**
+ * A font-check value passes only as a bare `true`, or an object whose every
+ * value is `true` (one probe checking several faces, e.g. `{serif: true,
+ * sans: true}`). Anything else — `false`, a non-boolean, or an object with any
+ * non-true member — fails, naming the offending key so the operator does not
+ * have to open the JSON to find it.
+ */
+function fontCheckVerdict(data: Record<string, unknown>): { seen: boolean; ok: boolean; badKey?: string } {
+  for (const k of FONT_KEYS) {
+    if (!(k in data)) continue;
+    const v = data[k];
+    if (typeof v === "boolean") return { seen: true, ok: v, badKey: v ? undefined : k };
+    if (v !== null && typeof v === "object" && !Array.isArray(v)) {
+      const bad = Object.entries(v as Record<string, unknown>).find(([, member]) => member !== true);
+      return { seen: true, ok: bad === undefined, badKey: bad ? `${k}.${bad[0]}` : undefined };
+    }
+    return { seen: true, ok: false, badKey: k };
+  }
+  return { seen: false, ok: false };
 }
 
 export function ruleR7(files: WalkedFile[], deviationsText: string | undefined): RuleResult {
@@ -53,12 +69,12 @@ export function ruleR7(files: WalkedFile[], deviationsText: string | undefined):
   let sawKey = false;
   const bad: string[] = [];
   for (const p of pairs) {
-    const v = fontCheckValue(p.data);
-    if (v === undefined) continue;
+    const v = fontCheckVerdict(p.data);
+    if (!v.seen) continue;
     sawKey = true;
-    if (v === false) {
+    if (!v.ok) {
       const fallbackNoted = deviationsText !== undefined && /fallback/i.test(deviationsText);
-      if (!fallbackNoted) bad.push(`${p.screenshot.rel}: ${p.jsonRel} font check is false and deviations.md does not mention a fallback face`);
+      if (!fallbackNoted) bad.push(`${p.screenshot.rel}: ${p.jsonRel} font check fails at '${v.badKey}' and deviations.md does not mention a fallback face`);
     }
   }
   if (!sawKey) return skip(id, title, "no probe JSON carries a font-check key (fontsCheck / firstFamilyRenders / fontCheck / fontOk / fontsLoaded)");

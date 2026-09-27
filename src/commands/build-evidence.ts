@@ -31,6 +31,11 @@ Subcommands:
           r5 deviations.md exists; every entry carries a number+unit/ratio (px, %, :1, ms)
           r6 a red-probe line (a deliberately-bad-input non-zero exit) exists somewhere
           r7 probe JSON's font check is true, or the PNGs are marked fallback-face in deviations.md
+          r8 Persuade evidence: contact-sheet-build.png + contact-sheet-bar.png (or a
+             .NOT-CAPTURED.txt naming the error), a critic-*.md with a rubric N/16 and a
+             SHIP-CANDIDATE|REVISE|REJECT verdict, and a scroll-story probe output. Applies
+             when the folder holds contact-sheet-build.png, concept.md, or --mode persuade;
+             SKIPPED otherwise (an "Operate" folder).
 
 Real probe JSONs vary their keys (scrollW/innerW vs scrollWidth/innerWidth vs scrollW/width) and
 their filename (a per-width sidecar, probe-<width>.json, a single probe.json keyed by widths[width],
@@ -38,6 +43,7 @@ or a single probes.json keyed by "<stem>-<width>") — all forms are read.
 
 Options:
   --widths LIST  Comma-separated required widths (default 375,768,1440)
+  --mode MODE    "persuade" forces r8 on regardless of what markers the folder holds
   --json         Emit a JSON envelope { dir, widths, rules, passCount, failCount, skippedCount }
   -h, --help     Show this help
 
@@ -60,7 +66,7 @@ function fail(useJson: boolean, sub: string, code: string, msg: string): Command
 function runLint(parsed: ParsedArgs): CommandResult {
   const sub = "build-evidence lint";
   const useJson = parsed.json;
-  const unknown = findUnknownFlag(parsed.flags, ["widths"]);
+  const unknown = findUnknownFlag(parsed.flags, ["widths", "mode"]);
   if (unknown) return fail(useJson, sub, "UNKNOWN_FLAG", unknownFlagMessage(unknown));
   const dir = parsed.positionals[0];
   if (dir === undefined) return fail(useJson, sub, "BAD_ARG", "ui build-evidence lint requires <dir>");
@@ -82,7 +88,8 @@ function runLint(parsed: ParsedArgs): CommandResult {
       : { exitCode: 2, stderr: `ui: ${msg}\n` };
   }
 
-  const report = runEvidenceLint(dir, widths);
+  const mode = str(parsed.flags["mode"]);
+  const report = runEvidenceLint(dir, widths, mode);
   const exitCode = report.failCount > 0 ? 1 : 0;
   if (useJson) return okJsonWithExit(sub, report, exitCode);
 

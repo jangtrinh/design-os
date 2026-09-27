@@ -1,0 +1,1 @@
+ERR_CONNECTION_REFUSED: white-desert.com unreachable during capture (2026-09-27)
