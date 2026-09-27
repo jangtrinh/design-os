@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-27 - a checkable six-step method run
+
+### Added
+- **`schemas/method-run.schema.json`** — one feature's frame, define, explore,
+  decide, build, and verify steps, with skip reasons, artifact provenance,
+  human questions, and optional school vocabulary.
+- **`ui method lint <run.json> [--json]`** — validates the run and its referenced
+  `brief.json`, blocks unreasoned skips and unanswered human needs on done
+  decisions or verification, and prints a six-cell status line.
+- **`docs/method-spine.md`** — how to record and check one method run.
+
 ## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
 
 ### Added
