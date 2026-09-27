@@ -38,9 +38,33 @@ function expandComposite(
   return pairs;
 }
 
-/** Yield all CSS var declarations for a single resolved token. */
+/** True when a shadow value has zero geometry (blur/offsetX/offsetY/spread
+ * all 0) — no visible effect. */
+function isZeroLength(v: unknown): boolean {
+  if (typeof v === "number") return v === 0;
+  if (typeof v === "string") return /^0(px)?$/.test(v.trim());
+  return false;
+}
+
+function isNullShadow(type: string, value: Record<string, unknown>): boolean {
+  if (type !== "shadow") return false;
+  return isZeroLength(value["blur"]) && isZeroLength(value["offsetX"]) &&
+    isZeroLength(value["offsetY"]) && isZeroLength(value["spread"]);
+}
+
+/**
+ * Yield all CSS var declarations for a single resolved token.
+ *
+ * A "null" shadow (zero blur/offset/spread) is omitted entirely (PR-FU3 A3):
+ * it has no visible effect, so emitting its members — including a raw hex
+ * `color` member the token model has no way to alias back to a color token
+ * (a shadow's $value is a plain object, never walked for embedded hexes) —
+ * would put a raw hex in the compiled CSS that the gate's raw-hex-when-
+ * token-exists check would reject once linked CSS is judged (PR-FU3 A1).
+ */
 function tokenToCssDecls(token: ResolvedToken): [string, string][] {
   if (typeof token.value === "object" && token.value !== null) {
+    if (isNullShadow(token.type, token.value as Record<string, unknown>)) return [];
     return expandComposite(token.path, token.value as Record<string, unknown>);
   }
   return [[pathToCssVar(token.path), scalarToCss(token.value)]];

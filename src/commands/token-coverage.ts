@@ -119,12 +119,19 @@ export const tokenCoverageCommand = {
       return err("BAD_JSON", `bad token file '${tokensPath}': ${e instanceof Error ? e.message : String(e)}`);
     }
 
-    const sources = collectCssSources(file, html);
+    // A1/C1: a locally linked stylesheet that cannot be read is an error
+    // finding, never silence — it also forces the check to FAIL regardless
+    // of the coverage number, since that number was computed over an
+    // incomplete picture of the page's real CSS.
+    const { sources, errors: linkErrors } = collectCssSources(file, html);
     const result = scoreCssSources(sources, resolved);
-    const exitCode = result.overall.coverage >= floor ? 0 : 1;
+    const exitCode = result.overall.coverage >= floor && linkErrors.length === 0 ? 0 : 1;
 
-    return useJson
-      ? okJsonWithExit(CMD, { file, floor, ...result }, exitCode)
-      : { exitCode, stdout: formatReport(file, floor, result) };
+    if (useJson) return okJsonWithExit(CMD, { file, floor, ...result, linkedCssErrors: linkErrors }, exitCode);
+    let report = formatReport(file, floor, result);
+    if (linkErrors.length > 0) {
+      report += linkErrors.map((e) => `  ✗ [${e.checkId}]: ${e.message}\n`).join("");
+    }
+    return { exitCode, stdout: report };
   },
 };
