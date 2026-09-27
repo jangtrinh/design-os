@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "source": "principles.md",
+  "principles": [
+    {
+      "id": "C1",
+      "title": "First core idea — subtract until only the work remains",
+      "yields_when": "it would remove a safety step (C2), or when the agent rather than the owner is the one simplifying.",
+      "test": "a rubric criterion in the critic pass; gate `check-example` (missing)."
+    },
+    {
+      "id": "C2",
+      "title": "Second core idea",
+      "yields_when": "never; only an explicit owner ruling.",
+      "test": "`check-second` (in `build:ci`)."
+    },
+    {
+      "id": "D1",
+      "title": "Familiar over novel — reuse the ladder",
+      "yields_when": "the ladder has no rung for the job.",
+      "test": "`check-ladder`."
+    },
+    {
+      "id": "D10",
+      "title": "Floors hold at every width",
+      "yields_when": "never.",
+      "test": "missing: `check-floors`."
+    }
+  ]
+}
