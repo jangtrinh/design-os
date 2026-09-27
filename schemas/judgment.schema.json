@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "judgment.schema.json",
+  "title": "Judgment record (System One shadow judge)",
+  "description": "One line of design/judgments.jsonl: the shadow pick at a decision point, the evidence behind it, and (once it arrives) the human decision. mode is always 'shadow': the record is observed, never enforced.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "version", "id", "ts", "mode", "decisionPoint", "candidates", "pick", "kernelConstraints"],
+  "properties": {
+    "kind": { "const": "judgment" },
+    "version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "ts": { "type": "string", "minLength": 1 },
+    "mode": { "const": "shadow" },
+    "decisionPoint": { "enum": ["art-direction", "persona-family", "layout-archetype", "copy-language"] },
+    "candidates": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+    "pick": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate", "evidenceRefs"],
+      "properties": {
+        "candidate": { "type": "string", "minLength": 1 },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "ref"],
+            "properties": {
+              "type": { "enum": ["persona-dossier", "pattern-card", "ruling"] },
+              "ref": { "type": "string", "minLength": 1 }
+            },
+            "allOf": [
+              {
+                "if": { "required": ["type"], "properties": { "type": { "const": "ruling" } } },
+                "then": { "properties": { "ref": { "pattern": "^r-" } } }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "kernelConstraints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "human": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "ts"],
+      "properties": {
+        "decision": { "enum": ["accepted", "changed-to", "rejected"] },
+        "changedTo": { "type": "string", "minLength": 1 },
+        "ts": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["decision"], "properties": { "decision": { "const": "changed-to" } } },
+          "then": { "required": ["changedTo"] }
+        }
+      ]
+    }
+  }
+}
