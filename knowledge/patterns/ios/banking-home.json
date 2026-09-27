@@ -1,0 +1,88 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "ios",
+  "archetype": "banking-home",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [{"value": "tab-bar+content", "count": 8}],
+    "navigation": [{"value": "tab-bar", "count": 8}],
+    "primary_action": [{"value": "filled-button-inline", "count": 5}, {"value": "icon-button", "count": 2}, {"value": "none", "count": 1}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 6}, {"value": "dark", "count": 1}, {"value": "mixed", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "selected", "count": 8}]
+  },
+  "components": [
+    {
+      "name": "balance-header",
+      "count": 8,
+      "kind": [
+        {"value": "card-visual", "count": 3},
+        {"value": "large-balance", "count": 3},
+        {"value": "hidden", "count": 1},
+        {"value": "other", "count": 1}
+      ],
+      "position": [{"value": "top", "count": 7}, {"value": "other", "count": 1}]
+    },
+    {
+      "name": "quick-actions",
+      "count": 6,
+      "kind": [{"value": "buttons", "count": 5}, {"value": "icon-row", "count": 1}],
+      "position": [{"value": "below-balance", "count": 6}]
+    },
+    {
+      "name": "transaction-list",
+      "count": 4,
+      "kind": [{"value": "flat", "count": 3}, {"value": "grouped-by-date", "count": 1}],
+      "position": [{"value": "main", "count": 4}]
+    },
+    {
+      "name": "account-cards",
+      "count": 7,
+      "kind": [{"value": "single", "count": 4}, {"value": "stacked", "count": 2}, {"value": "carousel", "count": 1}],
+      "position": [{"value": "top", "count": 4}, {"value": "other", "count": 3}]
+    },
+    {
+      "name": "spending-insight",
+      "count": 1,
+      "kind": [{"value": "other", "count": 1}],
+      "position": [{"value": "main", "count": 1}]
+    },
+    {
+      "name": "tab-bar",
+      "count": 8,
+      "kind": [{"value": "bottom-tabs", "count": 8}],
+      "position": [{"value": "bottom", "count": 8}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:b2124327-3169-42a2-86b0-7663c729df81)",
+    "observed(mobbin:e9ab5758-292c-4dd3-b9fe-505bda4e9df4)",
+    "observed(mobbin:65ac5155-4d8f-499a-8a8d-76352905e9dd)",
+    "observed(mobbin:6a68b1f3-1b40-4a94-855b-1ba46763c5e5)",
+    "observed(mobbin:a67dd64d-139c-4af8-98a2-d2988d9bc856)",
+    "observed(mobbin:84eb302d-57ed-4c4d-addc-41c6165d8d1b)",
+    "observed(mobbin:ba60046e-8258-4041-a75f-e1d38de26ce4)",
+    "observed(mobbin:628a69b6-0842-482e-be0c-51c11601e104)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

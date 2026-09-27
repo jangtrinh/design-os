@@ -1,0 +1,82 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "ios",
+  "archetype": "checkout",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [{"value": "single-column-scroll", "count": 7}, {"value": "tab-bar+content", "count": 1}],
+    "navigation": [{"value": "back-header", "count": 7}, {"value": "tab-bar", "count": 1}],
+    "primary_action": [{"value": "filled-button-sticky-bottom", "count": 8}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 8}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "selected", "count": 6}, {"value": "disabled", "count": 1}, {"value": "none", "count": 1}]
+  },
+  "components": [
+    {
+      "name": "order-summary",
+      "count": 5,
+      "kind": [{"value": "footer-total", "count": 3}, {"value": "collapsible", "count": 1}, {"value": "list", "count": 1}],
+      "position": [{"value": "bottom", "count": 5}]
+    },
+    {
+      "name": "payment-methods",
+      "count": 7,
+      "kind": [{"value": "card-list", "count": 4}, {"value": "wallet-button", "count": 2}, {"value": "other", "count": 1}],
+      "position": [{"value": "main", "count": 5}, {"value": "bottom", "count": 2}]
+    },
+    {
+      "name": "address-block",
+      "count": 6,
+      "kind": [{"value": "row-summary", "count": 6}],
+      "position": [{"value": "main", "count": 6}]
+    },
+    {
+      "name": "primary-cta",
+      "count": 8,
+      "kind": [
+        {"value": "filled-full-width", "count": 6},
+        {"value": "other", "count": 1},
+        {"value": "wallet-native", "count": 1}
+      ],
+      "position": [{"value": "bottom-fixed", "count": 8}]
+    },
+    {
+      "name": "promo-code",
+      "count": 3,
+      "kind": [{"value": "link", "count": 2}, {"value": "inline-field", "count": 1}],
+      "position": [{"value": "main", "count": 3}]
+    },
+    {"name": "progress-steps", "count": 0}
+  ],
+  "evidence": [
+    "observed(mobbin:496507dc-b2d1-4c02-8ebe-8c9a80b83244)",
+    "observed(mobbin:e0076d10-a65e-499c-9b9e-279a8b435de7)",
+    "observed(mobbin:54545a04-5ccb-4e39-aac7-d8ecef9e44af)",
+    "observed(mobbin:46953b4a-66e8-4048-b4f5-316b1bc1fec2)",
+    "observed(mobbin:4ea61005-7d1d-452e-bf6a-f69f85d69d8e)",
+    "observed(mobbin:6dec1d5e-be7a-49b3-9667-d4b775ad04b0)",
+    "observed(mobbin:98b5832a-d375-4ca8-bd1a-f84b48821303)",
+    "observed(mobbin:a58b6f44-933b-48a8-98b8-f25388694a97)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

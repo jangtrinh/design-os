@@ -79,6 +79,17 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       },
     },
   },
+  pattern: {
+    summary: "Lint screen-pattern cards (shares over n, evidence, floor)",
+    subcommands: {
+      lint: {
+        summary: "Validate a pattern card, or every card under a directory",
+        positionals: [{ name: "<card.json|dir>", required: true, summary: "Pattern card file, or a directory searched recursively" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "SCHEMA_UNAVAILABLE"],
+      },
+    },
+  },
   "product-context": {
     summary: "Compile and replay-lint Product Context Atlases",
     subcommands: {

@@ -1,0 +1,190 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/pattern-card.schema.json",
+  "title": "ease-design pattern card",
+  "description": "What one screen archetype looks like across n observed product screens. Every share is a count over n, computed by an emitter, never typed by hand. Evidence is observed(mobbin:<id>) only; no image path or URL ever appears.",
+  "type": "object",
+  "required": ["schema", "platform", "archetype", "status", "n", "captured_at", "extraction", "core", "components", "evidence", "notes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "pattern-card/1"},
+    "platform": {"enum": ["web", "ios"]},
+    "archetype": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "status": {"enum": ["published", "draft"]},
+    "n": {"type": "integer", "description": "Screens successfully extracted; equals evidence.length. Floor is 8 (see n_below_floor)."},
+    "n_below_floor": {"const": true, "description": "Present only when n < 8; such a card must be status draft."},
+    "attempted": {"type": "integer", "description": "Screens sent to extraction; attempted - n = extraction failures."},
+    "captured_at": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {"from": {"type": "string", "pattern": "^(unknown|\\d{4}(-\\d{2})?)$"}, "to": {"type": "string", "pattern": "^(unknown|\\d{4}(-\\d{2})?)$"}}
+    },
+    "extraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model"],
+      "properties": {
+        "model": {"type": "string", "minLength": 1},
+        "cross_check": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model", "images", "agreement"],
+          "properties": {
+            "model": {"type": "string", "minLength": 1},
+            "images": {"type": "integer"},
+            "agreement": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["attribute", "agree", "of"],
+                "properties": {"attribute": {"type": "string", "minLength": 1}, "agree": {"type": "integer"}, "of": {"type": "integer"}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "core": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layout", "density", "color_mode", "copy_language"],
+      "properties": {
+        "layout": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": [
+                  "other", "centered-card", "split-panel", "topnav+main", "sidebar+main", "sidebar+topnav+main", "full-width-sections", "modal-dialog",
+                  "single-column-scroll", "tab-bar+content", "bottom-sheet", "card-stack"
+                ]
+              },
+              "count": {"type": "integer"}
+            }
+          }
+        },
+        "navigation": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {
+              "value": {"type": "string", "enum": ["other", "none", "topnav", "sidebar", "tab-bar", "top-tabs", "back-header", "stepper", "breadcrumb"]},
+              "count": {"type": "integer"}
+            }
+          }
+        },
+        "primary_action": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["other", "none", "filled-button-inline", "filled-button-sticky-bottom", "outline-button", "text-link", "floating-action", "icon-button"]
+              },
+              "count": {"type": "integer"}
+            }
+          }
+        },
+        "states": {
+          "type": "array",
+          "description": "A screen may show several states; counts may sum above n.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {
+              "value": {"type": "string", "enum": ["other", "none", "empty", "loading", "error", "permission", "selected", "disabled", "success"]},
+              "count": {"type": "integer"}
+            }
+          }
+        },
+        "density": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {"value": {"type": "string", "enum": ["other", "compact", "comfortable", "spacious"]}, "count": {"type": "integer"}}
+          }
+        },
+        "color_mode": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {"value": {"type": "string", "enum": ["other", "light", "dark", "mixed"]}, "count": {"type": "integer"}}
+          }
+        },
+        "copy_language": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "count"],
+            "properties": {"value": {"type": "string", "enum": ["other", "en", "non-en", "mixed"]}, "count": {"type": "integer"}}
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "count"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "other", "account-cards", "add-to-cart", "address-block", "address-form", "balance-header", "billing-toggle", "biometric-option", "brand-panel",
+              "breakdown-table", "bulk-select", "chart", "choice-cards", "column-headers", "comparison-table", "content-feed", "credential-form", "danger-zone",
+              "destructive-action", "edit-action", "empty-state", "enterprise-cta", "export-action", "filters", "floating-action", "forgot-link", "forgot-password",
+              "form-fields", "form-sections", "grouped-list", "hero-visual", "highlighted-plan", "illustration", "image-gallery", "info-tabs-accordion", "legal-links",
+              "media-hero", "metric-cards", "option-list", "order-summary", "page-indicator", "pagination", "password-fields", "payment-methods", "permission-prompt",
+              "plan-cards", "price-and-title", "price-block", "primary-cta", "profile-avatar", "profile-header", "progress-indicator", "progress-steps", "promo-code",
+              "purchase-cta", "quick-actions", "requirements-list", "reviews", "reviews-summary", "row-actions", "save-action", "section-headers", "settings-nav",
+              "share-favorite", "shipping-options", "show-hide-toggle", "signup-link", "skip-action", "social-auth", "social-proof", "spending-insight", "status-badges",
+              "stories-row", "strength-indicator", "tab-bar", "time-range-picker", "toggles", "toolbar", "top-bar", "transaction-list", "variant-selector"
+            ]
+          },
+          "count": {"type": "integer", "description": "Screens where the component is present."},
+          "kind": {
+            "type": "array",
+            "description": "Breakdown of how the component is realised; each count is at most the component count.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value", "count"],
+              "properties": {"value": {"type": "string", "minLength": 1}, "count": {"type": "integer"}}
+            }
+          },
+          "position": {
+            "type": "array",
+            "description": "Breakdown of where the component sits; each count is at most the component count.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value", "count"],
+              "properties": {"value": {"type": "string", "minLength": 1}, "count": {"type": "integer"}}
+            }
+          }
+        }
+      }
+    },
+    "unreliable": {"type": "array", "description": "Attribute paths whose cross-check agreement was below 60%.", "items": {"type": "string", "minLength": 1}},
+    "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^observed\\(mobbin:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\)$"}},
+    "notes": {"type": "string"}
+  }
+}

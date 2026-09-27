@@ -1,0 +1,102 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "ios",
+  "archetype": "profile-settings",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.destructive-action", "agree": 1, "of": 1},
+        {"attribute": "components.edit-action", "agree": 1, "of": 1},
+        {"attribute": "components.grouped-list", "agree": 1, "of": 1},
+        {"attribute": "components.grouped-list.kind", "agree": 1, "of": 1},
+        {"attribute": "components.grouped-list.position", "agree": 1, "of": 1},
+        {"attribute": "components.profile-header", "agree": 1, "of": 1},
+        {"attribute": "components.profile-header.kind", "agree": 1, "of": 1},
+        {"attribute": "components.profile-header.position", "agree": 1, "of": 1},
+        {"attribute": "components.tab-bar", "agree": 1, "of": 1},
+        {"attribute": "components.toggles", "agree": 1, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [
+      {"value": "bottom-sheet", "count": 3},
+      {"value": "single-column-scroll", "count": 3},
+      {"value": "tab-bar+content", "count": 2}
+    ],
+    "navigation": [
+      {"value": "topnav", "count": 4},
+      {"value": "tab-bar", "count": 2},
+      {"value": "back-header", "count": 1},
+      {"value": "other", "count": 1}
+    ],
+    "primary_action": [{"value": "none", "count": 7}, {"value": "floating-action", "count": 1}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 7}, {"value": "dark", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "none", "count": 4}, {"value": "selected", "count": 4}]
+  },
+  "components": [
+    {
+      "name": "profile-header",
+      "count": 7,
+      "kind": [{"value": "avatar-name", "count": 6}, {"value": "avatar-stats", "count": 1}],
+      "position": [{"value": "top", "count": 7}]
+    },
+    {
+      "name": "grouped-list",
+      "count": 8,
+      "kind": [{"value": "inset-grouped", "count": 5}, {"value": "plain-list", "count": 3}],
+      "position": [{"value": "main", "count": 8}]
+    },
+    {
+      "name": "toggles",
+      "count": 4,
+      "kind": [{"value": "switch-rows", "count": 4}],
+      "position": [{"value": "main", "count": 4}]
+    },
+    {
+      "name": "destructive-action",
+      "count": 1,
+      "kind": [{"value": "red-text-row", "count": 1}],
+      "position": [{"value": "bottom", "count": 1}]
+    },
+    {
+      "name": "edit-action",
+      "count": 4,
+      "kind": [{"value": "other", "count": 3}, {"value": "inline-link", "count": 1}],
+      "position": [{"value": "inline", "count": 3}, {"value": "other", "count": 1}]
+    },
+    {
+      "name": "tab-bar",
+      "count": 2,
+      "kind": [{"value": "bottom-tabs", "count": 2}],
+      "position": [{"value": "bottom", "count": 2}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:17ae6d95-ebf5-4c06-b24a-89f43b4ae15d)",
+    "observed(mobbin:cd9a656d-8142-48df-90ed-f38bc7f36c53)",
+    "observed(mobbin:53701e82-0aba-4284-a2e0-1c63ed351401)",
+    "observed(mobbin:076d6713-a155-4fab-afe8-eae0148f0bce)",
+    "observed(mobbin:339a3586-acf5-478f-9575-a08254d57132)",
+    "observed(mobbin:384f324e-310a-4c94-9235-b424843d8eba)",
+    "observed(mobbin:3aedad23-65c2-4409-840b-406e1940c22a)",
+    "observed(mobbin:7103fa11-5121-432e-9d07-d5558374a5e4)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

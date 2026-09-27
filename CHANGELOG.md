@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-27 - pattern cards with a schema and a linter
+
+### Added
+- **`schemas/pattern-card.schema.json`** — the two-layer pattern-card contract: core distributions
+  shared by every archetype, a `components[]` breakdown with `kind`/`position` counts, evidence as
+  `observed(mobbin:<id>)` only, and a `unreliable` list for low cross-check agreement.
+- **`ui pattern lint <card.json|dir> [--json]`** — validates the schema, every share against `n`,
+  unique evidence ids, the `n >= 8` floor (below it a card may only be `status: draft`), and rejects
+  any image path or URL. A directory is searched recursively.
+- **`knowledge/patterns/<platform>/<archetype>.json`** — 16 cards from Mobbin evidence: 14 web/iOS
+  archetypes at n=8 (Flash `gemini-3.8-flash-medium` extraction, one image per call), the usage-dashboard
+  card re-emitted from the earlier pilot at n=24, and a draft `ios/password-change` at n=6 (below the
+  floor; only 6 screens of that flow existed in the sample). A 10-image cross-check on `gemini-3.1-pro-high`
+  backs each card's `extraction.cross_check.agreement`.
+- **`knowledge/pattern-cards.md`** — how to read a card (shares are counts over n, never a decision).
+
 ## 2026-09-27 - a checkable six-step method run
 
 ### Added
