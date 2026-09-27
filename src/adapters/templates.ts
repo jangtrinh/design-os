@@ -13,6 +13,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
+import { readTemplateDescription, readTemplateSourceHash } from "./template-catalogue-read.js";
+
+export { readTemplateDescription, readTemplateSourceHash };
 
 // ─── Registries ───────────────────────────────────────────────────────────────
 
@@ -134,53 +137,20 @@ export function resolveTemplatePath(
   return absPath;
 }
 
-// ─── Frontmatter description ──────────────────────────────────────────────────
-
-/**
- * Read the `description:` value from a template's YAML frontmatter, or null
- * when the file has no frontmatter / no description line.
- *
- * This is the single source of the wrapper discovery descriptions (what +
- * when + trigger terms). The wrapper builders (wrapper-shapes.ts) stay pure
- * string functions — the fs read lives here, next to the other template fs
- * access, and the adapters pass the result in explicitly.
- *
- * Deterministic, intentionally narrow parse: a leading `---` line, a closing
- * `---` line, and a single-line `description:` between them. Surrounding
- * single/double quotes are stripped.
- */
-export function readTemplateDescription(absPath: string): string | null {
-  let raw: string;
-  try {
-    raw = readFileSync(absPath, "utf8");
-  } catch {
-    return null;
-  }
-  if (!raw.startsWith("---\n")) return null;
-  const closeIdx = raw.indexOf("\n---", 4);
-  if (closeIdx === -1) return null;
-  const block = raw.slice(4, closeIdx);
-  for (const line of block.split("\n")) {
-    const m = /^description:\s*(.+)\s*$/.exec(line);
-    if (m !== null && m[1] !== undefined) {
-      let v = m[1].trim();
-      if (
-        (v.startsWith('"') && v.endsWith('"')) ||
-        (v.startsWith("'") && v.endsWith("'"))
-      ) {
-        v = v.slice(1, -1).replace(/\\"/g, '"');
-      }
-      return v.length > 0 ? v : null;
-    }
-  }
-  return null;
-}
+// ─── Discovery description / source hash ──────────────────────────────────────
+// readTemplateDescription and readTemplateSourceHash live in
+// template-catalogue-read.ts (re-exported above) — this file keeps the
+// registries, resolver and the live-bytes hasher only.
 
 // ─── Hasher ───────────────────────────────────────────────────────────────────
 
 /**
- * Return the sha256 hex digest of a template file's contents.
- * Used to record templateHashes in the manifest for future drift detection.
+ * Return the sha256 hex digest of a template file's contents, read live from
+ * disk. Kept solely for `ui doctor`'s template-drift check (adapter-lint.ts),
+ * which must observe the CURRENT bytes of an installed template to detect a
+ * hand-edit — see {@link readTemplateSourceHash}'s doc comment. Every other
+ * caller wanting the hash of a known template should use that function
+ * instead of re-reading the file.
  */
 export function hashTemplateFile(absPath: string): string {
   const buf = readFileSync(absPath);

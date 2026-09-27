@@ -1,0 +1,17 @@
+{
+  "kind": "judgment",
+  "version": 1,
+  "id": "j-2026-09-27-001",
+  "ts": "2026-09-27T09:00:00.000Z",
+  "mode": "shadow",
+  "decisionPoint": "persona-family",
+  "candidates": ["web-hairline-generous-neo-grotesque", "web-quiet-light-single-accent-neo-grotesque"],
+  "pick": {
+    "candidate": "web-hairline-generous-neo-grotesque",
+    "evidenceRefs": [
+      { "type": "persona-dossier", "ref": "web-hairline-generous-neo-grotesque" },
+      { "type": "ruling", "ref": "r-2026-09-14-001" }
+    ]
+  },
+  "kernelConstraints": ["contrast >= 4.5:1", "one accent"]
+}

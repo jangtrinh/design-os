@@ -1,0 +1,47 @@
+{
+  "kind": "design-brief",
+  "version": 1,
+  "rawRequest": "Build the usage screen for Platform Admin",
+  "surface": "web-app",
+  "audience": "Platform admins",
+  "context": "Existing admin console",
+  "primaryOutcome": "See usage per organisation",
+  "primaryAction": "Export usage",
+  "requiredContent": [
+    "Usage table",
+    "Filters"
+  ],
+  "constraints": [
+    "Read-only"
+  ],
+  "prohibitedClaims": [],
+  "criteria": [
+    {
+      "id": "must-table",
+      "priority": "must",
+      "text": "Usage table is visible"
+    }
+  ],
+  "requestedBy": "PM",
+  "approvedBy": [
+    {
+      "role": "PM",
+      "person": "a-person",
+      "at": "2026-09-27"
+    }
+  ],
+  "assumptions": [
+    {
+      "facet": "surface",
+      "value": "inside the console",
+      "provenance": "unknown",
+      "confidence": "low"
+    },
+    {
+      "facet": "flows",
+      "value": "none given",
+      "provenance": "unknown",
+      "confidence": "low"
+    }
+  ]
+}

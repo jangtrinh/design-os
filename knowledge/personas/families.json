@@ -1,0 +1,286 @@
+{
+  "version": 1,
+  "source": "W6 persona candidates, clustered on measured taste attributes (k-medoids, weighted Hamming); status CANDIDATE until the owner's blind review",
+  "unreliableAttributes": [
+    {"attribute": "corner_radius", "agreement": 0.53},
+    {"attribute": "weight_contrast", "agreement": 0.47}
+  ],
+  "families": [
+    {
+      "slug": "web-hairline-generous-neo-grotesque",
+      "platform": "web",
+      "apps": 10,
+      "screens": 41,
+      "medoid": "Mintlify",
+      "nearest": "web-quiet-light-single-accent-neo-grotesque",
+      "attributes": [
+        {"attribute": "imagery", "value": "icons-only", "share": 0.78, "platformShare": 0.44, "weak": false},
+        {"attribute": "whitespace", "value": "generous", "share": 0.76, "platformShare": 0.58, "weak": false},
+        {"attribute": "elevation", "value": "hairline-borders", "share": 0.73, "platformShare": 0.56, "weak": false}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/00fb771c-e81c-416a-a17f-c0b91ffe80c6",
+        "https://mobbin.com/flows/160a7185-0c83-4730-98d6-ee029e7cecb3",
+        "https://mobbin.com/screens/78c00d03-f3ab-404d-9508-89d2bad15b14",
+        "https://mobbin.com/flows/fcc42e97-1a0d-4633-bdca-f4e6349a6743",
+        "https://mobbin.com/screens/640aed2c-d34d-4948-9ee8-86e659c5f8f0",
+        "https://mobbin.com/flows/b6cdaa16-c54c-40e1-b6f8-3903fb9e48b2",
+        "https://mobbin.com/screens/211575d4-7ff1-4971-b12d-4e69315a8a5f",
+        "https://mobbin.com/screens/c0162180-8cc6-487f-9c33-c85e915c0c5d",
+        "https://mobbin.com/screens/8402e675-b81a-4590-8c2b-23f064215a2d",
+        "https://mobbin.com/screens/2d37d513-1180-4cb5-9b4a-08e811928c9b",
+        "https://mobbin.com/screens/fbb531f0-5837-44f8-83f8-3643208a17a5"
+      ]
+    },
+    {
+      "slug": "web-moderate-volume-neutral-neo-grotesque",
+      "platform": "web",
+      "apps": 6,
+      "screens": 33,
+      "medoid": "Calendly",
+      "nearest": "web-hairline-dark-leaning-single-accent",
+      "attributes": [
+        {"attribute": "brand_volume", "value": "moderate", "share": 0.7, "platformShare": 0.45, "weak": false},
+        {"attribute": "whitespace", "value": "balanced", "share": 0.55, "platformShare": 0.4, "weak": true},
+        {"attribute": "background_texture", "value": "none", "share": 0.97, "platformShare": 0.85, "weak": false}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/ecd19208-e1e3-4677-9815-e585cf716c3c",
+        "https://mobbin.com/flows/c1967d79-28b5-4c84-97f0-03ec02c797b8",
+        "https://mobbin.com/screens/ac3ae4f5-1e5c-46b9-b6cc-ca4dc6b36f54",
+        "https://mobbin.com/flows/4241ada5-42d2-498a-8ba9-e905c36795c1",
+        "https://mobbin.com/screens/d800f178-8fdf-4e04-9eaf-5e0198727ca6",
+        "https://mobbin.com/flows/ebebae18-8a54-472f-8707-c82057f2dcc2",
+        "https://mobbin.com/screens/42e3a05e-9412-4ae2-aeb5-a822e1e45813",
+        "https://mobbin.com/screens/a54fe83f-ee73-4907-b056-c02db29c81a2",
+        "https://mobbin.com/screens/08494cc6-b226-45de-a5ad-8aa93f75f107"
+      ]
+    },
+    {
+      "slug": "web-quiet-light-single-accent-neo-grotesque",
+      "platform": "web",
+      "apps": 5,
+      "screens": 24,
+      "medoid": "Descript",
+      "nearest": "web-hairline-generous-neo-grotesque",
+      "attributes": [
+        {"attribute": "brand_volume", "value": "quiet", "share": 0.88, "platformShare": 0.52, "weak": false},
+        {"attribute": "surface_temperature", "value": "neutral", "share": 0.96, "platformShare": 0.68, "weak": false},
+        {"attribute": "letterform", "value": "neo-grotesque", "share": 0.96, "platformShare": 0.71, "weak": false}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/a349ba1c-ba39-4c60-b4b4-da73cd6282c5",
+        "https://mobbin.com/flows/00182380-49cf-4c7a-8fb3-8fcc7ee19918",
+        "https://mobbin.com/screens/0596b84f-f48a-4e08-86df-052f7333ff9d",
+        "https://mobbin.com/flows/c4262bcf-023e-483b-ad81-15fa526c29da",
+        "https://mobbin.com/screens/3a534135-db62-4fcd-8df3-b974c2c880ed",
+        "https://mobbin.com/flows/be80ded5-56d5-4fed-b9fd-8a87d00fa0ad",
+        "https://mobbin.com/screens/6c0c14d5-1003-49ec-9ec7-ade5452b875a",
+        "https://mobbin.com/screens/4df3f000-6f01-4fba-88f3-860312a22922"
+      ]
+    },
+    {
+      "slug": "web-hairline-dark-leaning-single-accent",
+      "platform": "web",
+      "apps": 4,
+      "screens": 23,
+      "medoid": "Higgsfield",
+      "nearest": "web-moderate-volume-neutral-neo-grotesque",
+      "attributes": [
+        {"attribute": "brand_volume", "value": "moderate", "share": 0.74, "platformShare": 0.45, "weak": false},
+        {"attribute": "elevation", "value": "hairline-borders", "share": 0.83, "platformShare": 0.56, "weak": false},
+        {"attribute": "whitespace", "value": "balanced", "share": 0.61, "platformShare": 0.4, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/359a26bc-1516-411f-b83a-ab5896f8de50",
+        "https://mobbin.com/flows/cfc4264c-7047-4f5a-b0ad-6e917f99e6be",
+        "https://mobbin.com/screens/73f76d09-9508-49ba-810e-8b2d13ff74e6",
+        "https://mobbin.com/flows/8ea92cbc-a168-4c1a-96a8-48589cb4c095",
+        "https://mobbin.com/screens/82f217fe-febf-4036-97d8-51c3cc146e1a",
+        "https://mobbin.com/screens/2d69bce8-5bcf-4c16-a239-7f09a0f49362"
+      ]
+    },
+    {
+      "slug": "web-geometric-generous-gradient-leaning",
+      "platform": "web",
+      "apps": 3,
+      "screens": 10,
+      "medoid": "Emergent",
+      "nearest": "web-moderate-volume-neutral-neo-grotesque",
+      "attributes": [
+        {"attribute": "letterform", "value": "geometric", "share": 0.7, "platformShare": 0.16, "weak": false},
+        {"attribute": "background_texture", "value": "gradient", "share": 0.5, "platformShare": 0.1, "weak": true},
+        {"attribute": "elevation", "value": "soft-shadow", "share": 0.5, "platformShare": 0.14, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/4eb86098-ba6d-49a0-af5d-1403cdd8e69f",
+        "https://mobbin.com/flows/eb7a4e34-b88f-4881-900e-82c2f0fb6fff",
+        "https://mobbin.com/screens/1380ff1b-e92b-4330-a2e0-f0bd1b5cc5e8",
+        "https://mobbin.com/screens/02aea727-a82c-4861-ae61-b99be0d5fdde"
+      ]
+    },
+    {
+      "slug": "web-serif-display-plus-sans",
+      "platform": "web",
+      "apps": 3,
+      "screens": 22,
+      "medoid": "Bloom",
+      "nearest": "web-moderate-volume-neutral-neo-grotesque",
+      "attributes": [
+        {"attribute": "type_family_mix", "value": "serif-display+sans", "share": 0.77, "platformShare": 0.12, "weak": false},
+        {"attribute": "letterform", "value": "serif", "share": 0.68, "platformShare": 0.11, "weak": true},
+        {"attribute": "iconography", "value": "mixed", "share": 0.68, "platformShare": 0.38, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/ac19b4b1-9715-4562-bc5d-985a5b557714",
+        "https://mobbin.com/flows/c32dd99d-a980-47c5-874d-a39cfd9517f2",
+        "https://mobbin.com/screens/13152f0b-7136-4389-af0a-b855262ba5eb",
+        "https://mobbin.com/flows/4231fa20-e6c8-490e-b63a-2476156e42a7",
+        "https://mobbin.com/screens/121b37b6-8cc4-42e3-ad72-4a22c67f264e",
+        "https://mobbin.com/flows/fe7d04ef-f986-424f-a21d-2052e1b790eb"
+      ]
+    },
+    {
+      "slug": "ios-quiet-single-accent-neo-grotesque",
+      "platform": "ios",
+      "apps": 10,
+      "screens": 23,
+      "medoid": "Perplexity",
+      "nearest": "ios-cool-blue-single-accent",
+      "attributes": [
+        {"attribute": "brand_volume", "value": "quiet", "share": 0.83, "platformShare": 0.45, "weak": false},
+        {"attribute": "letterform", "value": "neo-grotesque", "share": 0.83, "platformShare": 0.53, "weak": false},
+        {"attribute": "surface_temperature", "value": "neutral", "share": 0.87, "platformShare": 0.67, "weak": false}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/cd9a656d-8142-48df-90ed-f38bc7f36c53",
+        "https://mobbin.com/flows/8ba6caca-b592-4b1e-84f4-a76b6f1dd085",
+        "https://mobbin.com/screens/e640cf83-d54c-4a08-9e8d-af81433ad6b3",
+        "https://mobbin.com/flows/87b8ad82-282a-4524-a11f-b9f7694be435",
+        "https://mobbin.com/flows/7151b678-d092-4ed6-9303-a2709ac516fe",
+        "https://mobbin.com/screens/fd330182-950b-40b8-8e53-9fa2b9985df0",
+        "https://mobbin.com/screens/59e3873e-89f5-42f0-aa88-34f379e1e2c9",
+        "https://mobbin.com/screens/ed5fcb30-6702-41b8-9599-3ed0597e58d7",
+        "https://mobbin.com/screens/339a3586-acf5-478f-9575-a08254d57132",
+        "https://mobbin.com/screens/0ffe05f5-fc89-47f9-8856-ce81d86e817a"
+      ]
+    },
+    {
+      "slug": "ios-hairline-neutral-neo-grotesque",
+      "platform": "ios",
+      "apps": 8,
+      "screens": 39,
+      "medoid": "LinkedIn",
+      "nearest": "ios-geometric-high-contrast",
+      "attributes": [
+        {"attribute": "elevation", "value": "hairline-borders", "share": 0.79, "platformShare": 0.51, "weak": false},
+        {"attribute": "letterform", "value": "neo-grotesque", "share": 0.74, "platformShare": 0.53, "weak": false},
+        {"attribute": "imagery", "value": "icons-only", "share": 0.62, "platformShare": 0.43, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/6dec1d5e-be7a-49b3-9667-d4b775ad04b0",
+        "https://mobbin.com/flows/9502dda2-5400-4108-b1ba-ebc2251ae043",
+        "https://mobbin.com/screens/a58b6f44-933b-48a8-98b8-f25388694a97",
+        "https://mobbin.com/flows/e48e14c9-1a1d-4ae2-9a0b-b0e4912ff72f",
+        "https://mobbin.com/screens/e43ed176-52b2-4510-8d67-377110f1122d",
+        "https://mobbin.com/flows/d4199384-e640-4a95-9a60-4976db844ccd",
+        "https://mobbin.com/screens/6a68b1f3-1b40-4a94-855b-1ba46763c5e5",
+        "https://mobbin.com/flows/f5e0b03d-451b-42bb-a484-8d685c7ea06a",
+        "https://mobbin.com/flows/f496ff94-1da9-4fb3-b16c-ee6c18b9f567",
+        "https://mobbin.com/screens/fad714ef-0006-46a0-abe1-00e2fa1257f7",
+        "https://mobbin.com/screens/5e7aabb9-eef8-4a90-bacc-eb15c521a417",
+        "https://mobbin.com/screens/65ac5155-4d8f-499a-8a8d-76352905e9dd"
+      ]
+    },
+    {
+      "slug": "ios-balanced-whitespace-geometric-leaning",
+      "platform": "ios",
+      "apps": 7,
+      "screens": 22,
+      "medoid": "Starbucks",
+      "nearest": "ios-geometric-high-contrast",
+      "attributes": [
+        {"attribute": "whitespace", "value": "balanced", "share": 0.91, "platformShare": 0.55, "weak": false},
+        {"attribute": "letterform", "value": "geometric", "share": 0.64, "platformShare": 0.39, "weak": true},
+        {"attribute": "brand_volume", "value": "moderate", "share": 0.68, "platformShare": 0.51, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/d484983a-0541-434f-bc54-646a8013b35f",
+        "https://mobbin.com/flows/ab9a4c5d-69f2-4bda-bdec-3091c641eceb",
+        "https://mobbin.com/screens/68ce0af2-db40-432a-9fee-1a77359c8135",
+        "https://mobbin.com/flows/ece82567-bc12-4466-8b01-35cf7132c1a0",
+        "https://mobbin.com/screens/502f3118-56b8-48fd-98e3-dff689a6f2a9",
+        "https://mobbin.com/screens/25f45fcc-6f89-4138-ae7b-0e2591b1588e",
+        "https://mobbin.com/screens/97f73a42-e077-4ca7-807d-fec4f80c02d8",
+        "https://mobbin.com/screens/3258e2fe-5dcc-4ed1-88a5-1657d873a3df",
+        "https://mobbin.com/screens/9b46f142-51a4-4030-85fa-38bdb1ad751e"
+      ]
+    },
+    {
+      "slug": "ios-geometric-high-contrast",
+      "platform": "ios",
+      "apps": 5,
+      "screens": 34,
+      "medoid": "Glovo",
+      "nearest": "ios-pill-control-high-contrast",
+      "attributes": [
+        {"attribute": "letterform", "value": "geometric", "share": 0.74, "platformShare": 0.39, "weak": false},
+        {"attribute": "whitespace", "value": "generous", "share": 0.62, "platformShare": 0.45, "weak": true},
+        {"attribute": "brand_volume", "value": "moderate", "share": 0.68, "platformShare": 0.51, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/e54edcf8-8c03-4b63-b446-e628ac634d9a",
+        "https://mobbin.com/flows/ef5b0aa1-c908-4997-8c5c-0340236a1fb7",
+        "https://mobbin.com/screens/e0076d10-a65e-499c-9b9e-279a8b435de7",
+        "https://mobbin.com/flows/87196160-84b6-48eb-a380-fa027fe958a7",
+        "https://mobbin.com/screens/048fc9a4-962b-49f7-95c6-21b9dbab99e7",
+        "https://mobbin.com/flows/6446e4b0-2f86-424e-868c-b62837f48124",
+        "https://mobbin.com/screens/3aedad23-65c2-4409-840b-406e1940c22a",
+        "https://mobbin.com/flows/d9440169-2171-4b69-8fb1-42ab4ccefd9d",
+        "https://mobbin.com/screens/84eb302d-57ed-4c4d-addc-41c6165d8d1b",
+        "https://mobbin.com/flows/c2bd990e-9437-4119-8def-c93a41e2de5f"
+      ]
+    },
+    {
+      "slug": "ios-cool-blue-single-accent",
+      "platform": "ios",
+      "apps": 4,
+      "screens": 22,
+      "medoid": "Cleo AI",
+      "nearest": "ios-hairline-neutral-neo-grotesque",
+      "attributes": [
+        {"attribute": "accent_hue", "value": "blue", "share": 0.73, "platformShare": 0.26, "weak": false},
+        {"attribute": "surface_temperature", "value": "cool", "share": 0.64, "platformShare": 0.19, "weak": true},
+        {"attribute": "brand_volume", "value": "quiet", "share": 0.73, "platformShare": 0.45, "weak": false}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/a67dd64d-139c-4af8-98a2-d2988d9bc856",
+        "https://mobbin.com/flows/c09a1bd3-e890-41cf-907b-d89ce83112aa",
+        "https://mobbin.com/screens/628a69b6-0842-482e-be0c-51c11601e104",
+        "https://mobbin.com/flows/20e91726-9162-4513-8cad-bac3901046c8",
+        "https://mobbin.com/screens/a7c20d58-3803-40b3-a953-837f7546b6db",
+        "https://mobbin.com/flows/9d75b81a-8661-4ad9-a44d-6f576ca9128c",
+        "https://mobbin.com/screens/ba60046e-8258-4041-a75f-e1d38de26ce4"
+      ]
+    },
+    {
+      "slug": "ios-pill-control-high-contrast",
+      "platform": "ios",
+      "apps": 2,
+      "screens": 16,
+      "medoid": "Bumble",
+      "nearest": "ios-geometric-high-contrast",
+      "attributes": [
+        {"attribute": "elevation", "value": "flat", "share": 0.56, "platformShare": 0.27, "weak": true},
+        {"attribute": "iconography", "value": "outline", "share": 0.69, "platformShare": 0.5, "weak": true},
+        {"attribute": "letterform", "value": "geometric", "share": 0.56, "platformShare": 0.39, "weak": true}
+      ],
+      "mobbinUrls": [
+        "https://mobbin.com/screens/5d56414f-8181-4402-b4e0-d2a5116d8b28",
+        "https://mobbin.com/flows/689bed54-60a3-410d-a77d-715505e3f56c",
+        "https://mobbin.com/screens/56d5faa0-b9cd-438e-a73c-361996fa6dd3",
+        "https://mobbin.com/flows/795ff2ae-e5a9-4684-a24c-cdd2ea4bce63"
+      ]
+    }
+  ]
+}

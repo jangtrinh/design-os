@@ -16,6 +16,203 @@
   backs each card's `extraction.cross_check.agreement`.
 - **`knowledge/pattern-cards.md`** — how to read a card (shares are counts over n, never a decision).
 
+## 2026-09-27 - close the gaps the reruns exposed: seam-lint CI gate, single-caller detection, path resolution
+
+### Fixed
+- **`ui seam lint`'s bounded static analyzer no longer loses a prose read when only one caller
+  remains.** A call argument reaching a read function through a bare member expression
+  (`input.templatesRoot`, not a destructure or a call) fell through to `unknown` instead of being
+  traced — invisible when several callers still contributed a literal path to the union, but a real
+  detection-coverage regression once the others migrate away (see reports/dev-w3c.md finding 1).
+  `resolveSeamPaths` now resolves `obj.prop` through the same property-threading it already has for
+  destructuring and template-literal interpolation.
+- **`design-os run --screens <dir>` and `--out <dir>`** now resolve a relative path against `--project`,
+  never the conductor's process cwd — closing the exact trap the README's own invocation shape falls
+  into (`cd design-os && design-os run ... --screens acceptance/...`).
+
+### Added
+- **`ui seam lint` runs in CI** via `tests/seam-lint-ci.test.ts`, a built-binary test asserting
+  `new 0` and no stale allowlist entries over the repo's own `src/`; a coverage or ratchet regression
+  now fails `npm test` instead of merging unnoticed.
+
+## 2026-09-27 - template hashes read from the catalogue instead of hashed at runtime
+
+### Changed
+- **`ui init`'s manifest baseline and the codex adapter's embedded reference hash** now read the
+  recorded `sourceSha256` from `schemas/template-descriptions.json` (via the new
+  `readTemplateSourceHash`) instead of re-hashing the template file's bytes at runtime. Both values
+  are identical for an unmodified install — the catalogue is generated from, and audited
+  (`ui templates catalogue --check`) against, the same bytes that ship in the package.
+- **`ui doctor`'s template-drift check keeps hashing live bytes** (`hashTemplateFile`, unchanged):
+  it is the only remaining consumer that compares a recorded baseline against the template's
+  CURRENT bytes on disk, so it must observe a hand-edited installed template even when the
+  catalogue itself was never touched — see `evidence/w3a/proposals.md` §2's decision note.
+- **`schemas/seam-allowlist.json`** drops the `src/adapters/templates.ts` entry: with only one
+  caller left, `ui seam lint`'s bounded static analysis no longer traces the read to a template
+  path (`reads 4 / allowed 4 / new 0`, down from 5). The runtime guarantee is unchanged and covered
+  by tests; the seam-lint ratchet's coverage of that one call site is a known, disclosed gap.
+
+## 2026-09-27 - follow-ups from the control plane run: silent BLOCKED, a skip code, a fuller index
+
+### Fixed
+- **`ui brief lint` no longer reports BLOCKED with zero questions.** When the D4 receipt is BLOCKED, every
+  low-confidence assumption that no blocking field already asks about becomes one question naming the
+  assumption and its current value. `L` and the decision are unchanged; a CONTINUE brief still emits none.
+
+### Added
+- **`blocked-intake` skip code** in `schemas/method-run.schema.json`; `design-os run` uses it for the steps a
+  BLOCKED intake receipt stops, instead of `not-applicable` with a detail prefix. `ui method lint` accepts it.
+- **`knowledge/index.json` lists JSON data files** directly under `knowledge/personas/` and
+  `knowledge/patterns/` with `kind: data`; prose entries are unchanged.
+
+## 2026-09-27 - a shadow judge: record what System One would pick, measure how often a human agrees
+
+### Added
+- **`ui judge record --out <judgments.jsonl> --event <json>`** — validates one judgment against
+  `schemas/judgment.schema.json` and appends it. A judgment names a decision point (`art-direction`,
+  `persona-family`, `layout-archetype`, `copy-language`), the candidates considered, the pick with at least
+  one evidence ref (persona dossier slug, pattern card path, or ruling id `r-*`) and the kernel constraints
+  that applied. `mode` is always `shadow`: the record is observed, never enforced. The human decision
+  (`accepted | changed-to <x> | rejected`) arrives as a second line with the same id that repeats the
+  pending judgment unchanged; nothing is rewritten.
+- **`ui judge report <judgments.jsonl> [--families <families.json>] [--json]`** — agreement between the
+  shadow pick and the human decision per decision point, with sample sizes and pending counts. Below
+  n = 5 resolved judgments it prints `not enough data (n=<count>)` and no rate.
+- **`knowledge/personas/families.json`** and `schemas/persona-families.schema.json` — the twelve persona
+  families (six web, six iOS) as measured data only: slug, platform, apps, screens, medoid app, the three
+  reliable distinguishing attributes with their share and platform-wide share, nearest family, Mobbin URLs.
+  `corner_radius` and `weight_contrast` (Flash/Opus agreement below 60%) are named once in
+  `unreliableAttributes` and omitted from every family. `ui judge report --families` validates the file and
+  fails when a `persona-family` judgment names a family that is not in it.
+
+## 2026-09-27 - a run control plane: `design-os run` drives one feature through the six steps
+
+### Added
+- **`design-os run <brief.json> --project <dir> --out <run-dir>`** — the Python conductor calls only the `ui`
+  binary: `brief lint` (writes `questions.json`), `gate` on every `*.html` under `--screens`, `trace summarize`,
+  `knowledge lint` on `ruling-candidates.json`, and `method lint` on the `run.json` it writes. Outputs `run.json`
+  (`method-run/1`), `k1.json` (same top-level keys as the hand-made measurement sheet), `timeline.json` (per-step and
+  per-call timestamps), `gates.json`. No model call, no network.
+- **Stops on intake.** A `BLOCKED` D4 receipt ends the run after `define`: the later steps are `skipped` with a
+  `blocked-intake` detail, the questions are printed and the exit code is 2. A red gate or a dirty candidates file
+  exits 1. Figma parity and the approver decision are `NOT RUN`, never guessed.
+
+## 2026-09-27 - a learning ledger contract, so recurrence can fire
+
+### Added
+- **`schemas/learning-event.schema.json`** — one event type set for learning: `gap | insight | retro | correction |
+  ruling-candidate | approval`, each with `id`, `t`, `text`, `refs[]` (may name ruling ids `r-*`) and
+  `source` (`observed | synthetic | assumed`). Telemetry kinds are out of scope and rejected.
+- **`ui knowledge ledger lint <events.jsonl> [--json]`** — schema, duplicate ids, telemetry kinds, and a
+  `correction` or `approval` without an `r-*` ref are errors (exit 1). Reads JSON Lines or an `{entries:[…]}`
+  document; reports events, clean events and events without a ruling ref.
+- **`ui knowledge ledger append <events.jsonl> --event <json>`** — validates one event and appends it as one line;
+  never rewrites, refuses a duplicate id and refuses a JSON-document ledger.
+- **`ui knowledge draft-ruling --ledger <events.jsonl>`** — also appends a `ruling-candidate` event naming the new
+  ruling id (idempotent by id), so the recurrence path in `ui knowledge promote` has events to count.
+
+### Changed
+- **`ui knowledge promote`** counts a learning event toward recurrence through its `refs[]` only; free text that
+  merely mentions a ruling id no longer counts. Older ledger shapes keep the whole-record match.
+
+## 2026-09-27 - a fresh-machine install proof
+
+### Added
+- **`scripts/fresh-install-proof.sh`** — packs the checkout, installs the tarball into a throwaway npm prefix and
+  cache under `$TMPDIR` (never the real global prefix, never a publish), then runs `ui doctor`, `ui init --all` in an
+  empty project and `ui doctor --cwd`. Prints wall time per step and the total; the first failing step stops the run
+  with its output and exit 1. `--tarball <file>` installs a given tarball instead (a tarball without `bin` fails at
+  the `ui doctor (install)` step, not silently); `--keep` leaves the throwaway dirs for inspection.
+- `tests/fresh-install-proof.test.ts` — argument handling always runs; the real run and the no-`bin` control run
+  with `UI_FRESH_INSTALL=1` (they need the npm registry).
+- `docs/team-review-door.md` gains an "Install check" paragraph with the verified run.
+
+## 2026-09-27 - template descriptions move from prose to JSON
+
+### Added
+- **`ui templates catalogue [--out <file>] [--check]`** — the only code that parses
+  template frontmatter; emits `schemas/template-descriptions.json` (path, description
+  or explicit null, source SHA-256). `--check` writes nothing and exits 1 on schema
+  violation or drift; `npm run build` now runs it, so CI catches a stale catalogue.
+- **`ui templates lint [catalogue.json]`** — validates the catalogue against
+  `schemas/template-descriptions.schema.json`, plus uniqueness, path order and
+  registry coverage.
+
+### Changed
+- `readTemplateDescription` reads the catalogue instead of the template Markdown;
+  every registered template returns the same description as before. A missing or
+  unparseable catalogue now throws and names the regenerate command.
+- `schemas/seam-allowlist.json`: the runtime read of template frontmatter is gone
+  (kernel runtime prose reads 5 → 4); the emitter's authoring-time read is listed
+  as its own entry, so `ui seam lint` reports reads 5 / allowed 5 / new 0.
+
+## 2026-09-27 - the `design/` directory contract
+
+### Added
+- **`schemas/design-dir.schema.json`** and **`docs/design-directory.md`** — the canonical layout: one token
+  source (`design/tokens.json`), soul, principles with a machine index, rulings as the only place supersession
+  is recorded, art direction under `design/art-direction/`, logs and caches gitignored.
+- **`ui design lint <project-root> [--json]`** — reports each deviation with a fix hint: extra token files
+  (unless declared derived in `design/design-dir.json`), tracked logs and caches under `design/`, art direction
+  outside `design/`, supersession outside rulings, a missing or stale principles index, and stale ingest
+  (`DESIGN.md` or the registry more than 14 days older than `ds.json`). Exit 1 on any error; warnings are advisory.
+- **`ui design principles-index <principles.md> --out <principles.json> [--check]`** — emits the index
+  (`id`, `title`, `yields_when`, `test`) from the `### <ID> · <title>` headings; `--check` exits 1 on drift.
+
+## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
+
+### Added
+- **`ui brief lint <brief.json> [--questions <out.json>] [--json]`** — validates a design brief, applies the
+  route rules (`web-app`, `dashboard` and `mobile-app` need `screens[]` with at least one state each, `roles[]`
+  and `status`; landing keeps today's rules) and prints a receipt: **B** blocking fields, **R** whether any of
+  them changes the route or is one-way, **L** low-confidence assumptions. `CONTINUE` when B <= 2, no R and
+  L <= 3, otherwise `BLOCKED`. Exit 0 continue, 2 blocked, 1 schema error.
+- **`questions.json`** — one question per blocking field, route-changing first, with a recommended default only
+  where a rule can derive it (`copyLanguage` from the script of `rawRequest`, the four canonical screen states).
+- **`ui brief questions <questions.json> --format claude|markdown`** — the AskUserQuestion payload (at most 4
+  questions, recommended option first) or a gap sheet for teams that answer asynchronously.
+- **Brief schema extensions** (`schemas/design-brief.schema.json`), all optional so every existing brief still
+  validates: `surface` grows to `landing | web-app | dashboard | mobile-app | email | document`
+  (`marketing-landing` stays valid), plus `screens[]`, `roles[]`, `status`, `copyLanguage`, `requestedBy`,
+  `approvedBy[]`, and `label` on assumptions.
+- **Status transitions are a question, not a schema error.** A `status` vocabulary with more than one state and no
+  `transitions` becomes the blocking field `status.transitions` (counted in B, question "Which transitions exist
+  between <states>?", no default) instead of failing validation, so the receipt is always produced.
+
+## 2026-09-27 - the read trace measures a real run
+
+### Fixed
+- **`bytesBeforeFirstMutate` was 0 on a real run.** The hook counted any Bash `mkdir`/redirect as the
+  first mutation, so an agent's own setup (`mkdir -p .design-os/trace`, `> /dev/null`) closed the
+  window before it read a single design file. A Bash command now counts only when it writes inside
+  the project tree, outside `.design-os/` and `node_modules/`: redirects and heredoc writes
+  (`cat > file <<`), `tee`, `rm`/`mv`/`cp`/`touch`/`mkdir`/`chmod`, `sed -i`. Writes to `/dev/null`,
+  `$TMPDIR` or any path outside the project, `npm install` and `git status` are not mutations. The
+  `mutate` record now carries the target `path` (never the command text). Replaying the real
+  acceptance-baseline trace now gives 20,118 bytes instead of 0.
+- **Design context was invisible.** `brand/`, `.specify/` and `docs/` join `knowledge/`, `templates/`,
+  `README.md` and `design/` as traced read prefixes; `DESIGN_OS_TRACE_PREFIXES` (comma-separated)
+  adds more. `cat ~/…` and `$HOME/…` reads are now expanded instead of silently missed.
+- **A checklist run behind a wrapper read as "not run".** A `gate` event is now recorded for
+  `ui gate` / `slop-detect` run directly, or through `npm run <script>` / `node|bash <file>` whose
+  script text runs one, and carries the matched `command`. `esDesignerChecklistRan` is true when a
+  read of `es-designer/checklist.md` is followed by any gate event.
+
+### Changed
+- **`ui trace summarize` prints `firstMutation: {t, kind, path}`** so a reader can see what ended the
+  window, and `unclassifiedMutations` counts legacy Bash `mutate` records that carry no target
+  (traces written by the previous hook): they are reported, not counted, and do not end the window.
+
+## 2026-09-27 - runtime prose read ratchet
+
+### Added
+- **`ui seam lint [--allowlist <file>] [--json]`** — scans kernel source for runtime
+  Markdown reads under knowledge, templates, docs, and README; reports new reads
+  and stale allowances as errors. `schemas/seam-allowlist.json` records existing
+  reads with their data purpose and proposed JSON home. The static scan follows
+  literal/joined paths, local bindings and named helpers; dynamically evaluated
+  paths and external runtime inputs remain outside its resolution boundary.
+
 ## 2026-09-27 - a checkable six-step method run
 
 ### Added

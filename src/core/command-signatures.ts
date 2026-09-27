@@ -68,6 +68,46 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  templates: {
+    summary: "Emit and lint the template description catalogue",
+    subcommands: {
+      catalogue: { summary: "Emit schemas/template-descriptions.json from template frontmatter", positionals: [],
+        flags: [{ name: "out", type: "string", summary: "Catalogue path (default schemas/template-descriptions.json)" },
+          { name: "check", type: "boolean", summary: "Write nothing; exit 1 on schema violation or drift" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "SCHEMA_UNAVAILABLE", "TEMPLATE_UNREADABLE"] },
+      lint: { summary: "Validate the catalogue shape, order, uniqueness and registry coverage",
+        positionals: [{ name: "[catalogue.json]", required: false, summary: "Catalogue path (default the installed one)" }],
+        flags: [], errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "SCHEMA_UNAVAILABLE", "BAD_JSON"] },
+    },
+  },
+  design: {
+    summary: "Lint the design/ directory contract and emit the principles index",
+    subcommands: {
+      lint: {
+        summary: "Report every deviation from the design/ layout, each with a fix hint",
+        positionals: [{ name: "<project-root>", required: true, summary: "Project root that holds design/" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NOT_A_DIRECTORY", "SCHEMA_UNAVAILABLE"],
+      },
+      "principles-index": {
+        summary: "Emit design/principles.json from the headings of principles.md",
+        positionals: [{ name: "<principles.md>", required: true, summary: "Principles document" }],
+        flags: [
+          { name: "out", type: "string", required: true, summary: "Index file to write (or compare with --check)" },
+          { name: "check", type: "boolean", summary: "Do not write; exit 1 when the index is missing or differs" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_PRINCIPLES", "WRITE_ERROR"],
+      },
+    },
+  },
+  seam: {
+    summary: "Ratchet runtime prose reads in the kernel source",
+    subcommands: {
+      lint: { summary: "Reject new prose reads and stale allowances", positionals: [],
+        flags: [{ name: "allowlist", type: "string", summary: "Allowance JSON path (default schemas/seam-allowlist.json)" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_ALLOWLIST", "READ_ERROR"] },
+    },
+  },
   method: {
     summary: "Lint a six-step method run and its defining brief",
     subcommands: {
@@ -1082,6 +1122,51 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "emit", type: "boolean", summary: "Write knowledge/index.json instead of printing to stdout" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_KNOWLEDGE", "READ_ERROR", "WRITE_ERROR"],
+      },
+    },
+  },
+
+  brief: {
+    summary: "Intake contract: lint a design brief, emit its blocking questions and the D4 CONTINUE|BLOCKED receipt",
+    subcommands: {
+      lint: {
+        summary: "Validate a brief, apply the route rules and print the D4 receipt (B / R / L); exit 0 CONTINUE, 2 BLOCKED, 1 schema error",
+        positionals: [{ name: "<brief.json>", required: true, summary: "Design brief to lint" }],
+        flags: [
+          { name: "questions", type: "string", summary: "Write one question per blocking field to this questions.json path" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "WRITE_ERROR"],
+      },
+      questions: {
+        summary: "Render a questions.json for a runtime: the AskUserQuestion payload or a Markdown gap sheet",
+        positionals: [{ name: "<questions.json>", required: true, summary: "File written by brief lint --questions" }],
+        flags: [
+          { name: "format", type: "string", values: ["claude", "markdown"], summary: "Output format (default: claude)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "BAD_QUESTIONS"],
+      },
+    },
+  },
+
+  judge: {
+    summary: "System One shadow judge: record shadow picks beside human decisions, report agreement per decision point",
+    subcommands: {
+      record: {
+        summary: "Validate one judgment (decision point, candidates, pick with evidence refs, kernel constraints, optional human decision) and append it",
+        positionals: [],
+        flags: [
+          { name: "out", type: "string", required: true, summary: "Judgments ledger to append to (design/judgments.jsonl)" },
+          { name: "event", type: "string", required: true, summary: "The judgment as a JSON object" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_JSON", "SCHEMA_ERROR", "LEDGER_INVALID", "DUPLICATE_ID", "WRITE_ERROR"],
+      },
+      report: {
+        summary: "Shadow-vs-human agreement per decision point with sample sizes; 'not enough data' below n = 5",
+        positionals: [{ name: "<judgments.jsonl>", required: true, summary: "Judgments ledger" }],
+        flags: [
+          { name: "families", type: "string", summary: "Validate knowledge/personas/families.json and check persona-family refs against it" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON"],
       },
     },
   },

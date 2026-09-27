@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { run } from "../src/cli.js";
 
 const fixture = (name: string): string => join(process.cwd(), "tests", "fixtures", "method", name);
@@ -61,6 +61,19 @@ describe("ui method lint", () => {
     expect(JSON.parse(result.out).data.findings.map((f: { checkId: string }) => f.checkId)).toContain("invalid-brief");
   });
 
+  it("accepts blocked-intake as a skip code and still rejects an unknown one", () => {
+    const skipWith = (code: string): string => editedRun((r) => {
+      r.steps.explore!.status = "skipped";
+      r.steps.explore!.skip_reason = { code, detail: "Intake receipt is BLOCKED; questions are unanswered." };
+    });
+    const ok = capture(["method", "lint", skipWith("blocked-intake"), "--json"]);
+    expect(ok.code).toBe(0);
+    expect(JSON.parse(ok.out).data.findings).toEqual([]);
+    const bad = capture(["method", "lint", skipWith("blocked-elsewhere"), "--json"]);
+    expect(bad.code).toBe(1);
+    expect(JSON.parse(bad.out).data.findings.map((f: { checkId: string }) => f.checkId)).toContain("schema-shape");
+  });
+
   it("rejects a readable brief that violates the current brief schema", () => {
     const file = editedRun(() => {});
     writeFileSync(join(dirname(file), "brief.json"), JSON.stringify({ kind: "design-brief", version: 1 }));
@@ -85,5 +98,25 @@ describe("ui method lint", () => {
     const result = capture(["method", "lint", file, "--json"]);
     expect(result.code).toBe(1);
     expect(JSON.parse(result.out).data.findings.map((f: { message: string }) => f.message)).toContain("$.steps.frame.constructor: unknown property");
+  });
+
+  // A4 (PR-FU2): a relative `define` brief path in run.json must resolve against
+  // run.json's OWN directory, never the process cwd — invoked from a cwd that isn't
+  // run.json's directory, with a relative <run.json> arg, so a cwd-relative bug
+  // (either resolution) would surface here.
+  it("resolves a relative brief path against run.json's directory when invoked from a foreign cwd", () => {
+    const file = editedRun(() => {});
+    const runDir = dirname(file);
+    const elsewhere = mkdtempSync(join(tmpdir(), "method-lint-elsewhere-"));
+    const cwd = process.cwd();
+    process.chdir(elsewhere);
+    try {
+      const result = capture(["method", "lint", relative(elsewhere, file), "--json"]);
+      expect(result.code, result.out).toBe(0);
+      expect(JSON.parse(result.out).data.findings).toEqual([]);
+    } finally {
+      process.chdir(cwd);
+    }
+    expect(runDir).toBe(dirname(file));
   });
 });

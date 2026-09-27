@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "reads": [
+    {
+      "file": "src/adapters/templates.ts",
+      "line": 156,
+      "readCall": "readFileSync(absPath)",
+      "paths": [
+        "*/templates/*/*.md",
+        "*/templates/journeys/*.md",
+        "*/templates/skills/*.md",
+        "*/templates/workflows/*.md",
+        "templates/*/*.md",
+        "templates/journeys/*.md",
+        "templates/skills/*.md",
+        "templates/workflows/*.md"
+      ],
+      "data": "Byte-level integrity hash of an INSTALLED template (ui doctor drift check, hashTemplateFile). The content is never parsed; the read exists so a hand-edited installed file is detected against the current bytes, which a catalogue hash cannot prove (evidence/w3a/proposals.md section 2 decision note). Kept deliberately; not a migration target.",
+      "proposedJsonHome": "none (integrity check, not data)"
+    },
+    {
+      "file": "src/commands/agents.ts",
+      "line": 147,
+      "readCall": "readFileSync(p, \"utf8\")",
+      "paths": [
+        "*/templates/agents/curator.md",
+        "*/templates/agents/designer.md",
+        "*/templates/agents/figma-hand.md",
+        "templates/agents/curator.md",
+        "templates/agents/designer.md",
+        "templates/agents/figma-hand.md"
+      ],
+      "data": "Agent instruction bodies rendered with project and studio placeholders",
+      "proposedJsonHome": "schemas/agent-templates.json"
+    },
+    {
+      "file": "src/commands/knowledge-check.ts",
+      "line": 68,
+      "readCall": "readFileSync(join(knowledgeDir, rel), \"utf8\")",
+      "paths": [
+        "*/knowledge/*"
+      ],
+      "data": "Knowledge Markdown frontmatter, links, provenance, matrices and persona descriptions used by governance linters",
+      "proposedJsonHome": "schemas/knowledge-governance.json"
+    },
+    {
+      "file": "src/commands/knowledge.ts",
+      "line": 136,
+      "readCall": "readFileSync(join(knowledgeDir, rel), \"utf8\")",
+      "paths": [
+        "*/knowledge/*"
+      ],
+      "data": "Top-level knowledge routing frontmatter used to emit knowledge/index.json",
+      "proposedJsonHome": "knowledge/index.json"
+    },
+    {
+      "file": "src/commands/templates-catalogue.ts",
+      "line": 48,
+      "readCall": "readFileSync(join(root, \"templates\", rel))",
+      "paths": [
+        "*/templates/*"
+      ],
+      "data": "Template bytes and frontmatter descriptions read by the maintainer emitter (ui templates catalogue) to write and check the catalogue; authoring-time only, the kernel runtime reads the JSON",
+      "proposedJsonHome": "schemas/template-descriptions.json"
+    }
+  ]
+}

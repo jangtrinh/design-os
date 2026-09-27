@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "path": "journeys/daily.md",
+      "description": "Run the day-to-day design:os loop well: know which of the four 'audit' surfaces to run and how to read its result, triage findings from any linter consistently (iterate, ship, or escalate), verify a flagged issue is real before fixing it, preflight the Figma connection before trusting a scan, prime with recall at job start, and run the taste-corpus vote loop. Use during /ui:generate, /ui:iterate, /ui:audit, /ui:design, taste voting, or any Figma canvas work — the day-to-day work between onboarding and shipping.",
+      "sourceSha256": "8ff71a16d707fad4c79e20efc9d32ca1e3bdd2b66ed65f34434933a2482a2834"
+    },
+    {
+      "path": "journeys/deliver.md",
+      "description": "Ship a design:os change: run the full-stack audit in the order that actually catches problems (flow, evidence, VR baseline, paired-tokens, rendered a11y, full audit), work the delivery checklist (specimen, docs, preview, vr-matrix, changelog) including the vr-matrix step most agents never discover, know exactly what a static a11y pass does not prove, and hand off the diff/changelog/PR. Use when preparing a release, a PR, a specimen page, or any 'is this ready to ship' question.",
+      "sourceSha256": "87cc8f96115a8f6a4cfd3ac27fb920fd2e37e2f7d494a30ecf8ccf79528e6f2c"
+    },
+    {
+      "path": "journeys/onboard.md",
+      "description": "Onboard a project onto design:os end to end: pick the right entry point for what already exists (nothing yet, a codebase, a URL, a Figma file, a token set, or reference shots), verify the toolchain with ui doctor / design-os doctor, compile or import the design system, declare the soul, wire agents + heartbeat, and open the Figma plugin. Use when the user says 'onboard', 'set up design:os', 'install this', 'wire up my project', 'get started with design:os', or right after ui init.",
+      "sourceSha256": "1fe82ccec8e21a29fc9d00b23dfa8ad7bdab4ce912564d074d258d52dfeec67f"
+    },
+    {
+      "path": "skills/apply-prompt-mode.md",
+      "description": "Decide how faithfully to track a reference input. Use when a workflow consumes a screenshot, URL, or Figma frame and must choose between faithful reproduction and inspired reinterpretation.",
+      "sourceSha256": "fd999d84cb87170b8267f0e4c2c7577faddb96791afea77c5fd4af5263336e94"
+    },
+    {
+      "path": "skills/canvas-effect.md",
+      "description": "Direct and implement one selective, web-only Canvas UI T6 effect after the static baseline is verified — narrative intent, one-effect cap, tenant contract, Draco decision, and teardown required. Use for T6-justified web generation only, after the motion ladder and persona cap allow it; do not use for Figma or to-figma canvas surfaces, native-mobile production UI, or to satisfy a motion-intensity number.",
+      "sourceSha256": "d9f6e8e1a54e26ac27cf97c0d77fbabb740013a0dd47dc7b8a8127e9be5f302b"
+    },
+    {
+      "path": "skills/chart-craft.md",
+      "description": "Use when the user asks for a standalone chart of quantities (bar, line, scatter, radar, gantt, dated timeline, quadrant, venn, proportional pyramid) delivered as a rendered artifact rather than prose. Charts embedded in a page or deck belong to generate or slides instead.",
+      "sourceSha256": "59a9be0faa2cda77f039cb11728ba1581352986658cd3502c11917f42f604cfa"
+    },
+    {
+      "path": "skills/check-consistency.md",
+      "description": "Score the Consistency axis — design-system token and component reuse. Use when auditing whether generated HTML uses the project's DS tokens and registered components instead of ad-hoc values.",
+      "sourceSha256": "9ab193d1c78eda2024a8216e3377b59b7c63c6c443f160ea8bbaa28121af503b"
+    },
+    {
+      "path": "skills/color-decision.md",
+      "description": "Make a color choice, build a palette, or check WCAG contrast. Use when picking a brand or semantic color, generating a perceptual scale, or validating contrast in any design workflow.",
+      "sourceSha256": "99919c64baf7c32c0a075df688d5f6e8fff337b3b9b14826df8a341b0beaf526"
+    },
+    {
+      "path": "skills/designmd-emit.md",
+      "description": "Compose a DESIGN.md file from harvested tokens, observed components, and a chosen persona family. Use inside the from-url workflow when writing the 8-section Google-Labs-spec DESIGN.md.",
+      "sourceSha256": "6bc6bba68ed7aa4859ef7f57b7c1b1ee37749be1f1bc5129f52ca9ca05cbce81"
+    },
+    {
+      "path": "skills/diagram-craft.md",
+      "description": "Use when the user asks for a structural, sequential, or hierarchical diagram (or asks to generate or update one) and needs it delivered as a rendered design artifact rather than prose or a text description. Charts of quantities route to chart-craft instead.",
+      "sourceSha256": "2c3c8447da17f79c941b436c859952307a59aac9b7d76835ebc18f1b5edee9a2"
+    },
+    {
+      "path": "skills/figma-craft.md",
+      "description": "Pick and verify idiomatic Figma constructions when building or editing a canvas via the external figma-agent CLI. Use before building (choose auto-layout, component, and variable structure) and after building (run the construction lints).",
+      "sourceSha256": "aec81304427e44001a48588b335deed53eaa156e22a5e09705055738f98c00e8"
+    },
+    {
+      "path": "skills/gflow-flight.md",
+      "description": "Generate a multi-leg camera flight or a conditioned still through the gflow hand (Google Flow / Veo / Imagen on a subscription), using the verify-then-spend adapter so a stranded render never costs a second credit. Use when a brief needs authored video legs whose seams must be frame-identical; do not use for one-off text-to-video where the official API path is simpler, and never inside CI or an unattended build.",
+      "sourceSha256": "10a0cad32057a4ef5f7d2621f17c015377fe86a22a2e70ae50170229867d578d"
+    },
+    {
+      "path": "skills/gsap-motion.md",
+      "description": "Direct and implement advanced GSAP web choreography with timelines, ScrollTrigger, responsive variants, framework-safe cleanup, plugin restraint, and performance evidence. Use for story-bearing motion, pinned or scrubbed scenes, spatial transitions, gesture physics, or GSAP review; do not use for simple CSS transitions or native mobile production UI.",
+      "sourceSha256": "dfd7cdcc42795c3412f0680914ca187bdbe3d83b38f19c9e78740d9ff4c4effd"
+    },
+    {
+      "path": "skills/native-ios-craft.md",
+      "description": "Use when applying shared Apple SwiftUI craft plus compact iOS navigation, touch, keyboard-safe layout, and provisional evidence boundaries.",
+      "sourceSha256": "596138634ba0ab887fb163456daf28379d502de080641ccd6552cba2506b2bad"
+    },
+    {
+      "path": "skills/native-ipados-craft.md",
+      "description": "Use when applying shared Apple SwiftUI craft plus resizable iPadOS windows, split navigation, mixed input, focus, scenes, and provisional evidence boundaries.",
+      "sourceSha256": "5075d18cbb257524731effcf11f7c15f39bc695f8c656faf3b4d6fa848aff83b"
+    },
+    {
+      "path": "skills/native-macos-craft.md",
+      "description": "Use when applying SwiftUI-first native macOS craft, finite layout ownership, and evidence boundaries to the provisional native arm.",
+      "sourceSha256": "3154abdb10f643bdfbdbe595182ae3a2243ddd39db7c559487b8deba14c67aa4"
+    },
+    {
+      "path": "skills/pick-persona.md",
+      "description": "Choose one or more design personas for a generation, redesign, or extraction task. Use when a workflow step says to select N personas from intent, pick a contrasting persona, or resolve a persona the user named to a concrete slug.",
+      "sourceSha256": "7d4b1509898767bd1ba811bd2268e323f82cdde43674ae89ece021ba34e6f5a6"
+    },
+    {
+      "path": "skills/score-taste.md",
+      "description": "Evaluate a generated design against the 6+1-axis taste rubric. Use when a workflow gate asks to score a variant, run the taste gate, or judge whether a design clears the ship bar.",
+      "sourceSha256": "d78f9476e7499559af0fe793a59af94a9e426e4c65dbda435e0618e40bfbd313"
+    },
+    {
+      "path": "skills/scroll-cinema.md",
+      "description": "Direct a scroll-scrubbed camera flight — choose the architecture before generating anything, keep every seam frame-identical and never reversing, and hold the scrub-encode and phone floors. Use when scroll position drives video time; do not use for scroll-triggered reveals, which are the motion ladder's T3 or T5, and not before the ladder actually selects T6.",
+      "sourceSha256": "efad7e3dd56570cf301ed389b7f092abd07ca0b21a559b722a554991751de733"
+    },
+    {
+      "path": "skills/shader-gradient.md",
+      "description": "Direct and implement one selective, web-only ShaderGradient T6 gradient field after the static baseline is verified — narrative intent, design-system colour binding, the two mandatory fallbacks, the shared one-effect cap, and teardown required. Use for T6-justified web generation only, after the motion ladder and persona cap allow it; do not use for Figma or to-figma canvas surfaces, native-mobile production UI, or to satisfy a motion-intensity number.",
+      "sourceSha256": "533300fa259f642c940f6a1280e47006ed357955608631697971846b046ca11d"
+    },
+    {
+      "path": "skills/token-model.md",
+      "description": "Define, alias, or change design tokens. Use when creating or editing design tokens, adding an alias, or propagating a token value change through the design system.",
+      "sourceSha256": "20e21df678deaf59a8fc96eea0d4eadad1d414e85eec066ee2c3869d5dc4a0e6"
+    },
+    {
+      "path": "skills/verify-canvas.md",
+      "description": "Prove a canvas change actually landed, with checks that can refuse rather than pass. Use when verifying any live Figma mutation, before reporting a task done or posting a handoff.",
+      "sourceSha256": "950bd2b21fcb250a5d382f70c7e394be12a7e575d8bb145a3ff1d98938f11400"
+    },
+    {
+      "path": "workflows/audit.md",
+      "description": "Audit a Figma file against its design system and normalize the violations. Use when the user says 'audit', 'fix violations', 'normalize to the DS', or wants raw hex / detached instances / raw icons / off-grid spacing / deprecated components cleaned up.",
+      "sourceSha256": "8ee10c9a645b7c9491e85e5584e847c47f3d6b8cc35039aec6e23c81ba779d7c"
+    },
+    {
+      "path": "workflows/chart.md",
+      "description": "Runtime-neutral chart workflow for ease-design. Use when a standalone chart of quantities is the deliverable and prose or a table would bury the comparison. Charts inside a page or deck belong to generate or slides.",
+      "sourceSha256": "04e6ef0b1df3e186bdaedb6793f092bad01c35a633e160d4d705123e26d91be5"
+    },
+    {
+      "path": "workflows/design.md",
+      "description": "Design something NEW from a requirement, on the Figma canvas — a whole screen or a single component. Detects the scope and runs the matching discipline, driven by an understand-until-decision-ready loop. Use when the Figma canvas is named as the target AND the thing is still to be decided — only then: 'design a screen/page in Figma', 'I want a new <X> on the canvas', 'add a variant to <component> on the canvas'. Otherwise route per G2 in knowledge/need-routing.md (no canvas named → generate; formed intent to construct → to-figma).",
+      "sourceSha256": "bfafc9ef13bd4b1108225778c05521db790ea798c385767a56a278d2bf67ebe2"
+    },
+    {
+      "path": "workflows/diagram.md",
+      "description": "Runtime-neutral diagram workflow for ease-design. Use when a request needs a structural, sequential, or hierarchical picture and prose/tables would lose structure a reader needs to trace. Charts of quantities belong to the chart workflow.",
+      "sourceSha256": "424989eaf3548ea67048a5b3bd265439495a53d9dd3a3808e1d3a51071f76086"
+    },
+    {
+      "path": "workflows/evidence.md",
+      "description": "Turn a transcript, interview, survey, or notes file into verified user-evidence findings and record them in the ledger the coverage gate cites. Use when the user says 'log evidence', 'add a finding', 'ingest this transcript/interview/survey', or wants an acceptance criterion backed by a real user quote or metric.",
+      "sourceSha256": "b11b033bc022945335f664aeabe7da4e6f35286a788deac20b4bb9c499e7fdb8"
+    },
+    {
+      "path": "workflows/extract.md",
+      "description": "Extract a design system from existing HTML. Use when the user provides HTML and wants its tokens and components harvested into a project design system.",
+      "sourceSha256": "cac2216ffec9b86da9ee3f27a9fd4f262c7787c92787418b6960224dfc734669"
+    },
+    {
+      "path": "workflows/figma-comments.md",
+      "description": "Pull Figma comments scoped to what the owner points at, resolve which screen and element each pin means, decide them one at a time, and read the owner's verdict back off the threads you post. Use when reviewing, triaging, or closing the loop on Figma design feedback.",
+      "sourceSha256": "de8102f574898a9a89854bef12f84c9c03c4ac60b0d2cce2c2860809ba64d009"
+    },
+    {
+      "path": "workflows/figma.md",
+      "description": "Import a Figma frame and produce an HTML reproduction. Use when the user provides a figma.com URL or frame to convert to code.",
+      "sourceSha256": "1c528b97ca34489f27ddea641730e950273209d8314a879566e6b3e5b93a9d36"
+    },
+    {
+      "path": "workflows/from-ref.md",
+      "description": "Generate high-fidelity HTML from a reference screenshot or image. Use when the user provides an image to reproduce or draw inspiration from.",
+      "sourceSha256": "dd7741c453f4b3a039271c90bef1dafb6aaa500f2792d5bcc478b2f0eefa259a"
+    },
+    {
+      "path": "workflows/from-url.md",
+      "description": "Extract a portable DESIGN.md spec folder from a live URL. Use when the user points at a website and wants its design system captured for reuse.",
+      "sourceSha256": "8b40ae5d9781ca59094ef9aefa5977d0f942fa4af1f3463e287a08ee61e72167"
+    },
+    {
+      "path": "workflows/generate.md",
+      "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
+      "sourceSha256": "df9978fd40b9e605522a4e71b2b62a958fe5895820ca32e357de47a815e93d16"
+    },
+    {
+      "path": "workflows/iterate.md",
+      "description": "Apply a focused vibe-word edit to an existing variant. Use when the user asks to tweak, adjust, or nudge a generated design without redesigning it.",
+      "sourceSha256": "1adceeb5d599f55897164e9a0bd387b5213fcb5669d70258409736a78c245af0"
+    },
+    {
+      "path": "workflows/learn.md",
+      "description": "Teach ease-design an existing project's design system — scan the repo, harvest tokens/components/interaction states from real evidence, and compile the DS so generation matches the product. Use when initializing ease-design on a project that already has UI, or to re-learn after a major redesign.",
+      "sourceSha256": "30f1f4dcc663550b7228f87178031f4c4d0f3d2b87f6bcfd8467afe3d9628f53"
+    },
+    {
+      "path": "workflows/native-ios.md",
+      "description": "Build a first-class native iOS app through compact-first SwiftUI composition and provisional, evidence-bounded delivery. Use when the requested artifact is an iPhone or iOS application.",
+      "sourceSha256": "5c7ff1727ba8b7e070a44bb33ef24614b55853acf947c4bf03cf8876bc902078"
+    },
+    {
+      "path": "workflows/native-ipados.md",
+      "description": "Build a first-class native iPadOS workspace through resizable SwiftUI composition, split navigation, mixed input, and provisional evidence. Use when the requested artifact is an iPad or iPadOS application.",
+      "sourceSha256": "39a5df50990aca2d6a67b6d6e6bab114c87d987b6380bbeb5298d0132b931828"
+    },
+    {
+      "path": "workflows/native-macos.md",
+      "description": "Build a first-class native macOS surface through SwiftUI-first composition and provisional, evidence-bounded delivery. Use when the requested artifact is a native macOS application or workspace.",
+      "sourceSha256": "e0328b4aaa23f00bdbd8b05ba0768313c122ff72a2b22933f3f70203ca5f8bd7"
+    },
+    {
+      "path": "workflows/redesign.md",
+      "description": "Radical contra-persona redesign of an existing variant. Use when the user rejects the current direction and asks for something completely different.",
+      "sourceSha256": "6c69091011bca95923f5f41c11361dcebc2ada5ee73397fbf9d02c79029592cc"
+    },
+    {
+      "path": "workflows/refine.md",
+      "description": "Self-correction pass that fixes execution quality without redesigning. Use when a variant scores low on craft axes or the user asks to polish or clean up a design.",
+      "sourceSha256": "ec50c0a8213a1823883ce16451c274377474cdf6d732eb6b14194ee86b05df13"
+    },
+    {
+      "path": "workflows/slides.md",
+      "description": "Generate a full presentation slide deck from a topic. Use when the user asks for slides, a deck, or a presentation.",
+      "sourceSha256": "208cb15bbe82af7902327fc41c6e5d2b1e8a74e0aef44a20542ed502e08409f0"
+    },
+    {
+      "path": "workflows/to-figma.md",
+      "description": "Author idiomatic Figma on the canvas from intent or an existing ease-design output. Use when the user wants a design built or edited in Figma (auto-layout, components, variables) via the figma-agent hand.",
+      "sourceSha256": "d00b6e45e0c057f94e6dead06d70f78b6356eb1d0bb952bfec403460b1b3fff5"
+    },
+    {
+      "path": "workflows/why.md",
+      "description": "Answer why a design decision is the way it is — trace picks, edits, verdicts, and token changes with provenance from the project's design memory. Use when the user asks why a color/spacing/persona/component is the way it is, what was decided, or when something changed.",
+      "sourceSha256": "13b46daa75e15e60438da4c640410a3d8851ef83416a04098a7e5ba1759a67a3"
+    }
+  ]
+}

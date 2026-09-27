@@ -62,7 +62,7 @@ import {
   SKILL_NAMES,
   JOURNEY_NAMES,
   resolveTemplatePath,
-  hashTemplateFile,
+  readTemplateSourceHash,
 } from "../adapters/templates.js";
 
 const CMD = "init";
@@ -361,24 +361,27 @@ export const initCommand = {
       // Build template hashes for the manifest (all non-init workflows + skills + journeys).
       // Keys here and adapter-lint.ts's liveTemplateHashes() MUST enumerate the same
       // registries — an asymmetry makes `ui doctor` template-drift false-fail/false-pass.
+      // Values come from the audited catalogue (readTemplateSourceHash), not a live
+      // re-hash — see that function's doc comment for why doctor's own live-hash
+      // comparator (hashTemplateFile) must stay separate.
       const templateHashes: Record<string, string> = {};
       for (const verb of WORKFLOW_VERBS) {
         if (verb === "init") continue;
         const absPath = resolveTemplatePath(templatesRoot, "workflow", verb);
         if (absPath !== null) {
-          templateHashes[`workflows/${verb}.md`] = hashTemplateFile(absPath);
+          templateHashes[`workflows/${verb}.md`] = readTemplateSourceHash(absPath);
         }
       }
       for (const name of SKILL_NAMES) {
         const absPath = resolveTemplatePath(templatesRoot, "skill", name);
         if (absPath !== null) {
-          templateHashes[`skills/${name}.md`] = hashTemplateFile(absPath);
+          templateHashes[`skills/${name}.md`] = readTemplateSourceHash(absPath);
         }
       }
       for (const name of JOURNEY_NAMES) {
         const absPath = resolveTemplatePath(templatesRoot, "journey", name);
         if (absPath !== null) {
-          templateHashes[`journeys/${name}.md`] = hashTemplateFile(absPath);
+          templateHashes[`journeys/${name}.md`] = readTemplateSourceHash(absPath);
         }
       }
 
