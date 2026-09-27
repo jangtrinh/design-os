@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-27 - runtime prose read ratchet
+
+### Added
+- **`ui seam lint [--allowlist <file>] [--json]`** — scans kernel source for runtime
+  Markdown reads under knowledge, templates, docs, and README; reports new reads
+  and stale allowances as errors. `schemas/seam-allowlist.json` records existing
+  reads with their data purpose and proposed JSON home. The static scan follows
+  literal/joined paths, local bindings and named helpers; dynamically evaluated
+  paths and external runtime inputs remain outside its resolution boundary.
+
 ## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
 
 ### Added

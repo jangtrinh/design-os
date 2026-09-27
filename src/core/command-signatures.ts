@@ -68,6 +68,14 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  seam: {
+    summary: "Ratchet runtime prose reads in the kernel source",
+    subcommands: {
+      lint: { summary: "Reject new prose reads and stale allowances", positionals: [],
+        flags: [{ name: "allowlist", type: "string", summary: "Allowance JSON path (default schemas/seam-allowlist.json)" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_ALLOWLIST", "READ_ERROR"] },
+    },
+  },
   "product-context": {
     summary: "Compile and replay-lint Product Context Atlases",
     subcommands: {
