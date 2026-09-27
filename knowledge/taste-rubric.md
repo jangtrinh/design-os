@@ -380,17 +380,6 @@ moves up.
 The gate's purpose is not perfectionism — it is to catch the failure mode where a model
 produces a plausible-looking but generic, system-ignoring result and ships it.
 
-### Persuade surfaces: the hero criteria outrank the total
-
-On a landing or marketing page the release judge is the **pairwise duel** against the
-project's bar sites, not the rubric total. A page scored 14/16 and still lost its duel 2–5
-on 2026-09-27; its two 1-scores sat on the hero criteria (interlock of type and asset; a
-claim that survives a logo swap), exactly where four earlier gate-clean pages had been
-rejected as "basic / boring". Rule: a 0 **or a 1** on any of the four hero criteria sends
-the work back to the hero comps regardless of the total; the rubric is the diagnosis, the
-duel is the verdict. NOT ALLOWED: reporting a Persuade page as passed on the rubric total
-alone, because the total averages away the one section the visitor decides on.
-
 ---
 
 ## The Excellence Tier

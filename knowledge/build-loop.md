@@ -122,7 +122,7 @@ that reads as "a static document scrolled past" loses the duel whatever the rubr
 (b) a critic who did not build the page scores the rubric and the pairwise duel from those
 sheets; (c) the scroll-story probe's numbers (frame-to-frame change, frames carrying the
 signature device) sit in the evidence folder. `ui build-evidence lint` reports these as rule
-r8 for Persuade folders. NOT ALLOWED: the builder scoring its own page — on 2026-09-27 the
+r8 for Persuade folders. The release judge for a Persuade page is the pairwise duel, not the rubric total: a 0 or a 1 on any of the four hero criteria sends the work back to the hero comps whatever the total (a 14/16 page lost its duel 2–5 on 2026-09-27 with its two 1-scores on interlock and logo-swap). NOT ALLOWED: the builder scoring its own page — on 2026-09-27 the
 builder reported zero occlusions and the critic found a stamp over its caption at 375.
 
 ## Who runs which part
