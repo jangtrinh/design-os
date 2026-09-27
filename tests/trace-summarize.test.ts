@@ -100,7 +100,7 @@ describe("summarizeTrace — gates, coverage, hygiene", () => {
 
   it("empty trace: coverage none, zeros — not a fabricated measurement", () => {
     expect(summarizeTrace([])).toEqual({
-      bytesBeforeFirstMutate: 0, filesBeforeFirstMutate: [], readmeOpened: false, indexOpened: false,
+      bytesBeforeFirstMutate: 0, firstMutation: null, unclassifiedMutations: 0, filesBeforeFirstMutate: [], readmeOpened: false, indexOpened: false,
       esDesignerLoaded: false, esDesignerChecklistRan: false, gateRuns: 0, traceCoverage: "none", malformedLines: 0,
     });
   });
@@ -238,7 +238,7 @@ describe("design-os-read-trace hook → ui trace summarize (emitter/reader round
     };
     for (const c of ["npm test > /dev/null", "npm test >> /dev/null", "npm test 2>/dev/null", "npm test &> /dev/null",
       "npm test >/dev/null 2>&1", "git status", "cmd 2>&1"]) expect([c, mutates(c)]).toEqual([c, false]);
-    for (const c of ["echo x > file.txt", "echo x >> file.txt", "echo x > /dev/nullx", "echo x > /dev/null; echo y > out.txt"])
+    for (const c of ["echo x > file.txt", "echo x >> file.txt", "echo x > dev/nullx", "echo x > /dev/null; echo y > out.txt"])
       expect([c, mutates(c)]).toEqual([c, true]);
   });
 });
