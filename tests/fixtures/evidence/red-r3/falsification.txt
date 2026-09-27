@@ -1,0 +1,7 @@
+# Falsification probe: can the contrast gate go red? (mutated scratch copy, never committed)
+
+## 1. contrast: deliberately mutate --color-text-muted to a value below the 4.5:1 floor
+$ node dist/cli.js gate p1.html
+gate: p1.html — 1 error(s), 0 warning(s)
+    ✗ [low-contrast] line 12: text on background is 1.74:1, below the 4.5:1 WCAG AA floor
+exit=1

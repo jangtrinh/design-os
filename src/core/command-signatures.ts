@@ -435,6 +435,18 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "build-evidence": {
+    summary: "The build-loop standard's linter half (knowledge/build-loop.md)",
+    subcommands: {
+      lint: {
+        summary: "Check r1-r7 over a builder's evidence folder; PASS/FAIL/SKIPPED per rule",
+        positionals: [{ name: "<dir>", required: true, summary: "Evidence folder to check" }],
+        flags: [{ name: "widths", type: "string", summary: "Comma-separated required widths (default 375,768,1440)" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DIR_NOT_FOUND"],
+      },
+    },
+  },
+
   "scrub-lint": {
     summary: "The scrub-encode floor checked on an encoded clip",
     signature: {
