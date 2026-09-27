@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/learning-event.schema.json",
+  "title": "ease-design learning ledger event",
+  "description": "One line of a learning ledger (JSON Lines). Learning kinds only: telemetry kinds (component_registered, token_compiled, votes, …) are out of scope and rejected. A correction or approval must name the ruling it produced or ratified in refs[] (r-*).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "t", "source", "refs", "text"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "type": { "enum": ["gap", "insight", "retro", "correction", "ruling-candidate", "approval"] },
+    "t": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2}))?$" },
+    "source": { "enum": ["observed", "synthetic", "assumed"] },
+    "refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Ids this event points at: ruling ids (r-*), or other event ids (an insight naming a gap id closes it)."
+    },
+    "text": { "type": "string", "minLength": 1 },
+    "note": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "enum": ["correction", "approval"] } }, "required": ["type"] },
+      "then": { "properties": { "refs": { "contains": { "type": "string", "pattern": "^r-\\S+$" } } } }
+    }
+  ]
+}
