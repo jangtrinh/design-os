@@ -3,7 +3,10 @@
  * or Figma Tokens Studio flat JSON.
  *
  * All emitters are pure string transforms — no I/O, no side effects.
- * Composite tokens (typography/shadow) expand to per-member CSS properties.
+ * Composite tokens (typography/shadow) expand to per-member CSS properties;
+ * a shadow ALSO emits one `box-shadow` composite value under its own path's
+ * var name (PR-FU3-r2 A6) — the per-member vars remain for consumers that
+ * compose their own box-shadow string from them.
  */
 import type { ResolvedMap, ResolvedToken } from "./token-model.js";
 
@@ -18,6 +21,11 @@ function pathToCssVar(path: string): string {
 function scalarToCss(value: unknown): string {
   if (typeof value === "number") return String(value);
   if (typeof value === "string") return value;
+  // A fontFamily token's $value may be a font stack array (PR-FU3-r2 A6):
+  // one comma-separated CSS value, quoting any family name with a space.
+  if (Array.isArray(value)) {
+    return value.map((v) => (typeof v === "string" && /\s/.test(v) ? `"${v}"` : String(v))).join(", ");
+  }
   return String(value);
 }
 
@@ -53,6 +61,22 @@ function isNullShadow(type: string, value: Record<string, unknown>): boolean {
 }
 
 /**
+ * Build the single `box-shadow` CSS value (`offsetX offsetY blur spread
+ * color`, CSS's own box-shadow order) a DTCG shadow composite compiles to
+ * (PR-FU3-r2 A6). The per-member vars stay alongside it — an existing
+ * consumer (`ds-preview-sections.ts`'s `shadowValue()`) composes its own
+ * `box-shadow` string from them directly — this is the additional single
+ * value the shadow $type itself is defined to compile to. Returns undefined
+ * when a required member is missing (malformed shadow — the per-member
+ * expansion still runs on whatever is present).
+ */
+function shadowToBoxShadow(value: Record<string, unknown>): string | undefined {
+  const { offsetX, offsetY, blur, spread, color } = value;
+  if ([offsetX, offsetY, blur, spread, color].some((v) => v === undefined)) return undefined;
+  return [offsetX, offsetY, blur, spread, color].map(scalarToCss).join(" ");
+}
+
+/**
  * Yield all CSS var declarations for a single resolved token.
  *
  * A "null" shadow (zero blur/offset/spread) is omitted entirely (PR-FU3 A3):
@@ -63,9 +87,22 @@ function isNullShadow(type: string, value: Record<string, unknown>): boolean {
  * token-exists check would reject once linked CSS is judged (PR-FU3 A1).
  */
 function tokenToCssDecls(token: ResolvedToken): [string, string][] {
+  // A fontFamily $value array is ONE font-stack value, never split into
+  // per-index -0/-1/-2 variables (PR-FU3-r2 A6 — the kernel could not consume
+  // its own persona library's font stacks until this was distinguished from
+  // a composite like shadow/typography).
+  if (Array.isArray(token.value)) {
+    return [[pathToCssVar(token.path), scalarToCss(token.value)]];
+  }
   if (typeof token.value === "object" && token.value !== null) {
-    if (isNullShadow(token.type, token.value as Record<string, unknown>)) return [];
-    return expandComposite(token.path, token.value as Record<string, unknown>);
+    const value = token.value as Record<string, unknown>;
+    if (isNullShadow(token.type, value)) return [];
+    const pairs = expandComposite(token.path, value);
+    if (token.type === "shadow") {
+      const composite = shadowToBoxShadow(value);
+      if (composite !== undefined) pairs.unshift([pathToCssVar(token.path), composite]);
+    }
+    return pairs;
   }
   return [[pathToCssVar(token.path), scalarToCss(token.value)]];
 }

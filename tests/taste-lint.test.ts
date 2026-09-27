@@ -14,6 +14,7 @@ import {
   checkRawHexWhenTokenExists,
 } from "../src/core/taste-checks.js";
 import { lintTaste } from "../src/core/taste-lint.js";
+import { loadTokenHexes } from "../src/commands/taste-lint.js";
 import { run } from "../src/cli.js";
 
 // In-process CLI capture (mirrors cmd-validate-layout.test.ts).
@@ -361,6 +362,48 @@ describe("checkRawHexWhenTokenExists", () => {
   it("flags an inline-style invented hex", () => {
     const f = checkRawHexWhenTokenExists('<div style="color:#123456"></div>', tokens);
     expect(f).toHaveLength(1);
+  });
+});
+
+// ─── loadTokenHexes / shadow's embedded hex (PR-FU3-r2 A9) ──────────────────────
+
+describe("loadTokenHexes — a shadow token's 8-digit color member is a known hex", () => {
+  it("collects a shadow leaf's color member, alpha-stripped, into the known-hex set", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-taste-shadow-"));
+    const tokensPath = join(dir, "tokens.json");
+    writeFileSync(tokensPath, JSON.stringify({
+      elevation: {
+        shadow: {
+          $type: "shadow",
+          $value: { color: "#0000001f", offsetX: "0px", offsetY: "2px", blur: "8px", spread: "0px" },
+        },
+      },
+    }), "utf8");
+    const knownHexes = loadTokenHexes(tokensPath);
+    expect(knownHexes).toBeDefined();
+    expect(knownHexes?.has("#000000")).toBe(true);
+  });
+
+  it("raw-hex-when-token-exists does not fire on the page's own shadow-[#0000001f] once that shadow token exists", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-taste-shadow-"));
+    const tokensPath = join(dir, "tokens.json");
+    // A real color leaf too, so the Set is non-empty (and the check actually
+    // runs its comparison) independent of whether the shadow's hex is found —
+    // a Set left empty by the bug would make checkRawHexWhenTokenExists skip
+    // entirely and this test would pass for the wrong reason.
+    writeFileSync(tokensPath, JSON.stringify({
+      color: { primary: { $type: "color", $value: "#3b82f6" } },
+      elevation: {
+        shadow: {
+          $type: "shadow",
+          $value: { color: "#0000001f", offsetX: "0px", offsetY: "2px", blur: "8px", spread: "0px" },
+        },
+      },
+    }), "utf8");
+    const knownHexes = loadTokenHexes(tokensPath);
+    expect(knownHexes?.has("#3b82f6")).toBe(true);
+    const findings = checkRawHexWhenTokenExists('<div class="shadow-[#0000001f]"></div>', knownHexes);
+    expect(findings).toHaveLength(0);
   });
 });
 

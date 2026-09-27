@@ -4,17 +4,20 @@
  * gate is a single line that cannot drift from its siblings. Read-only.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { runGate, gateCoverage, GATE_FAMILIES } from "../core/gate.js";
-import type { GateFamily, GateOptions } from "../core/gate.js";
+import type { GateFamily, GateOptions, GateResult } from "../core/gate.js";
+import { countBySeverity } from "../core/finding-schema.js";
 import { loadTokenHexes } from "./taste-lint.js";
 import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { tryDiscoverDesignSystem } from "../core/design-system.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
-import { autoScoreTokenCoverage } from "../core/token-coverage-io.js";
+import { autoScoreTokenCoverage, scoreTokenCoverage } from "../core/token-coverage-io.js";
+import type { TokenCoverageResult } from "../core/token-coverage.js";
 import { DEFAULT_TOKEN_COVERAGE_FLOOR } from "./token-coverage.js";
 
 const CMD = "gate";
@@ -22,7 +25,7 @@ const CMD = "gate";
 export const GATE_HELP = `ui gate — composed floor judge (every linter family, one verdict)
 
 Usage:
-  ui gate <file.html> [--tokens <f>] [--skip <family>:<reason>[,...]] [--json]
+  ui gate <file.html> [--tokens <f>] [--family <slug>] [--skip <family>:<reason>[,...]] [--json]
   ui gate coverage [--dir <project>] [--json]
 
 Runs, in one call:
@@ -49,7 +52,14 @@ A skipped family requires a reason and is reported in the result, so partial
 gating is a declared decision, never a silent absence.
 
 Options:
-  --tokens <f>  DS token file; enables the taste Consistency raw-hex check
+  --tokens <f>  DS token file; enables the taste Consistency raw-hex check AND
+                grades the required token-coverage check against THIS file
+                (PR-FU3-r2 A5 — never the repo's own auto-detected tokens)
+  --family <slug>  Apply that persona family's \`gate_policy\` from
+                knowledge/personas/families.json — a policy of "error" upgrades
+                a check's default severity for this run, "exempt" drops it.
+                Absent --family, a token file with a top-level "persona"
+                field naming a slug applies that family automatically.
   --skip <s>    Comma-separated <family>:<reason> pairs, e.g.
                 --skip "layout: embeddable fragment,content: mirror evidence"
   --token-coverage-floor <n>  Minimum ui token-coverage score before the gate
@@ -66,9 +76,77 @@ Error codes:
   BAD_ARG        Missing <file.html>, unknown --skip family, a skip without a
                  reason, or --token-coverage-floor not a number in [0,1]
   TOKENS_NOT_READABLE  --tokens path missing/unparsable — refused rather than silently weaker
+  FAMILY_NOT_FOUND     --family names a slug not in knowledge/personas/families.json,
+                       or that file cannot be found/parsed
   FILE_NOT_FOUND The input file does not exist
   READ_ERROR     The input file cannot be read
 `;
+
+/**
+ * knowledge/personas/families.json is a kernel asset (like the persona index
+ * persona-loader.ts resolves the same way) — it ships beside this module, not
+ * inside whatever project's HTML is being gated. Walk up from THIS module's
+ * own location (dist/cli.js after bundling; src/commands/gate.ts in dev/test)
+ * so both layouts resolve it, never from the target file's directory.
+ */
+function resolveFamiliesFile(): string | undefined {
+  let cur = dirname(fileURLToPath(import.meta.url));
+  for (let level = 0; level < 6; level++) {
+    const p = join(cur, "knowledge", "personas", "families.json");
+    if (existsSync(p)) return p;
+    const parent = dirname(cur);
+    if (parent === cur) break;
+    cur = parent;
+  }
+  return undefined;
+}
+
+/** A top-level "persona" string field on a --tokens file names its family
+ * (PR-FU3-r2 A8's auto-detect path), tolerantly — never throws. */
+function readPersonaField(tokensPath: string): string | undefined {
+  try {
+    const doc = JSON.parse(readFileSync(tokensPath, "utf8")) as Record<string, unknown>;
+    return typeof doc["persona"] === "string" ? doc["persona"] : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+interface FamilyRecord {
+  slug: string;
+  gate_policy?: Record<string, string>;
+}
+
+/**
+ * Apply a family's `gate_policy` to an already-run GateResult: "error"
+ * upgrades a check's severity for THIS run only; "exempt" drops the finding
+ * entirely. Every count is recomputed from the mutated findings — never
+ * derived by subtraction (finding-schema.ts's own rule) — so a family
+ * without --family stays byte-identical to today's default severity (A8).
+ */
+function applyGatePolicy(result: GateResult, policy: Record<string, string>): GateResult {
+  const families: GateResult["families"] = { ...result.families };
+  for (const fam of GATE_FAMILIES) {
+    const r = families[fam];
+    if (r === undefined) continue;
+    const findings = r.findings.flatMap((f) => {
+      const action = policy[f.checkId];
+      if (action === "exempt") return [];
+      if (action === "error" && f.severity !== "error") return [{ ...f, severity: "error" as const }];
+      return [f];
+    });
+    families[fam] = { ...countBySeverity(findings), findings };
+  }
+  let errorCount = 0, warningCount = 0, advisoryCount = 0;
+  for (const fam of GATE_FAMILIES) {
+    const r = families[fam];
+    if (r === undefined) continue;
+    errorCount += r.errorCount;
+    warningCount += r.warningCount;
+    advisoryCount += r.advisoryCount;
+  }
+  return { ...result, families, errorCount, warningCount, advisoryCount, pass: errorCount === 0 };
+}
 
 /** Parse "--skip fam: reason, fam2: reason2" into the options map, or an error string. */
 function parseSkip(raw: string): GateOptions["skip"] | string {
@@ -165,13 +243,57 @@ export const gateCommand = {
       tokenCoverageFloor = n;
     }
 
-    // Required check A2: runs only when a token file is auto-detectable for
-    // this project — absent one, there is nothing to grade against, and that
-    // is a declared "did not run" (below), never a check pretending to pass.
-    const tokenCoverage = autoScoreTokenCoverage(file, html);
+    // A5: an EXPLICIT --tokens value grades coverage against THAT file, never
+    // the repo's own auto-detected tokens (today's bug: the same page scored
+    // 0.419 either way). Absent --tokens, fall back to auto-detection (A2) —
+    // absent one, there is nothing to grade against, a declared "did not run"
+    // (below), never a check pretending to pass. A bad --tokens path is the
+    // caller's job to fail loud, matching the raw-hex check just above.
+    let tokenCoverage: TokenCoverageResult | undefined;
+    if (typeof tokensFlag === "string") {
+      try {
+        tokenCoverage = scoreTokenCoverage(file, html, tokensFlag);
+      } catch (e) {
+        const msg = `--tokens '${tokensFlag}' is not a scorable token file for token-coverage: ${e instanceof Error ? e.message : String(e)}`;
+        return useJson ? errJson(CMD, "TOKENS_NOT_READABLE", msg) : errText(`ui: ${msg}\n`);
+      }
+    } else {
+      tokenCoverage = autoScoreTokenCoverage(file, html);
+    }
     const tokenCoverageFails = tokenCoverage !== undefined && tokenCoverage.overall.coverage < tokenCoverageFloor;
 
-    const result = runGate(html, { knownHexes, skip });
+    // A8: --family <slug> (or a top-level "persona" field on --tokens) applies
+    // that family's gate_policy from knowledge/personas/families.json. Absent
+    // both, a check's default severity stands untouched.
+    const familyFlag = parsed.flags["family"];
+    let familySlug: string | undefined = typeof familyFlag === "string" ? familyFlag : undefined;
+    if (familySlug === undefined && typeof tokensFlag === "string") {
+      familySlug = readPersonaField(tokensFlag);
+    }
+    let familyPolicy: Record<string, string> | undefined;
+    if (familySlug !== undefined) {
+      const familiesPath = resolveFamiliesFile();
+      if (familiesPath === undefined) {
+        const msg = `--family '${familySlug}' given but knowledge/personas/families.json could not be found from '${file}'`;
+        return useJson ? errJson(CMD, "FAMILY_NOT_FOUND", msg) : errText(`ui: ${msg}\n`);
+      }
+      let doc: { families?: FamilyRecord[] };
+      try {
+        doc = JSON.parse(readFileSync(familiesPath, "utf8")) as { families?: FamilyRecord[] };
+      } catch (e) {
+        const msg = `'${familiesPath}' is not readable/parsable JSON: ${e instanceof Error ? e.message : String(e)}`;
+        return useJson ? errJson(CMD, "FAMILY_NOT_FOUND", msg) : errText(`ui: ${msg}\n`);
+      }
+      const fam = (doc.families ?? []).find((f) => f.slug === familySlug);
+      if (fam === undefined) {
+        const msg = `--family '${familySlug}' is not a family slug in '${familiesPath}'`;
+        return useJson ? errJson(CMD, "FAMILY_NOT_FOUND", msg) : errText(`ui: ${msg}\n`);
+      }
+      familyPolicy = fam.gate_policy ?? {};
+    }
+
+    let result = runGate(html, { knownHexes, skip });
+    if (familyPolicy !== undefined) result = applyGatePolicy(result, familyPolicy);
     result.errorCount += loaded.errors.length;
     const pass = result.pass && loaded.errors.length === 0 && !tokenCoverageFails;
     const exitCode = pass ? 0 : 1;

@@ -69,29 +69,40 @@ Error codes:
 
 // ─── Token-hex harvest (tolerant) ──────────────────────────────────────────────
 
+/** Normalise a candidate hex string (3/6/8 digit, alpha stripped) to lower-case
+ * 6-digit form, or undefined when it does not look like a hex color. */
+function normalizeHex(raw: string): string | undefined {
+  const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(raw.trim());
+  if (m === null) return undefined;
+  let h = (m[1] ?? "").toLowerCase();
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (h.length === 8) h = h.slice(0, 6); // drop the alpha pair
+  return `#${h}`;
+}
+
 /**
- * Recursively collect every color hex ($value of a color leaf) from a parsed
- * token file into a lower-cased, alpha-stripped, 6-digit-normalised set.
- * Tolerant by design: a lint must not fail because the token file has an
- * unrelated issue, so this never throws — malformed leaves are skipped.
+ * Recursively collect every color hex from a parsed token file's `$value`s
+ * into a lower-cased, alpha-stripped, 6-digit-normalised set. Walks INTO a
+ * leaf's own `$value` regardless of shape, so a hex embedded in a composite
+ * member (a shadow's `color: "#0000001f"`, 8-digit — PR-FU3-r2 A9) is found
+ * exactly like a plain color leaf's string value; a leaf's `$type` is never
+ * consulted, only whether its value looks like a hex string. Tolerant by
+ * design: a lint must not fail because the token file has an unrelated issue,
+ * so this never throws — malformed leaves are skipped.
  */
 function collectTokenHexes(node: unknown, out: Set<string>): void {
+  if (typeof node === "string") {
+    const hex = normalizeHex(node);
+    if (hex !== undefined) out.add(hex);
+    return;
+  }
   if (node === null || typeof node !== "object") return;
   if (isTokenLeaf(node)) {
-    const val = (node as { $value: unknown }).$value;
-    if (typeof val === "string") {
-      const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(val.trim());
-      if (m) {
-        let h = (m[1] ?? "").toLowerCase();
-        if (h.length === 3) h = h.split("").map((c) => c + c).join("");
-        out.add(`#${h}`);
-      }
-    }
-    return; // a leaf has no further token children to walk
+    collectTokenHexes((node as { $value: unknown }).$value, out);
+    return;
   }
-  for (const v of Object.values(node as Record<string, unknown>)) {
-    collectTokenHexes(v, out);
-  }
+  const values = Array.isArray(node) ? node : Object.values(node as Record<string, unknown>);
+  for (const v of values) collectTokenHexes(v, out);
 }
 
 /** Load token hexes from a file path; returns undefined on any read/parse failure. */

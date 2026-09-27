@@ -68,21 +68,34 @@ export function collectCssSources(htmlPath: string, html: string): CssSourceColl
 }
 
 /**
+ * Score `htmlPath`'s CSS against the token file at `tokensPath` — no
+ * auto-detection, no swallowed errors (PR-FU3-r2 A5). This is the caller's
+ * loud path: an EXPLICIT `--tokens` value must grade against THAT file, and a
+ * bad path/JSON/DTCG-shape must surface as a real error, never a silent
+ * "no coverage check ran" that looks identical to "nothing to grade against".
+ * `html` is expected to already be the caller's inlined, link-free document.
+ */
+export function scoreTokenCoverage(htmlPath: string, html: string, tokensPath: string): TokenCoverageResult {
+  const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(tokensPath, "utf8"))));
+  return scoreCssSources(collectCssSources(htmlPath, html).sources, resolved);
+}
+
+/**
  * `ui gate`'s auto-detected token-coverage check (A2): resolve the project's
  * token file for `htmlPath`'s directory and score it, or return undefined
  * when no token file is auto-detectable, or when the auto-detected file is
  * unreadable/invalid — best-effort, same posture as "not found" (an EXPLICIT
- * `--tokens` path stays the caller's job to validate loudly; this one was
- * never asked for). `html` is expected to already be `ui gate`'s inlined,
- * link-free document, so no linked stylesheet remains to (re-)report errors
- * for here — the caller already surfaced those from its own inlining pass.
+ * `--tokens` path stays the caller's job to validate loudly via
+ * `scoreTokenCoverage` above; this one was never asked for). `html` is
+ * expected to already be `ui gate`'s inlined, link-free document, so no
+ * linked stylesheet remains to (re-)report errors for here — the caller
+ * already surfaced those from its own inlining pass.
  */
 export function autoScoreTokenCoverage(htmlPath: string, html: string): TokenCoverageResult | undefined {
   const tokensPath = resolveProjectTokensPath(dirname(resolve(htmlPath)));
   if (tokensPath === undefined) return undefined;
   try {
-    const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(tokensPath, "utf8"))));
-    return scoreCssSources(collectCssSources(htmlPath, html).sources, resolved);
+    return scoreTokenCoverage(htmlPath, html, tokensPath);
   } catch {
     return undefined;
   }

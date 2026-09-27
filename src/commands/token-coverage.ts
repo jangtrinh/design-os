@@ -12,11 +12,8 @@ import { dirname, resolve } from "node:path";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
-import { parseTokenFile } from "../core/token-model.js";
-import { resolveTokens } from "../core/token-resolve.js";
-import { scoreCssSources } from "../core/token-coverage.js";
 import type { TokenCoverageResult } from "../core/token-coverage.js";
-import { resolveProjectTokensPath, collectCssSources } from "../core/token-coverage-io.js";
+import { resolveProjectTokensPath, collectCssSources, scoreTokenCoverage } from "../core/token-coverage-io.js";
 
 const CMD = "token-coverage";
 export const DEFAULT_TOKEN_COVERAGE_FLOOR = 0.8;
@@ -112,19 +109,17 @@ export const tokenCoverageCommand = {
       return err("TOKENS_NOT_FOUND", "no token file given or auto-detected — pass --tokens or run 'ui ds init'");
     }
 
-    let resolved;
-    try {
-      resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(tokensPath, "utf8"))));
-    } catch (e) {
-      return err("BAD_JSON", `bad token file '${tokensPath}': ${e instanceof Error ? e.message : String(e)}`);
-    }
-
     // A1/C1: a locally linked stylesheet that cannot be read is an error
     // finding, never silence — it also forces the check to FAIL regardless
     // of the coverage number, since that number was computed over an
     // incomplete picture of the page's real CSS.
-    const { sources, errors: linkErrors } = collectCssSources(file, html);
-    const result = scoreCssSources(sources, resolved);
+    const { errors: linkErrors } = collectCssSources(file, html);
+    let result: TokenCoverageResult;
+    try {
+      result = scoreTokenCoverage(file, html, tokensPath);
+    } catch (e) {
+      return err("BAD_JSON", `bad token file '${tokensPath}': ${e instanceof Error ? e.message : String(e)}`);
+    }
     const exitCode = result.overall.coverage >= floor && linkErrors.length === 0 ? 0 : 1;
 
     if (useJson) return okJsonWithExit(CMD, { file, floor, ...result, linkedCssErrors: linkErrors }, exitCode);
