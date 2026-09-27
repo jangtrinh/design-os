@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-27 — build-loop failure modes from the owner's review
+
+### Changed
+- `knowledge/build-loop.md`: four failure modes added from the owner's review of the approved reference render (native control in the OS format, copy shortened until it fits, chart that reads only at the summary, Operate density left loose).
+
 ## 2026-09-27 - build-evidence lint: the build-loop standard's linter half (PR-FU4)
 
 ### Added

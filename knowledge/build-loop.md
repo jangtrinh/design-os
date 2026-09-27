@@ -133,5 +133,15 @@ screenshots itself.
 - **Fallback face measured.** `document.fonts.check` false in the probe while type sizes are reported
   as verified.
 - **Gate run before the last edit.** Exit codes in the report older than the final commit.
+- **Native control in the page's own format.** A native date input renders the OS locale (dd/mm/yyyy) while
+  the page writes "Aug 28"; the approver reads it as two products. Visible in a crop of the control row.
+- **Copy shortened until it fits.** "Last 7 days" → "7 days", a subtitle cut in half: the row fits and the
+  meaning blurs. Structure-preserving fixes stop at the point where a label loses a word a user needed;
+  past that, the structure changes and the deviation says so.
+- **Chart that reads only at the summary.** A long caption, three axis ticks for thirty bars, no value on the
+  peak: the approver has to trust the caption. Visible when the chart is cropped without its caption.
+- **Operate density left loose.** Cards and panels spaced as a marketing page; an Operate screen wants a
+  tighter rhythm (craft-floor §3). Visible at the zoom test: at 25 % the page reads as blocks, not as a table
+  of facts.
 - **Open QA spiral.** More than two fix rounds after the first full inspection, each finding one more
   thing; the bounded-pass rule was dropped.
