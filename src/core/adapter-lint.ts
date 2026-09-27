@@ -59,6 +59,13 @@ function resolveTemplatePathSafe(
  * "journeys/onboard.md": sha256, … }` for the live package. MUST enumerate the
  * same registries as init.ts's manifest templateHashes builder (lockstep — an
  * asymmetry makes template-drift false-fail/false-pass).
+ *
+ * Deliberately re-hashes each file from disk (hashTemplateFile) instead of
+ * reading schemas/template-descriptions.json's recorded sourceSha256 — this is
+ * the "live" half of the drift comparison, so it must reflect the template's
+ * CURRENT bytes to catch a hand-edited installed template even when the
+ * catalogue itself was never touched. See templates.ts's readTemplateSourceHash
+ * doc comment and evidence/w3a/proposals.md §2's decision note.
  */
 function liveTemplateHashes(templatesRoot: string): Record<string, string> {
   const hashes: Record<string, string> = {};
