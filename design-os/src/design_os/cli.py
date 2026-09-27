@@ -21,6 +21,7 @@ from design_os.commands import doctor as doctor_cmd
 from design_os.commands import evolution as evolution_cmd
 from design_os.commands import harvest as harvest_cmd
 from design_os.commands import heartbeat as heartbeat_cmd
+from design_os.commands import run as run_cmd
 from design_os.commands import ui_passthrough
 from design_os.commands import update as update_cmd
 from design_os.commands import vr_matrix as vr_matrix_cmd
@@ -73,6 +74,7 @@ app.command(name="doctor")(doctor_cmd.doctor)
 app.command(name="evolution")(evolution_cmd.evolution)
 app.command(name="harvest")(harvest_cmd.harvest)
 app.command(name="heartbeat")(heartbeat_cmd.heartbeat)
+app.command(name="run")(run_cmd.run_cmd)
 app.command(name="update")(update_cmd.update)
 app.command(name="vr-matrix")(vr_matrix_cmd.vr_matrix)
 app.command(
