@@ -1,0 +1,40 @@
+{
+  "kind": "design-brief",
+  "version": 1,
+  "rawRequest": "Org-level LLM usage screen: let an Org Admin or Editor see requests, tokens and cost over a chosen period, broken down by identity, billing service, billing account, model and provider (paraphrased from the source epic, user story US-02).",
+  "surface": "marketing-landing",
+  "audience": "Org Admin / Editor managing LLM budget inside one organization",
+  "context": "Admin console of an LLM gateway; one screen inside an existing admin shell (shell, tokens and language not supplied)",
+  "primaryOutcome": "Find which consumer, service, model or provider drives usage and cost in the chosen period",
+  "primaryAction": "Change time range or filter, then read the breakdown",
+  "requiredContent": [
+    "Summary cards: request count, input tokens, output tokens, total tokens, cost",
+    "Usage-over-time chart and a breakdown table for the same range",
+    "Time range control accepting an arbitrary range",
+    "Filters: identity, billing service, billing account, model, provider",
+    "Empty, loading and full states"
+  ],
+  "constraints": [
+    "Read-only; scoped to the actor's own organization",
+    "No alerting, quota, limit, anomaly or forecast surfaces",
+    "No trace, log, health or latency views"
+  ],
+  "prohibitedClaims": [
+    "Do not present estimated cost as a billed amount"
+  ],
+  "criteria": [
+    { "id": "C1", "priority": "must", "text": "All five metrics visible without scrolling on a 1440px viewport" },
+    { "id": "C2", "priority": "must", "text": "Chart and table always reflect the same range and filter set" },
+    { "id": "C3", "priority": "must", "text": "Empty, loading and full states each render and pass the gates" },
+    { "id": "C4", "priority": "should", "text": "Usable at 375px without horizontal page scroll" }
+  ],
+  "assumptions": [
+    { "facet": "product-shell", "value": "No existing shell available; this repo's own tokens stand in", "provenance": "inferred", "confidence": "low" },
+    { "facet": "ui-language", "value": "English labels; Vietnamese rendering deferred", "provenance": "inferred", "confidence": "low" },
+    { "facet": "empty-state", "value": "Plain 'no usage in this period' with a range-reset action", "provenance": "inferred", "confidence": "medium" },
+    { "facet": "status-vocabulary", "value": "Request status filter omitted (named in the flow, absent from the story)", "provenance": "inferred", "confidence": "low" },
+    { "facet": "cost-format", "value": "USD, two decimals, labelled estimated", "provenance": "inferred", "confidence": "low" },
+    { "facet": "export", "value": "Out of this screen set (not in the story's criteria)", "provenance": "provided", "confidence": "medium" },
+    { "facet": "surface", "value": "Org-level admin console screen, not a landing page", "provenance": "provided", "confidence": "high" }
+  ]
+}
