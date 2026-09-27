@@ -1,0 +1,5 @@
+{
+  "maxPages": 200,
+  "maxSecondsPerPage": 30,
+  "totalBudgetSeconds": 600
+}
