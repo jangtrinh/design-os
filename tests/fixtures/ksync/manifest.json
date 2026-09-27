@@ -1,0 +1,12 @@
+{
+  "schema": "route-manifest/1",
+  "entries": [
+    { "app": "alpha", "routeId": "alpha/list/home", "kind": "route", "figmaId": "1:1", "key": "/alpha/list/home", "status": "built" },
+    { "app": "alpha", "routeId": "alpha/list/home", "kind": "modal", "figmaId": "1:2", "parentRouteId": "alpha/list/home", "key": "/alpha/list/home#create-item" },
+    { "app": "alpha", "routeId": "alpha/list/detail", "kind": "route", "figmaId": "1:3", "key": "/alpha/list/detail" },
+    { "app": "alpha", "routeId": "alpha/list/detail", "kind": "state", "figmaId": "1:4", "parentRouteId": "alpha/list/detail", "key": "/alpha/list/detail?state=empty" },
+    { "app": "beta", "routeId": "beta/x/one", "kind": "route", "figmaId": "2:1", "key": "/beta/x/one", "status": "built" },
+    { "app": "beta", "routeId": "beta/x/two", "kind": "route", "figmaId": "2:2", "key": "/beta/x/two", "parked": { "ruling": "r-1", "reason": "out of scope" } },
+    { "app": "beta", "routeId": "beta/x/three", "kind": "route", "figmaId": "2:3", "key": "/beta/x/three" }
+  ]
+}
