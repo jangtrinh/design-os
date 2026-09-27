@@ -1,0 +1,54 @@
+{
+  "schema": "rulings/1",
+  "at": 1790406603456,
+  "rulings": [
+    {
+      "id": "r-b-new",
+      "category": "tables",
+      "text": "Tables right-align numeric columns.",
+      "scope": {
+        "apps": [
+          "billing"
+        ],
+        "features": [
+          "billing/invoices"
+        ],
+        "screens": [
+          "/billing/invoices/list"
+        ]
+      },
+      "source": [
+        "anchors/live.md#heading",
+        "legacy memory (lost move): note.md",
+        "figma:1:2",
+        "anchors/gone.md#x"
+      ],
+      "since": "2026-09-01",
+      "verified_by": "source",
+      "status": "active",
+      "verified_at": "2026-09-20",
+      "approved_by": [
+        {
+          "role": "design-lead",
+          "person": "a-lead",
+          "at": "2026-09-02"
+        }
+      ],
+      "principle": [
+        "numbers-align"
+      ]
+    },
+    {
+      "id": "r-a-old",
+      "category": "shell-chrome",
+      "text": "Old rule, replaced. SUPERSEDED by r-b-new for tables.",
+      "scope": "global",
+      "source": [
+        "anchors/live.md"
+      ],
+      "since": "2026-08-01",
+      "verified_by": "source",
+      "status": "active"
+    }
+  ]
+}
