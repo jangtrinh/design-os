@@ -1,0 +1,8 @@
+{
+  "version": "0.1.0",
+  "components": [
+    { "name": "Button/Primary", "category": "action", "markup": "<button></button>", "tokensUsed": [], "figmaNode": "components/button-primary.figma.json" },
+    { "name": "Card/Plain", "category": "layout", "markup": "<div></div>", "tokensUsed": [] },
+    { "name": "Input/Text", "category": "form", "markup": "<input>", "tokensUsed": [], "figmaNode": "components/input-text.figma.json" }
+  ]
+}
