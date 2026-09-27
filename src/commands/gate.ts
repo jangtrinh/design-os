@@ -19,6 +19,8 @@ import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 import { autoScoreTokenCoverage, scoreTokenCoverage } from "../core/token-coverage-io.js";
 import type { TokenCoverageResult } from "../core/token-coverage.js";
 import { DEFAULT_TOKEN_COVERAGE_FLOOR } from "./token-coverage.js";
+import { setFamilyAccentContext } from "../core/tell-rules-color.js";
+import { hexToOKLCH } from "../core/color-convert.js";
 
 const CMD = "gate";
 
@@ -58,6 +60,9 @@ Options:
   --family <slug>  Apply that persona family's \`gate_policy\` from
                 knowledge/personas/families.json — a policy of "error" upgrades
                 a check's default severity for this run, "exempt" drops it.
+                Also legitimizes the family's declared \`color.accent\` hue for
+                \`ai-color-palette\` (PR-FU5b A1): a hit within ±15° of it is
+                reported as "family accent (<slug>)", not a generic AI tell.
                 Absent --family, a token file with a top-level "persona"
                 field naming a slug applies that family automatically.
   --skip <s>    Comma-separated <family>:<reason> pairs, e.g.
@@ -115,6 +120,22 @@ function readPersonaField(tokensPath: string): string | undefined {
 interface FamilyRecord {
   slug: string;
   gate_policy?: Record<string, string>;
+  starting_tokens?: { tokens?: { color?: { accent?: { $value?: unknown } } } };
+}
+
+/**
+ * A family's declared `color.accent.$value` hex, or undefined when absent/malformed
+ * (`accent: "optional"` families carry none — silently no legitimacy context, never
+ * an error, since --family without an accent is a normal, supported case).
+ */
+function familyAccentHueDeg(fam: FamilyRecord): number | undefined {
+  const hex = fam.starting_tokens?.tokens?.color?.accent?.$value;
+  if (typeof hex !== "string") return undefined;
+  try {
+    return hexToOKLCH(hex).h;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -271,6 +292,7 @@ export const gateCommand = {
       familySlug = readPersonaField(tokensFlag);
     }
     let familyPolicy: Record<string, string> | undefined;
+    let familyAccentHue: number | undefined;
     if (familySlug !== undefined) {
       const familiesPath = resolveFamiliesFile();
       if (familiesPath === undefined) {
@@ -290,9 +312,22 @@ export const gateCommand = {
         return useJson ? errJson(CMD, "FAMILY_NOT_FOUND", msg) : errText(`ui: ${msg}\n`);
       }
       familyPolicy = fam.gate_policy ?? {};
+      familyAccentHue = familyAccentHueDeg(fam);
     }
 
-    let result = runGate(html, { knownHexes, skip });
+    // A1 (PR-FU5b): the family's declared accent hue, if any, legitimizes a
+    // matching `ai-color-palette` hit for THIS run only — set immediately
+    // before the tell family runs inside runGate and cleared right after, so
+    // no state survives a throw or leaks into an unrelated call.
+    setFamilyAccentContext(
+      familySlug !== undefined && familyAccentHue !== undefined ? { slug: familySlug, hueDeg: familyAccentHue } : undefined,
+    );
+    let result: GateResult;
+    try {
+      result = runGate(html, { knownHexes, skip });
+    } finally {
+      setFamilyAccentContext(undefined);
+    }
     if (familyPolicy !== undefined) result = applyGatePolicy(result, familyPolicy);
     result.errorCount += loaded.errors.length;
     const pass = result.pass && loaded.errors.length === 0 && !tokenCoverageFails;

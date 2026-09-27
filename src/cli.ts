@@ -75,6 +75,7 @@ import { productContextCommand } from "./commands/product-context.js";
 import { methodCommand } from "./commands/method.js";
 import { patternCommand } from "./commands/pattern.js";
 import { designCommand } from "./commands/design.js";
+import { personaCommand } from "./commands/persona.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
@@ -155,6 +156,7 @@ COMMANDS[productContextCommand.name] = productContextCommand;
 COMMANDS[methodCommand.name] = methodCommand;
 COMMANDS[patternCommand.name] = patternCommand;
 COMMANDS[designCommand.name] = designCommand;
+COMMANDS[personaCommand.name] = personaCommand;
 
 // ─── Root help ────────────────────────────────────────────────────────────────
 
