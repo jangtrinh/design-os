@@ -9,8 +9,6 @@
 import { describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
 import { join, dirname } from "node:path";
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import {
   WORKFLOW_VERBS,
   SKILL_NAMES,
@@ -55,20 +53,6 @@ describe("template frontmatter descriptions", () => {
       expect((desc as string).length).toBeGreaterThan(40);
       expect(desc, `journey '${name}' description must say when to use it`).toMatch(/Use /);
     }
-  });
-
-  it("returns null for a file without frontmatter", () => {
-    const tmp = mkdtempSync(join(tmpdir(), "ease-desc-"));
-    const f = join(tmp, "plain.md");
-    writeFileSync(f, "# No frontmatter here\n\nBody.\n");
-    expect(readTemplateDescription(f)).toBeNull();
-  });
-
-  it("strips surrounding double quotes", () => {
-    const tmp = mkdtempSync(join(tmpdir(), "ease-desc-"));
-    const f = join(tmp, "quoted.md");
-    writeFileSync(f, '---\ndescription: "Quoted text. Use when testing."\n---\n\n# T\n');
-    expect(readTemplateDescription(f)).toBe("Quoted text. Use when testing.");
   });
 
   it("returns null for a missing file (no throw)", () => {

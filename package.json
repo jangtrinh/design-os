@@ -41,7 +41,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node dist/cli.js templates catalogue --check",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests",

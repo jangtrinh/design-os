@@ -1,0 +1,4 @@
+{"id":"ev-001","type":"gap","t":"2026-09-20","source":"observed","refs":[],"text":"Empty state showed a blank chart area."}
+{"id":"ev-002","type":"correction","t":"2026-09-21T09:30:00Z","source":"observed","refs":["r-empty-state"],"text":"Approver asked for an inline reason and one next action."}
+{"id":"ev-003","type":"approval","t":"2026-09-22","source":"observed","refs":["r-empty-state"],"text":"Design lead approved the inline empty state."}
+{"id":"ev-004","type":"insight","t":"2026-09-22","source":"synthetic","refs":["ev-001"],"text":"Blank chart areas recur wherever data is optional."}

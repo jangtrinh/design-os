@@ -68,6 +68,38 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  templates: {
+    summary: "Emit and lint the template description catalogue",
+    subcommands: {
+      catalogue: { summary: "Emit schemas/template-descriptions.json from template frontmatter", positionals: [],
+        flags: [{ name: "out", type: "string", summary: "Catalogue path (default schemas/template-descriptions.json)" },
+          { name: "check", type: "boolean", summary: "Write nothing; exit 1 on schema violation or drift" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "SCHEMA_UNAVAILABLE", "TEMPLATE_UNREADABLE"] },
+      lint: { summary: "Validate the catalogue shape, order, uniqueness and registry coverage",
+        positionals: [{ name: "[catalogue.json]", required: false, summary: "Catalogue path (default the installed one)" }],
+        flags: [], errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "SCHEMA_UNAVAILABLE", "BAD_JSON"] },
+    },
+  },
+  design: {
+    summary: "Lint the design/ directory contract and emit the principles index",
+    subcommands: {
+      lint: {
+        summary: "Report every deviation from the design/ layout, each with a fix hint",
+        positionals: [{ name: "<project-root>", required: true, summary: "Project root that holds design/" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NOT_A_DIRECTORY", "SCHEMA_UNAVAILABLE"],
+      },
+      "principles-index": {
+        summary: "Emit design/principles.json from the headings of principles.md",
+        positionals: [{ name: "<principles.md>", required: true, summary: "Principles document" }],
+        flags: [
+          { name: "out", type: "string", required: true, summary: "Index file to write (or compare with --check)" },
+          { name: "check", type: "boolean", summary: "Do not write; exit 1 when the index is missing or differs" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_PRINCIPLES", "WRITE_ERROR"],
+      },
+    },
+  },
   seam: {
     summary: "Ratchet runtime prose reads in the kernel source",
     subcommands: {
