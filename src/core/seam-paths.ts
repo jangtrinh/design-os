@@ -80,6 +80,13 @@ export function resolveSeamPaths(modules: SeamModule[]) {
       }
       return unknown;
     }
+    // Bare member access (`input.templatesRoot`, not a call): reuse the same
+    // property-threading the analyzer already has for destructuring and
+    // template-literal interpolation, so a parameter's object-shaped value
+    // still resolves through it instead of silently becoming unknown.
+    if (b === a + 3 && t[a + 1]?.text === "." && /^[\w$]+$/.test(t[a]!.text) && /^[\w$]+$/.test(t[a + 2]!.text)) {
+      return val([a, a + 1], t[a + 2]!.text);
+    }
     if (b - a === 1 && /^[\w$]+$/.test(t[a]!.text)) {
       const name = t[a]!.text;
       let binding = visibleBinding(mod, name, a);
