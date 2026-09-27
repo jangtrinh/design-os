@@ -86,6 +86,8 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_PRINCIPLES", "WRITE_ERROR"],
       },
+    },
+  },
   seam: {
     summary: "Ratchet runtime prose reads in the kernel source",
     subcommands: {
