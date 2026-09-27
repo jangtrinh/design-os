@@ -126,4 +126,36 @@ function unrelated() { const path = 'data.json'; return readFileSync(path, 'utf8
   it("does not count a path that normalizes outside prose roots", () => {
     expect(scanProseReads({ "src/read.ts": 'import { readFileSync } from "node:fs"; readFileSync("knowledge/../data.json");' })).toEqual([]);
   });
+
+  // Negative control matching the W3c revert scenario (see reports/dev-w3c.md finding 1):
+  // a read function with a SINGLE caller, reached through a try/catch wrapper whose
+  // catch branch resolves to unknown, and whose literal prose-root segment is only
+  // reachable via a member-expression parameter (`input.root`). Before the
+  // member-access fix in seam-paths.ts, this collapsed to zero reads.
+  it("still reports a runtime read with a single caller through a try/catch wrapper reached via an object parameter", () => {
+    const reads = scanProseReads({
+      "src/hasher.ts": `import { readFileSync } from "node:fs";
+export function hashFile(absPath: string): string { return readFileSync(absPath, "utf8"); }
+export function resolveTemplate(root: string, name: string): string { return root + "/" + name + ".md"; }`,
+      "src/roots.ts": `export function packageRoot(): string { return dynamicBase() + "/templates"; }`,
+      "src/lint.ts": `import { hashFile, resolveTemplate } from "./hasher.js";
+import { packageRoot } from "./roots.js";
+function resolveSafe(root: string, name: string): string | null {
+  try {
+    return resolveTemplate(root, name);
+  } catch {
+    return null;
+  }
+}
+function liveHashes(input: { root: string; name: string }): void {
+  const p = resolveSafe(input.root, input.name);
+  if (p !== null) hashFile(p);
+}
+export function lint(): void {
+  liveHashes({ root: packageRoot(), name: "generate" });
+}`,
+    });
+    expect(reads).toHaveLength(1);
+    expect(reads[0]?.file).toBe("src/hasher.ts");
+  });
 });

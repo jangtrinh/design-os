@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-27 - close the gaps the reruns exposed: seam-lint CI gate, single-caller detection, path resolution
+
+### Fixed
+- **`ui seam lint`'s bounded static analyzer no longer loses a prose read when only one caller
+  remains.** A call argument reaching a read function through a bare member expression
+  (`input.templatesRoot`, not a destructure or a call) fell through to `unknown` instead of being
+  traced — invisible when several callers still contributed a literal path to the union, but a real
+  detection-coverage regression once the others migrate away (see reports/dev-w3c.md finding 1).
+  `resolveSeamPaths` now resolves `obj.prop` through the same property-threading it already has for
+  destructuring and template-literal interpolation.
+- **`design-os run --screens <dir>` and `--out <dir>`** now resolve a relative path against `--project`,
+  never the conductor's process cwd — closing the exact trap the README's own invocation shape falls
+  into (`cd design-os && design-os run ... --screens acceptance/...`).
+
+### Added
+- **`ui seam lint` runs in CI** via `tests/seam-lint-ci.test.ts`, a built-binary test asserting
+  `new 0` and no stale allowlist entries over the repo's own `src/`; a coverage or ratchet regression
+  now fails `npm test` instead of merging unnoticed.
+
 ## 2026-09-27 - follow-ups from the control plane run: silent BLOCKED, a skip code, a fuller index
 
 ### Fixed
