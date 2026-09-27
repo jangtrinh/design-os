@@ -1,0 +1,84 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "ios",
+  "archetype": "login",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.biometric-option", "agree": 1, "of": 1},
+        {"attribute": "components.credential-form", "agree": 1, "of": 1},
+        {"attribute": "components.forgot-password", "agree": 1, "of": 1},
+        {"attribute": "components.primary-cta", "agree": 0, "of": 1},
+        {"attribute": "components.primary-cta.kind", "agree": 0, "of": 1},
+        {"attribute": "components.primary-cta.position", "agree": 0, "of": 1},
+        {"attribute": "components.signup-link", "agree": 1, "of": 1},
+        {"attribute": "components.social-auth", "agree": 1, "of": 1},
+        {"attribute": "components.social-auth.kind", "agree": 1, "of": 1},
+        {"attribute": "components.social-auth.position", "agree": 1, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [{"value": "single-column-scroll", "count": 7}, {"value": "bottom-sheet", "count": 1}],
+    "navigation": [{"value": "none", "count": 6}, {"value": "back-header", "count": 1}, {"value": "other", "count": 1}],
+    "primary_action": [{"value": "filled-button-inline", "count": 7}, {"value": "filled-button-sticky-bottom", "count": 1}],
+    "density": [{"value": "spacious", "count": 8}],
+    "color_mode": [{"value": "light", "count": 7}, {"value": "dark", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [
+      {"value": "none", "count": 5},
+      {"value": "disabled", "count": 1},
+      {"value": "empty", "count": 1},
+      {"value": "selected", "count": 1},
+      {"value": "success", "count": 1}
+    ]
+  },
+  "components": [
+    {
+      "name": "credential-form",
+      "count": 1,
+      "kind": [{"value": "email-only", "count": 1}],
+      "position": [{"value": "top", "count": 1}]
+    },
+    {
+      "name": "social-auth",
+      "count": 3,
+      "kind": [{"value": "apple-first", "count": 2}, {"value": "buttons-stack", "count": 1}],
+      "position": [{"value": "other", "count": 3}]
+    },
+    {"name": "biometric-option", "count": 0},
+    {"name": "forgot-password", "count": 0},
+    {"name": "signup-link", "count": 0},
+    {
+      "name": "primary-cta",
+      "count": 8,
+      "kind": [{"value": "filled-pill", "count": 5}, {"value": "filled-full-width", "count": 3}],
+      "position": [{"value": "inline", "count": 7}, {"value": "bottom-fixed", "count": 1}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:9aed7539-9978-48bd-bd33-f8eed5398de8)",
+    "observed(mobbin:32143443-805f-4b35-bd17-54fc838e7952)",
+    "observed(mobbin:4aca822f-b7f2-4c14-b827-6c2706ceea80)",
+    "observed(mobbin:fb90afc6-53ef-4872-9c73-34e1cd75b0d0)",
+    "observed(mobbin:e695fa18-6b5e-4606-adf6-d6f7c0174335)",
+    "observed(mobbin:ba2ba934-eb10-49f1-85fb-a47ffa771cd8)",
+    "observed(mobbin:be1aec33-02b1-41df-82a7-70297e16e57c)",
+    "observed(mobbin:bd254e9e-476b-4ba0-bc6e-140cdf9706cf)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

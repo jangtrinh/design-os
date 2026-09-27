@@ -391,6 +391,25 @@
       ]
     },
     {
+      "id": "pattern-cards",
+      "path": "knowledge/pattern-cards.md",
+      "description": "Counted screen-pattern cards — what an archetype (pricing, checkout, login, settings…) looks like across observed product screens, and how to read them without confusing common practice with a decision.",
+      "when": [
+        "pattern-card",
+        "screen-archetype",
+        "common-practice",
+        "mobbin",
+        "pricing-page",
+        "checkout",
+        "login",
+        "onboarding",
+        "settings",
+        "data-table",
+        "home-feed",
+        "market-evidence"
+      ]
+    },
+    {
       "id": "persona-index",
       "path": "knowledge/persona-index.md",
       "description": "Compact lookup for all personas plus the auto-selection algorithm.",

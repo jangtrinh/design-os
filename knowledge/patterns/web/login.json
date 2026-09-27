@@ -1,0 +1,97 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "login",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [
+      {"value": "split-panel", "count": 3},
+      {"value": "modal-dialog", "count": 2},
+      {"value": "topnav+main", "count": 2},
+      {"value": "centered-card", "count": 1}
+    ],
+    "navigation": [{"value": "none", "count": 4}, {"value": "topnav", "count": 3}, {"value": "back-header", "count": 1}],
+    "primary_action": [{"value": "filled-button-inline", "count": 8}],
+    "density": [{"value": "spacious", "count": 5}, {"value": "comfortable", "count": 3}],
+    "color_mode": [{"value": "light", "count": 4}, {"value": "dark", "count": 3}, {"value": "mixed", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [
+      {"value": "empty", "count": 4},
+      {"value": "none", "count": 3},
+      {"value": "selected", "count": 2},
+      {"value": "disabled", "count": 1}
+    ]
+  },
+  "components": [
+    {
+      "name": "credential-form",
+      "count": 4,
+      "kind": [{"value": "email-password", "count": 3}, {"value": "email-only", "count": 1}],
+      "position": [{"value": "left-half", "count": 2}, {"value": "center", "count": 1}, {"value": "right-half", "count": 1}]
+    },
+    {
+      "name": "social-auth",
+      "count": 2,
+      "kind": [{"value": "buttons-above", "count": 2}],
+      "position": [{"value": "above-form", "count": 2}]
+    },
+    {
+      "name": "forgot-password",
+      "count": 3,
+      "kind": [
+        {"value": "link-below-button", "count": 1},
+        {"value": "link-under-field", "count": 1},
+        {"value": "other", "count": 1}
+      ],
+      "position": [{"value": "below", "count": 2}, {"value": "inline", "count": 1}]
+    },
+    {
+      "name": "signup-link",
+      "count": 6,
+      "kind": [{"value": "button", "count": 4}, {"value": "text-link", "count": 2}],
+      "position": [{"value": "top-right", "count": 3}, {"value": "below", "count": 2}, {"value": "other", "count": 1}]
+    },
+    {
+      "name": "brand-panel",
+      "count": 4,
+      "kind": [{"value": "split-illustration", "count": 4}],
+      "position": [{"value": "right", "count": 3}, {"value": "left", "count": 1}]
+    },
+    {
+      "name": "legal-links",
+      "count": 3,
+      "kind": [{"value": "inline-terms", "count": 2}, {"value": "footer-links", "count": 1}],
+      "position": [{"value": "bottom", "count": 3}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:7867b618-7926-45cf-919d-1a03b8a0d26f)",
+    "observed(mobbin:af1e1131-f9dc-4a6d-a612-ebec4531c28e)",
+    "observed(mobbin:5ef22994-401a-4066-b570-9d79d481b2c9)",
+    "observed(mobbin:e936e3ab-6d55-4b66-8e7b-f442b07156d7)",
+    "observed(mobbin:7393ed7e-9255-4ac9-9540-c9927452ac1b)",
+    "observed(mobbin:8321e942-6ead-4059-9ee9-c08ca2af0fa1)",
+    "observed(mobbin:a8891d1b-fc7e-485a-b4c0-56ecde2896f7)",
+    "observed(mobbin:ef055666-75c9-49de-b373-6e13d3686079)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "pricing",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {"model": "fixture-model"},
+  "core": {
+    "layout": [{"value": "full-width-sections", "count": 6}, {"value": "modal-dialog", "count": 2}],
+    "navigation": [{"value": "topnav", "count": 7}, {"value": "none", "count": 1}],
+    "primary_action": [{"value": "filled-button-inline", "count": 8}],
+    "states": [{"value": "selected", "count": 5}, {"value": "none", "count": 3}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 7}, {"value": "dark", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}]
+  },
+  "components": [
+    {"name": "plan-cards", "count": 8, "kind": [{"value": "three", "count": 5}, {"value": "four", "count": 3}]},
+    {
+      "name": "billing-toggle",
+      "count": 6,
+      "kind": [{"value": "monthly-annual", "count": 6}],
+      "position": [{"value": "above-cards", "count": 5}, {"value": "header", "count": 1}]
+    }
+  ],
+  "unreliable": ["core.density"],
+  "evidence": [
+    "observed(mobbin:00000000-0000-4000-8000-000000000000)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000001)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000002)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000003)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000004)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000005)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000006)",
+    "observed(mobbin:00000000-0000-4000-8000-000000000007)"
+  ],
+  "notes": "Fixture card for the pattern linter tests."
+}
