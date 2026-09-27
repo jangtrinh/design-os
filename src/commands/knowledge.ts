@@ -20,6 +20,9 @@ import { runKnowledgeCheck, walkKnowledge } from "./knowledge-check.js";
 import { runKnowledgeActivate } from "./knowledge-activate.js";
 import { runRulingsLint } from "./knowledge-rulings-lint.js";
 import { runRulingsRender } from "./knowledge-rulings-render.js";
+import { runKnowledgeDraftRuling } from "./knowledge-draft-ruling.js";
+import { runKnowledgeFresh } from "./knowledge-fresh.js";
+import { runKnowledgePromote } from "./knowledge-promote.js";
 
 const CMD = "knowledge";
 
@@ -33,6 +36,9 @@ Usage:
   ui knowledge index [--dir <repo-root>] [--emit]
   ui knowledge lint <rulings.json> [--root <repo-root>] [--json]
   ui knowledge render <rulings.json> --out <dir> [--lang en,vi] [--json]
+  ui knowledge fresh <rulings.json> [--root <dir>] [--days 90] [--as-of <YYYY-MM-DD>] [--strict] [--json]
+  ui knowledge promote <rulings.json> --ledger <events.jsonl> --out <dir> [--min-recurrence 3] [--min-sources 2] [--redact a,b] [--redact-people a,b] [--json]
+  ui knowledge draft-ruling --from <correction.json> --out <rulings-draft.json> [--as-of <YYYY-MM-DD>] [--force] [--json]
 
 Subcommands:
   activate       Route an available typed surface with explicit assurance; fail closed when unavailable or invalid
@@ -46,6 +52,14 @@ Subcommands:
                  without superseded_by; exit 1 on errors
   render         Render rulings.<lang>.md (grouped by category, then id) into --out; 'vi' translates
                  only the fixed headings/labels, never the English ruling text
+  fresh          Age (since verified_at or since) and source-anchor liveness of every live ruling; prints
+                 STALE rows and 'fresh N / stale M / unanchored K'; --strict exits 1 on any stale ruling
+  promote        Single-project promotion gate: a live ruling is a candidate when >= N ledger events
+                 reference its id or principle[] OR it has >= K distinct source documents. Writes a
+                 scrubbed candidates.json + candidates.md (project names, hosts, emails, people, absolute
+                 paths, Figma file keys replaced by placeholders); zero candidates is exit 0
+  draft-ruling   Turn an approver correction {screen, what_was_wrong, what_is_right, evidence[]} into a
+                 rulings/1 stub: status draft, approved_by [], source from evidence, since today
   effect-matrix  Emit the Canvas UI effect matrix's machine columns (Effect/slug/family)
                  from knowledge/canvas-ui/catalog.json to stdout — never writes into
                  knowledge/canvas-effect-direction.md
@@ -107,6 +121,10 @@ Error codes (activate):
 Error codes (lint / render):
   BAD_ARG | UNKNOWN_FLAG | FILE_NOT_FOUND | BAD_JSON (lint) | BAD_LANG | BAD_RULINGS (render) | WRITE_ERROR
 
+Error codes (fresh / promote / draft-ruling):
+  BAD_ARG | UNKNOWN_FLAG | FILE_NOT_FOUND | BAD_JSON | BAD_RULINGS | BAD_AS_OF (fresh, draft-ruling)
+  BAD_THRESHOLD | BAD_LEDGER | WRITE_ERROR (promote) · BAD_CORRECTION | OUT_EXISTS (draft-ruling)
+
 Error codes (effect-matrix / gradient-matrix):
   BAD_ARG       Missing/unknown subcommand
   UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
@@ -165,8 +183,11 @@ export const knowledgeCommand = {
       case "index": return runIndex(parsed);
       case "lint": return runRulingsLint(parsed);
       case "render": return runRulingsRender(parsed);
+      case "draft-ruling": return runKnowledgeDraftRuling(parsed);
+      case "fresh": return runKnowledgeFresh(parsed);
+      case "promote": return runKnowledgePromote(parsed);
       case undefined: {
-        const msg = "ui knowledge requires a subcommand (activate, check, effect-matrix, gradient-matrix, index, lint, render). Run 'ui knowledge --help'.";
+        const msg = "ui knowledge requires a subcommand (activate, check, draft-ruling, effect-matrix, fresh, gradient-matrix, index, lint, promote, render). Run 'ui knowledge --help'.";
         return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
       }
       default: {

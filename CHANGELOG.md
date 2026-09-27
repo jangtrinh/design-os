@@ -11,6 +11,26 @@
   decisions or verification, and prints a six-cell status line.
 - **`docs/method-spine.md`** — how to record and check one method run.
 
+## 2026-09-27 - rulings can be checked for freshness, promoted, and drafted from corrections
+
+### Added
+- **`ui knowledge fresh <rulings.json> [--root <dir>] [--days 90] [--as-of <date>] [--strict]`** — age since
+  `verified_at` (or `since`) and liveness of repo-path source anchors for every live ruling; lists the STALE
+  ones and prints `fresh N / stale M / unanchored K`. `--strict` exits 1 when anything is stale.
+- **`ui knowledge promote <rulings.json> --ledger <events.jsonl> --out <dir>`** — the single-project promotion
+  gate. A live ruling becomes a candidate when at least `--min-recurrence` (default 3) ledger events mention its
+  id or one of its `principle[]`, or when it is backed by at least `--min-sources` (default 2) distinct source
+  documents. Writes `candidates.json` (`schemas/ruling-candidates.schema.json`) and `candidates.md`, both scrubbed
+  of hostnames, URLs, emails, absolute paths, Figma file keys, project names and people (`--redact`,
+  `--redact-people` add names the rulings do not reveal). A ledger with no recurrence yields zero candidates, exit 0.
+- **`ui knowledge draft-ruling --from <correction.json> --out <rulings-draft.json>`** — turns an approver
+  correction `{screen, what_was_wrong, what_is_right, evidence[]}` into a `status: draft`, `approved_by: []`
+  ruling stub that validates against the rulings schema.
+
+### Changed
+- **`status` accepts `draft`** in `schemas/rulings.schema.json` and `ui knowledge lint`; draft rulings are never
+  promoted and are not assessed for freshness.
+
 ## 2026-09-27 - keep built code and Figma frames in step from the kernel
 
 ### Added
