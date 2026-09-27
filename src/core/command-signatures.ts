@@ -68,6 +68,17 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  method: {
+    summary: "Lint a six-step method run and its defining brief",
+    subcommands: {
+      lint: {
+        summary: "Validate a method run and its referenced brief.json",
+        positionals: [{ name: "<run.json>", required: true, summary: "Method run artifact" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "SCHEMA_UNAVAILABLE"],
+      },
+    },
+  },
   "product-context": {
     summary: "Compile and replay-lint Product Context Atlases",
     subcommands: {
