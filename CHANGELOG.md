@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-09-27 - brand-token coverage gate (PR-TG)
+
+### Added
+- **`ui token-coverage <file.html> [--tokens <f>] [--floor <n>] [--json]`** — scores every
+  color, font-family, font-size, spacing (margin/padding/gap), radius and shadow declaration
+  in a page's own CSS (inline `style=""`, `<style>` blocks, locally linked stylesheets) as
+  `token` (a `var()` resolving to a project token, or a literal equal to a token's resolved
+  value), `derived` (`calc()`/percentage/relative unit — legitimate, never counted as raw), or
+  `raw`. Prints `coverage = token / (token + raw)` per category and overall; exits 1 below
+  `--floor` (default 0.8). Token-declaration blocks (`:root`/`@theme`/`[data-theme]`/`.dark`)
+  are excluded, same convention as `ds-usage-lint`. New core: `src/core/token-coverage*.ts`.
+- **`ui gate`** now runs `token-coverage` as a required check whenever a project token file is
+  auto-detected (the design-dir contract, then `brand/design/design.tokens.json`), default
+  floor 0.8, configurable with `--token-coverage-floor`; the JSON envelope carries the numbers
+  under `tokenCoverage`. Absent a token file, the check does not run — a declared "did not run",
+  never a silent pass.
+- Motivation: the owner rejected a gate-green build (set F, brief-first) for a "generic SaaS
+  look, brand tokens barely visible" while approving a build that used them (set E). Calibrated
+  on the six real acceptance sets in `plans/260926-2305-design-os-revamp/evidence/tg/coverage.md`:
+  the default floor does **not** separate REJECTED set F (0.804) from APPROVED set C (0.835) —
+  the only clean discriminator found was the `font-family` category (F: 0%, every other set:
+  vacuous or non-zero) — and the floor **would** have flagged APPROVED set E (0.468, a Figma→code
+  build with no canvas token access) as a false positive. Recorded honestly, not hidden.
+
 ## 2026-09-27 - persona decisions from the owner's blind review
 
 ### Changed
