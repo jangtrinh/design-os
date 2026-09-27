@@ -1,6 +1,10 @@
 {
   "version": 1,
   "source": "W6 persona candidates, clustered on measured taste attributes (k-medoids, weighted Hamming); status CANDIDATE until the owner's blind review",
+  "token_mapping_rules": {
+    "provenance": "assumed",
+    "rules": "From every dossier's Starting tokens section, verbatim: type_scale_contrast moderate -> scale-ratio 1.25, flat -> 1.125, dramatic -> 1.5; weight_contrast high -> heading fontWeight 700, medium -> 600; corner_radius mixed -> radius steps control 8px / card 12px / pill 9999px; corner_radius pill -> control 9999px / card 20px; contrast_level high -> contrast.body-min 7 (WCAG ratio, also the a11y body-text floor raised from 4.5:1). Accent color: OKLCH(L 0.55, C 0.17, h=<hue-angle-by-accent_hue>) hex, except web-hairline-dark-leaning-single-accent's dark-mode green accent which uses L 0.72. All mapping rules are ASSUMPTION per Q5 of candidates/README.md until re-derived from a second extraction pass."
+  },
   "unreliableAttributes": [
     {"attribute": "corner_radius", "agreement": 0.53},
     {"attribute": "weight_contrast", "agreement": 0.47}
@@ -9,15 +13,57 @@
     {
       "slug": "web-hairline-generous-neo-grotesque",
       "platform": "web",
-      "apps": 10,
-      "screens": 41,
+      "apps": 15,
+      "screens": 65,
       "medoid": "Mintlify",
-      "nearest": "web-quiet-light-single-accent-neo-grotesque",
+      "nearest": "web-moderate-volume-neutral-neo-grotesque",
+      "accent": "optional",
+      "history": [
+        {
+          "action": "merged",
+          "merged": ["web-hairline-generous-neo-grotesque", "web-quiet-light-single-accent-neo-grotesque"],
+          "note": "Owner blind review 2026-09-27 (candidates/README.md Q1): medoids Mintlify and Descript differ on reliable fields only in accent_count (0 vs 1) and accent_hue (black-white-only vs blue); the owner read them as one persona with an optional accent. Descript kept as a reference medoid; apps/screens are the sum of both source families (10/41 + 5/24)."
+        }
+      ],
       "attributes": [
         {"attribute": "imagery", "value": "icons-only", "share": 0.78, "platformShare": 0.44, "weak": false},
         {"attribute": "whitespace", "value": "generous", "share": 0.76, "platformShare": 0.58, "weak": false},
         {"attribute": "elevation", "value": "hairline-borders", "share": 0.73, "platformShare": 0.56, "weak": false}
       ],
+      "gate_policy": {
+        "gpt-thin-border-wide-shadow": "error"
+      },
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Helvetica Neue", "Arial", "sans-serif"], "$description": "class from letterform=neo-grotesque (78%), type_family_mix=sans-only (95%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (98%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (98%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (76%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (76%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (76%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (73%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (73%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (54%, weak: below 70%), mode=light (73%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (54%, weak: below 70%)" }
+            },
+            "accent": { "$type": "color", "$value": "#111111", "$description": "ink doubles as accent: accent_hue=black-white-only (44%, weak: below 70%), accent_count=0 (44%, weak: below 70%)" },
+            "accent-count": { "$type": "number", "$value": 0, "$description": "from accent_count=0 (44%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (95%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/00fb771c-e81c-416a-a17f-c0b91ffe80c6",
         "https://mobbin.com/flows/160a7185-0c83-4730-98d6-ee029e7cecb3",
@@ -29,7 +75,15 @@
         "https://mobbin.com/screens/c0162180-8cc6-487f-9c33-c85e915c0c5d",
         "https://mobbin.com/screens/8402e675-b81a-4590-8c2b-23f064215a2d",
         "https://mobbin.com/screens/2d37d513-1180-4cb5-9b4a-08e811928c9b",
-        "https://mobbin.com/screens/fbb531f0-5837-44f8-83f8-3643208a17a5"
+        "https://mobbin.com/screens/fbb531f0-5837-44f8-83f8-3643208a17a5",
+        "https://mobbin.com/screens/a349ba1c-ba39-4c60-b4b4-da73cd6282c5",
+        "https://mobbin.com/flows/00182380-49cf-4c7a-8fb3-8fcc7ee19918",
+        "https://mobbin.com/screens/0596b84f-f48a-4e08-86df-052f7333ff9d",
+        "https://mobbin.com/flows/c4262bcf-023e-483b-ad81-15fa526c29da",
+        "https://mobbin.com/screens/3a534135-db62-4fcd-8df3-b974c2c880ed",
+        "https://mobbin.com/flows/be80ded5-56d5-4fed-b9fd-8a87d00fa0ad",
+        "https://mobbin.com/screens/6c0c14d5-1003-49ec-9ec7-ade5452b875a",
+        "https://mobbin.com/screens/4df3f000-6f01-4fba-88f3-860312a22922"
       ]
     },
     {
@@ -44,6 +98,37 @@
         {"attribute": "whitespace", "value": "balanced", "share": 0.55, "platformShare": 0.4, "weak": true},
         {"attribute": "background_texture", "value": "none", "share": 0.97, "platformShare": 0.85, "weak": false}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Helvetica Neue", "Arial", "sans-serif"], "$description": "class from letterform=neo-grotesque (79%), type_family_mix=sans-only (97%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (94%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (94%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (61%, weak: below 70%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (61%, weak: below 70%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (61%, weak: below 70%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (27%, tied with mixed and soft-shadow, weak: below 70%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (27%, tied with mixed and soft-shadow, weak: below 70%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (73%), mode=light (61%, weak: below 70%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (73%)" }
+            },
+            "accent": { "$type": "color", "$value": "#1570d1", "$description": "OKLCH(L 0.55, C 0.17, h 255) from accent_hue=blue (48%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (64%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (94%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/ecd19208-e1e3-4677-9815-e585cf716c3c",
         "https://mobbin.com/flows/c1967d79-28b5-4c84-97f0-03ec02c797b8",
@@ -54,29 +139,6 @@
         "https://mobbin.com/screens/42e3a05e-9412-4ae2-aeb5-a822e1e45813",
         "https://mobbin.com/screens/a54fe83f-ee73-4907-b056-c02db29c81a2",
         "https://mobbin.com/screens/08494cc6-b226-45de-a5ad-8aa93f75f107"
-      ]
-    },
-    {
-      "slug": "web-quiet-light-single-accent-neo-grotesque",
-      "platform": "web",
-      "apps": 5,
-      "screens": 24,
-      "medoid": "Descript",
-      "nearest": "web-hairline-generous-neo-grotesque",
-      "attributes": [
-        {"attribute": "brand_volume", "value": "quiet", "share": 0.88, "platformShare": 0.52, "weak": false},
-        {"attribute": "surface_temperature", "value": "neutral", "share": 0.96, "platformShare": 0.68, "weak": false},
-        {"attribute": "letterform", "value": "neo-grotesque", "share": 0.96, "platformShare": 0.71, "weak": false}
-      ],
-      "mobbinUrls": [
-        "https://mobbin.com/screens/a349ba1c-ba39-4c60-b4b4-da73cd6282c5",
-        "https://mobbin.com/flows/00182380-49cf-4c7a-8fb3-8fcc7ee19918",
-        "https://mobbin.com/screens/0596b84f-f48a-4e08-86df-052f7333ff9d",
-        "https://mobbin.com/flows/c4262bcf-023e-483b-ad81-15fa526c29da",
-        "https://mobbin.com/screens/3a534135-db62-4fcd-8df3-b974c2c880ed",
-        "https://mobbin.com/flows/be80ded5-56d5-4fed-b9fd-8a87d00fa0ad",
-        "https://mobbin.com/screens/6c0c14d5-1003-49ec-9ec7-ade5452b875a",
-        "https://mobbin.com/screens/4df3f000-6f01-4fba-88f3-860312a22922"
       ]
     },
     {
@@ -91,6 +153,37 @@
         {"attribute": "elevation", "value": "hairline-borders", "share": 0.83, "platformShare": 0.56, "weak": false},
         {"attribute": "whitespace", "value": "balanced", "share": 0.61, "platformShare": 0.4, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Helvetica Neue", "Arial", "sans-serif"], "$description": "class from letterform=neo-grotesque (87%), type_family_mix=sans-only (100%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 700, "$description": "from weight_contrast=high (65%, weak: below 70%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (91%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (78%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (78%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (78%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (83%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (83%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#0f0f0f", "$description": "from surface_temperature=neutral (74%), mode=dark (57%, weak: below 70%)" },
+              "raised": { "$type": "color", "$value": "#1a1a1a", "$description": "one step from base, surface_temperature=neutral (74%)" }
+            },
+            "accent": { "$type": "color", "$value": "#3fc168", "$description": "OKLCH(L 0.72, C 0.17, h 150) from accent_hue=green (39%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (100%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/359a26bc-1516-411f-b83a-ab5896f8de50",
         "https://mobbin.com/flows/cfc4264c-7047-4f5a-b0ad-6e917f99e6be",
@@ -112,6 +205,36 @@
         {"attribute": "background_texture", "value": "gradient", "share": 0.5, "platformShare": 0.1, "weak": true},
         {"attribute": "elevation", "value": "soft-shadow", "share": 0.5, "platformShare": 0.14, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Futura", "Century Gothic", "sans-serif"], "$description": "class from letterform=geometric (70%), type_family_mix=sans-only (100%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (90%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (90%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (100%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (100%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (100%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "shadow": { "$type": "shadow", "$value": { "color": "#0000001f", "offsetX": "0px", "offsetY": "2px", "blur": "8px", "spread": "0px" }, "$description": "soft, non-black shadow from elevation=soft-shadow (50%, weak: below 70%)" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=warm (50%, weak: below 70%), mode=light (80%)" },
+              "raised": { "$type": "color", "$value": "#f7f4ef", "$description": "one step from base, surface_temperature=warm (50%, weak: below 70%)" }
+            },
+            "accent": { "$type": "color", "$value": "#c0401f", "$description": "OKLCH(L 0.55, C 0.17, h 35) from accent_hue=orange-red (40%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (60%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (80%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/4eb86098-ba6d-49a0-af5d-1403cdd8e69f",
         "https://mobbin.com/flows/eb7a4e34-b88f-4881-900e-82c2f0fb6fff",
@@ -131,6 +254,40 @@
         {"attribute": "letterform", "value": "serif", "share": 0.68, "platformShare": 0.11, "weak": true},
         {"attribute": "iconography", "value": "mixed", "share": 0.68, "platformShare": 0.38, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": {
+              "body": { "$type": "fontFamily", "$value": ["Helvetica Neue", "Arial", "sans-serif"], "$description": "class from letterform=serif (68%, weak: below 70%), type_family_mix=serif-display+sans (77%)" },
+              "display": { "$type": "fontFamily", "$value": ["Georgia", "Times New Roman", "serif"], "$description": "display serif from type_family_mix=serif-display+sans (77%)" }
+            },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (95%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (86%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (73%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (73%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (73%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=mixed (36%, weak: below 70%)" },
+            "shadow": { "$type": "shadow", "$value": { "color": "#0000001f", "offsetX": "0px", "offsetY": "2px", "blur": "8px", "spread": "0px" }, "$description": "soft, non-black shadow from elevation=mixed (36%, weak: below 70%)" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (64%, weak: below 70%), mode=light (73%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (64%, weak: below 70%)" }
+            },
+            "accent": { "$type": "color", "$value": "#735acc", "$description": "OKLCH(L 0.55, C 0.17, h 290) from accent_hue=indigo-violet (32%, tied with black-white-only, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (45%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (95%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/ac19b4b1-9715-4562-bc5d-985a5b557714",
         "https://mobbin.com/flows/c32dd99d-a980-47c5-874d-a39cfd9517f2",
@@ -152,6 +309,36 @@
         {"attribute": "letterform", "value": "neo-grotesque", "share": 0.83, "platformShare": 0.53, "weak": false},
         {"attribute": "surface_temperature", "value": "neutral", "share": 0.87, "platformShare": 0.67, "weak": false}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["-apple-system", "SF Pro Text", "sans-serif"], "$description": "class from letterform=neo-grotesque (83%), type_family_mix=sans-only (96%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (52%, weak: below 70%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (96%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (96%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (96%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (96%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "shadow": { "$type": "shadow", "$value": { "color": "#0000001f", "offsetX": "0px", "offsetY": "2px", "blur": "8px", "spread": "0px" }, "$description": "soft, non-black shadow from elevation=soft-shadow (48%, weak: below 70%)" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (87%), mode=light (91%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (87%)" }
+            },
+            "accent": { "$type": "color", "$value": "#1570d1", "$description": "OKLCH(L 0.55, C 0.17, h 255) from accent_hue=blue (30%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (74%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (87%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/cd9a656d-8142-48df-90ed-f38bc7f36c53",
         "https://mobbin.com/flows/8ba6caca-b592-4b1e-84f4-a76b6f1dd085",
@@ -172,11 +359,45 @@
       "screens": 39,
       "medoid": "LinkedIn",
       "nearest": "ios-geometric-high-contrast",
+      "gate_policy": {
+        "gpt-thin-border-wide-shadow": "error"
+      },
       "attributes": [
         {"attribute": "elevation", "value": "hairline-borders", "share": 0.79, "platformShare": 0.51, "weak": false},
         {"attribute": "letterform", "value": "neo-grotesque", "share": 0.74, "platformShare": 0.53, "weak": false},
         {"attribute": "imagery", "value": "icons-only", "share": 0.62, "platformShare": 0.43, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["-apple-system", "SF Pro Text", "sans-serif"], "$description": "class from letterform=neo-grotesque (74%), type_family_mix=sans-only (97%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (72%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (87%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (74%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (74%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (74%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (79%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (79%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (72%), mode=light (92%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (72%)" }
+            },
+            "accent": { "$type": "color", "$value": "#1570d1", "$description": "OKLCH(L 0.55, C 0.17, h 255) from accent_hue=blue (31%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (54%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (90%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/6dec1d5e-be7a-49b3-9667-d4b775ad04b0",
         "https://mobbin.com/flows/9502dda2-5400-4108-b1ba-ebc2251ae043",
@@ -204,6 +425,37 @@
         {"attribute": "letterform", "value": "geometric", "share": 0.64, "platformShare": 0.39, "weak": true},
         {"attribute": "brand_volume", "value": "moderate", "share": 0.68, "platformShare": 0.51, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Futura", "Century Gothic", "sans-serif"], "$description": "class from letterform=geometric (64%, weak: below 70%), type_family_mix=sans-only (100%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 600, "$description": "from weight_contrast=medium (77%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (95%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (73%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (73%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (73%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (50%, weak: below 70%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (50%, weak: below 70%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (77%), mode=light (100%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (77%)" }
+            },
+            "accent": { "$type": "color", "$value": "#008b35", "$description": "OKLCH(L 0.55, C 0.17, h 150) from accent_hue=green (45%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (59%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (91%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/d484983a-0541-434f-bc54-646a8013b35f",
         "https://mobbin.com/flows/ab9a4c5d-69f2-4bda-bdec-3091c641eceb",
@@ -223,11 +475,45 @@
       "screens": 34,
       "medoid": "Glovo",
       "nearest": "ios-pill-control-high-contrast",
+      "gate_policy": {
+        "cream-palette": "exempt"
+      },
       "attributes": [
         {"attribute": "letterform", "value": "geometric", "share": 0.74, "platformShare": 0.39, "weak": false},
         {"attribute": "whitespace", "value": "generous", "share": 0.62, "platformShare": 0.45, "weak": true},
         {"attribute": "brand_volume", "value": "moderate", "share": 0.68, "platformShare": 0.51, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Futura", "Century Gothic", "sans-serif"], "$description": "class from letterform=geometric (74%), type_family_mix=sans-only (88%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 700, "$description": "from weight_contrast=high (76%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (91%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (56%, weak: below 70%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (56%, weak: below 70%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (56%, weak: below 70%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (53%, weak: below 70%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (53%, weak: below 70%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (53%, weak: below 70%), mode=light (91%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (53%, weak: below 70%)" }
+            },
+            "accent": { "$type": "color", "$value": "#111111", "$description": "ink doubles as accent: accent_hue=black-white-only (24%, weak: below 70%), accent_count=1 (56%, weak: below 70%)" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (56%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (97%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/e54edcf8-8c03-4b63-b446-e628ac634d9a",
         "https://mobbin.com/flows/ef5b0aa1-c908-4997-8c5c-0340236a1fb7",
@@ -253,6 +539,37 @@
         {"attribute": "surface_temperature", "value": "cool", "share": 0.64, "platformShare": 0.19, "weak": true},
         {"attribute": "brand_volume", "value": "quiet", "share": 0.73, "platformShare": 0.45, "weak": false}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["-apple-system", "SF Pro Text", "sans-serif"], "$description": "class from letterform=neo-grotesque (73%), type_family_mix=sans-only (91%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 700, "$description": "from weight_contrast=high (68%, weak: below 70%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (73%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "8px", "$description": "from corner_radius=mixed (82%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "12px", "$description": "from corner_radius=mixed (82%); unreliable attribute, verify by eye" },
+            "pill": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=mixed (82%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "border": { "$type": "dimension", "$value": "1px", "$description": "from elevation=hairline-borders (64%, weak: below 70%)" },
+            "shadow": { "$type": "string", "$value": "none", "$description": "hairline family carries no shadow (elevation=hairline-borders (64%, weak: below 70%))" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=cool (64%, weak: below 70%), mode=light (55%, weak: below 70%)" },
+              "raised": { "$type": "color", "$value": "#f3f5f9", "$description": "one step from base, surface_temperature=cool (64%, weak: below 70%)" }
+            },
+            "accent": { "$type": "color", "$value": "#1570d1", "$description": "OKLCH(L 0.55, C 0.17, h 255) from accent_hue=blue (73%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (68%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (95%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/a67dd64d-139c-4af8-98a2-d2988d9bc856",
         "https://mobbin.com/flows/c09a1bd3-e890-41cf-907b-d89ce83112aa",
@@ -270,11 +587,44 @@
       "screens": 16,
       "medoid": "Bumble",
       "nearest": "ios-geometric-high-contrast",
+      "owner_confirmed_by_eye": true,
+      "gate_policy": {
+        "border-accent-on-rounded": "exempt"
+      },
       "attributes": [
         {"attribute": "elevation", "value": "flat", "share": 0.56, "platformShare": 0.27, "weak": true},
         {"attribute": "iconography", "value": "outline", "share": 0.69, "platformShare": 0.5, "weak": true},
         {"attribute": "letterform", "value": "geometric", "share": 0.56, "platformShare": 0.39, "weak": true}
       ],
+      "starting_tokens": {
+        "provenance": "assumed",
+        "tokens": {
+          "font": {
+            "family": { "body": { "$type": "fontFamily", "$value": ["Futura", "Century Gothic", "sans-serif"], "$description": "class from letterform=geometric (56%, weak: below 70%), type_family_mix=sans-only (94%)" } },
+            "weight": {
+              "body": { "$type": "fontWeight", "$value": 400, "$description": "baseline" },
+              "heading": { "$type": "fontWeight", "$value": 700, "$description": "from weight_contrast=high (88%); unreliable attribute, verify by eye" }
+            },
+            "scale-ratio": { "$type": "number", "$value": 1.25, "$description": "from type_scale_contrast=moderate (75%)" }
+          },
+          "radius": {
+            "control": { "$type": "dimension", "$value": "9999px", "$description": "from corner_radius=pill (75%); unreliable attribute, verify by eye" },
+            "card": { "$type": "dimension", "$value": "20px", "$description": "from corner_radius=pill (75%); unreliable attribute, verify by eye" }
+          },
+          "elevation": {
+            "shadow": { "$type": "string", "$value": "none", "$description": "from elevation=flat (56%, weak: below 70%)" }
+          },
+          "color": {
+            "surface": {
+              "base": { "$type": "color", "$value": "#ffffff", "$description": "from surface_temperature=neutral (81%), mode=light (81%)" },
+              "raised": { "$type": "color", "$value": "#f5f5f5", "$description": "one step from base, surface_temperature=neutral (81%)" }
+            },
+            "accent": { "$type": "color", "$value": "#008b35", "$description": "OKLCH(L 0.55, C 0.17, h 150) from accent_hue=green (44%, weak: below 70%); hue angle is a derivation rule, the exact hex is ASSUMPTION" },
+            "accent-count": { "$type": "number", "$value": 1, "$description": "from accent_count=1 (62%, weak: below 70%)" }
+          },
+          "contrast": { "body-min": { "$type": "number", "$value": 7, "$description": "WCAG ratio target from contrast_level=high (100%)" } }
+        }
+      },
       "mobbinUrls": [
         "https://mobbin.com/screens/5d56414f-8181-4402-b4e0-d2a5116d8b28",
         "https://mobbin.com/flows/689bed54-60a3-410d-a77d-715505e3f56c",
