@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "reads": [
+    {
+      "file": "src/adapters/templates.ts",
+      "line": 155,
+      "readCall": "readFileSync(absPath, \"utf8\")",
+      "paths": [
+        "*/templates/*/*.md",
+        "*/templates/journeys/*.md",
+        "*/templates/skills/*.md",
+        "*/templates/workflows/*.md",
+        "templates/*/*.md",
+        "templates/journeys/*.md",
+        "templates/skills/*.md",
+        "templates/workflows/*.md"
+      ],
+      "data": "Discovery descriptions extracted from template YAML frontmatter for runtime wrappers",
+      "proposedJsonHome": "schemas/template-descriptions.json"
+    },
+    {
+      "file": "src/adapters/templates.ts",
+      "line": 186,
+      "readCall": "readFileSync(absPath)",
+      "paths": [
+        "*/templates/*/*.md",
+        "*/templates/journeys/*.md",
+        "*/templates/skills/*.md",
+        "*/templates/workflows/*.md",
+        "templates/*/*.md",
+        "templates/journeys/*.md",
+        "templates/skills/*.md",
+        "templates/workflows/*.md"
+      ],
+      "data": "Template byte hashes used for adapter drift checks",
+      "proposedJsonHome": "schemas/template-hashes.json"
+    },
+    {
+      "file": "src/commands/agents.ts",
+      "line": 147,
+      "readCall": "readFileSync(p, \"utf8\")",
+      "paths": [
+        "*/templates/agents/curator.md",
+        "*/templates/agents/designer.md",
+        "*/templates/agents/figma-hand.md",
+        "templates/agents/curator.md",
+        "templates/agents/designer.md",
+        "templates/agents/figma-hand.md"
+      ],
+      "data": "Agent instruction bodies rendered with project and studio placeholders",
+      "proposedJsonHome": "schemas/agent-templates.json"
+    },
+    {
+      "file": "src/commands/knowledge-check.ts",
+      "line": 68,
+      "readCall": "readFileSync(join(knowledgeDir, rel), \"utf8\")",
+      "paths": [
+        "*/knowledge/*"
+      ],
+      "data": "Knowledge Markdown frontmatter, links, provenance, matrices and persona descriptions used by governance linters",
+      "proposedJsonHome": "schemas/knowledge-governance.json"
+    },
+    {
+      "file": "src/commands/knowledge.ts",
+      "line": 136,
+      "readCall": "readFileSync(join(knowledgeDir, rel), \"utf8\")",
+      "paths": [
+        "*/knowledge/*"
+      ],
+      "data": "Top-level knowledge routing frontmatter used to emit knowledge/index.json",
+      "proposedJsonHome": "knowledge/index.json"
+    }
+  ]
+}
