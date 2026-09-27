@@ -172,6 +172,23 @@ with the live verb registry — a new capability cannot ship until this table te
 | New artifact modeled on a screenshot (composite) | `from-ref` then `generate` |
 | Re-aim an EXISTING artifact at a reference (composite) | `from-url`/`from-ref` then the G4 verb (`redesign`/`refine`/`iterate`) |
 
+## The brief-first lane — who draws first (owner decision D11, 2026-09-27)
+
+When the need arrives as a brief and no frame exists, the lane is fixed:
+
+1. A frontier-tier model writes the direction AND draws the **reference render** (full state,
+   1440) running the loop in `build-loop.md`: probe + screenshot every round, deviations with
+   numbers, gates on the inlined copy. The approver judges this render by eye.
+2. Only after the approver accepts it does a fast-tier model reproduce the remaining states
+   and viewports FROM THE RENDER, with the same probe script; parity is measured against the
+   render, never against the direction.
+
+ALLOWED: fast tier from a Figma frame or an approved render (measured 2026-09-27: 9 of 9
+viewports clean, six gates green, numbers reconcile). NOT ALLOWED: fast tier from a written
+direction alone — two such builds were rejected the same day; a direction tells the builder
+what to draw, and only a render tells it whether it drew it. The token-coverage gate applies
+to every build in the lane.
+
 ## Cross-references
 
 - Per-verb trigger language: each `templates/workflows/<verb>.md` frontmatter (canonical).
