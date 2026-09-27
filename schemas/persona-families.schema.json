@@ -5,10 +5,19 @@
   "description": "knowledge/personas/families.json: the clustered persona families with only the reliable measured attributes and Mobbin URLs. Dossier prose is not carried here. Attributes whose extractor agreement is below 60% are named once in unreliableAttributes and omitted from every family.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "source", "unreliableAttributes", "families"],
+  "required": ["version", "source", "unreliableAttributes", "families", "token_mapping_rules"],
   "properties": {
     "version": { "const": 1 },
     "source": { "type": "string", "minLength": 1 },
+    "token_mapping_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance", "rules"],
+      "properties": {
+        "provenance": { "const": "assumed" },
+        "rules": { "type": "string", "minLength": 1 }
+      }
+    },
     "unreliableAttributes": {
       "type": "array",
       "minItems": 1,
@@ -28,7 +37,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["slug", "platform", "apps", "screens", "medoid", "nearest", "attributes", "mobbinUrls"],
+        "required": ["slug", "platform", "apps", "screens", "medoid", "nearest", "attributes", "mobbinUrls", "starting_tokens"],
         "properties": {
           "slug": { "type": "string", "pattern": "^(web|ios)-[a-z0-9-]+$" },
           "platform": { "enum": ["web", "ios"] },
@@ -36,6 +45,32 @@
           "screens": { "type": "number" },
           "medoid": { "type": "string", "minLength": 1 },
           "nearest": { "type": "string", "pattern": "^(web|ios)-[a-z0-9-]+$" },
+          "accent": { "enum": ["required", "optional", "none"] },
+          "owner_confirmed_by_eye": { "type": "boolean" },
+          "history": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["action", "merged", "note"],
+              "properties": {
+                "action": { "enum": ["merged"] },
+                "merged": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "starting_tokens": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["provenance", "tokens"],
+            "properties": {
+              "provenance": { "const": "assumed" },
+              "tokens": { "type": "object" }
+            }
+          },
+          "gate_policy": { "type": "object" },
           "attributes": {
             "type": "array",
             "minItems": 3,
