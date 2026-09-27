@@ -9,21 +9,37 @@
  *
  * Record shapes (one JSON object per line):
  *   read    {t, tool, path, bytes, kind?: "read", session?}
- *   mutate  {t, kind: "mutate", session?}
+ *   mutate  {t, kind: "mutate", tool?, path?, session?}   a write inside the project tree; a Bash
+ *           mutate WITHOUT a `path` predates target recording and cannot be verified, so it is
+ *           counted in `unclassifiedMutations` and does not end the pre-mutation window
  *   skill   {t, kind: "skill", name, session?}
- *   gate    {t, kind: "gate", session?}
+ *   gate    {t, kind: "gate", command?, session?}
  *
  * Only Claude hosts emit these records, so coverage is reported as `claude-only` when a
  * trace exists and `none` when it does not — never pretended.
  */
 
+/** The record that ended the pre-mutation window — shown so a reader can see what was counted. */
+export interface FirstMutation {
+  t?: string;
+  kind: string;
+  path?: string;
+  /** Set on the legacy-Bash stand-in so a reader sees why no target is shown. */
+  note?: string;
+}
+
 export interface TraceSummary {
   bytesBeforeFirstMutate: number;
+  firstMutation: FirstMutation | null;
+  /** Bash mutate records with no recorded target path: not counted, not silently dropped. */
+  unclassifiedMutations: number;
   filesBeforeFirstMutate: string[];
   readmeOpened: boolean;
   indexOpened: boolean;
   esDesignerLoaded: boolean;
   esDesignerChecklistRan: boolean;
+  /** A read of es-designer/checklist.md was recorded (independent of any gate). */
+  checklistReadRecorded: boolean;
   gateRuns: number;
   traceCoverage: "claude-only" | "none";
   /** Lines that were not a JSON object — counted, never silently dropped. */
@@ -85,22 +101,41 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
   const filesBeforeFirstMutate: string[] = [];
   let bytesBeforeFirstMutate = 0;
   let mutated = false;
+  let firstMutation: FirstMutation | null = null;
+  let unclassifiedMutations = 0;
   let readmeOpened = false;
   let indexOpened = false;
   let esDesignerLoaded = false;
   let checklistRead = false;
+  let firstLegacy: FirstMutation | null = null;
   let esDesignerChecklistRan = false;
   let gateRuns = 0;
 
   for (const record of records) {
     const kind = record["kind"];
     if (kind === "mutate") {
-      mutated = true;
+      const target = record["path"];
+      if (record["tool"] === "Bash" && typeof target !== "string") {
+        unclassifiedMutations++;
+        firstLegacy ??= {
+          ...(typeof record["t"] === "string" ? { t: record["t"] } : {}),
+          kind: "bash-legacy",
+          note: "untargeted legacy record",
+        };
+      } else if (!mutated) {
+        mutated = true;
+        firstMutation = {
+          ...(typeof record["t"] === "string" ? { t: record["t"] } : {}),
+          kind: typeof record["tool"] === "string" ? record["tool"] : "mutate",
+          ...(typeof target === "string" ? { path: toPosix(target) } : {}),
+        };
+      }
     } else if (kind === "skill") {
       if (isEsDesigner(record["name"])) esDesignerLoaded = true;
     } else if (kind === "gate") {
       gateRuns++;
-      // The checklist RAN only when its gate followed a read of checklist.md after the load.
+      // The checklist RAN when ANY gate event (direct `ui gate`/`slop-detect` or a wrapper
+      // script that runs one) followed a read of checklist.md.
       if (checklistRead) esDesignerChecklistRan = true;
     } else if (isReadRecord(record)) {
       const path = toPosix(record.path);
@@ -113,17 +148,21 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
       }
       if (path === "README.md") readmeOpened = true;
       if (path === "knowledge/index.json" || path.endsWith("/knowledge/index.json")) indexOpened = true;
-      if (esDesignerLoaded && path.endsWith("es-designer/checklist.md")) checklistRead = true;
+      if (path.endsWith("es-designer/checklist.md")) checklistRead = true;
     }
   }
 
   return {
     bytesBeforeFirstMutate,
+    // Never "none" while a mutate record exists: a window that no targeted write ended shows the legacy stand-in.
+    firstMutation: firstMutation ?? firstLegacy,
+    unclassifiedMutations,
     filesBeforeFirstMutate,
     readmeOpened,
     indexOpened,
     esDesignerLoaded,
     esDesignerChecklistRan,
+    checklistReadRecorded: checklistRead,
     gateRuns,
     traceCoverage: records.length > 0 ? "claude-only" : "none",
     malformedLines: parsed.malformed,
