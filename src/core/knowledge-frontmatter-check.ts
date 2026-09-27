@@ -40,6 +40,7 @@ export function topLevelMarkdown(
 export function frontMatterChecks(
   mdContents: Readonly<Record<string, string>>,
   committedIndex: string | null,
+  knowledgeFiles: readonly string[] = [],
 ): KnowledgeFinding[] {
   const findings: KnowledgeFinding[] = [];
   const files = topLevelMarkdown(mdContents);
@@ -72,7 +73,7 @@ export function frontMatterChecks(
     }
   }
 
-  const expected = emitIndex(buildIndex(files));
+  const expected = emitIndex(buildIndex(files, knowledgeFiles));
   if (committedIndex === null) {
     findings.push({
       checkId: "index-drift",

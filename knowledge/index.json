@@ -402,6 +402,25 @@
       ]
     },
     {
+      "id": "personas/families",
+      "path": "knowledge/personas/families.json",
+      "description": "JSON data file knowledge/personas/families.json - read it directly, it is data and carries no prose.",
+      "when": [
+        "personas",
+        "families"
+      ],
+      "kind": "data"
+    },
+    {
+      "id": "personas/personas",
+      "path": "knowledge/personas/personas.json",
+      "description": "JSON data file knowledge/personas/personas.json - read it directly, it is data and carries no prose.",
+      "when": [
+        "personas"
+      ],
+      "kind": "data"
+    },
+    {
       "id": "prompt-modes",
       "path": "knowledge/prompt-modes.md",
       "description": "The replicate / enhance / adapt strategy modifiers for reference-driven generation.",

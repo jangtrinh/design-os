@@ -148,15 +148,15 @@ function runIndex(parsed: ParsedArgs): CommandResult {
   }
 
   const mdContents: Record<string, string> = {};
+  let knowledgeFiles: string[];
   try {
-    for (const rel of walkKnowledge(knowledgeDir)) {
-      if (rel.endsWith(".md")) mdContents[rel] = readFileSync(join(knowledgeDir, rel), "utf8");
-    }
+    knowledgeFiles = walkKnowledge(knowledgeDir);
+    for (const rel of knowledgeFiles) if (rel.endsWith(".md")) mdContents[rel] = readFileSync(join(knowledgeDir, rel), "utf8");
   } catch (e) {
     return err("READ_ERROR", `cannot read knowledge/: ${e instanceof Error ? e.message : String(e)}`);
   }
 
-  const json = emitIndex(buildIndex(topLevelMarkdown(mdContents)));
+  const json = emitIndex(buildIndex(topLevelMarkdown(mdContents), knowledgeFiles));
   if (parsed.flags["emit"] !== true) return { exitCode: 0, stdout: json };
 
   const outPath = join(knowledgeDir, "index.json");

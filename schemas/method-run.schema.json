@@ -42,7 +42,7 @@
       "required": ["code", "detail"],
       "additionalProperties": false,
       "properties": {
-        "code": { "enum": ["existing-evidence", "not-applicable", "out-of-scope"] },
+        "code": { "enum": ["existing-evidence", "not-applicable", "out-of-scope", "blocked-intake"] },
         "detail": { "type": "string", "minLength": 1 }
       }
     },

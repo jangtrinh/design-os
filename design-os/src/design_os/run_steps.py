@@ -1,9 +1,8 @@
 """Build the ``method-run/1`` document from what the kernel calls observed.
 
 Pure: no I/O, no clock. The schema knows only ``done|skipped``; a run stopped by the
-intake receipt is therefore ``define`` done and the later steps skipped, with the reason
-code ``not-applicable`` and a detail that starts with ``blocked-intake`` (the schema's
-``skip_reason.code`` enum has no dedicated value for it).
+intake receipt is therefore ``define`` done and the later steps skipped, with the
+``blocked-intake`` reason code.
 """
 
 from __future__ import annotations
@@ -11,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 STEPS = ("frame", "define", "explore", "decide", "build", "verify")
-BLOCKED_PREFIX = "blocked-intake"
+BLOCKED_CODE = "blocked-intake"
 
 
 def _skip(code: str, detail: str) -> dict[str, Any]:
@@ -52,9 +51,9 @@ def build_run(
         "define": _done([_art("brief.json"), _art("questions.json")], _human_needs(questions)),
     }
     if blocked:
-        detail = f"{BLOCKED_PREFIX}: the D4 receipt is BLOCKED; answer questions.json and re-run"
+        detail = "the D4 receipt is BLOCKED; answer questions.json and re-run"
         for name in STEPS[2:]:
-            steps[name] = _skip("not-applicable", detail)
+            steps[name] = _skip(BLOCKED_CODE, detail)
     else:
         steps["explore"] = _skip("out-of-scope", "the conductor makes no model calls, so it generates no options")
         steps["decide"] = _skip("out-of-scope", "the D7 approver decision is owner-manual and not recorded by this run")

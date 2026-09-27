@@ -113,13 +113,24 @@ function fm(id: string, description: string, when: string[]): string {
  * out-of-date index is itself an error, so a case that skipped this would trip
  * index-drift instead of exercising its own check.
  */
+function walkFiles(dir: string, base = ""): string[] {
+  const out: string[] = [];
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    const rel = base === "" ? ent.name : `${base}/${ent.name}`;
+    if (ent.isDirectory()) out.push(...walkFiles(join(dir, ent.name), rel));
+    else out.push(rel);
+  }
+  return out;
+}
+
 function emitIndexInto(repoRoot: string): void {
   const dir = join(repoRoot, "knowledge");
+  const files = walkFiles(dir);
   const md: Record<string, string> = {};
-  for (const name of readdirSync(dir)) {
-    if (name.endsWith(".md")) md[name] = readFileSync(join(dir, name), "utf8");
+  for (const rel of files) {
+    if (rel.endsWith(".md")) md[rel] = readFileSync(join(dir, rel), "utf8");
   }
-  writeFileSync(join(dir, "index.json"), emitIndex(buildIndex(topLevelMarkdown(md))), "utf8");
+  writeFileSync(join(dir, "index.json"), emitIndex(buildIndex(topLevelMarkdown(md), files)), "utf8");
 }
 
 function addNativePilot(options: { pin?: string; bytes?: string; writeReceipt?: boolean } = {}): string {

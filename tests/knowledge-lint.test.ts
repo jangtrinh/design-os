@@ -82,7 +82,7 @@ function consistent(overrides: Partial<MutableInput> = {}): MutableInput {
   };
   // The committed index must match whatever mdContents the caller ended up with,
   // or every case would also trip index-drift and stop testing its own check.
-  return { ...base, committedIndex: emitIndex(buildIndex(topLevelMarkdown(base.mdContents))) };
+  return { ...base, committedIndex: emitIndex(buildIndex(topLevelMarkdown(base.mdContents), base.files)) };
 }
 
 /** A routing front-matter block, the shape authoring-standard.md specifies. */

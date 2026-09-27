@@ -150,7 +150,7 @@ export function lintKnowledge(input: KnowledgeLintInput): KnowledgeFinding[] {
       catalogJson: input.webTechniqueCatalogJson ?? null, files: input.files, mdContents: input.mdContents,
       skillNames: SKILL_NAMES, verbSkillRefs: VERB_SKILL_REFS,
     }),
-    ...frontMatterChecks(input.mdContents, input.committedIndex ?? null),
+    ...frontMatterChecks(input.mdContents, input.committedIndex ?? null, input.files),
     // The agent-expertise ship-gate: the need→verb route table stays in exact
     // parity with the live verb registry, both directions (see routing-check).
     ...routingChecks(input.mdContents["need-routing.md"] ?? null),

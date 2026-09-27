@@ -1,6 +1,7 @@
 /**
  * Builds `questions.json` from the blocking fields of a brief: one question per
- * blocking field, route-changing questions first, otherwise in blocking order.
+ * blocking field, route-changing questions first, otherwise in blocking order. A BLOCKED
+ * receipt then adds one question per low-confidence assumption not already asked about.
  * A recommended default appears only when a rule can derive it.
  */
 import { deriveCopyLanguage } from "./brief-copy-language.js";
@@ -80,8 +81,22 @@ function shape(b: BlockingField, brief: BriefRecord): Omit<BriefQuestion, "id" |
   return { question: `${b.reason}. What should ${b.field} be?`, recommended: null, options: [ANSWER_NOW, ASSUME] };
 }
 
+/** Low-confidence assumptions no blocking field already asks about: one question each, so a BLOCKED receipt on L alone is never silent. */
+function lowConfidenceFields(brief: BriefRecord, blocking: BlockingField[]): BlockingField[] {
+  const asked = new Set(blocking.map((b) => b.field));
+  const out: BlockingField[] = [];
+  for (const a of Array.isArray(brief["assumptions"]) ? brief["assumptions"] : []) {
+    const rec = a as BriefRecord;
+    const facet = String(rec["facet"]);
+    if (rec["confidence"] !== "low" || asked.has(facet) || asked.has(`assumption:${facet}`)) continue;
+    out.push({ field: `assumption:${facet}`, reason: `low-confidence assumption: '${facet}'`, routeChanging: false });
+  }
+  return out;
+}
+
 export function buildQuestions(brief: BriefRecord, blocking: BlockingField[], d4: D4Receipt): QuestionsDoc {
   const ordered = [...blocking.filter((b) => b.routeChanging), ...blocking.filter((b) => !b.routeChanging)];
+  if (d4.decision === "BLOCKED") ordered.push(...lowConfidenceFields(brief, blocking));
   const questions = ordered.map((b, i): BriefQuestion => ({
     id: `q${i + 1}`, field: b.field, header: headerOf(b.field), routeChanging: b.routeChanging, ...shape(b, brief),
   }));

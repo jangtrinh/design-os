@@ -4,7 +4,7 @@
 [`method-run.schema.json`](../schemas/method-run.schema.json). The six ordered
 steps are `frame`, `define`, `explore`, `decide`, `build`, and `verify`. Each has
 `status: done|skipped`, `artifacts[]`, and `needs_humans[]`. A skipped step also
-needs `skip_reason: {code, detail}`; use `existing-evidence`, `not-applicable`,
+needs `skip_reason: {code, detail}`; use `existing-evidence`, `not-applicable`, `blocked-intake` (the intake receipt is BLOCKED),
 or `out-of-scope` with a concrete explanation. `school` is optional vocabulary
 (`double-diamond`, `jtbd`, `lean-ux`, `design-sprint`, `none`); it never changes
 the steps or their gates.

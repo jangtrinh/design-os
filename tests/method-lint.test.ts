@@ -61,6 +61,19 @@ describe("ui method lint", () => {
     expect(JSON.parse(result.out).data.findings.map((f: { checkId: string }) => f.checkId)).toContain("invalid-brief");
   });
 
+  it("accepts blocked-intake as a skip code and still rejects an unknown one", () => {
+    const skipWith = (code: string): string => editedRun((r) => {
+      r.steps.explore!.status = "skipped";
+      r.steps.explore!.skip_reason = { code, detail: "Intake receipt is BLOCKED; questions are unanswered." };
+    });
+    const ok = capture(["method", "lint", skipWith("blocked-intake"), "--json"]);
+    expect(ok.code).toBe(0);
+    expect(JSON.parse(ok.out).data.findings).toEqual([]);
+    const bad = capture(["method", "lint", skipWith("blocked-elsewhere"), "--json"]);
+    expect(bad.code).toBe(1);
+    expect(JSON.parse(bad.out).data.findings.map((f: { checkId: string }) => f.checkId)).toContain("schema-shape");
+  });
+
   it("rejects a readable brief that violates the current brief schema", () => {
     const file = editedRun(() => {});
     writeFileSync(join(dirname(file), "brief.json"), JSON.stringify({ kind: "design-brief", version: 1 }));

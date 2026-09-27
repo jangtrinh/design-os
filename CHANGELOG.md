@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-27 - follow-ups from the control plane run: silent BLOCKED, a skip code, a fuller index
+
+### Fixed
+- **`ui brief lint` no longer reports BLOCKED with zero questions.** When the D4 receipt is BLOCKED, every
+  low-confidence assumption that no blocking field already asks about becomes one question naming the
+  assumption and its current value. `L` and the decision are unchanged; a CONTINUE brief still emits none.
+
+### Added
+- **`blocked-intake` skip code** in `schemas/method-run.schema.json`; `design-os run` uses it for the steps a
+  BLOCKED intake receipt stops, instead of `not-applicable` with a detail prefix. `ui method lint` accepts it.
+- **`knowledge/index.json` lists JSON data files** directly under `knowledge/personas/` and
+  `knowledge/patterns/` with `kind: data`; prose entries are unchanged.
+
 ## 2026-09-27 - a shadow judge: record what System One would pick, measure how often a human agrees
 
 ### Added
