@@ -1,0 +1,10 @@
+### full gate
+$ node dist/cli.js gate full.inlined.html --tokens tokens.json
+gate: full.inlined.html — 0 error(s), 0 warning(s)
+  layout: clean
+  a11y: clean
+  taste: clean
+  tell: clean
+  content: clean
+  autofix: clean
+exit=0

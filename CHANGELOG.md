@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-27 - build-evidence lint: the build-loop standard's linter half (PR-FU4)
+
+### Added
+- **`ui build-evidence lint <dir> [--widths 375,768,1440] [--json]`** — a new top-level command
+  (not a subcommand of `ui evidence`, which is the unrelated user-evidence/anti-fabrication ledger)
+  that checks a builder's evidence folder against `knowledge/build-loop.md` and reports PASS / FAIL /
+  SKIPPED-with-reason per rule: r1 a probe JSON beside every screenshot PNG; r2 every required width
+  present as a PNG; r3 the probe's scrollWidth/innerWidth (or scrollW/width) has scroll <= inner; r4
+  `gates.txt` names an inlined variant and every recorded `exit=` is 0 or accounted for in
+  `deviations.md`; r5 `deviations.md` exists and every entry carries a number+unit/ratio (px, %, :1,
+  ms); r6 a red-probe line (a deliberately-bad-input non-zero exit) exists in `gates.txt` or
+  `falsification.txt`; r7 the probe's font-check is true, or the PNGs are marked fallback-face in
+  `deviations.md`. Exit 0 all PASS/SKIPPED, 1 any FAIL, 2 the folder is missing. New core:
+  `src/core/build-evidence-rules-{shared,shots,probe,gates,deviations}.ts` — pure functions over one
+  folder listing, no network, no model calls. Real probe JSONs vary both the sidecar filename (a
+  per-width file, `probe-<width>.json`, a single `probe.json` keyed by `widths[width]`, or a single
+  `probes.json` keyed by `"<stem>-<width>"`) and the measurement keys (`scrollW`/`innerW` vs
+  `scrollWidth`/`innerWidth` vs `scrollW`/`width`) — all forms are read.
+- The build-loop standard (`knowledge/build-loop.md`) had an emitter (the loop itself) but no
+  linter, so it was prose that could drift unchecked. Run on the real acceptance evidence (5 persona
+  folders + `acceptance-rerun-8-stage2`): every folder passes r1-r3; three folders FAIL r4/r5 because
+  they ship no `deviations.md` at all against a real non-zero gate `exit=`; three FAIL r6 (no
+  red-probe / falsification evidence anywhere) and SKIP r7 (no probe JSON carries a font-check key).
+  Table and per-finding detail: `plans/260926-2305-design-os-revamp/evidence/fu4/real-run.md`.
+
 ## 2026-09-27 - brand-token coverage gate (PR-TG)
 
 ### Added
