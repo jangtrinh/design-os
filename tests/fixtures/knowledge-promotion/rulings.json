@@ -1,0 +1,55 @@
+{
+  "schema": "rulings/1",
+  "rulings": [
+    {
+      "id": "r-seeded-leaky",
+      "category": "shell-chrome",
+      "text": "Acme Portal must load the header from https://admin.acme-corp.io/shell and the owner jane.doe@acme-corp.io keeps the master at /Users/jane/Products/acme-portal/design/shell.json (figma:AbC123xYz789QwErTy45).",
+      "detail": "Verified against staging.acme-corp.io by Jane Doe on 10.0.4.17.",
+      "scope": { "apps": ["acme-portal"], "features": ["shell"] },
+      "source": ["docs/alpha.md#one", "docs/beta.md", "docs/alpha.md#two"],
+      "since": "2026-08-01",
+      "verified_by": "Jane Doe",
+      "status": "active"
+    },
+    {
+      "id": "r-recurring-one-source",
+      "category": "spacing",
+      "text": "Cards use a 16px gutter.",
+      "scope": "global",
+      "source": ["docs/alpha.md"],
+      "since": "2026-08-02",
+      "verified_by": "source",
+      "principle": ["rhythm"]
+    },
+    {
+      "id": "r-single-anchor-quiet",
+      "category": "spacing",
+      "text": "Sections separate with a 32px gap.",
+      "scope": "global",
+      "source": ["docs/alpha.md#one", "docs/alpha.md#two"],
+      "since": "2026-08-03",
+      "verified_by": "source"
+    },
+    {
+      "id": "r-old-superseded",
+      "category": "spacing",
+      "text": "Cards use a 12px gutter.",
+      "scope": "global",
+      "source": ["docs/alpha.md", "docs/beta.md"],
+      "since": "2026-01-03",
+      "verified_by": "source",
+      "superseded_by": "r-recurring-one-source"
+    },
+    {
+      "id": "r-retired-status",
+      "category": "spacing",
+      "text": "Retired rule.",
+      "scope": "global",
+      "source": ["docs/alpha.md", "docs/beta.md"],
+      "since": "2026-01-03",
+      "verified_by": "source",
+      "status": "retired"
+    }
+  ]
+}

@@ -16,7 +16,7 @@ export const REQUIRED_FIELDS = ["id", "category", "text", "scope", "source", "si
 export const OPTIONAL_FIELDS = [
   "status", "verified_at", "approved_by", "principle", "supersedes", "superseded_by", "conflicts_with", "detail", "tag",
 ] as const;
-export const STATUS_VALUES = ["active", "superseded", "retired"] as const;
+export const STATUS_VALUES = ["draft", "active", "superseded", "retired"] as const;
 export const APPROVER_ROLES = ["PM", "design-lead", "BA", "owner", "source"] as const;
 export const SCOPE_KEYS = ["apps", "features", "screens"] as const;
 
