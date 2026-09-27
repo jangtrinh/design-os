@@ -74,6 +74,8 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       lint: { summary: "Reject new prose reads and stale allowances", positionals: [],
         flags: [{ name: "allowlist", type: "string", summary: "Allowance JSON path (default schemas/seam-allowlist.json)" }],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_ALLOWLIST", "READ_ERROR"] },
+    },
+  },
   method: {
     summary: "Lint a six-step method run and its defining brief",
     subcommands: {
