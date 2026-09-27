@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-27 - template hashes read from the catalogue instead of hashed at runtime
+
+### Changed
+- **`ui init`'s manifest baseline and the codex adapter's embedded reference hash** now read the
+  recorded `sourceSha256` from `schemas/template-descriptions.json` (via the new
+  `readTemplateSourceHash`) instead of re-hashing the template file's bytes at runtime. Both values
+  are identical for an unmodified install — the catalogue is generated from, and audited
+  (`ui templates catalogue --check`) against, the same bytes that ship in the package.
+- **`ui doctor`'s template-drift check keeps hashing live bytes** (`hashTemplateFile`, unchanged):
+  it is the only remaining consumer that compares a recorded baseline against the template's
+  CURRENT bytes on disk, so it must observe a hand-edited installed template even when the
+  catalogue itself was never touched — see `evidence/w3a/proposals.md` §2's decision note.
+- **`schemas/seam-allowlist.json`** drops the `src/adapters/templates.ts` entry: with only one
+  caller left, `ui seam lint`'s bounded static analysis no longer traces the read to a template
+  path (`reads 4 / allowed 4 / new 0`, down from 5). The runtime guarantee is unchanged and covered
+  by tests; the seam-lint ratchet's coverage of that one call site is a known, disclosed gap.
+
 ## 2026-09-27 - follow-ups from the control plane run: silent BLOCKED, a skip code, a fuller index
 
 ### Fixed

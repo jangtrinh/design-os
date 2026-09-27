@@ -12,23 +12,6 @@
       "proposedJsonHome": "schemas/template-descriptions.json"
     },
     {
-      "file": "src/adapters/templates.ts",
-      "line": 186,
-      "readCall": "readFileSync(absPath)",
-      "paths": [
-        "*/templates/*/*.md",
-        "*/templates/journeys/*.md",
-        "*/templates/skills/*.md",
-        "*/templates/workflows/*.md",
-        "templates/*/*.md",
-        "templates/journeys/*.md",
-        "templates/skills/*.md",
-        "templates/workflows/*.md"
-      ],
-      "data": "Template byte hashes used for adapter drift checks",
-      "proposedJsonHome": "schemas/template-hashes.json"
-    },
-    {
       "file": "src/commands/agents.ts",
       "line": 147,
       "readCall": "readFileSync(p, \"utf8\")",
