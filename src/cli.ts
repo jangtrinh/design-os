@@ -60,6 +60,7 @@ import { synthesizeConventionsCommand } from "./commands/synthesize-conventions.
 import { tasteCommand } from "./commands/taste.js";
 import { agentsCommand } from "./commands/agents.js";
 import { knowledgeCommand } from "./commands/knowledge.js";
+import { briefCommand } from "./commands/brief.js";
 import { seamCommand } from "./commands/seam.js";
 import { ksyncCommand } from "./commands/ksync.js";
 import { traceCommand } from "./commands/trace.js";
@@ -133,6 +134,7 @@ COMMANDS[synthesizeConventionsCommand.name] = synthesizeConventionsCommand;
 COMMANDS[tasteCommand.name] = tasteCommand;
 COMMANDS[agentsCommand.name] = agentsCommand;
 COMMANDS[knowledgeCommand.name] = knowledgeCommand;
+COMMANDS[briefCommand.name] = briefCommand;
 COMMANDS[seamCommand.name] = seamCommand;
 COMMANDS[ksyncCommand.name] = ksyncCommand;
 COMMANDS[traceCommand.name] = traceCommand;
