@@ -9,6 +9,7 @@ build — so it always exits 0, unlike `doctor`/`heartbeat`'s health-gated exit 
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -19,6 +20,28 @@ from design_os.envelope import JsonFlag, emit, ok_env
 from design_os.report_style import rule_header
 
 _COMMAND = "evolution"
+
+
+def _days(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.1f} days"
+
+
+def _render_clock(clock: dict[str, Any]) -> list[str]:
+    """The three throughput numbers behind the verdict, each with its window's verdict."""
+    def flag(ok: bool) -> str:
+        return "ok" if ok else "FAIL"
+
+    undated = clock["open_gaps_undated"]
+    return [
+        "  learning clock (windows must ALL hold for ALIVE):",
+        f"    graduated in 30d: {clock['graduated_30d']} [{flag(clock['graduation_ok'])}, need >=1]",
+        f"    median open-gap age: {_days(clock['median_open_gap_age_days'])} over "
+        f"{clock['open_gap_count']} open gap(s)"
+        + (f", {undated} undated" if undated else "")
+        + f" [{flag(clock['open_gap_age_ok'])}, need <30]",
+        f"    last gap/retro: {_days(clock['days_since_last_gap_or_retro'])} ago "
+        f"[{flag(clock['recent_event_ok'])}, need <=7]",
+    ]
 
 
 def _render_text(
@@ -55,6 +78,7 @@ def _render_text(
         no_insights = "no insights" if ledger["insight_events"] == 0 else f"{ledger['insight_events']} insight(s)"
         no_gaps = "no gaps" if ledger["gap_events"] == 0 else f"{ledger['gap_events']} gap(s)"
         lines.append(f"  learning events: {no_insights}, {no_gaps}")
+        lines.extend(_render_clock(signals["clock"]))
 
     graph = signals["graph"]
     if graph["exists"]:
@@ -107,7 +131,7 @@ def evolution(
 ) -> None:
     """Read a project's `design/` directory and report ALIVE / DEAD-LOOP / NO-LOOP for its
     learning loop, plus every signal's raw state. Read-only; always exits 0."""
-    signals = evolution_core.gather_signals(dir_)
+    signals = evolution_core.gather_signals(dir_, datetime.now(timezone.utc))
     proof_path = proof_ or dir_ / "design" / "evolution-proof.json"
     proof = evolution_proof.read_and_validate(proof_path)
     diagnostics = evolution_proof.proof_diagnostics(dir_)
