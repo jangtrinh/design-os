@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-27 - temporary native mobile proof fixtures are cleaned up
+
+### Fixed
+- Native mobile proof test fixtures now remove their temporary proof trees after each test.
+
 ## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
 
 ### Added
