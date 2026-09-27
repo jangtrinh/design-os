@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-27 - apply the Q3 verdict to the iOS quiet family; stage a Q4 serif candidate (PR-W6d)
+
+### Changed
+- **`knowledge/personas/families.json`**: `ios-quiet-single-accent-neo-grotesque` shrinks from
+  its clustered 10-app membership to a measured 4-app core (Perplexity, Brink, corner, Rodeo)
+  after a 54-screen extraction round on its thin members (`plans/260926-2257-persona-rebuild-research/evidence/q3-q4/q3-per-app.md`).
+  `apps`/`screens` recomputed (10/23 -> 4/28). LINE (8 screens) moves to
+  `ios-hairline-neutral-neo-grotesque` (8/39 -> 9/47), its nearest medoid. Grok Bot, Mesh,
+  Noom, Notion Mail and Oura are removed and NOT silently re-homed — each is recorded in a
+  `history` note with its nearest medoid and distance. `attributes`/`starting_tokens` are left
+  unchanged pending a future re-extraction pass (no emitter for those fields exists in this
+  repo yet); the history notes say so explicitly.
+
+### Added
+- `plans/260926-2257-persona-rebuild-research/candidates/ios-serif-display-plus-sans.md`: a
+  staged Q4 candidate (NOT added to families.json) — a 5-app serif core (Future Pro, Wispr
+  Flow, Goodreads, Noom, NYTimes) plus Lloyds Mobile Banking as an outlier, with per-app serif
+  share, pairwise distances, the `sans-display+serif-body` schema gap (Substack, Matter), and a
+  blind-review block for the owner.
+
 ## 2026-09-27 — build-loop failure modes from the owner's review
 
 ### Changed
