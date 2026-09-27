@@ -1,0 +1,95 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "checkout",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.address-form", "agree": 1, "of": 1},
+        {"attribute": "components.order-summary", "agree": 1, "of": 1},
+        {"attribute": "components.order-summary.kind", "agree": 1, "of": 1},
+        {"attribute": "components.order-summary.position", "agree": 1, "of": 1},
+        {"attribute": "components.payment-methods", "agree": 1, "of": 1},
+        {"attribute": "components.payment-methods.kind", "agree": 1, "of": 1},
+        {"attribute": "components.payment-methods.position", "agree": 1, "of": 1},
+        {"attribute": "components.progress-indicator", "agree": 1, "of": 1},
+        {"attribute": "components.promo-code", "agree": 1, "of": 1},
+        {"attribute": "components.promo-code.kind", "agree": 1, "of": 1},
+        {"attribute": "components.promo-code.position", "agree": 1, "of": 1},
+        {"attribute": "components.shipping-options", "agree": 1, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [{"value": "split-panel", "count": 7}, {"value": "modal-dialog", "count": 1}],
+    "navigation": [{"value": "none", "count": 4}, {"value": "back-header", "count": 3}, {"value": "other", "count": 1}],
+    "primary_action": [{"value": "filled-button-inline", "count": 7}, {"value": "none", "count": 1}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 7}, {"value": "dark", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "selected", "count": 6}, {"value": "none", "count": 2}, {"value": "success", "count": 1}]
+  },
+  "components": [
+    {
+      "name": "order-summary",
+      "count": 8,
+      "kind": [{"value": "side-panel", "count": 7}, {"value": "inline", "count": 1}],
+      "position": [{"value": "right", "count": 7}, {"value": "below", "count": 1}]
+    },
+    {
+      "name": "payment-methods",
+      "count": 5,
+      "kind": [
+        {"value": "both", "count": 2},
+        {"value": "card-form", "count": 1},
+        {"value": "radio-list", "count": 1},
+        {"value": "wallet-buttons", "count": 1}
+      ],
+      "position": [{"value": "main", "count": 4}, {"value": "other", "count": 1}]
+    },
+    {
+      "name": "address-form",
+      "count": 3,
+      "kind": [{"value": "single-page", "count": 3}],
+      "position": [{"value": "main", "count": 3}]
+    },
+    {"name": "shipping-options", "count": 0},
+    {
+      "name": "promo-code",
+      "count": 4,
+      "kind": [{"value": "collapsed-link", "count": 4}],
+      "position": [{"value": "summary", "count": 3}, {"value": "main", "count": 1}]
+    },
+    {
+      "name": "progress-indicator",
+      "count": 1,
+      "kind": [{"value": "stepper", "count": 1}],
+      "position": [{"value": "top", "count": 1}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:2f11c06c-98b7-4b66-88af-04f3b3c13632)",
+    "observed(mobbin:c0162180-8cc6-487f-9c33-c85e915c0c5d)",
+    "observed(mobbin:d800f178-8fdf-4e04-9eaf-5e0198727ca6)",
+    "observed(mobbin:2d37d513-1180-4cb5-9b4a-08e811928c9b)",
+    "observed(mobbin:36ef1596-819b-42c6-80d2-69f22490238f)",
+    "observed(mobbin:57548934-e4df-4aad-89f8-a9cdaadd756c)",
+    "observed(mobbin:08494cc6-b226-45de-a5ad-8aa93f75f107)",
+    "observed(mobbin:c87461ae-e33e-4ae5-8d93-db833f003fff)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

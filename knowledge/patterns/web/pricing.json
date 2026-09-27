@@ -1,0 +1,106 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "pricing",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.billing-toggle", "agree": 1, "of": 1},
+        {"attribute": "components.comparison-table", "agree": 1, "of": 1},
+        {"attribute": "components.comparison-table.kind", "agree": 1, "of": 1},
+        {"attribute": "components.comparison-table.position", "agree": 1, "of": 1},
+        {"attribute": "components.enterprise-cta", "agree": 1, "of": 1},
+        {"attribute": "components.enterprise-cta.kind", "agree": 1, "of": 1},
+        {"attribute": "components.enterprise-cta.position", "agree": 1, "of": 1},
+        {"attribute": "components.highlighted-plan", "agree": 1, "of": 1},
+        {"attribute": "components.highlighted-plan.kind", "agree": 0, "of": 1},
+        {"attribute": "components.highlighted-plan.position", "agree": 1, "of": 1},
+        {"attribute": "components.plan-cards", "agree": 1, "of": 1},
+        {"attribute": "components.plan-cards.kind", "agree": 1, "of": 1},
+        {"attribute": "components.social-proof", "agree": 1, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [
+      {"value": "topnav+main", "count": 3},
+      {"value": "modal-dialog", "count": 2},
+      {"value": "sidebar+main", "count": 1},
+      {"value": "sidebar+topnav+main", "count": 1},
+      {"value": "single-column-scroll", "count": 1}
+    ],
+    "navigation": [
+      {"value": "topnav", "count": 3},
+      {"value": "none", "count": 2},
+      {"value": "sidebar", "count": 2},
+      {"value": "top-tabs", "count": 1}
+    ],
+    "primary_action": [{"value": "filled-button-inline", "count": 8}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 6}, {"value": "dark", "count": 1}, {"value": "mixed", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "selected", "count": 8}, {"value": "disabled", "count": 2}, {"value": "loading", "count": 1}]
+  },
+  "components": [
+    {
+      "name": "plan-cards",
+      "count": 8,
+      "kind": [{"value": "four", "count": 3}, {"value": "three", "count": 3}, {"value": "two", "count": 2}]
+    },
+    {
+      "name": "billing-toggle",
+      "count": 7,
+      "kind": [{"value": "monthly-annual", "count": 7}],
+      "position": [{"value": "above-cards", "count": 5}, {"value": "in-cards", "count": 1}, {"value": "other", "count": 1}]
+    },
+    {
+      "name": "highlighted-plan",
+      "count": 6,
+      "kind": [{"value": "badge", "count": 5}, {"value": "filled-card", "count": 1}],
+      "position": [{"value": "middle", "count": 5}, {"value": "right", "count": 1}]
+    },
+    {
+      "name": "comparison-table",
+      "count": 1,
+      "kind": [{"value": "full-matrix", "count": 1}],
+      "position": [{"value": "below-cards", "count": 1}]
+    },
+    {
+      "name": "enterprise-cta",
+      "count": 6,
+      "kind": [{"value": "contact-sales", "count": 4}, {"value": "other", "count": 2}],
+      "position": [{"value": "extra-card", "count": 5}, {"value": "banner", "count": 1}]
+    },
+    {
+      "name": "social-proof",
+      "count": 1,
+      "kind": [{"value": "logos", "count": 1}],
+      "position": [{"value": "below-cards", "count": 1}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:ac3ae4f5-1e5c-46b9-b6cc-ca4dc6b36f54)",
+    "observed(mobbin:359a26bc-1516-411f-b83a-ab5896f8de50)",
+    "observed(mobbin:a349ba1c-ba39-4c60-b4b4-da73cd6282c5)",
+    "observed(mobbin:2d69bce8-5bcf-4c16-a239-7f09a0f49362)",
+    "observed(mobbin:ecd19208-e1e3-4677-9815-e585cf716c3c)",
+    "observed(mobbin:73f76d09-9508-49ba-810e-8b2d13ff74e6)",
+    "observed(mobbin:02aea727-a82c-4861-ae61-b99be0d5fdde)",
+    "observed(mobbin:00fb771c-e81c-416a-a17f-c0b91ffe80c6)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

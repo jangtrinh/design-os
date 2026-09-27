@@ -1,0 +1,111 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "settings",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.danger-zone", "agree": 1, "of": 1},
+        {"attribute": "components.form-sections", "agree": 1, "of": 1},
+        {"attribute": "components.form-sections.kind", "agree": 0, "of": 1},
+        {"attribute": "components.form-sections.position", "agree": 1, "of": 1},
+        {"attribute": "components.profile-avatar", "agree": 1, "of": 1},
+        {"attribute": "components.profile-avatar.kind", "agree": 0, "of": 1},
+        {"attribute": "components.profile-avatar.position", "agree": 1, "of": 1},
+        {"attribute": "components.save-action", "agree": 1, "of": 1},
+        {"attribute": "components.save-action.kind", "agree": 1, "of": 1},
+        {"attribute": "components.save-action.position", "agree": 1, "of": 1},
+        {"attribute": "components.settings-nav", "agree": 1, "of": 1},
+        {"attribute": "components.settings-nav.kind", "agree": 1, "of": 1},
+        {"attribute": "components.settings-nav.position", "agree": 1, "of": 1},
+        {"attribute": "components.toggles", "agree": 1, "of": 1},
+        {"attribute": "components.toggles.kind", "agree": 1, "of": 1},
+        {"attribute": "components.toggles.position", "agree": 1, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [
+      {"value": "modal-dialog", "count": 3},
+      {"value": "sidebar+topnav+main", "count": 3},
+      {"value": "sidebar+main", "count": 2}
+    ],
+    "navigation": [{"value": "sidebar", "count": 7}, {"value": "topnav", "count": 1}],
+    "primary_action": [{"value": "filled-button-inline", "count": 7}, {"value": "none", "count": 1}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 8}],
+    "copy_language": [{"value": "en", "count": 7}, {"value": "mixed", "count": 1}],
+    "states": [
+      {"value": "selected", "count": 8},
+      {"value": "success", "count": 3},
+      {"value": "disabled", "count": 2},
+      {"value": "empty", "count": 1}
+    ]
+  },
+  "components": [
+    {
+      "name": "settings-nav",
+      "count": 7,
+      "kind": [{"value": "left-sidebar", "count": 6}, {"value": "top-tabs", "count": 1}],
+      "position": [{"value": "left", "count": 6}, {"value": "top", "count": 1}]
+    },
+    {
+      "name": "form-sections",
+      "count": 8,
+      "kind": [
+        {"value": "stacked-cards", "count": 4},
+        {"value": "divided-list", "count": 3},
+        {"value": "single-form", "count": 1}
+      ],
+      "position": [{"value": "main", "count": 8}]
+    },
+    {
+      "name": "save-action",
+      "count": 6,
+      "kind": [
+        {"value": "inline-button", "count": 3},
+        {"value": "sticky-bar", "count": 2},
+        {"value": "per-section", "count": 1}
+      ],
+      "position": [{"value": "inline", "count": 3}, {"value": "bottom", "count": 2}, {"value": "top-right", "count": 1}]
+    },
+    {"name": "danger-zone", "count": 0},
+    {
+      "name": "toggles",
+      "count": 5,
+      "kind": [{"value": "switch-rows", "count": 4}, {"value": "checkbox-list", "count": 1}],
+      "position": [{"value": "main", "count": 5}]
+    },
+    {
+      "name": "profile-avatar",
+      "count": 4,
+      "kind": [{"value": "upload", "count": 3}, {"value": "initials", "count": 1}],
+      "position": [{"value": "top", "count": 4}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:f6ff09e9-380a-49be-b181-1ca35589f3bd)",
+    "observed(mobbin:09574b00-25ec-4f85-aaf0-0e65323d88a3)",
+    "observed(mobbin:4df3f000-6f01-4fba-88f3-860312a22922)",
+    "observed(mobbin:7d4a4d58-7337-48f8-955d-b4d022fc243b)",
+    "observed(mobbin:3a534135-db62-4fcd-8df3-b974c2c880ed)",
+    "observed(mobbin:a54fe83f-ee73-4907-b056-c02db29c81a2)",
+    "observed(mobbin:fac883c5-347c-4484-af5f-080a492087cb)",
+    "observed(mobbin:6c0c14d5-1003-49ec-9ec7-ade5452b875a)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

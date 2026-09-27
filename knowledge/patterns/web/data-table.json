@@ -1,0 +1,107 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "data-table",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.bulk-select", "agree": 1, "of": 1},
+        {"attribute": "components.bulk-select.kind", "agree": 1, "of": 1},
+        {"attribute": "components.bulk-select.position", "agree": 1, "of": 1},
+        {"attribute": "components.column-headers", "agree": 1, "of": 1},
+        {"attribute": "components.column-headers.kind", "agree": 0, "of": 1},
+        {"attribute": "components.column-headers.position", "agree": 1, "of": 1},
+        {"attribute": "components.pagination", "agree": 1, "of": 1},
+        {"attribute": "components.row-actions", "agree": 1, "of": 1},
+        {"attribute": "components.row-actions.kind", "agree": 1, "of": 1},
+        {"attribute": "components.row-actions.position", "agree": 1, "of": 1},
+        {"attribute": "components.status-badges", "agree": 1, "of": 1},
+        {"attribute": "components.status-badges.kind", "agree": 0, "of": 1},
+        {"attribute": "components.status-badges.position", "agree": 1, "of": 1},
+        {"attribute": "components.toolbar", "agree": 1, "of": 1},
+        {"attribute": "components.toolbar.kind", "agree": 1, "of": 1},
+        {"attribute": "components.toolbar.position", "agree": 1, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [
+      {"value": "sidebar+topnav+main", "count": 4},
+      {"value": "sidebar+main", "count": 2},
+      {"value": "topnav+main", "count": 2}
+    ],
+    "navigation": [{"value": "sidebar", "count": 6}, {"value": "topnav", "count": 2}],
+    "primary_action": [
+      {"value": "filled-button-inline", "count": 5},
+      {"value": "outline-button", "count": 2},
+      {"value": "icon-button", "count": 1}
+    ],
+    "density": [{"value": "comfortable", "count": 7}, {"value": "compact", "count": 1}],
+    "color_mode": [{"value": "light", "count": 5}, {"value": "mixed", "count": 2}, {"value": "dark", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "selected", "count": 8}, {"value": "disabled", "count": 3}]
+  },
+  "components": [
+    {
+      "name": "toolbar",
+      "count": 8,
+      "kind": [{"value": "search-and-filters", "count": 6}, {"value": "tabs", "count": 2}],
+      "position": [{"value": "top", "count": 8}]
+    },
+    {
+      "name": "column-headers",
+      "count": 7,
+      "kind": [{"value": "plain", "count": 6}, {"value": "sortable", "count": 1}],
+      "position": [{"value": "top", "count": 7}]
+    },
+    {
+      "name": "row-actions",
+      "count": 3,
+      "kind": [{"value": "kebab-menu", "count": 3}],
+      "position": [{"value": "right-end", "count": 3}]
+    },
+    {
+      "name": "bulk-select",
+      "count": 6,
+      "kind": [{"value": "checkbox-column", "count": 6}],
+      "position": [{"value": "left-column", "count": 6}]
+    },
+    {
+      "name": "pagination",
+      "count": 4,
+      "kind": [{"value": "prev-next", "count": 2}, {"value": "numbered", "count": 1}, {"value": "other", "count": 1}],
+      "position": [{"value": "bottom", "count": 3}, {"value": "other", "count": 1}]
+    },
+    {
+      "name": "status-badges",
+      "count": 2,
+      "kind": [{"value": "dot", "count": 1}, {"value": "pill", "count": 1}],
+      "position": [{"value": "cell", "count": 2}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:b3266d91-d833-4d80-aea4-6cfbb793096f)",
+    "observed(mobbin:d7ed33a4-ec3f-485a-ac42-2b9b5898679b)",
+    "observed(mobbin:7c5875cc-c53f-4721-9ea5-5380c32044fa)",
+    "observed(mobbin:0596b84f-f48a-4e08-86df-052f7333ff9d)",
+    "observed(mobbin:430e05a7-1489-4b14-bf6b-1daaf61ff1ce)",
+    "observed(mobbin:1373dd6a-eec0-4868-8b57-f8e1f4ba9170)",
+    "observed(mobbin:5963f792-d53e-4b62-9886-1fcaabac8c8d)",
+    "observed(mobbin:742c3daf-ed1f-4cd9-a5fe-a80c1e4e5ee9)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

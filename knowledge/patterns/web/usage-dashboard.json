@@ -1,0 +1,123 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "usage-dashboard",
+  "status": "published",
+  "n": 24,
+  "attempted": 24,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "claude-opus (pilot, 10 images)",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.breakdown-table", "agree": 9, "of": 10},
+        {"attribute": "components.breakdown-table.kind", "agree": 9, "of": 10},
+        {"attribute": "components.chart.kind", "agree": 8, "of": 10},
+        {"attribute": "components.empty-state", "agree": 9, "of": 10},
+        {"attribute": "components.empty-state.kind", "agree": 9, "of": 10},
+        {"attribute": "components.filters", "agree": 9, "of": 10},
+        {"attribute": "components.filters.kind", "agree": 9, "of": 10},
+        {"attribute": "components.time-range-picker.position", "agree": 9, "of": 10},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 9, "of": 10},
+        {"attribute": "core.layout", "agree": 10, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [
+      {"value": "sidebar+topnav+main", "count": 16},
+      {"value": "sidebar+main", "count": 6},
+      {"value": "topnav+main", "count": 2}
+    ],
+    "density": [{"value": "comfortable", "count": 23}, {"value": "compact", "count": 1}],
+    "color_mode": [{"value": "light", "count": 22}, {"value": "dark", "count": 2}],
+    "copy_language": [{"value": "en", "count": 24}]
+  },
+  "components": [
+    {
+      "name": "time-range-picker",
+      "count": 23,
+      "kind": [{"value": "preset-dropdown", "count": 9}, {"value": "both", "count": 7}, {"value": "calendar-range", "count": 7}],
+      "position": [{"value": "top-right", "count": 10}, {"value": "in-toolbar", "count": 7}, {"value": "top-left", "count": 6}]
+    },
+    {
+      "name": "metric-cards",
+      "count": 21,
+      "kind": [
+        {"value": "3-4", "count": 8},
+        {"value": "5+", "count": 7},
+        {"value": "1-2", "count": 6},
+        {"value": "with-delta", "count": 6}
+      ]
+    },
+    {
+      "name": "chart",
+      "count": 22,
+      "kind": [
+        {"value": "line", "count": 11},
+        {"value": "bar", "count": 10},
+        {"value": "with-group-by", "count": 7},
+        {"value": "with-legend", "count": 6},
+        {"value": "area", "count": 5},
+        {"value": "donut", "count": 1},
+        {"value": "stacked-bar", "count": 1}
+      ]
+    },
+    {
+      "name": "breakdown-table",
+      "count": 17,
+      "kind": [{"value": "inline-bar", "count": 4}, {"value": "sort-indicator", "count": 2}]
+    },
+    {
+      "name": "filters",
+      "count": 17,
+      "kind": [
+        {"value": "tabs", "count": 7},
+        {"value": "filter-button", "count": 6},
+        {"value": "sidebar", "count": 3},
+        {"value": "inline-chips", "count": 1}
+      ]
+    },
+    {
+      "name": "export-action",
+      "count": 7,
+      "kind": [{"value": "visible-button", "count": 5}, {"value": "in-menu", "count": 2}]
+    },
+    {
+      "name": "empty-state",
+      "count": 12,
+      "kind": [{"value": "plain-zero", "count": 11}, {"value": "guidance-text", "count": 1}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:31e6e85d-037f-40d4-afd5-361227059cf1)",
+    "observed(mobbin:008725f3-1e67-4ff3-96c4-d56f14d23e15)",
+    "observed(mobbin:e7f2ccad-19e6-422a-aecc-a2f2b5608d87)",
+    "observed(mobbin:d9696f0c-790a-4272-a15e-690eef0d3182)",
+    "observed(mobbin:4563ee43-46eb-4bd7-a248-a22a5dd138f5)",
+    "observed(mobbin:fd0e54a5-45cc-4a47-be0d-3fdb7e804ec7)",
+    "observed(mobbin:1bc2df4c-3505-4cad-95f9-16db8bf921a1)",
+    "observed(mobbin:37ec2f4f-8f17-419e-81c3-9fa875cd9cc8)",
+    "observed(mobbin:a9510b9f-8dc6-45d7-a9b3-61af96191e4f)",
+    "observed(mobbin:570337bc-a1c4-4cd2-96a4-e1dea69a8950)",
+    "observed(mobbin:df330545-5f1d-43d0-8e7e-6aa9a4407722)",
+    "observed(mobbin:6ef00aed-5667-4055-8eaa-a0eecc105bad)",
+    "observed(mobbin:2d2995a2-afd8-4390-a697-75d0f44bf80f)",
+    "observed(mobbin:ce8ad3cf-159d-44bf-8b48-323a8fd178dc)",
+    "observed(mobbin:247b5069-279a-4ad8-870a-6b53eb75a4fb)",
+    "observed(mobbin:7d20fd58-adbd-41db-8a4d-cb17b4b68a33)",
+    "observed(mobbin:03fb91f0-89d0-45e6-ada1-34d533a3febf)",
+    "observed(mobbin:7f34404c-ba21-432f-a80e-68ba834ebbd8)",
+    "observed(mobbin:3ecd0cdf-1c41-44c9-80da-83a0831536b8)",
+    "observed(mobbin:e7f0ec5e-7299-490c-837b-58783fca34aa)",
+    "observed(mobbin:42f45ba0-07e9-4edc-ba6e-87f7acd9ad3a)",
+    "observed(mobbin:7395e89e-d5ae-4d2d-be7f-20e608f62aaa)",
+    "observed(mobbin:cd428f5f-6760-4e0d-803a-bc4fd150ffc2)",
+    "observed(mobbin:974ba92d-69d3-4b7f-9abb-39c4f7a6664f)"
+  ],
+  "notes": "Re-emitted from the pilot extraction of 24 screens (one image failed once and was retried; all 24 counted). One screen's export action was 'unknown' and is not counted as present. The pilot schema carried no navigation, primary_action or states, so those distributions are absent, not zero. metric-cards kind also lists 'with-delta' and chart kind lists 'with-legend' and 'with-group-by' as extra multi-valued tags. Cross-check images were scored by Claude Opus in the pilot."
+}

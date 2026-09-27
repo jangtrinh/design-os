@@ -1,0 +1,82 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "ios",
+  "archetype": "onboarding",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [{"value": "single-column-scroll", "count": 6}, {"value": "bottom-sheet", "count": 2}],
+    "navigation": [{"value": "other", "count": 6}, {"value": "back-header", "count": 2}],
+    "primary_action": [
+      {"value": "filled-button-sticky-bottom", "count": 6},
+      {"value": "icon-button", "count": 1},
+      {"value": "text-link", "count": 1}
+    ],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 7}, {"value": "mixed", "count": 1}],
+    "copy_language": [{"value": "en", "count": 8}],
+    "states": [{"value": "selected", "count": 8}, {"value": "disabled", "count": 1}]
+  },
+  "components": [
+    {
+      "name": "page-indicator",
+      "count": 8,
+      "kind": [{"value": "dots", "count": 7}, {"value": "other", "count": 1}],
+      "position": [{"value": "bottom", "count": 7}, {"value": "top", "count": 1}]
+    },
+    {
+      "name": "hero-visual",
+      "count": 8,
+      "kind": [{"value": "illustration", "count": 7}, {"value": "photo", "count": 1}],
+      "position": [{"value": "center", "count": 4}, {"value": "top-half", "count": 4}]
+    },
+    {
+      "name": "primary-cta",
+      "count": 8,
+      "kind": [
+        {"value": "filled-pill", "count": 5},
+        {"value": "filled-full-width", "count": 1},
+        {"value": "other", "count": 1},
+        {"value": "text", "count": 1}
+      ],
+      "position": [{"value": "bottom-fixed", "count": 8}]
+    },
+    {
+      "name": "skip-action",
+      "count": 5,
+      "kind": [{"value": "button", "count": 4}, {"value": "text-link", "count": 1}],
+      "position": [{"value": "top-right", "count": 4}, {"value": "other", "count": 1}]
+    },
+    {"name": "permission-prompt", "count": 0},
+    {"name": "option-list", "count": 0}
+  ],
+  "evidence": [
+    "observed(mobbin:56d5faa0-b9cd-438e-a73c-361996fa6dd3)",
+    "observed(mobbin:048fc9a4-962b-49f7-95c6-21b9dbab99e7)",
+    "observed(mobbin:62e7481f-46d1-4f5a-a913-e918bbbd65bd)",
+    "observed(mobbin:5d56414f-8181-4402-b4e0-d2a5116d8b28)",
+    "observed(mobbin:2c780fa1-9028-4881-80cc-6f0d4cc60b88)",
+    "observed(mobbin:e640cf83-d54c-4a08-9e8d-af81433ad6b3)",
+    "observed(mobbin:ed5fcb30-6702-41b8-9599-3ed0597e58d7)",
+    "observed(mobbin:59e3873e-89f5-42f0-aa88-34f379e1e2c9)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}

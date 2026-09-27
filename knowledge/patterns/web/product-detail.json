@@ -1,0 +1,111 @@
+{
+  "schema": "pattern-card/1",
+  "platform": "web",
+  "archetype": "product-detail",
+  "status": "published",
+  "n": 8,
+  "attempted": 8,
+  "captured_at": {"from": "unknown", "to": "unknown"},
+  "extraction": {
+    "model": "gemini-3.8-flash-medium",
+    "cross_check": {
+      "model": "gemini-3.1-pro-high",
+      "images": 10,
+      "agreement": [
+        {"attribute": "components.add-to-cart", "agree": 1, "of": 1},
+        {"attribute": "components.add-to-cart.kind", "agree": 1, "of": 1},
+        {"attribute": "components.add-to-cart.position", "agree": 1, "of": 1},
+        {"attribute": "components.image-gallery", "agree": 1, "of": 1},
+        {"attribute": "components.image-gallery.kind", "agree": 1, "of": 1},
+        {"attribute": "components.image-gallery.position", "agree": 1, "of": 1},
+        {"attribute": "components.info-tabs-accordion", "agree": 0, "of": 1},
+        {"attribute": "components.info-tabs-accordion.kind", "agree": 0, "of": 1},
+        {"attribute": "components.info-tabs-accordion.position", "agree": 0, "of": 1},
+        {"attribute": "components.price-block", "agree": 1, "of": 1},
+        {"attribute": "components.price-block.kind", "agree": 1, "of": 1},
+        {"attribute": "components.price-block.position", "agree": 1, "of": 1},
+        {"attribute": "components.reviews-summary", "agree": 1, "of": 1},
+        {"attribute": "components.reviews-summary.kind", "agree": 1, "of": 1},
+        {"attribute": "components.reviews-summary.position", "agree": 1, "of": 1},
+        {"attribute": "components.variant-selector", "agree": 1, "of": 1},
+        {"attribute": "components.variant-selector.kind", "agree": 1, "of": 1},
+        {"attribute": "components.variant-selector.position", "agree": 0, "of": 1},
+        {"attribute": "core.color_mode", "agree": 10, "of": 10},
+        {"attribute": "core.copy_language", "agree": 10, "of": 10},
+        {"attribute": "core.density", "agree": 7, "of": 10},
+        {"attribute": "core.layout", "agree": 9, "of": 10},
+        {"attribute": "core.navigation", "agree": 9, "of": 10},
+        {"attribute": "core.primary_action", "agree": 8, "of": 10},
+        {"attribute": "core.states", "agree": 8, "of": 10}
+      ]
+    }
+  },
+  "core": {
+    "layout": [{"value": "topnav+main", "count": 5}, {"value": "modal-dialog", "count": 2}, {"value": "sidebar+main", "count": 1}],
+    "navigation": [{"value": "topnav", "count": 6}, {"value": "none", "count": 1}, {"value": "sidebar", "count": 1}],
+    "primary_action": [{"value": "filled-button-inline", "count": 7}, {"value": "text-link", "count": 1}],
+    "density": [{"value": "comfortable", "count": 8}],
+    "color_mode": [{"value": "light", "count": 7}, {"value": "mixed", "count": 1}],
+    "copy_language": [{"value": "en", "count": 7}, {"value": "mixed", "count": 1}],
+    "states": [
+      {"value": "selected", "count": 6},
+      {"value": "disabled", "count": 2},
+      {"value": "none", "count": 1},
+      {"value": "success", "count": 1}
+    ]
+  },
+  "components": [
+    {
+      "name": "image-gallery",
+      "count": 7,
+      "kind": [
+        {"value": "grid", "count": 2},
+        {"value": "single", "count": 2},
+        {"value": "thumbnails-below", "count": 2},
+        {"value": "carousel", "count": 1}
+      ],
+      "position": [{"value": "left", "count": 6}, {"value": "top", "count": 1}]
+    },
+    {
+      "name": "price-block",
+      "count": 7,
+      "kind": [{"value": "single", "count": 6}, {"value": "sale", "count": 1}],
+      "position": [{"value": "below-title", "count": 5}, {"value": "right-column", "count": 2}]
+    },
+    {
+      "name": "variant-selector",
+      "count": 4,
+      "kind": [{"value": "dropdown", "count": 2}, {"value": "size-grid", "count": 1}, {"value": "swatches", "count": 1}],
+      "position": [{"value": "below-price", "count": 4}]
+    },
+    {
+      "name": "add-to-cart",
+      "count": 6,
+      "kind": [{"value": "filled-button", "count": 6}],
+      "position": [{"value": "right-column", "count": 5}, {"value": "inline", "count": 1}]
+    },
+    {
+      "name": "reviews-summary",
+      "count": 3,
+      "kind": [{"value": "stars-count", "count": 3}],
+      "position": [{"value": "other", "count": 2}, {"value": "near-title", "count": 1}]
+    },
+    {
+      "name": "info-tabs-accordion",
+      "count": 3,
+      "kind": [{"value": "stacked", "count": 2}, {"value": "accordion", "count": 1}],
+      "position": [{"value": "right-column", "count": 2}, {"value": "below-fold", "count": 1}]
+    }
+  ],
+  "evidence": [
+    "observed(mobbin:82f217fe-febf-4036-97d8-51c3cc146e1a)",
+    "observed(mobbin:1518536c-afb2-45e3-8200-55b38b4579af)",
+    "observed(mobbin:211575d4-7ff1-4971-b12d-4e69315a8a5f)",
+    "observed(mobbin:8402e675-b81a-4590-8c2b-23f064215a2d)",
+    "observed(mobbin:9a68a14e-4c0d-404f-8484-8463a71cc937)",
+    "observed(mobbin:42e3a05e-9412-4ae2-aeb5-a822e1e45813)",
+    "observed(mobbin:ac19b4b1-9715-4562-bc5d-985a5b557714)",
+    "observed(mobbin:121b37b6-8cc4-42e3-ad72-4a22c67f264e)"
+  ],
+  "notes": "8 of 8 screens extracted (one image per call, categorical fields only); every count is computed from the per-image JSON."
+}
