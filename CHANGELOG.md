@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-27 - a fresh-machine install proof
+
+### Added
+- **`scripts/fresh-install-proof.sh`** — packs the checkout, installs the tarball into a throwaway npm prefix and
+  cache under `$TMPDIR` (never the real global prefix, never a publish), then runs `ui doctor`, `ui init --all` in an
+  empty project and `ui doctor --cwd`. Prints wall time per step and the total; the first failing step stops the run
+  with its output and exit 1. `--tarball <file>` installs a given tarball instead (a tarball without `bin` fails at
+  the `ui doctor (install)` step, not silently); `--keep` leaves the throwaway dirs for inspection.
+- `tests/fresh-install-proof.test.ts` — argument handling always runs; the real run and the no-`bin` control run
+  with `UI_FRESH_INSTALL=1` (they need the npm registry).
+- `docs/team-review-door.md` gains an "Install check" paragraph with the verified run.
+
 ## 2026-09-27 - template descriptions move from prose to JSON
 
 ### Added
