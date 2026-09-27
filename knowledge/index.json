@@ -52,6 +52,22 @@
       ]
     },
     {
+      "id": "build-loop",
+      "path": "knowledge/build-loop.md",
+      "description": "The measure-then-decide build loop every UI builder runs, whatever the model — instruments proven first, one data model, probe + screenshot every round, deviations with numbers.",
+      "when": [
+        "build-loop",
+        "reference-render",
+        "screenshot-loop",
+        "probe",
+        "measure",
+        "deviations",
+        "builder-protocol",
+        "model-agnostic",
+        "evidence-round"
+      ]
+    },
+    {
       "id": "canvas-effect-direction",
       "path": "knowledge/canvas-effect-direction.md",
       "description": "The T6 external-effect direction for Canvas UI — 25 named WebGL effects, the one-per-viewport cap, and the install handoff.",
