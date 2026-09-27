@@ -16,6 +16,11 @@
   the whole verdict red even if nothing else changed. Exit 1 unless `--warn-only`. The kernel reads captured
   files; it never calls Figma.
 
+## 2026-09-27 - temporary native mobile proof fixtures are cleaned up
+
+### Fixed
+- Native mobile proof test fixtures now remove their temporary proof trees after each test.
+
 ## 2026-09-26 - the learning loop is measured by flow, and the agent's read trace becomes a number
 
 ### Changed
