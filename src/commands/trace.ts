@@ -52,7 +52,13 @@ function firstMutationText(s: TraceSummary): string {
   const m = s.firstMutation;
   const skipped = s.unclassifiedMutations > 0 ? ` (${s.unclassifiedMutations} untargeted Bash mutate record(s) not counted)` : "";
   if (m === null) return `none${skipped}`;
+  if (m.note !== undefined) return `${JSON.stringify(m)}${skipped}`;
   return `${m.kind}${m.path === undefined ? "" : " " + m.path}${m.t === undefined ? "" : " @ " + m.t}${skipped}`;
+}
+
+function checklistReason(s: TraceSummary): string {
+  if (s.esDesignerChecklistRan) return "";
+  return s.checklistReadRecorded ? " (checklist read, no gate after it)" : " (no checklist read recorded)";
 }
 
 function renderText(dir: string, s: TraceSummary): string {
@@ -62,7 +68,7 @@ function renderText(dir: string, s: TraceSummary): string {
     `  before first mutate: ${s.bytesBeforeFirstMutate} bytes over ${s.filesBeforeFirstMutate.length} file(s)`,
     `  first mutation: ${firstMutationText(s)}`,
     `  README opened: ${yes(s.readmeOpened)} · knowledge index opened: ${yes(s.indexOpened)}`,
-    `  es-designer loaded: ${yes(s.esDesignerLoaded)} · checklist ran: ${yes(s.esDesignerChecklistRan)}`,
+    `  es-designer loaded: ${yes(s.esDesignerLoaded)} · checklist ran: ${yes(s.esDesignerChecklistRan)}${checklistReason(s)}`,
     `  gate runs: ${s.gateRuns}` + (s.malformedLines > 0 ? ` · malformed lines: ${s.malformedLines}` : ""),
     "",
   ].join("\n");

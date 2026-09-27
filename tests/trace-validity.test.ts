@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -20,14 +21,17 @@ describe("replay of the real acceptance-baseline trace (a run, not a fixture)", 
     const s = summarizeTrace(real);
     expect(s.bytesBeforeFirstMutate).toBe(14387 + 5731); // craft-floor.md + probe-render.mjs
     expect(s.unclassifiedMutations).toBeGreaterThan(0);
-    expect(s.firstMutation).toBeNull();
+    // only untargeted legacy Bash records exist: never "none" while a mutate record exists
+    expect(s.firstMutation).toEqual({ t: expect.any(String), kind: "bash-legacy", note: "untargeted legacy record" });
     expect(s.esDesignerLoaded).toBe(true);
     expect(s.gateRuns).toBe(5);
   });
 
   it("the recorded run holds no read of es-designer/checklist.md, so the flag is false for a stated reason", () => {
     expect(real.some((l) => l.includes("checklist"))).toBe(false);
-    expect(summarizeTrace(real).esDesignerChecklistRan).toBe(false);
+    const s = summarizeTrace(real);
+    expect(s.esDesignerChecklistRan).toBe(false);
+    expect(s.checklistReadRecorded).toBe(false); // the CLI prints this as "(no checklist read recorded)"
   });
 
   it("the same run WITH that read recorded before its gate reads true (constructed: the read is absent from the file)", () => {
@@ -48,7 +52,7 @@ describe("summarizeTrace — which mutate records end the window", () => {
   it("an untargeted Bash mutate is counted apart and does NOT end it (red if the old rule returns)", () => {
     const s = summarizeTrace(lines([{ kind: "mutate", tool: "Bash" }, read]));
     expect(s.bytesBeforeFirstMutate).toBe(50);
-    expect(s).toMatchObject({ firstMutation: null, unclassifiedMutations: 1 });
+    expect(s).toMatchObject({ firstMutation: { kind: "bash-legacy" }, unclassifiedMutations: 1 });
   });
 });
 
@@ -59,6 +63,10 @@ describe("summarizeTrace — checklist ran = checklist read then ANY gate event"
   it("a wrapper-script gate (record carries the matched command) satisfies it", () => {
     const s = summarizeTrace(lines([load, checklist, { kind: "gate", command: "node build.mjs" }]));
     expect(s.esDesignerChecklistRan).toBe(true);
+  });
+
+  it("counterexample: a checklist read then a gate with NO skill event is a run", () => {
+    expect(summarizeTrace(lines([checklist, { kind: "gate" }]))).toMatchObject({ esDesignerLoaded: false, esDesignerChecklistRan: true });
   });
 
   it("a gate before the read does not (red control)", () => {
@@ -157,26 +165,26 @@ describe("design-os-read-trace hook — what counts as a mutation", () => {
     expect(fire("PreToolUse", "Bash", { command: "npm run lint" })).toEqual([]);
   });
 
-  it("stays fast: median per-call wall time is printed for the report", () => {
-    const payload = JSON.stringify({
+  it("Read with an unexpanded ~ or $HOME records real bytes (F7)", () => {
+    const home = mkdtempSync(join(tmpdir(), "trace-home-"));
+    mkdirSync(join(home, ".claude", "skills", "es-designer"), { recursive: true });
+    writeFileSync(join(home, ".claude", "skills", "es-designer", "checklist.md"), "12345678");
+    for (const file_path of ["~/.claude/skills/es-designer/checklist.md", "$HOME/.claude/skills/es-designer/checklist.md"]) {
+      expect(fire("PreToolUse", "Read", { file_path }, { HOME: home })).toMatchObject([{ kind: "read", tool: "Read", bytes: 8 }]);
+    }
+  });
+
+  it("in-process handler cost: mean < 5 ms over 100 calls (subprocess time is start-up dominated)", () => {
+    const { decide } = createRequire(import.meta.url)(HOOK) as { decide: (i: object, root: string) => unknown[] };
+    const input = {
       hook_event_name: "PostToolUse", tool_name: "Bash", cwd: dir,
       tool_input: { command: "cat > src/page.html <<'EOF'\n" + "<p>x</p>\n".repeat(300) + "EOF\nmkdir -p .design-os/trace" },
-    });
-    const times: number[] = [];
-    for (let i = 0; i < 15; i++) {
-      const t0 = process.hrtime.bigint();
-      spawnSync(process.execPath, [HOOK], { input: payload, env: { ...process.env, CLAUDE_PROJECT_DIR: dir } });
-      times.push(Number(process.hrtime.bigint() - t0) / 1e6);
-    }
-    times.sort((a, b) => a - b);
-    const bare: number[] = [];
-    for (let i = 0; i < 15; i++) {
-      const t0 = process.hrtime.bigint();
-      spawnSync(process.execPath, ["-e", "0"]);
-      bare.push(Number(process.hrtime.bigint() - t0) / 1e6);
-    }
-    bare.sort((a, b) => a - b);
-    console.log(`hook median ${times[7]?.toFixed(1)} ms; bare node median ${bare[7]?.toFixed(1)} ms`);
-    expect((times[7] ?? 0) - (bare[7] ?? 0)).toBeLessThan(20); // the hook's own cost, node start-up excluded
+    };
+    decide(input, dir); // warm-up
+    const t0 = process.hrtime.bigint();
+    for (let i = 0; i < 100; i++) decide(input, dir);
+    const mean = Number(process.hrtime.bigint() - t0) / 1e6 / 100;
+    console.log(`hook handler mean ${mean.toFixed(3)} ms/call in-process`);
+    expect(mean).toBeLessThan(5);
   });
 });

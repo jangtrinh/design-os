@@ -234,10 +234,10 @@ function decide(input, root) {
     const name = ti.skill || ti.name;
     if (typeof name === 'string') out.push({ kind: 'skill', name });
   } else if (tool === 'Read' && typeof ti.file_path === 'string') {
-    const { abs, rel } = relativize(root, ti.file_path);
+    const { abs, rel } = relativize(root, expand(ti.file_path, cwd) || ti.file_path);
     if (tracked(rel, list)) out.push({ kind: 'read', tool, path: rel, bytes: sizeOf(abs) });
   } else if ((tool === 'Glob' || tool === 'Grep') && typeof ti.path === 'string') {
-    const { rel } = relativize(root, ti.path);
+    const { rel } = relativize(root, expand(ti.path, cwd) || ti.path);
     if (tracked(rel.endsWith('/') ? rel : rel + '/', list) || tracked(rel, list)) out.push({ kind: 'read', tool, path: rel, bytes: 0 });
   } else if (tool === 'Bash' && typeof ti.command === 'string') {
     const gate = gateCommand(ti.command, cwd);
@@ -259,6 +259,9 @@ function decide(input, root) {
   return out;
 }
 
+// `decide` is exported for in-process cost measurement; the hook itself only runs when executed.
+module.exports = { decide };
+
 function main() {
   let input;
   try { input = JSON.parse(fs.readFileSync(0, 'utf8')); } catch { return; }
@@ -274,5 +277,7 @@ function main() {
   catch { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, data); }
 }
 
-try { main(); } catch { /* a tracing hook never blocks */ }
-process.exit(0);
+if (require.main === module) {
+  try { main(); } catch { /* a tracing hook never blocks */ }
+  process.exit(0);
+}

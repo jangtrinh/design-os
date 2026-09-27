@@ -24,6 +24,8 @@ export interface FirstMutation {
   t?: string;
   kind: string;
   path?: string;
+  /** Set on the legacy-Bash stand-in so a reader sees why no target is shown. */
+  note?: string;
 }
 
 export interface TraceSummary {
@@ -36,6 +38,8 @@ export interface TraceSummary {
   indexOpened: boolean;
   esDesignerLoaded: boolean;
   esDesignerChecklistRan: boolean;
+  /** A read of es-designer/checklist.md was recorded (independent of any gate). */
+  checklistReadRecorded: boolean;
   gateRuns: number;
   traceCoverage: "claude-only" | "none";
   /** Lines that were not a JSON object — counted, never silently dropped. */
@@ -103,6 +107,7 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
   let indexOpened = false;
   let esDesignerLoaded = false;
   let checklistRead = false;
+  let firstLegacy: FirstMutation | null = null;
   let esDesignerChecklistRan = false;
   let gateRuns = 0;
 
@@ -112,6 +117,11 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
       const target = record["path"];
       if (record["tool"] === "Bash" && typeof target !== "string") {
         unclassifiedMutations++;
+        firstLegacy ??= {
+          ...(typeof record["t"] === "string" ? { t: record["t"] } : {}),
+          kind: "bash-legacy",
+          note: "untargeted legacy record",
+        };
       } else if (!mutated) {
         mutated = true;
         firstMutation = {
@@ -124,8 +134,8 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
       if (isEsDesigner(record["name"])) esDesignerLoaded = true;
     } else if (kind === "gate") {
       gateRuns++;
-      // The checklist RAN only when ANY gate event (direct `ui gate`/`slop-detect` or a wrapper
-      // script that runs one) followed a read of checklist.md after the skill load.
+      // The checklist RAN when ANY gate event (direct `ui gate`/`slop-detect` or a wrapper
+      // script that runs one) followed a read of checklist.md.
       if (checklistRead) esDesignerChecklistRan = true;
     } else if (isReadRecord(record)) {
       const path = toPosix(record.path);
@@ -138,19 +148,21 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
       }
       if (path === "README.md") readmeOpened = true;
       if (path === "knowledge/index.json" || path.endsWith("/knowledge/index.json")) indexOpened = true;
-      if (esDesignerLoaded && path.endsWith("es-designer/checklist.md")) checklistRead = true;
+      if (path.endsWith("es-designer/checklist.md")) checklistRead = true;
     }
   }
 
   return {
     bytesBeforeFirstMutate,
-    firstMutation,
+    // Never "none" while a mutate record exists: a window that no targeted write ended shows the legacy stand-in.
+    firstMutation: firstMutation ?? firstLegacy,
     unclassifiedMutations,
     filesBeforeFirstMutate,
     readmeOpened,
     indexOpened,
     esDesignerLoaded,
     esDesignerChecklistRan,
+    checklistReadRecorded: checklistRead,
     gateRuns,
     traceCoverage: records.length > 0 ? "claude-only" : "none",
     malformedLines: parsed.malformed,
