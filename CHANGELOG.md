@@ -13,6 +13,40 @@
 - **`ui design principles-index <principles.md> --out <principles.json> [--check]`** — emits the index
   (`id`, `title`, `yields_when`, `test`) from the `### <ID> · <title>` headings; `--check` exits 1 on drift.
 
+## 2026-09-27 - the read trace measures a real run
+
+### Fixed
+- **`bytesBeforeFirstMutate` was 0 on a real run.** The hook counted any Bash `mkdir`/redirect as the
+  first mutation, so an agent's own setup (`mkdir -p .design-os/trace`, `> /dev/null`) closed the
+  window before it read a single design file. A Bash command now counts only when it writes inside
+  the project tree, outside `.design-os/` and `node_modules/`: redirects and heredoc writes
+  (`cat > file <<`), `tee`, `rm`/`mv`/`cp`/`touch`/`mkdir`/`chmod`, `sed -i`. Writes to `/dev/null`,
+  `$TMPDIR` or any path outside the project, `npm install` and `git status` are not mutations. The
+  `mutate` record now carries the target `path` (never the command text). Replaying the real
+  acceptance-baseline trace now gives 20,118 bytes instead of 0.
+- **Design context was invisible.** `brand/`, `.specify/` and `docs/` join `knowledge/`, `templates/`,
+  `README.md` and `design/` as traced read prefixes; `DESIGN_OS_TRACE_PREFIXES` (comma-separated)
+  adds more. `cat ~/…` and `$HOME/…` reads are now expanded instead of silently missed.
+- **A checklist run behind a wrapper read as "not run".** A `gate` event is now recorded for
+  `ui gate` / `slop-detect` run directly, or through `npm run <script>` / `node|bash <file>` whose
+  script text runs one, and carries the matched `command`. `esDesignerChecklistRan` is true when a
+  read of `es-designer/checklist.md` is followed by any gate event.
+
+### Changed
+- **`ui trace summarize` prints `firstMutation: {t, kind, path}`** so a reader can see what ended the
+  window, and `unclassifiedMutations` counts legacy Bash `mutate` records that carry no target
+  (traces written by the previous hook): they are reported, not counted, and do not end the window.
+
+## 2026-09-27 - runtime prose read ratchet
+
+### Added
+- **`ui seam lint [--allowlist <file>] [--json]`** — scans kernel source for runtime
+  Markdown reads under knowledge, templates, docs, and README; reports new reads
+  and stale allowances as errors. `schemas/seam-allowlist.json` records existing
+  reads with their data purpose and proposed JSON home. The static scan follows
+  literal/joined paths, local bindings and named helpers; dynamically evaluated
+  paths and external runtime inputs remain outside its resolution boundary.
+
 ## 2026-09-27 - a checkable six-step method run
 
 ### Added

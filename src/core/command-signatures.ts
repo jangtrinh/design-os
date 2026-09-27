@@ -86,6 +86,12 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_PRINCIPLES", "WRITE_ERROR"],
       },
+  seam: {
+    summary: "Ratchet runtime prose reads in the kernel source",
+    subcommands: {
+      lint: { summary: "Reject new prose reads and stale allowances", positionals: [],
+        flags: [{ name: "allowlist", type: "string", summary: "Allowance JSON path (default schemas/seam-allowlist.json)" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_ALLOWLIST", "READ_ERROR"] },
     },
   },
   method: {

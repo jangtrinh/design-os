@@ -27,10 +27,12 @@ Usage:
 Reads <dir>/.design-os/trace/reads.jsonl, appended by templates/hooks/design-os-read-trace.cjs
 (a Claude PreToolUse/PostToolUse hook), and reports:
   bytesBeforeFirstMutate / filesBeforeFirstMutate   context loaded before the first edit
+  firstMutation                                     {t, kind, path} of the write that ended that window
+  unclassifiedMutations                             legacy Bash mutate records with no target (not counted)
   readmeOpened / indexOpened                        orientation files opened (README.md, knowledge/index.json)
   esDesignerLoaded                                  the es-designer skill was invoked
-  esDesignerChecklistRan                            its checklist.md was read AND a gate ran after that
-  gateRuns                                          ui gate / slop-detect invocations
+  esDesignerChecklistRan                            its checklist.md was read AND any gate event followed
+  gateRuns                                          ui gate / slop-detect invocations, wrapper scripts included
   traceCoverage                                     "claude-only" when a trace exists, "none" otherwise
   malformedLines                                    trace lines that were not a JSON object
 
@@ -46,13 +48,27 @@ Error codes:
   READ_ERROR    The trace file exists but could not be read
 `;
 
+function firstMutationText(s: TraceSummary): string {
+  const m = s.firstMutation;
+  const skipped = s.unclassifiedMutations > 0 ? ` (${s.unclassifiedMutations} untargeted Bash mutate record(s) not counted)` : "";
+  if (m === null) return `none${skipped}`;
+  if (m.note !== undefined) return `${JSON.stringify(m)}${skipped}`;
+  return `${m.kind}${m.path === undefined ? "" : " " + m.path}${m.t === undefined ? "" : " @ " + m.t}${skipped}`;
+}
+
+function checklistReason(s: TraceSummary): string {
+  if (s.esDesignerChecklistRan) return "";
+  return s.checklistReadRecorded ? " (checklist read, no gate after it)" : " (no checklist read recorded)";
+}
+
 function renderText(dir: string, s: TraceSummary): string {
   const yes = (b: boolean): string => (b ? "yes" : "no");
   return [
     `trace summarize: ${dir} (coverage: ${s.traceCoverage})`,
     `  before first mutate: ${s.bytesBeforeFirstMutate} bytes over ${s.filesBeforeFirstMutate.length} file(s)`,
+    `  first mutation: ${firstMutationText(s)}`,
     `  README opened: ${yes(s.readmeOpened)} · knowledge index opened: ${yes(s.indexOpened)}`,
-    `  es-designer loaded: ${yes(s.esDesignerLoaded)} · checklist ran: ${yes(s.esDesignerChecklistRan)}`,
+    `  es-designer loaded: ${yes(s.esDesignerLoaded)} · checklist ran: ${yes(s.esDesignerChecklistRan)}${checklistReason(s)}`,
     `  gate runs: ${s.gateRuns}` + (s.malformedLines > 0 ? ` · malformed lines: ${s.malformedLines}` : ""),
     "",
   ].join("\n");
