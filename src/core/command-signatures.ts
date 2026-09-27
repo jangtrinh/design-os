@@ -68,6 +68,18 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  templates: {
+    summary: "Emit and lint the template description catalogue",
+    subcommands: {
+      catalogue: { summary: "Emit schemas/template-descriptions.json from template frontmatter", positionals: [],
+        flags: [{ name: "out", type: "string", summary: "Catalogue path (default schemas/template-descriptions.json)" },
+          { name: "check", type: "boolean", summary: "Write nothing; exit 1 on schema violation or drift" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "SCHEMA_UNAVAILABLE", "TEMPLATE_UNREADABLE"] },
+      lint: { summary: "Validate the catalogue shape, order, uniqueness and registry coverage",
+        positionals: [{ name: "[catalogue.json]", required: false, summary: "Catalogue path (default the installed one)" }],
+        flags: [], errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "SCHEMA_UNAVAILABLE", "BAD_JSON"] },
+    },
+  },
   seam: {
     summary: "Ratchet runtime prose reads in the kernel source",
     subcommands: {
