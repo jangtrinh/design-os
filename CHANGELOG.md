@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-27 - a shadow judge: record what System One would pick, measure how often a human agrees
+
+### Added
+- **`ui judge record --out <judgments.jsonl> --event <json>`** — validates one judgment against
+  `schemas/judgment.schema.json` and appends it. A judgment names a decision point (`art-direction`,
+  `persona-family`, `layout-archetype`, `copy-language`), the candidates considered, the pick with at least
+  one evidence ref (persona dossier slug, pattern card path, or ruling id `r-*`) and the kernel constraints
+  that applied. `mode` is always `shadow`: the record is observed, never enforced. The human decision
+  (`accepted | changed-to <x> | rejected`) arrives as a second line with the same id that repeats the
+  pending judgment unchanged; nothing is rewritten.
+- **`ui judge report <judgments.jsonl> [--families <families.json>] [--json]`** — agreement between the
+  shadow pick and the human decision per decision point, with sample sizes and pending counts. Below
+  n = 5 resolved judgments it prints `not enough data (n=<count>)` and no rate.
+- **`knowledge/personas/families.json`** and `schemas/persona-families.schema.json` — the twelve persona
+  families (six web, six iOS) as measured data only: slug, platform, apps, screens, medoid app, the three
+  reliable distinguishing attributes with their share and platform-wide share, nearest family, Mobbin URLs.
+  `corner_radius` and `weight_contrast` (Flash/Opus agreement below 60%) are named once in
+  `unreliableAttributes` and omitted from every family. `ui judge report --families` validates the file and
+  fails when a `persona-family` judgment names a family that is not in it.
+
 ## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
 
 ### Added

@@ -1105,6 +1105,29 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  judge: {
+    summary: "System One shadow judge: record shadow picks beside human decisions, report agreement per decision point",
+    subcommands: {
+      record: {
+        summary: "Validate one judgment (decision point, candidates, pick with evidence refs, kernel constraints, optional human decision) and append it",
+        positionals: [],
+        flags: [
+          { name: "out", type: "string", required: true, summary: "Judgments ledger to append to (design/judgments.jsonl)" },
+          { name: "event", type: "string", required: true, summary: "The judgment as a JSON object" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_JSON", "SCHEMA_ERROR", "LEDGER_INVALID", "DUPLICATE_ID", "WRITE_ERROR"],
+      },
+      report: {
+        summary: "Shadow-vs-human agreement per decision point with sample sizes; 'not enough data' below n = 5",
+        positionals: [{ name: "<judgments.jsonl>", required: true, summary: "Judgments ledger" }],
+        flags: [
+          { name: "families", type: "string", summary: "Validate knowledge/personas/families.json and check persona-family refs against it" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON"],
+      },
+    },
+  },
+
   taste: {
     summary: "Vote-driven taste corpus: ingest, pairwise Elo ranking, study verdicts",
     subcommands: {
