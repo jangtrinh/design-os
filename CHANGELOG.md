@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-27 — build-loop knowledge file
+
+### Added
+- `knowledge/build-loop.md`: the measure-then-decide build loop every UI builder runs regardless of model (instruments proven first, one data model, probe + screenshot every round, deviations with numbers), indexed in `knowledge/index.json` and the README files table. Distilled from the approved reference render of 2026-09-27.
+
 ## 2026-09-27 - brand-token coverage gate (PR-TG)
 
 ### Added
