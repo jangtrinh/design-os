@@ -1,0 +1,81 @@
+{
+  "kind": "design-brief",
+  "version": 1,
+  "rawRequest": "Build the usage screen for Platform Admin",
+  "surface": "kiosk",
+  "audience": "Platform admins",
+  "context": "Existing admin console",
+  "primaryOutcome": "See usage per organisation",
+  "primaryAction": "Export usage",
+  "requiredContent": [
+    "Usage table",
+    "Filters"
+  ],
+  "constraints": [
+    "Read-only"
+  ],
+  "prohibitedClaims": [],
+  "criteria": [
+    {
+      "id": "must-table",
+      "priority": "must",
+      "text": "Usage table is visible"
+    }
+  ],
+  "screens": [
+    {
+      "id": "usage",
+      "name": "Usage",
+      "purpose": "Review usage",
+      "states": [
+        "empty",
+        "loading",
+        "error",
+        "full"
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "name": "Platform admin",
+      "scope": "platform"
+    }
+  ],
+  "status": {
+    "states": [
+      "ACTIVE",
+      "SUSPENDED"
+    ],
+    "transitions": [
+      {
+        "from": "ACTIVE",
+        "to": "SUSPENDED"
+      }
+    ]
+  },
+  "copyLanguage": "en",
+  "requestedBy": "PM",
+  "approvedBy": [
+    {
+      "role": "PM",
+      "person": "a-person",
+      "at": "2026-09-27"
+    }
+  ],
+  "assumptions": [
+    {
+      "facet": "filters",
+      "value": "date range only",
+      "provenance": "inferred",
+      "confidence": "low",
+      "label": "assumed"
+    },
+    {
+      "facet": "export",
+      "value": "CSV",
+      "provenance": "inferred",
+      "confidence": "medium",
+      "label": "assumed"
+    }
+  ]
+}

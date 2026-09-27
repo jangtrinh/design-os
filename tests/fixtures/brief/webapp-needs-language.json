@@ -1,0 +1,75 @@
+{
+  "kind": "design-brief",
+  "version": 1,
+  "rawRequest": "X\u00e2y d\u1ef1ng m\u00e0n h\u00ecnh qu\u1ea3n l\u00fd ng\u01b0\u1eddi d\u00f9ng cho qu\u1ea3n tr\u1ecb vi\u00ean",
+  "surface": "web-app",
+  "audience": "Platform admins",
+  "context": "Existing admin console",
+  "primaryOutcome": "See usage per organisation",
+  "primaryAction": "Export usage",
+  "requiredContent": [
+    "Usage table",
+    "Filters"
+  ],
+  "constraints": [
+    "Read-only"
+  ],
+  "prohibitedClaims": [],
+  "criteria": [
+    {
+      "id": "must-table",
+      "priority": "must",
+      "text": "Usage table is visible"
+    }
+  ],
+  "screens": [
+    {
+      "id": "users",
+      "name": "Users",
+      "purpose": "Manage the people who can sign in",
+      "states": []
+    }
+  ],
+  "roles": [
+    {
+      "name": "Platform admin",
+      "scope": "platform"
+    }
+  ],
+  "status": {
+    "states": [
+      "ACTIVE",
+      "SUSPENDED"
+    ],
+    "transitions": [
+      {
+        "from": "ACTIVE",
+        "to": "SUSPENDED"
+      }
+    ]
+  },
+  "requestedBy": "PM",
+  "approvedBy": [
+    {
+      "role": "PM",
+      "person": "a-person",
+      "at": "2026-09-27"
+    }
+  ],
+  "assumptions": [
+    {
+      "facet": "filters",
+      "value": "date range only",
+      "provenance": "inferred",
+      "confidence": "low",
+      "label": "assumed"
+    },
+    {
+      "facet": "export",
+      "value": "CSV",
+      "provenance": "inferred",
+      "confidence": "medium",
+      "label": "assumed"
+    }
+  ]
+}
