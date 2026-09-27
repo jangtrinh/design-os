@@ -19,6 +19,63 @@
   (kernel runtime prose reads 5 → 4); the emitter's authoring-time read is listed
   as its own entry, so `ui seam lint` reports reads 5 / allowed 5 / new 0.
 
+## 2026-09-27 - the `design/` directory contract
+
+### Added
+- **`schemas/design-dir.schema.json`** and **`docs/design-directory.md`** — the canonical layout: one token
+  source (`design/tokens.json`), soul, principles with a machine index, rulings as the only place supersession
+  is recorded, art direction under `design/art-direction/`, logs and caches gitignored.
+- **`ui design lint <project-root> [--json]`** — reports each deviation with a fix hint: extra token files
+  (unless declared derived in `design/design-dir.json`), tracked logs and caches under `design/`, art direction
+  outside `design/`, supersession outside rulings, a missing or stale principles index, and stale ingest
+  (`DESIGN.md` or the registry more than 14 days older than `ds.json`). Exit 1 on any error; warnings are advisory.
+- **`ui design principles-index <principles.md> --out <principles.json> [--check]`** — emits the index
+  (`id`, `title`, `yields_when`, `test`) from the `### <ID> · <title>` headings; `--check` exits 1 on drift.
+
+## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
+
+### Added
+- **`ui brief lint <brief.json> [--questions <out.json>] [--json]`** — validates a design brief, applies the
+  route rules (`web-app`, `dashboard` and `mobile-app` need `screens[]` with at least one state each, `roles[]`
+  and `status`; landing keeps today's rules) and prints a receipt: **B** blocking fields, **R** whether any of
+  them changes the route or is one-way, **L** low-confidence assumptions. `CONTINUE` when B <= 2, no R and
+  L <= 3, otherwise `BLOCKED`. Exit 0 continue, 2 blocked, 1 schema error.
+- **`questions.json`** — one question per blocking field, route-changing first, with a recommended default only
+  where a rule can derive it (`copyLanguage` from the script of `rawRequest`, the four canonical screen states).
+- **`ui brief questions <questions.json> --format claude|markdown`** — the AskUserQuestion payload (at most 4
+  questions, recommended option first) or a gap sheet for teams that answer asynchronously.
+- **Brief schema extensions** (`schemas/design-brief.schema.json`), all optional so every existing brief still
+  validates: `surface` grows to `landing | web-app | dashboard | mobile-app | email | document`
+  (`marketing-landing` stays valid), plus `screens[]`, `roles[]`, `status`, `copyLanguage`, `requestedBy`,
+  `approvedBy[]`, and `label` on assumptions.
+- **Status transitions are a question, not a schema error.** A `status` vocabulary with more than one state and no
+  `transitions` becomes the blocking field `status.transitions` (counted in B, question "Which transitions exist
+  between <states>?", no default) instead of failing validation, so the receipt is always produced.
+
+## 2026-09-27 - the read trace measures a real run
+
+### Fixed
+- **`bytesBeforeFirstMutate` was 0 on a real run.** The hook counted any Bash `mkdir`/redirect as the
+  first mutation, so an agent's own setup (`mkdir -p .design-os/trace`, `> /dev/null`) closed the
+  window before it read a single design file. A Bash command now counts only when it writes inside
+  the project tree, outside `.design-os/` and `node_modules/`: redirects and heredoc writes
+  (`cat > file <<`), `tee`, `rm`/`mv`/`cp`/`touch`/`mkdir`/`chmod`, `sed -i`. Writes to `/dev/null`,
+  `$TMPDIR` or any path outside the project, `npm install` and `git status` are not mutations. The
+  `mutate` record now carries the target `path` (never the command text). Replaying the real
+  acceptance-baseline trace now gives 20,118 bytes instead of 0.
+- **Design context was invisible.** `brand/`, `.specify/` and `docs/` join `knowledge/`, `templates/`,
+  `README.md` and `design/` as traced read prefixes; `DESIGN_OS_TRACE_PREFIXES` (comma-separated)
+  adds more. `cat ~/…` and `$HOME/…` reads are now expanded instead of silently missed.
+- **A checklist run behind a wrapper read as "not run".** A `gate` event is now recorded for
+  `ui gate` / `slop-detect` run directly, or through `npm run <script>` / `node|bash <file>` whose
+  script text runs one, and carries the matched `command`. `esDesignerChecklistRan` is true when a
+  read of `es-designer/checklist.md` is followed by any gate event.
+
+### Changed
+- **`ui trace summarize` prints `firstMutation: {t, kind, path}`** so a reader can see what ended the
+  window, and `unclassifiedMutations` counts legacy Bash `mutate` records that carry no target
+  (traces written by the previous hook): they are reported, not counted, and do not end the window.
+
 ## 2026-09-27 - runtime prose read ratchet
 
 ### Added

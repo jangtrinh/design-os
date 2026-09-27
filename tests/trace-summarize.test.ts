@@ -87,9 +87,9 @@ describe("summarizeTrace — es-designer loaded is not es-designer checklist run
     expect(s.gateRuns).toBe(1);
   });
 
-  it("a checklist read with no skill load is not a run; other skills are ignored", () => {
+  it("a checklist read followed by ANY gate is a run — no skill-load precondition; other skills are ignored", () => {
     const s = summarizeTrace([read(CHECKLIST, 2000), kind("gate"), kind("skill", { name: "es-lazy" })]);
-    expect(s).toMatchObject({ esDesignerLoaded: false, esDesignerChecklistRan: false });
+    expect(s).toMatchObject({ esDesignerLoaded: false, esDesignerChecklistRan: true });
   });
 });
 
@@ -100,8 +100,8 @@ describe("summarizeTrace — gates, coverage, hygiene", () => {
 
   it("empty trace: coverage none, zeros — not a fabricated measurement", () => {
     expect(summarizeTrace([])).toEqual({
-      bytesBeforeFirstMutate: 0, filesBeforeFirstMutate: [], readmeOpened: false, indexOpened: false,
-      esDesignerLoaded: false, esDesignerChecklistRan: false, gateRuns: 0, traceCoverage: "none", malformedLines: 0,
+      bytesBeforeFirstMutate: 0, firstMutation: null, unclassifiedMutations: 0, filesBeforeFirstMutate: [], readmeOpened: false, indexOpened: false,
+      esDesignerLoaded: false, esDesignerChecklistRan: false, checklistReadRecorded: false, gateRuns: 0, traceCoverage: "none", malformedLines: 0,
     });
   });
 
@@ -194,7 +194,7 @@ describe("design-os-read-trace hook → ui trace summarize (emitter/reader round
     const r = JSON.parse(capture(["trace", "summarize", dir, "--json"]).out).data;
     expect(r).toMatchObject({
       bytesBeforeFirstMutate: 9, filesBeforeFirstMutate: ["README.md", "knowledge/index.json"],
-      readmeOpened: true, indexOpened: true, esDesignerLoaded: true, esDesignerChecklistRan: false, gateRuns: 0,
+      readmeOpened: true, indexOpened: true, esDesignerLoaded: true, esDesignerChecklistRan: false, checklistReadRecorded: false, gateRuns: 0,
       traceCoverage: "claude-only",
     });
   });
@@ -238,7 +238,7 @@ describe("design-os-read-trace hook → ui trace summarize (emitter/reader round
     };
     for (const c of ["npm test > /dev/null", "npm test >> /dev/null", "npm test 2>/dev/null", "npm test &> /dev/null",
       "npm test >/dev/null 2>&1", "git status", "cmd 2>&1"]) expect([c, mutates(c)]).toEqual([c, false]);
-    for (const c of ["echo x > file.txt", "echo x >> file.txt", "echo x > /dev/nullx", "echo x > /dev/null; echo y > out.txt"])
+    for (const c of ["echo x > file.txt", "echo x >> file.txt", "echo x > dev/nullx", "echo x > /dev/null; echo y > out.txt"])
       expect([c, mutates(c)]).toEqual([c, true]);
   });
 });
