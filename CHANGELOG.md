@@ -12,6 +12,38 @@
   with `UI_FRESH_INSTALL=1` (they need the npm registry).
 - `docs/team-review-door.md` gains an "Install check" paragraph with the verified run.
 
+## 2026-09-27 - template descriptions move from prose to JSON
+
+### Added
+- **`ui templates catalogue [--out <file>] [--check]`** — the only code that parses
+  template frontmatter; emits `schemas/template-descriptions.json` (path, description
+  or explicit null, source SHA-256). `--check` writes nothing and exits 1 on schema
+  violation or drift; `npm run build` now runs it, so CI catches a stale catalogue.
+- **`ui templates lint [catalogue.json]`** — validates the catalogue against
+  `schemas/template-descriptions.schema.json`, plus uniqueness, path order and
+  registry coverage.
+
+### Changed
+- `readTemplateDescription` reads the catalogue instead of the template Markdown;
+  every registered template returns the same description as before. A missing or
+  unparseable catalogue now throws and names the regenerate command.
+- `schemas/seam-allowlist.json`: the runtime read of template frontmatter is gone
+  (kernel runtime prose reads 5 → 4); the emitter's authoring-time read is listed
+  as its own entry, so `ui seam lint` reports reads 5 / allowed 5 / new 0.
+
+## 2026-09-27 - the `design/` directory contract
+
+### Added
+- **`schemas/design-dir.schema.json`** and **`docs/design-directory.md`** — the canonical layout: one token
+  source (`design/tokens.json`), soul, principles with a machine index, rulings as the only place supersession
+  is recorded, art direction under `design/art-direction/`, logs and caches gitignored.
+- **`ui design lint <project-root> [--json]`** — reports each deviation with a fix hint: extra token files
+  (unless declared derived in `design/design-dir.json`), tracked logs and caches under `design/`, art direction
+  outside `design/`, supersession outside rulings, a missing or stale principles index, and stale ingest
+  (`DESIGN.md` or the registry more than 14 days older than `ds.json`). Exit 1 on any error; warnings are advisory.
+- **`ui design principles-index <principles.md> --out <principles.json> [--check]`** — emits the index
+  (`id`, `title`, `yields_when`, `test`) from the `### <ID> · <title>` headings; `--check` exits 1 on drift.
+
 ## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
 
 ### Added
