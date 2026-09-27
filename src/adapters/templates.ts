@@ -11,8 +11,11 @@
  * must handle null to produce a synthetic body.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { join } from "node:path";
 import { createHash } from "node:crypto";
+import { readTemplateDescription, readTemplateSourceHash } from "./template-catalogue-read.js";
+
+export { readTemplateDescription, readTemplateSourceHash };
 
 // ─── Registries ───────────────────────────────────────────────────────────────
 
@@ -134,52 +137,20 @@ export function resolveTemplatePath(
   return absPath;
 }
 
-// ─── Discovery description ────────────────────────────────────────────────────
-
-const TEMPLATE_KINDS = new Set(["workflows", "skills", "journeys"]);
-const catalogueCache = new Map<string, Map<string, string | null>>();
-
-function loadDescriptionCatalogue(path: string): Map<string, string | null> {
-  const cached = catalogueCache.get(path);
-  if (cached !== undefined) return cached;
-  let doc: { templates: Array<{ path: string; description: string | null }> };
-  try {
-    doc = JSON.parse(readFileSync(path, "utf8"));
-  } catch {
-    throw new Error(
-      `template description catalogue unreadable at ${path}; regenerate it with ` +
-        "`ui templates catalogue --out schemas/template-descriptions.json`",
-    );
-  }
-  const map = new Map(doc.templates.map((t) => [t.path, t.description] as const));
-  catalogueCache.set(path, map);
-  return map;
-}
-
-/**
- * The `description` of a registered template (what + when + trigger terms), or
- * null when the template carries none or `absPath` is not a template location
- * (<root>/templates/{workflows,skills,journeys}/<name>.md).
- *
- * The value comes from <root>/schemas/template-descriptions.json, emitted from
- * the template frontmatter by `ui templates catalogue`; the kernel never parses
- * template Markdown at runtime. A missing or unparseable catalogue throws.
- */
-export function readTemplateDescription(absPath: string): string | null {
-  const kindDir = dirname(absPath);
-  const templatesDir = dirname(kindDir);
-  if (basename(templatesDir) !== "templates" || !TEMPLATE_KINDS.has(basename(kindDir))) return null;
-  const catalogue = loadDescriptionCatalogue(
-    join(dirname(templatesDir), "schemas", "template-descriptions.json"),
-  );
-  return catalogue.get(`${basename(kindDir)}/${basename(absPath)}`) ?? null;
-}
+// ─── Discovery description / source hash ──────────────────────────────────────
+// readTemplateDescription and readTemplateSourceHash live in
+// template-catalogue-read.ts (re-exported above) — this file keeps the
+// registries, resolver and the live-bytes hasher only.
 
 // ─── Hasher ───────────────────────────────────────────────────────────────────
 
 /**
- * Return the sha256 hex digest of a template file's contents.
- * Used to record templateHashes in the manifest for future drift detection.
+ * Return the sha256 hex digest of a template file's contents, read live from
+ * disk. Kept solely for `ui doctor`'s template-drift check (adapter-lint.ts),
+ * which must observe the CURRENT bytes of an installed template to detect a
+ * hand-edit — see {@link readTemplateSourceHash}'s doc comment. Every other
+ * caller wanting the hash of a known template should use that function
+ * instead of re-reading the file.
  */
 export function hashTemplateFile(absPath: string): string {
   const buf = readFileSync(absPath);

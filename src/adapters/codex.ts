@@ -12,7 +12,7 @@ import {
   SKILL_NAMES,
   JOURNEY_NAMES,
   resolveTemplatePath,
-  hashTemplateFile,
+  readTemplateSourceHash,
 } from "./templates.js";
 import {
   buildCodexBlock,
@@ -29,27 +29,29 @@ export function generateCodexAdapter(input: AdapterInput): AdapterArtifact[] {
   const { cwd, templatesRoot } = input;
 
   // Build hash map over all non-init workflow templates + all skill + journey templates.
+  // Read from the audited catalogue (readTemplateSourceHash), not a live re-hash — this
+  // block only embeds a reference value, it never compares against "current disk state".
   const hashes: Record<string, string> = {};
 
   for (const verb of WORKFLOW_VERBS) {
     if (verb === "init") continue; // no template file for the synthetic init verb
     const absPath = resolveTemplatePath(templatesRoot, "workflow", verb);
     if (absPath !== null) {
-      hashes[`workflows/${verb}.md`] = hashTemplateFile(absPath);
+      hashes[`workflows/${verb}.md`] = readTemplateSourceHash(absPath);
     }
   }
 
   for (const name of SKILL_NAMES) {
     const absPath = resolveTemplatePath(templatesRoot, "skill", name);
     if (absPath !== null) {
-      hashes[`skills/${name}.md`] = hashTemplateFile(absPath);
+      hashes[`skills/${name}.md`] = readTemplateSourceHash(absPath);
     }
   }
 
   for (const name of JOURNEY_NAMES) {
     const absPath = resolveTemplatePath(templatesRoot, "journey", name);
     if (absPath !== null) {
-      hashes[`journeys/${name}.md`] = hashTemplateFile(absPath);
+      hashes[`journeys/${name}.md`] = readTemplateSourceHash(absPath);
     }
   }
 
