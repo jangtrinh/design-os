@@ -8,7 +8,7 @@
  * violation → red; missing linked file → error finding, never silence).
  */
 import { describe, expect, it, beforeEach } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
@@ -165,5 +165,66 @@ describe("ui token-coverage reads linked CSS honestly (C1)", () => {
     const d = JSON.parse(r.out).data;
     expect(d.linkedCssErrors).toEqual([]);
     expect(d.categories.color.token).toBeGreaterThan(0);
+  });
+});
+
+// ─── PR-FU3-r2 A10: ds-usage-lint and tenant-lint route through the shared loader too ───
+
+describe("ui ds-usage-lint reads linked CSS (PR-FU3-r2 A10)", () => {
+  const linked = `${PAGE_HEAD}<link rel="stylesheet" href="styles.css"></head><body><main>Hi</main></body></html>`;
+  const inlined = (css: string): string => `${PAGE_HEAD}<style>${css}</style></head><body><main>Hi</main></body></html>`;
+  const VIOLATING_CSS = ".card { color: var(--totally-undeclared-token); background: #ff0000; }";
+
+  beforeEach(() => {
+    mkdirSync(join(dir, "design"), { recursive: true });
+    writeFileSync(join(dir, "design", "design.tokens.json"), JSON.stringify({ brand: { primary: { $value: "#3b82f6", $type: "color" } } }));
+  });
+
+  it("a violation living only in a linked stylesheet fails ds-usage-lint (red-first)", () => {
+    write("styles.css", VIOLATING_CSS);
+    const r = capture(["ds-usage-lint", write("linked.html", linked), "--dir", dir, "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).data.findings.some((f: { checkId: string }) => f.checkId === "undeclared-token")).toBe(true);
+  });
+
+  it("parity: linked-CSS findings match hand-inlined findings exactly (checkId+severity+message)", () => {
+    write("styles.css", VIOLATING_CSS);
+    const linkedRes = capture(["ds-usage-lint", write("linked2.html", linked), "--dir", dir, "--json"]);
+    const inlinedRes = capture(["ds-usage-lint", write("inlined2.html", inlined(VIOLATING_CSS)), "--dir", dir, "--json"]);
+    const shape = (f: { checkId: string; severity: string; message: string }) => ({ checkId: f.checkId, severity: f.severity, message: f.message });
+    expect(JSON.parse(linkedRes.out).data.findings.map(shape)).toEqual(JSON.parse(inlinedRes.out).data.findings.map(shape));
+  });
+
+  it("a missing linked stylesheet is an error finding, never silence", () => {
+    const r = capture(["ds-usage-lint", write("missing.html", linked), "--dir", dir, "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).data.findings.some((f: { checkId: string }) => f.checkId === "linked-css-unreadable")).toBe(true);
+  });
+});
+
+describe("ui tenant-lint reads linked CSS (PR-FU3-r2 A10)", () => {
+  const linked = `${PAGE_HEAD}<link rel="stylesheet" href="styles.css"></head><body><section class="scrub"><div>Hi</div></section></body></html>`;
+  const inlined = (css: string): string => `${PAGE_HEAD}<style>${css}</style></head><body><section class="scrub"><div>Hi</div></section></body></html>`;
+  const VIOLATING_CSS = ":root { --scrub-x: 1; }";
+
+  it("a violation living only in a linked stylesheet fails tenant-lint (red-first)", () => {
+    write("styles.css", VIOLATING_CSS);
+    const r = capture(["tenant-lint", write("linked.html", linked), "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).data.findings.some((f: { rule: string }) => f.rule === "root-css-write")).toBe(true);
+  });
+
+  it("parity: linked-CSS findings match hand-inlined findings exactly (rule+detail)", () => {
+    write("styles.css", VIOLATING_CSS);
+    const linkedRes = capture(["tenant-lint", write("linked2.html", linked), "--json"]);
+    const inlinedRes = capture(["tenant-lint", write("inlined2.html", inlined(VIOLATING_CSS)), "--json"]);
+    const shape = (f: { rule: string; detail: string }) => ({ rule: f.rule, detail: f.detail });
+    expect(JSON.parse(linkedRes.out).data.findings.map(shape)).toEqual(JSON.parse(inlinedRes.out).data.findings.map(shape));
+  });
+
+  it("a missing linked stylesheet is an error finding, never silence", () => {
+    const r = capture(["tenant-lint", write("missing.html", linked), "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.out).data.findings.some((f: { rule: string }) => f.rule === "linked-css-unreadable")).toBe(true);
   });
 });

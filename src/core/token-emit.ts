@@ -18,6 +18,11 @@ function pathToCssVar(path: string): string {
 function scalarToCss(value: unknown): string {
   if (typeof value === "number") return String(value);
   if (typeof value === "string") return value;
+  // A fontFamily token's $value may be a font stack array (PR-FU3-r2 A6):
+  // one comma-separated CSS value, quoting any family name with a space.
+  if (Array.isArray(value)) {
+    return value.map((v) => (typeof v === "string" && /\s/.test(v) ? `"${v}"` : String(v))).join(", ");
+  }
   return String(value);
 }
 
@@ -63,6 +68,13 @@ function isNullShadow(type: string, value: Record<string, unknown>): boolean {
  * token-exists check would reject once linked CSS is judged (PR-FU3 A1).
  */
 function tokenToCssDecls(token: ResolvedToken): [string, string][] {
+  // A fontFamily $value array is ONE font-stack value, never split into
+  // per-index -0/-1/-2 variables (PR-FU3-r2 A6 — the kernel could not consume
+  // its own persona library's font stacks until this was distinguished from
+  // a composite like shadow/typography).
+  if (Array.isArray(token.value)) {
+    return [[pathToCssVar(token.path), scalarToCss(token.value)]];
+  }
   if (typeof token.value === "object" && token.value !== null) {
     if (isNullShadow(token.type, token.value as Record<string, unknown>)) return [];
     return expandComposite(token.path, token.value as Record<string, unknown>);

@@ -17,7 +17,8 @@ import { parseTokenFile } from "../core/token-model.js";
 import { resolveTokens } from "../core/token-resolve.js";
 import { declaredCssVarNames } from "../core/token-emit.js";
 import { lintDsUsage } from "../core/ds-usage-lint.js";
-import type { DsUsageLintResult } from "../core/ds-usage-lint.js";
+import type { DsUsageLintResult, DsUsageFinding } from "../core/ds-usage-lint.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 
 const CMD = "ds-usage-lint";
 
@@ -62,14 +63,20 @@ Error codes:
   BAD_JSON       Token file is not valid JSON / fails DTCG validation
 `;
 
+/** A findings list that may also carry a shared `linked-css-unreadable` error
+ * (PR-FU3-r2 A10 — from html-css-loader.ts, whose `line` is optional, unlike
+ * every DsUsageFinding's). */
+type ReportFinding = DsUsageFinding | { checkId: string; severity: string; message: string; line?: number };
+
 function formatReport(file: string, r: DsUsageLintResult): string {
   const lines = [
     `ds-usage-lint: ${file} — ${r.hardcodedColorCount} hardcoded colour(s), ` +
       `${r.offSystemTokenCount} off-system token(s), ${r.undeclaredTokenCount} undeclared reference(s)`,
   ];
-  for (const f of r.findings) {
+  for (const f of r.findings as ReportFinding[]) {
     const mark = f.severity === "error" ? "✗" : "!";
-    lines.push(`  ${mark} [${f.checkId}] line ${f.line}: ${f.message}`);
+    const loc = f.line !== undefined ? ` line ${f.line}` : "";
+    lines.push(`  ${mark} [${f.checkId}]${loc}: ${f.message}`);
   }
   lines.push("  NOTE: proves token usage in the page's own CSS only — not rendered colour; not a conformance claim.");
   return lines.join("\n") + "\n";
@@ -114,7 +121,16 @@ export const dsUsageLintCommand = {
       return err("BAD_JSON", `bad token file '${tokensPath}': ${e instanceof Error ? e.message : String(e)}`);
     }
 
-    const result = lintDsUsage(html, { declaredVars });
+    // A10: route through the shared loader like the six FU3 commands — judge
+    // the union of inline + LOCAL linked CSS exactly as if inlined; an
+    // unreadable linked stylesheet is an error finding, never silence.
+    const loaded = inlineLinkedCss(file, html);
+    const linted = lintDsUsage(loaded.html, { declaredVars });
+    const result: DsUsageLintResult = {
+      ...linted,
+      findings: [...loaded.errors, ...linted.findings] as DsUsageFinding[],
+      errorCount: linted.errorCount + loaded.errors.length,
+    };
     const exitCode = result.errorCount > 0 ? 1 : 0;
     return useJson
       ? okJsonWithExit(CMD, { file, ...result }, exitCode)

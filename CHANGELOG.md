@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-09-27 - the gate must honour its own inputs (PR-FU3-r2)
+
+### Fixed
+- **`ui gate --tokens <f>`**: the embedded `token-coverage` check now grades against THAT
+  file, never the repo's own auto-detected brand tokens — before this, the same page scored
+  identically (0.419) whether graded with the project's own tokens or an unrelated brand
+  token file, because the coverage path never consumed `--tokens` at all. A bad `--tokens`
+  path now fails loud (`TOKENS_NOT_READABLE`) on the coverage path too, matching the existing
+  raw-hex check.
+- **DTCG token files of any depth now compile**: `ui tokens compile`, `ui gate --tokens`,
+  `ui token-coverage --tokens` and `ui taste-lint --tokens` (`src/core/token-model.ts`)
+  previously accepted only a flat two-tier file (category → leaf); a persona's
+  `starting_tokens` nest a category into sub-groups (`font.family.body`) and mix a leaf with a
+  group at the same level (`color.accent` beside `color.surface`) — the kernel could not
+  consume the persona library it ships. The parser now walks a category to any depth,
+  flattening every nested group's name into the leaf's tokenName joined by `-`
+  (`family.body` → `family-body`), so the emitted CSS variable name is unaffected either way.
+  `$type: "string"` (a non-design-value leaf, e.g. `elevation.shadow: "none"`) is now accepted
+  and passed through verbatim. A `fontFamily` token's `$value` may now be a font-stack array;
+  it compiles to ONE comma-separated CSS value, never split into `-0`/`-1`/`-2` variables.
+- **`ui tell-lint`'s `shape-assembled-illustration`** no longer fires on a cluster of rounded
+  sibling containers that carry text in their own children (a `<dl>` of metric cards, each a
+  `div` wrapping a `dt`/`dd` pair) — the "textless" check compared a structure fact's own line
+  against every text fact's line, and a card's copy lives on the nested `dt`/`dd` lines, never
+  the card `div`'s own line. Fixed by checking the structure's hierarchical `nodeRef` for a
+  text-fact descendant instead (`src/core/tell-rules-motion.ts`).
+- **`ui taste-lint`'s `raw-hex-when-token-exists`** now recognises a hex embedded in a
+  composite token member (a shadow token's `color: "#0000001f"`, 8-digit) as a known hex — the
+  token-hex harvester (`collectTokenHexes`, `src/commands/taste-lint.ts`) previously only read
+  a color leaf's own string `$value` and never walked into a composite leaf's `$value` object,
+  so a shadow's embedded color could never be "known". It also now accepts 8-digit hex (alpha
+  stripped) wherever it previously accepted only 3/6-digit.
+- **`ui gate --family <slug>`** (or a `--tokens` file with a top-level `"persona"` field
+  naming a slug) now applies that persona family's `gate_policy` from
+  `knowledge/personas/families.json`: `"error"` upgrades a check's default severity for that
+  run, `"exempt"` drops the finding. Absent both, a check's default severity is unchanged.
+- **`ui ds-usage-lint`** and **`ui tenant-lint`** now route a page's `<link rel="stylesheet">`
+  CSS through the shared `html-css-loader.ts` (PR-FU3's loader) like the six FU3 commands: a
+  violation living only in a linked stylesheet now turns them red, with parity against the
+  hand-inlined equivalent, and a missing linked file is an error finding, never silence.
+  `tenant-lint`'s own local `<script src>` resolution is unaffected (out of `html-css-loader`'s
+  CSS-only scope).
+
+### Deviation from the dispatched file list (documented per the Fable Loop's root-cause rule)
+- `src/core/tell-rules-motion.ts` was edited, not just `src/commands/*`/`src/core/tell-lint*` —
+  `shapeAssembledIllustration`'s rule body lives there, and patching around it in `tell-lint.ts`
+  would have been a workaround over the root cause. Two-way reversible; called out for review.
+
 ## 2026-09-27 - gates must read linked stylesheets (PR-FU3)
 
 ### Fixed

@@ -198,11 +198,25 @@ export const shapeAssembledIllustration: TellRule = {
     const radii = facts.by("radius");
     // A cluster of sibling leaf elements, all rounded, none carrying text —
     // primitive shapes stacked where a drawing belongs.
+    //
+    // "Carrying text" means the element's OWN subtree, not its own opening-tag
+    // line: a `dl` of metric cards (PR-FU3-r2 A7 — a real page's summary
+    // section) puts each card's copy on the nested `dt`/`dd` lines, never on
+    // the card `div`'s own line, so a line-equality check never saw it and
+    // fired on every card. `nodeRef` is hierarchical
+    // ("html > body > … > div.metric > dt.metric-label" — html-dom.ts's
+    // nodeRef()), so a text fact's nodeRef starting with the structure's own
+    // nodeRef + " > " names a descendant exactly, no line-window guessing.
+    const textNodeRefs = facts.by("text").map((t) => t.at.nodeRef).filter((r): r is string => r !== undefined);
+    const hasTextDescendant = (s: (typeof structures)[number]): boolean => {
+      const ownRef = s.at.nodeRef;
+      if (ownRef === undefined) return false;
+      return textNodeRefs.some((r) => r === ownRef || r.startsWith(`${ownRef} > `));
+    };
     const byParent = new Map<string, number>();
-    const texted = new Set(facts.by("text").map((t) => t.at.line));
     for (const s of structures) {
       if (s.parentRef === undefined) continue;
-      if (texted.has(s.at.line)) continue;
+      if (hasTextDescendant(s)) continue;
       if (!radii.some((r) => r.px > 0 && sameOwner(r, s))) continue;
       byParent.set(s.parentRef, (byParent.get(s.parentRef) ?? 0) + 1);
     }
