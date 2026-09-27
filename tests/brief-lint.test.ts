@@ -101,18 +101,32 @@ describe("ui brief lint — schema errors exit 1", () => {
     expect(r.data.findings?.map((f) => f.field)).toContain("surface");
   });
   it.each([
-    ["state outside the enum", (d: Record<string, unknown>) => { (d["screens"] as { states: string[] }[])[0]!.states = ["offline"]; }, "screens[0].states"],
+    ["state outside the enum", (d: Record<string, unknown>) => { (d["screens"] as { states: string[] }[])[0]!.states = ["offline"]; }, "screens[0].states[0]"],
     ["missing required field", (d: Record<string, unknown>) => { delete d["audience"]; }, "audience"],
     ["unknown top-level field", (d: Record<string, unknown>) => { d["mood"] = "calm"; }, "mood"],
     ["approver role outside the set", (d: Record<string, unknown>) => { (d["approvedBy"] as { role: string }[])[0]!.role = "intern"; }, "approvedBy[0].role"],
     ["approval date not a date", (d: Record<string, unknown>) => { (d["approvedBy"] as { at: string }[])[0]!.at = "yesterday"; }, "approvedBy[0].at"],
     ["assumption label outside the set", (d: Record<string, unknown>) => { (d["assumptions"] as { label: string }[])[0]!.label = "guess"; }, "assumptions[0].label"],
     ["copyLanguage outside the set", (d: Record<string, unknown>) => { d["copyLanguage"] = "fr"; }, "copyLanguage"],
+    ["unknown field on a screen", (d: Record<string, unknown>) => { (d["screens"] as Record<string, unknown>[])[0]!["unspecifiedField"] = "x"; }, "screens[0].unspecifiedField"],
+    ["unknown field on a role", (d: Record<string, unknown>) => { (d["roles"] as Record<string, unknown>[])[0]!["level"] = 3; }, "roles[0].level"],
+    ["unknown field on a status transition", (d: Record<string, unknown>) => { ((d["status"] as { transitions: Record<string, unknown>[] }).transitions)[0]!["guard"] = "x"; }, "status.transitions[0].guard"],
+    ["unknown field on an approval", (d: Record<string, unknown>) => { (d["approvedBy"] as Record<string, unknown>[])[0]!["email"] = "x"; }, "approvedBy[0].email"],
+    ["unknown field on a criterion", (d: Record<string, unknown>) => { (d["criteria"] as Record<string, unknown>[])[0]!["weight"] = 1; }, "criteria[0].weight"],
+    ["unknown field on an assumption", (d: Record<string, unknown>) => { (d["assumptions"] as Record<string, unknown>[])[0]!["note"] = "x"; }, "assumptions[0].note"],
+    ["unknown field on the status object", (d: Record<string, unknown>) => { (d["status"] as Record<string, unknown>)["initial"] = "ACTIVE"; }, "status.initial"],
+    ["screen without a purpose", (d: Record<string, unknown>) => { delete (d["screens"] as Record<string, unknown>[])[0]!["purpose"]; }, "screens[0].purpose"],
+    ["several states without transitions", (d: Record<string, unknown>) => { delete (d["status"] as Record<string, unknown>)["transitions"]; }, "status.transitions"],
     ["version 2 without activationRef", (d: Record<string, unknown>) => { d["version"] = 2; }, "activationRef"],
   ])("%s", (_name, mutate, field) => {
     const r = lint(mutated("dashboard-complete", mutate));
     expect(r.code).toBe(1);
     expect(r.data.findings?.map((f) => f.field)).toContain(field);
+  });
+  it("a single-state status vocabulary may omit transitions", () => {
+    const r = lint(mutated("dashboard-complete", (d) => { d["status"] = { states: ["ACTIVE"] }; }));
+    expect(r.code).toBe(0);
+    expect(r.data.findings).toBeUndefined();
   });
   it("unreadable and non-JSON input exit 1 with a code", () => {
     expect(JSON.parse(capture(["brief", "lint", join(FIX, "nope.json"), "--json"]).out).error.code).toBe("FILE_NOT_FOUND");
@@ -126,7 +140,7 @@ describe("ui brief lint — schema errors exit 1", () => {
 
 describe("D4 thresholds — both sides of every boundary", () => {
   const withScreens = (n: number) => (d: Record<string, unknown>) => {
-    d["screens"] = Array.from({ length: n }, (_, i) => ({ id: `s${i}`, name: `S${i}`, states: [] }));
+    d["screens"] = Array.from({ length: n }, (_, i) => ({ id: `s${i}`, name: `S${i}`, purpose: `Purpose ${i}`, states: [] }));
   };
   it("B = 2 continues, B = 3 blocks (no route-changing field)", () => {
     const two = lint(mutated("dashboard-complete", withScreens(2)));

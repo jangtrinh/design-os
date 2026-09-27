@@ -26,6 +26,7 @@
     {
       "id": "users",
       "name": "Users",
+      "purpose": "Manage the people who can sign in",
       "states": []
     }
   ],
