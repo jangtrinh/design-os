@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-27 - a run control plane: `design-os run` drives one feature through the six steps
+
+### Added
+- **`design-os run <brief.json> --project <dir> --out <run-dir>`** — the Python conductor calls only the `ui`
+  binary: `brief lint` (writes `questions.json`), `gate` on every `*.html` under `--screens`, `trace summarize`,
+  `knowledge lint` on `ruling-candidates.json`, and `method lint` on the `run.json` it writes. Outputs `run.json`
+  (`method-run/1`), `k1.json` (same top-level keys as the hand-made measurement sheet), `timeline.json` (per-step and
+  per-call timestamps), `gates.json`. No model call, no network.
+- **Stops on intake.** A `BLOCKED` D4 receipt ends the run after `define`: the later steps are `skipped` with a
+  `blocked-intake` detail, the questions are printed and the exit code is 2. A red gate or a dirty candidates file
+  exits 1. Figma parity and the approver decision are `NOT RUN`, never guessed.
+
 ## 2026-09-27 - a learning ledger contract, so recurrence can fire
 
 ### Added

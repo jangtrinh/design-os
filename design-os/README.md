@@ -23,6 +23,18 @@ uv run pytest -q                 # test suite
 Set `DESIGN_OS_UI_BIN` to point at a specific `ui` binary; otherwise it is resolved on
 `PATH`.
 
+## Run a feature
+
+`design-os run <brief.json> --project <dir> --out <run-dir> [--screens <dir>] [--candidates <file>]`
+drives one feature through the six method steps by calling only the `ui` kernel: `brief lint`
+(define, writes `questions.json`), then `gate` per `*.html` screen, `trace summarize` and
+`knowledge lint` on `ruling-candidates.json` (verify evidence), then `method lint` on the
+`run.json` it wrote. It writes `run.json` (`method-run/1`), `k1.json` (the measurement sheet),
+`timeline.json` (per-step and per-call timestamps), plus `gates.json` and `questions.json`.
+It calls no model. When the D4 receipt is `BLOCKED` it stops after `define`, marks the later
+steps skipped with a `blocked-intake` detail, prints the questions and exits 2; a red gate or a
+dirty candidates file exits 1. Figma parity and the approver decision are reported `NOT RUN`.
+
 ## Update
 
 `design-os update` refreshes the **dev-linked toolchain**. The `ui` kernel plus the
