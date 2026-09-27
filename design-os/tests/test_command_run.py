@@ -55,7 +55,7 @@ def test_blocked_brief_stops_after_define(runner: CliRunner, tmp_path: Path) -> 
     assert steps["define"]["status"] == "done"
     for name in ("explore", "decide", "build", "verify"):
         assert steps[name]["status"] == "skipped"
-        assert steps[name]["skip_reason"]["detail"].startswith("blocked-intake")
+        assert steps[name]["skip_reason"]["code"] == "blocked-intake"
     assert not (out / "gates.json").exists()  # no screen was gated after intake said stop
     assert json.loads((out / "k1.json").read_text())["d4"]["result"] == "BLOCKED"
 

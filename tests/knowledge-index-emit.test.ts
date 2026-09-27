@@ -142,3 +142,22 @@ describe("frontMatterChecks — each check, broken on purpose", () => {
     for (const finding of frontMatterChecks(md, null)) expect(finding.severity).toBe("error");
   });
 });
+
+describe("JSON data files under personas/ and patterns/", () => {
+  const md = { "a.md": GOOD.replace("id: motion-craft", "id: a") };
+  const data = ["personas/personas.json", "patterns/card-grid.json", "patterns/notes.md", "other/skip.json", "personas/sub/deep.json"];
+
+  it("are listed with kind: data, prose entries carry no kind", () => {
+    const index = buildIndex(topLevelMarkdown(md), data);
+    const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
+    expect(Object.keys(byId).sort()).toEqual(["a", "patterns/card-grid", "personas/personas"]);
+    expect(byId["personas/personas"]).toMatchObject({ kind: "data", path: "knowledge/personas/personas.json", when: ["personas"] });
+    expect(byId["patterns/card-grid"]!.when).toEqual(["patterns", "card-grid"]);
+    expect("kind" in byId["a"]!).toBe(false);
+  });
+  it("drift check turns red when the committed index lacks the data entries, green when it has them", () => {
+    const stale = emitIndex(buildIndex(topLevelMarkdown(md)));
+    expect(ids(frontMatterChecks(md, stale, data))).toContain("index-drift");
+    expect(frontMatterChecks(md, emitIndex(buildIndex(topLevelMarkdown(md), data)), data)).toEqual([]);
+  });
+});

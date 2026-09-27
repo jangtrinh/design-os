@@ -21,6 +21,8 @@ export interface KnowledgeIndexEntry {
   readonly path: string;
   readonly description: string;
   readonly when: readonly string[];
+  /** Present only on JSON data files (no front-matter to carry routing); prose entries omit it. */
+  readonly kind?: "data";
 }
 
 export interface KnowledgeIndex {
@@ -92,8 +94,8 @@ function unquote(value: string): string {
  * skipped here and reported by the linter — an emitter that invented an entry for
  * an untagged file would hide exactly what the check exists to surface.
  */
-export function buildIndex(files: ReadonlyMap<string, string>): KnowledgeIndex {
-  const entries: KnowledgeIndexEntry[] = [];
+export function buildIndex(files: ReadonlyMap<string, string>, dataPaths: readonly string[] = []): KnowledgeIndex {
+  const entries: KnowledgeIndexEntry[] = dataPaths.filter(isIndexedDataPath).map(dataEntry);
   for (const [rel, content] of files) {
     const parsed = parseFrontMatter(content);
     if (parsed === null || !parsed.ok) continue;
@@ -101,6 +103,27 @@ export function buildIndex(files: ReadonlyMap<string, string>): KnowledgeIndex {
   }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return { version: 1, entries };
+}
+
+/** JSON data directories whose files are listed in the index. Their tags come from the path: JSON has no front-matter. */
+const DATA_DIRS = ["personas", "patterns"];
+
+/** A knowledge-relative path (`personas/personas.json`) directly inside one of DATA_DIRS. */
+export function isIndexedDataPath(rel: string): boolean {
+  const parts = rel.split("/");
+  return parts.length === 2 && DATA_DIRS.includes(parts[0]!) && parts[1]!.endsWith(".json");
+}
+
+function dataEntry(rel: string): KnowledgeIndexEntry {
+  const [dir, file] = rel.split("/") as [string, string];
+  const stem = file.replace(/\.json$/, "");
+  return {
+    id: `${dir}/${stem}`,
+    path: `knowledge/${rel}`,
+    description: `JSON data file knowledge/${rel} - read it directly, it is data and carries no prose.`,
+    when: [...new Set([dir, stem])],
+    kind: "data",
+  };
 }
 
 /** Serialize the index to the exact bytes `knowledge/index.json` must hold. */
