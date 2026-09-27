@@ -7,7 +7,13 @@
       "readCall": "readFileSync(absPath)",
       "paths": [
         "*/templates/*/*.md",
-        "templates/*/*.md"
+        "*/templates/journeys/*.md",
+        "*/templates/skills/*.md",
+        "*/templates/workflows/*.md",
+        "templates/*/*.md",
+        "templates/journeys/*.md",
+        "templates/skills/*.md",
+        "templates/workflows/*.md"
       ],
       "data": "Byte-level integrity hash of an INSTALLED template (ui doctor drift check, hashTemplateFile). The content is never parsed; the read exists so a hand-edited installed file is detected against the current bytes, which a catalogue hash cannot prove (evidence/w3a/proposals.md section 2 decision note). Kept deliberately; not a migration target.",
       "proposedJsonHome": "none (integrity check, not data)"
