@@ -20,6 +20,80 @@
   `unreliableAttributes` and omitted from every family. `ui judge report --families` validates the file and
   fails when a `persona-family` judgment names a family that is not in it.
 
+## 2026-09-27 - a run control plane: `design-os run` drives one feature through the six steps
+
+### Added
+- **`design-os run <brief.json> --project <dir> --out <run-dir>`** — the Python conductor calls only the `ui`
+  binary: `brief lint` (writes `questions.json`), `gate` on every `*.html` under `--screens`, `trace summarize`,
+  `knowledge lint` on `ruling-candidates.json`, and `method lint` on the `run.json` it writes. Outputs `run.json`
+  (`method-run/1`), `k1.json` (same top-level keys as the hand-made measurement sheet), `timeline.json` (per-step and
+  per-call timestamps), `gates.json`. No model call, no network.
+- **Stops on intake.** A `BLOCKED` D4 receipt ends the run after `define`: the later steps are `skipped` with a
+  `blocked-intake` detail, the questions are printed and the exit code is 2. A red gate or a dirty candidates file
+  exits 1. Figma parity and the approver decision are `NOT RUN`, never guessed.
+
+## 2026-09-27 - a learning ledger contract, so recurrence can fire
+
+### Added
+- **`schemas/learning-event.schema.json`** — one event type set for learning: `gap | insight | retro | correction |
+  ruling-candidate | approval`, each with `id`, `t`, `text`, `refs[]` (may name ruling ids `r-*`) and
+  `source` (`observed | synthetic | assumed`). Telemetry kinds are out of scope and rejected.
+- **`ui knowledge ledger lint <events.jsonl> [--json]`** — schema, duplicate ids, telemetry kinds, and a
+  `correction` or `approval` without an `r-*` ref are errors (exit 1). Reads JSON Lines or an `{entries:[…]}`
+  document; reports events, clean events and events without a ruling ref.
+- **`ui knowledge ledger append <events.jsonl> --event <json>`** — validates one event and appends it as one line;
+  never rewrites, refuses a duplicate id and refuses a JSON-document ledger.
+- **`ui knowledge draft-ruling --ledger <events.jsonl>`** — also appends a `ruling-candidate` event naming the new
+  ruling id (idempotent by id), so the recurrence path in `ui knowledge promote` has events to count.
+
+### Changed
+- **`ui knowledge promote`** counts a learning event toward recurrence through its `refs[]` only; free text that
+  merely mentions a ruling id no longer counts. Older ledger shapes keep the whole-record match.
+
+## 2026-09-27 - a fresh-machine install proof
+
+### Added
+- **`scripts/fresh-install-proof.sh`** — packs the checkout, installs the tarball into a throwaway npm prefix and
+  cache under `$TMPDIR` (never the real global prefix, never a publish), then runs `ui doctor`, `ui init --all` in an
+  empty project and `ui doctor --cwd`. Prints wall time per step and the total; the first failing step stops the run
+  with its output and exit 1. `--tarball <file>` installs a given tarball instead (a tarball without `bin` fails at
+  the `ui doctor (install)` step, not silently); `--keep` leaves the throwaway dirs for inspection.
+- `tests/fresh-install-proof.test.ts` — argument handling always runs; the real run and the no-`bin` control run
+  with `UI_FRESH_INSTALL=1` (they need the npm registry).
+- `docs/team-review-door.md` gains an "Install check" paragraph with the verified run.
+
+## 2026-09-27 - template descriptions move from prose to JSON
+
+### Added
+- **`ui templates catalogue [--out <file>] [--check]`** — the only code that parses
+  template frontmatter; emits `schemas/template-descriptions.json` (path, description
+  or explicit null, source SHA-256). `--check` writes nothing and exits 1 on schema
+  violation or drift; `npm run build` now runs it, so CI catches a stale catalogue.
+- **`ui templates lint [catalogue.json]`** — validates the catalogue against
+  `schemas/template-descriptions.schema.json`, plus uniqueness, path order and
+  registry coverage.
+
+### Changed
+- `readTemplateDescription` reads the catalogue instead of the template Markdown;
+  every registered template returns the same description as before. A missing or
+  unparseable catalogue now throws and names the regenerate command.
+- `schemas/seam-allowlist.json`: the runtime read of template frontmatter is gone
+  (kernel runtime prose reads 5 → 4); the emitter's authoring-time read is listed
+  as its own entry, so `ui seam lint` reports reads 5 / allowed 5 / new 0.
+
+## 2026-09-27 - the `design/` directory contract
+
+### Added
+- **`schemas/design-dir.schema.json`** and **`docs/design-directory.md`** — the canonical layout: one token
+  source (`design/tokens.json`), soul, principles with a machine index, rulings as the only place supersession
+  is recorded, art direction under `design/art-direction/`, logs and caches gitignored.
+- **`ui design lint <project-root> [--json]`** — reports each deviation with a fix hint: extra token files
+  (unless declared derived in `design/design-dir.json`), tracked logs and caches under `design/`, art direction
+  outside `design/`, supersession outside rulings, a missing or stale principles index, and stale ingest
+  (`DESIGN.md` or the registry more than 14 days older than `ds.json`). Exit 1 on any error; warnings are advisory.
+- **`ui design principles-index <principles.md> --out <principles.json> [--check]`** — emits the index
+  (`id`, `title`, `yields_when`, `test`) from the `### <ID> · <title>` headings; `--check` exits 1 on drift.
+
 ## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
 
 ### Added

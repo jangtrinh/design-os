@@ -63,12 +63,14 @@ import { knowledgeCommand } from "./commands/knowledge.js";
 import { briefCommand } from "./commands/brief.js";
 import { judgeCommand } from "./commands/judge.js";
 import { seamCommand } from "./commands/seam.js";
+import { templatesCommand } from "./commands/templates.js";
 import { ksyncCommand } from "./commands/ksync.js";
 import { traceCommand } from "./commands/trace.js";
 import { deliveryCommand } from "./commands/delivery.js";
 import { promptPlanCommand } from "./commands/prompt-plan.js";
 import { productContextCommand } from "./commands/product-context.js";
 import { methodCommand } from "./commands/method.js";
+import { designCommand } from "./commands/design.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
@@ -137,12 +139,14 @@ COMMANDS[knowledgeCommand.name] = knowledgeCommand;
 COMMANDS[briefCommand.name] = briefCommand;
 COMMANDS[judgeCommand.name] = judgeCommand;
 COMMANDS[seamCommand.name] = seamCommand;
+COMMANDS[templatesCommand.name] = templatesCommand;
 COMMANDS[ksyncCommand.name] = ksyncCommand;
 COMMANDS[traceCommand.name] = traceCommand;
 COMMANDS[deliveryCommand.name] = deliveryCommand;
 COMMANDS[promptPlanCommand.name] = promptPlanCommand;
 COMMANDS[productContextCommand.name] = productContextCommand;
 COMMANDS[methodCommand.name] = methodCommand;
+COMMANDS[designCommand.name] = designCommand;
 
 // ─── Root help ────────────────────────────────────────────────────────────────
 
