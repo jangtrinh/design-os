@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-27 - keep built code and Figma frames in step from the kernel
+
+### Added
+- **`ui ksync pin <route> --file <key> --node <id>`** — records which Figma frame a built route was built
+  against in `design/ksync/pins.json` (`schemas/ksync-pins.schema.json`). Idempotent upsert keyed by
+  frame, sorted output, stamps `pinnedAt` and `builtFrom` (git HEAD). Re-pinning is how a drift is accepted.
+- **`ui ksync census <manifest.json> --pins <pins.json>`** — counts route-manifest entries as
+  built / placeholder / orphan / parked, the share of built entries whose frame is pinned, a per-app
+  table, and (with `--registry`) how many registry components carry `figmaNode`. Labels are read from the
+  manifest or a `--labels` file, never guessed; entries with no label print as `unlabeled`.
+- **`ui ksync drift --pins <pins.json> --frames <frames.json>`** — compares each pin with a frame snapshot
+  the host captured: `DRIFT` (frame changed after the pin — spec hash, else `lastModified`), `MISSING`,
+  `UNCHECKABLE`, and `STALE-INGEST` when the snapshot is older than `--max-age-days` (default 14), which turns
+  the whole verdict red even if nothing else changed. Exit 1 unless `--warn-only`. The kernel reads captured
+  files; it never calls Figma.
+
 ## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
 
 ### Added

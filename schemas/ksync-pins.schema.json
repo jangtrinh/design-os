@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/ksync-pins.schema.json",
+  "title": "ease-design ksync pins",
+  "description": "Which Figma frame each built code route was built against. A pin says: the code at builtFrom matched this frame as of pinnedAt. Sorted by (file, node) so the file diffs cleanly.",
+  "type": "object",
+  "required": ["schema", "pins"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "ksync-pins/1" },
+    "pins": { "type": "array", "items": { "$ref": "#/definitions/pin" } }
+  },
+  "definitions": {
+    "pin": {
+      "type": "object",
+      "required": ["route", "file", "node", "pinnedAt", "builtFrom"],
+      "additionalProperties": false,
+      "properties": {
+        "route": { "type": "string", "minLength": 1, "description": "Code route id, e.g. setup-workspace/approval-workflow-types/detail." },
+        "file": { "type": "string", "minLength": 1, "description": "Figma file key." },
+        "node": { "type": "string", "minLength": 1, "description": "Figma node id of the frame, e.g. 15742:548321." },
+        "pinnedAt": { "type": "string", "format": "date-time", "description": "ISO instant the pin was asserted." },
+        "builtFrom": { "type": "string", "minLength": 1, "description": "Git sha of the code HEAD the pin was made at." },
+        "specHash": { "type": "string", "minLength": 1, "description": "Optional content hash of the frame at pin time. When both the pin and the ingest carry one, drift compares hashes and ignores timestamps." }
+      }
+    }
+  }
+}
