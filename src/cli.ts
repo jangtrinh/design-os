@@ -60,6 +60,8 @@ import { synthesizeConventionsCommand } from "./commands/synthesize-conventions.
 import { tasteCommand } from "./commands/taste.js";
 import { agentsCommand } from "./commands/agents.js";
 import { knowledgeCommand } from "./commands/knowledge.js";
+import { ksyncCommand } from "./commands/ksync.js";
+import { traceCommand } from "./commands/trace.js";
 import { deliveryCommand } from "./commands/delivery.js";
 import { promptPlanCommand } from "./commands/prompt-plan.js";
 import { productContextCommand } from "./commands/product-context.js";
@@ -129,6 +131,8 @@ COMMANDS[synthesizeConventionsCommand.name] = synthesizeConventionsCommand;
 COMMANDS[tasteCommand.name] = tasteCommand;
 COMMANDS[agentsCommand.name] = agentsCommand;
 COMMANDS[knowledgeCommand.name] = knowledgeCommand;
+COMMANDS[ksyncCommand.name] = ksyncCommand;
+COMMANDS[traceCommand.name] = traceCommand;
 COMMANDS[deliveryCommand.name] = deliveryCommand;
 COMMANDS[promptPlanCommand.name] = promptPlanCommand;
 COMMANDS[productContextCommand.name] = productContextCommand;

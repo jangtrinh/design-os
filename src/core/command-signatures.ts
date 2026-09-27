@@ -993,6 +993,48 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  ksync: {
+    summary: "Figma ↔ code sync from captured files: pin built routes to frames, census coverage, detect drift",
+    subcommands: {
+      pin: {
+        summary: "Record the frame a built route was built against (idempotent upsert keyed by file + node)",
+        positionals: [{ name: "<route>", required: true, summary: "Code route id" }],
+        flags: [
+          { name: "file", type: "string", required: true, summary: "Figma file key of the frame" },
+          { name: "node", type: "string", required: true, summary: "Figma node id of the frame" },
+          { name: "pins", type: "string", summary: "Pins file (default design/ksync/pins.json)" },
+          { name: "spec-hash", type: "string", summary: "Frame content hash at pin time" },
+          { name: "commit", type: "string", summary: "Override builtFrom (default git rev-parse HEAD)" },
+          { name: "at", type: "string", summary: "Override pinnedAt (ISO instant, default now)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_PINS", "WRITE_ERROR"],
+      },
+      census: {
+        summary: "Count manifest entries built / placeholder / orphan / parked and the share of built that is pinned",
+        positionals: [{ name: "<manifest.json>", required: true, summary: "Route manifest (entries[])" }],
+        flags: [
+          { name: "pins", type: "string", required: true, summary: "Pins file" },
+          { name: "labels", type: "string", summary: "Status labels for entries that carry none" },
+          { name: "assume-unlisted", type: "string", values: ["built", "placeholder", "orphan", "parked"], summary: "Count unlabeled entries as this status (recorded in the output)" },
+          { name: "registry", type: "string", summary: "Component registry for the figmaNode count" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "BAD_PINS", "BAD_MANIFEST", "BAD_LABELS", "BAD_REGISTRY"],
+      },
+      drift: {
+        summary: "Compare pins with the captured frame snapshot; exit 1 on DRIFT, MISSING, UNCHECKABLE, STALE-INGEST or EMPTY",
+        positionals: [],
+        flags: [
+          { name: "pins", type: "string", required: true, summary: "Pins file" },
+          { name: "frames", type: "string", required: true, summary: "Captured frame snapshot" },
+          { name: "max-age-days", type: "string", summary: "Oldest acceptable snapshot (default 14)" },
+          { name: "warn-only", type: "boolean", summary: "Report drift but exit 0" },
+          { name: "now", type: "string", summary: "Reference instant for the snapshot age (ISO)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "BAD_PINS", "BAD_FRAMES"],
+      },
+    },
+  },
+
   knowledge: {
     summary: "Governance checks over the knowledge core (index / persona / xref / provenance / catalog and source-ledger drift) + the routing index emitter",
     subcommands: {
@@ -1086,6 +1128,20 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "genre", type: "string", summary: "Restrict counts/top-Elo/consistency to one genre" },
         ],
         errorCodes: ["E_TASTE_ROOT", "E_TASTE_LEDGER", "UNKNOWN_FLAG"],
+      },
+    },
+  },
+
+  trace: {
+    summary: "Summarize the agent read trace (context loaded before the first edit, es-designer checklist evidence)",
+    subcommands: {
+      summarize: {
+        summary: "Read <dir>/.design-os/trace/reads.jsonl and report bytes/files loaded before the first mutation, README/index opened, es-designer loaded vs checklist ran, gate runs, trace coverage",
+        positionals: [{ name: "<dir>", required: true, summary: "Project directory holding .design-os/trace/reads.jsonl" }],
+        flags: [
+          { name: "session", type: "string", summary: "Keep only records of this session id (default: every record in the file)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NOT_A_DIR", "READ_ERROR"],
       },
     },
   },

@@ -1,8 +1,8 @@
 """Pure decision core for `design-os evolution` (spec 012 P1, WIRED verdict added P2):
 read a project's 8 learning-loop signals from `design/` and roll them up into a verdict.
 No subprocess, no model call, no wall-clock read — heartbeat "firing" rides the state
-file's own recorded `history[].at` timestamps, never `datetime.now()` (Art I
-determinism). A missing/corrupt file degrades to its empty shape; this module never
+file's own recorded `history[].at` timestamps, and the throughput clock takes `now` from
+its caller, never `datetime.now()` (Art I determinism). A missing/corrupt file degrades to its empty shape; this module never
 raises on a malformed project.
 """
 
@@ -10,10 +10,13 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from design_os.evolution_signals import (
+    learning_clock,
+    read_dated_learning_events,
     read_heartbeat_signal,
     read_registry_signal,
     read_roles_signal,
@@ -23,7 +26,7 @@ from design_os.evolution_signals import (
 __all__ = [
     "read_ledger_signal", "read_graph_signal", "read_soul_signal",
     "read_heartbeat_signal", "read_registry_signal", "read_roles_signal",
-    "read_taste_votes_signal", "compute_verdict", "gather_signals",
+    "read_taste_votes_signal", "compute_verdict", "gather_signals", "learning_clock",
 ]
 
 _DESIGN = "design"
@@ -81,6 +84,7 @@ def read_ledger_signal(project_dir: Path) -> dict[str, Any]:
         "distinct": len(types),
         "insight_events": types.get("insight", 0),
         "gap_events": types.get("gap", 0),
+        **read_dated_learning_events(events),
     }
 
 
@@ -116,21 +120,20 @@ def read_soul_signal(project_dir: Path) -> dict[str, Any]:
     }
 
 
-def compute_verdict(signals: dict[str, Any]) -> str:
-    """Brainstorm §6.3 / plan §6.3 (P1) + spec 012 P2's WIRED addendum — a
-    LEARNING-SIGNAL rule, not a type count.
+def compute_verdict(signals: dict[str, Any], now: datetime) -> str:
+    """Brainstorm §6.3 / plan §6.3 (P1) + spec 012 P2's WIRED addendum + the throughput
+    clock — a LEARNING-SIGNAL rule, not a type count, and not an "ever existed" rule.
 
-    - ALIVE: any learning signal — an insight, a gap, or a ratified soul. (A firing
-      heartbeat alone is NOT a learning signal — see WIRED below; P1's original rule
-      counted `heartbeat.fired` itself as ALIVE, but that conflated "the loop ran" with
-      "the loop learned". No shipped test asserted that path in isolation.)
-    - WIRED (P2, new): `heartbeat.json` is configured (loop wired) and hasn't yet
-      produced a learning signal. This is the state `ds init`/`ds import` hand a fresh
-      project into (spec 012 P2's `wireFuelLine`) — configured and ready, not stalled.
-    - DEAD-LOOP: either (a) the heartbeat is wired AND has actually fired, but still
-      produced no learning signal — it ran and learned nothing; or (b) there's no
-      heartbeat wired at all, but the ledger has events and no learning signal (the
-      dana shape: ran via some other road, never scaffolded a loop, never learned).
+    - ALIVE: a learning signal (an insight, a gap, or a ratified soul) AND all three
+      throughput windows hold at `now` (`learning_clock`): >=1 graduation within 30 days,
+      median age of open gaps < 30 days, >=1 gap/retro event within 7 days. A ledger that
+      once learned but has stopped moving is DEAD-LOOP — the loop is a flow, not a museum.
+      (A firing heartbeat alone is NOT a learning signal — see WIRED below.)
+    - WIRED (P2): `heartbeat.json` is configured (loop wired) and hasn't yet produced a
+      learning signal — the state `ds init`/`ds import` hand a fresh project.
+    - DEAD-LOOP: a learning signal whose windows failed; or (a) the heartbeat is wired AND
+      has fired but produced no learning signal; or (b) no heartbeat, but the ledger has
+      events and no learning signal (the dana shape).
     - NO-LOOP: no heartbeat wired AND no ledger at all — never ran, never configured.
     """
     ledger = signals["ledger"]
@@ -141,14 +144,15 @@ def compute_verdict(signals: dict[str, Any]) -> str:
         or signals["soul"]["ratified"]
     )
     if learning_signal:
-        return "ALIVE"
+        return "ALIVE" if learning_clock(ledger, now)["window_ok"] else "DEAD-LOOP"
     if heartbeat["wired"]:
         return "DEAD-LOOP" if heartbeat["fired"] else "WIRED"
     return "DEAD-LOOP" if ledger["exists"] else "NO-LOOP"
 
 
-def gather_signals(project_dir: Path) -> dict[str, Any]:
-    """Read all 8 signals + the rollup verdict. Read-only; never writes into `project_dir`."""
+def gather_signals(project_dir: Path, now: datetime) -> dict[str, Any]:
+    """Read all 8 signals + the throughput clock + the rollup verdict at `now`. Read-only;
+    never writes into `project_dir`."""
     ledger = read_ledger_signal(project_dir)
     signals: dict[str, Any] = {
         "ledger": ledger,
@@ -159,5 +163,6 @@ def gather_signals(project_dir: Path) -> dict[str, Any]:
         "roles": read_roles_signal(project_dir),
         "taste_votes": read_taste_votes_signal(project_dir),
     }
-    signals["verdict"] = compute_verdict(signals)
+    signals["clock"] = learning_clock(ledger, now)
+    signals["verdict"] = compute_verdict(signals, now)
     return signals

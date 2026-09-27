@@ -7,7 +7,7 @@ Every rung was measured live before this was written (`scratchpad/p3-ladder.sh`)
     R1 fresh wired fixture ........................ WIRED
     R2 + mechanical work (no learning) ............ WIRED   ← the anti-lie
     R3 + heartbeat fired (still no learning) ...... DEAD-LOOP  (the honest way-station)
-    R4 + one insight event ........................ ALIVE
+    R4 + gaps, then a graduating insight .......... DEAD-LOOP -> ALIVE  (a rate, not a count)
 
 Only the real `design-os evolution` CLI is exercised; the store is evolved between rungs by
 writing the real event byte-shapes (`memory-events.ts`'s closed vocabulary) and the real
@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import shutil
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -90,17 +91,34 @@ def test_dynamic_ladder_wired_through_alive(runner: CliRunner, tmp_path: Path) -
     assert d["heartbeat"]["fired"] is True
     assert d["heartbeat"]["last_run_at"] == "2026-07-18T10:03:00Z"
 
-    # ── R4: a learning signal lands — the loop is ALIVE ─────────────────────────────────
-    # The byte-shape a real harvest+`ui memory record` produces: an insight citing the
-    # events it was drawn from (`refs` — memory-events.ts's provenance rule).
-    _append(ledger, {"v": 1, "id": "e4", "t": "2026-07-18T10:05:00Z", "type": "insight",
-                     "refs": ["e1", "e2"],
-                     "data": {"text": "Dense settings tables need a sticky header once rows "
-                                      "exceed a viewport — a durable cross-screen lesson."}})
+    # ── R4: learning lands AND flows — the loop is ALIVE ────────────────────────────────
+    # The byte-shapes a real librarian run leaves: a fresh gap, a second gap, and an insight
+    # citing the first gap's id (its graduation). Timestamps are relative to the real clock the
+    # CLI reads, because ALIVE is a rate: graduation <= 30d, open gaps young, a gap <= 7d.
+    now = datetime.now(timezone.utc)
+    stamp = lambda days: (now - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")  # noqa: E731
+    gaps = [
+        {"v": 1, "id": "e4", "t": stamp(3), "type": "gap",
+         "data": {"text": "sticky header rule missing", "target": "taste-rubric.md#density"}},
+        {"v": 1, "id": "e5", "t": stamp(2), "type": "gap",
+         "data": {"text": "row height rule missing", "target": "taste-rubric.md#density"}},
+    ]
+    graduation = {"v": 1, "id": "e6", "t": stamp(1), "type": "insight", "refs": ["e4"],
+                  "data": {"text": "Dense settings tables need a sticky header once rows "
+                                   "exceed a viewport — a durable cross-screen lesson."}}
+    for event in gaps:
+        _append(ledger, event)
+    d = _verdict(runner, project)
+    assert d["verdict"] == "DEAD-LOOP", "gaps filed but none graduated is not a flowing loop"
+    assert d["clock"]["graduated_30d"] == 0
+
+    _append(ledger, graduation)
     d = _verdict(runner, project)
     assert d["verdict"] == "ALIVE"
+    assert d["clock"]["graduated_30d"] == 1
     assert d["ledger"]["insight_events"] == 1
-    assert d["ledger"]["distinct"] == 4
+    assert d["ledger"]["gap_events"] == 2
+    assert d["ledger"]["distinct"] == 5
 
 
 def test_fixture_is_a_clean_wired_store(runner: CliRunner) -> None:
