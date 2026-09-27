@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
+
+### Added
+- **`ui brief lint <brief.json> [--questions <out.json>] [--json]`** — validates a design brief, applies the
+  route rules (`web-app`, `dashboard` and `mobile-app` need `screens[]` with at least one state each, `roles[]`
+  and `status`; landing keeps today's rules) and prints a receipt: **B** blocking fields, **R** whether any of
+  them changes the route or is one-way, **L** low-confidence assumptions. `CONTINUE` when B <= 2, no R and
+  L <= 3, otherwise `BLOCKED`. Exit 0 continue, 2 blocked, 1 schema error.
+- **`questions.json`** — one question per blocking field, route-changing first, with a recommended default only
+  where a rule can derive it (`copyLanguage` from the script of `rawRequest`, the four canonical screen states).
+- **`ui brief questions <questions.json> --format claude|markdown`** — the AskUserQuestion payload (at most 4
+  questions, recommended option first) or a gap sheet for teams that answer asynchronously.
+- **Brief schema extensions** (`schemas/design-brief.schema.json`), all optional so every existing brief still
+  validates: `surface` grows to `landing | web-app | dashboard | mobile-app | email | document`
+  (`marketing-landing` stays valid), plus `screens[]`, `roles[]`, `status`, `copyLanguage`, `requestedBy`,
+  `approvedBy[]`, and `label` on assumptions.
+- **Status transitions are a question, not a schema error.** A `status` vocabulary with more than one state and no
+  `transitions` becomes the blocking field `status.transitions` (counted in B, question "Which transitions exist
+  between <states>?", no default) instead of failing validation, so the receipt is always produced.
+
 ## 2026-09-27 - the read trace measures a real run
 
 ### Fixed

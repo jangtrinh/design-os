@@ -1083,6 +1083,28 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  brief: {
+    summary: "Intake contract: lint a design brief, emit its blocking questions and the D4 CONTINUE|BLOCKED receipt",
+    subcommands: {
+      lint: {
+        summary: "Validate a brief, apply the route rules and print the D4 receipt (B / R / L); exit 0 CONTINUE, 2 BLOCKED, 1 schema error",
+        positionals: [{ name: "<brief.json>", required: true, summary: "Design brief to lint" }],
+        flags: [
+          { name: "questions", type: "string", summary: "Write one question per blocking field to this questions.json path" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "WRITE_ERROR"],
+      },
+      questions: {
+        summary: "Render a questions.json for a runtime: the AskUserQuestion payload or a Markdown gap sheet",
+        positionals: [{ name: "<questions.json>", required: true, summary: "File written by brief lint --questions" }],
+        flags: [
+          { name: "format", type: "string", values: ["claude", "markdown"], summary: "Output format (default: claude)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "BAD_QUESTIONS"],
+      },
+    },
+  },
+
   taste: {
     summary: "Vote-driven taste corpus: ingest, pairwise Elo ranking, study verdicts",
     subcommands: {
