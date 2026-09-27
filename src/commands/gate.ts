@@ -13,6 +13,8 @@ import type { GateFamily, GateOptions } from "../core/gate.js";
 import { loadTokenHexes } from "./taste-lint.js";
 import { tryDiscoverDesignSystem } from "../core/design-system.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
+import { autoScoreTokenCoverage } from "../core/token-coverage-io.js";
+import { DEFAULT_TOKEN_COVERAGE_FLOOR } from "./token-coverage.js";
 
 const CMD = "gate";
 
@@ -30,6 +32,13 @@ Runs, in one call:
   content   ui content-lint      (UX-writing floors)
   autofix   DRY-RUN cleanliness  (pending repairs = error "autofix-not-clean")
 
+Plus, when a token file is auto-detected for the project (design-dir contract,
+then brand/design/design.tokens.json): a REQUIRED \`ui token-coverage\` check —
+does the page style with the project's own tokens? Default floor 0.8,
+configurable with --token-coverage-floor. Absent a token file, this check does
+not run (nothing to grade against) — never a silent weakening of a check that
+COULD run.
+
 \`ui gate coverage\` lists every check the gate can run (the same catalog its
 families are test-paired against) with per-project activity — the evidence a
 router derives tractability from, never stale as floors ship.
@@ -42,14 +51,19 @@ Options:
   --tokens <f>  DS token file; enables the taste Consistency raw-hex check
   --skip <s>    Comma-separated <family>:<reason> pairs, e.g.
                 --skip "layout: embeddable fragment,content: mirror evidence"
+  --token-coverage-floor <n>  Minimum ui token-coverage score before the gate
+                fails (default: 0.8; only applies when a token file is found)
   --json        Emit a JSON envelope instead of human-readable output
 
 Exit codes:
-  0  No error-severity findings in any run family (warnings allowed)
-  1  Any error-severity finding, pending autofix repairs, or a user/file error
+  0  No error-severity findings in any run family (warnings allowed), and
+     token-coverage (when it ran) is at or above its floor
+  1  Any error-severity finding, pending autofix repairs, token-coverage below
+     its floor, or a user/file error
 
 Error codes:
-  BAD_ARG        Missing <file.html>, unknown --skip family, or a skip without a reason
+  BAD_ARG        Missing <file.html>, unknown --skip family, a skip without a
+                 reason, or --token-coverage-floor not a number in [0,1]
   TOKENS_NOT_READABLE  --tokens path missing/unparsable — refused rather than silently weaker
   FILE_NOT_FOUND The input file does not exist
   READ_ERROR     The input file cannot be read
@@ -133,10 +147,32 @@ export const gateCommand = {
       }
     }
 
-    const result = runGate(html, { knownHexes, skip });
-    const exitCode = result.pass ? 0 : 1;
+    const tcFloorFlag = parsed.flags["token-coverage-floor"];
+    let tokenCoverageFloor = DEFAULT_TOKEN_COVERAGE_FLOOR;
+    if (typeof tcFloorFlag === "string") {
+      const n = Number(tcFloorFlag);
+      if (!Number.isFinite(n) || n < 0 || n > 1) {
+        const msg = `--token-coverage-floor must be a number in [0,1], got '${tcFloorFlag}'`;
+        return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+      }
+      tokenCoverageFloor = n;
+    }
 
-    const lines: string[] = [`gate: ${file} — ${result.errorCount} error(s), ${result.warningCount} warning(s)${result.pass ? " — PASS" : ""}`];
+    // Required check A2: runs only when a token file is auto-detectable for
+    // this project — absent one, there is nothing to grade against, and that
+    // is a declared "did not run" (below), never a check pretending to pass.
+    const tokenCoverage = autoScoreTokenCoverage(file, html);
+    const tokenCoverageFails = tokenCoverage !== undefined && tokenCoverage.overall.coverage < tokenCoverageFloor;
+
+    const result = runGate(html, { knownHexes, skip });
+    const pass = result.pass && !tokenCoverageFails;
+    const exitCode = pass ? 0 : 1;
+
+    const lines: string[] = [`gate: ${file} — ${result.errorCount} error(s), ${result.warningCount} warning(s)${pass ? " — PASS" : ""}`];
+    if (tokenCoverage !== undefined) {
+      const pct = Math.round(tokenCoverage.overall.coverage * 100);
+      lines.push(`  token-coverage: ${pct}% (floor ${Math.round(tokenCoverageFloor * 100)}%)${tokenCoverageFails ? " — FAIL" : ""}`);
+    }
     for (const fam of GATE_FAMILIES) {
       const r = result.families[fam];
       if (r === undefined) continue;
@@ -151,7 +187,7 @@ export const gateCommand = {
     // skips because a partial verdict and an absent one are both "not a clean bill".
     for (const s of result.partial) lines.push(`  PARTIAL ${s}`);
 
-    const data = { file, ...result };
+    const data = { file, ...result, pass, tokenCoverage, tokenCoverageFloor };
     const out = useJson ? okJsonWithExit(CMD, data, exitCode) : { exitCode, stdout: lines.join("\n") + "\n" };
     return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: Object.values(result.families).flatMap((r) => r.findings), errorCount: result.errorCount, warningCount: result.warningCount }) });
   },

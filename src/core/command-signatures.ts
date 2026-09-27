@@ -284,6 +284,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "tokens", type: "string", summary: "DS token file; enables the taste Consistency raw-hex check" },
         { name: "skip", type: "string", summary: "Comma-separated <family>:<reason> pairs — declared partial gating" },
         { name: "dir", type: "string", summary: "coverage mode: project directory to probe for tokens/DS (default: cwd)" },
+        { name: "token-coverage-floor", type: "string", summary: "Minimum ui token-coverage score before the gate fails (default: 0.8)" },
       ],
       errorCodes: [...IO_CODES, "TOKENS_NOT_READABLE"],
     },
@@ -296,6 +297,19 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       positionals: [htmlFile("HTML file to lint")],
       flags: [{ name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" }],
       errorCodes: [...IO_CODES, "DS_NOT_FOUND", "BAD_JSON"],
+    },
+  },
+
+  "token-coverage": {
+    summary: "Does the page style with the project's own tokens? Coverage per category, floor-gated",
+    signature: {
+      summary: "Score an HTML file's CSS (color/font-family/font-size/spacing/radius/shadow) against a token file; exit 1 below floor",
+      positionals: [htmlFile("HTML file to score")],
+      flags: [
+        { name: "tokens", type: "string", summary: "Token file to grade against (default: auto-detect via the design-dir contract, then brand/design/design.tokens.json)" },
+        { name: "floor", type: "string", summary: "Minimum overall coverage to exit 0 (default: 0.8)" },
+      ],
+      errorCodes: [...IO_CODES, "TOKENS_NOT_FOUND", "BAD_JSON"],
     },
   },
 

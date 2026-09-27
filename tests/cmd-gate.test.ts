@@ -231,3 +231,26 @@ describe("the help text lists every family the gate actually runs", () => {
     expect(advertised.filter((f) => !(GATE_FAMILIES as readonly string[]).includes(f))).toEqual([]);
   });
 });
+
+describe("ui gate — token-coverage required check (PR-TG, A2)", () => {
+  it("auto-detected token file + all-raw-hex CSS → token-coverage fails the gate", () => {
+    mkdirSync(join(dir, "brand", "design"), { recursive: true });
+    writeFileSync(join(dir, "brand", "design", "design.tokens.json"), JSON.stringify({
+      color: { primary: { $value: "#3b82f6", $type: "color" } },
+    }), "utf8");
+    const bad = CLEAN('<style>.card { color: #ff0000; background: #00ff00; padding: 4px; }</style><h1>Alpha</h1><p>Welcome back. Everything is ready.</p>');
+    const r = capture(["gate", write("tc.html", bad), "--json"]);
+    const d = JSON.parse(r.out).data as { pass: boolean; tokenCoverage: { overall: { coverage: number } } };
+    expect(d.tokenCoverage.overall.coverage).toBeLessThan(0.8);
+    expect(d.pass).toBe(false);
+    expect(r.code).toBe(1);
+  });
+
+  it("no token file anywhere on the walk → token-coverage does not run, gate unaffected", () => {
+    const r = capture(["gate", write("no-tokens.html", BASE), "--json"]);
+    expect(r.code).toBe(0);
+    const d = JSON.parse(r.out).data as { tokenCoverage: unknown; pass: boolean };
+    expect(d.tokenCoverage).toBeUndefined();
+    expect(d.pass).toBe(true);
+  });
+});
