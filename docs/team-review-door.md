@@ -52,6 +52,4 @@ agent may draft a ruling; it never fills `approved_by` for a human.
 
 ## Status
 
-The schema is a draft and nothing validates `approved_by` yet: `ui` does not read it, and
-existing rulings without it stay valid. Validation and a lint arrive with the rulings
-contract work.
+`ui knowledge lint <rulings.json>` validates `approved_by` against `schemas/rulings.schema.json`. Nothing else in `ui` reads it yet: the trail is a record for reviewers and the promotion gate, not a runtime switch.

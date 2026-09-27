@@ -1,24 +1,36 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://ease-design/schemas/rulings.schema.json",
-  "title": "ease-design rulings ledger (draft)",
-  "description": "Draft. Carries the seven fields every existing ruling has, plus the optional approved_by[] approval trail. Validation and the remaining optional fields are owned by the rulings-contract work; this file is schema only.",
+  "title": "ease-design rulings file",
+  "description": "Curated, checkable design rulings. English is the source of truth; other languages are rendered, never authored.",
   "type": "object",
   "required": ["schema", "rulings"],
   "properties": {
     "schema": { "const": "rulings/1" },
-    "at": { "type": "integer" },
+    "at": { "description": "Epoch milliseconds of the last curation.", "type": "number" },
     "rulings": { "type": "array", "items": { "$ref": "#/definitions/ruling" } }
   },
   "definitions": {
+    "scope": {
+      "oneOf": [
+        { "const": "global" },
+        {
+          "type": "object",
+          "properties": {
+            "apps": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "features": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "screens": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        }
+      ]
+    },
     "approval": {
       "type": "object",
       "required": ["role", "person", "at"],
-      "additionalProperties": false,
       "properties": {
         "role": { "enum": ["PM", "design-lead", "BA", "owner", "source"] },
         "person": { "type": "string", "minLength": 1 },
-        "at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}" }
+        "at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
       }
     },
     "ruling": {
@@ -28,22 +40,19 @@
         "id": { "type": "string", "minLength": 1 },
         "category": { "type": "string", "minLength": 1 },
         "text": { "type": "string", "minLength": 1 },
-        "scope": {
-          "oneOf": [
-            { "const": "global" },
-            {
-              "type": "object",
-              "properties": {
-                "apps": { "type": "array", "items": { "type": "string" } },
-                "features": { "type": "array", "items": { "type": "string" } }
-              }
-            }
-          ]
-        },
+        "scope": { "$ref": "#/definitions/scope" },
         "source": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-        "since": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}" }] },
+        "since": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
         "verified_by": { "type": "string", "minLength": 1 },
-        "approved_by": { "type": "array", "items": { "$ref": "#/definitions/approval" } }
+        "status": { "enum": ["active", "superseded", "retired"] },
+        "verified_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "approved_by": { "type": "array", "items": { "$ref": "#/definitions/approval" } },
+        "principle": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "supersedes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "superseded_by": { "type": "string", "minLength": 1 },
+        "conflicts_with": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "detail": { "type": "string" },
+        "tag": { "type": "string" }
       }
     }
   }
