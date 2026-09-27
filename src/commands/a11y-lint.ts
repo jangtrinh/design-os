@@ -7,6 +7,8 @@ import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { lintA11y } from "../core/a11y-lint.js";
+import type { A11yFinding } from "../core/a11y-lint.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 
 const CMD = "a11y-lint";
@@ -80,7 +82,13 @@ export const a11yLintCommand = {
       const msg = isNotFound ? `file not found: '${file}'` : `cannot read '${file}': ${e instanceof Error ? e.message : String(e)}`;
       return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
     }
-    const result = lintA11y(html);
+    // A1: judge the union of inline + LOCAL linked CSS exactly as if inlined;
+    // an unreadable linked stylesheet is an error finding, never silence.
+    const loaded = inlineLinkedCss(file, html);
+    const linkErrors: A11yFinding[] = loaded.errors.map((e) => ({ ...e, sc: "n/a" }));
+    const result = lintA11y(loaded.html);
+    result.findings = [...linkErrors, ...result.findings];
+    result.errorCount += linkErrors.length;
     const exitCode = result.errorCount > 0 ? 1 : 0;
     const out = useJson ? okJsonWithExit(CMD, { file, ...result }, exitCode) : { exitCode, stdout: formatReport(result, file) };
     return withOutcome(out, parsed, { type: "lint_run", actor: "ui a11y-lint", projectDir: file, data: lintOutcomeData("a11y-lint", file, result) });
