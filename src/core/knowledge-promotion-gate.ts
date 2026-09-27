@@ -8,6 +8,7 @@ import {
   byCategoryThenId, distinctSourceDocuments, effectiveStatus, stringArray, usableRulings,
 } from "./knowledge-promotion-ruling.js";
 import type { RulingRecord } from "./knowledge-promotion-ruling.js";
+import { isLearningEvent } from "./knowledge-ledger-event.js";
 
 export interface GateParams { minRecurrence: number; minSources: number }
 
@@ -41,7 +42,9 @@ export function countRecurrence(ruling: RulingRecord, serializedEvents: readonly
 
 export function selectCandidates(doc: unknown, ledgerRecords: readonly unknown[], params: GateParams): GateResult {
   const { usable, unusable } = usableRulings(doc);
-  const events = ledgerRecords.map((r) => JSON.stringify(r));
+  // A learning event (schemas/learning-event.schema.json) recurs only through its refs[]; free text that
+  // merely mentions an id is not a recurrence. Older ledger shapes keep the whole-record match.
+  const events = ledgerRecords.map((r) => JSON.stringify(isLearningEvent(r) ? r.refs : r));
   const candidates: Candidate[] = [];
   let notLive = 0;
   for (const ruling of [...usable].sort(byCategoryThenId)) {

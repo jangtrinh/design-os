@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-27 - a learning ledger contract, so recurrence can fire
+
+### Added
+- **`schemas/learning-event.schema.json`** — one event type set for learning: `gap | insight | retro | correction |
+  ruling-candidate | approval`, each with `id`, `t`, `text`, `refs[]` (may name ruling ids `r-*`) and
+  `source` (`observed | synthetic | assumed`). Telemetry kinds are out of scope and rejected.
+- **`ui knowledge ledger lint <events.jsonl> [--json]`** — schema, duplicate ids, telemetry kinds, and a
+  `correction` or `approval` without an `r-*` ref are errors (exit 1). Reads JSON Lines or an `{entries:[…]}`
+  document; reports events, clean events and events without a ruling ref.
+- **`ui knowledge ledger append <events.jsonl> --event <json>`** — validates one event and appends it as one line;
+  never rewrites, refuses a duplicate id and refuses a JSON-document ledger.
+- **`ui knowledge draft-ruling --ledger <events.jsonl>`** — also appends a `ruling-candidate` event naming the new
+  ruling id (idempotent by id), so the recurrence path in `ui knowledge promote` has events to count.
+
+### Changed
+- **`ui knowledge promote`** counts a learning event toward recurrence through its `refs[]` only; free text that
+  merely mentions a ruling id no longer counts. Older ledger shapes keep the whole-record match.
+
 ## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
 
 ### Added
