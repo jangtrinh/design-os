@@ -7,6 +7,7 @@
 import judgmentSchema from "../../schemas/judgment.schema.json" with { type: "json" };
 import familiesSchema from "../../schemas/persona-families.schema.json" with { type: "json" };
 import { validateAgainstSchema } from "./json-schema-subset.js";
+import { CHECK_CATALOG } from "./check-catalog.js";
 
 export interface JudgeFinding {
   field: string;
@@ -37,7 +38,11 @@ export interface PersonaFamily {
   nearest: string;
   attributes: { attribute: string }[];
   mobbinUrls: string[];
+  gate_policy?: Record<string, string>;
 }
+
+const KNOWN_CHECK_IDS = new Set(CHECK_CATALOG.map((c) => c.id));
+const GATE_POLICY_ACTIONS = new Set(["error", "exempt"]);
 export interface PersonaFamilies {
   unreliableAttributes: { attribute: string; agreement: number }[];
   families: PersonaFamily[];
@@ -85,6 +90,10 @@ export function validateFamilies(doc: unknown): JudgeFinding[] {
       if (unreliable.has(a.attribute)) out.push({ field: `${at}.attributes`, message: `'${a.attribute}' is listed as unreliable and must not appear in a family` });
     }
     if (new Set(f.mobbinUrls).size !== f.mobbinUrls.length) out.push({ field: `${at}.mobbinUrls`, message: "must not repeat a URL" });
+    for (const [ruleId, action] of Object.entries(f.gate_policy ?? {})) {
+      if (!KNOWN_CHECK_IDS.has(ruleId)) out.push({ field: `${at}.gate_policy.${ruleId}`, message: `'${ruleId}' is not a known check id in the gate check catalog` });
+      if (!GATE_POLICY_ACTIONS.has(action)) out.push({ field: `${at}.gate_policy.${ruleId}`, message: "must be 'error' or 'exempt'" });
+    }
   });
   return out;
 }

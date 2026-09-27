@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-09-27 - persona decisions from the owner's blind review
+
+### Changed
+- **`knowledge/personas/families.json`** now carries the owner's blind-review decisions on the
+  W6 persona candidates: `web-hairline-generous-neo-grotesque` and
+  `web-quiet-light-single-accent-neo-grotesque` are merged into one family with an optional
+  accent (`accent: "optional"`, merge recorded in a new `history[]` entry, Descript kept as a
+  reference medoid); `ios-pill-control-high-contrast` is kept distinct with
+  `owner_confirmed_by_eye: true`. Every family gains a `starting_tokens` DTCG block copied
+  verbatim from its dossier with `provenance: "assumed"`, and the shared mapping rules are
+  recorded once at the top level in `token_mapping_rules` (`provenance: "assumed"`).
+  Three families gain a data-only `gate_policy`: `ios-geometric-high-contrast` exempts
+  `cream-palette`, `ios-pill-control-high-contrast` exempts `border-accent-on-rounded`, and the
+  hairline families (`web-hairline-generous-neo-grotesque`, `ios-hairline-neutral-neo-grotesque`)
+  set `gpt-thin-border-wide-shadow` to `error`. No linter code changed.
+- **`schemas/persona-families.schema.json`** extended for the new fields (`accent`,
+  `owner_confirmed_by_eye`, `history`, `starting_tokens`, `gate_policy` per family;
+  `token_mapping_rules` at the top level).
+- **`src/core/judge-validate.ts`** now rejects a `gate_policy` entry naming a rule id that is not
+  in the gate check catalog (`src/core/check-catalog.ts`), or an action other than `"error"` /
+  `"exempt"`.
+
 ## 2026-09-27 - pattern cards with a schema and a linter
 
 ### Added

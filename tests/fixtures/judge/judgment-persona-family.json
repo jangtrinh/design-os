@@ -5,7 +5,7 @@
   "ts": "2026-09-27T09:00:00.000Z",
   "mode": "shadow",
   "decisionPoint": "persona-family",
-  "candidates": ["web-hairline-generous-neo-grotesque", "web-quiet-light-single-accent-neo-grotesque"],
+  "candidates": ["web-hairline-generous-neo-grotesque", "web-moderate-volume-neutral-neo-grotesque"],
   "pick": {
     "candidate": "web-hairline-generous-neo-grotesque",
     "evidenceRefs": [
