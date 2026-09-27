@@ -16,6 +16,35 @@
   the whole verdict red even if nothing else changed. Exit 1 unless `--warn-only`. The kernel reads captured
   files; it never calls Figma.
 
+## 2026-09-26 - the learning loop is measured by flow, and the agent's read trace becomes a number
+
+### Changed
+- **`design-os evolution` no longer reads a loop as ALIVE just because it once learned.** The
+  verdict had no time window: VSF-PCP held four insights, a ratified soul and a wired
+  heartbeat, so it read ALIVE while its heartbeat had last fired in July and no gap had ever
+  graduated. A project with a learning signal is now ALIVE only while all three hold: at least
+  one graduation in the last 30 days, a median open-gap age under 30 days, and at least one
+  `gap`/`retro` event in the last 7 days; otherwise it reads DEAD-LOOP. WIRED and NO-LOOP are
+  unchanged. The text output prints the three numbers, each with its window's verdict, and
+  `--json` carries them under `clock`.
+- **A graduation is an existing event, not a new one.** It is an `insight` whose `refs` name a
+  `gap` id — the librarian's own close-out convention (a gap stays open until an insight lists
+  its id). No ledger event type or schema field was added.
+- **`gather_signals` and `compute_verdict` take `now`.** The core still never reads the clock;
+  the command passes it in, so every test pins the date.
+
+### Added
+- **`ui trace summarize <dir> [--session <id>] [--json]`** reads `.design-os/trace/reads.jsonl`
+  and reports how many bytes and which files an agent loaded before its first mutation,
+  whether `README.md` and `knowledge/index.json` were opened, whether the `es-designer` skill was
+  loaded, and — separately — whether its checklist actually ran (checklist read, then a gate
+  after it). Coverage is `claude-only` when a trace exists and `none` otherwise.
+- **`templates/hooks/design-os-read-trace.cjs`**, a Claude PreToolUse/PostToolUse hook that
+  appends the trace: paths, byte counts and event kinds only — never contents, prompts or
+  command text, never `.env*`. It is append-only, silent and exits 0 on every path.
+  A redirect into `/dev/null` is not counted as a mutation, and `readmeOpened` is true only for the
+  repository root `README.md`, not a nested one.
+
 ## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
 
 ### Added
