@@ -16,6 +16,9 @@
   validates: `surface` grows to `landing | web-app | dashboard | mobile-app | email | document`
   (`marketing-landing` stays valid), plus `screens[]`, `roles[]`, `status`, `copyLanguage`, `requestedBy`,
   `approvedBy[]`, and `label` on assumptions.
+- **Status transitions are a question, not a schema error.** A `status` vocabulary with more than one state and no
+  `transitions` becomes the blocking field `status.transitions` (counted in B, question "Which transitions exist
+  between <states>?", no default) instead of failing validation, so the receipt is always produced.
 
 ## 2026-09-26 - a team door for reviewed rulings, and a clearer install path
 

@@ -11,7 +11,7 @@
 export type BriefRecord = Record<string, unknown>;
 
 export interface BlockingField {
-  /** Stable field path: screens | screens[<id>].states | roles | status | copyLanguage | assumption:<facet>. */
+  /** Stable field path: screens | screens[<id>].states | roles | status | status.transitions | copyLanguage | assumption:<facet>. */
   field: string;
   reason: string;
   /** True when a wrong guess changes the route or cannot be undone. */
@@ -44,6 +44,8 @@ const block = (field: string, reason: string, base: string = field): BlockingFie
   field, reason, routeChanging: (ROUTE_CHANGING_FIELDS as readonly string[]).includes(base),
 });
 
+const statesOf = (status: BriefRecord): string[] => (Array.isArray(status["states"]) ? status["states"].map(String) : []);
+
 export function findBlockingFields(brief: BriefRecord): BlockingField[] {
   const surface = String(brief["surface"]);
   if (LANDING_SURFACES.includes(surface)) return [];
@@ -70,7 +72,11 @@ function appRouteFields(brief: BriefRecord): BlockingField[] {
     out.push(block(`screens[${String(s["id"])}].states`, `screen '${String(s["id"])}' lists no states`, "states"));
   }
   if (list(brief["roles"]).length === 0) out.push(block("roles", "a screen-based route needs roles[] with a scope"));
-  if (!isRecord(brief["status"])) out.push(block("status", "a screen-based route needs the status vocabulary"));
+  const status = brief["status"];
+  if (!isRecord(status)) out.push(block("status", "a screen-based route needs the status vocabulary"));
+  else if (statesOf(status).length > 1 && list(status["transitions"]).length === 0) {
+    out.push(block("status.transitions", `status has ${statesOf(status).length} states and no transitions`));
+  }
   if (brief["copyLanguage"] === undefined) out.push(block("copyLanguage", "UI copy language is not stated"));
   return out;
 }

@@ -40,6 +40,7 @@ const LANGUAGE_OPTIONS: Record<string, QuestionOption> = {
 
 function headerOf(field: string): string {
   if (field.startsWith("assumption:")) return field.slice("assumption:".length).slice(0, 12);
+  if (field === "status.transitions") return "Transitions";
   if (field.endsWith(".states")) return "States";
   return field === "copyLanguage" ? "Language" : field.charAt(0).toUpperCase() + field.slice(1);
 }
@@ -53,6 +54,10 @@ function shape(b: BlockingField, brief: BriefRecord): Omit<BriefQuestion, "id" |
       recommendedReason: reason,
       options: Object.values(LANGUAGE_OPTIONS),
     };
+  }
+  if (b.field === "status.transitions") {
+    const states = (((brief["status"] as BriefRecord | undefined)?.["states"] ?? []) as unknown[]).map(String).join(", ");
+    return { question: `Which transitions exist between ${states}?`, recommended: null, options: [ANSWER_NOW, ASSUME] };
   }
   if (b.field.endsWith(".states")) {
     const canonical = { label: CANONICAL_STATES, description: "The four states every data screen carries" };

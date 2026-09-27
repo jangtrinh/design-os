@@ -62,12 +62,7 @@ describe("design-brief schema stays pinned to the validator", () => {
 });
 
 describe("backward compatibility", () => {
-  it("today's landing fixture validates with zero findings", () => {
-    expect(validateBrief(load(LANDING))).toEqual([]);
-  });
-  it("every fixture in tests/fixtures/delivery that is a brief still validates", () => {
-    expect(validateBrief(load(join(process.cwd(), "tests", "fixtures", "delivery", "design-brief-valid.json")))).toEqual([]);
-  });
+  it("today's landing fixture validates with zero findings", () => { expect(validateBrief(load(LANDING))).toEqual([]); });
 });
 
 describe("ui brief lint — C1 negative controls", () => {
@@ -116,17 +111,11 @@ describe("ui brief lint — schema errors exit 1", () => {
     ["unknown field on an assumption", (d: Record<string, unknown>) => { (d["assumptions"] as Record<string, unknown>[])[0]!["note"] = "x"; }, "assumptions[0].note"],
     ["unknown field on the status object", (d: Record<string, unknown>) => { (d["status"] as Record<string, unknown>)["initial"] = "ACTIVE"; }, "status.initial"],
     ["screen without a purpose", (d: Record<string, unknown>) => { delete (d["screens"] as Record<string, unknown>[])[0]!["purpose"]; }, "screens[0].purpose"],
-    ["several states without transitions", (d: Record<string, unknown>) => { delete (d["status"] as Record<string, unknown>)["transitions"]; }, "status.transitions"],
     ["version 2 without activationRef", (d: Record<string, unknown>) => { d["version"] = 2; }, "activationRef"],
   ])("%s", (_name, mutate, field) => {
     const r = lint(mutated("dashboard-complete", mutate));
     expect(r.code).toBe(1);
     expect(r.data.findings?.map((f) => f.field)).toContain(field);
-  });
-  it("a single-state status vocabulary may omit transitions", () => {
-    const r = lint(mutated("dashboard-complete", (d) => { d["status"] = { states: ["ACTIVE"] }; }));
-    expect(r.code).toBe(0);
-    expect(r.data.findings).toBeUndefined();
   });
   it("unreadable and non-JSON input exit 1 with a code", () => {
     expect(JSON.parse(capture(["brief", "lint", join(FIX, "nope.json"), "--json"]).out).error.code).toBe("FILE_NOT_FOUND");

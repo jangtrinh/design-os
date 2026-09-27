@@ -54,9 +54,7 @@
     },
     "status": {
       "type": "object", "required": ["states"], "additionalProperties": false,
-      "description": "transitions are required once the vocabulary has more than one state.",
-      "if": { "required": ["states"], "properties": { "states": { "type": "array", "minItems": 2 } } },
-      "then": { "required": ["transitions"] },
+      "description": "transitions are optional here; a multi-state vocabulary without them is a blocking question in `ui brief lint`, not a schema error.",
       "properties": {
         "states": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "transitions": {
