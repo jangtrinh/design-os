@@ -91,3 +91,21 @@ jobs:
         working-directory: design-os
       - run: uv run pytest -q
         working-directory: design-os
+      # audit.batch.v1 (acceptance §W10b A3) on ONE real project — this repo's own site/ pages
+      # — with the frozen caps checked into the repo. This is an AUDIT, not a gate: it never
+      # fails CI on a page finding (a low-contrast color, a missing token) or a per-page tool
+      # crash, only on a runner error (bad caps, missing kernel, a cap exceeded fail-closed) —
+      # so `design-os audit batch` exiting non-zero here is a real infrastructure problem, not
+      # "the site has findings". The receipts + manifest are uploaded so a human can read what
+      # the batch actually found without re-running it.
+      - run: >
+          uv run design-os audit batch ../site
+          --caps caps/audit-batch.caps.json
+          --out /tmp/audit-batch-ci
+          --json
+        working-directory: design-os
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-batch-receipts
+          path: /tmp/audit-batch-ci
+          if-no-files-found: error
