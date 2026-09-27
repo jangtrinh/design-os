@@ -1,0 +1,6 @@
+{"v":1,"id":"e1","t":"2026-09-01T00:00:00Z","type":"gap","data":{"note":"header drifted again","ruling":"r-recurring-one-source"}}
+{"v":1,"id":"e2","t":"2026-09-02T00:00:00Z","type":"gap","data":{"note":"card gutter was off — rhythm broken"}}
+{"v":1,"id":"e3","t":"2026-09-03T00:00:00Z","type":"gap","data":{"note":"same card gutter again","ruling":"r-recurring-one-source","principle":"rhythm"}}
+
+not json at all
+{"v":1,"id":"e4","t":"2026-09-04T00:00:00Z","type":"gap","data":{"note":"r-recurring-one-source-extended is a different id"}}

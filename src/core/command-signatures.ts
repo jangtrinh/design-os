@@ -68,6 +68,25 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  seam: {
+    summary: "Ratchet runtime prose reads in the kernel source",
+    subcommands: {
+      lint: { summary: "Reject new prose reads and stale allowances", positionals: [],
+        flags: [{ name: "allowlist", type: "string", summary: "Allowance JSON path (default schemas/seam-allowlist.json)" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_ALLOWLIST", "READ_ERROR"] },
+    },
+  },
+  method: {
+    summary: "Lint a six-step method run and its defining brief",
+    subcommands: {
+      lint: {
+        summary: "Validate a method run and its referenced brief.json",
+        positionals: [{ name: "<run.json>", required: true, summary: "Method run artifact" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "SCHEMA_UNAVAILABLE"],
+      },
+    },
+  },
   "product-context": {
     summary: "Compile and replay-lint Product Context Atlases",
     subcommands: {
@@ -978,6 +997,48 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         positionals: [],
         flags: [{ name: "dir", type: "string", summary: "Project directory (default: the discovered DS project, else cwd)" }],
         errorCodes: ["UNKNOWN_FLAG", "DS_NOT_FOUND", "BAD_MANIFEST", "READ_ERROR"],
+      },
+    },
+  },
+
+  ksync: {
+    summary: "Figma ↔ code sync from captured files: pin built routes to frames, census coverage, detect drift",
+    subcommands: {
+      pin: {
+        summary: "Record the frame a built route was built against (idempotent upsert keyed by file + node)",
+        positionals: [{ name: "<route>", required: true, summary: "Code route id" }],
+        flags: [
+          { name: "file", type: "string", required: true, summary: "Figma file key of the frame" },
+          { name: "node", type: "string", required: true, summary: "Figma node id of the frame" },
+          { name: "pins", type: "string", summary: "Pins file (default design/ksync/pins.json)" },
+          { name: "spec-hash", type: "string", summary: "Frame content hash at pin time" },
+          { name: "commit", type: "string", summary: "Override builtFrom (default git rev-parse HEAD)" },
+          { name: "at", type: "string", summary: "Override pinnedAt (ISO instant, default now)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_PINS", "WRITE_ERROR"],
+      },
+      census: {
+        summary: "Count manifest entries built / placeholder / orphan / parked and the share of built that is pinned",
+        positionals: [{ name: "<manifest.json>", required: true, summary: "Route manifest (entries[])" }],
+        flags: [
+          { name: "pins", type: "string", required: true, summary: "Pins file" },
+          { name: "labels", type: "string", summary: "Status labels for entries that carry none" },
+          { name: "assume-unlisted", type: "string", values: ["built", "placeholder", "orphan", "parked"], summary: "Count unlabeled entries as this status (recorded in the output)" },
+          { name: "registry", type: "string", summary: "Component registry for the figmaNode count" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "BAD_PINS", "BAD_MANIFEST", "BAD_LABELS", "BAD_REGISTRY"],
+      },
+      drift: {
+        summary: "Compare pins with the captured frame snapshot; exit 1 on DRIFT, MISSING, UNCHECKABLE, STALE-INGEST or EMPTY",
+        positionals: [],
+        flags: [
+          { name: "pins", type: "string", required: true, summary: "Pins file" },
+          { name: "frames", type: "string", required: true, summary: "Captured frame snapshot" },
+          { name: "max-age-days", type: "string", summary: "Oldest acceptable snapshot (default 14)" },
+          { name: "warn-only", type: "boolean", summary: "Report drift but exit 0" },
+          { name: "now", type: "string", summary: "Reference instant for the snapshot age (ISO)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_JSON", "BAD_PINS", "BAD_FRAMES"],
       },
     },
   },

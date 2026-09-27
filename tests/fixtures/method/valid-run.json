@@ -1,0 +1,20 @@
+{
+  "schema": "method-run/1",
+  "feature": "Usage Management",
+  "school": "none",
+  "steps": {
+    "frame": { "status": "done", "artifacts": [], "needs_humans": [] },
+    "define": {
+      "status": "done",
+      "artifacts": [{ "path": "brief.json", "provenance": "observed" }],
+      "needs_humans": []
+    },
+    "explore": { "status": "done", "artifacts": [], "needs_humans": [] },
+    "decide": {
+      "status": "done", "artifacts": [],
+      "needs_humans": [{ "question": "Which usage view should ship?", "role": "PM", "answered_by": "Product owner", "answered_at": "2026-09-27" }]
+    },
+    "build": { "status": "done", "artifacts": [], "needs_humans": [] },
+    "verify": { "status": "done", "artifacts": [], "needs_humans": [] }
+  }
+}

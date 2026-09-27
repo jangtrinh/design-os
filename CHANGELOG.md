@@ -24,6 +24,68 @@
   window, and `unclassifiedMutations` counts legacy Bash `mutate` records that carry no target
   (traces written by the previous hook): they are reported, not counted, and do not end the window.
 
+## 2026-09-27 - runtime prose read ratchet
+
+### Added
+- **`ui seam lint [--allowlist <file>] [--json]`** — scans kernel source for runtime
+  Markdown reads under knowledge, templates, docs, and README; reports new reads
+  and stale allowances as errors. `schemas/seam-allowlist.json` records existing
+  reads with their data purpose and proposed JSON home. The static scan follows
+  literal/joined paths, local bindings and named helpers; dynamically evaluated
+  paths and external runtime inputs remain outside its resolution boundary.
+
+## 2026-09-27 - a checkable six-step method run
+
+### Added
+- **`schemas/method-run.schema.json`** — one feature's frame, define, explore,
+  decide, build, and verify steps, with skip reasons, artifact provenance,
+  human questions, and optional school vocabulary.
+- **`ui method lint <run.json> [--json]`** — validates the run and its referenced
+  `brief.json`, blocks unreasoned skips and unanswered human needs on done
+  decisions or verification, and prints a six-cell status line.
+- **`docs/method-spine.md`** — how to record and check one method run.
+
+## 2026-09-27 - rulings can be checked for freshness, promoted, and drafted from corrections
+
+### Added
+- **`ui knowledge fresh <rulings.json> [--root <dir>] [--days 90] [--as-of <date>] [--strict]`** — age since
+  `verified_at` (or `since`) and liveness of repo-path source anchors for every live ruling; lists the STALE
+  ones and prints `fresh N / stale M / unanchored K`. `--strict` exits 1 when anything is stale.
+- **`ui knowledge promote <rulings.json> --ledger <events.jsonl> --out <dir>`** — the single-project promotion
+  gate. A live ruling becomes a candidate when at least `--min-recurrence` (default 3) ledger events mention its
+  id or one of its `principle[]`, or when it is backed by at least `--min-sources` (default 2) distinct source
+  documents. Writes `candidates.json` (`schemas/ruling-candidates.schema.json`) and `candidates.md`, both scrubbed
+  of hostnames, URLs, emails, absolute paths, Figma file keys, project names and people (`--redact`,
+  `--redact-people` add names the rulings do not reveal). A ledger with no recurrence yields zero candidates, exit 0.
+- **`ui knowledge draft-ruling --from <correction.json> --out <rulings-draft.json>`** — turns an approver
+  correction `{screen, what_was_wrong, what_is_right, evidence[]}` into a `status: draft`, `approved_by: []`
+  ruling stub that validates against the rulings schema.
+
+### Changed
+- **`status` accepts `draft`** in `schemas/rulings.schema.json` and `ui knowledge lint`; draft rulings are never
+  promoted and are not assessed for freshness.
+
+## 2026-09-27 - keep built code and Figma frames in step from the kernel
+
+### Added
+- **`ui ksync pin <route> --file <key> --node <id>`** — records which Figma frame a built route was built
+  against in `design/ksync/pins.json` (`schemas/ksync-pins.schema.json`). Idempotent upsert keyed by
+  frame, sorted output, stamps `pinnedAt` and `builtFrom` (git HEAD). Re-pinning is how a drift is accepted.
+- **`ui ksync census <manifest.json> --pins <pins.json>`** — counts route-manifest entries as
+  built / placeholder / orphan / parked, the share of built entries whose frame is pinned, a per-app
+  table, and (with `--registry`) how many registry components carry `figmaNode`. Labels are read from the
+  manifest or a `--labels` file, never guessed; entries with no label print as `unlabeled`.
+- **`ui ksync drift --pins <pins.json> --frames <frames.json>`** — compares each pin with a frame snapshot
+  the host captured: `DRIFT` (frame changed after the pin — spec hash, else `lastModified`), `MISSING`,
+  `UNCHECKABLE`, and `STALE-INGEST` when the snapshot is older than `--max-age-days` (default 14), which turns
+  the whole verdict red even if nothing else changed. Exit 1 unless `--warn-only`. The kernel reads captured
+  files; it never calls Figma.
+
+## 2026-09-27 - temporary native mobile proof fixtures are cleaned up
+
+### Fixed
+- Native mobile proof test fixtures now remove their temporary proof trees after each test.
+
 ## 2026-09-26 - the learning loop is measured by flow, and the agent's read trace becomes a number
 
 ### Changed
