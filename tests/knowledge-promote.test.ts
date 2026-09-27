@@ -39,6 +39,38 @@ describe("scrub — C1 red test: leaked tokens absent from the RENDERED candidat
   });
 });
 
+/** A ruling whose text carries a hostname and an absolute path that no fixed list would name, plus safe tokens that must survive. */
+function classLeakRulings(): string {
+  const doc = { schema: "rulings/1", rulings: [{
+    id: "r-class-leak", category: "shell", text: "Read /design/private/secret from api.example.shop and foo.internal; keep v1.2.3 and docs/alpha.md.", scope: "global",
+    source: ["docs/alpha.md", "docs/beta.md"], since: "2026-09-01", verified_by: "source", status: "active",
+  }] };
+  const p = join(tmp(), "class-leak.json");
+  writeFileSync(p, JSON.stringify(doc), "utf8");
+  return p;
+}
+
+describe("scrub by class — rendered output (candidates.md AND candidates.json)", () => {
+  it("removes any hostname and any deep absolute path, not only listed ones", () => {
+    const dir = tmp();
+    expect(promote("ledger-quiet.jsonl", dir, [], classLeakRulings()).code).toBe(0);
+    for (const f of ["candidates.md", "candidates.json"]) {
+      const out = readFileSync(join(dir, f), "utf8");
+      expect(out, f).toContain("r-class-leak");
+      for (const token of ["api.example.shop", "foo.internal", "/design/private/secret", "example.shop"]) expect(out, `${f} still contains '${token}'`).not.toContain(token);
+    }
+  });
+
+  it("false-positive guard: a version string and a repo-relative anchor survive", () => {
+    const dir = tmp();
+    promote("ledger-quiet.jsonl", dir, [], classLeakRulings());
+    const c = readJson(dir).candidates[0];
+    expect(c.text).toContain("v1.2.3");
+    expect(c.text).toContain("docs/alpha.md");
+    expect(c.source).toEqual(["docs/alpha.md", "docs/beta.md"]);
+  });
+});
+
 describe("scrubText (pure)", () => {
   it("replaces each kind with a placeholder and counts it", () => {
     const r = scrubText("mail a@b.io, see https://x.example.com/p?q=1, host db.internal.dev, /Users/me/a/b.ts, ~/notes/x.md, C:\\Users\\me\\x, figma:AbCdEfGhIjKlMnOpQrSt, 192.168.1.9", {});

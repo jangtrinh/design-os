@@ -19,21 +19,25 @@ export interface ScrubResult {
 
 const NON_URL_END = "[^\\s<>\"'`)\\]]*[^\\s<>\"'`)\\].,;:!?]";
 const PATH_END = "[^\\s\"'`<>()\\[\\],;]*[^\\s\"'`<>()\\[\\],;.:!?]";
-/** Top-level domains for bare hostnames. Deliberately short: `.sh`, `.test`, `.json`, `.md` are file names, not hosts. */
-const TLDS = "com|net|org|io|dev|app|ai|co|vn|edu|gov|info|biz|cloud|tech|xyz|local|internal|localhost";
+/** A dotted token is a file name, not a host, when it ends in one of these. */
+const FILE_EXTENSIONS = new Set(["ts", "tsx", "js", "jsx", "cjs", "mjs", "json", "md", "html", "css", "py", "yml", "yaml", "txt"]);
+const PATH_SEG = "[^\\s\"'`<>()\\[\\],;/]+";
+
+/** Any dotted label sequence ending in a 2–24 letter label is a hostname, unless it is a file name (a version like `1.2.3` never ends in letters). */
+const HOSTNAME_RE = /\b(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+([A-Za-z]{2,24})\b(?![\w-])(?!\.\w)(?::\d+)?|\blocalhost(?::\d+)?\b/gi;
 
 const RULES: readonly { kind: ScrubKind; re: RegExp; to: string }[] = [
   { kind: "email", re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g, to: "<email>" },
   { kind: "url", re: new RegExp(`\\b(?:https?|ftp|wss?|file)://${NON_URL_END}`, "g"), to: "<url>" },
   { kind: "figma-key", re: /figma:[A-Za-z0-9]{10,}/g, to: "figma:<figma-file-key>" },
   {
+    // `/` + at least two segments anywhere in text; repo-relative anchors (`docs/a.md`) have a word char before the first `/` and are spared.
     kind: "abs-path",
-    re: new RegExp(`(?<![\\w.:/-])(?:/(?:Users|home|private|var|tmp|opt|etc|mnt|Volumes|root|srv|usr|Library|Applications|workspaces?)/${PATH_END}|~/${PATH_END})|\\b[A-Za-z]:\\\\[^\\s"'\`<>]*[^\\s"'\`<>.,;:]`, "g"),
+    re: new RegExp(`(?<![\\w.:/-])(?:/${PATH_SEG}/${PATH_END}|~/${PATH_END})|\\b[A-Za-z]:\\\\[^\\s"'\`<>]*[^\\s"'\`<>.,;:]`, "g"),
     to: "<abs-path>",
   },
   { kind: "ip", re: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, to: "<ip>" },
-  // `(?!\.\w)`: `settings.local.json` and `x.io.json` are file names, not hosts.
-  { kind: "hostname", re: new RegExp(`\\b(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+(?:${TLDS})\\b(?![\\w-])(?!\\.\\w)(?::\\d+)?|\\blocalhost(?::\\d+)?\\b`, "gi"), to: "<hostname>" },
+  { kind: "hostname", re: HOSTNAME_RE, to: "<hostname>" },
 ];
 
 const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -58,7 +62,11 @@ export function scrubText(text: string, names: ScrubNames = {}): ScrubResult {
   const counts: Partial<Record<ScrubKind, number>> = {};
   let out = text;
   const apply = (kind: ScrubKind, re: RegExp, to: string): void => {
-    out = out.replace(re, () => { counts[kind] = (counts[kind] ?? 0) + 1; return to; });
+    out = out.replace(re, (m: string, ext?: unknown) => {
+      if (kind === "hostname" && typeof ext === "string" && FILE_EXTENSIONS.has(ext.toLowerCase())) return m;
+      counts[kind] = (counts[kind] ?? 0) + 1;
+      return to;
+    });
   };
   for (const rule of RULES) apply(rule.kind, rule.re, rule.to);
   const people = nameRe(names.people ?? []);
