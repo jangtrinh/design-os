@@ -10,6 +10,7 @@ import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { allContentChecks } from "../core/content-checks.js";
 import type { ContentFinding } from "../core/content-checks.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 
 const CMD = "content-lint";
@@ -67,8 +68,11 @@ export const contentLintCommand = {
       return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
     }
 
-    const all: ContentFinding[] = [];
-    for (const check of allContentChecks) all.push(...check(html));
+    // A1: judge the union of inline + LOCAL linked CSS exactly as if inlined;
+    // an unreadable linked stylesheet is an error finding, never silence.
+    const loaded = inlineLinkedCss(file, html);
+    const all: ContentFinding[] = [...loaded.errors];
+    for (const check of allContentChecks) all.push(...check(loaded.html));
     all.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1) || (a.line ?? 0) - (b.line ?? 0) || a.checkId.localeCompare(b.checkId));
     const errorCount = all.filter((f) => f.severity === "error").length;
     const result = { file, findings: all, ...countBySeverity(all) };

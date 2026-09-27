@@ -12,6 +12,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { lintLayout } from "../core/layout-lint.js";
+import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 
 const CMD = "validate-layout";
@@ -117,8 +118,14 @@ export const validateLayoutCommand = {
       return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
     }
 
-    // 3. Run linter (pure transform)
-    const { findings, errorCount, warningCount } = lintLayout(raw);
+    // 3. A1: judge the union of inline + LOCAL linked CSS exactly as if
+    // inlined; an unreadable linked stylesheet is an error finding, never
+    // silence.
+    const loaded = inlineLinkedCss(filePath, raw);
+    const lintResult = lintLayout(loaded.html);
+    const findings = [...loaded.errors, ...lintResult.findings];
+    const errorCount = lintResult.errorCount + loaded.errors.length;
+    const { warningCount } = lintResult;
 
     // 4. D4: exit 1 iff any error-severity finding
     const exitCode = errorCount > 0 ? 1 : 0;
