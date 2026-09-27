@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-27 - the `design/` directory contract
+
+### Added
+- **`schemas/design-dir.schema.json`** and **`docs/design-directory.md`** — the canonical layout: one token
+  source (`design/tokens.json`), soul, principles with a machine index, rulings as the only place supersession
+  is recorded, art direction under `design/art-direction/`, logs and caches gitignored.
+- **`ui design lint <project-root> [--json]`** — reports each deviation with a fix hint: extra token files
+  (unless declared derived in `design/design-dir.json`), tracked logs and caches under `design/`, art direction
+  outside `design/`, supersession outside rulings, a missing or stale principles index, and stale ingest
+  (`DESIGN.md` or the registry more than 14 days older than `ds.json`). Exit 1 on any error; warnings are advisory.
+- **`ui design principles-index <principles.md> --out <principles.json> [--check]`** — emits the index
+  (`id`, `title`, `yields_when`, `test`) from the `### <ID> · <title>` headings; `--check` exits 1 on drift.
+
 ## 2026-09-27 - an intake contract: lint a brief, get the questions that block it
 
 ### Added

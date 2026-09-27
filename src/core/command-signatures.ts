@@ -68,6 +68,26 @@ const STDIN_FILE: PositionalSignature = {
 // ─── The table ────────────────────────────────────────────────────────────────
 
 export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
+  design: {
+    summary: "Lint the design/ directory contract and emit the principles index",
+    subcommands: {
+      lint: {
+        summary: "Report every deviation from the design/ layout, each with a fix hint",
+        positionals: [{ name: "<project-root>", required: true, summary: "Project root that holds design/" }],
+        flags: [],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NOT_A_DIRECTORY", "SCHEMA_UNAVAILABLE"],
+      },
+      "principles-index": {
+        summary: "Emit design/principles.json from the headings of principles.md",
+        positionals: [{ name: "<principles.md>", required: true, summary: "Principles document" }],
+        flags: [
+          { name: "out", type: "string", required: true, summary: "Index file to write (or compare with --check)" },
+          { name: "check", type: "boolean", summary: "Do not write; exit 1 when the index is missing or differs" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_PRINCIPLES", "WRITE_ERROR"],
+      },
+    },
+  },
   seam: {
     summary: "Ratchet runtime prose reads in the kernel source",
     subcommands: {
