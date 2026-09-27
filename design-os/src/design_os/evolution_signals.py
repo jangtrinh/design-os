@@ -7,7 +7,9 @@ a missing/corrupt file degrades to its empty shape, never raises.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
+from statistics import median
 from typing import Any
 
 _DESIGN = "design"
@@ -104,3 +106,82 @@ def read_taste_votes_signal(project_dir: Path) -> dict[str, Any]:
         if path.is_file():
             return {"exists": True, "count": _count_jsonl_lines(path)}
     return {"exists": False, "count": 0}
+
+
+# ─── Throughput clock (PR-W0): a loop is alive only while it keeps moving ─────────────────
+GRADUATION_WINDOW_DAYS = 30
+MEDIAN_OPEN_GAP_MAX_DAYS = 30
+LEARNING_EVENT_WINDOW_DAYS = 7
+_LEARNING_EVENT_TYPES = ("gap", "retro")
+
+
+def _parse_ts(value: Any) -> datetime | None:
+    """Ledger `t` -> aware UTC datetime; anything unparseable is None (never raises)."""
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def _age_days(times: list[str], now: datetime) -> list[float]:
+    """Age in days of each timestamp at `now` (a future stamp clamps to 0)."""
+    ages: list[float] = []
+    for raw in times:
+        parsed = _parse_ts(raw)
+        if parsed is not None:
+            ages.append(max(0.0, (now - parsed).total_seconds() / 86400))
+    return ages
+
+
+def read_dated_learning_events(events: list[dict[str, Any]]) -> dict[str, list[str]]:
+    """Timestamps (ISO strings, `""` when a record has no `t`) of the three event classes
+    the clock reads. A graduation is an `insight` whose `refs` name a `gap` id — the
+    librarian's own close-out convention (a gap is OPEN until some insight lists its id).
+    A gap is a learning event; so is a `retro`."""
+    gap_ids = {e.get("id") for e in events if e.get("type") == "gap"}
+    resolved: set[Any] = set()
+    graduations: list[str] = []
+    for e in events:
+        if e.get("type") != "insight":
+            continue
+        hit = [r for r in (e.get("refs") or []) if r in gap_ids]
+        if hit:
+            resolved.update(hit)
+            graduations.append(str(e.get("t") or ""))
+    return {
+        "graduation_times": graduations,
+        "open_gap_times": [str(e.get("t") or "") for e in events
+                           if e.get("type") == "gap" and e.get("id") not in resolved],
+        "learning_event_times": [str(e.get("t") or "") for e in events
+                                 if e.get("type") in _LEARNING_EVENT_TYPES],
+    }
+
+
+def learning_clock(ledger: dict[str, Any], now: datetime) -> dict[str, Any]:
+    """The three throughput numbers (Art VIII: always reported as numbers) and whether each
+    window holds. Pure: everything derives from the dated lists in `ledger` and `now`."""
+    graduated = sum(1 for a in _age_days(ledger.get("graduation_times", []), now)
+                    if a <= GRADUATION_WINDOW_DAYS)
+    open_times = ledger.get("open_gap_times", [])
+    open_ages = _age_days(open_times, now)
+    median_age = median(open_ages) if open_ages else None
+    event_ages = _age_days(ledger.get("learning_event_times", []), now)
+    last_event = min(event_ages) if event_ages else None
+    graduation_ok = graduated >= 1
+    age_ok = median_age is None or median_age < MEDIAN_OPEN_GAP_MAX_DAYS
+    recent_ok = last_event is not None and last_event <= LEARNING_EVENT_WINDOW_DAYS
+    return {
+        "now": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "graduated_30d": graduated,
+        "open_gap_count": len(open_times),
+        "open_gaps_undated": len(open_times) - len(open_ages),
+        "median_open_gap_age_days": median_age,
+        "days_since_last_gap_or_retro": last_event,
+        "graduation_ok": graduation_ok,
+        "open_gap_age_ok": age_ok,
+        "recent_event_ok": recent_ok,
+        "window_ok": graduation_ok and age_ok and recent_ok,
+    }

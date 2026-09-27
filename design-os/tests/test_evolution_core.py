@@ -4,9 +4,12 @@ the dana shape (dead loop) and the VSF shape (alive), plus the no-ledger shape."
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from design_os import evolution_core
+
+NOW = datetime(2026, 9, 26, 12, 0, tzinfo=timezone.utc)
 
 
 def _write_ledger(project: Path, events: list[dict[str, object]]) -> None:
@@ -25,7 +28,7 @@ def test_dana_shape_is_dead_loop(tmp_path: Path) -> None:
     ]
     _write_ledger(tmp_path, events)
 
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
     assert signals["verdict"] == "DEAD-LOOP"
     assert signals["ledger"]["exists"] is True
@@ -47,7 +50,7 @@ def test_dead_loop_report_names_every_stalled_dimension(tmp_path: Path) -> None:
     ])
     from design_os.commands.evolution import _render_text
 
-    text = _render_text(evolution_core.gather_signals(tmp_path))
+    text = _render_text(evolution_core.gather_signals(tmp_path, NOW))
 
     assert "no insights" in text
     assert "no gaps" in text
@@ -55,9 +58,11 @@ def test_dead_loop_report_names_every_stalled_dimension(tmp_path: Path) -> None:
     assert "heartbeat: not wired" in text
 
 
-# ─── the VSF shape: an insight event, a ratified soul, a wired+fired heartbeat ──────────
+# ─── the July VSF shape: an insight, a ratified soul, a wired+fired heartbeat — all of it
+# ─── ten weeks old at NOW, with nothing graduated since. It once read ALIVE; the
+# ─── throughput clock (test_evolution_verdict_window.py) reads it as what it is.
 
-def test_vsf_shape_is_alive(tmp_path: Path) -> None:
+def test_stale_vsf_shape_is_dead_loop_not_alive(tmp_path: Path) -> None:
     _write_ledger(tmp_path, [
         {"v": 1, "id": "e1", "t": "2026-07-17T12:00:00Z", "type": "component_registered",
          "data": {"name": "button-primary"}},
@@ -90,9 +95,10 @@ def test_vsf_shape_is_alive(tmp_path: Path) -> None:
         },
     }), encoding="utf-8")
 
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
-    assert signals["verdict"] == "ALIVE"
+    assert signals["verdict"] == "DEAD-LOOP"
+    assert signals["clock"]["graduated_30d"] == 0
     assert signals["ledger"]["insight_events"] == 1
     assert signals["soul"]["ratified"] is True
     assert signals["soul"]["evidence_count"] == 1
@@ -105,7 +111,7 @@ def test_vsf_shape_is_alive(tmp_path: Path) -> None:
 # ─── no ledger at all ───────────────────────────────────────────────────────────────────
 
 def test_no_ledger_is_no_loop(tmp_path: Path) -> None:
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
     assert signals["verdict"] == "NO-LOOP"
     assert signals["ledger"]["exists"] is False
@@ -135,7 +141,7 @@ def test_fresh_wired_project_no_events_is_wired_not_no_loop(tmp_path: Path) -> N
         "---\nstatus: draft\n---\n\n## Never\n\n## Always\n\n## Voice\n", encoding="utf-8",
     )
 
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
     assert signals["verdict"] == "WIRED"
     assert signals["heartbeat"]["wired"] is True
@@ -153,7 +159,7 @@ def test_wired_project_with_mechanical_events_and_no_learning_is_still_wired(tmp
          "data": {"path": "color.accent", "from": "#000", "to": "#111"}},
     ])
 
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
     assert signals["verdict"] == "WIRED"
     assert signals["heartbeat"]["wired"] is True
@@ -175,7 +181,7 @@ def test_wired_heartbeat_that_fired_with_no_learning_is_dead_loop(tmp_path: Path
         },
     }), encoding="utf-8")
 
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
     assert signals["verdict"] == "DEAD-LOOP"
     assert signals["heartbeat"]["wired"] is True
@@ -189,7 +195,7 @@ def test_no_heartbeat_no_ledger_no_soul_is_no_loop_not_wired(tmp_path: Path) -> 
     be WIRED about)."""
     (tmp_path / "design").mkdir(parents=True)
 
-    signals = evolution_core.gather_signals(tmp_path)
+    signals = evolution_core.gather_signals(tmp_path, NOW)
 
     assert signals["verdict"] == "NO-LOOP"
     assert signals["heartbeat"]["wired"] is False

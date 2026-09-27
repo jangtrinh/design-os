@@ -1078,6 +1078,20 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       },
     },
   },
+
+  trace: {
+    summary: "Summarize the agent read trace (context loaded before the first edit, es-designer checklist evidence)",
+    subcommands: {
+      summarize: {
+        summary: "Read <dir>/.design-os/trace/reads.jsonl and report bytes/files loaded before the first mutation, README/index opened, es-designer loaded vs checklist ran, gate runs, trace coverage",
+        positionals: [{ name: "<dir>", required: true, summary: "Project directory holding .design-os/trace/reads.jsonl" }],
+        flags: [
+          { name: "session", type: "string", summary: "Keep only records of this session id (default: every record in the file)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NOT_A_DIR", "READ_ERROR"],
+      },
+    },
+  },
 };
 
 // ─── Lookup helper (shared by `ui schema` and the central flag guard) ─────────

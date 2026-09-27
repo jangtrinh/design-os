@@ -93,12 +93,18 @@ def test_live_dana_is_dead_loop(runner: CliRunner) -> None:
 
 
 @pytest.mark.skipif(not _VSF.is_dir(), reason="VSF-PCP checkout not present on this machine")
-def test_live_vsf_is_alive(runner: CliRunner) -> None:
+def test_live_vsf_is_dead_loop_because_nothing_graduates(runner: CliRunner) -> None:
+    """VSF holds an insight, a ratified soul and a wired heartbeat — the old windowless rule
+    read that as ALIVE. Its open gaps are weeks old and none has ever graduated, so the
+    throughput clock reads DEAD-LOOP and prints the three numbers."""
     res = runner.invoke(app, ["evolution", "--dir", str(_VSF), "--json"])
 
     assert res.exit_code == 0
     env = json.loads(res.stdout)
-    assert env["data"]["verdict"] == "ALIVE"
+    assert env["data"]["verdict"] == "DEAD-LOOP"
+    assert env["data"]["clock"]["graduated_30d"] == 0
+    text = runner.invoke(app, ["evolution", "--dir", str(_VSF)]).stdout
+    assert "graduated in 30d: 0" in text and "median open-gap age:" in text
     assert env["data"]["ledger"]["insight_events"] > 0
     assert env["data"]["soul"]["ratified"] is True
     assert env["data"]["heartbeat"]["wired"] is True
