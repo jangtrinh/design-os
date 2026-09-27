@@ -1,0 +1,9 @@
+{
+  "schema": "census-unbuilt/1",
+  "unbuiltInManifest": {
+    "entries": [
+      { "app": "alpha", "status": "placeholder", "kind": "route", "routeId": "alpha/list/detail", "variant": null, "name": "Detail" },
+      { "app": "alpha", "status": "orphan", "kind": "state", "routeId": "alpha/list/detail", "variant": "empty", "name": "Detail · empty" }
+    ]
+  }
+}

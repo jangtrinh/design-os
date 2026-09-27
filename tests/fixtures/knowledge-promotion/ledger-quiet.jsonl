@@ -1,0 +1,4 @@
+{"v":1,"id":"e1","t":"2026-09-01T00:00:00Z","type":"gap","data":{"note":"unrelated"}}
+{"v":1,"id":"e2","t":"2026-09-02T00:00:00Z","type":"gap","data":{"ruling":"r-recurring-one-source"}}
+{"v":1,"id":"e3","t":"2026-09-03T00:00:00Z","type":"gap","data":{"ruling":"r-recurring-one-source"}}
+{"v":1,"id":"e4","t":"2026-09-04T00:00:00Z","type":"gap","data":{"note":"r-recurring-one-source-extended is another id"}}
