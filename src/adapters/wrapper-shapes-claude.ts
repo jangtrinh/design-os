@@ -1,4 +1,5 @@
 import {
+  buildDesignEntryGlue,
   buildKnowledgeAnchor,
   buildSkillRefLines,
   INIT_VERB_DESCRIPTION,
@@ -45,7 +46,7 @@ export function buildClaudeCommand(
     ].join("\n");
   }
 
-  return [
+  const pieces = [
     "---",
     `description: ${yamlQuote(`ease-design /ui:${verb} — ${summary}`)}`,
     "---",
@@ -54,9 +55,21 @@ export function buildClaudeCommand(
     "",
     "Follow the runtime-neutral workflow at:",
     `\`${toFwdSlash(templatePath)}\``,
-    buildKnowledgeAnchor(knowledgeRoot),
-    skillBlock,
-  ].join("\n");
+  ];
+
+  const knowledgeAnchor = buildKnowledgeAnchor(knowledgeRoot);
+  if (knowledgeAnchor) {
+    pieces.push(knowledgeAnchor.trim());
+  }
+
+  pieces.push("", buildDesignEntryGlue(knowledgeRoot));
+
+  if (skillBlock) {
+    pieces.push(skillBlock.trim());
+  }
+
+  pieces.push("");
+  return pieces.join("\n");
 }
 
 /** Build a `.claude/skills/design-os-<name>/SKILL.md` wrapper. */

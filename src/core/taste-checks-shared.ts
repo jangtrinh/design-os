@@ -4,9 +4,11 @@
  * Pure string utilities — no fs, no DOM.
  */
 
-/** Return 1-based line number for a match at byte offset `idx`. */
+import { lineOf as fastLineOf } from "./line-index.js";
+
+/** Return 1-based line number for a match at UTF-16 code-unit offset `idx`. */
 export function lineOf(html: string, idx: number): number {
-  return html.slice(0, idx).split("\n").length;
+  return fastLineOf(html, idx);
 }
 
 /**

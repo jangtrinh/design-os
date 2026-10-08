@@ -13,10 +13,21 @@ function makeArtifacts() {
 }
 
 describe("generateClaudeAdapter", () => {
-  it("returns exactly 44 artifacts (22 commands + 19 craft skills + 3 journey skills)", () => {
+  it("returns exactly 45 artifacts (22 commands + 19 craft skills + 3 journey skills + 1 routing rule)", () => {
     const arts = makeArtifacts();
-    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
-    expect(arts).toHaveLength(44);
+    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
+    expect(arts).toHaveLength(45);
+  });
+
+  it("emits 1 routing rule at .claude/rules/design-os-routing.md with trigger: always_on and routing bootstrap glue", () => {
+    const arts = makeArtifacts();
+    const rule = arts.find((a) => a.absPath.endsWith(".claude/rules/design-os-routing.md"));
+    expect(rule).toBeDefined();
+    expect(rule!.mode).toBe("write");
+    expect(rule!.content).toContain("trigger: always_on");
+    expect(rule!.content).toContain("need-routing.md");
+    expect(rule!.content).toContain("build-loop.md");
+    expect(rule!.content).toContain("ui schema --json");
   });
 
   it("all artifacts have mode 'write'", () => {

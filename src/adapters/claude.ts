@@ -2,10 +2,11 @@
  * Claude Code adapter — generates the adapter artifact list for the claude runtime.
  *
  * Emits:
- *   20 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
- *   20 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (17 craft + 3 journey)
+ *   22 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
+ *   22 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (19 craft + 3 journey)
+ *   1 routing rule file    → <cwd>/.claude/rules/design-os-routing.md
  *
- * Total: 40 artifacts, all mode "write".
+ * Total: 45 artifacts, all mode "write".
  */
 import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
@@ -17,6 +18,7 @@ import {
   readTemplateDescription,
 } from "./templates.js";
 import { buildClaudeCommand, buildClaudeSkill } from "./wrapper-shapes.js";
+import { buildRoutingRule } from "./wrapper-shapes-shared.js";
 import { VERB_SKILL_REFS } from "./skill-refs.js";
 
 /**
@@ -81,6 +83,13 @@ export function generateClaudeAdapter(input: AdapterInput): AdapterArtifact[] {
   for (const name of JOURNEY_NAMES) {
     pushSkillArtifact(artifacts, cwd, templatesRoot, knowledgeRoot, "journey", name);
   }
+
+  // ── Routing rule ───────────────────────────────────────────────────────────
+  artifacts.push({
+    mode: "write",
+    absPath: join(cwd, ".claude", "rules", "design-os-routing.md"),
+    content: buildRoutingRule(templatesRoot, knowledgeRoot),
+  });
 
   return artifacts;
 }
