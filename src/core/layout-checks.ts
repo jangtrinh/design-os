@@ -6,35 +6,26 @@
  * Documented as heuristic where approximation is intentional.
  */
 import type { LayoutFinding } from "./layout-lint.js";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Return 1-based line number for a match at byte offset `idx`. */
-function lineOf(html: string, idx: number): number {
-  return html.slice(0, idx).split("\n").length;
-}
+import { lineOf } from "./line-index.js";
 
 // ─── Error-severity checks ────────────────────────────────────────────────────
 
 /** missing-doctype: no <!doctype html> at the start of the file. */
 export function checkMissingDoctype(html: string): LayoutFinding[] {
   if (/^\s*<!doctype\s+html/i.test(html)) return [];
-  return [{ checkId: "missing-doctype", severity: "warning",
-    message: "Document is missing <!doctype html> — quirks-mode rendering may cause layout drift" }];
+  return [{ checkId: "missing-doctype", severity: "warning", message: "Document is missing <!doctype html> — quirks-mode rendering may cause layout drift" }];
 }
 
 /** missing-html-root: no <html tag present. */
 export function checkMissingHtmlRoot(html: string): LayoutFinding[] {
   if (/<html[\s>]/i.test(html)) return [];
-  return [{ checkId: "missing-html-root", severity: "error",
-    message: "Document has no <html> tag — not a valid HTML document" }];
+  return [{ checkId: "missing-html-root", severity: "error", message: "Document has no <html> tag — not a valid HTML document" }];
 }
 
 /** missing-body: no <body tag present. */
 export function checkMissingBody(html: string): LayoutFinding[] {
   if (/<body[\s>]/i.test(html)) return [];
-  return [{ checkId: "missing-body", severity: "error",
-    message: "Document has no <body> tag — content will not render" }];
+  return [{ checkId: "missing-body", severity: "error", message: "Document has no <body> tag — content will not render" }];
 }
 
 /**

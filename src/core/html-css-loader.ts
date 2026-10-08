@@ -18,41 +18,32 @@
  */
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { Parser } from "htmlparser2";
 import type { FloorFindingBase } from "./finding-schema.js";
 
-const LINK_TAG_RE = /<link\b[^>]*>/gi;
 const IMPORT_RE = /@import\s+(?:url\(\s*)?["']?([^"'()]+)["']?\)?[^;]*;/gi;
 
 function isRemoteHref(href: string): boolean {
   return /^([a-z][a-z0-9+.-]*:)?\/\//i.test(href) || href.startsWith("data:");
 }
 
+const cleanHrefPath = (href: string): string => href.split(/[?#]/)[0] ?? "";
+const escapeHtmlAttr = (v: string): string =>
+  v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 function readLocalFile(path: string): { ok: true; text: string } | { ok: false; message: string } {
-  try {
-    return { ok: true, text: readFileSync(path, "utf8") };
-  } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : String(e) };
-  }
+  try { return { ok: true, text: readFileSync(path, "utf8") }; }
+  catch (e) { return { ok: false, message: e instanceof Error ? e.message : String(e) }; }
 }
 
-function unreadableFinding(kind: "linked stylesheet" | "@import", href: string, resolvedPath: string, message: string): FloorFindingBase {
-  return {
-    checkId: "linked-css-unreadable",
-    severity: "error",
-    message: `cannot read ${kind} '${href}' (resolved to '${resolvedPath}'): ${message}`,
-  };
-}
+const unreadableFinding = (kind: "linked stylesheet" | "@import", href: string, resolvedPath: string, message: string): FloorFindingBase => ({
+  checkId: "linked-css-unreadable",
+  severity: "error",
+  message: `cannot read ${kind} '${href}' (resolved to '${resolvedPath}'): ${message}`,
+});
 
-function parseLinkTag(tag: string): { rel: string; href: string } | undefined {
-  const rel = /\brel\s*=\s*["']([^"']*)["']/i.exec(tag)?.[1];
-  const href = /\bhref\s*=\s*["']([^"']*)["']/i.exec(tag)?.[1];
-  if (rel === undefined || href === undefined) return undefined;
-  return { rel, href };
-}
-
-function isStylesheetLink(rel: string): boolean {
-  return rel.split(/\s+/).some((token) => token.toLowerCase() === "stylesheet");
-}
+const isStylesheetLink = (rel: string): boolean =>
+  rel.split(/\s+/).some((token) => token.toLowerCase() === "stylesheet");
 
 /**
  * One level of `@import` expansion for a loaded CSS file's own content:
@@ -68,7 +59,8 @@ function expandImportsOnce(cssPath: string, cssText: string, errors: FloorFindin
   while ((m = IMPORT_RE.exec(cssText)) !== null) {
     const href = (m[1] ?? "").trim();
     if (href === "" || isRemoteHref(href)) continue;
-    const resolvedPath = resolve(baseDir, href);
+    const cleanPath = cleanHrefPath(href);
+    const resolvedPath = resolve(baseDir, cleanPath);
     const r = readLocalFile(resolvedPath);
     if (r.ok) imported.push(r.text);
     else errors.push(unreadableFinding("@import", href, resolvedPath, r.message));
@@ -76,8 +68,38 @@ function expandImportsOnce(cssPath: string, cssText: string, errors: FloorFindin
   return imported.length > 0 ? `${imported.join("\n")}\n${cssText}` : cssText;
 }
 
+interface DiscoveredLink {
+  href: string;
+  startIndex: number;
+  endIndex: number;
+}
+
+function discoverStylesheetLinks(html: string): DiscoveredLink[] {
+  const links: DiscoveredLink[] = [];
+  const parser = new Parser(
+    {
+      onopentag(name, attribs) {
+        if (name.toLowerCase() === "link") {
+          const rel = attribs["rel"];
+          const href = attribs["href"];
+          if (rel !== undefined && isStylesheetLink(rel) && href !== undefined) {
+            links.push({ href, startIndex: parser.startIndex, endIndex: parser.endIndex });
+          }
+        }
+      },
+    },
+    { lowerCaseAttributeNames: true, lowerCaseTags: true },
+  );
+  parser.write(html);
+  parser.end();
+  return links;
+}
+
 export interface LinkedStylesheet {
-  /** href exactly as written in the <link> tag. */
+  /**
+   * href as declared in the <link> tag (HTML entities decoded by the parser;
+   * query/fragment preserved).
+   */
   href: string;
   resolvedPath: string;
   /** Own content with one level of @import content prepended. */
@@ -89,30 +111,57 @@ export interface LinkedCssLoadResult {
   errors: FloorFindingBase[];
 }
 
+interface ResolvedLinkEntry {
+  link: DiscoveredLink;
+  sheet?: LinkedStylesheet;
+}
+
+interface ResolvedLinkedCss {
+  entries: ResolvedLinkEntry[];
+  sheets: LinkedStylesheet[];
+  errors: FloorFindingBase[];
+}
+
+function resolveLinkedCssEntries(htmlPath: string, html: string): ResolvedLinkedCss {
+  const baseDir = dirname(resolve(htmlPath));
+  const links = discoverStylesheetLinks(html);
+  const entries: ResolvedLinkEntry[] = [];
+  const sheets: LinkedStylesheet[] = [];
+  const errors: FloorFindingBase[] = [];
+
+  for (const link of links) {
+    if (isRemoteHref(link.href)) {
+      entries.push({ link });
+      continue;
+    }
+    const cleanPath = cleanHrefPath(link.href);
+    const resolvedPath = resolve(baseDir, cleanPath);
+    const r = readLocalFile(resolvedPath);
+    if (!r.ok) {
+      errors.push(unreadableFinding("linked stylesheet", link.href, resolvedPath, r.message));
+      entries.push({ link });
+      continue;
+    }
+    const sheet: LinkedStylesheet = {
+      href: link.href,
+      resolvedPath,
+      text: expandImportsOnce(resolvedPath, r.text, errors),
+    };
+    sheets.push(sheet);
+    entries.push({ link, sheet });
+  }
+
+  return { entries, sheets, errors };
+}
+
 /**
  * Discover and read every LOCAL `<link rel="stylesheet">` an HTML document
  * pulls in, resolved relative to `htmlPath`'s directory, one level of
- * `@import` deep. Order matches document order; a duplicate href yields one
- * entry per occurrence (a caller matching hrefs back to tags must consume
- * them in order — see `inlineLinkedCss`).
+ * `@import` deep. Order matches document order; duplicate hrefs yield one
+ * entry per occurrence.
  */
 export function loadLinkedCss(htmlPath: string, html: string): LinkedCssLoadResult {
-  const baseDir = dirname(resolve(htmlPath));
-  const sheets: LinkedStylesheet[] = [];
-  const errors: FloorFindingBase[] = [];
-  for (const m of html.matchAll(LINK_TAG_RE)) {
-    const parsed = parseLinkTag(m[0]);
-    if (parsed === undefined || !isStylesheetLink(parsed.rel)) continue;
-    const { href } = parsed;
-    if (isRemoteHref(href)) continue;
-    const resolvedPath = resolve(baseDir, href);
-    const r = readLocalFile(resolvedPath);
-    if (!r.ok) {
-      errors.push(unreadableFinding("linked stylesheet", href, resolvedPath, r.message));
-      continue;
-    }
-    sheets.push({ href, resolvedPath, text: expandImportsOnce(resolvedPath, r.text, errors) });
-  }
+  const { sheets, errors } = resolveLinkedCssEntries(htmlPath, html);
   return { sheets, errors };
 }
 
@@ -128,24 +177,18 @@ export function loadLinkedCss(htmlPath: string, html: string): LinkedCssLoadResu
  * silently dropped.
  */
 export function inlineLinkedCss(htmlPath: string, html: string): { html: string; errors: FloorFindingBase[] } {
-  const { sheets, errors } = loadLinkedCss(htmlPath, html);
+  const { entries, sheets, errors } = resolveLinkedCssEntries(htmlPath, html);
   if (sheets.length === 0) return { html, errors };
 
-  // Duplicate hrefs read fine at load time; queue per href so the replace
-  // pass below consumes them in the same document order they were loaded.
-  const queues = new Map<string, LinkedStylesheet[]>();
-  for (const s of sheets) {
-    const q = queues.get(s.href) ?? [];
-    q.push(s);
-    queues.set(s.href, q);
+  let out = "";
+  let lastIndex = 0;
+  for (const entry of entries) {
+    if (entry.sheet === undefined) continue;
+    out += html.slice(lastIndex, entry.link.startIndex);
+    out += `<style data-ui-linked-href="${escapeHtmlAttr(entry.sheet.href)}">\n${entry.sheet.text}\n</style>`;
+    lastIndex = entry.link.endIndex + 1;
   }
+  out += html.slice(lastIndex);
 
-  const out = html.replace(LINK_TAG_RE, (tag) => {
-    const parsed = parseLinkTag(tag);
-    if (parsed === undefined || !isStylesheetLink(parsed.rel) || isRemoteHref(parsed.href)) return tag;
-    const sheet = queues.get(parsed.href)?.shift();
-    if (sheet === undefined) return tag; // unreadable, or already consumed — leave <link> as-is
-    return `<style data-ui-linked-href="${sheet.href}">\n${sheet.text}\n</style>`;
-  });
   return { html: out, errors };
 }

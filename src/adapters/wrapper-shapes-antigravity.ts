@@ -1,5 +1,13 @@
 import { buildClaudeSkill } from "./wrapper-shapes-claude.js";
-import { buildKnowledgeAnchor, INIT_VERB_DESCRIPTION, toFwdSlash, yamlQuote } from "./wrapper-shapes-shared.js";
+import {
+  buildDesignEntryGlue,
+  buildKnowledgeAnchor,
+  buildSkillRefLines,
+  INIT_VERB_DESCRIPTION,
+  toFwdSlash,
+  yamlQuote,
+} from "./wrapper-shapes-shared.js";
+import { VERB_SKILL_REFS } from "./skill-refs.js";
 
 const ACTIVATION_ONLY_WORKFLOWS = new Set(["native-macos", "native-ios", "native-ipados"]);
 
@@ -32,25 +40,56 @@ export function buildAntigravityWorkflow(
   }
 
   const template = toFwdSlash(templatePath);
-  if (ACTIVATION_ONLY_WORKFLOWS.has(verb)) {
-    return [
-      "---", `description: ${yamlQuote(`ease-design ui-${verb} — ${summary}`)}`, "---", "",
-      `# ui-${verb}`, "", "Follow the runtime-neutral workflow at:", `\`${template}\``,
-      buildKnowledgeAnchor(knowledgeRoot),
-      "Create the typed activation request required by that workflow, then run its real entry check:",
-      "", "// turbo", "```bash",
-      "ui knowledge activate capability-activation-request.json --json > capability-activation.json",
-      "```", "",
-    ].join("\n");
+  const skillRefs = VERB_SKILL_REFS[verb] ?? [];
+  const skillBlock = buildSkillRefLines(skillRefs);
+
+  const pieces = [
+    "---",
+    `description: ${yamlQuote(`ease-design ui-${verb} — ${summary}`)}`,
+    "---",
+    "",
+    `# ui-${verb}`,
+    "",
+    "Follow the runtime-neutral workflow step-by-step at:",
+    `\`${template}\``,
+  ];
+
+  const knowledgeAnchor = buildKnowledgeAnchor(knowledgeRoot);
+  if (knowledgeAnchor) {
+    pieces.push(knowledgeAnchor.trim());
   }
 
-  return [
-    "---", `description: ${yamlQuote(`ease-design ui-${verb} — ${summary}`)}`, "---", "",
-    `# ui-${verb}`, "", "Follow the runtime-neutral workflow at:", `\`${template}\``,
-    buildKnowledgeAnchor(knowledgeRoot),
-    "When the workflow calls for a `ui` command, run it via the shell:",
-    "", "// turbo", "```bash", `ui ${verb === "from-ref" ? "from-ref" : verb} "$ARGS"`, "```", "",
-  ].join("\n");
+  pieces.push("", buildDesignEntryGlue(knowledgeRoot));
+
+  if (skillBlock) {
+    pieces.push(skillBlock.trim());
+  }
+
+  if (ACTIVATION_ONLY_WORKFLOWS.has(verb)) {
+    pieces.push(
+      "",
+      "Create the typed activation request required by that workflow, then run its real entry check:",
+      "",
+      "// turbo",
+      "```bash",
+      "ui knowledge activate capability-activation-request.json --json > capability-activation.json",
+      "```",
+      "",
+    );
+  } else {
+    pieces.push(
+      "",
+      "A workflow label is not a binary subcommand. Before running any `ui` commands called for by the workflow, inspect the real binary schema:",
+      "",
+      "// turbo",
+      "```bash",
+      "ui schema --json",
+      "```",
+      "",
+    );
+  }
+
+  return pieces.join("\n");
 }
 
 /** Antigravity and Claude skill wrapper shapes are intentionally byte-identical. */

@@ -20,11 +20,20 @@ tie-break falsifier — current per-verb distribution lives in the asset's
 | composite | 8 | ask "none" AND the route equals the expected capture-then-produce sequence exactly (same verbs, same order, same length) | tracked |
 
 The executable authority for these rules is the committed grader —
-`node eval/routing-grader.mjs eval/routing-prompts.json <decisions.json>` — where
-`decisions.json` is `[{id, route, ask, variants?}]` from any blind-router harness.
-Partial runs are supported and reported as `covered: k/n` per category; a subset
-is never presented as the whole. The grader was verified to reproduce run 1's
-published numbers exactly from run 1's raw decisions.
+`node eval/routing-grader.mjs [--require-complete] eval/routing-prompts.json <decisions.json>` — where
+`decisions.json` is `[{id, route: string[], ask: "none"|"ask-1"|"ask-2"|"ask-3", variants?: boolean}]`
+from any blind-router harness.
+
+Input admission is strictly validated before grading:
+- Unreadable files, invalid JSON, duplicate IDs, unknown prompt IDs (not in corpus), malformed
+  `route` arrays (empty when `ask === "none"`), invalid `ask` values, or non-boolean `variants`
+  are rejected immediately with a clear error on stderr and exit code 2.
+- Route correctness itself is evaluated during grading (reported as misses with exit code 0),
+  never rejected as an admission failure.
+- Output includes a top-level `coverage` block (`{ covered, total, complete, missingIds }`)
+  alongside `summary` and `misses`.
+- Partial runs are supported by default (`complete: false`). Adding `--require-complete` refuses
+  incomplete decision sets with exit code 2 and names missing prompt IDs on stderr.
 
 ## Authorship separation (why the numbers mean something)
 

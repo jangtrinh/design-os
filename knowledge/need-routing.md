@@ -77,7 +77,11 @@ A comparison of quantities → `chart`. A deck → `slides`. A chart INSIDE a pa
 to `generate`; inside a deck, to `slides` (composition, not a chart artifact).
 
 **G2 — Figma-canvas needs, and the bare "audit" that names no target.** Design
-something new on canvas → `design`. Push existing output or intent onto canvas →
+and construction routes in this gate require the Figma canvas as the requested
+destination. A generic request for a new UI component, or the word "design"
+without a canvas destination, does not establish that destination: continue
+to G3/G4 for the requested surface. Component scope does not choose a platform.
+Design something new on canvas → `design`. Push existing output or intent onto canvas →
 `to-figma`. Tie-break when a sentence reads as both (new thing AND canvas
 construction): the line is decision-vs-construction — the sentence asks to
 DECIDE what the thing should be (design words, an open direction) → `design`;

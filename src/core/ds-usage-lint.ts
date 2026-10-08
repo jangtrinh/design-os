@@ -39,6 +39,7 @@
  */
 import { computeSelectorBlocks } from "./css-selector-blocks.js";
 import { classifySelector } from "./css-selector-mode.js";
+import { lineOf } from "./line-index.js";
 
 export type DsUsageSeverity = "error" | "warning";
 export type DsUsageCheckId = "undeclared-token" | "off-system-token" | "hardcoded-color";
@@ -77,10 +78,6 @@ const CUSTOM_PROP_DECL_RE = /(--[a-zA-Z0-9_-]+)\s*:/g;
 /** Blank a matched span to same-length spaces so byte offsets survive (mirrors taste-lint). */
 function blank(s: string, re: RegExp): string {
   return s.replace(re, (m) => " ".repeat(m.length));
-}
-
-function lineOf(html: string, idx: number): number {
-  return html.slice(0, idx).split("\n").length;
 }
 
 /** :root / @theme / [data-theme=…] / .dark — the shared base/mode table (css-selector-mode.ts)
