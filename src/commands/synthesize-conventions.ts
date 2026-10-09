@@ -19,7 +19,7 @@ import { basename, resolve, join } from "node:path";
 
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
-import { errJson, errText, okJson } from "../core/output.js";
+import { errJson, errJsonWithData, errText, okJson } from "../core/output.js";
 import {
   parseDnaFile,
   parseDsScale,
@@ -30,10 +30,11 @@ import type { DsScale } from "../core/figma-conventions-synth.js";
 import {
   buildEvent,
   validateEvent,
-  nextEventId,
   MemoryEventError,
 } from "../core/memory-events.js";
-import { memoryPaths, ledgerLineCount, appendEvent, compileAndWrite } from "../core/memory-store.js";
+import { MemoryAppendCommittedError } from "../core/memory-error.js";
+import { memoryPaths } from "../core/memory-store.js";
+import { seedMemoryBatch } from "../core/memory-seed-batch.js";
 
 const CMD = "synthesize-conventions";
 
@@ -70,6 +71,8 @@ Error codes:
   BAD_JSON         A file is not valid JSON
   BAD_DNA          usage-dna.json is not a scan-conventions output (not a section array)
   BAD_DS           --ds is not a DTCG tokens.json object
+  MEMORY_LOCKED    Memory append lock is held; wait for its writer to release it
+  MEMORY_COMMITTED  Memory seed events committed before a later failure; do not repeat seeding
   WRITE_ERROR      An output file could not be written
 `;
 
@@ -99,20 +102,16 @@ function readJson(path: string, err: (code: string, msg: string) => CommandResul
 /** Seed project memory with a harvested anchor + one insight per prefers/avoids line. */
 function seedMemory(outDir: string, source: string, insights: string[], nowIso: string): void {
   const paths = memoryPaths(outDir);
-  let n = ledgerLineCount(paths);
-  const harvestData = { source, what: "applied conventions learned from real screens" };
-  validateEvent("harvested", harvestData, undefined);
-  const harvestedId = nextEventId(n);
-  appendEvent(paths, buildEvent({ id: harvestedId, t: nowIso, type: "harvested", data: harvestData, actor: CMD, medium: "figma" }));
-  n += 1;
-  for (const text of insights) {
-    const data = { text };
-    validateEvent("insight", data, [harvestedId]);
-    const id = nextEventId(n);
-    appendEvent(paths, buildEvent({ id, t: nowIso, type: "insight", data, actor: CMD, medium: "figma", refs: [harvestedId] }));
-    n += 1;
-  }
-  compileAndWrite(paths, nowIso);
+  seedMemoryBatch(paths, 1 + insights.length, nowIso, (append) => {
+    const harvestData = { source, what: "applied conventions learned from real screens" };
+    validateEvent("harvested", harvestData, undefined);
+    const harvestedId = append(buildEvent({ id: "", t: nowIso, type: "harvested", data: harvestData, actor: CMD, medium: "figma" })).id;
+    for (const text of insights) {
+      const data = { text };
+      validateEvent("insight", data, [harvestedId]);
+      append(buildEvent({ id: "", t: nowIso, type: "insight", data, actor: CMD, medium: "figma", refs: [harvestedId] }));
+    }
+  });
 }
 
 function runSynthesize(parsed: ParsedArgs): CommandResult {
@@ -175,6 +174,11 @@ function runSynthesize(parsed: ParsedArgs): CommandResult {
     writeFileSync(conventionsPath, result.conventionsMd, "utf8");
     if (seed) seedMemory(outDir, `figma scan-conventions (${basename(dnaPath)})`, result.insights, nowIso);
   } catch (e) {
+    if (e instanceof MemoryAppendCommittedError) {
+      return useJson
+        ? errJsonWithData(CMD, e.code, e.message, { committed: true, id: e.id, ids: e.ids, partial: e.partial, ledger: memoryPaths(outDir).ledger, warn: e.message })
+        : errText(`ui: ${e.message}\n`);
+    }
     if (e instanceof MemoryEventError) return err(e.code, `cannot seed memory: ${e.message}`);
     return err("WRITE_ERROR", `cannot write output: ${e instanceof Error ? e.message : String(e)}`);
   }

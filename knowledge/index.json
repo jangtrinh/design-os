@@ -247,6 +247,17 @@
       ]
     },
     {
+      "id": "figma-ds-onboarding",
+      "path": "knowledge/figma-ds-onboarding.md",
+      "description": "Install and verify the design:os Figma plugin, then read an owner's design system into portable local stores.",
+      "when": [
+        "figma",
+        "onboarding",
+        "design-system",
+        "plugin-install"
+      ]
+    },
+    {
       "id": "flow-craft",
       "path": "knowledge/flow-craft.md",
       "description": "Designing a multi-screen flow — the flow.json model and the deterministic flow lint.",

@@ -4,17 +4,17 @@
 import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
-import { errJson, errText, ok, okJson } from "../core/output.js";
+import { errJson, errJsonWithData, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import {
   validateEvent,
   buildEvent,
-  nextEventId,
   isMedium,
   MemoryEventError,
 } from "../core/memory-events.js";
 import type { EventType, Medium } from "../core/memory-events.js";
+import { MemoryAppendCommittedError } from "../core/memory-error.js";
 import {
   memoryPaths,
   ledgerLineCount,
@@ -80,7 +80,7 @@ export function runRecord(parsed: ParsedArgs): CommandResult {
 
   const dirFlag = parsed.flags["dir"];
   const paths = memoryPaths(typeof dirFlag === "string" ? dirFlag : undefined);
-  const id = nextEventId(ledgerLineCount(paths));
+  let id = "";
 
   const artifactRef = parsed.flags["artifact-ref"];
   const fingerprint = parsed.flags["fingerprint"];
@@ -100,11 +100,22 @@ export function runRecord(parsed: ParsedArgs): CommandResult {
   });
 
   try {
-    appendEvent(paths, event);
+    id = appendEvent(paths, event).id;
+  } catch (e) {
+    if (e instanceof MemoryAppendCommittedError) {
+      return useJson
+        ? errJsonWithData(CMD, e.code, e.message, { committed: true, id: e.id, type, ledger: paths.ledger })
+        : errText(`ui: ${e.message}\n`);
+    }
+    if (e instanceof MemoryEventError) return err(e.code, e.message);
+    return err("WRITE_ERROR", `cannot append memory: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  try {
     compileAndWrite(paths, new Date().toISOString()); // fold in a rebuild; deterministic view via `compile --now`
     if (parsed.flags["no-registry"] !== true) upsertRegistry(paths.projectDir, at.iso);
   } catch (e) {
-    return err("WRITE_ERROR", `cannot write memory: ${e instanceof Error ? e.message : String(e)}`);
+    const message = `event '${id}' committed to ledger; projection or registry update failed: ${e instanceof Error ? e.message : String(e)}. Do not repeat record; run memory compile to rebuild.`;
+    return useJson ? errJsonWithData(CMD, "MEMORY_COMMITTED", message, { committed: true, id, type, ledger: paths.ledger }) : errText(`ui: ${message}\n`);
   }
 
   const count = ledgerLineCount(paths);
