@@ -236,6 +236,18 @@
       ]
     },
     {
+      "id": "ds-kit-onboarding",
+      "path": "knowledge/ds-kit-onboarding.md",
+      "description": "Build, verify and adopt a complete owner component kit from captured Figma or code inventory, preserving owner identity on React, shadcn and Tailwind.",
+      "when": [
+        "owner-kit",
+        "full-design-system",
+        "component-kit",
+        "shadcn",
+        "inventory-mapping"
+      ]
+    },
+    {
       "id": "figma-agent-hand",
       "path": "knowledge/figma-agent-hand.md",
       "description": "Driving the figma-agent CLI — the optional Figma hand outside the deterministic binary.",

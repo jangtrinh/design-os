@@ -2,7 +2,7 @@ import { posix } from "node:path";
 import { splitSeam } from "./seam-tokens.js";
 import { visibleBinding } from "./seam-model.js";
 import type { Span } from "./seam-tokens.js";
-import type { SeamModule, SeamFunction } from "./seam-model.js";
+import type { SeamModule, SeamFunction, SeamCall } from "./seam-model.js";
 const unknown = ["*"];
 const unique = (values: string[]) => values.length ? [...new Set(values)].sort() : unknown;
 type Environment = Map<string, string[]>;
@@ -26,6 +26,18 @@ function combine(parts: string[][], separator: string): string[] {
   return values;
 }
 export function resolveSeamPaths(modules: SeamModule[]) {
+  // Targets depend only on the modeled corpus. Preserve callsite order while
+  // resolving them once; expression values still depend on env/seen/property.
+  const callers = new Map<SeamFunction, { caller: SeamModule; site: SeamCall }[]>();
+  for (const caller of modules) {
+    for (const site of caller.calls) {
+      const target = functionFor(caller, site.name, modules);
+      if (!target) continue;
+      const sites = callers.get(target.fn) ?? [];
+      sites.push({ caller, site });
+      callers.set(target.fn, sites);
+    }
+  }
   function evaluate(mod: SeamModule, span: Span, env: Environment = new Map(), seen = new Set<string>(), property?: string): string[] {
     let [a, b] = span; const t = mod.tokens;
     while (t[a]?.text === "(" && mod.pairs.get(a) === b - 1) { a++; b--; }
@@ -94,10 +106,8 @@ export function resolveSeamPaths(modules: SeamModule[]) {
       if (binding?.parameter) {
         const { fn, index } = binding.parameter;
         const supplied = env.get(`${mod.file}:${fn.at}:${name}${property ? `.${property}` : ""}`); if (supplied) return supplied;
-        const values = modules.flatMap((caller) => caller.calls.flatMap((site) => {
-          const target = functionFor(caller, site.name, modules);
-          return target?.fn === fn && site.args[index] ? evaluate(caller, site.args[index]!, env, next, property) : [];
-        }));
+        const values = (callers.get(fn) ?? []).flatMap(({ caller, site }) =>
+          site.args[index] ? evaluate(caller, site.args[index]!, env, next, property) : []);
         return values.length ? unique(values) : unknown;
       }
       if (binding) return binding.values.length ? unique(binding.values.flatMap((s) => val(s, binding.property ?? property))) : unknown;

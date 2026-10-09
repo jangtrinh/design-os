@@ -117,9 +117,20 @@ interchangeable:
   `design/ds.manifest.json`. Check the registry at that returned path; a foreign
   `component-registry.json` can cause a different output filename. **E4 stops at
   this portable inventory.** It does not establish a mapped kit, a sealed DS, or
-  accepted lessons. A future, explicitly authorized and validated stage must map
+  accepted lessons. The separately requested [owner-kit stage](../../knowledge/ds-kit-onboarding.md) must map
   the captured inventory and verify its seal before those claims apply. `ds import`
   alone seals tokens with an empty registry; it does not transfer captured components.
+
+**Complete executable owner kit:** when that is the requested deliverable, follow
+`knowledge/ds-kit-onboarding.md` after capture. The host builds real components; `ui ds kit`
+checks full source coverage, artifacts and evidence before create-only adoption. The
+new web target uses shadcn and Tailwind with owner variables and exact identities.
+Existing code may be reused. Every source component remains required beyond the starter
+floor; token import and the ten-entry context preview cannot satisfy this route.
+For a smaller actual owner inventory, record an explicit reviewed minimum in the
+kit contract; never pad to 25. Follow that guide's theme emission and host-write
+step before prepare. An intact stale kit can load DS context while verify readiness
+and lesson acceptance remain blocked; stage fresh proof instead of force-replacing it.
 
 **STOP-gate — two different `--name` flags, two different effects, easy to conflate:**
 `ui ingest-figma-ds --name <slug>` only sets the title string inside `DESIGN.md`; it does

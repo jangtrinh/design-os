@@ -5,9 +5,12 @@
  * (tokens + registry + manifest) and verifies their mutual consistency.
  * Pure transforms except for loadDesignSystem which performs filesystem I/O.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
+import { readBoundKit } from "./ds-kit-seal.js";
+import type { KitLock } from "./ds-kit-types.js";
+import { readKitFile } from "./ds-kit-files.js";
 import { parseTokenFile } from "./token-model.js";
 import { resolveTokens } from "./token-resolve.js";
 import { loadRegistry, looksLikeKernelRegistryRoot } from "./registry-store.js";
@@ -35,6 +38,7 @@ export interface DesignSystem {
   tokens: TokenTree;
   resolved: ResolvedMap;  // pre-resolved at load-time
   registry: Registry;
+  kit?: KitLock;
 }
 
 // ─── Error ────────────────────────────────────────────────────────────────────
@@ -45,6 +49,15 @@ export class DSError extends Error {
     super(message);
     this.name = "DSError";
     this.code = code;
+  }
+}
+
+/** Any reserved lock entry, including a damaged or dangling one, denotes a kit. */
+function kitLockPresent(root: string): boolean {
+  try { lstatSync(resolve(root, "kit.lock.json")); return true; }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw new DSError("DS_TAMPERED", `cannot inspect kit boundary at '${root}'`);
   }
 }
 
@@ -120,7 +133,9 @@ export function discoverDesignSystem(start: string | undefined): DesignSystemPat
 
   for (let level = 0; level < 5; level++) {
     const candidateManifest = resolve(cur, "design", "ds.manifest.json");
-    if (existsSync(candidateManifest)) {
+    // Return an orphan kit's own paths so load reports corruption rather than
+    // falling through to an older parent DS or treating it as an absent store.
+    if (existsSync(candidateManifest) || kitLockPresent(cur)) {
       return pathsForDir(resolve(cur, "design"));
     }
     // Stop at repo root — don't cross .git boundary upward
@@ -175,8 +190,8 @@ export function verifyHashes(
  * Load the design system from the three artifact files, verify hashes,
  * parse and resolve tokens. Throws on tamper, missing files, or parse errors.
  *
- * Guarantee: any missing-manifest condition is always surfaced as DS_NOT_FOUND,
- * never as the internal MANIFEST_NOT_FOUND code from ds-manifest.ts.
+ * A genuinely absent store is DS_NOT_FOUND. An orphan kit lock is DS_TAMPERED;
+ * it cannot become a standalone store after a missing manifest or partial adoption.
  */
 export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
   // Load and validate manifest — remap only MANIFEST_NOT_FOUND → DS_NOT_FOUND.
@@ -187,12 +202,30 @@ export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
     manifest = loadManifest(paths.manifest);
   } catch (e) {
     if (e instanceof DSManifestError && e.code === "MANIFEST_NOT_FOUND") {
+      if (kitLockPresent(dirname(paths.dir))) {
+        throw new DSError("DS_TAMPERED", "kit lock exists without its DS manifest; inspect the incomplete or damaged kit before writing");
+      }
       throw new DSError(
         "DS_NOT_FOUND",
         `no design system found at '${paths.manifest}' — run 'ui ds init <name>' to compile one.`,
       );
     }
     throw e;
+  }
+
+  const kitRoot = dirname(paths.dir);
+  if (!manifest.kit) {
+    try {
+      lstatSync(resolve(kitRoot, "kit.lock.json"));
+      throw new DSError("DS_TAMPERED", "kit lock exists without its manifest descriptor");
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  } else {
+    try {
+      for (const name of ["ds.manifest.json", "design.tokens.json", "component-registry.json"]) readKitFile(kitRoot, `design/${name}`);
+      if (paths.registry !== resolve(paths.dir, "component-registry.json")) throw new Error("kit registry must use the bound default projection");
+    } catch (error) { throw new DSError("DS_TAMPERED", `kit store boundary: ${error instanceof Error ? error.message : String(error)}`); }
   }
 
   // Read tokens file
@@ -232,6 +265,12 @@ export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
   // Verify hashes before trusting the content
   verifyHashes(manifest, tokensJson, registryJson);
 
+  let kit: KitLock | undefined;
+  if (manifest.kit) {
+    try { kit = readBoundKit(kitRoot, manifest.kit, tokensJson, registryJson); }
+    catch (error) { throw new DSError("DS_TAMPERED", `kit integrity: ${error instanceof Error ? error.message : String(error)}`); }
+  }
+
   // Parse and resolve tokens
   const tokens = parseTokenFile(tokensJson);
   const resolved = resolveTokens(tokens);
@@ -239,7 +278,7 @@ export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
   // Load registry (re-validates shape)
   const registry = loadRegistry(paths.registry);
 
-  return { paths, manifest, tokens, resolved, registry };
+  return { paths, manifest, tokens, resolved, registry, ...(kit && { kit }) };
 }
 
 /**

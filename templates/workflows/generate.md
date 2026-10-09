@@ -55,6 +55,22 @@ and `ui ds status --json`.
 
 Load DS context and the **full** reusable inventory:
 
+If the active manifest binds an owner kit, first run `ui ds kit verify --json`.
+Changed artifacts fail integrity; intact stale verification requires the staged
+growth loop in `knowledge/ds-kit-onboarding.md`. Keep those gaps in the builder
+packet and reverify before claiming kit readiness or proposing revision-bound
+lessons. A token or registry reseal alone does not refresh runtime/render proof. Verify
+requires `data.ready: true` and `data.kitStatus: "verified"`; intact stale DS context
+is available but is not a readiness pass. Lesson acceptance refuses `KIT_STALE`.
+Use the adopted kit's declared theme from `kit.json` for its owner aliases/modes;
+`ds context --with-theme` supplies ordinary token context, not that kit bridge.
+Read each selected mapping's actual implementation path/export and its bound usage
+guidance. Import those components when building on the kit's React target; registry
+SSR markup is reference evidence, not a substitute implementation. An explicitly
+requested different platform needs a reviewed adaptation and its own runtime proof.
+For owner names containing commas or other punctuation, pass JSON string arrays to
+`memory context --components` and `--patterns`; keep the exact inventory labels.
+
 ```sh
 ui ds context --strict --with-theme
 ui registry list --json

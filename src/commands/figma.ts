@@ -133,6 +133,9 @@ Error codes:
   BAD_REGISTRY       the component registry is invalid JSON or wrong shape
   BAD_MIRROR_CAPTURE the --mirror-file payload is malformed / wrong-version
   BAD_SIDECAR        a captured node spec is not a valid Figma node
+  KIT_FIGMA_APPLY    bound kits require a staged candidate; no live apply writes
+  DS_TAMPERED        existing DS or kit integrity failed before apply
+  BAD_MANIFEST       the owning DS manifest is malformed
   BAD_COMMENTS_PAYLOAD  the comments payload has no 'comments' array — it is not the body
                      of GET /v1/files/<key>/comments
   WRITE_ERROR        --apply could not write a sidecar, the registry, or the cursor state

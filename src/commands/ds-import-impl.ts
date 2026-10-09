@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
+import { refuseKitDowngrade } from "../core/ds-kit-seal.js";
 import { pathsForDir } from "../core/design-system.js";
 import { canonicalStringify, canonicalHash, newManifest } from "../core/ds-manifest.js";
 import { createEmptyRegistry } from "../core/registry-store.js";
@@ -39,6 +40,12 @@ export function runImport(parsed: ParsedArgs): CommandResult {
   const projectDir = typeof dirFlag === "string" ? resolve(dirFlag) : process.cwd();
   const designDir = join(projectDir, "design");
   const paths = pathsForDir(designDir);
+
+  try { refuseKitDowngrade(paths.dir); }
+  catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return useJson ? errJson(CMD, "KIT_DOWNGRADE", msg) : errText(`ui: ${msg}\n`);
+  }
 
   const nameFlag = parsed.flags["name"];
   const name = typeof nameFlag === "string" ? nameFlag : "imported-ds";

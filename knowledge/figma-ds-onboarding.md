@@ -154,33 +154,38 @@ read and successful local compilation do not establish a sealed DS or complete k
 Do not automatically replace an existing seal or treat its revision as belonging to
 this new capture. Seeded memory is observation history, not accepted lessons.
 
-For a future web implementation, the target is shadcn and Tailwind while preserving
+For a requested web implementation, the target is shadcn and Tailwind while preserving
 the owner's semantic tokens, names, variants, states and compositional patterns.
 A starter kit is a floor, not a 25-component cap; retain unresolved mappings beyond
 it. This setup and capture flow does not implement that mapping or generate a React
-kit. Native platform rules retain their own target.
+kit. Native platform rules retain their own target. When the owner asks to build the
+kit, enter the separate [owner-kit authoring stage](ds-kit-onboarding.md). Its source
+contract uses the retained raw scan, not an inferred subset of the portable registry.
 
 #### Conditional next stage: validate the seal and mapped inventory
 
-Only after a separately authorized, explicitly validated stage maps the captured
+Only after the separately requested [owner-kit stage](ds-kit-onboarding.md) maps the captured
 inventory into the owner's sealed store may this capture support accepted lessons.
 That stage must preserve the reviewed DS identity, reconcile all source-backed
 components and patterns, and verify the resulting seal and evidence. Importing
 only tokens is insufficient: `ds import` creates an empty registry. A token-only
 seal cannot establish captured component coverage.
 
-The following checks belong to that future stage, **not** completion of the setup
+The following checks belong to that authoring stage, **not** completion of the setup
 and portable-inventory flow above. Run them from the owner project only after the
 mapped store exists:
 
 ```sh
+ui ds kit verify --json
 ui ds status --json
 ui ds context --strict --with-theme
 ui registry list --json
 ui memory context --for generate --json --max-bytes 16384
 ```
 
-Require a healthy seal, reconciled full inventory and disclosed unresolved facts.
+Require kit verify `data.ready: true`, a healthy seal, reconciled full inventory
+and disclosed unresolved facts. Intact stale kit context is not current runtime
+proof; follow the staged growth guide before readiness or lesson acceptance.
 Look up every exact task target before authoring. Accepted lessons require the
 verified revision, matching evidence and an explicit owner decision; setup success
 or recurrence cannot supply acceptance.

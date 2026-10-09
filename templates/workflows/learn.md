@@ -52,7 +52,9 @@ project has no components"*. Only state "no UI here" outright when
 
 If `verdict` is already `ds-present`, tell the user a compiled DS exists and stop
 unless they explicitly want to re-learn (e.g. after a major redesign);
-re-learning replaces the system via `--force` inside the routed flow. For ordinary
+legacy re-learning replaces the system via `--force` inside the routed flow.
+An adopted owner kit must instead follow the staged growth route in
+`knowledge/ds-kit-onboarding.md`; never force-import or initialize over its binding. For ordinary
 corrections or inventory growth, continue through
 [post-onboarding learning](../../docs/design-learning.md) instead of resetting the DS.
 
@@ -281,6 +283,11 @@ kits + the `ds init` kit):
    toolchain to do exactly that — rendering a user's code is a No-Go
    (`brainstorm.md` §7).
 
+These rules govern legacy extraction. An explicitly requested executable owner
+kit uses `knowledge/ds-kit-onboarding.md` in an isolated candidate, with exact
+source names and actual export build/render proof; it is a separate authorization,
+not permission to execute code during `/ui:learn`.
+
 With these three settled, `extract.md`'s steps 2–3 (discovery + canonical
 naming) and step 8 (register) run unchanged against the sampled files.
 
@@ -308,6 +315,11 @@ and unsealed**. Do not continue to the soul/readiness report below, invite
 An existing older seal is a separate store, not proof this capture was adopted.
 Only a separately validated mapping/sealing stage that reconciles the captured
 inventory into the active DS may enter the generic readiness and lesson flow.
+If the owner also requested an executable kit, hand off to the separate
+`knowledge/ds-kit-onboarding.md` authoring stage after this capture handback. That
+stage uses source-bound actual exports and build/render evidence, with create-only
+adoption; its explicit implementation scope is separate from this legacy extraction
+flow's code-rendering prohibition. Never implicitly execute a user's package scripts.
 
 The routed flow ends by compiling a Design System on disk. Verify it is healthy
 before reporting success:
@@ -322,6 +334,10 @@ Record the harvest as the provenance seed:
 ```sh
 ui memory record harvested --data '{"source":"<url-or-path>","what":"<tokens/components summary>"}'
 ```
+
+For an adopted owner kit, also require `ui ds kit verify --json` to report
+`data.ready: true`. Intact stale kits can load DS context but cannot establish
+current runtime readiness or pass lesson acceptance; use the staged growth guide.
 
 `ds status` must exit 0 (not `DS_TAMPERED`); `ds context --strict --with-theme`
 must emit the context block and the compiled `@theme` block. A `DS_TAMPERED`

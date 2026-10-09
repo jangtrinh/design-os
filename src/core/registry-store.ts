@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { canonicalStringify } from "./ds-manifest.js";
+import { string as validateKitString } from "./ds-kit-parse.js";
 import { writeShards } from "./registry-shards.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -162,6 +163,15 @@ export function validateFigmaNodePointer(relPath: unknown): string {
  * Throws RegistryError with a precise code on any violation.
  */
 export function validateComponentRecord(rec: unknown): ComponentRecord {
+  return validateRecord(rec, false);
+}
+
+/** Source-authored kits preserve exact owner display names; every other field stays strict. */
+export function validateSourceAuthoredComponentRecord(rec: unknown): ComponentRecord {
+  return validateRecord(rec, true);
+}
+
+function validateRecord(rec: unknown, sourceAuthored: boolean): ComponentRecord {
   if (rec === null || typeof rec !== "object" || Array.isArray(rec)) {
     throw new RegistryError("BAD_ARG", "component must be a plain object");
   }
@@ -171,7 +181,11 @@ export function validateComponentRecord(rec: unknown): ComponentRecord {
   if (typeof r["name"] !== "string" || r["name"].length === 0) {
     throw new RegistryError("BAD_ARG", "component.name is required and must be a string");
   }
-  if (!NAME_PATTERN.test(r["name"])) {
+  if (sourceAuthored) {
+    try { validateKitString(r["name"], "component.name"); }
+    catch (error) { throw new RegistryError("BAD_NAME", error instanceof Error ? error.message : String(error)); }
+  }
+  if (!sourceAuthored && !NAME_PATTERN.test(r["name"])) {
     throw new RegistryError(
       "BAD_NAME",
       `component name '${r["name"]}' must match Category/Variant (PascalCase/PascalCase, letters only)`,

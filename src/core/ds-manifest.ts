@@ -32,6 +32,7 @@ export interface DSManifest {
   registryHash: string;
   generation: number;      // ≥ 1
   changelog: DSChangelogEntry[];
+  kit?: { version: 1; lockHash: string };
 }
 
 // ─── Error ────────────────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ export function canonicalHash(value: unknown): string {
 
 const MANIFEST_ROOT_KEYS = new Set([
   "name", "version", "createdAt", "persona", "intent",
-  "compiledHash", "registryHash", "generation", "changelog",
+  "compiledHash", "registryHash", "generation", "changelog", "kit",
 ]);
 const CHANGELOG_KEYS = new Set([
   "ts", "kind", "by", "path", "from", "to", "reason", "note",
@@ -179,6 +180,18 @@ export function validateManifestShape(obj: unknown): DSManifest {
     throw new DSManifestError("BAD_MANIFEST", "manifest.generation must be an integer ≥ 1");
   }
 
+  if (m["kit"] !== undefined) {
+    const kit = m["kit"];
+    if (kit === null || typeof kit !== "object" || Array.isArray(kit)) {
+      throw new DSManifestError("BAD_MANIFEST", "manifest.kit must be an object");
+    }
+    const descriptor = kit as Record<string, unknown>;
+    if (Object.keys(descriptor).length !== 2 || descriptor["version"] !== 1 ||
+        typeof descriptor["lockHash"] !== "string" || !/^sha256-[A-Za-z0-9_-]{43}$/.test(descriptor["lockHash"])) {
+      throw new DSManifestError("BAD_MANIFEST", "manifest.kit must contain exactly version:1 and a SHA-256 lockHash");
+    }
+  }
+
   // changelog
   if (!Array.isArray(m["changelog"])) {
     throw new DSManifestError("BAD_MANIFEST", "manifest.changelog must be an array");
@@ -225,6 +238,7 @@ export function validateManifestShape(obj: unknown): DSManifest {
     registryHash: m["registryHash"],
     generation: m["generation"],
     changelog: m["changelog"] as DSChangelogEntry[],
+    ...(m["kit"] !== undefined && { kit: m["kit"] as NonNullable<DSManifest["kit"]> }),
   };
 }
 

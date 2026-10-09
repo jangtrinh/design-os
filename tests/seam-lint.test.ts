@@ -79,6 +79,24 @@ describe("prose read ratchet", () => {
 });
 
 describe("read path measurement", () => {
+  it("keeps imported aliases, same-named functions, and successive corpora separate", () => {
+    const sources = {
+      "src/a.ts": `import { readFileSync } from 'node:fs';
+export function load(input) { return readFileSync(input.root + '/a.md'); }`,
+      "src/b.ts": `import { readFileSync } from 'node:fs';
+export function load(input) { return readFileSync(input.root + '/b.md'); }`,
+      "src/main.ts": `import { load as first } from './a.js';
+import { load as second } from './b.js';
+first({ root: 'knowledge' }); first({ root: 'templates' }); first();
+second({ root: 'docs' });`,
+    };
+    expect(scanProseReads(sources).map(({ file, paths }) => ({ file, paths }))).toEqual([
+      { file: "src/a.ts", paths: ["knowledge/a.md", "templates/a.md"] },
+      { file: "src/b.ts", paths: ["docs/b.md"] },
+    ]);
+    expect(scanProseReads({ ...sources, "src/main.ts": "export {};" })).toEqual([]);
+  });
+
   it("resolves declarations terminated by newlines rather than semicolons", () => {
     const reads = scanProseReads({ "src/read.ts": `import { readFileSync } from 'node:fs'
 import { join } from 'node:path'

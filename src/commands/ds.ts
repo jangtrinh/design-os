@@ -2,6 +2,7 @@
  * `ui ds` dispatcher — routes ds subcommands to their implementations.
  */
 import { errJson, errText } from "../core/output.js";
+import { runKit } from "./ds-kit-impl.js";
 import { runInit } from "./ds-init-impl.js";
 import { runContext } from "./ds-context-impl.js";
 import { runDiff } from "./ds-diff-impl.js";
@@ -22,6 +23,7 @@ const CMD = "ds";
 export const DS_HELP = `ui ds — Design System SSOT (compile + enforce)
 
 Usage:
+  ui ds kit plan|theme|prepare|validate|adopt|verify [options]
   ui ds init <name> --persona <slug> --intent "<text>" [options]
   ui ds context [--strict] [--with-theme] [--format markdown|json] [options]
   ui ds change-token <path> --value <v> [options]
@@ -35,6 +37,7 @@ Usage:
   ui ds soul check [--dir <project>] [--json] [--studio]
 
 Subcommands:
+  kit            Stage owner captures, emit approved theme CSS, validate, adopt and verify a kit
   init           Compile a project-scoped design system from a persona + intent
   import         Onboard an EXISTING flat tokens.json → the DTCG store (so ds a11y/status/diff work)
   context        Emit the active design system as a context block for the host model
@@ -48,6 +51,15 @@ Subcommands:
   specimen       Report each component's variant×state matrix + applicable-state gaps (missing disabled/empty)
   preview        Generate a self-contained specimen.html from the compiled tokens + registry
   soul           Scaffold + structure-lint the declared design stance (design/soul.md)
+
+'ds kit' operations:
+  plan --source <file> --kind figma|registry --tokens <file> --out <absent-dir> --name <display-name>
+  theme <candidate-root> [--json]    Read-only; JSON {path,css}, text CSS on stdout
+  prepare <candidate-root> [--json]  Read-only structure/hash/findings
+  validate <candidate-root> [--json] Read-only complete evidence validation and lock summary
+  adopt <candidate-root> --out <absent-dir> [--now <UTC-ISO>] [--json]
+  verify [--dir <project>] [--json]  Integrity and verified/stale readiness
+  Host writes the returned theme CSS into the candidate's declared theme path.
 
 'ds a11y' options:
   --dir <path>       Project directory holding design/ (default: cwd)
@@ -228,6 +240,21 @@ Error codes:
   EXISTS             'ds soul init' target soul.md exists (use --force)
   WRITE_ERROR        'ds soul init' could not write the scaffold
   READ_ERROR         'ds soul check' could not read soul.md
+
+Kit error codes:
+  KIT_DOWNGRADE              Init/import cannot replace an adopted or incomplete kit
+  BAD_KIT / KIT_FORMAT       Malformed kit contract or unsupported fields
+  KIT_PATH / KIT_IO          Unsafe path or unreadable candidate file
+  KIT_SOURCE / KIT_TOKENS    Invalid captured record or token tree
+  KIT_THEME / KIT_ALIAS / KIT_MODE  Invalid owner theme, compatibility alias or mode
+  KIT_UNDECLARED             Required or discovered content is outside the declared closure
+  KIT_BLOCKED                Unresolved coverage or source facts; inspect returned findings
+  KIT_EVIDENCE               Missing, failed or inconsistent declared case evidence
+  KIT_EVIDENCE_STALE         Receipt subject differs from prepared content
+  KIT_TAMPERED / KIT_CHANGED Bound bytes changed during validation or adoption
+  KIT_NOT_BOUND             Verify requested for a project without an adopted kit
+  KIT_TARGET_EXISTS         Destination is occupied; no overwrite is allowed
+  KIT_PLAN_INCOMPLETE / KIT_ADOPTION_INCOMPLETE  Explicit partial reservation; inspect receipt
 `;
 // 'ds a11y' error codes (DS_NOT_FOUND / BAD_ARG / BAD_JSON / UNKNOWN_FLAG) are shared with the above.
 
@@ -239,6 +266,7 @@ export const dsCommand = {
   run(parsed: ParsedArgs): CommandResult {
     const sub = parsed.subcommand;
     switch (sub) {
+      case "kit":          return runKit(parsed);
       case "init":         return runInit(parsed);
       case "import":       return runImport(parsed);
       case "context":      return runContext(parsed);

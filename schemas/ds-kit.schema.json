@@ -1,0 +1,339 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ease-design.dev/schemas/ds-kit.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$",
+      "maxLength": 64,
+      "$comment": "Runtime also enforces the manifest UTF-16 code-unit limit; JSON Schema maxLength counts Unicode scalars."
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$",
+      "maxLength": 512,
+      "$comment": "Runtime also enforces the manifest UTF-16 code-unit limit; JSON Schema maxLength counts Unicode scalars."
+    },
+    "target": {
+      "const": "react-shadcn-tailwind"
+    },
+    "minimumComponents": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^:]+$",
+            "allOf": [
+              {
+                "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "registry",
+              "figma"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$",
+            "minLength": 71,
+            "maxLength": 71
+          },
+          "scope": {
+            "enum": [
+              "partial",
+              "complete"
+            ]
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "path",
+          "hash",
+          "scope",
+          "limitations"
+        ]
+      },
+      "minItems": 1
+    },
+    "tokens": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+    },
+    "theme": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+    },
+    "aliases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+      },
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+          },
+          "disposition": {
+            "enum": [
+              "component",
+              "icon",
+              "screen",
+              "excluded",
+              "unresolved"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+          },
+          "implementation": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+              },
+              "strategy": {
+                "enum": [
+                  "reuse",
+                  "adapt",
+                  "custom"
+                ]
+              },
+              "primitives": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "path",
+              "export",
+              "strategy",
+              "primitives"
+            ]
+          },
+          "markup": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+            },
+            "uniqueItems": true
+          },
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+            },
+            "uniqueItems": true
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+            },
+            "uniqueItems": true
+          },
+          "tokensUsed": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "sourceId",
+          "name",
+          "disposition"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "component"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "implementation",
+                "markup",
+                "variants",
+                "states",
+                "cases"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "enum": [
+                    "icon",
+                    "screen",
+                    "excluded"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "reason",
+                "cases"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+      },
+      "uniqueItems": true
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+          },
+          "kind": {
+            "enum": [
+              "build",
+              "render",
+              "behavior",
+              "review"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?=\\s*\\S)[^\\x00-\\x1f\\x7f\\uD800-\\uDFFF]+$"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "subject",
+          "description"
+        ]
+      }
+    },
+    "evidence": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ](?:/(?!(?:\\.{1,2}|(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.[^/]*)?)(?:/|$))[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*]*[^/\\\\\\x00-\\x1f\\x7f\\uD800-\\uDFFF<>:\"|?*. ])*$"
+    }
+  },
+  "required": [
+    "version",
+    "name",
+    "intent",
+    "target",
+    "minimumComponents",
+    "sources",
+    "tokens",
+    "theme",
+    "aliases",
+    "mappings",
+    "artifacts",
+    "cases",
+    "evidence"
+  ]
+}
