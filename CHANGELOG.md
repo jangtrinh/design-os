@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-09 - owner-local design learning
+
+### Added
+- [Owner-local design learning](docs/design-learning.md): scoped pending/accepted/rejected/revoked
+  lesson examples with local evidence fingerprints and owner-decision receipts. Documents
+  revision identity, whole-kit seal limits, context budgets, graph v2 source-hash freshness,
+  and the distinction between accepted feedback, verified implementation, and enforcement.
+  The deterministic CLI validates local evidence and receipt integrity; the host obtains
+  the owner decision. A receipt does not authenticate human identity.
+
+### Changed
+- Learn connects onboarding to ongoing project evolution and full inventory reconciliation
+  without a 25-component cap. Generate grounds DS/task context, loads exact registry definitions
+  beyond truncated previews, and reads scoped lessons before authoring directions.
+- Recurring project wins propose lessons for owner review; cross-context world-class
+  qualification remains separate. Every visual change discovers available project design craft
+  or uses the shipped craft/build-loop fallback. Routine authorized renders need no fresh
+  approval; durable lesson decisions do. Shared runtime and design-agent instructions load
+  accepted lessons before authoring. No new workflow, scheduler, or floor override.
+- Memory writes allocate IDs under a shared append lock with a bounded 100 ms contention
+  retry. Ordinary auto-record avoids whole-ledger replay and eager graph writes. Graph v2
+  freshness uses the ledger's byte hash; required lesson context fails visibly on overflow.
+- Figma DS reads default to the separately installed design:os plugin on every seat.
+  The packaged A-to-Z guide verifies and pins the file before capture, preserves the
+  ingest command's actual registry path, and stops at portable inventory until a
+  separate validated sealing and component-mapping stage is complete.
+
 ## 2026-10-09 - persistent design routing and deterministic gate hardening
 
 ### Added

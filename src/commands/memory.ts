@@ -19,7 +19,7 @@ export const MEMORY_HELP = `ui memory — per-project design-decision ledger + c
 Usage:
   ui memory record <type> --data '<json>' [options]
   ui memory compile [--now <iso>] [--dir <path>]
-  ui memory context [--for generate|critique|why] [--rank-file <path>] [--max-bytes <n>] [--now <iso>] [--dir <path>]
+  ui memory context [--for generate|critique|why] [--components <names>] [--patterns <names>] [--rank-file <path>] [--max-bytes <n>] [--now <iso>] [--dir <path>]
   ui memory query [--type <t>] [--design <id>] [--persona <slug>] [--limit <n>] [--dir <path>]
   ui memory fingerprint <file>
   ui memory consolidate [--insight "<text>" --refs '<json>'] [--actor <name>] [--now <iso>]
@@ -44,7 +44,7 @@ record flags:
   --design <id>       Design id this event is about
   --artifact-ref <r>  Artifact reference (file path or node id)
   --fingerprint <f>   Artifact fingerprint (sha256:…)
-  --refs <ids>        Comma-separated event ids this event draws from (required for 'insight')
+  --refs <ids>        Comma-separated source event ids (required for insight and lessons)
   --dir <path>        Project directory (default: cwd)
   --no-registry       Do not upsert this project into the user registry
 
@@ -53,6 +53,11 @@ Event types (v1): variant_generated, rendition_created, taste_verdict, user_pick
   insight (an 'insight' event requires --refs for provenance),
   gap (a knowledge-core gap for the librarian to graduate; refs optional).
   Example: ui memory record gap --data '{"text":"…","target":"taste-rubric.md#motion"}'
+  lesson_proposed    Scoped pending lesson with text, scope and dsRevision; refs cite
+                     local fingerprinted evidence. No automatic owner acceptance.
+  lesson_reviewed    accept | reject | revoke a lessonId, with reason, actor and
+                     fingerprinted approval receipt; refs exactly [lessonId].
+  See docs/design-learning.md for the receipt shape and complete examples.
 
 Other flags:
   --now <iso>         compile/context/consolidate: decay + compiledAt clock (deterministic when fixed)
@@ -60,7 +65,12 @@ Other flags:
   --rank-file <path>  context only: JSON array of ranked event ids (from 'recall query') whose
                       corpus items are spliced into the prior; never spliced for --for critique
                       (the taste gate stays craft-only)
-  --max-bytes <n>     context only: truncate the block, sections whole (default 2048)
+  --components <n>   context only: exact owner component names as CSV or a JSON string array
+  --patterns <n>     context only: exact owner pattern names as CSV or a JSON string array
+                      Use JSON for names containing commas or significant whitespace.
+                      Without task targets, only accepted project lessons are selected.
+  --max-bytes <n>     context only: total UTF-8 output budget, including JSON (default 2048).
+                      Optional history may be omitted; required lessons never silently drop.
   --since <eventId>   export-corpus only: emit only items recorded after this event id
   --type <t>          query only: filter by event type
   --persona <slug>    query only: filter by persona
@@ -78,8 +88,15 @@ Error codes:
   UNKNOWN_FLAG     Unrecognised --flag (rejected, with a did-you-mean hint)
   BAD_EVENT_TYPE   Event type is not in the v1 closed set
   BAD_EVENT        Event fails schema (missing required data key, or 'insight' without --refs)
+  BAD_LESSON       Lesson schema, evidence, approval receipt, scope, revision or lifecycle fails
+  DS_TAMPERED      Active DS token or registry bytes do not match the seal
+  BAD_MANIFEST     Active DS manifest is malformed
+  BAD_DS           Active DS files cannot form a valid design system
   NO_MEMORY        No ledger to compile
   BAD_LEDGER       A ledger line is unparseable (message names the line number)
+  CONTEXT_OVERFLOW Required lesson context exceeds --max-bytes; raise it or narrow targets
+  MEMORY_LOCKED    Another writer holds the ledger lock; retry after it settles
+  MEMORY_COMMITTED Event landed but projection/registry refresh failed; compile, do not re-record
   FILE_NOT_FOUND   fingerprint target does not exist
   READ_ERROR       fingerprint target cannot be read
   WRITE_ERROR      Could not write the ledger, graph, or profile

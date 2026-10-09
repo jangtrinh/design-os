@@ -70,6 +70,12 @@ $FA status   # spawns the broker if absent; needs the plugin open in Figma
 
 ## Bridge selection — which hand to drive (seat-adaptive)
 
+**DS onboarding read override:** use the design:os Figma plugin by default on
+every seat. Follow `knowledge/figma-ds-onboarding.md` from installation through
+exact-file verification and inventory capture. The selector below governs
+seat-specific canvas execution; it never silently changes that onboarding read
+path. An alternative DS source path requires the owner's explicit choice.
+
 ease-design drives ONE of two Figma write bridges, chosen by seat. Never hardcode a
 bridge — ask the selector once per session and carry the answer (F0 §3, session context):
 

@@ -947,7 +947,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "seed-memory", type: "boolean", summary: "Also seed 'ui memory' (harvested + component_registered events)" },
         { name: "now", type: "string", summary: "Deterministic clock for the seeded memory graph (ISO-8601)" },
       ],
-      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DS", "WRITE_ERROR"],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DS", "MEMORY_LOCKED", "MEMORY_COMMITTED", "WRITE_ERROR"],
     },
   },
 
@@ -975,7 +975,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "seed-memory", type: "boolean", summary: "Also seed 'ui memory' (a harvested anchor + prefers/avoids insight events)" },
         { name: "now", type: "string", summary: "Deterministic clock for the seeded memory graph (ISO-8601)" },
       ],
-      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DNA", "BAD_DS", "WRITE_ERROR"],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DNA", "BAD_DS", "MEMORY_LOCKED", "MEMORY_COMMITTED", "WRITE_ERROR"],
     },
   },
 
@@ -997,7 +997,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
           { name: "no-registry", type: "boolean", summary: "Do not upsert this project into the user registry" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_EVENT_TYPE", "BAD_EVENT", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_EVENT_TYPE", "BAD_EVENT", "BAD_LESSON", "MEMORY_LOCKED", "MEMORY_COMMITTED", "WRITE_ERROR"],
       },
       compile: {
         summary: "Rebuild memory.graph.json from the ledger",
@@ -1006,7 +1006,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "now", type: "string", summary: "Clock for decay + compiledAt (deterministic when fixed)" },
           { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_MEMORY", "BAD_LEDGER", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "NO_MEMORY", "BAD_LEDGER", "BAD_LESSON", "WRITE_ERROR"],
       },
       context: {
         summary: "Emit a compact memory prior for the host model",
@@ -1014,11 +1014,13 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         flags: [
           { name: "for", type: "string", values: ["generate", "critique", "why"], summary: "Consumer mode (default generate)" },
           { name: "rank-file", type: "string", summary: "JSON array of ranked event ids to splice into the prior (never for --for critique)" },
+          { name: "components", type: "string", summary: "Exact owner component names as CSV or a JSON string array" },
+          { name: "patterns", type: "string", summary: "Exact owner pattern names as CSV or a JSON string array" },
           { name: "max-bytes", type: "string", summary: "Truncate the block, sections whole (default 2048)" },
           { name: "now", type: "string", summary: "Decay clock (deterministic when fixed)" },
           { name: "dir", type: "string", summary: "Project directory (default: cwd)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_LEDGER", "FILE_NOT_FOUND", "READ_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_LEDGER", "BAD_LESSON", "FILE_NOT_FOUND", "READ_ERROR", "CONTEXT_OVERFLOW", "DS_TAMPERED", "BAD_MANIFEST", "BAD_DS"],
       },
 
       "export-corpus": {

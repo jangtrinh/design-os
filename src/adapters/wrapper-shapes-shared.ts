@@ -37,6 +37,7 @@ export function buildDesignEntryGlue(knowledgeRoot?: string): string {
   const root = knowledgeRoot !== undefined && knowledgeRoot !== "" ? toFwdSlash(knowledgeRoot) : "";
   const needRoutingPath = root !== "" ? `\`${root}/need-routing.md\`` : "`knowledge/need-routing.md`";
   const buildLoopPath = root !== "" ? `\`${root}/build-loop.md\`` : "`knowledge/build-loop.md`";
+  const figmaOnboardingPath = root !== "" ? `\`${root}/figma-ds-onboarding.md\`` : "`knowledge/figma-ds-onboarding.md`";
 
   return [
     "### Workflow routing and design entry",
@@ -46,6 +47,10 @@ export function buildDesignEntryGlue(knowledgeRoot?: string): string {
     "- For mixed tasks (e.g. backend data or SQL paired with visual chart rendering, layout flicker, or typography and spacing adjustments), split the task and activate the design workflow and skill for the visual surface. No System One classifier authority or confidence threshold in ui overrides explicit visual intent.",
     "- For any work creating, changing, or reviewing a rendered UI, load the live installed `es:designer` skill (or `es-designer` as exposed in the skill catalog) before implementation or review. Include this requirement in generated instructions for delegated UI work as well.",
     "- Project brief, design tokens, and project context take precedence. Specialist native and Figma rules own their respective platforms, and existing design skill providers are respected. Do not force generic UI defaults on native or canvas surfaces.",
+    "- Before authoring or repairing an onboarded design, verify `ui ds context --strict --with-theme`, read the full `ui registry list --json`, and look up every exact task component/pattern with `ui registry lookup '<name>' --json`. Include complete definitions and referenced token values, even when the DS preview omits them. The starter inventory is a floor, never a component cap.",
+    "- Then load `ui memory context --for generate --json --max-bytes 16384`, adding `--components '<exact names as CSV or JSON string array>'` and/or `--patterns '<exact names as CSV or JSON string array>'` for the task. Use JSON to preserve commas or significant whitespace in names. Accepted lessons apply only to their current verified DS revision and matching evidence; no semantic rank file is required. Legacy observations remain unapproved. Re-read when targets or the DS change, and ask the owner to resolve conflicting authoritative instructions.",
+    "- A failed or incomplete lesson context is not an empty rule set. On `CONTEXT_OVERFLOW`, increase the budget or resolve explicit task scope before authoring. During independent critique, use `--for critique`; owner lessons never score the craft rubric.",
+    `- For Figma DS onboarding, default to the design:os Figma plugin on every seat. Read ${figmaOnboardingPath} and guide the owner through the entire installation, connection, exact-file verification and inventory capture. It is a separate install; do not silently switch the read path because of seat detection.`,
     `- If \`es:designer\` is absent, follow the bundled workflow/craft skill and the build-loop at ${buildLoopPath}. Do not attempt to install skills, reference private machine paths, emit missing skill errors, or block execution.`,
   ].join("\n");
 }

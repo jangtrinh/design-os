@@ -18,7 +18,7 @@
  *   - Never throws. A ledger failure must never change a lint's exit code.
  *   - Records only into a project that already has design/ (opt-in per project,
  *     automatic per run) — never creates design/ in an arbitrary cwd.
- *   - Appends only: no graph recompile (loadGraph rebuilds lazily on mtime), no
+ *   - Appends only: no graph recompile (loadGraph rebuilds lazily on source hash), no
  *     registry upsert (a lint must not write to $HOME).
  *
  * Known limitation: `ui taste record` has no `--dir` and its outcome (a taste_vote)
@@ -38,9 +38,10 @@ import { dirname, join, resolve } from "node:path";
 
 import type { ParsedArgs } from "./cli-args.js";
 import type { CommandResult } from "./output.js";
-import { buildEvent, nextEventId, validateEvent, MemoryEventError } from "./memory-events.js";
+import { buildEvent, validateEvent, MemoryEventError } from "./memory-events.js";
 import type { EventType, Medium, MemoryArtifact } from "./memory-events.js";
-import { memoryPaths, ledgerLineCount, appendEvent } from "./memory-store.js";
+import { memoryPaths, appendEvent } from "./memory-store.js";
+import { MemoryAppendCommittedError } from "./memory-error.js";
 
 export interface OutcomeInput {
   type: EventType;
@@ -96,6 +97,8 @@ export interface RecordOutcomeResult {
   id?: string;
   reason?: SkipReason;
   detail?: string;
+  /** The event committed, but append cleanup needs attention. Never repeat it. */
+  warning?: string;
 }
 
 export function recordOutcome(
@@ -122,7 +125,7 @@ export function recordOutcome(
     throw e;
   }
 
-  const id = nextEventId(ledgerLineCount(paths));
+  let id = "";
   const t = nowIso ?? new Date().toISOString();
   const event = buildEvent({
     id,
@@ -137,8 +140,9 @@ export function recordOutcome(
   });
 
   try {
-    appendEvent(paths, event);
+    id = appendEvent(paths, event).id;
   } catch (e) {
+    if (e instanceof MemoryAppendCommittedError) return { recorded: true, id: e.id, warning: e.message };
     return { recorded: false, reason: "write-failed", detail: e instanceof Error ? e.message : String(e) };
   }
   return { recorded: true, id };
@@ -146,7 +150,8 @@ export function recordOutcome(
 
 /**
  * Call-site sugar: record, and on a real failure append one stderr warning to the
- * command's result. Returns the result (mutated only in the failure case) so a call
+ * command's result. A committed append carries a warning rather than a skip.
+ * Returns the result (with stderr extended only when needed) so a call
  * site is a single wrapped `return`.
  */
 export function withOutcome(
@@ -156,6 +161,7 @@ export function withOutcome(
   nowIso?: string,
 ): CommandResult {
   const r = recordOutcome(parsed, input, nowIso);
+  if (r.warning !== undefined) return { ...result, stderr: (result.stderr ?? "") + `ui: memory auto-record warning: ${r.warning}\n` };
   if (r.recorded || r.reason === "not-opted-in") return result;
   return {
     ...result,
