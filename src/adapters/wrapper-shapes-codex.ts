@@ -1,5 +1,5 @@
 import { WORKFLOW_VERBS } from "./templates.js";
-import { toFwdSlash } from "./wrapper-shapes-shared.js";
+import { buildDesignEntryGlue, toFwdSlash } from "./wrapper-shapes-shared.js";
 
 export const CODEX_SENTINEL_BEGIN = "<!-- BEGIN ease-design -->";
 export const CODEX_SENTINEL_END = "<!-- END ease-design -->";
@@ -26,6 +26,9 @@ export function buildCodexBlock(
     "work (autofix, layout validation, token compilation, color math). Before",
     "forming a `ui` invocation, run `ui schema --json` for the machine-readable",
     "signature (positionals, flags, enums, error codes) of every (sub)command.", "",
+    buildDesignEntryGlue(knowledgeRoot), "",
+    "When a workflow references a skill, read the corresponding bundled craft Markdown directly under",
+    `\`${templateRoot}/skills/\` because this environment may lack a dedicated Skill tool.`, "",
     "Available slash-commands when proxied:",
     `${WORKFLOW_VERBS.map((verb) => `/ui:${verb}`).join(" ")}.`, "",
     "Template hashes (sha256, for drift detection):", hashLines, "",

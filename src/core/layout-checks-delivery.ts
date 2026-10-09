@@ -15,11 +15,7 @@
  * cannot see.
  */
 import type { LayoutFinding } from "./layout-lint.js";
-
-/** Return 1-based line number for a match at byte offset `idx`. */
-function lineOf(html: string, idx: number): number {
-  return html.slice(0, idx).split("\n").length;
-}
+import { lineOf } from "./line-index.js";
 
 /**
  * Normalize an image src to a role stem: last path segment, minus query/hash,

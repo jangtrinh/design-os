@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-10-09 - persistent design routing and deterministic gate hardening
+
+### Added
+- Persistent design entry from `ui init`: Claude and Antigravity receive routing
+  rules; Codex receives the same guidance in its managed `AGENTS.md` block.
+  Visual implementation and review load available design craft, preserve explicit
+  workflow intent and project tokens, and retain a bundled fallback for public
+  installations. Existing projects can refresh following [design-entry.md](docs/design-entry.md).
+- Routing grader input validation, explicit coverage, and optional
+  `--require-complete` admission for complete benchmark runs.
+
+### Fixed
+- Antigravity wrappers discover real CLI commands instead of invoking workflow
+  names as shell commands. `ui doctor` rejects malformed or conditional generated
+  routing rules and invalid knowledge references.
+- Linked CSS admission handles unquoted attributes and query/fragment suffixes,
+  and ignores fake links inside comments and script text.
+- Generic component requests no longer imply a Figma canvas without platform intent.
+
+### Changed
+- Shared source-line lookup uses a bounded index and binary search. A paired
+  macOS arm64 benchmark retained identical full gate JSON and exit statuses on 12
+  pages; the slides page median fell from 396 to 321 ms. This is a measured case,
+  not an all-pages speed guarantee. Gate severities and budgets are unchanged.
+
 ## 2026-09-28 - audit.batch.v1: the batch audit runner in CI (PR-W10b)
 
 ### Added

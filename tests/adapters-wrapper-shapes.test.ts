@@ -76,6 +76,13 @@ describe("buildClaudeCommand", () => {
     expect(out).not.toContain("Follow the runtime-neutral workflow at:");
   });
 
+  it("includes design entry routing glue in non-init command", () => {
+    const out = buildClaudeCommand("generate", FAKE_TPL, ["pick-persona"]);
+    expect(out).toContain("need-routing.md");
+    expect(out).toContain("es:designer");
+    expect(out).toContain("build-loop.md");
+  });
+
   it("is deterministic", () => {
     const a = buildClaudeCommand("generate", FAKE_TPL, ["pick-persona"]);
     const b = buildClaudeCommand("generate", FAKE_TPL, ["pick-persona"]);
@@ -164,6 +171,26 @@ describe("buildAntigravityWorkflow", () => {
     },
   );
 
+  it("uses ui schema --json instead of fabricating binary subcommands for non-native workflows", () => {
+    const out = buildAntigravityWorkflow("generate", FAKE_TPL);
+    expect(out).toContain("ui schema --json");
+    expect(out).not.toContain('ui generate "$ARGS"');
+    expect(out).toContain("Follow the runtime-neutral workflow step-by-step at:");
+  });
+
+  it("includes conditional skill-ref lines from VERB_SKILL_REFS when present", () => {
+    const out = buildAntigravityWorkflow("generate", FAKE_TPL);
+    expect(out).toContain("design-os-pick-persona");
+    expect(out).toContain("design-os-score-taste");
+  });
+
+  it("includes design entry routing glue", () => {
+    const out = buildAntigravityWorkflow("generate", FAKE_TPL);
+    expect(out).toContain("need-routing.md");
+    expect(out).toContain("es:designer");
+    expect(out).toContain("build-loop.md");
+  });
+
   it("is deterministic", () => {
     const a = buildAntigravityWorkflow("iterate", FAKE_TPL);
     const b = buildAntigravityWorkflow("iterate", FAKE_TPL);
@@ -238,5 +265,14 @@ describe("buildCodexBlock", () => {
     // verbs the old hardcoded line omitted — /ui:learn, /ui:to-figma — appear.
     expect(out).toContain("/ui:learn");
     expect(out).toContain("/ui:to-figma");
+  });
+
+  it("includes design entry routing glue and bundled craft skill guidance", () => {
+    const out = buildCodexBlock(FAKE_TEMPLATES, {});
+    expect(out).toContain("need-routing.md");
+    expect(out).toContain("es:designer");
+    expect(out).toContain("build-loop.md");
+    expect(out).toContain("skills/");
+    expect(out).toContain("Skill tool");
   });
 });
