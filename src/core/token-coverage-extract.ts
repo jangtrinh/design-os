@@ -8,6 +8,7 @@
  */
 import { computeSelectorBlocks } from "./css-selector-blocks.js";
 import { classifySelector } from "./css-selector-mode.js";
+import { lineOf } from "./line-index.js";
 
 export type TokenCoverageCategory =
   | "color"
@@ -39,10 +40,6 @@ const CATEGORY_PROPS: ReadonlyArray<[TokenCoverageCategory, RegExp]> = [
 /** Blank a matched span to same-length spaces so byte offsets survive (mirrors taste-lint / ds-usage-lint). */
 function blank(s: string, re: RegExp): string {
   return s.replace(re, (m) => " ".repeat(m.length));
-}
-
-function lineOf(text: string, idx: number): number {
-  return text.slice(0, idx).split("\n").length;
 }
 
 /** :root / @theme / [data-theme=…] / .dark — the shared base/mode table doubles

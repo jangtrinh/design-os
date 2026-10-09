@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { join, dirname } from "node:path";
 import { generateAntigravityAdapter } from "../src/adapters/antigravity.js";
 import { WORKFLOW_VERBS, SKILL_NAMES, JOURNEY_NAMES } from "../src/adapters/templates.js";
+import { VERB_SKILL_REFS } from "../src/adapters/skill-refs.js";
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const TEMPLATES_ROOT = join(REPO_ROOT, "templates");
@@ -13,10 +14,21 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 44 artifacts (22 workflows + 19 craft skills + 3 journey skills)", () => {
+  it("returns exactly 45 artifacts (22 workflows + 19 craft skills + 3 journey skills + 1 routing rule)", () => {
     const arts = makeArtifacts();
-    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length);
-    expect(arts).toHaveLength(44);
+    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
+    expect(arts).toHaveLength(45);
+  });
+
+  it("emits 1 routing rule at .agent/rules/design-os-routing.md with trigger: always_on and routing bootstrap glue", () => {
+    const arts = makeArtifacts();
+    const rule = arts.find((a) => a.absPath.endsWith(".agent/rules/design-os-routing.md"));
+    expect(rule).toBeDefined();
+    expect(rule!.mode).toBe("write");
+    expect(rule!.content).toContain("trigger: always_on");
+    expect(rule!.content).toContain("need-routing.md");
+    expect(rule!.content).toContain("build-loop.md");
+    expect(rule!.content).toContain("ui schema --json");
   });
 
   it("all artifacts have mode 'write'", () => {
@@ -71,6 +83,9 @@ describe("generateAntigravityAdapter", () => {
       expect(art, `workflow for verb '${verb}' not found`).toBeDefined();
       expect(art!.content).toContain("// turbo");
       expect(art!.content).toContain("```bash");
+      expect(art!.content).toContain("ui schema --json");
+      expect(art!.content).not.toContain(`ui ${verb} "$ARGS"`);
+      expect(art!.content).not.toContain(`ui ${verb === "from-ref" ? "from-ref" : verb} "$ARGS"`);
     }
   });
 
@@ -84,6 +99,31 @@ describe("generateAntigravityAdapter", () => {
       expect(native!.content).not.toContain(`ui ${name}`);
     },
   );
+
+  it("each workflow includes design entry routing glue", () => {
+    const arts = makeArtifacts();
+    for (const verb of WORKFLOW_VERBS) {
+      if (verb === "init") continue;
+      const art = arts.find((a) => a.absPath.endsWith(`/ui-${verb}.md`));
+      expect(art, `workflow for verb '${verb}' not found`).toBeDefined();
+      expect(art!.content).toContain("need-routing.md");
+      expect(art!.content).toContain("es:designer");
+      expect(art!.content).toContain("build-loop.md");
+    }
+  });
+
+  it("workflows include conditional skill references matching VERB_SKILL_REFS", () => {
+    const arts = makeArtifacts();
+    for (const verb of WORKFLOW_VERBS) {
+      if (verb === "init") continue;
+      const art = arts.find((a) => a.absPath.endsWith(`/ui-${verb}.md`));
+      expect(art, `workflow for verb '${verb}' not found`).toBeDefined();
+      const expectedSkills = VERB_SKILL_REFS[verb] ?? [];
+      for (const skill of expectedSkills) {
+        expect(art!.content).toContain(`design-os-${skill}`);
+      }
+    }
+  });
 
   it("init workflow content contains // turbo and ui init --runtime antigravity", () => {
     const art = makeArtifacts().find((a) => a.absPath.endsWith("/ui-init.md"));
