@@ -24,6 +24,15 @@
     "compiledHash": { "type": "string", "pattern": "^sha256-[A-Za-z0-9_-]+$" },
     "registryHash": { "type": "string", "pattern": "^sha256-[A-Za-z0-9_-]+$" },
     "generation":   { "type": "integer", "minimum": 1 },
+    "kit": {
+      "type": "object",
+      "required": ["version", "lockHash"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "const": 1 },
+        "lockHash": { "type": "string", "pattern": "^sha256-[A-Za-z0-9_-]{43}$" }
+      }
+    },
     "changelog": {
       "type": "array",
       "items": {

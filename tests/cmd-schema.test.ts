@@ -59,7 +59,7 @@ describe("ui schema", () => {
   it("required flags render unbracketed; optional flags bracketed", () => {
     const { stdout } = capture(["schema"]);
     // registry register: --category/--markup required, --force optional
-    expect(stdout).toMatch(/ui registry register <Category\/Variant> --category <v> --markup <v>.*\[--force\]/);
+    expect(stdout).toMatch(/ui registry register <name> --category <v> --markup <v>.*\[--force\]/);
   });
 });
 

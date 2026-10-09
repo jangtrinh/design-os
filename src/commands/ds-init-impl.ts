@@ -11,6 +11,7 @@ import { cwd } from "node:process";
 
 import { errJson, errText, ok, okJson } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
+import { refuseKitDowngrade } from "../core/ds-kit-seal.js";
 import { pathsForDir } from "../core/design-system.js";
 import { canonicalStringify, canonicalHash, newManifest, appendChangelog, loadManifest, saveManifest } from "../core/ds-manifest.js";
 import { loadPersonaIndex, findPersona, PersonaError } from "../core/persona-loader.js";
@@ -90,6 +91,12 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   // ── Check for existing DS ───────────────────────────────────────────────────
 
   const paths = pathsForDir(resolve(baseDir, "design"));
+
+  try { refuseKitDowngrade(paths.dir); }
+  catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return useJson ? errJson(CMD, "KIT_DOWNGRADE", msg) : errText(`ui: ${msg}\n`);
+  }
 
   const manifestExists = existsSync(paths.manifest);
   if (manifestExists && !force) {

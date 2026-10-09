@@ -15,7 +15,10 @@
  * exempt — they compile a manifest from scratch rather than reseal an existing one, and
  * are allowlisted in the linter.
  */
-import { renameSync, writeFileSync } from "node:fs";
+import { renameSync, writeFileSync, openSync, closeSync, unlinkSync } from "node:fs";
+
+import { dirname, join } from "node:path";
+import { evolveKit } from "./ds-kit-seal.js";
 
 import { canonicalStringify, canonicalHash, appendChangelog, DSManifestError } from "./ds-manifest.js";
 import type { DSChangelogEntry } from "./ds-manifest.js";
@@ -96,12 +99,23 @@ function sortedRegistry(registry: Registry): Registry {
 export function reseal(input: ResealInput): ResealResult {
   const { ds, paths, tokens, registry, entry, nowIso } = input;
 
+  // Re-read immediately before authorizing writes: a previously loaded object is not proof
+  // that bound TSX, theme, evidence or the store remained untouched.
+  const current = ds.manifest.kit ? loadDesignSystem(paths) : ds;
+  if (current.manifest.kit && canonicalHash(current.manifest) !== canonicalHash(ds.manifest)) {
+    throw new DSError("DS_TAMPERED", "kit changed after it was loaded; reload before resealing");
+  }
+  const nextRegistry = registry !== undefined ? sortedRegistry(registry) : ds.registry;
+  const evolution = current.kit ? evolveKit(dirname(paths.dir), current.kit, tokens ?? ds.tokens,
+    nextRegistry, tokens !== undefined, registry !== undefined) : undefined;
+
   const compiledHash = tokens !== undefined ? canonicalHash(tokens) : ds.manifest.compiledHash;
   const registryHash =
     registry !== undefined ? canonicalHash(sortedRegistry(registry)) : ds.manifest.registryHash;
 
   const nextManifest = appendChangelog(
-    { ...ds.manifest, generation: ds.manifest.generation + 1, compiledHash, registryHash },
+    { ...ds.manifest, generation: ds.manifest.generation + 1, compiledHash, registryHash,
+      ...(evolution && { kit: { version: 1 as const, lockHash: canonicalHash(evolution.lock) } }) },
     { ...entry, ts: nowIso },
   );
 
@@ -116,15 +130,30 @@ export function reseal(input: ResealInput): ResealResult {
       content: canonicalStringify(sortedRegistry(registry)),
     });
   }
+  if (evolution) {
+    if (evolution.theme) writes.push({ tmpPath: `${evolution.theme.path}.tmp`, finalPath: evolution.theme.path, content: evolution.theme.content });
+    const lockPath = join(dirname(paths.dir), "kit.lock.json");
+    writes.push({ tmpPath: `${lockPath}.tmp`, finalPath: lockPath, content: canonicalStringify(evolution.lock) });
+  }
   writes.push({ tmpPath: `${paths.manifest}.tmp`, finalPath: paths.manifest, content: canonicalStringify(nextManifest) });
 
-  // Stage: write every tmp file first. If any write fails, no live file is mutated.
+  // Kit stages are exclusively created; only files owned by this attempt are cleaned.
+  const ownedStages: string[] = [];
   for (const w of writes) {
     try {
-      writeFileSync(w.tmpPath, w.content, "utf8");
+      if (evolution) {
+        const fd = openSync(w.tmpPath, "wx"); ownedStages.push(w.tmpPath);
+        try { writeFileSync(fd, w.content, "utf8"); } finally { closeSync(fd); }
+      } else writeFileSync(w.tmpPath, w.content, "utf8");
     } catch (e) {
+      const cleanupFailures: string[] = [];
+      for (const stage of ownedStages) {
+        try { unlinkSync(stage); }
+        catch (failure) { cleanupFailures.push(`${stage}: ${failure instanceof Error ? failure.message : String(failure)}`); }
+      }
       throw new DSManifestError(
         "WRITE_ERROR",
+        (cleanupFailures.length ? `owned staging cleanup failed (${cleanupFailures.join(", ")}); ` : "") +
         `failed to write temporary file '${w.tmpPath}': ${e instanceof Error ? e.message : String(e)}`,
       );
     }
@@ -142,7 +171,7 @@ export function reseal(input: ResealInput): ResealResult {
         `reseal partially committed (${committed}) but failed to commit '${w.finalPath}': ` +
           `${e instanceof Error ? e.message : String(e)}. The design system is in a partially-updated ` +
           `state — hashes will not match on next load. Recover: restore '${w.finalPath}' from '${w.tmpPath}' ` +
-          "if present, or run 'ui ds init --force' to recompile from scratch.",
+          "if present. Bound kits require explicit recovery or adoption into a fresh project.",
       );
     }
   }

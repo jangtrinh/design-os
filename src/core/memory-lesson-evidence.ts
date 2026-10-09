@@ -26,15 +26,15 @@ export function fingerprintedLessonFile(projectDir: string, ref: string, fingerp
 
 export function lessonRevision(manifest: DSManifest): string {
   const { compiledHash, registryHash, generation } = manifest;
-  return canonicalHash({ compiledHash, registryHash, generation });
+  return canonicalHash({ compiledHash, registryHash, generation, ...(manifest.kit && { kit: manifest.kit }) });
 }
-export function loadLessonEnvironment(projectDir: string): { revision: string; names: Set<string> } | null {
+export function loadLessonEnvironment(projectDir: string): { revision: string; names: Set<string>; kitStale?: boolean } | null {
   const paths = pathsForDir(join(projectDir, "design"));
   try { lstatSync(paths.manifest); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return null; throw error; }
   for (const path of [paths.manifest, paths.tokens, paths.registry]) readLessonFile(projectDir, relative(projectDir, path));
   const ds = loadDesignSystem(paths);
-  return { revision: lessonRevision(ds.manifest), names: new Set(ds.registry.components.map((c) => c.name)) };
+  return { revision: lessonRevision(ds.manifest), names: new Set(ds.registry.components.map((c) => c.name)), ...(ds.kit && { kitStale: ds.kit.status === "stale" }) };
 }
 
 export function lessonApprovalProblem(projectDir: string, lesson: LessonEntry, review: LessonReview): string | null {
@@ -80,6 +80,7 @@ export function preflightLesson(projectDir: string, event: MemoryEvent, lessons:
   }
   const environment = loadLessonEnvironment(projectDir);
   if (!environment) badLesson("lesson requires a verified design system; run ui ds init");
+  if (environment.kitStale && event.type === "lesson_reviewed" && review?.decision === "accept") badLesson("KIT_STALE: kit evidence requires reverification before lesson acceptance");
   if (lesson.dsRevision !== environment.revision) badLesson("lesson dsRevision does not match the current verified design system");
   if (lesson.scope.kind !== "project" && !environment.names.has(lesson.scope.target ?? "")) badLesson(`unknown lesson registry target '${lesson.scope.target}'`);
   const problem = lessonEvidenceProblem(projectDir, lesson, prior);

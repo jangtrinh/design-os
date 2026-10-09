@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ease-design.dev/schemas/ds-kit-receipt.schema.json",
+  "title": "Owner kit verification receipt",
+  "description": "Local receipt shape. The kernel additionally verifies subject identity, exact required case IDs, outcomes and contained evidence bytes. This schema does not authenticate execution.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "contentHash", "cases"],
+  "properties": {
+    "version": { "const": 1 },
+    "contentHash": { "type": "string", "pattern": "^sha256-[A-Za-z0-9_-]{43}$" },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "outcome", "files", "note"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "outcome": { "enum": ["passed", "failed"] },
+          "files": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^evidence/" }
+          },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -64,6 +64,7 @@
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@types/css-tree": "^3.2.0",
     "@types/node": "^25.9.1",
+    "ajv": "^8.20.0",
     "eslint": "^10.4.0",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",

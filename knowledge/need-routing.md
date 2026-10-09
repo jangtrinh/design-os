@@ -71,6 +71,14 @@ Do not run G-1 for G0, G1, G2, or capture-only G3 routes; their existing verb co
 `why`. "Log this interview / finding / transcript" → `evidence`. New project / setup →
 `init`. "Teach the tool my existing design system": whole repo with a UI → `learn`;
 a single HTML file → `extract`; a live site to capture as a portable spec → `from-url`.
+If the requested deliverable is a complete executable owner component kit, capture
+through the applicable road, then follow `knowledge/ds-kit-onboarding.md` for host
+authoring and `ui ds kit` validation/adoption. Capture-only work still ends at its
+portable handback. Legacy `learn` does not authorize executing owner code; an
+explicit kit request authorizes actual export proof only in its isolated candidate.
+Intact stale kit context is not current readiness: use the kit guide's verify/growth
+boundary before readiness or lesson acceptance. This kit route does not replace
+platform activation for later pages.
 
 **G1 — deliverable class.** A structural/sequential/hierarchical picture → `diagram`.
 A comparison of quantities → `chart`. A deck → `slides`. A chart INSIDE a page belongs

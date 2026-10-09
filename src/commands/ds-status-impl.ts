@@ -106,6 +106,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
       registryHash: ds.manifest.registryHash,
       paths: ds.paths,
       warning,
+      ...(ds.kit && { kitStatus: ds.kit.status }),
     });
   }
 
@@ -116,6 +117,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
   return ok(
     (warning !== null ? `warning: ${warning}\n` : "") +
     `ds: ${m.name} (gen ${m.generation})\n` +
+    (ds.kit ? `kit: ${ds.kit.status}${ds.kit.status === "stale" ? " — evidence requires reverification" : ""}\n` : "") +
     `persona: ${m.persona.slug} / ${m.persona.family}\n` +
     `intent:  ${m.intent}\n` +
     `tokens:  ${countTokens(ds.tokens)} (semantic + primitive)\n` +

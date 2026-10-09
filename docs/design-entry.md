@@ -69,6 +69,26 @@ This change applies surfacing and strict receipt admission; it adds no host hook
 background self-editing, global skill mutation, or model/network calls to `ui`.
 Knowledge promotion retains the existing librarian and human review boundary.
 
+## Complete owner component kits
+
+An explicit request to build the owner's full kit routes from capture to
+[owner-kit onboarding](../knowledge/ds-kit-onboarding.md). The host authors actual
+React components on the selected shadcn/Tailwind base; the local deterministic
+`ui ds kit` family prepares content identity, validates declared evidence and adopts
+only into an absent destination. Owner code can be reused, and owner vocabulary,
+tokens, modes and variants stay authoritative. The scaffold's 25-component pilot
+floor never caps inventory; explicitly record a smaller actual owner minimum
+rather than fabricate components. Theme emission and host-write steps live in
+the owner-kit guide; the CLI does not execute package scripts.
+
+Whole-kit seals bind source, mappings, implementation, dependency/configuration
+artifacts and evidence. They extend the normal DS revision without changing legacy
+manifest identities. Sanctioned token/registry changes update that revision and mark
+prior verification stale; unexpected artifact edits fail integrity. Complete source
+scope and receipt execution remain host observations, distinct from byte validation.
+Intact stale kits may load ordinary DS context; kit verify readiness and lesson
+acceptance remain blocked until fresh evidence binds the current revision.
+
 Persistent entry locations follow the primary [Claude rules documentation](https://code.claude.com/docs/en/memory)
 and [Antigravity rules documentation](https://www.antigravity.google/docs/rules/).
 Antigravity supports the existing `.agent/rules/` location as a legacy path.

@@ -14,7 +14,7 @@
     {
       "path": "journeys/onboard.md",
       "description": "Onboard a project onto design:os end to end: pick the right entry point for what already exists (nothing yet, a codebase, a URL, a Figma file, a token set, or reference shots), verify the toolchain with ui doctor / design-os doctor, compile or import the design system, declare the soul, wire agents + heartbeat, and open the Figma plugin. Use when the user says 'onboard', 'set up design:os', 'install this', 'wire up my project', 'get started with design:os', or right after ui init.",
-      "sourceSha256": "cf19b1b16a62cece0084023f24bea02dbb87bb7b21474db564f0b0f49a7b172a"
+      "sourceSha256": "e33c376661630bcdadad916a64e4b748cdd77b75d79eb19c1d9fef81f9e5896d"
     },
     {
       "path": "skills/apply-prompt-mode.md",
@@ -164,7 +164,7 @@
     {
       "path": "workflows/generate.md",
       "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
-      "sourceSha256": "7938705c95c3a21c0993a8a725044dd39592ecebc58e3aef9f68ca54700bf140"
+      "sourceSha256": "7d9b2fa6e9e62cd8d49b0dbb4f06a9bb9215e53903fe36ec36d897cbd4697124"
     },
     {
       "path": "workflows/iterate.md",
@@ -174,7 +174,7 @@
     {
       "path": "workflows/learn.md",
       "description": "Teach ease-design an existing project's design system — scan the repo, harvest tokens/components/interaction states from real evidence, and compile the DS so generation matches the product. Use when initializing ease-design on a project that already has UI, or to re-learn after a major redesign.",
-      "sourceSha256": "b9f66deaf1de219e01fd39910b75eb81a5c85a0af0960b7f0010529b2b3a76f1"
+      "sourceSha256": "ef0e78c2811f9d7506715f4a653348b6ed1b9a49f027a6837156b68e10c3d479"
     },
     {
       "path": "workflows/native-ios.md",
