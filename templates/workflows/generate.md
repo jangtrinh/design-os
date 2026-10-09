@@ -9,6 +9,13 @@ candidate, and delivers it by qualification status. Read `knowledge/qualified-de
 `knowledge/prompt-plan-orchestration.md` and `knowledge/generation-craft-defaults.md` first. For benchmark or learning runs, also read
 `knowledge/world-class-learning-loop.md`.
 
+Every visual change, including repair, first discovers the project's design guidance and
+available `es:designer` / `es-designer`. Load it before visual implementation or review;
+when unavailable, use this shipped workflow, `knowledge/generation-craft-defaults.md`,
+and `knowledge/build-loop.md`. Project DS, stack, and platform specialists retain precedence.
+Routine authorized edits need no new owner approval per render. Owner review below concerns
+durable lesson decisions; rendered verification and mandatory floors remain separate.
+
 ## Inputs
 
 - `<intent>` required; preserve it verbatim.
@@ -36,7 +43,57 @@ generate HTML. Proceed only when `data.routingDisposition` is `ROUTED`, `data.as
 `web-marketing`, `data.route` is `generate`, and `data.artifact` is `html`. Save the result beside the
 brief; no global telemetry is required.
 
-## 1. Compile intent into a prompt plan
+## 1. Ground the task and project before authoring directions
+
+Preserve the raw intent and identify task surfaces and required states. Run `ui scan --json`
+and `ui ds status --json`.
+
+- Brownfield without a learned DS: stop and route to `/ui:learn`, unless the user explicitly
+  chooses a fresh direction.
+- Greenfield without a DS: initialize from the highest-fit existing persona.
+- Existing DS: reuse it, including its shadcn/Tailwind or other established stack.
+
+Load DS context and the **full** reusable inventory:
+
+```sh
+ui ds context --strict --with-theme
+ui registry list --json
+```
+
+Identify exact task component/pattern names from that inventory. Before direction authoring
+or the builder packet, read their complete definitions with existing lookup commands:
+
+```sh
+ui registry lookup 'Control/Button' --json
+ui registry lookup 'Pattern/DetailPanel' --json
+ui memory context --for generate --components 'Control/Button' \
+  --patterns 'Pattern/DetailPanel' --json --max-bytes 16384
+```
+
+Substitute actual registered names, look up **every** relevant target, and include full
+definitions, variants, token use, and specimen markup in the builder's context. DS context
+can truncate its registry preview to ten entries; full lesson selection does not restore
+missing definitions. Resolve any omitted referenced token values from the complete local
+token file. The entire inventory, including component #40, remains addressable;
+there is no 25-component ceiling. Use `--file <registry-path>` for list/lookup consistently
+when an explicit active registry path is needed.
+
+Selectors take CSV or JSON string arrays; omit unused selectors. For a comma-containing
+name use `--components '["Controls/Primary, Compact"]'`; JSON preserves exact
+characters and whitespace. CSV remains compatible for simple names. No selectors loads
+project lessons only; unknown names fail. Read eligible accepted lessons before writing
+directions. JSON `data.learning.dsRevision` is the current verified seal identity for a
+new proposal. Pending, rejected, revoked, stale-revision, and changed-evidence lessons do
+not apply. Legacy memory/recall remains an unapproved weak prior. On `CONTEXT_OVERFLOW`,
+raise `--max-bytes` or narrow targets and retry; never silently proceed with missing lessons.
+Re-read lookup and context if targets or the DS change. See
+[owner-local design learning](../../docs/design-learning.md) for evidence and receipt commands.
+
+Soul and current project evidence ground preferences. Accessibility, correctness, safety,
+and delivery floors cannot be overridden by a lesson or owner preference. The independent
+critique rubric stays unchanged; lesson content is excluded from `--for critique`.
+
+## 2. Compile intent into a prompt plan
 
 Read only the relevant parts of:
 
@@ -80,24 +137,6 @@ ui prompt-plan preflight prompt-plan.json --json
 ```
 
 Do not select a direction or generate while either command reports an error.
-
-## 2. Ground the project
-
-Run `ui scan --json` and `ui ds status --json`.
-
-- Brownfield without a learned DS: stop and route to `/ui:learn`, unless the user explicitly
-  chooses a fresh direction.
-- Greenfield without a DS: initialize from the highest-fit existing persona.
-- Existing DS: reuse it.
-
-Load:
-
-```sh
-ui ds context --strict --with-theme
-ui memory context --for generate
-```
-
-Soul and evidence outrank memory. Memory is a weak prior.
 
 ## 3. Resolve the selected direction
 
@@ -310,13 +349,29 @@ art-directed variants under controlled inputs and blinded evaluation. The curren
 records the historical four-way promotion subset; keep the orchestration comparison beside it
 until a future schema version absorbs all variants.
 
-Classify each lesson as a hard rule, taste pattern, or contextual recipe. A single benchmark
-creates a hypothesis, not a universal rule. Promotion requires explicit expert approval or three
-winning controlled cases across at least two categories.
+Classify each finding as a hard-rule candidate, taste pattern, or contextual recipe. For this
+owner's project, ordinary corrections and recurring wins create **pending lesson proposals**,
+not accepted rules. Follow [owner-local design learning](../../docs/design-learning.md): cite
+fingerprinted local evidence, bind the proposal to the current revision from context JSON,
+and record the owner's decision through its matching approval receipt. Three successful cases
+are evidence for review, never automatic project acceptance. Replacements need a new proposal;
+withdraw accepted predecessors explicitly. Auto-recorded observations remain unapproved.
+
+Explain why the candidate scope and evidence fit the correction. The native Astra loop
+predicts, acts, and verifies before proposing; the owner decides durable acceptance. Approval
+does not prove implementation or enforcement. A hard rule needs an actual applicable gate,
+a failing negative control, and final passing evidence; unsafe floor overrides are never allowed.
+
+Keep cross-context world-class qualification separate and explicit under
+`knowledge/world-class-learning-loop.md`. Its expert-approval or three-controlled-wins
+eligibility is an experiment admission rule, not a project lesson acceptance receipt or
+authorization to change shared knowledge. Validate the benchmark artifact independently:
 
 ```sh
 ui delivery validate learning-record.json --json
 ```
 
-Only promoted lessons update durable generation knowledge or design memory. Keep rejected lessons
-as counterevidence.
+Only owner-reviewed, still-eligible project lessons enter scoped generation context. Keep
+pending, rejected, revoked, recurrence, and changed-revision evidence distinct. Shared-knowledge
+graduation follows the existing librarian/review process with owner authorization; this host
+flow neither mutates global rules nor activates a scheduler or model inside the kernel.

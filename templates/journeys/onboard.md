@@ -38,13 +38,13 @@ disambiguates E1 vs E2 for you.
 | E1 | Nothing yet — just an intent | `ui ds init <name> --persona <slug> --intent "<text>"` | sealed `design/` store |
 | E2 | An existing codebase | `ui scan --cwd .` (verdict) → `/ui:learn` | sealed `design/` store |
 | E3 | A live URL you admire | `/ui:from-url <url>` | self-contained `./<slug>/` folder (spec + tokens + audit) |
-| E4 | A Figma file | `design-os figma scan --out ds.json` → `ui ingest-figma-ds ds.json --out <dir> --name <slug>` | portable, **unsealed** bundle — see the hygiene STOP-gate below before it reaches the store |
+| E4 | A Figma file | [Figma DS onboarding](../../knowledge/figma-ds-onboarding.md): install/open the plugin → verify and pin the exact instance → capture inventory → ingest and check returned output paths | portable, **unsealed** inventory; stop before a separate validated seal/inventory-mapping stage |
 | E5 | A shadcn / DTCG token set (or a flat Figma-reconciled `tokens.json`) | `ui ds import <tokens.json> --dir <project> --name <slug>` | sealed `design/` store |
 | E6 | Reference shots / brand mood | `design-os reference add <url-or-file>...` → DNA doc → persona seed → `ui ds init` | sealed `design/` store |
 
 E4 and E6 both touch a Figma file or images and can run before or after E1–E3; a team can
-legitimately enter at E4 (clean up a messy Figma library first), exit with a specimen page,
-then re-enter at E2 on the app repo — the store is the meeting point, not a single path.
+legitimately enter at E4 to capture a Figma library, exit with portable inventory,
+then re-enter at E2 on the app repo. E4 does not establish a sealed store or mapped kit.
 
 ### Already onboarded? Run the verify pass, not an entry road
 
@@ -56,9 +56,10 @@ then re-enter at E2 on the app repo — the store is the meeting point, not a si
 - **Discipline:** flag findings as recommendations; re-init/`--force` fixes are the owner's
   call, not the verifier's.
 
-Before running `design-os figma audit` (E4's optional cleanup pass) on a file you have not
-scanned this session, run `design-os figma scan` first — the audit reads the same live
-document, not a cached copy.
+Before E4's optional live audit, complete the canonical guide's plugin setup, exact-file
+verification and pinned inventory capture. Keep later reads pinned to the verified
+instance; reverify after reopening the plugin. An unpinned scan cannot establish
+which owner file was captured.
 
 ## 2. Install → doctor — two different health checks, not one
 
@@ -112,10 +113,13 @@ interchangeable:
   `design/ds.manifest.json` for an imported DS.
 - `ui ingest-figma-ds <ds.json> --out <dir> --name <slug>` — richer Figma path (E4): takes a
   full `figma-agent scan-design-system` export and writes a **portable, unsealed** bundle
-  (`tokens.json` + `component-registry.json` + `DESIGN.md`) into `<dir>` — no
-  `design/ds.manifest.json`, so `ui ds a11y`/`ui ds status`/`ui agents init` cannot run
-  against it yet. If the store needs to be sealed, its `tokens.json` still has to go
-  through `ui ds import` (or `ds init --bare` + registry population) to land a manifest.
+  (`tokens.json` + the returned `data.registry` path + `DESIGN.md`) into `<dir>` — no
+  `design/ds.manifest.json`. Check the registry at that returned path; a foreign
+  `component-registry.json` can cause a different output filename. **E4 stops at
+  this portable inventory.** It does not establish a mapped kit, a sealed DS, or
+  accepted lessons. A future, explicitly authorized and validated stage must map
+  the captured inventory and verify its seal before those claims apply. `ds import`
+  alone seals tokens with an empty registry; it does not transfer captured components.
 
 **STOP-gate — two different `--name` flags, two different effects, easy to conflate:**
 `ui ingest-figma-ds --name <slug>` only sets the title string inside `DESIGN.md`; it does
@@ -126,13 +130,14 @@ generated agent after (`designer-imported-ds` instead of `designer-<your-ds>`). 
 explicit, real `--name` on whichever command seals the manifest, before running
 `ui agents init`.
 
-**Stale-seal check:** nothing computes staleness for you. If the ingested Figma artifacts
-(`tokens.json`, `component-registry.json`, `DESIGN.md`) carry mtimes NEWER than the sealed
-store (`design.tokens.json` / `ds.manifest.json`), every `ds a11y`/`ds specimen`/
-`agents init` answer is coming from the older seal — check mtimes by hand. Remedy order
-matters: `ui ds import <tokens.json> --dir <project> --name <slug> --force` to reseal, THEN
-`ui agents init --force` (a reseal writes a fresh manifest, and agent identity is keyed off
-the manifest's `name` — regenerate agents after a reseal, never before).
+**Existing-seal boundary:** a successful E4 capture does not refresh an existing sealed
+store. Checks against that store describe its own tokens and registry, not the new
+portable inventory. Keep both identities distinct; timestamps alone do not establish
+that their contents match. Do not automatically reseal or regenerate agents after a
+capture. Resolve the owner's explicit next-stage scope, validate the token and full
+inventory mapping, and verify the resulting seal before claiming readiness or using
+its revision for accepted lessons. Agent regeneration belongs after that verified
+stage and only within the authorized target checkout.
 
 ## 5. Soul-layer selection — three files, one precedence chain
 
@@ -232,25 +237,26 @@ Python source, so the schema below is the ground truth, verified against
 
 ## 7. Figma plugin prerequisites
 
-The `design-os-figma` plugin ships by default — there is no separate install step to teach
-here, only how to connect to it:
+Figma DS reads default to the **design:os Figma plugin**, regardless of seat.
+It is installed separately from `ease-design`. Read
+`knowledge/figma-ds-onboarding.md` and walk the owner through its A-to-Z setup:
+prerequisites → clone/build → import `plugin/manifest.json` in Figma Desktop →
+open the imported panel → `status --wait` → verify an exact connected instance
+with a read-only selection → save and reconcile the DS inventory.
 
-1. Open the Figma Design Agent plugin panel inside Figma Desktop (it starts compact,
-   300×170).
-2. Verify the connection with `figma-agent status` (or `design-os figma status`) — it
-   reports `broker.port` (always `9410`), and one entry per connected file under
-   `plugins[]` (`fileName`, `page`, `state`, `lastHeartbeatAge`), plus `activePlugin`.
-3. **After every plugin rebuild, reload it manually inside Figma Desktop** — there is no
-   hot-reload, and no version handshake stops a stale plugin from silently answering with
-   old code. If a scan/audit result looks wrong right after a rebuild, reload the plugin
-   before trusting it.
-4. If several Figma files are open at once, pin the target explicitly with the
-   `FIGMA_AGENT_FILE` env var — commands otherwise route to the most-recently-active file,
-   which can silently be the wrong one. (The daily journey's Figma-preflight STOP-gate
-   covers checking this before trusting a result — see `templates/journeys/daily.md`.)
+Use the built absolute CLI path if `figma-agent` is not on PATH. Keep the plugin
+open and pin reads with `--instance '<verified-instanceId>'`; reverify after a
+reopen. Broker ports range from 9410 to 9419. Reload the plugin after rebuilding.
+Do not claim setup or inventory coverage from installation alone, switch bridges
+because of seat detection, or replace a failed scan with invented HTML. The
+owner can explicitly choose a different read/export path after its limits are clear.
 
 ## Handback discipline
 
 **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED · which entry point (E1–E6) was taken, and
 what `ui doctor` / `design-os doctor --versions` reported · any hand still missing, any
 soul left in `draft` status, or manifest name left un-renamed · open questions.
+For E4, distinguish completed plugin setup and verified live reads from inventory
+coverage. Include the actual returned artifact paths and unresolved facts; mark the
+bundle portable and unsealed. A complete setup/capture handback does not claim a
+complete mapped kit, sealed-DS readiness, or accepted-lesson eligibility.

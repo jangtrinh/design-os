@@ -73,8 +73,8 @@ describe("memory-events — validateEvent", () => {
     expect(codeOf(() => validateEvent("insight", { text: "x" }, ["e1"]))).toBeNull();
   });
 
-  it("EVENT_TYPES has 20 members (16 v1 + 4 tractability telemetry); isEventType/isMedium guard", () => {
-    expect(EVENT_TYPES.length).toBe(20);
+  it("EVENT_TYPES has 22 members (16 v1 + 4 telemetry + 2 lesson lifecycle); isEventType/isMedium guard", () => {
+    expect(EVENT_TYPES.length).toBe(22);
     expect(isEventType("gap")).toBe(true);
     expect(isEventType("user_pick")).toBe(true);
     expect(isEventType("lint_run")).toBe(true);

@@ -23,18 +23,19 @@ import { basename, resolve, join } from "node:path";
 
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
-import { errJson, errText, okJson } from "../core/output.js";
+import { errJson, errJsonWithData, errText, okJson } from "../core/output.js";
 import { saveRegistry } from "../core/registry-store.js";
 import { registryFileForDir } from "../core/design-system.js";
 import { parseDsFile, ingestDesignSystem, DsIngestError } from "../core/figma-ds-ingest.js";
 import {
   buildEvent,
   validateEvent,
-  nextEventId,
   MemoryEventError,
 } from "../core/memory-events.js";
 import type { EventType } from "../core/memory-events.js";
-import { memoryPaths, ledgerLineCount, appendEvent, compileAndWrite } from "../core/memory-store.js";
+import { MemoryAppendCommittedError } from "../core/memory-error.js";
+import { memoryPaths } from "../core/memory-store.js";
+import { seedMemoryBatch } from "../core/memory-seed-batch.js";
 
 const CMD = "ingest-figma-ds";
 
@@ -73,6 +74,8 @@ Error codes:
   BAD_JSON         ds.json is not valid JSON
   BAD_DS           ds.json is not a scan-design-system output (missing components/tokens/styles)
   SEALED_PATH_COLLISION  --out resolves to a directory named 'design' — the sealed DS path
+  MEMORY_LOCKED    Memory append lock is held; wait for its writer to release it
+  MEMORY_COMMITTED  Memory seed events committed before a later failure; do not repeat seeding
   WRITE_ERROR      An output file could not be written
 `;
 
@@ -105,12 +108,12 @@ function seedMemory(
   if (screenCount > 0) {
     events.push({ type: "harvested", data: { source, what: `${screenCount} screens (not DS components)` } });
   }
-  for (const e of events) {
-    validateEvent(e.type, e.data, undefined);
-    const id = nextEventId(ledgerLineCount(paths));
-    appendEvent(paths, buildEvent({ id, t: nowIso, type: e.type, data: e.data, actor: "ingest-figma-ds", medium: "figma" }));
-  }
-  compileAndWrite(paths, nowIso);
+  seedMemoryBatch(paths, events.length, nowIso, (append) => {
+    for (const e of events) {
+      validateEvent(e.type, e.data, undefined);
+      append(buildEvent({ id: "", t: nowIso, type: e.type, data: e.data, actor: "ingest-figma-ds", medium: "figma" }));
+    }
+  });
 }
 
 function runIngest(parsed: ParsedArgs): CommandResult {
@@ -194,6 +197,11 @@ function runIngest(parsed: ParsedArgs): CommandResult {
       seedMemory(outDir, result.source, result.componentNames, result.icons.count, result.screens.length, nowIso);
     }
   } catch (e) {
+    if (e instanceof MemoryAppendCommittedError) {
+      return useJson
+        ? errJsonWithData(CMD, e.code, e.message, { committed: true, id: e.id, ids: e.ids, partial: e.partial, ledger: memoryPaths(outDir).ledger, warn: e.message })
+        : errText(`ui: ${e.message}\n`);
+    }
     if (e instanceof MemoryEventError) return err(e.code, `cannot seed memory: ${e.message}`);
     return err("WRITE_ERROR", `cannot write output: ${e instanceof Error ? e.message : String(e)}`);
   }
