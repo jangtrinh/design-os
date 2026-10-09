@@ -1,3 +1,6 @@
+import { MemoryEventError } from "./memory-error.js";
+import { validateLessonData } from "./memory-lessons.js";
+export { MemoryEventError } from "./memory-error.js";
 /**
  * Design-memory event model — the append-only ledger's typed vocabulary.
  *
@@ -37,11 +40,15 @@ export const EVENT_TYPES = [
   "attempt_completed",
   "outcome_recorded",
   "taste_veto",
+  "lesson_proposed",
+  "lesson_reviewed",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
 /** Required `data` keys per type (extra keys allowed for forward compat). */
 const REQUIRED_DATA: Readonly<Record<EventType, readonly string[]>> = {
+  lesson_proposed: [],
+  lesson_reviewed: [],
   variant_generated: ["persona", "mode"],
   rendition_created: [],
   taste_verdict: ["scores", "lowestAxis", "round", "pass"],
@@ -116,14 +123,6 @@ export interface MemoryEvent {
   data: Record<string, unknown>;
 }
 
-export class MemoryEventError extends Error {
-  readonly code: string;
-  constructor(code: string, message: string) {
-    super(message);
-    this.name = "MemoryEventError";
-    this.code = code;
-  }
-}
 
 export function isEventType(t: string): t is EventType {
   return (EVENT_TYPES as readonly string[]).includes(t);
@@ -154,6 +153,7 @@ export function validateEvent(
       `unknown event type '${type}'. Valid types: ${EVENT_TYPES.join(", ")}`,
     );
   }
+  validateLessonData(type, data, refs);
   for (const key of REQUIRED_DATA[type]) {
     if (!(key in data)) {
       throw new MemoryEventError("BAD_EVENT", `event '${type}' requires data.${key}`);
@@ -245,6 +245,10 @@ export function parseLedger(text: string): MemoryEvent[] {
     }
     if (!isEventType(o["type"] as string)) {
       throw new MemoryEventError("BAD_LEDGER", `ledger line ${i + 1} has unknown type '${String(o["type"])}'`);
+    }
+    const lesson = o["type"] === "lesson_proposed" || o["type"] === "lesson_reviewed";
+    if (lesson && (o["v"] !== 1 || !Array.isArray(o["refs"]) || !o["data"] || typeof o["data"] !== "object" || Array.isArray(o["data"]))) {
+      throw new MemoryEventError("BAD_LESSON", `ledger line ${i + 1} has malformed lesson version/refs/data`);
     }
     events.push({
       v: MEMORY_EVENT_VERSION,

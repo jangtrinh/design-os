@@ -23,8 +23,8 @@ to compile). Never make the user hand-pick tokens or components.
   on disk via `ui scan`.
 - **`--cwd <path>`** *(optional)* — project directory to learn from (default: the
   current working directory), forwarded to `ui scan`.
-- The user's **one** answer in step 2 (the source of truth) is the only decision
-  they make.
+- The user's **one** answer in step 2 selects the onboarding source of truth.
+  Later durable lesson decisions use the separate owner review described below.
 
 ## Steps
 
@@ -52,13 +52,24 @@ project has no components"*. Only state "no UI here" outright when
 
 If `verdict` is already `ds-present`, tell the user a compiled DS exists and stop
 unless they explicitly want to re-learn (e.g. after a major redesign);
-re-learning replaces the system via `--force` inside the routed flow.
+re-learning replaces the system via `--force` inside the routed flow. For ordinary
+corrections or inventory growth, continue through
+[post-onboarding learning](../../docs/design-learning.md) instead of resetting the DS.
 
 **Soul gate.** If `design/soul.md` exists, read it FIRST (it also appears as the
 `soul` section of `ui ds context`). It is the project's declared stance. Precedence:
 **brief > soul (project > studio > factory) > memory prior > knowledge floors** — the soul biases every choice
 below it and never overrides the explicit brief. Never propose choices that violate
 a `## Never` clause; prefer choices that express `## Always`.
+Accessibility, correctness, and safety floors remain mandatory regardless of a
+brief, soul, or preference. No unsafe override becomes valid through owner approval.
+
+For every visual change, discover and load the project's design guidance and available
+`es:designer` / `es-designer` before implementation or visual review. If unavailable,
+use the shipped applicable workflow, `knowledge/generation-craft-defaults.md`, and
+`knowledge/build-loop.md`. Preserve the owner's DS and stack, including shadcn/Tailwind.
+Authorized routine edits do not need fresh approval for every render; durable lesson
+acceptance does need an owner decision. Reading guidance is not verified compliance.
 
 ### Step 2 — Ask ONE question (source of truth)
 
@@ -140,21 +151,30 @@ Follow the flow for the chosen source; **do not** restate its steps here.
     Variables + Styles + Components — the common onboarding case) → **do NOT
     reproduce frames as HTML.** Scan the system once and compile it
     deterministically. This is the durable, zero-token on-ramp (C0):
-    1. Pick the write/read bridge with the seat-adaptive selector (never hardcode
-       a bridge) — see `knowledge/figma-agent-hand.md` §"Bridge selection".
+    1. Use the **design:os Figma plugin** as the default DS reading path, on every
+       seat. Read `knowledge/figma-ds-onboarding.md` and guide the user through
+       prerequisites, clone/build, manifest import, opening the plugin and exact-file
+       connection verification. The plugin is a separate install from `ease-design`.
+       Do not switch bridges because of seat detection or treat an unavailable plugin
+       as permission to reproduce HTML; an alternative requires the user's choice.
     2. Scan the system to a `ds.json` inventory:
        ```sh
-       figma-agent scan-design-system --out ds.json
+       figma-agent scan-design-system --instance '<verified-instanceId>' --out ds.json
        ```
     3. Compile it into ease-design's portable stores (zero-network, zero-LLM):
        ```sh
-       ui ingest-figma-ds ds.json --out . --name "<ds-name>" --seed-memory
+       ui ingest-figma-ds ds.json --out . --name "<ds-name>" --seed-memory --json
        ```
-       This emits `tokens.json` (DTCG primitive+semantic tiers, incl. Light/Dark
-       modes), `component-registry.json` (name · variants · props), and a
+       This emits `tokens.json` (DTCG primitive+semantic tiers, retaining modes
+       only when supplied by the source), a registry at the returned `data.registry` path
+       (name · variants · props), and a
        `DESIGN.md` DS spec, and seeds `ui memory` so the system is remembered.
        The portable files ARE the durable memory (F0) — no per-turn re-read.
-    4. Skip the reproduce-as-HTML + `extract.md` path entirely; go to step 4.
+       The current plugin scan supplies default-mode local variables; reconcile
+       other modes and remote-library gaps explicitly before claiming full coverage.
+    4. Skip the reproduce-as-HTML + `extract.md` path entirely; verify the portable
+       capture in step 4's Figma-specific branch, then **terminate this route**.
+       Inventory ingest does not unlock the sealed-DS readiness or lesson flow.
     - **LIVE-E2E PENDING:** `scan-design-system` reads a *live* plugin session;
       run it against the real file when the figma-agent plugin is open. The
       compile step (`ui ingest-figma-ds`) is deterministic and already testable
@@ -165,11 +185,12 @@ Follow the flow for the chosen source; **do not** restate its steps here.
     already-designed screens and wants ease-design to learn *how the DS is used* —
     the applied grammar / house style) → learn the CONVENTIONS (C7), the companion
     to the C0 vocabulary:
-    1. Pick the bridge with the seat-adaptive selector.
+    1. Use the design:os Figma plugin and the A-to-Z setup in
+       `knowledge/figma-ds-onboarding.md`; verify and pin the exact owner file.
     2. Distill the screens' usage DNA **in-plugin** — NEVER dump `get_metadata` for
        a section (see `knowledge/figma-agent-hand.md` §"Reading a whole section"):
        ```sh
-       figma-agent scan-conventions <sectionId…> --out usage-dna.json
+       figma-agent scan-conventions <sectionId…> --instance '<verified-instanceId>' --out usage-dna.json
        ```
     3. Synthesize it (zero-network, zero-LLM) into an AI-readable house-style spec:
        ```sh
@@ -196,6 +217,13 @@ directories with the most files. State plainly which files you sampled and which
 you skipped, so the coverage is auditable. For the URL and Figma routes, apply
 the same doctrine to pages/frames: sample 3–5 representative screens, not just
 the homepage.
+
+Screen sampling discovers vocabulary, not the complete reusable inventory. Enumerate
+**all** source components and compositional patterns, including shadcn/Tailwind wrappers
+and project-specific additions. Register every source-backed reusable record using
+step 3d; keep unresolved names and missing evidence explicit. Reconcile discovered,
+registered, and unresolved inventory counts. Neither 3–5 samples nor a 25-component
+core kit caps the owner's DS. Core floors still apply to every addition.
 
 #### Step 3b — Interaction-state evidence
 
@@ -259,11 +287,27 @@ naming) and step 8 (register) run unchanged against the sampled files.
 ### Step 4 — Compile and verify
 
 **Figma design-SYSTEM ingest path:** the stores are already written by
-`ui ingest-figma-ds` (step 3). Verify them instead of `ds status`: confirm
-`ui tokens compile tokens.json --json` exits 0 (aliases resolve) and
-`ui registry list --file component-registry.json --json` lists the components.
-Then skip to step 5. (The `ds.manifest.json` checks below apply only to the
-persona/extract-compiled paths.)
+`ui ingest-figma-ds` (step 3). Save its successful JSON receipt and use the
+returned `data.tokens` and `data.registry` paths for verification:
+
+```sh
+ui tokens compile '<returned data.tokens path>' --json
+ui registry list --file '<returned data.registry path>' --json
+```
+
+The registry may be `figma-component-registry.json` when the default path belongs
+to the owner's codebase. Do not read a guessed registry or an older sealed store
+to report this capture's counts. Reconcile this receipt, the scan and the returned
+inventory, retaining unresolved modes/library/components explicitly.
+
+**STOP this Figma-library route here.** Give the setup-and-inventory handback in
+`knowledge/figma-ds-onboarding.md`: exact file/instance, source/build identity,
+returned paths, counts and remaining coverage gaps; label the bundle **portable
+and unsealed**. Do not continue to the soul/readiness report below, invite
+`/ui:generate` from this capture, or propose revision-bound lessons from it.
+An existing older seal is a separate store, not proof this capture was adopted.
+Only a separately validated mapping/sealing stage that reconciles the captured
+inventory into the active DS may enter the generic readiness and lesson flow.
 
 The routed flow ends by compiling a Design System on disk. Verify it is healthy
 before reporting success:
@@ -294,7 +338,11 @@ first as a seed: a clause the project inherits unchanged from it cites
 `status: draft` in the frontmatter and tell the owner: review, edit, then set
 `status: ratified`. Run `ui ds soul check` and report its findings.
 
-### Step 5 — Readiness report
+### Step 5 — Readiness report (sealed DS routes only)
+
+Require a successful verified seal and reconciled current inventory before this
+report. The portable Figma-library capture terminates in step 4; it never reaches
+this section automatically.
 
 Emit a compact readiness report in exactly this shape:
 
@@ -304,13 +352,36 @@ Emit a compact readiness report in exactly this shape:
 → try: /ui:generate "<suggested intent from the product's domain>"
 ```
 
-Derive the counts from `ui ds context --format json` and `ui registry list
---json`; draw the suggested intent from the product's own domain (inferred from
+Derive token counts from `ui ds context --format json` and the full component count
+from `ui registry list --json`, not the truncated DS-context registry preview;
+draw the suggested intent from the product's own domain (inferred from
 the sampled content), not a generic example. `<s>` counts records whose
 `variants` array contains a `State=*` entry (spec 009 D3) — **not** the
 record's own `states` field, which stays unset.
 
+Report full inventory coverage separately from sampled screens. Do not claim complete
+onboarding while reusable inventory is unresolved. After onboarding, continue through
+[owner-local design learning](../../docs/design-learning.md): record fingerprinted local
+evidence, propose a project/component/pattern lesson at the current seal identity from
+`ui memory context --for generate --json`, and obtain an owner decision before writing
+its bound acceptance receipt. Recurrence stays a pending proposal until that review.
+
+Before the next task's directions or builder packet, read DS/task context, list the
+complete registry, then run `ui registry lookup '<exact-name>' --json` for every relevant
+component and pattern. Load `ui memory context --for generate --components '<comma names>'
+--patterns '<comma names>'` with those same targets; omit unused selectors. Exact lookup
+provides definitions beyond the shortened DS preview, while lesson context provides only
+eligible reviewed preferences. Re-read after registry changes. This continues the existing
+host flow without adding a workflow template or command.
+
 ## Outputs
+
+**Portable Figma-library capture:** return the inventory handback from step 4,
+using the successful ingest receipt's paths and current capture counts. Keep
+the bundle explicitly unsealed and disclose unresolved coverage. This route is
+complete at that handback; mapping/sealing and UI generation are separate work.
+
+**Sealed DS routes only:**
 
 - A populated `design/` directory (`design.tokens.json`,
   `component-registry.json`, `ds.manifest.json`) compiled by the routed flow —
@@ -320,18 +391,27 @@ record's own `states` field, which stays unset.
 - **No new HTML.** `/ui:learn` builds the system; run `/ui:generate` next to
   produce UI inside it.
 
-No files are written outside the project directory. The only network access is
-the URL route's fetch, which is owned by `from-url.md`.
+Capture artifacts stay in the project directory. Figma plugin setup includes
+cloning its source and installing build dependencies as described in the canonical
+guide; capture uses the verified local plugin connection. The URL route's fetch
+is owned by `from-url.md`.
 
 ## Quality gate
 
-`/ui:learn` is complete only when:
+**Portable Figma-library capture:** completion requires the canonical guide's
+setup/connection verification and step 4's receipt-backed inventory handback.
+Do not use an older seal to certify this capture or require generation readiness.
+
+**Sealed DS routes only:** `/ui:learn` is complete only when:
 
 - `ui ds status --json` and `ui ds context --strict` load cleanly — the DS is
   present and untampered;
 - when the source was **code**, **≥1 component is registered** (a code project
   that yields zero reusable components means step 3a sampled too shallowly —
   re-sample across more surfaces);
+- full reusable component/pattern inventory is reconciled, with every source-backed
+  record registered and unresolved names disclosed; a nonzero sample alone is not
+  complete inventory evidence, and there is no 25-record ceiling;
 - the report lists every value dropped as unverified/GUESS (step 3c), so the user
   can see exactly what the system did and did not learn.
 

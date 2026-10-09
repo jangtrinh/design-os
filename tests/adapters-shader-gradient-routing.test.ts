@@ -180,9 +180,9 @@ describe("shader-gradient routing — G5 handoff marker (release-blocking)", () 
 });
 
 describe("shader-gradient routing — G6a packaged-surface invariant (release-blocking)", () => {
-  it("package.json.files is unchanged by this adoption", () => {
+  it("package.json.files contains only the distribution roots and supported public guides", () => {
     const pkg = JSON.parse(read("package.json")) as { files: string[] };
-    expect(pkg.files).toEqual(["dist", "knowledge", "schemas", "templates"]);
+    expect(pkg.files).toEqual(["dist", "knowledge", "docs/design-learning.md", "docs/design-entry.md", "docs/routing-benchmark.md", "schemas", "templates"]);
   });
 });
 

@@ -30,6 +30,9 @@
   "files": [
     "dist",
     "knowledge",
+    "docs/design-learning.md",
+    "docs/design-entry.md",
+    "docs/routing-benchmark.md",
     "schemas",
     "templates"
   ],

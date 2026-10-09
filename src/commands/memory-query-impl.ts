@@ -1,12 +1,12 @@
 /**
  * `ui memory query | status` — raw-event lookup + a health summary. Read-only.
  */
-import { existsSync, statSync } from "node:fs";
+import { existsSync } from "node:fs";
 
 import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
-import { memoryPaths, readEvents, loadRegistry, loadProfile } from "../core/memory-store.js";
+import { memoryPaths, readEvents, loadRegistry, loadProfile, graphCacheFresh } from "../core/memory-store.js";
 import { MemoryEventError } from "../core/memory-events.js";
 import type { MemoryEvent } from "../core/memory-events.js";
 
@@ -76,7 +76,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
       eventCount = -1; // unparseable ledger; status never fails
     }
     if (existsSync(paths.graph)) {
-      graphState = statSync(paths.graph).mtimeMs >= statSync(paths.ledger).mtimeMs ? "fresh" : "stale";
+      graphState = graphCacheFresh(paths) ? "fresh" : "stale";
     }
   }
   const registrySize = loadRegistry().length;
