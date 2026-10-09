@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ease-design.dev/schemas/source-authored-component.schema.json",
+  "title": "Source-authored owner component projection",
+  "description": "Exact owner names for validated kit projections. Legacy registry authoring retains its Category/Variant name grammar. Source reconciliation and token/path semantics are checked by the kernel.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "category", "markup", "tokensUsed"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1, "allOf": [{ "pattern": "\\S" }, { "pattern": "^[^\\u0000-\\u001f\\u007f\\ud800-\\udfff]+$" }] },
+    "category": { "$ref": "component-registry.schema.json#/$defs/component/properties/category" },
+    "markup": { "$ref": "component-registry.schema.json#/$defs/component/properties/markup" },
+    "tokensUsed": { "$ref": "component-registry.schema.json#/$defs/component/properties/tokensUsed" },
+    "variants": { "$ref": "component-registry.schema.json#/$defs/component/properties/variants" },
+    "states": { "$ref": "component-registry.schema.json#/$defs/component/properties/states" },
+    "description": { "$ref": "component-registry.schema.json#/$defs/component/properties/description" },
+    "scope": { "$ref": "component-registry.schema.json#/$defs/component/properties/scope" },
+    "deprecated": { "$ref": "component-registry.schema.json#/$defs/component/properties/deprecated" },
+    "figmaNode": { "$ref": "component-registry.schema.json#/$defs/component/properties/figmaNode" },
+    "status": { "enum": ["draft", "beta", "stable"] }
+  }
+}

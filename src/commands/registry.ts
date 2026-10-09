@@ -16,6 +16,7 @@ import { readMarkup } from "../core/registry-markup-reader.js";
 import {
   RegistryError,
   validateComponentRecord,
+  validateSourceAuthoredComponentRecord,
   createEmptyRegistry,
   loadRegistry,
   saveRegistry,
@@ -34,15 +35,15 @@ const DEFAULT_REGISTRY_DIR = "./design";
 export const REGISTRY_HELP = `ui registry — component registry store
 
 Usage:
-  ui registry register <Category/Variant> --category <c> --markup <file|->
+  ui registry register <name> --category <c> --markup <file|->
                         [--tokens a,b,c] [--variants x,y] [--states s1,s2]
                         [--description "..."] [--force] [--file <path>] [--json]
-  ui registry lookup <Category/Variant> [--file <path>] [--json]
+  ui registry lookup <name> [--file <path>] [--json]
   ui registry list [--category <c>] [--file <path>] [--json]
 
 Subcommands:
   register  Add (or replace with --force) a component in the registry
-  lookup    Find a component by canonical name
+  lookup    Find a component by its exact observed name
   list      List all components, optionally filtered by category
 
 Options:
@@ -52,7 +53,10 @@ Options:
   -h, --help       Show this help
 
 Name format:
-  Category/Variant — both segments PascalCase, letters only (e.g. Button/Primary)
+  Standalone and legacy DS register: Category/Variant, both segments PascalCase,
+  letters only (e.g. Button/Primary).
+  Bound owner kit register: preserve the exact display label (e.g. "Owner Item 40");
+  normalized name collisions are rejected. Lookup uses the exact observed name.
 
 Token paths:
   --tokens is comma-separated, each matching ^[a-z][a-z0-9.-]*$ (e.g. color.primary,space.4)
@@ -65,7 +69,7 @@ States enum:
 
 Error codes:
   BAD_ARG            Missing subcommand, positional, or required flag
-  BAD_NAME           Name does not match Category/Variant pattern
+  BAD_NAME           Invalid name for the registry, or normalized kit name collision
   BAD_STATE          A --states value not in the enum
   BAD_TOKEN          Bad --tokens format, OR (DS present) unresolvable path — distinct msgs
   NAME_EXISTS        register of existing name without --force
@@ -73,6 +77,8 @@ Error codes:
   FILE_NOT_FOUND     --markup file does not exist
   REGISTRY_NOT_FOUND Registry file absent on lookup/list
   BAD_REGISTRY       Registry file is invalid JSON or wrong shape
+  DS_TAMPERED        Bound DS or kit integrity failed before registration
+  BAD_MANIFEST       The owning DS manifest is malformed
   READ_ERROR / WRITE_ERROR  Non-ENOENT I/O failure
 
 Notes:
@@ -125,7 +131,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   // so the name is in positionals[0])
   const name = parsed.positionals[0];
   if (name === undefined) {
-    const msg = "ui registry register requires a <Category/Variant> name";
+    const msg = "ui registry register requires a <name>";
     return useJson ? errJson(sub, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
   }
 
@@ -143,6 +149,20 @@ function runRegister(parsed: ParsedArgs): CommandResult {
 
   const force = parsed.flags["force"] === true;
   const registryPath = resolveRegistryPath(parsed);
+
+  // Explicit --file wins for both validation and reseal. Load the owning DS before
+  // choosing the owner-name door; standalone and legacy registries stay strict.
+  const explicitFile = flagString(parsed, "file");
+  const dsPaths = explicitFile !== undefined
+    ? { ...pathsForDir(dirname(registryPath)), registry: registryPath }
+    : pathsForDir(dirname(registryPath));
+  let ds: ReturnType<typeof loadDesignSystemForReseal>;
+  try { ds = loadDesignSystemForReseal(dsPaths); }
+  catch (error) {
+    const code = error !== null && typeof error === "object" && "code" in error ? String(error.code) : "READ_ERROR";
+    const message = error instanceof Error ? error.message : String(error);
+    return useJson ? errJson(sub, code, message) : errText(`ui: ${message}\n`);
+  }
 
   // Read markup
   let markup: string;
@@ -176,7 +196,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
 
   let record;
   try {
-    record = validateComponentRecord(rawRecord);
+    record = ds?.kit ? validateSourceAuthoredComponentRecord(rawRecord) : validateComponentRecord(rawRecord);
   } catch (e) {
     return asResult(useJson, sub, e);
   }
@@ -184,7 +204,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   // Load or create registry
   let reg;
   try {
-    reg = loadRegistry(registryPath);
+    reg = ds?.registry ?? loadRegistry(registryPath);
   } catch (e) {
     if (e instanceof RegistryError && e.code === "REGISTRY_NOT_FOUND") {
       reg = createEmptyRegistry();
@@ -196,6 +216,11 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   // Register (may throw NAME_EXISTS)
   let result;
   try {
+    if (ds?.kit) {
+      const normalized = (value: string): string => value.normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+      const collision = reg.components.find((component) => component.name !== record.name && normalized(component.name) === normalized(record.name));
+      if (collision) throw new RegistryError("BAD_NAME", `owner name '${record.name}' collides with exact registered label '${collision.name}'`);
+    }
     result = registerComponent(reg, record, force);
   } catch (e) {
     return asResult(useJson, sub, e);
@@ -207,12 +232,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   // Stage-4 N6 — an explicit --file must win here too: override `dsPaths.registry` with the
   // exact requested path rather than letting pathsForDir re-derive (possibly different) one,
   // so reseal never hashes a different file than the one --file pointed to.
-  const explicitFile = flagString(parsed, "file");
-  const dsPaths = explicitFile !== undefined
-    ? { ...pathsForDir(dirname(registryPath)), registry: registryPath }
-    : pathsForDir(dirname(registryPath));
   try {
-    const ds = loadDesignSystemForReseal(dsPaths);
     assertTokensExist(record.tokensUsed, ds?.tokens);
     if (ds !== undefined) {
       reseal({
@@ -251,7 +271,7 @@ function runLookup(parsed: ParsedArgs): CommandResult {
 
   const name = parsed.positionals[0];
   if (name === undefined) {
-    const msg = "ui registry lookup requires a <Category/Variant> name";
+    const msg = "ui registry lookup requires a <name>";
     return useJson ? errJson(sub, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
   }
 

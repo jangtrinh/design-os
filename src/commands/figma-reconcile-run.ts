@@ -525,14 +525,16 @@ export function runReconcile(parsed: ParsedArgs): CommandResult {
   // of an already-tampered store (D4). No manifest present → nothing to reseal.
   // `dsPaths` is the SAME one resolved once, above — never re-resolved here.
   let ds;
-  if (changed) {
-    try {
-      ds = loadDesignSystemForReseal(dsPaths);
-    } catch (e) {
-      const code = e !== null && typeof e === "object" && "code" in e ? String((e as { code: unknown }).code) : "WRITE_ERROR";
-      const msg = e instanceof Error ? e.message : String(e);
-      return useJson ? errJson(SUB, code, msg) : errText(`ui: ${msg}\n`);
-    }
+  try {
+    ds = loadDesignSystemForReseal(dsPaths);
+  } catch (e) {
+    const code = e !== null && typeof e === "object" && "code" in e ? String((e as { code: unknown }).code) : "WRITE_ERROR";
+    const msg = e instanceof Error ? e.message : String(e);
+    return useJson ? errJson(SUB, code, msg) : errText(`ui: ${msg}\n`);
+  }
+  if (ds?.kit) {
+    const msg = "Kit-bound Figma reconciliation cannot apply sidecars or registry changes. Stage a fresh kit candidate; read-only reports and capture remain available.";
+    return useJson ? errJson(SUB, "KIT_FIGMA_APPLY", msg) : errText(`ui: ${msg}\n`);
   }
 
   let sidecarsWritten: boolean;

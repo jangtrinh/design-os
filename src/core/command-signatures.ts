@@ -572,7 +572,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     subcommands: {
       register: {
         summary: "Add (or replace with --force) a component in the registry",
-        positionals: [{ name: "<Category/Variant>", required: true, summary: "Canonical PascalCase component name" }],
+        positionals: [{ name: "<name>", required: true, summary: "Legacy Category/Variant name, or exact owner display name in a bound kit" }],
         flags: [
           { name: "category", type: "string", required: true, summary: "Component category" },
           { name: "markup", type: "string", required: true, summary: "Markup source file, or '-' for stdin" },
@@ -583,11 +583,11 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "force", type: "boolean", summary: "Overwrite an existing component" },
           { name: "file", type: "string", summary: "Registry file path (default ./design/component-registry.json)" },
         ],
-        errorCodes: ["BAD_ARG", "BAD_NAME", "BAD_STATE", "BAD_TOKEN", "NAME_EXISTS", "FILE_NOT_FOUND", "BAD_REGISTRY", "READ_ERROR", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "BAD_NAME", "BAD_STATE", "BAD_TOKEN", "NAME_EXISTS", "FILE_NOT_FOUND", "BAD_REGISTRY", "DS_TAMPERED", "BAD_MANIFEST", "READ_ERROR", "WRITE_ERROR"],
       },
       lookup: {
         summary: "Find a component by canonical name",
-        positionals: [{ name: "<Category/Variant>", required: true, summary: "Canonical component name" }],
+        positionals: [{ name: "<name>", required: true, summary: "Exact component name from the registry inventory" }],
         flags: [{ name: "file", type: "string", summary: "Registry file path" }],
         errorCodes: ["BAD_ARG", "BAD_NAME", "NOT_FOUND", "REGISTRY_NOT_FOUND", "BAD_REGISTRY", "READ_ERROR"],
       },
@@ -753,7 +753,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "force", type: "boolean", summary: "With --apply --since: bypass the refusal to run --since while the retry queue is non-empty (recorded in the state file)" },
           { name: "file-slug", type: "string", summary: "Narrow the delta/apply/cursor to one Figma file's identity in a shared change-log (a foreign frame is filtered and counted, never rejected)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_CHANGE_LOG", "BAD_REGISTRY", "BAD_MIRROR_CAPTURE", "BAD_SIDECAR", "WRITE_ERROR", "READ_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_CHANGE_LOG", "BAD_REGISTRY", "BAD_MIRROR_CAPTURE", "BAD_SIDECAR", "KIT_FIGMA_APPLY", "DS_TAMPERED", "BAD_MANIFEST", "WRITE_ERROR", "READ_ERROR"],
       },
       comments: {
         summary: "Triage a captured comments payload: fold threads, resolve what each pin points at",
@@ -777,6 +777,26 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   ds: {
     summary: "Compile, inspect, and mutate the project's design system",
     subcommands: {
+      kit: {
+        summary: "Stage, validate, adopt and verify a complete source-bound owner component kit",
+        positionals: [
+          { name: "<plan|theme|prepare|validate|adopt|verify>", required: true, summary: "Host scaffold, deterministic theme, structural hash, evidence validation, create-only adoption or seal verification" },
+          { name: "<candidate-root>", required: false, summary: "Candidate directory for theme, prepare, validate and adopt" },
+        ],
+        flags: [
+          { name: "source", type: "string", summary: "plan: raw Figma scan or normalized code registry" },
+          { name: "kind", type: "string", values: ["figma", "registry"], summary: "plan: source capture contract" },
+          { name: "tokens", type: "string", summary: "plan: captured DTCG token file" },
+          { name: "out", type: "string", summary: "plan/adopt: absent destination, never overwritten" },
+          { name: "name", type: "string", summary: "plan: exact owner DS display name" },
+          { name: "dir", type: "string", summary: "verify: adopted project directory" },
+          { name: "now", type: "string", summary: "adopt: explicit ISO clock for deterministic manifest output" },
+        ],
+        errorCodes: ["BAD_ARG", "BAD_NAME", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_KIT", "KIT_FORMAT", "KIT_PATH", "KIT_IO",
+          "KIT_SOURCE", "KIT_TOKENS", "KIT_THEME", "KIT_ALIAS", "KIT_MODE", "KIT_UNDECLARED", "KIT_BLOCKED",
+          "KIT_EVIDENCE", "KIT_EVIDENCE_STALE", "KIT_TAMPERED", "KIT_CHANGED", "KIT_NOT_BOUND", "KIT_TARGET_EXISTS",
+          "KIT_PLAN_INCOMPLETE", "KIT_ADOPTION_INCOMPLETE", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "WRITE_ERROR"],
+      },
       init: {
         summary: "Compile a project-scoped design system from a persona + intent",
         positionals: [{ name: "<name>", required: true, summary: "Project DS name (slug)" }],
@@ -789,7 +809,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "bare", type: "boolean", summary: "Skip the default component kit (start with an empty registry)" },
           { name: "persona-data", type: "string", summary: "Override the personas.json path (test support)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "BAD_INTENT", "BAD_BRAND_HEX", "PERSONA_NOT_FOUND", "BAD_TOKEN", "DS_EXISTS", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "BAD_INTENT", "BAD_BRAND_HEX", "PERSONA_NOT_FOUND", "BAD_TOKEN", "DS_EXISTS", "KIT_DOWNGRADE", "WRITE_ERROR"],
       },
       specimen: {
         summary: "Report each component's variant×state matrix + applicable-state gaps",
@@ -809,7 +829,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "force", type: "boolean", summary: "Overwrite an existing design.tokens.json" },
           { name: "reset-registry", type: "boolean", summary: "Confirm --force may wipe a non-empty registry (required alongside --force when the registry has components)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "EXISTS", "REGISTRY_NOT_EMPTY", "EMPTY_IMPORT", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "EXISTS", "REGISTRY_NOT_EMPTY", "EMPTY_IMPORT", "KIT_DOWNGRADE", "WRITE_ERROR"],
       },
       context: {
         summary: "Emit the active design system as a context block for the host model",

@@ -154,14 +154,14 @@ export function runContext(parsed: ParsedArgs): CommandResult {
   // ── Format and respond ──────────────────────────────────────────────────────
 
   if (format === "json") {
-    const structured = formatStructured(ds, opts);
+    const structured = { ...formatStructured(ds, opts), ...(ds.kit && { kitStatus: ds.kit.status }) };
     const payload = theme !== undefined ? { ...structured, theme } : structured;
     return useJson
       ? okJson(CMD, payload)
       : ok(JSON.stringify(payload, null, 2) + "\n");
   }
 
-  const md = formatMarkdown(ds, opts);
+  const md = (ds.kit ? `Kit status: ${ds.kit.status}${ds.kit.status === "stale" ? " — evidence requires reverification" : ""}\n\n` : "") + formatMarkdown(ds, opts);
   const out = theme !== undefined ? md + themeSection(theme) : md;
   return useJson ? okJson(CMD, out) : ok(out);
 }
