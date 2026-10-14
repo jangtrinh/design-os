@@ -1,0 +1,15 @@
+{
+  "name": "design-os",
+  "metadata": {
+    "description": "Multi-runtime design operating system and CLI for Claude Code, OpenAI Codex, Gemini CLI, and Google Antigravity."
+  },
+  "owner": {
+    "name": "Jang Trinh"
+  },
+  "plugins": [
+    {
+      "name": "design-os",
+      "source": "./"
+    }
+  ]
+}
