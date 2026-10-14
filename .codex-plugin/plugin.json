@@ -1,0 +1,42 @@
+{
+  "name": "design-os",
+  "description": "Multi-runtime design operating system and CLI for Claude Code, OpenAI Codex, Gemini CLI, and Google Antigravity.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jang Trinh",
+    "url": "https://github.com/jangtrinh"
+  },
+  "homepage": "https://jangtrinh.github.io/design-os/",
+  "repository": "https://github.com/jangtrinh/design-os",
+  "license": "MIT",
+  "keywords": [
+    "design-os",
+    "ai-agents",
+    "claude-code",
+    "codex",
+    "gemini-cli",
+    "design-system",
+    "cli"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DESIGN:OS CLI",
+    "shortDescription": "Multi-runtime design operating system and CLI for Claude Code, OpenAI Codex, Gemini CLI, and Google Antigravity.",
+    "longDescription": "Install once to equip any AI coding agent with 12+ domain design skills, deterministic verification gates, 2:1 axonometric art direction, and live Figma / SVG / 3D / SwiftUI / packaging workflows.",
+    "developerName": "DESIGN:OS",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://jangtrinh.github.io/design-os/",
+    "privacyPolicyURL": "https://github.com/jangtrinh/design-os/blob/main/PRIVACY.md",
+    "defaultPrompt": [
+      "Initialize DESIGN:OS in this repo and wire our design tokens and verification gates for Claude Code and Codex.",
+      "Audit our current frontend components against DESIGN:OS typography, spacing, and WCAG 2.2 AA contrast gates.",
+      "Scaffold a new product landing page with 2:1 axonometric B&W technical illustrations and SEO/AEO/GEO metadata."
+    ],
+    "brandColor": "#202020",
+    "logo": "./assets/cover.png"
+  }
+}

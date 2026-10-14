@@ -1,0 +1,20 @@
+{
+  "name": "design-os",
+  "interface": {
+    "displayName": "DESIGN:OS CLI"
+  },
+  "plugins": [
+    {
+      "name": "design-os",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

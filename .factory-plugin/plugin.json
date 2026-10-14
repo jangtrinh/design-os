@@ -1,0 +1,21 @@
+{
+  "name": "design-os",
+  "description": "Multi-runtime design operating system and CLI for Claude Code, OpenAI Codex, Gemini CLI, and Google Antigravity.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jang Trinh",
+    "url": "https://github.com/jangtrinh"
+  },
+  "homepage": "https://jangtrinh.github.io/design-os/",
+  "repository": "https://github.com/jangtrinh/design-os",
+  "license": "MIT",
+  "keywords": [
+    "design-os",
+    "ai-agents",
+    "claude-code",
+    "codex",
+    "gemini-cli",
+    "design-system",
+    "cli"
+  ]
+}
