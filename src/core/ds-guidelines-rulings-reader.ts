@@ -1,0 +1,73 @@
+/**
+ * DS Guidelines Pack — owner-rulings reader + tier classifier (pure, no fs).
+ *
+ * Reader contract: `{ rulings: [{ id, category, text, scope, source[], since, verified_by }] }`
+ * where `scope` is "global" or `{ apps: string[], features?: string[] }`. Supersession is
+ * recorded only as a text prefix `(SUPERSEDED <date> by <id>)`, so the reader parses it.
+ *
+ * Tiers: superseded → never emitted; process categories → C (excluded, counted);
+ * app-scoped → B (one file per app); everything else → A (library-wide).
+ */
+import { GuidelinesInputError } from "./ds-guidelines-model.js";
+
+export type RulingScope = "global" | { apps: string[] };
+
+export interface Ruling {
+  id: string;
+  category: string;
+  text: string;
+  scope: RulingScope;
+  source: string[];
+  since?: string;
+}
+
+export type Tier = "A" | "B" | "C" | "superseded";
+
+/** Process rulings steer how the team works, not how the library is used (excluded, counted). */
+const PROCESS_CATEGORIES: ReadonlySet<string> = new Set(["figma-scripting", "workflow-process", "delivery-gates"]);
+const SUPERSEDED_PREFIX = /^\s*\(SUPERSEDED\s+\S+\s+by\s+[^)]*\)/;
+
+const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
+
+/** Parse a rulings file; every shape violation is BAD_RULINGS naming the path and the entry. */
+export function parseRulings(raw: string, path: string): Ruling[] {
+  const bad = (why: string): GuidelinesInputError => new GuidelinesInputError("BAD_RULINGS", `rulings file '${path}': ${why}`);
+  let json: unknown;
+  try { json = JSON.parse(raw); } catch { throw bad("not valid JSON"); }
+  const list = (json as { rulings?: unknown } | null)?.rulings;
+  if (json === null || typeof json !== "object" || Array.isArray(json) || !Array.isArray(list)) {
+    throw bad("expected an object with a 'rulings' array");
+  }
+  return list.map((entry: unknown, i): Ruling => {
+    const r = entry as Record<string, unknown> | null;
+    if (r === null || typeof r !== "object" || Array.isArray(r)) throw bad(`rulings[${i}] is not an object`);
+    for (const key of ["id", "category", "text"] as const) {
+      if (typeof r[key] !== "string" || r[key] === "") throw bad(`rulings[${i}].${key} must be a non-empty string`);
+    }
+    const scope = r["scope"];
+    let parsedScope: RulingScope;
+    if (scope === "global") parsedScope = "global";
+    else if (scope !== null && typeof scope === "object" && isStringArray((scope as { apps?: unknown }).apps)) {
+      parsedScope = { apps: (scope as { apps: string[] }).apps };
+    } else throw bad(`rulings[${i}].scope must be "global" or { apps: string[] }`);
+    const source = r["source"] ?? [];
+    if (!isStringArray(source)) throw bad(`rulings[${i}].source must be an array of strings`);
+    const since = r["since"];
+    if (since !== undefined && since !== null && typeof since !== "string") throw bad(`rulings[${i}].since must be a string or null`);
+    return {
+      id: r["id"] as string, category: r["category"] as string, text: r["text"] as string,
+      scope: parsedScope, source, ...(typeof since === "string" ? { since } : {}),
+    };
+  });
+}
+
+export function classifyRuling(r: Ruling): Tier {
+  if (SUPERSEDED_PREFIX.test(r.text)) return "superseded";
+  if (PROCESS_CATEGORIES.has(r.category)) return "C";
+  if (r.scope !== "global" && r.scope.apps.length > 0) return "B";
+  return "A";
+}
+
+export function supersededRulingIds(rulings: readonly Ruling[]): Set<string> {
+  return new Set(rulings.filter((r) => classifyRuling(r) === "superseded").map((r) => r.id));
+}

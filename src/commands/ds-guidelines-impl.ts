@@ -1,5 +1,5 @@
 /**
- * `ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--now <ISO>] [--json]`
+ * `ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--now <ISO>] [--json]`
  *
  * build  compile the sealed design system into design/guidelines/ (overview, vocabulary,
  *        components + guidelines.manifest.json). Deterministic: same store + same --now
@@ -9,31 +9,33 @@
  *
  * This file is I/O + dispatch only; the pack itself is built in src/core/ds-guidelines-*.ts.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
-import { errJson, errText, ok, okJson, okJsonWithExit } from "../core/output.js";
+import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { discoverDesignSystem, loadDesignSystem, pathsForDir, DSError } from "../core/design-system.js";
 import type { DesignSystem } from "../core/design-system.js";
 import { DSManifestError } from "../core/ds-manifest.js";
 import { buildPack } from "../core/ds-guidelines-pack.js";
-import { lintGuidelinesFile } from "../core/ds-guidelines-lint.js";
-import type { Finding } from "../core/ds-guidelines-lint.js";
-import type { StoreSourcePaths } from "../core/ds-guidelines-model.js";
+import { GuidelinesInputError } from "../core/ds-guidelines-model.js";
+import type { PackInputs, StoreSourcePaths } from "../core/ds-guidelines-model.js";
+import { runCheckOn } from "./ds-guidelines-check-impl.js";
+import { readPackInputs } from "./ds-guidelines-inputs.js";
 
 const CMD = "ds guidelines";
 const posix = (p: string): string => p.split("\\").join("/");
 
 type Err = (code: string, msg: string) => CommandResult;
-type Loaded = { ds: DesignSystem; src: StoreSourcePaths; packDir: string };
+type Loaded = { ds: DesignSystem; src: StoreSourcePaths; packDir: string; inputs: PackInputs };
 
 /** Resolve the project, load + verify the sealed store, and pick the pack directory. */
 function loadProject(parsed: ParsedArgs, err: Err): Loaded | CommandResult {
   const dirFlag = parsed.flags["dir"];
   const outFlag = parsed.flags["out"];
-  if (dirFlag === true || outFlag === true) return err("BAD_ARG", "--dir and --out each need a path");
+  const rulingsFlag = parsed.flags["rulings"];
+  if (dirFlag === true || outFlag === true || rulingsFlag === true) return err("BAD_ARG", "--dir, --out and --rulings each need a path");
   let ds: DesignSystem;
   try {
     const paths = typeof dirFlag === "string" ? pathsForDir(resolve(dirFlag, "design")) : discoverDesignSystem(undefined);
@@ -45,7 +47,14 @@ function loadProject(parsed: ParsedArgs, err: Err): Loaded | CommandResult {
   const projectDir = dirname(ds.paths.dir);
   const src = { tokens: posix(relative(projectDir, ds.paths.tokens)), registry: posix(relative(projectDir, ds.paths.registry)) };
   const packDir = typeof outFlag === "string" ? resolve(outFlag) : join(ds.paths.dir, "guidelines");
-  return { ds, src, packDir };
+  let inputs: PackInputs;
+  try {
+    inputs = readPackInputs(projectDir, ds.paths.dir, typeof rulingsFlag === "string" ? rulingsFlag : undefined);
+  } catch (e) {
+    if (e instanceof GuidelinesInputError) return err(e.code, e.message);
+    throw e;
+  }
+  return { ds, src, packDir, inputs };
 }
 
 function parseNow(flag: string | boolean | undefined): string | { error: string } {
@@ -62,10 +71,19 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
   const loaded = loadProject(parsed, err);
   if ("exitCode" in loaded) return loaded;
 
-  const pack = buildPack(loaded.ds, loaded.src, now);
+  let pack;
   try {
-    mkdirSync(loaded.packDir, { recursive: true });
-    for (const f of pack.files) writeFileSync(join(loaded.packDir, f.path), f.content, "utf8");
+    pack = buildPack(loaded.ds, loaded.src, now, loaded.inputs);
+  } catch (e) {
+    if (e instanceof GuidelinesInputError) return err(e.code, e.message);
+    throw e;
+  }
+  try {
+    for (const f of pack.files) {
+      const target = join(loaded.packDir, f.path);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, f.content, "utf8");
+    }
   } catch (e) {
     return err("WRITE_ERROR", `cannot write the pack to '${loaded.packDir}': ${e instanceof Error ? e.message : String(e)}`);
   }
@@ -84,51 +102,12 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
   ].join("\n") + "\n");
 }
 
-function listMarkdown(dir: string): string[] {
-  return readdirSync(dir, { recursive: true, withFileTypes: true })
-    .filter((e) => e.isFile() && e.name.endsWith(".md"))
-    .map((e) => posix(relative(dir, join(e.parentPath, e.name))))
-    .sort();
-}
-
 function runCheck(parsed: ParsedArgs, err: Err): CommandResult {
   if (parsed.flags["now"] !== undefined) return err("BAD_ARG", "--now applies to 'build' only");
   const loaded = loadProject(parsed, err);
   if ("exitCode" in loaded) return loaded;
-  const { ds, packDir } = loaded;
-  if (!existsSync(packDir)) {
-    return err("PACK_NOT_FOUND", `no guidelines pack at '${packDir}' — run 'ui ds guidelines build' first`);
-  }
-
-  const known = {
-    tokens: new Set(ds.resolved.map((t) => t.path)),
-    components: new Set(ds.registry.components.map((c) => c.name)),
-  };
-  const findings: Finding[] = [];
-  let termSpansUnchecked = 0;
-  let files: string[];
-  try {
-    files = listMarkdown(packDir);
-    for (const file of files) {
-      const result = lintGuidelinesFile(file, readFileSync(join(packDir, file), "utf8"), known);
-      findings.push(...result.findings);
-      termSpansUnchecked += result.termSpansUnchecked;
-    }
-  } catch (e) {
-    return err("READ_ERROR", `cannot read the pack at '${packDir}': ${e instanceof Error ? e.message : String(e)}`);
-  }
-
-  const errorCount = findings.filter((f) => f.severity === "error").length;
-  const exitCode = errorCount > 0 ? 1 : 0;
-  if (parsed.json) {
-    return okJsonWithExit(CMD, { path: packDir, filesChecked: files.length, errorCount, findings, termSpansUnchecked }, exitCode);
-  }
-  const lines = [
-    `ds guidelines check: ${packDir} — ${errorCount} error(s)`,
-    ...findings.map((f) => `  ✗ [${f.code}] ${f.file}:${f.line}: ${f.message}`),
-    ...(termSpansUnchecked > 0 ? [`  note: ${termSpansUnchecked} term: span(s) not checked — this pack has no glossary yet`] : []),
-  ];
-  return { exitCode, stdout: lines.join("\n") + "\n" };
+  const result = runCheckOn(loaded.ds, loaded.packDir, loaded.inputs, parsed.json);
+  return "exitCode" in result ? result : err(result.code, result.message);
 }
 
 export function runGuidelines(parsed: ParsedArgs): CommandResult {

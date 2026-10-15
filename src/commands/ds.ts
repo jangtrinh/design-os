@@ -36,7 +36,7 @@ Usage:
   ui ds preview [--dir <project>] [--out <file>] [--split <dir>] [--json]
   ui ds soul init  [--dir <project>] [--force] [--studio]
   ui ds soul check [--dir <project>] [--json] [--studio]
-  ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--now <UTC-ISO>] [--json]
+  ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--now <UTC-ISO>] [--json]
 
 Subcommands:
   kit            Stage owner captures, emit approved theme CSS, validate, adopt and verify a kit
@@ -129,6 +129,12 @@ Subcommands:
   check              Lint a built pack; exit 1 on any error finding
   --dir <path>       Project directory holding design/ (default: discovered from cwd)
   --out <dir>        Pack directory (default: <project>/design/guidelines)
+  --rulings <file>   Owner rulings file (default: <project>/design/knowledge/rulings.json). Absent file
+                     = rulings omitted and recorded under skippedSources; malformed = BAD_RULINGS.
+                     Tier A (library-wide) -> rulings.md, tier B (scope.apps) -> apps/<app>.md;
+                     process categories (figma-scripting, workflow-process, delivery-gates) and
+                     rulings whose text starts '(SUPERSEDED <date> by <id>)' are never emitted,
+                     only counted under 'rulings' in the manifest. 'check' also reads it for superseded ids.
   --now <ISO>        'build' only: clock written to the manifest (default: current time).
                      The same store + the same --now give byte-identical output.
   Names are written as explicit spans: \`token:color.primary\`, \`component:Button/Primary\`,
@@ -137,6 +143,9 @@ Subcommands:
   until a glossary exists. Facts sit inside <!-- ds-guidelines:generated id=<id> sha=<12 hex> -->
   blocks; editing one is GENERATED_BLOCK_TAMPERED — rebuild instead. Open slots are
   '> QUESTION(<id>): ...' lines outside those blocks, for the host model to answer.
+  'check' also fails: SUPERSEDED_CITED (text outside generated blocks cites a superseded ruling id),
+  DUPLICATE_RULE (the same rule text in two files; per-app files may repeat a multi-app ruling),
+  PACK_INCOMPLETE (a file or generated block recorded in the manifest is missing, or the manifest is).
   Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
   are listed under skippedSources in the manifest and never fail the build.
 
@@ -262,6 +271,10 @@ Error codes:
   PACK_NOT_FOUND     'ds guidelines check' found no pack directory (run 'ds guidelines build')
   UNKNOWN_NAME       'ds guidelines check' finding: a token:/component: span names nothing in the DS
   GENERATED_BLOCK_TAMPERED  'ds guidelines check' finding: a generated block was edited or its markers damaged
+  SUPERSEDED_CITED   'ds guidelines check' finding: host-written text cites a superseded ruling id
+  DUPLICATE_RULE     'ds guidelines check' finding: the same rule text sits in two files
+  PACK_INCOMPLETE    'ds guidelines check' finding: a manifest-listed file or generated block is missing
+  BAD_RULINGS        'ds guidelines build|check' rulings file is not the expected { rulings: [...] } shape
 
 Kit error codes:
   KIT_DOWNGRADE              Init/import cannot replace an adopted or incomplete kit

@@ -15,6 +15,8 @@ export interface RuleSource {
   token?: string;
   /** Registry component name (`Button/Primary`), when the rule is about a component. */
   component?: string;
+  /** Owner-ruling id, when the rule restates a ruling from the rulings file. */
+  ruling?: string;
 }
 
 export interface RuleEntry {
@@ -50,6 +52,28 @@ export interface StoreSourcePaths {
 export interface StoreSections {
   files: GuidelineFile[];
   skipped: SkippedSource[];
+}
+
+/** An optional input file: project-relative (or absolute, when outside) path + text when present. */
+export interface OptionalInput {
+  path: string;
+  /** Undefined when the file does not exist. */
+  text?: string;
+}
+
+/** Every optional input the pack can read; I/O lives in the command layer, parsing in core. */
+export interface PackInputs {
+  rulings: OptionalInput;
+}
+
+/** A malformed optional input — carries the error code the command reports. */
+export class GuidelinesInputError extends Error {
+  readonly code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = "GuidelinesInputError";
+    this.code = code;
+  }
 }
 
 export const PACK_MANIFEST_NAME = "guidelines.manifest.json";

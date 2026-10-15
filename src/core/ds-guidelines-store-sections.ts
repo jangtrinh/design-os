@@ -100,7 +100,18 @@ function buildVocabularyFile(ds: DesignSystem, src: StoreSourcePaths, skipped: S
   };
 }
 
-function buildOverviewFile(ds: DesignSystem): GuidelineFile {
+const FILE_DESCRIPTIONS: Readonly<Record<string, string>> = {
+  "vocabulary.md": "colour roles mapped to this project's own token names, forbidden colour pairs, scales",
+  "components.md": "registered components by category with variants and states, confusable names",
+  "rulings.md": "owner rulings that bind the whole library",
+};
+
+function describeFile(path: string): string {
+  return FILE_DESCRIPTIONS[path] ?? (path.startsWith("apps/") ? "owner rulings that bind one app only" : "guideline file");
+}
+
+/** `otherPaths` = every other pack file, so the index always matches what was actually written. */
+export function buildOverviewFile(ds: DesignSystem, otherPaths: readonly string[]): GuidelineFile {
   const { name, generation, persona } = ds.manifest;
   return {
     path: "overview.md",
@@ -110,8 +121,7 @@ function buildOverviewFile(ds: DesignSystem): GuidelineFile {
         `- Design system: ${name} (generation ${generation})`,
         `- Persona: ${persona.slug} / ${persona.family}`,
         "- Files:",
-        "  - vocabulary.md — colour roles mapped to this project's own token names, forbidden colour pairs, scales",
-        "  - components.md — registered components by category with variants and states, confusable names",
+        ...[...otherPaths].sort().map((p) => `  - ${p} — ${describeFile(p)}`),
       ]),
       textPart("## How to read this pack"),
       blockPart("overview.how-to-read", [
@@ -124,9 +134,10 @@ function buildOverviewFile(ds: DesignSystem): GuidelineFile {
   };
 }
 
+/** The store-derived files (vocabulary, components). The overview is built last, by the pack. */
 export function buildStoreSections(ds: DesignSystem, src: StoreSourcePaths): StoreSections {
   const skipped: SkippedSource[] = [];
   const vocabulary = buildVocabularyFile(ds, src, skipped);
   const components = buildComponentsFile(ds.registry.components, src.registry, skipped);
-  return { files: [buildOverviewFile(ds), vocabulary, components], skipped };
+  return { files: [vocabulary, components], skipped };
 }

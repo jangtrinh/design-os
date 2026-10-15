@@ -928,9 +928,10 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         flags: [
           { name: "dir", type: "string", summary: "Project directory holding design/ (default: discovered from cwd)" },
           { name: "out", type: "string", summary: "Pack directory (default: <project>/design/guidelines)" },
+          { name: "rulings", type: "string", summary: "Owner rulings file (default: <project>/design/knowledge/rulings.json); absent = omitted + skippedSources" },
           { name: "now", type: "string", summary: "'build' only: ISO clock written to the manifest; same store + same --now = identical bytes" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "PACK_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "UNKNOWN_NAME", "GENERATED_BLOCK_TAMPERED"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "PACK_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "BAD_RULINGS", "UNKNOWN_NAME", "GENERATED_BLOCK_TAMPERED", "SUPERSEDED_CITED", "DUPLICATE_RULE", "PACK_INCOMPLETE"],
       },
     },
   },

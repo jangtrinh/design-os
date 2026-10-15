@@ -123,7 +123,7 @@ describe("ui ds guidelines check — generated blocks", () => {
     writeFileSync(file, readFileSync(file, "utf8").replace("<!-- /ds-guidelines:generated -->", ""));
     const j = checkJson(dir);
     expect(j.code).toBe(1);
-    expect(j.data.findings[0]).toMatchObject({ code: "GENERATED_BLOCK_TAMPERED", file: "overview.md" });
+    expect(j.data.findings).toContainEqual(expect.objectContaining({ code: "GENERATED_BLOCK_TAMPERED", file: "overview.md" }));
   });
 
   it("text outside generated blocks (host-filled slots) may change freely", () => {

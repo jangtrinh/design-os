@@ -10,15 +10,22 @@
  * COUNTED, never judged, so the report cannot claim a verdict it did not reach.
  */
 import { levenshtein } from "./flag-guard.js";
-import { parseGeneratedBlocks } from "./ds-guidelines-render.js";
+import { hostWrittenLines, parseGeneratedBlocks } from "./ds-guidelines-render.js";
 
 export interface KnownNames {
   tokens: ReadonlySet<string>;
   components: ReadonlySet<string>;
 }
 
+/** What a file is linted against. */
+export interface LintContext {
+  known: KnownNames;
+  /** Ruling ids the owner has superseded; host-written text must not cite them. */
+  supersededIds: ReadonlySet<string>;
+}
+
 export interface Finding {
-  code: "UNKNOWN_NAME" | "GENERATED_BLOCK_TAMPERED";
+  code: "UNKNOWN_NAME" | "GENERATED_BLOCK_TAMPERED" | "SUPERSEDED_CITED" | "DUPLICATE_RULE" | "PACK_INCOMPLETE";
   severity: "error";
   /** Pack-relative path. */
   file: string;
@@ -45,7 +52,27 @@ function nearest(name: string, known: ReadonlySet<string>): string | undefined {
   return bestDistance <= SUGGESTION_MAX_DISTANCE ? best : undefined;
 }
 
-export function lintGuidelinesFile(file: string, text: string, known: KnownNames): LintResult {
+const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Host-written lines (outside generated blocks) that cite a superseded ruling id. */
+function supersededCitations(file: string, text: string, ids: ReadonlySet<string>): Finding[] {
+  if (ids.size === 0) return [];
+  const patterns = [...ids].sort().map((id) => ({ id, re: new RegExp(`(?<![A-Za-z0-9_-])${escapeRegExp(id)}(?![A-Za-z0-9_-])`) }));
+  const findings: Finding[] = [];
+  for (const { line, text: t } of hostWrittenLines(text)) {
+    for (const { id, re } of patterns) {
+      if (!re.test(t)) continue;
+      findings.push({
+        code: "SUPERSEDED_CITED", severity: "error", file, line,
+        message: `cites ruling '${id}', which the owner has superseded — cite the ruling that replaced it`,
+      });
+    }
+  }
+  return findings;
+}
+
+export function lintGuidelinesFile(file: string, text: string, ctx: LintContext): LintResult {
+  const { known } = ctx;
   const findings: Finding[] = [];
   const { blocks, problems } = parseGeneratedBlocks(text);
 
@@ -75,6 +102,8 @@ export function lintGuidelinesFile(file: string, text: string, known: KnownNames
       });
     }
   });
+
+  findings.push(...supersededCitations(file, text, ctx.supersededIds));
 
   findings.sort((a, b) => a.line - b.line || a.code.localeCompare(b.code));
   return { findings, termSpansUnchecked };

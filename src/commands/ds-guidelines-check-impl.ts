@@ -1,0 +1,82 @@
+/**
+ * `ui ds guidelines check` — lint a built pack against the sealed design system.
+ * Reads the pack's markdown + manifest and the optional rulings file (for superseded ids);
+ * every judgement itself lives in src/core/ds-guidelines-lint*.ts.
+ */
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+
+import { okJsonWithExit } from "../core/output.js";
+import type { CommandResult } from "../core/output.js";
+import type { DesignSystem } from "../core/design-system.js";
+import { lintGuidelinesFile } from "../core/ds-guidelines-lint.js";
+import type { Finding } from "../core/ds-guidelines-lint.js";
+import { checkCompleteness, findDuplicateRules } from "../core/ds-guidelines-lint-pack.js";
+import { GuidelinesInputError, PACK_MANIFEST_NAME } from "../core/ds-guidelines-model.js";
+import type { PackInputs } from "../core/ds-guidelines-model.js";
+import { parseRulings, supersededRulingIds } from "../core/ds-guidelines-rulings-reader.js";
+
+const posix = (p: string): string => p.split("\\").join("/");
+
+function listMarkdown(dir: string): string[] {
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith(".md"))
+    .map((e) => posix(relative(dir, join(e.parentPath, e.name))))
+    .sort();
+}
+
+export interface CheckFailure { code: string; message: string }
+
+/** Run every check; returns the CommandResult, or a failure the caller reports as an error envelope. */
+export function runCheckOn(
+  ds: DesignSystem, packDir: string, inputs: PackInputs, useJson: boolean,
+): CommandResult | CheckFailure {
+  if (!existsSync(packDir)) {
+    return { code: "PACK_NOT_FOUND", message: `no guidelines pack at '${packDir}' — run 'ui ds guidelines build' first` };
+  }
+  let supersededIds = new Set<string>();
+  try {
+    if (inputs.rulings.text !== undefined) supersededIds = supersededRulingIds(parseRulings(inputs.rulings.text, inputs.rulings.path));
+  } catch (e) {
+    if (e instanceof GuidelinesInputError) return { code: e.code, message: e.message };
+    throw e;
+  }
+
+  const ctx = {
+    known: {
+      tokens: new Set(ds.resolved.map((t) => t.path)),
+      components: new Set(ds.registry.components.map((c) => c.name)),
+    },
+    supersededIds,
+  };
+  const findings: Finding[] = [];
+  let termSpansUnchecked = 0;
+  let files: { path: string; text: string }[];
+  let manifestText: string | undefined;
+  try {
+    files = listMarkdown(packDir).map((path) => ({ path, text: readFileSync(join(packDir, path), "utf8") }));
+    const manifestPath = join(packDir, PACK_MANIFEST_NAME);
+    manifestText = existsSync(manifestPath) ? readFileSync(manifestPath, "utf8") : undefined;
+  } catch (e) {
+    return { code: "READ_ERROR", message: `cannot read the pack at '${packDir}': ${e instanceof Error ? e.message : String(e)}` };
+  }
+  for (const f of files) {
+    const result = lintGuidelinesFile(f.path, f.text, ctx);
+    findings.push(...result.findings);
+    termSpansUnchecked += result.termSpansUnchecked;
+  }
+  findings.push(...findDuplicateRules(files), ...checkCompleteness(manifestText, files));
+  findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.code.localeCompare(b.code));
+
+  const errorCount = findings.filter((f) => f.severity === "error").length;
+  const exitCode = errorCount > 0 ? 1 : 0;
+  if (useJson) {
+    return okJsonWithExit("ds guidelines", { path: packDir, filesChecked: files.length, errorCount, findings, termSpansUnchecked }, exitCode);
+  }
+  const lines = [
+    `ds guidelines check: ${packDir} — ${errorCount} error(s)`,
+    ...findings.map((f) => `  ✗ [${f.code}] ${f.file}:${f.line}: ${f.message}`),
+    ...(termSpansUnchecked > 0 ? [`  note: ${termSpansUnchecked} term: span(s) not checked — this pack has no glossary yet`] : []),
+  ];
+  return { exitCode, stdout: lines.join("\n") + "\n" };
+}

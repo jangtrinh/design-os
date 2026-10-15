@@ -48,6 +48,8 @@ export interface ParsedBlock {
   actualSha: string;
   /** 1-based line of the opening marker. */
   line: number;
+  /** 1-based line of the closing marker. */
+  endLine: number;
 }
 
 export interface BlockProblem {
@@ -80,7 +82,7 @@ export function parseGeneratedBlocks(text: string): { blocks: ParsedBlock[]; pro
     }
     if (l === BLOCK_CLOSE) {
       if (open === null) { problems.push({ line, message: "closing marker without an opening marker" }); continue; }
-      blocks.push({ id: open.id, sha: open.sha, actualSha: blockSha(open.body.join("\n")), line: open.line });
+      blocks.push({ id: open.id, sha: open.sha, actualSha: blockSha(open.body.join("\n")), line: open.line, endLine: line });
       open = null;
       continue;
     }
@@ -88,4 +90,15 @@ export function parseGeneratedBlocks(text: string): { blocks: ParsedBlock[]; pro
   }
   if (open !== null) problems.push({ line: open.line, message: `block '${open.id}' is never closed` });
   return { blocks, problems };
+}
+
+/** Lines outside every generated block (1-based) — the text a host or person wrote. */
+export function hostWrittenLines(text: string): { line: number; text: string }[] {
+  const { blocks } = parseGeneratedBlocks(text);
+  const inBlock = (line: number): boolean => blocks.some((b) => line >= b.line && line <= b.endLine);
+  const out: { line: number; text: string }[] = [];
+  text.split("\n").forEach((t, idx) => {
+    if (!inBlock(idx + 1)) out.push({ line: idx + 1, text: t.replace(/\r$/, "") });
+  });
+  return out;
 }
