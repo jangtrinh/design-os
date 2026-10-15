@@ -104,6 +104,8 @@ const FILE_DESCRIPTIONS: Readonly<Record<string, string>> = {
   "vocabulary.md": "colour roles mapped to this project's own token names, forbidden colour pairs, scales",
   "components.md": "registered components by category with variants and states, confusable names",
   "rulings.md": "owner rulings that bind the whole library",
+  "terminology.md": "canonical terms with definitions and the synonyms to avoid",
+  "grammar.md": "measured house style: DO/DON'T lines with counts",
 };
 
 function describeFile(path: string): string {
@@ -111,7 +113,7 @@ function describeFile(path: string): string {
 }
 
 /** `otherPaths` = every other pack file, so the index always matches what was actually written. */
-export function buildOverviewFile(ds: DesignSystem, otherPaths: readonly string[]): GuidelineFile {
+export function buildOverviewFile(ds: DesignSystem, otherPaths: readonly string[], extraParts: readonly FilePart[] = []): GuidelineFile {
   const { name, generation, persona } = ds.manifest;
   return {
     path: "overview.md",
@@ -123,6 +125,7 @@ export function buildOverviewFile(ds: DesignSystem, otherPaths: readonly string[
         "- Files:",
         ...[...otherPaths].sort().map((p) => `  - ${p} — ${describeFile(p)}`),
       ]),
+      ...extraParts,
       textPart("## How to read this pack"),
       blockPart("overview.how-to-read", [
         "Every name written in backticks with a token:, component: or term: prefix is a literal name in this design system.",

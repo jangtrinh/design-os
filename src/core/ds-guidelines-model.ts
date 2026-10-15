@@ -17,6 +17,10 @@ export interface RuleSource {
   component?: string;
   /** Owner-ruling id, when the rule restates a ruling from the rulings file. */
   ruling?: string;
+  /** Glossary term as written in its source, when the rule defines a term. */
+  term?: string;
+  /** Heading of the CONVENTIONS.md section the rule is copied from. */
+  section?: string;
 }
 
 export interface RuleEntry {
@@ -64,6 +68,14 @@ export interface OptionalInput {
 /** Every optional input the pack can read; I/O lives in the command layer, parsing in core. */
 export interface PackInputs {
   rulings: OptionalInput;
+  /** Product glossary: `CONTEXT.md` at the project root. */
+  context: OptionalInput;
+  /** Ontology glossary: `ontology/glossary.yaml` at the project root. */
+  glossary: OptionalInput;
+  /** Measured house style: `CONVENTIONS.md` at the project root (from `ui synthesize-conventions`). */
+  conventions: OptionalInput;
+  /** Declared stance: `design/soul.md`. */
+  soul: OptionalInput;
 }
 
 /** A malformed optional input — carries the error code the command reports. */

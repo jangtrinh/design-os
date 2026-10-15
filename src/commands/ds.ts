@@ -146,6 +146,12 @@ Subcommands:
   'check' also fails: SUPERSEDED_CITED (text outside generated blocks cites a superseded ruling id),
   DUPLICATE_RULE (the same rule text in two files; per-app files may repeat a multi-app ruling),
   PACK_INCOMPLETE (a file or generated block recorded in the manifest is missing, or the manifest is).
+  Other optional inputs, all read from the project: CONTEXT.md + ontology/glossary.yaml -> terminology.md
+  (CONTEXT.md wins on a clash, every clash is listed under 'terminology' in the manifest; a glossary that
+  is not the flat 'terms: - term/vi/def/avoid' shape is skipped as 'unsupported glossary shape');
+  CONVENTIONS.md -> grammar.md (DO/DON'T lines copied verbatim, never re-derived; absent = 'not measured yet');
+  design/soul.md -> a capped stance summary in overview.md. With a glossary, 'check' judges term: spans
+  (UNKNOWN_NAME) and rejects a slot answer (a **Do:** / **Don't:** / **Why:** line) that uses an _Avoid_ word.
   Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
   are listed under skippedSources in the manifest and never fail the build.
 
@@ -273,6 +279,7 @@ Error codes:
   GENERATED_BLOCK_TAMPERED  'ds guidelines check' finding: a generated block was edited or its markers damaged
   SUPERSEDED_CITED   'ds guidelines check' finding: host-written text cites a superseded ruling id
   DUPLICATE_RULE     'ds guidelines check' finding: the same rule text sits in two files
+  AVOIDED_TERM       'ds guidelines check' finding: a slot answer uses a word the glossary lists as _Avoid_
   PACK_INCOMPLETE    'ds guidelines check' finding: a manifest-listed file or generated block is missing
   BAD_RULINGS        'ds guidelines build|check' rulings file is not the expected { rulings: [...] } shape
 

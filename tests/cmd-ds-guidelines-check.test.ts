@@ -57,7 +57,7 @@ describe("ui ds guidelines check — names", () => {
     const j = checkJson(dir);
     expect(j.code).toBe(0);
     expect(j.data.findings).toEqual([]);
-    expect(j.data.filesChecked).toBe(3);
+    expect(j.data.filesChecked).toBe(4);
   });
 
   it("G-CHECK-NAME: an invented component span is UNKNOWN_NAME with file:line (exit 1)", () => {

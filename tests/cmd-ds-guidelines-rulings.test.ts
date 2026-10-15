@@ -50,7 +50,7 @@ describe("ds guidelines build — rulings tiers", () => {
     const { dir, pack } = project();
     expect(build(dir).code).toBe(0);
     expect(listFiles(pack)).toEqual([
-      "apps/alpha.md", "apps/beta.md", "components.md", "guidelines.manifest.json", "overview.md", "rulings.md", "vocabulary.md",
+      "apps/alpha.md", "apps/beta.md", "components.md", "grammar.md", "guidelines.manifest.json", "overview.md", "rulings.md", "vocabulary.md",
     ]);
 
     const a = read(pack, "rulings.md");

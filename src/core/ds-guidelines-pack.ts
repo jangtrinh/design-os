@@ -8,6 +8,8 @@
 import { canonicalStringify } from "./ds-manifest.js";
 import { buildOverviewFile, buildStoreSections } from "./ds-guidelines-store-sections.js";
 import { buildRulingsSections } from "./ds-guidelines-rulings-sections.js";
+import { buildGrammarFile, buildSoulParts } from "./ds-guidelines-grammar-soul-sections.js";
+import { buildTerminologyFile, loadTerminology } from "./ds-guidelines-terminology-sections.js";
 import { PACK_MANIFEST_NAME } from "./ds-guidelines-model.js";
 import type { GuidelineFile, PackInputs, RuleSource, SkippedSource, StoreSourcePaths } from "./ds-guidelines-model.js";
 import { renderFile, sha256Hex } from "./ds-guidelines-render.js";
@@ -31,9 +33,15 @@ const OPEN_SLOT_RE = /^> QUESTION\(/gm;
 export function buildPack(ds: DesignSystem, src: StoreSourcePaths, now: string, inputs: PackInputs): BuiltPack {
   const store = buildStoreSections(ds, src);
   const rulings = buildRulingsSections(inputs.rulings);
-  const skipped: SkippedSource[] = [...store.skipped, ...rulings.skipped];
-  const body: GuidelineFile[] = [...store.files, ...rulings.files];
-  const sections: GuidelineFile[] = [buildOverviewFile(ds, body.map((f) => f.path)), ...body];
+  const terminology = loadTerminology(inputs.context, inputs.glossary);
+  const skipped: SkippedSource[] = [...store.skipped, ...rulings.skipped, ...terminology.skipped];
+  const terminologyFile = buildTerminologyFile(terminology);
+  const body: GuidelineFile[] = [
+    ...store.files, ...rulings.files, ...(terminologyFile !== null ? [terminologyFile] : []),
+    buildGrammarFile(inputs.conventions, skipped),
+  ];
+  const overview = buildOverviewFile(ds, body.map((f) => f.path), buildSoulParts(inputs.soul, skipped));
+  const sections: GuidelineFile[] = [overview, ...body];
   const markdown: PackFileOutput[] = sections
     .map((f) => ({ path: f.path, content: renderFile(f) }))
     .sort((a, b) => a.path.localeCompare(b.path));
@@ -70,9 +78,14 @@ export function buildPack(ds: DesignSystem, src: StoreSourcePaths, now: string, 
     sources: [
       { path: src.tokens, sha: ds.manifest.compiledHash },
       { path: src.registry, sha: ds.manifest.registryHash },
-      ...(inputs.rulings.text !== undefined ? [{ path: inputs.rulings.path, sha: sha256Hex(inputs.rulings.text) }] : []),
+      // Optional inputs whose content went into the pack (a skipped input was not used).
+      ...Object.values(inputs).flatMap((i) =>
+        i.text !== undefined && !skipped.some((k) => k.path === i.path) ? [{ path: i.path, sha: sha256Hex(i.text) }] : []),
     ].sort((a, b) => a.path.localeCompare(b.path)),
     ...(rulings.stats !== undefined ? { rulings: rulings.stats } : {}),
+    ...(terminology.terms.length > 0
+      ? { terminology: { terms: terminology.terms.length, fromContext: terminology.fromContext, fromGlossary: terminology.fromGlossary, conflicts: terminology.conflicts } }
+      : {}),
     skippedSources: [...skipped].sort((a, b) => a.path.localeCompare(b.path) || a.reason.localeCompare(b.reason)),
   };
   return {

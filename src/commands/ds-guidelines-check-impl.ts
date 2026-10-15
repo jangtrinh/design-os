@@ -15,6 +15,7 @@ import { checkCompleteness, findDuplicateRules } from "../core/ds-guidelines-lin
 import { GuidelinesInputError, PACK_MANIFEST_NAME } from "../core/ds-guidelines-model.js";
 import type { PackInputs } from "../core/ds-guidelines-model.js";
 import { parseRulings, supersededRulingIds } from "../core/ds-guidelines-rulings-reader.js";
+import { avoidedWords, loadTerminology } from "../core/ds-guidelines-terminology-sections.js";
 
 const posix = (p: string): string => p.split("\\").join("/");
 
@@ -42,7 +43,9 @@ export function runCheckOn(
     throw e;
   }
 
+  const { terms } = loadTerminology(inputs.context, inputs.glossary);
   const ctx = {
+    ...(terms.length > 0 ? { glossary: { terms: new Set(terms.map((t) => t.term)), avoided: avoidedWords(terms) } } : {}),
     known: {
       tokens: new Set(ds.resolved.map((t) => t.path)),
       components: new Set(ds.registry.components.map((c) => c.name)),
@@ -76,7 +79,7 @@ export function runCheckOn(
   const lines = [
     `ds guidelines check: ${packDir} — ${errorCount} error(s)`,
     ...findings.map((f) => `  ✗ [${f.code}] ${f.file}:${f.line}: ${f.message}`),
-    ...(termSpansUnchecked > 0 ? [`  note: ${termSpansUnchecked} term: span(s) not checked — this pack has no glossary yet`] : []),
+    ...(termSpansUnchecked > 0 ? [`  note: ${termSpansUnchecked} term: span(s) not checked — this project has no glossary terms`] : []),
   ];
   return { exitCode, stdout: lines.join("\n") + "\n" };
 }

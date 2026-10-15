@@ -9,7 +9,7 @@ import { canonicalHash, canonicalStringify } from "../src/core/ds-manifest.js";
 
 const FIXTURE = join(import.meta.dirname, "fixtures", "ds-guidelines", "basic");
 const NOW = "2026-10-15T00:00:00Z";
-const PACK_FILES = ["components.md", "guidelines.manifest.json", "overview.md", "vocabulary.md"];
+const PACK_FILES = ["components.md", "grammar.md", "guidelines.manifest.json", "overview.md", "vocabulary.md"];
 
 function capture(args: string[]): { code: number; out: string; err: string } {
   let out = "";
@@ -98,7 +98,7 @@ describe("ui ds guidelines build", () => {
     expect(overview).toMatch(/^- Persona: calm-ledger \/ calm$/m);
 
     const m = readManifest(out);
-    expect(m.files.map((f) => f.path)).toEqual(["components.md", "overview.md", "vocabulary.md"]);
+    expect(m.files.map((f) => f.path)).toEqual(["components.md", "grammar.md", "overview.md", "vocabulary.md"]);
     for (const f of m.files) expect(f.bytes).toBe(readFileSync(join(out, f.path)).length);
     expect(m.generatedAt).toBe(NOW);
   });
@@ -210,7 +210,7 @@ describe("ui ds guidelines build", () => {
     expect(env.ok).toBe(true);
     expect(env.command).toBe("ds guidelines");
     expect(env.data.out).toBe(join(dir, "design", "guidelines"));
-    expect(env.data.files).toEqual(["components.md", "overview.md", "vocabulary.md"]);
+    expect(env.data.files).toEqual(["components.md", "grammar.md", "overview.md", "vocabulary.md"]);
     expect(env.data.openQuestions).toBe(2);
     expect(env.data.ruleCount).toBeGreaterThan(10);
   });

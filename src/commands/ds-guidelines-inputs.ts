@@ -30,5 +30,11 @@ function readOptional(projectDir: string, abs: string): OptionalInput {
 /** `rulingsFlag` (--rulings) overrides the default `design/knowledge/rulings.json`. */
 export function readPackInputs(projectDir: string, designDir: string, rulingsFlag: string | undefined): PackInputs {
   const rulingsAbs = rulingsFlag !== undefined ? resolve(rulingsFlag) : join(designDir, "knowledge", "rulings.json");
-  return { rulings: readOptional(projectDir, rulingsAbs) };
+  return {
+    rulings: readOptional(projectDir, rulingsAbs),
+    context: readOptional(projectDir, join(projectDir, "CONTEXT.md")),
+    glossary: readOptional(projectDir, join(projectDir, "ontology", "glossary.yaml")),
+    conventions: readOptional(projectDir, join(projectDir, "CONVENTIONS.md")),
+    soul: readOptional(projectDir, join(designDir, "soul.md")),
+  };
 }
