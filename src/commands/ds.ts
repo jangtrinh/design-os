@@ -15,6 +15,7 @@ import { runImport } from "./ds-import-impl.js";
 import { runSpecimen } from "./ds-specimen-impl.js";
 import { runPreview } from "./ds-preview-impl.js";
 import { runSoul } from "./ds-soul-impl.js";
+import { runGuidelines } from "./ds-guidelines-impl.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -35,6 +36,7 @@ Usage:
   ui ds preview [--dir <project>] [--out <file>] [--split <dir>] [--json]
   ui ds soul init  [--dir <project>] [--force] [--studio]
   ui ds soul check [--dir <project>] [--json] [--studio]
+  ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--now <UTC-ISO>] [--json]
 
 Subcommands:
   kit            Stage owner captures, emit approved theme CSS, validate, adopt and verify a kit
@@ -51,6 +53,7 @@ Subcommands:
   specimen       Report each component's variant×state matrix + applicable-state gaps (missing disabled/empty)
   preview        Generate a self-contained specimen.html from the compiled tokens + registry
   soul           Scaffold + structure-lint the declared design stance (design/soul.md)
+  guidelines     Compile the sealed design system into a guidelines pack (design/guidelines/) + lint it
 
 'ds kit' operations:
   plan --source <file> --kind figma|registry --tokens <file> --out <absent-dir> --name <display-name>
@@ -120,6 +123,22 @@ Subcommands:
   paired roles (each swatch renders its own declared foreground), the type ramp,
   radius/elevation/duration chips, and one block per registered component (markup comes
   from the registry — the only component source). Deterministic: same DS → byte-identical.
+
+'ds guidelines' options:
+  build              Write overview.md, vocabulary.md, components.md + guidelines.manifest.json
+  check              Lint a built pack; exit 1 on any error finding
+  --dir <path>       Project directory holding design/ (default: discovered from cwd)
+  --out <dir>        Pack directory (default: <project>/design/guidelines)
+  --now <ISO>        'build' only: clock written to the manifest (default: current time).
+                     The same store + the same --now give byte-identical output.
+  Names are written as explicit spans: \`token:color.primary\`, \`component:Button/Primary\`,
+  \`term:Space\`. 'check' reads only those spans: a token/component span that is not in the
+  sealed design system is UNKNOWN_NAME (file:line); a term: span is counted, not judged,
+  until a glossary exists. Facts sit inside <!-- ds-guidelines:generated id=<id> sha=<12 hex> -->
+  blocks; editing one is GENERATED_BLOCK_TAMPERED — rebuild instead. Open slots are
+  '> QUESTION(<id>): ...' lines outside those blocks, for the host model to answer.
+  Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
+  are listed under skippedSources in the manifest and never fail the build.
 
 'ds change-token' options:
   --value <v>        New $value for the token (required)
@@ -240,6 +259,9 @@ Error codes:
   EXISTS             'ds soul init' target soul.md exists (use --force)
   WRITE_ERROR        'ds soul init' could not write the scaffold
   READ_ERROR         'ds soul check' could not read soul.md
+  PACK_NOT_FOUND     'ds guidelines check' found no pack directory (run 'ds guidelines build')
+  UNKNOWN_NAME       'ds guidelines check' finding: a token:/component: span names nothing in the DS
+  GENERATED_BLOCK_TAMPERED  'ds guidelines check' finding: a generated block was edited or its markers damaged
 
 Kit error codes:
   KIT_DOWNGRADE              Init/import cannot replace an adopted or incomplete kit
@@ -279,6 +301,7 @@ export const dsCommand = {
       case "specimen":     return runSpecimen(parsed);
       case "preview":      return runPreview(parsed);
       case "soul":         return runSoul(parsed);
+      case "guidelines":   return runGuidelines(parsed);
       case undefined: {
         const msg = "ui ds requires a subcommand. Run 'ui ds --help'.";
         return parsed.json

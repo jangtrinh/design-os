@@ -1,0 +1,80 @@
+{
+  "color": {
+    "accent-soft": {
+      "$extensions": {
+        "design-os.role": "accent"
+      },
+      "$type": "color",
+      "$value": "#93C5FD"
+    },
+    "accent-soft-text": {
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "brand": {
+      "$extensions": {
+        "design-os.role": "primary"
+      },
+      "$type": "color",
+      "$value": "#2563EB"
+    },
+    "brand-text": {
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "danger": {
+      "$extensions": {
+        "design-os.role": "destructive"
+      },
+      "$type": "color",
+      "$value": "#DC2626"
+    },
+    "surface-base": {
+      "$extensions": {
+        "design-os.role": "background"
+      },
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "surface-base-text": {
+      "$extensions": {
+        "design-os.role": "foreground"
+      },
+      "$type": "color",
+      "$value": "#111827"
+    }
+  },
+  "font": {
+    "family-body": {
+      "$type": "fontFamily",
+      "$value": [
+        "Inter",
+        "sans-serif"
+      ]
+    },
+    "weight-bold": {
+      "$type": "fontWeight",
+      "$value": 700
+    }
+  },
+  "radius": {
+    "md": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "4px"
+    }
+  },
+  "spacing": {
+    "2": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": "16px"
+    }
+  }
+}

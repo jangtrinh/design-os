@@ -922,6 +922,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "EXISTS", "WRITE_ERROR", "READ_ERROR"],
       },
+      guidelines: {
+        summary: "Compile the sealed design system into a guidelines pack (design/guidelines/) and lint it",
+        positionals: [{ name: "<build|check>", required: true, summary: "build writes overview/vocabulary/components + manifest; check lints names and generated blocks (exit 1 on errors)" }],
+        flags: [
+          { name: "dir", type: "string", summary: "Project directory holding design/ (default: discovered from cwd)" },
+          { name: "out", type: "string", summary: "Pack directory (default: <project>/design/guidelines)" },
+          { name: "now", type: "string", summary: "'build' only: ISO clock written to the manifest; same store + same --now = identical bytes" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "PACK_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "UNKNOWN_NAME", "GENERATED_BLOCK_TAMPERED"],
+      },
     },
   },
 
