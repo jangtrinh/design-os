@@ -37,6 +37,8 @@ Usage:
   ui ds soul init  [--dir <project>] [--force] [--studio]
   ui ds soul check [--dir <project>] [--json] [--studio]
   ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--allow-unsealed] [--now <UTC-ISO>] [--json]
+  ui ds guidelines export --target figma [--dir <project>] [--pack <pack-dir>] [--out <dir>] [--budget <n>kb] [--allow-unsealed] [--json]
+  ui ds guidelines check --profile figma --bundle <figma-guidelines dir> [--json]
 
 Subcommands:
   kit            Stage owner captures, emit approved theme CSS, validate, adopt and verify a kit
@@ -128,7 +130,22 @@ Subcommands:
   build              Write overview.md, vocabulary.md, components.md + guidelines.manifest.json
   check              Lint a built pack; exit 1 on any error finding
   --dir <path>       Project directory holding design/ (default: discovered from cwd)
-  --out <dir>        Pack directory (default: <project>/design/guidelines)
+  --out <dir>        build/check: pack directory (default: <project>/design/guidelines); export: destination
+                     folder (default: <project>/design/figma-export)
+  export             Write the Figma bundle: <out>/figma-guidelines/ (3-8 files, .md/.txt/.json, at most 200 KB,
+                     warning above 100 KB) and <out>/UPLOAD.md BESIDE it (never inside). The pack must pass
+                     check and carry no open slot: OPEN_QUESTIONS (n) otherwise (a partial answer is open).
+                     components.md keeps the look-alike names (with answers) and the component rulings, not the
+                     component inventory; apps/*.md merge into apps.md with one '## <app> (<n>)' heading each;
+                     generated-block markers are stripped. Only files the manifest lists are used.
+  --target figma     export: the only supported target (upload to Figma stays manual during its beta).
+  --pack <dir>       export: the pack directory to read (default: <project>/design/guidelines).
+  --budget <n>kb     export: trim to n KB (n <= 200) in priority order (grammar, terminology, overview stance,
+                     apps - largest app first, oldest ruling first -, then rulings oldest first; anti-patterns,
+                     vocabulary and components are never trimmed). Every drop is reported with its ids.
+                     Without --budget nothing is trimmed; over the 200 KB cap export fails: BUDGET_EXCEEDED.
+  --profile figma    check: with --bundle <dir>, validate an exported bundle (file count, extensions, byte caps,
+                     open slots) instead of a pack. Needs no design system.
   --rulings <file>   Owner rulings file (default: <project>/design/knowledge/rulings.json). Absent file
                      = rulings omitted and recorded under skippedSources; malformed = BAD_RULINGS.
                      Tier A (global, in the 8 design categories shell-chrome, component-reuse,
@@ -167,6 +184,8 @@ Subcommands:
   with its gap id (gap.component.*, gap.role.*, gap.a11y.*). 'check' reports each unanswered slot as an
   OPEN_QUESTION warning, an answer missing Do/Don't/Why as SCENARIO_INCOMPLETE, a hand-written knowledge
   citation without a measured gap id as UNBOUND_KNOWLEDGE, and waiting orphans as ORPHANED_ANSWERS (warnings).
+  Stale files: 'build' never deletes. A file in the pack folder that the build did not produce is listed in the
+  manifest as staleFiles; 'check' warns STALE_FILE for it, does not lint it, and export ignores it.
   Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
   are listed under skippedSources in the manifest and never fail the build.
 
@@ -299,6 +318,15 @@ Error codes:
   OPEN_QUESTION      'ds guidelines check' warning: a slot has no answer yet
   UNBOUND_KNOWLEDGE  'ds guidelines check' warning: a knowledge citation without a measured gap id
   ORPHANED_ANSWERS   'ds guidelines check' warning: answers wait in guidelines.orphans.md
+  STALE_FILE         'ds guidelines check' warning: a pack-folder file the manifest does not list
+  OPEN_QUESTIONS     'ds guidelines export' refused: n slots have no complete answer
+  PACK_INVALID       'ds guidelines export' refused: the pack has check errors
+  BUDGET_EXCEEDED    The Figma bundle is over the 200 KB cap (also a 'check --profile figma' finding)
+  OVER_SOFT_BUDGET   'check --profile figma' warning: the bundle is over 100 KB
+  BUNDLE_FILE_COUNT  The Figma bundle has fewer than 3 or more than 8 files
+  BUNDLE_EXTENSION   'check --profile figma': a bundle file is not .md, .txt or .json
+  BUNDLE_DIR_NOT_CLEAN 'export': the bundle folder holds files this export does not produce
+  BUNDLE_NOT_FOUND   'check --profile figma': no such bundle folder
   SEAL_UNVERIFIED    'ds guidelines check --allow-unsealed' warning: a store file no longer matches its sealed hash
   PACK_INCOMPLETE    'ds guidelines check' finding: a manifest-listed file or generated block is missing
   BAD_RULINGS        'ds guidelines build|check' rulings file is not the expected { rulings: [...] } shape

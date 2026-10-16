@@ -38,6 +38,8 @@ export interface BuiltPack {
   skipped: SkippedSource[];
   seal: SealState;
   orphanedAnswers: number;
+  /** Files already in the pack folder that this build did not produce (never deleted). */
+  staleFiles: string[];
 }
 
 export function buildPack(
@@ -91,6 +93,8 @@ export function buildPack(
     .map((d) => ({ file: d.file === "tokens" ? src.tokens : src.registry, expected: d.expected, actual: d.actual }))
     .sort((a, b) => a.file.localeCompare(b.file));
   const seal: SealState = drifted.length > 0 ? { status: "unverified", drifted } : { status: "verified" };
+  const produced = new Set([...markdown.map((f) => f.path), PACK_MANIFEST_NAME, ORPHANS_FILE]);
+  const staleFiles = (existing.allPaths ?? []).filter((path) => !produced.has(path)).sort();
   const manifest = {
     version: 1,
     generatedAt: now,
@@ -106,6 +110,7 @@ export function buildPack(
     rules,
     openQuestions,
     orphanedAnswers: orphansText === undefined ? 0 : orphanEntryCount(orphansText),
+    staleFiles,
     slots,
     gaps: gaps.map((g) => ({ id: g.id, kind: g.kind, ...(g.knowledge !== undefined ? { knowledge: g.knowledge } : {}) })),
     seal,
@@ -134,5 +139,6 @@ export function buildPack(
     skipped: manifest.skippedSources,
     seal,
     orphanedAnswers: manifest.orphanedAnswers,
+    staleFiles,
   };
 }

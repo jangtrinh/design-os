@@ -50,9 +50,18 @@ export function readExistingPack(packDir: string): ExistingPack {
       .filter((p) => p !== ORPHANS_FILE)
       .sort()
       .map((path) => ({ path, text: readFileSync(join(packDir, path), "utf8") }));
+    const allPaths = listFilesIn(packDir);
     const orphansPath = join(packDir, ORPHANS_FILE);
-    return { files, ...(existsSync(orphansPath) ? { orphansText: readFileSync(orphansPath, "utf8") } : {}) };
+    return { files, allPaths, ...(existsSync(orphansPath) ? { orphansText: readFileSync(orphansPath, "utf8") } : {}) };
   } catch (e) {
     throw new GuidelinesInputError("READ_ERROR", `cannot read the existing pack at '${packDir}': ${e instanceof Error ? e.message : String(e)}`);
   }
+}
+
+/** Every file under `dir` (any extension), `dir`-relative POSIX paths, sorted. */
+export function listFilesIn(dir: string): string[] {
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => posix(relative(dir, join(e.parentPath, e.name))))
+    .sort();
 }

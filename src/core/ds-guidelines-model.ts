@@ -96,6 +96,8 @@ export interface ExistingPack {
   files: { path: string; text: string }[];
   /** Current text of guidelines.orphans.md, when present. */
   orphansText?: string;
+  /** Every file in the pack folder (any extension), pack-relative POSIX paths. */
+  allPaths?: string[];
 }
 
 export const PACK_MANIFEST_NAME = "guidelines.manifest.json";

@@ -1,62 +1,39 @@
 /**
- * `ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--now <ISO>] [--json]`
+ * `ui ds guidelines build|check|export` — dispatch, flag rules and the build action.
  *
  * build  compile the sealed design system into design/guidelines/ (overview, vocabulary,
  *        components + guidelines.manifest.json). Deterministic: same store + same --now
  *        → identical bytes. Nothing is written unless the store loads and verifies.
  * check  lint a built pack: every `token:` / `component:` span must exist in the store,
  *        and no generated block may have been edited. Exit 1 on any error finding.
+ *        With `--profile figma --bundle <dir>` it validates an exported Figma bundle instead.
+ * export (src/commands/ds-guidelines-export-impl.ts) writes the Figma bundle + UPLOAD.md.
  *
  * This file is I/O + dispatch only; the pack itself is built in src/core/ds-guidelines-*.ts.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join } from "node:path";
 
 import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
-import { discoverDesignSystem, loadDesignSystem, pathsForDir, DSError } from "../core/design-system.js";
-import type { DesignSystem } from "../core/design-system.js";
-import { DSManifestError } from "../core/ds-manifest.js";
 import { buildPack } from "../core/ds-guidelines-pack.js";
 import { GuidelinesInputError } from "../core/ds-guidelines-model.js";
-import type { PackInputs, StoreSourcePaths } from "../core/ds-guidelines-model.js";
-import { runCheckOn } from "./ds-guidelines-check-impl.js";
-import { readExistingPack, readPackInputs } from "./ds-guidelines-inputs.js";
+import { runCheckOn, runFigmaProfileCheck } from "./ds-guidelines-check-impl.js";
+import { runExport } from "./ds-guidelines-export-impl.js";
+import { readExistingPack } from "./ds-guidelines-inputs.js";
+import { loadProject } from "./ds-guidelines-load.js";
+import type { Err } from "./ds-guidelines-load.js";
 
 const CMD = "ds guidelines";
-const posix = (p: string): string => p.split("\\").join("/");
 
-type Err = (code: string, msg: string) => CommandResult;
-type Loaded = { ds: DesignSystem; src: StoreSourcePaths; packDir: string; inputs: PackInputs };
-
-/** Resolve the project, load + verify the sealed store, and pick the pack directory. */
-function loadProject(parsed: ParsedArgs, err: Err): Loaded | CommandResult {
-  const dirFlag = parsed.flags["dir"];
-  const outFlag = parsed.flags["out"];
-  const rulingsFlag = parsed.flags["rulings"];
-  if (dirFlag === true || outFlag === true || rulingsFlag === true) return err("BAD_ARG", "--dir, --out and --rulings each need a path");
-  const unsealedFlag = parsed.flags["allow-unsealed"];
-  let ds: DesignSystem;
-  try {
-    const paths = typeof dirFlag === "string" ? pathsForDir(resolve(dirFlag, "design")) : discoverDesignSystem(undefined);
-    ds = loadDesignSystem(paths, { allowUnsealed: unsealedFlag === true });
-  } catch (e) {
-    const code = e instanceof DSError || e instanceof DSManifestError ? e.code : "BAD_DS";
-    return err(code, e instanceof Error ? e.message : String(e));
-  }
-  const projectDir = dirname(ds.paths.dir);
-  const src = { tokens: posix(relative(projectDir, ds.paths.tokens)), registry: posix(relative(projectDir, ds.paths.registry)) };
-  const packDir = typeof outFlag === "string" ? resolve(outFlag) : join(ds.paths.dir, "guidelines");
-  let inputs: PackInputs;
-  try {
-    inputs = readPackInputs(projectDir, ds.paths.dir, typeof rulingsFlag === "string" ? rulingsFlag : undefined);
-  } catch (e) {
-    if (e instanceof GuidelinesInputError) return err(e.code, e.message);
-    throw e;
-  }
-  return { ds, src, packDir, inputs };
-}
+/** Flags each action accepts besides the globals; any other flag is a BAD_ARG, never silently ignored. */
+const ACTION_FLAGS: Readonly<Record<string, readonly string[]>> = {
+  build: ["dir", "out", "rulings", "allow-unsealed", "now"],
+  check: ["dir", "out", "rulings", "allow-unsealed", "profile", "bundle"],
+  export: ["dir", "pack", "out", "rulings", "allow-unsealed", "target", "budget"],
+};
+const GLOBAL_FLAGS = ["help", "version", "json"];
 
 function parseNow(flag: string | boolean | undefined): string | { error: string } {
   if (flag === undefined) return new Date().toISOString();
@@ -93,19 +70,26 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
   if (parsed.json) {
     return okJson(CMD, {
       out: loaded.packDir, files: markdownFiles, ruleCount: pack.ruleCount,
-      openQuestions: pack.openQuestions, orphanedAnswers: pack.orphanedAnswers, skippedSources: pack.skipped, seal: pack.seal, generatedAt: now,
+      openQuestions: pack.openQuestions, orphanedAnswers: pack.orphanedAnswers, staleFiles: pack.staleFiles, skippedSources: pack.skipped, seal: pack.seal, generatedAt: now,
     });
   }
   return ok([
     `ds guidelines build: wrote ${pack.files.length} file(s) → ${loaded.packDir}`,
     `  ${markdownFiles.length} guideline file(s), ${pack.ruleCount} rule(s), ${pack.openQuestions} open question(s)`,
     ...pack.skipped.map((s) => `skipped ${s.path}: ${s.reason}`),
+    ...pack.staleFiles.map((p) => `stale ${p}: not produced by this build`),
     ...(pack.seal.drifted ?? []).map((d) => `seal: unverified — ${d.file} drifted from its sealed hash`),
   ].join("\n") + "\n");
 }
 
 function runCheck(parsed: ParsedArgs, err: Err): CommandResult {
-  if (parsed.flags["now"] !== undefined) return err("BAD_ARG", "--now applies to 'build' only");
+  const profile = parsed.flags["profile"];
+  const bundle = parsed.flags["bundle"];
+  if (profile !== undefined || bundle !== undefined) {
+    if (profile !== "figma") return err("BAD_ARG", "--profile takes 'figma' (the only profile) and goes with --bundle <dir>");
+    if (typeof bundle !== "string") return err("BAD_ARG", "--profile figma needs --bundle <the exported figma-guidelines folder>");
+    return runFigmaProfileCheck(bundle, parsed.json);
+  }
   const loaded = loadProject(parsed, err);
   if ("exitCode" in loaded) return loaded;
   const result = runCheckOn(loaded.ds, loaded.src, loaded.packDir, loaded.inputs, parsed.json);
@@ -119,11 +103,15 @@ export function runGuidelines(parsed: ParsedArgs): CommandResult {
     return err("BAD_ARG", `--allow-unsealed takes no value (it swallowed '${swallowed}') — put it after the action, e.g. 'build --allow-unsealed'`);
   }
   const [action, ...extra] = parsed.positionals;
-  if (action === undefined) return err("BAD_ARG", "ui ds guidelines requires an action: build | check. Run 'ui ds --help'.");
+  if (action === undefined) return err("BAD_ARG", "ui ds guidelines requires an action: build | check | export. Run 'ui ds --help'.");
   if (extra.length > 0) return err("BAD_ARG", `unexpected argument '${extra[0]}' after '${action}'`);
+  const allowed = ACTION_FLAGS[action];
+  if (allowed === undefined) return err("BAD_ARG", `unknown action '${action}' (expected build | check | export). Run 'ui ds --help'.`);
+  const stray = Object.keys(parsed.flags).find((f) => !allowed.includes(f) && !GLOBAL_FLAGS.includes(f));
+  if (stray !== undefined) return err("BAD_ARG", `--${stray} does not apply to '${action}' (it takes: ${allowed.map((f) => `--${f}`).join(", ")})`);
   switch (action) {
     case "build": return runBuild(parsed, err);
     case "check": return runCheck(parsed, err);
-    default: return err("BAD_ARG", `unknown action '${action}' (expected build | check). Run 'ui ds --help'.`);
+    default: return runExport(parsed, err);
   }
 }

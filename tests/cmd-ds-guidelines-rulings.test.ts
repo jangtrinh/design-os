@@ -176,7 +176,8 @@ describe("ds guidelines check — rulings", () => {
     const before = read(pack, "anti-patterns.md");
     writeFileSync(join(pack, "anti-patterns.md"), `${before}\n- none yet\n- none yet\n- Reuse the shared card before building a new container.\n- Reuse the shared card before building a new container.\n`);
     const base = before.split("\n").length + 1;
-    writeFileSync(join(pack, "scenarios.md"), "- none yet\n");
+    // A second, manifest-listed file with the same short item (unlisted files are not linted).
+    writeFileSync(join(pack, "vocabulary.md"), `${read(pack, "vocabulary.md")}\n- none yet\n`);
     // Both copies repeat the ruling that rulings.md owns, so each is reported.
     expect(check(dir).findings.map((f) => `${f.code}:${f.file}:${f.line}`)).toEqual([
       `DUPLICATE_RULE:anti-patterns.md:${base + 2}`, `DUPLICATE_RULE:anti-patterns.md:${base + 3}`,
