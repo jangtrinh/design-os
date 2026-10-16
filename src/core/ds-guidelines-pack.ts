@@ -20,12 +20,19 @@ export interface PackFileOutput {
   content: string;
 }
 
+/** Seal state recorded in the manifest: verified, or unverified with every drifted store file. */
+export interface SealState {
+  status: "verified" | "unverified";
+  drifted?: { file: string; expected: string; actual: string }[];
+}
+
 export interface BuiltPack {
   /** Markdown files first, manifest last — write in this order. */
   files: PackFileOutput[];
   ruleCount: number;
   openQuestions: number;
   skipped: SkippedSource[];
+  seal: SealState;
 }
 
 const OPEN_SLOT_RE = /^> QUESTION\(/gm;
@@ -60,6 +67,10 @@ export function buildPack(ds: DesignSystem, src: StoreSourcePaths, now: string, 
   }
 
   const openQuestions = markdown.reduce((n, f) => n + (f.content.match(OPEN_SLOT_RE)?.length ?? 0), 0);
+  const drifted = (ds.unsealedDrift ?? [])
+    .map((d) => ({ file: d.file === "tokens" ? src.tokens : src.registry, expected: d.expected, actual: d.actual }))
+    .sort((a, b) => a.file.localeCompare(b.file));
+  const seal: SealState = drifted.length > 0 ? { status: "unverified", drifted } : { status: "verified" };
   const manifest = {
     version: 1,
     generatedAt: now,
@@ -74,6 +85,7 @@ export function buildPack(ds: DesignSystem, src: StoreSourcePaths, now: string, 
     ruleCount: rules.length,
     rules,
     openQuestions,
+    seal,
     // The sealed store hashes the pack was built from — a later slice compares them to flag stale packs.
     sources: [
       { path: src.tokens, sha: ds.manifest.compiledHash },
@@ -93,5 +105,6 @@ export function buildPack(ds: DesignSystem, src: StoreSourcePaths, now: string, 
     ruleCount: rules.length,
     openQuestions,
     skipped: manifest.skippedSources,
+    seal,
   };
 }

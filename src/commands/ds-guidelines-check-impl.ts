@@ -13,7 +13,7 @@ import { lintGuidelinesFile } from "../core/ds-guidelines-lint.js";
 import type { Finding } from "../core/ds-guidelines-lint.js";
 import { checkCompleteness, findDuplicateRules } from "../core/ds-guidelines-lint-pack.js";
 import { GuidelinesInputError, PACK_MANIFEST_NAME } from "../core/ds-guidelines-model.js";
-import type { PackInputs } from "../core/ds-guidelines-model.js";
+import type { PackInputs, StoreSourcePaths } from "../core/ds-guidelines-model.js";
 import { parseRulings, supersededRulingIds } from "../core/ds-guidelines-rulings-reader.js";
 import { avoidedWords, loadTerminology } from "../core/ds-guidelines-terminology-sections.js";
 
@@ -30,7 +30,7 @@ export interface CheckFailure { code: string; message: string }
 
 /** Run every check; returns the CommandResult, or a failure the caller reports as an error envelope. */
 export function runCheckOn(
-  ds: DesignSystem, packDir: string, inputs: PackInputs, useJson: boolean,
+  ds: DesignSystem, src: StoreSourcePaths, packDir: string, inputs: PackInputs, useJson: boolean,
 ): CommandResult | CheckFailure {
   if (!existsSync(packDir)) {
     return { code: "PACK_NOT_FOUND", message: `no guidelines pack at '${packDir}' — run 'ui ds guidelines build' first` };
@@ -69,16 +69,25 @@ export function runCheckOn(
     termSpansUnchecked += result.termSpansUnchecked;
   }
   findings.push(...findDuplicateRules(files), ...checkCompleteness(manifestText, files));
+  // --allow-unsealed accepted a drifted store: say so once per drifted file (a warning, never an error).
+  for (const d of ds.unsealedDrift ?? []) {
+    const file = d.file === "tokens" ? src.tokens : src.registry;
+    findings.push({
+      code: "SEAL_UNVERIFIED", severity: "warning", file, line: 1,
+      message: `${file} no longer matches its sealed hash (manifest ${d.expected}, file ${d.actual}) — names were resolved against the unverified store`,
+    });
+  }
   findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.code.localeCompare(b.code));
 
   const errorCount = findings.filter((f) => f.severity === "error").length;
+  const warningCount = findings.length - errorCount;
   const exitCode = errorCount > 0 ? 1 : 0;
   if (useJson) {
-    return okJsonWithExit("ds guidelines", { path: packDir, filesChecked: files.length, errorCount, findings, termSpansUnchecked }, exitCode);
+    return okJsonWithExit("ds guidelines", { path: packDir, filesChecked: files.length, errorCount, warningCount, findings, termSpansUnchecked }, exitCode);
   }
   const lines = [
-    `ds guidelines check: ${packDir} — ${errorCount} error(s)`,
-    ...findings.map((f) => `  ✗ [${f.code}] ${f.file}:${f.line}: ${f.message}`),
+    `ds guidelines check: ${packDir} — ${errorCount} error(s)${warningCount > 0 ? `, ${warningCount} warning(s)` : ""}`,
+    ...findings.map((f) => `  ${f.severity === "error" ? "✗" : "!"} [${f.code}] ${f.file}:${f.line}: ${f.message}`),
     ...(termSpansUnchecked > 0 ? [`  note: ${termSpansUnchecked} term: span(s) not checked — this project has no glossary terms`] : []),
   ];
   return { exitCode, stdout: lines.join("\n") + "\n" };

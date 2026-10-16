@@ -36,7 +36,7 @@ Usage:
   ui ds preview [--dir <project>] [--out <file>] [--split <dir>] [--json]
   ui ds soul init  [--dir <project>] [--force] [--studio]
   ui ds soul check [--dir <project>] [--json] [--studio]
-  ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--now <UTC-ISO>] [--json]
+  ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--allow-unsealed] [--now <UTC-ISO>] [--json]
 
 Subcommands:
   kit            Stage owner captures, emit approved theme CSS, validate, adopt and verify a kit
@@ -138,6 +138,10 @@ Subcommands:
                      process categories (figma-scripting, workflow-process, delivery-gates) and
                      rulings whose text starts '(SUPERSEDED <date> by <id>)' are never emitted,
                      only counted under 'rulings' in the manifest. 'check' also reads it for superseded ids.
+  --allow-unsealed   Proceed when the store no longer matches its sealed hashes (default: refused as
+                     DS_TAMPERED). Only hash drift is tolerated: unreadable files or a broken kit still fail.
+                     The manifest records seal: { status: "unverified", drifted: [{file, expected, actual}] }
+                     ("verified" otherwise); 'check' reports each drifted file as a SEAL_UNVERIFIED warning.
   --now <ISO>        'build' only: clock written to the manifest (default: current time).
                      The same store + the same --now give byte-identical output.
   Names are written as explicit spans: \`token:color.primary\`, \`component:Button/Primary\`,
@@ -283,6 +287,7 @@ Error codes:
   SUPERSEDED_CITED   'ds guidelines check' finding: host-written text cites a superseded ruling id
   DUPLICATE_RULE     'ds guidelines check' finding: the same rule text sits in two files
   AVOIDED_TERM       'ds guidelines check' finding: a slot answer uses a word the glossary lists as _Avoid_
+  SEAL_UNVERIFIED    'ds guidelines check --allow-unsealed' warning: a store file no longer matches its sealed hash
   PACK_INCOMPLETE    'ds guidelines check' finding: a manifest-listed file or generated block is missing
   BAD_RULINGS        'ds guidelines build|check' rulings file is not the expected { rulings: [...] } shape
 

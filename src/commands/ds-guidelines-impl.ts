@@ -36,10 +36,11 @@ function loadProject(parsed: ParsedArgs, err: Err): Loaded | CommandResult {
   const outFlag = parsed.flags["out"];
   const rulingsFlag = parsed.flags["rulings"];
   if (dirFlag === true || outFlag === true || rulingsFlag === true) return err("BAD_ARG", "--dir, --out and --rulings each need a path");
+  const unsealedFlag = parsed.flags["allow-unsealed"];
   let ds: DesignSystem;
   try {
     const paths = typeof dirFlag === "string" ? pathsForDir(resolve(dirFlag, "design")) : discoverDesignSystem(undefined);
-    ds = loadDesignSystem(paths);
+    ds = loadDesignSystem(paths, { allowUnsealed: unsealedFlag === true });
   } catch (e) {
     const code = e instanceof DSError || e instanceof DSManifestError ? e.code : "BAD_DS";
     return err(code, e instanceof Error ? e.message : String(e));
@@ -92,13 +93,14 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
   if (parsed.json) {
     return okJson(CMD, {
       out: loaded.packDir, files: markdownFiles, ruleCount: pack.ruleCount,
-      openQuestions: pack.openQuestions, skippedSources: pack.skipped, generatedAt: now,
+      openQuestions: pack.openQuestions, skippedSources: pack.skipped, seal: pack.seal, generatedAt: now,
     });
   }
   return ok([
     `ds guidelines build: wrote ${pack.files.length} file(s) → ${loaded.packDir}`,
     `  ${markdownFiles.length} guideline file(s), ${pack.ruleCount} rule(s), ${pack.openQuestions} open question(s)`,
     ...pack.skipped.map((s) => `skipped ${s.path}: ${s.reason}`),
+    ...(pack.seal.drifted ?? []).map((d) => `seal: unverified — ${d.file} drifted from its sealed hash`),
   ].join("\n") + "\n");
 }
 
@@ -106,12 +108,16 @@ function runCheck(parsed: ParsedArgs, err: Err): CommandResult {
   if (parsed.flags["now"] !== undefined) return err("BAD_ARG", "--now applies to 'build' only");
   const loaded = loadProject(parsed, err);
   if ("exitCode" in loaded) return loaded;
-  const result = runCheckOn(loaded.ds, loaded.packDir, loaded.inputs, parsed.json);
+  const result = runCheckOn(loaded.ds, loaded.src, loaded.packDir, loaded.inputs, parsed.json);
   return "exitCode" in result ? result : err(result.code, result.message);
 }
 
 export function runGuidelines(parsed: ParsedArgs): CommandResult {
   const err: Err = (code, msg) => (parsed.json ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`));
+  const swallowed = parsed.flags["allow-unsealed"];
+  if (typeof swallowed === "string") {
+    return err("BAD_ARG", `--allow-unsealed takes no value (it swallowed '${swallowed}') — put it after the action, e.g. 'build --allow-unsealed'`);
+  }
   const [action, ...extra] = parsed.positionals;
   if (action === undefined) return err("BAD_ARG", "ui ds guidelines requires an action: build | check. Run 'ui ds --help'.");
   if (extra.length > 0) return err("BAD_ARG", `unexpected argument '${extra[0]}' after '${action}'`);

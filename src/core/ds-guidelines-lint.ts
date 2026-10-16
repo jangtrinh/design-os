@@ -27,8 +27,8 @@ export interface LintContext {
 }
 
 export interface Finding {
-  code: "UNKNOWN_NAME" | "GENERATED_BLOCK_TAMPERED" | "SUPERSEDED_CITED" | "AVOIDED_TERM" | "DUPLICATE_RULE" | "PACK_INCOMPLETE";
-  severity: "error";
+  code: "UNKNOWN_NAME" | "GENERATED_BLOCK_TAMPERED" | "SUPERSEDED_CITED" | "AVOIDED_TERM" | "DUPLICATE_RULE" | "PACK_INCOMPLETE" | "SEAL_UNVERIFIED";
+  severity: "error" | "warning";
   /** Pack-relative path. */
   file: string;
   /** 1-based. */
