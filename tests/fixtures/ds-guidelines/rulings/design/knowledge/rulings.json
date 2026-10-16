@@ -84,6 +84,15 @@
       "verified_by": "owner"
     },
     {
+      "id": "r-013",
+      "category": "app-specific",
+      "text": "Release notes are written in plain language.",
+      "scope": "global",
+      "source": ["notes/release-notes.md"],
+      "since": "2026-05-04",
+      "verified_by": "owner"
+    },
+    {
       "id": "r-010",
       "category": "component-reuse",
       "text": "(SUPERSEDED 2026-03-01 by r-001) Build a bespoke container for every screen.",

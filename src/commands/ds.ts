@@ -131,7 +131,10 @@ Subcommands:
   --out <dir>        Pack directory (default: <project>/design/guidelines)
   --rulings <file>   Owner rulings file (default: <project>/design/knowledge/rulings.json). Absent file
                      = rulings omitted and recorded under skippedSources; malformed = BAD_RULINGS.
-                     Tier A (library-wide) -> rulings.md, tier B (scope.apps) -> apps/<app>.md;
+                     Tier A (global, in the 8 design categories shell-chrome, component-reuse,
+                     screen-composition, tables, forms-inputs, status-vocabulary, naming-language,
+                     section-layout) -> rulings.md; any other global ruling -> rulings.md under
+                     'Other library-wide rulings' (manifest tierAOther); tier B (scope.apps) -> apps/<app>.md;
                      process categories (figma-scripting, workflow-process, delivery-gates) and
                      rulings whose text starts '(SUPERSEDED <date> by <id>)' are never emitted,
                      only counted under 'rulings' in the manifest. 'check' also reads it for superseded ids.

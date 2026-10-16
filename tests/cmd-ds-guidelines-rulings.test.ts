@@ -58,7 +58,12 @@ describe("ds guidelines build — rulings tiers", () => {
     // Whitespace inside a ruling collapses to one line; a missing since/source drops its half.
     expect(a).toMatch(/^- \*\*r-002\*\* — Tables scroll horizontally; never wrap column headers onto two lines\. \(since 2026-02-02; source: notes\/tables\.md\)$/m);
     expect(a).toMatch(/^- \*\*r-003\*\* — Status labels use one fixed vocabulary across every screen\.$/m);
-    expect(a.match(/^- \*\*r-\d+\*\*/gm)).toHaveLength(3);
+    expect(a.match(/^- \*\*r-\d+\*\*/gm)).toEqual(["- **r-001**", "- **r-003**", "- **r-002**", "- **r-013**"]);
+    // D12: a global ruling outside the design categories is kept, under its own heading, after the design ones.
+    const other = a.indexOf("## Other library-wide rulings");
+    expect(other).toBeGreaterThan(a.indexOf("**r-002**"));
+    expect(a.indexOf("**r-013**")).toBeGreaterThan(other);
+    expect(a).toMatch(/^- \*\*r-013\*\* — Release notes are written in plain language\. \(since 2026-05-04; source: notes\/release-notes\.md\)$/m);
 
     const alpha = read(pack, "apps", "alpha.md");
     expect(alpha).toMatch(/^# Rulings — alpha$/m);
@@ -76,9 +81,9 @@ describe("ds guidelines build — rulings tiers", () => {
     const { dir, pack } = project();
     build(dir);
     expect(manifestOf(pack)["rulings"]).toEqual({
-      total: 11, tierA: 3, tierB: 3, tierC: 3, superseded: 2,
+      total: 12, tierA: 3, tierAOther: 1, tierB: 3, tierC: 3, superseded: 2,
       byCategory: {
-        "component-reuse": 2, "delivery-gates": 2, "figma-scripting": 1, "forms-inputs": 1, "product-decision": 1,
+        "app-specific": 1, "component-reuse": 2, "delivery-gates": 2, "figma-scripting": 1, "forms-inputs": 1, "product-decision": 1,
         "screen-composition": 1, tables: 1, "status-vocabulary": 1, "workflow-process": 1,
       },
       excludedSource: "design/knowledge/rulings.json",
@@ -91,7 +96,7 @@ describe("ds guidelines build — rulings tiers", () => {
     const ids = new Set((JSON.parse(read(rulingsPath(dir))) as { rulings: { id: string }[] }).rulings.map((r) => r.id));
     const rules = (manifestOf(pack)["rules"] as { id: string; sources: { path: string; ruling?: string }[] }[])
       .filter((r) => r.sources.some((s) => s.ruling !== undefined));
-    expect(rules).toHaveLength(7); // 3 tier A + alpha (r-004, r-006) + beta (r-005, r-006)
+    expect(rules).toHaveLength(8); // 3 tier A + 1 other library-wide + alpha (r-004, r-006) + beta (r-005, r-006)
     for (const r of rules) {
       for (const s of r.sources) {
         expect(existsSync(join(dir, s.path))).toBe(true);
@@ -122,7 +127,7 @@ describe("ds guidelines build — rulings tiers", () => {
     const { dir, pack } = project(false);
     cpSync(join(FIXTURES, "rulings", "design", "knowledge", "rulings.json"), join(dir, "elsewhere.json"));
     expect(build(dir, ["--rulings", join(dir, "elsewhere.json")]).code).toBe(0);
-    expect((manifestOf(pack)["rulings"] as { total: number }).total).toBe(11);
+    expect((manifestOf(pack)["rulings"] as { total: number }).total).toBe(12);
     expect(build(dir, ["--rulings", join(dir, "nope.json")]).code).toBe(0);
     expect(manifestOf(pack)["skippedSources"]).toContainEqual({ path: "nope.json", reason: expect.stringMatching(/not found/) });
   });

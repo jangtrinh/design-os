@@ -10,9 +10,11 @@ import { classifyRuling, parseRulings } from "./ds-guidelines-rulings-reader.js"
 import type { Ruling } from "./ds-guidelines-rulings-reader.js";
 
 export interface RulingsStats {
-  /** Every ruling read; total = tierA + tierB + tierC + superseded. */
+  /** Every ruling read; total = tierA + tierAOther + tierB + tierC + superseded. */
   total: number;
   tierA: number;
+  /** Global rulings outside the design categories (kept under "Other library-wide rulings"). */
+  tierAOther: number;
   tierB: number;
   tierC: number;
   superseded: number;
@@ -37,6 +39,10 @@ function rulingLine(r: Ruling): string {
   return `- **${r.id}** — ${oneLine(r.text)}${meta.length > 0 ? ` (${meta.join("; ")})` : ""}`;
 }
 
+function ruleOf(r: Ruling, rulingsPath: string, prefix: string, usedRuleIds: Set<string>): RuleEntry {
+  return { id: uniqueId(`${prefix}.${slug(r.id) || "ruling"}`, usedRuleIds), text: rulingLine(r), sources: [{ path: rulingsPath, ruling: r.id }] };
+}
+
 /** One block per category, headed by it. `prefix` keeps rule ids unique across files. */
 function categoryParts(rulings: readonly Ruling[], rulingsPath: string, prefix: string, usedRuleIds: Set<string>): FilePart[] {
   const byCategory = new Map<string, Ruling[]>();
@@ -44,11 +50,7 @@ function categoryParts(rulings: readonly Ruling[], rulingsPath: string, prefix: 
   const parts: FilePart[] = [];
   const usedBlockIds = new Set<string>();
   for (const category of [...byCategory.keys()].sort((a, b) => a.localeCompare(b))) {
-    const rules: RuleEntry[] = (byCategory.get(category) ?? []).sort(byId).map((r) => ({
-      id: uniqueId(`${prefix}.${slug(r.id) || "ruling"}`, usedRuleIds),
-      text: rulingLine(r),
-      sources: [{ path: rulingsPath, ruling: r.id }],
-    }));
+    const rules = (byCategory.get(category) ?? []).sort(byId).map((r) => ruleOf(r, rulingsPath, prefix, usedRuleIds));
     parts.push(textPart(`## ${category}`));
     parts.push(blockPart(uniqueId(`rulings.${slug(category) || "general"}`, usedBlockIds), rules.map((x) => x.text), rules));
   }
@@ -60,17 +62,21 @@ export function buildRulingsSections(input: OptionalInput): RulingsSections {
     return { files: [], skipped: [{ path: input.path, reason: "file not found — rulings.md and apps/ omitted" }] };
   }
   const rulings = parseRulings(input.text, input.path);
-  const tiers = { A: [] as Ruling[], B: [] as Ruling[], C: [] as Ruling[], superseded: [] as Ruling[] };
+  const tiers = { A: [] as Ruling[], AOther: [] as Ruling[], B: [] as Ruling[], C: [] as Ruling[], superseded: [] as Ruling[] };
   for (const r of rulings) tiers[classifyRuling(r)].push(r);
 
   const usedRuleIds = new Set<string>();
   const files: GuidelineFile[] = [];
-  if (tiers.A.length > 0) {
+  if (tiers.A.length + tiers.AOther.length > 0) {
+    const other = [...tiers.AOther].sort(byId).map((r) => ruleOf(r, input.path, "rulings", usedRuleIds));
     files.push({
       path: "rulings.md",
       parts: [
         textPart("# Rulings", "", "Owner rulings that bind the whole library. Each one is a decision: follow it, do not re-litigate it."),
         ...categoryParts(tiers.A, input.path, "rulings", usedRuleIds),
+        ...(other.length > 0
+          ? [textPart("## Other library-wide rulings"), blockPart("rulings.other", other.map((x) => x.text), other)]
+          : []),
       ],
     });
   }
@@ -105,7 +111,7 @@ export function buildRulingsSections(input: OptionalInput): RulingsSections {
     files,
     skipped: [],
     stats: {
-      total: rulings.length, tierA: tiers.A.length, tierB: tiers.B.length, tierC: tiers.C.length,
+      total: rulings.length, tierA: tiers.A.length, tierAOther: tiers.AOther.length, tierB: tiers.B.length, tierC: tiers.C.length,
       superseded: tiers.superseded.length, byCategory, excludedSource: input.path,
     },
   };

@@ -5,8 +5,9 @@
  * where `scope` is "global" or `{ apps: string[], features?: string[] }`. Supersession is
  * recorded only as a text prefix `(SUPERSEDED <date> by <id>)`, so the reader parses it.
  *
- * Tiers: superseded → never emitted; process categories → C (excluded, counted);
- * app-scoped → B (one file per app); everything else → A (library-wide).
+ * Tiers: superseded → never emitted; process categories → C (excluded, counted); app-scoped → B
+ * (one file per app); global rulings in the design categories → A; any other global ruling → AOther
+ * (kept, under its own heading — never dropped).
  */
 import { GuidelinesInputError } from "./ds-guidelines-model.js";
 
@@ -21,10 +22,15 @@ export interface Ruling {
   since?: string;
 }
 
-export type Tier = "A" | "B" | "C" | "superseded";
+export type Tier = "A" | "AOther" | "B" | "C" | "superseded";
 
 /** Process rulings steer how the team works, not how the library is used (excluded, counted). */
 const PROCESS_CATEGORIES: ReadonlySet<string> = new Set(["figma-scripting", "workflow-process", "delivery-gates"]);
+/** The categories that make a global ruling library guidance proper (tier A). */
+const DESIGN_CATEGORIES: ReadonlySet<string> = new Set([
+  "shell-chrome", "component-reuse", "screen-composition", "tables", "forms-inputs",
+  "status-vocabulary", "naming-language", "section-layout",
+]);
 const SUPERSEDED_PREFIX = /^\s*\(SUPERSEDED\s+\S+\s+by\s+[^)]*\)/;
 
 const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
@@ -65,7 +71,7 @@ export function classifyRuling(r: Ruling): Tier {
   if (SUPERSEDED_PREFIX.test(r.text)) return "superseded";
   if (PROCESS_CATEGORIES.has(r.category)) return "C";
   if (r.scope !== "global" && r.scope.apps.length > 0) return "B";
-  return "A";
+  return DESIGN_CATEGORIES.has(r.category) ? "A" : "AOther";
 }
 
 export function supersededRulingIds(rulings: readonly Ruling[]): Set<string> {
