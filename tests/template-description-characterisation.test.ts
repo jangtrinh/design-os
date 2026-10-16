@@ -23,7 +23,7 @@ const registered: Array<[string, readonly string[]]> = [
 ];
 
 describe("readTemplateDescription — every template in the repo", () => {
-  it("covers exactly the recorded set (43 registered templates)", () => {
+  it("covers exactly the recorded set (44 registered templates)", () => {
     const seen: string[] = [];
     for (const [kind, names] of registered) {
       for (const name of names) if (resolveTemplatePath(TEMPLATES_ROOT, kind as "workflow", name) !== null) seen.push(`${kind}/${name}`);

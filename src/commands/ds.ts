@@ -211,10 +211,16 @@ Subcommands:
                  immune to --max-bytes) — folds context + 'tokens compile' into one
                  read-only call. Markdown: appended as a fenced section; JSON: a
                  sibling 'theme' string field.
-  --include <s>  Comma-separated sections: tokens,registry,naming,anti-patterns,soul
+  --include <s>  Comma-separated sections: tokens,registry,naming,anti-patterns,soul (default: those five)
+                 and the opt-in 'guidelines' (never in the default set)
   --format <f>   markdown (default) | json
   --max-bytes <n>  Truncate the context block to fit n bytes (default 4096)
   --dir <path>   Override the project directory
+  The 'guidelines' section summarises the built guidelines pack (design/guidelines/): its file index, the
+  anti-pattern scenario titles with their slot status (open/partial/answered) and the tier-A ruling ids and
+  text. It bounds itself to --max-bytes: rulings are dropped from the tail first, then scenario titles, never
+  the file index, and the block says what was dropped. No pack: the section is omitted, never an error; a
+  pack whose manifest is unreadable gets a one-line note ('ds guidelines build|check' produce the pack).
   The 'soul' section emits design/soul.md (the declared stance, capped at 150
   lines) when that file exists, PLUS the studio-level soul from
   $EASE_DESIGN_HOME/studio-soul.md (the genealogy layer above every project

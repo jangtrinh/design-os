@@ -13,10 +13,12 @@ import { summarizeRoles, rolesMarkdownLines } from "./ds-context-roles.js";
 import type { RolesSummary } from "./ds-context-roles.js";
 import type { DesignSystem } from "./design-system.js";
 import type { ResolvedToken } from "./token-model.js";
+import { guidelinesMarkdownBounded, guidelinesMeasure, summarizeGuidelines } from "./ds-context-guidelines.js";
+import type { GuidelinesBlock, GuidelinesContextInput } from "./ds-context-guidelines.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ContextSection = "tokens" | "registry" | "naming" | "anti-patterns" | "soul";
+export type ContextSection = "tokens" | "registry" | "naming" | "anti-patterns" | "soul" | "guidelines";
 
 export interface ContextOptions {
   include: ContextSection[];
@@ -36,6 +38,11 @@ export interface ContextOptions {
    * the more specific, later-declared layer and wins on conflict.
    */
   studioSoul?: string;
+  /**
+   * The guidelines pack (manifest + anti-patterns.md + rulings.md text), read by the command layer.
+   * Undefined when there is no pack; the `guidelines` section is then omitted, never an error.
+   */
+  guidelines?: GuidelinesContextInput;
 }
 
 export interface StructuredContext {
@@ -66,6 +73,8 @@ export interface StructuredContext {
   roles: { role: string; paths: string[] }[];
   /** Canonical roles with zero recognized tokens; same omission rule as `roles`. */
   roleGaps: string[];
+  /** The guidelines pack summary (`--include guidelines`); null when not asked for or no pack, "unreadable" for a damaged manifest. */
+  guidelines: GuidelinesBlock | null;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -306,6 +315,17 @@ export function formatMarkdown(ds: DesignSystem, opts: ContextOptions): string {
     prefixLines.push(...rolesMarkdownLines(rolesSummary));
   }
 
+  // The guidelines pack bounds ITSELF to `maxBytes` (rulings dropped first, then scenario titles,
+  // the drop stated in the block), so it rides the prefix instead of competing with the tables.
+  if (include.includes("guidelines")) {
+    const block = summarizeGuidelines(opts.guidelines, maxBytes, guidelinesMeasure.markdown(maxBytes));
+    if (block === "unreadable") {
+      prefixLines.push("## Guidelines pack (design/guidelines)", "", "(guidelines.manifest.json is unreadable — run 'ui ds guidelines check')", "");
+    } else if (block !== null) {
+      prefixLines.push(guidelinesMarkdownBounded(block, maxBytes));
+    }
+  }
+
   // ── Variable tail: token / registry / naming / anti-pattern tables ───────────
   // The ONLY part `maxBytes` truncates.
   const build = (
@@ -423,6 +443,7 @@ function buildStructured(
       ? rolesSummary.roles.map((r) => ({ role: r.role, paths: r.paths }))
       : [],
     roleGaps: include.includes("tokens") && rolesSummary !== null ? [...rolesSummary.gaps] : [],
+    guidelines: null,
   };
 }
 
@@ -457,6 +478,9 @@ function variableBytes(ctx: StructuredContext): number {
  */
 export function formatStructured(ds: DesignSystem, opts: ContextOptions): StructuredContext {
   const { include, maxBytes } = opts;
+  const guidelines = include.includes("guidelines")
+    ? summarizeGuidelines(opts.guidelines, maxBytes, guidelinesMeasure.json)
+    : null;
   const sem = semanticTokens(ds);
   const regRows = ds.registry.components.map((c) => ({
     name: c.name,
@@ -487,7 +511,7 @@ export function formatStructured(ds: DesignSystem, opts: ContextOptions): Struct
           sem.slice(0, tokLimit),
         );
         if (variableBytes(ctx) <= maxBytes) {
-          return ctx;
+          return { ...ctx, guidelines };
         }
       }
     }
@@ -495,17 +519,19 @@ export function formatStructured(ds: DesignSystem, opts: ContextOptions): Struct
 
   // Budget is too small even for zero variable rows — the soul chain still rides
   // through whole (it is exempt); only the row sections collapse to empty.
-  return buildStructured(ds, include, soulText, studioSoulText, rolesSummary, [], [], []);
+  return { ...buildStructured(ds, include, soulText, studioSoulText, rolesSummary, [], [], []), guidelines };
 }
 
 // ─── Include parser ───────────────────────────────────────────────────────────
 
+/** The sections emitted when --include is absent. `guidelines` is opt-in only. */
 const ALL_SECTIONS: ContextSection[] = ["tokens", "registry", "naming", "anti-patterns", "soul"];
-const VALID_SECTIONS = new Set<string>(ALL_SECTIONS);
+const OPT_IN_SECTIONS: ContextSection[] = ["guidelines"];
+const VALID_SECTIONS = new Set<string>([...ALL_SECTIONS, ...OPT_IN_SECTIONS]);
 
 /**
  * Parse a comma-separated include string into a validated ContextSection[].
- * Returns all sections when the input is undefined or empty.
+ * Returns the default sections (everything but the opt-in `guidelines`) when the input is undefined or empty.
  * Throws on unknown section names (caller converts to BAD_ARG).
  */
 export function parseInclude(raw: unknown): ContextSection[] {
@@ -518,7 +544,7 @@ export function parseInclude(raw: unknown): ContextSection[] {
   for (const p of parts) {
     if (!VALID_SECTIONS.has(p)) {
       throw new Error(
-        `unknown --include value '${p}'. Valid sections: ${ALL_SECTIONS.join(", ")}`,
+        `unknown --include value '${p}'. Valid sections: ${[...ALL_SECTIONS, ...OPT_IN_SECTIONS].join(", ")}`,
       );
     }
   }

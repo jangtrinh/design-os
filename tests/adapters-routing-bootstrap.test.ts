@@ -69,10 +69,10 @@ afterEach(() => {
 });
 
 describe("adapters routing bootstrap rule generation", () => {
-  it("Claude adapter generates exactly 45 artifacts including .claude/rules/design-os-routing.md", () => {
+  it("Claude adapter generates exactly 46 artifacts including .claude/rules/design-os-routing.md", () => {
     const cwd = "/tmp/test-claude-routing";
     const arts = generateClaudeAdapter({ cwd, templatesRoot: TEMPLATES_ROOT });
-    expect(arts).toHaveLength(45);
+    expect(arts).toHaveLength(46);
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
 
     const rule = arts.find((a) => a.absPath === join(cwd, ".claude", "rules", "design-os-routing.md"));
@@ -82,10 +82,10 @@ describe("adapters routing bootstrap rule generation", () => {
     expect(rule!.content).toContain("ease-design natural-language routing and workflow bootstrap");
   });
 
-  it("Antigravity adapter generates exactly 45 artifacts including .agent/rules/design-os-routing.md", () => {
+  it("Antigravity adapter generates exactly 46 artifacts including .agent/rules/design-os-routing.md", () => {
     const cwd = "/tmp/test-ag-routing";
     const arts = generateAntigravityAdapter({ cwd, templatesRoot: TEMPLATES_ROOT });
-    expect(arts).toHaveLength(45);
+    expect(arts).toHaveLength(46);
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
 
     const rule = arts.find((a) => a.absPath === join(cwd, ".agent", "rules", "design-os-routing.md"));
@@ -217,7 +217,7 @@ describe("init seam tests: routing bootstrap file handling", () => {
     ) as { adapters: string[] };
 
     expect(manifest.adapters).toContain(".claude/rules/design-os-routing.md");
-    expect(manifest.adapters).toHaveLength(45);
+    expect(manifest.adapters).toHaveLength(46);
   });
 });
 

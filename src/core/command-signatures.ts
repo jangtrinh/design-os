@@ -837,7 +837,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         flags: [
           { name: "strict", type: "boolean", summary: "Prepend the registered-components-only enforcement preamble" },
           { name: "with-theme", type: "boolean", summary: "Also emit the compiled Tailwind v4 @theme block (full token map, immune to --max-bytes)" },
-          { name: "include", type: "string", summary: "Comma-separated sections: tokens,registry,naming,anti-patterns,soul" },
+          { name: "include", type: "string", summary: "Comma-separated sections: tokens,registry,naming,anti-patterns,soul (default); guidelines is opt-in: pack file index, scenario titles and tier-A rulings within --max-bytes" },
           { name: "format", type: "string", values: ["markdown", "json"], summary: "Output format (default markdown)" },
           { name: "max-bytes", type: "string", summary: "Budget for the variable sections (token/registry/naming/anti-pattern tables); the soul chain and --with-theme are fixed prose outside it (default 4096)" },
           { name: "dir", type: "string", summary: "Override the project directory" },

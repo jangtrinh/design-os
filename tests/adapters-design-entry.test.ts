@@ -162,8 +162,8 @@ describe("adapters design entry and skill routing", () => {
       const ag = generateAntigravityAdapter({ cwd: FAKE_CWD, templatesRoot: TEMPLATES_ROOT });
       const codex = generateCodexAdapter({ cwd: FAKE_CWD, templatesRoot: TEMPLATES_ROOT });
 
-      expect(claude).toHaveLength(45);
-      expect(ag).toHaveLength(45);
+      expect(claude).toHaveLength(46);
+      expect(ag).toHaveLength(46);
       expect(codex).toHaveLength(1);
     });
   });
