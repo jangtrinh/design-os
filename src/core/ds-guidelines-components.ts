@@ -10,7 +10,7 @@ import { levenshtein } from "./flag-guard.js";
 import { buildDocsModel } from "./ds-docs.js";
 import type { DocComponent } from "./ds-docs.js";
 import type { ComponentRecord } from "./registry-store.js";
-import { blockPart, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
+import { blockPart, compareText, shortHash, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
 import type { FilePart, GuidelineFile, RuleEntry, SkippedSource } from "./ds-guidelines-model.js";
 import { componentSpan } from "./ds-guidelines-render.js";
 
@@ -42,7 +42,7 @@ export interface ConfusableCluster {
 
 /** Connected groups of confusable names (union-find), ordered by their first member. */
 export function findConfusableClusters(names: readonly string[]): ConfusableCluster[] {
-  const sorted = [...new Set(names)].sort((a, b) => a.localeCompare(b));
+  const sorted = [...new Set(names)].sort(compareText);
   const parent = sorted.map((_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i] ?? i)));
   const reasons = new Map<number, Set<string>>();
@@ -64,7 +64,7 @@ export function findConfusableClusters(names: readonly string[]): ConfusableClus
   return [...groups.entries()]
     .filter(([, members]) => members.length > 1)
     .map(([root, members]) => ({ names: members, reasons: [...(reasons.get(root) ?? [])].sort() }))
-    .sort((a, b) => (a.names[0] ?? "").localeCompare(b.names[0] ?? ""));
+    .sort((a, b) => compareText(a.names[0] ?? "", b.names[0] ?? ""));
 }
 
 const oneLine = (text: string): string => text.replace(/`/g, "'").replace(/\s+/g, " ").trim();
@@ -95,7 +95,11 @@ export function buildComponentsFile(
 
   const usedBlockIds = new Set<string>();
   const usedRuleIds = new Set<string>();
-  for (const category of buildDocsModel(components).categories) {
+  // buildDocsModel orders with the machine's locale; re-sort in code-unit order so the pack is the same everywhere.
+  const categories = [...buildDocsModel(components).categories]
+    .sort((a, b) => compareText(a.name, b.name))
+    .map((c) => ({ ...c, components: [...c.components].sort((a, b) => compareText(a.name, b.name)) }));
+  for (const category of categories) {
     const rules = category.components.map((c) => {
       const rule = componentRule(c, registryPath);
       return { ...rule, id: uniqueId(rule.id, usedRuleIds) };
@@ -107,7 +111,8 @@ export function buildComponentsFile(
   const clusters = findConfusableClusters(components.map((c) => c.name));
   if (clusters.length > 0) {
     const usedSlotIds = new Set<string>();
-    const slotIds = clusters.map((cl) => uniqueId(`confusable.${slug(cl.names[0] ?? "")}`, usedSlotIds));
+    // The id covers the WHOLE member set: when the set changes the question changes, and the old answer is parked, not reused.
+    const slotIds = clusters.map((cl) => uniqueId(`confusable.${slug(cl.names[0] ?? "")}-${shortHash(cl.names.join("\n"))}`, usedSlotIds));
     const rules: RuleEntry[] = clusters.map((cl, i) => ({
       id: `components.${slotIds[i]}`,
       text: `- ${cl.names.map(componentSpan).join(", ")} — look-alike names (${cl.reasons.join("; ")})`,

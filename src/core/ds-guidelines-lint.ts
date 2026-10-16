@@ -9,6 +9,7 @@
  * `term:` spans have nothing to resolve against until a glossary exists; they are
  * COUNTED, never judged, so the report cannot claim a verdict it did not reach.
  */
+import { compareText } from "./ds-guidelines-model.js";
 import { levenshtein } from "./flag-guard.js";
 import { hostWrittenLines, parseGeneratedBlocks } from "./ds-guidelines-render.js";
 
@@ -81,7 +82,7 @@ const SLOT_ANSWER_RE = /^\s*(?:[-*]\s+)?\*\*(?:Do|Don't|Why):\*\*/;
 /** Slot answers that use a word the glossary rejects (`_Avoid_`). Generated text is never judged. */
 function avoidedTermUses(file: string, text: string, avoided: ReadonlyMap<string, string[]>): Finding[] {
   const findings: Finding[] = [];
-  const patterns = [...avoided.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([word, preferred]) => ({
+  const patterns = [...avoided.entries()].sort(([a], [b]) => compareText(a, b)).map(([word, preferred]) => ({
     word, preferred,
     re: new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(word).replace(/\s+/g, "\\s+")}(?![\\p{L}\\p{N}])`, "iu"),
   }));
@@ -134,6 +135,6 @@ export function lintGuidelinesFile(file: string, text: string, ctx: LintContext)
   findings.push(...supersededCitations(file, text, ctx.supersededIds));
   if (ctx.glossary !== undefined) findings.push(...avoidedTermUses(file, text, ctx.glossary.avoided));
 
-  findings.sort((a, b) => a.line - b.line || a.code.localeCompare(b.code));
+  findings.sort((a, b) => a.line - b.line || compareText(a.code, b.code));
   return { findings, termSpansUnchecked };
 }

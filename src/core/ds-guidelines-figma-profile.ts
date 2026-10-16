@@ -4,6 +4,7 @@
  * Limits come from Figma's help article "Add guidelines files to a design library" and live in ONE
  * constant so a change in Figma's beta is a one-line edit. Upload is manual during that beta.
  */
+import { compareText } from "./ds-guidelines-model.js";
 import type { Finding } from "./ds-guidelines-lint.js";
 import { parseSlots } from "./ds-guidelines-slots.js";
 
@@ -45,7 +46,7 @@ const thousands = (n: number): string => n.toLocaleString("en-US");
 
 /** Per-file byte listing, largest first — shown whenever a cap is hit. */
 export function bytesByFile(files: readonly BundleFileInfo[]): string {
-  return [...files].sort((a, b) => b.bytes - a.bytes || a.path.localeCompare(b.path)).map((f) => `${f.path} ${thousands(f.bytes)} B`).join("; ");
+  return [...files].sort((a, b) => b.bytes - a.bytes || compareText(a.path, b.path)).map((f) => `${f.path} ${thousands(f.bytes)} B`).join("; ");
 }
 
 /** Every Figma limit, as findings: file count, extensions, byte caps and unanswered slots. */

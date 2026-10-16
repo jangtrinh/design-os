@@ -32,7 +32,7 @@ describe("ds context --include guidelines", () => {
     // Scenario titles come from anti-patterns.md, each with its slot id and status.
     expect(s).toMatch(/^### Scenarios$/m);
     expect(s).toMatch(/^- Ruling r-002 — tables \(ap-ruling-r-002\) — open$/m);
-    expect(s).toMatch(/^- Convention \(Layout\): raw \/ absolute \(NONE-layout\) frames \(ap-conv-layout-1\) — open$/m);
+    expect(s).toMatch(/^- Convention \(Layout\): raw \/ absolute \(NONE-layout\) frames \(ap-conv-layout-[0-9a-f]{8}\) — open$/m);
     // Tier-A rulings: id and text, without the since/source tail; other-library-wide and app rulings are not tier A.
     expect(s).toMatch(/^### Library-wide rulings \(tier A\)$/m);
     expect(s).toMatch(/^- r-001 — Reuse the shared card before building a new container\.$/m);

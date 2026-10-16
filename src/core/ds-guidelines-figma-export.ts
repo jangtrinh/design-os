@@ -9,6 +9,7 @@
  *   - The "How to read this pack" note is dropped; the overview's file index is rewritten to match.
  *   - Only files the manifest lists are used: stale files in the pack folder are ignored.
  */
+import { compareText } from "./ds-guidelines-model.js";
 import { trimToBudget, renderBFile, byteLength, isEmptied } from "./ds-guidelines-budget.js";
 import type { BFile, BSection, TrimEntry } from "./ds-guidelines-budget.js";
 import { fixedSection, listSection, splitSections, wholeSection } from "./ds-guidelines-figma-sections.js";
@@ -131,6 +132,6 @@ export function buildFigmaBundle(packFiles: readonly PackText[], budgetBytes?: n
   const kept = all.filter((f) => !isEmptied(f));
   if (overview !== undefined) reindexOverview(overview, kept.filter((f) => f !== overview).map((f) => f.path));
   const out = kept.map((f) => { const content = renderBFile(f); return { path: f.path, content, bytes: byteLength(content) }; })
-    .sort((a, b) => a.path.localeCompare(b.path));
+    .sort((a, b) => compareText(a.path, b.path));
   return { files: out, trimmed: trim?.trimmed ?? [], ...(trim !== undefined ? { budgetReached: trim.reached } : {}) };
 }

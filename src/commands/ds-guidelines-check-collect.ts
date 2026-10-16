@@ -14,7 +14,7 @@ import type { Finding } from "../core/ds-guidelines-lint.js";
 import { checkCompleteness, findDuplicateRules } from "../core/ds-guidelines-lint-pack.js";
 import { lintSlots } from "../core/ds-guidelines-lint-slots.js";
 import { orphanEntryCount, ORPHANS_FILE } from "../core/ds-guidelines-slots.js";
-import { GuidelinesInputError, PACK_MANIFEST_NAME } from "../core/ds-guidelines-model.js";
+import { GuidelinesInputError, PACK_MANIFEST_NAME, compareText } from "../core/ds-guidelines-model.js";
 import type { PackInputs, StoreSourcePaths } from "../core/ds-guidelines-model.js";
 import { parseRulings, supersededRulingIds } from "../core/ds-guidelines-rulings-reader.js";
 import { avoidedWords, loadTerminology } from "../core/ds-guidelines-terminology-sections.js";
@@ -124,6 +124,6 @@ export function collectCheck(ds: DesignSystem, src: StoreSourcePaths, packDir: s
       message: `${file} no longer matches its sealed hash (manifest ${d.expected}, file ${d.actual}) — names were resolved against the unverified store`,
     });
   }
-  findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.code.localeCompare(b.code));
+  findings.sort((a, b) => compareText(a.file, b.file) || a.line - b.line || compareText(a.code, b.code));
   return { findings, files, ...(manifestText !== undefined ? { manifestText } : {}), openQuestions, termSpansUnchecked };
 }

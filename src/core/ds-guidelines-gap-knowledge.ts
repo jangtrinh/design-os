@@ -9,7 +9,7 @@
 import { checkTokenContrast } from "./ds-a11y.js";
 import { summarizeRoles } from "./ds-context-roles.js";
 import { checkSpecimen } from "./specimen-check.js";
-import { slug, uniqueId } from "./ds-guidelines-model.js";
+import { compareText, shortHash, slug, stableSlug, uniqueId } from "./ds-guidelines-model.js";
 import type { RuleSource, StoreSourcePaths } from "./ds-guidelines-model.js";
 import { componentSpan, tokenSpan } from "./ds-guidelines-render.js";
 import type { DesignSystem } from "./design-system.js";
@@ -42,7 +42,7 @@ export function findGaps(ds: DesignSystem, src: StoreSourcePaths): Gap[] {
   for (const f of checkSpecimen(ds.registry.components).findings) {
     const state = MISSING_STATE.exec(f.checkId)?.[1] ?? f.checkId;
     gaps.push({
-      id: uniqueId(`gap.component.${slug(f.component)}.${state}`, used),
+      id: uniqueId(`gap.component.${stableSlug(f.component)}.${state}`, used),
       kind: "component",
       line: `${componentSpan(f.component)}: ${f.message}. Knowledge: ${COMPONENT_DESIGN_DOC}`,
       sources: [{ path: src.registry, component: f.component }],
@@ -70,9 +70,9 @@ export function findGaps(ds: DesignSystem, src: StoreSourcePaths): Gap[] {
   // Name-guessed pairs are not measurements; only declared {role}/{role}-foreground pairs count.
   const contrast = checkTokenContrast(ds.resolved);
   if (contrast.measured && contrast.mode !== "inferred") {
-    for (const p of contrast.failures) {
+    for (const p of [...contrast.failures].sort((a, b) => a.ratio - b.ratio || compareText(a.text, b.text) || compareText(a.surface, b.surface))) {
       gaps.push({
-        id: uniqueId(`gap.a11y.${slug(p.text)}.on.${slug(p.surface)}`, used),
+        id: uniqueId(`gap.a11y.${slug(p.text)}.on.${slug(p.surface)}-${shortHash(`${p.text}\u0000${p.surface}`)}`, used),
         kind: "a11y",
         line: `${tokenSpan(p.text)} on ${tokenSpan(p.surface)} measures ${p.ratio}:1, below AA ${AA_NORMAL_TEXT}:1. Check: ${A11Y_CHECK}`,
         sources: [{ path: src.tokens, token: p.text }, { path: src.tokens, token: p.surface }],
@@ -83,5 +83,5 @@ export function findGaps(ds: DesignSystem, src: StoreSourcePaths): Gap[] {
       });
     }
   }
-  return gaps.sort((a, b) => a.id.localeCompare(b.id));
+  return gaps.sort((a, b) => compareText(a.id, b.id));
 }

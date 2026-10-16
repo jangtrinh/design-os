@@ -133,7 +133,7 @@ describe("ui ds guidelines check — generated blocks", () => {
     const { dir, pack } = builtProject();
     const file = join(pack, "components.md");
     const filled = readFileSync(file, "utf8").replace(
-      /^> QUESTION\(confusable\.card-header\): .*$/m,
+      /^> QUESTION\(confusable\.card-header-[0-9a-f]{8}\): .*$/m,
       "**Do:** use `component:Card/Header` inside a card.\n**Don't:** reuse it in a dialog.\n**Why:** the dialog has its own header.",
     );
     expect(filled).toMatch(/^\*\*Why:\*\*/m);

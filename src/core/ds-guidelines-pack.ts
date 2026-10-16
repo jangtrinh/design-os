@@ -14,7 +14,7 @@ import { findGaps } from "./ds-guidelines-gap-knowledge.js";
 import { buildAntiPatternsFile, seedScenarios } from "./ds-guidelines-scenario-seeds.js";
 import { collectAnswers, injectAnswers, orphanEntryCount, ORPHANS_FILE, parseSlots, renderOrphans } from "./ds-guidelines-slots.js";
 import type { ExistingAnswer } from "./ds-guidelines-slots.js";
-import { PACK_MANIFEST_NAME } from "./ds-guidelines-model.js";
+import { PACK_MANIFEST_NAME, compareText } from "./ds-guidelines-model.js";
 import type { ExistingPack, GuidelineFile, PackInputs, RuleSource, SkippedSource, StoreSourcePaths } from "./ds-guidelines-model.js";
 import { renderFile, sha256Hex } from "./ds-guidelines-render.js";
 import type { DesignSystem } from "./design-system.js";
@@ -61,14 +61,17 @@ export function buildPack(
   const sections: GuidelineFile[] = [overview, ...body];
   const rendered: PackFileOutput[] = sections
     .map((f) => ({ path: f.path, content: renderFile(f) }))
-    .sort((a, b) => a.path.localeCompare(b.path));
+    .sort((a, b) => compareText(a.path, b.path));
 
   // Rebuild keeps every answer: carried to the slot with the same id, or parked in the orphans file.
   const slots = rendered.flatMap((f) => parseSlots(f.content).map((s) => ({ id: s.id, file: f.path })));
   const slotIds = new Set(slots.map((s) => s.id));
   const carried = new Map<string, string[]>();
   const orphans: ExistingAnswer[] = [];
-  for (const a of collectAnswers(existing.files)) {
+  // Answers are harvested only from files the previous build produced (its manifest's list); without a
+  // readable manifest, from the files this build produces. A stray or stale markdown file never feeds them.
+  const harvestFrom = new Set(existing.listed ?? rendered.map((r) => r.path));
+  for (const a of collectAnswers(existing.files.filter((f) => harvestFrom.has(f.path)))) {
     if (slotIds.has(a.id) && !carried.has(a.id)) carried.set(a.id, a.lines);
     else orphans.push(a);
   }
@@ -77,7 +80,7 @@ export function buildPack(
 
   const rules: { id: string; file: string; sources: RuleSource[] }[] = [];
   const ids = new Set<string>();
-  for (const file of [...sections].sort((a, b) => a.path.localeCompare(b.path))) {
+  for (const file of [...sections].sort((a, b) => compareText(a.path, b.path))) {
     for (const part of file.parts) {
       if (part.kind !== "block") continue;
       for (const rule of part.rules) {
@@ -91,7 +94,7 @@ export function buildPack(
   const openQuestions = markdown.reduce((n, f) => n + parseSlots(f.content).filter((s) => s.status !== "filled").length, 0);
   const drifted = (ds.unsealedDrift ?? [])
     .map((d) => ({ file: d.file === "tokens" ? src.tokens : src.registry, expected: d.expected, actual: d.actual }))
-    .sort((a, b) => a.file.localeCompare(b.file));
+    .sort((a, b) => compareText(a.file, b.file));
   const seal: SealState = drifted.length > 0 ? { status: "unverified", drifted } : { status: "verified" };
   const produced = new Set([...markdown.map((f) => f.path), PACK_MANIFEST_NAME, ORPHANS_FILE]);
   const staleFiles = (existing.allPaths ?? []).filter((path) => !produced.has(path)).sort();
@@ -121,12 +124,12 @@ export function buildPack(
       // Optional inputs whose content went into the pack (a skipped input was not used).
       ...Object.values(inputs).flatMap((i) =>
         i.text !== undefined && !skipped.some((k) => k.path === i.path) ? [{ path: i.path, sha: sha256Hex(i.text) }] : []),
-    ].sort((a, b) => a.path.localeCompare(b.path)),
+    ].sort((a, b) => compareText(a.path, b.path)),
     ...(rulings.stats !== undefined ? { rulings: rulings.stats } : {}),
     ...(terminology.terms.length > 0
       ? { terminology: { terms: terminology.terms.length, fromContext: terminology.fromContext, fromGlossary: terminology.fromGlossary, conflicts: terminology.conflicts } }
       : {}),
-    skippedSources: [...skipped].sort((a, b) => a.path.localeCompare(b.path) || a.reason.localeCompare(b.reason)),
+    skippedSources: [...skipped].sort((a, b) => compareText(a.path, b.path) || compareText(a.reason, b.reason)),
   };
   return {
     files: [

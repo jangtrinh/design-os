@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
 import { canonicalHash, canonicalStringify } from "../src/core/ds-manifest.js";
+import { shortHash, stableSlug } from "../src/core/ds-guidelines-model.js";
 
 const FIXTURES = join(import.meta.dirname, "fixtures", "ds-guidelines");
 const REPO_ROOT = join(import.meta.dirname, "..");
@@ -86,13 +87,21 @@ function fill(file: string, slotId: string, answer: string[]): number {
 }
 
 const FULL = ["**Do:** Keep every header on one line.", "**Don't:** Let a header wrap.", "**Why:** Wrapped headers break the scan line."];
+// Slot ids are derived from stable evidence (a hash of the label, the raw name, the whole member set),
+// never from a counter or a line number — spelled out here so a change of the scheme is a visible diff.
+const GAP = {
+  component: `gap.component.${stableSlug("Action/Button")}.disabled`,
+  a11y: `gap.a11y.color-accent-soft-text.on.color-accent-soft-${shortHash("color.accent-soft-text\u0000color.accent-soft")}`,
+};
 const SLOT = {
   ruling: "ap-ruling-r-201",
   ruling2: "ap-ruling-r-205",
-  conv: "ap-conv-layout-1",
-  persona: "ap-persona-gradient-hero-banners",
-  gapComponent: "ap-gap.component.action-button.disabled",
-  gapA11y: "ap-gap.a11y.color-accent-soft-text.on.color-accent-soft",
+  conv: `ap-conv-layout-${shortHash("raw / absolute (none-layout) frames")}`,
+  persona: `ap-persona-gradient-hero-banners-${shortHash("gradient hero banners")}`,
+  gapComponent: `ap-${GAP.component}`,
+  gapA11y: `ap-${GAP.a11y}`,
+  cardHeader: `confusable.card-header-${shortHash("Card/Header\nModal/Header")}`,
+  chipFilter: `confusable.chip-filter-${shortHash("Chip/Filter\nChip/Filters")}`,
 };
 
 describe("scenario slots (anti-patterns.md)", () => {
@@ -107,8 +116,8 @@ describe("scenario slots (anti-patterns.md)", () => {
     expect(ap).toMatch(slotRe(SLOT.ruling2, "r-205"));
     expect(ap).toMatch(slotRe(SLOT.conv, `CONVENTIONS.md:L${convLine}`));
     expect(ap).toMatch(slotRe(SLOT.persona, "persona:calm-ledger"));
-    expect(ap).toMatch(slotRe(SLOT.gapComponent, "gap.component.action-button.disabled"));
-    expect(ap).toMatch(slotRe(SLOT.gapA11y, "gap.a11y.color-accent-soft-text.on.color-accent-soft"));
+    expect(ap).toMatch(slotRe(SLOT.gapComponent, GAP.component));
+    expect(ap).toMatch(slotRe(SLOT.gapA11y, GAP.a11y));
     expect(ap.match(/^> QUESTION\(/gm)).toHaveLength(6);
 
     // Each slot sits directly under its own scenario title.
@@ -123,7 +132,7 @@ describe("scenario slots (anti-patterns.md)", () => {
     expect((manifestOf(pack)["slots"] as { id: string; file: string }[]).map((s) => `${s.file}:${s.id}`)).toEqual([
       `anti-patterns.md:${SLOT.ruling}`, `anti-patterns.md:${SLOT.ruling2}`, `anti-patterns.md:${SLOT.conv}`, `anti-patterns.md:${SLOT.persona}`,
       `anti-patterns.md:${SLOT.gapA11y}`, `anti-patterns.md:${SLOT.gapComponent}`,
-      "components.md:confusable.card-header", "components.md:confusable.chip-filter",
+      `components.md:${SLOT.cardHeader}`, `components.md:${SLOT.chipFilter}`,
     ]);
   });
 
@@ -138,14 +147,14 @@ describe("scenario slots (anti-patterns.md)", () => {
     const { dir, pack } = project();
     build(dir);
     const ap = read(pack, "anti-patterns.md");
-    expect(ap).toMatch(/^- \*\*gap\.component\.action-button\.disabled\*\* — `component:Action\/Button`: [^\n]+\. Knowledge: knowledge\/figma-craft\/component-design\.md$/m);
+    expect(ap).toMatch(/^- \*\*gap\.component\.action-button-[0-9a-f]{8}\.disabled\*\* — `component:Action\/Button`: [^\n]+\. Knowledge: knowledge\/figma-craft\/component-design\.md$/m);
     expect(ap).toMatch(/^- \*\*gap\.role\.card\*\* — [^\n]+ Knowledge: knowledge\/token-taxonomy\.md$/m);
-    expect(ap).toMatch(/^- \*\*gap\.a11y\.color-accent-soft-text\.on\.color-accent-soft\*\* — `token:color\.accent-soft-text` on `token:color\.accent-soft`[^\n]+ Check: ui ds a11y$/m);
+    expect(ap).toMatch(/^- \*\*gap\.a11y\.color-accent-soft-text\.on\.color-accent-soft-[0-9a-f]{8}\*\* — `token:color\.accent-soft-text` on `token:color\.accent-soft`[^\n]+ Check: ui ds a11y$/m);
 
     const gaps = manifestOf(pack)["gaps"] as { id: string; kind: string; knowledge?: string }[];
     expect(gaps.filter((g) => g.kind === "role")).toHaveLength(11);
-    expect(gaps.find((g) => g.id === "gap.component.action-button.disabled")).toEqual({
-      id: "gap.component.action-button.disabled", kind: "component", knowledge: "knowledge/figma-craft/component-design.md",
+    expect(gaps.find((g) => g.id === GAP.component)).toEqual({
+      id: GAP.component, kind: "component", knowledge: "knowledge/figma-craft/component-design.md",
     });
     // Every cited knowledge file exists in this repo, and every citation in the pack is one of those gaps.
     const cited = [...ap.matchAll(/knowledge\/[A-Za-z0-9._/-]+\.md/g)].map((m) => m[0]);
@@ -294,7 +303,7 @@ describe("rebuild preserves answers", () => {
     const { dir, pack } = project();
     build(dir);
     fill(join(pack, "anti-patterns.md"), SLOT.ruling, FULL);
-    fill(join(pack, "components.md"), "confusable.card-header", ["**Do:** Use the card header inside cards.", "**Don't:** Use it in dialogs.", "**Why:** Dialogs have their own."]);
+    fill(join(pack, "components.md"), SLOT.cardHeader, ["**Do:** Use the card header inside cards.", "**Don't:** Use it in dialogs.", "**Why:** Dialogs have their own."]);
     expect(build(dir).code).toBe(0);
     expect(answerOf(read(pack, "anti-patterns.md"), SLOT.ruling)).toBe(FULL.join("\n"));
     expect(read(pack, "components.md")).toMatch(/^\*\*Why:\*\* Dialogs have their own\.$/m);
@@ -314,19 +323,6 @@ describe("rebuild preserves answers", () => {
     build(dir);
     expect(answerOf(read(pack, "anti-patterns.md"), SLOT.conv)).toBe("**Do:** half an answer.");
     expect(only(check(dir).findings, "SCENARIO_INCOMPLETE")).toHaveLength(1);
-  });
-
-  it("when two files answer the same slot id, the first file's answer is carried and the other is orphaned, not lost", () => {
-    const { dir, pack } = project();
-    build(dir);
-    fill(join(pack, "components.md"), "confusable.card-header", FULL);
-    writeFileSync(join(pack, "extra.md"), "# Extra\n\n> QUESTION(confusable.card-header): Which one?\n**Do:** the other answer.\n**Don't:** x.\n**Why:** y.\n");
-    build(dir);
-    expect(read(pack, "components.md")).toMatch(/^\*\*Do:\*\* Keep every header on one line\.$/m);
-    const orphans = read(pack, "guidelines.orphans.md");
-    expect(orphans).toMatch(/^## orphan: confusable\.card-header \(was extra\.md:3\)$/m);
-    expect(orphans).toContain("**Do:** the other answer.\n");
-    expect(manifestOf(pack)["orphanedAnswers"]).toBe(1);
   });
 
   it("an answer whose slot is no longer seeded lands in guidelines.orphans.md, is counted, and survives further rebuilds", () => {

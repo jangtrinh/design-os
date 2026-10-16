@@ -7,7 +7,7 @@
  * that this export does not produce are never deleted: they would be uploaded by mistake, so the
  * export stops instead. The bundle itself is built in src/core/ds-guidelines-figma-*.ts.
  */
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { errJsonWithData, errText, ok, okJson } from "../core/output.js";
@@ -19,6 +19,7 @@ import { renderUpload } from "../core/ds-guidelines-figma-upload.js";
 import { collectCheck } from "./ds-guidelines-check-collect.js";
 import { listFilesIn } from "./ds-guidelines-inputs.js";
 import { loadProject } from "./ds-guidelines-load.js";
+import { writeBundleStaged } from "./ds-guidelines-write.js";
 import type { Err } from "./ds-guidelines-load.js";
 
 const CMD = "ds guidelines";
@@ -58,7 +59,12 @@ export function runExport(parsed: ParsedArgs, err: Err): CommandResult {
   const manifest = JSON.parse(collected.manifestText ?? "{}") as {
     generatedAt?: string; designSystem?: { name?: string }; seal?: { status?: string; drifted?: { file: string }[] };
   };
-  const bundle = buildFigmaBundle(collected.files, typeof budget === "number" ? budget : undefined);
+  let bundle;
+  try {
+    bundle = buildFigmaBundle(collected.files, typeof budget === "number" ? budget : undefined);
+  } catch (e) {
+    return err("EXPORT_FAILED", `could not assemble the bundle: ${e instanceof Error ? e.message : String(e)}`);
+  }
   const infos = bundle.files.map((f) => ({ path: f.path, bytes: f.bytes, text: f.content }));
   const limits = validateBundle(infos);
   const totalBytes = infos.reduce((n, f) => n + f.bytes, 0);
@@ -85,15 +91,15 @@ export function runExport(parsed: ParsedArgs, err: Err): CommandResult {
   ]);
   if (manifest.seal?.status === "unverified" && unverified.size === 0) unverified.add("the design system store");
   const uploadFile = join(out, "UPLOAD.md");
+  const upload = renderUpload({
+    designSystem: manifest.designSystem?.name ?? "design system", generatedOn: (manifest.generatedAt ?? "").slice(0, 10),
+    folder: BUNDLE_FOLDER, files: perFile, warnings, trimmed: bundle.trimmed, unverifiedSources: [...unverified].sort(),
+  });
   try {
-    mkdirSync(bundleDir, { recursive: true });
-    for (const f of bundle.files) writeFileSync(join(bundleDir, f.path), f.content, "utf8");
-    writeFileSync(uploadFile, renderUpload({
-      designSystem: manifest.designSystem?.name ?? "design system", generatedOn: (manifest.generatedAt ?? "").slice(0, 10),
-      folder: BUNDLE_FOLDER, files: perFile, warnings, trimmed: bundle.trimmed, unverifiedSources: [...unverified].sort(),
-    }), "utf8");
+    // Staged: the folder and UPLOAD.md land together or not at all (the previous bundle is put back on failure).
+    warnings.push(...writeBundleStaged(out, BUNDLE_FOLDER, bundle.files, "UPLOAD.md", upload));
   } catch (e) {
-    return err("WRITE_ERROR", `cannot write the bundle to '${out}': ${e instanceof Error ? e.message : String(e)}`);
+    return err("WRITE_ERROR", `cannot write the bundle to '${out}' (nothing was changed): ${e instanceof Error ? e.message : String(e)}`);
   }
 
   if (parsed.json) {

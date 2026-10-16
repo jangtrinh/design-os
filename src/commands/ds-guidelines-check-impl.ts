@@ -2,6 +2,7 @@
  * `ui ds guidelines check` — lint a built pack against the sealed design system, or (with
  * `--profile figma --bundle <dir>`) validate an exported Figma bundle against Figma's limits.
  */
+import { compareText } from "../core/ds-guidelines-model.js";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
@@ -55,12 +56,18 @@ export function runFigmaProfileCheck(bundleFlag: string, useJson: boolean): Comm
     const message = `no Figma bundle folder at '${bundle}' — run 'ui ds guidelines export --target figma' first`;
     return useJson ? errJson(CMD, "BUNDLE_NOT_FOUND", message) : errText(`ui: ${message}\n`);
   }
-  const files = readdirSync(bundle, { recursive: true, withFileTypes: true }).filter((e) => e.isFile()).map((e) => {
-    const abs = join(e.parentPath, e.name);
-    const buf = readFileSync(abs);
-    return { path: relative(bundle, abs).split("\\").join("/"), bytes: buf.length, text: buf.toString("utf8") };
-  }).sort((a, b) => a.path.localeCompare(b.path));
-  const findings = validateBundle(files).sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.code.localeCompare(b.code));
+  let files: { path: string; bytes: number; text: string }[];
+  try {
+    files = readdirSync(bundle, { recursive: true, withFileTypes: true }).filter((e) => e.isFile()).map((e) => {
+      const abs = join(e.parentPath, e.name);
+      const buf = readFileSync(abs);
+      return { path: relative(bundle, abs).split("\\").join("/"), bytes: buf.length, text: buf.toString("utf8") };
+    }).sort((a, b) => compareText(a.path, b.path));
+  } catch (e) {
+    const message = `cannot read the bundle at '${bundle}': ${e instanceof Error ? e.message : String(e)}`;
+    return useJson ? errJson(CMD, "READ_ERROR", message) : errText(`ui: ${message}\n`);
+  }
+  const findings = validateBundle(files).sort((a, b) => compareText(a.file, b.file) || a.line - b.line || compareText(a.code, b.code));
   const { errorCount, warningCount, exitCode } = summarize(findings);
   const totalBytes = files.reduce((n, f) => n + f.bytes, 0);
   if (useJson) {

@@ -6,6 +6,7 @@
  * and generated BLOCKS (facts the binary owns; sealed by a sha so edits are caught).
  * Every rule inside a block carries the sources that justify it.
  */
+import { createHash } from "node:crypto";
 
 /** Where a rule comes from: a project-relative file plus the token path / component it names. */
 export interface RuleSource {
@@ -98,6 +99,8 @@ export interface ExistingPack {
   orphansText?: string;
   /** Every file in the pack folder (any extension), pack-relative POSIX paths. */
   allPaths?: string[];
+  /** The files the previous build's manifest listed; undefined when there was no readable manifest. */
+  listed?: string[];
 }
 
 export const PACK_MANIFEST_NAME = "guidelines.manifest.json";
@@ -110,9 +113,33 @@ export function blockPart(id: string, lines: string[], rules: RuleEntry[] = []):
   return { kind: "block", id, lines, rules };
 }
 
+/**
+ * Code-unit order: identical on every machine whatever its locale. Never call `localeCompare`
+ * without a locale in this feature — the pack must be byte-identical across machines.
+ */
+export const compareText = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+
+/** Numbers inside names sort by value (`r-2` before `r-10`); the locale is pinned so every machine agrees. */
+export const compareNumeric = (a: string, b: string): number => a.localeCompare(b, "en", { numeric: true });
+
+/** First 8 hex characters of sha256 — a short, stable discriminator for ids. */
+export function shortHash(text: string): string {
+  return createHash("sha256").update(text, "utf8").digest("hex").slice(0, 8);
+}
+
 /** Lowercase, non-alphanumerics collapsed to `-`, trimmed — for ids built from names. */
 export function slug(raw: string): string {
   return raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+/**
+ * `slug(raw)` when the slug loses nothing (`raw` already is one), else `slug(raw)-<hash of raw>`.
+ * Two different raw names can therefore never share an id, and an id depends only on its own raw
+ * text — not on which other names exist or in what order they arrive — so answers stay attached.
+ */
+export function stableSlug(raw: string, fallback = "x"): string {
+  const s = slug(raw);
+  return s === raw && s !== "" ? s : `${s === "" ? fallback : s}-${shortHash(raw)}`;
 }
 
 /** `base`, or `base-2`, `base-3`… when `used` already holds it. Records the result in `used`. */

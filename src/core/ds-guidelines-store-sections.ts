@@ -9,7 +9,7 @@
 import { checkTokenContrast } from "./ds-a11y.js";
 import { summarizeRoles } from "./ds-context-roles.js";
 import { buildComponentsFile } from "./ds-guidelines-components.js";
-import { blockPart, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
+import { blockPart, compareNumeric, compareText, shortHash, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
 import type {
   FilePart, GuidelineFile, RuleEntry, SkippedSource, StoreSections, StoreSourcePaths,
 } from "./ds-guidelines-model.js";
@@ -17,7 +17,7 @@ import { tokenSpan } from "./ds-guidelines-render.js";
 import type { DesignSystem } from "./design-system.js";
 import type { ResolvedToken } from "./token-model.js";
 
-const byNumericName = (a: string, b: string): number => a.localeCompare(b, "en", { numeric: true });
+const byNumericName = compareNumeric;
 
 function displayValue(v: ResolvedToken["value"]): string {
   if (Array.isArray(v)) return v.join(", ");
@@ -34,7 +34,7 @@ function rolesParts(ds: DesignSystem, src: StoreSourcePaths, skipped: SkippedSou
     return [];
   }
   const values = new Map(ds.resolved.map((t) => [t.path, displayValue(t.value)]));
-  const rules: RuleEntry[] = summary.roles.map(({ role, paths }) => ({
+  const rules: RuleEntry[] = [...summary.roles].sort((a, b) => compareText(a.role, b.role)).map(({ role, paths }) => ({
     id: `vocabulary.role.${role}`,
     text: `- ${role} → ${paths.map(tokenSpan).join(", ")} (${paths.map((p) => values.get(p) ?? "?").join(", ")})`,
     sources: paths.map((token) => ({ path: src.tokens, token })),
@@ -58,8 +58,10 @@ function pairsParts(ds: DesignSystem, src: StoreSourcePaths, skipped: SkippedSou
     });
     return [];
   }
-  const rules: RuleEntry[] = result.failures.map((p) => ({
-    id: `vocabulary.pair.${slug(p.text)}.on.${slug(p.surface)}`,
+  const failures = [...result.failures].sort((a, b) => a.ratio - b.ratio || compareText(a.text, b.text) || compareText(a.surface, b.surface));
+  const rules: RuleEntry[] = failures.map((p) => ({
+    // Names that slug alike (a_b / a-b) must not share an id: the hash is of the raw pair.
+    id: `vocabulary.pair.${slug(p.text)}.on.${slug(p.surface)}-${shortHash(`${p.text}\u0000${p.surface}`)}`,
     text: `- ${tokenSpan(p.text)} on ${tokenSpan(p.surface)} — ${p.ratio}:1 (needs 4.5:1)`,
     sources: [{ path: src.tokens, token: p.text }, { path: src.tokens, token: p.surface }],
   }));

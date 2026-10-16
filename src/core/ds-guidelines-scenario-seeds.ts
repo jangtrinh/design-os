@@ -1,16 +1,17 @@
 /**
  * DS Guidelines Pack — `anti-patterns.md`: scenario slots + measured gaps (pure, no fs).
  *
- * Slots are seeded deterministically from evidence, and their ids come from that evidence
- * (never from a running counter) so a rebuild keeps each answer attached to the right slot:
- *   ruling text with never / always / do not   → ap-ruling-<ruling id>
- *   CONVENTIONS.md DON'T line                  → ap-conv-<section>-<n>   (cites CONVENTIONS.md:L<line>)
- *   persona anti-pattern from the manifest     → ap-persona-<text>
+ * Slots are seeded deterministically from evidence, and their ids come from that evidence — never
+ * from a counter, a line number or the order things arrive in — so a rebuild keeps each answer
+ * attached to the right slot:
+ *   ruling text with never / always / do not   → ap-ruling-<ruling id>          (lossless slug of the raw id)
+ *   CONVENTIONS.md DON'T line                  → ap-conv-<section>-<hash of the DON'T label>
+ *   persona anti-pattern from the manifest     → ap-persona-<text start>-<hash of the whole text>
  *   a measured gap that needs a decision       → ap-<gap id>
  * (Confusable component names are seeded by components.md.) The host fills a slot with
  * **Do:** / **Don't:** / **Why:** lines; the binary never writes an answer.
  */
-import { blockPart, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
+import { blockPart, compareNumeric, shortHash, slug, stableSlug, textPart, uniqueId } from "./ds-guidelines-model.js";
 import type { FilePart, GuidelineFile, OptionalInput, RuleEntry } from "./ds-guidelines-model.js";
 import type { Gap } from "./ds-guidelines-gap-knowledge.js";
 import type { Ruling } from "./ds-guidelines-rulings-reader.js";
@@ -28,10 +29,9 @@ const oneLine = (t: string): string => t.replace(/[`*]/g, "").replace(/\s+/g, " 
 const clip = (t: string): string => (t.length > TITLE_MAX ? `${t.slice(0, TITLE_MAX - 1).trimEnd()}…` : t);
 
 /** DON'T bullets and labels of CONVENTIONS.md, with the section they sit in and their 1-based line. */
-function conventionDonts(text: string): { section: string; n: number; label: string; line: number }[] {
-  const out: { section: string; n: number; label: string; line: number }[] = [];
+function conventionDonts(text: string): { section: string; label: string; line: number }[] {
+  const out: { section: string; label: string; line: number }[] = [];
   let section = "";
-  const count = new Map<string, number>();
   text.split(/\r?\n/).forEach((raw, idx) => {
     const h = /^##\s+(.+?)\s*$/.exec(raw);
     if (h !== null) { section = h[1] ?? ""; return; }
@@ -39,9 +39,7 @@ function conventionDonts(text: string): { section: string; n: number; label: str
     const label = /^\*\*DON'T\s*[—-]\s*(.*?):?\*\*:?\s*$/.exec(raw);
     const body = bullet?.[1] ?? label?.[1];
     if (body === undefined || section === "") return;
-    const n = (count.get(section) ?? 0) + 1;
-    count.set(section, n);
-    out.push({ section, n, label: oneLine(body.split(":")[0] ?? body), line: idx + 1 });
+    out.push({ section, label: oneLine(body.split(":")[0] ?? body), line: idx + 1 });
   });
   return out;
 }
@@ -55,10 +53,10 @@ export function seedScenarios(opts: {
   const used = new Set<string>();
   const out: Scenario[] = [];
 
-  for (const r of [...opts.rulings].sort((a, b) => a.id.localeCompare(b.id, "en", { numeric: true }))) {
+  for (const r of [...opts.rulings].sort((a, b) => compareNumeric(a.id, b.id))) {
     if (!NORMATIVE.test(r.text)) continue;
     out.push({
-      id: uniqueId(`ap-ruling-${slug(r.id) || "ruling"}`, used),
+      id: uniqueId(`ap-ruling-${stableSlug(r.id, "ruling")}`, used),
       title: `Ruling ${r.id} — ${clip(oneLine(r.category))}`,
       prompt: "When does this ruling apply, and what should designers do instead?",
       evidence: [r.id],
@@ -67,7 +65,7 @@ export function seedScenarios(opts: {
   if (opts.conventions.text !== undefined) {
     for (const d of conventionDonts(opts.conventions.text)) {
       out.push({
-        id: uniqueId(`ap-conv-${slug(d.section) || "section"}-${d.n}`, used),
+        id: uniqueId(`ap-conv-${slug(d.section) || "section"}-${shortHash(d.label.toLowerCase())}`, used),
         title: `Convention (${d.section}): ${clip(d.label)}`,
         prompt: "What causes this measured deviation, and what should designers do instead?",
         evidence: [`${opts.conventions.path}:L${d.line}`],
@@ -76,7 +74,7 @@ export function seedScenarios(opts: {
   }
   for (const text of opts.persona.antiPatterns ?? []) {
     out.push({
-      id: uniqueId(`ap-persona-${slug(text).slice(0, 48) || "pattern"}`, used),
+      id: uniqueId(`ap-persona-${slug(text).slice(0, 32) || "pattern"}-${shortHash(text)}`, used),
       title: `Persona anti-pattern: ${clip(oneLine(text))}`,
       prompt: "What does this anti-pattern look like in this product, and what replaces it?",
       evidence: [`persona:${opts.persona.slug}`],

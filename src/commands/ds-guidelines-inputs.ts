@@ -6,7 +6,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 
-import { GuidelinesInputError } from "../core/ds-guidelines-model.js";
+import { GuidelinesInputError, PACK_MANIFEST_NAME } from "../core/ds-guidelines-model.js";
 import type { ExistingPack, OptionalInput, PackInputs } from "../core/ds-guidelines-model.js";
 import { ORPHANS_FILE } from "../core/ds-guidelines-slots.js";
 
@@ -40,6 +40,18 @@ export function readPackInputs(projectDir: string, designDir: string, rulingsFla
   };
 }
 
+/** The `files[].path` list of the pack's own manifest; undefined when it is missing or unreadable. */
+function previousManifestPaths(packDir: string): string[] | undefined {
+  const path = join(packDir, PACK_MANIFEST_NAME);
+  if (!existsSync(path)) return undefined;
+  try {
+    const files = (JSON.parse(readFileSync(path, "utf8")) as { files?: { path?: unknown }[] }).files;
+    return Array.isArray(files) ? files.flatMap((f) => (typeof f.path === "string" ? [f.path] : [])) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** The pack already on disk (if any): its markdown files and orphans file, for answer preservation. */
 export function readExistingPack(packDir: string): ExistingPack {
   if (!existsSync(packDir)) return { files: [] };
@@ -52,7 +64,12 @@ export function readExistingPack(packDir: string): ExistingPack {
       .map((path) => ({ path, text: readFileSync(join(packDir, path), "utf8") }));
     const allPaths = listFilesIn(packDir);
     const orphansPath = join(packDir, ORPHANS_FILE);
-    return { files, allPaths, ...(existsSync(orphansPath) ? { orphansText: readFileSync(orphansPath, "utf8") } : {}) };
+    const listed = previousManifestPaths(packDir);
+    return {
+      files, allPaths,
+      ...(listed !== undefined ? { listed } : {}),
+      ...(existsSync(orphansPath) ? { orphansText: readFileSync(orphansPath, "utf8") } : {}),
+    };
   } catch (e) {
     throw new GuidelinesInputError("READ_ERROR", `cannot read the existing pack at '${packDir}': ${e instanceof Error ? e.message : String(e)}`);
   }

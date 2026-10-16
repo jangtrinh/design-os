@@ -103,14 +103,15 @@ measured gap is never emitted by `build` and, when a host writes one, `check` wa
 
 ## Slots and answers
 
-A slot is `> QUESTION(<slot-id>): <prompt> — evidence: <ids>`. Slot ids come from the evidence
-(`ap-ruling-<id>`, `ap-conv-<section>-<n>`, `ap-persona-<text>`, `ap-<gap id>`, `confusable.<name>`), so
-they survive rebuilds. The host writes `**Do:**`, `**Don't:**` and `**Why:**` directly under it; all
+A slot is `> QUESTION(<slot-id>): <prompt> — evidence: <ids>`. Slot ids come from stable evidence, never from a counter, a line number or the order things arrive in
+(`ap-ruling-<raw id>`, `ap-conv-<section>-<hash of the DON'T label>`, `ap-persona-<text start>-<hash of the text>`,
+`ap-<gap id>`, `confusable.<first member>-<hash of the whole member set>`; a name that slugs lossily carries a
+hash of its raw text), so they survive rebuilds and an answer never moves to a neighbouring slot. The host writes `**Do:**`, `**Don't:**` and `**Why:**` directly under it; all
 three are required. A slot with none is `OPEN_QUESTION`, with some `SCENARIO_INCOMPLETE`.
 
-A rebuild carries every answer — unfinished ones too — to the slot with the same id. An answer whose
+A rebuild carries every answer — unfinished ones too — to the slot with the same id, reading them only from the files the previous manifest listed. An answer whose
 slot is gone is appended to `guidelines.orphans.md` and counted as `orphanedAnswers`; it is never
-dropped, and `check` warns until it is moved or deleted. `build` never deletes a file: one it did not
+dropped, and `check` warns until it is moved or deleted. Writes are staged (parked answers first, then every file moved into place only after all are written), so a failed write never loses an answer. `build` never deletes a file: one it did not
 produce is listed as `staleFiles`, `check` warns `STALE_FILE`, and neither `check` nor `export` reads it.
 
 ## The seal and `--allow-unsealed`

@@ -65,7 +65,7 @@ describe("export --target figma — the clean bundle (G-EXPORT-APPS, G-UPLOAD)",
     const c = bundleOf(out, "components.md");
     expect(c).toMatch(/^## Confusable names$/m);
     expect(c).toMatch(/^- `component:Card\/Header`, `component:Modal\/Header` — look-alike names/m);
-    expect(c).toMatch(/^> QUESTION\(confusable\.card-header\): /m);
+    expect(c).toMatch(/^> QUESTION\(confusable\.card-header-[0-9a-f]{8}\): /m);
     for (const l of FULL) expect(c).toContain(`${l}\n`);
     // Component rulings moved here from rulings.md (tier A, component categories only).
     expect(c).toMatch(/^## Component rulings$/m);
@@ -162,10 +162,10 @@ describe("export refuses (G-EXPORT-REFUSE)", () => {
     expect(existsSync(out)).toBe(false);
     const slots = (JSON.parse(r.raw) as { data: { openQuestions: number; slots: { id: string; file: string; line: number }[] } }).data;
     expect(slots.slots).toHaveLength(slots.openQuestions);
-    expect(slots.slots.map((s) => s.id)).toContain("confusable.card-header");
+    expect(slots.slots.map((s) => s.id).some((id) => /^confusable\.card-header-[0-9a-f]{8}$/.test(id))).toBe(true);
     const text = exportCmd(p.dir, out);
     expect(text.out).toMatch(/^ui: OPEN_QUESTIONS \(\d+\) — /m);
-    expect(text.out).toMatch(/^ {2}components\.md:\d+ confusable\.card-header$/m);
+    expect(text.out).toMatch(/^ {2}components\.md:\d+ confusable\.card-header-[0-9a-f]{8}$/m);
   });
 
   it("a partial answer counts as open", () => {

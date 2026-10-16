@@ -6,9 +6,9 @@
  *  - `ontology/glossary.yaml`: the flat `terms: - term / vi / def / avoid` shape ONLY.
  *
  * es-debt: flat glossary shape only, upgrade when a second ontology layout appears.
- * T1: no YAML dependency — this reader accepts exactly that shape and answers `null`
- * (unsupported) for anything else, so a half-understood file is skipped, never half-read.
+ * T1: no YAML dependency; any other shape answers `null` (skipped whole, never half-read).
  */
+import { compareText } from "./ds-guidelines-model.js";
 
 export interface GlossaryTerm {
   term: string;
@@ -194,6 +194,6 @@ export function mergeTerminology(...lists: GlossaryTerm[][]): { terms: GlossaryT
     if (fields.length > 0) conflicts.push({ term: kept.term, kept: kept.source, overridden: t.source, fields });
     if (kept.vi === undefined && t.vi !== undefined) byKey.set(key, { ...kept, vi: t.vi });
   }
-  const terms = [...byKey.values()].sort((a, b) => a.term.localeCompare(b.term));
-  return { terms, conflicts: conflicts.sort((a, b) => a.term.localeCompare(b.term)) };
+  const terms = [...byKey.values()].sort((a, b) => compareText(a.term, b.term));
+  return { terms, conflicts: conflicts.sort((a, b) => compareText(a.term, b.term)) };
 }

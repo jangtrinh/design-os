@@ -11,9 +11,6 @@
  *
  * This file is I/O + dispatch only; the pack itself is built in src/core/ds-guidelines-*.ts.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-
 import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { ParsedArgs } from "../core/cli-args.js";
@@ -22,6 +19,7 @@ import { GuidelinesInputError } from "../core/ds-guidelines-model.js";
 import { runCheckOn, runFigmaProfileCheck } from "./ds-guidelines-check-impl.js";
 import { runExport } from "./ds-guidelines-export-impl.js";
 import { readExistingPack } from "./ds-guidelines-inputs.js";
+import { writePackStaged } from "./ds-guidelines-write.js";
 import { loadProject } from "./ds-guidelines-load.js";
 import type { Err } from "./ds-guidelines-load.js";
 
@@ -54,16 +52,14 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
     pack = buildPack(loaded.ds, loaded.src, now, loaded.inputs, readExistingPack(loaded.packDir));
   } catch (e) {
     if (e instanceof GuidelinesInputError) return err(e.code, e.message);
-    throw e;
+    // Anything else is a defect in the pack builder: say so as a structured error, with the cause.
+    return err("BUILD_FAILED", `could not build the pack: ${e instanceof Error ? e.message : String(e)}`);
   }
+  let notes: string[];
   try {
-    for (const f of pack.files) {
-      const target = join(loaded.packDir, f.path);
-      mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, f.content, "utf8");
-    }
+    notes = writePackStaged(loaded.packDir, pack.files);
   } catch (e) {
-    return err("WRITE_ERROR", `cannot write the pack to '${loaded.packDir}': ${e instanceof Error ? e.message : String(e)}`);
+    return err("WRITE_ERROR", `cannot write the pack to '${loaded.packDir}' (parked answers are written first; every answer is in the old or the new files): ${e instanceof Error ? e.message : String(e)}`);
   }
 
   const markdownFiles = pack.files.map((f) => f.path).filter((p) => p.endsWith(".md"));
@@ -71,6 +67,7 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
     return okJson(CMD, {
       out: loaded.packDir, files: markdownFiles, ruleCount: pack.ruleCount,
       openQuestions: pack.openQuestions, orphanedAnswers: pack.orphanedAnswers, staleFiles: pack.staleFiles, skippedSources: pack.skipped, seal: pack.seal, generatedAt: now,
+      warnings: notes,
     });
   }
   return ok([
@@ -79,6 +76,7 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
     ...pack.skipped.map((s) => `skipped ${s.path}: ${s.reason}`),
     ...pack.staleFiles.map((p) => `stale ${p}: not produced by this build`),
     ...(pack.seal.drifted ?? []).map((d) => `seal: unverified — ${d.file} drifted from its sealed hash`),
+    ...notes.map((n) => `warning: ${n}`),
   ].join("\n") + "\n");
 }
 

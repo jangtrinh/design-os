@@ -184,6 +184,12 @@ Subcommands:
   with its gap id (gap.component.*, gap.role.*, gap.a11y.*). 'check' reports each unanswered slot as an
   OPEN_QUESTION warning, an answer missing Do/Don't/Why as SCENARIO_INCOMPLETE, a hand-written knowledge
   citation without a measured gap id as UNBOUND_KNOWLEDGE, and waiting orphans as ORPHANED_ANSWERS (warnings).
+  Writes are staged: parked answers (guidelines.orphans.md) are written first, every other file is written
+  to a staging folder and moved into place only when all are written, so a failure (WRITE_ERROR) never loses
+  an answer; export writes figma-guidelines/ and UPLOAD.md together or not at all. Answers are carried only
+  from files the previous manifest listed. Slot ids come from stable evidence (a hash of the DON'T label,
+  the raw ruling id, the full persona text, the whole look-alike member set), and ordering never depends on
+  the machine's locale: the same inputs give the same bytes anywhere.
   Stale files: 'build' never deletes. A file in the pack folder that the build did not produce is listed in the
   manifest as staleFiles; 'check' warns STALE_FILE for it, does not lint it, and export ignores it.
   Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
@@ -333,6 +339,8 @@ Error codes:
   BUNDLE_EXTENSION   'check --profile figma': a bundle file is not .md, .txt or .json
   BUNDLE_DIR_NOT_CLEAN 'export': the bundle folder holds files this export does not produce
   BUNDLE_NOT_FOUND   'check --profile figma': no such bundle folder
+  BUILD_FAILED       'ds guidelines build' hit an unexpected defect in the pack builder (reported, not a crash)
+  EXPORT_FAILED      'ds guidelines export' hit an unexpected defect assembling the bundle
   SEAL_UNVERIFIED    'ds guidelines check --allow-unsealed' warning: a store file no longer matches its sealed hash
   PACK_INCOMPLETE    'ds guidelines check' finding: a manifest-listed file or generated block is missing
   BAD_RULINGS        'ds guidelines build|check' rulings file is not the expected { rulings: [...] } shape

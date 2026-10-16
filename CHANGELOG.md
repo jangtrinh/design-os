@@ -16,7 +16,10 @@
   design system (a control without a disabled state, a colour role no token plays, a failing colour
   pair), always with its gap id. A rebuild keeps every answer by slot id and parks answers whose slot is
   gone in `guidelines.orphans.md`. `build` never deletes files; ones it did not produce are listed as
-  stale and `check` warns.
+  stale and `check` warns. Slot ids come from stable evidence (a hash of the DON'T label, the raw
+  ruling id, the full persona text, the whole look-alike member set), answers are carried only from
+  files the previous manifest listed, writes are staged so a failure never loses an answer, and the
+  pack is byte-identical on every machine whatever its locale.
 - `--allow-unsealed` on `build` and `check` accepts a store whose files drifted from their sealed hashes;
   the manifest records the drift, `check` warns `SEAL_UNVERIFIED` and `UPLOAD.md` says "Sources unverified".
   The default still refuses with `DS_TAMPERED`.

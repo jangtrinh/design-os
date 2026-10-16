@@ -5,7 +5,7 @@
  *   PACK_INCOMPLETE  the manifest lists a file that is gone, or a generated block that is gone,
  *                    or the manifest itself is missing/unreadable (completeness cannot be proved)
  */
-import { PACK_MANIFEST_NAME } from "./ds-guidelines-model.js";
+import { PACK_MANIFEST_NAME, compareText } from "./ds-guidelines-model.js";
 import type { Finding } from "./ds-guidelines-lint.js";
 import { parseGeneratedBlocks } from "./ds-guidelines-render.js";
 
@@ -39,7 +39,7 @@ function ruleKey(line: string): string | null {
 export function findDuplicateRules(files: readonly PackText[]): Finding[] {
   interface Occurrence { file: string; line: number; generated: boolean }
   const byKey = new Map<string, Occurrence[]>();
-  for (const f of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
+  for (const f of [...files].sort((a, b) => compareText(a.path, b.path))) {
     const blocks = parseGeneratedBlocks(f.text).blocks;
     f.text.split("\n").forEach((raw, idx) => {
       const key = ruleKey(raw);

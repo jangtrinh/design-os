@@ -4,7 +4,7 @@
  * Tier C (process) and superseded rulings are never emitted; both are COUNTED in the
  * manifest with a pointer to the source file, so nothing vanishes silently.
  */
-import { blockPart, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
+import { blockPart, compareNumeric, compareText, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
 import type { FilePart, GuidelineFile, OptionalInput, RuleEntry, SkippedSource } from "./ds-guidelines-model.js";
 import { classifyRuling, parseRulings } from "./ds-guidelines-rulings-reader.js";
 import type { Ruling } from "./ds-guidelines-rulings-reader.js";
@@ -32,7 +32,7 @@ export interface RulingsSections {
   stats?: RulingsStats;
 }
 
-const byId = (a: Ruling, b: Ruling): number => a.id.localeCompare(b.id, "en", { numeric: true });
+const byId = (a: Ruling, b: Ruling): number => compareNumeric(a.id, b.id);
 const oneLine = (text: string): string => text.replace(/\s+/g, " ").trim();
 
 /** `- **<id>** — <text> (since <date>; source: <first source>)` — the parenthesis only holds what exists. */
@@ -51,7 +51,7 @@ function categoryParts(rulings: readonly Ruling[], rulingsPath: string, prefix: 
   for (const r of rulings) byCategory.set(r.category, [...(byCategory.get(r.category) ?? []), r]);
   const parts: FilePart[] = [];
   const usedBlockIds = new Set<string>();
-  for (const category of [...byCategory.keys()].sort((a, b) => a.localeCompare(b))) {
+  for (const category of [...byCategory.keys()].sort((a, b) => compareText(a, b))) {
     const rules = (byCategory.get(category) ?? []).sort(byId).map((r) => ruleOf(r, rulingsPath, prefix, usedRuleIds));
     parts.push(textPart(`## ${category}`));
     parts.push(blockPart(uniqueId(`rulings.${slug(category) || "general"}`, usedBlockIds), rules.map((x) => x.text), rules));

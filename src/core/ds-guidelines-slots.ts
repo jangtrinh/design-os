@@ -8,6 +8,7 @@
  * Don't / Why (they may share a line), and PARTIAL otherwise. A rebuild carries every answer — partial ones too — to
  * the slot with the same id; an answer whose slot is gone goes to the orphans file, never away.
  */
+import { compareText } from "./ds-guidelines-model.js";
 import { BLOCK_OPEN_PREFIX } from "./ds-guidelines-render.js";
 
 export const ORPHANS_FILE = "guidelines.orphans.md";
@@ -85,7 +86,7 @@ export interface ExistingAnswer {
 /** Every answered slot (complete or not) across an existing pack, in file then slot order. */
 export function collectAnswers(files: readonly { path: string; text: string }[]): ExistingAnswer[] {
   return [...files]
-    .sort((a, b) => a.path.localeCompare(b.path))
+    .sort((a, b) => compareText(a.path, b.path))
     .flatMap((f) => parseSlots(f.text).filter((s) => s.answer.length > 0)
       .map((s) => ({ id: s.id, file: f.path, line: s.line, prompt: s.prompt, lines: s.answer })));
 }
@@ -100,12 +101,34 @@ const ORPHANS_HEADER = [
 
 export const orphanEntryCount = (text: string): number => (text.match(/^## orphan: /gm) ?? []).length;
 
-/** Append the new orphans to the existing orphans file (or start one). Undefined = nothing to write. */
+/** `id` + answer text of every entry already in an orphans file: what must not be appended twice. */
+function knownOrphans(text: string): Set<string> {
+  const known = new Set<string>();
+  for (const chunk of text.split(/^## orphan: /m).slice(1)) {
+    const id = /^(\S+)/.exec(chunk)?.[1] ?? "";
+    const afterPrompt = /\n\nSlot prompt: [^\n]*\n\n([\s\S]*)$/.exec(chunk)?.[1] ?? "";
+    known.add(`${id}\u0000${afterPrompt.trim()}`);
+  }
+  return known;
+}
+
+/**
+ * Append the new orphans to the existing orphans file (or start one). An answer already parked
+ * there (same slot id, same text) is not appended again, so a rebuild is idempotent.
+ * Undefined = nothing to write.
+ */
 export function renderOrphans(existing: string | undefined, orphans: readonly ExistingAnswer[]): string | undefined {
   if (existing === undefined && orphans.length === 0) return undefined;
   const base = existing ?? ORPHANS_HEADER;
-  if (orphans.length === 0) return base;
-  const entries = orphans.map((o) =>
+  const known = knownOrphans(base);
+  const fresh = orphans.filter((o) => {
+    const key = `${o.id}\u0000${o.lines.join("\n").trim()}`;
+    if (known.has(key)) return false;
+    known.add(key);
+    return true;
+  });
+  if (fresh.length === 0) return base;
+  const entries = fresh.map((o) =>
     `\n## orphan: ${o.id} (was ${o.file}:${o.line})\n\nSlot prompt: ${o.prompt}\n\n${o.lines.join("\n")}\n`);
   return base.trimEnd() + "\n" + entries.join("");
 }

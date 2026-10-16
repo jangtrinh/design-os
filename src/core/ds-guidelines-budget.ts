@@ -7,6 +7,7 @@
  * (oldest first); anti-patterns, vocabulary and components are never trimmed — and every drop
  * is reported with its id. Without a budget nothing is ever dropped.
  */
+import { compareText } from "./ds-guidelines-model.js";
 
 export interface Unit {
   /** What the trim report shows: a ruling id, `term:<name>`, `grammar:<heading>`, `overview:stance`. */
@@ -90,7 +91,7 @@ function nextUnit(file: BFile): Pick | undefined {
     case "apps": {
       const size = new Map<string, number>();
       for (const p of all) size.set(p.section.parent ?? "", (size.get(p.section.parent ?? "") ?? 0) + unitBytes(p.unit));
-      const largest = [...size.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
+      const largest = [...size.entries()].sort((a, b) => b[1] - a[1] || compareText(a[0], b[0]))[0]?.[0];
       return oldest(all.filter((p) => (p.section.parent ?? "") === largest));
     }
     default: return undefined;
@@ -121,5 +122,5 @@ export function trimToBudget(files: BFile[], budgetBytes: number): TrimResult {
     entry.ids.push(pick.unit.id);
     report.set(pick.file.path, entry);
   }
-  return { trimmed: [...report.values()].sort((a, b) => a.file.localeCompare(b.file)), reached: total() <= budgetBytes };
+  return { trimmed: [...report.values()].sort((a, b) => compareText(a.file, b.file)), reached: total() <= budgetBytes };
 }
