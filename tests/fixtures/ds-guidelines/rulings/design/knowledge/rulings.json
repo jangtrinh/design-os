@@ -1,0 +1,114 @@
+{
+  "schema": "owner-rulings/1",
+  "at": "2026-10-01T00:00:00Z",
+  "rulings": [
+    {
+      "id": "r-001",
+      "category": "component-reuse",
+      "text": "Reuse the shared card before building a new container.",
+      "scope": "global",
+      "source": ["notes/layout-review.md", "notes/other.md"],
+      "since": "2026-01-10",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-002",
+      "category": "tables",
+      "text": "Tables scroll horizontally; never wrap\n  column headers onto two lines.",
+      "scope": "global",
+      "source": ["notes/tables.md"],
+      "since": "2026-02-02",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-003",
+      "category": "status-vocabulary",
+      "text": "Status labels use one fixed vocabulary across every screen.",
+      "scope": "global",
+      "source": [],
+      "since": null,
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-004",
+      "category": "forms-inputs",
+      "text": "Alpha forms put the primary action bottom-right.",
+      "scope": { "apps": ["alpha"], "features": ["checkout"] },
+      "source": ["notes/alpha-forms.md"],
+      "since": "2026-03-03",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-005",
+      "category": "screen-composition",
+      "text": "Beta screens open with a summary strip above the table.",
+      "scope": { "apps": ["beta"] },
+      "source": ["notes/beta-screens.md"],
+      "since": "2026-03-04",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-006",
+      "category": "product-decision",
+      "text": "Both apps show prices with two decimals and a currency suffix.",
+      "scope": { "apps": ["alpha", "beta"] },
+      "source": ["notes/pricing.md"],
+      "since": "2026-04-05",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-007",
+      "category": "delivery-gates",
+      "text": "Every release candidate passes the visual gate before merge.",
+      "scope": "global",
+      "source": ["notes/gates.md"],
+      "since": "2026-05-01",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-008",
+      "category": "figma-scripting",
+      "text": "Scripts place frames in batches of ten.",
+      "scope": { "apps": ["alpha"] },
+      "source": ["notes/scripts.md"],
+      "since": "2026-05-02",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-009",
+      "category": "workflow-process",
+      "text": "Hand-offs are written in the shared channel, not in direct messages.",
+      "scope": "global",
+      "source": ["notes/workflow.md"],
+      "since": "2026-05-03",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-013",
+      "category": "app-specific",
+      "text": "Release notes are written in plain language.",
+      "scope": "global",
+      "source": ["notes/release-notes.md"],
+      "since": "2026-05-04",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-010",
+      "category": "component-reuse",
+      "text": "(SUPERSEDED 2026-03-01 by r-001) Build a bespoke container for every screen.",
+      "scope": "global",
+      "source": ["notes/old.md"],
+      "since": "2026-01-01",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-011",
+      "category": "delivery-gates",
+      "text": "(SUPERSEDED 2026-06-01 by r-007) Skip the visual gate for copy-only changes.",
+      "scope": "global",
+      "source": ["notes/old-gates.md"],
+      "since": "2026-02-01",
+      "verified_by": "owner"
+    }
+  ]
+}

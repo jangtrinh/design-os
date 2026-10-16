@@ -39,6 +39,20 @@ export interface DesignSystem {
   resolved: ResolvedMap;  // pre-resolved at load-time
   registry: Registry;
   kit?: KitLock;
+  /** Set only when loaded with `allowUnsealed` and a store file no longer matches its sealed hash. */
+  unsealedDrift?: HashDrift[];
+}
+
+/** One store file whose canonical hash differs from the one sealed in the manifest. */
+export interface HashDrift {
+  file: "tokens" | "registry";
+  expected: string;
+  actual: string;
+}
+
+export interface LoadOptions {
+  /** Tolerate hash drift (and ONLY hash drift): the drift is returned on `unsealedDrift` instead of thrown. */
+  allowUnsealed?: boolean;
 }
 
 // ─── Error ────────────────────────────────────────────────────────────────────
@@ -155,6 +169,27 @@ export function discoverDesignSystem(start: string | undefined): DesignSystemPat
 // ─── Hash verification ────────────────────────────────────────────────────────
 
 /**
+ * Compare the manifest's sealed hashes with the on-disk file contents.
+ * Returns every mismatch (tokens first, then registry); empty when the store is sealed.
+ */
+export function hashDrift(
+  manifest: DSManifest,
+  tokensJson: unknown,
+  registryJson: unknown,
+): HashDrift[] {
+  const drift: HashDrift[] = [];
+  const actualTokensHash = canonicalHash(tokensJson);
+  if (manifest.compiledHash !== actualTokensHash) {
+    drift.push({ file: "tokens", expected: manifest.compiledHash, actual: actualTokensHash });
+  }
+  const actualRegistryHash = canonicalHash(registryJson);
+  if (manifest.registryHash !== actualRegistryHash) {
+    drift.push({ file: "registry", expected: manifest.registryHash, actual: actualRegistryHash });
+  }
+  return drift;
+}
+
+/**
  * Verify that manifest hashes match the on-disk file contents.
  * Throws DSError("DS_TAMPERED") on any mismatch.
  */
@@ -163,25 +198,22 @@ export function verifyHashes(
   tokensJson: unknown,
   registryJson: unknown,
 ): void {
-  const actualTokensHash = canonicalHash(tokensJson);
-  if (manifest.compiledHash !== actualTokensHash) {
+  const [first] = hashDrift(manifest, tokensJson, registryJson);
+  if (first === undefined) return;
+  if (first.file === "tokens") {
     throw new DSError(
       "DS_TAMPERED",
-      `tokens file hash mismatch — manifest has ${manifest.compiledHash}, ` +
-        `file hashes to ${actualTokensHash}. ` +
+      `tokens file hash mismatch — manifest has ${first.expected}, ` +
+        `file hashes to ${first.actual}. ` +
         "Use 'ui ds change-token' to update tokens safely.",
     );
   }
-
-  const actualRegistryHash = canonicalHash(registryJson);
-  if (manifest.registryHash !== actualRegistryHash) {
-    throw new DSError(
-      "DS_TAMPERED",
-      `registry file hash mismatch — manifest has ${manifest.registryHash}, ` +
-        `file hashes to ${actualRegistryHash}. ` +
-        "The registry was modified outside a sanctioned command.",
-    );
-  }
+  throw new DSError(
+    "DS_TAMPERED",
+    `registry file hash mismatch — manifest has ${first.expected}, ` +
+      `file hashes to ${first.actual}. ` +
+      "The registry was modified outside a sanctioned command.",
+  );
 }
 
 // ─── Load ─────────────────────────────────────────────────────────────────────
@@ -193,7 +225,7 @@ export function verifyHashes(
  * A genuinely absent store is DS_NOT_FOUND. An orphan kit lock is DS_TAMPERED;
  * it cannot become a standalone store after a missing manifest or partial adoption.
  */
-export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
+export function loadDesignSystem(paths: DesignSystemPaths, options: LoadOptions = {}): DesignSystem {
   // Load and validate manifest — remap only MANIFEST_NOT_FOUND → DS_NOT_FOUND.
   // READ_ERROR (permission denied, EBUSY, EISDIR, …) is a real I/O failure and
   // must propagate as-is so callers can surface the correct recovery action.
@@ -262,8 +294,10 @@ export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
     );
   }
 
-  // Verify hashes before trusting the content
-  verifyHashes(manifest, tokensJson, registryJson);
+  // Verify hashes before trusting the content. `allowUnsealed` tolerates drift only: every other
+  // integrity failure (unreadable JSON, kit boundary, missing files) still throws above/below.
+  const drift = options.allowUnsealed === true ? hashDrift(manifest, tokensJson, registryJson) : [];
+  if (drift.length === 0) verifyHashes(manifest, tokensJson, registryJson);
 
   let kit: KitLock | undefined;
   if (manifest.kit) {
@@ -278,7 +312,7 @@ export function loadDesignSystem(paths: DesignSystemPaths): DesignSystem {
   // Load registry (re-validates shape)
   const registry = loadRegistry(paths.registry);
 
-  return { paths, manifest, tokens, resolved, registry, ...(kit && { kit }) };
+  return { paths, manifest, tokens, resolved, registry, ...(kit && { kit }), ...(drift.length > 0 && { unsealedDrift: drift }) };
 }
 
 /**

@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-10-16 - design-system guidelines pack
+
+### Added
+- `ui ds guidelines build | check | export`: compile a sealed design system into a guidelines pack
+  (`design/guidelines/`: overview, vocabulary, components, rulings by tier, terminology, grammar,
+  anti-patterns, manifest). Names are explicit `token:` / `component:` / `term:` spans that `check`
+  resolves; facts sit in sealed generated blocks; judgment is left to scenario slots the host answers
+  (Do / Don't / Why). The binary stays deterministic: no model call, no network.
+- Owner rulings are read from `design/knowledge/rulings.json` (or `--rulings`) and placed by tier:
+  global design categories, other library-wide rulings, per-app rulings; process and superseded
+  rulings are excluded and counted. `CONTEXT.md` and `ontology/glossary.yaml` feed terminology,
+  `CONVENTIONS.md` feeds grammar (copied verbatim), `design/soul.md` feeds a capped overview summary.
+- Gap-bound knowledge: general design knowledge enters only as the answer to a gap measured in the
+  design system (a control without a disabled state, a colour role no token plays, a failing colour
+  pair), always with its gap id. Answers are kept in `guidelines.answers.json`, written before any other
+  file and harvested from every markdown file in the pack folder on each rebuild, so a failed write never
+  loses one; answers whose slot is gone or that lost to another text are parked in
+  `guidelines.orphans.md`. `build` never deletes files; ones it did not produce are listed as stale and
+  `check` warns. Slot ids are always a readable prefix plus a hash of the full evidence (raw heading and
+  DON'T line, raw ruling id, full persona text, raw names, sorted member set), identical evidence is one
+  slot, a re-export keeps the previous bundle in `<out>/.figma-guidelines.previous` until the new one is in
+  place, and the pack is byte-identical on every machine whatever its locale.
+- Real-data fixes: every rulings text that starts with a `(SUPERSEDED …)` marker is superseded whatever its
+  shape (a mention of the word elsewhere is not), `AVOIDED_TERM` no longer judges backtick spans (so a real
+  component name or a quoted synonym can be mentioned), and the Figma bundle shows each scenario as a
+  title, an evidence line and its answer instead of the raw `> QUESTION(<id>)` line.
+- `--allow-unsealed` on `build` and `check` accepts a store whose files drifted from their sealed hashes;
+  the manifest records the drift, `check` warns `SEAL_UNVERIFIED` and `UPLOAD.md` says "Sources unverified".
+  The default still refuses with `DS_TAMPERED`.
+- `ui ds guidelines export --target figma` writes `figma-guidelines/` (no component inventory, apps merged
+  into `apps.md`) and `UPLOAD.md` beside it; it refuses while any slot is open and when the bundle is over
+  Figma's 200 KB cap, warns above 100 KB, and trims by priority only with `--budget <n>kb`, reporting every
+  dropped rule. `ui ds guidelines check --profile figma --bundle <dir>` validates an exported bundle.
+  Upload to Figma stays manual.
+- `ui ds context --include guidelines` (opt-in) shows the pack's file index, scenario titles and
+  library-wide rulings within `--max-bytes`.
+- `/ui:guidelines` workflow (`templates/workflows/guidelines.md`) and `knowledge/ds-guidelines.md`; CONTEXT.md
+  terms Guidelines pack, Figma guidelines bundle, Scenario slot, Ruling tier.
+
+### Changed
+- `ds.ts` help, the command signatures and the adapters now include the `guidelines` workflow verb
+  (the generated adapter trees gain one command file each).
+
 ## 2026-10-09 - owner-local design learning
 
 ### Added

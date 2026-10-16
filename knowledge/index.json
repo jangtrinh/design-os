@@ -236,6 +236,21 @@
       ]
     },
     {
+      "id": "ds-guidelines",
+      "path": "knowledge/ds-guidelines.md",
+      "description": "The design-system guidelines pack — what `ui ds guidelines` compiles, ruling tiers, slots, the seal, and the Figma bundle with its limits.",
+      "when": [
+        "guidelines",
+        "design-guidelines",
+        "figma-guidelines",
+        "rulings",
+        "scenario-slots",
+        "upload",
+        "ruling-tiers",
+        "allow-unsealed"
+      ]
+    },
+    {
       "id": "ds-kit-onboarding",
       "path": "knowledge/ds-kit-onboarding.md",
       "description": "Build, verify and adopt a complete owner component kit from captured Figma or code inventory, preserving owner identity on React, shadcn and Tailwind.",

@@ -1,0 +1,17 @@
+# Synthetic ontology glossary for the guidelines tests.
+version: 0.1.0
+terms:
+  - term: Workspace
+    vi: workspace-vi
+    def: A shared space owned by one organisation.
+    avoid: [org, account]
+  - term: Invoice
+    vi: invoice-vi
+    def: A request for payment sent to a customer.
+    avoid: [bill]
+  - term: Seat
+    def: One licensed person in a workspace.
+    avoid: [user slot]
+  - term: Back office
+    def: "Staff who use internal tools: support, finance."
+    avoid: [backend]

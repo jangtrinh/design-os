@@ -167,6 +167,11 @@
       "sourceSha256": "7d9b2fa6e9e62cd8d49b0dbb4f06a9bb9215e53903fe36ec36d897cbd4697124"
     },
     {
+      "path": "workflows/guidelines.md",
+      "description": "Compile a design system's guidelines pack and Figma guidelines bundle: build the pack from the sealed store, answer every open scenario slot from the cited evidence only, check it to zero errors, export the Figma bundle and hand UPLOAD.md to the owner. Use when the owner asks for written design guidelines an agent can follow, rules for a library, or a Figma guidelines upload.",
+      "sourceSha256": "c59caf104bac56583e972fad36079c76b6eec2c5bb347a18a4e29e4e377d823b"
+    },
+    {
       "path": "workflows/iterate.md",
       "description": "Apply a focused vibe-word edit to an existing variant. Use when the user asks to tweak, adjust, or nudge a generated design without redesigning it.",
       "sourceSha256": "1adceeb5d599f55897164e9a0bd387b5213fcb5669d70258409736a78c245af0"
