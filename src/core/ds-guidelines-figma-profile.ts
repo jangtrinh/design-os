@@ -6,6 +6,7 @@
  */
 import { compareText } from "./ds-guidelines-model.js";
 import type { Finding } from "./ds-guidelines-lint.js";
+import { openBundleScenarios } from "./ds-guidelines-figma-scenarios.js";
 import { parseSlots } from "./ds-guidelines-slots.js";
 
 export const FIGMA_PROFILE = {
@@ -74,6 +75,10 @@ export function validateBundle(files: readonly BundleFileInfo[]): Finding[] {
     if (f.text === undefined || extensionOf(f.path) === ".json") continue;
     for (const s of parseSlots(f.text).filter((x) => x.status !== "filled")) {
       at("OPEN_QUESTION", "error", f.path, s.line, `slot '${s.id}' has no complete answer — Figma guidelines must not carry open questions`);
+    }
+    // The bundle shows a scenario as a title + `_Evidence: …_` + its answer (no QUESTION line): look for the answer there.
+    for (const s of openBundleScenarios(f.text)) {
+      at("OPEN_QUESTION", "error", f.path, s.line, `scenario '${s.title}' has no complete answer — Figma guidelines must not carry open questions`);
     }
   }
   return findings;

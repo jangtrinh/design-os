@@ -8,10 +8,12 @@
  *   - apps/*.md merge into apps.md, one `## <app> (<n>)` heading each.
  *   - The "How to read this pack" note is dropped; the overview's file index is rewritten to match.
  *   - Only files the manifest lists are used: stale files in the pack folder are ignored.
+ *   - Scenario slots lose their `> QUESTION(<id>)` line: each reads as a title, an evidence line and its answer.
  */
 import { compareText } from "./ds-guidelines-model.js";
 import { trimToBudget, renderBFile, byteLength, isEmptied } from "./ds-guidelines-budget.js";
 import type { BFile, BSection, TrimEntry } from "./ds-guidelines-budget.js";
+import { renderScenarioLines } from "./ds-guidelines-figma-scenarios.js";
 import { fixedSection, listSection, splitSections, wholeSection } from "./ds-guidelines-figma-sections.js";
 import type { RawSection } from "./ds-guidelines-figma-sections.js";
 
@@ -47,7 +49,9 @@ const DESCRIPTIONS: Readonly<Record<string, string>> = {
 };
 
 const sectionsOf = (files: ReadonlyMap<string, string>, path: string): RawSection[] => splitSections(files.get(path) ?? "");
-const fixedFile = (path: string, raws: RawSection[]): BFile => ({ path, kind: "fixed", sections: raws.map((r) => fixedSection(r)) });
+/** A fixed section whose scenario slots are shown the way the bundle shows them (no QUESTION lines, no slot ids). */
+const scenarioSection = (raw: RawSection): BSection => fixedSection({ ...raw, body: renderScenarioLines(raw.body) });
+const fixedFile = (path: string, raws: RawSection[]): BFile => ({ path, kind: "fixed", sections: raws.map((r) => scenarioSection(r)) });
 const statements = (body: readonly string[]): number => body.filter((l) => /\*\*(DO|DON'T)\b/.test(l)).length;
 
 /** Rewrite the `- Files:` index of the overview so it lists exactly the bundle's files. */
@@ -108,7 +112,7 @@ export function buildFigmaBundle(packFiles: readonly PackText[], budgetBytes?: n
     const sections: BSection[] = [{
       heading: null, trimmable: false, units: [],
       pre: ["# Components", "", "Components live in the library itself. This file keeps what the library cannot show: look-alike names and component rulings."],
-    }, ...confusables.map((r) => fixedSection(r))];
+    }, ...confusables.map((r) => scenarioSection(r))];
     if (moved.length > 0) {
       sections.push({ heading: "## Component rulings", pre: [], units: [], trimmable: false });
       for (const raw of moved) sections.push(fixedSection(raw, raw.heading?.replace(/^## /, "### ") ?? null));

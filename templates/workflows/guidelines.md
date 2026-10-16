@@ -95,7 +95,9 @@ For each slot:
      rule, another slot's answer); write only what is new.
    - **One recommendation, not a menu.** Pick the option and say why.
    - **"Never" only for rules with no exception.** Otherwise say "avoid … unless …".
-   - Do not use a word a glossary entry lists as `_Avoid_` (`AVOIDED_TERM`).
+   - Do not use a word a glossary entry lists as `_Avoid_` (`AVOIDED_TERM`). To *mention* one — to
+     forbid it ("Don't call it `widget`") or because it sits in a real name — put it in backticks: a
+     backtick span is a mention and is never judged; bare prose in an answer is.
 
 Rebuilding is safe: slot ids come from the evidence, so `build` carries every answer to the
 slot with the same id. An answer whose slot is gone is parked in `guidelines.orphans.md`

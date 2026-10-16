@@ -3,7 +3,7 @@
  *
  * Reader contract: `{ rulings: [{ id, category, text, scope, source[], since, verified_by }] }`
  * where `scope` is "global" or `{ apps: string[], features?: string[] }`. Supersession is
- * recorded only as a text prefix `(SUPERSEDED <date> by <id>)`, so the reader parses it.
+ * recorded only as a text prefix `(SUPERSEDED …)` (see `parseSupersededMarker`), so the reader parses it.
  *
  * Tiers: superseded → never emitted; process categories → C (excluded, counted); app-scoped → B
  * (one file per app); global rulings in the design categories → A; any other global ruling → AOther
@@ -31,7 +31,7 @@ const DESIGN_CATEGORIES: ReadonlySet<string> = new Set([
   "shell-chrome", "component-reuse", "screen-composition", "tables", "forms-inputs",
   "status-vocabulary", "naming-language", "section-layout",
 ]);
-const SUPERSEDED_PREFIX = /^\s*\(SUPERSEDED\s+\S+\s+by\s+[^)]*\)/;
+const SUPERSEDED_OPEN = /^\s*\(SUPERSEDED(?![\p{L}\p{N}])/iu;
 
 const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
 
@@ -67,8 +67,30 @@ export function parseRulings(raw: string, path: string): Ruling[] {
   });
 }
 
+/**
+ * The `(SUPERSEDED …)` marker a ruling text STARTS with (after optional whitespace, any case), up to its
+ * matching `)`; `by` is the replacing ruling id when the marker names one (`… by <id> …`). The owner's
+ * own generator treats every such prefix as "kept for history, do not follow", whatever follows
+ * SUPERSEDED (`<date> by <id>`, `<date> — do not follow`, `in part by <id> — <note>`). The word elsewhere
+ * in a text is a mention, not a marker; an unclosed marker is not one either.
+ */
+export function parseSupersededMarker(text: string): { by?: string } | undefined {
+  const open = SUPERSEDED_OPEN.exec(text);
+  if (open === null) return undefined;
+  let depth = 1;
+  for (let i = open[0].length; i < text.length; i++) {
+    const c = text[i];
+    if (c === "(") depth++;
+    else if (c === ")" && --depth === 0) {
+      const by = /\bby\s+([^\s—–,;()]+)/i.exec(text.slice(open[0].length, i))?.[1];
+      return by === undefined ? {} : { by };
+    }
+  }
+  return undefined;
+}
+
 export function classifyRuling(r: Ruling): Tier {
-  if (SUPERSEDED_PREFIX.test(r.text)) return "superseded";
+  if (parseSupersededMarker(r.text) !== undefined) return "superseded";
   if (PROCESS_CATEGORIES.has(r.category)) return "C";
   if (r.scope !== "global" && r.scope.apps.length > 0) return "B";
   return DESIGN_CATEGORIES.has(r.category) ? "A" : "AOther";

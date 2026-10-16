@@ -79,7 +79,11 @@ function supersededCitations(file: string, text: string, ids: ReadonlySet<string
 /** A filled slot (T6): the **Do:** / **Don't:** / **Why:** lines a host writes under a QUESTION. */
 const SLOT_ANSWER_RE = /^\s*(?:[-*]\s+)?\*\*(?:Do|Don't|Why):\*\*/;
 
-/** Slot answers that use a word the glossary rejects (`_Avoid_`). Generated text is never judged. */
+/** Backtick code spans (any length of fence, one line): a MENTION of a name or word, not a use of it. */
+const CODE_SPAN_RE = /(`+)(?!`)[^\n]*?(?<!`)\1(?!`)/g;
+
+/** Slot answers that use a word the glossary rejects (`_Avoid_`). Generated text is never judged, and a
+ *  word inside a backtick span (a `component:` name, a quoted synonym being forbidden) is a mention. */
 function avoidedTermUses(file: string, text: string, avoided: ReadonlyMap<string, string[]>): Finding[] {
   const findings: Finding[] = [];
   const patterns = [...avoided.entries()].sort(([a], [b]) => compareText(a, b)).map(([word, preferred]) => ({
@@ -88,8 +92,9 @@ function avoidedTermUses(file: string, text: string, avoided: ReadonlyMap<string
   }));
   for (const { line, text: t } of hostWrittenLines(text)) {
     if (!SLOT_ANSWER_RE.test(t)) continue;
+    const prose = t.replace(CODE_SPAN_RE, " ");
     for (const { word, preferred, re } of patterns) {
-      if (re.test(t)) {
+      if (re.test(prose)) {
         findings.push({
           code: "AVOIDED_TERM", severity: "error", file, line,
           message: `uses '${word}', which the glossary rejects — say ${preferred.map((p) => `'${p}'`).join(" or ")} instead`,

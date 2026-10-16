@@ -66,7 +66,9 @@ a reason, never half-read.
 
 - **Rulings** — `design/knowledge/rulings.json` or `--rulings <file>`: `{ rulings: [{ id, category,
   text, scope, source[], since }] }`, `scope` being `"global"` or `{ apps: [...] }`. A ruling whose text
-  starts `(SUPERSEDED <date> by <id>)` is superseded. A malformed file is `BAD_RULINGS`.
+  starts with `(SUPERSEDED …)` (any shape: `<date> by <id>`, `<date> — do not follow`, `in part by <id> — <note>`;
+  any case; up to its matching `)`) is superseded. The word elsewhere in a text is a mention, not a marker.
+  A malformed file is `BAD_RULINGS`.
 - **Glossary** — `CONTEXT.md` (entries `**Term**:` in its Language section, an optional `_Avoid_:` line) and
   `ontology/glossary.yaml` in the flat `terms: - term / vi / def / avoid` shape only. `CONTEXT.md` wins on
   a clash and every clash is listed in the manifest. Any other YAML shape is skipped as
@@ -79,7 +81,7 @@ a reason, never half-read.
 
 | Tier | Which rulings | Where they go |
 |---|---|---|
-| Superseded | text starts `(SUPERSEDED <date> by <id>)` | never emitted, counted |
+| Superseded | text starts with a `(SUPERSEDED …)` marker | never emitted, counted |
 | C (process) | categories `figma-scripting`, `workflow-process`, `delivery-gates`, any scope | never emitted, counted, with a pointer to the source |
 | B (per app) | any other ruling with `scope.apps` | `apps/<app>.md` |
 | A | scope `global`, category one of `shell-chrome`, `component-reuse`, `screen-composition`, `tables`, `forms-inputs`, `status-vocabulary`, `naming-language`, `section-layout` | `rulings.md` |
@@ -187,6 +189,9 @@ open — a partial answer is open — and (`PACK_INVALID`) while `check` has err
   for hosts that cannot see the library.
 - `apps/*.md` merge into `apps.md`, one `## <app> (<n>)` heading each.
 - Generated-block markers are stripped; rules keep their id and short source reference.
+- Scenarios lose their `> QUESTION(<id>)` line and slot id: each reads `### <title>`, one `_Evidence: <refs>_`
+  line, then its Do/Don't/Why lines (a look-alike-names question becomes the heading, its member names the
+  evidence). The canonical pack is unchanged; `check --profile figma` still finds a scenario without an answer.
 - Limits (one profile constant in the code, with this article and its check date): 3 to 8 files, only
   `.md`, `.txt` and `.json`, at most 200,000 bytes in total (`BUDGET_EXCEEDED` with per-file bytes), a
   warning above 100,000. **Nothing is trimmed by default.** `--budget <n>kb` (n at most 200) trims by
@@ -215,7 +220,8 @@ the tail first and then scenario titles, and stating what it dropped. No pack me
   evidence cannot decide must stay a QUESTION and be reported to the owner.
 - **A name from memory.** An answer that names a token or component not in the store is `UNKNOWN_NAME`;
   one written without a span is not judged at all. Look for backticked names without `token:` or
-  `component:` prefixes in `**Do:**` lines.
+  `component:` prefixes in `**Do:**` lines. `AVOIDED_TERM` never judges a backtick span (a mention, e.g. a
+  rejected synonym being forbidden or a `component:` name); only bare prose in an answer.
 - **`--allow-unsealed` used silently.** The pack looks identical to a verified one. Look for
   `seal.status` in the manifest and for the "Sources unverified" section of `UPLOAD.md`.
 - **Reading a trimmed bundle as complete.** A `--budget` export drops rules. Look at the `trimmed`

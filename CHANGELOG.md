@@ -22,6 +22,10 @@
   DON'T line, raw ruling id, full persona text, raw names, sorted member set), identical evidence is one
   slot, a re-export keeps the previous bundle in `<out>/.figma-guidelines.previous` until the new one is in
   place, and the pack is byte-identical on every machine whatever its locale.
+- Real-data fixes: every rulings text that starts with a `(SUPERSEDED …)` marker is superseded whatever its
+  shape (a mention of the word elsewhere is not), `AVOIDED_TERM` no longer judges backtick spans (so a real
+  component name or a quoted synonym can be mentioned), and the Figma bundle shows each scenario as a
+  title, an evidence line and its answer instead of the raw `> QUESTION(<id>)` line.
 - `--allow-unsealed` on `build` and `check` accepts a store whose files drifted from their sealed hashes;
   the manifest records the drift, `check` warns `SEAL_UNVERIFIED` and `UPLOAD.md` says "Sources unverified".
   The default still refuses with `DS_TAMPERED`.

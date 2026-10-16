@@ -21,6 +21,9 @@ const ANSWER_PARTS = [
   { label: "**Why:**", re: /\*\*Why:\*\*/ },
 ] as const;
 
+/** Labels of the Do / Don't / Why parts the answer text lacks. */
+export const missingAnswerParts = (answer: string): string[] => ANSWER_PARTS.filter((p) => !p.re.test(answer)).map((p) => p.label);
+
 export interface ParsedSlot {
   id: string;
   prompt: string;
@@ -53,7 +56,7 @@ export function parseSlots(text: string): ParsedSlot[] {
       region.push(l);
     }
     const joined = region.join("\n");
-    const missing = ANSWER_PARTS.filter((p) => !p.re.test(joined)).map((p) => p.label);
+    const missing = missingAnswerParts(joined);
     slots.push({
       id: m[1] ?? "", prompt: m[2] ?? "", line: i + 1, answer: region, missing,
       status: region.length === 0 ? "open" : missing.length === 0 ? "filled" : "partial",

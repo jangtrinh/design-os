@@ -65,7 +65,9 @@ describe("export --target figma — the clean bundle (G-EXPORT-APPS, G-UPLOAD)",
     const c = bundleOf(out, "components.md");
     expect(c).toMatch(/^## Confusable names$/m);
     expect(c).toMatch(/^- `component:Card\/Header`, `component:Modal\/Header` — look-alike names/m);
-    expect(c).toMatch(/^> QUESTION\(confusable\.card-header-[0-9a-f]{8}\): /m);
+    // The slot reads as a titled question with its member names as evidence; no QUESTION line, no slot id.
+    expect(c).toMatch(/^### Which of `component:Card\/Header`, `component:Modal\/Header` is used when\?\n_Evidence: `component:Card\/Header`, `component:Modal\/Header`_$/m);
+    expect(c).not.toMatch(/QUESTION\(|confusable\.card-header/);
     for (const l of FULL) expect(c).toContain(`${l}\n`);
     // Component rulings moved here from rulings.md (tier A, component categories only).
     expect(c).toMatch(/^## Component rulings$/m);

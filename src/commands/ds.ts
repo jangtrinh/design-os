@@ -153,7 +153,7 @@ Subcommands:
                      section-layout) -> rulings.md; any other global ruling -> rulings.md under
                      'Other library-wide rulings' (manifest tierAOther); tier B (scope.apps) -> apps/<app>.md;
                      process categories (figma-scripting, workflow-process, delivery-gates) and
-                     rulings whose text starts '(SUPERSEDED <date> by <id>)' are never emitted,
+                     rulings whose text STARTS with '(SUPERSEDED …)' (any shape, any case; the word elsewhere is a mention) are never emitted,
                      only counted under 'rulings' in the manifest. 'check' also reads it for superseded ids.
   --allow-unsealed   Proceed when the store no longer matches its sealed hashes (default: refused as
                      DS_TAMPERED). Only hash drift is tolerated: unreadable files or a broken kit still fail.
@@ -335,7 +335,7 @@ Error codes:
   GENERATED_BLOCK_TAMPERED  'ds guidelines check' finding: a generated block was edited or its markers damaged
   SUPERSEDED_CITED   'ds guidelines check' finding: host-written text cites a superseded ruling id
   DUPLICATE_RULE     'ds guidelines check' finding: the same rule text sits in two files
-  AVOIDED_TERM       'ds guidelines check' finding: a slot answer uses a word the glossary lists as _Avoid_
+  AVOIDED_TERM       'ds guidelines check' finding: a slot answer uses (outside backticks) a word the glossary lists as _Avoid_
   SCENARIO_INCOMPLETE 'ds guidelines check' finding: an answer lacks one of Do / Don't / Why
   OPEN_QUESTION      'ds guidelines check' warning: a slot has no answer yet
   UNBOUND_KNOWLEDGE  'ds guidelines check' warning: a knowledge citation without a measured gap id

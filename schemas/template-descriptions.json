@@ -169,7 +169,7 @@
     {
       "path": "workflows/guidelines.md",
       "description": "Compile a design system's guidelines pack and Figma guidelines bundle: build the pack from the sealed store, answer every open scenario slot from the cited evidence only, check it to zero errors, export the Figma bundle and hand UPLOAD.md to the owner. Use when the owner asks for written design guidelines an agent can follow, rules for a library, or a Figma guidelines upload.",
-      "sourceSha256": "13aed85bda9c20fab798bdf8d0672f16a7ab26f2509e99a6f81eeaf8f9ec26f6"
+      "sourceSha256": "c59caf104bac56583e972fad36079c76b6eec2c5bb347a18a4e29e4e377d823b"
     },
     {
       "path": "workflows/iterate.md",
