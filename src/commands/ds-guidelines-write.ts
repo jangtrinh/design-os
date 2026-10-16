@@ -106,12 +106,16 @@ function snapshot(out: string, folder: string, uploadName: string): Map<string, 
 }
 
 /** A sentence on the state of the output folder after a failed export, checked against `before` — never assumed. */
-function describeState(now: Map<string, string>, before: Map<string, string>, hadBundle: boolean): string {
+function describeState(now: Map<string, string>, before: Map<string, string>, folder: string, uploadName: string): string {
   const changed = [...new Set([...now.keys(), ...before.keys()])].filter((k) => now.get(k) !== before.get(k)).sort();
   if (changed.length === 0) {
-    return hadBundle
-      ? `the previous bundle is intact (verified: its ${before.size} entries, UPLOAD.md included, match their content before this export)`
-      : "the output folder is as it was before this export (verified)";
+    const bundleEntries = [...before.keys()].filter((k) => k === folder || k.startsWith(`${folder}/`)).length;
+    // Only claim what the snapshot covered: the upload file is mentioned as checked only if it existed before.
+    const uploadExisted = [...before.keys()].some((k) => k === uploadName || k === `${uploadName}/`);
+    const upload = uploadExisted ? `${uploadName} is unchanged` : `${uploadName} did not exist before and still does not`;
+    return bundleEntries > 0
+      ? `the previous bundle is intact (verified: its ${bundleEntries} entries match their content before this export; ${upload})`
+      : `the output folder is as it was before this export (verified: no bundle folder; ${upload})`;
   }
   const shown = changed.slice(0, 5).join(", ") + (changed.length > 5 ? `, … (${changed.length} in all)` : "");
   return `the output folder differs from before this export (${shown}) — check it before relying on it`;
@@ -152,12 +156,13 @@ export function writeBundleStaged(out: string, folder: string, files: readonly O
     } catch (e2) {
       restoreError = e2;
     }
-    if (stage !== undefined) discard(stage);
+    const stageNote = stage !== undefined ? discard(stage) : undefined;
+    const withNote = (message: string): string => (stageNote !== undefined ? `${message}; ${stageNote}` : message);
     if (restoreError !== undefined) {
       const keep = moved ? `; the previous bundle is kept at '${backup}': move it to '${bundleDir}' by hand` : `; '${bundleDir}' may hold a partly placed bundle: check it`;
-      throw new Error(`${errText(e)} — AND the output could not be put back as it was (${errText(restoreError)})${keep}`, { cause: e });
+      throw new Error(withNote(`${errText(e)} — AND the output could not be put back as it was (${errText(restoreError)})${keep}`), { cause: e });
     }
-    throw new Error(`${errText(e)} — ${describeState(snapshot(out, folder, uploadName), before, hadBundle)}`, { cause: e });
+    throw new Error(withNote(`${errText(e)} — ${describeState(snapshot(out, folder, uploadName), before, folder, uploadName)}`), { cause: e });
   }
   const notes: string[] = [];
   const stageNote = stage !== undefined ? discard(stage) : undefined;

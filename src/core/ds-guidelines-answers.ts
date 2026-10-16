@@ -53,11 +53,13 @@ export function parseAnswersStore(text: string): AnswersStore {
   const answers = raw["answers"];
   if (!isObject(answers)) throw bad("'answers' must be an object");
   const entries = Object.entries(answers).map(([id, v]): [string, StoredAnswer] => {
+    // Generated ids can never be this: a hand-edited one is a malformed store, not an answer to carry.
+    if (id === "__proto__") throw bad("'__proto__' is not a slot id");
     const ok = isObject(v) && Array.isArray(v["lines"]) && v["lines"].length > 0 && v["lines"].every((l) => typeof l === "string") && typeof v["file"] === "string";
     if (!ok) throw bad(`the entry for '${id}' must be { "lines": [<text>, …], "file": <path> }`);
     return [id, { lines: [...(v["lines"] as string[])], file: v["file"] as string }];
   });
-  // fromEntries defines own properties, so an id like "__proto__" cannot reach the prototype.
+  // fromEntries defines own properties, so no id can reach the prototype.
   return { version: 1, answers: Object.fromEntries(entries) };
 }
 

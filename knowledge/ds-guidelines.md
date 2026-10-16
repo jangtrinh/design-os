@@ -152,7 +152,7 @@ later step cannot lose an answer.
   by editing the orphans file alone.
 - With the store missing, answers are recovered from the files and the orphans file and the store is
   recreated. It appears with the first answer.
-- A malformed or wrong-version store is `BAD_ANSWERS_STORE`: `build` writes nothing, `check` reports an error,
+- A malformed or wrong-version store (or an entry whose id is `__proto__`, which a build can never generate) is `BAD_ANSWERS_STORE`: `build` writes nothing, `check` reports an error,
   `export` is refused (`PACK_INVALID`). Repair it, or delete it to rebuild it from the markdown.
 - `check` otherwise ignores the store, `export` never includes it, and `ds context` does not read it.
 - `build` never deletes a file: one it did not produce is listed as `staleFiles`, `check` warns `STALE_FILE`,

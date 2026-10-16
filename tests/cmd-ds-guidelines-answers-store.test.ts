@@ -191,6 +191,21 @@ describe("A — the answers store is the durable home of every answer", () => {
     }
   });
 
+  it("a store entry named __proto__ is a malformed store: nothing is written and nothing is silently dropped", () => {
+    const p = project([]);
+    build(p.dir);
+    fillSlot(join(p.pack, "components.md"), CARD, answerLines("REAL"));
+    build(p.dir);
+    const body = '{"version":1,"answers":{"__proto__":{"lines":["**Do:** x"],"file":"a.md"}}}';
+    writeFileSync(join(p.pack, STORE), body);
+    const before = listFiles(p.pack).map((f) => `${f}\n${read(p.pack, f)}`);
+    const r = capture(["ds", "guidelines", "build", "--dir", p.dir, "--now", NOW, "--json"]);
+    expect(r.code).toBe(1);
+    expect((JSON.parse(r.out) as { error: { code: string } }).error.code).toBe("BAD_ANSWERS_STORE");
+    expect(listFiles(p.pack).map((f) => `${f}\n${read(p.pack, f)}`)).toEqual(before);
+    expect(read(p.pack, STORE)).toBe(body);
+  });
+
   it("export and ds context never carry the store", () => {
     const p = project(["rulings", "terminology"]);
     build(p.dir);
@@ -311,6 +326,22 @@ describe("D — the export keeps the previous bundle in a backup next to the sta
     expect(error.message).toMatch(/previous bundle (is intact|was restored)/);
     expect(error.message).not.toMatch(/nothing was changed/);
     expect(readdirSync(out).sort()).toEqual(["UPLOAD.md", "figma-guidelines"]); // no staging folder, no backup left behind
+  });
+
+  it("the 'intact' message mentions UPLOAD.md only when it existed before the export", () => {
+    if (!canChmod) return;
+    const p = project(["rulings", "terminology"]);
+    build(p.dir);
+    answerAll(p.pack);
+    const out = join(tempDir("ease-guidelines-out-"), "export");
+    expect(capture(["ds", "guidelines", "export", "--dir", p.dir, "--target", "figma", "--out", out]).code).toBe(0);
+    rmSync(join(out, "UPLOAD.md"));
+    lock(out, 0o555); // no staging folder can be created: the export fails before anything moves
+    const r = capture(["ds", "guidelines", "export", "--dir", p.dir, "--target", "figma", "--out", out, "--json"]);
+    const message = (JSON.parse(r.out) as { error: { message: string } }).error.message;
+    expect(r.code).toBe(1);
+    expect(message).toMatch(/previous bundle is intact \(verified: its \d+ entries match their content before this export; UPLOAD\.md did not exist before and still does not\)/);
+    expect(message).not.toMatch(/UPLOAD\.md included|and so is UPLOAD\.md/);
   });
 
   it("an older backup left by an interrupted export is never overwritten: the export stops and names it", () => {
