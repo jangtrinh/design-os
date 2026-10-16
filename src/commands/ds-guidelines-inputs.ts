@@ -6,7 +6,8 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 
-import { GuidelinesInputError, PACK_MANIFEST_NAME } from "../core/ds-guidelines-model.js";
+import { ANSWERS_FILE, parseAnswersStore } from "../core/ds-guidelines-answers.js";
+import { GuidelinesInputError } from "../core/ds-guidelines-model.js";
 import type { ExistingPack, OptionalInput, PackInputs } from "../core/ds-guidelines-model.js";
 import { ORPHANS_FILE } from "../core/ds-guidelines-slots.js";
 
@@ -40,21 +41,15 @@ export function readPackInputs(projectDir: string, designDir: string, rulingsFla
   };
 }
 
-/** The `files[].path` list of the pack's own manifest; undefined when it is missing or unreadable. */
-function previousManifestPaths(packDir: string): string[] | undefined {
-  const path = join(packDir, PACK_MANIFEST_NAME);
-  if (!existsSync(path)) return undefined;
-  try {
-    const files = (JSON.parse(readFileSync(path, "utf8")) as { files?: { path?: unknown }[] }).files;
-    return Array.isArray(files) ? files.flatMap((f) => (typeof f.path === "string" ? [f.path] : [])) : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/** The pack already on disk (if any): its markdown files and orphans file, for answer preservation. */
+/**
+ * The pack already on disk (if any): EVERY markdown file in the folder (listed by the last manifest or
+ * not), the orphans file and the answers store, all of which feed answer preservation. A malformed store
+ * is BAD_ANSWERS_STORE: it is never silently replaced, because it may hold the only copy of an answer.
+ */
 export function readExistingPack(packDir: string): ExistingPack {
   if (!existsSync(packDir)) return { files: [] };
+  let existing: ExistingPack;
+  let storeText: string | undefined;
   try {
     const files = readdirSync(packDir, { recursive: true, withFileTypes: true })
       .filter((e) => e.isFile() && e.name.endsWith(".md"))
@@ -62,17 +57,14 @@ export function readExistingPack(packDir: string): ExistingPack {
       .filter((p) => p !== ORPHANS_FILE)
       .sort()
       .map((path) => ({ path, text: readFileSync(join(packDir, path), "utf8") }));
-    const allPaths = listFilesIn(packDir);
     const orphansPath = join(packDir, ORPHANS_FILE);
-    const listed = previousManifestPaths(packDir);
-    return {
-      files, allPaths,
-      ...(listed !== undefined ? { listed } : {}),
-      ...(existsSync(orphansPath) ? { orphansText: readFileSync(orphansPath, "utf8") } : {}),
-    };
+    const storePath = join(packDir, ANSWERS_FILE);
+    existing = { files, allPaths: listFilesIn(packDir), ...(existsSync(orphansPath) ? { orphansText: readFileSync(orphansPath, "utf8") } : {}) };
+    storeText = existsSync(storePath) ? readFileSync(storePath, "utf8") : undefined;
   } catch (e) {
     throw new GuidelinesInputError("READ_ERROR", `cannot read the existing pack at '${packDir}': ${e instanceof Error ? e.message : String(e)}`);
   }
+  return storeText === undefined ? existing : { ...existing, store: parseAnswersStore(storeText) };
 }
 
 /** Every file under `dir` (any extension), `dir`-relative POSIX paths, sorted. */

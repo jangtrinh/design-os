@@ -59,7 +59,7 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
   try {
     notes = writePackStaged(loaded.packDir, pack.files);
   } catch (e) {
-    return err("WRITE_ERROR", `cannot write the pack to '${loaded.packDir}' (parked answers are written first; every answer is in the old or the new files): ${e instanceof Error ? e.message : String(e)}`);
+    return err("WRITE_ERROR", `cannot write the pack to '${loaded.packDir}' (the answers store, guidelines.answers.json, is written first: every answer is in it or still in the old files): ${e instanceof Error ? e.message : String(e)}`);
   }
 
   const markdownFiles = pack.files.map((f) => f.path).filter((p) => p.endsWith(".md"));

@@ -69,3 +69,28 @@ export function chmodBlocksWrites(): boolean {
   chmodSync(file, 0o444);
   try { writeFileSync(file, "y"); return false; } catch { return true; } finally { chmodSync(file, 0o644); }
 }
+
+/** A full Do/Don't/Why answer whose three lines carry `tag`, so a test can tell whose answer it is. */
+export const answerLines = (tag: string): string[] => [`**Do:** ${tag} do.`, `**Don't:** ${tag} dont.`, `**Why:** ${tag} why.`];
+
+/** Put an answer under the QUESTION line that follows the first heading matching `heading`. */
+export function fillUnderHeading(file: string, heading: RegExp, tag: string): void {
+  const lines = readFileSync(file, "utf8").split("\n");
+  const h = lines.findIndex((l) => heading.test(l));
+  if (h < 0 || !/^> QUESTION\(/.test(lines[h + 1] ?? "")) throw new Error(`no slot under ${String(heading)} in ${file}`);
+  lines.splice(h + 2, 0, ...answerLines(tag));
+  writeFileSync(file, lines.join("\n"));
+}
+
+/** The answer lines under the QUESTION line matching `slot` (up to the next blank line, heading or slot). */
+export function answerUnder(text: string, slot: RegExp): string {
+  const lines = text.split("\n");
+  const i = lines.findIndex((l) => slot.test(l));
+  if (i < 0) throw new Error(`no slot matching ${String(slot)}`);
+  const out: string[] = [];
+  for (const l of lines.slice(i + 1)) {
+    if (l.trim() === "" || l.startsWith("#") || l.startsWith("> QUESTION(")) break;
+    out.push(l);
+  }
+  return out.join("\n");
+}

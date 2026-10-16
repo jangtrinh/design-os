@@ -96,10 +96,10 @@ export function runExport(parsed: ParsedArgs, err: Err): CommandResult {
     folder: BUNDLE_FOLDER, files: perFile, warnings, trimmed: bundle.trimmed, unverifiedSources: [...unverified].sort(),
   });
   try {
-    // Staged: the folder and UPLOAD.md land together or not at all (the previous bundle is put back on failure).
+    // Staged: the folder and UPLOAD.md land together or not at all (the previous bundle is kept in a backup beside the staging folder and put back on failure).
     warnings.push(...writeBundleStaged(out, BUNDLE_FOLDER, bundle.files, "UPLOAD.md", upload));
   } catch (e) {
-    return err("WRITE_ERROR", `cannot write the bundle to '${out}' (nothing was changed): ${e instanceof Error ? e.message : String(e)}`);
+    return err("WRITE_ERROR", `cannot write the bundle to '${out}': ${e instanceof Error ? e.message : String(e)}`);
   }
 
   if (parsed.json) {

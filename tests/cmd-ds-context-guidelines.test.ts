@@ -31,7 +31,7 @@ describe("ds context --include guidelines", () => {
     expect(s).toMatch(/^- apps\/alpha\.md \(|^- vocabulary\.md \(/m);
     // Scenario titles come from anti-patterns.md, each with its slot id and status.
     expect(s).toMatch(/^### Scenarios$/m);
-    expect(s).toMatch(/^- Ruling r-002 — tables \(ap-ruling-r-002\) — open$/m);
+    expect(s).toMatch(/^- Ruling r-002 — tables \(ap-ruling-r-002-[0-9a-f]{8}\) — open$/m);
     expect(s).toMatch(/^- Convention \(Layout\): raw \/ absolute \(NONE-layout\) frames \(ap-conv-layout-[0-9a-f]{8}\) — open$/m);
     // Tier-A rulings: id and text, without the since/source tail; other-library-wide and app rulings are not tier A.
     expect(s).toMatch(/^### Library-wide rulings \(tier A\)$/m);
@@ -47,7 +47,7 @@ describe("ds context --include guidelines", () => {
     build(p.dir);
     answerAll(p.pack);
     const s = sectionOf(context(p.dir, ["--include", "guidelines"]).out);
-    expect(s).toMatch(/^- Ruling r-002 — tables \(ap-ruling-r-002\) — answered$/m);
+    expect(s).toMatch(/^- Ruling r-002 — tables \(ap-ruling-r-002-[0-9a-f]{8}\) — answered$/m);
     expect(s).not.toMatch(/— open$/m);
   });
 
@@ -132,7 +132,7 @@ describe("ds context --include guidelines", () => {
     const j = JSON.parse(capture(["ds", "context", "--dir", p.dir, "--include", "guidelines", "--format", "json"]).out) as Structured;
     expect(j.guidelines).toMatchObject({ generatedAt: "2026-10-15T00:00:00Z", seal: "verified", dropped: { rulings: 0, scenarios: 0 } });
     expect(j.guidelines?.files.map((f) => f.path)).toContain("anti-patterns.md");
-    expect(j.guidelines?.scenarios[0]).toEqual({ id: "ap-ruling-r-002", title: "Ruling r-002 — tables", status: "open" });
+    expect(j.guidelines?.scenarios[0]).toEqual({ id: expect.stringMatching(/^ap-ruling-r-002-[0-9a-f]{8}$/), title: "Ruling r-002 — tables", status: "open" });
     expect(j.guidelines?.rulings.map((r) => r.id)).toEqual(["r-001", "r-003", "r-002"]);
     expect(read(p.pack, "guidelines.manifest.json")).toContain('"ruleCount"');
   });

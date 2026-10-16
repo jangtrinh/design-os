@@ -14,6 +14,7 @@ import type { Finding } from "../core/ds-guidelines-lint.js";
 import { checkCompleteness, findDuplicateRules } from "../core/ds-guidelines-lint-pack.js";
 import { lintSlots } from "../core/ds-guidelines-lint-slots.js";
 import { orphanEntryCount, ORPHANS_FILE } from "../core/ds-guidelines-slots.js";
+import { ANSWERS_FILE, parseAnswersStore } from "../core/ds-guidelines-answers.js";
 import { GuidelinesInputError, PACK_MANIFEST_NAME, compareText } from "../core/ds-guidelines-model.js";
 import type { PackInputs, StoreSourcePaths } from "../core/ds-guidelines-model.js";
 import { parseRulings, supersededRulingIds } from "../core/ds-guidelines-rulings-reader.js";
@@ -73,12 +74,15 @@ export function collectCheck(ds: DesignSystem, src: StoreSourcePaths, packDir: s
   let all: string[];
   let manifestText: string | undefined;
   let orphansText: string | undefined;
+  let storeText: string | undefined;
   try {
     all = listAll(packDir);
     const manifestPath = join(packDir, PACK_MANIFEST_NAME);
     manifestText = existsSync(manifestPath) ? readFileSync(manifestPath, "utf8") : undefined;
     const orphansPath = join(packDir, ORPHANS_FILE);
     orphansText = existsSync(orphansPath) ? readFileSync(orphansPath, "utf8") : undefined;
+    const storePath = join(packDir, ANSWERS_FILE);
+    storeText = existsSync(storePath) ? readFileSync(storePath, "utf8") : undefined;
   } catch (e) {
     return { code: "READ_ERROR", message: `cannot read the pack at '${packDir}': ${e instanceof Error ? e.message : String(e)}` };
   }
@@ -103,6 +107,14 @@ export function collectCheck(ds: DesignSystem, src: StoreSourcePaths, packDir: s
     findings.push(...slots.findings);
     openQuestions += slots.openQuestions;
   }
+  if (storeText !== undefined) {
+    try {
+      parseAnswersStore(storeText);
+    } catch (e) {
+      if (!(e instanceof GuidelinesInputError)) throw e;
+      findings.push({ code: "BAD_ANSWERS_STORE", severity: "error", file: ANSWERS_FILE, line: 1, message: e.message });
+    }
+  }
   const orphaned = orphansText === undefined ? 0 : orphanEntryCount(orphansText);
   if (orphaned > 0) {
     findings.push({
@@ -110,7 +122,7 @@ export function collectCheck(ds: DesignSystem, src: StoreSourcePaths, packDir: s
       message: `${orphaned} answer(s) wait in ${ORPHANS_FILE} — move each into a current slot or delete it`,
     });
   }
-  for (const path of ids !== undefined ? all.filter((p) => p !== PACK_MANIFEST_NAME && p !== ORPHANS_FILE && !ids.listed.has(p)) : []) {
+  for (const path of ids !== undefined ? all.filter((p) => p !== PACK_MANIFEST_NAME && p !== ORPHANS_FILE && p !== ANSWERS_FILE && !ids.listed.has(p)) : []) {
     findings.push({
       code: "STALE_FILE", severity: "warning", file: path, line: 1,
       message: "not listed in the manifest: the last build did not produce it — delete it (Figma export and checks ignore it)",

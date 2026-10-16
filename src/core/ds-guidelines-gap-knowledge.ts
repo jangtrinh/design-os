@@ -9,7 +9,7 @@
 import { checkTokenContrast } from "./ds-a11y.js";
 import { summarizeRoles } from "./ds-context-roles.js";
 import { checkSpecimen } from "./specimen-check.js";
-import { compareText, shortHash, slug, stableSlug, uniqueId } from "./ds-guidelines-model.js";
+import { compareText, hashedSlug, shortHash, slug } from "./ds-guidelines-model.js";
 import type { RuleSource, StoreSourcePaths } from "./ds-guidelines-model.js";
 import { componentSpan, tokenSpan } from "./ds-guidelines-render.js";
 import type { DesignSystem } from "./design-system.js";
@@ -37,12 +37,13 @@ const MISSING_STATE = /^missing-(.+)$/;
 /** Every gap measured in the design system, sorted by id. */
 export function findGaps(ds: DesignSystem, src: StoreSourcePaths): Gap[] {
   const gaps: Gap[] = [];
-  const used = new Set<string>();
+  // A gap is its id: the same measurement twice is one gap (ids come from the evidence, never a counter).
+  const push = (gap: Gap): void => { if (!gaps.some((g) => g.id === gap.id)) gaps.push(gap); };
 
   for (const f of checkSpecimen(ds.registry.components).findings) {
     const state = MISSING_STATE.exec(f.checkId)?.[1] ?? f.checkId;
-    gaps.push({
-      id: uniqueId(`gap.component.${stableSlug(f.component)}.${state}`, used),
+    push({
+      id: `gap.component.${hashedSlug(f.component, "component")}.${state}`,
       kind: "component",
       line: `${componentSpan(f.component)}: ${f.message}. Knowledge: ${COMPONENT_DESIGN_DOC}`,
       sources: [{ path: src.registry, component: f.component }],
@@ -58,8 +59,8 @@ export function findGaps(ds: DesignSystem, src: StoreSourcePaths): Gap[] {
 
   const roles = summarizeRoles(ds.tokens);
   for (const role of roles?.gaps ?? []) {
-    gaps.push({
-      id: uniqueId(`gap.role.${role}`, used),
+    push({
+      id: `gap.role.${role}`,
       kind: "role",
       line: `No token plays the '${role}' role (add one with 'ui ds change-token' in your own name). Knowledge: ${TOKEN_TAXONOMY_DOC}`,
       sources: [{ path: src.tokens, role }],
@@ -71,8 +72,8 @@ export function findGaps(ds: DesignSystem, src: StoreSourcePaths): Gap[] {
   const contrast = checkTokenContrast(ds.resolved);
   if (contrast.measured && contrast.mode !== "inferred") {
     for (const p of [...contrast.failures].sort((a, b) => a.ratio - b.ratio || compareText(a.text, b.text) || compareText(a.surface, b.surface))) {
-      gaps.push({
-        id: uniqueId(`gap.a11y.${slug(p.text)}.on.${slug(p.surface)}-${shortHash(`${p.text}\u0000${p.surface}`)}`, used),
+      push({
+        id: `gap.a11y.${slug(p.text)}.on.${slug(p.surface)}-${shortHash(`${p.text}\u0000${p.surface}`)}`,
         kind: "a11y",
         line: `${tokenSpan(p.text)} on ${tokenSpan(p.surface)} measures ${p.ratio}:1, below AA ${AA_NORMAL_TEXT}:1. Check: ${A11Y_CHECK}`,
         sources: [{ path: src.tokens, token: p.text }, { path: src.tokens, token: p.surface }],

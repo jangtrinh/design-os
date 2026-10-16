@@ -99,7 +99,8 @@ For each slot:
 
 Rebuilding is safe: slot ids come from the evidence, so `build` carries every answer to the
 slot with the same id. An answer whose slot is gone is parked in `guidelines.orphans.md`
-(never dropped); review it, move it or delete it.
+(never dropped); review it, move it or delete it. Answers are also kept in
+`guidelines.answers.json`; editing the `.md` is still how you answer.
 
 ### Step 3 — Check until clean
 

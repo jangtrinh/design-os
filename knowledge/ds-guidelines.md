@@ -46,7 +46,8 @@ exposes no API for guidelines files during its beta, so upload is a manual step 
 | `grammar.md` | the measured DO/DON'T lines, copied verbatim | `CONVENTIONS.md` |
 | `anti-patterns.md` | scenario slots and the measured gaps | rulings, conventions, persona, gaps |
 | `guidelines.manifest.json` | every rule with its sources, hashes, counts, skipped sources, stale files, seal | generated |
-| `guidelines.orphans.md` | answers whose slot no longer exists (only when there are some) | host answers |
+| `guidelines.answers.json` | the durable copy of every host answer, by slot id (appears with the first answer; never exported) | host answers |
+| `guidelines.orphans.md` | answers whose slot no longer exists, and answers that lost to another text (only when there are some) | host answers |
 
 Names are written as **explicit spans** — `` `token:color.surface-base` ``, `` `component:Button/Primary` ``,
 `` `term:Space` `` — and the linter reads only those spans. An ordinary code span is never judged;
@@ -98,21 +99,71 @@ system**, never as advice:
 - a declared colour pair below AA → the check `ui ds a11y`.
 
 Each gap is a generated rule that names the file (or check) and carries its gap id
-(`gap.component.<name>.<state>`, `gap.role.<role>`, `gap.a11y.<text>.on.<surface>`). A citation with no
+(`gap.component.<name>-<hash>.<state>`, `gap.role.<role>`, `gap.a11y.<text>.on.<surface>-<hash>`). A citation with no
 measured gap is never emitted by `build` and, when a host writes one, `check` warns `UNBOUND_KNOWLEDGE`.
 
 ## Slots and answers
 
-A slot is `> QUESTION(<slot-id>): <prompt> — evidence: <ids>`. Slot ids come from stable evidence, never from a counter, a line number or the order things arrive in
-(`ap-ruling-<raw id>`, `ap-conv-<section>-<hash of the DON'T label>`, `ap-persona-<text start>-<hash of the text>`,
-`ap-<gap id>`, `confusable.<first member>-<hash of the whole member set>`; a name that slugs lossily carries a
-hash of its raw text), so they survive rebuilds and an answer never moves to a neighbouring slot. The host writes `**Do:**`, `**Don't:**` and `**Why:**` directly under it; all
-three are required. A slot with none is `OPEN_QUESTION`, with some `SCENARIO_INCOMPLETE`.
+A slot is `> QUESTION(<slot-id>): <prompt> — evidence: <ids>`. Slot ids are **always**
+`<kind>-<short readable prefix>-<hash of the full raw evidence>`, never a counter, a line number, an index or
+the order things arrive in, and never a shortcut such as "the slug already is the name": `## Foo Bar` and
+`## foo-bar`, or the rulings `!!!` and `ruling`, stay distinct slots.
 
-A rebuild carries every answer — unfinished ones too — to the slot with the same id, reading them only from the files the previous manifest listed. An answer whose
-slot is gone is appended to `guidelines.orphans.md` and counted as `orphanedAnswers`; it is never
-dropped, and `check` warns until it is moved or deleted. Writes are staged (parked answers first, then every file moved into place only after all are written), so a failed write never loses an answer. `build` never deletes a file: one it did not
-produce is listed as `staleFiles`, `check` warns `STALE_FILE`, and neither `check` nor `export` reads it.
+| Slot | Id | Hash covers |
+|---|---|---|
+| ruling | `ap-ruling-<ruling id>-<hash>` | the raw ruling id |
+| convention | `ap-conv-<section>-<hash>` | the raw `## heading` line + the raw DON'T line (see below) |
+| persona | `ap-persona-<text start>-<hash>` | the full persona text |
+| gap | `ap-<gap id>` | gap ids carry their own hash: `gap.component.<name>-<hash>.<state>`, `gap.a11y.<text>.on.<surface>-<hash>`, `gap.role.<role>` |
+| look-alike names | `confusable.<first member>-<hash>` | the sorted member set |
+
+Identical evidence has the same id and renders **one** slot whose `evidence:` lists every line it came
+from. One deliberate exception to "the full raw line": a DON'T line is hashed with its digits, `%` and `*`
+removed (counts are rescanned data that change on every `ui synthesize-conventions` run and would orphan
+an answer each time), so two lines of one section that differ only in their numbers are one question.
+
+The host writes `**Do:**`, `**Don't:**` and `**Why:**` directly under the slot, in the `.md` file as always;
+all three are required. A slot with none is `OPEN_QUESTION`, with some `SCENARIO_INCOMPLETE`.
+
+### The answers store
+
+Answers used to live only inside generated files that `build` overwrites, so every guard around them left
+another way to lose one. They now also live in `guidelines.answers.json`, written by `build`:
+
+```json
+{ "version": 1, "answers": { "<slot id>": { "lines": ["**Do:** …", "**Don't:** …", "**Why:** …"], "file": "anti-patterns.md" } } }
+```
+
+On every `build`, before anything is rendered, answers are harvested from the previous store and from
+**every** `.md` in the pack folder (listed in the manifest or not) and from `guidelines.orphans.md`, then
+merged by slot id. For one id with different texts the winner is: the answer in the file this build puts
+the slot in, else the stored answer, else any other file (code-unit order of the path). Every different
+text that loses is parked in `guidelines.orphans.md` exactly once (the same id and text is never parked
+twice). The previous store's text is not a rival when the file's answer replaced it: that is you editing
+the answer in place. Then the order of writing is fixed: the **store first** (temp file + rename), the
+orphans file second, and only then every other file (staged, then renamed into place), so a failure at any
+later step cannot lose an answer.
+
+- An answer whose slot is gone stays in the store and appears in `guidelines.orphans.md` (counted as
+  `orphanedAnswers`; `check` warns `ORPHANED_ANSWERS`). It returns to its slot if the slot comes back.
+- Editing the `.md` is still how you answer. Because the store is a durable copy, **an answer deleted from a
+  `.md` is restored by the next build**. To discard an answer on purpose, delete its entry from
+  `guidelines.answers.json` as well as the text from the file. Parked answers likewise cannot be discarded
+  by editing the orphans file alone.
+- With the store missing, answers are recovered from the files and the orphans file and the store is
+  recreated. It appears with the first answer.
+- A malformed or wrong-version store is `BAD_ANSWERS_STORE`: `build` writes nothing, `check` reports an error,
+  `export` is refused (`PACK_INVALID`). Repair it, or delete it to rebuild it from the markdown.
+- `check` otherwise ignores the store, `export` never includes it, and `ds context` does not read it.
+- `build` never deletes a file: one it did not produce is listed as `staleFiles`, `check` warns `STALE_FILE`,
+  and neither `check` nor `export` lints or exports it (the store and the orphans file are never stale).
+
+Export keeps the previous bundle in `<out>/.figma-guidelines.previous` while the new one is written (a
+sibling of the staging folder, so cleaning the staging folder cannot delete it). It is removed only after
+the new bundle and `UPLOAD.md` are in place and is put back on any failure; if putting it back fails, both
+errors are reported and the backup stays on disk. A backup left by an interrupted export is never
+overwritten: the next export stops and names it. After a failure the message says what state the output
+folder is in, checked against what it held before, never assumed.
 
 ## The seal and `--allow-unsealed`
 

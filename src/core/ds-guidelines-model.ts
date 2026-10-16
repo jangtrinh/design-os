@@ -8,6 +8,8 @@
  */
 import { createHash } from "node:crypto";
 
+import type { AnswersStore } from "./ds-guidelines-answers.js";
+
 /** Where a rule comes from: a project-relative file plus the token path / component it names. */
 export interface RuleSource {
   /** Project-relative POSIX path of the source file (e.g. `design/design.tokens.json`). */
@@ -99,8 +101,8 @@ export interface ExistingPack {
   orphansText?: string;
   /** Every file in the pack folder (any extension), pack-relative POSIX paths. */
   allPaths?: string[];
-  /** The files the previous build's manifest listed; undefined when there was no readable manifest. */
-  listed?: string[];
+  /** The parsed guidelines.answers.json, when present (a malformed one never gets this far). */
+  store?: AnswersStore;
 }
 
 export const PACK_MANIFEST_NAME = "guidelines.manifest.json";
@@ -133,13 +135,14 @@ export function slug(raw: string): string {
 }
 
 /**
- * `slug(raw)` when the slug loses nothing (`raw` already is one), else `slug(raw)-<hash of raw>`.
- * Two different raw names can therefore never share an id, and an id depends only on its own raw
- * text — not on which other names exist or in what order they arrive — so answers stay attached.
+ * `<short readable prefix>-<hash of the full raw evidence>`, ALWAYS. The prefix is for people (a clipped
+ * slug of `readable`); the hash is the identity, so two different raw names never share an id and an id
+ * depends only on its own evidence — not on which others exist, their order, or a counter. There is no
+ * "the slug already is the name" shortcut: `Foo Bar` / `foo-bar` and `!!!` / `ruling` must stay distinct.
  */
-export function stableSlug(raw: string, fallback = "x"): string {
-  const s = slug(raw);
-  return s === raw && s !== "" ? s : `${s === "" ? fallback : s}-${shortHash(raw)}`;
+export function hashedSlug(readable: string, fallback = "x", evidence: string = readable): string {
+  const prefix = slug(readable).slice(0, 32).replace(/-+$/, "");
+  return `${prefix === "" ? fallback : prefix}-${shortHash(evidence)}`;
 }
 
 /** `base`, or `base-2`, `base-3`… when `used` already holds it. Records the result in `used`. */

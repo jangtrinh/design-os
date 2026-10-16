@@ -12,8 +12,8 @@ import { buildGrammarFile, buildSoulParts } from "./ds-guidelines-grammar-soul-s
 import { buildTerminologyFile, loadTerminology } from "./ds-guidelines-terminology-sections.js";
 import { findGaps } from "./ds-guidelines-gap-knowledge.js";
 import { buildAntiPatternsFile, seedScenarios } from "./ds-guidelines-scenario-seeds.js";
-import { collectAnswers, injectAnswers, orphanEntryCount, ORPHANS_FILE, parseSlots, renderOrphans } from "./ds-guidelines-slots.js";
-import type { ExistingAnswer } from "./ds-guidelines-slots.js";
+import { injectAnswers, orphanEntryCount, ORPHANS_FILE, parseSlots, renderOrphans } from "./ds-guidelines-slots.js";
+import { ANSWERS_FILE, mergeAnswers, renderAnswersStore } from "./ds-guidelines-answers.js";
 import { PACK_MANIFEST_NAME, compareText } from "./ds-guidelines-model.js";
 import type { ExistingPack, GuidelineFile, PackInputs, RuleSource, SkippedSource, StoreSourcePaths } from "./ds-guidelines-model.js";
 import { renderFile, sha256Hex } from "./ds-guidelines-render.js";
@@ -31,7 +31,7 @@ export interface SealState {
 }
 
 export interface BuiltPack {
-  /** Markdown files first, then the orphans file (when there is one), manifest last — write in this order. */
+  /** The answers store (once there is one), the markdown files, the orphans file (when there is one), the manifest last. The writer puts the store and the orphans file down first. */
   files: PackFileOutput[];
   ruleCount: number;
   openQuestions: number;
@@ -63,20 +63,18 @@ export function buildPack(
     .map((f) => ({ path: f.path, content: renderFile(f) }))
     .sort((a, b) => compareText(a.path, b.path));
 
-  // Rebuild keeps every answer: carried to the slot with the same id, or parked in the orphans file.
+  // Rebuild keeps every answer. They are harvested from the previous store and from EVERY markdown file in
+  // the pack folder (whether or not the last manifest listed it), merged by slot id, then carried to the
+  // slot with that id. What loses, or has no slot, is parked in the orphans file; nothing is dropped.
   const slots = rendered.flatMap((f) => parseSlots(f.content).map((s) => ({ id: s.id, file: f.path })));
-  const slotIds = new Set(slots.map((s) => s.id));
-  const carried = new Map<string, string[]>();
-  const orphans: ExistingAnswer[] = [];
-  // Answers are harvested only from files the previous build produced (its manifest's list); without a
-  // readable manifest, from the files this build produces. A stray or stale markdown file never feeds them.
-  const harvestFrom = new Set(existing.listed ?? rendered.map((r) => r.path));
-  for (const a of collectAnswers(existing.files.filter((f) => harvestFrom.has(f.path)))) {
-    if (slotIds.has(a.id) && !carried.has(a.id)) carried.set(a.id, a.lines);
-    else orphans.push(a);
-  }
+  const assigned = new Map<string, string>();
+  for (const s of slots) if (!assigned.has(s.id)) assigned.set(s.id, s.file);
+  const merged = mergeAnswers({ store: existing.store, files: existing.files, orphansText: existing.orphansText, assigned });
+  const carried = new Map([...merged.answers].filter(([id]) => assigned.has(id)).map(([id, a]) => [id, a.lines] as const));
   const markdown: PackFileOutput[] = rendered.map((f) => ({ path: f.path, content: injectAnswers(f.content, carried) }));
-  const orphansText = renderOrphans(existing.orphansText, orphans);
+  const orphansText = renderOrphans(existing.orphansText, merged.parked);
+  // The store appears with the first answer (and stays, even emptied, once it exists).
+  const storeText = merged.answers.size > 0 || existing.store !== undefined ? renderAnswersStore(merged.answers) : undefined;
 
   const rules: { id: string; file: string; sources: RuleSource[] }[] = [];
   const ids = new Set<string>();
@@ -96,7 +94,7 @@ export function buildPack(
     .map((d) => ({ file: d.file === "tokens" ? src.tokens : src.registry, expected: d.expected, actual: d.actual }))
     .sort((a, b) => compareText(a.file, b.file));
   const seal: SealState = drifted.length > 0 ? { status: "unverified", drifted } : { status: "verified" };
-  const produced = new Set([...markdown.map((f) => f.path), PACK_MANIFEST_NAME, ORPHANS_FILE]);
+  const produced = new Set([...markdown.map((f) => f.path), PACK_MANIFEST_NAME, ORPHANS_FILE, ANSWERS_FILE]);
   const staleFiles = (existing.allPaths ?? []).filter((path) => !produced.has(path)).sort();
   const manifest = {
     version: 1,
@@ -133,6 +131,7 @@ export function buildPack(
   };
   return {
     files: [
+      ...(storeText !== undefined ? [{ path: ANSWERS_FILE, content: storeText }] : []),
       ...markdown,
       ...(orphansText !== undefined ? [{ path: ORPHANS_FILE, content: orphansText }] : []),
       { path: PACK_MANIFEST_NAME, content: canonicalStringify(manifest) },

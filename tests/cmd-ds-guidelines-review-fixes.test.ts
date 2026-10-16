@@ -133,17 +133,17 @@ describe("1 — slot ids come from stable evidence, so an answer never moves to 
   });
 });
 
-describe("2 — answers are harvested only from the files the previous build listed", () => {
+describe("2 — a stray markdown copy never overrides a live answer", () => {
   it("an answer whose slot (and whole file) disappears is parked exactly once, however often the pack is rebuilt", () => {
     const p = project(["scenarios"]);
     build(p.dir);
-    fillSlot(join(p.pack, "anti-patterns.md"), /^> QUESTION\(ap-ruling-r-201\)/, answer("PARK-ME"));
+    fillSlot(join(p.pack, "anti-patterns.md"), /^> QUESTION\(ap-ruling-r-201-[0-9a-f]{8}\)/, answer("PARK-ME"));
     for (const f of [rulingsFile(p.dir), join(p.dir, "CONVENTIONS.md")]) writeFileSync(f, f.endsWith(".json") ? '{"rulings":[]}' : "# none\n");
     makeGapFree(p.dir);
     for (let i = 0; i < 3; i++) expect(build(p.dir).code).toBe(0);
     expect(existsSync(join(p.pack, "anti-patterns.md"))).toBe(true); // still on disk, but no longer produced
     expect(manifestOf(p.pack)["staleFiles"]).toContain("anti-patterns.md");
-    expect(count(orphansOf(p.pack), /^## orphan: ap-ruling-r-201 /gm)).toBe(1);
+    expect(count(orphansOf(p.pack), /^## orphan: ap-ruling-r-201-[0-9a-f]{8} /gm)).toBe(1);
     expect(manifestOf(p.pack)["orphanedAnswers"]).toBe(1);
   });
 
@@ -156,7 +156,9 @@ describe("2 — answers are harvested only from the files the previous build lis
     expect(build(p.dir).code).toBe(0);
     expect(read(comps)).toContain("REAL do.");
     expect(read(comps)).not.toContain("FAKE");
-    expect(orphansOf(p.pack)).toBe("");
+    // The stray copy disagrees, so its text is parked (once) instead of being silently dropped.
+    expect(count(orphansOf(p.pack), /^## orphan: /gm)).toBe(1);
+    expect(orphansOf(p.pack)).toContain("FAKE do.");
     expect(manifestOf(p.pack)["staleFiles"]).toEqual(["aaa.md"]);
   });
 });
@@ -167,7 +169,7 @@ describe("3 — writes are staged: a failure never loses an answer or leaves a p
     // (skipped where chmod cannot block writes: running as root, or on Windows)
     const p = project(["rulings"]);
     build(p.dir);
-    fillSlot(join(p.pack, "anti-patterns.md"), /^> QUESTION\(ap-ruling-r-002\)/, answer("MUST-SURVIVE"));
+    fillSlot(join(p.pack, "anti-patterns.md"), /^> QUESTION\(ap-ruling-r-002-[0-9a-f]{8}\)/, answer("MUST-SURVIVE"));
     writeFileSync(rulingsFile(p.dir), read(p.dir, "design", "knowledge", "rulings.json").replace("never wrap", "do wrap"));
     lock(join(p.pack, "apps", "alpha.md"), 0o444);
     lock(join(p.pack, "apps"), 0o555);
@@ -182,20 +184,21 @@ describe("3 — writes are staged: a failure never loses an answer or leaves a p
   it.skipIf(!canChmod)("a failure before anything is moved into place leaves the pack files untouched, and a retry does not park the answer twice", () => {
     const p = project(["rulings"]);
     build(p.dir);
-    fillSlot(join(p.pack, "anti-patterns.md"), /^> QUESTION\(ap-ruling-r-002\)/, answer("KEPT-AS-IS"));
-    const snapshot = (): string[] => listFiles(p.pack).filter((f) => f !== "guidelines.orphans.md").map((f) => `${f}\n${read(p.pack, f)}`);
+    fillSlot(join(p.pack, "anti-patterns.md"), /^> QUESTION\(ap-ruling-r-002-[0-9a-f]{8}\)/, answer("KEPT-AS-IS"));
+    const snapshot = (): string[] => listFiles(p.pack).filter((f) => f !== "guidelines.orphans.md" && f !== "guidelines.answers.json").map((f) => `${f}\n${read(p.pack, f)}`);
     const before = snapshot();
     writeFileSync(rulingsFile(p.dir), read(p.dir, "design", "knowledge", "rulings.json").replace("never wrap", "do wrap"));
     lock(join(p.dir, "design"), 0o555); // no staging folder can be created next to the pack
     const r = capture(["ds", "guidelines", "build", "--dir", p.dir, "--now", NOW, "--json"]);
     expect(r.code).toBe(1);
     expect((JSON.parse(r.out) as { error: { code: string } }).error.code).toBe("WRITE_ERROR");
-    expect(snapshot()).toEqual(before); // every pack file is exactly as it was, answer included
-    expect(count(orphansOf(p.pack), /^## orphan: ap-ruling-r-002 /gm)).toBe(1); // parked first, before the failure
+    expect(snapshot()).toEqual(before); // every generated file is exactly as it was, answer included
+    expect(read(p.pack, "guidelines.answers.json")).toContain("KEPT-AS-IS do."); // and the store already holds it
+    expect(count(orphansOf(p.pack), /^## orphan: ap-ruling-r-002-[0-9a-f]{8} /gm)).toBe(1); // parked first, before the failure
     // Clear the fault and retry: the old files still hold the answer, but it is parked only once.
     chmodSync(join(p.dir, "design"), 0o755);
     expect(build(p.dir).code).toBe(0);
-    expect(count(orphansOf(p.pack), /^## orphan: ap-ruling-r-002 /gm)).toBe(1);
+    expect(count(orphansOf(p.pack), /^## orphan: ap-ruling-r-002-[0-9a-f]{8} /gm)).toBe(1);
     expect(read(p.pack, "anti-patterns.md")).not.toContain("KEPT-AS-IS");
   });
 

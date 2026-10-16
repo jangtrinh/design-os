@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
 import { canonicalHash, canonicalStringify } from "../src/core/ds-manifest.js";
-import { shortHash, stableSlug } from "../src/core/ds-guidelines-model.js";
+import { hashedSlug, shortHash } from "../src/core/ds-guidelines-model.js";
 
 const FIXTURES = join(import.meta.dirname, "fixtures", "ds-guidelines");
 const REPO_ROOT = join(import.meta.dirname, "..");
@@ -87,16 +87,18 @@ function fill(file: string, slotId: string, answer: string[]): number {
 }
 
 const FULL = ["**Do:** Keep every header on one line.", "**Don't:** Let a header wrap.", "**Why:** Wrapped headers break the scan line."];
-// Slot ids are derived from stable evidence (a hash of the label, the raw name, the whole member set),
-// never from a counter or a line number — spelled out here so a change of the scheme is a visible diff.
+// Slot ids are ALWAYS <kind>-<readable prefix>-<hash of the full raw evidence> (the raw heading line and
+// DON'T line, the raw ruling id, the whole persona text, the raw names, the whole member set), never a
+// counter or a line number — spelled out here so a change of the scheme is a visible diff.
 const GAP = {
-  component: `gap.component.${stableSlug("Action/Button")}.disabled`,
+  component: `gap.component.${hashedSlug("Action/Button", "component")}.disabled`,
   a11y: `gap.a11y.color-accent-soft-text.on.color-accent-soft-${shortHash("color.accent-soft-text\u0000color.accent-soft")}`,
 };
 const SLOT = {
-  ruling: "ap-ruling-r-201",
-  ruling2: "ap-ruling-r-205",
-  conv: `ap-conv-layout-${shortHash("raw / absolute (none-layout) frames")}`,
+  ruling: `ap-ruling-r-201-${shortHash("r-201")}`,
+  ruling2: `ap-ruling-r-205-${shortHash("r-205")}`,
+  // The DON'T line is hashed with its digits, % and * removed (its counts are rescanned data).
+  conv: `ap-conv-layout-${shortHash("## Layout\u0000- DON'T — raw / absolute (NONE-layout) frames: (). Prefer auto-layout unless a deliberate overlay.")}`,
   persona: `ap-persona-gradient-hero-banners-${shortHash("gradient hero banners")}`,
   gapComponent: `ap-${GAP.component}`,
   gapA11y: `ap-${GAP.a11y}`,
@@ -121,7 +123,7 @@ describe("scenario slots (anti-patterns.md)", () => {
     expect(ap.match(/^> QUESTION\(/gm)).toHaveLength(6);
 
     // Each slot sits directly under its own scenario title.
-    expect(ap).toMatch(/^### Ruling r-201 — tables\n> QUESTION\(ap-ruling-r-201\)/m);
+    expect(ap).toMatch(/^### Ruling r-201 — tables\n> QUESTION\(ap-ruling-r-201-[0-9a-f]{8}\)/m);
     expect(ap).toMatch(/^### Persona anti-pattern: gradient hero banners\n> QUESTION\(/m);
     // Not seeded: no keyword (r-202), process tier (r-203), superseded with "Never" (r-204).
     // Also not seeded: "Do nothing" is not the keyword "do not" (r-206).

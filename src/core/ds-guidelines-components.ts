@@ -110,9 +110,9 @@ export function buildComponentsFile(
 
   const clusters = findConfusableClusters(components.map((c) => c.name));
   if (clusters.length > 0) {
-    const usedSlotIds = new Set<string>();
-    // The id covers the WHOLE member set: when the set changes the question changes, and the old answer is parked, not reused.
-    const slotIds = clusters.map((cl) => uniqueId(`confusable.${slug(cl.names[0] ?? "")}-${shortHash(cl.names.join("\n"))}`, usedSlotIds));
+    // The id covers the WHOLE sorted member set: when the set changes the question changes, and the old
+    // answer is parked, not reused. It never depends on an index or on which other clusters exist.
+    const slotIds = clusters.map((cl) => `confusable.${slug(cl.names[0] ?? "")}-${shortHash([...cl.names].sort(compareText).join("\n"))}`);
     const rules: RuleEntry[] = clusters.map((cl, i) => ({
       id: `components.${slotIds[i]}`,
       text: `- ${cl.names.map(componentSpan).join(", ")} — look-alike names (${cl.reasons.join("; ")})`,

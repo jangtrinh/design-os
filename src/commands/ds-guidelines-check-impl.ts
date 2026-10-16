@@ -3,7 +3,7 @@
  * `--profile figma --bundle <dir>`) validate an exported Figma bundle against Figma's limits.
  */
 import { compareText } from "../core/ds-guidelines-model.js";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
@@ -52,12 +52,19 @@ export function runCheckOn(
 /** `check --profile figma --bundle <dir>`: Figma's limits on a bundle folder. No design system needed. */
 export function runFigmaProfileCheck(bundleFlag: string, useJson: boolean): CommandResult {
   const bundle = resolve(bundleFlag);
-  if (!existsSync(bundle) || !statSync(bundle).isDirectory()) {
-    const message = `no Figma bundle folder at '${bundle}' — run 'ui ds guidelines export --target figma' first`;
-    return useJson ? errJson(CMD, "BUNDLE_NOT_FOUND", message) : errText(`ui: ${message}\n`);
-  }
   let files: { path: string; bytes: number; text: string }[];
   try {
+    // Only "it is not there" (or not a folder) is BUNDLE_NOT_FOUND; a folder we cannot stat or list is READ_ERROR.
+    let isDirectory = false;
+    try {
+      isDirectory = statSync(bundle).isDirectory();
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT" && (e as NodeJS.ErrnoException).code !== "ENOTDIR") throw e;
+    }
+    if (!isDirectory) {
+      const message = `no Figma bundle folder at '${bundle}' — run 'ui ds guidelines export --target figma' first`;
+      return useJson ? errJson(CMD, "BUNDLE_NOT_FOUND", message) : errText(`ui: ${message}\n`);
+    }
     files = readdirSync(bundle, { recursive: true, withFileTypes: true }).filter((e) => e.isFile()).map((e) => {
       const abs = join(e.parentPath, e.name);
       const buf = readFileSync(abs);

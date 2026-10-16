@@ -14,12 +14,14 @@
   `CONVENTIONS.md` feeds grammar (copied verbatim), `design/soul.md` feeds a capped overview summary.
 - Gap-bound knowledge: general design knowledge enters only as the answer to a gap measured in the
   design system (a control without a disabled state, a colour role no token plays, a failing colour
-  pair), always with its gap id. A rebuild keeps every answer by slot id and parks answers whose slot is
-  gone in `guidelines.orphans.md`. `build` never deletes files; ones it did not produce are listed as
-  stale and `check` warns. Slot ids come from stable evidence (a hash of the DON'T label, the raw
-  ruling id, the full persona text, the whole look-alike member set), answers are carried only from
-  files the previous manifest listed, writes are staged so a failure never loses an answer, and the
-  pack is byte-identical on every machine whatever its locale.
+  pair), always with its gap id. Answers are kept in `guidelines.answers.json`, written before any other
+  file and harvested from every markdown file in the pack folder on each rebuild, so a failed write never
+  loses one; answers whose slot is gone or that lost to another text are parked in
+  `guidelines.orphans.md`. `build` never deletes files; ones it did not produce are listed as stale and
+  `check` warns. Slot ids are always a readable prefix plus a hash of the full evidence (raw heading and
+  DON'T line, raw ruling id, full persona text, raw names, sorted member set), identical evidence is one
+  slot, a re-export keeps the previous bundle in `<out>/.figma-guidelines.previous` until the new one is in
+  place, and the pack is byte-identical on every machine whatever its locale.
 - `--allow-unsealed` on `build` and `check` accepts a store whose files drifted from their sealed hashes;
   the manifest records the drift, `check` warns `SEAL_UNVERIFIED` and `UPLOAD.md` says "Sources unverified".
   The default still refuses with `DS_TAMPERED`.

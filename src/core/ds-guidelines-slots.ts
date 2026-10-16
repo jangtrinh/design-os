@@ -78,7 +78,8 @@ export function injectAnswers(content: string, answers: ReadonlyMap<string, read
 export interface ExistingAnswer {
   id: string;
   file: string;
-  line: number;
+  /** 1-based line of the slot; absent when the answer came from the store or the orphans file. */
+  line?: number;
   prompt: string;
   lines: string[];
 }
@@ -100,6 +101,17 @@ const ORPHANS_HEADER = [
 ].join("\n");
 
 export const orphanEntryCount = (text: string): number => (text.match(/^## orphan: /gm) ?? []).length;
+
+/** Every parked answer in an orphans file (so a lost store can be rebuilt from it). `file` is the orphans file. */
+export function parseOrphanEntries(text: string | undefined): ExistingAnswer[] {
+  if (text === undefined) return [];
+  return text.split(/^## orphan: /m).slice(1).flatMap((chunk) => {
+    const id = /^(\S+)/.exec(chunk)?.[1];
+    const m = /\n\nSlot prompt: ([^\n]*)\n\n([\s\S]*)$/.exec(chunk);
+    const lines = (m?.[2] ?? "").replace(/\r/g, "").trim().split("\n");
+    return id === undefined || m === null || lines.join("").trim() === "" ? [] : [{ id, file: ORPHANS_FILE, prompt: m[1] ?? "", lines }];
+  });
+}
 
 /** `id` + answer text of every entry already in an orphans file: what must not be appended twice. */
 function knownOrphans(text: string): Set<string> {
@@ -129,6 +141,6 @@ export function renderOrphans(existing: string | undefined, orphans: readonly Ex
   });
   if (fresh.length === 0) return base;
   const entries = fresh.map((o) =>
-    `\n## orphan: ${o.id} (was ${o.file}:${o.line})\n\nSlot prompt: ${o.prompt}\n\n${o.lines.join("\n")}\n`);
+    `\n## orphan: ${o.id} (was ${o.file}${o.line !== undefined ? `:${o.line}` : ""})\n\nSlot prompt: ${o.prompt}\n\n${o.lines.join("\n")}\n`);
   return base.trimEnd() + "\n" + entries.join("");
 }

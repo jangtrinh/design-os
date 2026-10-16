@@ -178,18 +178,28 @@ Subcommands:
   (UNKNOWN_NAME) and rejects a slot answer (a **Do:** / **Don't:** / **Why:** line) that uses an _Avoid_ word.
   anti-patterns.md holds scenario slots seeded from evidence (rulings saying never/always/do not, CONVENTIONS.md
   DON'T lines, persona anti-patterns, gaps that need a decision) and the measured gaps themselves. Slot ids come
-  from the evidence, so a rebuild keeps each answer attached: 'build' carries every answer (complete or not)
-  to the slot with the same id and parks an answer whose slot is gone in guidelines.orphans.md (never dropped;
-  manifest orphanedAnswers). Knowledge (knowledge/*.md) is cited only as the answer to a measured gap, always
+  from the evidence (<kind>-<readable prefix>-<hash of the full raw evidence>, never a counter), so a rebuild
+  keeps each answer attached: identical evidence is ONE slot listing every line it came from.
+  Answers live in guidelines.answers.json (written by 'build', never by hand unless you discard one):
+  { version: 1, answers: { <slot id>: { lines, file } } }. Editing the .md is still how you answer. On every
+  'build' the answers are harvested from the previous store and from EVERY .md in the pack folder (listed or
+  not) and the parked-answers file, merged by slot id (the answer in the file the slot is in wins, then the
+  stored one, then any other file in path order), and written to the store FIRST. Any different text that
+  loses, and any answer whose slot is gone, is parked in guidelines.orphans.md once (never dropped; manifest
+  orphanedAnswers); a gone slot's answer also stays in the store and returns with the slot. An answer
+  deleted from a .md therefore comes back from the store: to discard one, delete it from the store (and the
+  file). A malformed store is BAD_ANSWERS_STORE ('build' writes nothing, 'check' errors, export is refused).
+  Knowledge (knowledge/*.md) is cited only as the answer to a measured gap, always
   with its gap id (gap.component.*, gap.role.*, gap.a11y.*). 'check' reports each unanswered slot as an
   OPEN_QUESTION warning, an answer missing Do/Don't/Why as SCENARIO_INCOMPLETE, a hand-written knowledge
   citation without a measured gap id as UNBOUND_KNOWLEDGE, and waiting orphans as ORPHANED_ANSWERS (warnings).
-  Writes are staged: parked answers (guidelines.orphans.md) are written first, every other file is written
-  to a staging folder and moved into place only when all are written, so a failure (WRITE_ERROR) never loses
-  an answer; export writes figma-guidelines/ and UPLOAD.md together or not at all. Answers are carried only
-  from files the previous manifest listed. Slot ids come from stable evidence (a hash of the DON'T label,
-  the raw ruling id, the full persona text, the whole look-alike member set), and ordering never depends on
-  the machine's locale: the same inputs give the same bytes anywhere.
+  Writes are staged: the answers store, then the parked answers, are written first (temp file + rename),
+  every other file goes to a staging folder and is moved into place only when all are written, so a failure
+  (WRITE_ERROR) never loses an answer. Export writes figma-guidelines/ and UPLOAD.md together or not at all:
+  the previous bundle waits in <out>/.figma-guidelines.previous until the new one is in place, is put back on
+  failure (the error says what state the output folder is in, checked, never assumed) and is never deleted
+  when it cannot be put back. The store is never exported and 'ds context' ignores it. Ordering never depends
+  on the machine's locale: the same inputs give the same bytes anywhere.
   Stale files: 'build' never deletes. A file in the pack folder that the build did not produce is listed in the
   manifest as staleFiles; 'check' warns STALE_FILE for it, does not lint it, and export ignores it.
   Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
@@ -339,6 +349,7 @@ Error codes:
   BUNDLE_EXTENSION   'check --profile figma': a bundle file is not .md, .txt or .json
   BUNDLE_DIR_NOT_CLEAN 'export': the bundle folder holds files this export does not produce
   BUNDLE_NOT_FOUND   'check --profile figma': no such bundle folder
+  BAD_ANSWERS_STORE  'ds guidelines build|check|export': guidelines.answers.json is not a valid { version: 1, answers } store
   BUILD_FAILED       'ds guidelines build' hit an unexpected defect in the pack builder (reported, not a crash)
   EXPORT_FAILED      'ds guidelines export' hit an unexpected defect assembling the bundle
   SEAL_UNVERIFIED    'ds guidelines check --allow-unsealed' warning: a store file no longer matches its sealed hash
