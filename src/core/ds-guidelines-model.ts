@@ -21,6 +21,8 @@ export interface RuleSource {
   term?: string;
   /** Heading of the CONVENTIONS.md section the rule is copied from. */
   section?: string;
+  /** Canonical colour role (e.g. `card`), when the rule is about a role no token plays. */
+  role?: string;
 }
 
 export interface RuleEntry {
@@ -86,6 +88,14 @@ export class GuidelinesInputError extends Error {
     this.name = "GuidelinesInputError";
     this.code = code;
   }
+}
+
+/** A pack as it sits on disk before a rebuild — the source of answers to carry forward. */
+export interface ExistingPack {
+  /** Markdown files of the pack (the orphans file excluded). */
+  files: { path: string; text: string }[];
+  /** Current text of guidelines.orphans.md, when present. */
+  orphansText?: string;
 }
 
 export const PACK_MANIFEST_NAME = "guidelines.manifest.json";

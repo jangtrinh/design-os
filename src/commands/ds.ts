@@ -159,6 +159,14 @@ Subcommands:
   CONVENTIONS.md -> grammar.md (DO/DON'T lines copied verbatim, never re-derived; absent = 'not measured yet');
   design/soul.md -> a capped stance summary in overview.md. With a glossary, 'check' judges term: spans
   (UNKNOWN_NAME) and rejects a slot answer (a **Do:** / **Don't:** / **Why:** line) that uses an _Avoid_ word.
+  anti-patterns.md holds scenario slots seeded from evidence (rulings saying never/always/do not, CONVENTIONS.md
+  DON'T lines, persona anti-patterns, gaps that need a decision) and the measured gaps themselves. Slot ids come
+  from the evidence, so a rebuild keeps each answer attached: 'build' carries every answer (complete or not)
+  to the slot with the same id and parks an answer whose slot is gone in guidelines.orphans.md (never dropped;
+  manifest orphanedAnswers). Knowledge (knowledge/*.md) is cited only as the answer to a measured gap, always
+  with its gap id (gap.component.*, gap.role.*, gap.a11y.*). 'check' reports each unanswered slot as an
+  OPEN_QUESTION warning, an answer missing Do/Don't/Why as SCENARIO_INCOMPLETE, a hand-written knowledge
+  citation without a measured gap id as UNBOUND_KNOWLEDGE, and waiting orphans as ORPHANED_ANSWERS (warnings).
   Optional inputs that are absent (no baked roles, no measurable colour pairs, no components)
   are listed under skippedSources in the manifest and never fail the build.
 
@@ -287,6 +295,10 @@ Error codes:
   SUPERSEDED_CITED   'ds guidelines check' finding: host-written text cites a superseded ruling id
   DUPLICATE_RULE     'ds guidelines check' finding: the same rule text sits in two files
   AVOIDED_TERM       'ds guidelines check' finding: a slot answer uses a word the glossary lists as _Avoid_
+  SCENARIO_INCOMPLETE 'ds guidelines check' finding: an answer lacks one of Do / Don't / Why
+  OPEN_QUESTION      'ds guidelines check' warning: a slot has no answer yet
+  UNBOUND_KNOWLEDGE  'ds guidelines check' warning: a knowledge citation without a measured gap id
+  ORPHANED_ANSWERS   'ds guidelines check' warning: answers wait in guidelines.orphans.md
   SEAL_UNVERIFIED    'ds guidelines check --allow-unsealed' warning: a store file no longer matches its sealed hash
   PACK_INCOMPLETE    'ds guidelines check' finding: a manifest-listed file or generated block is missing
   BAD_RULINGS        'ds guidelines build|check' rulings file is not the expected { rulings: [...] } shape

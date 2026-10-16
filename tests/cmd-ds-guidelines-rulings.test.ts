@@ -41,7 +41,9 @@ const listFiles = (dir: string): string[] =>
 interface Finding { code: string; file: string; line: number; message: string }
 const check = (dir: string, extra: string[] = []): { code: number; findings: Finding[] } => {
   const r = capture(["ds", "guidelines", "check", "--dir", dir, "--json", ...extra]);
-  return { code: r.code, findings: (JSON.parse(r.out) as { data: { findings: Finding[] } }).data.findings };
+  // Open slots are expected in a fresh pack (covered by the scenarios tests); these assertions are about everything else.
+  const findings = (JSON.parse(r.out) as { data: { findings: Finding[] } }).data.findings.filter((f) => f.code !== "OPEN_QUESTION");
+  return { code: r.code, findings };
 };
 const manifestOf = (pack: string): Record<string, unknown> => JSON.parse(read(pack, "guidelines.manifest.json")) as Record<string, unknown>;
 
@@ -50,7 +52,7 @@ describe("ds guidelines build — rulings tiers", () => {
     const { dir, pack } = project();
     expect(build(dir).code).toBe(0);
     expect(listFiles(pack)).toEqual([
-      "apps/alpha.md", "apps/beta.md", "components.md", "grammar.md", "guidelines.manifest.json", "overview.md", "rulings.md", "vocabulary.md",
+      "anti-patterns.md", "apps/alpha.md", "apps/beta.md", "components.md", "grammar.md", "guidelines.manifest.json", "overview.md", "rulings.md", "vocabulary.md",
     ]);
 
     const a = read(pack, "rulings.md");
@@ -159,21 +161,25 @@ describe("ds guidelines check — rulings", () => {
     const { dir, pack } = project();
     build(dir);
     const first = read(pack, "rulings.md").split("\n").findIndex((l) => l.startsWith("- **r-001**")) + 1;
-    writeFileSync(join(pack, "anti-patterns.md"), "# Anti-patterns\n\n- REUSE the shared card, before building a new container!\n");
+    const before = read(pack, "anti-patterns.md");
+    writeFileSync(join(pack, "anti-patterns.md"), `${before}\n- REUSE the shared card, before building a new container!\n`);
+    const line = before.split("\n").length + 1;
     const text = capture(["ds", "guidelines", "check", "--dir", dir]);
     expect(text.code).toBe(1);
-    expect(text.out).toMatch(new RegExp(`^ {2}✗ \\[DUPLICATE_RULE\\] anti-patterns\\.md:3: same rule as rulings\\.md:${first} `, "m"));
+    expect(text.out).toMatch(new RegExp(`^ {2}✗ \\[DUPLICATE_RULE\\] anti-patterns\\.md:${line}: same rule as rulings\\.md:${first} `, "m"));
     expect(check(dir).findings).toHaveLength(1);
   });
 
   it("G-CHECK-DUP: short list items and repeats inside one file are not duplicates", () => {
     const { dir, pack } = project();
     build(dir);
-    writeFileSync(join(pack, "anti-patterns.md"), "- none yet\n- none yet\n- Reuse the shared card before building a new container.\n- Reuse the shared card before building a new container.\n");
+    const before = read(pack, "anti-patterns.md");
+    writeFileSync(join(pack, "anti-patterns.md"), `${before}\n- none yet\n- none yet\n- Reuse the shared card before building a new container.\n- Reuse the shared card before building a new container.\n`);
+    const base = before.split("\n").length + 1;
     writeFileSync(join(pack, "scenarios.md"), "- none yet\n");
     // Both copies repeat the ruling that rulings.md owns, so each is reported.
     expect(check(dir).findings.map((f) => `${f.code}:${f.file}:${f.line}`)).toEqual([
-      "DUPLICATE_RULE:anti-patterns.md:3", "DUPLICATE_RULE:anti-patterns.md:4",
+      `DUPLICATE_RULE:anti-patterns.md:${base + 2}`, `DUPLICATE_RULE:anti-patterns.md:${base + 3}`,
     ]);
   });
 

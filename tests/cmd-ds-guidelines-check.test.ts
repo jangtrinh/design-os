@@ -38,7 +38,10 @@ interface Finding { code: string; severity: string; file: string; line: number; 
 interface CheckData { findings: Finding[]; errorCount: number; filesChecked: number; termSpansUnchecked: number }
 const checkJson = (dir: string, extra: string[] = []): { code: number; data: CheckData } => {
   const r = capture(["ds", "guidelines", "check", "--dir", dir, "--json", ...extra]);
-  return { code: r.code, data: (JSON.parse(r.out) as { data: CheckData }).data };
+  const data = (JSON.parse(r.out) as { data: CheckData }).data;
+  // Open slots are expected in a fresh pack (covered by the scenarios tests); these assertions are about everything else.
+  data.findings = data.findings.filter((f) => f.code !== "OPEN_QUESTION");
+  return { code: r.code, data };
 };
 
 /** Append text to a pack file and return the 1-based line the appended text starts on. */
@@ -53,11 +56,11 @@ describe("ui ds guidelines check — names", () => {
     const { dir } = builtProject();
     const r = capture(["ds", "guidelines", "check", "--dir", dir]);
     expect(r.code).toBe(0);
-    expect(r.out).toMatch(/^ds guidelines check: .* — 0 error\(s\)$/m);
+    expect(r.out).toMatch(/^ds guidelines check: .* — 0 error\(s\)(, \d+ warning\(s\))?$/m);
     const j = checkJson(dir);
     expect(j.code).toBe(0);
     expect(j.data.findings).toEqual([]);
-    expect(j.data.filesChecked).toBe(4);
+    expect(j.data.filesChecked).toBe(5);
   });
 
   it("G-CHECK-NAME: an invented component span is UNKNOWN_NAME with file:line (exit 1)", () => {

@@ -44,7 +44,8 @@ interface Finding { code: string; file: string; line: number; message: string }
 const check = (dir: string): { code: number; findings: Finding[]; unchecked: number } => {
   const r = capture(["ds", "guidelines", "check", "--dir", dir, "--json"]);
   const data = (JSON.parse(r.out) as { data: { findings: Finding[]; termSpansUnchecked: number } }).data;
-  return { code: r.code, findings: data.findings, unchecked: data.termSpansUnchecked };
+  // Open slots are expected in a fresh pack (covered by the scenarios tests); these assertions are about everything else.
+  return { code: r.code, findings: data.findings.filter((f) => f.code !== "OPEN_QUESTION"), unchecked: data.termSpansUnchecked };
 };
 
 describe("terminology (CONTEXT.md + ontology glossary)", () => {
@@ -190,7 +191,7 @@ describe("check — glossary", () => {
     const { dir, pack } = project();
     put(dir, "ontology/glossary.yaml", read(dir, "ontology", "glossary.yaml").replace("avoid: [bill]", "avoid: [bill, panel]"));
     build(dir);
-    writeFileSync(join(pack, "components.md"), `${read(pack, "components.md")}\n**Do:** use a panel for each group.\n`);
+    writeFileSync(join(pack, "components.md"), `${read(pack, "components.md")}\n**Do:** use a panel for each group.\n**Don't:** skip grouping.\n**Why:** it keeps fields together.\n`);
     expect(check(dir)).toEqual({ code: 0, findings: [], unchecked: 0 });
   });
 

@@ -106,6 +106,7 @@ const FILE_DESCRIPTIONS: Readonly<Record<string, string>> = {
   "rulings.md": "owner rulings that bind the whole library",
   "terminology.md": "canonical terms with definitions and the synonyms to avoid",
   "grammar.md": "measured house style: DO/DON'T lines with counts",
+  "anti-patterns.md": "scenario slots (Do/Don't/Why) and measured gaps with the knowledge that answers them",
 };
 
 function describeFile(path: string): string {

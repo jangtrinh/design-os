@@ -56,7 +56,8 @@ interface Finding { code: string; severity: string; file: string; line: number; 
 const checkJson = (dir: string, extra: string[] = []): { code: number; findings: Finding[]; errorCount: number } => {
   const r = capture(["ds", "guidelines", "check", "--dir", dir, "--json", ...extra]);
   const data = (JSON.parse(r.out) as { data: { findings: Finding[]; errorCount: number } }).data;
-  return { code: r.code, findings: data.findings, errorCount: data.errorCount };
+  // Open slots are expected in a fresh pack (covered by the scenarios tests); these assertions are about everything else.
+  return { code: r.code, findings: data.findings.filter((f) => f.code !== "OPEN_QUESTION"), errorCount: data.errorCount };
 };
 
 describe("--allow-unsealed (build)", () => {
@@ -151,7 +152,7 @@ describe("--allow-unsealed (check)", () => {
     ]);
     const text = capture(["ds", "guidelines", "check", "--dir", dir, "--allow-unsealed"]);
     expect(text.code).toBe(0);
-    expect(text.out).toMatch(/^ds guidelines check: .* — 0 error\(s\), 1 warning\(s\)$/m);
+    expect(text.out).toMatch(/^ds guidelines check: .* — 0 error\(s\), \d+ warning\(s\)$/m);
     expect(text.out).toMatch(/^ {2}! \[SEAL_UNVERIFIED\] design\/component-registry\.json:1: /m);
   });
 
@@ -160,7 +161,7 @@ describe("--allow-unsealed (check)", () => {
     build(dir);
     const text = capture(["ds", "guidelines", "check", "--dir", dir, "--allow-unsealed"]);
     expect(text.code).toBe(0);
-    expect(text.out).toMatch(/^ds guidelines check: .* — 0 error\(s\)$/m);
+    expect(text.out).toMatch(/^ds guidelines check: .* — 0 error\(s\)(, \d+ warning\(s\))?$/m);
     expect(text.out).not.toMatch(/SEAL_UNVERIFIED/);
   });
 

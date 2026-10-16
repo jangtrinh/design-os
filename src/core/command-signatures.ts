@@ -932,7 +932,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "allow-unsealed", type: "boolean", summary: "Proceed when the store no longer matches its sealed hashes (manifest seal.status unverified; check warns SEAL_UNVERIFIED)" },
           { name: "now", type: "string", summary: "'build' only: ISO clock written to the manifest; same store + same --now = identical bytes" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "PACK_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "BAD_RULINGS", "UNKNOWN_NAME", "GENERATED_BLOCK_TAMPERED", "SUPERSEDED_CITED", "AVOIDED_TERM", "DUPLICATE_RULE", "PACK_INCOMPLETE", "SEAL_UNVERIFIED"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "PACK_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "BAD_RULINGS", "UNKNOWN_NAME", "GENERATED_BLOCK_TAMPERED", "SUPERSEDED_CITED", "AVOIDED_TERM", "DUPLICATE_RULE", "PACK_INCOMPLETE", "SEAL_UNVERIFIED", "SCENARIO_INCOMPLETE", "OPEN_QUESTION", "UNBOUND_KNOWLEDGE", "ORPHANED_ANSWERS"],
       },
     },
   },

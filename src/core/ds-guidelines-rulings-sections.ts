@@ -26,6 +26,8 @@ export interface RulingsStats {
 
 export interface RulingsSections {
   files: GuidelineFile[];
+  /** Rulings that reached the pack (tiers A, other library-wide, B), each once. */
+  emitted: Ruling[];
   skipped: SkippedSource[];
   stats?: RulingsStats;
 }
@@ -59,7 +61,7 @@ function categoryParts(rulings: readonly Ruling[], rulingsPath: string, prefix: 
 
 export function buildRulingsSections(input: OptionalInput): RulingsSections {
   if (input.text === undefined) {
-    return { files: [], skipped: [{ path: input.path, reason: "file not found — rulings.md and apps/ omitted" }] };
+    return { files: [], emitted: [], skipped: [{ path: input.path, reason: "file not found — rulings.md and apps/ omitted" }] };
   }
   const rulings = parseRulings(input.text, input.path);
   const tiers = { A: [] as Ruling[], AOther: [] as Ruling[], B: [] as Ruling[], C: [] as Ruling[], superseded: [] as Ruling[] };
@@ -109,6 +111,7 @@ export function buildRulingsSections(input: OptionalInput): RulingsSections {
   for (const r of rulings) byCategory[r.category] = (byCategory[r.category] ?? 0) + 1;
   return {
     files,
+    emitted: [...tiers.A, ...tiers.AOther, ...tiers.B],
     skipped: [],
     stats: {
       total: rulings.length, tierA: tiers.A.length, tierAOther: tiers.AOther.length, tierB: tiers.B.length, tierC: tiers.C.length,

@@ -9,7 +9,7 @@ import { canonicalHash, canonicalStringify } from "../src/core/ds-manifest.js";
 
 const FIXTURE = join(import.meta.dirname, "fixtures", "ds-guidelines", "basic");
 const NOW = "2026-10-15T00:00:00Z";
-const PACK_FILES = ["components.md", "grammar.md", "guidelines.manifest.json", "overview.md", "vocabulary.md"];
+const PACK_FILES = ["anti-patterns.md", "components.md", "grammar.md", "guidelines.manifest.json", "overview.md", "vocabulary.md"];
 
 function capture(args: string[]): { code: number; out: string; err: string } {
   let out = "";
@@ -57,7 +57,7 @@ function listFiles(dir: string): string[] {
     .sort();
 }
 
-interface ManifestRule { id: string; file: string; sources: { path: string; token?: string; component?: string }[] }
+interface ManifestRule { id: string; file: string; sources: { path: string; token?: string; component?: string; role?: string }[] }
 interface PackManifest {
   generatedAt: string;
   files: { path: string; bytes: number; sha: string }[];
@@ -98,7 +98,7 @@ describe("ui ds guidelines build", () => {
     expect(overview).toMatch(/^- Persona: calm-ledger \/ calm$/m);
 
     const m = readManifest(out);
-    expect(m.files.map((f) => f.path)).toEqual(["components.md", "grammar.md", "overview.md", "vocabulary.md"]);
+    expect(m.files.map((f) => f.path)).toEqual(["anti-patterns.md", "components.md", "grammar.md", "overview.md", "vocabulary.md"]);
     for (const f of m.files) expect(f.bytes).toBe(readFileSync(join(out, f.path)).length);
     expect(m.generatedAt).toBe(NOW);
   });
@@ -144,7 +144,7 @@ describe("ui ds guidelines build", () => {
       expect(rule.sources.length, `${rule.id} has no source`).toBeGreaterThan(0);
       for (const s of rule.sources) {
         expect(existsSync(join(dir, s.path)), `${rule.id}: ${s.path} missing`).toBe(true);
-        expect(s.token !== undefined || s.component !== undefined, `${rule.id}: source names nothing`).toBe(true);
+        expect(s.token !== undefined || s.component !== undefined || s.role !== undefined, `${rule.id}: source names nothing`).toBe(true);
         if (s.token !== undefined) {
           const [cat, ...rest] = s.token.split(".");
           expect(tokens[cat ?? ""]?.[rest.join(".")], `${rule.id}: token ${s.token} not in store`).toBeDefined();
@@ -210,8 +210,8 @@ describe("ui ds guidelines build", () => {
     expect(env.ok).toBe(true);
     expect(env.command).toBe("ds guidelines");
     expect(env.data.out).toBe(join(dir, "design", "guidelines"));
-    expect(env.data.files).toEqual(["components.md", "grammar.md", "overview.md", "vocabulary.md"]);
-    expect(env.data.openQuestions).toBe(2);
+    expect(env.data.files).toEqual(["anti-patterns.md", "components.md", "grammar.md", "overview.md", "vocabulary.md"]);
+    expect(env.data.openQuestions).toBe(3); // 2 confusable pairs + the failing colour pair
     expect(env.data.ruleCount).toBeGreaterThan(10);
   });
 

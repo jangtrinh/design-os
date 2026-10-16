@@ -22,7 +22,7 @@ import { buildPack } from "../core/ds-guidelines-pack.js";
 import { GuidelinesInputError } from "../core/ds-guidelines-model.js";
 import type { PackInputs, StoreSourcePaths } from "../core/ds-guidelines-model.js";
 import { runCheckOn } from "./ds-guidelines-check-impl.js";
-import { readPackInputs } from "./ds-guidelines-inputs.js";
+import { readExistingPack, readPackInputs } from "./ds-guidelines-inputs.js";
 
 const CMD = "ds guidelines";
 const posix = (p: string): string => p.split("\\").join("/");
@@ -74,7 +74,7 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
 
   let pack;
   try {
-    pack = buildPack(loaded.ds, loaded.src, now, loaded.inputs);
+    pack = buildPack(loaded.ds, loaded.src, now, loaded.inputs, readExistingPack(loaded.packDir));
   } catch (e) {
     if (e instanceof GuidelinesInputError) return err(e.code, e.message);
     throw e;
@@ -93,7 +93,7 @@ function runBuild(parsed: ParsedArgs, err: Err): CommandResult {
   if (parsed.json) {
     return okJson(CMD, {
       out: loaded.packDir, files: markdownFiles, ruleCount: pack.ruleCount,
-      openQuestions: pack.openQuestions, skippedSources: pack.skipped, seal: pack.seal, generatedAt: now,
+      openQuestions: pack.openQuestions, orphanedAnswers: pack.orphanedAnswers, skippedSources: pack.skipped, seal: pack.seal, generatedAt: now,
     });
   }
   return ok([

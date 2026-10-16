@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import type { GuidelineFile } from "./ds-guidelines-model.js";
 
 export const BLOCK_CLOSE = "<!-- /ds-guidelines:generated -->";
-const BLOCK_OPEN_PREFIX = "<!-- ds-guidelines:generated";
+export const BLOCK_OPEN_PREFIX = "<!-- ds-guidelines:generated";
 const BLOCK_OPEN_RE = /^<!-- ds-guidelines:generated id=([A-Za-z0-9._-]+) sha=([0-9a-f]{12}) -->$/;
 
 export const tokenSpan = (path: string): string => `\`token:${path}\``;
