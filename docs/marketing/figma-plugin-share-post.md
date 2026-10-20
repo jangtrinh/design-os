@@ -83,7 +83,7 @@ one.
 **5/** 839 tests. 4 adversarial review rounds where every blocker was reproduced before it
 was believed. ~1ms to apply 200 changes into a 10,000-component registry.
 
-Open source, MIT: github.com/jangtrinh/design-os
+Source-available (PolyForm Shield 1.0.0): github.com/jangtrinh/design-os
 
 ---
 
