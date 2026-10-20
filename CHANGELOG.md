@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 - 0.6.1 license change
+
+### Changed
+- License changed from MIT to the [PolyForm Shield License 1.0.0](LICENSE): free to use and modify, including for commercial work, but not to resell or to offer a competing product. Versions published before this release remain under MIT.
+
 ## 2026-10-09 - owner-local design learning
 
 ### Added
