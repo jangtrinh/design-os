@@ -1,0 +1,60 @@
+{
+  "schema": "owner-rulings/1",
+  "at": "2026-10-01T00:00:00Z",
+  "rulings": [
+    {
+      "id": "r-201",
+      "category": "tables",
+      "text": "Never wrap column headers onto two lines.",
+      "scope": "global",
+      "source": ["notes/tables.md"],
+      "since": "2026-02-02",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-202",
+      "category": "component-reuse",
+      "text": "Reuse the shared card before building a new container.",
+      "scope": "global",
+      "source": ["notes/layout-review.md"],
+      "since": "2026-01-10",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-203",
+      "category": "delivery-gates",
+      "text": "Never skip the visual gate before merge.",
+      "scope": "global",
+      "source": ["notes/gates.md"],
+      "since": "2026-05-01",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-204",
+      "category": "tables",
+      "text": "(SUPERSEDED 2026-06-01 by r-201) Never scroll tables sideways.",
+      "scope": "global",
+      "source": ["notes/old.md"],
+      "since": "2026-01-01",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-206",
+      "category": "tables",
+      "text": "Do nothing special for empty cells.",
+      "scope": "global",
+      "source": ["notes/tables.md"],
+      "since": "2026-04-04",
+      "verified_by": "owner"
+    },
+    {
+      "id": "r-205",
+      "category": "forms-inputs",
+      "text": "Always place the primary action bottom-right.",
+      "scope": { "apps": ["alpha"] },
+      "source": ["notes/alpha-forms.md"],
+      "since": "2026-03-03",
+      "verified_by": "owner"
+    }
+  ]
+}

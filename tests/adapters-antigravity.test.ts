@@ -14,10 +14,10 @@ function makeArtifacts() {
 }
 
 describe("generateAntigravityAdapter", () => {
-  it("returns exactly 45 artifacts (22 workflows + 19 craft skills + 3 journey skills + 1 routing rule)", () => {
+  it("returns exactly 46 artifacts (22 workflows + 19 craft skills + 3 journey skills + 1 routing rule)", () => {
     const arts = makeArtifacts();
     expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
-    expect(arts).toHaveLength(45);
+    expect(arts).toHaveLength(46);
   });
 
   it("emits 1 routing rule at .agent/rules/design-os-routing.md with trigger: always_on and routing bootstrap glue", () => {

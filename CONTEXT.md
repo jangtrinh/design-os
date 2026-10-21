@@ -131,3 +131,31 @@ authoritative inputs. It carries no projection, no findings and no verdict, and 
 depend on argv order, a requested projection, or the clock.
 _Avoid_: product map, source of truth, product model (all three read as authority — the Atlas
 is derived), strategy, qualification record (that names a different, existing contract)
+
+**Guidelines pack**:
+The folder `ui ds guidelines build` compiles from the sealed design system: facts in sealed generated
+blocks (names written as explicit `token:` / `component:` / `term:` spans) plus scenario slots the host
+answers. It states how a library is USED, which the tokens and the registry cannot. Derived and
+rebuildable; the host's answers are the only part a rebuild carries forward.
+_Avoid_: style guide, design docs, rulebook (all three read as hand-written and as authority — the pack
+is compiled and every rule cites its source)
+
+**Figma guidelines bundle**:
+The export of a guidelines pack for Figma's "Manage guidelines" upload: `figma-guidelines/` (a handful
+of `.md`/`.txt`/`.json` files under Figma's size cap, no component inventory, apps merged) plus an
+`UPLOAD.md` beside it. Upload is manual; the bundle is a copy of the pack, never its source.
+_Avoid_: Figma upload, Figma export (name the artifact, not the act), canonical pack (that is the
+untrimmed source the bundle is cut from)
+
+**Scenario slot**:
+A `> QUESTION(<id>)` line in the pack, seeded from evidence, that the host answers with **Do:**,
+**Don't:** and **Why:** lines. Open, partial or filled; its id comes from the evidence, so a rebuild
+keeps the answer attached, and an answer whose slot is gone is parked, never dropped.
+_Avoid_: TODO, placeholder, prompt (a slot is checked and counted; none of the three is)
+
+**Ruling tier**:
+Where an owner ruling goes in the pack: A (global, design categories → `rulings.md`), A-other (global,
+any other category → "Other library-wide rulings"), B (app-scoped → `apps/<app>.md`), C (process →
+excluded, counted). Superseded rulings are never emitted. A tier is a placement decision, not a
+priority.
+_Avoid_: priority, importance level, severity (a tier says where a ruling lives, not how much it matters)

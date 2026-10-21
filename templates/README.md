@@ -19,6 +19,7 @@ User-facing entry points (`/ui:<verb>` on Claude Code; analogous shapes elsewher
 | `from-ref.md` | `/ui:from-ref` | Generate from a reference image/screenshot — produces a structured brief, then hands off to `generate.md`. |
 | `figma.md` | `/ui:figma` | Import a Figma frame URL into HTML; binary stays network-free, host CLI handles the API call. |
 | `slides.md` | `/ui:slides` | Slide-deck flow: outline → shared chrome → per-slide generation under the 1920×1080 slide-mode constraints. |
+| `guidelines.md` | `/ui:guidelines` | Compile a sealed design system's guidelines pack: build, answer every scenario slot from the cited evidence, check, export the Figma bundle, hand `UPLOAD.md` to the owner (upload is manual). |
 
 `critique.md` (the 6+1-axis taste loop the workflows hand off to) is built in the critique-gate phase.
 

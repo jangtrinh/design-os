@@ -1,0 +1,124 @@
+{
+  "components": [
+    {
+      "category": "button",
+      "description": "Main call to action.",
+      "markup": "<div class=\"button-primary\"></div>",
+      "name": "Button/Primary",
+      "scope": "local",
+      "states": [
+        "default",
+        "hover",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "solid"
+      ]
+    },
+    {
+      "category": "button",
+      "description": "Secondary action.",
+      "markup": "<div class=\"button-secondary\"></div>",
+      "name": "Button/Secondary",
+      "scope": "local",
+      "states": [
+        "default",
+        "hover"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "outline"
+      ]
+    },
+    {
+      "category": "card",
+      "description": "Title row of a card.",
+      "markup": "<div class=\"card-header\"></div>",
+      "name": "Card/Header",
+      "scope": "local",
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "compact",
+        "default"
+      ]
+    },
+    {
+      "category": "modal",
+      "description": "Title row of a dialog.",
+      "markup": "<div class=\"modal-header\"></div>",
+      "name": "Modal/Header",
+      "scope": "local",
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "default"
+      ]
+    },
+    {
+      "category": "chip",
+      "description": "Toggleable filter chip.",
+      "markup": "<div class=\"chip-filter\"></div>",
+      "name": "Chip/Filter",
+      "scope": "local",
+      "states": [
+        "default",
+        "focus"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "default"
+      ]
+    },
+    {
+      "category": "chip",
+      "description": "Group of filter chips.",
+      "markup": "<div class=\"chip-filters\"></div>",
+      "name": "Chip/Filters",
+      "scope": "local",
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "default"
+      ]
+    },
+    {
+      "category": "input",
+      "description": "Single-line text field.",
+      "markup": "<div class=\"input-text\"></div>",
+      "name": "Input/Text",
+      "scope": "local",
+      "states": [
+        "default",
+        "focus",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color.brand"
+      ],
+      "variants": [
+        "default"
+      ]
+    }
+  ],
+  "version": "1"
+}

@@ -59,7 +59,8 @@ function sortedKeysReplacer(
   if (value !== null && typeof value === "object" && !Array.isArray(value)) {
     const sorted: Record<string, unknown> = {};
     for (const k of Object.keys(value as Record<string, unknown>).sort()) {
-      sorted[k] = (value as Record<string, unknown>)[k];
+      // defineProperty, not assignment: assigning to "__proto__" sets the prototype and the key vanishes from the output.
+      Object.defineProperty(sorted, k, { value: (value as Record<string, unknown>)[k], enumerable: true, writable: true, configurable: true });
     }
     return sorted;
   }
