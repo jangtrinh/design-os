@@ -37,7 +37,8 @@ describe("look — without Playwright", () => {
   });
 });
 
-describe("look — rendering", () => {
+// A browser launch plus three renders can pass 5 s when the whole suite runs in parallel.
+describe("look — rendering", { timeout: 90000 }, () => {
   let available = false;
 
   beforeAll(() => {

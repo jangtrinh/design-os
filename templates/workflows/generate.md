@@ -10,9 +10,10 @@ candidate, and delivers it by qualification status. Read `knowledge/qualified-de
 `knowledge/world-class-learning-loop.md`.
 
 Every visual change, including repair, first discovers the project's design guidance and
-available `es:designer` / `es-designer`. Load it before visual implementation or review;
-when unavailable, use this shipped workflow, `knowledge/generation-craft-defaults.md`,
-and `knowledge/build-loop.md`. Project DS, stack, and platform specialists retain precedence.
+loads the shipped `design-os-designer` skill before visual implementation or review (prefer
+`es:designer` / `es-designer` when the skill catalog also exposes it). Use it with this shipped
+workflow, `knowledge/generation-craft-defaults.md`, and `knowledge/build-loop.md`. Project DS,
+stack, and platform specialists retain precedence.
 Routine authorized edits need no new owner approval per render. Owner review below concerns
 durable lesson decisions; rendered verification and mandatory floors remain separate.
 

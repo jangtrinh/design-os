@@ -13,10 +13,10 @@ function makeArtifacts() {
 }
 
 describe("generateClaudeAdapter", () => {
-  it("returns exactly 46 artifacts (22 commands + 19 craft skills + 3 journey skills + 1 routing rule)", () => {
+  it("returns exactly 47 artifacts (22 commands + 19 craft skills + 3 journey skills + 1 designer wrapper + 1 routing rule)", () => {
     const arts = makeArtifacts();
-    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
-    expect(arts).toHaveLength(46);
+    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 2);
+    expect(arts).toHaveLength(47);
   });
 
   it("emits 1 routing rule at .claude/rules/design-os-routing.md with trigger: always_on and routing bootstrap glue", () => {
@@ -51,11 +51,12 @@ describe("generateClaudeAdapter", () => {
     expect(commands.some((c) => c.absPath.endsWith("/native-ipados.md"))).toBe(true);
   });
 
-  it("22 artifacts are skill paths under .claude/skills/design-os-*/SKILL.md (19 craft + 3 journey)", () => {
+  it("23 artifacts are skill paths under .claude/skills/design-os-*/SKILL.md (19 craft + 3 journey + the designer wrapper)", () => {
     const skills = makeArtifacts().filter((a) =>
       a.absPath.includes(".claude/skills/design-os-"),
     );
-    expect(skills).toHaveLength(SKILL_NAMES.length + JOURNEY_NAMES.length);
+    expect(skills).toHaveLength(SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
+    expect(skills.some((s) => s.absPath.endsWith("design-os-designer/SKILL.md"))).toBe(true);
     for (const name of SKILL_NAMES) {
       expect(
         skills.some((s) => s.absPath.endsWith(`design-os-${name}/SKILL.md`)),

@@ -62,8 +62,9 @@ reusable components.
 
 ## 2. Build every required component
 
-Load the available `es:designer` skill before authoring or reviewing any rendered UI.
-If it is unavailable, use the bundled craft guidance and `knowledge/build-loop.md`.
+Load the shipped `design-os-designer` skill (`skills/design-os-designer/SKILL.md`) before
+authoring or reviewing any rendered UI; prefer `es:designer` when the skill catalog also
+exposes it. Follow `knowledge/build-loop.md` as the method.
 Load owner soul, tokens, usage rules and relevant component definitions first. Keep
 them in each worker packet, including the full inventory beyond the context preview.
 

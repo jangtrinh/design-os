@@ -109,9 +109,12 @@ describe("public repo hygiene", () => {
   });
 
   it("contains no private product or client strings", () => {
-    const files = [...walk(SKILL_DIR), ...walk(BROKEN_DIR), join(REPO_ROOT, "scripts", "designer-skill-contract.mjs")];
+    // The two private product codenames are assembled from parts so this file does not contain them.
+    const codenames = new RegExp(`\\b(${["vs", "f"].join("")}|${["pc", "p"].join("")})\\b`, "i");
+    const files = [...walk(SKILL_DIR), ...walk(BROKEN_DIR), join(REPO_ROOT, "scripts", "designer-skill-contract.mjs"),
+      join(REPO_ROOT, "src", "adapters", "designer-skill.ts")];
     for (const file of files) {
-      expect(/\b(vsf|pcp)\b/i.test(readFileSync(file, "utf8")), file).toBe(false);
+      expect(codenames.test(readFileSync(file, "utf8")), file).toBe(false);
     }
   });
 

@@ -1,7 +1,7 @@
 /**
  * `ui trace summarize <dir>` — reads the append-only read trace a host hook left in
  * `<dir>/.design-os/trace/reads.jsonl` and reports how much context the agent loaded
- * before its first mutation, plus whether es-designer was loaded and its checklist run.
+ * before its first mutation, plus whether the designer skill (es-designer or design-os-designer) was loaded and its checklist run.
  * Pure kernel: src/core/trace-summarize.ts. This command owns the one file read.
  * Deterministic, no network, no model call.
  */
@@ -30,8 +30,8 @@ Reads <dir>/.design-os/trace/reads.jsonl, appended by templates/hooks/design-os-
   firstMutation                                     {t, kind, path} of the write that ended that window
   unclassifiedMutations                             legacy Bash mutate records with no target (not counted)
   readmeOpened / indexOpened                        orientation files opened (README.md, knowledge/index.json)
-  esDesignerLoaded                                  the es-designer skill was invoked
-  esDesignerChecklistRan                            its checklist.md was read AND any gate event followed
+  esDesignerLoaded                                  the es-designer or design-os-designer skill was invoked
+  esDesignerChecklistRan                            its checklist (es-designer/checklist.md or design-os-designer/look.md) was read AND any gate event followed
   gateRuns                                          ui gate / slop-detect invocations, wrapper scripts included
   traceCoverage                                     "claude-only" when a trace exists, "none" otherwise
   malformedLines                                    trace lines that were not a JSON object
@@ -68,7 +68,7 @@ function renderText(dir: string, s: TraceSummary): string {
     `  before first mutate: ${s.bytesBeforeFirstMutate} bytes over ${s.filesBeforeFirstMutate.length} file(s)`,
     `  first mutation: ${firstMutationText(s)}`,
     `  README opened: ${yes(s.readmeOpened)} · knowledge index opened: ${yes(s.indexOpened)}`,
-    `  es-designer loaded: ${yes(s.esDesignerLoaded)} · checklist ran: ${yes(s.esDesignerChecklistRan)}${checklistReason(s)}`,
+    `  designer skill loaded: ${yes(s.esDesignerLoaded)} · checklist ran: ${yes(s.esDesignerChecklistRan)}${checklistReason(s)}`,
     `  gate runs: ${s.gateRuns}` + (s.malformedLines > 0 ? ` · malformed lines: ${s.malformedLines}` : ""),
     "",
   ].join("\n");

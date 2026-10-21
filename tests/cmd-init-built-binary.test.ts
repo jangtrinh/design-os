@@ -97,8 +97,8 @@ describe("built binary: ui init --runtime claude", () => {
     expect(json.data.manifests[0]?.written).toBe(true);
     expect(existsSync(join(cwd, ".claude", "ease-design.json"))).toBe(true);
 
-    // Adapter tree written — 46 files (23 workflows + 19 craft skills + 3 journey skills + 1 rule)
-    expect(json.data.adapters[0]?.paths.length).toBe(46);
+    // Adapter tree written — 47 files (23 workflows + 19 craft skills + 3 journey skills + 1 designer wrapper + 1 rule)
+    expect(json.data.adapters[0]?.paths.length).toBe(47);
     expect(existsSync(join(cwd, ".claude", "commands", "ui", "generate.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "skills", "design-os-pick-persona", "SKILL.md"))).toBe(true);
     expect(existsSync(join(cwd, ".claude", "skills", "design-os-gsap-motion", "SKILL.md"))).toBe(true);
@@ -160,7 +160,7 @@ describe("built binary: ui init --runtime antigravity", () => {
     expect(code).toBe(0);
     const json = JSON.parse(stdout) as { ok: boolean; data: { adapters: { paths: string[] }[] } };
     expect(json.ok).toBe(true);
-    expect(json.data.adapters[0]?.paths.length).toBe(46);
+    expect(json.data.adapters[0]?.paths.length).toBe(47);
     expect(existsSync(join(cwd, ".agent", "workflows", "ui-generate.md"))).toBe(true);
     expect(existsSync(join(cwd, ".agent", "workflows", "ui-from-url.md"))).toBe(true);
     const native = readFileSync(join(cwd, ".agent", "workflows", "ui-native-macos.md"), "utf8");
@@ -217,6 +217,8 @@ describe("templates walk: sentinel sniff rejects decoy and finds real templates"
     symlinkSync(repoTemplates, realTemplatesLink, "dir");
     // schemas/ is templates/'s sibling in a real package; descriptions are read from it
     symlinkSync(join(REPO_ROOT, "schemas"), join(root, "schemas"), "dir");
+    // skills/ is templates/'s sibling too; the design-os-designer wrapper points at its SKILL.md
+    symlinkSync(join(REPO_ROOT, "skills"), join(root, "skills"), "dir");
 
     // fake-pkg/dist/cli.js — copy the real binary one level deeper
     const fakePkgDir = join(root, "fake-pkg");

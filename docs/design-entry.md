@@ -15,8 +15,10 @@ The model invocation wrapper and manifest are separate artifacts.
 The entry points reference the installed `knowledge/need-routing.md`; they do not
 copy its routing tree. Explicit workflow requests retain authority. Pure nonvisual
 work skips design workflows. Mixed tasks route the visual part through design.
-Rendered UI implementation and review must load the available `es:designer` skill;
-public installations without it use the bundled workflow, craft, and build loop.
+Rendered UI implementation and review must load the `design-os-designer` skill, which
+ships inside this package and is wired by `ui init` for Claude, Antigravity and Codex
+(see [its router](../skills/design-os-designer/SKILL.md)); when the live skill catalog also
+exposes `es:designer`, that skill is preferred and `design-os-designer` remains the fallback.
 Project tokens and platform specialists retain precedence.
 
 Workflow names are not shell commands. Antigravity workflow wrappers discover real

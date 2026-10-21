@@ -164,7 +164,7 @@
     {
       "path": "workflows/generate.md",
       "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
-      "sourceSha256": "7d9b2fa6e9e62cd8d49b0dbb4f06a9bb9215e53903fe36ec36d897cbd4697124"
+      "sourceSha256": "7132a30456e4b55413277d8b4cf6062251515a442f2c7481e2b8571b61c9ed5f"
     },
     {
       "path": "workflows/guidelines.md",
@@ -179,7 +179,7 @@
     {
       "path": "workflows/learn.md",
       "description": "Teach ease-design an existing project's design system — scan the repo, harvest tokens/components/interaction states from real evidence, and compile the DS so generation matches the product. Use when initializing ease-design on a project that already has UI, or to re-learn after a major redesign.",
-      "sourceSha256": "ef0e78c2811f9d7506715f4a653348b6ed1b9a49f027a6837156b68e10c3d479"
+      "sourceSha256": "2e18406d5dc821ab60f54c25c56f07f20b1dea0d9c3186fa8e9fd67fa75135a5"
     },
     {
       "path": "workflows/native-ios.md",

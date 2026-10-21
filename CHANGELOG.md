@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-10-21 - public design-os-designer skill
+
+### Added
+- `skills/design-os-designer/`: a shipped UI design skill written from the public `knowledge/` files and the
+  `ui` gates, so public installs no longer depend on a skill that is not in this package. One procedure
+  (Concept, Build, Check, Hand over, Adjust) with six verbs: shape, implement, critique, polish, harden, audit.
+  `build.mjs` assembles an evidence folder with sha256 hashes, `validate.mjs` runs `ui gate` plus file checks
+  (contract, manifest, artifact hashes, size, external requests) and prints one `<check>: <fix>` line per
+  failure, `look.mjs` renders the page at 375, 768 and 1440 px into one sheet PNG and measures page overflow,
+  target size, console and network errors, broken images and blank pages. `contract.md` is generated from the
+  `ui` command signatures (`scripts/designer-skill-contract.mjs`) and refused when edited or stale. Without
+  Playwright, `look.mjs` exits 2 and prints a SKIPPED line instead of installing anything.
+- `ui init` writes a thin `design-os-designer` wrapper for Claude (`.claude/skills/`) and Antigravity
+  (`.agent/skills/`) and a line in the Codex `AGENTS.md` block; each points at the packaged skill folder, so
+  nothing is copied. The package `files` list now ships `skills/`.
+
+### Changed
+- The generated routing rule, workflow wrappers, `docs/design-entry.md`, `docs/design-learning.md` and
+  `knowledge/ds-kit-onboarding.md` name `design-os-designer` first and prefer `es:designer` only when the
+  host's skill catalog also exposes it. `ui trace summarize` counts a load of `design-os-designer` and a
+  read of its `look.md` followed by a gate like `es-designer` and its checklist.
+- The adapter wrapper lint accepts a wrapper that points at the shipped skill folder.
+
 ## 2026-10-21 - design-system guidelines pack
 
 ### Added
