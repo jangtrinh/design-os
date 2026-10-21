@@ -9,7 +9,7 @@ Install once to equip any AI coding agent with 12+ domain design skills, determi
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-202020?style=flat-square&labelColor=202020&color=444444" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm_Shield_1.0.0-202020?style=flat-square&labelColor=202020&color=444444" alt="PolyForm Shield 1.0.0 License"></a>
   <img src="https://img.shields.io/badge/Claude_Code_%C2%B7_Codex_%C2%B7_Gemini_%C2%B7_Antigravity-skill-202020?style=flat-square&labelColor=202020&color=444444" alt="Compatible agents">
   <a href="commands/doctor.md"><img src="https://img.shields.io/badge/diagnostics-%2Fdoctor-202020?style=flat-square&labelColor=202020&color=444444" alt="Doctor command"></a>
   <a href="https://jangtrinh.github.io/design-os/"><img src="https://img.shields.io/badge/live_docs-GitHub_Pages-202020?style=flat-square&labelColor=202020&color=444444" alt="Live GitHub Pages"></a>
@@ -332,7 +332,7 @@ design-os/
 ├── CODE_OF_CONDUCT.md              # Contributor Covenant code of conduct
 ├── CHANGELOG.md                    # Release history
 ├── llms.txt                        # Root LLM indexing manifest
-├── LICENSE                         # MIT License
+├── LICENSE                         # PolyForm Shield 1.0.0
 └── README.md
 ```
 
@@ -357,7 +357,7 @@ design-os/
 
 ## DESIGN:OS Ecosystem
 
-`design-os` is one of the 13 open-source engines in the **`DESIGN:OS`** ecosystem:
+`design-os` is one of the 13 source-available engines in the **`DESIGN:OS`** ecosystem:
 
 | Engine | Live Docs | Repository | Layer |
 | :--- | :--- | :--- | :--- |
@@ -383,7 +383,7 @@ design-os/
 - **Code of Conduct**: Governed by [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 - **Security & Privacy**: Zero telemetry — see [`SECURITY.md`](SECURITY.md) and [`PRIVACY.md`](PRIVACY.md).
 - **Changelog & LLM Index**: Track releases in [`CHANGELOG.md`](CHANGELOG.md) and machine-readable index in [`llms.txt`](llms.txt).
-- **License**: [MIT](LICENSE) © [Jang Trinh](https://github.com/jangtrinh).
+- **License**: [PolyForm Shield 1.0.0](LICENSE) © [Jang Trinh](https://github.com/jangtrinh). Free to use and modify, including for paid client work; you may not resell it or build a competing product from it.
 
 ---
 

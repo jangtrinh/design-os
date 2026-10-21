@@ -51,7 +51,7 @@ registry 10.000 component.
 Nếu bạn từng ngại cho AI vào file Figma "xịn" của mình — nỗi ngại đó đúng. Công cụ phải tự
 chứng minh nó không phá của bạn, trước khi được quyền giúp bạn.
 
-Mã nguồn mở, MIT: **github.com/jangtrinh/design-os** — mục "The plugin" trong README kể
+Mã nguồn công khai (PolyForm Shield 1.0.0): **github.com/jangtrinh/design-os** — mục "The plugin" trong README kể
 đúng câu chuyện này, kèm ảnh.
 
 ---
@@ -83,7 +83,7 @@ one.
 **5/** 839 tests. 4 adversarial review rounds where every blocker was reproduced before it
 was believed. ~1ms to apply 200 changes into a 10,000-component registry.
 
-Open source, MIT: github.com/jangtrinh/design-os
+Source-available (PolyForm Shield 1.0.0): github.com/jangtrinh/design-os
 
 ---
 

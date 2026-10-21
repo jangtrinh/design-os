@@ -1,6 +1,6 @@
 {
   "name": "ease-design",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Multi-runtime design-cli \u2014 describe what you want, get pro-taste UI.",
   "type": "module",
   "keywords": [
@@ -57,7 +57,7 @@
     "prereg:022": "node tests/fixtures/spec-022-prereg/scripts/validate-prereg.mjs",
     "prepublishOnly": "npm run typecheck && npm run lint && npm run build && npm test && npm run proof:native-mobile"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stryker-mutator/core": "^10.0.0",
