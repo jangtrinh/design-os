@@ -11,6 +11,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { SITE_DIR, SKILL_DIR, WIDTHS, parseArgs, readManifest } from "./shared.mjs";
+import { probePage } from "./look-probe.mjs";
 
 const HELP = `Usage: node look.mjs --evidence <folder> [--sheet <png>] [--widths 375,768,1440]
 Renders <folder>/site/<entry> at each width, writes one sheet PNG, prints items L1-L5.
@@ -43,35 +44,6 @@ async function launch(chromium) {
   throw new Error(reason || "no launchable Chromium");
 }
 
-/** Runs inside the page: L1 overflow, L2 smallest target, L4 broken images, L5 blank page. */
-function probePage() {
-  const root = document.documentElement;
-  const visible = (el) => {
-    const r = el.getBoundingClientRect();
-    const s = getComputedStyle(el);
-    return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none";
-  };
-  const targets = [...document.querySelectorAll("a[href], button, select, textarea, summary, [role='button'], input:not([type='hidden'])")]
-    .filter((el) => !el.disabled && visible(el) && getComputedStyle(el).display !== "inline");
-  let smallest = null;
-  for (const el of targets) {
-    const r = el.getBoundingClientRect();
-    const size = Math.min(r.width, r.height);
-    if (smallest === null || size < smallest.size) smallest = { size: Math.round(size * 10) / 10, name: (el.tagName.toLowerCase() + (el.id ? "#" + el.id : "")) };
-  }
-  const images = [...document.images].filter((img) => img.currentSrc || img.src);
-  return {
-    scrollWidth: root.scrollWidth,
-    clientWidth: root.clientWidth,
-    height: root.scrollHeight,
-    smallest,
-    targetCount: targets.length,
-    brokenImages: images.filter((img) => img.complete && img.naturalWidth === 0).map((img) => img.getAttribute("src")),
-    textLength: (document.body ? document.body.innerText : "").trim().length,
-    visualCount: document.querySelectorAll("img, svg, canvas, video").length,
-  };
-}
-
 async function shoot(browser, url, width) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const problems = [];
@@ -81,6 +53,14 @@ async function shoot(browser, url, width) {
     problems.push(`blocked request ${target}`);
     return route.abort();
   });
+  // Every WebSocket is closed before it reaches a server; a Playwright without this API cannot prove L3.
+  const socketsBlocked = typeof context.routeWebSocket === "function";
+  if (socketsBlocked) {
+    await context.routeWebSocket(/.*/, (socket) => {
+      problems.push(`blocked websocket ${socket.url()}`);
+      socket.close();
+    });
+  }
   const page = await context.newPage();
   page.on("console", (m) => { if (m.type() === "error") problems.push(`console error: ${m.text()}`); });
   page.on("pageerror", (e) => problems.push(`page error: ${e.message}`));
@@ -89,18 +69,20 @@ async function shoot(browser, url, width) {
   const probe = await page.evaluate(probePage);
   const png = await page.screenshot({ fullPage: true });
   await context.close();
-  return { width, probe, problems, png };
+  return { width, probe, problems, png, socketsBlocked };
 }
 
-function itemLines({ width, probe, problems }) {
+function itemLines({ width, probe, problems, socketsBlocked }) {
   const w = `@${width}`;
   const items = [];
   const over = probe.scrollWidth > probe.clientWidth;
   items.push([over, `L1 page-overflow ${w}: scrollWidth ${probe.scrollWidth} ${over ? ">" : "<="} clientWidth ${probe.clientWidth}`, "find the element wider than the viewport"]);
   const small = probe.smallest !== null && probe.smallest.size < 24;
   items.push([small, `L2 target-size ${w}: smallest of ${probe.targetCount} targets ${probe.smallest ? `${probe.smallest.size}px (${probe.smallest.name})` : "none"}, floor 24px`, "enlarge the target or its padding"]);
-  items.push([problems.length > 0, `L3 console-and-network ${w}: ${problems.length} problem(s)${problems.length ? " — " + problems.slice(0, 3).join("; ") : ""}`, "fix the script error or bundle the asset"]);
-  items.push([probe.brokenImages.length > 0, `L4 broken-images ${w}: ${probe.brokenImages.length} broken${probe.brokenImages.length ? " — " + probe.brokenImages.slice(0, 3).join(", ") : ""}`, "fix the image path"]);
+  const unverifiedSockets = socketsBlocked ? "" : " — UNVERIFIED: this Playwright cannot block WebSockets";
+  items.push([problems.length > 0 || !socketsBlocked, `L3 console-and-network ${w}: ${problems.length} problem(s)${problems.length ? " — " + problems.slice(0, 3).join("; ") : ""}${unverifiedSockets}`, socketsBlocked ? "fix the script error or bundle the asset" : "update Playwright and run look again"]);
+  const pending = probe.pendingImages.length > 0 ? `, ${probe.pendingImages.length} still loading after the full scroll — UNVERIFIED: ${probe.pendingImages.slice(0, 3).join(", ")}` : "";
+  items.push([probe.brokenImages.length > 0 || probe.pendingImages.length > 0, `L4 broken-images ${w}: ${probe.brokenImages.length} broken${probe.brokenImages.length ? " — " + probe.brokenImages.slice(0, 3).join(", ") : ""}${pending}`, "fix the image path, or make the image load"]);
   const blank = probe.textLength === 0 && probe.visualCount === 0;
   items.push([blank, `L5 blank-page ${w}: ${probe.textLength} characters of text, ${probe.visualCount} visual element(s)`, "the page rendered empty"]);
   return items;

@@ -12,6 +12,13 @@
   target size, console and network errors, broken images and blank pages. `contract.md` is generated from the
   `ui` command signatures (`scripts/designer-skill-contract.mjs`) and refused when edited or stale. Without
   Playwright, `look.mjs` exits 2 and prints a SKIPPED line instead of installing anything.
+- `build.mjs` records the project design system the page belongs to and `validate.mjs` grades `ui gate`
+  against it explicitly (a missing design system is stated, never silent); `validate.mjs` reads the whole
+  document for remote loads (multi-line tags, unquoted values, alternate stylesheets), reports local
+  references that resolve to nothing, re-renders the contract from the installed `ui`, keeps gate warnings
+  visible and prints every failure it found even when `ui` cannot run. `look.mjs` closes WebSockets, loads
+  lazy images by a fixed scroll before measuring and reports anything still loading as UNVERIFIED. `build.mjs`
+  never writes inside the skill folder, and the package ships only `skills/design-os-designer`.
 - "Roles on your runtime" in the skill: builder, critic and scout are filled by the user's own host (Claude Code,
   Codex, Gemini CLI, Antigravity, or a fresh session of any other runtime), checked against each host's
   subagent documentation. The critic is never the builder, and a test fails if the skill or any generated

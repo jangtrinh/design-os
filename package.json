@@ -34,7 +34,7 @@
     "docs/design-entry.md",
     "docs/routing-benchmark.md",
     "schemas",
-    "skills",
+    "skills/design-os-designer",
     "templates"
   ],
   "workspaces": [

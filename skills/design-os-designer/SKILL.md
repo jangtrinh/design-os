@@ -35,27 +35,28 @@ then check the render here), and changes that alter no rendered output.
 Write the page as one HTML file or one folder. Sample data lives in one place and is labelled. Start
 from [pricing-page.html](examples/pricing-page.html) (a Persuade page) or
 [incident-board.html](examples/incident-board.html) (an Operate screen) when a known-good shape helps.
-Then assemble the evidence folder; use a new folder for every run.
+Then, from your project directory, assemble the evidence folder; `<skill>` is this folder's absolute path.
 
 ```sh
-node skills/design-os-designer/build.mjs --target <page.html|folder> [--out <new folder>]
+node <skill>/build.mjs --target <page.html|folder> [--out <new folder>]
 ```
 
-[build.mjs](build.mjs) copies the page and its local assets, records sha256 hashes and the contract
-hash, prints the folder path, and refuses an existing destination. [shared.mjs](shared.mjs) holds the
-helpers all three scripts use.
+[build.mjs](build.mjs) copies the page and its local assets, records sha256 hashes, the contract hash and
+the project design system, prints the folder path, and refuses an existing destination or any inside the
+skill. Helpers: [shared.mjs](shared.mjs), [refs.mjs](refs.mjs), [contract-render.mjs](contract-render.mjs),
+[validate-checks.mjs](validate-checks.mjs), [look-probe.mjs](look-probe.mjs).
 
 ## 3. Check
 
 Run validate, read [look.md](look.md), then run look.
 
 ```sh
-node skills/design-os-designer/validate.mjs --evidence <folder> [--tokens <file>] [--family <slug>]
-node skills/design-os-designer/look.mjs --evidence <folder> --sheet <folder>/look-sheet.png
+node <skill>/validate.mjs --evidence <folder> [--tokens <file>] [--family <slug>]
+node <skill>/look.mjs --evidence <folder> --sheet <folder>/look-sheet.png
 ```
 
-[validate.mjs](validate.mjs) runs `ui gate` plus the file checks and prints one `<check>: <fix>` line
-per failure, or `ok`. [look.mjs](look.mjs) writes one sheet PNG at 375, 768 and 1440 px and measures
+[validate.mjs](validate.mjs) runs `ui gate` against the project design system plus the file checks and
+prints one `<check>: <fix>` line per failure, or `ok`. [look.mjs](look.mjs) writes one sheet PNG at 375, 768 and 1440 px and measures
 `L1`-`L5`. Both exit 0 checked, 1 rejected, 2 could not run. Neither downloads or installs anything.
 Open the sheet and judge `L6`-`L10` yourself, or give a fresh-context critic the rubric and the sheet.
 Machine checks do not grade clarity, taste or conformance to WCAG.
@@ -113,8 +114,5 @@ critic is never the builder. A runtime with no second model uses a fresh subagen
 | Antigravity | the main agent | a subagent the parent invokes | a subagent limited to read tools |
 | Anything else | your session | a fresh session of your runtime | the same |
 
-[rules.md](rules.md) rule 14 holds the critic's duties; [ATTRIBUTION.md](ATTRIBUTION.md) dates the host checks.
-
-## Provenance
-
-[ATTRIBUTION.md](ATTRIBUTION.md) lists the public sources and licences behind this skill.
+[rules.md](rules.md) rule 14 holds the critic's duties; [ATTRIBUTION.md](ATTRIBUTION.md) lists the sources and
+licences and dates the host checks.

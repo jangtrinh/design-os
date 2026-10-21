@@ -10,12 +10,14 @@ import { join } from "node:path";
 import { generateAdapter } from "../src/adapters/index.js";
 import { REPO_ROOT, SKILL_DIR } from "./helpers/designer-skill-harness.js";
 
-/** Model families, model slugs and private orchestration tools that must never be hard-coded. */
+/** Model families, model slugs (spaced or hyphenated) and private orchestration tools that must never be hard-coded. */
 const FORBIDDEN: readonly [string, RegExp][] = [
   ["model family", /\b(sonnet|opus|haiku|fable)\b/i],
-  ["model slug", /\b(?:gpt|gemini|claude|grok|o[134])-?\d[\w.-]*/i],
+  ["model slug", /\b(?:gpt|gemini|claude|grok)[ -]?\d[\w.-]*/i],
   ["model slug", /\b(?:gemini|claude|grok)-[a-z0-9.]+-(?:flash|pro|high|medium|low|mini|fast|build|sol|terra|luna)\b/i],
-  ["private tool", /\b(grok|codex-web|orca|kongming|cmux|tmux)\b/i],
+  ["o-series model", /\bo[134](?:-(?:mini|pro|preview|high|low))?\b/i],
+  ["o-series model", /\bopenai\s+o\d/i],
+  ["private tool", /\b(grok|codex-web|orca|kongming|cmux|tmux|agy|jev|laya|astra)\b/i],
 ];
 
 function forbiddenHits(text: string): string[] {
@@ -60,6 +62,9 @@ describe("the forbidden-name probe goes red on planted strings", () => {
     "Use Sonnet for the build", "ask the Opus reviewer", "a Haiku scout", "the Fable counsel",
     "model: claude-sonnet-5-5", "gpt-5.6-sol at high effort", "gemini-3.8-flash-medium", "gemini-3.1-pro-high",
     "run it through Grok", "codex-web --review", "start an Orca worktree", "ask kongming", "open a tmux pane",
+    "use o3 for review", "o3-mini as the critic", "o4-mini scouts", "OpenAI o3", "o1-pro",
+    "GPT 5 builds", "gemini 2.5 pro critiques", "Claude 4 reviews", "Grok 4 implements",
+    "delegate to agy", "run JEV on it", "Laya MLX", "ask Astra",
   ];
   for (const text of planted) {
     it(`flags: ${text}`, () => {
@@ -77,13 +82,25 @@ describe("the forbidden-name probe goes red on planted strings", () => {
   });
 
   it("does not flag the ordinary words the skill uses", () => {
-    expect(forbiddenHits("fresh subagent, orchestration, the `explorer` role, a pro-level page, flash of unstyled text")).toEqual([]);
+    expect(forbiddenHits("fresh subagent, orchestration, the `explorer` role, a pro-level page, flash of unstyled text, Gemini CLI, Claude Code, L1 overflow, step 3 of 4")).toEqual([]);
   });
 });
 
 describe("no hard-coded vendor, model or private tool", () => {
   it("the skill folder contains none", () => {
     for (const [name, text] of skillTexts()) expect({ name, hits: forbiddenHits(text) }).toEqual({ name, hits: [] });
+  });
+
+  it("the designer wording this change put into public docs, knowledge and workflows contains none", () => {
+    // Only the paragraphs that mention the skill: those are the lines this change wrote. (Older text in the
+    // same files is out of scope here; templates/workflows/generate.md already names a private loop elsewhere.)
+    for (const rel of ["docs/design-entry.md", "docs/design-learning.md", "knowledge/ds-kit-onboarding.md",
+      "templates/workflows/generate.md", "templates/workflows/learn.md"]) {
+      const paragraphs = readFileSync(join(REPO_ROOT, rel), "utf8").split(/\n\s*\n/).filter((p) => p.includes("design-os-designer"));
+      expect({ rel, found: paragraphs.length > 0 }).toEqual({ rel, found: true });
+      for (const paragraph of paragraphs) expect({ rel, hits: forbiddenHits(paragraph) }).toEqual({ rel, hits: [] });
+    }
+    expect(forbiddenHits(readFileSync(join(REPO_ROOT, "src", "adapters", "designer-skill.ts"), "utf8"))).toEqual([]);
   });
 
   it("the wrappers `ui init` emits for claude, antigravity and codex contain none", () => {
@@ -95,7 +112,7 @@ describe("no hard-coded vendor, model or private tool", () => {
 
 describe("Roles on your runtime", () => {
   const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
-  const section = /## Roles on your runtime\n([\s\S]*?)\n## /.exec(skill)?.[1] ?? "";
+  const section = /## Roles on your runtime\n([\s\S]*?)(?:\n## |$)/.exec(skill)?.[1] ?? "";
 
   it("maps builder, critic and scout for each of the four hosts plus a fresh-session fallback", () => {
     expect(section).not.toBe("");

@@ -9,8 +9,8 @@ fresh-context critic judges the rest.
 ## 1. Bind the command contract
 Statement: call `ui` only with the commands and flags in [contract.md](contract.md).
 Keep it (API): build and validate read the contract header; the copy is generated, never hand-edited.
-Rejected when: `contract` finds the file missing, without its sha256 header, or with a body that
-does not match the header.
+Rejected when: `contract` finds the file missing, without its sha256 header, with a body that does not
+match the header, or differing from what the installed `ui` generates now (an edited or stale copy).
 
 ## 2. Check what you built
 Statement: every check runs on an evidence folder made by [build.mjs](build.mjs), not on a working copy.
@@ -30,16 +30,19 @@ finding the agent should read and slow every later check.
 Rejected when: `size` finds more files or a larger entry than the limits.
 
 ## 5. Bundle every asset
-Statement: stylesheets, scripts, fonts and images are files in the folder, never remote URLs.
-Keep it (API): copy the asset next to the page; link it relatively. Plain navigation links may be remote.
-Rejected when: `external-request` finds a remote stylesheet, script, font, image or media load in
-markup, or a remote `url()` / `@import` in CSS. The look run blocks the network, so such a page would
-render differently there than for the reader.
+Statement: stylesheets, scripts, fonts and images are files in the folder, never remote URLs, and every
+local reference resolves to a file that was built into the folder.
+Keep it (API): copy the asset next to the page; link it relatively (URL-encoded names are decoded). Plain
+navigation links may be remote.
+Rejected when: `external-request` finds a remote stylesheet, script, font, image, media or preload load in
+markup, or a remote `url()` / `@import` in CSS; `missing-local-ref` finds a local reference that resolves to
+nothing. The look run blocks the network, so such a page would render differently there than for the reader.
 
 ## 6. Pass the composed floor
 Statement: layout, accessibility, taste, tell, content and autofix floors all pass; with project
 tokens the page also meets the token-coverage floor.
-Keep it (API): `ui gate` through validate; pass `--tokens` and `--family` when the project has them.
+Keep it (API): `ui gate` through validate. Build records the project design system the page belongs to and
+validate passes its tokens explicitly; `--tokens` and `--family` override. If none is found, validate says so.
 Rejected when: `gate` reports an error-severity finding in any family, a linked stylesheet it cannot
 read, or token coverage below its floor. Warnings and advisories stay visible but do not reject.
 
@@ -54,9 +57,9 @@ Keep it (API): enlarge the padding, not the font; inline text links are exempt.
 Rejected when: `L2` finds a target under 24 px.
 
 ## 9. Load clean
-Statement: the page loads with no console error, script error, blocked request, broken image or blank body.
+Statement: the page loads with no console error, script error, blocked request or socket, broken image or blank body.
 Keep it (API): fix the cause; never hide an error handler to make the count zero.
-Rejected when: `L3`, `L4` or `L5` reports a problem.
+Rejected when: `L3`, `L4` or `L5` reports a problem or an UNVERIFIED line (a check that could not prove itself is not a pass).
 
 ## 10. Name the shape before dressing it
 Statement: state the macrostructure and the primary action in one sentence before writing markup.

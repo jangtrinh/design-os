@@ -38,7 +38,8 @@ export function buildDesignerSkillWrapper(skillPath: string, description: string
     "Follow the skill shipped with ease-design at:",
     `\`${toFwdSlash(skillPath)}\``,
     "",
-    "Read it end to end, then run its build, validate and look scripts from that folder with Node.",
+    "Read it end to end, then run its build, validate and look scripts with Node from your project directory,",
+    "by the absolute paths of the files next to that SKILL.md (never from inside the skill folder).",
     "It needs no separate install. If the live skill catalog also exposes `es:designer`, prefer that one.",
     "",
   ].join("\n");

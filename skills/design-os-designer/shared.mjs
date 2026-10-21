@@ -1,9 +1,13 @@
 // Shared helpers for build.mjs, validate.mjs and look.mjs. Node >= 20, built-ins only, offline.
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { normalizeContractText } from "./contract-render.mjs";
+
+/** The folder that marks a repository root; discovery never walks past it, like `ui`. */
+const REPO_MARKER = ".git";
 
 export const SKILL_DIR = dirname(fileURLToPath(import.meta.url));
 export const WIDTHS = [375, 768, 1440];
@@ -36,15 +40,53 @@ export function parseArgs(argv, valueFlags, boolFlags) {
 /** The contract header is `<!-- sha256: <hex of every byte after the first line> -->`. */
 export function readContractState(contractPath = join(SKILL_DIR, "contract.md")) {
   if (!existsSync(contractPath)) return { ok: false, reason: "contract.md is missing" };
-  // CRLF checkouts (git autocrlf on Windows) must hash like the LF bytes that were generated.
-  const text = readFileSync(contractPath, "utf8").replace(/\r\n/g, "\n");
+  // CRLF checkouts (autocrlf on Windows) and a UTF-8 BOM must hash like the LF bytes that were generated.
+  const text = normalizeContractText(readFileSync(contractPath, "utf8"));
   const newline = text.indexOf("\n");
   const first = newline < 0 ? text : text.slice(0, newline);
   const match = /^<!-- sha256: ([0-9a-f]{64}) -->$/.exec(first);
   if (match === null) return { ok: false, reason: "contract.md has no sha256 header on its first line" };
   const actual = sha256Hex(text.slice(newline + 1));
   if (actual !== match[1]) return { ok: false, reason: "contract.md body does not match its sha256 header (edited copy)" };
-  return { ok: true, hash: match[1] };
+  return { ok: true, hash: match[1], text };
+}
+
+/**
+ * The design-system project a page belongs to, found the way `ui gate` finds it from the page's folder:
+ * the nearest design/ds.manifest.json (tokens in design/design.tokens.json), then brand/design/design.tokens.json,
+ * each walked up at most 5 levels and stopping at a repository root. Null when there is none.
+ */
+export function findProject(startDir) {
+  const walk = (marker, tokens) => {
+    let cur = resolve(startDir);
+    for (let level = 0; level < 5; level++) {
+      if (existsSync(join(cur, ...marker))) return { root: cur, tokens: join(cur, ...tokens) };
+      if (existsSync(join(cur, REPO_MARKER))) break;
+      const parent = dirname(cur);
+      if (parent === cur) break;
+      cur = parent;
+    }
+    return null;
+  };
+  const ds = walk(["design", "ds.manifest.json"], ["design", "design.tokens.json"]);
+  if (ds !== null && existsSync(ds.tokens)) return ds;
+  return walk(["brand", "design", "design.tokens.json"], ["brand", "design", "design.tokens.json"]);
+}
+
+/** True when `child` is `parent` or lies inside it, resolving symlinks of the nearest existing ancestor. */
+export function isInside(child, parent) {
+  const real = (path) => {
+    let existing = resolve(path);
+    const rest = [];
+    while (!existsSync(existing) && dirname(existing) !== existing) {
+      rest.unshift(basename(existing));
+      existing = dirname(existing);
+    }
+    return join(realpathSync(existing), ...rest);
+  };
+  const c = real(child);
+  const p = real(parent);
+  return c === p || c.startsWith(p + sep);
 }
 
 /**

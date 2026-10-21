@@ -6,18 +6,18 @@ and blocks every request that is not a local file. Open the sheet, then open the
 anything the sheet shrinks. Responsive extras beyond these three widths run only when the brief asks.
 
 ```sh
-node skills/design-os-designer/look.mjs --evidence <folder> --sheet <folder>/look-sheet.png
+node <skill>/look.mjs --evidence <folder> --sheet <folder>/look-sheet.png
 ```
 
-Exit 0 means every machine item passed, 1 means an item failed, 2 means look could not run. A zero
+Exit 0 means every machine item passed, 1 means an item failed or is UNVERIFIED, 2 means look could not run. A zero
 exit never means "looks good": `L6`-`L10` are yours.
 
 | Item | Check | Home |
 | --- | --- | --- |
 | L1 | No sideways page scroll at each width | Measured: `scrollWidth` vs `clientWidth` |
 | L2 | Every visible target is at least 24 px | Measured: smallest non-inline target |
-| L3 | No console error, script error or blocked request | Measured: browser events |
-| L4 | No broken image | Measured: `naturalWidth` of loaded images |
+| L3 | No console error, script error, blocked request or WebSocket (all sockets are closed) | Measured: browser events |
+| L4 | No broken image; lazy images are loaded by a fixed scroll first, one that never finishes is UNVERIFIED | Measured: `naturalWidth` after the scroll |
 | L5 | The body is not blank | Measured: text length and visual count |
 | L6 | The shape and the one primary action read at 375 px without hunting | Human eyes |
 | L7 | Copy invents no evidence: numbers, logos, quotes, people | Human eyes |
@@ -48,5 +48,6 @@ look: SKIPPED (no Playwright) — capture 375, 768, 1440 with your host's own br
 
 Then capture the same widths with the host's own browser or screenshot tool and look at them yourself,
 and write in the hand-over that `L1`-`L5` were not measured. A missing look run does not satisfy the
-visual check; do not substitute an old screenshot or another build's capture. In CI, a runner without
-a browser skips the look test and reports the skip; a runner with Chrome and Playwright runs it for real.
+visual check; do not substitute an old screenshot or another build's capture. In this repository's CI the
+look tests fail when look cannot run, unless `DESIGN_OS_LOOK_OPTIONAL=1` declares the runner browser-less;
+the Ubuntu runners ship Chrome and the repository's own Playwright, so there look runs for real.

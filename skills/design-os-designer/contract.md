@@ -1,8 +1,8 @@
-<!-- sha256: 868995a1def40fbccc1b822507db07cce00c4d9b998cff62ee7610221b91865d -->
+<!-- sha256: 5835a0fa47bca4590ea6524a14c34952a040ce50a2efc285361b865cb5bc0fe9 -->
 # Generated command contract
 
 Generated from `src/core/command-signatures.ts` through `ui schema --json`. Do not edit: validate.mjs
-refuses a changed copy and the repo contract script reports a stale one. Flags not listed here do not exist.
+re-renders this file from the installed `ui` and refuses an edited or stale copy. Flags not listed here do not exist.
 
 ## ui gate
 

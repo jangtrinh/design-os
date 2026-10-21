@@ -1,41 +1,26 @@
 #!/usr/bin/env node
 // build.mjs — assemble an evidence folder for one page so validate.mjs and look.mjs check exactly
 // the bytes that will ship. Prints the absolute evidence path on stdout. Exit 0 built / 1 rejected input.
-// Offline, Node built-ins only. Never writes into the skill folder; refuses an existing destination.
+// Offline, Node built-ins only. Never writes inside the skill folder; refuses an existing destination.
+// Run it from the PROJECT directory; the default destination is ./.design-os/evidence/designer/<name>-<hash>.
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import {
-  MANIFEST_NAME, MAX_ENTRY_BYTES, MAX_FILES, MAX_TOTAL_BYTES, SITE_DIR, WIDTHS,
-  parseArgs, readContractState, sha256Hex,
+  MANIFEST_NAME, MAX_ENTRY_BYTES, MAX_FILES, MAX_TOTAL_BYTES, SITE_DIR, SKILL_DIR, WIDTHS,
+  findProject, isInside, parseArgs, readContractState, sha256Hex,
 } from "./shared.mjs";
+import { referencesIn, resolveLocal } from "./refs.mjs";
 
-const HELP = `Usage: node build.mjs --target <page.html|folder> [--entry <file.html>] [--out <new folder>]
-  --target  one HTML file (its local assets are copied too) or a folder holding the page
-  --entry   entry HTML inside a folder target (default: index.html, or the only .html file)
-  --out     new evidence folder (default: ./.design-os/evidence/designer/<name>-<hash>)
-Prints the evidence folder path. Exit 0 built, 1 input rejected.`;
-
-const SCHEME = /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i;
+const HELP = `Usage: node build.mjs --target <page.html|folder> [--entry <file.html>] [--out <new folder>] [--project <dir>]
+  --target   one HTML file (its local assets are copied too) or a folder holding the page
+  --entry    entry HTML inside a folder target (default: index.html, or the only .html file)
+  --out      new evidence folder outside the skill folder (default: ./.design-os/evidence/designer/<name>-<hash>)
+  --project  where to look for the project design system (default: the page's own folder)
+Run from your project directory. Prints the evidence folder path. Exit 0 built, 1 input rejected.`;
 
 function fail(line) {
   console.error(line);
   process.exit(1);
-}
-
-/** Local references (relative paths only) found in an HTML or CSS text. */
-function localRefs(text, isCss) {
-  const refs = new Set();
-  const add = (raw) => {
-    const value = raw.trim().split(/[?#]/)[0];
-    if (value !== "" && !SCHEME.test(value)) refs.add(value);
-  };
-  if (!isCss) {
-    for (const m of text.matchAll(/\b(?:src|href|poster|data-src)\s*=\s*["']([^"']+)["']/gi)) add(m[1]);
-    for (const m of text.matchAll(/\bsrcset\s*=\s*["']([^"']+)["']/gi)) m[1].split(",").forEach((c) => add(c.trim().split(/\s+/)[0]));
-  }
-  for (const m of text.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) add(m[1]);
-  for (const m of text.matchAll(/@import\s+["']([^"']+)["']/gi)) add(m[1]);
-  return [...refs];
 }
 
 function walkFolder(root) {
@@ -53,17 +38,16 @@ function walkFolder(root) {
   return found;
 }
 
-/** Entry plus every local asset it references, transitively through CSS. */
+/** Entry plus every local asset it references (URL-decoded), transitively through HTML and CSS. */
 function collectFromFile(entryAbs) {
   const base = dirname(entryAbs);
   const files = new Set([entryAbs]);
   const queue = [entryAbs];
   while (queue.length > 0) {
     const current = queue.pop();
-    const isCss = current.toLowerCase().endsWith(".css");
-    if (!isCss && !/\.html?$/i.test(current)) continue;
-    for (const ref of localRefs(readFileSync(current, "utf8"), isCss)) {
-      const abs = resolve(dirname(current), ref);
+    for (const { ref } of referencesIn(current, readFileSync(current, "utf8"))) {
+      const abs = resolveLocal(current, ref);
+      if (abs === null) continue;
       if (abs !== base && !abs.startsWith(base + sep)) fail(`input: ${relative(process.cwd(), current)} references ${ref}, outside the page folder — move the asset next to the page`);
       if (!existsSync(abs) || !lstatSync(abs).isFile() || files.has(abs)) continue;
       files.add(abs);
@@ -74,7 +58,7 @@ function collectFromFile(entryAbs) {
 }
 
 function main() {
-  const args = parseArgs(process.argv.slice(2), ["target", "entry", "out"], ["help"]);
+  const args = parseArgs(process.argv.slice(2), ["target", "entry", "out", "project"], ["help"]);
   if (args.help) return void console.log(HELP);
   if (args._errors.length > 0) fail(args._errors.join("\n"));
   if (!args.target) fail("input: --target is required (see --help)");
@@ -112,14 +96,18 @@ function main() {
   const out = args.out
     ? resolve(args.out)
     : join(process.cwd(), ".design-os", "evidence", "designer", `${basename(entry).replace(/\.html?$/i, "")}-${digest}`);
+  if (isInside(out, SKILL_DIR)) fail(`output: ${out} is inside the skill folder — run build from your project directory or pass --out <folder outside ${SKILL_DIR}>`);
   if (existsSync(out)) fail(`output: ${out} already exists — pass --out <new folder>; the old run stays for comparison`);
 
+  // The skill's own examples are samples, not pages of the user's project.
+  const projectStart = args.project ? resolve(args.project) : dirname(entryAbs);
+  const project = !args.project && isInside(entryAbs, SKILL_DIR) ? null : findProject(projectStart);
   for (const record of records) {
     const dest = join(out, SITE_DIR, ...record.path.split("/"));
     mkdirSync(dirname(dest), { recursive: true });
     copyFileSync(join(base, ...record.path.split("/")), dest);
   }
-  const manifest = { schema: 1, skill: "design-os-designer", entry, widths: WIDTHS, contract: contract.hash, files: records };
+  const manifest = { schema: 1, skill: "design-os-designer", entry, widths: WIDTHS, contract: contract.hash, projectStart, project, files: records };
   writeFileSync(join(out, MANIFEST_NAME), JSON.stringify(manifest, null, 2) + "\n");
   console.log(out);
 }

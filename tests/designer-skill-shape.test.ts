@@ -81,8 +81,8 @@ describe("design-os-designer rules and look homes", () => {
   });
 
   it("names every validate check and every look item in the rules", () => {
-    const code = stripComments(read("validate.mjs"));
-    for (const check of ["contract", "manifest", "artifact-hashes", "size", "external-request", "gate"]) {
+    const code = stripComments(read("validate.mjs") + read("validate-checks.mjs"));
+    for (const check of ["contract", "manifest", "artifact-hashes", "size", "external-request", "missing-local-ref", "gate"]) {
       expect(rules, check).toContain(`\`${check}\``);
       expect(code, check).toMatch(new RegExp("[`\"]" + check + "(?::|[ /])"));
     }

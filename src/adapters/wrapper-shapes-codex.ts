@@ -32,7 +32,7 @@ export function buildCodexBlock(
     `\`${templateRoot}/skills/\` because this environment may lack a dedicated Skill tool.`, "",
     ...(designerSkillPath === undefined || designerSkillPath === "" ? [] : [
       "Designer skill for rendered UI work (shipped with ease-design, no install needed): read",
-      `\`${toFwdSlash(designerSkillPath)}\` end to end and follow it; its build, validate and look scripts run with Node from that folder.`, "",
+      `\`${toFwdSlash(designerSkillPath)}\` end to end and follow it; its build, validate and look scripts run with Node from your project directory, by absolute path.`, "",
     ]),
     "Available slash-commands when proxied:",
     `${WORKFLOW_VERBS.map((verb) => `/ui:${verb}`).join(" ")}.`, "",

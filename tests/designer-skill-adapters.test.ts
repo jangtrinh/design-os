@@ -56,6 +56,19 @@ describe("designer skill wiring per runtime", () => {
     expect(block).toContain("Designer skill for rendered UI work (shipped with ease-design, no install needed)");
   });
 
+  it("ships only the designer skill folder, not the whole skills/ tree", () => {
+    const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8")) as { files: string[] };
+    expect(pkg.files).toContain("skills/design-os-designer");
+    expect(pkg.files).not.toContain("skills");
+  });
+
+  it("tells the host to run the scripts from the project directory by absolute path", () => {
+    const wrapper = emit("claude").artifacts.find((a) => a.absPath.endsWith("design-os-designer/SKILL.md"))?.content ?? "";
+    expect(wrapper).toContain("from your project directory");
+    expect(wrapper).not.toMatch(/from that folder/);
+    expect(emit("codex").artifacts[0]?.content).toContain("from your project directory, by absolute path");
+  });
+
   it("emits no copy of the skill: wrappers are small and the folder is not duplicated into the project", () => {
     for (const runtime of ["claude", "antigravity"] as const) {
       const { cwd, artifacts } = emit(runtime);
