@@ -138,8 +138,21 @@ export function runContext(parsed: ParsedArgs): CommandResult {
     }
   }
 
+  // The guidelines pack, read here for the same reason: optional, degrade-silently, never an error.
+  const packDir = join(paths.dir, "guidelines");
+  const readOptional = (name: string): string | undefined => {
+    try { return readFileSync(join(packDir, name), "utf8"); } catch { return undefined; }
+  };
+  const manifestText = include.includes("guidelines") ? readOptional("guidelines.manifest.json") : undefined;
+  const antiPatternsText = manifestText !== undefined ? readOptional("anti-patterns.md") : undefined;
+  const rulingsText = manifestText !== undefined ? readOptional("rulings.md") : undefined;
+  const guidelines = manifestText !== undefined
+    ? { manifestText, ...(antiPatternsText !== undefined && { antiPatternsText }), ...(rulingsText !== undefined && { rulingsText }) }
+    : undefined;
+
   const opts = {
     include, strict, maxBytes,
+    ...(guidelines !== undefined && { guidelines }),
     ...(soul !== undefined && { soul }),
     ...(studioSoul !== undefined && { studioSoul }),
   };

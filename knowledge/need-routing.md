@@ -160,6 +160,7 @@ with the live verb registry — a new capability cannot ship until this table te
 |---|---|
 | Why does X look/behave this way; what was decided | `why` |
 | Record an interview, finding, or transcript as evidence | `evidence` |
+| Written design guidelines an agent can follow for a sealed design system, or a Figma guidelines upload | `guidelines` |
 | New project, first-time setup | `init` |
 | Teach the tool an existing DS from a whole repo | `learn` |
 | Teach the tool an existing DS from one HTML file | `extract` |
