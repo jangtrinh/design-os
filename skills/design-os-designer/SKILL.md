@@ -70,6 +70,7 @@ BUILD: <command and exit>
 VALIDATE: <exit and the actual lines, or ok>
 LOOK: <exit and the L1-L5 lines, or the SKIPPED line>
 EYE_ITEMS: <L6-L10: what you saw, per width, or NOT CHECKED>
+CRITIC: <which separate subagent or session scored it, or NOT CHECKED>
 NOT_VERIFIED: <screen readers, real devices, states not built, anything skipped>
 ```
 
@@ -98,6 +99,21 @@ what remains. Never edit inside `site/` or the generated [contract.md](contract.
 | Looks like a template | Change shape and focal placement, not colour; rule 13 |
 | You scored your own page | Hand the sheet to a fresh context; rule 14 |
 | No Playwright or browser | Print the SKIPPED line, capture by hand, report it |
+
+## Roles on your runtime
+
+Three roles, always filled by the runtime you are in; no model or vendor is named by this skill. The
+critic is never the builder. A runtime with no second model uses a fresh subagent or session of itself.
+
+| Runtime | Builder | Critic (fresh context) | Scout (read-only) |
+| --- | --- | --- | --- |
+| Claude Code | the main session | a subagent, named in the prompt | a subagent limited to read tools |
+| Codex | the main session | a subagent you ask for explicitly | the `explorer` role |
+| Gemini CLI | the main session | a custom subagent, `@name` | the `codebase_investigator` subagent |
+| Antigravity | the main agent | a subagent the parent invokes | a subagent limited to read tools |
+| Anything else | your session | a fresh session of your runtime | the same |
+
+[rules.md](rules.md) rule 14 holds the critic's duties; [ATTRIBUTION.md](ATTRIBUTION.md) dates the host checks.
 
 ## Provenance
 

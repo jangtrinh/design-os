@@ -83,8 +83,10 @@ Rejected when: `L9` shows loose or monotonous rhythm, or two surfaces that look 
 ## 14. Let someone else score
 Statement: the author never grades its own page; the critic cites an element or a measured value
 for every score, and every applicable axis reaches 7 of 10.
-Keep it (API): use a fresh context or an explicit attempt to refute each axis; the rubric is
-[taste-rubric.md](../../knowledge/taste-rubric.md).
+Keep it (API): fill the critic role with your own runtime's mechanism (the "Roles on your runtime"
+table in [SKILL.md](SKILL.md)): a second model if the runtime has one, otherwise a fresh subagent or
+session that sees the rubric, the sheet and the page but not the build conversation. The rubric is
+[taste-rubric.md](../../knowledge/taste-rubric.md). Never name a vendor or model in generated instructions.
 Rejected when: `L10` finds a score without cited evidence or an axis below 7.
 
 When NOT to use these rules: native-platform surfaces, canvas or Figma-first work, and slides have
