@@ -2,7 +2,7 @@
 
 Every numbered rule names the place that enforces it. Mechanical rules are enforced by
 [validate.mjs](validate.mjs) (`<check>: <what to fix>` lines) or by the machine items of
-[look.md](look.md) (`L1`-`L5`, printed by `look.mjs`). Rules that only eyes can judge are
+[look.md](look.md) (`L1`-`L5`, printed by [look.mjs](look.mjs)). Rules that only eyes can judge are
 the eye items `L6`-`L10`. Nothing here is a taste score: the validator rejects facts, a person or a
 fresh-context critic judges the rest.
 
@@ -45,7 +45,7 @@ read, or token coverage below its floor. Warnings and advisories stay visible bu
 
 ## 7. Fit every width
 Statement: no sideways page scroll at 375, 768 and 1440 px; wide tables scroll inside their own region.
-Keep it (API): `look.mjs` measures `scrollWidth` against `clientWidth` per width.
+Keep it (API): [look.mjs](look.mjs) measures `scrollWidth` against `clientWidth` per width.
 Rejected when: `L1` finds the page wider than the viewport.
 
 ## 8. Make targets reachable

@@ -117,7 +117,7 @@ describe.skipIf(!hasBuiltBinary)("validate and build — cannot-run and input ha
   });
 
   it("prints help with exit 0 for every script", () => {
-    for (const script of ["build.mjs", "validate.mjs"]) {
+    for (const script of ["build.mjs", "validate.mjs", "look.mjs"]) {
       const run = node(join(SKILL_DIR, script), ["--help"]);
       expect({ script, status: run.status }).toEqual({ script, status: 0 });
       expect(run.stdout).toMatch(/^Usage: node /);

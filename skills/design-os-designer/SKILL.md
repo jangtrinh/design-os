@@ -55,7 +55,7 @@ node skills/design-os-designer/look.mjs --evidence <folder> --sheet <folder>/loo
 ```
 
 [validate.mjs](validate.mjs) runs `ui gate` plus the file checks and prints one `<check>: <fix>` line
-per failure, or `ok`. `look.mjs` writes one sheet PNG at 375, 768 and 1440 px and measures
+per failure, or `ok`. [look.mjs](look.mjs) writes one sheet PNG at 375, 768 and 1440 px and measures
 `L1`-`L5`. Both exit 0 checked, 1 rejected, 2 could not run. Neither downloads or installs anything.
 Open the sheet and judge `L6`-`L10` yourself, or give a fresh-context critic the rubric and the sheet.
 Machine checks do not grade clarity, taste or conformance to WCAG.

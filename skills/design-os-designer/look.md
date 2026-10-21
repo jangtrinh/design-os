@@ -1,6 +1,6 @@
 # What only eyes can check
 
-Run `look.mjs` only after [validate.mjs](validate.mjs) printed `ok`. It renders the entry page of an
+Run [look.mjs](look.mjs) only after [validate.mjs](validate.mjs) printed `ok`. It renders the entry page of an
 evidence folder at 375, 768 and 1440 px (`--widths` overrides) into one sheet PNG, measures `L1`-`L5`,
 and blocks every request that is not a local file. Open the sheet, then open the page itself for
 anything the sheet shrinks. Responsive extras beyond these three widths run only when the brief asks.
