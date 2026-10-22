@@ -32,18 +32,19 @@ then check the render here), and changes that alter no rendered output.
 
 ## 2. Build
 
-Write the page as one HTML file or one folder. Sample data lives in one place and is labelled. Start
-from [pricing-page.html](examples/pricing-page.html) (a Persuade page) or
-[incident-board.html](examples/incident-board.html) (an Operate screen) when a known-good shape helps.
-Then, from your project directory, assemble the evidence folder; `<skill>` is this folder's absolute path.
+Write the page in its own folder, with every asset next to it; the whole folder is the evidence unit. Sample
+data lives in one place and is labelled. Start from [pricing-page.html](examples/pricing-page.html) (a
+Persuade page) or [incident-board.html](examples/incident-board.html) (an Operate screen) when a known-good
+shape helps: copy the example into your project first, never build from inside the skill folder. Then, from
+your project directory, assemble the evidence folder; `<skill>` is this folder's absolute path.
 
 ```sh
 node <skill>/build.mjs --target <page.html|folder> [--out <new folder>]
 ```
 
-[build.mjs](build.mjs) copies the page and its local assets, records sha256 hashes, the contract hash and
-the project design system, prints the folder path, and refuses an existing destination or any inside the
-skill. Helpers: [shared.mjs](shared.mjs), [refs.mjs](refs.mjs), [contract-render.mjs](contract-render.mjs),
+[build.mjs](build.mjs) copies the page folder, records sha256 hashes, the contract hash and the project
+folder `ui` finds the design system from (`--project`, default the page folder), prints the folder path, and
+refuses an existing destination or any inside the skill. Helpers: [shared.mjs](shared.mjs), [contract-render.mjs](contract-render.mjs),
 [validate-checks.mjs](validate-checks.mjs), [look-shots.mjs](look-shots.mjs), [look-probe.mjs](look-probe.mjs).
 
 ## 3. Check
@@ -55,8 +56,8 @@ node <skill>/validate.mjs --evidence <folder> [--tokens <file>] [--family <slug>
 node <skill>/look.mjs --evidence <folder> --sheet <folder>/look-sheet.png
 ```
 
-[validate.mjs](validate.mjs) runs `ui gate` against the project design system plus the file checks and
-prints one `<check>: <fix>` line per failure, or `ok`. [look.mjs](look.mjs) writes one sheet PNG at 375, 768 and 1440 px and measures
+[validate.mjs](validate.mjs) runs `ui gate` once, with `ui` discovering the project design system, plus the
+file checks, and prints one `<check>: <fix>` line per failure, or `ok`; a `note:` line says a check did not run. [look.mjs](look.mjs) writes one sheet PNG at 375, 768 and 1440 px and measures
 `L1`-`L5`. Both exit 0 checked, 1 rejected, 2 could not run. Neither downloads or installs anything.
 Open the sheet and judge `L6`-`L10` yourself, or give a fresh-context critic the rubric and the sheet.
 Machine checks do not grade clarity, taste or conformance to WCAG.
@@ -75,8 +76,8 @@ CRITIC: <which separate subagent or session scored it, or NOT CHECKED>
 NOT_VERIFIED: <screen readers, real devices, states not built, anything skipped>
 ```
 
-Without a browser, write exactly the SKIPPED line from [look.md](look.md) under LOOK and list `L1`-`L5`
-as NOT_VERIFIED. Never write "should work" or "looks right".
+Without a browser, write exactly the SKIPPED line from [look.md](look.md) under LOOK and list `L1`-`L5`,
+external requests and missing local files as NOT_VERIFIED. Never write "should work" or "looks right".
 
 ## 5. Adjust
 
@@ -90,10 +91,10 @@ what remains. Never edit inside `site/` or the generated [contract.md](contract.
 | `contract` or `manifest` line | Rebuild with this skill version; rules 1, 2 |
 | `artifact-hashes` line | Edit the source and rebuild, never `site/`; rule 3 |
 | `size` line | Build one page at a time; rule 4 |
-| `external-request` line | Copy the asset into the folder; rule 5 |
 | `gate` line | Read the finding, fix at its source; add `--tokens` for a project; rule 6 |
 | `L1` or `L2` fails | Fix the layout, not the measurement; rules 7, 8 |
-| `L3`-`L5` fails | Fix the load error or asset path; rule 9 |
+| `L3` names a blocked request or missing file | Copy the asset into the page folder; rules 5, 9 |
+| `L4` or `L5` fails | Fix the asset path or the blank render; rule 9 |
 | Same page for every brief | Name a different macrostructure first; rule 10 |
 | Numbers or logos you cannot source | Mark as to confirm or cut; rule 11 |
 | Data view with one state | Build empty, loading, error; rule 12 |

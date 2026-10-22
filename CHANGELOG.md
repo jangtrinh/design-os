@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-22 - design-os-designer: `ui` owns design-system discovery
+
+### Changed
+- `ui gate <file> --dir <project>` starts design-system discovery in that project (default: the file's
+  folder), and the JSON result carries `tokenCoverageSource` (`origin` flag, auto or none, the token `path`, and
+  an `error` when a detected token file cannot be scored). A detected design system whose token file is missing
+  or unparsable now fails the gate with `token-coverage/tokens-not-readable` instead of reading as "nothing to
+  grade". With no design system the check still does not run.
+- `design-os-designer`: `build.mjs` copies the whole page folder (no reference tracing) and records the project
+  folder; `validate.mjs` calls `ui gate --dir` once and states a missing design system as a note and an unreadable
+  one as a failure; the home-grown HTML and CSS reference scan is gone. External requests and missing local files
+  are reported by `look.mjs` L3 (`blocked request <url>`, `missing file <path>`) from the browser's own request
+  log, and are NOT_VERIFIED without a browser. The look scroll measures the page after lazy images become eager
+  and runs a second pass when it grew, so a finite lazy loader no longer reads as a page that keeps growing.
+  Copy an example into your project before building it.
+
 ## 2026-10-21 - public design-os-designer skill
 
 ### Added

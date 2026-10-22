@@ -6,7 +6,8 @@ import { probePage } from "./look-probe.mjs";
 export const DEFAULT_DEADLINE_MS = 45000;
 const TIMED_OUT = Symbol("timed out");
 
-export async function shoot(browser, url, width, deadlineMs = DEFAULT_DEADLINE_MS) {
+/** `siteHref` (the evidence site folder as a file URL ending in "/") lets a missing file be named relative to the page. */
+export async function shoot(browser, url, width, deadlineMs = DEFAULT_DEADLINE_MS, siteHref = new URL(".", url).href) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const problems = [];
   await context.route("**/*", (route) => {
@@ -25,6 +26,14 @@ export async function shoot(browser, url, width, deadlineMs = DEFAULT_DEADLINE_M
   }
   const page = await context.newPage();
   page.setDefaultTimeout(deadlineMs);
+  // A local file the browser asked for and did not find, named as the page wrote it (template, shadow DOM and script loads included).
+  page.on("requestfailed", (request) => {
+    const asked = request.url();
+    if (asked.startsWith("file:") && String(request.failure()?.errorText).includes("ERR_FILE_NOT_FOUND")) {
+      const clean = asked.split(/[?#]/)[0];
+      problems.push(`missing file ${decodeURIComponent(clean.startsWith(siteHref) ? clean.slice(siteHref.length) : clean)}`);
+    }
+  });
   page.on("console", (m) => { if (m.type() === "error") problems.push(`console error: ${m.text()}`); });
   page.on("pageerror", (e) => problems.push(`page error: ${e.message}`));
   const work = (async () => {

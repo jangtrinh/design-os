@@ -277,7 +277,7 @@ export const gateCommand = {
     // (below), never a check pretending to pass. A bad --tokens path is the
     // caller's job to fail loud, matching the raw-hex check just above.
     let tokenCoverage: TokenCoverageResult | undefined;
-    let tokenCoverageSource: TokenCoverageSource = { origin: "none" };
+    let tokenCoverageSource: TokenCoverageSource;
     if (typeof tokensFlag === "string") {
       tokenCoverageSource = { origin: "flag", path: tokensFlag };
       try {

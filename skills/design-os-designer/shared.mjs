@@ -1,13 +1,10 @@
 // Shared helpers for build.mjs, validate.mjs and look.mjs. Node >= 20, built-ins only, offline.
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { normalizeContractText } from "./contract-render.mjs";
-
-/** The folder that marks a repository root; discovery never walks past it, like `ui`. */
-const REPO_MARKER = ".git";
 
 export const SKILL_DIR = dirname(fileURLToPath(import.meta.url));
 export const WIDTHS = [375, 768, 1440];
@@ -49,38 +46,6 @@ export function readContractState(contractPath = join(SKILL_DIR, "contract.md"))
   const actual = sha256Hex(text.slice(newline + 1));
   if (actual !== match[1]) return { ok: false, reason: "contract.md body does not match its sha256 header (edited copy)" };
   return { ok: true, hash: match[1], text };
-}
-
-/**
- * The design-system project a page belongs to, found the way `ui gate` finds it from the page's folder:
- * the nearest design/ds.manifest.json (tokens in design/design.tokens.json), then brand/design/design.tokens.json,
- * each walked up at most 5 levels and stopping at a repository root. A folder holding a kit.lock.json counts as a
- * design-system boundary too (like `ui`'s discoverDesignSystem): its own design/ tokens decide, even when absent.
- * Null when there is none. tests/designer-skill-validate-round2.test.ts pins parity with `ui` layout by layout.
- */
-export function findProject(startDir) {
-  const hasKitLock = (dir) => {
-    try {
-      lstatSync(join(dir, "kit.lock.json"));
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  const walk = (marker, tokens, kitBoundary) => {
-    let cur = resolve(startDir);
-    for (let level = 0; level < 5; level++) {
-      if (existsSync(join(cur, ...marker)) || (kitBoundary && hasKitLock(cur))) return { root: cur, tokens: join(cur, ...tokens) };
-      if (existsSync(join(cur, REPO_MARKER))) break;
-      const parent = dirname(cur);
-      if (parent === cur) break;
-      cur = parent;
-    }
-    return null;
-  };
-  const ds = walk(["design", "ds.manifest.json"], ["design", "design.tokens.json"], true);
-  if (ds !== null && existsSync(ds.tokens)) return ds;
-  return walk(["brand", "design", "design.tokens.json"], ["brand", "design", "design.tokens.json"], false);
 }
 
 /** True when `child` is `parent` or lies inside it, resolving symlinks of the nearest existing ancestor. */

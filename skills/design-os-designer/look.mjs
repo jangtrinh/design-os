@@ -105,7 +105,8 @@ async function main() {
   try {
     const url = pathToFileURL(entryPath).href;
     const shots = [];
-    for (const width of widths) shots.push(await shoot(browser, url, width, deadlineMs));
+    const siteHref = pathToFileURL(join(evidence, SITE_DIR)).href + "/";
+    for (const width of widths) shots.push(await shoot(browser, url, width, deadlineMs, siteHref));
     const sheetPath = resolve(args.sheet ?? join(evidence, "look-sheet.png"));
     const drawn = shots.filter((shot) => !shot.hung);
     if (drawn.length > 0) await composeSheet(browser, drawn, manifest.entry, sheetPath);

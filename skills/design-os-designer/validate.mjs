@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // validate.mjs — mechanical rejects for one evidence folder made by build.mjs.
-// Named checks (each is a rule in rules.md): contract, manifest, artifact-hashes, size,
-// external-request, missing-local-ref, gate. Prints one line per failure as `<check>: <what to fix>`,
+// Named checks (each is a rule in rules.md): contract, manifest, artifact-hashes, size, gate. Prints one line per failure as `<check>: <what to fix>`,
 // gate warnings as `warn: ...`, notes (e.g. token coverage did not run) as `note: ...`, and `ok` when clean.
 // Exit 0 ok / 1 rejected / 2 cannot run (no `ui` binary, unreadable evidence). Offline, deterministic.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -9,7 +8,7 @@ import { join, resolve } from "node:path";
 import {
   MAX_ENTRY_BYTES, MAX_FILES, SITE_DIR, locateUi, parseArgs, readContractState, readManifest, sha256Hex,
 } from "./shared.mjs";
-import { contractFailure, referenceFailures, runGate } from "./validate-checks.mjs";
+import { contractFailure, runGate } from "./validate-checks.mjs";
 
 const HELP = `Usage: node validate.mjs --evidence <folder> [--tokens <file>] [--family <slug>] [--ui <cli.js>]
   --evidence  folder printed by build.mjs
@@ -75,17 +74,17 @@ function main() {
     return cannotRun ? 2 : 1;
   }
   const { manifest } = read;
-  const shapeOk = manifest.schema === 1 && typeof manifest.entry === "string" && Array.isArray(manifest.files)
+  const shapeOk = manifest.schema === 1 && typeof manifest.entry === "string" && typeof manifest.projectDir === "string" && Array.isArray(manifest.files)
     && manifest.files.every((f) => f && typeof f.path === "string" && typeof f.sha256 === "string" && typeof f.bytes === "number");
   if (!shapeOk) {
-    console.log("manifest: manifest.json does not match schema 1 (entry, files[path, bytes, sha256]) — rebuild the evidence folder");
+    console.log("manifest: manifest.json does not match schema 1 (entry, projectDir, files[path, bytes, sha256]) — rebuild the evidence folder");
     return 1;
   }
   if (contract.ok && manifest.contract !== contract.hash) failures.push("manifest: built against a different contract.md — rebuild the evidence folder with this skill version");
   if (!manifest.files.some((f) => f.path === manifest.entry)) failures.push(`manifest: entry ${manifest.entry} is not in the files list — rebuild the evidence folder`);
 
   const siteRoot = join(evidence, SITE_DIR);
-  failures.push(...fileFailures(manifest, siteRoot), ...referenceFailures(siteRoot, manifest));
+  failures.push(...fileFailures(manifest, siteRoot));
 
   const ui = locateUi(args.ui);
   if (ui === null) {

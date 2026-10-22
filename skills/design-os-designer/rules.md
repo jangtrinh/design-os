@@ -30,21 +30,25 @@ finding the agent should read and slow every later check.
 Rejected when: `size` finds more files or a larger entry than the limits.
 
 ## 5. Bundle every asset
-Statement: stylesheets, scripts, fonts and images are files in the folder, never remote URLs, and every
-local reference resolves to a file that was built into the folder.
-Keep it (API): copy the asset next to the page; link it relatively (URL-encoded names are decoded). Plain
-navigation links may be remote.
-Rejected when: `external-request` finds a remote stylesheet, script, font, image, media or preload load in
-markup, or a remote `url()` / `@import` in CSS; `missing-local-ref` finds a local reference that resolves to
-nothing. The look run blocks the network, so such a page would render differently there than for the reader.
+Statement: stylesheets, scripts, fonts and images are files in the page folder, never remote URLs, and every
+local reference resolves to a file in that folder.
+Keep it (API): copy the asset next to the page; build copies the whole folder, so nothing is traced or missed.
+Plain navigation links may be remote.
+Rejected when: `L3` names a blocked request (a remote URL the browser asked for, including loads from
+templates, shadow DOM and scripts) or a missing file (a local reference that resolves to nothing). Only the
+look run checks this; without a browser both go under NOT_VERIFIED in the hand-over.
 
 ## 6. Pass the composed floor
 Statement: layout, accessibility, taste, tell, content and autofix floors all pass; with project
 tokens the page also meets the token-coverage floor.
-Keep it (API): `ui gate` through validate. Build records the project design system the page belongs to and
-validate passes its tokens explicitly; `--tokens` and `--family` override. If none is found, validate says so.
-Rejected when: `gate` reports an error-severity finding in any family, a linked stylesheet it cannot
-read, or token coverage below its floor. Warnings and advisories stay visible but do not reject.
+Keep it (API): `ui gate` through validate, called once. Build records the project folder and validate passes it
+as `--dir`: `ui` discovers the design system (5 folders up, stopping at a repository root) and reports where its
+tokens came from. `--tokens` and `--family` override. With no design system found, validate prints a note that
+token-coverage did not run, and the hand-over lists it under NOT_VERIFIED.
+Rejected when: `gate` reports an error-severity finding in any family, a linked stylesheet it cannot read, token
+coverage below its floor, or a design system whose token file is missing or unparsable. A `--tokens` file `ui`
+refuses ends the gate verdict with that one line; fix the path, and the rerun shows the other findings.
+Warnings and advisories stay visible but do not reject.
 
 ## 7. Fit every width
 Statement: no sideways page scroll at 375, 768 and 1440 px; wide tables scroll inside their own region.
@@ -57,7 +61,7 @@ Keep it (API): enlarge the padding, not the font; inline text links are exempt.
 Rejected when: `L2` finds a target under 24 px.
 
 ## 9. Load clean
-Statement: the page loads with no console error, script error, blocked request or socket, broken image or blank body.
+Statement: the page loads with no console error, script error, blocked request, missing file or socket, broken image or blank body.
 Keep it (API): fix the cause; never hide an error handler to make the count zero.
 Rejected when: `L3`, `L4` or `L5` reports a problem or an UNVERIFIED line (a check that could not prove itself is not a pass).
 

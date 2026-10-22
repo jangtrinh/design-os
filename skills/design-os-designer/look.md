@@ -16,8 +16,8 @@ exit never means "looks good": `L6`-`L10` are yours.
 | --- | --- | --- |
 | L1 | No sideways page scroll at each width | Measured: `scrollWidth` vs `clientWidth` |
 | L2 | Every visible target is at least 24 px | Measured: smallest non-inline target |
-| L3 | No console error, script error, blocked request or WebSocket (all sockets are closed) | Measured: browser events |
-| L4 | No broken image; lazy images are loaded by a fixed instant scroll first (at most 60 steps); one that never finishes, or a page that keeps growing, is UNVERIFIED | Measured: `naturalWidth` after the scroll |
+| L3 | No console error, script error, blocked request, missing local file or WebSocket (all sockets are closed) | Measured: browser events |
+| L4 | No broken image; lazy images are switched to eager and the page is scrolled by fixed instant steps (at most 60, two passes); one that never finishes, or a page still growing on the second pass, is UNVERIFIED | Measured: `naturalWidth` after the scroll |
 | L5 | The body is not blank | Measured: text length and visual count |
 | L6 | The shape and the one primary action read at 375 px without hunting | Human eyes |
 | L7 | Copy invents no evidence: numbers, logos, quotes, people | Human eyes |
@@ -33,7 +33,7 @@ Wrong: report a zero exit as "looks right", or grade your own page.
 | A machine item fails | Fix the cause, rebuild into a new folder, run validate and look again | Never waive it with a judgment |
 | Fine detail unreadable on the sheet | Open the page at the width in a browser and crop | Never grade thumbnails alone |
 | The page needs a state a static file cannot show | Build the state as its own entry and run it too | Never imply a state you did not render |
-| Network blocked lines appear | Bundle the asset into the folder | Never allow the request to make the count zero |
+| `blocked request` or `missing file` lines appear | Bundle the asset into the page folder | Never allow the request to make the count zero |
 
 ## Without a browser
 
@@ -47,7 +47,8 @@ look: SKIPPED (no Playwright) — capture 375, 768, 1440 with your host's own br
 ```
 
 Then capture the same widths with the host's own browser or screenshot tool and look at them yourself,
-and write in the hand-over that `L1`-`L5` were not measured. A missing look run does not satisfy the
+and write in the hand-over that `L1`-`L5` were not measured. The browser is also the only check for external
+requests and missing local files, so list both as NOT_VERIFIED; no script reads the HTML or CSS instead. A missing look run does not satisfy the
 visual check; do not substitute an old screenshot or another build's capture. In this repository's CI the
 look tests fail when look cannot run, unless `DESIGN_OS_LOOK_OPTIONAL=1` declares the runner browser-less;
 the Ubuntu runners ship Chrome and the repository's own Playwright, so there look runs for real.
