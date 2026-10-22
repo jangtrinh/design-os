@@ -6,10 +6,13 @@
  * and their 1-based line numbers; every rule about what they MEAN lives in
  * reuse-plan-check.ts, so a parsing quirk can never masquerade as a design finding.
  *
+ * Nothing is dropped silently: a Screen-ish heading in the wrong form, a second Pattern
+ * line, and an HTML table are all recorded here so the checker can report them.
+ *
  * Tolerated on purpose, because plans are written by a model and edited by people:
  * CRLF, a UTF-8 BOM, extra spaces and tabs, alignment colons, rows without outer pipes,
  * `\|` inside a cell, bold/underscored/bulleted `Pattern:` labels, and fenced code blocks
- * (skipped, so a plan can quote the format).
+ * (CommonMark rules: closed by the same character, at least as long as the opener).
  */
 
 export interface PlanRow {
@@ -24,6 +27,10 @@ export interface PlanScreen {
   line: number;
   /** First `Pattern:` line of the screen; value is the text after the colon, trimmed. */
   pattern: { line: number; value: string } | null;
+  /** Lines of every further `Pattern:` line in the same screen. */
+  duplicatePatternLines: number[];
+  /** Lines holding an HTML `<table>` inside this screen (not read as slots). */
+  htmlTableLines: number[];
   rows: PlanRow[];
 }
 
@@ -31,12 +38,19 @@ export interface ParsedPlan {
   screens: PlanScreen[];
   /** Slot rows found outside any Screen section. */
   strayRows: PlanRow[];
+  /** Headings that talk about a screen but are not the `Screen: <name>` form. */
+  malformedHeadings: { line: number; text: string }[];
+  /** HTML `<table>` lines found outside any Screen section. */
+  strayHtmlTableLines: number[];
 }
 
-const FENCE_RE = /^\s*(```|~~~)/;
+const FENCE_OPEN_RE = /^\s*(`{3,}|~{3,})(.*)$/;
+const FENCE_CLOSE_RE = /^\s*(`{3,}|~{3,})\s*$/;
 const HEADING_RE = /^\s{0,3}(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/;
 const SCREEN_RE = /^Screen\s*:\s*(.*)$/i;
+const SCREENISH_RE = /\bscreen\b/i;
 const PATTERN_RE = /^(?:[-*+]\s+)?(?:\*\*|__)?\s*Pattern\s*(?:\*\*|__)?\s*:\s*(?:\*\*|__)?\s*(.*)$/i;
+const HTML_TABLE_RE = /<table[\s>]/i;
 const SEPARATOR_CELL_RE = /^:?-+:?$/;
 
 /** Split one table line into trimmed cells; `\|` is a literal pipe, outer pipes are optional. */
@@ -68,28 +82,44 @@ const isHeader = (cells: string[]): boolean => cells.length >= 2 && cells[1]?.to
 
 export function parseReusePlan(text: string): ParsedPlan {
   const lines = text.replace(/^\uFEFF/, "").split(/\r\n|\r|\n/);
-  const screens: PlanScreen[] = [];
-  const strayRows: PlanRow[] = [];
+  const plan: ParsedPlan = { screens: [], strayRows: [], malformedHeadings: [], strayHtmlTableLines: [] };
   let current: PlanScreen | null = null;
   let currentLevel = 0;
-  let fenced = false;
+  let fence: { char: string; len: number } | null = null;
 
   lines.forEach((raw, idx) => {
     const line = idx + 1;
-    if (FENCE_RE.test(raw)) { fenced = !fenced; return; }
-    if (fenced) return;
+    if (fence !== null) {
+      const close = FENCE_CLOSE_RE.exec(raw)?.[1];
+      if (close !== undefined && close[0] === fence.char && close.length >= fence.len) fence = null;
+      return;
+    }
+    const open = FENCE_OPEN_RE.exec(raw);
+    if (open !== null && !((open[1] ?? "")[0] === "`" && (open[2] ?? "").includes("`"))) {
+      fence = { char: (open[1] ?? "")[0] ?? "`", len: (open[1] ?? "").length };
+      return;
+    }
 
     const heading = HEADING_RE.exec(raw);
     if (heading !== null) {
       const level = (heading[1] ?? "").length;
-      const screenMatch = SCREEN_RE.exec(heading[2] ?? "");
+      const title = heading[2] ?? "";
+      const screenMatch = SCREEN_RE.exec(title);
       if (screenMatch !== null) {
-        current = { name: (screenMatch[1] ?? "").trim(), line, pattern: null, rows: [] };
+        current = { name: (screenMatch[1] ?? "").trim(), line, pattern: null, duplicatePatternLines: [], htmlTableLines: [], rows: [] };
         currentLevel = level;
-        screens.push(current);
+        plan.screens.push(current);
+      } else if (SCREENISH_RE.test(title)) {
+        plan.malformedHeadings.push({ line, text: title });
+        current = null;
       } else if (current !== null && level <= currentLevel) {
         current = null;
       }
+      return;
+    }
+
+    if (HTML_TABLE_RE.test(raw)) {
+      (current === null ? plan.strayHtmlTableLines : current.htmlTableLines).push(line);
       return;
     }
 
@@ -97,6 +127,8 @@ export function parseReusePlan(text: string): ParsedPlan {
     if (pattern !== null) {
       if (current !== null && current.pattern === null) {
         current.pattern = { line, value: (pattern[1] ?? "").replace(/(\*\*|__)\s*$/, "").trim() };
+      } else if (current !== null) {
+        current.duplicatePatternLines.push(line);
       }
       return;
     }
@@ -104,9 +136,9 @@ export function parseReusePlan(text: string): ParsedPlan {
     if (looksLikeRow(raw)) {
       const cells = splitTableRow(raw);
       if (isSeparator(cells) || isHeader(cells)) return;
-      (current === null ? strayRows : current.rows).push({ line, cells });
+      (current === null ? plan.strayRows : current.rows).push({ line, cells });
     }
   });
 
-  return { screens, strayRows };
+  return plan;
 }

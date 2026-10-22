@@ -636,7 +636,11 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       check: {
         summary: "Validate a reuse plan's names and token paths against the project registry; exit 1 on findings, 2 when it cannot run",
         positionals: [{ name: "<file>", required: true, summary: "The task's reuse-plan.md" }],
-        flags: [{ name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" }],
+        flags: [
+          { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
+          { name: "file", type: "string", summary: "Registry file to check against (same as 'ui registry list/lookup --file')" },
+          { name: "tokens", type: "string", summary: "Token file for rung 6 (default: <project>/design/design.tokens.json)" },
+        ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "REGISTRY_NOT_FOUND", "BAD_REGISTRY"],
       },
     },

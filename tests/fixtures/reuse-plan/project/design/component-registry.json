@@ -44,6 +44,13 @@
       "scope": "local"
     },
     {
+      "name": "Footer/Legacy",
+      "category": "footer",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
       "name": "Page header/Default",
       "category": "header",
       "markup": "<div></div>",
@@ -74,6 +81,34 @@
     {
       "name": "Table/Dense",
       "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "[ARCHIVED] Banner/Default",
+      "category": "banner",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "[DEPRECATED] Menu/Default",
+      "category": "menu",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "[REVIEW] Panel/Draft",
+      "category": "panel",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "❌ Tag/Retired",
+      "category": "tag",
       "markup": "<div></div>",
       "tokensUsed": [],
       "scope": "local"

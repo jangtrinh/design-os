@@ -265,7 +265,7 @@ describe("structure findings", () => {
     expect(codes(bad)).toEqual(["SKIP_WITHOUT_REASON"]);
     const ok = check(screen(["| s | 1 | skip | the page already shows this | ", "| t | 3 | Table/Basic | — |"]));
     expect(ok.code).toBe(0);
-    expect(ok.data.screens[0]).toMatchObject({ reuse: 1, total: 2, skipped: 1 });
+    expect(ok.data.screens[0]).toMatchObject({ reuse: 1, total: 1, skipped: 1 });
   });
 
   it("findings come out in file order", () => {

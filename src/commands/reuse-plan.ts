@@ -13,11 +13,13 @@ const CMD = "reuse-plan";
 export const REUSE_PLAN_HELP = `ui reuse-plan — check a reuse plan against the design system registry
 
 Usage:
-  ui reuse-plan check <file> [--dir <project>] [--json]
+  ui reuse-plan check <file> [--dir <project>] [--file <registry>] [--tokens <file>] [--json]
 
 Subcommands:
-  check   Validate every name in the plan against <project>/design/component-registry.json
-          and token paths against <project>/design/design.tokens.json. Deterministic, offline.
+  check   Validate every name in the plan against the component registry (default
+          <project>/design/component-registry.json), pattern names against that registry and
+          <project>/design/patterns/*.md (by file stem), and token paths against the tokens
+          (default <project>/design/design.tokens.json). Deterministic, offline.
 
 Plan format (Markdown, one section per screen):
   ## Screen: <screen name>
@@ -33,13 +35,22 @@ Rungs (stop at the first that holds):
   5 'A + B' composition  6 token paths 'a.b, c.d'  7 'ds-new: <Name>' + reason
 
 Options:
-  --dir <path>   Project directory holding design/ (default: cwd)
-  --json         Emit a JSON envelope { file, registry, ok, errorCount, findings, screens, dsNew }
-  -h, --help     Show this help
+  --dir <path>      Project directory holding design/ (default: cwd)
+  --file <path>     Registry file; the same one 'ui registry list/lookup --file' reads
+  --tokens <path>   Token file for rung 6 (default: <project>/design/design.tokens.json)
+  --json            Emit a JSON envelope { file, registry, tokens, ok, errorCount, warningCount,
+                    findings, warnings, screens, dsNew }
+  -h, --help        Show this help
 
 Output:
-  Per screen 'reuse: <rung 2-6 slots>/<all slots>' and the ds-new items for the owner.
+  The header names the registry and the token file checked. Per screen
+  'reuse: <rung 2-6 slots>/<all slots except rung 1>' plus 'N skipped' for rung 1, and the
+  pattern with its source (design/patterns or registry); then the ds-new items for the owner
+  (a hint line when a name is close to a registered one — a hint, never a finding).
   A rung-2-6 slot with any finding is not counted as reuse.
+  Names marked [ARCHIVED], [DEPRECATED], ❌ or matching the repo's deprecation vocabulary are
+  findings; [REVIEW] names are counted warnings. A rung-4 'Axis=Value' is checked against the
+  record's variants when it declares any.
 
 Exit codes:
   0  No findings
@@ -49,8 +60,12 @@ Exit codes:
 Finding codes:
   EMPTY_PLAN  EMPTY_SCREEN  ROW_OUTSIDE_SCREEN  BAD_ROW  BAD_RUNG  EMPTY_USE
   MISSING_PATTERN  PATTERN_NONE_NO_REASON  UNKNOWN_PATTERN  PATTERN_NOT_TEMPLATE
-  UNKNOWN_COMPONENT  BAD_VARIANT  BAD_COMPOSITION  UNRESOLVED_TOKEN  SKIP_WITHOUT_REASON
-  NEW_MISSING_PREFIX  NEW_WITHOUT_NAME  NEW_WITHOUT_REASON  NEW_AT_WRONG_RUNG  NOT_NEW
+  UNKNOWN_COMPONENT  RUNG2_NOT_TEMPLATE  BAD_VARIANT  BAD_VARIANT_VALUE  BAD_COMPOSITION
+  LIFECYCLE_NAME  UNRESOLVED_TOKEN  SKIP_WITHOUT_REASON  NEW_MISSING_PREFIX  NEW_WITHOUT_NAME
+  NEW_WITHOUT_REASON  NEW_AT_WRONG_RUNG  NOT_NEW  DUPLICATE_PATTERN  SCREEN_HEADING_MALFORMED
+  UNSUPPORTED_TABLE
+Warning code:
+  REVIEW_NAME
 
 Error codes:
   BAD_ARG             Missing subcommand or <file>

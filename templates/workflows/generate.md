@@ -190,16 +190,19 @@ Do not generate while the contract has errors.
 
 When §1 found an existing DS and `ui registry list` returned components, choose from that inventory before
 inventing. Read `knowledge/design-reuse-ladder.md`, then write `reuse-plan.md` beside the contract: one
-`## Screen:` section per page, a `Pattern:` line naming the registry template it follows (or `none — reason`),
-and one row per contract section or region with the first ladder rung that holds. The DS's declared
-templates and registered components rank above nearby product code; nearby code is evidence only.
+`## Screen:` section per page, a `Pattern:` line naming the pattern file (`design/patterns/*.md`) or registry
+template it follows (or `none — reason`), and one row per contract section or region with the first ladder
+rung that holds. The DS's declared templates and registered components rank above nearby product code;
+nearby code is evidence only.
 
 ```sh
 ui reuse-plan check reuse-plan.md --json
 ```
 
-Do not generate while it exits non-zero (`1` findings, `2` cannot run). Skip this step only for a
-greenfield DS with an empty registry, and say so in the delivery.
+Pass the same `--file <registry-path>` that `ui registry list` and `lookup` used above when an explicit
+registry path was needed, and `--tokens <file>` when rung 6 should check a token file other than
+`design/design.tokens.json`. Do not generate while it exits non-zero (`1` findings, `2` cannot run). Skip this
+step only for a greenfield DS with an empty registry, and say so in the delivery.
 
 ## 4. Resolve assets
 

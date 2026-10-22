@@ -1,0 +1,33 @@
+{
+  "version": "1",
+  "components": [
+    {
+      "name": "Filter / Chips",
+      "category": "filter",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Page content / Orders · List",
+      "category": "page",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Table / Row",
+      "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "[REVIEW] Page content / Orders · Draft",
+      "category": "page",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    }
+  ]
+}

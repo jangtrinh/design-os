@@ -182,7 +182,7 @@ and verified.
 When the project has a component registry, choose from it before inventing. Read
 `knowledge/design-reuse-ladder.md`, list the redesigned page's slots, and write
 `reuse-plan.md` beside the variant: one `## Screen:` section, a `Pattern:` line naming
-the registry template (or `none — reason`), and for each slot the first ladder rung that
+the pattern file or registry template (or `none — reason`), and for each slot the first ladder rung that
 holds. The contra-persona changes which tokens carry the look (rung 6), not whether a
 registered component already exists for the slot. Check the plan and build only from it:
 

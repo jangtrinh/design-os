@@ -164,7 +164,7 @@
     {
       "path": "workflows/generate.md",
       "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
-      "sourceSha256": "09e571c341a832cc8c9162718260f8be981d089a13ea10fe930f5e3cb8110e44"
+      "sourceSha256": "934532d6d7832aceca721bc7d75911d0634fb0f789666814f93f735d9841d94a"
     },
     {
       "path": "workflows/guidelines.md",
@@ -199,7 +199,7 @@
     {
       "path": "workflows/redesign.md",
       "description": "Radical contra-persona redesign of an existing variant. Use when the user rejects the current direction and asks for something completely different.",
-      "sourceSha256": "fbddd627437b906e03c88cdbceb309a3442938d89e5e82a8fafe18d2d62655f1"
+      "sourceSha256": "3e1927c27c4660a53501dc7969b1bd90c15cb956b861ff723af8a90774067602"
     },
     {
       "path": "workflows/refine.md",
