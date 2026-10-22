@@ -9,6 +9,7 @@ export function buildCodexBlock(
   templatesRoot: string,
   hashes: Record<string, string>,
   knowledgeRoot?: string,
+  designerSkillPath?: string,
 ): string {
   const templateRoot = toFwdSlash(templatesRoot);
   const hashLines = Object.keys(hashes).sort().map((key) => `  ${key}: ${hashes[key] ?? ""}`).join("\n");
@@ -29,6 +30,10 @@ export function buildCodexBlock(
     buildDesignEntryGlue(knowledgeRoot), "",
     "When a workflow references a skill, read the corresponding bundled craft Markdown directly under",
     `\`${templateRoot}/skills/\` because this environment may lack a dedicated Skill tool.`, "",
+    ...(designerSkillPath === undefined || designerSkillPath === "" ? [] : [
+      "Designer skill for rendered UI work (shipped with ease-design, no install needed): read",
+      `\`${toFwdSlash(designerSkillPath)}\` end to end and follow it; its build, validate and look scripts run with Node from your project directory, by absolute path.`, "",
+    ]),
     "Available slash-commands when proxied:",
     `${WORKFLOW_VERBS.map((verb) => `/ui:${verb}`).join(" ")}.`, "",
     "Template hashes (sha256, for drift detection):", hashLines, "",

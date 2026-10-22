@@ -69,11 +69,11 @@ afterEach(() => {
 });
 
 describe("adapters routing bootstrap rule generation", () => {
-  it("Claude adapter generates exactly 46 artifacts including .claude/rules/design-os-routing.md", () => {
+  it("Claude adapter generates exactly 47 artifacts including .claude/rules/design-os-routing.md", () => {
     const cwd = "/tmp/test-claude-routing";
     const arts = generateClaudeAdapter({ cwd, templatesRoot: TEMPLATES_ROOT });
-    expect(arts).toHaveLength(46);
-    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
+    expect(arts).toHaveLength(47);
+    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 2);
 
     const rule = arts.find((a) => a.absPath === join(cwd, ".claude", "rules", "design-os-routing.md"));
     expect(rule).toBeDefined();
@@ -82,11 +82,11 @@ describe("adapters routing bootstrap rule generation", () => {
     expect(rule!.content).toContain("ease-design natural-language routing and workflow bootstrap");
   });
 
-  it("Antigravity adapter generates exactly 46 artifacts including .agent/rules/design-os-routing.md", () => {
+  it("Antigravity adapter generates exactly 47 artifacts including .agent/rules/design-os-routing.md", () => {
     const cwd = "/tmp/test-ag-routing";
     const arts = generateAntigravityAdapter({ cwd, templatesRoot: TEMPLATES_ROOT });
-    expect(arts).toHaveLength(46);
-    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
+    expect(arts).toHaveLength(47);
+    expect(arts).toHaveLength(WORKFLOW_VERBS.length + SKILL_NAMES.length + JOURNEY_NAMES.length + 2);
 
     const rule = arts.find((a) => a.absPath === join(cwd, ".agent", "rules", "design-os-routing.md"));
     expect(rule).toBeDefined();
@@ -116,8 +116,9 @@ describe("adapters routing bootstrap rule generation", () => {
     expect(rule).toContain("pure logic, data, configuration, test, or meta");
     expect(rule).toContain("split the task and activate the design workflow and skill for the visual surface");
     expect(rule).toContain("No System One classifier authority or confidence threshold in ui overrides explicit visual intent");
-    expect(rule).toContain("load the live installed `es:designer` skill");
-    expect(rule).toContain("follow the bundled workflow/craft skill and the build-loop");
+    expect(rule).toContain("load the `design-os-designer` skill");
+    expect(rule).toContain("prefer it and keep `design-os-designer` as the fallback");
+    expect(rule).toContain("ships with ease-design and needs no install");
   });
 });
 
@@ -217,7 +218,7 @@ describe("init seam tests: routing bootstrap file handling", () => {
     ) as { adapters: string[] };
 
     expect(manifest.adapters).toContain(".claude/rules/design-os-routing.md");
-    expect(manifest.adapters).toHaveLength(46);
+    expect(manifest.adapters).toHaveLength(47);
   });
 });
 

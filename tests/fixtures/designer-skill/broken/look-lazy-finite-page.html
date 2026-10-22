@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Gallery</title>
+<style>body{margin:0;font-family:system-ui;font-size:1rem}.tile{min-height:300px}.tile img{display:block;width:100%;height:auto}</style></head>
+<body><main><h1>Gallery</h1><div id="grid"></div></main>
+<script>
+/* A finite lazy gallery: 30 tiles whose images are set when they scroll into view, so the page grows once while it is visited. */
+var png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+var grid = document.getElementById("grid");
+for (var i = 0; i < 30; i++) {
+  var tile = document.createElement("div"); tile.className = "tile";
+  var img = document.createElement("img"); img.alt = "Sample tile " + i; img.setAttribute("data-src", png);
+  tile.appendChild(img); grid.appendChild(tile);
+}
+var io = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) { if (e.isIntersecting) { e.target.src = e.target.getAttribute("data-src"); io.unobserve(e.target); } });
+});
+document.querySelectorAll("img[data-src]").forEach(function (im) { io.observe(im); });
+</script></body></html>

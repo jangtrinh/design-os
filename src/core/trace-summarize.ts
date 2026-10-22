@@ -4,7 +4,7 @@
  * Input: the lines of `.design-os/trace/reads.jsonl`, appended by the host hook
  * `templates/hooks/design-os-read-trace.cjs`. Output: how much context an agent loaded
  * before its first mutation, which orientation files it opened, and — kept as two
- * separate facts on purpose — whether it LOADED the es-designer skill and whether it
+ * separate facts on purpose — whether it LOADED the designer skill (es-designer or design-os-designer) and whether it
  * actually RAN that skill's checklist. Loading a skill is not running its checklist.
  *
  * Record shapes (one JSON object per line):
@@ -38,7 +38,7 @@ export interface TraceSummary {
   indexOpened: boolean;
   esDesignerLoaded: boolean;
   esDesignerChecklistRan: boolean;
-  /** A read of es-designer/checklist.md was recorded (independent of any gate). */
+  /** A read of the designer skill's checklist (es-designer/checklist.md or design-os-designer/look.md) was recorded (independent of any gate). */
   checklistReadRecorded: boolean;
   gateRuns: number;
   traceCoverage: "claude-only" | "none";
@@ -74,11 +74,20 @@ function parseLines(lines: readonly string[]): { records: TraceRecord[]; malform
 
 const toPosix = (p: string): string => p.replace(/\\/g, "/");
 
-/** `es:designer`, `es-designer` and a plugin-prefixed `x:es-designer` are the same skill. */
-function isEsDesigner(name: unknown): boolean {
+/**
+ * The designer skill under any of its names: `es:designer`, `es-designer`, a plugin-prefixed
+ * `x:es-designer`, or the public `design-os-designer`. The `esDesigner*` summary fields keep their
+ * names because they are a JSON contract; they cover either skill.
+ */
+function isDesignerSkill(name: unknown): boolean {
   if (typeof name !== "string") return false;
   const normal = name.trim().toLowerCase().replace(/:/g, "-");
-  return normal === "es-designer" || normal.endsWith("-es-designer");
+  return normal === "es-designer" || normal.endsWith("-es-designer") || normal === "design-os-designer" || normal.endsWith("-design-os-designer");
+}
+
+/** A read of es-designer's checklist.md or design-os-designer's look.md counts as reading the skill's checklist. */
+function isDesignerChecklistPath(path: string): boolean {
+  return path.endsWith("es-designer/checklist.md") || path.endsWith("design-os-designer/look.md");
 }
 
 function readBytes(record: TraceRecord): number {
@@ -131,7 +140,7 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
         };
       }
     } else if (kind === "skill") {
-      if (isEsDesigner(record["name"])) esDesignerLoaded = true;
+      if (isDesignerSkill(record["name"])) esDesignerLoaded = true;
     } else if (kind === "gate") {
       gateRuns++;
       // The checklist RAN when ANY gate event (direct `ui gate`/`slop-detect` or a wrapper
@@ -148,7 +157,7 @@ export function summarizeTrace(lines: readonly string[], options: SummarizeOptio
       }
       if (path === "README.md") readmeOpened = true;
       if (path === "knowledge/index.json" || path.endsWith("/knowledge/index.json")) indexOpened = true;
-      if (path.endsWith("es-designer/checklist.md")) checklistRead = true;
+      if (isDesignerChecklistPath(path)) checklistRead = true;
     }
   }
 

@@ -15,6 +15,8 @@ import { join } from "node:path";
 import { CODEX_SENTINEL_BEGIN, CODEX_SENTINEL_END } from "../adapters/wrapper-shapes.js";
 import type { AdapterLintCheck, ReadManifest } from "./adapter-lint.js";
 
+/** The shipped public skill folder; its wrapper points here instead of at a template. */
+const DESIGNER_SKILL_DIR = "/skills/design-os-designer/";
 const TEMPLATE_REF_RE = /`([^`]+\.md)`/g;
 const BASH_FENCE_RE = /^```bash\s*$/;
 const TURBO_RE = /^\/\/\s*turbo\s*$/;
@@ -133,7 +135,7 @@ function lintWrapper(cwd: string, rel: string): string | null {
 
     // 6. Check any other absolute / template / knowledge path references
     const otherPathRefs = allBacktickRefs.filter(
-      (p) => p.startsWith("/") && (fwd(p).includes("/templates/") || fwd(p).includes("/knowledge/")),
+      (p) => p.startsWith("/") && (fwd(p).includes("/templates/") || fwd(p).includes("/knowledge/") || fwd(p).includes(DESIGNER_SKILL_DIR)),
     );
     for (const p of otherPathRefs) {
       if (!existsSync(p)) {
@@ -146,7 +148,7 @@ function lintWrapper(cwd: string, rel: string): string | null {
   if (!isInitWrapper(relFwd) && !isRoutingRuleWrapper(relFwd)) {
     const refs = [...content.matchAll(TEMPLATE_REF_RE)]
       .map((m) => m[1] as string)
-      .filter((p) => fwd(p).includes("/templates/"));
+      .filter((p) => fwd(p).includes("/templates/") || fwd(p).includes(DESIGNER_SKILL_DIR));
     if (refs.length === 0) return `${relFwd} does not reference its runtime-neutral template`;
     const missing = refs.filter((p) => !existsSync(p));
     if (missing.length > 0) return `${relFwd} points at a template that no longer exists: ${missing.join(", ")}`;

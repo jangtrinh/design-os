@@ -66,10 +66,10 @@ a `## Never` clause; prefer choices that express `## Always`.
 Accessibility, correctness, and safety floors remain mandatory regardless of a
 brief, soul, or preference. No unsafe override becomes valid through owner approval.
 
-For every visual change, discover and load the project's design guidance and available
-`es:designer` / `es-designer` before implementation or visual review. If unavailable,
-use the shipped applicable workflow, `knowledge/generation-craft-defaults.md`, and
-`knowledge/build-loop.md`. Preserve the owner's DS and stack, including shadcn/Tailwind.
+For every visual change, discover and load the project's design guidance and the shipped
+`design-os-designer` skill before implementation or visual review (prefer `es:designer` /
+`es-designer` when the skill catalog also exposes it). Use it with the shipped applicable
+workflow, `knowledge/generation-craft-defaults.md`, and `knowledge/build-loop.md`. Preserve the owner's DS and stack, including shadcn/Tailwind.
 Authorized routine edits do not need fresh approval for every render; durable lesson
 acceptance does need an owner decision. Reading guidance is not verified compliance.
 

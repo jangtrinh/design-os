@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tidepool pricing — plans for solo and shared field notes</title>
+<meta name="description" content="Synthetic example page for the design-os-designer skill: a three-plan pricing layout.">
+<style>
+  :root {
+    --ink: #1b2a2f;
+    --ink-soft: #46585d;
+    --paper: #f6f8f7;
+    --card: #ffffff;
+    --line: #d5dedb;
+    --accent: #0b6b63;
+    --accent-ink: #ffffff;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 16px;
+    --space-4: 24px;
+    --space-5: 40px;
+    --space-6: 64px;
+    --radius-card: 16px;
+    --radius-inner: 8px;
+    --measure: 64ch;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--space-3); }
+  header.site { padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+  header.site .wrap { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; }
+  .brand { font-weight: 700; font-size: 1.125rem; letter-spacing: 0.01em; color: var(--ink); text-decoration: none; }
+  nav ul { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
+  nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-radius: var(--radius-inner); color: var(--ink-soft); text-decoration: none; }
+  .hero { padding: var(--space-6) var(--space-3) var(--space-5); }
+  h1 { font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.1; margin: 0 0 var(--space-3); max-width: 18ch; text-wrap: balance; }
+  h2 { font-size: clamp(1.375rem, 3vw, 1.75rem); line-height: 1.2; margin: 0 0 var(--space-3); text-wrap: balance; }
+  h3 { font-size: 1.125rem; margin: 0 0 var(--space-2); text-wrap: balance; }
+  p { margin: 0 0 var(--space-3); max-width: var(--measure); text-wrap: pretty; }
+  .lede { font-size: 1.125rem; color: var(--ink-soft); }
+  .plans { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); padding-bottom: var(--space-6); }
+  .plan { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); padding: var(--space-4); }
+  .plan[data-featured="true"] { border-color: var(--accent); box-shadow: 0 1px 0 var(--accent); }
+  .price { font-size: 2.25rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: var(--space-2) 0 var(--space-1); }
+  .price small { font-size: 0.9375rem; font-weight: 400; color: var(--ink-soft); }
+  .plan ul { list-style: none; margin: var(--space-3) 0 var(--space-4); padding: 0; display: grid; gap: var(--space-2); }
+  .plan li { padding-left: var(--space-4); position: relative; }
+  .plan li::before { content: ""; position: absolute; left: 0; top: 0.6em; width: 10px; height: 2px; background: var(--accent); }
+  .btn { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--space-4); border-radius: var(--radius-inner); border: 0; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+  .btn.quiet { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  @media (hover: hover) {
+    .btn:hover { background: #09524c; }
+    .btn.quiet:hover { background: #e3efec; }
+    nav a:hover { color: var(--ink); background: #e9efed; }
+  }
+  .faq { padding-bottom: var(--space-6); }
+  details { border-top: 1px solid var(--line); padding: var(--space-3) 0; }
+  details:last-of-type { border-bottom: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+  footer.site { border-top: 1px solid var(--line); padding: var(--space-4) 0; color: var(--ink-soft); font-size: 0.9375rem; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="#top">Tidepool</a>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#plans">Plans</a></li>
+        <li><a href="#questions">Questions</a></li>
+        <li><a href="#top">Sign in</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="top">
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <h1 id="hero-title">Field notes that stay findable</h1>
+    <p class="lede">Tidepool keeps notes, photos and measurements in one searchable log. Pick a plan, change it whenever your team changes.</p>
+  </section>
+  <section class="wrap" id="plans" aria-labelledby="plans-title">
+    <h2 id="plans-title">Choose a plan</h2>
+    <div class="plans">
+      <article class="plan" aria-labelledby="plan-solo">
+        <h3 id="plan-solo">Solo</h3>
+        <p>One person, one log, no deadline pressure.</p>
+        <div class="price">$0 <small>per month</small></div>
+        <ul>
+          <li>Unlimited text notes</li>
+          <li>Search across every entry</li>
+          <li>Export to plain files</li>
+        </ul>
+        <a class="btn quiet" href="#top">Start a free log</a>
+      </article>
+      <article class="plan" data-featured="true" aria-labelledby="plan-team">
+        <h3 id="plan-team">Team</h3>
+        <p>Shared logs with roles and a review trail.</p>
+        <div class="price">$12 <small>per seat, per month</small></div>
+        <ul>
+          <li>Everything in Solo</li>
+          <li>Shared logs and comments</li>
+          <li>Entry history for every edit</li>
+        </ul>
+        <a class="btn" href="#top">Start a team trial</a>
+      </article>
+      <article class="plan" aria-labelledby="plan-site">
+        <h3 id="plan-site">Site</h3>
+        <p>For organisations that need admin controls.</p>
+        <div class="price">Talk to us <small>custom pricing</small></div>
+        <ul>
+          <li>Everything in Team</li>
+          <li>Single sign-on and audit export</li>
+          <li>Named onboarding contact</li>
+        </ul>
+        <a class="btn quiet" href="#top">Book a call</a>
+      </article>
+    </div>
+  </section>
+  <section class="wrap faq" id="questions" aria-labelledby="faq-title">
+    <h2 id="faq-title">Questions before you start</h2>
+    <details>
+      <summary>Can I move between plans?</summary>
+      <p>Yes. Change plans from the account page; the new price applies from the next billing date.</p>
+    </details>
+    <details>
+      <summary>What happens to my notes if I cancel?</summary>
+      <p>Your log stays readable and exportable. You keep a plain-file copy of every entry.</p>
+    </details>
+    <details>
+      <summary>Is there a discount for students?</summary>
+      <p>Not today. The Solo plan is free and has no entry limit.</p>
+    </details>
+  </section>
+</main>
+<footer class="site">
+  <div class="wrap">Tidepool is a fictional product used as a synthetic example.</div>
+</footer>
+</body>
+</html>

@@ -63,11 +63,12 @@ loading even when no role roster is installed.
 
 ## Load relevant lessons before authoring directions
 
-For every visual change, discover the project's design guidance and available
-`es:designer` / `es-designer` capability before implementation or visual review. Preserve
-project tokens, stack, and platform specialists. If that skill is unavailable, read the
-shipped applicable workflow, [craft defaults](../knowledge/generation-craft-defaults.md),
-and [build loop](../knowledge/build-loop.md). Reading guidance does not prove compliance;
+For every visual change, discover the project's design guidance and load the shipped
+[`design-os-designer` skill](../skills/design-os-designer/SKILL.md) before implementation or
+visual review; when the skill catalog also exposes `es:designer` / `es-designer`, prefer that
+one. Preserve project tokens, stack, and platform specialists. Read the shipped applicable
+workflow, [craft defaults](../knowledge/generation-craft-defaults.md),
+and [build loop](../knowledge/build-loop.md) alongside it. Reading guidance does not prove compliance;
 retain rendered evidence and gate results. See [design entry](design-entry.md).
 
 Routine visual edits within the already-authorized task need no new approval ceremony.

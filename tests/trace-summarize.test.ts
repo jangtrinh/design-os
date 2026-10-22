@@ -242,3 +242,46 @@ describe("design-os-read-trace hook → ui trace summarize (emitter/reader round
       expect([c, mutates(c)]).toEqual([c, true]);
   });
 });
+
+describe("design-os-designer is traced like es-designer", () => {
+  const LOOK = "/Users/x/.claude/skills/design-os-designer/look.md";
+
+  it("a skill load under either name, plain or plugin-prefixed, counts as loaded", () => {
+    for (const name of ["design-os-designer", "x:design-os-designer", "es:designer"]) {
+      expect(summarizeTrace([kind("skill", { name })]).esDesignerLoaded, name).toBe(true);
+    }
+    expect(summarizeTrace([kind("skill", { name: "design-os-designer-extra" })]).esDesignerLoaded).toBe(false);
+  });
+
+  it("reading look.md then running a gate is a checklist run; reading it without a gate is not", () => {
+    const ran = summarizeTrace([kind("skill", { name: "design-os-designer" }), read(LOOK, 2000), kind("gate")]);
+    expect(ran).toMatchObject({ esDesignerLoaded: true, esDesignerChecklistRan: true, checklistReadRecorded: true });
+    const readOnly = summarizeTrace([kind("skill", { name: "design-os-designer" }), read(LOOK, 2000)]);
+    expect(readOnly).toMatchObject({ esDesignerChecklistRan: false, checklistReadRecorded: true });
+    // A look.md of another skill is not this checklist.
+    expect(summarizeTrace([read("/Users/x/.claude/skills/other-skill/look.md", 10), kind("gate")]).checklistReadRecorded).toBe(false);
+  });
+
+  it("the hook records the skill, the look.md read and the validate script as a gate run", () => {
+    const hook = join(process.cwd(), "templates", "hooks", "design-os-read-trace.cjs");
+    const dir = mkdtempSync(join(tmpdir(), "trace-designer-"));
+    try {
+      const skillDir = join(dir, "skills", "design-os-designer");
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(join(skillDir, "look.md"), "- L1 overflow");
+      writeFileSync(join(skillDir, "validate.mjs"), readFileSync(join(process.cwd(), "skills", "design-os-designer", "validate.mjs")));
+      for (const [event, tool, input] of [
+        ["PreToolUse", "Skill", { skill: "design-os-designer" }],
+        ["PreToolUse", "Read", { file_path: join(skillDir, "look.md") }],
+        ["PreToolUse", "Bash", { command: "node skills/design-os-designer/validate.mjs --evidence ev" }],
+      ] as const) {
+        const payload = JSON.stringify({ session_id: "s1", hook_event_name: event, tool_name: tool, tool_input: input });
+        expect(spawnSync(process.execPath, [hook], { input: payload, env: { ...process.env, CLAUDE_PROJECT_DIR: dir }, cwd: dir }).status).toBe(0);
+      }
+      const r = JSON.parse(capture(["trace", "summarize", dir, "--json"]).out).data;
+      expect(r).toMatchObject({ esDesignerLoaded: true, esDesignerChecklistRan: true, checklistReadRecorded: true, gateRuns: 1 });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

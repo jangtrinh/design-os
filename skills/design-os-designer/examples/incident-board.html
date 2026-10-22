@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incident board — sample operations screen</title>
+<meta name="description" content="Synthetic example page for the design-os-designer skill: a dense operations table with a filter and an empty state.">
+<style>
+  :root {
+    --ink: #1c2430;
+    --ink-soft: #4a5565;
+    --paper: #f3f5f8;
+    --card: #ffffff;
+    --line: #d3d9e2;
+    --accent: #1d4ed8;
+    --accent-ink: #ffffff;
+    --ok: #166534;
+    --ok-bg: #dcf3e4;
+    --warn: #8a4b00;
+    --warn-bg: #fdecc8;
+    --bad: #a11d33;
+    --bad-bg: #fbdde2;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --radius-card: 12px;
+    --radius-inner: 6px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+  a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .shell { max-width: 1200px; margin: 0 auto; padding: var(--space-5) var(--space-4); }
+  h1 { font-size: 1.5rem; line-height: 1.2; margin: 0 0 var(--space-2); text-wrap: balance; }
+  h2 { font-size: 1rem; margin: 0 0 var(--space-3); text-wrap: balance; }
+  p { margin: 0 0 var(--space-4); max-width: 70ch; color: var(--ink-soft); text-wrap: pretty; }
+  .summary { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 0 0 var(--space-5); padding: 0; list-style: none; }
+  .summary li { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); padding: var(--space-3) var(--space-4); }
+  .summary strong { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .summary span { color: var(--ink-soft); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; margin-bottom: var(--space-4); }
+  .field { display: grid; gap: var(--space-1); }
+  .field label { font-weight: 600; }
+  select, input[type="search"] { min-height: 44px; padding: 0 var(--space-3); border: 1px solid var(--ink-soft); border-radius: var(--radius-inner); background: var(--card); color: var(--ink); font: inherit; min-width: 180px; }
+  .btn { min-height: 44px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-inner); background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; transition: background-color 160ms ease; }
+  .btn[disabled] { background: #c3cad6; color: #3b4452; cursor: not-allowed; }
+  @media (hover: hover) {
+    .btn:not([disabled]):hover { background: #1a3fae; }
+  }
+  .table-region { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); overflow-x: auto; }
+  table { width: 100%; min-width: 720px; border-collapse: collapse; }
+  caption { text-align: left; padding: var(--space-3) var(--space-4); font-weight: 600; }
+  th, td { text-align: left; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--line); vertical-align: middle; }
+  th { color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 2px var(--space-3); border-radius: 999px; font-weight: 600; font-size: 0.8125rem; }
+  .pill.ok { color: var(--ok); background: var(--ok-bg); }
+  .pill.warn { color: var(--warn); background: var(--warn-bg); }
+  .pill.bad { color: var(--bad); background: var(--bad-bg); }
+  .empty { padding: var(--space-5) var(--space-4); border-top: 1px solid var(--line); }
+  .empty[hidden] { display: none; }
+  .note { margin-top: var(--space-4); font-size: 0.8125rem; color: var(--ink-soft); }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <h1>Incident board</h1>
+  <p>Open and recently closed incidents for the sample service. Values are synthetic.</p>
+  <ul class="summary" aria-label="Incident totals">
+    <li><strong>3</strong><span>Open</span></li>
+    <li><strong>1</strong><span>Investigating</span></li>
+    <li><strong>2</strong><span>Resolved today</span></li>
+  </ul>
+  <form class="toolbar" aria-label="Filter incidents" onsubmit="return false">
+    <div class="field">
+      <label for="status-filter">Status</label>
+      <select id="status-filter" name="status">
+        <option value="all">All statuses</option>
+        <option value="open">Open</option>
+        <option value="investigating">Investigating</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="text-filter">Search by title</label>
+      <input id="text-filter" name="q" type="search" autocomplete="off">
+    </div>
+    <button class="btn" type="reset" id="clear-filters" disabled>Clear filters</button>
+  </form>
+  <div class="table-region" role="region" aria-label="Incident table" tabindex="0">
+    <table>
+      <caption>Incidents, newest first</caption>
+      <thead>
+        <tr>
+          <th scope="col">Reference</th>
+          <th scope="col">Title</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="num">Affected users</th>
+          <th scope="col" class="num">Minutes open</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr data-status="open"><td>INC-104</td><td>Login requests time out</td><td><span class="pill bad">Open</span></td><td class="num">1,240</td><td class="num">47</td></tr>
+        <tr data-status="investigating"><td>INC-103</td><td>Export queue is delayed</td><td><span class="pill warn">Investigating</span></td><td class="num">86</td><td class="num">132</td></tr>
+        <tr data-status="open"><td>INC-102</td><td>Image uploads fail above 8 MB</td><td><span class="pill bad">Open</span></td><td class="num">310</td><td class="num">215</td></tr>
+        <tr data-status="resolved"><td>INC-101</td><td>Duplicate email receipts</td><td><span class="pill ok">Resolved</span></td><td class="num">54</td><td class="num">95</td></tr>
+        <tr data-status="resolved"><td>INC-100</td><td>Search index out of date</td><td><span class="pill ok">Resolved</span></td><td class="num">0</td><td class="num">38</td></tr>
+      </tbody>
+    </table>
+    <div class="empty" id="empty-state" hidden>
+      <h2>No incidents match these filters</h2>
+      <p>Clear the filters to see every incident, or search for a different title.</p>
+    </div>
+  </div>
+  <p class="note">Sample data for the design-os-designer example. Counts are not real measurements.</p>
+</main>
+<script>
+(function () {
+  var select = document.getElementById("status-filter");
+  var search = document.getElementById("text-filter");
+  var clear = document.getElementById("clear-filters");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#rows tr"));
+  var empty = document.getElementById("empty-state");
+  function apply() {
+    var status = select.value;
+    var text = search.value.trim().toLowerCase();
+    var shown = 0;
+    rows.forEach(function (row) {
+      var match = (status === "all" || row.getAttribute("data-status") === status) &&
+        row.children[1].textContent.toLowerCase().indexOf(text) !== -1;
+      row.hidden = !match;
+      if (match) shown += 1;
+    });
+    empty.hidden = shown !== 0;
+    clear.disabled = status === "all" && text === "";
+  }
+  select.addEventListener("change", apply);
+  search.addEventListener("input", apply);
+  clear.addEventListener("click", function () {
+    window.setTimeout(apply, 0);
+  });
+})();
+</script>
+</body>
+</html>

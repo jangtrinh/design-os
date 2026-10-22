@@ -4,9 +4,10 @@
  * Emits:
  *   22 workflow files   → <cwd>/.agent/workflows/ui-<verb>.md
  *   22 skill files      → <cwd>/.agent/skills/design-os-<name>/SKILL.md  (19 craft + 3 journey)
+ *   1 designer wrapper  → <cwd>/.agent/skills/design-os-designer/SKILL.md (points at the shipped skills/ folder)
  *   1 routing rule file → <cwd>/.agent/rules/design-os-routing.md
  *
- * Total: 45 artifacts, all mode "write".
+ * Total: 47 artifacts, all mode "write".
  *
  * Antigravity uses the same YAML-frontmatter Markdown shape as Claude.
  * Shell blocks are preceded by `// turbo` to mark them as auto-executable.
@@ -22,6 +23,7 @@ import {
 } from "./templates.js";
 import { buildAntigravityWorkflow, buildAntigravitySkill } from "./wrapper-shapes.js";
 import { buildRoutingRule } from "./wrapper-shapes-shared.js";
+import { designerSkillArtifact } from "./designer-skill.js";
 
 /**
  * Push one `.agent/skills/design-os-<name>/SKILL.md` artifact. Shared by the
@@ -82,6 +84,9 @@ export function generateAntigravityAdapter(input: AdapterInput): AdapterArtifact
   for (const name of JOURNEY_NAMES) {
     pushSkillArtifact(artifacts, cwd, templatesRoot, knowledgeRoot, "journey", name);
   }
+
+  // ── Public designer skill wrapper (the skill folder itself ships in the package) ──
+  artifacts.push(designerSkillArtifact(cwd, ".agent", templatesRoot));
 
   // ── Routing rule ───────────────────────────────────────────────────────────
   artifacts.push({

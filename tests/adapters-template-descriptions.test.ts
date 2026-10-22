@@ -66,7 +66,7 @@ describe("generated wrappers carry the sourced description", () => {
   it("no Claude skill wrapper ships a bare-slug description", () => {
     const artifacts = generateClaudeAdapter(input);
     const skills = artifacts.filter((a) => a.absPath.includes("/skills/"));
-    expect(skills.length).toBe(SKILL_NAMES.length + JOURNEY_NAMES.length);
+    expect(skills.length).toBe(SKILL_NAMES.length + JOURNEY_NAMES.length + 1);
     for (const a of skills) {
       const descLine = a.content.split("\n").find((l) => l.startsWith("description:"));
       expect(descLine, `${a.absPath} has no description line`).toBeDefined();

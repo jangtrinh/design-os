@@ -134,6 +134,80 @@ describe("ui gate — --tokens must fail loud", () => {
   });
 });
 
+describe("ui gate — design-system discovery for token-coverage", () => {
+  const TOKENS = JSON.stringify({ color: { brand: { $type: "color", $value: "#123456" } } });
+
+  /** A project folder with a design system, separate from the folder holding the page. */
+  function project(tokens: string | null): string {
+    const root = mkdtempSync(join(tmpdir(), "ease-gate-project-"));
+    mkdirSync(join(root, "design"), { recursive: true });
+    writeFileSync(join(root, "design", "ds.manifest.json"), "{}");
+    if (tokens !== null) writeFileSync(join(root, "design", "design.tokens.json"), tokens);
+    return root;
+  }
+  const gateJson = (args: string[]): { code: number; data: Record<string, unknown> } => {
+    const r = capture(["gate", ...args, "--json"]);
+    return { code: r.code, data: JSON.parse(r.out).data as Record<string, unknown> };
+  };
+
+  it("--dir in file mode starts discovery in that project; without it the page's own folder finds nothing", () => {
+    const proj = project(TOKENS);
+    const page = write("dir.html", BASE);
+    const withDir = gateJson([page, "--dir", proj]);
+    expect(withDir.data["tokenCoverageSource"]).toEqual({ origin: "auto", path: join(proj, "design", "design.tokens.json") });
+    expect(withDir.data["tokenCoverage"]).toBeDefined();
+    const without = gateJson([page]);
+    expect(without.data["tokenCoverageSource"]).toEqual({ origin: "none" });
+    expect(without.data["tokenCoverage"]).toBeUndefined();
+  });
+
+  it("a readable design system carries no token-coverage finding", () => {
+    expect(gateJson([write("fine.html", BASE), "--dir", project(TOKENS)]).data["tokenCoverageFindings"]).toEqual([]);
+  });
+
+  it("--dir naming a folder that does not exist is a usage error, never a silent 'no design system'", () => {
+    const missing = join(dir, "no-such-project");
+    const r = capture(["gate", write("nodir.html", BASE), "--dir", missing, "--json"]);
+    expect(r.code).toBe(1);
+    const error = JSON.parse(r.out).error as { code: string; message: string };
+    expect(error.code).toBe("BAD_ARG");
+    expect(error.message).toContain(missing);
+  });
+
+  it("an explicit --tokens reports origin flag, and --dir does not override it", () => {
+    const tokens = write("explicit.tokens.json", TOKENS);
+    const r = gateJson([write("flag.html", BASE), "--tokens", tokens, "--dir", project(TOKENS)]);
+    expect(r.data["tokenCoverageSource"]).toEqual({ origin: "flag", path: tokens });
+  });
+
+  it("a detected design system with unparsable tokens fails the gate and names the file", () => {
+    const proj = project("{ not json");
+    const page = write("garbage.html", BASE);
+    const r = gateJson([page, "--dir", proj]);
+    expect(r.code).toBe(1);
+    expect(r.data["pass"]).toBe(false);
+    const source = r.data["tokenCoverageSource"] as { origin: string; path: string; error: string };
+    expect(source.origin).toBe("auto");
+    expect(source.path).toBe(join(proj, "design", "design.tokens.json"));
+    expect(source.error.length).toBeGreaterThan(0);
+    expect(r.data["tokenCoverageFindings"]).toEqual([
+      expect.objectContaining({ family: "token-coverage", checkId: "token-coverage/tokens-not-readable", severity: "error", actual: source.path }),
+    ]);
+    expect(((r.data["tokenCoverageFindings"] as { message: string }[])[0])?.message).toContain(source.error);
+    const text = capture(["gate", page, "--dir", proj]);
+    expect(text.code).toBe(1);
+    expect(text.out).toContain(`[token-coverage/tokens-not-readable]: ${join(proj, "design", "design.tokens.json")}`);
+    expect(text.out).not.toContain("PASS");
+  });
+
+  it("a detected design system whose token file is missing fails the same way", () => {
+    const proj = project(null);
+    const r = gateJson([write("missing.html", BASE), "--dir", proj]);
+    expect(r.code).toBe(1);
+    expect(r.data["tokenCoverageSource"]).toMatchObject({ origin: "auto", error: "the token file is missing" });
+  });
+});
+
 describe("ui gate coverage — the registry triage routes on", () => {
   it("lists every catalog check with per-project activity (raw-hex inactive without tokens)", () => {
     const r = capture(["gate", "coverage", "--dir", dir, "--json"]);

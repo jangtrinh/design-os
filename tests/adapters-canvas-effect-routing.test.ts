@@ -136,7 +136,7 @@ describe("canvas-effect routing — T5 adverse-branch cut line (release-blocking
 describe("canvas-effect routing — T6a packaged-surface invariant (release-blocking)", () => {
   it("package.json.files contains only the distribution roots and supported public guides", () => {
     const pkg = JSON.parse(read("package.json")) as { files: string[] };
-    expect(pkg.files).toEqual(["dist", "knowledge", "docs/design-learning.md", "docs/design-entry.md", "docs/routing-benchmark.md", "schemas", "templates"]);
+    expect(pkg.files).toEqual(["dist", "knowledge", "docs/design-learning.md", "docs/design-entry.md", "docs/routing-benchmark.md", "schemas", "skills/design-os-designer", "templates"]);
   });
 });
 
