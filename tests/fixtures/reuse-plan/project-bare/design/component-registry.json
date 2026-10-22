@@ -1,0 +1,26 @@
+{
+  "version": "1",
+  "components": [
+    {
+      "name": "Filter / Chips",
+      "category": "filter",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Orders / Summary",
+      "category": "card",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Table / Row",
+      "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    }
+  ]
+}

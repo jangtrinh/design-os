@@ -18,7 +18,7 @@ import { componentSpan } from "./ds-guidelines-render.js";
 const NEAR_IDENTICAL_DISTANCE = 2;
 
 /** Lowercase and drop the separators designers vary freely (`/ - _` and spaces). */
-const normalise = (name: string): string => name.toLowerCase().replace(/[/\-_\s]+/g, "");
+export const normalise = (name: string): string => name.toLowerCase().replace(/[/\-_\s]+/g, "");
 
 function splitName(name: string): { parent: string; leaf: string } {
   const segments = name.split("/");
@@ -26,9 +26,12 @@ function splitName(name: string): { parent: string; leaf: string } {
   return { parent: normalise(segments.join("/")), leaf };
 }
 
+/** The reason `confusableReason` gives when two names differ only by a couple of edits after folding. */
+export const NEAR_IDENTICAL_REASON = "near-identical names";
+
 /** Why two distinct names may be confused, or null. */
-function confusableReason(a: string, b: string): string | null {
-  if (levenshtein(normalise(a), normalise(b)) <= NEAR_IDENTICAL_DISTANCE) return "near-identical names";
+export function confusableReason(a: string, b: string): string | null {
+  if (levenshtein(normalise(a), normalise(b)) <= NEAR_IDENTICAL_DISTANCE) return NEAR_IDENTICAL_REASON;
   const sa = splitName(a), sb = splitName(b);
   if (sa.leaf !== "" && sa.leaf === sb.leaf && sa.parent !== sb.parent) return `same leaf name '${sa.leaf}'`;
   return null;

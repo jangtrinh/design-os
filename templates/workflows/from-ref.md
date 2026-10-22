@@ -189,6 +189,10 @@ Invoke `templates/workflows/generate.md` with this payload bound into its prompt
   section fills generate's `<design_tokens>` slot; the context block fills
   `<design_system>`).
 
+The hand-off inherits generate's reuse-plan step: when the project has a component registry,
+the page is built from a checked `reuse-plan.md` (`ui reuse-plan check`), so a reference's look
+never replaces a registered component the DS already declares.
+
 For multimodal-capable hosts, keep the source image attached so the model can
 cross-check pixels while it generates — especially under **replicate** mode.
 

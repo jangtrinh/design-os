@@ -1,0 +1,22 @@
+{
+  "colors": {
+    "brand": {
+      "$type": "color",
+      "$value": "#2563eb"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "#ffffff"
+    }
+  },
+  "spacing": {
+    "4": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": "32px"
+    }
+  }
+}
