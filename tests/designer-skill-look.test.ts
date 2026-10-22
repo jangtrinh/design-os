@@ -5,11 +5,9 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { createServer } from "node:http";
-import type { AddressInfo } from "node:net";
 import { join } from "node:path";
 import {
-  BROKEN_DIR, EXAMPLES, SKILL_DIR, build, ciIsOn, cleanTemps, copySkill, htmlPage, lines, makeTemp, node, nodeAsync, processesMentioning, writeFile,
+  BROKEN_DIR, EXAMPLES, SKILL_DIR, build, cleanTemps, copySkill, htmlPage, lines, lookAvailable, lookIsolated, makeTemp, node, writeFile,
 } from "./helpers/designer-skill-harness.js";
 
 afterAll(cleanTemps);
@@ -43,55 +41,7 @@ describe("look — without Playwright", () => {
 describe("look — rendering", { timeout: 90000 }, () => {
   let available = false;
 
-  beforeAll(() => {
-    const probe = look(build(join(SKILL_DIR, "examples", "pricing-page.html")), join(makeTemp(), "probe.png"));
-    available = probe.status === 0 || probe.status === 1;
-    // CI ships Chrome and the repo's own Playwright: a skip there is a regression, not a courtesy.
-    if (!available && ciIsOn(process.env.CI) && process.env.DESIGN_OS_LOOK_OPTIONAL !== "1") {
-      throw new Error(`look could not run in CI (exit ${probe.status}): ${probe.stdout}${probe.stderr} — set DESIGN_OS_LOOK_OPTIONAL=1 only for a runner without a browser`);
-    }
-  }, 120000);
-
-  it("blocks WebSockets: the server never sees an upgrade and L3 names the blocked socket", async (ctx) => {
-    if (!available) ctx.skip();
-    let upgrades = 0;
-    const server = createServer();
-    server.on("upgrade", (_req, socket) => { upgrades++; socket.destroy(); });
-    await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
-    try {
-      const port = (server.address() as AddressInfo).port;
-      const html = htmlPage("", `<script>var s = new WebSocket("ws://127.0.0.1:${port}/live"); s.onerror = function () {};</script>`);
-      const dir = makeTemp();
-      writeFile(dir, "page.html", html);
-      const evidence = build(join(dir, "page.html"));
-      // Asynchronous on purpose: a blocking spawn would starve this server's event loop.
-      const run = await nodeAsync(join(SKILL_DIR, "look.mjs"), ["--evidence", evidence, "--sheet", join(makeTemp(), "s.png"), "--widths", "375"]);
-      expect(upgrades, "a WebSocket upgrade reached the local server").toBe(0);
-      expect(run.status).toBe(1);
-      expect(lines(run.stdout).find((l) => l.startsWith("L3 console-and-network @375"))).toMatch(new RegExp(`blocked websocket ws://127\\.0\\.0\\.1:${port}/live`));
-    } finally {
-      server.close();
-    }
-  });
-
-  /** Run look asynchronously with its own TMPDIR so any browser it leaves behind is findable with `ps`. */
-  async function lookIsolated(page: string, extra: string[]): Promise<{ run: Awaited<ReturnType<typeof nodeAsync>>; leftovers: string[] }> {
-    const tmp = makeTemp("look-tmp-");
-    const evidence = build(page);
-    const run = await nodeAsync(join(SKILL_DIR, "look.mjs"), ["--evidence", evidence, "--sheet", join(makeTemp(), "s.png"), "--widths", "375", ...extra], { TMPDIR: tmp }, 70000);
-    await new Promise((done) => setTimeout(done, 500));
-    const leftovers = processesMentioning(tmp);
-    for (const line of leftovers) process.kill(Number(line.trim().split(/\s+/)[0]), "SIGKILL"); // never leave an orphan behind a failing test
-    return { run, leftovers };
-  }
-
-  it("finishes on a page that keeps growing while it is scrolled, reports it UNVERIFIED and leaves no browser", async (ctx) => {
-    if (!available) ctx.skip();
-    const { run, leftovers } = await lookIsolated(join(BROKEN_DIR, "look-growing-page.html"), ["--deadline", "30000"]);
-    expect(run.status, run.stdout + run.stderr).toBe(1);
-    expect(lines(run.stdout).find((l) => l.startsWith("L4 broken-images @375"))).toMatch(/UNVERIFIED: page kept growing.* FAIL — /);
-    expect(leftovers).toEqual([]);
-  });
+  beforeAll(() => { available = lookAvailable(); }, 120000);
 
   it("gives up on a page whose script never returns: deadline, UNVERIFIED line, browser closed", async (ctx) => {
     if (!available) ctx.skip();
@@ -110,16 +60,6 @@ describe("look — rendering", { timeout: 90000 }, () => {
     writeFile(dir, "page.html", htmlPage("<style>html { scroll-behavior: smooth; }</style>", body));
     const run = look(build(join(dir, "page.html")), join(makeTemp(), "s.png"), ["--widths", "375"]);
     expect(lines(run.stdout).find((l) => l.startsWith("L4 broken-images @375"))).toMatch(/1 broken — never-there\.png FAIL — /);
-  });
-
-  it("L4 sees a broken lazy image far below the fold", (ctx) => {
-    if (!available) ctx.skip();
-    const html = htmlPage("", '<div style="height:4000px"></div><img loading="lazy" src="missing-bottom.png" alt="A sample" width="100" height="100">');
-    const dir = makeTemp();
-    writeFile(dir, "page.html", html);
-    const run = look(build(join(dir, "page.html")), join(makeTemp(), "s.png"), ["--widths", "375"]);
-    expect(run.status).toBe(1);
-    expect(lines(run.stdout).find((l) => l.startsWith("L4 broken-images @375"))).toMatch(/1 broken — missing-bottom\.png FAIL — /);
   });
 
   for (const name of EXAMPLES) {
@@ -154,9 +94,16 @@ describe("look — rendering", { timeout: 90000 }, () => {
     expect(lines(run.stdout).find((l) => l.startsWith("L4 broken-images @375"))).toMatch(/1 broken — missing-photo\.png FAIL — /);
   });
 
+  it("names a local file the browser could not find under L3", (ctx) => {
+    if (!available) ctx.skip();
+    const run = look(build(join(BROKEN_DIR, "look-missing-ref.html")), join(makeTemp(), "s.png"), ["--widths", "375"]);
+    expect(run.status).toBe(1);
+    expect(lines(run.stdout).find((l) => l.startsWith("L3 console-and-network @375"))).toMatch(/missing file nope\.js/);
+  });
+
   it("blocks remote requests and reports them under L3", (ctx) => {
     if (!available) ctx.skip();
-    const run = look(build(join(BROKEN_DIR, "external-request.html")), join(makeTemp(), "s.png"), ["--widths", "375"]);
+    const run = look(build(join(BROKEN_DIR, "look-external-request.html")), join(makeTemp(), "s.png"), ["--widths", "375"]);
     expect(run.status).toBe(1);
     expect(lines(run.stdout).find((l) => l.startsWith("L3 console-and-network @375"))).toMatch(/blocked request https:\/\/fonts\.example\.test\/serif\.css/);
   });

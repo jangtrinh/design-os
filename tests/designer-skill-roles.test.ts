@@ -8,26 +8,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "n
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { generateAdapter } from "../src/adapters/index.js";
-import { REPO_ROOT, SKILL_DIR } from "./helpers/designer-skill-harness.js";
-
-/** Model families, model slugs (spaced or hyphenated) and private orchestration tools that must never be hard-coded. */
-const FORBIDDEN: readonly [string, RegExp][] = [
-  ["model family", /\b(sonnet|opus|haiku|fable)\b/i],
-  ["model slug", /\b(?:gpt|gemini|claude|grok)[ -]?\d[\w.-]*/i],
-  ["model slug", /\b(?:gemini|claude|grok)-[a-z0-9.]+-(?:flash|pro|high|medium|low|mini|fast|build|sol|terra|luna)\b/i],
-  ["o-series model", /\bo[134](?:-(?:mini|pro|preview|high|low))?\b/i],
-  ["o-series model", /\bopenai\s+o\d/i],
-  ["private tool", /\b(grok|codex-web|orca|kongming|cmux|tmux|agy|jev|laya|astra)\b/i],
-];
-
-function forbiddenHits(text: string): string[] {
-  const hits: string[] = [];
-  for (const [label, pattern] of FORBIDDEN) {
-    const m = pattern.exec(text);
-    if (m !== null) hits.push(`${label}: ${m[0]}`);
-  }
-  return hits;
-}
+import { REPO_ROOT, SKILL_DIR, forbiddenHits } from "./helpers/designer-skill-harness.js";
 
 const scratch: string[] = [];
 afterAll(() => { for (const d of scratch) rmSync(d, { recursive: true, force: true }); });

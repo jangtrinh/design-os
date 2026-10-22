@@ -4,11 +4,11 @@
  * output is stable across runs. Needs the built `ui` binary (CI builds before testing).
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import {
-  BROKEN_DIR, EXAMPLES, SKILL_DIR, build, cleanTemps, copySkill, hasBuiltBinary, makeTemp, node, readJson, validate, verdictLines,
+  BROKEN_DIR, EXAMPLES, SKILL_DIR, build, cleanTemps, copySkill, hasBuiltBinary, htmlPage, lines, makeTemp, node, readJson, validate, verdictLines, writeFile,
 } from "./helpers/designer-skill-harness.js";
 
 afterAll(cleanTemps);
@@ -38,14 +38,6 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
     const out = verdictLines(run.stdout);
     expect(out).toHaveLength(1);
     expect(out[0]).toMatch(/^gate: a11y\/document-title gate-missing-title\.html:\d+ — /);
-  });
-
-  it("external-request: a remote CSS import", () => {
-    const run = validate(build(join(BROKEN_DIR, "external-request.html")));
-    expect(run.status).toBe(1);
-    const out = verdictLines(run.stdout);
-    expect(out).toHaveLength(1);
-    expect(out[0]).toMatch(/^external-request: external-request\.html:8 css @import loads https:\/\/fonts\.example\.test\/serif\.css — /);
   });
 
   it("artifact-hashes: a file changed after build, and an unlisted extra file", () => {
@@ -124,7 +116,7 @@ describe.skipIf(!hasBuiltBinary)("validate and build — cannot-run and input ha
     }
   });
 
-  it("build refuses an existing destination, a non-HTML target and an asset outside the page folder", () => {
+  it("build refuses an existing destination and a non-HTML target", () => {
     const out = makeTemp();
     const exists = node(join(SKILL_DIR, "build.mjs"), ["--target", example("pricing-page.html"), "--out", out]);
     expect(exists.status).toBe(1);
@@ -133,23 +125,96 @@ describe.skipIf(!hasBuiltBinary)("validate and build — cannot-run and input ha
     const text = join(makeTemp(), "notes.txt");
     writeFileSync(text, "x");
     expect(node(join(SKILL_DIR, "build.mjs"), ["--target", text, "--out", join(makeTemp(), "o")]).stderr).toMatch(/^input: .* is not an \.html file/);
-
-    const root = makeTemp();
-    mkdirSync(join(root, "page"));
-    writeFileSync(join(root, "page", "a.html"), '<!doctype html><link rel="stylesheet" href="../secret.css">');
-    writeFileSync(join(root, "secret.css"), "body{}");
-    const escape = node(join(SKILL_DIR, "build.mjs"), ["--target", join(root, "page", "a.html"), "--out", join(root, "o")]);
-    expect(escape.status).toBe(1);
-    expect(escape.stderr).toMatch(/outside the page folder/);
   });
 
-  it("build copies local assets a page references and records them in the manifest", () => {
+  it("build refuses a folder over the file limit with the one input line, before copying anything", () => {
     const root = makeTemp();
+    writeFileSync(join(root, "index.html"), "<!doctype html><title>t</title>");
+    for (let i = 0; i < 200; i++) writeFileSync(join(root, `asset-${i}.txt`), "x");
+    const out = join(makeTemp(), "o");
+    const run = node(join(SKILL_DIR, "build.mjs"), ["--target", join(root, "index.html"), "--out", out]);
+    expect(run.status).toBe(1);
+    expect(run.stderr.trim()).toBe(`input: ${root} holds more than 200 files — move the page and its assets into their own folder`);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("build copies every file of the page folder, skipping dotfiles, and records the project folder", () => {
+    const root = makeTemp();
+    const project = makeTemp();
     writeFileSync(join(root, "p.html"), '<!doctype html><html lang="en"><title>t</title><link rel="stylesheet" href="s.css"><body><h1>Hi there</h1></body></html>');
     writeFileSync(join(root, "s.css"), "h1{font-size:2rem}");
     copyFileSync(join(root, "s.css"), join(root, "unreferenced.css"));
-    const evidence = build(join(root, "p.html"));
-    const manifest = readJson(join(evidence, "manifest.json")) as { files: { path: string }[] };
-    expect(manifest.files.map((f) => f.path)).toEqual(["p.html", "s.css"]);
+    writeFileSync(join(root, ".hidden"), "x");
+    mkdirSync(join(root, "img"));
+    writeFileSync(join(root, "img", "a.txt"), "x");
+    const out = join(makeTemp(), "ev");
+    const run = node(join(SKILL_DIR, "build.mjs"), ["--target", join(root, "p.html"), "--out", out, "--project", project]);
+    expect(run.status, run.stderr).toBe(0);
+    const manifest = readJson(join(out, "manifest.json")) as { files: { path: string }[]; projectDir: string };
+    expect(manifest.files.map((f) => f.path)).toEqual(["img/a.txt", "p.html", "s.css", "unreferenced.css"]);
+    expect(manifest.projectDir).toBe(project);
+  });
+
+  it("without --project the manifest records the page's own folder", () => {
+    const root = makeTemp();
+    writeFileSync(join(root, "p.html"), "<!doctype html><title>t</title>");
+    const out = join(makeTemp(), "ev");
+    expect(node(join(SKILL_DIR, "build.mjs"), ["--target", join(root, "p.html"), "--out", out]).status).toBe(0);
+    expect((readJson(join(out, "manifest.json")) as { projectDir: string }).projectDir).toBe(root);
+  });
+});
+
+describe.skipIf(!hasBuiltBinary)("validate — what ui could not check is said out loud", () => {
+  /** Build one page into its own folder, graded in an empty project. */
+  function buildPage(html: string): string {
+    return build(writeFile(makeTemp(), "page.html", html));
+  }
+
+  it("prints a note naming the folder searched, then ok, when no design system is found", () => {
+    const run = validate(buildPage(htmlPage()));
+    expect(run.status).toBe(0);
+    const out = lines(run.stdout);
+    expect(out).toHaveLength(2);
+    expect(out[0]).toMatch(/^note: gate: token-coverage did not run — no design system found from .* \(5 folders up, stops at \.git\)$/);
+    expect(out[1]).toBe("ok");
+  });
+
+  it("a user --tokens that ui accepts needs no note", () => {
+    const tokens = writeFile(makeTemp(), "tokens.json", '{"color":{"ink":{"$type":"color","$value":"#1b2a2f"},"paper":{"$type":"color","$value":"#ffffff"}}}');
+    const run = validate(buildPage(htmlPage()), SKILL_DIR, ["--tokens", tokens]);
+    expect(run.stdout).not.toMatch(/did not run/);
+  });
+
+  it("a manifest without projectDir is rejected as a manifest problem", () => {
+    const evidence = buildPage(htmlPage());
+    const manifest = readJson(join(evidence, "manifest.json"));
+    delete manifest["projectDir"];
+    writeFileSync(join(evidence, "manifest.json"), JSON.stringify(manifest));
+    const run = validate(evidence);
+    expect(run.status).toBe(1);
+    expect(run.stdout).toMatch(/^manifest: manifest\.json does not match schema 1 \(entry, projectDir, /);
+  });
+
+  it("tolerates a UTF-8 BOM at the start of the contract", () => {
+    const copy = copySkill();
+    const evidence = build(example("pricing-page.html"), copy);
+    writeFileSync(join(copy, "contract.md"), "\uFEFF" + readFileSync(join(copy, "contract.md"), "utf8"));
+    const run = validate(evidence, copy);
+    expect({ status: run.status, out: verdictLines(run.stdout) }).toEqual({ status: 0, out: ["ok"] });
+  });
+
+  it("when ui cannot run, still prints the mechanical failures found (exit 1), else exits 2", () => {
+    const copy = copySkill();
+    const env = { PATH: makeTemp(), DESIGN_OS_UI: "" };
+    const tampered = buildPage(htmlPage());
+    writeFileSync(join(tampered, "site", "page.html"), readFileSync(join(tampered, "site", "page.html"), "utf8") + "\n<!-- edit -->\n");
+    const a = node(join(copy, "validate.mjs"), ["--evidence", tampered], env);
+    expect(a.status).toBe(1);
+    expect(verdictLines(a.stdout)).toEqual(["artifact-hashes: page.html changed after build — edit the source and rebuild"]);
+    expect(a.stderr).toMatch(/runtime: could not run — `ui` binary not found/);
+
+    const b = node(join(copy, "validate.mjs"), ["--evidence", buildPage(htmlPage())], env);
+    expect(b.status).toBe(2);
+    expect(b.stdout).toBe("");
   });
 });

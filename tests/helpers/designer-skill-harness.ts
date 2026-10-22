@@ -4,9 +4,9 @@
  * so a test can break a copy without touching the shipped files.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -61,6 +61,33 @@ export function processesMentioning(marker: string): string[] {
   return ps.stdout.split("\n").filter((line) => line.includes(marker) && !line.includes("ps -ax"));
 }
 
+/**
+ * Whether look can render here (Playwright and a Chromium-family browser). CI ships both: a skip there is a
+ * regression, so it throws unless DESIGN_OS_LOOK_OPTIONAL=1 declares the runner browser-less.
+ */
+export function lookAvailable(): boolean {
+  const probe = node(join(SKILL_DIR, "look.mjs"), ["--evidence", build(join(SKILL_DIR, "examples", "pricing-page.html")), "--sheet", join(makeTemp(), "probe.png"), "--widths", "375"]);
+  const available = probe.status === 0 || probe.status === 1;
+  if (!available && ciIsOn(process.env["CI"]) && process.env["DESIGN_OS_LOOK_OPTIONAL"] !== "1") {
+    throw new Error(`look could not run in CI (exit ${probe.status}): ${probe.stdout}${probe.stderr} — set DESIGN_OS_LOOK_OPTIONAL=1 only for a runner without a browser`);
+  }
+  return available;
+}
+
+/**
+ * Run look asynchronously (widths 375 unless overridden) with its own TMPDIR, so any browser it leaves behind is
+ * findable with `ps`; leftovers are killed so a failing test never orphans one.
+ */
+export async function lookIsolated(page: string, extra: string[]): Promise<{ run: Run; leftovers: string[] }> {
+  const tmp = makeTemp("look-tmp-");
+  const evidence = build(page);
+  const run = await nodeAsync(join(SKILL_DIR, "look.mjs"), ["--evidence", evidence, "--sheet", join(makeTemp(), "s.png"), "--widths", "375", ...extra], { TMPDIR: tmp }, 70000);
+  await new Promise((done) => setTimeout(done, 500));
+  const leftovers = processesMentioning(tmp);
+  for (const line of leftovers) process.kill(Number(line.trim().split(/\s+/)[0]), "SIGKILL");
+  return { run, leftovers };
+}
+
 /** CI counts as on only for a real value: "", "0" and "false" mean off. */
 export function ciIsOn(value: string | undefined): boolean {
   return value !== undefined && !["", "0", "false"].includes(value.trim().toLowerCase());
@@ -76,12 +103,23 @@ export function failureLines(stdout: string): string[] {
   return lines(stdout).filter((l) => !l.startsWith("note:") && !l.startsWith("warn:") && l !== "ok");
 }
 
-/** Build an evidence folder for `target` into a fresh temp dir; returns its path. */
+/** An HTML file copied into a folder of its own, the way a user copies an example into a project before building it. */
+export function stage(file: string): string {
+  const dest = join(makeTemp("designer-page-"), basename(file));
+  copyFileSync(file, dest);
+  return dest;
+}
+
+/**
+ * Build an evidence folder for `target` into a fresh temp dir; returns its path. The unit is the page's folder, so a
+ * file that sits among siblings in the skill's examples or the broken fixtures is staged into its own folder first.
+ */
 export function build(target: string, skillDir = SKILL_DIR): string {
   const out = join(makeTemp(), "evidence");
   // One shared empty --project keeps repo fixtures from being graded against this repository's own brand tokens.
   emptyProject ??= makeTemp("designer-noproject-");
-  const run = node(join(skillDir, "build.mjs"), ["--target", target, "--out", out, "--project", emptyProject]);
+  const page = [join(SKILL_DIR, "examples"), BROKEN_DIR].includes(dirname(target)) ? stage(target) : target;
+  const run = node(join(skillDir, "build.mjs"), ["--target", page, "--out", out, "--project", emptyProject]);
   if (run.status !== 0) throw new Error(`build failed (${run.status}): ${run.stderr}${run.stdout}`);
   return out;
 }
@@ -141,4 +179,23 @@ export function makeProject(): string {
 /** Run build.mjs with explicit args (no --out added) from `cwd`. */
 export function buildRun(args: string[], cwd?: string, skillDir = SKILL_DIR): Run {
   return node(join(skillDir, "build.mjs"), args, {}, cwd);
+}
+
+/** Model families, model slugs (spaced or hyphenated) and private orchestration tools that must never be hard-coded. */
+export const FORBIDDEN: readonly [string, RegExp][] = [
+  ["model family", /\b(sonnet|opus|haiku|fable)\b/i],
+  ["model slug", /\b(?:gpt|gemini|claude|grok)[ -]?\d[\w.-]*/i],
+  ["model slug", /\b(?:gemini|claude|grok)-[a-z0-9.]+-(?:flash|pro|high|medium|low|mini|fast|build|sol|terra|luna)\b/i],
+  ["o-series model", /\bo[134](?:-(?:mini|pro|preview|high|low))?\b/i],
+  ["o-series model", /\bopenai\s+o\d/i],
+  ["private tool", /\b(grok|codex-web|orca|kongming|cmux|tmux|agy|jev|laya|astra)\b/i],
+];
+
+export function forbiddenHits(text: string): string[] {
+  const hits: string[] = [];
+  for (const [label, pattern] of FORBIDDEN) {
+    const m = pattern.exec(text);
+    if (m !== null) hits.push(`${label}: ${m[0]}`);
+  }
+  return hits;
 }
