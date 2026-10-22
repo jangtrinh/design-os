@@ -1,4 +1,4 @@
-<!-- sha256: 5835a0fa47bca4590ea6524a14c34952a040ce50a2efc285361b865cb5bc0fe9 -->
+<!-- sha256: 1d4b1b75abcb6e894da5de9115d25a4ba0398e0a0413c7577fae62dd3f837cdc -->
 # Generated command contract
 
 Generated from `src/core/command-signatures.ts` through `ui schema --json`. Do not edit: validate.mjs
@@ -15,7 +15,7 @@ Usage: `ui gate <file.html> [flags]`
 | `--tokens` | string | DS token file; enables the taste Consistency raw-hex check and grades required token-coverage against THIS file |
 | `--family` | string | Persona family slug — applies its gate_policy from knowledge/personas/families.json |
 | `--skip` | string | Comma-separated <family>:<reason> pairs — declared partial gating |
-| `--dir` | string | coverage mode: project directory to probe for tokens/DS (default: cwd) |
+| `--dir` | string | Project directory to probe for tokens/DS (default: the file's folder; coverage mode: cwd) |
 | `--token-coverage-floor` | string | Minimum ui token-coverage score before the gate fails (default: 0.8) |
 
 Error codes: `BAD_ARG`, `FILE_NOT_FOUND`, `READ_ERROR`, `TOKENS_NOT_READABLE`, `FAMILY_NOT_FOUND`
