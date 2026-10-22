@@ -8,10 +8,12 @@ import { run } from "../../src/cli.js";
 const FIX = fileURLToPath(new URL("../fixtures/reuse-plan/", import.meta.url));
 /** Registry with Pattern/* templates, lifecycle-marked names, variants, and a token file. */
 export const PROJECT = join(FIX, "project");
-/** Figma-road registry: no Pattern/* names, no token file. */
+/** Figma-road registry: no Pattern/* names, no token file; its "page" category records are the masters. */
 export const FLAT = join(FIX, "project-flat");
 /** Registry without Pattern/* names plus design/patterns/*.md pattern files. */
 export const FILES = join(FIX, "project-files");
+/** Registry that declares no template at all: no Pattern/*, no template-like category, no pattern files. */
+export const BARE = join(FIX, "project-bare");
 
 export interface Finding { code: string; line: number; screen: string | null; slot: string | null; message: string }
 export interface Screen { name: string; line: number; pattern: string | null; patternSource: string | null; reuse: number; total: number; skipped: number }

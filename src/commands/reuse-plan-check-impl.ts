@@ -80,6 +80,7 @@ export function runReusePlanCheck(parsed: ParsedArgs): CommandResult {
     entries = loadRegistry(reg.path).components.map((c) => ({
       name: c.name,
       variants: Array.isArray(c.variants) ? c.variants.filter((v): v is string => typeof v === "string") : [],
+      ...(typeof c.category === "string" ? { category: c.category } : {}),
     }));
   } catch (e) {
     const code = e !== null && typeof e === "object" && "code" in e ? String((e as { code: unknown }).code) : "BAD_REGISTRY";

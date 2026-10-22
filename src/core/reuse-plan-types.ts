@@ -31,5 +31,7 @@ export interface CheckContext {
 export interface Sink {
   error(code: string, line: number, slot: string | null, message: string): void;
   warn(code: string, line: number, slot: string | null, message: string): void;
+  /** Like `warn`, but only the first call per run with this code is recorded. */
+  warnOnce(code: string, line: number, slot: string | null, message: string): void;
   errors(): number;
 }

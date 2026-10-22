@@ -41,7 +41,7 @@ answered no for that slot.
 | Rung | Question | What the plan records |
 |---|---|---|
 | 1 | Does this UI need to exist? | `skip` + the reason it is dropped |
-| 2 | Does a DS screen or pattern template cover it? | a `design/patterns/*.md` file stem, or a registry template (`Pattern/*`) |
+| 2 | Does a DS screen or pattern template cover it? | a `design/patterns/*.md` file stem, or a registry template (`Pattern/*` or a page/template-category record) |
 | 3 | Is there a registered component by exact name? | the exact name (`ui registry lookup '<name>'`) |
 | 4 | Is it a variant or state of a registered component? | `Name (Axis=Value)` |
 | 5 | Is it a composition of registered components? | each name, joined by `+` |
@@ -82,9 +82,9 @@ output header names the registry and the token file it checked. Exit 0 means no 
 2 means the check could not run (no registry, unreadable plan). Fix every finding and re-run; do not start
 markup on exit 1 or 2.
 
-Headings: every screen is `## Screen: <name>`. A heading that mentions a screen in any other form
-(`### Screen B`) is `SCREEN_HEADING_MALFORMED`, because it opens no screen and its rows would go unmeasured; keep
-the word out of other headings. Slots are a Markdown table — an HTML `<table>` is `UNSUPPORTED_TABLE`, never
+Headings: every screen is `## Screen: <name>`. A heading that starts with "Screen" in any other form
+(`### Screen B`, `## **Screen — Orders**`) is `SCREEN_HEADING_MALFORMED`, because it opens no screen and its rows
+would go unmeasured. A heading that merely mentions a screen later in its text is prose and is left alone. Slots are a Markdown table — an HTML `<table>` is `UNSUPPORTED_TABLE`, never
 skipped. A second `Pattern:` line in one screen is `DUPLICATE_PATTERN`.
 
 ### The Pattern line and rung 2
@@ -92,20 +92,23 @@ skipped. A second `Pattern:` line in one screen is `DUPLICATE_PATTERN`.
 Every screen names the template it follows, or says why none fits: `Pattern: none — <reason>`. A bare `none`,
 or a placeholder reason (below), is a finding, because "no template" with no reason is the same silence as no line.
 
-A pattern resolves against both places a project declares one, and the output names which matched:
+One template set serves both the Pattern line and a rung-2 `Use`. A name is a template when it is:
 
-- `design/patterns/*.md`, by file stem (`list-page`; `README.md` is the index, not a pattern).
-- The registry: any `Pattern/*` entry. When the registry declares none (a registry mirrored from a design file
-  usually names its page masters like `Page content / <area> · <screen>`), any exact registered name is
-  accepted as the screen's template. The check cannot know which names are masters; naming the right one stays
-  the author's judgment.
+- a `design/patterns/*.md` file stem (`list-page`; `README.md` is the index, not a pattern), or
+- a registry name under `Pattern/`, or
+- a registry record whose `category` matches `page|template|pattern|layout|screen` (case-insensitive) — a registry
+  mirrored from a design file usually files its page masters under a category like "Page content".
 
-When the registry declares `Pattern/*` entries, a non-`Pattern/*` registered name on the Pattern line is
-`PATTERN_NOT_TEMPLATE`: allowing any component there would let a button stand in for a page template. A
-did-you-mean spans both sources.
+The output names which source matched (`design/patterns` or `registry`).
 
-A rung-2 `Use` is stricter than the Pattern line: when the project declares any template (a `Pattern/*` entry or
-a pattern file), it MUST be one of those, otherwise `RUNG2_NOT_TEMPLATE` — a plain component belongs at rung 3.
+When the set is non-empty, a registered name that is not in it is `PATTERN_NOT_TEMPLATE` on the Pattern line and
+`RUNG2_NOT_TEMPLATE` at rung 2: allowing any component there would let a button stand in for a page template,
+and a plain component belongs at rung 3. The did-you-mean offers templates only.
+
+When the set is empty the check cannot tell a master from a component, so it accepts any registered name on both —
+and says so with the counted warning `NO_TEMPLATES_DECLARED`, once per run, whenever a plan relied on that.
+The fix is to declare a template (a pattern file, a `Pattern/*` entry, or the right category), not to ignore the
+warning. A plan that names no template (`Pattern: none — …` everywhere) never triggers it.
 
 ### Retired and unreviewed names
 

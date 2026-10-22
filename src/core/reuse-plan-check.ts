@@ -12,7 +12,7 @@ import type { PatternSource } from "./reuse-plan-names.js";
 import { didYouMean, stripTicks } from "./reuse-plan-names.js";
 import { isPlaceholderReason } from "./reuse-plan-reason.js";
 import { lifecycleOf } from "./lifecycle-name.js";
-import { checkRow } from "./reuse-plan-check-row.js";
+import { checkRow, NO_TEMPLATES_MESSAGE } from "./reuse-plan-check-row.js";
 
 export type { CheckContext, CheckResult, DsNewItem, Finding, ScreenSummary } from "./reuse-plan-types.js";
 
@@ -38,18 +38,25 @@ export function checkReusePlan(plan: ParsedPlan, ctx: CheckContext): CheckResult
   if (plan.screens.length === 0) {
     top("EMPTY_PLAN", 1, "no '## Screen: <name>' section found — a reuse plan with no screens measures nothing");
   }
-  const screens = plan.screens.map((s) => checkScreen(s, ctx, findings, warnings, dsNew));
+  const onceWarned = new Set<string>();
+  const screens = plan.screens.map((s) => checkScreen(s, ctx, findings, warnings, dsNew, onceWarned));
 
   findings.sort((a, b) => a.line - b.line);
   warnings.sort((a, b) => a.line - b.line);
   return { findings, warnings, screens, dsNew };
 }
 
-function checkScreen(screen: PlanScreen, ctx: CheckContext, findings: Finding[], warnings: Finding[], dsNew: DsNewItem[]): ScreenSummary {
+function checkScreen(screen: PlanScreen, ctx: CheckContext, findings: Finding[], warnings: Finding[], dsNew: DsNewItem[], onceWarned: Set<string>): ScreenSummary {
   const at = (list: Finding[]) => (code: string, line: number, slot: string | null, message: string): void => {
     list.push({ code, line, screen: screen.name, slot, message });
   };
-  const sink: Sink = { error: at(findings), warn: at(warnings), errors: () => findings.length };
+  const warn = at(warnings);
+  const sink: Sink = {
+    error: at(findings),
+    warn,
+    warnOnce: (code, line, slot, message) => { if (!onceWarned.has(code)) { onceWarned.add(code); warn(code, line, slot, message); } },
+    errors: () => findings.length,
+  };
 
   const { pattern, source } = checkPattern(screen, ctx, sink);
   for (const line of screen.duplicatePatternLines) {
@@ -93,7 +100,8 @@ function checkPattern(screen: PlanScreen, ctx: CheckContext, sink: Sink): { patt
   const known = (n: string): boolean => ctx.names.patternFiles.has(n) || ctx.names.has(n);
   const name = known(whole) ? whole : stripTicks(p.value.split(/\s+(?:—|–|--)\s+/)[0] ?? "");
   if (!known(name)) {
-    sink.error("UNKNOWN_PATTERN", p.line, null, `Pattern '${name}' is neither a design/patterns file nor a registered name${didYouMean(ctx.names.suggest(name))}`);
+    const among = ctx.names.hasTemplates ? "templates" : "all";
+    sink.error("UNKNOWN_PATTERN", p.line, null, `Pattern '${name}' is neither a design/patterns file nor a registered name${didYouMean(ctx.names.suggest(name, among))}`);
     return none;
   }
   if (ctx.names.patternFiles.has(name)) return { pattern: name, source: "design/patterns" };
@@ -102,11 +110,12 @@ function checkPattern(screen: PlanScreen, ctx: CheckContext, sink: Sink): { patt
     sink.error("LIFECYCLE_NAME", p.line, null, `Pattern '${name}' is marked archived/deprecated in the registry — pick its replacement`);
     return none;
   }
-  if (ctx.names.registryPatterns.length > 0 && !name.startsWith("Pattern/")) {
+  if (ctx.names.hasTemplates && ctx.names.templateSource(name) === null) {
     sink.error("PATTERN_NOT_TEMPLATE", p.line, null,
-      `'${name}' is registered but is not a Pattern/* template, and this registry declares Pattern/* templates — use one, a design/patterns file, or 'none — <reason>'`);
+      `'${name}' is registered but is not a declared template (a design/patterns file, a Pattern/* entry, or a page/template-category record) — use one, or 'none — <reason>'`);
     return none;
   }
+  if (!ctx.names.hasTemplates) sink.warnOnce("NO_TEMPLATES_DECLARED", p.line, null, NO_TEMPLATES_MESSAGE);
   if (life === "review") sink.warn("REVIEW_NAME", p.line, null, `Pattern '${name}' is still marked [REVIEW] — confirm it is approved before building on it`);
   return { pattern: name, source: "registry" };
 }

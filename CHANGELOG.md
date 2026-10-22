@@ -14,8 +14,10 @@
     `UNRESOLVED_TOKEN`, a missing, duplicated or unreasoned Pattern line, an unknown or non-template pattern,
     placeholder reasons (`n/a`, `tbd`, a bare dash, the slot's own name), a screen with no slots, an empty plan,
     a bad rung or row, a malformed Screen heading, an HTML table. Nothing in the plan is skipped silently.
-  - The Pattern line resolves against `design/patterns/*.md` (by file stem) and the registry, and the output
-    names which matched. `--tokens` overrides the default token file; both the registry and the token file
+  - The Pattern line and rung 2 share one template set: `design/patterns/*.md` file stems, registry `Pattern/*`
+    names, and registry records whose category looks like a page, template, pattern, layout or screen. The
+    output names which source matched; when no template is declared any registered name is accepted with a
+    counted `NO_TEMPLATES_DECLARED` warning, once per run. `--tokens` overrides the default token file; both the registry and the token file
     checked are printed in the header.
   - It prints `reuse: <rung 2-6 slots>/<all slots except rung 1>` per screen, `N skipped` for rung 1, and the
     `ds-new:` list for the owner (a hint line when a name is close to a registered one, never a finding).

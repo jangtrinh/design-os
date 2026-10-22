@@ -38,7 +38,7 @@ export interface ParsedPlan {
   screens: PlanScreen[];
   /** Slot rows found outside any Screen section. */
   strayRows: PlanRow[];
-  /** Headings that talk about a screen but are not the `Screen: <name>` form. */
+  /** Headings that start with "Screen" but are not the `Screen: <name>` form. */
   malformedHeadings: { line: number; text: string }[];
   /** HTML `<table>` lines found outside any Screen section. */
   strayHtmlTableLines: number[];
@@ -48,7 +48,8 @@ const FENCE_OPEN_RE = /^\s*(`{3,}|~{3,})(.*)$/;
 const FENCE_CLOSE_RE = /^\s*(`{3,}|~{3,})\s*$/;
 const HEADING_RE = /^\s{0,3}(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/;
 const SCREEN_RE = /^Screen\s*:\s*(.*)$/i;
-const SCREENISH_RE = /\bscreen\b/i;
+/** A heading whose text STARTS with "Screen" (emphasis allowed) — prose that merely mentions a screen is not one. */
+const SCREENISH_RE = /^(?:\*\*|__|\*|_)?\s*screen\b/i;
 const PATTERN_RE = /^(?:[-*+]\s+)?(?:\*\*|__)?\s*Pattern\s*(?:\*\*|__)?\s*:\s*(?:\*\*|__)?\s*(.*)$/i;
 const HTML_TABLE_RE = /<table[\s>]/i;
 const SEPARATOR_CELL_RE = /^:?-+:?$/;

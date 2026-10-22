@@ -12,7 +12,10 @@ import { NEAR_IDENTICAL_REASON, confusableReason, normalise as foldName } from "
 
 const SUGGESTION_LIMIT = 3;
 
-export interface RegistryNameEntry { name: string; variants: readonly string[] }
+export interface RegistryNameEntry { name: string; variants: readonly string[]; category?: string }
+
+/** A registry record in one of these categories is a screen/page template master (e.g. "Page content"). */
+const TEMPLATE_CATEGORY_RE = /page|template|pattern|layout|screen/i;
 
 export type PatternSource = "design/patterns" | "registry";
 
@@ -23,15 +26,15 @@ export interface NameIndex {
   foldedMatch(name: string): string | undefined;
   /** Registered names a couple of edits away from `name` after folding (never the name itself). */
   nearIdentical(name: string): string[];
-  /** Up to three registered names or pattern files closest to `name`, nearest first, ties by name. */
+  /** Up to three templates (`templates`) or registered names (`all`) closest to `name`, nearest first, ties by name. */
   suggest(name: string, among?: "all" | "templates"): string[];
   /** Union of the variant strings declared by the records named `name`; empty when none declare any. */
   variantsOf(name: string): string[];
   /** Pattern-file stems from `design/patterns/*.md`. */
   patternFiles: ReadonlySet<string>;
-  /** Registered `Pattern/*` names. */
-  registryPatterns: readonly string[];
-  /** True when the project declares any template: a `Pattern/*` name or a pattern file. */
+  /** Registered template names: `Pattern/*` plus records whose category looks like a page/template/pattern/layout/screen. */
+  registryTemplates: readonly string[];
+  /** True when the project declares any template (a pattern file or a registry template). */
   hasTemplates: boolean;
   /** Where `name` counts as a template, or null when it is not one. */
   templateSource(name: string): PatternSource | null;
@@ -56,7 +59,9 @@ export function buildNameIndex(entries: readonly RegistryNameEntry[], patternFil
   const foldKey = (name: string): string => foldName(name.normalize("NFKC"));
   for (const n of sorted) if (!folded.has(foldKey(n))) folded.set(foldKey(n), n);
   const files = new Set([...patternFileStems].sort());
-  const registryPatterns = sorted.filter((n) => n.startsWith("Pattern/"));
+  const categoryTemplates = new Set(entries.filter((e) => TEMPLATE_CATEGORY_RE.test(e.category ?? "")).map((e) => e.name));
+  const registryTemplates = sorted.filter((n) => n.startsWith("Pattern/") || categoryTemplates.has(n));
+  const templates = [...files, ...registryTemplates];
 
   const rank = (target: string, pool: readonly string[]): string[] => {
     const limit = Math.max(3, Math.floor(target.length / 6));
@@ -74,14 +79,13 @@ export function buildNameIndex(entries: readonly RegistryNameEntry[], patternFil
     suggest(name, among = "all") {
       const target = normaliseName(name);
       if (target.length === 0) return [];
-      const templates = [...files, ...registryPatterns];
-      return rank(target, among === "templates" ? templates : [...new Set([...files, ...sorted])].sort());
+      return rank(target, among === "templates" ? templates : sorted);
     },
     variantsOf: (name) => [...(variants.get(name) ?? [])].sort(),
     patternFiles: files,
-    registryPatterns,
-    hasTemplates: files.size > 0 || registryPatterns.length > 0,
-    templateSource: (name) => (files.has(name) ? "design/patterns" : registryPatterns.includes(name) ? "registry" : null),
+    registryTemplates,
+    hasTemplates: templates.length > 0,
+    templateSource: (name) => (files.has(name) ? "design/patterns" : registryTemplates.includes(name) ? "registry" : null),
     size: sorted.length,
   };
 }

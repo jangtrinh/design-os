@@ -48,6 +48,9 @@ Output:
   pattern with its source (design/patterns or registry); then the ds-new items for the owner
   (a hint line when a name is close to a registered one — a hint, never a finding).
   A rung-2-6 slot with any finding is not counted as reuse.
+  Templates (one set for the Pattern line and rung 2): design/patterns file stems, registry
+  Pattern/* names, and registry records whose category matches page|template|pattern|layout|screen.
+  With none declared, any registered name is accepted and NO_TEMPLATES_DECLARED is warned once.
   Names marked [ARCHIVED], [DEPRECATED], ❌ or matching the repo's deprecation vocabulary are
   findings; [REVIEW] names are counted warnings. A rung-4 'Axis=Value' is checked against the
   record's variants when it declares any.
@@ -64,8 +67,8 @@ Finding codes:
   LIFECYCLE_NAME  UNRESOLVED_TOKEN  SKIP_WITHOUT_REASON  NEW_MISSING_PREFIX  NEW_WITHOUT_NAME
   NEW_WITHOUT_REASON  NEW_AT_WRONG_RUNG  NOT_NEW  DUPLICATE_PATTERN  SCREEN_HEADING_MALFORMED
   UNSUPPORTED_TABLE
-Warning code:
-  REVIEW_NAME
+Warning codes:
+  REVIEW_NAME  NO_TEMPLATES_DECLARED
 
 Error codes:
   BAD_ARG             Missing subcommand or <file>

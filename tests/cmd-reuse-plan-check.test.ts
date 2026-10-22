@@ -213,7 +213,7 @@ describe("Pattern line", () => {
     expect(codes(check(screen(["| s | 3 | Table/Basic | — |"], "Table/Dense")).data)).toEqual(["PATTERN_NOT_TEMPLATE"]);
   });
 
-  it("a registry with no Pattern/* names accepts any registered name as the template", () => {
+  it("a registry with no Pattern/* names takes its template-category masters as templates", () => {
     const text = screen(["| s | 3 | Table / Row | — |"], "Page content / Orders · List");
     const r = check(text, FLAT);
     expect(r.code).toBe(0);

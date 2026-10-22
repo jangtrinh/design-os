@@ -13,6 +13,10 @@ import { tokenExistsInTree } from "./registry-token-check.js";
 
 const VALID_VALUES_SHOWN = 20;
 
+/** Shown once per run when the project declares no template, so Pattern and rung 2 accept any registered name. */
+export const NO_TEMPLATES_MESSAGE =
+  "this project declares no template (no design/patterns file, no Pattern/* entry, no page/template-category record) — any registered name was accepted as a template; declare one so the choice can be checked";
+
 export function checkRow(row: PlanRow, screenName: string, ctx: CheckContext, sink: Sink, dsNew: DsNewItem[]): number | null {
   const slot = row.cells[0] ?? "";
   if (row.cells.length !== 4) {
@@ -58,12 +62,13 @@ export function checkRow(row: PlanRow, screenName: string, ctx: CheckContext, si
 
   if (rung === 2) {
     const name = stripTicks(use);
-    if (!ctx.names.hasTemplates) requireRegistered(name);
-    else if (ctx.names.templateSource(name) === "design/patterns") return rung;
+    if (!ctx.names.hasTemplates) {
+      if (requireRegistered(name)) sink.warnOnce("NO_TEMPLATES_DECLARED", row.line, slot, NO_TEMPLATES_MESSAGE);
+    } else if (ctx.names.templateSource(name) === "design/patterns") return rung;
     else if (ctx.names.has(name) && ctx.names.templateSource(name) === null) {
-      flag("RUNG2_NOT_TEMPLATE", `'${name}' is a registered component, not a screen or pattern template — rung 2 needs a Pattern/* entry or a design/patterns file; a component belongs at rung 3`);
+      flag("RUNG2_NOT_TEMPLATE", `'${name}' is a registered component, not a declared template — rung 2 needs a design/patterns file, a Pattern/* entry or a page/template-category record; a component belongs at rung 3`);
     } else if (!ctx.names.has(name)) {
-      flag("UNKNOWN_COMPONENT", `'${name}' is not a template (Pattern/* or design/patterns file)${didYouMean(ctx.names.suggest(name, "templates"))}`);
+      flag("UNKNOWN_COMPONENT", `'${name}' is not a declared template${didYouMean(ctx.names.suggest(name, "templates"))}`);
     } else requireRegistered(name);
   } else if (rung === 3) {
     requireRegistered(stripTicks(use));

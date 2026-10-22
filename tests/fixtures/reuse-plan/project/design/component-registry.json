@@ -72,6 +72,13 @@
       "scope": "local"
     },
     {
+      "name": "Pattern/WizardPage",
+      "category": "misc",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
       "name": "Table/Basic",
       "category": "table",
       "markup": "<div></div>",

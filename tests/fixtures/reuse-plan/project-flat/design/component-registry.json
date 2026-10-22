@@ -2,14 +2,49 @@
   "version": "1",
   "components": [
     {
-      "name": "Page content / Orders · List",
-      "category": "page",
+      "name": "Filter / Chips",
+      "category": "filter",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Orders / Detail frame",
+      "category": "Layout shells",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Orders / Dialog",
+      "category": "Dialog patterns",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Orders / Overview",
+      "category": "Screen masters",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Orders / Wizard",
+      "category": "Templates",
       "markup": "<div></div>",
       "tokensUsed": [],
       "scope": "local"
     },
     {
       "name": "Page content / Orders · Detail",
+      "category": "page",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Page content / Orders · List",
       "category": "page",
       "markup": "<div></div>",
       "tokensUsed": [],
@@ -25,13 +60,6 @@
     {
       "name": "Table / Row",
       "category": "table",
-      "markup": "<div></div>",
-      "tokensUsed": [],
-      "scope": "local"
-    },
-    {
-      "name": "Filter / Chips",
-      "category": "filter",
       "markup": "<div></div>",
       "tokensUsed": [],
       "scope": "local"

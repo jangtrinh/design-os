@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { join } from "node:path";
-import { capture, check, codes, planFile, screen, FILES, FLAT, PROJECT } from "./helpers/reuse-plan-kit.js";
+import { capture, check, codes, planFile, screen, BARE, FILES, FLAT, PROJECT } from "./helpers/reuse-plan-kit.js";
 
 const HEAD = "| Slot | Rung | Use | Reason |\n|---|---|---|---|\n";
 
@@ -23,13 +23,65 @@ describe("rung 2 must be a template", () => {
     expect(d.findings[0]?.message).not.toContain("Table/Basic");
   });
 
-  it("pattern files only: a file stem passes, a registered master is not a template", () => {
+  it("pattern files: a file stem and a template-category master pass, a plain registered component does not", () => {
     expect(check(screen(["| s | 2 | detail-page | — |"], "list-page"), FILES).code).toBe(0);
-    expect(codes(check(screen(["| s | 2 | Page content / Orders · List | — |"], "list-page"), FILES).data)).toEqual(["RUNG2_NOT_TEMPLATE"]);
+    expect(check(screen(["| s | 2 | Page content / Orders · List | — |"], "list-page"), FILES).code).toBe(0);
+    expect(codes(check(screen(["| s | 2 | Table / Row | — |"], "list-page"), FILES).data)).toEqual(["RUNG2_NOT_TEMPLATE"]);
+  });
+});
+
+describe("one template set for the Pattern line and rung 2", () => {
+  it("registry records whose category looks like a page, template, pattern, layout or screen are templates", () => {
+    expect(check(screen(["| s | 2 | Page content / Orders · Detail | — |"], "Page content / Orders · List"), FLAT).code).toBe(0);
+    expect(codes(check(screen(["| s | 3 | Table / Row | — |"], "Table / Row"), FLAT).data)).toEqual(["PATTERN_NOT_TEMPLATE"]);
+    expect(codes(check(screen(["| s | 2 | Table / Row | — |"], "Page content / Orders · List"), FLAT).data)).toEqual(["RUNG2_NOT_TEMPLATE"]);
   });
 
-  it("no templates anywhere: any registered name is accepted at rung 2", () => {
-    expect(check(screen(["| s | 2 | Table / Row | — |"], "Page content / Orders · List"), FLAT).code).toBe(0);
+  it("each template-like category word counts, and a Pattern/* name counts whatever its category", () => {
+    for (const name of ["Orders / Detail frame", "Orders / Overview", "Orders / Wizard", "Orders / Dialog"]) {
+      expect(check(screen(["| s | 3 | Table / Row | — |"], name), FLAT).code, name).toBe(0);
+    }
+    const r = check(screen(["| s | 2 | Pattern/WizardPage | — |"], "Pattern/WizardPage"));
+    expect(r.code).toBe(0);
+    expect(r.data.screens[0]?.patternSource).toBe("registry");
+  });
+
+  it("the did-you-mean offers templates only once a template set exists", () => {
+    const unknown = check(screen(["| s | 3 | Table / Row | — |"], "Page content / Orders · Lis"), FLAT).data;
+    expect(unknown.findings[0]?.message).toContain("Page content / Orders · List");
+    const miss = check(screen(["| s | 3 | Table / Row | — |"], "Table / Rw"), FLAT).data;
+    expect(miss.findings[0]?.message).not.toContain("'Table / Row'");
+  });
+
+  it("no template declared anywhere: any registered name is accepted on both, with one counted warning per run", () => {
+    const two = "## Screen: A\nPattern: Orders / Summary\n\n" + HEAD + "| s | 2 | Filter / Chips | — |\n\n## Screen: B\nPattern: Table / Row\n\n" + HEAD + "| s | 3 | Table / Row | — |\n";
+    const r = check(two, BARE);
+    expect(r.code).toBe(0);
+    expect(r.data.findings).toEqual([]);
+    expect(r.data.warnings.map((w) => w.code)).toEqual(["NO_TEMPLATES_DECLARED"]);
+    expect(r.data.warningCount).toBe(1);
+    const t = capture(["reuse-plan", "check", r.file, "--dir", BARE]).out;
+    expect(t).toContain("NO_TEMPLATES_DECLARED");
+  });
+
+  it("a named Pattern alone triggers the warning too", () => {
+    const r = check(screen(["| s | 3 | Table / Row | — |"], "Orders / Summary"), BARE);
+    expect(r.code).toBe(0);
+    expect(r.data.warnings.map((w) => w.code)).toEqual(["NO_TEMPLATES_DECLARED"]);
+  });
+
+  it("rung 2 alone triggers the warning; a plan that names no template never does", () => {
+    const rung2 = check(screen(["| s | 2 | Table / Row | — |"], "none — one-off dialog"), BARE);
+    expect(rung2.code).toBe(0);
+    expect(rung2.data.warnings.map((w) => w.code)).toEqual(["NO_TEMPLATES_DECLARED"]);
+    const quiet = check(screen(["| s | 3 | Table / Row | — |"], "none — one-off dialog"), BARE);
+    expect(quiet.data.warnings).toEqual([]);
+  });
+
+  it("with no template set an unknown name still has the all-names did-you-mean", () => {
+    const d = check(screen(["| s | 3 | Table / Row | — |"], "Table / Rwo"), BARE).data;
+    expect(codes(d)).toEqual(["UNKNOWN_PATTERN"]);
+    expect(d.findings[0]?.message).toContain("Table / Row");
   });
 });
 
@@ -82,9 +134,16 @@ describe("parser silent losses", () => {
     expect(d.screens).toHaveLength(1);
   });
 
-  it("a heading that merely contains another word is untouched", () => {
-    const d = check("# Notes on screens\n\n" + screen(["| x | 3 | Table/Basic | — |"])).data;
-    expect(codes(d)).toEqual([]);
+  it("a heading that merely contains the word elsewhere is untouched", () => {
+    for (const title of ["# Notes on screens", "# Same screen with the mistakes an agent makes", "## Screens overview", "## The Screen-less plan"]) {
+      expect(codes(check(`${title}\n\n` + screen(["| x | 3 | Table/Basic | — |"])).data), title).toEqual([]);
+    }
+  });
+
+  it("a heading that starts with Screen in any other form is flagged, emphasis included", () => {
+    for (const title of ["### Screen B", "## **Screen B**", "## Screen — Orders", "## screen 2", "## Screen"]) {
+      expect(codes(check(`${title}\n\n` + screen(["| x | 3 | Table/Basic | — |"])).data), title).toEqual(["SCREEN_HEADING_MALFORMED"]);
+    }
   });
 
   it("DUPLICATE_PATTERN: a second Pattern line in one screen", () => {
