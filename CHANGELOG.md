@@ -8,8 +8,10 @@
   `Pattern:` line and a Slot / Rung / Use / Reason table) against the project's component registry, pattern
   files and design tokens. Exact names at rungs 2-5 (a variant as `Name (Axis=Value)`, a composition as
   `A + B`), token paths at rung 6, and `ds-new: <Name>` plus a real reason at rung 7.
-  - Findings: `UNKNOWN_COMPONENT` with a did-you-mean, `LIFECYCLE_NAME` for `[ARCHIVED]` / `[DEPRECATED]` / `❌`
-    and the repo's deprecation vocabulary (a `[REVIEW]` name is a counted warning), `BAD_VARIANT_VALUE` against
+  - Findings: `UNKNOWN_COMPONENT` with a did-you-mean, `LIFECYCLE_NAME` for a record's own `deprecated: true`,
+    `[ARCHIVED]` / `[DEPRECATED]` / `❌`, the repo's deprecation vocabulary and legacy pattern files (a
+    `[REVIEW]` name is a counted warning), `NEW_AT_WRONG_RUNG` for `ds-new:` at any rung but 7,
+    `FENCE_UNCLOSED`, `SCREEN_NAME_EMPTY`, `DUPLICATE_SCREEN`, `BAD_VARIANT_VALUE` against
     the record's variants, `RUNG2_NOT_TEMPLATE`, `NOT_NEW` (folds separators, a variant suffix and compositions),
     `UNRESOLVED_TOKEN`, a missing, duplicated or unreasoned Pattern line, an unknown or non-template pattern,
     placeholder reasons (`n/a`, `tbd`, a bare dash, the slot's own name), a screen with no slots, an empty plan,

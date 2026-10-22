@@ -34,16 +34,16 @@ export function checkRow(row: PlanRow, screenName: string, ctx: CheckContext, si
   const flag = (code: string, message: string): void => sink.error(code, row.line, slot, message);
   const newMatch = DS_NEW_RE.exec(use);
 
+  if (rung !== 7 && newMatch !== null) {
+    flag("NEW_AT_WRONG_RUNG", `'ds-new:' belongs at rung 7, not rung ${rung} — a new component is the last rung, and it must reach the owner's list`);
+    return rung;
+  }
   if (rung === 1) {
     if (isPlaceholderReason(reasonRaw, slot)) flag("SKIP_WITHOUT_REASON", "rung 1 (the UI need not exist) needs a real reason — say why this slot is dropped");
     return rung;
   }
   if (rung === 7) {
     checkNew(newMatch, use, reasonRaw, slot, ctx, flag, (item) => dsNew.push({ ...item, screen: screenName, slot, line: row.line }));
-    return rung;
-  }
-  if (newMatch !== null) {
-    flag("NEW_AT_WRONG_RUNG", `'ds-new:' belongs at rung 7, not rung ${rung} — a new component is the last rung`);
     return rung;
   }
   if (use.length === 0) { flag("EMPTY_USE", `rung ${rung} needs a Use — name what is reused`); return rung; }
@@ -54,9 +54,9 @@ export function checkRow(row: PlanRow, screenName: string, ctx: CheckContext, si
       flag("UNKNOWN_COMPONENT", `'${name}' is not in the registry (exact name required)${didYouMean(ctx.names.suggest(name))}`);
       return false;
     }
-    const life = lifecycleOf(name);
-    if (life === "retired") flag("LIFECYCLE_NAME", `'${name}' is marked archived/deprecated in the registry — pick its replacement, not a retired component`);
-    else if (life === "review") sink.warn("REVIEW_NAME", row.line, slot, `'${name}' is still marked [REVIEW] — confirm it is approved before building on it`);
+    const life = ctx.names.lifecycle(name);
+    if (life?.kind === "retired") flag("LIFECYCLE_NAME", `'${name}' is ${life.why} — pick its replacement, not a retired component`);
+    else if (life?.kind === "review") sink.warn("REVIEW_NAME", row.line, slot, `'${name}' is ${life.why} — confirm it is approved before building on it`);
     return true;
   };
 
@@ -64,8 +64,10 @@ export function checkRow(row: PlanRow, screenName: string, ctx: CheckContext, si
     const name = stripTicks(use);
     if (!ctx.names.hasTemplates) {
       if (requireRegistered(name)) sink.warnOnce("NO_TEMPLATES_DECLARED", row.line, slot, NO_TEMPLATES_MESSAGE);
-    } else if (ctx.names.templateSource(name) === "design/patterns") return rung;
-    else if (ctx.names.has(name) && ctx.names.templateSource(name) === null) {
+    } else if (ctx.names.templateSource(name) === "design/patterns") {
+      if (lifecycleOf(name) === "retired") flag("LIFECYCLE_NAME", `design/patterns file '${name}' is named as deprecated/legacy — pick its replacement, not a retired pattern`);
+      return rung;
+    } else if (ctx.names.has(name) && ctx.names.templateSource(name) === null) {
       flag("RUNG2_NOT_TEMPLATE", `'${name}' is a registered component, not a declared template — rung 2 needs a design/patterns file, a Pattern/* entry or a page/template-category record; a component belongs at rung 3`);
     } else if (!ctx.names.has(name)) {
       flag("UNKNOWN_COMPONENT", `'${name}' is not a declared template${didYouMean(ctx.names.suggest(name, "templates"))}`);

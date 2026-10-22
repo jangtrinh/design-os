@@ -42,10 +42,13 @@ export interface ParsedPlan {
   malformedHeadings: { line: number; text: string }[];
   /** HTML `<table>` lines found outside any Screen section. */
   strayHtmlTableLines: number[];
+  /** Line of a code fence that is never closed (everything after it is swallowed), or null. */
+  unclosedFenceLine: number | null;
 }
 
-const FENCE_OPEN_RE = /^\s*(`{3,}|~{3,})(.*)$/;
-const FENCE_CLOSE_RE = /^\s*(`{3,}|~{3,})\s*$/;
+/** CommonMark: a fence may be indented by at most three spaces; four or more is indented code. */
+const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
+const FENCE_CLOSE_RE = /^ {0,3}(`{3,}|~{3,})\s*$/;
 const HEADING_RE = /^\s{0,3}(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/;
 const SCREEN_RE = /^Screen\s*:\s*(.*)$/i;
 /** A heading whose text STARTS with "Screen" (emphasis allowed) — prose that merely mentions a screen is not one. */
@@ -83,7 +86,7 @@ const isHeader = (cells: string[]): boolean => cells.length >= 2 && cells[1]?.to
 
 export function parseReusePlan(text: string): ParsedPlan {
   const lines = text.replace(/^\uFEFF/, "").split(/\r\n|\r|\n/);
-  const plan: ParsedPlan = { screens: [], strayRows: [], malformedHeadings: [], strayHtmlTableLines: [] };
+  const plan: ParsedPlan = { screens: [], strayRows: [], malformedHeadings: [], strayHtmlTableLines: [], unclosedFenceLine: null };
   let current: PlanScreen | null = null;
   let currentLevel = 0;
   let fence: { char: string; len: number } | null = null;
@@ -92,12 +95,13 @@ export function parseReusePlan(text: string): ParsedPlan {
     const line = idx + 1;
     if (fence !== null) {
       const close = FENCE_CLOSE_RE.exec(raw)?.[1];
-      if (close !== undefined && close[0] === fence.char && close.length >= fence.len) fence = null;
+      if (close !== undefined && close[0] === fence.char && close.length >= fence.len) { fence = null; plan.unclosedFenceLine = null; }
       return;
     }
     const open = FENCE_OPEN_RE.exec(raw);
     if (open !== null && !((open[1] ?? "")[0] === "`" && (open[2] ?? "").includes("`"))) {
       fence = { char: (open[1] ?? "")[0] ?? "`", len: (open[1] ?? "").length };
+      plan.unclosedFenceLine = line;
       return;
     }
 

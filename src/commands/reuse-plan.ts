@@ -51,8 +51,8 @@ Output:
   Templates (one set for the Pattern line and rung 2): design/patterns file stems, registry
   Pattern/* names, and registry records whose category matches page|template|pattern|layout|screen.
   With none declared, any registered name is accepted and NO_TEMPLATES_DECLARED is warned once.
-  Names marked [ARCHIVED], [DEPRECATED], ❌ or matching the repo's deprecation vocabulary are
-  findings; [REVIEW] names are counted warnings. A rung-4 'Axis=Value' is checked against the
+  Records with deprecated: true, names marked [ARCHIVED], [DEPRECATED], ❌ or matching the repo's
+  deprecation vocabulary (pattern file stems included) are findings; [REVIEW] names are counted warnings. A rung-4 'Axis=Value' is checked against the
   record's variants when it declares any.
 
 Exit codes:
@@ -66,7 +66,7 @@ Finding codes:
   UNKNOWN_COMPONENT  RUNG2_NOT_TEMPLATE  BAD_VARIANT  BAD_VARIANT_VALUE  BAD_COMPOSITION
   LIFECYCLE_NAME  UNRESOLVED_TOKEN  SKIP_WITHOUT_REASON  NEW_MISSING_PREFIX  NEW_WITHOUT_NAME
   NEW_WITHOUT_REASON  NEW_AT_WRONG_RUNG  NOT_NEW  DUPLICATE_PATTERN  SCREEN_HEADING_MALFORMED
-  UNSUPPORTED_TABLE
+  UNSUPPORTED_TABLE  FENCE_UNCLOSED  SCREEN_NAME_EMPTY  DUPLICATE_SCREEN
 Warning codes:
   REVIEW_NAME  NO_TEMPLATES_DECLARED
 

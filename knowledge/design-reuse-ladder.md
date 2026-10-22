@@ -85,7 +85,9 @@ markup on exit 1 or 2.
 Headings: every screen is `## Screen: <name>`. A heading that starts with "Screen" in any other form
 (`### Screen B`, `## **Screen — Orders**`) is `SCREEN_HEADING_MALFORMED`, because it opens no screen and its rows
 would go unmeasured. A heading that merely mentions a screen later in its text is prose and is left alone. Slots are a Markdown table — an HTML `<table>` is `UNSUPPORTED_TABLE`, never
-skipped. A second `Pattern:` line in one screen is `DUPLICATE_PATTERN`.
+skipped. A second `Pattern:` line in one screen is `DUPLICATE_PATTERN`; a screen with no name is
+`SCREEN_NAME_EMPTY`; two screens with one name are `DUPLICATE_SCREEN`. A code fence (indented at most three
+spaces) that is never closed swallows the rest of the file, so it is `FENCE_UNCLOSED`, naming its opening line.
 
 ### The Pattern line and rung 2
 
@@ -112,9 +114,11 @@ warning. A plan that names no template (`Pattern: none — …` everywhere) neve
 
 ### Retired and unreviewed names
 
-A registered name marked `[ARCHIVED]`, `[DEPRECATED]` or `❌`, or matching the repo's deprecation vocabulary
-(`deprecated`, `legacy`, `do not use`, `old`), is `LIFECYCLE_NAME` wherever it is used, including the Pattern line:
-the registry still lists it, but building on it ships the thing the design file retired. A `[REVIEW]` name
+A registered record with `deprecated: true` (written when a component is deleted in the design file), a name marked
+`[ARCHIVED]`, `[DEPRECATED]` or `❌`, or a name matching the repo's deprecation vocabulary (`deprecated`, `legacy`,
+`do not use`, `old`), is `LIFECYCLE_NAME` wherever it is used, including the Pattern line and rung 2. A
+`design/patterns` file whose stem matches the vocabulary (`legacy-table`) is held to the same rule. The registry
+still lists these names, but building on one ships the thing the design file retired. A `[REVIEW]` name
 is a counted warning, not a finding — usable, but confirm it is approved.
 
 ### Rung 4 — variants
@@ -125,7 +129,9 @@ because there is nothing to compare with.
 
 ### Rung 7 — a new component
 
-A new component is allowed, never blocking, and never silent. It needs the `ds-new:` prefix, a real reason,
+A new component is allowed, never blocking, and never silent. `ds-new:` belongs at rung 7 only — written at any
+other rung (rung 1 included) it is `NEW_AT_WRONG_RUNG`, so no new component can hide from the owner's list. It
+needs the `ds-new:` prefix, a real reason,
 and a name that is not already registered. The check folds the usual dodges before it decides: separators and
 case (`Button / Primary`), a variant suffix (`Button/Primary (State=Hover)`), and a composition whose every
 member is registered (`A + B`) are all `NOT_NEW` — that was rung 3 or 5. A name within a couple of edits of a

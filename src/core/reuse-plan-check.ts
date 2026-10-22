@@ -9,7 +9,7 @@
 import type { ParsedPlan, PlanScreen } from "./reuse-plan-parse.js";
 import type { CheckContext, CheckResult, DsNewItem, Finding, ScreenSummary, Sink } from "./reuse-plan-types.js";
 import type { PatternSource } from "./reuse-plan-names.js";
-import { didYouMean, stripTicks } from "./reuse-plan-names.js";
+import { didYouMean, normaliseName, stripTicks } from "./reuse-plan-names.js";
 import { isPlaceholderReason } from "./reuse-plan-reason.js";
 import { lifecycleOf } from "./lifecycle-name.js";
 import { checkRow, NO_TEMPLATES_MESSAGE } from "./reuse-plan-check-row.js";
@@ -35,8 +35,20 @@ export function checkReusePlan(plan: ParsedPlan, ctx: CheckContext): CheckResult
   for (const line of plan.strayHtmlTableLines) {
     top("UNSUPPORTED_TABLE", line, "an HTML <table> is not read — write the slots as a Markdown table under a '## Screen:' heading");
   }
+  if (plan.unclosedFenceLine !== null) {
+    top("FENCE_UNCLOSED", plan.unclosedFenceLine, `the code fence opened on line ${plan.unclosedFenceLine} is never closed — everything after it was skipped, including any screens`);
+  }
   if (plan.screens.length === 0) {
     top("EMPTY_PLAN", 1, "no '## Screen: <name>' section found — a reuse plan with no screens measures nothing");
+  }
+  const seen = new Map<string, number>();
+  for (const s of plan.screens) {
+    const key = normaliseName(s.name);
+    if (key === "") {
+      top("SCREEN_NAME_EMPTY", s.line, "'## Screen:' has no name — findings and the owner report could not say which screen they are about");
+    } else if (seen.has(key)) {
+      top("DUPLICATE_SCREEN", s.line, `screen '${s.name}' is already defined on line ${seen.get(key)} — rename one; two sections with one name hide which is measured`);
+    } else seen.set(key, s.line);
   }
   const onceWarned = new Set<string>();
   const screens = plan.screens.map((s) => checkScreen(s, ctx, findings, warnings, dsNew, onceWarned));
@@ -104,10 +116,16 @@ function checkPattern(screen: PlanScreen, ctx: CheckContext, sink: Sink): { patt
     sink.error("UNKNOWN_PATTERN", p.line, null, `Pattern '${name}' is neither a design/patterns file nor a registered name${didYouMean(ctx.names.suggest(name, among))}`);
     return none;
   }
-  if (ctx.names.patternFiles.has(name)) return { pattern: name, source: "design/patterns" };
-  const life = lifecycleOf(name);
-  if (life === "retired") {
-    sink.error("LIFECYCLE_NAME", p.line, null, `Pattern '${name}' is marked archived/deprecated in the registry — pick its replacement`);
+  if (ctx.names.patternFiles.has(name)) {
+    if (lifecycleOf(name) === "retired") {
+      sink.error("LIFECYCLE_NAME", p.line, null, `design/patterns file '${name}' is named as deprecated/legacy — pick its replacement, not a retired pattern`);
+      return none;
+    }
+    return { pattern: name, source: "design/patterns" };
+  }
+  const life = ctx.names.lifecycle(name);
+  if (life?.kind === "retired") {
+    sink.error("LIFECYCLE_NAME", p.line, null, `Pattern '${name}' is ${life.why} — pick its replacement`);
     return none;
   }
   if (ctx.names.hasTemplates && ctx.names.templateSource(name) === null) {
@@ -116,6 +134,6 @@ function checkPattern(screen: PlanScreen, ctx: CheckContext, sink: Sink): { patt
     return none;
   }
   if (!ctx.names.hasTemplates) sink.warnOnce("NO_TEMPLATES_DECLARED", p.line, null, NO_TEMPLATES_MESSAGE);
-  if (life === "review") sink.warn("REVIEW_NAME", p.line, null, `Pattern '${name}' is still marked [REVIEW] — confirm it is approved before building on it`);
+  if (life?.kind === "review") sink.warn("REVIEW_NAME", p.line, null, `Pattern '${name}' is ${life.why} — confirm it is approved before building on it`);
   return { pattern: name, source: "registry" };
 }

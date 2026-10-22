@@ -72,6 +72,14 @@
       "scope": "local"
     },
     {
+      "name": "Pattern/RetiredPage",
+      "category": "pattern",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "deprecated": true
+    },
+    {
       "name": "Pattern/WizardPage",
       "category": "misc",
       "markup": "<div></div>",
@@ -91,6 +99,17 @@
       "markup": "<div></div>",
       "tokensUsed": [],
       "scope": "local"
+    },
+    {
+      "name": "Widget/Gone",
+      "category": "widget",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "deprecated": true,
+      "variants": [
+        "Kind=A"
+      ]
     },
     {
       "name": "[ARCHIVED] Banner/Default",

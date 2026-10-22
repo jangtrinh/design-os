@@ -127,6 +127,36 @@ describe("parser silent losses", () => {
     expect(codes(d)).toEqual(["UNKNOWN_PATTERN", "UNKNOWN_COMPONENT"]);
   });
 
+  it("a fence opener may be indented by at most 3 spaces; 4 is code, not a fence", () => {
+    const tail = "\n## Screen: B\nPattern: Bogus\n\n" + HEAD + "| x | 3 | Bogus/Thing | — |\n";
+    const four = check(screen(["| a | 3 | Table/Basic | — |"]) + "\n    ```" + tail).data;
+    expect(four.screens.map((s) => s.name)).toEqual(["S", "B"]);
+    expect(codes(four)).toEqual(["UNKNOWN_PATTERN", "UNKNOWN_COMPONENT"]);
+    const three = check(screen(["| a | 3 | Table/Basic | — |"]) + "\n   ```\n   ```" + tail).data;
+    expect(three.screens.map((s) => s.name)).toEqual(["S", "B"]);
+    const fourClose = check(screen(["| a | 3 | Table/Basic | — |"]) + "\n```\n    ```" + tail).data;
+    expect(codes(fourClose)).toEqual(["FENCE_UNCLOSED"]);
+  });
+
+  it("FENCE_UNCLOSED names the opening line, and the swallowed screen is reported rather than silently lost", () => {
+    const text = screen(["| a | 3 | Table/Basic | — |"]) + "\n```\nunclosed\n\n## Screen: B\nPattern: Bogus\n\n" + HEAD + "| x | 3 | Bogus/Thing | — |\n";
+    const d = check(text).data;
+    expect(codes(d)).toEqual(["FENCE_UNCLOSED"]);
+    expect(d.findings[0]?.line).toBe(8);
+    expect(d.findings[0]?.message).toContain("line 8");
+  });
+
+  it("SCREEN_NAME_EMPTY and DUPLICATE_SCREEN", () => {
+    const empty = check("## Screen:\nPattern: Pattern/ListPage\n\n" + HEAD + "| x | 3 | Table/Basic | — |\n").data;
+    expect(codes(empty)).toEqual(["SCREEN_NAME_EMPTY"]);
+    const one = "Pattern: Pattern/ListPage\n\n" + HEAD + "| x | 3 | Table/Basic | — |\n";
+    const dup = check(`## Screen: Orders\n${one}\n## Screen:  orders \n${one}`).data;
+    expect(codes(dup)).toEqual(["DUPLICATE_SCREEN"]);
+    expect(dup.findings[0]?.message).toContain("line 1");
+    expect(dup.findings[0]?.line).toBe(8);
+    expect(codes(check(`## Screen: Orders\n${one}\n## Screen: Order detail\n${one}`).data)).toEqual([]);
+  });
+
   it("SCREEN_HEADING_MALFORMED: a heading about a screen without the Screen: form; its rows are not attributed elsewhere", () => {
     const text = screen(["| x | 3 | Table/Basic | — |"]) + "\n### Screen B\nPattern: Pattern/ListPage\n\n" + HEAD + "| y | 3 | Table/Basic | — |\n";
     const d = check(text).data;

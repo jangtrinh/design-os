@@ -9,10 +9,13 @@
  */
 import { levenshtein } from "./flag-guard.js";
 import { NEAR_IDENTICAL_REASON, confusableReason, normalise as foldName } from "./ds-guidelines-components.js";
+import { lifecycleOf } from "./lifecycle-name.js";
 
 const SUGGESTION_LIMIT = 3;
 
-export interface RegistryNameEntry { name: string; variants: readonly string[]; category?: string }
+export interface RegistryNameEntry { name: string; variants: readonly string[]; category?: string; deprecated?: boolean }
+
+export interface NameLifecycle { kind: "retired" | "review"; why: string }
 
 /** A registry record in one of these categories is a screen/page template master (e.g. "Page content"). */
 const TEMPLATE_CATEGORY_RE = /page|template|pattern|layout|screen/i;
@@ -28,6 +31,8 @@ export interface NameIndex {
   nearIdentical(name: string): string[];
   /** Up to three templates (`templates`) or registered names (`all`) closest to `name`, nearest first, ties by name. */
   suggest(name: string, among?: "all" | "templates"): string[];
+  /** Lifecycle of a registered name: the record's own `deprecated: true`, then the markers in its name. */
+  lifecycle(name: string): NameLifecycle | null;
   /** Union of the variant strings declared by the records named `name`; empty when none declare any. */
   variantsOf(name: string): string[];
   /** Pattern-file stems from `design/patterns/*.md`. */
@@ -58,6 +63,7 @@ export function buildNameIndex(entries: readonly RegistryNameEntry[], patternFil
   const folded = new Map<string, string>();
   const foldKey = (name: string): string => foldName(name.normalize("NFKC"));
   for (const n of sorted) if (!folded.has(foldKey(n))) folded.set(foldKey(n), n);
+  const deprecatedNames = new Set(entries.filter((e) => e.deprecated === true).map((e) => e.name));
   const files = new Set([...patternFileStems].sort());
   const categoryTemplates = new Set(entries.filter((e) => TEMPLATE_CATEGORY_RE.test(e.category ?? "")).map((e) => e.name));
   const registryTemplates = sorted.filter((n) => n.startsWith("Pattern/") || categoryTemplates.has(n));
@@ -80,6 +86,12 @@ export function buildNameIndex(entries: readonly RegistryNameEntry[], patternFil
       const target = normaliseName(name);
       if (target.length === 0) return [];
       return rank(target, among === "templates" ? templates : sorted);
+    },
+    lifecycle(name) {
+      if (deprecatedNames.has(name)) return { kind: "retired", why: "deprecated in the registry (deprecated: true)" };
+      const marked = lifecycleOf(name);
+      if (marked === "retired") return { kind: "retired", why: "marked archived/deprecated in the registry" };
+      return marked === "review" ? { kind: "review", why: "still marked [REVIEW]" } : null;
     },
     variantsOf: (name) => [...(variants.get(name) ?? [])].sort(),
     patternFiles: files,

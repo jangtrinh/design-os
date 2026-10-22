@@ -39,12 +39,44 @@ describe("lifecycle-marked names", () => {
   });
 });
 
+describe("the registry's own deprecated flag and retired pattern files", () => {
+  it("deprecated: true is LIFECYCLE_NAME at rungs 2-5 and on the Pattern line, naming the registry", () => {
+    const cases: [string, string][] = [
+      ["rung 3", "| s | 3 | Widget/Gone | — |"],
+      ["rung 4", "| s | 4 | Widget/Gone (Kind=A) | — |"],
+      ["rung 5", "| s | 5 | Table/Basic + Widget/Gone | — |"],
+      ["rung 2", "| s | 2 | Pattern/RetiredPage | — |"],
+    ];
+    for (const [label, row] of cases) {
+      const d = check(screen([row])).data;
+      expect(codes(d), label).toEqual(["LIFECYCLE_NAME"]);
+      expect(d.findings[0]?.message, label).toContain("deprecated in the registry");
+    }
+    const p = check(screen(["| s | 3 | Table/Basic | — |"], "Pattern/RetiredPage")).data;
+    expect(codes(p)).toEqual(["LIFECYCLE_NAME"]);
+    expect(p.findings[0]?.message).toContain("deprecated in the registry");
+  });
+
+  it("a pattern file whose stem marks it legacy is LIFECYCLE_NAME on the Pattern line and at rung 2", () => {
+    expect(codes(check(screen(["| s | 3 | Table / Row | — |"], "legacy-table"), FILES).data)).toEqual(["LIFECYCLE_NAME"]);
+    expect(codes(check(screen(["| s | 2 | legacy-table | — |"], "list-page"), FILES).data)).toEqual(["LIFECYCLE_NAME"]);
+  });
+});
+
 describe("[REVIEW] on the Pattern line", () => {
   it("is a warning, the pattern still resolves", () => {
     const r = check(screen(["| s | 3 | Table / Row | — |"], "[REVIEW] Page content / Orders · Draft"), FILES);
     expect(r.code).toBe(0);
     expect(r.data.warnings.map((w) => w.code)).toEqual(["REVIEW_NAME"]);
     expect(r.data.screens[0]?.patternSource).toBe("registry");
+  });
+});
+
+describe("ds-new cannot hide at another rung", () => {
+  it("ds-new: at rung 1 is NEW_AT_WRONG_RUNG and the item is not listed as skipped-away", () => {
+    const d = check(screen(["| a | 1 | ds-new: Fancy widget | not needed for the first release |", "| c | 3 | Table/Basic | — |"])).data;
+    expect(codes(d)).toEqual(["NEW_AT_WRONG_RUNG"]);
+    expect(d.findings[0]?.message).toContain("rung 1");
   });
 });
 
