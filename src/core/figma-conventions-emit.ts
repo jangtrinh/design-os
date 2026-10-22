@@ -9,6 +9,7 @@
  * observed house style and says so. No filesystem, no clock — byte-stable.
  */
 import type { DsScale } from "./figma-conventions-synth.js";
+import { DEPRECATED_RE } from "./lifecycle-name.js";
 
 /** Aggregated section rollup (shared with figma-conventions-synth.ts). */
 export interface Totals {
@@ -50,7 +51,6 @@ function sortedStr(m: Map<string, number>): Array<[string, number]> {
   return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
-const DEPRECATED_RE = /deprecat|legacy|do-?not-?use|\bold\b|⚠/i;
 
 // ─── Section builders ─────────────────────────────────────────────────────────
 

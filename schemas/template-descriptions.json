@@ -154,7 +154,7 @@
     {
       "path": "workflows/from-ref.md",
       "description": "Generate high-fidelity HTML from a reference screenshot or image. Use when the user provides an image to reproduce or draw inspiration from.",
-      "sourceSha256": "dd7741c453f4b3a039271c90bef1dafb6aaa500f2792d5bcc478b2f0eefa259a"
+      "sourceSha256": "a809d89e95851b14b2ac415f0b7e29b9af08a747525c9d40b517c75f53c9fcf9"
     },
     {
       "path": "workflows/from-url.md",
@@ -164,7 +164,7 @@
     {
       "path": "workflows/generate.md",
       "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
-      "sourceSha256": "7132a30456e4b55413277d8b4cf6062251515a442f2c7481e2b8571b61c9ed5f"
+      "sourceSha256": "ec159740a40c48249ca8af7915bddece63314b9ae7f1c141bb9a03b7afa8e930"
     },
     {
       "path": "workflows/guidelines.md",
@@ -199,7 +199,7 @@
     {
       "path": "workflows/redesign.md",
       "description": "Radical contra-persona redesign of an existing variant. Use when the user rejects the current direction and asks for something completely different.",
-      "sourceSha256": "6c69091011bca95923f5f41c11361dcebc2ada5ee73397fbf9d02c79029592cc"
+      "sourceSha256": "3e1927c27c4660a53501dc7969b1bd90c15cb956b861ff723af8a90774067602"
     },
     {
       "path": "workflows/refine.md",

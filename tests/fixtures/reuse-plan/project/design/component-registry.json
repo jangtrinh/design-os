@@ -1,0 +1,143 @@
+{
+  "version": "1",
+  "components": [
+    {
+      "name": "Button/Primary",
+      "category": "button",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "variants": [
+        "State=Hover"
+      ]
+    },
+    {
+      "name": "Card/Summary",
+      "category": "card",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Chip/Status",
+      "category": "chip",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "variants": [
+        "Tone=Info",
+        "Tone=Warn"
+      ]
+    },
+    {
+      "name": "Empty state/Default",
+      "category": "empty-state",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Filter bar/Default",
+      "category": "filter",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Footer/Legacy",
+      "category": "footer",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Page header/Default",
+      "category": "header",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Pattern/DetailPage",
+      "category": "pattern",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Pattern/ListPage",
+      "category": "pattern",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Pattern/RetiredPage",
+      "category": "pattern",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "deprecated": true
+    },
+    {
+      "name": "Pattern/WizardPage",
+      "category": "misc",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Table/Basic",
+      "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Table/Dense",
+      "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Widget/Gone",
+      "category": "widget",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "deprecated": true,
+      "variants": [
+        "Kind=A"
+      ]
+    },
+    {
+      "name": "[ARCHIVED] Banner/Default",
+      "category": "banner",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "[DEPRECATED] Menu/Default",
+      "category": "menu",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "[REVIEW] Panel/Draft",
+      "category": "panel",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "❌ Tag/Retired",
+      "category": "tag",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    }
+  ]
+}

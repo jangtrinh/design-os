@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-10-22 - design reuse ladder and reuse plan check
+
+### Added
+- `ui reuse-plan check <file> [--dir <project>] [--file <registry>] [--tokens <file>] [--json]`: validates a
+  task's reuse plan (`reuse-plan.md` in the task's plan folder, one `## Screen:` section per screen with a
+  `Pattern:` line and a Slot / Rung / Use / Reason table) against the project's component registry, pattern
+  files and design tokens. Exact names at rungs 2-5 (a variant as `Name (Axis=Value)`, a composition as
+  `A + B`), token paths at rung 6, and `ds-new: <Name>` plus a real reason at rung 7.
+  - Findings: `UNKNOWN_COMPONENT` with a did-you-mean, `LIFECYCLE_NAME` for a record's own `deprecated: true`,
+    `[ARCHIVED]` / `[DEPRECATED]` / `❌`, the repo's deprecation vocabulary and legacy pattern files (a
+    `[REVIEW]` name is a counted warning), `NEW_AT_WRONG_RUNG` for `ds-new:` at any rung but 7,
+    `FENCE_UNCLOSED`, `SCREEN_NAME_EMPTY`, `DUPLICATE_SCREEN`, `BAD_VARIANT_VALUE` against
+    the record's variants, `RUNG2_NOT_TEMPLATE`, `NOT_NEW` (folds separators, a variant suffix and compositions),
+    `UNRESOLVED_TOKEN`, a missing, duplicated or unreasoned Pattern line, an unknown or non-template pattern,
+    placeholder reasons (`n/a`, `tbd`, a bare dash, the slot's own name), a screen with no slots, an empty plan,
+    a bad rung or row, a malformed Screen heading, an HTML table. Nothing in the plan is skipped silently.
+  - The Pattern line and rung 2 share one template set: `design/patterns/*.md` file stems, registry `Pattern/*`
+    names, and registry records whose category looks like a page, template, pattern, layout or screen. The
+    output names which source matched; when no template is declared any registered name is accepted with a
+    counted `NO_TEMPLATES_DECLARED` warning, once per run. `--tokens` overrides the default token file; both the registry and the token file
+    checked are printed in the header.
+  - It prints `reuse: <rung 2-6 slots>/<all slots except rung 1>` per screen, `N skipped` for rung 1, and the
+    `ds-new:` list for the owner (a hint line when a name is close to a registered one, never a finding).
+    Exit 0 ok, 1 findings, 2 cannot run (no registry, unreadable plan). Deterministic and offline; names only,
+    so a registry with no markup works.
+- `knowledge/design-reuse-ladder.md`: the ladder (the design system's declared inventory ranks above nearby
+  product code), the reuse plan format, how the Pattern line and rung 2 resolve templates, retired and
+  unreviewed names, and what the check does not prove.
+- `/ui:generate` and `/ui:redesign` write and check a reuse plan before building on a project that has a
+  registry; `/ui:from-ref` inherits it through its hand-off to generate. CONTEXT.md terms Design reuse ladder,
+  Reuse plan.
+
 ## 2026-10-22 - design-os-designer: `ui` owns design-system discovery
 
 ### Changed
