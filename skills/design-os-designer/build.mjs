@@ -47,6 +47,7 @@ function main() {
   if (!args.target) fail("input: --target is required (see --help)");
   const target = resolve(args.target);
   if (!existsSync(target)) fail(`input: ${target} does not exist`);
+  if (args.project && !existsSync(resolve(args.project))) fail(`input: --project ${resolve(args.project)} does not exist`);
   const contract = readContractState();
   if (!contract.ok) fail(`contract: ${contract.reason} — reinstall ease-design to restore the shipped copy`);
 

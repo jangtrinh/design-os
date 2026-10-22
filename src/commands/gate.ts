@@ -246,6 +246,12 @@ export const gateCommand = {
       }
       skip = parsedSkip;
     }
+    // A project folder that is not there would silently read as "no design system": refuse it instead.
+    const dirFlag = parsed.flags["dir"];
+    if (typeof dirFlag === "string" && !existsSync(dirFlag)) {
+      const msg = `--dir '${dirFlag}' does not exist — pass the project folder that holds design/`;
+      return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+    }
     const tokensFlag = parsed.flags["tokens"];
     let knownHexes: Set<string> | undefined;
     if (typeof tokensFlag === "string") {
@@ -287,7 +293,6 @@ export const gateCommand = {
         return useJson ? errJson(CMD, "TOKENS_NOT_READABLE", msg) : errText(`ui: ${msg}\n`);
       }
     } else {
-      const dirFlag = parsed.flags["dir"];
       const auto = autoScoreTokenCoverage(file, html, typeof dirFlag === "string" ? resolve(dirFlag) : undefined);
       tokenCoverage = auto.coverage;
       tokenCoverageSource = auto.source;
@@ -369,8 +374,16 @@ export const gateCommand = {
     // skips because a partial verdict and an absent one are both "not a clean bill".
     for (const s of result.partial) lines.push(`  PARTIAL ${s}`);
 
-    const data = { file, ...result, pass, tokenCoverage, tokenCoverageSource, tokenCoverageFloor, linkedCssErrors: loaded.errors };
+    // The unreadable-tokens failure as a real finding, so JSON consumers and the outcome record see it too.
+    const tokenCoverageFindings = tokensUnreadable
+      ? [{
+        family: "token-coverage", checkId: "token-coverage/tokens-not-readable", severity: "error" as const,
+        message: `${tokenCoverageSource.path ?? "the token file"} — ${tokenCoverageSource.error ?? ""}`,
+        actual: tokenCoverageSource.path, fixHint: "fix the project's token file",
+      }]
+      : [];
+    const data = { file, ...result, pass, tokenCoverage, tokenCoverageSource, tokenCoverageFindings, tokenCoverageFloor, linkedCssErrors: loaded.errors };
     const out = useJson ? okJsonWithExit(CMD, data, exitCode) : { exitCode, stdout: lines.join("\n") + "\n" };
-    return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: Object.values(result.families).flatMap((r) => r.findings), errorCount: result.errorCount, warningCount: result.warningCount }) });
+    return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: [...Object.values(result.families).flatMap((r) => r.findings), ...tokenCoverageFindings], errorCount: result.errorCount, warningCount: result.warningCount }) });
   },
 };

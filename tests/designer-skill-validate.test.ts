@@ -179,6 +179,33 @@ describe.skipIf(!hasBuiltBinary)("validate — what ui could not check is said o
     expect(out[1]).toBe("ok");
   });
 
+  it("prints a PARTIAL note when ui says it could not see the whole page, then ok", () => {
+    // Text over a CSS background image: the contrast of that pair cannot be computed, so ui reports a partial verdict.
+    const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hero</title>\n' +
+      '<style>body{margin:0;font-family:system-ui;font-size:1rem}.hero{background:url(bg.png) center/cover;color:#777;padding:16px}</style></head>\n' +
+      '<body><main><section class="hero"><h1>Welcome</h1><p>Sample hero text over a photo.</p></section></main></body></html>';
+    const dir = makeTemp();
+    writeFile(dir, "page.html", html);
+    writeFile(dir, "bg.png", "x");
+    const run = validate(build(join(dir, "page.html")));
+    expect(run.status, run.stdout).toBe(0);
+    const partial = lines(run.stdout).filter((l) => l.startsWith("note: gate: PARTIAL "));
+    expect(partial).toHaveLength(1);
+    expect(partial[0]).toMatch(/^note: gate: PARTIAL a11y: \d+ contrast pair\(s\) NOT COMPUTABLE/);
+    expect(lines(run.stdout).at(-1)).toBe("ok");
+  });
+
+  it("build refuses a --project that does not exist", () => {
+    const root = makeTemp();
+    writeFileSync(join(root, "p.html"), "<!doctype html><title>t</title>");
+    const missing = join(root, "no-such-project");
+    const out = join(makeTemp(), "ev");
+    const run = node(join(SKILL_DIR, "build.mjs"), ["--target", join(root, "p.html"), "--out", out, "--project", missing]);
+    expect(run.status).toBe(1);
+    expect(run.stderr.trim()).toBe(`input: --project ${missing} does not exist`);
+    expect(existsSync(out)).toBe(false);
+  });
+
   it("a user --tokens that ui accepts needs no note", () => {
     const tokens = writeFile(makeTemp(), "tokens.json", '{"color":{"ink":{"$type":"color","$value":"#1b2a2f"},"paper":{"$type":"color","$value":"#ffffff"}}}');
     const run = validate(buildPage(htmlPage()), SKILL_DIR, ["--tokens", tokens]);

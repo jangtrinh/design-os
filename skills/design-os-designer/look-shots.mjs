@@ -31,7 +31,14 @@ export async function shoot(browser, url, width, deadlineMs = DEFAULT_DEADLINE_M
     const asked = request.url();
     if (asked.startsWith("file:") && String(request.failure()?.errorText).includes("ERR_FILE_NOT_FOUND")) {
       const clean = asked.split(/[?#]/)[0];
-      problems.push(`missing file ${decodeURIComponent(clean.startsWith(siteHref) ? clean.slice(siteHref.length) : clean)}`);
+      const shown = clean.startsWith(siteHref) ? clean.slice(siteHref.length) : clean;
+      let name;
+      try {
+        name = decodeURIComponent(shown);
+      } catch {
+        name = shown; // a malformed percent escape in the file name: report the name as the browser asked for it
+      }
+      problems.push(`missing file ${name}`);
     }
   });
   page.on("console", (m) => { if (m.type() === "error") problems.push(`console error: ${m.text()}`); });

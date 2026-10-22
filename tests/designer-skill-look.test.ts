@@ -101,6 +101,14 @@ describe("look — rendering", { timeout: 90000 }, () => {
     expect(lines(run.stdout).find((l) => l.startsWith("L3 console-and-network @375"))).toMatch(/missing file nope\.js/);
   });
 
+  it("names a missing file whose name holds a malformed percent escape instead of crashing", (ctx) => {
+    if (!available) ctx.skip();
+    const run = look(build(writeFile(makeTemp(), "page.html", htmlPage('<link rel="stylesheet" href="50%off.css">', ""))), join(makeTemp(), "s.png"), ["--widths", "375"]);
+    expect(run.status, run.stdout + run.stderr).toBe(1);
+    expect(run.stderr).not.toMatch(/URIError/);
+    expect(lines(run.stdout).find((l) => l.startsWith("L3 console-and-network @375"))).toMatch(/missing file 50%off\.css/);
+  });
+
   it("blocks remote requests and reports them under L3", (ctx) => {
     if (!available) ctx.skip();
     const run = look(build(join(BROKEN_DIR, "look-external-request.html")), join(makeTemp(), "s.png"), ["--widths", "375"]);

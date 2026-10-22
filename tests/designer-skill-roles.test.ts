@@ -91,6 +91,16 @@ describe("no hard-coded vendor, model or private tool", () => {
   });
 });
 
+describe("the scan ignores the install path", () => {
+  it("a repo path that holds claude-NNN is not a model name, a real model name next to it still is", () => {
+    const root = "/private/tmp/claude-501/checkout";
+    const text = `Read \`${root}/skills/design-os-designer/SKILL.md\` first.`;
+    expect(forbiddenHits(text), "premise: the raw path trips the model-slug pattern").not.toEqual([]);
+    expect(forbiddenHits(text, root)).toEqual([]);
+    expect(forbiddenHits(`${text} Ask Claude 4 to review.`, root)).not.toEqual([]);
+  });
+});
+
 describe("Roles on your runtime", () => {
   const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
   const section = /## Roles on your runtime\n([\s\S]*?)(?:\n## |$)/.exec(skill)?.[1] ?? "";

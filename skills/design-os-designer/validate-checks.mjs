@@ -47,6 +47,9 @@ export function runGate(ui, evidence, manifest, args) {
     }
   }
   for (const f of data.linkedCssErrors ?? []) failures.push(`gate: linked-css/${f.checkId} — ${brief(f.message)}`);
+  // What ui declared it did not run or could not see is a result too, in ui's own words.
+  for (const line of data.skipped ?? []) notes.push(`note: gate: SKIPPED ${brief(line)}`);
+  for (const line of data.partial ?? []) notes.push(`note: gate: PARTIAL ${brief(line)}`);
   const source = data.tokenCoverageSource;
   const coverage = data.tokenCoverage?.overall?.coverage;
   if (source?.error !== undefined) {

@@ -191,7 +191,9 @@ export const FORBIDDEN: readonly [string, RegExp][] = [
   ["private tool", /\b(grok|codex-web|orca|kongming|cmux|tmux|agy|jev|laya|astra)\b/i],
 ];
 
-export function forbiddenHits(text: string): string[] {
+/** Scan `text` for forbidden names. The checkout's own path (which may hold e.g. `claude-501`) is not content, so it is removed first. */
+export function forbiddenHits(rawText: string, installRoot: string = REPO_ROOT): string[] {
+  const text = rawText.split(installRoot).join("");
   const hits: string[] = [];
   for (const [label, pattern] of FORBIDDEN) {
     const m = pattern.exec(text);

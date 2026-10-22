@@ -161,6 +161,19 @@ describe("ui gate — design-system discovery for token-coverage", () => {
     expect(without.data["tokenCoverage"]).toBeUndefined();
   });
 
+  it("a readable design system carries no token-coverage finding", () => {
+    expect(gateJson([write("fine.html", BASE), "--dir", project(TOKENS)]).data["tokenCoverageFindings"]).toEqual([]);
+  });
+
+  it("--dir naming a folder that does not exist is a usage error, never a silent 'no design system'", () => {
+    const missing = join(dir, "no-such-project");
+    const r = capture(["gate", write("nodir.html", BASE), "--dir", missing, "--json"]);
+    expect(r.code).toBe(1);
+    const error = JSON.parse(r.out).error as { code: string; message: string };
+    expect(error.code).toBe("BAD_ARG");
+    expect(error.message).toContain(missing);
+  });
+
   it("an explicit --tokens reports origin flag, and --dir does not override it", () => {
     const tokens = write("explicit.tokens.json", TOKENS);
     const r = gateJson([write("flag.html", BASE), "--tokens", tokens, "--dir", project(TOKENS)]);
@@ -177,6 +190,10 @@ describe("ui gate — design-system discovery for token-coverage", () => {
     expect(source.origin).toBe("auto");
     expect(source.path).toBe(join(proj, "design", "design.tokens.json"));
     expect(source.error.length).toBeGreaterThan(0);
+    expect(r.data["tokenCoverageFindings"]).toEqual([
+      expect.objectContaining({ family: "token-coverage", checkId: "token-coverage/tokens-not-readable", severity: "error", actual: source.path }),
+    ]);
+    expect(((r.data["tokenCoverageFindings"] as { message: string }[])[0])?.message).toContain(source.error);
     const text = capture(["gate", page, "--dir", proj]);
     expect(text.code).toBe(1);
     expect(text.out).toContain(`[token-coverage/tokens-not-readable]: ${join(proj, "design", "design.tokens.json")}`);
