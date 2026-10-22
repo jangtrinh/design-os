@@ -4,7 +4,7 @@
  * gate is a single line that cannot drift from its siblings. Read-only.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
@@ -17,6 +17,7 @@ import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { tryDiscoverDesignSystem } from "../core/design-system.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 import { autoScoreTokenCoverage, scoreTokenCoverage } from "../core/token-coverage-io.js";
+import type { TokenCoverageSource } from "../core/token-coverage-io.js";
 import type { TokenCoverageResult } from "../core/token-coverage.js";
 import { DEFAULT_TOKEN_COVERAGE_FLOOR } from "./token-coverage.js";
 import { setFamilyAccentContext } from "../core/tell-rules-color.js";
@@ -27,7 +28,7 @@ const CMD = "gate";
 export const GATE_HELP = `ui gate — composed floor judge (every linter family, one verdict)
 
 Usage:
-  ui gate <file.html> [--tokens <f>] [--family <slug>] [--skip <family>:<reason>[,...]] [--json]
+  ui gate <file.html> [--tokens <f>] [--dir <project>] [--family <slug>] [--skip <family>:<reason>[,...]] [--json]
   ui gate coverage [--dir <project>] [--json]
 
 Runs, in one call:
@@ -41,9 +42,12 @@ Runs, in one call:
 Plus, when a token file is auto-detected for the project (design-dir contract,
 then brand/design/design.tokens.json): a REQUIRED \`ui token-coverage\` check —
 does the page style with the project's own tokens? Default floor 0.8,
-configurable with --token-coverage-floor. Absent a token file, this check does
-not run (nothing to grade against) — never a silent weakening of a check that
-COULD run.
+configurable with --token-coverage-floor. Absent a design system, this check
+does not run (nothing to grade against). A design system that IS found but
+whose token file is missing or unparsable fails the gate with
+token-coverage/tokens-not-readable — never a silent weakening of a check that
+COULD run. The JSON result's tokenCoverageSource says where the tokens came
+from: {origin: "flag" | "auto" | "none", path?, error?}.
 
 \`ui gate coverage\` lists every check the gate can run (the same catalog its
 families are test-paired against) with per-project activity — the evidence a
@@ -65,6 +69,8 @@ Options:
                 reported as "family accent (<slug>)", not a generic AI tell.
                 Absent --family, a token file with a top-level "persona"
                 field naming a slug applies that family automatically.
+  --dir <project>  Where to look for the design system when --tokens is absent
+                (default: the file's folder). In \`gate coverage\` mode: default cwd.
   --skip <s>    Comma-separated <family>:<reason> pairs, e.g.
                 --skip "layout: embeddable fragment,content: mirror evidence"
   --token-coverage-floor <n>  Minimum ui token-coverage score before the gate
@@ -240,6 +246,12 @@ export const gateCommand = {
       }
       skip = parsedSkip;
     }
+    // A project folder that is not there would silently read as "no design system": refuse it instead.
+    const dirFlag = parsed.flags["dir"];
+    if (typeof dirFlag === "string" && !existsSync(dirFlag)) {
+      const msg = `--dir '${dirFlag}' does not exist — pass the project folder that holds design/`;
+      return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+    }
     const tokensFlag = parsed.flags["tokens"];
     let knownHexes: Set<string> | undefined;
     if (typeof tokensFlag === "string") {
@@ -271,7 +283,9 @@ export const gateCommand = {
     // (below), never a check pretending to pass. A bad --tokens path is the
     // caller's job to fail loud, matching the raw-hex check just above.
     let tokenCoverage: TokenCoverageResult | undefined;
+    let tokenCoverageSource: TokenCoverageSource;
     if (typeof tokensFlag === "string") {
+      tokenCoverageSource = { origin: "flag", path: tokensFlag };
       try {
         tokenCoverage = scoreTokenCoverage(file, html, tokensFlag);
       } catch (e) {
@@ -279,8 +293,12 @@ export const gateCommand = {
         return useJson ? errJson(CMD, "TOKENS_NOT_READABLE", msg) : errText(`ui: ${msg}\n`);
       }
     } else {
-      tokenCoverage = autoScoreTokenCoverage(file, html);
+      const auto = autoScoreTokenCoverage(file, html, typeof dirFlag === "string" ? resolve(dirFlag) : undefined);
+      tokenCoverage = auto.coverage;
+      tokenCoverageSource = auto.source;
     }
+    // A detected design system whose tokens cannot be scored is a failed check, not an absent one.
+    const tokensUnreadable = tokenCoverageSource.error !== undefined;
     const tokenCoverageFails = tokenCoverage !== undefined && tokenCoverage.overall.coverage < tokenCoverageFloor;
 
     // A8: --family <slug> (or a top-level "persona" field on --tokens) applies
@@ -329,12 +347,15 @@ export const gateCommand = {
       setFamilyAccentContext(undefined);
     }
     if (familyPolicy !== undefined) result = applyGatePolicy(result, familyPolicy);
-    result.errorCount += loaded.errors.length;
-    const pass = result.pass && loaded.errors.length === 0 && !tokenCoverageFails;
+    result.errorCount += loaded.errors.length + (tokensUnreadable ? 1 : 0);
+    const pass = result.pass && loaded.errors.length === 0 && !tokenCoverageFails && !tokensUnreadable;
     const exitCode = pass ? 0 : 1;
 
     const lines: string[] = [`gate: ${file} — ${result.errorCount} error(s), ${result.warningCount} warning(s)${pass ? " — PASS" : ""}`];
     for (const e of loaded.errors) lines.push(`  ✗ [${e.checkId}]: ${e.message}`);
+    if (tokensUnreadable) {
+      lines.push(`  ✗ [token-coverage/tokens-not-readable]: ${tokenCoverageSource.path ?? "the token file"} — ${tokenCoverageSource.error ?? ""}`);
+    }
     if (tokenCoverage !== undefined) {
       const pct = Math.round(tokenCoverage.overall.coverage * 100);
       lines.push(`  token-coverage: ${pct}% (floor ${Math.round(tokenCoverageFloor * 100)}%)${tokenCoverageFails ? " — FAIL" : ""}`);
@@ -353,8 +374,16 @@ export const gateCommand = {
     // skips because a partial verdict and an absent one are both "not a clean bill".
     for (const s of result.partial) lines.push(`  PARTIAL ${s}`);
 
-    const data = { file, ...result, pass, tokenCoverage, tokenCoverageFloor, linkedCssErrors: loaded.errors };
+    // The unreadable-tokens failure as a real finding, so JSON consumers and the outcome record see it too.
+    const tokenCoverageFindings = tokensUnreadable
+      ? [{
+        family: "token-coverage", checkId: "token-coverage/tokens-not-readable", severity: "error" as const,
+        message: `${tokenCoverageSource.path ?? "the token file"} — ${tokenCoverageSource.error ?? ""}`,
+        actual: tokenCoverageSource.path, fixHint: "fix the project's token file",
+      }]
+      : [];
+    const data = { file, ...result, pass, tokenCoverage, tokenCoverageSource, tokenCoverageFindings, tokenCoverageFloor, linkedCssErrors: loaded.errors };
     const out = useJson ? okJsonWithExit(CMD, data, exitCode) : { exitCode, stdout: lines.join("\n") + "\n" };
-    return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: Object.values(result.families).flatMap((r) => r.findings), errorCount: result.errorCount, warningCount: result.warningCount }) });
+    return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: [...Object.values(result.families).flatMap((r) => r.findings), ...tokenCoverageFindings], errorCount: result.errorCount, warningCount: result.warningCount }) });
   },
 };

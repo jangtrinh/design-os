@@ -4,9 +4,10 @@
  * Emits:
  *   22 slash-command files → <cwd>/.claude/commands/ui/<verb>.md
  *   22 skill files         → <cwd>/.claude/skills/design-os-<name>/SKILL.md  (19 craft + 3 journey)
+ *   1 designer wrapper     → <cwd>/.claude/skills/design-os-designer/SKILL.md (points at the shipped skills/ folder)
  *   1 routing rule file    → <cwd>/.claude/rules/design-os-routing.md
  *
- * Total: 45 artifacts, all mode "write".
+ * Total: 47 artifacts, all mode "write".
  */
 import { join, resolve } from "node:path";
 import type { AdapterArtifact, AdapterInput } from "./index.js"; // AdapterInput: {cwd, templatesRoot}
@@ -20,6 +21,7 @@ import {
 import { buildClaudeCommand, buildClaudeSkill } from "./wrapper-shapes.js";
 import { buildRoutingRule } from "./wrapper-shapes-shared.js";
 import { VERB_SKILL_REFS } from "./skill-refs.js";
+import { designerSkillArtifact } from "./designer-skill.js";
 
 /**
  * Push one `.claude/skills/design-os-<name>/SKILL.md` artifact. Shared by the
@@ -83,6 +85,9 @@ export function generateClaudeAdapter(input: AdapterInput): AdapterArtifact[] {
   for (const name of JOURNEY_NAMES) {
     pushSkillArtifact(artifacts, cwd, templatesRoot, knowledgeRoot, "journey", name);
   }
+
+  // ── Public designer skill wrapper (the skill folder itself ships in the package) ──
+  artifacts.push(designerSkillArtifact(cwd, ".claude", templatesRoot));
 
   // ── Routing rule ───────────────────────────────────────────────────────────
   artifacts.push({

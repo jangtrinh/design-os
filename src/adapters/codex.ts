@@ -14,6 +14,7 @@ import {
   resolveTemplatePath,
   readTemplateSourceHash,
 } from "./templates.js";
+import { designerSkillPath } from "./designer-skill.js";
 import {
   buildCodexBlock,
   CODEX_SENTINEL_BEGIN,
@@ -56,7 +57,7 @@ export function generateCodexAdapter(input: AdapterInput): AdapterArtifact[] {
   }
 
   const knowledgeRoot = resolve(templatesRoot, "..", "knowledge");
-  const content = buildCodexBlock(templatesRoot, hashes, knowledgeRoot);
+  const content = buildCodexBlock(templatesRoot, hashes, knowledgeRoot, designerSkillPath(templatesRoot));
 
   return [
     {

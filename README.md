@@ -254,6 +254,7 @@ Once installed, `skills/design-os/SKILL.md` activates automatically when your pr
 | `ui content-lint` — 12 checks | Terminal / CI | Honest copy checks (placeholder text, lorem-ipsum, generic names, all-caps shouting) |
 | `ui tell-lint` — 43 checks, any language | Terminal / CI | Polyglot design-tell checks across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI, and Flutter |
 | `ui ds guidelines build \| check \| export --target figma` | Terminal / CI | Compile a cited guidelines pack from your sealed design system, rulings and glossary; lint it; export a ready-to-upload Figma library guidelines bundle |
+| `skills/design-os-designer` — `build.mjs`, `validate.mjs`, `look.mjs` | Any agent runtime | The shipped design skill: build an evidence folder for a page, run `ui gate` plus file checks, render a three-width sheet with measured items; `ui init` wires it into Claude Code, Antigravity and Codex |
 
 ---
 

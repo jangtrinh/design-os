@@ -14,7 +14,7 @@
 //
 // Records:
 //   read    {t, kind:"read", tool, path, bytes, session}   Read/Glob/Grep/`cat`-style Bash under a traced
-//                                                          prefix, or an es-designer skill file
+//                                                          prefix, or an es-designer / design-os-designer skill file
 //   mutate  {t, kind:"mutate", tool, path, session}        a write INSIDE the project tree, outside
 //                                                          .design-os/ and node_modules/ (Write/Edit/..., or
 //                                                          Bash: redirect, tee, rm/mv/cp/touch/mkdir/..., sed -i)
@@ -50,7 +50,7 @@ function prefixes() {
 
 function tracked(rel, list) {
   if (path.basename(rel).startsWith('.env')) return false;
-  if (rel.includes('/es-designer/')) return true;
+  if (rel.includes('/es-designer/') || rel.includes('/design-os-designer/')) return true;
   return list.some((p) => rel === p.replace(/\/$/, '') || rel.startsWith(p.endsWith('/') ? p : p + '/'));
 }
 

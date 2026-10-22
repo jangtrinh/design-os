@@ -32,6 +32,62 @@
   registry; `/ui:from-ref` inherits it through its hand-off to generate. CONTEXT.md terms Design reuse ladder,
   Reuse plan.
 
+## 2026-10-22 - design-os-designer: `ui` owns design-system discovery
+
+### Changed
+- `ui gate <file> --dir <project>` starts design-system discovery in that project (default: the file's
+  folder), and the JSON result carries `tokenCoverageSource` (`origin` flag, auto or none, the token `path`, and
+  an `error` when a detected token file cannot be scored). A detected design system whose token file is missing
+  or unparsable now fails the gate with `token-coverage/tokens-not-readable` instead of reading as "nothing to
+  grade". With no design system the check still does not run.
+- `design-os-designer`: `build.mjs` copies the whole page folder (no reference tracing) and records the project
+  folder; `validate.mjs` calls `ui gate --dir` once and states a missing design system as a note and an unreadable
+  one as a failure; the home-grown HTML and CSS reference scan is gone. External requests and missing local files
+  are reported by `look.mjs` L3 (`blocked request <url>`, `missing file <path>`) from the browser's own request
+  log, and are NOT_VERIFIED without a browser. The look scroll measures the page after lazy images become eager
+  and runs a second pass when it grew, so a finite lazy loader no longer reads as a page that keeps growing.
+  Copy an example into your project before building it.
+
+## 2026-10-21 - public design-os-designer skill
+
+### Added
+- `skills/design-os-designer/`: a shipped UI design skill written from the public `knowledge/` files and the
+  `ui` gates, so public installs no longer depend on a skill that is not in this package. One procedure
+  (Concept, Build, Check, Hand over, Adjust) with six verbs: shape, implement, critique, polish, harden, audit.
+  `build.mjs` assembles an evidence folder with sha256 hashes, `validate.mjs` runs `ui gate` plus file checks
+  (contract, manifest, artifact hashes, size, external requests) and prints one `<check>: <fix>` line per
+  failure, `look.mjs` renders the page at 375, 768 and 1440 px into one sheet PNG and measures page overflow,
+  target size, console and network errors, broken images and blank pages. `contract.md` is generated from the
+  `ui` command signatures (`scripts/designer-skill-contract.mjs`) and refused when edited or stale. Without
+  Playwright, `look.mjs` exits 2 and prints a SKIPPED line instead of installing anything.
+- `build.mjs` records the project design system the page belongs to and `validate.mjs` grades `ui gate`
+  against it explicitly (a missing design system is stated, never silent); `validate.mjs` reads the whole
+  document for remote loads (multi-line tags, unquoted values, alternate stylesheets), reports local
+  references that resolve to nothing, re-renders the contract from the installed `ui`, keeps gate warnings
+  visible and prints every failure it found even when `ui` cannot run. `look.mjs` closes WebSockets, loads
+  lazy images by a fixed scroll before measuring and reports anything still loading as UNVERIFIED. `build.mjs`
+  never writes inside the skill folder, and the package ships only `skills/design-os-designer`.
+- `look.mjs` stops on a page that grows without end (one height snapshot, a 60-step instant scroll, a
+  `--deadline` per width, the browser always closed) and reports it UNVERIFIED. `validate.mjs` prints notes,
+  warnings and the verdict on stdout, falls back to `ui`'s own discovery when the recorded token file is
+  unusable (a token file the user passes and `ui` refuses stays a failure), and its reference scan ignores CSS
+  comments and `<template>` contents, decodes HTML entities and splits `srcset` by the HTML rules. The project
+  walk honours the kit boundary exactly like `ui`, pinned by a layout-by-layout parity test.
+- "Roles on your runtime" in the skill: builder, critic and scout are filled by the user's own host (Claude Code,
+  Codex, Gemini CLI, Antigravity, or a fresh session of any other runtime), checked against each host's
+  subagent documentation. The critic is never the builder, and a test fails if the skill or any generated
+  wrapper hard-codes a vendor model, a model slug or a private orchestration tool.
+- `ui init` writes a thin `design-os-designer` wrapper for Claude (`.claude/skills/`) and Antigravity
+  (`.agent/skills/`) and a line in the Codex `AGENTS.md` block; each points at the packaged skill folder, so
+  nothing is copied. The package `files` list now ships `skills/`.
+
+### Changed
+- The generated routing rule, workflow wrappers, `docs/design-entry.md`, `docs/design-learning.md` and
+  `knowledge/ds-kit-onboarding.md` name `design-os-designer` first and prefer `es:designer` only when the
+  host's skill catalog also exposes it. `ui trace summarize` counts a load of `design-os-designer` and a
+  read of its `look.md` followed by a gate like `es-designer` and its checklist.
+- The adapter wrapper lint accepts a wrapper that points at the shipped skill folder.
+
 ## 2026-10-21 - design-system guidelines pack
 
 ### Added
