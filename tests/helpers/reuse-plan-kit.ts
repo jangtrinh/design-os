@@ -1,5 +1,6 @@
 /** Shared CLI-seam helpers for the `ui reuse-plan check` tests. */
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { afterAll } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -37,6 +38,8 @@ export function capture(args: string[]): { code: number; out: string; err: strin
 }
 
 const scratch = mkdtempSync(join(tmpdir(), "reuse-plan-kit-"));
+// Registered while the importing test file is collected, so each file removes its own scratch.
+afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 let n = 0;
 export function planFile(text: string): string {
   const p = join(scratch, `plan-${++n}.md`);
