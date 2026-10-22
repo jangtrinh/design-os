@@ -179,11 +179,21 @@ When the visual transformation justifies climbing to T6 (persona motion cap `Hig
 expressive`), invoke `design-os-canvas-effect` only after the complete static baseline is built
 and verified.
 
-If the project DS is rich enough to express the contra-persona (registered
-components exist that match the new visual language), reuse them via the
-component catalog naming. If not, generate the redesigned components inline —
-the **Consistency axis** in `templates/workflows/critique.md` will flag low
-reuse so a follow-up `/ui:iterate` can register the new pieces.
+When the project has a component registry, choose from it before inventing. Read
+`knowledge/design-reuse-ladder.md`, list the redesigned page's slots, and write
+`reuse-plan.md` beside the variant: one `## Screen:` section, a `Pattern:` line naming
+the registry template (or `none — reason`), and for each slot the first ladder rung that
+holds. The contra-persona changes which tokens carry the look (rung 6), not whether a
+registered component already exists for the slot. Check the plan and build only from it:
+
+```bash
+ui reuse-plan check reuse-plan.md
+```
+
+A non-zero exit (`1` findings, `2` cannot run) blocks the build. A redesigned component
+with no registered match is rung 7: `ds-new: <Name>` with a reason, listed for the owner.
+The **Consistency axis** in `templates/workflows/critique.md` still flags low reuse
+afterwards, so a follow-up `/ui:iterate` can register the new pieces.
 
 **Consume the design tokens mechanically.** Get the compiled Tailwind `@theme`
 block and inline it in the redesigned page's `<head>` (one read-only call also

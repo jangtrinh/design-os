@@ -159,3 +159,18 @@ any other category → "Other library-wide rulings"), B (app-scoped → `apps/<a
 excluded, counted). Superseded rulings are never emitted. A tier is a placement decision, not a
 priority.
 _Avoid_: priority, importance level, severity (a tier says where a ruling lives, not how much it matters)
+
+**Design reuse ladder**:
+The fixed order of questions an agent asks per slot before building on an existing design system: need
+it → DS template → registered component → variant → composition → tokens → new component (`ds-new:`).
+It stops at the first rung that holds, and ranks what the design system declares above nearby product
+code. Knowledge in `knowledge/design-reuse-ladder.md`; the answers live in a reuse plan.
+_Avoid_: reuse checklist, component hierarchy, atomic design levels (all three read as a taxonomy of
+components — the ladder is an order of decisions for one slot)
+
+**Reuse plan**:
+The Markdown file (`reuse-plan.md`) an agent writes before markup: per screen a `Pattern:` line and a
+Slot / Rung / Use / Reason table. `ui reuse-plan check` validates its names against the registry and
+tokens and lists the `ds-new:` items for the owner. Written first, checked, then built from.
+_Avoid_: component list, build plan, bill of materials (a reuse plan records a choice and its rung per
+slot, not just what is used)

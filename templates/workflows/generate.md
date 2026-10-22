@@ -186,6 +186,21 @@ ui delivery validate generation-contract.json --json
 
 Do not generate while the contract has errors.
 
+### Reuse plan (existing DS with a registry)
+
+When §1 found an existing DS and `ui registry list` returned components, choose from that inventory before
+inventing. Read `knowledge/design-reuse-ladder.md`, then write `reuse-plan.md` beside the contract: one
+`## Screen:` section per page, a `Pattern:` line naming the registry template it follows (or `none — reason`),
+and one row per contract section or region with the first ladder rung that holds. The DS's declared
+templates and registered components rank above nearby product code; nearby code is evidence only.
+
+```sh
+ui reuse-plan check reuse-plan.md --json
+```
+
+Do not generate while it exits non-zero (`1` findings, `2` cannot run). Skip this step only for a
+greenfield DS with an empty registry, and say so in the delivery.
+
 ## 4. Resolve assets
 
 Resolve in order:
@@ -225,6 +240,9 @@ to satisfy a motion-intensity number.
 When the ladder climbs to T6 (persona motion cap `High / expressive`), invoke
 `design-os-canvas-effect` only after the complete static baseline is built and verified — never
 to satisfy a motion-intensity number.
+
+Build each slot from the rung its checked `reuse-plan.md` row names; a slot the plan does not cover is added
+to the plan and re-checked first. Never copy nearby product code over a registered component.
 
 Implement the declared section architecture, not a shared visual template with substituted copy.
 Related sections may share tokens and motifs; their spatial model must follow their content job.
@@ -311,6 +329,7 @@ a higher constraint, or evidence blocks a responsible decision.
 
 ## 10. Deliver by status
 
+- Whatever the status, when a reuse plan exists, list its `ds-new:` items (name, reason) for the owner.
 - `QUALIFIED`: present as delivery-grade with evidence and manual residue.
 - `DRAFT_WITH_CONCERNS`: show named unresolved failures; never label complete.
 - `BLOCKED_BY_EVIDENCE`: ask for the missing product truth or decision.

@@ -1,0 +1,83 @@
+/**
+ * `ui reuse-plan` — check a task's reuse plan against the project's design system.
+ * The plan is the Markdown file an agent writes BEFORE building a screen: for each slot,
+ * the first ladder rung that holds (knowledge/design-reuse-ladder.md). Today: `check`.
+ */
+import { errJson, errText } from "../core/output.js";
+import type { CommandResult } from "../core/output.js";
+import type { ParsedArgs } from "../core/cli-args.js";
+import { runReusePlanCheck } from "./reuse-plan-check-impl.js";
+
+const CMD = "reuse-plan";
+
+export const REUSE_PLAN_HELP = `ui reuse-plan — check a reuse plan against the design system registry
+
+Usage:
+  ui reuse-plan check <file> [--dir <project>] [--json]
+
+Subcommands:
+  check   Validate every name in the plan against <project>/design/component-registry.json
+          and token paths against <project>/design/design.tokens.json. Deterministic, offline.
+
+Plan format (Markdown, one section per screen):
+  ## Screen: <screen name>
+  Pattern: <registered template name | none — reason>
+
+  | Slot | Rung | Use | Reason |
+  |---|---|---|---|
+  | header | 3 | Page header/Default | — |
+  | owner chip | 7 | ds-new: Owner chip | no email chip in registry |
+
+Rungs (stop at the first that holds):
+  1 skip (reason)  2 template  3 registered component  4 'Name (Axis=Value)'
+  5 'A + B' composition  6 token paths 'a.b, c.d'  7 'ds-new: <Name>' + reason
+
+Options:
+  --dir <path>   Project directory holding design/ (default: cwd)
+  --json         Emit a JSON envelope { file, registry, ok, errorCount, findings, screens, dsNew }
+  -h, --help     Show this help
+
+Output:
+  Per screen 'reuse: <rung 2-6 slots>/<all slots>' and the ds-new items for the owner.
+  A rung-2-6 slot with any finding is not counted as reuse.
+
+Exit codes:
+  0  No findings
+  1  One or more findings, or a usage error
+  2  Cannot run: no registry, unreadable registry, or unreadable plan file
+
+Finding codes:
+  EMPTY_PLAN  EMPTY_SCREEN  ROW_OUTSIDE_SCREEN  BAD_ROW  BAD_RUNG  EMPTY_USE
+  MISSING_PATTERN  PATTERN_NONE_NO_REASON  UNKNOWN_PATTERN  PATTERN_NOT_TEMPLATE
+  UNKNOWN_COMPONENT  BAD_VARIANT  BAD_COMPOSITION  UNRESOLVED_TOKEN  SKIP_WITHOUT_REASON
+  NEW_MISSING_PREFIX  NEW_WITHOUT_NAME  NEW_WITHOUT_REASON  NEW_AT_WRONG_RUNG  NOT_NEW
+
+Error codes:
+  BAD_ARG             Missing subcommand or <file>
+  UNKNOWN_FLAG        Unrecognised --flag
+  FILE_NOT_FOUND      The plan file does not exist
+  READ_ERROR          The plan or registry cannot be read
+  REGISTRY_NOT_FOUND  No component registry under <project>/design
+  BAD_REGISTRY        The registry is invalid JSON or the wrong shape
+`;
+
+export const reusePlanCommand = {
+  name: CMD,
+  summary: "Check a reuse plan (design reuse ladder) against the registry",
+  hasSubcommands: true,
+  help: REUSE_PLAN_HELP,
+
+  run(parsed: ParsedArgs): CommandResult {
+    switch (parsed.subcommand) {
+      case "check": return runReusePlanCheck(parsed);
+      case undefined: {
+        const msg = "ui reuse-plan requires a subcommand. Run 'ui reuse-plan --help'.";
+        return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+      }
+      default: {
+        const msg = `unknown subcommand '${parsed.subcommand}'. Run 'ui reuse-plan --help'.`;
+        return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+      }
+    }
+  },
+};

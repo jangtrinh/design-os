@@ -1,0 +1,82 @@
+{
+  "version": "1",
+  "components": [
+    {
+      "name": "Button/Primary",
+      "category": "button",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "variants": [
+        "State=Hover"
+      ]
+    },
+    {
+      "name": "Card/Summary",
+      "category": "card",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Chip/Status",
+      "category": "chip",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local",
+      "variants": [
+        "Tone=Info",
+        "Tone=Warn"
+      ]
+    },
+    {
+      "name": "Empty state/Default",
+      "category": "empty-state",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Filter bar/Default",
+      "category": "filter",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Page header/Default",
+      "category": "header",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Pattern/DetailPage",
+      "category": "pattern",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Pattern/ListPage",
+      "category": "pattern",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Table/Basic",
+      "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    },
+    {
+      "name": "Table/Dense",
+      "category": "table",
+      "markup": "<div></div>",
+      "tokensUsed": [],
+      "scope": "local"
+    }
+  ]
+}

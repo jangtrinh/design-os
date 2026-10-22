@@ -162,6 +162,23 @@
       ]
     },
     {
+      "id": "design-reuse-ladder",
+      "path": "knowledge/design-reuse-ladder.md",
+      "description": "The design reuse ladder and the reuse plan — pick from what the design system already declares before inventing, and let `ui reuse-plan check` verify every name.",
+      "when": [
+        "reuse",
+        "reuse-plan",
+        "reuse-ladder",
+        "existing-components",
+        "registry-lookup",
+        "ds-new",
+        "pattern-template",
+        "invent",
+        "consistency",
+        "build-from-design-system"
+      ]
+    },
+    {
       "id": "design-review",
       "path": "knowledge/design-review.md",
       "description": "The git-native design review and engineering handoff flow.",

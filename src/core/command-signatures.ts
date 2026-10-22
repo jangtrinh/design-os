@@ -630,6 +630,18 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     },
   },
 
+  "reuse-plan": {
+    summary: "Check a reuse plan (design reuse ladder) against the registry",
+    subcommands: {
+      check: {
+        summary: "Validate a reuse plan's names and token paths against the project registry; exit 1 on findings, 2 when it cannot run",
+        positionals: [{ name: "<file>", required: true, summary: "The task's reuse-plan.md" }],
+        flags: [{ name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" }],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "REGISTRY_NOT_FOUND", "BAD_REGISTRY"],
+      },
+    },
+  },
+
   "strip-fences": {
     summary: "Remove code-fence wrappers from LLM HTML output",
     signature: {

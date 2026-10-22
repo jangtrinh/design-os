@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-10-22 - design reuse ladder and reuse plan check
+
+### Added
+- `ui reuse-plan check <file> [--dir <project>] [--json]`: validates a task's reuse plan (`reuse-plan.md`,
+  one `## Screen:` section per screen with a `Pattern:` line and a Slot / Rung / Use / Reason table) against
+  the project's component registry and design tokens. Exact names at rungs 2-5 (a variant as
+  `Name (Axis=Value)`, a composition as `A + B`), token paths at rung 6, and `ds-new: <Name>` plus a reason at
+  rung 7. Findings: `UNKNOWN_COMPONENT` with a did-you-mean, `NOT_NEW`, `UNRESOLVED_TOKEN`, a missing or
+  unreasoned Pattern line, an unknown or non-template pattern, a screen with no slots, an empty plan, a bad
+  rung or row. It prints `reuse: <rung 2-6 slots>/<all slots>` per screen and the `ds-new:` list for the owner.
+  Exit 0 ok, 1 findings, 2 cannot run (no registry, unreadable plan). Deterministic and offline; names only,
+  so a registry with no markup works.
+- `knowledge/design-reuse-ladder.md`: the ladder (the design system's declared inventory ranks above nearby
+  product code), the reuse plan format, how the Pattern line works with and without `Pattern/*` entries, and what
+  the check does not prove.
+- `/ui:generate` and `/ui:redesign` write and check a reuse plan before building on a project that has a
+  registry; `/ui:from-ref` inherits it through its hand-off to generate. CONTEXT.md terms Design reuse ladder,
+  Reuse plan.
+
 ## 2026-10-21 - design-system guidelines pack
 
 ### Added
