@@ -2,7 +2,7 @@
 // validate.mjs — mechanical rejects for one evidence folder made by build.mjs.
 // Named checks (each is a rule in rules.md): contract, manifest, artifact-hashes, size,
 // external-request, missing-local-ref, gate. Prints one line per failure as `<check>: <what to fix>`,
-// gate warnings as `warn: ...`, and `ok` when clean. Notes (e.g. token coverage did not run) go to stderr.
+// gate warnings as `warn: ...`, notes (e.g. token coverage did not run) as `note: ...`, and `ok` when clean.
 // Exit 0 ok / 1 rejected / 2 cannot run (no `ui` binary, unreadable evidence). Offline, deterministic.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -47,13 +47,10 @@ function fileFailures(manifest, siteRoot) {
 }
 
 function finish(failures, warnings, notes) {
-  for (const note of notes) console.error(note);
-  if (failures.length > 0) {
-    console.log([...warnings, ...failures].join("\n"));
-    return 1;
-  }
-  console.log([...warnings, "ok"].join("\n"));
-  return 0;
+  // Warnings and notes are results too: they print on stdout, before the verdict.
+  const lead = [...warnings, ...notes];
+  console.log([...lead, ...(failures.length > 0 ? failures : ["ok"])].join("\n"));
+  return failures.length > 0 ? 1 : 0;
 }
 
 function main() {

@@ -42,15 +42,38 @@ export function node(script: string, args: string[], env: NodeJS.ProcessEnv = {}
 }
 
 /** Asynchronous variant for tests that must keep their own event loop running (a local server). */
-export function nodeAsync(script: string, args: string[]): Promise<Run> {
+export function nodeAsync(script: string, args: string[], env: NodeJS.ProcessEnv = {}, killAfterMs = 120000): Promise<Run> {
   return new Promise((resolveRun) => {
-    const child = spawn(process.execPath, [script, ...args], { env: process.env });
+    const child = spawn(process.execPath, [script, ...args], { env: { ...process.env, ...env } });
     let stdout = "";
     let stderr = "";
+    // A hung child is killed so a failing test cannot hang the suite; its status then reads as null.
+    const timer = setTimeout(() => child.kill("SIGKILL"), killAfterMs);
     child.stdout.on("data", (d) => { stdout += String(d); });
     child.stderr.on("data", (d) => { stderr += String(d); });
-    child.on("close", (status) => resolveRun({ status, stdout, stderr }));
+    child.on("close", (status) => { clearTimeout(timer); resolveRun({ status, stdout, stderr }); });
   });
+}
+
+/** Processes whose command line mentions `marker` (a unique temp dir): leftover browsers after a run. */
+export function processesMentioning(marker: string): string[] {
+  const ps = spawnSync("ps", ["-ax", "-o", "pid=,command="], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  return ps.stdout.split("\n").filter((line) => line.includes(marker) && !line.includes("ps -ax"));
+}
+
+/** CI counts as on only for a real value: "", "0" and "false" mean off. */
+export function ciIsOn(value: string | undefined): boolean {
+  return value !== undefined && !["", "0", "false"].includes(value.trim().toLowerCase());
+}
+
+/** validate's verdict: its failure lines or `ok`, without the `note:` and `warn:` lines printed before it. */
+export function verdictLines(stdout: string): string[] {
+  return lines(stdout).filter((l) => !l.startsWith("note:") && !l.startsWith("warn:"));
+}
+
+/** Lines of validate output that are failures: everything except `note:` and `warn:` lines. */
+export function failureLines(stdout: string): string[] {
+  return lines(stdout).filter((l) => !l.startsWith("note:") && !l.startsWith("warn:") && l !== "ok");
 }
 
 /** Build an evidence folder for `target` into a fresh temp dir; returns its path. */

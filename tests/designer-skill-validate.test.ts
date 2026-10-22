@@ -8,7 +8,7 @@ import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import {
-  BROKEN_DIR, EXAMPLES, SKILL_DIR, build, cleanTemps, copySkill, hasBuiltBinary, lines, makeTemp, node, readJson, validate,
+  BROKEN_DIR, EXAMPLES, SKILL_DIR, build, cleanTemps, copySkill, hasBuiltBinary, makeTemp, node, readJson, validate, verdictLines,
 } from "./helpers/designer-skill-harness.js";
 
 afterAll(cleanTemps);
@@ -19,7 +19,7 @@ describe.skipIf(!hasBuiltBinary)("validate — known-good examples", () => {
     it(`${name}: build then validate exits 0 and prints ok, identically on a second run`, () => {
       const evidence = build(example(name));
       const first = validate(evidence);
-      expect({ status: first.status, out: lines(first.stdout) }).toEqual({ status: 0, out: ["ok"] });
+      expect({ status: first.status, out: verdictLines(first.stdout) }).toEqual({ status: 0, out: ["ok"] });
       expect(validate(evidence).stdout).toBe(first.stdout);
     });
   }
@@ -35,7 +35,7 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
   it("gate: a page without a title", () => {
     const run = validate(build(join(BROKEN_DIR, "gate-missing-title.html")));
     expect(run.status).toBe(1);
-    const out = lines(run.stdout);
+    const out = verdictLines(run.stdout);
     expect(out).toHaveLength(1);
     expect(out[0]).toMatch(/^gate: a11y\/document-title gate-missing-title\.html:\d+ — /);
   });
@@ -43,7 +43,7 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
   it("external-request: a remote CSS import", () => {
     const run = validate(build(join(BROKEN_DIR, "external-request.html")));
     expect(run.status).toBe(1);
-    const out = lines(run.stdout);
+    const out = verdictLines(run.stdout);
     expect(out).toHaveLength(1);
     expect(out[0]).toMatch(/^external-request: external-request\.html:8 css @import loads https:\/\/fonts\.example\.test\/serif\.css — /);
   });
@@ -53,13 +53,13 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
     writeFileSync(join(changed, "site", "pricing-page.html"), readFileSync(join(changed, "site", "pricing-page.html"), "utf8") + "\n<!-- edit -->\n");
     const a = validate(changed);
     expect(a.status).toBe(1);
-    expect(lines(a.stdout)).toEqual(["artifact-hashes: pricing-page.html changed after build — edit the source and rebuild"]);
+    expect(verdictLines(a.stdout)).toEqual(["artifact-hashes: pricing-page.html changed after build — edit the source and rebuild"]);
 
     const extra = build(example("pricing-page.html"));
     writeFileSync(join(extra, "site", "stray.txt"), "x");
     const b = validate(extra);
     expect(b.status).toBe(1);
-    expect(lines(b.stdout)).toEqual(["artifact-hashes: stray.txt is not in the manifest — rebuild the evidence folder"]);
+    expect(verdictLines(b.stdout)).toEqual(["artifact-hashes: stray.txt is not in the manifest — rebuild the evidence folder"]);
   });
 
   it("manifest: wrong schema and a contract hash from another version", () => {
@@ -68,14 +68,14 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
     writeFileSync(join(wrong, "manifest.json"), JSON.stringify({ ...manifest, schema: 2 }));
     const a = validate(wrong);
     expect(a.status).toBe(1);
-    expect(lines(a.stdout)).toHaveLength(1);
+    expect(verdictLines(a.stdout)).toHaveLength(1);
     expect(a.stdout).toMatch(/^manifest: manifest\.json does not match schema 1/);
 
     const other = build(example("pricing-page.html"));
     writeFileSync(join(other, "manifest.json"), JSON.stringify({ ...readJson(join(other, "manifest.json")), contract: "0".repeat(64) }));
     const b = validate(other);
     expect(b.status).toBe(1);
-    expect(lines(b.stdout)).toEqual(["manifest: built against a different contract.md — rebuild the evidence folder with this skill version"]);
+    expect(verdictLines(b.stdout)).toEqual(["manifest: built against a different contract.md — rebuild the evidence folder with this skill version"]);
   });
 
   it("size: an entry over the limit", () => {
@@ -88,7 +88,7 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
     writeFileSync(join(evidence, "manifest.json"), JSON.stringify(manifest));
     const run = validate(evidence);
     expect(run.status).toBe(1);
-    expect(lines(run.stdout)).toEqual(["size: pricing-page.html is larger than 524288 bytes — split the page"]);
+    expect(verdictLines(run.stdout)).toEqual(["size: pricing-page.html is larger than 524288 bytes — split the page"]);
   });
 
   it("contract: an edited copy is refused", () => {
@@ -97,7 +97,7 @@ describe.skipIf(!hasBuiltBinary)("validate — one broken input per check yields
     writeFileSync(join(copy, "contract.md"), readFileSync(join(copy, "contract.md"), "utf8") + "\nsneaky extra flag\n");
     const run = validate(evidence, copy);
     expect(run.status).toBe(1);
-    expect(lines(run.stdout)).toEqual(["contract: contract.md body does not match its sha256 header (edited copy) — reinstall ease-design to restore the shipped copy"]);
+    expect(verdictLines(run.stdout)).toEqual(["contract: contract.md body does not match its sha256 header (edited copy) — reinstall ease-design to restore the shipped copy"]);
   });
 });
 

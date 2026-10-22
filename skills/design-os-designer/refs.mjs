@@ -15,6 +15,60 @@ export function stripHtmlComments(html) {
   return html.replace(/<!--[\s\S]*?(?:-->|$)/g, (comment) => comment.replace(/[^\n]/g, " "));
 }
 
+const NAMED_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0" };
+
+/** Decode the character references HTML allows in attribute values: &amp; &quot; &#38; &#x26; and friends. */
+export function decodeEntities(value) {
+  return value.replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (whole, dec, hex, name) => {
+    try {
+      return dec ? String.fromCodePoint(Number(dec)) : hex ? String.fromCodePoint(parseInt(hex, 16)) : (NAMED_ENTITIES[name.toLowerCase()] ?? whole);
+    } catch {
+      return whole;
+    }
+  });
+}
+
+/** The URL of each candidate in an HTML srcset value, split as the HTML specification does (data: URLs keep their commas). */
+export function parseSrcset(value) {
+  const urls = [];
+  let i = 0;
+  while (i < value.length) {
+    while (i < value.length && /[\s,]/.test(value[i])) i++;
+    if (i >= value.length) break;
+    const start = i;
+    while (i < value.length && !/\s/.test(value[i])) i++;
+    let url = value.slice(start, i);
+    if (url.endsWith(",")) url = url.replace(/,+$/, "");
+    else {
+      let depth = 0; // descriptors run to the next comma outside parentheses
+      while (i < value.length) {
+        const c = value[i++];
+        if (c === "(") depth++;
+        else if (c === ")") depth--;
+        else if (c === "," && depth === 0) break;
+      }
+    }
+    if (url !== "") urls.push(url);
+  }
+  return urls;
+}
+
+/** Blank out CSS comments (spaces; newlines kept) so references inside them are never read and line numbers hold. */
+const blankCssComments = (css) => css.replace(/\/\*[\s\S]*?(?:\*\/|$)/g, (comment) => comment.replace(/[^\n]/g, " "));
+
+/** Offset just past the matching </template>, counting nested templates; contents of a template are inert. */
+function skipTemplate(lower, from) {
+  let depth = 1;
+  let i = from;
+  while (depth > 0) {
+    const open = lower.indexOf("<template", i);
+    const close = lower.indexOf("</template", i);
+    if (close < 0) return lower.length;
+    if (open >= 0 && open < close) { depth++; i = open + 9; } else { depth--; i = close + 10; }
+  }
+  return i;
+}
+
 export function isRemote(ref) {
   return /^(?:https?:|wss?:|ftp:)?\/\//i.test(ref.trim());
 }
@@ -36,7 +90,8 @@ export function resolveLocal(fromAbs, ref) {
   return target === null ? null : resolve(dirname(fromAbs), target);
 }
 
-export function cssReferences(css, fullText = css, offset = 0) {
+export function cssReferences(source, fullText = source, offset = 0) {
+  const css = blankCssComments(source);
   const found = [];
   const imports = [];
   for (const m of css.matchAll(/@import\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)'|([^\s;"')]+))/gi)) {
@@ -60,7 +115,7 @@ function attributeMap(source, start) {
     const m = ATTRIBUTE.exec(source);
     if (m === null) break;
     const name = m[1].toLowerCase();
-    if (!attrs.has(name)) attrs.set(name, m[2] ?? m[3] ?? m[4] ?? "");
+    if (!attrs.has(name)) attrs.set(name, decodeEntities(m[2] ?? m[3] ?? m[4] ?? ""));
     pos = ATTRIBUTE.lastIndex;
   }
   return { attrs, end: pos };
@@ -69,7 +124,7 @@ function attributeMap(source, start) {
 function candidates(tag, attrs) {
   const out = [];
   const add = (ref, fetches, label = tag) => { if (ref !== undefined && ref.trim() !== "") out.push({ ref: ref.trim(), tag: label, fetches }); };
-  const srcset = (value, label) => String(value).split(",").forEach((c) => add(c.trim().split(/\s+/)[0], true, label));
+  const srcset = (value, label) => parseSrcset(String(value)).forEach((url) => add(url, true, label));
   if (tag === "link") {
     const rels = (attrs.get("rel") ?? "").toLowerCase().split(/\s+/).filter(Boolean);
     const navigationOnly = rels.length > 0 && rels.every((r) => NAVIGATION_RELS.has(r));
@@ -88,6 +143,7 @@ function candidates(tag, attrs) {
 /** Every reference in an HTML document, including <style> blocks and style="" attributes. */
 export function htmlReferences(html) {
   const text = stripHtmlComments(html);
+  const lower = text.replace(/[A-Z]/g, (c) => c.toLowerCase()); // ASCII only, so offsets stay identical to `text`
   const found = [];
   const tagStart = /<([a-zA-Z][\w:-]*)/g;
   let m;
@@ -95,11 +151,15 @@ export function htmlReferences(html) {
     const tag = m[1].toLowerCase();
     const { attrs, end } = attributeMap(text, m.index + m[0].length);
     const line = lineAt(text, m.index);
+    if (tag === "template") {
+      tagStart.lastIndex = skipTemplate(lower, end);
+      continue;
+    }
     for (const c of candidates(tag, attrs)) found.push({ ...c, line });
     if (attrs.has("style")) found.push(...cssReferences(attrs.get("style"), text, m.index));
     tagStart.lastIndex = Math.max(end, tagStart.lastIndex);
     if (RAW_TEXT_TAGS.has(tag)) {
-      const close = text.toLowerCase().indexOf(`</${tag}`, end);
+      const close = lower.indexOf(`</${tag}`, end);
       const bodyEnd = close < 0 ? text.length : close;
       if (tag === "style") found.push(...cssReferences(text.slice(end + 1, bodyEnd), text, end + 1));
       tagStart.lastIndex = bodyEnd;

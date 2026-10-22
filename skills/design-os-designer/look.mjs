@@ -11,11 +11,12 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { SITE_DIR, SKILL_DIR, WIDTHS, parseArgs, readManifest } from "./shared.mjs";
-import { probePage } from "./look-probe.mjs";
+import { DEFAULT_DEADLINE_MS, itemLines, shoot } from "./look-shots.mjs";
 
-const HELP = `Usage: node look.mjs --evidence <folder> [--sheet <png>] [--widths 375,768,1440]
+const HELP = `Usage: node look.mjs --evidence <folder> [--sheet <png>] [--widths 375,768,1440] [--deadline <ms>]
 Renders <folder>/site/<entry> at each width, writes one sheet PNG, prints items L1-L5.
-Exit 0 all pass, 1 an item failed, 2 cannot run (prints the SKIPPED line).`;
+--deadline  most time one width may take before it is reported UNVERIFIED (default ${DEFAULT_DEADLINE_MS})
+Exit 0 all pass, 1 an item failed or is UNVERIFIED, 2 cannot run (prints the SKIPPED line).`;
 const MAX_CELL_HEIGHT = 2000;
 
 function loadPlaywright() {
@@ -44,50 +45,6 @@ async function launch(chromium) {
   throw new Error(reason || "no launchable Chromium");
 }
 
-async function shoot(browser, url, width) {
-  const context = await browser.newContext({ viewport: { width, height: 900 } });
-  const problems = [];
-  await context.route("**/*", (route) => {
-    const target = route.request().url();
-    if (target.startsWith("file:") || target.startsWith("data:") || target.startsWith("blob:") || target === "about:blank") return route.continue();
-    problems.push(`blocked request ${target}`);
-    return route.abort();
-  });
-  // Every WebSocket is closed before it reaches a server; a Playwright without this API cannot prove L3.
-  const socketsBlocked = typeof context.routeWebSocket === "function";
-  if (socketsBlocked) {
-    await context.routeWebSocket(/.*/, (socket) => {
-      problems.push(`blocked websocket ${socket.url()}`);
-      socket.close();
-    });
-  }
-  const page = await context.newPage();
-  page.on("console", (m) => { if (m.type() === "error") problems.push(`console error: ${m.text()}`); });
-  page.on("pageerror", (e) => problems.push(`page error: ${e.message}`));
-  await page.goto(url, { waitUntil: "load" });
-  await page.evaluate(() => document.fonts.ready);
-  const probe = await page.evaluate(probePage);
-  const png = await page.screenshot({ fullPage: true });
-  await context.close();
-  return { width, probe, problems, png, socketsBlocked };
-}
-
-function itemLines({ width, probe, problems, socketsBlocked }) {
-  const w = `@${width}`;
-  const items = [];
-  const over = probe.scrollWidth > probe.clientWidth;
-  items.push([over, `L1 page-overflow ${w}: scrollWidth ${probe.scrollWidth} ${over ? ">" : "<="} clientWidth ${probe.clientWidth}`, "find the element wider than the viewport"]);
-  const small = probe.smallest !== null && probe.smallest.size < 24;
-  items.push([small, `L2 target-size ${w}: smallest of ${probe.targetCount} targets ${probe.smallest ? `${probe.smallest.size}px (${probe.smallest.name})` : "none"}, floor 24px`, "enlarge the target or its padding"]);
-  const unverifiedSockets = socketsBlocked ? "" : " — UNVERIFIED: this Playwright cannot block WebSockets";
-  items.push([problems.length > 0 || !socketsBlocked, `L3 console-and-network ${w}: ${problems.length} problem(s)${problems.length ? " — " + problems.slice(0, 3).join("; ") : ""}${unverifiedSockets}`, socketsBlocked ? "fix the script error or bundle the asset" : "update Playwright and run look again"]);
-  const pending = probe.pendingImages.length > 0 ? `, ${probe.pendingImages.length} still loading after the full scroll — UNVERIFIED: ${probe.pendingImages.slice(0, 3).join(", ")}` : "";
-  items.push([probe.brokenImages.length > 0 || probe.pendingImages.length > 0, `L4 broken-images ${w}: ${probe.brokenImages.length} broken${probe.brokenImages.length ? " — " + probe.brokenImages.slice(0, 3).join(", ") : ""}${pending}`, "fix the image path, or make the image load"]);
-  const blank = probe.textLength === 0 && probe.visualCount === 0;
-  items.push([blank, `L5 blank-page ${w}: ${probe.textLength} characters of text, ${probe.visualCount} visual element(s)`, "the page rendered empty"]);
-  return items;
-}
-
 async function composeSheet(browser, shots, entry, sheetPath) {
   const gap = 32;
   const cells = shots.map((s) => {
@@ -105,7 +62,7 @@ async function composeSheet(browser, shots, entry, sheetPath) {
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2), ["evidence", "sheet", "widths"], ["help"]);
+  const args = parseArgs(process.argv.slice(2), ["evidence", "sheet", "widths", "deadline"], ["help"]);
   if (args.help) return void console.log(HELP);
   if (args._errors.length > 0 || !args.evidence) {
     console.error(args._errors.concat(args.evidence ? [] : ["input: --evidence is required (see --help)"]).join("\n"));
@@ -114,6 +71,11 @@ async function main() {
   const widths = args.widths ? args.widths.split(",").map(Number) : WIDTHS;
   if (widths.length === 0 || widths.some((w) => !Number.isInteger(w) || w < 200 || w > 4000)) {
     console.error("input: --widths must be integers between 200 and 4000, comma separated");
+    return 2;
+  }
+  const deadlineMs = args.deadline === undefined ? DEFAULT_DEADLINE_MS : Number(args.deadline);
+  if (!Number.isInteger(deadlineMs) || deadlineMs < 1000 || deadlineMs > 600000) {
+    console.error("input: --deadline must be milliseconds between 1000 and 600000");
     return 2;
   }
   const skipped = (why) => `look: SKIPPED (${why}) — capture ${widths.join(", ")} with your host's own browser or screenshot tool`;
@@ -143,9 +105,10 @@ async function main() {
   try {
     const url = pathToFileURL(entryPath).href;
     const shots = [];
-    for (const width of widths) shots.push(await shoot(browser, url, width));
+    for (const width of widths) shots.push(await shoot(browser, url, width, deadlineMs));
     const sheetPath = resolve(args.sheet ?? join(evidence, "look-sheet.png"));
-    await composeSheet(browser, shots, manifest.entry, sheetPath);
+    const drawn = shots.filter((shot) => !shot.hung);
+    if (drawn.length > 0) await composeSheet(browser, drawn, manifest.entry, sheetPath);
     let failed = 0;
     console.log(`look: ${manifest.entry} at ${widths.join(", ")}`);
     for (const shot of shots) {
@@ -154,11 +117,13 @@ async function main() {
         console.log(bad ? `${line} FAIL — ${fix}` : `${line} ok`);
       }
     }
-    console.log(`sheet: ${sheetPath}`);
+    console.log(drawn.length > 0 ? `sheet: ${sheetPath}` : "sheet: none (no width finished)");
     console.log(failed > 0 ? `look: ${failed} machine item(s) failed — eye items L6-L10 still need a human` : "look: machine items ok — eye items L6-L10 still need a human");
     return failed > 0 ? 1 : 0;
   } finally {
-    await browser.close();
+    // Always close the browser, even after a hung page; if close itself stalls, end the process rather than leave Chrome behind.
+    const closed = await Promise.race([browser.close().then(() => true, () => true), new Promise((done) => setTimeout(() => done(false), 10000))]);
+    if (!closed) setTimeout(() => process.exit(process.exitCode ?? 1), 300);
   }
 }
 

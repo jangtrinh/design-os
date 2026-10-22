@@ -19,6 +19,12 @@
   visible and prints every failure it found even when `ui` cannot run. `look.mjs` closes WebSockets, loads
   lazy images by a fixed scroll before measuring and reports anything still loading as UNVERIFIED. `build.mjs`
   never writes inside the skill folder, and the package ships only `skills/design-os-designer`.
+- `look.mjs` stops on a page that grows without end (one height snapshot, a 60-step instant scroll, a
+  `--deadline` per width, the browser always closed) and reports it UNVERIFIED. `validate.mjs` prints notes,
+  warnings and the verdict on stdout, falls back to `ui`'s own discovery when the recorded token file is
+  unusable (a token file the user passes and `ui` refuses stays a failure), and its reference scan ignores CSS
+  comments and `<template>` contents, decodes HTML entities and splits `srcset` by the HTML rules. The project
+  walk honours the kit boundary exactly like `ui`, pinned by a layout-by-layout parity test.
 - "Roles on your runtime" in the skill: builder, critic and scout are filled by the user's own host (Claude Code,
   Codex, Gemini CLI, Antigravity, or a fresh session of any other runtime), checked against each host's
   subagent documentation. The critic is never the builder, and a test fails if the skill or any generated

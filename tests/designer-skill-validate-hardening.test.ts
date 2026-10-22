@@ -8,7 +8,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   BROKEN_DIR, DIST_CLI, REPO_ROOT, SKILL_DIR, build, buildRun, cleanTemps, copySkill, hasBuiltBinary, htmlPage, lines, makeProject,
-  makeTemp, node, validate, writeFile,
+  makeTemp, node, validate, verdictLines, writeFile,
 } from "./helpers/designer-skill-harness.js";
 
 afterAll(cleanTemps);
@@ -43,8 +43,8 @@ describe.skipIf(!hasBuiltBinary)("project design system is graded explicitly", (
     const evidence = buildPage(htmlPage());
     const run = validate(evidence);
     expect(run.status).toBe(0);
-    expect(lines(run.stdout)).toEqual(["ok"]);
-    expect(run.stderr).toMatch(/^gate: token-coverage did not run — no design system found from /m);
+    expect(verdictLines(run.stdout)).toEqual(["ok"]);
+    expect(run.stdout).toMatch(/^note: gate: token-coverage did not run — no design system found from /m);
   });
 
   it("build records the project the page belongs to, and --project overrides the walk", () => {
@@ -110,7 +110,7 @@ describe.skipIf(!hasBuiltBinary)("contract is also compared with the installed u
     // Evidence is built by the edited copy, so its own header and manifest agree: only the comparison with `ui` can object.
     const run = validate(build(example("pricing-page.html"), copy), copy);
     expect(run.status).toBe(1);
-    expect(lines(run.stdout)).toEqual(["contract: contract.md differs from what the installed ui generates (stale or edited) — reinstall ease-design to restore the shipped copy"]);
+    expect(verdictLines(run.stdout)).toEqual(["contract: contract.md differs from what the installed ui generates (stale or edited) — reinstall ease-design to restore the shipped copy"]);
   });
 
   it("tolerates a UTF-8 BOM at the start of the contract", () => {
@@ -118,7 +118,7 @@ describe.skipIf(!hasBuiltBinary)("contract is also compared with the installed u
     const evidence = build(example("pricing-page.html"), copy);
     writeFileSync(join(copy, "contract.md"), "\uFEFF" + readFileSync(join(copy, "contract.md"), "utf8"));
     const run = validate(evidence, copy);
-    expect({ status: run.status, out: lines(run.stdout) }).toEqual({ status: 0, out: ["ok"] });
+    expect({ status: run.status, out: verdictLines(run.stdout) }).toEqual({ status: 0, out: ["ok"] });
   });
 });
 
@@ -154,7 +154,7 @@ describe.skipIf(!hasBuiltBinary)("validate keeps every result visible", () => {
     writeFileSync(join(tampered, "site", "page.html"), readFileSync(join(tampered, "site", "page.html"), "utf8") + "\n<!-- edit -->\n");
     const a = node(join(copy, "validate.mjs"), ["--evidence", tampered], env);
     expect(a.status).toBe(1);
-    expect(lines(a.stdout)).toEqual(["artifact-hashes: page.html changed after build — edit the source and rebuild"]);
+    expect(verdictLines(a.stdout)).toEqual(["artifact-hashes: page.html changed after build — edit the source and rebuild"]);
     expect(a.stderr).toMatch(/runtime: could not run — `ui` binary not found/);
 
     const clean = buildPage(htmlPage());
@@ -165,6 +165,6 @@ describe.skipIf(!hasBuiltBinary)("validate keeps every result visible", () => {
 
   it("keeps the broken fixtures producing exactly one line", () => {
     const run = validate(buildPage(readFileSync(join(BROKEN_DIR, "gate-missing-title.html"), "utf8")));
-    expect(lines(run.stdout)).toHaveLength(1);
+    expect(verdictLines(run.stdout)).toHaveLength(1);
   });
 });

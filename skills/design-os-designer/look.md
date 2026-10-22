@@ -1,7 +1,7 @@
 # What only eyes can check
 
 Run [look.mjs](look.mjs) only after [validate.mjs](validate.mjs) printed `ok`. It renders the entry page of an
-evidence folder at 375, 768 and 1440 px (`--widths` overrides) into one sheet PNG, measures `L1`-`L5`,
+evidence folder at 375, 768 and 1440 px (`--widths` overrides; `--deadline <ms>` bounds each width, default 45000, and a page that never settles is reported UNVERIFIED) into one sheet PNG, measures `L1`-`L5`,
 and blocks every request that is not a local file. Open the sheet, then open the page itself for
 anything the sheet shrinks. Responsive extras beyond these three widths run only when the brief asks.
 
@@ -17,7 +17,7 @@ exit never means "looks good": `L6`-`L10` are yours.
 | L1 | No sideways page scroll at each width | Measured: `scrollWidth` vs `clientWidth` |
 | L2 | Every visible target is at least 24 px | Measured: smallest non-inline target |
 | L3 | No console error, script error, blocked request or WebSocket (all sockets are closed) | Measured: browser events |
-| L4 | No broken image; lazy images are loaded by a fixed scroll first, one that never finishes is UNVERIFIED | Measured: `naturalWidth` after the scroll |
+| L4 | No broken image; lazy images are loaded by a fixed instant scroll first (at most 60 steps); one that never finishes, or a page that keeps growing, is UNVERIFIED | Measured: `naturalWidth` after the scroll |
 | L5 | The body is not blank | Measured: text length and visual count |
 | L6 | The shape and the one primary action read at 375 px without hunting | Human eyes |
 | L7 | Copy invents no evidence: numbers, logos, quotes, people | Human eyes |

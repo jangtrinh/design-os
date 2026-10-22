@@ -44,7 +44,7 @@ node <skill>/build.mjs --target <page.html|folder> [--out <new folder>]
 [build.mjs](build.mjs) copies the page and its local assets, records sha256 hashes, the contract hash and
 the project design system, prints the folder path, and refuses an existing destination or any inside the
 skill. Helpers: [shared.mjs](shared.mjs), [refs.mjs](refs.mjs), [contract-render.mjs](contract-render.mjs),
-[validate-checks.mjs](validate-checks.mjs), [look-probe.mjs](look-probe.mjs).
+[validate-checks.mjs](validate-checks.mjs), [look-shots.mjs](look-shots.mjs), [look-probe.mjs](look-probe.mjs).
 
 ## 3. Check
 

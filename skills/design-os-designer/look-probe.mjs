@@ -2,19 +2,29 @@
 // self-contained: no imports, no outer variables. It makes the page show everything it would show a reader,
 // in a fixed deterministic sequence, then measures L1, L2, L4 and L5.
 //   1. images marked loading="lazy" are switched to eager;
-//   2. the page is scrolled from top to bottom in fixed viewport-height steps with a fixed 60 ms pause, then back to top;
+//   2. the page height is read ONCE, then the page is scrolled to that height in fixed viewport-height
+//      steps (instant, never animated; at most 60 steps) with a fixed 60 ms pause, then back to the top;
 //   3. every image still loading is awaited (at most 4 s in total).
-// An image that is still incomplete after that is reported as `pending`: unknown, never counted as fine.
+// A page that kept growing while scrolled, or is taller than the step cap, was not fully visited: that is
+// reported in `scroll` ("growing" / "capped"), never treated as checked. An image still incomplete after
+// the wait is `pending`: unknown, never counted as fine.
 export async function probePage() {
   const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+  const jump = (top) => window.scrollTo({ top, behavior: "instant" });
   for (const img of document.querySelectorAll("img[loading]")) img.loading = "eager";
   const root = document.documentElement;
   const step = Math.max(window.innerHeight, 200);
-  for (let y = 0; y < root.scrollHeight; y += step) {
-    window.scrollTo(0, y);
+  const maxSteps = 60;
+  const startHeight = root.scrollHeight;
+  const end = Math.min(startHeight, step * maxSteps);
+  for (let y = 0; y < end; y += step) {
+    jump(y);
     await pause(60);
   }
-  window.scrollTo(0, 0);
+  jump(0);
+  const scroll = startHeight > end ? { state: "capped", from: startHeight, to: root.scrollHeight }
+    : root.scrollHeight - startHeight > step ? { state: "growing", from: startHeight, to: root.scrollHeight }
+    : { state: "ok", from: startHeight, to: root.scrollHeight };
   const sourced = () => [...document.images].filter((img) => img.getAttribute("src") || img.currentSrc);
   const deadline = Date.now() + 4000;
   while (Date.now() < deadline && sourced().some((img) => !img.complete)) await pause(50);
@@ -37,6 +47,7 @@ export async function probePage() {
     scrollWidth: root.scrollWidth,
     clientWidth: root.clientWidth,
     height: root.scrollHeight,
+    scroll,
     smallest,
     targetCount: targets.length,
     brokenImages: images.filter((img) => img.complete && img.naturalWidth === 0).map((img) => img.getAttribute("src")),

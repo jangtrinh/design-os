@@ -31,31 +31,55 @@ const brief = (message) => {
   return first.length > 200 ? first.slice(0, 197) + "..." : first;
 };
 
+/** One `ui gate` call: { data } on a verdict, { error } when ui refused, { text } when it printed no JSON. */
+function callGate(ui, evidence, entry, tokens, family) {
+  const flags = ["gate", join(SITE_DIR, entry), "--json", ...(tokens ? ["--tokens", tokens] : []), ...(family ? ["--family", family] : [])];
+  const run = runUi(ui, flags, evidence);
+  let parsed;
+  try {
+    parsed = JSON.parse(run.stdout);
+  } catch {
+    return { text: `runtime: \`ui gate\` returned no JSON (exit ${run.status}): ${(run.stderr || run.stdout || "").trim().split("\n")[0]}` };
+  }
+  if (parsed.ok === false && parsed.error) return { error: parsed.error };
+  if (parsed.data === undefined || (run.status !== 0 && run.status !== 1)) return { text: `runtime: \`ui gate\` exited ${run.status}` };
+  return { data: parsed.data, status: run.status };
+}
+
 /**
  * `ui gate` on the evidence entry, graded against the project design system recorded at build time (passed
- * explicitly, so the evidence folder's depth never hides it). Returns { failures, warnings, notes } or { cannotRun }.
+ * explicitly, so the evidence folder's depth never hides it). ui's own refusal is always shown. A RECORDED
+ * token file ui cannot use falls back to ui's own discovery with a note; a token file the user passed stays a
+ * failure. Returns { failures, warnings, notes } or { cannotRun }.
  */
 export function runGate(ui, evidence, manifest, args) {
   const failures = [];
   const notes = [];
-  const recorded = manifest.project?.tokens;
-  const tokens = args.tokens ? resolve(args.tokens) : recorded;
+  const userTokens = args.tokens ? resolve(args.tokens) : undefined;
+  let tokens = userTokens ?? manifest.project?.tokens;
+  const recorded = userTokens === undefined && tokens !== undefined;
+  let fellBack = false;
+  const fallBack = (why) => {
+    notes.push(`note: gate: recorded tokens ${tokens} unusable (${why}) — graded with ui's own discovery`);
+    tokens = undefined;
+    fellBack = true;
+  };
   if (tokens !== undefined && !existsSync(tokens)) {
-    failures.push(`gate: token-coverage did not run — token file ${tokens} is missing; pass --tokens <file> or rebuild`);
+    if (recorded) fallBack("the file is missing");
+    else return { failures: [`gate: token-coverage did not run — token file ${tokens} is missing; pass an existing --tokens file`], warnings: [], notes };
   }
-  const useTokens = tokens !== undefined && existsSync(tokens);
-  const flags = ["gate", join(SITE_DIR, manifest.entry), "--json", ...(useTokens ? ["--tokens", tokens] : []), ...(args.family ? ["--family", args.family] : [])];
-  const run = runUi(ui, flags, evidence);
-  let data;
-  try {
-    data = JSON.parse(run.stdout).data;
-  } catch {
-    return { cannotRun: `runtime: \`ui gate\` returned no JSON (exit ${run.status}): ${(run.stderr || run.stdout || "").trim().split("\n")[0]}` };
+  let result = callGate(ui, evidence, manifest.entry, tokens, args.family);
+  if (result.error?.code === "TOKENS_NOT_READABLE" && tokens !== undefined) {
+    if (!recorded) return { failures: [`gate: ui refused the tokens file (${result.error.code}): ${brief(result.error.message)}`], warnings: [], notes };
+    fallBack(`${result.error.code}: ${brief(result.error.message)}`);
+    result = callGate(ui, evidence, manifest.entry, undefined, args.family);
   }
-  if (data === undefined || data === null || (run.status !== 0 && run.status !== 1)) return { cannotRun: `runtime: \`ui gate\` exited ${run.status}` };
+  if (result.error) return { cannotRun: `runtime: \`ui gate\` failed (${result.error.code}): ${brief(result.error.message)}` };
+  if (result.text) return { cannotRun: result.text };
+  const { data, status } = result;
   const warnings = [];
-  for (const [family, result] of Object.entries(data.families ?? {})) {
-    for (const f of result.findings ?? []) {
+  for (const [family, found] of Object.entries(data.families ?? {})) {
+    for (const f of found.findings ?? []) {
       const where = `${family}/${f.checkId} ${manifest.entry}${f.line ? ":" + f.line : ""} — ${brief(f.message)}`;
       if (f.severity === "error") failures.push(`gate: ${where}`);
       else if (f.severity === "warning") warnings.push(`warn: gate: ${where}`);
@@ -65,10 +89,10 @@ export function runGate(ui, evidence, manifest, args) {
   const coverage = data.tokenCoverage?.overall?.coverage;
   if (typeof coverage === "number" && coverage < data.tokenCoverageFloor) {
     failures.push(`gate: token-coverage ${Math.round(coverage * 100)}% is below the ${Math.round(data.tokenCoverageFloor * 100)}% floor — style with the project's tokens`);
-  } else if (data.tokenCoverage === undefined && !failures.some((l) => l.startsWith("gate: token-coverage"))) {
-    notes.push(`gate: token-coverage did not run — no design system found from ${manifest.projectStart ?? "the page folder"}`);
+  } else if (data.tokenCoverage === undefined && !fellBack) {
+    notes.push(`note: gate: token-coverage did not run — no design system found from ${manifest.projectStart ?? "the page folder"}`);
   }
-  if (failures.length === 0 && (run.status === 1 || data.pass === false)) failures.push("gate: ui gate failed without a listed finding — run `ui gate` on the entry by hand");
+  if (failures.length === 0 && (status === 1 || data.pass === false)) failures.push("gate: ui gate failed without a listed finding — run `ui gate` on the entry by hand");
   return { failures, warnings, notes };
 }
 
