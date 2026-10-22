@@ -38,7 +38,11 @@ export interface CssSourceCollection {
 export function resolveProjectTokensPath(startDir: string): string | undefined {
   const ds = tryDiscoverDesignSystem(startDir);
   if (ds !== undefined && existsSync(ds.tokens)) return ds.tokens;
+  return resolveBrandTokensPath(startDir);
+}
 
+/** brand/design/design.tokens.json, walked up at most 5 levels and stopping at a repository root. */
+function resolveBrandTokensPath(startDir: string): string | undefined {
   let cur = resolve(startDir);
   for (let level = 0; level < 5; level++) {
     const brandTokens = resolve(cur, "brand", "design", "design.tokens.json");
@@ -80,23 +84,37 @@ export function scoreTokenCoverage(htmlPath: string, html: string, tokensPath: s
   return scoreCssSources(collectCssSources(htmlPath, html).sources, resolved);
 }
 
+/** Where a gate's token-coverage tokens came from, so a consumer can tell "no design system" from "unreadable". */
+export interface TokenCoverageSource {
+  origin: "flag" | "auto" | "none";
+  path?: string;
+  /** Set only for origin "auto": the detected token file could not be scored. */
+  error?: string;
+}
+
 /**
- * `ui gate`'s auto-detected token-coverage check (A2): resolve the project's
- * token file for `htmlPath`'s directory and score it, or return undefined
- * when no token file is auto-detectable, or when the auto-detected file is
- * unreadable/invalid — best-effort, same posture as "not found" (an EXPLICIT
- * `--tokens` path stays the caller's job to validate loudly via
- * `scoreTokenCoverage` above; this one was never asked for). `html` is
- * expected to already be `ui gate`'s inlined, link-free document, so no
- * linked stylesheet remains to (re-)report errors for here — the caller
- * already surfaced those from its own inlining pass.
+ * `ui gate`'s auto-detected token-coverage check (A2): find the design system
+ * from `startDir` (default: the page's folder) and score its token file.
+ * `source.origin` is "none" only when no design system / brand tokens exist
+ * there. A design system that IS found but whose token file is missing or
+ * cannot be scored comes back with `source.error` and no coverage — never
+ * the same answer as "nothing to grade against" (the caller fails the gate).
+ * An EXPLICIT `--tokens` path stays the caller's job via `scoreTokenCoverage`.
+ * `html` is expected to already be `ui gate`'s inlined, link-free document.
  */
-export function autoScoreTokenCoverage(htmlPath: string, html: string): TokenCoverageResult | undefined {
-  const tokensPath = resolveProjectTokensPath(dirname(resolve(htmlPath)));
-  if (tokensPath === undefined) return undefined;
+export function autoScoreTokenCoverage(
+  htmlPath: string,
+  html: string,
+  startDir?: string,
+): { coverage?: TokenCoverageResult; source: TokenCoverageSource } {
+  const start = startDir !== undefined ? resolve(startDir) : dirname(resolve(htmlPath));
+  const ds = tryDiscoverDesignSystem(start);
+  const path = ds !== undefined ? ds.tokens : resolveBrandTokensPath(start);
+  if (path === undefined) return { source: { origin: "none" } };
+  if (!existsSync(path)) return { source: { origin: "auto", path, error: "the token file is missing" } };
   try {
-    return scoreTokenCoverage(htmlPath, html, tokensPath);
-  } catch {
-    return undefined;
+    return { coverage: scoreTokenCoverage(htmlPath, html, path), source: { origin: "auto", path } };
+  } catch (e) {
+    return { source: { origin: "auto", path, error: e instanceof Error ? e.message : String(e) } };
   }
 }

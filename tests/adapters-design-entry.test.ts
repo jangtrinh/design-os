@@ -49,11 +49,21 @@ describe("adapters design entry and skill routing", () => {
       expect(glue).toContain("Skip design workflows only for pure nonvisual tasks");
     });
 
-    it("instructs loading live installed es:designer skill for rendered UI work", () => {
+    it("instructs loading design-os-designer first and prefers es:designer only when the catalog has it", () => {
       const glue = buildDesignEntryGlue(KNOWLEDGE_ROOT);
-      expect(glue).toContain("es:designer");
-      expect(glue).toContain("es-designer");
+      expect(glue.indexOf("design-os-designer")).toBeGreaterThan(-1);
+      expect(glue.indexOf("design-os-designer")).toBeLessThan(glue.indexOf("es:designer"));
+      expect(glue).toContain("If the live skill catalog also exposes `es:designer`");
+      expect(glue).toContain("prefer it and keep `design-os-designer` as the fallback");
+      expect(glue).toContain(`\`${join(REPO_ROOT, "skills", "design-os-designer", "SKILL.md").replace(/\\/g, "/")}\``);
       expect(glue).toContain("delegated");
+    });
+
+    it("never tells the reader to install or fetch a private skill", () => {
+      const glue = buildDesignEntryGlue(KNOWLEDGE_ROOT);
+      expect(glue).toContain("needs no install");
+      expect(glue).toContain("Do not attempt to install skills");
+      expect(glue).not.toMatch(/es:designer[^.]*\b(install|download|fetch|clone)\b/i);
     });
 
     it("respects project context and specialist platform rules over generic UI defaults", () => {
@@ -63,7 +73,7 @@ describe("adapters design entry and skill routing", () => {
       expect(glue).toContain("Figma");
     });
 
-    it("falls back to bundled workflow and build-loop when es:designer is absent", () => {
+    it("keeps the build-loop as the method and never suggests a package install", () => {
       const glue = buildDesignEntryGlue(KNOWLEDGE_ROOT);
       expect(glue).toContain("build-loop.md");
       expect(glue).not.toMatch(/npm install|apt-get|brew install/);
@@ -111,7 +121,8 @@ describe("adapters design entry and skill routing", () => {
     it("does not include skill references when verb has none", () => {
       const whyTpl = join(TEMPLATES_ROOT, "workflows", "why.md");
       const out = buildAntigravityWorkflow("why", whyTpl, KNOWLEDGE_ROOT);
-      expect(out).not.toContain("design-os-");
+      // The shared glue names the public designer skill; no craft skill reference may appear.
+      expect(out.replaceAll("design-os-designer", "")).not.toContain("design-os-");
     });
 
     it("uses only real schema entry command ui schema --json and no invented ui <workflow> commands", () => {
@@ -162,8 +173,8 @@ describe("adapters design entry and skill routing", () => {
       const ag = generateAntigravityAdapter({ cwd: FAKE_CWD, templatesRoot: TEMPLATES_ROOT });
       const codex = generateCodexAdapter({ cwd: FAKE_CWD, templatesRoot: TEMPLATES_ROOT });
 
-      expect(claude).toHaveLength(46);
-      expect(ag).toHaveLength(46);
+      expect(claude).toHaveLength(47);
+      expect(ag).toHaveLength(47);
       expect(codex).toHaveLength(1);
     });
   });

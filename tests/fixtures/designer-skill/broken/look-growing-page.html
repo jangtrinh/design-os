@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Feed</title>
+<style>body{margin:0;font-family:system-ui;font-size:1rem}.row{height:400px;border-bottom:1px solid #ccc}</style></head>
+<body><main id="feed"><h1>Feed</h1></main>
+<script>
+var feed=document.getElementById("feed"), n=0;
+function more(){for(var i=0;i<5;i++){var d=document.createElement("div");d.className="row";d.textContent="Sample row "+(n++);feed.appendChild(d);}}
+more();
+window.addEventListener("scroll",function(){ if (window.scrollY+window.innerHeight>document.documentElement.scrollHeight-800) more(); });
+</script></body></html>
