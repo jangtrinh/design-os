@@ -2,8 +2,8 @@
  * `ui reuse-plan check` — each finding, at the CLI seam, with the plan text that provokes it.
  * Every check has a positive control (the valid form passes) next to its negative.
  */
-import { describe, expect, it, beforeAll } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { describe, expect, it, beforeAll, afterAll } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -33,6 +33,7 @@ function capture(args: string[]): { code: number; out: string; err: string } {
 let scratch: string;
 let n = 0;
 beforeAll(() => { scratch = mkdtempSync(join(tmpdir(), "reuse-plan-")); });
+afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
 function planFile(text: string): string {
   const p = join(scratch, `plan-${++n}.md`);
