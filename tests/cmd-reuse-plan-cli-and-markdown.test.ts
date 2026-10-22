@@ -2,8 +2,8 @@
  * `ui reuse-plan check` — exit codes, the --json envelope, and Markdown robustness
  * (escaped pipes, spacing, CRLF, BOM, backticks, fenced blocks), plus the committed fixtures.
  */
-import { describe, expect, it, beforeAll } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { describe, expect, it, beforeAll, afterAll } from "vitest";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -28,6 +28,8 @@ function capture(args: string[]): { code: number; out: string; err: string } {
 let scratch: string;
 let n = 0;
 beforeAll(() => { scratch = mkdtempSync(join(tmpdir(), "reuse-plan-md-")); });
+// Every temp dir below lives inside `scratch`, so this one removal cleans the whole file.
+afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 function planFile(text: string): string {
   const p = join(scratch, `plan-${++n}.md`);
   writeFileSync(p, text, "utf8");
@@ -52,7 +54,7 @@ describe("exit codes and envelope", () => {
   });
 
   it("2 = cannot run: no registry under --dir (text and JSON)", () => {
-    const empty = mkdtempSync(join(tmpdir(), "reuse-plan-empty-"));
+    const empty = mkdtempSync(join(scratch, "empty-"));
     const file = join(FIX, "ok.md");
     const t = capture(["reuse-plan", "check", file, "--dir", empty]);
     expect(t.code).toBe(2);
@@ -66,7 +68,7 @@ describe("exit codes and envelope", () => {
 
   it("2 = cannot run: registry has the kernel root shape but a bad body, or a nameless component", () => {
     for (const body of ['{"version":"1","components":"nope"}', '{"version":"1","components":[{"category":"x"}]}']) {
-      const bad = mkdtempSync(join(tmpdir(), "reuse-plan-bad-"));
+      const bad = mkdtempSync(join(scratch, "bad-"));
       mkdirSync(join(bad, "design"));
       writeFileSync(join(bad, "design", "component-registry.json"), body, "utf8");
       const j = capture(["reuse-plan", "check", join(FIX, "ok.md"), "--dir", bad, "--json"]);
@@ -76,7 +78,7 @@ describe("exit codes and envelope", () => {
   });
 
   it("2 = cannot run: a foreign or unparseable component-registry.json is reported, not read", () => {
-    const bad = mkdtempSync(join(tmpdir(), "reuse-plan-foreign-"));
+    const bad = mkdtempSync(join(scratch, "foreign-"));
     mkdirSync(join(bad, "design"));
     writeFileSync(join(bad, "design", "component-registry.json"), "{ not json", "utf8");
     const t = capture(["reuse-plan", "check", join(FIX, "ok.md"), "--dir", bad]);
