@@ -58,7 +58,7 @@ function srgbToLinear(c: number): number {
 }
 
 /** Linear RGB → sRGB (gamma encode). */
-function linearToSRGB(c: number): number {
+export function linearToSRGB(c: number): number {
   return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
 }
 
@@ -85,7 +85,7 @@ function linearRGBToOklab(
 }
 
 /** Oklab → linear RGB (inverse matrices). */
-function oklabToLinearRGB(
+export function oklabToLinearRGB(
   L: number,
   a: number,
   b: number,
@@ -114,7 +114,7 @@ function oklabToOKLCH(L: number, a: number, b: number): OKLCH {
 }
 
 /** OKLCH → Oklab (polar → rectangular). */
-function oklchToOklab(l: number, c: number, h: number): [number, number, number] {
+export function oklchToOklab(l: number, c: number, h: number): [number, number, number] {
   const hRad = h * (Math.PI / 180);
   return [l, c * Math.cos(hRad), c * Math.sin(hRad)];
 }

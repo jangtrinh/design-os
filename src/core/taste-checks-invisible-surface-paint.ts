@@ -13,6 +13,7 @@
  */
 import { parseColor } from "./extractors/html/css-values.js";
 import type { ParsedColor } from "./extractors/html/css-values.js";
+import { linearToSRGB, oklabToLinearRGB, oklchToOklab } from "./color-convert.js";
 
 /** A layer: luma in [lo, hi] (a point when the colour is known), covered by `alpha`. */
 export interface Paint {
@@ -70,33 +71,26 @@ function hslAsRgbText(token: string): string | undefined {
   return `rgb(${f(0)} ${f(8)} ${f(4)}${p[3] === undefined ? "" : ` / ${p[3]}`})`;
 }
 
-/** `oklch(L C H / a)` → `rgb(r g b / a)`, through OKLab and the sRGB transfer curve (Ottosson's matrices). */
+/**
+ * `oklch(L C H / a)` → `rgb(r g b / a)`, through color-convert's OKLab conversion.
+ * Out-of-gamut channels are CLIPPED, not gamut-mapped like `oklchToHex`: a luma
+ * check wants each channel as the canvas paints it, and clipping keeps the reading
+ * this check has always used (tests pin both).
+ */
 function oklchAsRgbText(token: string): string | undefined {
   const m = /^oklch\(\s*([^)]+)\)$/i.exec(token.trim());
   if (m === null) return undefined;
   const p = numbersIn(m[1] as string);
-  const num =(raw: string | undefined, percentOf: number): number =>
+  const num = (raw: string | undefined, percentOf: number): number =>
     raw === undefined ? Number.NaN : raw.endsWith("%") ? (Number.parseFloat(raw) / 100) * percentOf : Number.parseFloat(raw);
   const L = num(p[0], 1);
   const C = num(p[1], 0.4);
-  const H = (Number.parseFloat(p[2] ?? "0") * Math.PI) / 180;
+  const H = Number.parseFloat(p[2] ?? "0");
   if (![L, C, H].every(Number.isFinite)) return undefined;
-  const a = C * Math.cos(H);
-  const b = C * Math.sin(H);
-  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const mm = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const ss = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  const linear = [
-    4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * ss,
-    -1.2684380046 * l + 2.6097574011 * mm - 0.3413193965 * ss,
-    -0.0041960863 * l - 0.7034186147 * mm + 1.707614701 * ss,
-  ];
-  const encode = (v: number): number => {
-    const c = Math.min(1, Math.max(0, v));
-    return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055));
-  };
+  const encode = (v: number): number => Math.round(255 * linearToSRGB(Math.min(1, Math.max(0, v))));
+  const [r, g, b] = oklabToLinearRGB(...oklchToOklab(L, C, H)).map(encode) as [number, number, number];
   const alpha = p[3];
-  return `rgb(${encode(linear[0] as number)} ${encode(linear[1] as number)} ${encode(linear[2] as number)}${alpha === undefined ? "" : ` / ${alpha}`})`;
+  return `rgb(${r} ${g} ${b}${alpha === undefined ? "" : ` / ${alpha}`})`;
 }
 
 /**

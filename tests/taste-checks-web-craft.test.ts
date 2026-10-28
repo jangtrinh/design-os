@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { checkFontScaleSprawl } from "../src/core/taste-checks-font-scale.js";
-import { checkModeInvisibleSurface } from "../src/core/taste-checks-invisible-surface.js";
+import { checkModeInvisibleSurface, inspectInvisibleSurface } from "../src/core/taste-checks-invisible-surface.js";
 import { checkZIndexOffLadder } from "../src/core/taste-checks-depth.js";
 import { lintTaste } from "../src/core/taste-lint.js";
 
@@ -226,6 +226,16 @@ describe("mode-invisible-surface — composites over the real parent background"
       expect(checkModeInvisibleSurface(html)).toHaveLength(0);
     });
 
+    it("an unknown theme colour utility on an ancestor (bg-card could be any colour)", () => {
+      const html = '<body class="bg-white"><div class="bg-card"><span class="bg-white/10">x</span></div></body>';
+      expect(checkModeInvisibleSurface(html)).toHaveLength(0);
+    });
+
+    it("an undefined theme accent on an ancestor (a theme may make bg-accent brand orange)", () => {
+      const html = '<body class="bg-white"><div class="bg-accent"><span class="bg-white/10">x</span></div></body>';
+      expect(checkModeInvisibleSurface(html)).toHaveLength(0);
+    });
+
     it("a theme colour utility that is not a surface token on an ancestor (bg-primary could be any colour)", () => {
       const html = '<body class="bg-white"><div class="bg-primary"><span class="bg-white/10">x</span></div></body>';
       expect(checkModeInvisibleSurface(html)).toHaveLength(0);
@@ -286,10 +296,21 @@ describe("mode-invisible-surface — composites over the real parent background"
     expect(checkModeInvisibleSurface(html("night"))).toHaveLength(0); // night theme: a dark card, the pill shows
   });
 
-  it("a theme-surface token (bg-card) on a light page is as light as the page; under a dark root as dark", () => {
-    const pill = '<span class="bg-white/10">x</span>';
-    expect(checkModeInvisibleSurface(`<body class="bg-background"><div class="bg-card">${pill}</div></body>`)).toHaveLength(1);
-    expect(checkModeInvisibleSurface(`<html class="dark"><body class="bg-background"><div class="bg-card">${pill}</div></body></html>`)).toHaveLength(0);
+  it.each(["bg-background", "bg-card", "bg-popover", "bg-muted", "bg-secondary", "bg-accent", "bg-primary", "bg-brand"])(
+    "a theme token the document does not define (%s) is an unknown surface, not the page's polarity",
+    (token) => {
+      const pill = '<span class="bg-white/10">x</span>';
+      expect(inspectInvisibleSurface(`<body class="bg-white"><div class="${token}">${pill}</div></body>`)).toEqual({
+        findings: [], stats: { invisible: 0, visible: 0, undecided: 1 },
+      });
+    },
+  );
+
+  it("a theme token the document DOES define is read through its own variable", () => {
+    const page = (vars: string): string =>
+      `<style>:root { ${vars} }</style><body class="bg-white"><div class="bg-card"><span class="bg-white/10">x</span></div></body>`;
+    expect(checkModeInvisibleSurface(page("--card: #18181b"))).toHaveLength(0); // a dark card: the pill shows
+    expect(checkModeInvisibleSurface(page("--card: 0 0% 98%"))).toHaveLength(1); // shadcn HSL parts, a near-white card
   });
 
   it("a page background the document cannot resolve is not assumed white", () => {

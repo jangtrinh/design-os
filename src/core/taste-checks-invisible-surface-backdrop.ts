@@ -10,6 +10,7 @@
 import type { Document, Element } from "domhandler";
 import * as du from "domutils";
 import { isTag, parseHtml } from "./extractors/html/html-dom.js";
+import { parentElementOf } from "./extractors/html/css-selector-match.js";
 import type { Computed, ComputedStyle } from "./extractors/html/css-cascade.js";
 import { splitTopLevel } from "./extractors/html/css-values.js";
 import { resolveVars } from "./extractors/html/css-custom-properties.js";
@@ -19,11 +20,6 @@ import {
 import type { Backdrop, Paint } from "./taste-checks-invisible-surface-paint.js";
 import { classBackground } from "./taste-checks-invisible-surface-tailwind.js";
 import { isImageLayer, withImages } from "./taste-checks-invisible-surface-background-images.js";
-
-export const parentElement = (el: Element): Element | null => {
-  const p = du.getParent(el);
-  return p !== null && isTag(p as Element) ? (p as Element) : null;
-};
 
 export const classesOf = (el: Element): string[] => (el.attribs["class"] ?? "").split(/\s+/).filter(Boolean);
 
@@ -112,10 +108,14 @@ export function createSurfaceContext(
   const canvas: Backdrop = dark ? { lo: 0, hi: 0, chromatic: false } : { lo: 1, hi: 1, chromatic: false };
   const resolve = (value: string, el: Element): string | undefined => resolveVars(value, el, byElement, rootStyle).value;
 
-  /** A theme token such as `bg-card`: the document's own `--card` when it defines one, else the canvas's polarity. */
+  /**
+   * A theme token such as `bg-card`: the document's own `--card` when it defines one.
+   * Undefined otherwise, which the caller reads as UNKNOWN: a theme can set any token to
+   * any colour (a brand-orange `accent`), so the page's polarity is no evidence of it.
+   */
   const theme = (name: string, el: Element): Paint | undefined => {
     const defined = resolve(`var(--${name})`, el);
-    if (defined === undefined) return dark ? { lo: 0, hi: 0.16, alpha: 1, chromatic: false } : { lo: 0.93, hi: 1, alpha: 1, chromatic: false };
+    if (defined === undefined) return undefined;
     const hslParts = /^\s*[\d.]+(?:deg)?\s+[\d.]+%\s+[\d.]+%(?:\s*\/\s*[\d.]+%?)?\s*$/.test(defined) ? `hsl(${defined.trim()})` : defined;
     const c = parsePaintColor(hslParts.trim());
     return c === undefined ? undefined : paintOfColor(c);
@@ -162,11 +162,12 @@ export function createSurfaceContext(
 
   const backdropOf = (el: Element, includeSelf: boolean): Backdrop => {
     const layers: Paint[] = [];
-    for (let a: Element | null = includeSelf ? el : parentElement(el); a !== null; a = parentElement(a)) {
+    for (let a: Element | null = includeSelf ? el : parentElementOf(el); a !== null; a = parentElementOf(a)) {
       const p = layerOf(a);
       if (p === undefined || p.alpha <= 0) continue;
       layers.push(p);
-      if (p.alpha >= 0.995) break;
+      // An opaque layer hides everything under it; one that fades to transparent does not.
+      if (p.alpha >= 0.995 && p.varying !== true) break;
     }
     return compositeStack(layers, canvas);
   };

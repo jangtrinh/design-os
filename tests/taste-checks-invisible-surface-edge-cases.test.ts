@@ -8,8 +8,14 @@
 import { describe, expect, it } from "vitest";
 import { checkModeInvisibleSurface, inspectInvisibleSurface } from "../src/core/taste-checks-invisible-surface.js";
 import { lintTaste } from "../src/core/taste-lint.js";
+import { parsePaintColor } from "../src/core/taste-checks-invisible-surface-paint.js";
+import { oklchToHex } from "../src/core/color-convert.js";
 
-/** Run `fn` and fail if it took a second or more: the blow-ups this guards against take ten or never finish. */
+/**
+ * Run `fn` and fail if it took a second or more: the blow-ups this guards against take
+ * ten or never finish. Only for inputs that run in a few milliseconds (measured at
+ * 0.1-1.4 ms), so the budget has hundreds of times of headroom on a loaded machine.
+ */
 function withinOneSecond<T>(fn: () => T): T {
   const t0 = performance.now();
   const out = fn();
@@ -41,8 +47,9 @@ describe("mode-invisible-surface — hostile and malformed input", () => {
   });
 
   it("survives a 20,000-deep nest and a var() cycle", () => {
+    // Stack safety, not speed: this page takes about half a second, so a wall-clock budget here would only measure the machine.
     const deep = "<div>".repeat(20_000) + '<span class="bg-white/10">x</span>';
-    expect(() => withinOneSecond(() => checkModeInvisibleSurface(deep))).not.toThrow();
+    expect(checkModeInvisibleSurface(deep)).toHaveLength(1); // white on the white page, found without a RangeError
     const cycle = "<style>:root{--a:var(--b);--b:var(--a)} body{background:var(--a)} .p{background:rgba(255,255,255,.05)}</style><span class=\"p\">x</span>";
     expect(withinOneSecond(() => checkModeInvisibleSurface(cycle))).toHaveLength(0); // an unresolvable page is undecidable, not white
   });
@@ -102,8 +109,10 @@ describe("mode-invisible-surface — backdrops the text only partly names", () =
   it("a page background themed through var() and redefined under .dark", () => {
     lightPageFinding('<style>:root{--bg:#fff}.dark{--bg:#0b0b0b}body{background:var(--bg)}</style><body><div class="border border-white/10">x</div></body>');
   });
-  it("a shadcn theme-token body (bg-background) with no dark class", () => {
-    lightPageFinding('<body class="bg-background"><div class="border border-white/10">x</div></body>');
+  it("a shadcn theme-token body (bg-background) whose --background the page defines", () => {
+    lightPageFinding('<style>:root{--background:0 0% 100%}</style><body class="bg-background"><div class="border border-white/10">x</div></body>');
+    // Not defined: the token could be any colour, so nothing is decided (it is not taken to be white).
+    expect(inspectInvisibleSurface('<body class="bg-background"><div class="border border-white/10">x</div></body>').stats).toEqual({ invisible: 0, visible: 0, undecided: 1 });
   });
   it("a pale chromatic Tailwind card (bg-blue-50)", () => {
     lightPageFinding('<body class="bg-white"><div class="bg-blue-50"><div class="border border-white/10">x</div></div></body>');
@@ -139,6 +148,17 @@ describe("mode-invisible-surface — backdrops the text only partly names", () =
     expect(checkModeInvisibleSurface(onCard("oklch(97% 0.01 250)"))).toHaveLength(1);
   });
 
+  it("converts oklch() through color-convert: in gamut it equals oklchToHex, out of gamut each channel is clipped", () => {
+    // Pinned from the check's own converter before it was folded into color-convert (identical over a 48k-point L/C/H grid).
+    expect(parsePaintColor("oklch(0.2 0 0)")).toEqual({ hex: "161616" });
+    expect(parsePaintColor("oklch(97% 0.01 250)")).toEqual({ hex: "f0f6fc" });
+    expect(parsePaintColor("oklch(0.5 0.1 120deg)")).toEqual({ hex: "5c6b21" });
+    expect(parsePaintColor("oklch(0.7 0.4 30 / 0.5)")).toEqual({ hex: "ff0000", alpha: 0.5 }); // clipped, not chroma-reduced
+    for (const [l, c, h] of [[0.2, 0, 0], [0.97, 0.01, 250], [0.5, 0.1, 120], [0.62, 0.15, 300]] as const) {
+      expect(parsePaintColor(`oklch(${l} ${c} ${h})`)?.hex).toBe(oklchToHex(l, c, h).slice(1).toLowerCase());
+    }
+  });
+
   it.each([
     { tint: "white", css: ".dot{background:rgba(255,255,255,.06)}" },
     { tint: "black", css: ".dot{background:rgba(0,0,0,.06)}" },
@@ -154,6 +174,11 @@ describe("mode-invisible-surface — backdrops the text only partly names", () =
     const alone = `<style>body{background:#111}.hero{background:${glow}}.pill{background:rgba(255,255,255,.08)}</style><body><div class="hero"><span class="pill">x</span></div></body>`;
     const overColour = `<style>.hero{background:${glow}, #111}.pill{background:rgba(255,255,255,.08)}</style><body><div class="hero"><span class="pill">x</span></div></body>`;
     for (const html of [alone, overColour]) expect(inspectInvisibleSurface(html)).toMatchObject({ findings: [], stats: { undecided: 1 } });
+  });
+
+  it("keeps walking past a gradient that fades to transparent: where it fades, the tint sits on the dark section, not the white page", () => {
+    const html = '<style>html,body{background:#fff}</style><body><section style="background:#000"><div style="background:linear-gradient(#fff,transparent)"><span style="background:rgba(255,255,255,.1)">x</span></div></section></body>';
+    expect(inspectInvisibleSurface(html)).toEqual({ findings: [], stats: { invisible: 0, visible: 0, undecided: 1 } });
   });
 
   it("reads a url() image as its colour fallback, and a photo with no fallback as unreadable", () => {
@@ -185,6 +210,16 @@ describe("mode-invisible-surface — the thresholds, driven through the real che
   it("a white tint is an edge once it moves the backdrop by 0.03 of luma: 5% on mid-grey vanishes, 7% shows", () => {
     expect(checkModeInvisibleSurface(pillOnCard(grey(128), 0.05))).toHaveLength(1);
     expect(checkModeInvisibleSurface(pillOnCard(grey(128), 0.07))).toHaveLength(0);
+  });
+
+  it("a step of exactly 0.03 already reads as an edge: the comparison is strict", () => {
+    // Black at this alpha over grey 54 (luma ~0.212) moves the luma by exactly 0.03 in
+    // double arithmetic, found by search. At the boundary the tint is visible; a hair
+    // under it, it is not. Turning `<` into `<=` flips the first assertion.
+    const blackDotOnCard = (alpha: string): string =>
+      `<style>.card{background:${grey(54)}}.dot{background:rgba(0,0,0,${alpha})}</style><body class="bg-white"><div class="card"><span class="dot">x</span></div></body>`;
+    expect(inspectInvisibleSurface(blackDotOnCard("0.14166666666666655")).stats).toEqual({ invisible: 0, visible: 1, undecided: 0 });
+    expect(inspectInvisibleSurface(blackDotOnCard("0.1416")).stats).toEqual({ invisible: 1, visible: 0, undecided: 0 });
   });
 
   it("the dark/light polarity line is luma 0.25: white 2% on grey 61 is a glass layer, on grey 66 it vanishes", () => {

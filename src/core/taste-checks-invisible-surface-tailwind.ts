@@ -29,7 +29,7 @@ const CHROMATIC_LUMA: Record<string, readonly [number, number]> = {
 const NEUTRAL_FAMILY = "(?:slate|gray|grey|zinc|neutral|stone)";
 const CHROMATIC_FAMILY = "(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)";
 
-/** Theme-token names (shadcn/ui) that swap with the active theme but keep the canvas's polarity. */
+/** Theme-token names (shadcn/ui): read from the document's own `--<name>` when it defines one, UNKNOWN otherwise. */
 const THEME_SURFACE = new Set(["background", "card", "popover", "muted", "secondary", "accent"]);
 
 /** `bg-*` utilities that are not a colour: size, position, repeat, clip, opacity, `none`. */
