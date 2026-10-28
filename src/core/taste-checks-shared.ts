@@ -88,10 +88,10 @@ export function cssRules(css: string): CssRule[] {
  * `html…`/`body…`-prefixed DESCENDANT rule — `body.dark .card` is the common one —
  * as a root rule.
  *
- * Lives here because two checks need the same answer and each grew its own
- * prefix-matching regex: `root-overflow-x-hidden` in layout-checks-viewport, and
- * the colour-mode root scan in taste-checks-invisible-surface. Fixing one and not
- * the other is how a repaired bug walks back in through the sibling.
+ * Lives here so a regex-based check that needs the answer shares one implementation
+ * (today `root-overflow-x-hidden` in layout-checks-viewport). mode-invisible-surface
+ * no longer scans selectors for roots: it reads the parsed document, where `html`,
+ * `body` and `:root` are matched by the shared cascade like any other selector.
  *
  * Known limit: a root wrapped in a functional pseudo — `:is(body)`, `:where(html)`
  * — is not recognised. Rare enough to accept; stated so the next reader does not

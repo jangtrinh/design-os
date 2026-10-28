@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-10-28 - mode-invisible-surface measures a tint on its real backdrop
+
+### Changed
+- `mode-invisible-surface` (taste-lint, `ui gate`) no longer judges a translucent white/black tint against
+  the page's overall colour mode. It reads the parsed document (shared cascade, inherited `var()`,
+  Tailwind classes) and composites each tint over the layers actually behind it, so a white pill on a
+  dark card inside a light page is no longer flagged, and a white hairline on the light page next to a
+  dark section now is. A layer the text cannot name (`bg-primary`, an unresolved `var()`, a photo) is
+  treated as an opaque layer of any colour: the tint is judged only when the dark and light ends agree.
+- Outer rings, outlines and box-shadows (`ring-*`, `outline`, a non-inset `box-shadow`) paint outside the
+  element, so they are measured against the parent's backdrop and reported as warnings. Borders, fills,
+  `divide`, `ring-inset` and inset shadows stay errors, measured on the element's own surface.
+- Findings from stylesheet declarations now carry the declaration's line. A coloured swatch is described
+  as a coloured surface, not as a dark-mode background. `#fff1`, `rgb(255 255 255 / 8%)`,
+  `rgba(255,255,255,8%)`, `hsl()` and `oklch()` colours are recognised, as tints and as backgrounds.
+  Tailwind `@apply` and `::before` / `::after` overlays are judged on the element that carries them.
+
+### Fixed
+- A document with an element left open before `<html>` (for example `<div class="wrap"><html>…`) could hang
+  `ui taste-lint` and `ui gate` forever.
+- The shared CSS cascade took exponential time on a long descendant selector over a deep tree (100 nested
+  divs: 12 s, 200: never) and overflowed the stack reading inline styles on a tree thousands of levels deep.
+  Descendant chains are now matched in linear time and inline styles are collected iteratively.
+
 ## 2026-10-22 - design reuse ladder and reuse plan check
 
 ### Added

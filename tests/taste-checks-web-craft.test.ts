@@ -226,8 +226,8 @@ describe("mode-invisible-surface — composites over the real parent background"
       expect(checkModeInvisibleSurface(html)).toHaveLength(0);
     });
 
-    it("an unknown theme colour utility on an ancestor (bg-card could be any colour)", () => {
-      const html = '<body class="bg-white"><div class="bg-card"><span class="bg-white/10">x</span></div></body>';
+    it("a theme colour utility that is not a surface token on an ancestor (bg-primary could be any colour)", () => {
+      const html = '<body class="bg-white"><div class="bg-primary"><span class="bg-white/10">x</span></div></body>';
       expect(checkModeInvisibleSurface(html)).toHaveLength(0);
     });
 
@@ -266,7 +266,7 @@ describe("mode-invisible-surface — composites over the real parent background"
     { name: "a var() that resolves to a LIGHT colour is still judged (resolved, not bailed)", expected: 1, html: onCard(":root { --card: #fafafa } .card { background: var(--card) }") },
     { name: "a var() resolved through another var()", expected: 0, html: onCard(":root { --ink: #111; --card: var(--ink) } .card { background: var(--card) }") },
     { name: "a var() used through its fallback because nothing defines it", expected: 0, html: onCard(".card { background: var(--nope, #18181b) }") },
-    { name: "a var() the document defines twice (a theme) is ambiguous, so it bails", expected: 0, html: onCard(":root { --card: #fafafa } .night { --card: #111 } .card { background: var(--card) }") },
+    { name: "a var() a theme redefines under a class no element carries still resolves to the root value", expected: 1, html: onCard(":root { --card: #fafafa } .night { --card: #111 } .card { background: var(--card) }") },
     { name: "a var() nothing defines, with no fallback, bails", expected: 0, html: onCard(".card { background: var(--nope) }") },
     { name: "hsl() with space syntax", expected: 0, html: onCard(".card { background: hsl(240 10% 4%) }") },
     { name: "#rrggbbaa with a full alpha", expected: 0, html: onCard(".card { background: #0b0b0bff }") },
@@ -276,6 +276,20 @@ describe("mode-invisible-surface — composites over the real parent background"
     { name: "a Tailwind arbitrary LIGHT colour is still judged (resolved, not bailed)", expected: 1, html: withClass(onCard(""), "bg-[#fafafa]") },
   ])("$name → $expected finding(s)", ({ html, expected }) => {
     expect(checkModeInvisibleSurface(html)).toHaveLength(expected);
+  });
+
+  it("a theme the page switches on resolves through the element that carries it", () => {
+    const css = ":root { --card: #fafafa } .night { --card: #111 } .card { background: var(--card) } .pill { background: rgba(255,255,255,0.08) }";
+    const html = (cls: string): string =>
+      `<style>${LIGHT_PAGE} ${css}</style><body class="${cls}"><div class="card"><span class="pill">x</span></div></body>`;
+    expect(checkModeInvisibleSurface(html(""))).toHaveLength(1); // light theme: the pill is invisible
+    expect(checkModeInvisibleSurface(html("night"))).toHaveLength(0); // night theme: a dark card, the pill shows
+  });
+
+  it("a theme-surface token (bg-card) on a light page is as light as the page; under a dark root as dark", () => {
+    const pill = '<span class="bg-white/10">x</span>';
+    expect(checkModeInvisibleSurface(`<body class="bg-background"><div class="bg-card">${pill}</div></body>`)).toHaveLength(1);
+    expect(checkModeInvisibleSurface(`<html class="dark"><body class="bg-background"><div class="bg-card">${pill}</div></body></html>`)).toHaveLength(0);
   });
 
   it("a page background the document cannot resolve is not assumed white", () => {
@@ -327,9 +341,10 @@ describe("mode-invisible-surface — composites over the real parent background"
       expect(checkModeInvisibleSurface(html)).toHaveLength(1);
     });
 
-    it("a sibling-combinator rule cannot be tied to an element, so it is skipped", () => {
-      const html = `<style>${LIGHT_PAGE} .a + .b { background: rgba(255,255,255,0.05) }</style><body><div class="a"></div><div class="b">x</div></body>`;
-      expect(checkModeInvisibleSurface(html)).toHaveLength(0);
+    it("a sibling-combinator rule reaches the element it selects, and only that one", () => {
+      const css = `<style>${LIGHT_PAGE} .a + .b { background: rgba(255,255,255,0.05) }</style>`;
+      expect(checkModeInvisibleSurface(`${css}<body><div class="a"></div><div class="b">x</div></body>`)).toHaveLength(1);
+      expect(checkModeInvisibleSurface(`${css}<body><div class="b">x</div><div class="a"></div></body>`)).toHaveLength(0);
     });
 
     it("a child combinator must be a real parent — a rule scoped to .card > .pill reaches only a direct child", () => {
