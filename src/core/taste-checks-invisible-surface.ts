@@ -1,183 +1,150 @@
 /**
- * mode-invisible-surface (Depth/Surface axis, ERROR) — a boundary that passes
- * text-contrast checks but is invisible in craft terms: a low-alpha WHITE border
- * or fill on a light-mode document (white-on-white), or the dark inverse — a
- * low-alpha BLACK border/fill on a dark-mode document (black-on-black).
+ * mode-invisible-surface (Depth/Surface axis) — a boundary that passes text-contrast
+ * checks but is invisible in craft terms: a low-alpha WHITE border or fill sitting
+ * on a light surface (white-on-white), or the dark inverse — a low-alpha BLACK
+ * border/fill on a dark surface (black-on-black).
  *
  * This is the classic copy-a-dark-recipe-onto-light bug: `border-white/10` is the
  * correct hairline on a dark surface, but pasted onto a white page it separates
  * nothing. A11y linters miss it (no text, no contrast pair); only craft catches it.
  *
- * Mode is read from the document root: the `dark` toggle class or a dark background
- * utility / color on `<html>`/`<body>`/`:root` means dark mode; otherwise the
- * browser default (light) governs. Precision over recall: on a MIXED-mode page (the
- * common light-body-plus-dark-hero shape) a single global mode cannot prove which
- * surface a tint sits on, so the check bails entirely rather than risk flagging a
- * correct white hairline on a dark section. Text tints (`text-white/10`) are never
- * flagged — only surfaces (background / border / ring / divide).
+ * A translucent tint has no colour of its own: it is a delta over whatever sits
+ * behind it. So each tint is judged on the composite over ITS real backdrop, read
+ * from the parsed document (cascade, inherited `var()`, Tailwind classes), never on
+ * the document's overall colour mode. A white pill on a dark card inside a light
+ * page is visible; the same pill on the page is not.
  *
- * Pure string/regex — no DOM, no deps.
+ * Where a tint paints decides what it is measured against (see
+ * taste-checks-invisible-surface-candidates.ts): fills and borders against the
+ * element's surroundings and own surface, outer rings / outlines / box-shadows
+ * against the PARENT, since they are drawn outside the element. Those outer ones
+ * are warnings; fills, borders and inset shadows are errors.
+ *
+ * Precision over recall. A backdrop layer the text cannot name is an opaque layer of
+ * any colour: both ends of the resulting luma interval are tested and the tint is
+ * judged only when they agree. Only same-polarity tints are judged (white on a light
+ * backdrop, black on a dark one); a white tint on black is the correct hairline.
+ * Text tints (`text-white/10`) are never flagged.
+ *
+ * The one check in the taste-lint family that reads a parsed document rather than
+ * regex over text: a backdrop is a tree relationship (ancestor chain, selector
+ * match, inheritance), and the hand-rolled version of that was the source of the
+ * defects this replaced.
  */
+import type { Element } from "domhandler";
 import type { TasteFinding } from "./taste-lint.js";
-import { cssRegions, cssRules, lineOf, selectorSubjectIsRoot } from "./taste-checks-shared.js";
+import { elements, lineIndexFor, parseHtml } from "./extractors/html/html-dom.js";
+import { buildCascade } from "./extractors/html/css-cascade.js";
+import {
+  classesOf, createSurfaceContext, ensureDocumentSpine,
+} from "./taste-checks-invisible-surface-backdrop.js";
+import { readRuleExtras } from "./taste-checks-invisible-surface-rule-extras.js";
+import type { Backdrop } from "./taste-checks-invisible-surface-paint.js";
+import { styleCandidates, utilityCandidates } from "./taste-checks-invisible-surface-candidates.js";
+import type { Candidate } from "./taste-checks-invisible-surface-candidates.js";
 
 const CHECK_ID = "mode-invisible-surface";
-const ALPHA_FLOOR = 0.15; // below this a same-colour tint reads as no boundary at all
+const DARK_LUMA = 0.25; // a backdrop below this is a dark surface (white tints belong there, black ones vanish)
+const MIN_STEP = 0.03; // a tint must move its backdrop's luma by this much (~8/255) to read as an edge
 
-type Mode = "light" | "dark";
+/** Necessary condition for any finding: the document writes SOME translucent colour or tint utility. */
+const MAY_HAVE_TINT = /(?:white|black)\/|(?:rgb|hsl)a?\(|oklch\(|#[0-9a-f]{4}(?:[0-9a-f]{4})?(?![0-9a-f])/i;
 
-/**
- * An UNPREFIXED (no `hover:`/`selection:`/`dark:`/`md:` variant) Tailwind bg
- * utility naming a near-black surface. The `(?<!:)` guard is what keeps a
- * `selection:bg-black/10` or `dark:bg-slate-900` from reading as the page's own
- * background. `bg-[#rrggbb]` arbitrary values are handled separately (luminance).
- */
-const DARK_BG_UTIL = /(?<![:\w-])bg-(?:black|(?:slate|gray|grey|zinc|neutral|stone)-(?:800|900|950))\b/i;
-/** The dark-mode toggle class as a WHOLE class token (`class="… dark …"`) — not `dark:`, not `*-dark`. */
-const DARK_CLASS = /\bclass\s*=\s*["'][^"']*(?<![\w-])dark(?![\w-:])[^"']*["']/i;
-/** An UNPREFIXED near-white Tailwind bg utility (light-surface signal). */
-const LIGHT_BG_UTIL = /(?<![:\w-])bg-(?:white|(?:slate|gray|grey|zinc|neutral|stone)-(?:50|100))\b/i;
-
-/** sRGB relative luminance (0–1) of a 3/6-digit hex; null if unparseable. */
-function hexLuminance(hex: string): number | null {
-  const d = hex.replace(/^#/, "");
-  const full = d.length === 3 ? d.split("").map((c) => c + c).join("") : d;
-  if (full.length !== 6 || /[^0-9a-f]/i.test(full)) return null;
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
-  return 0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
+/** Composite the tint over one backdrop luma and measure: same polarity as the backdrop, and the step it makes is below an edge. */
+function invisibleOver(tint: "white" | "black", alpha: number, backdrop: number): boolean {
+  if (tint === "white" ? backdrop < DARK_LUMA : backdrop >= DARK_LUMA) return false; // opposite polarity — the correct hairline
+  const composite = alpha * (tint === "white" ? 1 : 0) + (1 - alpha) * backdrop;
+  return Math.abs(composite - backdrop) < MIN_STEP;
 }
 
-/**
- * Decide the document colour mode from its ROOT only (`<html>`/`<body>` tag + the
- * `html|body|:root` CSS rules). Dark when the root carries the `dark` toggle class
- * or a near-black background; light otherwise (the browser default). Only the root
- * is inspected so a dark card on a light page never flips the whole document.
- * Custom-property declarations (`--color-base-dark: …`) are never read as the
- * background — only real `background`/`background-color` properties are.
- */
-function rootText(html: string): string {
-  const roots: string[] = [];
-  const tagRe = /<(?:html|body)\b([^>]*)>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = tagRe.exec(html)) !== null) roots.push(m[0] ?? "");
-  // Only rules whose SUBJECT is the root count. Matching `html|body|:root`
-  // anywhere in the selector pulled in every descendant rule — `body.dark .card`
-  // — so one dark card could decide the whole document's mode, which is exactly
-  // what the comment above promises cannot happen.
-  for (const rule of cssRules(cssRegions(html))) {
-    if (selectorSubjectIsRoot(rule.selector)) roots.push(rule.body);
+export type Verdict = "invisible" | "visible" | "undecided";
+
+/** Decide only where both ends of the backdrop interval agree. */
+export function verdictOver(tint: "white" | "black", alpha: number, backdrop: Backdrop): Verdict {
+  const lo = invisibleOver(tint, alpha, backdrop.lo);
+  const hi = invisibleOver(tint, alpha, backdrop.hi);
+  return lo && hi ? "invisible" : !lo && !hi ? "visible" : "undecided";
+}
+
+export interface InvisibleSurfaceReport {
+  findings: TasteFinding[];
+  /** Tints judged: invisible (flagged), visible (composited and fine), undecided (backdrop interval straddles the threshold: skipped). */
+  stats: { invisible: number; visible: number; undecided: number };
+}
+
+const TAIL = "it passes text-contrast but, composited over that background, the boundary is invisible";
+
+function describeSurface(c: Candidate, backdrop: Backdrop): string {
+  const polarity = c.tint === "white" ? "light" : "dark";
+  return backdrop.chromatic ? `${polarity} coloured surface` : `${polarity}-mode background`;
+}
+
+function messageFor(c: Candidate, backdrop: Backdrop): string {
+  const pct = Math.round(c.alpha * 100);
+  const on = describeSurface(c, backdrop);
+  const outer = c.placement === "outer" ? " (painted outside the element, over its parent)" : "";
+  if (c.utility) {
+    return `${c.label} is a ~${pct}% ${c.tint} surface on a ${on}${outer} — ${TAIL}; use a visible ${c.tint === "white" ? "border/shadow tinted toward the background" : "light hairline"} instead`;
   }
-  return roots.join(" ");
+  return `a ~${pct}% ${c.tint} surface tint (${c.label}) on a ${on}${outer} — ${TAIL}; raise the alpha or tint toward the background instead`;
 }
 
-/** Luminance of a real `background`/`background-color` hex in the given text; null when none/opaque-unknown. */
-function bgLuminance(text: string): number | null {
-  const bgHex = /(?:^|[;{"'\s])background(?:-color)?\s*:\s*(#[0-9a-fA-F]{3,6})\b/i.exec(text);
-  return bgHex ? hexLuminance(bgHex[1] ?? "") : null;
-}
+/** Judge every translucent white/black tint in a document and keep the numbers behind the verdicts. */
+export function inspectInvisibleSurface(html: string): InvisibleSurfaceReport {
+  const report: InvisibleSurfaceReport = { findings: [], stats: { invisible: 0, visible: 0, undecided: 0 } };
+  if (!MAY_HAVE_TINT.test(html)) return report;
 
-function detectMode(html: string): Mode {
-  const root = rootText(html);
-  if (DARK_CLASS.test(root) || DARK_BG_UTIL.test(root)) return "dark";
-  const lum = bgLuminance(root);
-  if (lum !== null && lum < 0.25) return "dark";
-  return "light";
-}
+  const parsed = parseHtml(html);
+  ensureDocumentSpine(parsed.doc);
+  const { byElement } = buildCascade(parsed.doc, parsed.sheets, html);
+  const lineAt = lineIndexFor(html);
+  const extras = readRuleExtras(parsed.doc, parsed.sheets, lineAt);
+  const ctx = createSurfaceContext(parsed.doc, byElement, new Map([...extras.applied].map(([el, list]) => [el, list.map((a) => a.name)])));
+  const darkRoot = ctx.canvas.hi === 0;
+  const seen = new Set<string>();
 
-/** True when the document uses a near-black surface anywhere (dark section / card / hero). */
-function hasDarkSurface(html: string): boolean {
-  if (DARK_BG_UTIL.test(html) || DARK_CLASS.test(html)) return true;
-  const arb = /(?<![:\w-])bg-\[(#[0-9a-fA-F]{3,6})\]/gi;
-  let m: RegExpExecArray | null;
-  while ((m = arb.exec(html)) !== null) {
-    const lum = hexLuminance(m[1] ?? "");
-    if (lum !== null && lum < 0.25) return true;
+  /** The line a utility is written on: its position inside the element's start tag, else the tag's line. */
+  const lineOfToken = (el: Element) => (token: string): number | undefined => {
+    const applied = extras.applied.get(el)?.find((a) => a.name === token);
+    if (applied !== undefined && !classesOf(el).includes(token)) return applied.line;
+    if (el.startIndex === null) return undefined;
+    const tagEnd = el.children[0]?.startIndex ?? el.endIndex ?? el.startIndex;
+    const at = html.slice(el.startIndex, tagEnd + 1).indexOf(token);
+    return lineAt(el.startIndex + Math.max(0, at));
+  };
+
+  const overlaysOf = new Map<Element, Candidate[]>();
+  for (const { el, style } of extras.overlays) {
+    const found = styleCandidates(el, style, ctx.resolve).map((c): Candidate => ({ ...c, placement: "overlay" }));
+    overlaysOf.set(el, [...(overlaysOf.get(el) ?? []), ...found]);
   }
-  const cssLum = bgLuminance(cssRegions(html));
-  return cssLum !== null && cssLum < 0.25;
-}
 
-/** True when the document uses a near-white surface as an explicit section fill (light signal). */
-function hasLightSurface(html: string): boolean {
-  if (LIGHT_BG_UTIL.test(html)) return true;
-  const arb = /(?<![:\w-])bg-\[(#[0-9a-fA-F]{3,6})\]/gi;
-  let m: RegExpExecArray | null;
-  while ((m = arb.exec(html)) !== null) {
-    const lum = hexLuminance(m[1] ?? "");
-    if (lum !== null && lum > 0.85) return true;
+  for (const el of elements(parsed.doc)) {
+    const classes = [...classesOf(el), ...(extras.applied.get(el) ?? []).map((a) => a.name)];
+    const candidates = [
+      ...utilityCandidates(classes, darkRoot, lineOfToken(el)),
+      ...styleCandidates(el, byElement.get(el), ctx.resolve),
+      ...(overlaysOf.get(el) ?? []),
+    ];
+    for (const c of candidates) {
+      const backdrop = ctx.backdropOf(el, c.placement === "edge" || c.placement === "overlay");
+      const verdict = verdictOver(c.tint, c.alpha, backdrop);
+      if (verdict !== "invisible") { report.stats[verdict]++; continue; }
+      if (!c.utility) {
+        if (seen.has(c.key)) continue; // one declaration reached through several elements
+        seen.add(c.key);
+      }
+      report.stats.invisible++;
+      report.findings.push({
+        checkId: CHECK_ID, axis: "Depth/Surface", severity: c.placement === "outer" ? "warning" : "error",
+        message: messageFor(c, backdrop),
+        ...(c.line === undefined ? {} : { line: c.line }),
+      });
+    }
   }
-  return false;
+  return report;
 }
-
-/** Alpha (0–1) of a CSS colour token — rgba()/hsla()/#rrggbbaa — or null when opaque/unknown. */
-function cssAlpha(token: string): number | null {
-  const fn = /(?:rgba?|hsla?)\(([^)]*)\)/i.exec(token);
-  if (fn) {
-    const parts = (fn[1] ?? "").split(/[,/]/).map((p) => p.trim()).filter(Boolean);
-    if (parts.length >= 4) { const a = parseFloat(parts[3] ?? ""); return Number.isFinite(a) ? a : null; }
-    return null; // no alpha channel → opaque
-  }
-  const hex8 = /^#([0-9a-fA-F]{8})$/.exec(token);
-  if (hex8) return parseInt((hex8[1] ?? "").slice(6, 8), 16) / 255;
-  return null;
-}
-
-/** Does a colour token name pure white / pure black (ignoring its alpha)? */
-function isPureWhite(token: string): boolean {
-  return /\bwhite\b|#fff(?:f{0,5})\b|rgba?\(\s*255\s*,\s*255\s*,\s*255|hsla?\(\s*0\s*,\s*0%\s*,\s*100%/i.test(token);
-}
-function isPureBlack(token: string): boolean {
-  return /\bblack\b|#000(?:0{0,5})\b|rgba?\(\s*0\s*,\s*0\s*,\s*0|hsla?\(\s*0\s*,\s*0%\s*,\s*0%/i.test(token);
-}
-
-/** Surface-tint CSS props (never `color:` — text tint is not a boundary). */
-const SURFACE_PROP = /(?:background(?:-color)?|border(?:-[a-z]+)?-color|border(?:-[a-z]+)?|box-shadow|outline(?:-color)?)\s*:\s*([^;}]+)/gi;
 
 export function checkModeInvisibleSurface(html: string): TasteFinding[] {
-  const mode = detectMode(html);
-
-  // Precision guard for mixed-mode pages (a common shape: light body, dark hero/section).
-  // A single global mode cannot tell whether a given tint sits on a same-mode or an
-  // opposite-mode surface, so when the page carries BOTH modes we cannot prove the
-  // boundary is invisible — bail rather than risk a false positive. A white hairline is
-  // correct on a dark section; a black one is correct on a light section.
-  if (mode === "light" && hasDarkSurface(html)) return [];
-  if (mode === "dark" && hasLightSurface(html)) return [];
-
-  const findings: TasteFinding[] = [];
-  const wantWhite = mode === "light"; // light page → white tint vanishes; dark page → black tint vanishes
-  const pxLabel = wantWhite ? "white" : "black";
-
-  // Source 1 — Tailwind opacity utilities on surface prefixes: bg/border/ring/divide-<color>/<N>.
-  const utilRe = /\b(bg|border|ring|divide)-(white|black)\/(\d{1,3})\b/gi;
-  let m: RegExpExecArray | null;
-  while ((m = utilRe.exec(html)) !== null) {
-    const color = (m[2] ?? "").toLowerCase();
-    const alpha = parseInt(m[3] ?? "100", 10) / 100;
-    if (alpha >= ALPHA_FLOOR) continue;
-    if ((wantWhite && color !== "white") || (!wantWhite && color !== "black")) continue;
-    findings.push({
-      checkId: CHECK_ID, axis: "Depth/Surface", severity: "error",
-      message: `${m[1]}-${color}/${m[3]} is a ~${Math.round(alpha * 100)}% ${pxLabel} surface on a ${mode}-mode document — it passes text-contrast but the boundary is invisible; use a visible ${wantWhite ? "border/shadow tinted toward the background" : "light hairline"} instead`,
-      line: lineOf(html, m.index),
-    });
-  }
-
-  // Source 2 — literal low-alpha white/black on a surface prop (CSS rules + inline styles).
-  const css = cssRegions(html);
-  SURFACE_PROP.lastIndex = 0;
-  while ((m = SURFACE_PROP.exec(css)) !== null) {
-    const decl = m[1] ?? "";
-    const tok = /(?:rgba?|hsla?)\([^)]*\)|#[0-9a-fA-F]{8}\b/.exec(decl)?.[0];
-    if (!tok) continue;
-    const alpha = cssAlpha(tok);
-    if (alpha === null || alpha >= ALPHA_FLOOR) continue;
-    if (wantWhite ? !isPureWhite(tok) : !isPureBlack(tok)) continue;
-    findings.push({
-      checkId: CHECK_ID, axis: "Depth/Surface", severity: "error",
-      message: `a ~${Math.round(alpha * 100)}% ${pxLabel} surface tint on a ${mode}-mode document — it passes text-contrast but the boundary is invisible; raise the alpha or tint toward the background instead`,
-    });
-  }
-
-  return findings;
+  return inspectInvisibleSurface(html).findings;
 }

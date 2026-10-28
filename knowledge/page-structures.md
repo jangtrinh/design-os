@@ -140,8 +140,8 @@ page *genuinely* needs nothing else, and reach for a deliberate archetype otherw
 `taste-lint` owns `italic-display-heading`, `uppercase-tight-line-height`,
 `overshoot-easing`, `focus-ring-animates-in`, `z-index-inflation`, `z-index-off-ladder`
 (a `z-index` off any base-10 ladder step), `ai-cliche-gradient` (large violet-band background
-gradient), `mode-invisible-surface` (a low-alpha white surface on a light page, or black on a
-dark page — a boundary that passes contrast but shows nothing), `font-scale-sprawl` (more than
+gradient), `mode-invisible-surface` (a low-alpha white or black surface that, composited over
+the background behind it, shows nothing — a boundary that passes contrast but draws no edge), `font-scale-sprawl` (more than
 7 hand-picked font sizes), and `tap-target-undersized` (interactive control under the 44px
 touch minimum); `validate-layout` owns `css-100vw-width`, `root-overflow-x-hidden`,
 `clickable-no-pointer` (a non-native clickable with no `cursor:pointer`), and

@@ -28,9 +28,9 @@ import parse from "css-tree/parser";
 import walk from "css-tree/walker";
 import generate from "css-tree/generator";
 import type * as csstree from "css-tree";
-import { selectAll } from "css-select";
 import type { Document, Element } from "domhandler";
-import { lineIndexFor } from "./html-dom.js";
+import { elements, lineIndexFor } from "./html-dom.js";
+import { createSelectorMatcher } from "./css-selector-match.js";
 import type { EmbeddedSheet } from "./html-dom.js";
 import { expandShorthand, isExpandableShorthand } from "./css-shorthands.js";
 
@@ -112,9 +112,7 @@ function declarationsOf(
 
   walk(ast, {
     visit: "Rule",
-    enter(node, item, list) {
-      void item;
-      void list;
+    enter(node) {
       const rule = node as csstree.Rule;
       if (rule.prelude.type !== "SelectorList") return;
       const selectorText = generate(rule.prelude);
@@ -186,6 +184,7 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
   const unsupportedSelectors: string[] = [];
   const mediaConditions: string[] = [];
   const winners = new Map<Element, Map<string, Computed & { order: number }>>();
+  const select = createSelectorMatcher(doc);
 
   let order = 0;
   for (const sheet of sheets) {
@@ -206,7 +205,7 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
       if (cached !== undefined) return cached;
       let result: Element[] | null;
       try {
-        result = selectAll<Element, Element>(selector, doc as unknown as Element);
+        result = select(selector);
       } catch {
         result = null;
       }
@@ -268,41 +267,38 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
   return { byElement, unsupportedSelectors, mediaConditions };
 }
 
-/** Parse every `style=""` attribute in the document. */
+/**
+ * Parse every `style=""` attribute in the document.
+ *
+ * Iterative on purpose: a recursive walk overflows the stack on a page nested a few
+ * thousand levels deep, which is ordinary output for a generated or scraped page.
+ */
 function collectInline(
   doc: Document,
   lineAt: (offset: number) => number,
 ): Map<Element, Map<string, Computed & { order: number }>> {
   const out = new Map<Element, Map<string, Computed & { order: number }>>();
-  const walk = (nodes: readonly unknown[]): void => {
-    for (const raw of nodes) {
-      const node = raw as Element;
-      if (node.type === "tag" || node.type === "script" || node.type === "style") {
-        const style = node.attribs?.["style"];
-        if (style !== undefined && style.trim() !== "") {
-          const props = new Map<string, Computed & { order: number }>();
-          const line = lineAt(node.startIndex ?? 0);
-          for (const part of style.split(";")) {
-            const i = part.indexOf(":");
-            if (i < 0) continue;
-            const prop = part.slice(0, i).trim().toLowerCase();
-            const rawValue = part.slice(i + 1).trim();
-            if (prop === "" || rawValue === "") continue;
-            const important = /!important\s*$/i.test(rawValue);
-            props.set(prop, {
-              value: rawValue.replace(/\s*!important\s*$/i, ""),
-              line,
-              specificity: INLINE_SPECIFICITY,
-              important,
-              order: Number.MAX_SAFE_INTEGER,
-            });
-          }
-          if (props.size > 0) out.set(node, props);
-        }
-        if (node.children !== undefined) walk(node.children);
-      }
+  for (const node of elements(doc)) {
+    const style = node.attribs?.["style"];
+    if (style === undefined || style.trim() === "") continue;
+    const props = new Map<string, Computed & { order: number }>();
+    const line = lineAt(node.startIndex ?? 0);
+    for (const part of style.split(";")) {
+      const i = part.indexOf(":");
+      if (i < 0) continue;
+      const prop = part.slice(0, i).trim().toLowerCase();
+      const rawValue = part.slice(i + 1).trim();
+      if (prop === "" || rawValue === "") continue;
+      const important = /!important\s*$/i.test(rawValue);
+      props.set(prop, {
+        value: rawValue.replace(/\s*!important\s*$/i, ""),
+        line,
+        specificity: INLINE_SPECIFICITY,
+        important,
+        order: Number.MAX_SAFE_INTEGER,
+      });
     }
-  };
-  walk(doc.children);
+    if (props.size > 0) out.set(node, props);
+  }
   return out;
 }
