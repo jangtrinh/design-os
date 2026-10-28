@@ -26,7 +26,8 @@
   never; `.nope div div` over 3,000: 40 s; `.nope ~ div ~ div ~ div ~ div ~ div` over 80 siblings: 2.6 s)
   and overflowed the stack reading inline styles on a tree thousands of levels deep. A selector whose
   backtracking could run long is now matched compound by compound with a per-element memo, in time linear
-  in the document; a selector whose rightmost compound names a class, id or type is tested only on the
+  in the document (a chain nested inside `:not()` or `:is()` is still matched by `css-select` and can
+  still backtrack); a selector whose rightmost compound names a class, id or type is tested only on the
   elements that carry it; matches equal `css-select`'s (a seeded differential test holds them equal).
   Inline styles are collected iteratively. On 2,000 rules over 8,000 elements the cascade now builds
   2.6-4.7x faster than before this change.
