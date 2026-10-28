@@ -10,7 +10,7 @@
  *    is not one. The rule's surface declarations are returned with the element that
  *    generates the box, which is where the box sits (over that element's own surface).
  *
- * Selector matching is the shared engine's (`selectMatching`). A rule no element
+ * Selector matching is the shared engine's (`createSelectorMatcher`). A rule no element
  * carries has no parent to composite over and yields nothing. `@media` blocks are
  * skipped, as in the cascade: a conditional rule is not the resting state.
  */
@@ -20,7 +20,7 @@ import generate from "css-tree/generator";
 import type * as csstree from "css-tree";
 import type { Document, Element } from "domhandler";
 import type { Computed, ComputedStyle } from "./extractors/html/css-cascade.js";
-import { selectMatching } from "./extractors/html/css-selector-match.js";
+import { createSelectorMatcher } from "./extractors/html/css-selector-match.js";
 import type { EmbeddedSheet } from "./extractors/html/html-dom.js";
 
 export interface AppliedClass { name: string; line: number }
@@ -39,6 +39,7 @@ const SURFACE_PROP = /^(?:background(?:-color)?|border(?:-(?:top|right|bottom|le
 
 export function readRuleExtras(doc: Document, sheets: readonly EmbeddedSheet[], lineAt: (offset: number) => number): RuleExtras {
   const extras: RuleExtras = { applied: new Map(), overlays: [] };
+  const select = createSelectorMatcher(doc);
   for (const sheet of sheets) {
     if (!HAS_EXTRAS.test(sheet.css)) continue;
     let ast: csstree.CssNode;
@@ -71,7 +72,7 @@ export function readRuleExtras(doc: Document, sheets: readonly EmbeddedSheet[], 
           const base = pseudo === null ? selector : selector.slice(0, pseudo.index).trim();
           if (base === "" || (pseudo === null && applies.length === 0)) continue;
           let carriers: Element[];
-          try { carriers = selectMatching(base, doc); } catch { continue; }
+          try { carriers = select(base); } catch { continue; }
           for (const el of carriers) {
             if (pseudo === null) extras.applied.set(el, [...(extras.applied.get(el) ?? []), ...applies]);
             else if (surface.size > 0) extras.overlays.push({ el, style: surface });

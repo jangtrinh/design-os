@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 import { selectAll } from "css-select";
 import type { Element } from "domhandler";
 import { buildCascade } from "../src/core/extractors/html/css-cascade.js";
-import { descendantSegments, selectMatching } from "../src/core/extractors/html/css-selector-match.js";
+import { selectMatching } from "../src/core/extractors/html/css-selector-match.js";
+import { splitCompoundChain, subjectKey } from "../src/core/extractors/html/css-selector-compound-chain.js";
 import { parseHtml } from "../src/core/extractors/html/html-dom.js";
 
 const cascadeOf = (html: string) => {
@@ -28,6 +29,17 @@ describe("css-cascade on hostile documents", () => {
     const pill = [...byElement.keys()].find((el) => el.attribs["class"] === "pill");
     expect(pill && byElement.get(pill)?.get("background")?.value).toBe("#222");
     expect([...byElement.values()].filter((s) => s.get("background")?.value === "#111")).toHaveLength(0);
+  });
+
+  it.each([
+    { shape: "a 3-compound descendant chain over 3,000 nested divs (css-select alone: 40 s)", html: "<style>.nope div div{background:#111}</style>" + "<div>".repeat(3000) + "x" },
+    { shape: "a 6-compound ~ sibling chain over 300 sibling divs (css-select alone: over 40 s)", html: "<style>.nope ~ div ~ div ~ div ~ div ~ div{background:#111}</style>" + "<div></div>".repeat(300) },
+  ])("matches $shape in milliseconds", ({ html }) => {
+    const t0 = performance.now();
+    const { byElement, unsupportedSelectors } = cascadeOf(html);
+    expect(performance.now() - t0).toBeLessThan(1000); // runs in a few ms; the budget only catches the blow-up
+    expect(unsupportedSelectors).toEqual([]);
+    expect([...byElement.values()].filter((s) => s.has("background"))).toHaveLength(0);
   });
 
   it("still matches the chain when its leftmost compound does match", () => {
@@ -71,11 +83,20 @@ describe("selectMatching agrees with the reference engine", () => {
     expect(selectMatching(selector, parsed.doc)).toEqual(expected);
   });
 
-  it("cuts only at top-level descendant combinators", () => {
-    expect(descendantSegments("a b  c")).toEqual(["a", "b", "c"]);
-    expect(descendantSegments("a > b c")).toEqual(["a > b", "c"]);
-    expect(descendantSegments("a + b ~ c d")).toEqual(["a + b ~ c", "d"]);
-    expect(descendantSegments(":not(a b) c")).toEqual([":not(a b)", "c"]);
-    expect(descendantSegments('[title="x y"] z')).toEqual(['[title="x y"]', "z"]);
+  it("cuts only at top-level combinators, and refuses the shapes it does not read", () => {
+    expect(splitCompoundChain("a b  c")).toEqual({ compounds: ["a", "b", "c"], combinators: [" ", " "] });
+    expect(splitCompoundChain("a > b+c ~d e")).toEqual({ compounds: ["a", "b", "c", "d", "e"], combinators: [">", "+", "~", " "] });
+    expect(splitCompoundChain(":not(a b) c")).toEqual({ compounds: [":not(a b)", "c"], combinators: [" "] });
+    expect(splitCompoundChain('[title="x > y"] z')).toEqual({ compounds: ['[title="x > y"]', "z"], combinators: [" "] });
+    expect(splitCompoundChain(".foo\\ bar .x")).toEqual({ compounds: [".foo\\ bar", ".x"], combinators: [" "] });
+    expect(splitCompoundChain(".a\\31 23 .x")).toEqual({ compounds: [".a\\31 23", ".x"], combinators: [" "] });
+    for (const refused of ["a, b", "> a", "a >", "a > > b", ":scope > a", "svg|rect a", ""]) expect(splitCompoundChain(refused)).toBeUndefined();
+  });
+
+  it("names a class, id or type the subject compound requires, and nothing it does not", () => {
+    expect(subjectKey("div.a#x:hover")).toEqual({ kind: "id", value: "x" });
+    expect(subjectKey("DIV.a")).toEqual({ kind: "class", value: "a" });
+    expect(subjectKey("DIV:first-child")).toEqual({ kind: "tag", value: "div" });
+    for (const none of [":not(.a)", "*", "[class=a]", ".md\\:flex", '[href="#x"]', ":is(.a, .b)"]) expect(subjectKey(none)).toBeUndefined();
   });
 });

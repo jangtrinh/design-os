@@ -30,7 +30,7 @@ import generate from "css-tree/generator";
 import type * as csstree from "css-tree";
 import type { Document, Element } from "domhandler";
 import { elements, lineIndexFor } from "./html-dom.js";
-import { selectMatching } from "./css-selector-match.js";
+import { createSelectorMatcher } from "./css-selector-match.js";
 import type { EmbeddedSheet } from "./html-dom.js";
 import { expandShorthand, isExpandableShorthand } from "./css-shorthands.js";
 
@@ -112,9 +112,7 @@ function declarationsOf(
 
   walk(ast, {
     visit: "Rule",
-    enter(node, item, list) {
-      void item;
-      void list;
+    enter(node) {
       const rule = node as csstree.Rule;
       if (rule.prelude.type !== "SelectorList") return;
       const selectorText = generate(rule.prelude);
@@ -186,6 +184,7 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
   const unsupportedSelectors: string[] = [];
   const mediaConditions: string[] = [];
   const winners = new Map<Element, Map<string, Computed & { order: number }>>();
+  const select = createSelectorMatcher(doc);
 
   let order = 0;
   for (const sheet of sheets) {
@@ -206,7 +205,7 @@ export function buildCascade(doc: Document, sheets: EmbeddedSheet[], source: str
       if (cached !== undefined) return cached;
       let result: Element[] | null;
       try {
-        result = selectMatching(selector, doc);
+        result = select(selector);
       } catch {
         result = null;
       }
