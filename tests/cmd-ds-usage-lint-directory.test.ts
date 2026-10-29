@@ -1,5 +1,5 @@
 /**
- * `ui ds-usage-lint <file|dir>` — polyglot files and directory sweeps (spec 031 FR-007):
+ * `ui ds-usage-lint <file|dir>` — polyglot files and directory sweeps:
  * sorted deterministic walk, default exclusions, "scanned N of M files", and every skip reason.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";

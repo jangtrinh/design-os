@@ -1,14 +1,14 @@
 /**
- * Guards for two DELIBERATE exemptions that the closed font allowlist must not "fix" (spec 031 PD-4).
+ * Guards for two DELIBERATE exemptions that the closed font allowlist must not "fix".
  *
  *  - taste-checks-typography.ts: a monospace face already satisfies `data-numbers-not-tabular`
  *    (a mono column aligns its digits). The rule asks "do digits align?", not "is the font allowed?".
  *  - designmd-token-extractor.ts: generic families (`monospace`, `system-ui`, `ui-monospace`, ...) are not
  *    font TOKENS; the extractor must not surface them as candidates.
  *
- * D1 (an invented `ui-monospace` stack passing every gate) is closed by `off-system-font` in ds-usage,
+ * An invented `ui-monospace` stack that used to pass every gate is closed by `off-system-font` in ds-usage,
  * which compares a page's stacks with the declared font tokens. Neither of these two files changes, so
- * these tests pin their behaviour from the outside: if someone later "fixes D1" by editing either file,
+ * these tests pin their behaviour from the outside: if someone later "fixes" that by editing either file,
  * the matching test below goes red.
  */
 import { describe, expect, it } from "vitest";
@@ -41,7 +41,7 @@ describe("data-numbers-not-tabular keeps accepting a monospace column", () => {
     }
   });
 
-  it("the same monospace column IS an off-system-font error against the fixture design system: D1 is closed by ds-usage, not by taste", () => {
+  it("the same monospace column IS an off-system-font error against the fixture design system: the stack is closed by ds-usage, not by taste", () => {
     const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(FIXTURES + "tokens.json", "utf8"))));
     const html = table("ui-monospace, SFMono-Regular, Menlo, monospace");
     expect(checkDataNumbersNotTabular(html)).toEqual([]);

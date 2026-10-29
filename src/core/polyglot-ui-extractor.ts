@@ -1,7 +1,7 @@
 /**
  * polyglot-ui-extractor.ts — a zero-dependency style/class/markup stripper for UI source files.
  *
- * Spec 031 FR-007. Not a framework compiler: it never boots Vite/Next/SvelteKit and never builds an
+ * Not a framework compiler: it never boots Vite/Next/SvelteKit and never builds an
  * AST. It turns a `.html .svelte .vue .jsx .tsx .js .ts` file into flat records the design-system
  * linters can read, each carrying the 1-based line where its text starts:
  *

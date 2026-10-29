@@ -1,9 +1,9 @@
 /**
- * Spec 031 FR-006 — `ds-usage` is a blocking `ui gate` family.
+ * `ds-usage` is a blocking `ui gate` family.
  *
  * Covers the composer (`runGate` with a DS), the declared skip without one, coverage truthfulness
  * (the catalog rows are exactly what the family emits), promoted `token-ban` rules with
- * `excludeElements`, and the CLI on the AC-2 fixtures.
+ * `excludeElements`, and the CLI on the oi-browser fixtures.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -31,7 +31,7 @@ const page = (css: string, body = "<h1>Title</h1><p>Body</p>"): string =>
 const MONO_PAGE = page(".a { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }");
 
 const rule = (over: Record<string, unknown> = {}): TokenBanRule =>
-  parseAdherenceRules(JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono in UI", source: "NS-01", tokens: ["font-mono"], ...over }] }), "r.json", "binding")[0]!.rule as TokenBanRule;
+  parseAdherenceRules(JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono in UI", source: "monospace ban", tokens: ["font-mono"], ...over }] }), "r.json", "binding")[0]!.rule as TokenBanRule;
 
 const idsOf = (r: ReturnType<typeof runGate>): string[] => (r.families["ds-usage"]?.findings ?? []).map((f) => f.checkId);
 
@@ -109,7 +109,7 @@ describe("a design system with no fontFamily token", () => {
 
   it("promoted rules still run alongside the skip", () => {
     const r = runGate(page("", `<p class="font-mono">x</p>`), { dsUsage: { lint: COLOUR_ONLY, rules: [rule()] } });
-    expect(idsOf(r)).toEqual(["token-ban/ns-01"]);
+    expect(idsOf(r)).toEqual(["token-ban/no-mono"]);
     expect(r.skipped).toContain(NOTE);
   });
 
@@ -142,9 +142,9 @@ describe("promoted token-ban rules in the ds-usage family", () => {
 
   it("an error rule fails the gate; excludeElements moves <code> occurrences to a printed exclusion count", () => {
     const r = runGate(page("", body), { dsUsage: { rules: [rule({ excludeElements: ["code", "pre"] })] } });
-    expect(idsOf(r)).toEqual(["token-ban/ns-01"]);
+    expect(idsOf(r)).toEqual(["token-ban/no-mono"]);
     expect(r.families["ds-usage"]?.errorCount).toBe(1);
-    expect(r.families["ds-usage"]?.notes?.join(" ")).toMatch(/ns-01: 1 occurrence\(s\) excluded inside <code>/);
+    expect(r.families["ds-usage"]?.notes?.join(" ")).toMatch(/no-mono: 1 occurrence\(s\) excluded inside <code>/);
     expect(r.pass).toBe(false);
   });
 
@@ -195,7 +195,7 @@ describe("ui gate (CLI) with the ds-usage family", () => {
   const dsUsageOf = (json: string): { findings: { checkId: string; message: string }[]; errorCount: number } =>
     (JSON.parse(json).data.families as Record<string, { findings: { checkId: string; message: string }[]; errorCount: number }>)["ds-usage"]!;
 
-  it("AC-2: the bad screen fails with OFF_SYSTEM_FONT on the ui-monospace stack", () => {
+  it("oi-browser: the bad screen fails with OFF_SYSTEM_FONT on the ui-monospace stack", () => {
     const r = capture(["gate", join(FIXTURES, "settings-cli-core-bad.html"), "--tokens", TOKENS]);
     expect(r.code).toBe(1);
     expect(r.out).toMatch(/ds-usage: \d+ error\(s\)/);
@@ -205,7 +205,7 @@ describe("ui gate (CLI) with the ds-usage family", () => {
     expect(dsUsageOf(json.out).findings.filter((f) => f.checkId === "off-system-font")).toHaveLength(7);
   });
 
-  it("AC-2: the good screen and the anchor carry no off-system-font finding in the gate", () => {
+  it("oi-browser: the good screen and the anchor carry no off-system-font finding in the gate", () => {
     for (const f of ["settings-cli-core-good.html", "settings-account.html"]) {
       const json = capture(["gate", join(FIXTURES, f), "--tokens", TOKENS, "--json"]);
       expect(dsUsageOf(json.out).findings.filter((x) => x.checkId === "off-system-font"), f).toEqual([]);
@@ -239,41 +239,41 @@ describe("ui gate (CLI) with the ds-usage family", () => {
   });
 
   it("promoted binding rules under --dir run in the family; excluded counts are printed", () => {
-    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono in UI", source: "NS-01", tokens: ["font-mono"], excludeElements: ["code"] }] }));
+    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono in UI", source: "monospace ban", tokens: ["font-mono"], excludeElements: ["code"] }] }));
     const file = put("p.html", page("", `<code class="font-mono">a</code><p class="font-mono">b</p>`));
     const r = capture(["gate", file, "--tokens", TOKENS, "--dir", dir]);
-    expect(r.out).toContain("[token-ban/ns-01]");
-    expect(r.out).toMatch(/ns-01: 1 occurrence\(s\) excluded inside <code>/);
+    expect(r.out).toContain("[token-ban/no-mono]");
+    expect(r.out).toMatch(/no-mono: 1 occurrence\(s\) excluded inside <code>/);
   });
 
   it("promoted rules alone (no token file anywhere) still run the family: no skip line, the rule fires", () => {
-    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono in UI", source: "NS-01", tokens: ["font-mono"] }] }));
+    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono in UI", source: "monospace ban", tokens: ["font-mono"] }] }));
     const file = put("p.html", page("", `<p class="font-mono">b</p>`));
     const r = capture(["gate", file, "--dir", dir]);
-    expect(r.out).toContain("[token-ban/ns-01]");
+    expect(r.out).toContain("[token-ban/no-mono]");
     expect(r.out).not.toContain("skipped ds-usage");
   });
 
   it("the project's promoted rules apply under an explicit --tokens too, found from the page's folder", () => {
-    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono in UI", source: "NS-01", tokens: ["font-mono"] }] }));
+    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono in UI", source: "monospace ban", tokens: ["font-mono"] }] }));
     const file = put("p.html", page("", `<p class="font-mono">b</p>`));
     const r = capture(["gate", file, "--tokens", TOKENS, "--json"]);
-    expect(dsUsageOf(r.out).findings.map((f) => f.checkId)).toContain("token-ban/ns-01");
+    expect(dsUsageOf(r.out).findings.map((f) => f.checkId)).toContain("token-ban/no-mono");
   });
 
   it("--family keeps the family's printed exclusion notes (gate_policy rewrites findings, not counts-by-rule)", () => {
     const families = JSON.parse(readFileSync(fileURLToPath(new URL("../knowledge/personas/families.json", import.meta.url)), "utf8")) as { families: { slug: string }[] };
-    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono in UI", source: "NS-01", tokens: ["font-mono"], excludeElements: ["code"] }] }));
+    put("design/rules/_adherence.rules.json", JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono in UI", source: "monospace ban", tokens: ["font-mono"], excludeElements: ["code"] }] }));
     const file = put("p.html", page("", `<code class="font-mono">a</code>`));
     const r = capture(["gate", file, "--tokens", TOKENS, "--dir", dir, "--family", families.families[0]!.slug]);
-    expect(r.out).toMatch(/note ds-usage: ns-01: 1 occurrence\(s\) excluded inside <code>/);
+    expect(r.out).toMatch(/note ds-usage: no-mono: 1 occurrence\(s\) excluded inside <code>/);
   });
 
   it("proposed rules are evidence, not law: they never run in the gate", () => {
-    put("design/rules/_adherence.proposed.json", JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono", source: "NS-01", tokens: ["font-mono"] }] }));
+    put("design/rules/_adherence.proposed.json", JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono", source: "monospace ban", tokens: ["font-mono"] }] }));
     const file = put("p.html", page("", `<p class="font-mono">b</p>`));
     const r = capture(["gate", file, "--tokens", TOKENS, "--dir", dir, "--json"]);
-    expect(dsUsageOf(r.out).findings.map((f) => f.checkId)).not.toContain("token-ban/ns-01");
+    expect(dsUsageOf(r.out).findings.map((f) => f.checkId)).not.toContain("token-ban/no-mono");
   });
 
   it("an invalid promoted rules file stops the gate with the loader's code, never a weaker pass", () => {

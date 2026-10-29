@@ -2,7 +2,7 @@
  * adherence-rules.ts — one loader for the project's structural adherence rules.
  *
  * Spec 025 designed `design/rules/_adherence.rules.json`; nothing in `src/` implemented it. This module
- * is the minimal piece spec 031 needs first: parse + validate the two rule files, and evaluate the
+ * is the minimal first piece: parse + validate the two rule files, and evaluate the
  * `token-ban` kind. `AdherenceRule` is a discriminated union on `kind` (types, the named error and
  * per-rule validation live in adherence-rules-validate.ts) so further kinds (`composition-contract`,
  * `slot-budget`) are added as a union member plus one validator entry. `prop-allowlist`,
@@ -21,7 +21,7 @@
  *     case-insensitive (CSS keywords and font names are), one finding per occurrence. Optional
  *     `excludeElements` (tag names, e.g. `["code", "pre"]`): an occurrence inside one of those
  *     elements is not a finding; it is reported as an exclusion with its line, so a ban that skips
- *     `<code>` still shows what it skipped (spec 031 NS-01).
+ *     `<code>` still shows what it skipped.
  *
  * Errors reuse DSError (`code` + `message`) and add where-it-broke fields; every message names the
  * file, rule position and field, so the repair is "edit that field", not "search the file".

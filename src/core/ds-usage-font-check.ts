@@ -1,7 +1,7 @@
 /**
- * ds-usage-font-check.ts — the closed `font-family` allowlist (`off-system-font`, spec 031 FR-008).
+ * ds-usage-font-check.ts — the closed `font-family` allowlist (`off-system-font`).
  *
- * D1 in the field: an agent invented `ui-monospace, SFMono-Regular, …`, applied it to CLI paths and
+ * The failure this closes: an agent invented `ui-monospace, SFMono-Regular, …`, applied it to CLI paths and
  * model names, and every gate passed — nothing compared a page's font stacks with the project's
  * declared font tokens. This module is that comparison.
  *

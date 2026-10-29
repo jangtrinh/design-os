@@ -1,5 +1,5 @@
 /**
- * ds-usage-gate.ts — the `ds-usage` family of `ui gate` (spec 031 FR-006).
+ * ds-usage-gate.ts — the `ds-usage` family of `ui gate`.
  *
  * The family judges one page against the project's design system with two instruments:
  *   - `lintDsUsageOnMarkup`: undeclared-token / off-system-token / hardcoded-color / off-system-font,

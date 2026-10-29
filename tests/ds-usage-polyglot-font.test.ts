@@ -1,5 +1,5 @@
 /**
- * Spec 031 P1 — polyglot UI extraction, the closed font allowlist (`off-system-font`),
+ * Polyglot UI extraction, the closed font allowlist (`off-system-font`),
  * `excludeElements` on `token-ban`, the preview chrome, and the `ds-usage` gate family.
  */
 import { describe, expect, it } from "vitest";
@@ -288,7 +288,7 @@ describe("off-system-font", () => {
     expect(r.findings.map((f) => `${f.checkId}@${f.line}`).sort()).toEqual(["hardcoded-color@3", "undeclared-token@3"]);
   });
 
-  it("AC-2 fixtures: the bad screen carries off-system-font on the monospace stack, the good screen and the anchor carry none", () => {
+  it("oi-browser fixtures: the bad screen carries off-system-font on the monospace stack, the good screen and the anchor carry none", () => {
     const bad = lintDsUsage(readFixture("settings-cli-core-bad.html"), FIXTURE_DS);
     const badFont = bad.findings.filter((f) => f.checkId === "off-system-font");
     expect(badFont.length).toBeGreaterThan(0);
@@ -300,7 +300,7 @@ describe("off-system-font", () => {
 
 describe("token-ban excludeElements", () => {
   const ban = (over: Record<string, unknown> = {}): TokenBanRule => {
-    const text = JSON.stringify({ rules: [{ id: "ns-01", kind: "token-ban", severity: "error", message: "no mono", source: "NS-01", tokens: ["font-mono"], ...over }] });
+    const text = JSON.stringify({ rules: [{ id: "no-mono", kind: "token-ban", severity: "error", message: "no mono", source: "monospace ban", tokens: ["font-mono"], ...over }] });
     return parseAdherenceRules(text, "r.json", "binding")[0]!.rule as TokenBanRule;
   };
   const parseErr = (over: Record<string, unknown>): string => {
@@ -312,7 +312,7 @@ describe("token-ban excludeElements", () => {
     const text = `<p class="font-mono">a</p>\n<code class="rounded font-mono">b</code>\n<pre>\n<span class="font-mono">c</span>\n</pre>`;
     const r = evaluateTokenBansDetailed([ban({ excludeElements: ["code", "pre"] })], text);
     expect(r.findings.map((f) => f.line)).toEqual([1]);
-    expect(r.excluded.map((e) => [e.ruleId, e.token, e.line, e.element])).toEqual([["ns-01", "font-mono", 2, "code"], ["ns-01", "font-mono", 4, "pre"]]);
+    expect(r.excluded.map((e) => [e.ruleId, e.token, e.line, e.element])).toEqual([["no-mono", "font-mono", 2, "code"], ["no-mono", "font-mono", 4, "pre"]]);
   });
 
   it("without excludeElements nothing is excluded (existing behaviour)", () => {
@@ -344,7 +344,7 @@ describe("token-ban excludeElements", () => {
     const plain = { ...ban({ tokens: ["font-mono"] }), id: "ns-02" };
     const r = evaluateTokenBansDetailed([scoped, plain], `<code>font-mono</code>`);
     expect(r.findings.map((f) => f.ruleId)).toEqual(["ns-02"]);
-    expect(r.excluded.map((e) => e.ruleId)).toEqual(["ns-01"]);
+    expect(r.excluded.map((e) => e.ruleId)).toEqual(["no-mono"]);
   });
 
   it("validates the field: array of tag-name strings, no blanks, no repeats, unknown keys still rejected", () => {
@@ -357,7 +357,7 @@ describe("token-ban excludeElements", () => {
     expect(parseErr({ excludeElements: ["code", "my-widget"] })).toBe("");
   });
 
-  it("real data: NS-01 over the frozen native route excludes the account receipt <code>", () => {
+  it("real data: a monospace ban over the frozen native route excludes the account receipt <code>", () => {
     const js = readFixture("source/native/account-route-node-71.C77w0PPh.js");
     expect(evaluateTokenBans([ban()], js)).toHaveLength(1);
     const r = evaluateTokenBansDetailed([ban({ excludeElements: ["code", "pre"] })], js);

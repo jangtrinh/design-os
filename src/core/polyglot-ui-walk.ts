@@ -1,8 +1,8 @@
 /**
  * polyglot-ui-walk.ts — deterministic discovery of UI source files under a directory.
  *
- * Spec 031 FR-007: "Exclude node_modules/, dist/, build/, .git/ and test fixtures by default. Print
- * scanned/total file counts and every skip reason (a gate sees only its selector)."
+ * Default sweeps exclude node_modules/, dist/, build/, .git/ and test fixtures, and print
+ * scanned/total file counts and every skip reason (a gate sees only its selector).
  *
  *   - Entries are visited in sorted order (`Array.prototype.sort()` default: UTF-16 code units, not locale), so two runs over
  *     the same tree list the same files in the same order on every machine.
