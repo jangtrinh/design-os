@@ -1,0 +1,182 @@
+<!--
+Frozen fixture: jangtrinh/oi-browser @ 28c1e86
+Screen: CLI Core settings (good screen)
+Source: src/client/berry-cli-terminal-dock.js (style template literal + buildSettingsPanelHtml output)
+Harness data: HARNESS_SPECS from src/server/cli-harness-router.js @ 28c1e86, binaryPath null,
+  installed true only for auto/local (no CLI binary resolved), activeHarnessId "auto", recentRuns [].
+Extraction: scripted render, see SOURCES.md. CSS and markup are verbatim; nothing was edited by hand.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CLI Core settings (good screen)</title>
+<style>
+    .oi-sidebar-cli-link { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 32px; padding: 0 8px; margin-top: 2px; border-radius: 8px; font-family: inherit; font-size: 13.5px; color: oklch(var(--foreground) / 0.8); text-decoration: none; cursor: pointer; transition: background 0.12s ease, color 0.12s ease; }
+    .oi-sidebar-cli-link:hover { background: var(--theme-surface-hover, rgba(0,0,0,0.04)); color: oklch(var(--foreground)); }
+    .oi-sidebar-cli-left { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+    [data-testid="ai-provider-settings"] > div:not(#oi-cli-settings-host):not(:first-child) { display: none !important; }
+    .oi-opt-group { margin-top: 24px; }
+    .oi-opt-group + .oi-opt-group { margin-top: 40px; }
+    .oi-opt-heading { font-size: 14px; font-weight: 600; color: oklch(var(--foreground)); margin: 0 0 12px 0; }
+    .oi-opt-card { background: oklch(var(--background)); border: 1px solid oklch(var(--border)); border-radius: 16px; overflow: hidden; }
+    .oi-opt-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-bottom: 1px solid oklch(var(--border) / 0.6); }
+    .oi-opt-row:last-child { border-bottom: none; }
+    .oi-opt-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .oi-opt-left img { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+    .oi-opt-title { font-size: 14px; font-weight: 500; color: oklch(var(--foreground)); line-height: 1.35; }
+    .oi-opt-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: oklch(var(--muted-foreground)); margin-top: 2px; }
+    .oi-opt-dot { width: 6px; height: 6px; border-radius: 9999px; background: #10b981; flex-shrink: 0; }
+    .oi-opt-dot.muted { background: oklch(var(--muted-foreground) / 0.4); }
+    .oi-opt-btn { height: 32px; padding: 0 14px; border-radius: 9999px; font-family: inherit; font-size: 12px; font-weight: 500; border: 1px solid oklch(var(--border)); background: oklch(var(--background)); color: oklch(var(--foreground)); cursor: pointer; transition: background 0.15s ease; white-space: nowrap; }
+    .oi-opt-btn:hover { background: oklch(var(--muted) / 0.6); }
+    .oi-opt-active-lbl { font-size: 12px; color: oklch(var(--muted-foreground)); padding: 0 6px; }
+  </style>
+</head>
+<body>
+<div id="oi-cli-settings-host">
+<div data-testid="oi-cli-panel">
+    <section class="oi-opt-group">
+      <div class="oi-opt-card" data-slot="options-group-card">
+        <div class="oi-opt-row" data-slot="option-item">
+            <div>
+              <div class="oi-opt-title">Auto</div>
+              <div class="oi-opt-status"><span class="oi-opt-dot "></span><span>In use</span></div>
+            </div>
+            <div>
+              <span class="oi-opt-active-lbl">In use</span>
+            </div>
+          </div><div class="oi-opt-row" data-slot="option-item">
+            <div>
+              <div class="oi-opt-title">Claude Code</div>
+              <div class="oi-opt-status"><span class="oi-opt-dot muted"></span><span>Not installed</span></div>
+            </div>
+            <div>
+              <button class="oi-opt-btn" data-harness="claude">Select</button>
+            </div>
+          </div><div class="oi-opt-row" data-slot="option-item">
+            <div>
+              <div class="oi-opt-title">Antigravity</div>
+              <div class="oi-opt-status"><span class="oi-opt-dot muted"></span><span>Not installed</span></div>
+            </div>
+            <div>
+              <button class="oi-opt-btn" data-harness="agy">Select</button>
+            </div>
+          </div><div class="oi-opt-row" data-slot="option-item">
+            <div>
+              <div class="oi-opt-title">OpenAI Codex</div>
+              <div class="oi-opt-status"><span class="oi-opt-dot muted"></span><span>Not installed</span></div>
+            </div>
+            <div>
+              <button class="oi-opt-btn" data-harness="codex">Select</button>
+            </div>
+          </div><div class="oi-opt-row" data-slot="option-item">
+            <div>
+              <div class="oi-opt-title">xAI Grok</div>
+              <div class="oi-opt-status"><span class="oi-opt-dot muted"></span><span>Not installed</span></div>
+            </div>
+            <div>
+              <button class="oi-opt-btn" data-harness="grok">Select</button>
+            </div>
+          </div><div class="oi-opt-row" data-slot="option-item">
+            <div>
+              <div class="oi-opt-title">Orca</div>
+              <div class="oi-opt-status"><span class="oi-opt-dot muted"></span><span>Not installed</span></div>
+            </div>
+            <div>
+              <button class="oi-opt-btn" data-harness="orca">Select</button>
+            </div>
+          </div>
+      </div>
+    </section>
+    <section class="oi-opt-group">
+      <h2 class="oi-opt-heading" data-slot="options-group-title">Companion routing</h2>
+      <div class="oi-opt-card" data-slot="options-group-card">
+        <div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/guava.png" alt="Ổi" />
+            <div>
+              <div class="oi-opt-title">Ổi</div>
+              <div class="oi-opt-status"><span>Research</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">Claude Code</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/mangosteen.png" alt="Măng Cụt" />
+            <div>
+              <div class="oi-opt-title">Măng Cụt</div>
+              <div class="oi-opt-status"><span>Consulting</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">Antigravity</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/durian.png" alt="Sầu Riêng" />
+            <div>
+              <div class="oi-opt-title">Sầu Riêng</div>
+              <div class="oi-opt-status"><span>Recruiting</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">xAI Grok</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/dragon-fruit.png" alt="Thanh Long" />
+            <div>
+              <div class="oi-opt-title">Thanh Long</div>
+              <div class="oi-opt-status"><span>Executive</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">Claude Code</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/melon.png" alt="Bưởi" />
+            <div>
+              <div class="oi-opt-title">Bưởi</div>
+              <div class="oi-opt-status"><span>Engineering</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">OpenAI Codex</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/peach.png" alt="Vú Sữa" />
+            <div>
+              <div class="oi-opt-title">Vú Sữa</div>
+              <div class="oi-opt-status"><span>Operations</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">Antigravity</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/mango.png" alt="Xoài" />
+            <div>
+              <div class="oi-opt-title">Xoài</div>
+              <div class="oi-opt-status"><span>Sales</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">Claude Code</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/raspberry.png" alt="Chôm Chôm" />
+            <div>
+              <div class="oi-opt-title">Chôm Chôm</div>
+              <div class="oi-opt-status"><span>Marketing</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">xAI Grok</span>
+        </div><div class="oi-opt-row" data-slot="option-item">
+          <div class="oi-opt-left">
+            <img src="/fruits-3d/lychee.png" alt="Vải" />
+            <div>
+              <div class="oi-opt-title">Vải</div>
+              <div class="oi-opt-status"><span>Support</span></div>
+            </div>
+          </div>
+          <span class="oi-opt-active-lbl">Orca</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>
