@@ -13,6 +13,7 @@ import { fontTokenModel } from "../src/core/ds-usage-font-check.js";
 import { parseTokenFile } from "../src/core/token-model.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
 import { declaredCssVarNames } from "../src/core/token-emit.js";
+import { expectLinear, shapeBody } from "./helpers/scale-ratio.js";
 
 const FIXTURES = fileURLToPath(new URL("./fixtures/oi-browser/", import.meta.url));
 const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(FIXTURES + "tokens.json", "utf8"))));
@@ -123,32 +124,38 @@ describe("an empty first font family is not a family", () => {
   });
 });
 
-describe("hostile input does not make a scan super-linear (small input, generous budget)", () => {
-  const N = 50_000;
-  /** [file, body, whether the whole lint is bounded too]. HTML openers still reach older selector-block scans, so those cases bound the extractor only. */
-  const cases: [string, string, boolean][] = [
-    ["brace-colon.ts", "{a:".repeat(N / 3), true],
-    ["font-family.ts", ".a{" + "font-family:a ".repeat(N / 14), true],
-    ["color-color.html", "<style>" + "color:color:".repeat(N / 11), true],
-    ["interpolation.ts", "${".repeat(N / 2), true],
-    ["style-object.tsx", "style={{a ".repeat(N / 10), true],
-    ["open-comment.ts", "/*" + "a".repeat(N), true],
-    ["escaped-backticks.ts", "`\\".repeat(N / 2), true],
-    ["open-html-comment.html", "<!--" + "a".repeat(N), false],
-    ["open-style.html", "<style>a".repeat(N / 8), false],
-    ["open-tags.html", "<style".repeat(N / 6), false],
+describe("hostile input does not make a scan super-linear (time on 8x the input stays under 16x + 5 ms)", () => {
+  /** [file, prefix, repeated unit, whether the whole lint is bounded too]. The HTML openers still reach older selector-block scans, so those bound the extractor only. */
+  const cases: [string, string, string, boolean, number?][] = [
+    ["brace-colon.ts", "", "{a:", true, 100_000],
+    ["font-family.ts", ".a{", "font-family:a ", true, 100_000],
+    ["color-color.html", "<style>", "color:color:", true],
+    ["interpolation.ts", "", "${", true],
+    ["style-object.tsx", "", "style={{a ", true],
+    ["style-object-with-cast.tsx", "", "<p style={{ a: 1 } as T} className=\"x\">", true],
+    ["open-comment.ts", "/*", "a", true, 100_000],
+    ["escaped-backticks.ts", "", "`\\", true],
+    ["quotes-on-one-line.ts", "", "'a' \"b\" ", true],
+    ["unclosed-quotes.ts", "", "'\"", true],
+    ["open-html-comment.html", "<!--", "a", false, 100_000],
+    ["open-style.html", "", "<style>a", false],
+    ["open-tags.html", "", "<style", false],
   ];
-  const budget = (label: string, run: () => void): void => {
-    run(); // warm the engine on the same shape
-    const t0 = performance.now();
-    run();
-    const ms = performance.now() - t0;
-    expect(ms, `${label}: ${Math.round(ms)} ms`).toBeLessThan(250);
-  };
-  it.each(cases)("extraction of %s", (file, body) => {
-    budget(file, () => extractUiRecords(file, body));
+  it.each(cases)("extraction of %s", (file, prefix, unit, _lint, base) => {
+    expectLinear(file, (bytes) => shapeBody(prefix, unit, bytes), (body) => void extractUiRecords(file, body), base);
   });
-  it.each(cases.filter((c) => c[2]))("lint of %s", (file, body) => {
-    budget(file, () => lintDsUsageOnMarkup(body, { ...DS, file }));
+  it.each(cases.filter((c) => c[3]))("lint of %s", (file, prefix, unit, _lint, base) => {
+    expectLinear(file, (bytes) => shapeBody(prefix, unit, bytes), (body) => void lintDsUsageOnMarkup(body, { ...DS, file }), base);
+  });
+});
+
+describe("a value that is consumed is not read again as a second declaration", () => {
+  it("a colour property name inside another colour value does not start a second finding", () => {
+    expect(colours("p.html", `<style>.a { border: 1px solid color: #ff0000; }</style>`)).toEqual(["#ff0000"]);
+  });
+
+  it("a font-family: inside another font-family value does not start a second declaration", () => {
+    const r = lintDsUsageOnMarkup(`<style>.a { font-family: Menlo font-family: Courier; }</style>`, { ...DS, file: "p.html" });
+    expect(count(r, "off-system-font")).toBe(1);
   });
 });
