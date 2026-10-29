@@ -47,7 +47,8 @@ line. Tell the owner what was skipped; never invent the missing source.
 
 **`DS_TAMPERED` on build** means a store file no longer matches the hash sealed in
 `ds.manifest.json`. Do not retry blindly and do not add a flag on your own. Show the owner
-the file named in the error and offer two ways out: re-seal the design system properly, or
+the file named in the error and offer two ways out: re-seal the design system (`ui ds reseal`
+shows the drift; `ui ds reseal --apply --reason "<why>"` adopts it and records the reason), or
 build with `--allow-unsealed`. The flag tolerates hash drift only (an unreadable file or a
 broken kit still fails). It means the pack's names were resolved against a store nobody
 verified: the manifest records `seal: { status: "unverified", drifted: […] }`, `check` warns

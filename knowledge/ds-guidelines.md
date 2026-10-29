@@ -178,7 +178,9 @@ file that no longer matches its sealed hash is `DS_TAMPERED` and nothing is writ
 pack is built, `guidelines.manifest.json` records `seal: { status: "unverified", drifted: [{ file,
 expected, actual }] }`, `check` warns `SEAL_UNVERIFIED`, and the Figma `UPLOAD.md` says "Sources
 unverified". The flag is a decision for the owner, not a convenience: it means the names were resolved
-against a store nobody verified.
+against a store nobody verified. The sanctioned way to make the store verified again is `ui ds reseal`
+(preview by default; `--apply --reason "<text>"` adopts the on-disk hashes and records the reason in the
+manifest changelog; hash drift only).
 
 ## The Figma guidelines bundle
 

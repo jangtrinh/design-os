@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-29 - ui ds reseal heals a store whose files drifted from the sealed hashes
+
+### Added
+- `ui ds reseal [--dir <project>] [--apply --reason "<text>"] [--json]`: the sanctioned way out of
+  `DS_TAMPERED` when `design.tokens.json` or the registry file no longer hashes to what
+  `design/ds.manifest.json` sealed (before this, the only escape was hand-editing the manifest hash,
+  which left no trace). The default is a preview: it prints each drifted file's manifest hash and
+  current hash plus its current token / component count, and writes nothing. `--apply` adopts the
+  on-disk hashes, bumps the generation and appends ONE changelog entry (`kind: "reseal"`) with the
+  reason and the old and new hash of every drifted file; `--reason` is required with `--apply`
+  (`RESEAL_REASON_REQUIRED`). No token or registry file is rewritten, only the manifest. Hash drift
+  only: the store must still pass the checks every load runs (JSON, token shape and `$type`, dangling
+  alias, alias cycle, registry root shape); when the registry drifted, every component must also be an
+  object with a non-empty string `name`. Token value formats and other per-component fields are not
+  checked. A failing file is refused in preview and apply, with the error named. An untampered store
+  reports "nothing to reseal" and `--apply` does nothing. A registry file switch (the sealed
+  `component-registry.json` still matches the manifest but `figma-component-registry.json` is now in
+  use) is reported by the preview (exit 0, nothing written, no apply hint, both files named) and
+  refused only by `--apply` (`RESEAL_REGISTRY_SWITCHED`). When a kit-bound store has drifted or fails
+  validation, both preview and `--apply` refuse (`RESEAL_KIT_BOUND`; the kit lock pins the store bytes).
+  When both registry files exist and the alternate one is loaded, the preview and `--apply` say the
+  default `component-registry.json` is present but not loaded, with its component count (`--json`:
+  `shadowedRegistry: { file, components }`, `components` is `null` for an unreadable file); this is
+  reported, never refused. In text mode the reason is shown with
+  control characters escaped. The manifest changelog `kind` enum in `schemas/ds.manifest.schema.json`
+  now lists `set-role` (missing since that kind shipped) and `reseal`.
+
 ## 2026-10-29 - ds guidelines: a skipped glossary names its line and cause
 
 ### Changed

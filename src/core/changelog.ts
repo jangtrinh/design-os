@@ -51,6 +51,9 @@ export function buildChangelog(
       const move = c.from !== undefined && c.to !== undefined ? `: ${c.from} → ${c.to}` : "";
       const why = c.reason !== undefined ? ` — ${c.reason}` : "";
       entries.push({ date, type: "Changed", text: `Token ${path}${move}${why}`, provenance: by });
+    } else if (c.kind === "reseal") {
+      const why = c.reason !== undefined ? ` — ${c.reason}` : "";
+      entries.push({ date, type: "Changed", text: `Re-sealed ${c.path ?? "the store"} to the hashes on disk${why}`, provenance: by });
     } else if (c.kind === "set-role") {
       const path = c.path ?? "(token)";
       const move = c.from !== undefined ? `${c.from} → ${c.to}` : `${c.to}`;

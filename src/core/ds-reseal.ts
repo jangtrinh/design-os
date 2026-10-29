@@ -58,6 +58,12 @@ export interface ResealInput {
   tokens?: TokenTree;
   /** Present → recompute registryHash and rewrite component-registry.json. */
   registry?: Registry;
+  /**
+   * Adopt the hashes the store files ALREADY have on disk into the manifest, rewriting no
+   * store file (`ui ds reseal`, the sanctioned heal for hash drift). Mutually exclusive with
+   * `tokens` / `registry`; refused for a kit-bound store, whose lock pins those bytes.
+   */
+  adopt?: { compiledHash?: string; registryHash?: string };
   /** kind + by + data; caller owns the semantics (see ds-manifest.ts CHANGELOG_KINDS). */
   entry: ChangelogEntry;
   /** ISO-8601 clock for the changelog entry's `ts` — caller-supplied for determinism. */
@@ -97,7 +103,13 @@ function sortedRegistry(registry: Registry): Registry {
  * message.
  */
 export function reseal(input: ResealInput): ResealResult {
-  const { ds, paths, tokens, registry, entry, nowIso } = input;
+  const { ds, paths, tokens, registry, adopt, entry, nowIso } = input;
+  if (adopt !== undefined && (tokens !== undefined || registry !== undefined)) {
+    throw new DSError("BAD_ARG", "reseal: 'adopt' re-seals files as they are; it cannot be combined with tokens/registry rewrites");
+  }
+  if (adopt !== undefined && ds.manifest.kit) {
+    throw new DSError("DS_TAMPERED", "a kit-bound store cannot adopt drifted hashes; the kit lock pins its bytes");
+  }
 
   // Re-read immediately before authorizing writes: a previously loaded object is not proof
   // that bound TSX, theme, evidence or the store remained untouched.
@@ -109,9 +121,9 @@ export function reseal(input: ResealInput): ResealResult {
   const evolution = current.kit ? evolveKit(dirname(paths.dir), current.kit, tokens ?? ds.tokens,
     nextRegistry, tokens !== undefined, registry !== undefined) : undefined;
 
-  const compiledHash = tokens !== undefined ? canonicalHash(tokens) : ds.manifest.compiledHash;
+  const compiledHash = tokens !== undefined ? canonicalHash(tokens) : adopt?.compiledHash ?? ds.manifest.compiledHash;
   const registryHash =
-    registry !== undefined ? canonicalHash(sortedRegistry(registry)) : ds.manifest.registryHash;
+    registry !== undefined ? canonicalHash(sortedRegistry(registry)) : adopt?.registryHash ?? ds.manifest.registryHash;
 
   const nextManifest = appendChangelog(
     { ...ds.manifest, generation: ds.manifest.generation + 1, compiledHash, registryHash,
