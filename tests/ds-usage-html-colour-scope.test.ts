@@ -39,6 +39,17 @@ describe("colours where CSS lives are still findings", () => {
     expect(colours(html)).toEqual(["#111111@2", "#222222@4", "rgb(1,2,3)@5", "#333333@6"]);
   });
 
+  it("a closing tag with whitespace before > still ends the block: the text between two blocks is not CSS", () => {
+    expect(colours(`<style>.a{color:#f00}</style ><p>Brand color: #0f0</p><style>.b{color:#00f}</style>`)).toEqual(["#f00@1", "#00f@1"]);
+    expect(colours(`<style>.a{color:#f00}</style\n><p>Brand color: #0f0</p>`)).toEqual(["#f00@1"]);
+  });
+
+  it("an unquoted style attribute value is read up to whitespace or >", () => {
+    expect(colours(`<p style=color:#f00>x</p>`)).toEqual(["#f00@1"]);
+    expect(colours(`<p style=background:#0f0 class=a>x</p>`)).toEqual(["#0f0@1"]);
+    expect(colours(`<p style=color:red title=#00f>Brand color: #123456</p>`)).toEqual([]);
+  });
+
   it("a non-HTML source is all CSS-bearing text: template-literal CSS still reads", () => {
     expect(colours("export const S = `\n.a { color: #abcdef; }\n`;", "s.ts")).toEqual(["#abcdef@2"]);
   });

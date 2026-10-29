@@ -50,7 +50,7 @@ export function blankInterpolations(text: string): string {
 /** Read every `<tag>…</tag>` (`style`, `script`) through `read`, and return the text with those spans blanked. One pass. */
 export function readElementBodies(text: string, tag: "style" | "script", read: (offset: number, body: string) => void): string {
   const OPEN_RE = new RegExp(`<${tag}\\b`, "gi");
-  const CLOSE_RE = new RegExp(`</${tag}>`, "gi");
+  const CLOSE_RE = new RegExp(`</${tag}\\s*>`, "gi");
   let out = "";
   let from = 0;
   let gt = -1;

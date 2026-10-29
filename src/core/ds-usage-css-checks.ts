@@ -27,7 +27,7 @@ import type { DsUsageFinding } from "./ds-usage-lint.js";
 // shorter prefix siblings at the same start position.
 const COLOR_PROP_RE =
   /\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:/gi;
-const INLINE_STYLE_RE = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
+const INLINE_STYLE_RE = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
 
 /**
  * The ranges `[start, end)` of an HTML text where CSS lives, sorted by start: the bodies of `<style>`
@@ -40,8 +40,8 @@ function cssBearingRanges(scan: string): [number, number][] {
   readElementBodies(scan, "style", add);
   readElementBodies(scan, "script", add);
   for (const m of scan.matchAll(INLINE_STYLE_RE)) {
-    const value = m[1] ?? m[2] ?? "";
-    const end = (m.index ?? 0) + m[0].length - 1; // the closing quote
+    const value = m[1] ?? m[2] ?? m[3] ?? "";
+    const end = (m.index ?? 0) + m[0].length - (m[3] === undefined ? 1 : 0); // the closing quote; an unquoted value ends the match
     ranges.push([end - value.length, end]);
   }
   return ranges.sort((a, b) => a[0] - b[0]);
