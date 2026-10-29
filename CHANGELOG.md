@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-29 - ds status names a non-object registry record and says re-import
+
+### Fixed
+- `ui ds status` on a store whose registry holds a non-object record (for example a `null` entry that
+  was sealed into the manifest hash) no longer dies with `internal error: Cannot read properties of
+  null` (exit 2). The shared registry loader now rejects any `components` entry that is not a plain
+  object (null, array, string, number, boolean) with `BAD_REGISTRY` naming its 0-based index and the
+  file, e.g. `registry component #3 is not an object (null): '<path>'`; `ds status` exits 1 with that
+  error in text and `--json`. Only the object check is new: records that lack fields (such as `scope`)
+  load exactly as before.
+- The `ds status` warning for the default `imported-ds` name told you to "Reseal" with a new name, but
+  `ui ds reseal` never changes the name. It now says to re-import
+  (`ui ds import <tokens.json> --dir <project> --name <slug> --force`) and that `ui ds reseal` does
+  not change the name.
+
 ## 2026-10-29 - ui ds reseal heals a store whose files drifted from the sealed hashes
 
 ### Added

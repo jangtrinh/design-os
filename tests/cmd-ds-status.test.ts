@@ -129,10 +129,43 @@ describe("ui ds status", () => {
     const data = JSON.parse(rJson.stdout).data;
     expect(data.name).toBe("imported-ds");
     expect(data.warning).toMatch(/imported-ds/);
+    // `ui ds reseal` keeps the name, so the remedy is a re-import, not a reseal.
+    expect(data.warning).toContain("Re-import with an explicit --name:");
+    expect(data.warning).toContain("ui ds import <tokens.json> --dir <project> --name <slug> --force");
+    expect(data.warning).toContain("(ui ds reseal does not change the name)");
+    expect(data.warning).not.toMatch(/reseal with/i);
 
     const rText = capture(["ds", "status", "--dir", tmp]);
     expect(rText.stdout).toContain("warning:");
     expect(rText.stdout).toContain("imported-ds");
+    expect(rText.stdout).toContain("Re-import with an explicit --name:");
+  });
+
+  it("names a non-object registry record instead of crashing (sealed store, text + json)", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "ease-status-null-record-"));
+    initDs(tmp, true);
+    const regPath = join(tmp, "design", "component-registry.json");
+    const registry = JSON.parse(readFileSync(regPath, "utf8")) as { components: unknown[] };
+    registry.components.push({ name: "Button/Primary", category: "action", markup: "", tokensUsed: [] }, null);
+    writeFileSync(regPath, JSON.stringify(registry), "utf8");
+    // Seal the null record in, so the hash check passes and the registry loader is what judges it.
+    const manifestPath = join(tmp, "design", "ds.manifest.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    manifest.registryHash = canonicalHash(JSON.parse(readFileSync(regPath, "utf8")));
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
+
+    const rText = capture(["ds", "status", "--dir", tmp]);
+    expect(rText.exitCode).toBe(1);
+    expect(rText.stdout + rText.stderr).toContain("registry component #1 is not an object (null)");
+    expect(rText.stdout + rText.stderr).toContain(regPath);
+    expect(rText.stdout + rText.stderr).not.toContain("internal error");
+
+    const rJson = capture(["ds", "status", "--dir", tmp, "--json"]);
+    expect(rJson.exitCode).toBe(1);
+    const body = JSON.parse(rJson.stdout);
+    expect(body.ok).toBe(false);
+    expect(body.error.code).toBe("BAD_REGISTRY");
+    expect(body.error.message).toContain("registry component #1 is not an object (null)");
   });
 
   it("does not warn when the manifest carries a real --name", () => {

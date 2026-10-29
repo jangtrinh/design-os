@@ -357,6 +357,43 @@ describe("saveRegistry + loadRegistry", () => {
     expect(loaded.components[0]?.scope).toBe("local");
   });
 
+  it("still loads records that lack fields (no per-field validation on load)", () => {
+    const path = registerTmp(tmpPath());
+    writeFileSync(
+      path,
+      JSON.stringify({ version: "0.1.0", components: [{ name: "Bare" }, {}] }),
+      "utf8",
+    );
+    const loaded = loadRegistry(path);
+    expect(loaded.components).toHaveLength(2);
+    expect(loaded.components[0]?.scope).toBe("local");
+    expect(loaded.components[1]?.scope).toBe("local");
+  });
+
+  it("rejects a components entry that is not a plain object, naming its index and the file", () => {
+    const cases: Array<[string, unknown, string]> = [
+      ["null", null, "null"],
+      ["array", [], "array"],
+      ["string", "Button", "string"],
+      ["number", 7, "number"],
+      ["boolean", true, "boolean"],
+    ];
+    for (const [label, entry, kind] of cases) {
+      const path = registerTmp(tmpPath());
+      writeFileSync(
+        path,
+        JSON.stringify({ version: "0.1.0", components: [validRecord(), validRecord({ name: "B/Two" }), entry] }),
+        "utf8",
+      );
+      let caught: unknown;
+      try { loadRegistry(path); } catch (e) { caught = e; }
+      expect(caught, label).toBeInstanceOf(RegistryError);
+      const err = caught as RegistryError;
+      expect(err.code, label).toBe("BAD_REGISTRY");
+      expect(err.message, label).toBe(`registry component #2 is not an object (${kind}): '${path}'`);
+    }
+  });
+
   it("round-trips scope + deprecated through disk", () => {
     const path = registerTmp(tmpPath());
     const reg: Registry = {

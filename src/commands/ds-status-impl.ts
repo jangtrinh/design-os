@@ -23,6 +23,7 @@ import {
   DSError,
 } from "../core/design-system.js";
 import { DSManifestError } from "../core/ds-manifest.js";
+import { RegistryError } from "../core/registry-store.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -40,8 +41,9 @@ function importedDsWarning(name: string): string | null {
   if (name !== IMPORTED_DS_DEFAULT_NAME) return null;
   return (
     `manifest name is the 'ui ds import' default '${IMPORTED_DS_DEFAULT_NAME}' — ` +
-    "agent identity (ui agents init) derives from this name. Reseal with an explicit " +
-    "--name: ui ds import <tokens.json> --dir <project> --name <slug> --force"
+    "agent identity (ui agents init) derives from this name. Re-import with an explicit " +
+    "--name: ui ds import <tokens.json> --dir <project> --name <slug> --force " +
+    "(ui ds reseal does not change the name)"
   );
 }
 
@@ -74,7 +76,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
     const code =
       e instanceof DSError
         ? e.code
-        : e instanceof DSManifestError
+        : e instanceof DSManifestError || e instanceof RegistryError
         ? e.code
         : "BAD_DS";
     const msg = e instanceof Error ? e.message : String(e);
