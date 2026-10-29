@@ -174,9 +174,11 @@ describe.skipIf(!hasBuiltBinary)("validate — what ui could not check is said o
     const run = validate(buildPage(htmlPage()));
     expect(run.status).toBe(0);
     const out = lines(run.stdout);
-    expect(out).toHaveLength(2);
-    expect(out[0]).toMatch(/^note: gate: token-coverage did not run — no design system found from .* \(5 folders up, stops at \.git\)$/);
-    expect(out[1]).toBe("ok");
+    // The ds-usage family needs the project's tokens too, so ui declares it skipped; that is said out loud as well.
+    expect(out).toHaveLength(3);
+    expect(out[0]).toMatch(/^note: gate: SKIPPED ds-usage: no design\.tokens\.json /);
+    expect(out[1]).toMatch(/^note: gate: token-coverage did not run — no design system found from .* \(5 folders up, stops at \.git\)$/);
+    expect(out[2]).toBe("ok");
   });
 
   it("prints a PARTIAL note when ui says it could not see the whole page, then ok", () => {

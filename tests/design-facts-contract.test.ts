@@ -175,17 +175,18 @@ describe("fact collector", () => {
 describe("CHECK_CATALOG requires widening", () => {
   it("leaves every existing row on the legacy string form", () => {
     const legacy = CHECK_CATALOG.filter((e) => isLegacyRequires(e.requires));
-    // The 89 pre-existing rows keep the legacy string form; the 36 `tell` rows
+    // The 89 pre-existing rows keep the legacy string form, and so do the 4 `ds-usage` rows
+    // (they need the token file, which is the legacy `"tokens"` value); the 36 `tell` rows
     // added in phase 05 use the fact-set form, which is the whole point of the
     // widening. Both must coexist.
-    expect(legacy.length).toBe(89);
-    expect(CHECK_CATALOG.length).toBe(138);
+    expect(legacy.length).toBe(93);
+    expect(CHECK_CATALOG.length).toBe(142);
   });
 
   it("keeps the family split the gate composes", () => {
     const byFamily: Record<string, number> = {};
     for (const e of CHECK_CATALOG) byFamily[e.family] = (byFamily[e.family] ?? 0) + 1;
-    expect(byFamily).toEqual({ layout: 20, a11y: 14, taste: 34, tell: 43, content: 17, autofix: 10 });
+    expect(byFamily).toEqual({ layout: 20, a11y: 14, taste: 34, tell: 43, content: 17, "ds-usage": 4, autofix: 10 });
   });
 
   it("accepts a fact-based requirement without disturbing the legacy ones", () => {

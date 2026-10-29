@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-10-29 - ds-usage is a blocking gate family, with a closed font allowlist and polyglot input
+
+### Added
+- `ui gate` has a seventh family, `ds-usage`. It runs `ui ds-usage-lint` (undeclared-token,
+  off-system-token, hardcoded-color, off-system-font) and the owner-promoted `token-ban` rules of
+  `design/rules/_adherence.rules.json` against the page. It runs when the project's tokens are known
+  (`--tokens <file>`, or `--dir` / the design-dir contract) or a promoted rules file exists; with
+  neither it is skipped with a printed reason (`skipped ds-usage: no design.tokens.json ...`). Any
+  `error` fails the gate; `off-system-token` stays a warning. Promoted rule findings report as
+  `token-ban/<rule id>`; the proposed rules file is never read. `ui gate coverage` lists the family
+  (4 checks, active when the token file is present).
+- `off-system-font` (error): a `font-family` whose FIRST family is not the first family of any
+  `fontFamily` token fails, so `ui-monospace, SFMono-Regular, Menlo, monospace` on a page whose design
+  system declares `Inter` no longer passes every gate. Fallbacks after the first family are not
+  compared (`"Inter", sans-serif` passes); CSS-wide keywords pass; `var(--x)` keeps the existing
+  undeclared-token / off-system-token verdicts; token-declaration blocks and `@font-face` bodies are
+  not checked. Tailwind `font-mono` / `font-serif` / `font-sans` need a `fontFamily` token whose name
+  ends in that word. Findings carry `OFF_SYSTEM_FONT` and the offending stack. A design system with no
+  `fontFamily` token backs nothing, and the message says so.
+- `ui ds-usage-lint <file|dir>` reads `.html .svelte .vue .jsx .tsx .js .ts` (style blocks, inline
+  styles, `style={{ ... }}`, class and `className` lists, CSS template literals) and walks a directory
+  in sorted order, skipping `node_modules/ dist/ build/ .git/ fixtures/ __fixtures__/` and files over
+  2 MB or symlinks. It prints `scanned N of M files` and every skip reason (also in `--json`);
+  a directory with no UI source is `NO_UI_FILES`, not a clean pass. New `--tokens <file>` flag.
+- `token-ban` rules take `excludeElements` (for example `["code", "pre"]`): an occurrence inside those
+  elements is not a finding and is reported as an exclusion with its line.
+
+### Changed
+- `ui ds-usage-lint` output gains the off-system font count (`N off-system font(s)`) and
+  `offSystemFontCount` / `unevaluatedFontCount` in `--json`. A font value built at build time
+  (`${...}`) is reported as NOT EVALUATED, never passed.
+- The generated specimen and per-component preview pages declare their monospace as the chrome token
+  `--ds-chrome-font-mono` and apply it with `var()`, so they pass `off-system-font` with no exemption.
+- Gate coverage now includes the `ds-usage` family. A gate run with no token file prints
+  `skipped ds-usage: no design.tokens.json ...`; with a token file that exists but cannot be read it
+  prints `skipped ds-usage: the project's token file is unreadable (see token-coverage/tokens-not-readable)`
+  next to the existing hard failure. The design-os-designer `validate` step forwards both lines as
+  `note: gate: SKIPPED ds-usage: ...`. Tests that pinned exact gate or validate output now expect the
+  extra line (`cmd-gate` x2, `designer-skill-validate`, `designer-skill-regressions` x2), and
+  `gate-emits-what-coverage-claims` hands `runGate` the project tokens when it claims `tokensPresent: true`.
+
+### Fixed
+- `hardcoded-color` no longer reads a hex in the page text after an inline `style="..."` as that style's
+  colour. An inline style without a trailing `;` made the value run through the tag into the next `;`
+  (an `&middot;` entity), so every swatch label of a generated specimen counted as a hardcoded colour
+  (22 false errors on one page). The value now stops at `<`, `>` and at the quote that closes the
+  attribute; a last declaration with no `;` is still read. Measured on 64 example HTML files: 396
+  findings before and after, one false positive removed and one real colour recovered.
+
 ## 2026-10-29 - ds status names a non-object registry record and says re-import
 
 ### Fixed

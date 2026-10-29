@@ -25,8 +25,10 @@ import { extractorById } from "./design-facts/index.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { CHECK_CATALOG } from "./check-catalog.js";
 import type { CatalogEntry } from "./check-catalog.js";
+import { DS_USAGE_SKIP_REASON, runDsUsageFamily } from "./ds-usage-gate.js";
+import type { DsUsageGateInput } from "./ds-usage-gate.js";
 
-export const GATE_FAMILIES = ["layout", "a11y", "taste", "tell", "content", "autofix"] as const;
+export const GATE_FAMILIES = ["layout", "a11y", "taste", "tell", "content", "ds-usage", "autofix"] as const;
 export type GateFamily = (typeof GATE_FAMILIES)[number];
 
 export interface GateFamilyResult {
@@ -36,6 +38,8 @@ export interface GateFamilyResult {
   advisoryCount: number;
   /** FloorFinding schema v1; family extras (a11y `sc`, taste `axis`) ride along. */
   findings: FloorFindingBase[];
+  /** Printed under the family: what it counted but kept out of `findings` (ds-usage: rule exclusions). */
+  notes?: string[];
 }
 
 export interface GateResult {
@@ -65,6 +69,8 @@ export interface GateOptions {
   skip?: Partial<Record<GateFamily, string>>;
   /** Path of the artifact, so tell findings carry a real file in their provenance. */
   file?: string;
+  /** What the ds-usage family judges against (the project's tokens and/or promoted rules); absent = the family is skipped with a reason. */
+  dsUsage?: DsUsageGateInput;
 }
 
 function familyResult(findings: GateFamilyResult["findings"]): GateFamilyResult {
@@ -140,6 +146,15 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
       for (const check of allContentChecks) all.push(...check(html));
       all.push(...((factPass()?.content ?? []) as unknown as ContentFinding[]));
       families.content = familyResult(all);
+    } else if (fam === "ds-usage") {
+      // Needs the project's tokens or promoted rules. Without either there is nothing to grade
+      // against, which is a declared skip (printed) and never a clean pass.
+      if (opts.dsUsage === undefined) {
+        skipped.push(`${fam}: ${DS_USAGE_SKIP_REASON}`);
+        continue;
+      }
+      const r = runDsUsageFamily(html, opts.dsUsage);
+      families["ds-usage"] = { ...familyResult(r.findings), ...(r.notes.length > 0 && { notes: r.notes }) };
     } else {
       // Dry-run cleanliness: any repair the autofixer WOULD apply is a floor the
       // artifact has not met — the caller runs `ui autofix --write`, then gates.

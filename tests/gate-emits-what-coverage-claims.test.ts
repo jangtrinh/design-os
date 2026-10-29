@@ -90,7 +90,9 @@ describe("a check the coverage report calls active is a check the gate can emit"
     // The generalisation. Every family with active rows must be one `runGate`
     // actually builds — the shape of the original defect, one level up.
     const cov = gateCoverage({ tokensPresent: true, dsPresent: true, renderAvailable: false });
-    const r = runGate(RIDE_ALONG_PAGE, {});
+    // `tokensPresent: true` is the claim under test, so the gate is given the tokens too: the ds-usage
+    // family is composed only when the project's tokens are known, and coverage counts it only then.
+    const r = runGate(RIDE_ALONG_PAGE, { dsUsage: { lint: { declaredVars: new Set<string>() }, rules: [] } });
     for (const [family, counts] of Object.entries(cov.families)) {
       if (counts.active === 0) continue;
       expect(

@@ -95,7 +95,9 @@ describe("ui gate — declared skips", () => {
     expect(r.code).toBe(0);
     const d = JSON.parse(r.out).data;
     expect(d.families.content).toBeUndefined();
-    expect(d.skipped).toEqual(["content: mirror evidence"]);
+    // With no project tokens the ds-usage family is a declared skip of its own; the caller's skip is untouched.
+    expect(d.skipped.filter((s: string) => !s.startsWith("ds-usage:"))).toEqual(["content: mirror evidence"]);
+    expect(d.skipped.some((s: string) => s.startsWith("ds-usage: no design.tokens.json"))).toBe(true);
   });
 
   it("a skip without a reason is refused (silent partial gating is the failure mode)", () => {
@@ -217,7 +219,7 @@ describe("ui gate coverage — the registry triage routes on", () => {
     const rawHex = d.checks.find((c: { id: string }) => c.id === "raw-hex-when-token-exists");
     expect(rawHex.active).toBe(false);
     expect(d.project.tokensPresent).toBe(false);
-    expect(Object.keys(d.families).sort()).toEqual(["a11y", "autofix", "content", "layout", "taste", "tell"]);
+    expect(Object.keys(d.families).sort()).toEqual(["a11y", "autofix", "content", "ds-usage", "layout", "taste", "tell"]);
   });
 
   it("a project with a token file activates the tokens-gated check", () => {
