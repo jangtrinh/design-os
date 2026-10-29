@@ -144,6 +144,20 @@ function elementSpans(text: string, tag: string): [number, number][] {
 }
 
 /**
+ * Lower-case without changing the string's length: a character whose lower-case form is longer
+ * (`İ` becomes `i̇`, two UTF-16 units) is kept as it is, so an offset found in the folded text is the
+ * same offset in the original and the element spans line up with it.
+ */
+function fold(s: string): string {
+  let out = "";
+  for (const ch of s) {
+    const lower = ch.toLowerCase();
+    out += lower.length === ch.length ? lower : ch;
+  }
+  return out;
+}
+
+/**
  * One finding per occurrence of a banned token, ordered by line, then rule order, then token order.
  * Literal, case-insensitive substring scan over raw text; occurrences of one token do not overlap
  * (`aa` in `aaa` is one hit). Tokens of one rule that contain each other (`ui-monospace`, `monospace`)
@@ -165,10 +179,10 @@ export function evaluateTokenBansDetailed(
   };
   let lineStart = 0;
   text.split("\n").forEach((raw, i) => {
-    const haystack = raw.toLowerCase();
+    const haystack = fold(raw);
     for (const rule of rules) {
       for (const token of rule.tokens) {
-        const needle = token.toLowerCase();
+        const needle = fold(token);
         for (let at = haystack.indexOf(needle); at !== -1; at = haystack.indexOf(needle, at + needle.length)) {
           const abs = lineStart + at;
           const element = (rule.excludeElements ?? []).find((tag) => spansFor(tag).some(([s, e]) => s <= abs && abs < e));

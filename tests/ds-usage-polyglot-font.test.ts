@@ -339,6 +339,17 @@ describe("token-ban excludeElements", () => {
     expect(evaluateTokenBansDetailed([ban({ excludeElements: ["code", "pre"] })], `<codex>font-mono</codex><preview>font-mono</preview>`).findings).toHaveLength(2);
   });
 
+  it("a character whose lower-case form is longer (İ) does not shift where an occurrence sits relative to an excluded element", () => {
+    const text = `${"İ".repeat(12)} font-mono<code>x</code>`;
+    const r = evaluateTokenBansDetailed([ban({ excludeElements: ["code"] })], text);
+    expect(r.excluded).toEqual([]);
+    expect(r.findings.map((f) => [f.token, f.line])).toEqual([["font-mono", 1]]);
+    // and an occurrence that really is inside the element, after such characters, is still excluded
+    const inside = evaluateTokenBansDetailed([ban({ excludeElements: ["code"] })], `${"İ".repeat(12)}<code>font-mono</code>`);
+    expect(inside.excluded).toHaveLength(1);
+    expect(inside.findings).toEqual([]);
+  });
+
   it("only the rule that lists the element excludes: two rules, one scoped", () => {
     const scoped = ban({ excludeElements: ["code"] });
     const plain = { ...ban({ tokens: ["font-mono"] }), id: "ns-02" };
