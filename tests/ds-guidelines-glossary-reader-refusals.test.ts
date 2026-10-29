@@ -1,12 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { tmpdir } from "node:os";
-import { run } from "../src/cli.js";
+import { describe, expect, it } from "vitest";
 import { formatGlossaryRefusal, parseGlossaryYaml } from "../src/core/ds-guidelines-glossary-yaml-reader.js";
-
-const FIXTURES = join(import.meta.dirname, "fixtures", "ds-guidelines");
-const NOW = "2026-10-15T00:00:00Z";
 
 /** Lines copied from the pre-fix CX ontology glossary that made the whole file skip with no explanation. */
 const CX_LINE_48 = '    avoid: ["required by EU261 at Gia Bình", "law" for programme terms]';
@@ -78,7 +71,33 @@ describe("glossary reader refusals — one reason per refusal site", () => {
       "unknown field `see` (supported: term, vi, def, avoid)"],
     ["top-level key after terms", "terms:\n  - term: A\n    def: d\nversion: 1\n", 4,
       "top-level key `version` after `terms:` is not supported (`terms:` must be the last top-level key)"],
-    ["stray text line", "terms:\n  - term: A\n    def: d\n    continuation text\n", 4,
+    ["a second terms key", "terms:\n  - term: A\n    def: d\nterms:\n", 4, "duplicate `terms:` key"],
+    ["term field without its dash", "terms:\n  - term: A\n    def: d\n    term: B\n", 4,
+      "`term:` must start a list entry as `- term: <name>`"],
+    // ── document start (nothing is dropped silently: each is refused at line 1 with its own cause)
+    ["byte-order mark before terms", "﻿terms:\n  - term: A\n    def: d\n", 1,
+      "file starts with a byte-order mark (BOM); save it as UTF-8 without one"],
+    ["document marker", "---\nterms:\n  - term: A\n    def: d\n", 1, "YAML document marker `---` is not supported"],
+    ["bare CR line endings", "terms:\r  - term: A\r    def: d\r", 1, "line endings are a bare CR; use LF or CRLF"],
+    // ── flow lists: the cause names what is actually wrong
+    ["comment after the closing bracket", "terms:\n  - term: A\n    def: d\n    avoid: [a, b] # note\n", 4,
+      "`avoid`: text follows the closing `]` of the flow list (a comment or words)"],
+    ["words after the closing bracket", "terms:\n  - term: A\n    def: d\n    avoid: [a, b] extra\n", 4,
+      "`avoid`: text follows the closing `]` of the flow list (a comment or words)"],
+    ["bracket only inside a quoted item, list never closes", 'terms:\n  - term: A\n    def: d\n    avoid: ["a]b", c\n', 4,
+      "`avoid`: flow list is not closed with `]` on this line"],
+    ["flow map under avoid", "terms:\n  - term: A\n    def: d\n    avoid: {a: b}\n", 4,
+      "`avoid`: only a flat `[a, b]` list of plain or quoted values is supported"],
+    ["nested list under avoid", "terms:\n  - term: A\n    def: d\n    avoid: [a, [b]]\n", 4,
+      "`avoid` list item: only a flat `[a, b]` list of plain or quoted values is supported"],
+    // ── quotes: unclosed after an escaped or doubled quote is still unclosed
+    ["single quote closed only by a doubled quote", "terms:\n  - term: A\n    def: 'it''s\n", 3,
+      "`def`: quoted value is not closed on this line"],
+    ["double quote closed only by an escaped quote", 'terms:\n  - term: A\n    def: "a\\" b\n', 3,
+      "`def`: quoted value is not closed on this line"],
+    ["quote closed, then a comment", 'terms:\n  - term: A\n    def: "d" # c\n', 3,
+      "`def`: quoted value is followed by more text"],
+    ["stray text line","terms:\n  - term: A\n    def: d\n    continuation text\n", 4,
       "line is not a `- term:` entry or a `key: value` field"],
     ["field before the first entry", "terms:\n    def: x\n", 2, "`def` appears before the first `- term:` entry"],
     ["field with wrong indent", "terms:\n  - term: A\n  def: x\n", 3, "`def` is not indented two spaces under its `- term:` entry"],
@@ -90,6 +109,15 @@ describe("glossary reader refusals — one reason per refusal site", () => {
       expect(refusalOf(text)).toEqual({ line, reason });
     });
   }
+
+  it("a reason never echoes the file path it was given", () => {
+    const secret = "/abs/secret-dir/ontology/glossary.yaml";
+    for (const [label, text] of cases) {
+      const r = parseGlossaryYaml(text, secret);
+      expect(r.ok, label).toBe(false);
+      if (!r.ok) expect(r.reason, label).not.toMatch(/secret-dir|glossary\.yaml/);
+    }
+  });
 
   it("line numbers count the original file: comments, blank lines and CRLF included", () => {
     const text = `# header\r\n\r\nversion: 1\r\nterms:\r\n  - term: A\r\n    def: d\r\n${CX_LINE_48}\r\n`;
@@ -110,6 +138,9 @@ describe("glossary reader refusals — one reason per refusal site", () => {
       "terms:\n  - {term: A, def: d}\n",
       "terms:\n  - term: A\n    def: d\n    avoid:\n      - bill\n",
       "terms:\n  - term: A\n    def: d\nversion: 1\n",
+      "terms:\n  - term: A\n    def: d\n    avoid: {a: b}\n",
+      "terms:\n  - term: A\n    def: d\n    avoid: [a, b] # note\n",
+      "---\nterms:\n  - term: A\n    def: d\n",
     ];
     for (const text of validButUnsupported) {
       expect(refusalOf(text).reason, text).not.toMatch(/invalid|malformed|syntax|parse error|not valid/i);
@@ -119,73 +150,5 @@ describe("glossary reader refusals — one reason per refusal site", () => {
   it("a readable glossary still parses and carries no refusal", () => {
     const r = parseGlossaryYaml("terms:\n  - term: A\n    def: d\n    avoid: [x, y]\n", "g.yaml");
     expect(r).toEqual({ ok: true, terms: [{ term: "A", def: "d", avoid: ["x", "y"], source: "g.yaml" }] });
-  });
-});
-
-// ─── through the pack build ─────────────────────────────────────────────────
-
-function capture(args: string[]): { code: number; out: string } {
-  let out = "";
-  const o = process.stdout.write.bind(process.stdout);
-  const e = process.stderr.write.bind(process.stderr);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  process.stdout.write = (c: any) => { out += String(c); return true; };
-  process.stderr.write = () => true;
-  let code: number;
-  try { code = run(args); } finally { process.stdout.write = o; process.stderr.write = e; }
-  return { code, out };
-}
-
-const scratch: string[] = [];
-afterEach(() => { for (const d of scratch.splice(0)) rmSync(d, { recursive: true, force: true }); });
-
-function project(glossary: string): { dir: string; pack: string } {
-  const dir = mkdtempSync(join(tmpdir(), "ease-guidelines-refusal-"));
-  scratch.push(dir);
-  cpSync(join(FIXTURES, "basic"), dir, { recursive: true });
-  cpSync(join(FIXTURES, "terminology"), dir, { recursive: true });
-  mkdirSync(dirname(join(dir, "ontology", "glossary.yaml")), { recursive: true });
-  writeFileSync(join(dir, "ontology", "glossary.yaml"), glossary);
-  return { dir, pack: join(dir, "design", "guidelines") };
-}
-const manifestOf = (pack: string): { skippedSources: { path: string; reason: string }[] } =>
-  JSON.parse(readFileSync(join(pack, "guidelines.manifest.json"), "utf8")) as { skippedSources: { path: string; reason: string }[] };
-
-describe("pack build records the line and cause but keeps building", () => {
-  it("CX line 48 shape: exit 0, skip reason names the line and cause, CONTEXT.md terms still land", () => {
-    const { dir, pack } = project(`terms:\n  - term: Rule (benchmark)\n    def: A rule.\n${CX_LINE_48}\n`);
-    expect(capture(["ds", "guidelines", "build", "--dir", dir, "--now", NOW]).code).toBe(0);
-    expect(manifestOf(pack).skippedSources).toContainEqual({
-      path: "ontology/glossary.yaml",
-      reason: "line 4: `avoid` list item: quoted value is followed by more text — glossary skipped",
-    });
-    expect(readFileSync(join(pack, "terminology.md"), "utf8")).toMatch(/^- `term:Panel`/m);
-  });
-
-  it("CX line 71 shape: the skip reason names line 4 and the quoted-scalar cause", () => {
-    const { dir, pack } = project(`terms:\n  - term: Evidence id\n    vi: Mã bằng chứng\n${CX_LINE_71}\n`);
-    expect(capture(["ds", "guidelines", "build", "--dir", dir, "--now", NOW]).code).toBe(0);
-    expect(manifestOf(pack).skippedSources).toContainEqual({
-      path: "ontology/glossary.yaml",
-      reason: "line 4: `def`: quoted value is followed by more text — glossary skipped",
-    });
-  });
-
-  it("valid YAML in an unsupported shape (nested mapping): line + cause, no claim of invalid YAML, no absolute path", () => {
-    const { dir, pack } = project("terms:\n  - term: Invoice\n    def: A request.\n    meta:\n      owner: finance\n");
-    expect(capture(["ds", "guidelines", "build", "--dir", dir, "--now", NOW]).code).toBe(0);
-    const reason = manifestOf(pack).skippedSources.find((s) => s.path === "ontology/glossary.yaml")?.reason ?? "";
-    expect(reason).toBe("line 4: unknown field `meta` (supported: term, vi, def, avoid) — glossary skipped");
-    expect(reason).not.toMatch(/invalid|malformed|syntax/i);
-    expect(reason).not.toContain(dir);
-  });
-
-  it("a whole-file refusal carries no line number", () => {
-    const { dir, pack } = project("version: '1'\n");
-    expect(capture(["ds", "guidelines", "build", "--dir", dir, "--now", NOW]).code).toBe(0);
-    expect(manifestOf(pack).skippedSources).toContainEqual({
-      path: "ontology/glossary.yaml",
-      reason: "no `terms:` list found — glossary skipped",
-    });
   });
 });

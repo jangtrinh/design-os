@@ -17,6 +17,8 @@ export interface Terminology {
   /** Entries each source contributed to the merged glossary. */
   fromContext: number;
   fromGlossary: number;
+  /** Line + cause when the glossary file exists but the flat reader refused it (absent otherwise, also when the file is missing). */
+  glossaryRefusal?: string;
 }
 
 /** Read both glossary sources (either may be absent or unreadable-as-flat). Shared by build and check. */
@@ -24,6 +26,7 @@ export function loadTerminology(context: OptionalInput, glossary: OptionalInput)
   const skipped: SkippedSource[] = [];
   let contextTerms: GlossaryTerm[] = [];
   let glossaryTerms: GlossaryTerm[] = [];
+  let glossaryRefusal: string | undefined;
 
   if (context.text === undefined) {
     skipped.push({ path: context.path, reason: "file not found — product glossary terms omitted" });
@@ -36,7 +39,10 @@ export function loadTerminology(context: OptionalInput, glossary: OptionalInput)
   } else {
     const parsed = parseGlossaryYaml(glossary.text, glossary.path);
     if (parsed.ok) glossaryTerms = parsed.terms;
-    else skipped.push({ path: glossary.path, reason: `${formatGlossaryRefusal(parsed)} — glossary skipped` });
+    else {
+      glossaryRefusal = formatGlossaryRefusal(parsed);
+      skipped.push({ path: glossary.path, reason: `${glossaryRefusal} — glossary skipped` });
+    }
   }
 
   const { terms, conflicts } = mergeTerminology(contextTerms, glossaryTerms);
@@ -44,6 +50,7 @@ export function loadTerminology(context: OptionalInput, glossary: OptionalInput)
     terms, conflicts, skipped,
     fromContext: terms.filter((t) => t.source === context.path).length,
     fromGlossary: terms.filter((t) => t.source === glossary.path).length,
+    ...(glossaryRefusal !== undefined ? { glossaryRefusal } : {}),
   };
 }
 

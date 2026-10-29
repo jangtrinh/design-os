@@ -3,16 +3,21 @@
 ## 2026-10-29 - ds guidelines: a skipped glossary names its line and cause
 
 ### Changed
-- `ui ds guidelines build` and `check` no longer record `unsupported glossary shape` when
-  `ontology/glossary.yaml` cannot be read. The skip reason in the manifest now carries the 1-based line
+- `ui ds guidelines build` no longer records `unsupported glossary shape` in the manifest's
+  `skippedSources` when `ontology/glossary.yaml` cannot be read. The reason now carries the 1-based line
   and the specific cause, for example ``line 48: `avoid` list item: quoted value is followed by more
-  text — glossary skipped``. Each place the flat reader refuses has its own reason (unclosed or trailing
-  text after a quote, backslash escape, flow collection or block scalar where only a plain value is
-  supported, anchor, colon or comment in a plain value, empty value opening a nested block, unknown
-  field, wrong indentation, duplicate field, entry without `def`, no `terms:` list). A shape that is
-  valid YAML but not the flat `terms: - term / vi / def / avoid` layout is described as unsupported, never
-  as invalid YAML. A glossary skipped for a whole-file reason has no line number.
-- The build still succeeds and still records the skip; the glossary is still skipped whole, never half-read.
+  text — glossary skipped``. `ui ds guidelines check` used to say "this project has no glossary terms"
+  for a glossary it had refused; it now prints `ontology/glossary.yaml skipped: line 48: …` and the
+  `--json` envelope carries it as `glossarySkipped: { path, reason }`. "No glossary terms" is kept only
+  for a project without a glossary file.
+- Each place the flat reader refuses has its own reason (unclosed quote, text after a quote, backslash
+  escape, flow collection or block scalar where only a plain value is supported, text after a closing
+  `]`, anchor, colon or comment in a plain value, empty value opening a nested block, unknown field,
+  wrong indentation, duplicate field or `terms:` key, entry without `def`, no `terms:` list, byte-order
+  mark, `---` document marker, bare-CR line endings). A shape that is valid YAML but not the flat
+  `terms: - term / vi / def / avoid` layout is described as unsupported, never as invalid YAML. A glossary
+  skipped for a whole-file reason has no line number.
+- The build and `check` still succeed; the glossary is still skipped whole, never half-read.
 
 ## 2026-10-28 - mode-invisible-surface measures a tint on its real backdrop
 

@@ -30,21 +30,34 @@ const findingLines = (findings: readonly Finding[]): string[] =>
 const countLabel = (errorCount: number, warningCount: number): string =>
   `${errorCount} error(s)${warningCount > 0 ? `, ${warningCount} warning(s)` : ""}`;
 
+/** The glossary note: a refused glossary is named with its line and cause; "no glossary terms" is only for a project without one. */
+function termNote(unchecked: number, skipped: { path: string; reason: string } | undefined): string[] {
+  if (skipped !== undefined) {
+    const why = `${skipped.path} skipped: ${skipped.reason}`;
+    return [unchecked > 0 ? `  note: ${unchecked} term: span(s) not checked — ${why}` : `  note: ${why}`];
+  }
+  return unchecked > 0 ? [`  note: ${unchecked} term: span(s) not checked — this project has no glossary terms`] : [];
+}
+
 /** Run every pack check; returns the CommandResult, or a failure the caller reports as an error envelope. */
 export function runCheckOn(
   ds: DesignSystem, src: StoreSourcePaths, packDir: string, inputs: PackInputs, useJson: boolean,
 ): CommandResult | CheckFailure {
   const collected = collectCheck(ds, src, packDir, inputs);
   if ("code" in collected) return collected;
-  const { findings, files, openQuestions, termSpansUnchecked } = collected;
+  const { findings, files, openQuestions, termSpansUnchecked, glossarySkipped } = collected;
   const { errorCount, warningCount, exitCode } = summarize(findings);
   if (useJson) {
-    return okJsonWithExit(CMD, { path: packDir, filesChecked: files.length, errorCount, warningCount, openQuestions, findings, termSpansUnchecked }, exitCode);
+    return okJsonWithExit(
+      CMD,
+      { path: packDir, filesChecked: files.length, errorCount, warningCount, openQuestions, findings, termSpansUnchecked, ...(glossarySkipped !== undefined ? { glossarySkipped } : {}) },
+      exitCode,
+    );
   }
   const lines = [
     `ds guidelines check: ${packDir} — ${countLabel(errorCount, warningCount)}`,
     ...findingLines(findings),
-    ...(termSpansUnchecked > 0 ? [`  note: ${termSpansUnchecked} term: span(s) not checked — this project has no glossary terms`] : []),
+    ...termNote(termSpansUnchecked, glossarySkipped),
   ];
   return { exitCode, stdout: lines.join("\n") + "\n" };
 }
