@@ -7,7 +7,7 @@ floating compositions. Pick this family when the goal is to explain and sell a
 product, not to run it.
 
 **Personas in this family:** Modular System Layout · Inclusive Clarity ·
-Organic Mesh Gradients · Floating Composition
+Organic Mesh Gradients · Floating Composition · Conversion Monochrome
 
 See `persona-index.md` for the cross-family lookup table and auto-selection rules.
 

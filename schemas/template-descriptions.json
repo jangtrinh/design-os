@@ -164,7 +164,7 @@
     {
       "path": "workflows/generate.md",
       "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
-      "sourceSha256": "ec159740a40c48249ca8af7915bddece63314b9ae7f1c141bb9a03b7afa8e930"
+      "sourceSha256": "25bacca9e68092c82b5ad32aead432dd11f2548686efb0ce664ff7416cf7fe05"
     },
     {
       "path": "workflows/guidelines.md",
@@ -204,7 +204,7 @@
     {
       "path": "workflows/refine.md",
       "description": "Self-correction pass that fixes execution quality without redesigning. Use when a variant scores low on craft axes or the user asks to polish or clean up a design.",
-      "sourceSha256": "ec50c0a8213a1823883ce16451c274377474cdf6d732eb6b14194ee86b05df13"
+      "sourceSha256": "c32008d5ac2f994754dafed954690d3288f6cb71397f44a1fa31067408a75f77"
     },
     {
       "path": "workflows/slides.md",

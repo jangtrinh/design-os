@@ -6,7 +6,7 @@ when: [persona, persona-pick, aesthetic, style-direction]
 
 # Persona Index & Auto-Selection Rules
 
-The persona library is **curated design taste** — 26 personas grouped into 7 families.
+The persona library is **curated design taste** — 27 personas grouped into 7 families.
 Each persona is a fixed point in taste-space carrying a full aesthetic DNA
 (typography, color, spacing, depth, borders, texture, interactions, layout,
 anti-patterns).
@@ -14,7 +14,7 @@ anti-patterns).
 This file is what the host model reads to **auto-select** the right personas for a
 given design intent. It contains:
 
-1. A compact lookup table across all 26 personas.
+1. A compact lookup table across all 27 personas.
 2. The keyword-scoring algorithm.
 3. The industry-affinity mapping.
 4. The diverse top-K selection logic.
@@ -24,7 +24,7 @@ persona is selected.
 
 ---
 
-## 1. Lookup Table — All 26 Personas
+## 1. Lookup Table — All 27 Personas
 
 | Slug | Family | UI types | Density | Color mode | Trending | Keywords |
 |---|---|---|---|---|---|---|
@@ -54,10 +54,11 @@ persona is selected.
 | `inclusive-clarity` | product-marketing | dashboard, admin, app, documentation, landing | spacious | both | — | accessible, readable, clear, contrast, inclusive, calm, reliable |
 | `organic-mesh-gradients` | product-marketing | landing, app, portfolio | spacious | both | — | gradient, organic, mesh, flowing, startup, modern, colorful, fresh |
 | `floating-composition` | product-marketing | landing, portfolio | spacious | both | — | floating, launch, startup, mockup, device, innovation, space, modern |
+| `conversion-monochrome` | product-marketing | landing | comfortable | both | — | conversion, landing, monochrome, launch, trial, waitlist, saas, minimal, flat |
 
-**Family counts:** material-surface 7 · product-marketing 4 · functional-saas 3 ·
+**Family counts:** material-surface 7 · product-marketing 5 · functional-saas 3 ·
 immersive-cinematic 3 · editorial-minimal 4 · graphic-modernist 3 · retro-digital 2.
-Total **26 personas / 7 families**.
+Total **27 personas / 7 families**.
 
 **Legacy name:** "Ambient Glassmorphism" is a rename → resolves to `liquid-glass`.
 
@@ -82,7 +83,7 @@ without the binary.
 
 Keep only personas whose `ui_types` includes the requested UI type. If the requested
 UI type defaults and is `landing`, that is the default. **If the filter yields zero
-personas, fall back to the full set of 26.**
+personas, fall back to the full set of 27.**
 
 ### Stage 2 — Score each persona in the pool
 
