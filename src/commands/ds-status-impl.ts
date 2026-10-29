@@ -41,8 +41,9 @@ function importedDsWarning(name: string): string | null {
   if (name !== IMPORTED_DS_DEFAULT_NAME) return null;
   return (
     `manifest name is the 'ui ds import' default '${IMPORTED_DS_DEFAULT_NAME}' — ` +
-    "agent identity (ui agents init) derives from this name. Reseal with an explicit " +
-    "--name: ui ds import <tokens.json> --dir <project> --name <slug> --force"
+    "agent identity (ui agents init) derives from this name. Re-import with an explicit " +
+    "--name: ui ds import <tokens.json> --dir <project> --name <slug> --force " +
+    "(ui ds reseal does not change the name)"
   );
 }
 

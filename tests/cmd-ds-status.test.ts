@@ -129,10 +129,16 @@ describe("ui ds status", () => {
     const data = JSON.parse(rJson.stdout).data;
     expect(data.name).toBe("imported-ds");
     expect(data.warning).toMatch(/imported-ds/);
+    // `ui ds reseal` keeps the name, so the remedy is a re-import, not a reseal.
+    expect(data.warning).toContain("Re-import with an explicit --name:");
+    expect(data.warning).toContain("ui ds import <tokens.json> --dir <project> --name <slug> --force");
+    expect(data.warning).toContain("(ui ds reseal does not change the name)");
+    expect(data.warning).not.toMatch(/reseal with/i);
 
     const rText = capture(["ds", "status", "--dir", tmp]);
     expect(rText.stdout).toContain("warning:");
     expect(rText.stdout).toContain("imported-ds");
+    expect(rText.stdout).toContain("Re-import with an explicit --name:");
   });
 
   it("names a non-object registry record instead of crashing (sealed store, text + json)", () => {
