@@ -3,7 +3,7 @@
  * sorted deterministic walk, default exclusions, "scanned N of M files", and every skip reason.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -126,6 +126,68 @@ describe("ui ds-usage-lint <dir>", () => {
     const reasons = Object.fromEntries(data.skipped.map((s) => [s.path, s.reason]));
     expect(reasons["big.js"]).toMatch(/^larger than 2 MB/);
     expect(reasons["link.html"]).toBe("symlink not followed");
+  });
+});
+
+describe("ui ds-usage-lint <dir> — what the walk could not read is said, never dropped", () => {
+  it("a symlinked directory is not followed and is listed as a skip; a loop link too; the sweep stays clean of them", () => {
+    const real = mkdtempSync(join(tmpdir(), "ease-ds-usage-real-"));
+    try {
+      mkdirSync(join(real, "sub"));
+      writeFileSync(join(real, "sub", "a.html"), `<p style="${BAD_FONT}">x</p>`);
+      put("b.html", `<style>.a { font-family: inherit; }</style>`);
+      symlinkSync(real, join(root, "linked-dir"));
+      symlinkSync("..", join(root, "loop"));
+      const text = capture(["ds-usage-lint", root, "--tokens", TOKENS]);
+      expect(text.code).toBe(0); // the linked tree is not read, so it neither fails nor is it claimed clean
+      expect(text.out).toContain("scanned 1 of 1 files");
+      expect(text.out).toContain("skipped linked-dir/: symlinked directory not followed");
+      expect(text.out).toContain("skipped loop/: symlinked directory not followed");
+      expect(text.out).toMatch(/2 path\(s\) skipped/);
+      const { data } = jsonRun(root);
+      expect(data.skipped.map((x) => [x.path, x.reason]).sort()).toEqual([
+        ["linked-dir/", "symlinked directory not followed"],
+        ["loop/", "symlinked directory not followed"],
+      ]);
+    } finally {
+      rmSync(real, { recursive: true, force: true });
+    }
+  });
+
+  it("a symlink to a file that is not UI source, and a dangling link, are not directories and are not reported", () => {
+    put("b.html", `<style>.a { font-family: inherit; }</style>`);
+    put("notes.txt", "x");
+    symlinkSync(join(root, "notes.txt"), join(root, "notes-link"));
+    symlinkSync(join(root, "gone"), join(root, "dangling"));
+    expect(jsonRun(root).data.skipped).toEqual([]);
+  });
+
+  it.skipIf(process.getuid?.() === 0)("an unreadable subdirectory is skipped with its reason and the rest of the sweep is read", () => {
+    put("ok.html", `<style>.a { font-family: inherit; }</style>`);
+    put("locked/x.html", `<p style="${BAD_FONT}">x</p>`);
+    chmodSync(join(root, "locked"), 0o000);
+    try {
+      const { code, data } = jsonRun(root);
+      expect(code).toBe(0);
+      expect(data.scanned).toBe(1);
+      expect(data.skipped).toHaveLength(1);
+      expect(data.skipped[0]?.path).toBe("locked/");
+      expect(data.skipped[0]?.reason).toMatch(/^cannot read directory: EACCES/);
+    } finally {
+      chmodSync(join(root, "locked"), 0o755);
+    }
+  });
+
+  it("a sweep that read none of its files is an error that names why, never a clean pass", () => {
+    put("big.js", "x".repeat(MAX_UI_FILE_BYTES + 1));
+    symlinkSync(join(root, "big.js"), join(root, "link.js"));
+    const r = capture(["ds-usage-lint", root, "--tokens", TOKENS, "--json"]);
+    expect(r.code).toBe(1);
+    const err = JSON.parse(r.out).error as { code: string; message: string };
+    expect(err.code).toBe("NO_FILES_READ");
+    expect(err.message).toContain("read 0 of 2");
+    expect(err.message).toContain("big.js: larger than 2 MB");
+    expect(err.message).toContain("link.js: symlink not followed");
   });
 });
 

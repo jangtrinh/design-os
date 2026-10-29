@@ -68,6 +68,7 @@ export function formatDirectoryReport(r: DsUsageDirectoryReport): string {
     `ds-usage-lint: ${r.root} — scanned ${r.scanned} of ${r.total} files — ${r.hardcodedColorCount} hardcoded colour(s), ` +
       `${r.offSystemTokenCount} off-system token(s), ${r.undeclaredTokenCount} undeclared reference(s), ${r.offSystemFontCount} off-system font(s)`,
   ];
+  if (r.skipped.length > 0) lines.push(`  ${r.skipped.length} path(s) skipped:`);
   for (const s of r.skipped) lines.push(`  skipped ${s.path}: ${s.reason}`);
   for (const s of r.skippedChecks) lines.push(`  skipped ${s}`);
   if (r.unevaluatedFontCount > 0) lines.push(`  NOT EVALUATED: ${r.unevaluatedFontCount} font-family value(s) built at build time (\${...}) — read them in the built output`);

@@ -313,7 +313,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
         { name: "tokens", type: "string", summary: "DTCG token file to lint against instead of <dir>/design/design.tokens.json" },
       ],
-      errorCodes: [...IO_CODES, "DS_NOT_FOUND", "BAD_JSON", "NO_UI_FILES"],
+      errorCodes: [...IO_CODES, "DS_NOT_FOUND", "BAD_JSON", "NO_UI_FILES", "NO_FILES_READ"],
     },
   },
 
