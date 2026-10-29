@@ -72,6 +72,17 @@ describe("hardcoded-color keeps colours after a quoted segment", () => {
   });
 });
 
+describe("a colour value never runs on into the next tag", () => {
+  it("'color:' as page text, closed by a tag, does not claim the hex that follows the tag", () => {
+    expect(colours("p.html", `<p><b>color:</b><i>#ff0000 swatch</i></p>`)).toEqual([]);
+    expect(colours("p.html", `<p>background:<br>#00ff00</p>`)).toEqual([]);
+  });
+
+  it("a real declaration still reads through parentheses that hold a > or <", () => {
+    expect(colours("p.html", `<style>.a { background: linear-gradient(to right, #111111, #222222); }</style>`)).toEqual(["#111111"]);
+  });
+});
+
 describe("an interpolated var name is a dynamic reference", () => {
   it("var(--${name}) is counted as not evaluated and is not an undeclared-token error", () => {
     const src = "export const s = `.a { color: var(--${name}); background: var(--color-${tone}-fill); }`;";
