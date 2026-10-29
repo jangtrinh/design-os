@@ -11,6 +11,7 @@ import { runA11y } from "./ds-a11y-impl.js";
 import { runChangeToken } from "./ds-change-token-impl.js";
 import { runSetRole } from "./ds-set-role-impl.js";
 import { runStatus } from "./ds-status-impl.js";
+import { runReseal } from "./ds-reseal-impl.js";
 import { runImport } from "./ds-import-impl.js";
 import { runSpecimen } from "./ds-specimen-impl.js";
 import { runPreview } from "./ds-preview-impl.js";
@@ -30,6 +31,7 @@ Usage:
   ui ds change-token <path> --value <v> [options]
   ui ds set-role <token.path> <role> [--dir <project>] [--json]
   ui ds status   [--dir <project-dir>] [--json]
+  ui ds reseal   [--dir <project>] [--apply --reason "<text>"] [--json]
   ui ds diff <base-dir> <head-dir> [--format markdown|json|pr-comment] [--base-version <v>]
   ui ds docs [--dir <project>] [--out <file>] [--format markdown|json]
   ui ds a11y [--dir <project>] [--pairs "text:surface,..."] [--json]
@@ -49,6 +51,7 @@ Subcommands:
   set-role       Set/correct one token's recognized role — the owner-edit path for
                  recognition (spec 011 P2); 'ds context' reads this, never recomputes it
   status         Show the manifest summary (generation, persona, hashes)
+  reseal         Re-seal a store whose files drifted from the manifest hashes (preview by default)
   diff           Compare two DS states (dirs with design.tokens.json) → semver + visual-breaking classification
   docs           Regenerate component reference docs from the registry (decay-proof)
   a11y           Token-pair contrast audit (text×surface ≥ AA, incl. hover/active state pairs); exit 1 on a fail. Declared tokens only — not a conformance claim.
@@ -211,6 +214,19 @@ Subcommands:
   --reason "<text>"  Changelog note recorded with the mutation
   --dir <path>       Override the project directory
 
+'ds reseal' options:
+  --apply            Write: adopt the on-disk hashes into the manifest (default: preview, writes nothing)
+  --reason "<text>"  REQUIRED with --apply (max 256 chars); recorded in the manifest changelog
+  --dir <path>       Override the project directory
+  For a store that fails DS_TAMPERED because tokens or the registry no longer hash to what the
+  manifest sealed. Preview lists each drifted file's manifest hash and current hash plus its
+  current token/component count (the count at seal time is not recorded). --apply bumps the
+  generation and appends ONE changelog entry (kind reseal) with the reason and old -> new hash
+  per file; no store file is rewritten, only the manifest. Hash drift only: a file that fails
+  structural validation (bad JSON, schema, dangling alias, cycle) is refused, in preview and
+  apply - fix the file first. An untampered store reports 'nothing to reseal'; --apply is then
+  a no-op. A kit-bound store is refused (its lock pins the bytes).
+
 'ds set-role' options:
   <token.path>       Existing token path (e.g. color.surface-content) — BAD_TOKEN if unknown
   <role>             One of the canonical roles (background, foreground, card, popover,
@@ -307,6 +323,7 @@ Error codes:
   PERSONA_NOT_FOUND  --persona slug not in personas.json
   TOKEN_NOT_FOUND    'change-token' on a non-existent path
   BAD_ROLE           'set-role' <role> is not one of the canonical roles
+  RESEAL_REASON_REQUIRED  'ds reseal --apply' without a non-empty --reason
   UNKNOWN_FLAG       Unrecognised --flag
   BAD_ARG            Missing <tokens.json> on 'ds import'
   FILE_NOT_FOUND     'ds import' source file does not exist
@@ -389,6 +406,7 @@ export const dsCommand = {
       case "change-token": return runChangeToken(parsed);
       case "set-role":     return runSetRole(parsed);
       case "status":       return runStatus(parsed);
+      case "reseal":       return runReseal(parsed);
       case "diff":         return runDiff(parsed);
       case "docs":         return runDocs(parsed);
       case "a11y":         return runA11y(parsed);

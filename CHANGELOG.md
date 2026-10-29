@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-29 - ui ds reseal heals a store whose files drifted from the sealed hashes
+
+### Added
+- `ui ds reseal [--dir <project>] [--apply --reason "<text>"] [--json]`: the sanctioned way out of
+  `DS_TAMPERED` when `design.tokens.json` or the registry file no longer hashes to what
+  `design/ds.manifest.json` sealed (before this, the only escape was hand-editing the manifest hash,
+  which left no trace). The default is a preview: it prints each drifted file's manifest hash and
+  current hash plus its current token / component count, and writes nothing. `--apply` adopts the
+  on-disk hashes, bumps the generation and appends ONE changelog entry (`kind: "reseal"`) with the
+  reason and the old and new hash of every drifted file; `--reason` is required with `--apply`
+  (`RESEAL_REASON_REQUIRED`). No token or registry file is rewritten, only the manifest. Hash drift
+  only: a file that fails structural validation (not JSON, schema, dangling alias, alias cycle) is
+  refused in preview and apply, with the validation error named. An untampered store reports
+  "nothing to reseal" and `--apply` does nothing. A kit-bound store is refused.
+
 ## 2026-10-29 - ds guidelines: a skipped glossary names its line and cause
 
 ### Changed
@@ -18,6 +33,7 @@
   `terms: - term / vi / def / avoid` layout is described as unsupported, never as invalid YAML. A glossary
   skipped for a whole-file reason has no line number.
 - The build and `check` still succeed; the glossary is still skipped whole, never half-read.
+
 
 ## 2026-10-28 - mode-invisible-surface measures a tint on its real backdrop
 
