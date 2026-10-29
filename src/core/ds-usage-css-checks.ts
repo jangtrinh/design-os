@@ -24,39 +24,42 @@ import type { DsUsageFinding } from "./ds-usage-lint.js";
 
 // Longest-alternative-first so "background-color"/"border-color" win over their
 // shorter prefix siblings at the same start position.
-//
-// A value runs to the next `;` or `}` or, in an inline `style="..."` that ends without a `;`, to the
-// closing quote. It never crosses `<` or `>`: without that bound `style="color:var(--x)"` ran on through
-// the tag into page text up to the next `;` (a `&middot;` entity) and read a hex in a swatch label as a
-// hardcoded colour. `cutValue` then ends the value at the quote that closes the attribute.
-const COLOR_PROPS_RE = new RegExp(
-  String.raw`\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:\s*([^;{}<>]+)(?=[;}<>])`,
-  "gi",
-);
+const COLOR_PROP_RE =
+  /\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:/gi;
+const INLINE_STYLE_RE = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
+
+/** Value ranges `[start, end)` of the inline `style="..."` attributes in `scan`, in order. */
+function inlineStyleRanges(scan: string): [number, number][] {
+  const ranges: [number, number][] = [];
+  for (const m of scan.matchAll(INLINE_STYLE_RE)) {
+    const value = m[1] ?? m[2] ?? "";
+    const end = (m.index ?? 0) + m[0].length - 1; // the closing quote
+    ranges.push([end - value.length, end]);
+  }
+  return ranges;
+}
 
 /**
- * The part of a matched value that belongs to the declaration. A value that opens with a quote is a
- * string literal (`color:'#8A93A3'` in a JS object) and is that string. Otherwise the value ends at the
- * first quote outside parentheses: that is the quote closing an inline `style="..."`, and whatever
- * follows it (`title="#ff0000"`) is another attribute. A quote inside parentheses (`url("a.png")`)
- * belongs to the value, at any nesting depth.
+ * Where the value that starts at `from` ends. It stops at `;`, `{` or `}`; at a `<` or `>` outside
+ * parentheses (a value never runs on into the next tag: without that bound `style="color:var(--x)"`
+ * read through the tag into the page text up to the next `;`, an `&middot;` entity, and took a hex in
+ * a swatch label for a hardcoded colour); and at `limit`, the closing quote of an inline style. A
+ * quote anywhere else is part of the value (`url("a.png")`, a script object's `'#fff'`). One pass.
  */
-function cutValue(raw: string): string {
-  const v = raw.trimStart();
-  const first = v[0];
-  if (first === '"' || first === "'") {
-    const end = v.indexOf(first, 1);
-    return end === -1 ? v : v.slice(0, end + 1);
-  }
+function valueEnd(scan: string, from: number, limit: number): number {
   let depth = 0;
-  for (let i = 0; i < v.length; i++) {
-    const c = v[i];
+  for (let i = from; i < limit; i++) {
+    const c = scan[i];
+    if (c === ";" || c === "{" || c === "}") return i;
     if (c === "(") depth++;
     else if (c === ")") depth = Math.max(0, depth - 1);
-    else if ((c === '"' || c === "'") && depth === 0) return v.slice(0, i);
+    else if (depth === 0 && (c === "<" || c === ">")) return i;
   }
-  return v;
+  return limit;
 }
+
+/** An interpolated name (`var(--${x})`) reaches the linters as a run of underscores; no real token has three in a row. */
+const isDynamicName = (name: string): boolean => name.includes("___");
 const VAR_RE = /var\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,[^)]*)?\)/g;
 const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F])/;
 const COLOR_FN_RE = /\b(?:rgba?|hsla?)\s*\([^)]*\)/i;
@@ -103,15 +106,21 @@ export function pageDeclaredVarsOf(a: Analysed): Set<string> {
 }
 
 /** The v1 colour + token algorithm over one CSS-bearing text (lines are relative to it). */
-export function colourAndTokenFindings(a: Analysed, declaredVars: ReadonlySet<string>, pageVars: ReadonlySet<string>): DsUsageFinding[] {
+export function colourAndTokenFindings(
+  a: Analysed,
+  declaredVars: ReadonlySet<string>,
+  pageVars: ReadonlySet<string>,
+): { findings: DsUsageFinding[]; dynamicVarCount: number } {
   const { text, scan, inDeclRange } = a;
   const findings: DsUsageFinding[] = [];
+  let dynamicVarCount = 0;
 
   // ── var(--x) usage, component CSS only (decl-block usage is the alias layer itself) ──
   for (const m of scan.matchAll(VAR_RE)) {
     const idx = m.index ?? 0;
     if (inDeclRange(idx)) continue;
     const name = m[1] as string;
+    if (isDynamicName(name)) { dynamicVarCount++; continue; } // built at build time: counted, not judged
     if (declaredVars.has(name)) continue; // real DS token — fine
     const line = lineOf(text, idx);
     if (pageVars.has(name)) {
@@ -132,14 +141,21 @@ export function colourAndTokenFindings(a: Analysed, declaredVars: ReadonlySet<st
   }
 
   // ── hardcoded colour literal in a colour-bearing property, component CSS only ──
-  for (const m of scan.matchAll(COLOR_PROPS_RE)) {
-    const idx = m.index ?? 0;
+  const ranges = inlineStyleRanges(scan);
+  let r = 0;
+  COLOR_PROP_RE.lastIndex = 0;
+  for (let m = COLOR_PROP_RE.exec(scan); m !== null; m = COLOR_PROP_RE.exec(scan)) {
+    const idx = m.index;
+    const start = idx + m[0].length;
+    while (r < ranges.length && (ranges[r] as [number, number])[1] <= idx) r++;
+    const range = ranges[r];
+    const limit = range !== undefined && range[0] <= idx ? range[1] : scan.length;
+    const end = valueEnd(scan, start, limit);
+    COLOR_PROP_RE.lastIndex = end; // the value is consumed: a property inside it is not a second declaration
     if (inDeclRange(idx)) continue;
     const prop = (m[1] as string).toLowerCase();
-    const value = cutValue(m[2] as string).trim();
-    const hexHit = HEX_RE.exec(value)?.[0];
-    const fnHit = COLOR_FN_RE.exec(value)?.[0];
-    const literal = hexHit ?? fnHit;
+    const value = scan.slice(start, end).trim();
+    const literal = HEX_RE.exec(value)?.[0] ?? COLOR_FN_RE.exec(value)?.[0];
     if (literal === undefined) continue;
     findings.push({
       checkId: "hardcoded-color",
@@ -148,5 +164,5 @@ export function colourAndTokenFindings(a: Analysed, declaredVars: ReadonlySet<st
       line: lineOf(text, idx),
     });
   }
-  return findings;
+  return { findings, dynamicVarCount };
 }

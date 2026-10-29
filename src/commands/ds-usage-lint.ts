@@ -100,6 +100,9 @@ function formatReport(file: string, r: DsUsageLintResult): string {
   if (r.unevaluatedFontCount > 0) {
     lines.push(`  NOT EVALUATED: ${r.unevaluatedFontCount} font-family value(s) built at build time (\${...}) — read them in the built output`);
   }
+  if (r.unevaluatedVarCount > 0) {
+    lines.push(`  NOT EVALUATED: ${r.unevaluatedVarCount} var(--...) reference(s) whose name is built at build time (\${...})`);
+  }
   lines.push("  NOTE: proves token usage in the page's own CSS only — not rendered colour; not a conformance claim.");
   return lines.join("\n") + "\n";
 }

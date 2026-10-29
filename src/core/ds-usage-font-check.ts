@@ -46,13 +46,26 @@ export interface FontViolation {
 }
 
 const CSS_WIDE = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
-const FONT_FAMILY_DECL_RE = /(?<![\w-])font-family\s*:\s*([^;{}]+)/gi;
+const FONT_FAMILY_DECL_RE = /(?<![\w-])font-family\s*:\s*/gi;
+const DECLARATION_VALUE_RE = /[^;{}]*/y;
+const STACK_ENTRY_RE = /\s*(?:"([^"]*)"|'([^']*)'|([^,]*))/y;
 const FONT_UTILITY_RE = /^font-(mono|serif|sans)$/;
 
-/** First family of a font stack: quotes stripped, trimmed, lower-cased. "" when there is none. */
+/**
+ * First family of a font stack: quotes stripped, trimmed, lower-cased. An empty entry (`"", Menlo`) is
+ * not a family, so the next entry is judged instead. "" when the stack holds no name at all. One pass.
+ */
 export function firstFamily(stack: string): string {
-  const m = /^\s*(?:"([^"]*)"|'([^']*)'|([^,]*))/.exec(stack);
-  return (m?.[1] ?? m?.[2] ?? m?.[3] ?? "").trim().toLowerCase();
+  let from = 0;
+  for (;;) {
+    STACK_ENTRY_RE.lastIndex = from;
+    const m = STACK_ENTRY_RE.exec(stack);
+    const name = (m?.[1] ?? m?.[2] ?? m?.[3] ?? "").trim().toLowerCase();
+    if (name !== "") return name;
+    const comma = stack.indexOf(",", STACK_ENTRY_RE.lastIndex);
+    if (comma === -1) return "";
+    from = comma + 1;
+  }
 }
 
 function roleOf(tokenPath: string): FontRole | undefined {
@@ -107,10 +120,15 @@ export function checkFontFamilyDeclarations(
 ): { violations: FontViolation[]; dynamic: number } {
   const violations: FontViolation[] = [];
   let dynamic = 0;
-  for (const m of css.matchAll(FONT_FAMILY_DECL_RE)) {
-    const idx = m.index ?? 0;
-    if (skipAt(idx)) continue;
-    const stack = (m[1] as string).replace(/!\s*important\s*$/i, "").trim();
+  FONT_FAMILY_DECL_RE.lastIndex = 0;
+  for (let m = FONT_FAMILY_DECL_RE.exec(css); m !== null; m = FONT_FAMILY_DECL_RE.exec(css)) {
+    const idx = m.index;
+    const start = idx + m[0].length;
+    DECLARATION_VALUE_RE.lastIndex = start;
+    const end = start + (DECLARATION_VALUE_RE.exec(css)?.[0].length ?? 0);
+    FONT_FAMILY_DECL_RE.lastIndex = end; // the value is consumed: a second `font-family:` inside it is not a declaration
+    if (end === start || skipAt(idx)) continue;
+    const stack = css.slice(start, end).replace(/!\s*important\s*$/i, "").trim();
     const family = firstFamily(stack);
     if (family === "" || CSS_WIDE.has(family) || family.startsWith("var(")) continue;
     if (/^_+$/.test(family)) { dynamic++; continue; }

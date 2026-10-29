@@ -57,6 +57,8 @@ export interface DsUsageLintResult {
   offSystemFontCount: number;
   /** font-family values built at build time (`${…}`) that could not be evaluated — counted, never passed silently. */
   unevaluatedFontCount: number;
+  /** `var(--${x})` references whose name is built at build time: counted, never judged. */
+  unevaluatedVarCount: number;
   /** Checks that did not run, each with its reason ("<check>: <why>"). Empty when everything ran. */
   skippedChecks: string[];
 }
@@ -89,7 +91,7 @@ function fontFindings(records: readonly UiRecord[], fonts: FontTokenModel): { fi
   return { findings, unevaluated };
 }
 
-function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number, skippedChecks: string[]): DsUsageLintResult {
+function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number, unevaluatedVarCount: number, skippedChecks: string[]): DsUsageLintResult {
   findings.sort((a, b) => a.line - b.line);
   const errorCount = findings.filter((f) => f.severity === "error").length;
   const count = (id: DsUsageCheckId): number => findings.filter((f) => f.checkId === id).length;
@@ -102,6 +104,7 @@ function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number, ski
     undeclaredTokenCount: count("undeclared-token"),
     offSystemFontCount: count("off-system-font"),
     unevaluatedFontCount,
+    unevaluatedVarCount,
     skippedChecks,
   };
 }
@@ -116,20 +119,25 @@ export function lintDsUsageOnMarkup(source: string, opts: DsUsageLintOptions & {
   const file = opts.file ?? "markup.html";
   const records = extractUiRecords(file, source);
   const findings: DsUsageFinding[] = [];
+  let dynamicVars = 0;
   if (uiSourceExtension(file) === ".html") {
     const a = analyse(source, true);
-    findings.push(...colourAndTokenFindings(a, opts.declaredVars, pageDeclaredVarsOf(a)));
+    const found = colourAndTokenFindings(a, opts.declaredVars, pageDeclaredVarsOf(a));
+    findings.push(...found.findings);
+    dynamicVars += found.dynamicVarCount;
   } else {
     const parts = records.filter((r) => r.styles !== "").map((r) => ({ r, a: analyse(r.styles, false) }));
     const pageVars = new Set(parts.flatMap(({ a }) => [...pageDeclaredVarsOf(a)]));
     for (const { r, a } of parts) {
-      for (const f of colourAndTokenFindings(a, opts.declaredVars, pageVars)) findings.push({ ...f, line: r.line + f.line - 1 });
+      const found = colourAndTokenFindings(a, opts.declaredVars, pageVars);
+      for (const f of found.findings) findings.push({ ...f, line: r.line + f.line - 1 });
+      dynamicVars += found.dynamicVarCount;
     }
   }
   // A design system without a fontFamily token has nothing to compare fonts against: the rule is skipped, loudly.
   const skipReason = opts.fonts === undefined ? undefined : fontRuleSkipReason(opts.fonts);
   const fonts = opts.fonts === undefined || skipReason !== undefined ? { findings: [], unevaluated: 0 } : fontFindings(records, opts.fonts);
-  return summarise([...findings, ...fonts.findings], fonts.unevaluated, skipReason === undefined ? [] : [skipReason]);
+  return summarise([...findings, ...fonts.findings], fonts.unevaluated, dynamicVars, skipReason === undefined ? [] : [skipReason]);
 }
 
 /** HTML in, findings out — the original entry point. */

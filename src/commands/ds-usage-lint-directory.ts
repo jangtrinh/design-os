@@ -32,6 +32,7 @@ export interface DsUsageDirectoryReport {
   undeclaredTokenCount: number;
   offSystemFontCount: number;
   unevaluatedFontCount: number;
+  unevaluatedVarCount: number;
 }
 
 type ReportFinding = DsUsageFinding | { checkId: string; severity: string; message: string; line?: number };
@@ -42,7 +43,7 @@ export function lintDirectory(root: string, opts: DsUsageLintOptions): DsUsageDi
   const files: DsUsageFileReport[] = [];
   const skippedChecks = new Set<string>();
   let scanned = 0;
-  const sum = { errorCount: 0, warningCount: 0, hardcodedColorCount: 0, offSystemTokenCount: 0, undeclaredTokenCount: 0, offSystemFontCount: 0, unevaluatedFontCount: 0 };
+  const sum = { errorCount: 0, warningCount: 0, hardcodedColorCount: 0, offSystemTokenCount: 0, undeclaredTokenCount: 0, offSystemFontCount: 0, unevaluatedFontCount: 0, unevaluatedVarCount: 0 };
   walk.files.forEach((abs, i) => {
     const rel = walk.relative[i] as string;
     let text: string;
@@ -70,6 +71,7 @@ export function formatDirectoryReport(r: DsUsageDirectoryReport): string {
   for (const s of r.skipped) lines.push(`  skipped ${s.path}: ${s.reason}`);
   for (const s of r.skippedChecks) lines.push(`  skipped ${s}`);
   if (r.unevaluatedFontCount > 0) lines.push(`  NOT EVALUATED: ${r.unevaluatedFontCount} font-family value(s) built at build time (\${...}) — read them in the built output`);
+  if (r.unevaluatedVarCount > 0) lines.push(`  NOT EVALUATED: ${r.unevaluatedVarCount} var(--...) reference(s) whose name is built at build time (\${...})`);
   for (const f of r.files) {
     lines.push(`  ${f.file}: ${f.errorCount} error(s), ${f.warningCount} warning(s)`);
     for (const x of f.findings as ReportFinding[]) {

@@ -12,6 +12,10 @@
  *            string/template literal (so `cn("font-mono")`, `clsx(...)`, Vue `:class="['a']"` count).
  *   markup   the whole source, on ONE record per file (line 1) — the text token-ban rules scan.
  *
+ * Every span is read once and then blanked, so a `<style>` or `style=` written inside a template
+ * literal is not read a second time as "CSS-looking" text. Scans are single passes (no regex that
+ * restarts at every opener), so an unterminated comment, `<style`, `${` or `style={{` costs one pass.
+ *
  * Comments are blanked first (same length, so offsets and lines hold). Template-literal `${…}`
  * interpolations become runs of `_`: an interpolated value is unknown, and the linters treat an
  * all-underscore value as "dynamic" rather than guessing at it. Honesty (Art VIII): this reads the
@@ -38,20 +42,162 @@ export function uiSourceExtension(path: string): string | undefined {
   return UI_SOURCE_EXTENSIONS.find((e) => e === ext);
 }
 
-const STYLE_BLOCK_RE = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
 const INLINE_STYLE_RE = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
-const JSX_STYLE_OBJECT_RE = /\bstyle\s*=\s*\{\{([^}]*)\}\}/g;
+const JSX_STYLE_OPEN_RE = /\bstyle\s*=\s*\{\{/g;
 const OBJECT_PAIR_RE = /\b([A-Za-z]+)\s*:\s*(?:"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`)/g;
 const FONT_FAMILY_PROP_RE = /\bfontFamily\s*:\s*(?:"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`)/g;
-const TEMPLATE_LITERAL_RE = /`((?:\\.|[^`\\])*)`/g;
-const CSS_LOOKING_RE = /\{[^{}]*[\w-]\s*:\s*[^{};]+;?[^{}]*\}/;
 const CLASS_ATTR_RE = /\b(?:class|className)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
-const STRING_LITERAL_RE = /"([^"\n]*)"|'([^'\n]*)'|`((?:\\.|[^`\\])*)`/g;
+const STYLE_OPEN_RE = /<style\b/gi;
+const STYLE_CLOSE_RE = /<\/style>/gi;
+/** A property declaration inside a brace-free block: `name: value` with at least one value character. */
+const DECLARATION_RE = /[\w-]\s*:[^;]/;
 
 const underscores = (m: string): string => m.replace(/[^\n]/g, "_");
 const spaces = (m: string): string => m.replace(/[^\n]/g, " ");
 const kebab = (camel: string): string => camel.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
 const firstDefined = (m: RegExpMatchArray, from = 1): string => m.slice(from).find((g) => g !== undefined) ?? "";
+
+/** Blank every `open…close` span; an opener with no closer is left as it is. One pass. */
+function blankDelimited(text: string, open: string, close: string, fill: (span: string) => string): string {
+  let out = "";
+  let from = 0;
+  for (;;) {
+    const a = text.indexOf(open, from);
+    if (a === -1) break;
+    const b = text.indexOf(close, a + open.length);
+    if (b === -1) break;
+    out += text.slice(from, a) + fill(text.slice(a, b + close.length));
+    from = b + close.length;
+  }
+  return out + text.slice(from);
+}
+
+/** Replace each `${…}` (up to the first `}`) with underscores of the same length. One pass. */
+function blankInterpolations(text: string): string {
+  let out = "";
+  let from = 0;
+  let close = -1;
+  for (;;) {
+    const a = text.indexOf("${", from);
+    if (a === -1) break;
+    if (close < a + 2) {
+      close = text.indexOf("}", a + 2);
+      if (close === -1) break;
+    }
+    out += text.slice(from, a) + underscores(text.slice(a, close + 1));
+    from = close + 1;
+  }
+  return out + text.slice(from);
+}
+
+/** Read every `<style>…</style>` through `read`, and return the text with those spans blanked. One pass. */
+function readStyleBlocks(text: string, read: (offset: number, css: string) => void): string {
+  let out = "";
+  let from = 0;
+  let gt = -1;
+  for (;;) {
+    STYLE_OPEN_RE.lastIndex = from;
+    const open = STYLE_OPEN_RE.exec(text);
+    if (open === null) break;
+    if (gt < open.index) {
+      gt = text.indexOf(">", open.index);
+      if (gt === -1) break;
+    }
+    STYLE_CLOSE_RE.lastIndex = gt + 1;
+    const close = STYLE_CLOSE_RE.exec(text);
+    if (close === null) break; // no closer after this opener means none after any later one either
+    const css = text.slice(gt + 1, close.index);
+    if (css.trim() !== "") read(gt + 1, css);
+    const end = close.index + close[0].length;
+    out += text.slice(from, open.index) + spaces(text.slice(open.index, end));
+    from = end;
+  }
+  return out + text.slice(from);
+}
+
+/** Read every `style={{ … }}` through `read` and blank it. The body is whatever precedes the first `}`. One pass. */
+function readJsxStyleObjects(text: string, read: (offset: number, body: string) => void): string {
+  let out = "";
+  let from = 0;
+  let brace = -1;
+  for (;;) {
+    JSX_STYLE_OPEN_RE.lastIndex = from;
+    const open = JSX_STYLE_OPEN_RE.exec(text);
+    if (open === null) break;
+    const bodyStart = open.index + open[0].length;
+    if (brace < bodyStart) {
+      brace = text.indexOf("}", bodyStart);
+      if (brace === -1) break;
+    }
+    if (text[brace + 1] !== "}") {
+      from = bodyStart;
+      continue;
+    }
+    read(open.index, text.slice(bodyStart, brace));
+    out += text.slice(from, open.index) + spaces(text.slice(open.index, brace + 2));
+    from = brace + 2;
+  }
+  return out + text.slice(from);
+}
+
+/** Index just past the backtick that closes the template literal opened before `from`, or -1 when none does. */
+function templateEnd(text: string, from: number): number {
+  let j = from;
+  while (j < text.length && text[j] !== "`") j += text[j] === "\\" ? 2 : 1;
+  return j >= text.length ? -1 : j;
+}
+
+/** Contents and offsets of the template literals in `text`. An unterminated one ends the scan. One pass. */
+function templateLiterals(text: string): { at: number; value: string }[] {
+  const found: { at: number; value: string }[] = [];
+  let i = text.indexOf("`");
+  while (i !== -1) {
+    const end = templateEnd(text, i + 1);
+    if (end === -1) break;
+    found.push({ at: i + 1, value: text.slice(i + 1, end) });
+    i = text.indexOf("`", end + 1);
+  }
+  return found;
+}
+
+/** String and template literals in `text`, left to right, each as its inner text. One pass. */
+function* stringLiterals(text: string): Generator<{ at: number; value: string }> {
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === "`") {
+      const end = templateEnd(text, i + 1);
+      if (end === -1) return;
+      yield { at: i, value: text.slice(i + 1, end) };
+      i = end + 1;
+    } else if (c === '"' || c === "'") {
+      const nl = text.indexOf("\n", i + 1);
+      const end = text.indexOf(c, i + 1);
+      if (end !== -1 && (nl === -1 || end < nl)) {
+        yield { at: i, value: text.slice(i + 1, end) };
+        i = end + 1;
+      } else {
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+}
+
+/** True when `text` holds a `{ … }` block, free of nested braces, with a `name: value` declaration. One pass. */
+function looksLikeCss(text: string): boolean {
+  let open = -1;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === "{") open = i;
+    else if (c === "}" && open !== -1) {
+      if (DECLARATION_RE.test(text.slice(open + 1, i))) return true;
+      open = -1;
+    }
+  }
+  return false;
+}
 
 /** Class tokens of one attribute/string value; punctuation around a token (`'a'`, `{b`) is shed. */
 function classTokens(value: string): string[] {
@@ -65,8 +211,8 @@ export function extractUiRecords(file: string, source: string): UiRecord[] {
   const ext = uiSourceExtension(file);
   if (ext === undefined) return [];
   const isScript = SCRIPT_EXTENSIONS.has(ext);
-  let text = source.replace(/<!--[\s\S]*?-->/g, spaces).replace(/\/\*[\s\S]*?\*\//g, spaces);
-  if (ext !== ".html") text = text.replace(/\$\{[^}]*\}/g, underscores);
+  let text = blankDelimited(blankDelimited(source, "<!--", "-->", spaces), "/*", "*/", spaces);
+  if (ext !== ".html") text = blankInterpolations(text);
   if (isScript) text = text.replace(/(^|\s)\/\/[^\n]*/g, (m) => spaces(m));
   const lines = createLineIndex(source);
   const records: UiRecord[] = [{ file, line: 1, styles: "", classes: [], markup: source }];
@@ -74,33 +220,32 @@ export function extractUiRecords(file: string, source: string): UiRecord[] {
     records.push({ file, line: lines.lineOf(at), styles: "", classes: [], markup: "", ...patch });
   };
 
-  for (const m of text.matchAll(STYLE_BLOCK_RE)) {
-    if ((m[1] ?? "").trim() !== "") push((m.index ?? 0) + m[0].indexOf(">") + 1, { styles: m[1] as string });
-  }
-  for (const m of text.matchAll(INLINE_STYLE_RE)) push(m.index ?? 0, { styles: `*{${firstDefined(m)}}` });
+  // Read, then blank: each span is read exactly once, however it is nested in a template literal.
+  text = readStyleBlocks(text, (at, css) => push(at, { styles: css }));
+  text = text.replace(INLINE_STYLE_RE, (whole: string, d: string | undefined, s: string | undefined, offset: number) => {
+    push(offset, { styles: `*{${d ?? s ?? ""}}` });
+    return spaces(whole);
+  });
   if (isScript || ext === ".svelte" || ext === ".vue") {
-    // Read, then blank: the same pairs must not be read again as bare CSS-in-JS properties below.
-    text = text.replace(JSX_STYLE_OBJECT_RE, (whole: string, body: string, offset: number) => {
+    text = readJsxStyleObjects(text, (at, body) => {
       const decls = [...body.matchAll(OBJECT_PAIR_RE)].map((p) => `${kebab(p[1] as string)}: ${firstDefined(p, 2)};`);
-      if (decls.length > 0) push(offset, { styles: `*{${decls.join(" ")}}` });
-      return spaces(whole);
+      if (decls.length > 0) push(at, { styles: `*{${decls.join(" ")}}` });
     });
   }
   if (isScript) {
-    for (const m of text.matchAll(TEMPLATE_LITERAL_RE)) {
-      if (CSS_LOOKING_RE.test(m[1] as string)) push((m.index ?? 0) + 1, { styles: m[1] as string });
+    for (const t of templateLiterals(text)) {
+      if (looksLikeCss(t.value)) push(t.at, { styles: t.value });
     }
     for (const m of text.matchAll(FONT_FAMILY_PROP_RE)) push(m.index ?? 0, { styles: `*{font-family: ${firstDefined(m)};}` });
   }
-  // Read, then blank: a class attribute's string must not be read again as a bare string literal below.
-  text = text.replace(CLASS_ATTR_RE, (whole: string, d: string, s: string, t: string, offset: number) => {
+  text = text.replace(CLASS_ATTR_RE, (whole: string, d: string | undefined, s: string | undefined, t: string | undefined, offset: number) => {
     push(offset, { classes: classTokens(d ?? s ?? t ?? "") });
     return spaces(whole);
   });
   if (ext !== ".html") {
-    for (const m of text.matchAll(STRING_LITERAL_RE)) {
-      const tokens = classTokens(firstDefined(m));
-      if (tokens.length > 0) push(m.index ?? 0, { classes: tokens });
+    for (const lit of stringLiterals(text)) {
+      const tokens = classTokens(lit.value);
+      if (tokens.length > 0) push(lit.at, { classes: tokens });
     }
   }
   return records.sort((a, b) => a.line - b.line);
