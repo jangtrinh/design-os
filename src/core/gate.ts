@@ -154,6 +154,7 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
         continue;
       }
       const r = runDsUsageFamily(html, opts.dsUsage);
+      skipped.push(...r.skipped);
       families["ds-usage"] = { ...familyResult(r.findings), ...(r.notes.length > 0 && { notes: r.notes }) };
     } else {
       // Dry-run cleanliness: any repair the autofixer WOULD apply is a floor the

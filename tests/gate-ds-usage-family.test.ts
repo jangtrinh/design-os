@@ -93,6 +93,50 @@ describe("runGate ds-usage family", () => {
   });
 });
 
+describe("a design system with no fontFamily token", () => {
+  const COLOUR_ONLY = (() => {
+    const r = resolveTokens(parseTokenFile({ colors: { brand: { $type: "color", $value: "#3b82f6" } } }));
+    return { declaredVars: declaredCssVarNames(r), fonts: fontTokenModel(r) };
+  })();
+  const NOTE = "ds-usage/off-system-font: the design system declares no fontFamily token";
+
+  it("the font rule is skipped with a printed reason; monospace stack and font-mono are not findings; colour still runs", () => {
+    const html = page(".a { font-family: ui-monospace, Menlo; color: #ff0000; }", `<p class="font-mono">x</p>`);
+    const r = runGate(html, { dsUsage: { lint: COLOUR_ONLY, rules: [] } });
+    expect(idsOf(r)).toEqual(["hardcoded-color"]);
+    expect(r.skipped).toContain(NOTE);
+  });
+
+  it("promoted rules still run alongside the skip", () => {
+    const r = runGate(page("", `<p class="font-mono">x</p>`), { dsUsage: { lint: COLOUR_ONLY, rules: [rule()] } });
+    expect(idsOf(r)).toEqual(["token-ban/ns-01"]);
+    expect(r.skipped).toContain(NOTE);
+  });
+
+  it("a design system WITH a fontFamily token keeps flagging and does not report the skip", () => {
+    const r = runGate(MONO_PAGE, { dsUsage: { lint: LINT, rules: [] } });
+    expect(idsOf(r)).toEqual(["off-system-font"]);
+    expect(r.skipped.some((s) => s.includes("off-system-font"))).toBe(false);
+  });
+
+  it("the CLI prints the skip under the ds-usage family and the JSON carries it in skipped[]", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-gate-nofont-"));
+    try {
+      const tokens = join(dir, "tokens.json");
+      writeFileSync(tokens, JSON.stringify({ colors: { brand: { $type: "color", $value: "#3b82f6" } } }));
+      const file = join(dir, "p.html");
+      writeFileSync(file, MONO_PAGE);
+      const text = capture(["gate", file, "--tokens", tokens]);
+      expect(text.out).toContain(`  skipped ${NOTE}`);
+      expect(text.out).not.toContain("OFF_SYSTEM_FONT");
+      const json = capture(["gate", file, "--tokens", tokens, "--json"]);
+      expect(JSON.parse(json.out).data.skipped).toContain(NOTE);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("promoted token-ban rules in the ds-usage family", () => {
   const body = `<code class="font-mono">a</code><p class="font-mono">b</p>`;
 

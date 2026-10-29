@@ -37,6 +37,8 @@ export const DS_USAGE_SKIP_REASON =
 
 export interface DsUsageFamilyOutput {
   findings: FloorFindingBase[];
+  /** Checks of the family that did not run, as `ds-usage/<check>: <why>`; the gate reports them in its `skipped` list. */
+  skipped: string[];
   /** Printed under the family: what the rules kept out of the findings. */
   notes: string[];
 }
@@ -60,10 +62,11 @@ export function loadDsUsageGateInput(o: { tokensPath?: string; designDir?: strin
 export function runDsUsageFamily(html: string, input: DsUsageGateInput): DsUsageFamilyOutput {
   const findings: FloorFindingBase[] = [];
   const notes: string[] = [];
+  const skipped: string[] = [];
   if (input.lint !== undefined) {
-    for (const f of lintDsUsageOnMarkup(html, { ...input.lint, file: "page.html" }).findings) {
-      findings.push({ checkId: f.checkId, severity: f.severity, message: f.message, line: f.line });
-    }
+    const linted = lintDsUsageOnMarkup(html, { ...input.lint, file: "page.html" });
+    for (const f of linted.findings) findings.push({ checkId: f.checkId, severity: f.severity, message: f.message, line: f.line });
+    for (const s of linted.skippedChecks) skipped.push(`ds-usage/${s}`);
   }
   if (input.rules.length > 0) {
     const { findings: hits, excluded } = evaluateTokenBansDetailed(input.rules, html);
@@ -81,5 +84,5 @@ export function runDsUsageFamily(html: string, input: DsUsageGateInput): DsUsage
     }
   }
   findings.sort((a, b) => (a.line ?? 0) - (b.line ?? 0));
-  return { findings, notes };
+  return { findings, skipped, notes };
 }

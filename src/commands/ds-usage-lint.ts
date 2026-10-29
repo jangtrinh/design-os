@@ -52,6 +52,9 @@ literals like 1px borders / 50% radii are legitimate and lower-signal):
                                 built at build time (\${...}) are counted as
                                 NOT EVALUATED, never passed silently.
 
+A design system that declares no fontFamily token has nothing to compare fonts with: off-system-font does
+not run for it and the report says so ("skipped off-system-font: ..."). Colour checks still run.
+
 Token-declaration blocks (:root / @theme / html / body / [data-theme="..."] / .dark) and @font-face
 bodies are not checked — they hold the literal values that ARE the token definitions.
 
@@ -61,7 +64,7 @@ colour or font, gradients, or inline-SVG fills it did not parse. Not a conforman
 Options:
   --dir <path>      Project directory holding design/ (default: cwd)
   --tokens <file>   Use this DTCG token file instead of <dir>/design/design.tokens.json
-  --json            Emit a JSON envelope
+  --json            Emit a JSON envelope (skipped checks are in "skippedChecks")
   -h, --help        Show this help
 
 Exit codes:
@@ -93,6 +96,7 @@ function formatReport(file: string, r: DsUsageLintResult): string {
     const loc = f.line !== undefined ? ` line ${f.line}` : "";
     lines.push(`  ${mark} [${f.checkId}]${loc}: ${f.message}`);
   }
+  for (const s of r.skippedChecks) lines.push(`  skipped ${s}`);
   if (r.unevaluatedFontCount > 0) {
     lines.push(`  NOT EVALUATED: ${r.unevaluatedFontCount} font-family value(s) built at build time (\${...}) — read them in the built output`);
   }

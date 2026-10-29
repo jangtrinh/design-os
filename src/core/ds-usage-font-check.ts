@@ -19,6 +19,10 @@
  *   - Tailwind `font-mono` / `font-serif` / `font-sans` are backed only by a fontFamily token whose
  *     NAME ends in that word (`…-mono`); the utility's stack lives in a config this tool does not read.
  *
+ * A design system that declares NO fontFamily token has nothing to compare against, so the rule does not
+ * run for it: `fontRuleSkipReason` names that, and every caller reports it (nothing vanishes silently).
+ * A design system with at least one fontFamily token, leaf or typography member, runs the rule in full.
+ *
  * Not checked on purpose: `@font-face` bodies (they define a family, they do not apply one) and the
  * token-declaration blocks the colour check already skips. The `font:` shorthand is not parsed.
  */
@@ -80,10 +84,15 @@ export function fontTokenModel(resolved: ResolvedMap): FontTokenModel {
   return { firstFamilies, roles, cssVars };
 }
 
+/** Why the font rule does not run for this design system, or undefined when it does. */
+export function fontRuleSkipReason(fonts: FontTokenModel): string | undefined {
+  return fonts.firstFamilies.size === 0 ? "off-system-font: the design system declares no fontFamily token" : undefined;
+}
+
 const hint = (fonts: FontTokenModel): string =>
   fonts.cssVars.length > 0
     ? `use a font token (${fonts.cssVars.slice(0, 3).map((v) => `var(${v})`).join(", ")}) or 'font-family: inherit'`
-    : "the design system declares no fontFamily token — add one with 'ui ds change-token' or use 'font-family: inherit'";
+    : "use the design system's typography font or 'font-family: inherit'"; // fonts live only in typography tokens, which have no var of their own to name
 
 /**
  * Violations among the `font-family` declarations of one CSS text (comments already blanked).

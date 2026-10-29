@@ -33,7 +33,7 @@ import { createLineIndex } from "./line-index.js";
 import { analyse, colourAndTokenFindings, pageDeclaredVarsOf } from "./ds-usage-css-checks.js";
 import { extractUiRecords, uiSourceExtension } from "./polyglot-ui-extractor.js";
 import type { UiRecord } from "./polyglot-ui-extractor.js";
-import { checkFontFamilyDeclarations, checkFontUtilities } from "./ds-usage-font-check.js";
+import { checkFontFamilyDeclarations, checkFontUtilities, fontRuleSkipReason } from "./ds-usage-font-check.js";
 import type { FontTokenModel } from "./ds-usage-font-check.js";
 
 export type DsUsageSeverity = "error" | "warning";
@@ -57,6 +57,8 @@ export interface DsUsageLintResult {
   offSystemFontCount: number;
   /** font-family values built at build time (`${…}`) that could not be evaluated — counted, never passed silently. */
   unevaluatedFontCount: number;
+  /** Checks that did not run, each with its reason ("<check>: <why>"). Empty when everything ran. */
+  skippedChecks: string[];
 }
 
 export interface DsUsageLintOptions {
@@ -87,7 +89,7 @@ function fontFindings(records: readonly UiRecord[], fonts: FontTokenModel): { fi
   return { findings, unevaluated };
 }
 
-function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number): DsUsageLintResult {
+function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number, skippedChecks: string[]): DsUsageLintResult {
   findings.sort((a, b) => a.line - b.line);
   const errorCount = findings.filter((f) => f.severity === "error").length;
   const count = (id: DsUsageCheckId): number => findings.filter((f) => f.checkId === id).length;
@@ -100,6 +102,7 @@ function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number): Ds
     undeclaredTokenCount: count("undeclared-token"),
     offSystemFontCount: count("off-system-font"),
     unevaluatedFontCount,
+    skippedChecks,
   };
 }
 
@@ -123,8 +126,10 @@ export function lintDsUsageOnMarkup(source: string, opts: DsUsageLintOptions & {
       for (const f of colourAndTokenFindings(a, opts.declaredVars, pageVars)) findings.push({ ...f, line: r.line + f.line - 1 });
     }
   }
-  const fonts = opts.fonts === undefined ? { findings: [], unevaluated: 0 } : fontFindings(records, opts.fonts);
-  return summarise([...findings, ...fonts.findings], fonts.unevaluated);
+  // A design system without a fontFamily token has nothing to compare fonts against: the rule is skipped, loudly.
+  const skipReason = opts.fonts === undefined ? undefined : fontRuleSkipReason(opts.fonts);
+  const fonts = opts.fonts === undefined || skipReason !== undefined ? { findings: [], unevaluated: 0 } : fontFindings(records, opts.fonts);
+  return summarise([...findings, ...fonts.findings], fonts.unevaluated, skipReason === undefined ? [] : [skipReason]);
 }
 
 /** HTML in, findings out — the original entry point. */

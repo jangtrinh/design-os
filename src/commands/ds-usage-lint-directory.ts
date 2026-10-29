@@ -23,6 +23,8 @@ export interface DsUsageDirectoryReport {
   skipped: UiSkip[];
   /** Only files with at least one finding; the rest are `scanned` minus `files.length`. */
   files: DsUsageFileReport[];
+  /** Checks that did not run for the whole sweep (one design system, so one list), each with its reason. */
+  skippedChecks: string[];
   errorCount: number;
   warningCount: number;
   hardcodedColorCount: number;
@@ -38,6 +40,7 @@ export function lintDirectory(root: string, opts: DsUsageLintOptions): DsUsageDi
   const walk = walkUiSources(root);
   const skipped = [...walk.skipped];
   const files: DsUsageFileReport[] = [];
+  const skippedChecks = new Set<string>();
   let scanned = 0;
   const sum = { errorCount: 0, warningCount: 0, hardcodedColorCount: 0, offSystemTokenCount: 0, undeclaredTokenCount: 0, offSystemFontCount: 0, unevaluatedFontCount: 0 };
   walk.files.forEach((abs, i) => {
@@ -52,10 +55,11 @@ export function lintDirectory(root: string, opts: DsUsageLintOptions): DsUsageDi
     const linted = lintDsUsageOnMarkup(loaded.html, { ...opts, file: rel });
     const result: DsUsageLintResult = loaded.errors.length === 0 ? linted
       : { ...linted, findings: [...loaded.errors, ...linted.findings] as DsUsageFinding[], errorCount: linted.errorCount + loaded.errors.length };
+    for (const s of result.skippedChecks) skippedChecks.add(s);
     for (const k of Object.keys(sum) as (keyof typeof sum)[]) sum[k] += result[k];
     if (result.findings.length > 0) files.push({ file: rel, ...result });
   });
-  return { root, scanned, total: walk.total, skipped, files, ...sum };
+  return { root, scanned, total: walk.total, skipped, files, skippedChecks: [...skippedChecks], ...sum };
 }
 
 export function formatDirectoryReport(r: DsUsageDirectoryReport): string {
@@ -64,6 +68,7 @@ export function formatDirectoryReport(r: DsUsageDirectoryReport): string {
       `${r.offSystemTokenCount} off-system token(s), ${r.undeclaredTokenCount} undeclared reference(s), ${r.offSystemFontCount} off-system font(s)`,
   ];
   for (const s of r.skipped) lines.push(`  skipped ${s.path}: ${s.reason}`);
+  for (const s of r.skippedChecks) lines.push(`  skipped ${s}`);
   if (r.unevaluatedFontCount > 0) lines.push(`  NOT EVALUATED: ${r.unevaluatedFontCount} font-family value(s) built at build time (\${...}) — read them in the built output`);
   for (const f of r.files) {
     lines.push(`  ${f.file}: ${f.errorCount} error(s), ${f.warningCount} warning(s)`);

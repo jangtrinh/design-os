@@ -17,8 +17,12 @@
   compared (`"Inter", sans-serif` passes); CSS-wide keywords pass; `var(--x)` keeps the existing
   undeclared-token / off-system-token verdicts; token-declaration blocks and `@font-face` bodies are
   not checked. Tailwind `font-mono` / `font-serif` / `font-sans` need a `fontFamily` token whose name
-  ends in that word. Findings carry `OFF_SYSTEM_FONT` and the offending stack. A design system with no
-  `fontFamily` token backs nothing, and the message says so.
+  ends in that word. Findings carry `OFF_SYSTEM_FONT` and the offending stack. A design system that
+  declares no `fontFamily` token has nothing to compare fonts with, so the rule does not run for it: the
+  report prints `skipped off-system-font: the design system declares no fontFamily token` (`ui gate`:
+  `skipped ds-usage/off-system-font: ...` in `skipped[]`; `ui ds-usage-lint --json`: `skippedChecks`),
+  and the colour checks and promoted rules still run. One fontFamily token, leaf or typography member,
+  turns the rule on in full.
 - `ui ds-usage-lint <file|dir>` reads `.html .svelte .vue .jsx .tsx .js .ts` (style blocks, inline
   styles, `style={{ ... }}`, class and `className` lists, CSS template literals) and walks a directory
   in sorted order, skipping `node_modules/ dist/ build/ .git/ fixtures/ __fixtures__/` and files over
@@ -29,7 +33,7 @@
 
 ### Changed
 - `ui ds-usage-lint` output gains the off-system font count (`N off-system font(s)`) and
-  `offSystemFontCount` / `unevaluatedFontCount` in `--json`. A font value built at build time
+  `offSystemFontCount` / `unevaluatedFontCount` / `skippedChecks` in `--json`. A font value built at build time
   (`${...}`) is reported as NOT EVALUATED, never passed.
 - The generated specimen and per-component preview pages declare their monospace as the chrome token
   `--ds-chrome-font-mono` and apply it with `var()`, so they pass `off-system-font` with no exemption.
@@ -37,8 +41,8 @@
   `skipped ds-usage: no design.tokens.json ...`; with a token file that exists but cannot be read it
   prints `skipped ds-usage: the project's token file is unreadable (see token-coverage/tokens-not-readable)`
   next to the existing hard failure. The design-os-designer `validate` step forwards both lines as
-  `note: gate: SKIPPED ds-usage: ...`. Tests that pinned exact gate or validate output now expect the
-  extra line (`cmd-gate` x2, `designer-skill-validate`, `designer-skill-regressions` x2), and
+  `note: gate: SKIPPED ds-usage: ...` (and `... ds-usage/off-system-font: ...`). Tests that pinned exact gate or validate output now expect the
+  extra line (`cmd-gate` x2, `designer-skill-validate`, `designer-skill-regressions` x3), and
   `gate-emits-what-coverage-claims` hands `runGate` the project tokens when it claims `tokensPresent: true`.
 
 ### Fixed

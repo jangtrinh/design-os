@@ -169,7 +169,9 @@ describe.skipIf(!hasBuiltBinary)("regressions: bounded look and project discover
     const run = validate(evidence);
     // ui scored the colourless file (the page declares colours it cannot match): the verdict is the floor line, not a refusal.
     expect({ status: run.status, out: verdictLines(run.stdout) }).toEqual({ status: 1, out: ["gate: token-coverage 0% is below the 80% floor — style with the project's tokens"] });
-    expect(run.stdout).not.toMatch(/unreadable|unusable|refused|note:/);
+    expect(run.stdout).not.toMatch(/unreadable|unusable|refused/);
+    // The only note is ui saying out loud that this token file declares no font, so the font rule did not run.
+    expect(lines(run.stdout).filter((l) => l.startsWith("note:"))).toEqual(["note: gate: SKIPPED ds-usage/off-system-font: the design system declares no fontFamily token"]);
   });
 
   it("a CSS comment or a srcset with commas never rejects a page; no script reads the markup (comment and srcset false rejects)", () => {

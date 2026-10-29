@@ -165,3 +165,41 @@ describe("ui ds-usage-lint <file> — any UI source type", () => {
     expect(JSON.parse(missingTarget.out).error.code).toBe("FILE_NOT_FOUND");
   });
 });
+
+describe("ui ds-usage-lint with a design system that declares no fontFamily token", () => {
+  const NOTE = "off-system-font: the design system declares no fontFamily token";
+  const body = `<style>\n.a { ${BAD_FONT}; color: #ff0000; }\n</style><p class="font-mono">x</p>`;
+  let colourOnly: string;
+  beforeEach(() => {
+    colourOnly = join(root, "colour-only.tokens.json");
+    writeFileSync(colourOnly, JSON.stringify({ colors: { brand: { $type: "color", $value: "#3b82f6" } } }));
+  });
+
+  it("single file: no off-system-font finding, the skip is printed and in the JSON, colour still fails the file", () => {
+    put("a.html", body);
+    const text = capture(["ds-usage-lint", join(root, "a.html"), "--tokens", colourOnly]);
+    expect(text.code).toBe(1); // the hardcoded colour
+    expect(text.out).toContain(`  skipped ${NOTE}`);
+    expect(text.out).not.toContain("OFF_SYSTEM_FONT");
+    expect(text.out).toContain("0 off-system font(s)");
+    const json = JSON.parse(capture(["ds-usage-lint", join(root, "a.html"), "--tokens", colourOnly, "--json"]).out).data as { skippedChecks: string[]; offSystemFontCount: number; hardcodedColorCount: number };
+    expect(json).toMatchObject({ skippedChecks: [NOTE], offSystemFontCount: 0, hardcodedColorCount: 1 });
+  });
+
+  it("directory: one skip line for the sweep, in the text and in the JSON", () => {
+    put("a.html", body);
+    put("b.tsx", `export const A = () => <p className="font-mono">x</p>;`);
+    const text = capture(["ds-usage-lint", root, "--tokens", colourOnly]);
+    expect(text.out.split(NOTE).length - 1).toBe(1);
+    expect(text.out).toContain(`  skipped ${NOTE}`);
+    const json = JSON.parse(capture(["ds-usage-lint", root, "--tokens", colourOnly, "--json"]).out).data as { skippedChecks: string[]; offSystemFontCount: number };
+    expect(json).toMatchObject({ skippedChecks: [NOTE], offSystemFontCount: 0 });
+  });
+
+  it("with a font token the same tree is flagged and nothing is reported skipped", () => {
+    put("a.html", body);
+    const json = JSON.parse(capture(["ds-usage-lint", root, "--tokens", TOKENS, "--json"]).out).data as { skippedChecks: string[]; offSystemFontCount: number };
+    expect(json.skippedChecks).toEqual([]);
+    expect(json.offSystemFontCount).toBe(2);
+  });
+});

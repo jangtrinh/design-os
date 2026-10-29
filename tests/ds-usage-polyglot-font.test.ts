@@ -227,11 +227,48 @@ describe("off-system-font", () => {
     expect(quoted(r)).toEqual(["font-serif"]);
   });
 
-  it("a design system with no fontFamily token backs nothing and says so in the repair hint", () => {
-    const ds = optsFor({ colors: { brand: { $type: "color", $value: "#3b82f6" } } });
-    const r = lintDsUsageOnMarkup(`<p style="font-family: Arial">x</p>`, { ...ds, file: "p.html" });
-    expect(fontIds(r)).toEqual(["off-system-font"]);
-    expect(r.findings[0]?.message).toContain("declares no fontFamily token");
+  describe("a design system with no fontFamily token (owner ruling: the font rule does not run, and says so)", () => {
+    const COLOUR_ONLY = optsFor({ colors: { brand: { $type: "color", $value: "#3b82f6" } } });
+    const NOTE = "off-system-font: the design system declares no fontFamily token";
+    const page = `<style>.a { font-family: ui-monospace, Menlo; color: #ff0000; }</style><p class="font-mono">x</p>`;
+
+    it("a monospace stack and a font-mono utility are not findings; the skip is reported on the result", () => {
+      const r = lintDsUsageOnMarkup(page, { ...COLOUR_ONLY, file: "p.html" });
+      expect(fontIds(r)).toEqual([]);
+      expect(r.offSystemFontCount).toBe(0);
+      expect(r.skippedChecks).toEqual([NOTE]);
+    });
+
+    it("the colour checks still run", () => {
+      const r = lintDsUsageOnMarkup(page, { ...COLOUR_ONLY, file: "p.html" });
+      expect(r.findings.map((f) => f.checkId)).toEqual(["hardcoded-color"]);
+    });
+
+    it("every polyglot type is skipped the same way", () => {
+      for (const [file, src] of [["C.svelte", `<style>.a { font-family: ui-monospace; }</style>`], ["C.tsx", `export const A = () => <p className="font-mono" style={{ fontFamily: "ui-monospace" }}>x</p>;`], ["t.ts", `export const t = { fontFamily: "Menlo" };`]] as const) {
+        const r = lintDsUsageOnMarkup(src, { ...COLOUR_ONLY, file });
+        expect({ file, ids: fontIds(r), skipped: r.skippedChecks }).toEqual({ file, ids: [], skipped: [NOTE] });
+      }
+    });
+
+    it("a design system WITH a fontFamily token keeps the closed allowlist and reports no skip", () => {
+      const r = lintDsUsageOnMarkup(page, { ...FIXTURE_DS, file: "p.html" });
+      expect(fontIds(r)).toEqual(["off-system-font", "off-system-font"]);
+      expect(r.skippedChecks).toEqual([]);
+    });
+
+    it("without a font model at all (the colour-only call shape) nothing is skipped or reported", () => {
+      const r = lintDsUsage(page, { declaredVars: COLOUR_ONLY.declaredVars });
+      expect(r.skippedChecks).toEqual([]);
+    });
+
+    it("a typography-composite-only DS has fonts to compare against: the rule runs and its hint does not claim there is none", () => {
+      const ds = optsFor({ type: { body: { $type: "typography", $value: { fontFamily: "Inter, sans-serif", fontSize: "16px" } } } });
+      const r = lintDsUsageOnMarkup(`<p style="font-family: Arial">x</p>`, { ...ds, file: "p.html" });
+      expect(fontIds(r)).toEqual(["off-system-font"]);
+      expect(r.skippedChecks).toEqual([]);
+      expect(r.findings[0]?.message).not.toContain("declares no fontFamily token");
+    });
   });
 
   it("without a font model the font check does not run (the colour-only call shape is unchanged)", () => {
