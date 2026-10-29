@@ -187,7 +187,7 @@ export interface GateCoverage {
   /** `inactiveReason` is set when the project has tokens but the check still cannot run for them. */
   checks: Array<CatalogEntry & { active: boolean; inactiveReason?: string }>;
   families: Record<GateFamily, { total: number; active: number }>;
-  project: { tokensPresent: boolean; dsPresent: boolean; fontTokenPresent?: boolean; promotedRules?: number };
+  project: { tokensPresent: boolean; dsPresent: boolean; dsUsageTokensPresent?: boolean; fontTokenPresent?: boolean; promotedRules?: number };
   /** Rules that are active but have no catalog row, so no count above can show them. */
   extra: string[];
 }
@@ -200,7 +200,10 @@ export interface GateCoverage {
  * no gate check currently keys on it beyond the token file.
  */
 export function gateCoverage(project: {
+  /** The design-dir token file (the one other `tokens` checks, such as raw-hex, are graded against). */
   tokensPresent: boolean;
+  /** The token file the ds-usage family reads (it also finds brand/design tokens). Defaults to `tokensPresent`. */
+  dsUsageTokensPresent?: boolean;
   dsPresent: boolean;
   /** False when the design system declares no fontFamily token: `off-system-font` then does not run. Undefined = assume it does. */
   fontTokenPresent?: boolean;
@@ -222,10 +225,10 @@ export function gateCoverage(project: {
       // to prevent.
       active:
         c.requires === "none" ||
-        (c.requires === "tokens" && project.tokensPresent && !noFontToken) ||
+        (c.requires === "tokens" && (c.family === "ds-usage" ? project.dsUsageTokensPresent ?? project.tokensPresent : project.tokensPresent) && !noFontToken) ||
         (typeof c.requires === "object" &&
           (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
-      ...(noFontToken && project.tokensPresent && { inactiveReason: "the design system declares no fontFamily token" }),
+      ...(noFontToken && (project.dsUsageTokensPresent ?? project.tokensPresent) && { inactiveReason: "the design system declares no fontFamily token" }),
     };
   });
   const families = Object.fromEntries(GATE_FAMILIES.map((f) => {

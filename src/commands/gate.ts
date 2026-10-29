@@ -213,7 +213,8 @@ export const gateCommand = {
       // The ds-usage inputs are read by the helper `ui gate` uses, so coverage cannot claim a check the run skips.
       const dsUsageContext = dsUsageCoverageContext(resolve(dir));
       const project = {
-        tokensPresent: dsUsageContext.tokensPresent,
+        tokensPresent: existsSync(ds !== undefined ? ds.tokens : join(dir, "design", "design.tokens.json")),
+        dsUsageTokensPresent: dsUsageContext.tokensPresent,
         dsPresent: ds !== undefined,
         ...(dsUsageContext.fontTokenPresent !== undefined && { fontTokenPresent: dsUsageContext.fontTokenPresent }),
         promotedRules: dsUsageContext.promotedRules,

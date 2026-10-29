@@ -143,7 +143,7 @@ describe("gate coverage says what the run does", () => {
         if (c.tokens !== undefined) { mkdirSync(join(d, "design"), { recursive: true }); writeFileSync(join(d, "design", "design.tokens.json"), JSON.stringify(c.tokens)); }
         if (c.rules) { mkdirSync(join(d, "design", "rules"), { recursive: true }); writeFileSync(join(d, "design", "rules", "_adherence.rules.json"), JSON.stringify(MONO_RULE)); }
         const ctx = dsUsageCoverageContext(d);
-        const cov = gateCoverage({ tokensPresent: ctx.tokensPresent, dsPresent: false, fontTokenPresent: ctx.fontTokenPresent, promotedRules: ctx.promotedRules });
+        const cov = gateCoverage({ tokensPresent: ctx.tokensPresent, dsUsageTokensPresent: ctx.tokensPresent, dsPresent: false, fontTokenPresent: ctx.fontTokenPresent, promotedRules: ctx.promotedRules });
         const input = loadDsUsageGateInput({ tokensPath: resolveDsUsageTokens({ projectStart: d }), designDir: join(d, "design") });
         const tripAll = page(":root { --page-only: red; } .a { color: #ff0000; background: var(--nowhere); border-color: var(--page-only); font-family: ui-monospace, Menlo; }", `<p class="font-mono">x</p>`);
         const run1 = runGate(tripAll, input === undefined ? {} : { dsUsage: input });
@@ -159,5 +159,40 @@ describe("gate coverage says what the run does", () => {
 
   it("gateCoverage defaults stay: with tokens and no font information all four rows are active", () => {
     expect(gateCoverage({ tokensPresent: true, dsPresent: true }).families["ds-usage"]).toEqual({ total: 4, active: 4 });
+  });
+});
+
+describe("a project whose only tokens are under brand/design", () => {
+  const RAW_HEX = "raw-hex-when-token-exists";
+  const activeIds = (cov: { checks: { id: string; active: boolean }[] }): Set<string> => new Set(cov.checks.filter((c) => c.active).map((c) => c.id));
+
+  it("coverage keeps raw-hex inactive (the gate only reads --tokens for it) and gives the ds-usage rows their own input", () => {
+    put("brand/design/design.tokens.json", JSON.stringify(WITH_FONT));
+    const cov = JSON.parse(capture(["gate", "coverage", "--dir", dir, "--json"]).out).data;
+    expect(activeIds(cov).has(RAW_HEX)).toBe(false);
+    expect(cov.families["ds-usage"]).toEqual({ total: 4, active: 4 });
+  });
+
+  it("the run agrees: no raw-hex finding without --tokens, ds-usage findings from the brand tokens", () => {
+    put("brand/design/design.tokens.json", JSON.stringify(WITH_FONT));
+    const file = put("p.html", page(".a { color: #ff0000; font-family: ui-monospace, Menlo; }"));
+    const gate = JSON.parse(capture(["gate", file, "--dir", dir, "--json"]).out).data;
+    const ids = Object.values(gate.families as Record<string, { findings: { checkId: string }[] }>).flatMap((f) => f.findings.map((x) => x.checkId));
+    expect(ids).not.toContain(RAW_HEX);
+    expect(ids).toContain("hardcoded-color");
+    expect(ids).toContain("off-system-font");
+  });
+
+  it("a project with design/design.tokens.json keeps raw-hex active in coverage, as before", () => {
+    put("design/design.tokens.json", JSON.stringify(WITH_FONT));
+    const cov = JSON.parse(capture(["gate", "coverage", "--dir", dir, "--json"]).out).data;
+    expect(activeIds(cov).has(RAW_HEX)).toBe(true);
+  });
+
+  it("gateCoverage: ds-usage rows follow dsUsageTokensPresent, every other tokens row follows tokensPresent", () => {
+    const cov = gateCoverage({ tokensPresent: false, dsPresent: false, dsUsageTokensPresent: true });
+    expect(cov.families["ds-usage"]).toEqual({ total: 4, active: 4 });
+    expect(activeIds(cov).has(RAW_HEX)).toBe(false);
+    expect(gateCoverage({ tokensPresent: true, dsPresent: false, dsUsageTokensPresent: false }).families["ds-usage"]).toEqual({ total: 4, active: 0 });
   });
 });
