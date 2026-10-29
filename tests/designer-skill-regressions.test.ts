@@ -19,6 +19,8 @@ let available = false;
 beforeAll(() => { available = lookAvailable(); }, 120000);
 
 const examplePath = (name: string): string => join(SKILL_DIR, "examples", name);
+/** With an unreadable project token file the ds-usage family has nothing to judge against; ui says so, in its own words. */
+const DS_USAGE_SKIPPED_UNREADABLE = "note: gate: SKIPPED ds-usage: the project's token file is unreadable (see token-coverage/tokens-not-readable), so there is nothing to judge against";
 const look = (evidence: string, extra: string[] = []) =>
   node(join(SKILL_DIR, "look.mjs"), ["--evidence", evidence, "--sheet", join(makeTemp(), "s.png"), "--widths", "375", ...extra]);
 const l3 = (stdout: string): string => lines(stdout).find((l) => l.startsWith("L3 console-and-network @375")) ?? "";
@@ -167,7 +169,9 @@ describe.skipIf(!hasBuiltBinary)("regressions: bounded look and project discover
     const run = validate(evidence);
     // ui scored the colourless file (the page declares colours it cannot match): the verdict is the floor line, not a refusal.
     expect({ status: run.status, out: verdictLines(run.stdout) }).toEqual({ status: 1, out: ["gate: token-coverage 0% is below the 80% floor — style with the project's tokens"] });
-    expect(run.stdout).not.toMatch(/unreadable|unusable|refused|note:/);
+    expect(run.stdout).not.toMatch(/unreadable|unusable|refused/);
+    // The only note is ui saying out loud that this token file declares no font, so the font rule did not run.
+    expect(lines(run.stdout).filter((l) => l.startsWith("note:"))).toEqual(["note: gate: SKIPPED ds-usage/off-system-font: the design system declares no fontFamily token"]);
   });
 
   it("a CSS comment or a srcset with commas never rejects a page; no script reads the markup (comment and srcset false rejects)", () => {
@@ -192,7 +196,10 @@ describe.skipIf(!hasBuiltBinary)("regressions: bounded look and project discover
     const run = validate(evidence);
     expect(run.status).toBe(1);
     const kitTokens = join(project, "kit", "design", "design.tokens.json");
-    expect(lines(run.stdout)).toEqual([`gate: token-coverage did not run — ${kitTokens} is unreadable (the token file is missing) — fix the project's token file`]);
+    expect(lines(run.stdout)).toEqual([
+      DS_USAGE_SKIPPED_UNREADABLE,
+      `gate: token-coverage did not run — ${kitTokens} is unreadable (the token file is missing) — fix the project's token file`,
+    ]);
   });
 });
 
@@ -205,7 +212,7 @@ describe.skipIf(!hasBuiltBinary)("regressions: token-file provenance, assets and
       else writeFileSync(tokens, damage);
       const run = validate(buildInProject(project, writeFile(project, "pages/p.html", htmlPage())));
       expect({ label, status: run.status }).toEqual({ label, status: 1 });
-      expect({ label, out: lines(run.stdout) }).toEqual({ label, out: [expect.stringMatching(new RegExp(`^gate: token-coverage did not run — ${tokens.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} is unreadable \\(.+\\) — fix the project's token file$`))] });
+      expect({ label, out: lines(run.stdout) }).toEqual({ label, out: [DS_USAGE_SKIPPED_UNREADABLE, expect.stringMatching(new RegExp(`^gate: token-coverage did not run — ${tokens.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} is unreadable \\(.+\\) — fix the project's token file$`))] });
     }
   });
 

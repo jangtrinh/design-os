@@ -25,8 +25,10 @@ import { extractorById } from "./design-facts/index.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { CHECK_CATALOG } from "./check-catalog.js";
 import type { CatalogEntry } from "./check-catalog.js";
+import { DS_USAGE_SKIP_REASON, runDsUsageFamily } from "./ds-usage-gate.js";
+import type { DsUsageGateInput } from "./ds-usage-gate.js";
 
-export const GATE_FAMILIES = ["layout", "a11y", "taste", "tell", "content", "autofix"] as const;
+export const GATE_FAMILIES = ["layout", "a11y", "taste", "tell", "content", "ds-usage", "autofix"] as const;
 export type GateFamily = (typeof GATE_FAMILIES)[number];
 
 export interface GateFamilyResult {
@@ -36,6 +38,8 @@ export interface GateFamilyResult {
   advisoryCount: number;
   /** FloorFinding schema v1; family extras (a11y `sc`, taste `axis`) ride along. */
   findings: FloorFindingBase[];
+  /** Printed under the family: what it counted but kept out of `findings` (ds-usage: rule exclusions). */
+  notes?: string[];
 }
 
 export interface GateResult {
@@ -65,6 +69,8 @@ export interface GateOptions {
   skip?: Partial<Record<GateFamily, string>>;
   /** Path of the artifact, so tell findings carry a real file in their provenance. */
   file?: string;
+  /** What the ds-usage family judges against (the project's tokens and/or promoted rules); absent = the family is skipped with a reason. */
+  dsUsage?: DsUsageGateInput;
 }
 
 function familyResult(findings: GateFamilyResult["findings"]): GateFamilyResult {
@@ -140,6 +146,16 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
       for (const check of allContentChecks) all.push(...check(html));
       all.push(...((factPass()?.content ?? []) as unknown as ContentFinding[]));
       families.content = familyResult(all);
+    } else if (fam === "ds-usage") {
+      // Needs the project's tokens or promoted rules. Without either there is nothing to grade
+      // against, which is a declared skip (printed) and never a clean pass.
+      if (opts.dsUsage === undefined) {
+        skipped.push(`${fam}: ${DS_USAGE_SKIP_REASON}`);
+        continue;
+      }
+      const r = runDsUsageFamily(html, opts.dsUsage);
+      skipped.push(...r.skipped);
+      families["ds-usage"] = { ...familyResult(r.findings), ...(r.notes.length > 0 && { notes: r.notes }) };
     } else {
       // Dry-run cleanliness: any repair the autofixer WOULD apply is a floor the
       // artifact has not met — the caller runs `ui autofix --write`, then gates.
@@ -168,9 +184,12 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
 // ─── Coverage — the registry triage routes on ─────────────────────────────────
 
 export interface GateCoverage {
-  checks: Array<CatalogEntry & { active: boolean }>;
+  /** `inactiveReason` is set when the project has tokens but the check still cannot run for them. */
+  checks: Array<CatalogEntry & { active: boolean; inactiveReason?: string }>;
   families: Record<GateFamily, { total: number; active: number }>;
-  project: { tokensPresent: boolean; dsPresent: boolean };
+  project: { tokensPresent: boolean; dsPresent: boolean; dsUsageTokensPresent?: boolean; fontTokenPresent?: boolean; promotedRules?: number };
+  /** Rules that are active but have no catalog row, so no count above can show them. */
+  extra: string[];
 }
 
 /**
@@ -181,27 +200,43 @@ export interface GateCoverage {
  * no gate check currently keys on it beyond the token file.
  */
 export function gateCoverage(project: {
+  /** The design-dir token file (the one other `tokens` checks, such as raw-hex, are graded against). */
   tokensPresent: boolean;
+  /** The token file the ds-usage family reads (it also finds brand/design tokens). Defaults to `tokensPresent`. */
+  dsUsageTokensPresent?: boolean;
   dsPresent: boolean;
+  /** False when the design system declares no fontFamily token: `off-system-font` then does not run. Undefined = assume it does. */
+  fontTokenPresent?: boolean;
+  /** Promoted `token-ban` rules the ds-usage family would run; they have no catalog row. */
+  promotedRules?: number;
   /** True when a rendered capture is available (ui gate --render). */
   renderAvailable?: boolean;
 }): GateCoverage {
-  const checks = CHECK_CATALOG.map((c) => ({
-    ...c,
-    // A fact-based requirement is active when the gate's extractor supplies the
-    // kinds. html-cascade supplies all ten, so every fact rule is active — but a
-    // rule needing `rendered` confidence cannot run without a capture, and
-    // reporting it active would be exactly the silent pass NOT-EVALUATED exists
-    // to prevent.
-    active:
-      c.requires === "none" ||
-      (c.requires === "tokens" && project.tokensPresent) ||
-      (typeof c.requires === "object" &&
-        (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
-  }));
+  const checks = CHECK_CATALOG.map((c) => {
+    // `off-system-font` compares against the design system's own font tokens; with none declared the
+    // run skips it (printed), so coverage must not call it active either.
+    const noFontToken = c.id === "off-system-font" && project.fontTokenPresent === false;
+    return {
+      ...c,
+      // A fact-based requirement is active when the gate's extractor supplies the
+      // kinds. html-cascade supplies all ten, so every fact rule is active — but a
+      // rule needing `rendered` confidence cannot run without a capture, and
+      // reporting it active would be exactly the silent pass NOT-EVALUATED exists
+      // to prevent.
+      active:
+        c.requires === "none" ||
+        (c.requires === "tokens" && (c.family === "ds-usage" ? project.dsUsageTokensPresent ?? project.tokensPresent : project.tokensPresent) && !noFontToken) ||
+        (typeof c.requires === "object" &&
+          (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
+      ...(noFontToken && (project.dsUsageTokensPresent ?? project.tokensPresent) && { inactiveReason: "the design system declares no fontFamily token" }),
+    };
+  });
   const families = Object.fromEntries(GATE_FAMILIES.map((f) => {
     const rows = checks.filter((c) => c.family === f);
     return [f, { total: rows.length, active: rows.filter((c) => c.active).length }];
   })) as Record<GateFamily, { total: number; active: number }>;
-  return { checks, families, project };
+  const extra = (project.promotedRules ?? 0) > 0
+    ? [`ds-usage: ${project.promotedRules} promoted token-ban rule(s) run (listed in design/rules/_adherence.rules.json, not in the catalog)`]
+    : [];
+  return { checks, families, project, extra };
 }

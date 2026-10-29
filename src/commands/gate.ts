@@ -14,7 +14,8 @@ import type { GateFamily, GateOptions, GateResult } from "../core/gate.js";
 import { countBySeverity } from "../core/finding-schema.js";
 import { loadTokenHexes } from "./taste-lint.js";
 import { inlineLinkedCss } from "../core/html-css-loader.js";
-import { tryDiscoverDesignSystem } from "../core/design-system.js";
+import { DSError, tryDiscoverDesignSystem } from "../core/design-system.js";
+import { dsUsageCoverageContext, dsUsageDesignDir, dsUsageSkipReason, loadDsUsageGateInput, resolveDsUsageTokens } from "../core/ds-usage-gate.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 import { autoScoreTokenCoverage, scoreTokenCoverage } from "../core/token-coverage-io.js";
 import type { TokenCoverageSource } from "../core/token-coverage-io.js";
@@ -37,6 +38,11 @@ Runs, in one call:
   taste     ui taste-lint        (rubric machine floors; --tokens enables raw-hex)
   tell      ui tell-lint         (generated-UI tells; mostly advisory)
   content   ui content-lint      (UX-writing floors)
+  ds-usage  ui ds-usage-lint     (hardcoded colour, ghost tokens, off-system fonts; plus the promoted
+                                  token-ban rules of design/rules/_adherence.rules.json). Runs when
+                                  the project's token file is known (--tokens, or the --dir /
+                                  design-dir contract) or a promoted rules file exists; otherwise it
+                                  is skipped with a printed reason, never passed silently.
   autofix   DRY-RUN cleanliness  (pending repairs = error "autofix-not-clean")
 
 Plus, when a token file is auto-detected for the project (design-dir contract,
@@ -58,7 +64,7 @@ A skipped family requires a reason and is reported in the result, so partial
 gating is a declared decision, never a silent absence.
 
 Options:
-  --tokens <f>  DS token file; enables the taste Consistency raw-hex check AND
+  --tokens <f>  DS token file; enables the taste Consistency raw-hex check, the ds-usage family AND
                 grades the required token-coverage check against THIS file
                 (PR-FU3-r2 A5 — never the repo's own auto-detected tokens)
   --family <slug>  Apply that persona family's \`gate_policy\` from
@@ -162,7 +168,7 @@ function applyGatePolicy(result: GateResult, policy: Record<string, string>): Ga
       if (action === "error" && f.severity !== "error") return [{ ...f, severity: "error" as const }];
       return [f];
     });
-    families[fam] = { ...countBySeverity(findings), findings };
+    families[fam] = { ...r, ...countBySeverity(findings), findings };
   }
   let errorCount = 0, warningCount = 0, advisoryCount = 0;
   for (const fam of GATE_FAMILIES) {
@@ -204,16 +210,24 @@ export const gateCommand = {
       // flat join would report "no tokens" from any subdirectory of a real
       // project and silently deactivate the tokens-gated check.
       const ds = tryDiscoverDesignSystem(dir);
+      // The ds-usage inputs are read by the helper `ui gate` uses, so coverage cannot claim a check the run skips.
+      const dsUsageContext = dsUsageCoverageContext(resolve(dir));
       const project = {
         tokensPresent: existsSync(ds !== undefined ? ds.tokens : join(dir, "design", "design.tokens.json")),
+        dsUsageTokensPresent: dsUsageContext.tokensPresent,
         dsPresent: ds !== undefined,
+        ...(dsUsageContext.fontTokenPresent !== undefined && { fontTokenPresent: dsUsageContext.fontTokenPresent }),
+        promotedRules: dsUsageContext.promotedRules,
       };
       const cov = gateCoverage(project);
-      if (useJson) return okJsonWithExit(CMD, cov, 0);
+      if (useJson) return okJsonWithExit(CMD, dsUsageContext.error === undefined ? cov : { ...cov, dsUsageError: dsUsageContext.error }, 0);
       const lines = [
         `gate coverage — ${cov.checks.filter((c) => c.active).length}/${cov.checks.length} checks active (tokens: ${project.tokensPresent ? "present" : "absent"}, ds: ${project.dsPresent ? "present" : "absent"})`,
         ...GATE_FAMILIES.map((f) => `  ${f}: ${cov.families[f].active}/${cov.families[f].total} active`),
+        ...cov.extra.map((x) => `  also: ${x}`),
+        ...(dsUsageContext.error !== undefined ? [`  ds-usage inputs unreadable, so the family does not run: ${dsUsageContext.error}`] : []),
         ...cov.checks.filter((c) => !c.active).map((c) => `  inactive: ${c.id} (requires ${c.requires})`),
+        ...cov.checks.filter((c) => c.inactiveReason !== undefined).map((c) => `  inactive: ${c.id} (${c.inactiveReason})`),
       ];
       return { exitCode: 0, stdout: lines.join("\n") + "\n" };
     }
@@ -301,6 +315,33 @@ export const gateCommand = {
     const tokensUnreadable = tokenCoverageSource.error !== undefined;
     const tokenCoverageFails = tokenCoverage !== undefined && tokenCoverage.overall.coverage < tokenCoverageFloor;
 
+    // ds-usage family input. Tokens: the explicit --tokens file, else the auto-detected one when it is
+    // readable (an unreadable one already fails the gate above). Promoted rules: the project's
+    // design/rules/_adherence.rules.json, found from --dir or from the page's folder like the design
+    // system itself. They are the project's binding law, independent of which token file grades colour.
+    const projectStart = typeof dirFlag === "string" ? resolve(dirFlag) : dirname(resolve(file));
+    const tokensForDsUsage = resolveDsUsageTokens({
+      tokensFlag: typeof tokensFlag === "string" ? tokensFlag : undefined,
+      projectStart,
+      autoUnreadable: tokensUnreadable,
+    });
+    let dsUsage: GateOptions["dsUsage"];
+    try {
+      dsUsage = loadDsUsageGateInput({ tokensPath: tokensForDsUsage, designDir: dsUsageDesignDir(projectStart) });
+    } catch (e) {
+      const code = e instanceof DSError ? e.code : "TOKENS_NOT_READABLE";
+      const msg = `the ds-usage family could not load its inputs: ${e instanceof Error ? e.message : String(e)}`;
+      return useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
+    }
+
+    // A detected token file that cannot be read already fails the gate (token-coverage/tokens-not-readable).
+    // The family's skip line must say THAT, not "no design.tokens.json": the file is there, it is broken.
+    if (dsUsage === undefined) {
+      skip = { ...skip, "ds-usage": skip?.["ds-usage"] ?? (tokensUnreadable
+        ? "the project's token file is unreadable (see token-coverage/tokens-not-readable), so there is nothing to judge against"
+        : dsUsageSkipReason(projectStart)) };
+    }
+
     // A8: --family <slug> (or a top-level "persona" field on --tokens) applies
     // that family's gate_policy from knowledge/personas/families.json. Absent
     // both, a check's default severity stands untouched.
@@ -342,7 +383,7 @@ export const gateCommand = {
     );
     let result: GateResult;
     try {
-      result = runGate(html, { knownHexes, skip });
+      result = runGate(html, { knownHexes, skip, dsUsage });
     } finally {
       setFamilyAccentContext(undefined);
     }
@@ -369,6 +410,7 @@ export const gateCommand = {
         lines.push(`    ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]${f.line !== undefined ? ` line ${f.line}` : ""}: ${f.message}`);
       }
     }
+    for (const fam of GATE_FAMILIES) for (const n of result.families[fam]?.notes ?? []) lines.push(`  note ${fam}: ${n}`);
     for (const s of result.skipped) lines.push(`  skipped ${s}`);
     // A family that RAN but read only part of the artifact. Printed beside the
     // skips because a partial verdict and an absent one are both "not a clean bill".

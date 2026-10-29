@@ -27,6 +27,10 @@
  * here fails. Verified both.
  */
 import { describe, expect, it } from "vitest";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { run } from "../src/cli.js";
 import { runGate, gateCoverage } from "../src/core/gate.js";
 
 /** A page whose title is a leaked brief, whose copy is a buzzword stack, and whose
@@ -86,11 +90,40 @@ describe("a check the coverage report calls active is a check the gate can emit"
     expect(r.partial).toEqual([]);
   });
 
+  it("a project with only brand/design tokens: raw-hex is not claimed active (the gate never emits it without --tokens), ds-usage is", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-claims-brand-"));
+    try {
+      mkdirSync(join(dir, "brand", "design"), { recursive: true });
+      writeFileSync(join(dir, "brand", "design", "design.tokens.json"), JSON.stringify({ colors: { brand: { $type: "color", $value: "#3b82f6" } } }));
+      writeFileSync(join(dir, "p.html"), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>T</title><style>.a { color: #ff0000; }</style></head><body><h1 class="a">T</h1></body></html>`);
+      const capture = (args: string[]): string => {
+        let out = "";
+        const o = process.stdout.write.bind(process.stdout);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        process.stdout.write = (c: any) => { out += String(c); return true; };
+        try { run(args); } finally { process.stdout.write = o; }
+        return out;
+      };
+      const cov = JSON.parse(capture(["gate", "coverage", "--dir", dir, "--json"])).data as { checks: { id: string; active: boolean }[] };
+      const gate = JSON.parse(capture(["gate", join(dir, "p.html"), "--dir", dir, "--json"])).data as { families: Record<string, { findings: { checkId: string }[] }> };
+      const emitted = new Set(Object.values(gate.families).flatMap((f) => f.findings.map((x) => x.checkId)));
+      const active = new Set(cov.checks.filter((c) => c.active).map((c) => c.id));
+      expect(active.has("raw-hex-when-token-exists")).toBe(false);
+      expect(emitted.has("raw-hex-when-token-exists")).toBe(false);
+      expect(active.has("hardcoded-color")).toBe(true);
+      expect(emitted.has("hardcoded-color")).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("has no family the coverage report counts and the gate never composes", () => {
     // The generalisation. Every family with active rows must be one `runGate`
     // actually builds — the shape of the original defect, one level up.
     const cov = gateCoverage({ tokensPresent: true, dsPresent: true, renderAvailable: false });
-    const r = runGate(RIDE_ALONG_PAGE, {});
+    // `tokensPresent: true` is the claim under test, so the gate is given the tokens too: the ds-usage
+    // family is composed only when the project's tokens are known, and coverage counts it only then.
+    const r = runGate(RIDE_ALONG_PAGE, { dsUsage: { lint: { declaredVars: new Set<string>() }, rules: [] } });
     for (const [family, counts] of Object.entries(cov.families)) {
       if (counts.active === 0) continue;
       expect(

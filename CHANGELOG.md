@@ -1,5 +1,91 @@
 # Changelog
 
+## 2026-10-29 - ds-usage is a blocking gate family, with a closed font allowlist and polyglot input
+
+### Added
+- `ui gate` has a seventh family, `ds-usage`. It runs `ui ds-usage-lint` (undeclared-token,
+  off-system-token, hardcoded-color, off-system-font) and the owner-promoted `token-ban` rules of
+  `design/rules/_adherence.rules.json` against the page. It runs when the project's tokens are known
+  (`--tokens <file>`, else the token file found from `--dir` or the page's folder: a `ds init` store, then
+  `brand/design/`, then a plain `design/design.tokens.json` with no store) or a promoted rules file
+  exists; with neither it is skipped with a printed reason that names the paths it looked at
+  (`skipped ds-usage: no token file (no --tokens, ... no '<dir>/design/design.tokens.json') and no promoted
+  token-ban rule in '<dir>/design/rules/_adherence.rules.json'`). Any
+  `error` fails the gate; `off-system-token` stays a warning. Promoted rule findings report as
+  `token-ban/<rule id>`; the proposed rules file is never read. `ui gate coverage` lists the family
+  (4 checks) and reads the same inputs as the run: it marks `off-system-font` inactive when the design
+  system declares no `fontFamily` token and prints `also: ds-usage: N promoted token-ban rule(s)` when
+  only rules exist.
+- `off-system-font` (error): a `font-family` whose FIRST family is not the first family of any
+  `fontFamily` token fails, so `ui-monospace, SFMono-Regular, Menlo, monospace` on a page whose design
+  system declares `Inter` no longer passes every gate. Fallbacks after the first family are not
+  compared (`"Inter", sans-serif` passes); CSS-wide keywords pass; `var(--x)` keeps the existing
+  undeclared-token / off-system-token verdicts; token-declaration blocks and `@font-face` bodies are
+  not checked. Tailwind `font-mono` / `font-serif` / `font-sans` need a `fontFamily` token whose name
+  ends in that word. Findings carry `OFF_SYSTEM_FONT` and the offending stack. A design system that
+  declares no `fontFamily` token has nothing to compare fonts with, so the rule does not run for it: the
+  report prints `skipped off-system-font: the design system declares no fontFamily token` (`ui gate`:
+  `skipped ds-usage/off-system-font: ...` in `skipped[]`; `ui ds-usage-lint --json`: `skippedChecks`),
+  and the colour checks and promoted rules still run. One fontFamily token, leaf or typography member,
+  turns the rule on in full.
+- `ui ds-usage-lint <file|dir>` reads `.html .svelte .vue .jsx .tsx .js .ts` (style blocks, inline
+  styles, `style={{ ... }}`, class and `className` lists, CSS template literals) and walks a directory
+  in sorted order, skipping `node_modules/ dist/ build/ .git/ fixtures/ __fixtures__/` and files over
+  2 MB or symlinks. A symlinked directory is not followed and is listed once
+  (`skipped linked-dir/: symlinked directory not followed`); a directory that cannot be listed is
+  listed with the system's reason and the rest is still read. It prints `scanned N of M files`, the count
+  of skipped paths and every skip reason (also in `--json`); a directory with no UI source is
+  `NO_UI_FILES`, and one whose UI files could all not be read is `NO_FILES_READ` (exit 1, with each
+  reason), never a clean pass. New `--tokens <file>` flag.
+- `token-ban` rules take `excludeElements` (for example `["code", "pre"]`): an occurrence inside those
+  elements is not a finding and is reported as an exclusion with its line.
+
+### Changed
+- `ui ds-usage-lint` output gains the off-system font count (`N off-system font(s)`) and
+  `offSystemFontCount` / `unevaluatedFontCount` / `skippedChecks` in `--json`. A font value built at build time
+  (`${...}`) is reported as NOT EVALUATED, never passed.
+- The generated specimen and per-component preview pages declare their monospace as the chrome token
+  `--ds-chrome-font-mono` and apply it with `var()`, so they pass `off-system-font` with no exemption.
+- Gate coverage now includes the `ds-usage` family. A gate run with no token file prints
+  `skipped ds-usage: no token file (...) and no promoted token-ban rule in '...'`; with a token file that exists but cannot be read it
+  prints `skipped ds-usage: the project's token file is unreadable (see token-coverage/tokens-not-readable)`
+  next to the existing hard failure. The design-os-designer `validate` step forwards both lines as
+  `note: gate: SKIPPED ds-usage: ...` (and `... ds-usage/off-system-font: ...`). Tests that pinned exact gate or validate output now expect the
+  extra line (`cmd-gate` x2, `designer-skill-validate`, `designer-skill-regressions` x3), and
+  `gate-emits-what-coverage-claims` hands `runGate` the project tokens when it claims `tokensPresent: true`.
+
+### Fixed
+- A `<style>` block or inline `style=` written inside a template literal in a script file was read
+  twice, once as itself and once as CSS-looking text, so every finding in it appeared twice (36 extra
+  `hardcoded-color` rows on one real project). Each span is now read once and blanked.
+- `hardcoded-color` finds a colour after a quoted segment again (an SVG data URI, a script object),
+  and `var(--${name})` in a template literal is counted as `NOT EVALUATED: N var(--...) reference(s)`
+  instead of an `undeclared-token` error.
+- Regexes added for the polyglot scan and the font and colour checks are single-pass, so an unterminated
+  comment, `<style`, `${` or `style={{` costs one pass over the file instead of one per opener.
+- `font-family: "", Menlo` judges `Menlo` (an empty first entry is not a family).
+- `token-ban` lower-cases text without changing its length, so an `İ` earlier on a line no longer moves
+  an occurrence in or out of an `excludeElements` element.
+- In HTML, `hardcoded-color` reads colours only inside `<style>` blocks, `style="..."` values and
+  `<script>` bodies. `<p>Brand color: #ff385c</p>`, a `title="Text color: #333"` and a
+  `<code>background:#000</code>` sample are page text and no longer fail the gate. Measured on the 59
+  tracked example and fixture pages: 798 findings before and after, none changed.
+  A closing tag with whitespace (`</style >`) ends its block, and an unquoted `style=color:#f00` is
+  read as styling like a quoted one.
+- `ui gate coverage` keeps the design-dir meaning of "tokens present" for `raw-hex-when-token-exists`
+  (the gate only grades it against `--tokens`) and reports the `ds-usage` rows from the token file the
+  family reads, so a project with only `brand/design/` tokens no longer claims a raw-hex check the run
+  never emits.
+- `ui ds-usage-lint <dir>` where the root or a subdirectory cannot be listed is `NO_FILES_READ` naming
+  the path and cause (it was "no UI files" with the reason hidden in text mode); `NO_UI_FILES` now lists
+  what it skipped.
+- `hardcoded-color` no longer reads a hex in the page text after an inline `style="..."` as that style's
+  colour. An inline style without a trailing `;` made the value run through the tag into the next `;`
+  (an `&middot;` entity), so every swatch label of a generated specimen counted as a hardcoded colour
+  (22 false errors on one page). The value now stops at `<`, `>` and at the quote that closes the
+  attribute; a last declaration with no `;` is still read. Measured on 64 example HTML files: 396
+  findings before and after, one false positive removed and one real colour recovered.
+
 ## 2026-10-29 - ds status names a non-object registry record and says re-import
 
 ### Fixed

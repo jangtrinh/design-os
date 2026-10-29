@@ -2,7 +2,7 @@
  * adherence-rules.ts — one loader for the project's structural adherence rules.
  *
  * Spec 025 designed `design/rules/_adherence.rules.json`; nothing in `src/` implemented it. This module
- * is the minimal piece spec 031 needs first: parse + validate the two rule files, and evaluate the
+ * is the minimal first piece: parse + validate the two rule files, and evaluate the
  * `token-ban` kind. `AdherenceRule` is a discriminated union on `kind` (types, the named error and
  * per-rule validation live in adherence-rules-validate.ts) so further kinds (`composition-contract`,
  * `slot-budget`) are added as a union member plus one validator entry. `prop-allowlist`,
@@ -18,7 +18,10 @@
  * behind a UTF-8 byte order mark.
  *   - `source` (required) names the evidence/record a rule derives from (spec 025 UC-03).
  *   - `token-ban` adds `tokens`: non-empty list of distinct literal substrings. Matching is
- *     case-insensitive (CSS keywords and font names are), one finding per occurrence.
+ *     case-insensitive (CSS keywords and font names are), one finding per occurrence. Optional
+ *     `excludeElements` (tag names, e.g. `["code", "pre"]`): an occurrence inside one of those
+ *     elements is not a finding; it is reported as an exclusion with its line, so a ban that skips
+ *     `<code>` still shows what it skipped.
  *
  * Errors reuse DSError (`code` + `message`) and add where-it-broke fields; every message names the
  * file, rule position and field, so the repair is "edit that field", not "search the file".
@@ -109,26 +112,91 @@ export interface TokenBanFinding {
   severity: AdherenceSeverity;
   message: string;
 }
+/** An occurrence a rule's `excludeElements` kept out of the findings. */
+export interface TokenBanExclusion {
+  ruleId: string;
+  token: string;
+  line: number;
+  /** The excluding element's tag name, lower-cased. */
+  element: string;
+}
+
+/**
+ * Spans `[start, end)` of every `<tag ...>...</tag>` for one tag name, open tag included. Same-name
+ * nesting is balanced; an element that never closes yields no span (a missed close must make the
+ * ban stricter, never looser). The tag name must be followed by whitespace, `/` or `>`, so `<codex>`
+ * is not a `<code>`.
+ */
+function elementSpans(text: string, tag: string): [number, number][] {
+  const spans: [number, number][] = [];
+  const tagRe = new RegExp(`<(/?)${tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=[\\s/>])[^>]*>`, "gi");
+  const open: number[] = [];
+  for (const m of text.matchAll(tagRe)) {
+    const at = m.index ?? 0;
+    if (m[1] === "/") {
+      const start = open.pop();
+      if (start !== undefined) spans.push([start, at + m[0].length]);
+    } else if (!m[0].endsWith("/>")) {
+      open.push(at);
+    }
+  }
+  return spans;
+}
+
+/**
+ * Lower-case without changing the string's length: a character whose lower-case form is longer
+ * (`İ` becomes `i̇`, two UTF-16 units) is kept as it is, so an offset found in the folded text is the
+ * same offset in the original and the element spans line up with it.
+ */
+function fold(s: string): string {
+  let out = "";
+  for (const ch of s) {
+    const lower = ch.toLowerCase();
+    out += lower.length === ch.length ? lower : ch;
+  }
+  return out;
+}
 
 /**
  * One finding per occurrence of a banned token, ordered by line, then rule order, then token order.
  * Literal, case-insensitive substring scan over raw text; occurrences of one token do not overlap
  * (`aa` in `aaa` is one hit). Tokens of one rule that contain each other (`ui-monospace`, `monospace`)
- * are counted separately. It does not know about elements, so an occurrence inside <code>/<pre> is
- * reported like any other (spec 025 defines no exclusion field).
+ * are counted separately. A rule with `excludeElements` moves occurrences inside those elements from
+ * `findings` to `excluded`; a rule without it sees the whole text.
  */
-export function evaluateTokenBans(rules: readonly TokenBanRule[], text: string): TokenBanFinding[] {
+export function evaluateTokenBansDetailed(
+  rules: readonly TokenBanRule[],
+  text: string,
+): { findings: TokenBanFinding[]; excluded: TokenBanExclusion[] } {
   const findings: TokenBanFinding[] = [];
+  const excluded: TokenBanExclusion[] = [];
+  const spansByTag = new Map<string, [number, number][]>();
+  const spansFor = (tag: string): [number, number][] => {
+    const key = tag.toLowerCase();
+    let spans = spansByTag.get(key);
+    if (spans === undefined) { spans = elementSpans(text, key); spansByTag.set(key, spans); }
+    return spans;
+  };
+  let lineStart = 0;
   text.split("\n").forEach((raw, i) => {
-    const haystack = raw.toLowerCase();
+    const haystack = fold(raw);
     for (const rule of rules) {
       for (const token of rule.tokens) {
-        const needle = token.toLowerCase();
+        const needle = fold(token);
         for (let at = haystack.indexOf(needle); at !== -1; at = haystack.indexOf(needle, at + needle.length)) {
-          findings.push({ ruleId: rule.id, token, line: i + 1, severity: rule.severity, message: rule.message });
+          const abs = lineStart + at;
+          const element = (rule.excludeElements ?? []).find((tag) => spansFor(tag).some(([s, e]) => s <= abs && abs < e));
+          if (element !== undefined) excluded.push({ ruleId: rule.id, token, line: i + 1, element: element.toLowerCase() });
+          else findings.push({ ruleId: rule.id, token, line: i + 1, severity: rule.severity, message: rule.message });
         }
       }
     }
+    lineStart += raw.length + 1;
   });
-  return findings;
+  return { findings, excluded };
+}
+
+/** The findings of {@link evaluateTokenBansDetailed}, for callers that do not report exclusions. */
+export function evaluateTokenBans(rules: readonly TokenBanRule[], text: string): TokenBanFinding[] {
+  return evaluateTokenBansDetailed(rules, text).findings;
 }

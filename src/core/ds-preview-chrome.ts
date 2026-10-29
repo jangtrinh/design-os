@@ -4,9 +4,17 @@
  * token tier (var(--color-*), var(--space-*), …) so the specimen is dogfood: the page
  * that shows the design system is itself built from it. Kept as a data constant
  * (configuration-like) rather than assembled in code.
+ *
+ * Fonts: the chrome's one monospace face (token names, hex values, the footer command) is not a
+ * design-system font, so it is NOT written as a literal stack at the three places it is used. The
+ * chrome declares `--ds-chrome-font-mono` in its own `:root` and applies it with `var()`, which is
+ * how any project page introduces a face of its own. The generated page therefore passes
+ * `off-system-font` like every other page, with no exemption in the linter; ds-usage reports the
+ * var as the page-declared `off-system-token` warning it is.
  */
 export const SPECIMEN_CHROME_CSS = `
 /* ── Specimen chrome — every value resolves through the compiled semantic tier ── */
+:root { --ds-chrome-font-mono: ui-monospace, Menlo, monospace; }
 * { box-sizing: border-box; margin: 0; }
 body {
   background: var(--color-background); color: var(--color-foreground);
@@ -37,7 +45,7 @@ section { margin-top: 64px; }
 .swatch { border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; background: var(--color-card); }
 .swatch .chip { height: 76px; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
 .swatch .info { padding: 8px 12px; font-size: var(--font-size-xs); color: var(--color-card-foreground); }
-.swatch .info code { color: var(--color-muted-foreground); font-family: ui-monospace, Menlo, monospace; }
+.swatch .info code { color: var(--color-muted-foreground); font-family: var(--ds-chrome-font-mono); }
 
 /* Typography ramp */
 .type-row { display: flex; align-items: baseline; gap: 20px; padding: 10px 0; border-bottom: 1px dashed var(--color-border); }
@@ -47,7 +55,7 @@ section { margin-top: 64px; }
 .chips { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
 .rchip { background: var(--color-card); border: 1px solid var(--color-border); padding: 18px 22px; font-size: var(--font-size-xs); color: var(--color-card-foreground); }
 .echip { background: var(--color-card); border-radius: var(--radius-card); padding: 18px 22px; font-size: var(--font-size-xs); color: var(--color-card-foreground); }
-.dchip { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-button); padding: 10px 14px; font-size: var(--font-size-xs); color: var(--color-card-foreground); font-family: ui-monospace, Menlo, monospace; }
+.dchip { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-button); padding: 10px 14px; font-size: var(--font-size-xs); color: var(--color-card-foreground); font-family: var(--ds-chrome-font-mono); }
 
 /* Components */
 .comp { margin-top: 36px; }
@@ -69,5 +77,5 @@ section { margin-top: 64px; }
 
 /* Footer */
 .foot { margin-top: 72px; border-top: 1px solid var(--color-border); padding-top: 16px; }
-.foot code { font-family: ui-monospace, Menlo, monospace; }
+.foot code { font-family: var(--ds-chrome-font-mono); }
 `;
