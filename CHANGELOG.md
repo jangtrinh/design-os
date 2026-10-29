@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-10-29 - `ui registry register` requires ground truth once the design system is sealed
+
+### Added
+- `ui registry register --source-ref <path:start-end | figma:<nodeId>>` and
+  `--synthetic-approved --reason "<text>"`. A code ref is relative to the project root (the parent of
+  `design/`), lines are 1-based inclusive (`path:12` is one line), and the record keeps the `sha256` of
+  the exact lines joined with `\n`. A Figma ref must be a component or component-set id in
+  `design/ds.json` or `design/canvas-inventory.json`; the record keeps the canonical hash of that
+  inventory entry. A synthetic approval stores `sourceRef: "synthetic"`, the hash of the markup and the
+  reason. All three land on the component as `provenance: { kind, sourceRef, sha256, reason? }`
+  (`kind` is `code`, `figma` or `synthetic-approved`; unknown keys inside it are rejected on load and
+  validate; `schemas/component-registry.schema.json` describes it).
+- Error codes `REGISTRY_MISSING_SOURCE_REF`, `REGISTRY_BAD_SOURCE_REF` and `REGISTRY_MARKUP_DRIFT`, listed in
+  `ui registry --help` and `ui schema`. `--source-ref` together with `--synthetic-approved`, `--reason`
+  without `--synthetic-approved`, and an empty or whitespace-only reason are `BAD_ARG`.
+
+### Changed
+- When `design/ds.manifest.json` exists next to the registry, `register` refuses a component that has
+  neither a source ref nor a reasoned synthetic approval (`REGISTRY_MISSING_SOURCE_REF`), refuses a ref that
+  does not verify (`REGISTRY_BAD_SOURCE_REF`: malformed, missing file, line range past the end of the file,
+  path outside the project root or through a link out of it, unknown Figma node, or no inventory present),
+  and lints the markup the way `ui gate` does: any `error` from the `ds-usage` checks
+  (`off-system-font`, `hardcoded-color`, `undeclared-token`) or from a promoted `token-ban` rule refuses it
+  (`REGISTRY_MARKUP_DRIFT`, one line per finding with its check id and line). `off-system-token` warnings
+  and checks that did not run are printed and do not block. Checks run in the order arguments, source,
+  markup; a refusal writes nothing and does not reseal.
+- A design system without a manifest registers exactly as before. A provenance flag given there is still
+  verified and recorded.
+- A synthetic approval skips the source, not the design system: its markup is linted too.
+
 ## 2026-10-29 - ds-usage is a blocking gate family, with a closed font allowlist and polyglot input
 
 ### Added
