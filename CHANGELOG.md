@@ -66,6 +66,17 @@
 - `font-family: "", Menlo` judges `Menlo` (an empty first entry is not a family).
 - `token-ban` lower-cases text without changing its length, so an `İ` earlier on a line no longer moves
   an occurrence in or out of an `excludeElements` element.
+- In HTML, `hardcoded-color` reads colours only inside `<style>` blocks, `style="..."` values and
+  `<script>` bodies. `<p>Brand color: #ff385c</p>`, a `title="Text color: #333"` and a
+  `<code>background:#000</code>` sample are page text and no longer fail the gate. Measured on the 59
+  tracked example and fixture pages: 798 findings before and after, none changed.
+- `ui gate coverage` keeps the design-dir meaning of "tokens present" for `raw-hex-when-token-exists`
+  (the gate only grades it against `--tokens`) and reports the `ds-usage` rows from the token file the
+  family reads, so a project with only `brand/design/` tokens no longer claims a raw-hex check the run
+  never emits.
+- `ui ds-usage-lint <dir>` where the root or a subdirectory cannot be listed is `NO_FILES_READ` naming
+  the path and cause (it was "no UI files" with the reason hidden in text mode); `NO_UI_FILES` now lists
+  what it skipped.
 - `hardcoded-color` no longer reads a hex in the page text after an inline `style="..."` as that style's
   colour. An inline style without a trailing `;` made the value run through the tag into the next `;`
   (an `&middot;` entity), so every swatch label of a generated specimen counted as a hardcoded colour
