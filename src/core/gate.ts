@@ -184,9 +184,12 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
 // ─── Coverage — the registry triage routes on ─────────────────────────────────
 
 export interface GateCoverage {
-  checks: Array<CatalogEntry & { active: boolean }>;
+  /** `inactiveReason` is set when the project has tokens but the check still cannot run for them. */
+  checks: Array<CatalogEntry & { active: boolean; inactiveReason?: string }>;
   families: Record<GateFamily, { total: number; active: number }>;
-  project: { tokensPresent: boolean; dsPresent: boolean };
+  project: { tokensPresent: boolean; dsPresent: boolean; fontTokenPresent?: boolean; promotedRules?: number };
+  /** Rules that are active but have no catalog row, so no count above can show them. */
+  extra: string[];
 }
 
 /**
@@ -199,25 +202,38 @@ export interface GateCoverage {
 export function gateCoverage(project: {
   tokensPresent: boolean;
   dsPresent: boolean;
+  /** False when the design system declares no fontFamily token: `off-system-font` then does not run. Undefined = assume it does. */
+  fontTokenPresent?: boolean;
+  /** Promoted `token-ban` rules the ds-usage family would run; they have no catalog row. */
+  promotedRules?: number;
   /** True when a rendered capture is available (ui gate --render). */
   renderAvailable?: boolean;
 }): GateCoverage {
-  const checks = CHECK_CATALOG.map((c) => ({
-    ...c,
-    // A fact-based requirement is active when the gate's extractor supplies the
-    // kinds. html-cascade supplies all ten, so every fact rule is active — but a
-    // rule needing `rendered` confidence cannot run without a capture, and
-    // reporting it active would be exactly the silent pass NOT-EVALUATED exists
-    // to prevent.
-    active:
-      c.requires === "none" ||
-      (c.requires === "tokens" && project.tokensPresent) ||
-      (typeof c.requires === "object" &&
-        (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
-  }));
+  const checks = CHECK_CATALOG.map((c) => {
+    // `off-system-font` compares against the design system's own font tokens; with none declared the
+    // run skips it (printed), so coverage must not call it active either.
+    const noFontToken = c.id === "off-system-font" && project.fontTokenPresent === false;
+    return {
+      ...c,
+      // A fact-based requirement is active when the gate's extractor supplies the
+      // kinds. html-cascade supplies all ten, so every fact rule is active — but a
+      // rule needing `rendered` confidence cannot run without a capture, and
+      // reporting it active would be exactly the silent pass NOT-EVALUATED exists
+      // to prevent.
+      active:
+        c.requires === "none" ||
+        (c.requires === "tokens" && project.tokensPresent && !noFontToken) ||
+        (typeof c.requires === "object" &&
+          (c.requires.minConfidence !== "rendered" || project.renderAvailable === true)),
+      ...(noFontToken && project.tokensPresent && { inactiveReason: "the design system declares no fontFamily token" }),
+    };
+  });
   const families = Object.fromEntries(GATE_FAMILIES.map((f) => {
     const rows = checks.filter((c) => c.family === f);
     return [f, { total: rows.length, active: rows.filter((c) => c.active).length }];
   })) as Record<GateFamily, { total: number; active: number }>;
-  return { checks, families, project };
+  const extra = (project.promotedRules ?? 0) > 0
+    ? [`ds-usage: ${project.promotedRules} promoted token-ban rule(s) run (listed in design/rules/_adherence.rules.json, not in the catalog)`]
+    : [];
+  return { checks, families, project, extra };
 }

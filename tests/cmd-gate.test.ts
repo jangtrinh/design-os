@@ -97,7 +97,7 @@ describe("ui gate — declared skips", () => {
     expect(d.families.content).toBeUndefined();
     // With no project tokens the ds-usage family is a declared skip of its own; the caller's skip is untouched.
     expect(d.skipped.filter((s: string) => !s.startsWith("ds-usage:"))).toEqual(["content: mirror evidence"]);
-    expect(d.skipped.some((s: string) => s.startsWith("ds-usage: no design.tokens.json"))).toBe(true);
+    expect(d.skipped.some((s: string) => s.startsWith("ds-usage: no token file (no --tokens"))).toBe(true);
   });
 
   it("a skip without a reason is refused (silent partial gating is the failure mode)", () => {

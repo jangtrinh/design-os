@@ -15,7 +15,7 @@ import { countBySeverity } from "../core/finding-schema.js";
 import { loadTokenHexes } from "./taste-lint.js";
 import { inlineLinkedCss } from "../core/html-css-loader.js";
 import { DSError, tryDiscoverDesignSystem } from "../core/design-system.js";
-import { loadDsUsageGateInput } from "../core/ds-usage-gate.js";
+import { dsUsageCoverageContext, dsUsageDesignDir, dsUsageSkipReason, loadDsUsageGateInput, resolveDsUsageTokens } from "../core/ds-usage-gate.js";
 import { withOutcome, lintOutcomeData } from "../core/memory-autorecord.js";
 import { autoScoreTokenCoverage, scoreTokenCoverage } from "../core/token-coverage-io.js";
 import type { TokenCoverageSource } from "../core/token-coverage-io.js";
@@ -210,16 +210,23 @@ export const gateCommand = {
       // flat join would report "no tokens" from any subdirectory of a real
       // project and silently deactivate the tokens-gated check.
       const ds = tryDiscoverDesignSystem(dir);
+      // The ds-usage inputs are read by the helper `ui gate` uses, so coverage cannot claim a check the run skips.
+      const dsUsageContext = dsUsageCoverageContext(resolve(dir));
       const project = {
-        tokensPresent: existsSync(ds !== undefined ? ds.tokens : join(dir, "design", "design.tokens.json")),
+        tokensPresent: dsUsageContext.tokensPresent,
         dsPresent: ds !== undefined,
+        ...(dsUsageContext.fontTokenPresent !== undefined && { fontTokenPresent: dsUsageContext.fontTokenPresent }),
+        promotedRules: dsUsageContext.promotedRules,
       };
       const cov = gateCoverage(project);
-      if (useJson) return okJsonWithExit(CMD, cov, 0);
+      if (useJson) return okJsonWithExit(CMD, dsUsageContext.error === undefined ? cov : { ...cov, dsUsageError: dsUsageContext.error }, 0);
       const lines = [
         `gate coverage — ${cov.checks.filter((c) => c.active).length}/${cov.checks.length} checks active (tokens: ${project.tokensPresent ? "present" : "absent"}, ds: ${project.dsPresent ? "present" : "absent"})`,
         ...GATE_FAMILIES.map((f) => `  ${f}: ${cov.families[f].active}/${cov.families[f].total} active`),
+        ...cov.extra.map((x) => `  also: ${x}`),
+        ...(dsUsageContext.error !== undefined ? [`  ds-usage inputs unreadable, so the family does not run: ${dsUsageContext.error}`] : []),
         ...cov.checks.filter((c) => !c.active).map((c) => `  inactive: ${c.id} (requires ${c.requires})`),
+        ...cov.checks.filter((c) => c.inactiveReason !== undefined).map((c) => `  inactive: ${c.id} (${c.inactiveReason})`),
       ];
       return { exitCode: 0, stdout: lines.join("\n") + "\n" };
     }
@@ -312,12 +319,14 @@ export const gateCommand = {
     // design/rules/_adherence.rules.json, found from --dir or from the page's folder like the design
     // system itself. They are the project's binding law, independent of which token file grades colour.
     const projectStart = typeof dirFlag === "string" ? resolve(dirFlag) : dirname(resolve(file));
-    const tokensForDsUsage = typeof tokensFlag === "string" ? tokensFlag
-      : tokenCoverageSource.origin === "auto" && tokenCoverageSource.error === undefined ? tokenCoverageSource.path : undefined;
-    const rulesDesignDir = tryDiscoverDesignSystem(projectStart)?.dir ?? join(projectStart, "design");
+    const tokensForDsUsage = resolveDsUsageTokens({
+      tokensFlag: typeof tokensFlag === "string" ? tokensFlag : undefined,
+      projectStart,
+      autoUnreadable: tokensUnreadable,
+    });
     let dsUsage: GateOptions["dsUsage"];
     try {
-      dsUsage = loadDsUsageGateInput({ tokensPath: tokensForDsUsage, designDir: rulesDesignDir });
+      dsUsage = loadDsUsageGateInput({ tokensPath: tokensForDsUsage, designDir: dsUsageDesignDir(projectStart) });
     } catch (e) {
       const code = e instanceof DSError ? e.code : "TOKENS_NOT_READABLE";
       const msg = `the ds-usage family could not load its inputs: ${e instanceof Error ? e.message : String(e)}`;
@@ -326,8 +335,10 @@ export const gateCommand = {
 
     // A detected token file that cannot be read already fails the gate (token-coverage/tokens-not-readable).
     // The family's skip line must say THAT, not "no design.tokens.json": the file is there, it is broken.
-    if (dsUsage === undefined && tokensUnreadable) {
-      skip = { ...skip, "ds-usage": skip?.["ds-usage"] ?? "the project's token file is unreadable (see token-coverage/tokens-not-readable), so there is nothing to judge against" };
+    if (dsUsage === undefined) {
+      skip = { ...skip, "ds-usage": skip?.["ds-usage"] ?? (tokensUnreadable
+        ? "the project's token file is unreadable (see token-coverage/tokens-not-readable), so there is nothing to judge against"
+        : dsUsageSkipReason(projectStart)) };
     }
 
     // A8: --family <slug> (or a top-level "persona" field on --tokens) applies

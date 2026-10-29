@@ -13,7 +13,8 @@
  * Rule findings carry the rule's own severity, and their checkId is `token-ban/<rule id>` so a
  * promoted rule can never collide with a built-in check.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import type { FloorFindingBase } from "./finding-schema.js";
 import { lintDsUsageOnMarkup } from "./ds-usage-lint.js";
@@ -21,6 +22,8 @@ import type { DsUsageLintOptions } from "./ds-usage-lint.js";
 import { fontTokenModel } from "./ds-usage-font-check.js";
 import { evaluateTokenBansDetailed, loadAdherenceRules } from "./adherence-rules.js";
 import type { TokenBanRule } from "./adherence-rules.js";
+import { tryDiscoverDesignSystem } from "./design-system.js";
+import { resolveProjectTokensPath } from "./token-coverage-io.js";
 import { parseTokenFile } from "./token-model.js";
 import { resolveTokens } from "./token-resolve.js";
 import { declaredCssVarNames } from "./token-emit.js";
@@ -32,8 +35,58 @@ export interface DsUsageGateInput {
   rules: readonly TokenBanRule[];
 }
 
-export const DS_USAGE_SKIP_REASON =
-  "no design.tokens.json and no promoted design/rules/_adherence.rules.json — pass --tokens <file>, or --dir <project> with a design system";
+/** Fallback reason for a caller that composes the gate without a project (library use). The command states the exact paths. */
+export const DS_USAGE_SKIP_REASON = "no token file and no promoted token-ban rule were supplied, so there is nothing to judge against";
+
+/** The `design/` folder whose `rules/_adherence.rules.json` binds the project: the design system's own, else `<start>/design`. */
+export function dsUsageDesignDir(projectStart: string): string {
+  return tryDiscoverDesignSystem(projectStart)?.dir ?? join(projectStart, "design");
+}
+
+/**
+ * Which token file the family (and `gate coverage`, which must match the run) grades against. In order:
+ * the explicit `--tokens`; the token file found from `projectStart` (a `ds init` store, then
+ * `brand/design/`); `<projectStart>/design/design.tokens.json` even without a store. `autoUnreadable`
+ * says the detected file is broken: the gate already fails on that, so the family does not read it.
+ */
+export function resolveDsUsageTokens(o: { tokensFlag?: string; projectStart: string; autoUnreadable?: boolean }): string | undefined {
+  if (o.tokensFlag !== undefined) return o.tokensFlag;
+  if (o.autoUnreadable === true) return undefined;
+  const detected = resolveProjectTokensPath(o.projectStart);
+  if (detected !== undefined) return detected;
+  const plain = join(o.projectStart, "design", "design.tokens.json");
+  return existsSync(plain) ? plain : undefined;
+}
+
+/** The exact failed condition when the family has neither tokens nor promoted rules. */
+export function dsUsageSkipReason(projectStart: string): string {
+  return `no token file (no --tokens, no design system or brand/design tokens found from '${projectStart}', no '${join(projectStart, "design", "design.tokens.json")}') ` +
+    `and no promoted token-ban rule in '${join(dsUsageDesignDir(projectStart), "rules", "_adherence.rules.json")}' — pass --tokens <file>, or --dir <project> that holds design/`;
+}
+
+export interface DsUsageCoverageContext {
+  tokensPresent: boolean;
+  /** Undefined when there are no tokens to ask. */
+  fontTokenPresent?: boolean;
+  promotedRules: number;
+  /** Set when the inputs exist but cannot be loaded: coverage then reports the family as not running. */
+  error?: string;
+}
+
+/** What the family would have to work with for `projectStart`, read the way `ui gate` reads it. */
+export function dsUsageCoverageContext(projectStart: string): DsUsageCoverageContext {
+  const tokensPath = resolveDsUsageTokens({ projectStart });
+  try {
+    const input = loadDsUsageGateInput({ tokensPath, designDir: dsUsageDesignDir(projectStart) });
+    return {
+      tokensPresent: input?.lint !== undefined,
+      ...(input?.lint !== undefined && { fontTokenPresent: input.lint.fonts !== undefined && input.lint.fonts.firstFamilies.size > 0 }),
+      promotedRules: input?.rules.length ?? 0,
+    };
+  } catch (e) {
+    return { tokensPresent: false, promotedRules: 0, error: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 export interface DsUsageFamilyOutput {
   findings: FloorFindingBase[];

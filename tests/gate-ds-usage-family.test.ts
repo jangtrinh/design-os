@@ -65,8 +65,7 @@ describe("runGate ds-usage family", () => {
     const r = runGate(MONO_PAGE, {});
     expect(r.families["ds-usage"]).toBeUndefined();
     const reason = r.skipped.find((s) => s.startsWith("ds-usage:"));
-    expect(reason).toMatch(/^ds-usage: no design\.tokens\.json/);
-    expect(reason).toMatch(/--tokens/);
+    expect(reason).toMatch(/^ds-usage: no token file and no promoted token-ban rule/);
   });
 
   it("--skip ds-usage:<reason> is honoured and reported with the caller's reason", () => {
@@ -215,7 +214,7 @@ describe("ui gate (CLI) with the ds-usage family", () => {
   it("without a token file the family is skipped and the output says why", () => {
     const file = put("p.html", MONO_PAGE);
     const r = capture(["gate", file]);
-    expect(r.out).toMatch(/skipped ds-usage: no design\.tokens\.json/);
+    expect(r.out).toMatch(/skipped ds-usage: no token file \(no --tokens, .*design\.tokens\.json'\) and no promoted token-ban rule in .*_adherence\.rules\.json/);
     expect(r.out).not.toContain("OFF_SYSTEM_FONT");
   });
 
