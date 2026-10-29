@@ -129,7 +129,7 @@
     {
       "path": "workflows/diagram.md",
       "description": "Runtime-neutral diagram workflow for ease-design. Use when a request needs a structural, sequential, or hierarchical picture and prose/tables would lose structure a reader needs to trace. Charts of quantities belong to the chart workflow.",
-      "sourceSha256": "424989eaf3548ea67048a5b3bd265439495a53d9dd3a3808e1d3a51071f76086"
+      "sourceSha256": "cdd6cd705190253418d8bb6623d0e9d56ab32b19b46a6332a9e7a6ce862fdc13"
     },
     {
       "path": "workflows/evidence.md",

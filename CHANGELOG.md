@@ -27,7 +27,10 @@
   content="noindex">` and an inline SVG favicon, the component-kit Breadcrumb and Pagination
   specimens link to real paths instead of `href="#"`, the two `skills/design-os-designer` example
   pages carry the same two head lines, and `schemas/template-descriptions.json`
-  is regenerated for the `generate` and `refine` workflow edits that shipped without it.
+  is regenerated for the `generate`, `refine` and `diagram` workflow edits.
+- The two diagram scaffolds carry a meta description, `og:title` and a PNG data-URI favicon, and
+  `/ui:diagram` asks for an indexable head; `og:image` is set at publish time, so a scaffold still
+  reports `seo-meta-missing` for it until a rendered image exists.
 
 ## 2026-10-29 - ds status names a non-object registry record and says re-import
 
