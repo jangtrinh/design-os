@@ -356,6 +356,24 @@ design-os/
 
 ---
 
+## Watch
+
+DESIGN:OS is free and source-available (PolyForm Shield). The Autonomous Design Agent talks from the [design:os by Jang](https://www.youtube.com/@designosbyjang) channel (Vietnamese, with English terms):
+
+<p align="left">
+  <a href="https://www.youtube.com/watch?v=cUOa9g1E-fA"><img src="docs/assets/video/cUOa9g1E-fA.jpg" alt="Xây dựng autonomous design agent cho doanh nghiệp? how? (YouTube, 7:06)" width="320"></a>
+  <a href="https://www.youtube.com/watch?v=wxFz82DTu_o"><img src="docs/assets/video/wxFz82DTu_o.jpg" alt="Ontology là gì? apply vào build AI design agent như thế nào? (YouTube, 7:33)" width="320"></a>
+  <a href="https://www.youtube.com/watch?v=OYWsj7Jt8aw"><img src="docs/assets/video/OYWsj7Jt8aw.jpg" alt="Autonomous Design Agent · Tập 03: Model + Harness và 6 trụ cột DESIGN:OS (YouTube, 8:44)" width="320"></a>
+</p>
+
+- [Xây dựng autonomous design agent cho doanh nghiệp? how?](https://www.youtube.com/watch?v=cUOa9g1E-fA) (7:06): How the DESIGN:OS CLI, plugin bridge and deterministic gates turn an ontology into an autonomous design agent for enterprise design systems. Vietnamese, with English terms.
+- [Ontology là gì? apply vào build AI design agent như thế nào?](https://www.youtube.com/watch?v=wxFz82DTu_o) (7:33): What an ontology is and how it grounds an AI design agent: shared vocabulary, semantic RAG and reusable design decisions. Vietnamese, with English terms.
+- [Autonomous Design Agent · Tập 03: Model + Harness và 6 trụ cột DESIGN:OS](https://www.youtube.com/watch?v=OYWsj7Jt8aw) (8:44): Agent = Model + Harness: the six pillars of DESIGN:OS (single source of truth, Ontology Graph RAG, dual-layer spec, 126 CI gates, 9-verb patch, watchers). Vietnamese, with English terms.
+
+More: [Autonomous Design Agent series](https://www.youtube.com/@designosbyjang/playlists).
+
+---
+
 ## DESIGN:OS Ecosystem
 
 `design-os` is one of the 13 source-available engines in the **`DESIGN:OS`** ecosystem:

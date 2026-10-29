@@ -32,3 +32,10 @@ A multi-runtime design CLI driven from Claude Code, Codex CLI or Antigravity wit
 - [design-os-voice-ux](https://jangtrinh.github.io/design-os-voice-ux/): Voice UX & AI Agent Architecture — Full-duplex barge-in FSMs & sub-500ms voice specs (voice-ai)
 - [design-os-code2flow](https://jangtrinh.github.io/design-os-code2flow/): Code2Flow — Local-first codebase-to-user-flow audit CLI across 7 UI frameworks (ast / audit)
 - [design-os-generative-ui](https://jangtrinh.github.io/design-os-generative-ui/): Generative UI — Streaming interactive visual runtime with morphdom & WebGL (runtime)
+
+## Videos
+
+- [Xây dựng autonomous design agent cho doanh nghiệp? how?](https://www.youtube.com/watch?v=cUOa9g1E-fA): How the DESIGN:OS CLI, plugin bridge and deterministic gates turn an ontology into an autonomous design agent for enterprise design systems. Vietnamese, with English terms.
+- [Ontology là gì? apply vào build AI design agent như thế nào?](https://www.youtube.com/watch?v=wxFz82DTu_o): What an ontology is and how it grounds an AI design agent: shared vocabulary, semantic RAG and reusable design decisions. Vietnamese, with English terms.
+- [Autonomous Design Agent · Tập 03: Model + Harness và 6 trụ cột DESIGN:OS](https://www.youtube.com/watch?v=OYWsj7Jt8aw): Agent = Model + Harness: the six pillars of DESIGN:OS (single source of truth, Ontology Graph RAG, dual-layer spec, 126 CI gates, 9-verb patch, watchers). Vietnamese, with English terms.
+- [design:os by Jang on YouTube](https://www.youtube.com/@designosbyjang): channel.
