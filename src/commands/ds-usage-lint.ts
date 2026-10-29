@@ -75,8 +75,8 @@ Error codes:
   BAD_ARG        Missing <file|dir> argument
   FILE_NOT_FOUND Input file or directory does not exist
   READ_ERROR     Input file exists but cannot be read
-  NO_UI_FILES    A directory holds no UI source file outside the skipped directories
-  NO_FILES_READ  A directory holds UI source files but none could be read (each reason is listed)
+  NO_UI_FILES    A directory holds no UI source file outside the skipped directories (the skips are listed)
+  NO_FILES_READ  Nothing could be read: UI source files that could not be read, or a directory that could not be listed (each path and reason is listed)
   DS_NOT_FOUND   No design.tokens.json under '<dir>/design' (or at --tokens) — run 'ui ds init' first
   BAD_JSON       Token file is not valid JSON / fails DTCG validation
 `;
@@ -156,12 +156,15 @@ export const dsUsageLintCommand = {
 
     if (isDirectory) {
       const report = lintDirectory(target, opts);
-      if (report.total === 0) {
-        return err("NO_UI_FILES", `no .html/.svelte/.vue/.jsx/.tsx/.js/.ts file under '${target}' outside the skipped directories (${report.skipped.length} skipped)`);
+      // Something that could not be listed or read means "unknown", never "no UI files": say which and why.
+      const unreadable = report.skipped.filter((s) => s.reason.startsWith("cannot"));
+      const reasonList = (skips: typeof report.skipped): string => skips.map((s) => `${s.path}: ${s.reason}`).join("; ");
+      if (report.total === 0 && unreadable.length === 0) {
+        return err("NO_UI_FILES", `no .html/.svelte/.vue/.jsx/.tsx/.js/.ts file under '${target}' outside the skipped directories (${report.skipped.length} skipped${report.skipped.length > 0 ? `: ${reasonList(report.skipped)}` : ""})`);
       }
       if (report.scanned === 0) {
-        const reasons = report.skipped.filter((s) => !s.path.endsWith("/")).map((s) => `${s.path}: ${s.reason}`).join("; ");
-        return err("NO_FILES_READ", `read 0 of ${report.total} UI source file(s) under '${target}' — nothing was checked (${reasons})`);
+        const why = reasonList(report.skipped.filter((s) => !s.path.endsWith("/") || s.reason.startsWith("cannot")));
+        return err("NO_FILES_READ", `read 0 of ${report.total} UI source file(s) under '${target}' — nothing was checked (${why})`);
       }
       const exitCode = report.errorCount > 0 ? 1 : 0;
       return useJson

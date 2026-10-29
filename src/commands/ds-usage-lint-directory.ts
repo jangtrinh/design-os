@@ -1,6 +1,6 @@
 /**
  * Directory mode of `ui ds-usage-lint`: walk a tree of UI sources, lint every file, report what was
- * scanned, what was not, and why . Pure over a root path and lint options; the
+ * scanned, what was not, and why. Pure over a root path and lint options; the
  * command owns flags, token loading and exit codes.
  */
 import { readFileSync } from "node:fs";

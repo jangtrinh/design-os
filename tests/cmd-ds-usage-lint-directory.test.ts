@@ -189,6 +189,44 @@ describe("ui ds-usage-lint <dir> — what the walk could not read is said, never
     expect(err.message).toContain("big.js: larger than 2 MB");
     expect(err.message).toContain("link.js: symlink not followed");
   });
+
+  it.skipIf(process.getuid?.() === 0)("a tree whose only subdirectory cannot be listed is NO_FILES_READ with the path and cause, in text and JSON", () => {
+    put("locked/x.html", `<p>x</p>`);
+    chmodSync(join(root, "locked"), 0o000);
+    try {
+      const text = capture(["ds-usage-lint", root, "--tokens", TOKENS]);
+      expect(text.code).toBe(1);
+      expect(text.out).toContain("locked/: cannot read directory: EACCES");
+      expect(text.out).not.toContain("no .html/.svelte");
+      const err = JSON.parse(capture(["ds-usage-lint", root, "--tokens", TOKENS, "--json"]).out).error as { code: string; message: string };
+      expect(err.code).toBe("NO_FILES_READ");
+      expect(err.message).toContain("locked/: cannot read directory: EACCES");
+    } finally {
+      chmodSync(join(root, "locked"), 0o755);
+    }
+  });
+
+  it.skipIf(process.getuid?.() === 0)("a root directory that cannot be listed is NO_FILES_READ, not 'no UI files'", () => {
+    put("a.html", `<p>x</p>`);
+    chmodSync(root, 0o000);
+    try {
+      const r = capture(["ds-usage-lint", root, "--tokens", TOKENS, "--json"]);
+      expect(r.code).toBe(1);
+      const err = JSON.parse(r.out).error as { code: string; message: string };
+      expect(err.code).toBe("NO_FILES_READ");
+      expect(err.message).toContain("./: cannot read directory: EACCES");
+    } finally {
+      chmodSync(root, 0o755);
+    }
+  });
+
+  it("a tree with no UI source and nothing unreadable stays NO_UI_FILES, and says what it skipped", () => {
+    put("node_modules/pkg/a.js", "x");
+    const text = capture(["ds-usage-lint", root, "--tokens", TOKENS]);
+    expect(text.code).toBe(1);
+    expect(text.out).toContain("no .html/.svelte");
+    expect(text.out).toContain("node_modules/: excluded directory 'node_modules'");
+  });
 });
 
 describe("ui ds-usage-lint <file> — any UI source type", () => {
