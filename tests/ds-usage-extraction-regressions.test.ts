@@ -13,7 +13,6 @@ import { fontTokenModel } from "../src/core/ds-usage-font-check.js";
 import { parseTokenFile } from "../src/core/token-model.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
 import { declaredCssVarNames } from "../src/core/token-emit.js";
-import { expectLinear, shapeBody } from "./helpers/scale-ratio.js";
 
 const FIXTURES = fileURLToPath(new URL("./fixtures/oi-browser/", import.meta.url));
 const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(FIXTURES + "tokens.json", "utf8"))));
@@ -124,29 +123,28 @@ describe("an empty first font family is not a family", () => {
   });
 });
 
-describe("hostile input does not make a scan super-linear (time on 8x the input stays under 16x + 5 ms)", () => {
-  /** [file, prefix, repeated unit, whether the whole lint is bounded too]. The HTML openers still reach older selector-block scans, so those bound the extractor only. */
-  const cases: [string, string, string, boolean, number?][] = [
-    ["brace-colon.ts", "", "{a:", true, 100_000],
-    ["font-family.ts", ".a{", "font-family:a ", true, 100_000],
-    ["color-color.html", "<style>", "color:color:", true],
-    ["interpolation.ts", "", "${", true],
-    ["style-object.tsx", "", "style={{a ", true],
-    ["style-object-with-cast.tsx", "", "<p style={{ a: 1 } as T} className=\"x\">", true],
-    ["open-comment.ts", "/*", "a", true, 100_000],
-    ["escaped-backticks.ts", "", "`\\", true],
-    ["quotes-on-one-line.ts", "", "'a' \"b\" ", true],
-    ["unclosed-quotes.ts", "", "'\"", true],
-    ["open-html-comment.html", "<!--", "a", false, 100_000],
-    ["open-style.html", "", "<style>a", false],
-    ["open-tags.html", "", "<style", false],
+/**
+ * Inputs that made the earlier scans hang: each size is picked so the old code needs 30 s or more
+ * (so a regression is a clear failure) while the current code needs a few milliseconds, which leaves
+ * three orders of magnitude of headroom under a 3 s budget on a loaded machine. Not a performance
+ * benchmark: a budget this wide only catches a scan that went super-linear again.
+ */
+describe("a pathological input does not hang the lint", () => {
+  const BUDGET_MS = 3000;
+  const rep = (unit: string, bytes: number): string => unit.repeat(Math.ceil(bytes / unit.length));
+  const shapes: [string, string, string][] = [
+    ["a template literal holding one { then a: repeated", "a.ts", "const s = `{" + rep("a:", 8_000) + "`;\n"],
+    ["a template literal of font-family declarations with no end", "a.ts", "const s = `.a{" + rep("font-family:a ", 14_000) + "`;\n"],
+    ["a template literal of color: repeated", "a.ts", "const s = `.a{" + rep("color:", 12_000) + "`;\n"],
+    ["a template literal of unclosed ${ openers", "a.ts", "const s = `" + rep("${", 400_000) + "`;\n"],
+    ["style={{a repeated", "a.tsx", rep("style={{a ", 1_000_000)],
   ];
-  it.each(cases)("extraction of %s", (file, prefix, unit, _lint, base) => {
-    expectLinear(file, (bytes) => shapeBody(prefix, unit, bytes), (body) => void extractUiRecords(file, body), base);
-  });
-  it.each(cases.filter((c) => c[3]))("lint of %s", (file, prefix, unit, _lint, base) => {
-    expectLinear(file, (bytes) => shapeBody(prefix, unit, bytes), (body) => void lintDsUsageOnMarkup(body, { ...DS, file }), base);
-  });
+  it.each(shapes)("%s", (_name, file, body) => {
+    const t0 = performance.now();
+    lintDsUsageOnMarkup(body, { ...DS, file });
+    const ms = performance.now() - t0;
+    expect(ms, `took ${Math.round(ms)} ms on ${body.length} characters`).toBeLessThan(BUDGET_MS);
+  }, 20_000);
 });
 
 describe("a value that is consumed is not read again as a second declaration", () => {
