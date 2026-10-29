@@ -152,6 +152,7 @@ Known content of `source/` (case-insensitive substring counts over all 19 files;
 | `ui-monospace` | 0 | none |
 | `font-mono` | 1 | `native/account-route-node-71.C77w0PPh.js`, inside a `<code class="rounded bg-muted px-1.5 py-0.5 font-mono ...">` (the deletion receipt). A text probe for `font-mono` over this folder reports it; excluding `<code>` / `<pre>` is what Spec 031 NS-01 requires, and **it is not implemented in P0** (Spec 025 defines no exclusion field, so `evaluateTokenBans` reports it) |
 | `#dcfce7` | 1 | `native/design/ontology.tokens.json`: `guava-leaf-100: #dcfce7`. It is the pastel pill colour as a sealed palette token: defined, referenced by no other vendored file and by none of the fixtures. A hex probe for the pastel pill expects 1 here, not 0 |
+| `uppercase` | 1 | `native/chunks/9k9xcff1.js`: the tailwind-merge config entry `"text-transform":["uppercase",…]` — a class-group definition, not a rendered uppercase tag. A probe for the uppercase-tag drift over this folder expects 1 here, not 0 |
 
 ## Vendored files (byte-identical copies)
 
