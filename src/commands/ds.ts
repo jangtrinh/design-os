@@ -172,7 +172,7 @@ Subcommands:
   PACK_INCOMPLETE (a file or generated block recorded in the manifest is missing, or the manifest is).
   Other optional inputs, all read from the project: CONTEXT.md + ontology/glossary.yaml -> terminology.md
   (CONTEXT.md wins on a clash, every clash is listed under 'terminology' in the manifest; a glossary that
-  is not the flat 'terms: - term/vi/def/avoid' shape is skipped as 'unsupported glossary shape');
+  is not the flat 'terms: - term/vi/def/avoid' shape is skipped with its line and cause, e.g. 'line 48: ...', and the build goes on);
   CONVENTIONS.md -> grammar.md (DO/DON'T lines copied verbatim, never re-derived; absent = 'not measured yet');
   design/soul.md -> a capped stance summary in overview.md. With a glossary, 'check' judges term: spans
   (UNKNOWN_NAME) and rejects a slot answer (a **Do:** / **Don't:** / **Why:** line) that uses an _Avoid_ word.
