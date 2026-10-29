@@ -176,7 +176,7 @@ describe.skipIf(!hasBuiltBinary)("validate — what ui could not check is said o
     const out = lines(run.stdout);
     // The ds-usage family needs the project's tokens too, so ui declares it skipped; that is said out loud as well.
     expect(out).toHaveLength(3);
-    expect(out[0]).toMatch(/^note: gate: SKIPPED ds-usage: no design\.tokens\.json /);
+    expect(out[0]).toMatch(/^note: gate: SKIPPED ds-usage: no token file \(no --tokens, /);
     expect(out[1]).toMatch(/^note: gate: token-coverage did not run — no design system found from .* \(5 folders up, stops at \.git\)$/);
     expect(out[2]).toBe("ok");
   });
