@@ -23,6 +23,7 @@ import {
   DSError,
 } from "../core/design-system.js";
 import { DSManifestError } from "../core/ds-manifest.js";
+import { RegistryError } from "../core/registry-store.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -74,7 +75,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
     const code =
       e instanceof DSError
         ? e.code
-        : e instanceof DSManifestError
+        : e instanceof DSManifestError || e instanceof RegistryError
         ? e.code
         : "BAD_DS";
     const msg = e instanceof Error ? e.message : String(e);

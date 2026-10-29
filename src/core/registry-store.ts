@@ -382,14 +382,20 @@ export function loadRegistry(path: string): Registry {
     }
   }
 
+  // A record must at least be a plain object (every reader dereferences it); beyond that,
+  // loadRegistry does not per-field-validate, so registries the old lenient loader accepted still load.
+  (obj["components"] as unknown[]).forEach((c, i) => {
+    if (c === null || typeof c !== "object" || Array.isArray(c)) {
+      const kind = c === null ? "null" : Array.isArray(c) ? "array" : typeof c;
+      throw new RegistryError("BAD_REGISTRY", `registry component #${i} is not an object (${kind}): '${path}'`);
+    }
+  });
+
   // Migration (spec 004): records written before `scope` existed lack it — default to
   // "local" on read so every in-memory record carries a scope. Deliberately scoped to this
-  // one field; loadRegistry does not otherwise per-record-validate (that would retroactively
-  // reject registries the old lenient loader accepted).
+  // one field.
   const components = (obj["components"] as ComponentRecord[]).map((c) =>
-    c !== null && typeof c === "object" && (c as ComponentRecord).scope === undefined
-      ? { ...(c as ComponentRecord), scope: DEFAULT_SCOPE }
-      : c,
+    c.scope === undefined ? { ...c, scope: DEFAULT_SCOPE } : c,
   );
 
   return { version: obj["version"], components };
