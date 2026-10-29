@@ -2,12 +2,11 @@
  * DS Guidelines Pack — `terminology.md` from CONTEXT.md + ontology/glossary.yaml (pure, no fs).
  *
  * CONTEXT.md wins when a term is in both; every disagreement is recorded in the manifest.
- * A glossary shape the flat reader cannot read is skipped with a reason, never half-read.
+ * A glossary the flat reader cannot read is skipped with its line and cause, never half-read; the build goes on.
  */
-import {
-  mergeTerminology, parseContextTerms, parseGlossaryYaml,
-} from "./ds-guidelines-glossary-reader.js";
+import { mergeTerminology, parseContextTerms } from "./ds-guidelines-glossary-reader.js";
 import type { GlossaryTerm, TermConflict } from "./ds-guidelines-glossary-reader.js";
+import { formatGlossaryRefusal, parseGlossaryYaml } from "./ds-guidelines-glossary-yaml-reader.js";
 import { blockPart, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
 import type { GuidelineFile, OptionalInput, RuleEntry, SkippedSource } from "./ds-guidelines-model.js";
 
@@ -18,6 +17,8 @@ export interface Terminology {
   /** Entries each source contributed to the merged glossary. */
   fromContext: number;
   fromGlossary: number;
+  /** Line + cause when the glossary file exists but the flat reader refused it (absent otherwise, also when the file is missing). */
+  glossaryRefusal?: string;
 }
 
 /** Read both glossary sources (either may be absent or unreadable-as-flat). Shared by build and check. */
@@ -25,6 +26,7 @@ export function loadTerminology(context: OptionalInput, glossary: OptionalInput)
   const skipped: SkippedSource[] = [];
   let contextTerms: GlossaryTerm[] = [];
   let glossaryTerms: GlossaryTerm[] = [];
+  let glossaryRefusal: string | undefined;
 
   if (context.text === undefined) {
     skipped.push({ path: context.path, reason: "file not found — product glossary terms omitted" });
@@ -36,8 +38,11 @@ export function loadTerminology(context: OptionalInput, glossary: OptionalInput)
     skipped.push({ path: glossary.path, reason: "file not found — ontology terms omitted" });
   } else {
     const parsed = parseGlossaryYaml(glossary.text, glossary.path);
-    if (parsed === null) skipped.push({ path: glossary.path, reason: "unsupported glossary shape" });
-    else glossaryTerms = parsed;
+    if (parsed.ok) glossaryTerms = parsed.terms;
+    else {
+      glossaryRefusal = formatGlossaryRefusal(parsed);
+      skipped.push({ path: glossary.path, reason: `${glossaryRefusal} — glossary skipped` });
+    }
   }
 
   const { terms, conflicts } = mergeTerminology(contextTerms, glossaryTerms);
@@ -45,6 +50,7 @@ export function loadTerminology(context: OptionalInput, glossary: OptionalInput)
     terms, conflicts, skipped,
     fromContext: terms.filter((t) => t.source === context.path).length,
     fromGlossary: terms.filter((t) => t.source === glossary.path).length,
+    ...(glossaryRefusal !== undefined ? { glossaryRefusal } : {}),
   };
 }
 

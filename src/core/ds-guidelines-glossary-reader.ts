@@ -1,12 +1,9 @@
 /**
- * DS Guidelines Pack — glossary readers + merge (pure, no fs).
+ * DS Guidelines Pack — glossary term model, `CONTEXT.md` reader + merge (pure, no fs).
  *
  *  - `CONTEXT.md`: entries `**Term**:` + definition lines + an optional `_Avoid_: a, b` line.
  *    Read from the `## Language` section when the file has one, else from the whole file.
- *  - `ontology/glossary.yaml`: the flat `terms: - term / vi / def / avoid` shape ONLY.
- *
- * es-debt: flat glossary shape only, upgrade when a second ontology layout appears.
- * T1: no YAML dependency; any other shape answers `null` (skipped whole, never half-read).
+ *  - `ontology/glossary.yaml` is read by `ds-guidelines-glossary-yaml-reader.ts` (flat shape only).
  */
 import { compareText } from "./ds-guidelines-model.js";
 
@@ -89,90 +86,6 @@ export function parseContextTerms(text: string, path: string): GlossaryTerm[] {
   }
   flush();
   return out.filter((t) => t.term !== "");
-}
-
-// ─── ontology/glossary.yaml (flat shape only) ─────────────────────────────────
-
-/** A plain or fully-quoted one-line scalar; null when it needs real YAML to read. */
-function scalar(raw: string): string | null {
-  const v = raw.trim();
-  if (v === "") return null;
-  const quote = v[0];
-  if (quote === '"' || quote === "'") {
-    if (v.length < 2 || !v.endsWith(quote) || (quote === '"' && v.includes("\\"))) return null;
-    const inner = v.slice(1, -1);
-    return quote === "'" ? inner.replace(/''/g, "'") : inner;
-  }
-  if (/^[[{|>&*!%@`#]/.test(v) || v.includes(": ") || v.endsWith(":") || v.includes(" #")) return null;
-  return v;
-}
-
-function flowOrScalar(raw: string): string[] | null {
-  const v = raw.trim();
-  if (!v.startsWith("[")) {
-    const one = scalar(v);
-    return one === null ? null : [one];
-  }
-  if (!v.endsWith("]")) return null;
-  const inner = v.slice(1, -1).trim();
-  if (inner === "") return [];
-  const items = inner.split(",").map((i) => scalar(i));
-  return items.some((i) => i === null) ? null : (items as string[]);
-}
-
-/** Parse the flat glossary; `null` = unsupported shape (the caller records it as skipped). */
-export function parseGlossaryYaml(text: string, path: string): GlossaryTerm[] | null {
-  const out: GlossaryTerm[] = [];
-  let inTerms = false;
-  let seenTerms = false;
-  let itemIndent = -1;
-  let cur: Partial<Record<"term" | "def" | "vi", string>> & { avoid?: string[] } | null = null;
-  const flush = (): boolean => {
-    if (cur === null) return true;
-    if (cur.term === undefined || cur.def === undefined) return false;
-    out.push({ term: cur.term, def: cur.def, avoid: cur.avoid ?? [], ...(cur.vi !== undefined ? { vi: cur.vi } : {}), source: path });
-    cur = null;
-    return true;
-  };
-  for (const raw of text.split(/\r?\n/)) {
-    if (raw.trim() === "" || /^\s*#/.test(raw)) continue;
-    const indent = raw.length - raw.trimStart().length;
-    const body = raw.trim();
-    if (!inTerms) {
-      const top = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(raw);
-      if (top === null || indent !== 0) return null;
-      if (top[1] === "terms") {
-        if (seenTerms || (top[2] ?? "").trim() !== "") return null;
-        inTerms = seenTerms = true;
-      } else if (scalar(top[2] ?? "") === null) return null;
-      continue;
-    }
-    const item = /^- term:\s*(.*)$/.exec(body);
-    if (item !== null) {
-      if (itemIndent >= 0 && indent !== itemIndent) return null;
-      itemIndent = indent;
-      if (!flush()) return null;
-      const term = scalar(item[1] ?? "");
-      if (term === null) return null;
-      cur = { term };
-      continue;
-    }
-    const kv = /^(vi|def|avoid):\s*(.*)$/.exec(body);
-    if (kv === null || cur === null || indent !== itemIndent + 2) return null;
-    const key = kv[1] as "vi" | "def" | "avoid";
-    if (cur[key] !== undefined) return null;
-    if (key === "avoid") {
-      const list = flowOrScalar(kv[2] ?? "");
-      if (list === null) return null;
-      cur.avoid = list;
-    } else {
-      const v = scalar(kv[2] ?? "");
-      if (v === null) return null;
-      cur[key] = v;
-    }
-  }
-  if (!seenTerms || !flush()) return null;
-  return out;
 }
 
 // ─── merge ────────────────────────────────────────────────────────────────────

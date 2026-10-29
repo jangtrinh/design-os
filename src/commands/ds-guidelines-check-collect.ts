@@ -31,6 +31,8 @@ export interface Collected {
   manifestText?: string;
   openQuestions: number;
   termSpansUnchecked: number;
+  /** Set when the glossary file exists but was refused: its path and `line N: cause` (absent when the file is simply missing). */
+  glossarySkipped?: { path: string; reason: string };
 }
 
 function listAll(dir: string): string[] {
@@ -64,7 +66,7 @@ export function collectCheck(ds: DesignSystem, src: StoreSourcePaths, packDir: s
     if (e instanceof GuidelinesInputError) return { code: e.code, message: e.message };
     throw e;
   }
-  const { terms } = loadTerminology(inputs.context, inputs.glossary);
+  const { terms, glossaryRefusal } = loadTerminology(inputs.context, inputs.glossary);
   const ctx = {
     ...(terms.length > 0 ? { glossary: { terms: new Set(terms.map((t) => t.term)), avoided: avoidedWords(terms) } } : {}),
     known: { tokens: new Set(ds.resolved.map((t) => t.path)), components: new Set(ds.registry.components.map((c) => c.name)) },
@@ -137,5 +139,8 @@ export function collectCheck(ds: DesignSystem, src: StoreSourcePaths, packDir: s
     });
   }
   findings.sort((a, b) => compareText(a.file, b.file) || a.line - b.line || compareText(a.code, b.code));
-  return { findings, files, ...(manifestText !== undefined ? { manifestText } : {}), openQuestions, termSpansUnchecked };
+  return {
+    findings, files, ...(manifestText !== undefined ? { manifestText } : {}), openQuestions, termSpansUnchecked,
+    ...(glossaryRefusal !== undefined ? { glossarySkipped: { path: inputs.glossary.path, reason: glossaryRefusal } } : {}),
+  };
 }

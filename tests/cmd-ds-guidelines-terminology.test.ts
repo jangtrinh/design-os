@@ -84,24 +84,25 @@ describe("terminology (CONTEXT.md + ontology glossary)", () => {
     ]);
   });
 
-  it("G-SKIP: every unsupported glossary shape is skipped with a reason, exit 0, and CONTEXT.md terms still land", () => {
-    const shapes: Record<string, string> = {
-      "block list avoid": "terms:\n  - term: Invoice\n    def: A request.\n    avoid:\n      - bill\n",
-      "nested map": "terms:\n  - term: Invoice\n    def: A request.\n    meta:\n      owner: finance\n",
-      "multi-line scalar": "terms:\n  - term: Invoice\n    def: |\n      A request.\n",
-      "unknown item key": "terms:\n  - term: Invoice\n    def: A request.\n    see: Bill\n",
-      "no terms key": "entries:\n  - term: Invoice\n    def: A request.\n",
-      "missing def": "terms:\n  - term: Invoice\n",
-      "colon in plain scalar": "terms:\n  - term: Invoice\n    def: A request: for payment.\n",
-      "empty avoid value": "terms:\n  - term: Invoice\n    def: A request.\n    avoid:\n",
-      "anchor": "terms:\n  - term: &x Invoice\n    def: A request.\n",
-      "flow map item": "terms:\n  - {term: Invoice, def: A request.}\n",
+  it("G-SKIP: every unsupported glossary shape is skipped with its line and cause, exit 0, and CONTEXT.md terms still land", () => {
+    const EMPTY = "value is empty or opens a nested block, which is not supported";
+    const shapes: Record<string, [body: string, reason: string]> = {
+      "block list avoid": ["terms:\n  - term: Invoice\n    def: A request.\n    avoid:\n      - bill\n", `line 4: \`avoid\`: ${EMPTY}`],
+      "nested map": ["terms:\n  - term: Invoice\n    def: A request.\n    meta:\n      owner: finance\n", "line 4: unknown field `meta` (supported: term, vi, def, avoid)"],
+      "multi-line scalar": ["terms:\n  - term: Invoice\n    def: |\n      A request.\n", "line 3: `def`: block scalar (`|` or `>`) is not supported"],
+      "unknown item key": ["terms:\n  - term: Invoice\n    def: A request.\n    see: Bill\n", "line 4: unknown field `see` (supported: term, vi, def, avoid)"],
+      "no terms key": ["entries:\n  - term: Invoice\n    def: A request.\n", `line 1: \`entries\`: ${EMPTY}`],
+      "missing def": ["terms:\n  - term: Invoice\n", "line 2: entry has no `def`"],
+      "colon in plain scalar": ["terms:\n  - term: Invoice\n    def: A request: for payment.\n", "line 3: `def`: plain value contains a colon (quote the value)"],
+      "empty avoid value": ["terms:\n  - term: Invoice\n    def: A request.\n    avoid:\n", `line 4: \`avoid\`: ${EMPTY}`],
+      "anchor": ["terms:\n  - term: &x Invoice\n    def: A request.\n", "line 2: `term`: anchor, alias or tag is not supported"],
+      "flow map item": ["terms:\n  - {term: Invoice, def: A request.}\n", "line 2: list entry is not in the form `- term: <name>`"],
     };
-    for (const [label, body] of Object.entries(shapes)) {
+    for (const [label, [body, reason]] of Object.entries(shapes)) {
       const { dir, pack } = project();
       put(dir, "ontology/glossary.yaml", body);
       expect(build(dir).code, label).toBe(0);
-      expect(manifestOf(pack)["skippedSources"], label).toContainEqual({ path: "ontology/glossary.yaml", reason: "unsupported glossary shape" });
+      expect(manifestOf(pack)["skippedSources"], label).toContainEqual({ path: "ontology/glossary.yaml", reason: `${reason} — glossary skipped` });
       const t = read(pack, "terminology.md");
       expect(t, label).toMatch(/^- `term:Panel`/m);
       expect(t, label).not.toMatch(/term:Invoice/);

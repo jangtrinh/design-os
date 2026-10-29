@@ -71,8 +71,11 @@ a reason, never half-read.
   A malformed file is `BAD_RULINGS`.
 - **Glossary** — `CONTEXT.md` (entries `**Term**:` in its Language section, an optional `_Avoid_:` line) and
   `ontology/glossary.yaml` in the flat `terms: - term / vi / def / avoid` shape only. `CONTEXT.md` wins on
-  a clash and every clash is listed in the manifest. Any other YAML shape is skipped as
-  `unsupported glossary shape`.
+  a clash and every clash is listed in the manifest. A glossary the reader cannot read is skipped whole and
+  recorded in the manifest's `skippedSources` with the 1-based line and the specific cause (for example
+  ``line 48: `avoid` list item: quoted value is followed by more text — glossary skipped``); the build and
+  `check` keep running. A shape that is valid YAML but not the flat layout is reported as unsupported, never
+  as invalid YAML.
 - **Grammar** — `CONVENTIONS.md` from `ui synthesize-conventions`; absent means `grammar.md` says
   "not measured yet".
 - **Soul** — `design/soul.md`, capped in the overview with a pointer to the file.
