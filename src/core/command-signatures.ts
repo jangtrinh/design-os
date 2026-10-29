@@ -887,7 +887,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "reason", type: "string", summary: "Required with --apply (max 256 chars); recorded in the manifest changelog" },
           { name: "dir", type: "string", summary: "Override the project directory" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "RESEAL_REASON_REQUIRED", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "BAD_REGISTRY", "DANGLING_ALIAS", "ALIAS_CYCLE", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "RESEAL_REASON_REQUIRED", "RESEAL_REGISTRY_SWITCHED", "RESEAL_KIT_BOUND", "DS_NOT_FOUND", "DS_TAMPERED", "BAD_MANIFEST", "BAD_REGISTRY", "BAD_TOKEN", "BAD_JSON", "READ_ERROR", "DANGLING_ALIAS", "ALIAS_CYCLE", "TYPE_MISMATCH", "WRITE_ERROR"],
       },
       status: {
         summary: "Show the manifest summary (generation, persona, hashes)",

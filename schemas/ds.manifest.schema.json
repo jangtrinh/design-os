@@ -41,7 +41,7 @@
         "additionalProperties": false,
         "properties": {
           "ts":     { "type": "string", "format": "date-time" },
-          "kind":   { "type": "string", "enum": ["init", "change-token", "register", "reseal"] },
+          "kind":   { "type": "string", "enum": ["init", "change-token", "register", "set-role", "reseal"] },
           "by":     { "type": "string", "maxLength": 64 },
           "path":   { "type": "string" },
           "from":   { "type": "string" },

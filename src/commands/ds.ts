@@ -222,10 +222,13 @@ Subcommands:
   manifest sealed. Preview lists each drifted file's manifest hash and current hash plus its
   current token/component count (the count at seal time is not recorded). --apply bumps the
   generation and appends ONE changelog entry (kind reseal) with the reason and old -> new hash
-  per file; no store file is rewritten, only the manifest. Hash drift only: a file that fails
-  structural validation (bad JSON, schema, dangling alias, cycle) is refused, in preview and
-  apply - fix the file first. An untampered store reports 'nothing to reseal'; --apply is then
-  a no-op. A kit-bound store is refused (its lock pins the bytes).
+  per file; no store file is rewritten, only the manifest. Hash drift only: the store must still pass
+  the checks every load runs (JSON, token shape and $type, dangling alias, alias cycle, registry root
+  shape) and every registry component must be an object with a non-empty string name; token value
+  formats and other per-component fields are not checked. A failing file is refused, in preview and
+  apply - fix the file first. Also refused: a registry file switch (the sealed component-registry.json
+  still matches the manifest but figma-component-registry.json is now in use) and a kit-bound store
+  (its lock pins the bytes). An untampered store reports 'nothing to reseal'; --apply is then a no-op.
 
 'ds set-role' options:
   <token.path>       Existing token path (e.g. color.surface-content) — BAD_TOKEN if unknown
@@ -324,6 +327,8 @@ Error codes:
   TOKEN_NOT_FOUND    'change-token' on a non-existent path
   BAD_ROLE           'set-role' <role> is not one of the canonical roles
   RESEAL_REASON_REQUIRED  'ds reseal --apply' without a non-empty --reason
+  RESEAL_REGISTRY_SWITCHED  'ds reseal': the registry file in use is not the sealed one (not hash drift)
+  RESEAL_KIT_BOUND   'ds reseal' on a kit-bound store (the kit lock pins the store bytes)
   UNKNOWN_FLAG       Unrecognised --flag
   BAD_ARG            Missing <tokens.json> on 'ds import'
   FILE_NOT_FOUND     'ds import' source file does not exist

@@ -11,9 +11,16 @@
   on-disk hashes, bumps the generation and appends ONE changelog entry (`kind: "reseal"`) with the
   reason and the old and new hash of every drifted file; `--reason` is required with `--apply`
   (`RESEAL_REASON_REQUIRED`). No token or registry file is rewritten, only the manifest. Hash drift
-  only: a file that fails structural validation (not JSON, schema, dangling alias, alias cycle) is
-  refused in preview and apply, with the validation error named. An untampered store reports
-  "nothing to reseal" and `--apply` does nothing. A kit-bound store is refused.
+  only: the store must still pass the checks every load runs (JSON, token shape and `$type`, dangling
+  alias, alias cycle, registry root shape) and every registry component must be an object with a
+  non-empty string `name`; token value formats and other per-component fields are not checked. A
+  failing file is refused in preview and apply, with the error named. An untampered store reports
+  "nothing to reseal" and `--apply` does nothing. Also refused, in preview and apply: a registry file
+  switch (the sealed `component-registry.json` still matches the manifest but
+  `figma-component-registry.json` is now in use: `RESEAL_REGISTRY_SWITCHED`) and a kit-bound store
+  (`RESEAL_KIT_BOUND`; the kit lock pins the store bytes). In text mode the reason is shown with
+  control characters escaped. The manifest changelog `kind` enum in `schemas/ds.manifest.schema.json`
+  now lists `set-role` (missing since that kind shipped) and `reseal`.
 
 ## 2026-10-29 - ds guidelines: a skipped glossary names its line and cause
 

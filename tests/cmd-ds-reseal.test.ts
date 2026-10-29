@@ -4,7 +4,7 @@
  * the bytes on disk, not only the exit code. Temp dirs are removed after each test.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -47,6 +47,7 @@ const file = (dir: string, name: string): string => join(dir, "design", name);
 const TOKENS = "design.tokens.json";
 const REGISTRY = "component-registry.json";
 const MANIFEST = "ds.manifest.json";
+const FIGMA_REGISTRY = "figma-component-registry.json";
 const read = (dir: string, name: string): string => readFileSync(file(dir, name), "utf8");
 
 /** Add a component behind the manifest's back: the registry hash drifts. */
@@ -71,7 +72,8 @@ function setTokens(dir: string, mutate: (t: Record<string, Record<string, unknow
 interface Snapshot { bytes: string; mtimeMs: number }
 function snapshot(dir: string): Record<string, Snapshot> {
   const snap: Record<string, Snapshot> = {};
-  for (const name of [TOKENS, REGISTRY, MANIFEST]) {
+  for (const name of [TOKENS, REGISTRY, MANIFEST, FIGMA_REGISTRY]) {
+    if (!existsSync(file(dir, name))) continue;
     snap[name] = { bytes: read(dir, name), mtimeMs: statSync(file(dir, name)).mtimeMs };
   }
   return snap;
@@ -322,6 +324,97 @@ describe("ui ds reseal — structurally broken files are refused (hash drift onl
   });
 });
 
+describe("ui ds reseal — registry file switch is not hash drift", () => {
+  /** The resolver now prefers figma-component-registry.json; the sealed component-registry.json is still on disk. */
+  function switchRegistry(dir: string): void {
+    writeFileSync(file(dir, FIGMA_REGISTRY), canonicalStringify({ version: "1.0.0", components: [] }));
+  }
+
+  it("preview names the sealed file and the resolved file (hashes, counts) and offers no --apply", () => {
+    const dir = sealedProject();
+    const sealed = loadManifest(file(dir, MANIFEST)).registryHash;
+    const sealedCount = (JSON.parse(read(dir, REGISTRY)) as { components: unknown[] }).components.length;
+    switchRegistry(dir);
+    const before = snapshot(dir);
+    const r = reseal(dir);
+    expect(r.code).toBe(0);
+    for (const needle of [REGISTRY, FIGMA_REGISTRY, sealed, hashOf(dir, FIGMA_REGISTRY), String(sealedCount)]) expect(r.out).toContain(needle);
+    expect(r.out).toMatch(/switch/i);
+    expect(r.out).not.toContain("--apply --reason");
+    const { env } = resealJson(dir);
+    expect(env.data!["registrySwitch"]).toMatchObject({
+      sealed: { path: REGISTRY, hash: sealed, components: sealedCount },
+      resolved: { path: FIGMA_REGISTRY, hash: hashOf(dir, FIGMA_REGISTRY), components: 0 },
+    });
+    expect(env.data!["drift"]).toEqual([]);
+    expect(snapshot(dir)).toEqual(before);
+  });
+
+  it("--apply refuses with RESEAL_REGISTRY_SWITCHED and writes nothing", () => {
+    const dir = sealedProject();
+    switchRegistry(dir);
+    const before = snapshot(dir);
+    const { code, env } = resealJson(dir, ["--apply", "--reason", "x"]);
+    expect(code).not.toBe(0);
+    expect(env.error?.code).toBe("RESEAL_REGISTRY_SWITCHED");
+    expect(env.error?.message).toContain(REGISTRY);
+    expect(snapshot(dir)).toEqual(before);
+    expect(reseal(dir, ["--apply", "--reason", "x"]).code).not.toBe(0);
+  });
+
+  it("a switch is only claimed when the default file still matches the sealed hash", () => {
+    const dir = sealedProject();
+    driftRegistry(dir);
+    switchRegistry(dir);
+    const { code, env } = resealJson(dir);
+    expect(code).toBe(0);
+    expect(env.data!["registrySwitch"]).toBeUndefined();
+    expect((env.data!["drift"] as { path: string }[]).map((d) => d.path)).toEqual([FIGMA_REGISTRY]);
+  });
+
+  it("a plain edit of the sealed registry file (no switch) is still ordinary drift", () => {
+    const dir = sealedProject();
+    driftRegistry(dir);
+    expect(resealJson(dir).env.data!["registrySwitch"]).toBeUndefined();
+  });
+});
+
+describe("ui ds reseal — every registry component must be an object with a non-empty name", () => {
+  const cases: [string, unknown][] = [
+    ["null", null], ["a number", 42], ["a string", "Button"], ["an array", []],
+    ["no name", { category: "display" }], ["an empty name", { name: "" }], ["a non-string name", { name: 7 }],
+  ];
+  it.each(cases)("a registry component that is %s is refused in preview and apply, nothing written", (_label, component) => {
+    const dir = sealedProject();
+    const registry = JSON.parse(read(dir, REGISTRY)) as { components: unknown[] };
+    registry.components.push(component);
+    writeFileSync(file(dir, REGISTRY), canonicalStringify(registry));
+    const before = snapshot(dir);
+    for (const extra of [[], ["--apply", "--reason", "x"]]) {
+      const { code, env } = resealJson(dir, extra);
+      expect(code).not.toBe(0);
+      expect(env.error?.code).toBe("BAD_REGISTRY");
+      expect(env.error?.message).toMatch(/reseal refused/i);
+      expect(env.error?.message).toMatch(new RegExp(`component #${registry.components.length - 1}\\b`));
+    }
+    expect(snapshot(dir)).toEqual(before);
+  });
+});
+
+describe("ui ds reseal — terminal safety", () => {
+  it("text mode shows control characters of the reason escaped; the manifest keeps the reason as typed", () => {
+    const dir = sealedProject();
+    driftRegistry(dir);
+    const reason = "line1\u001b[31mRED\u0007";
+    const r = reseal(dir, ["--apply", "--reason", reason]);
+    expect(r.code).toBe(0);
+    expect(r.out).not.toContain("\u001b");
+    expect(r.out).not.toContain("\u0007");
+    expect(r.out).toContain("\\x1b");
+    expect(loadManifest(file(dir, MANIFEST)).changelog.at(-1)!.reason).toBe(reason);
+  });
+});
+
 describe("ui ds reseal — argument and store errors", () => {
   it("rejects unknown flags", () => {
     const dir = sealedProject();
@@ -359,7 +452,7 @@ describe("ui ds reseal — argument and store errors", () => {
   });
 });
 
-describe("reseal() adopt option — guards the CLI cannot reach", () => {
+describe("reseal() adopt option — core guards, tested directly", () => {
   const entry = { kind: "reseal", by: "ui ds reseal", reason: "t" } as const;
   const nowIso = "2026-10-29T00:00:00.000Z";
 

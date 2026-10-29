@@ -6,22 +6,28 @@
  * Preview (default) lists each drifted file's manifest hash and current hash and writes
  * nothing. `--apply --reason` adopts the on-disk hashes through the shared `reseal` ceremony
  * (generation bump + ONE changelog entry carrying the reason). Hash drift ONLY: the store is
- * loaded with the tamper check relaxed and nothing else, so a file that fails structural
- * validation (bad JSON, schema, dangling alias, cycle) is refused, in preview and in apply.
- * No store file is ever rewritten — only the manifest changes.
+ * loaded with the tamper check relaxed and nothing else, so it must still pass the checks
+ * every load runs (JSON parse, token shape and $type, alias resolution - dangling and cycle,
+ * the registry's root shape) plus: every registry component is an object with a non-empty
+ * string name. Token value formats and other per-component fields are NOT checked. A failure
+ * is refused in preview and in apply. A registry file switch and a kit-bound store are
+ * refused too (ds-reseal-guards.ts). No store file is ever rewritten - only the manifest.
  */
 import { existsSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import { errJson, errText, ok, okJson } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
-import {
-  discoverDesignSystem, loadDesignSystem, pathsForDir, countTokens,
-} from "../core/design-system.js";
-import type { DesignSystem, DesignSystemPaths, HashDrift } from "../core/design-system.js";
+import { discoverDesignSystem, loadDesignSystem, pathsForDir } from "../core/design-system.js";
+import type { DesignSystem, DesignSystemPaths } from "../core/design-system.js";
 import { reseal } from "../core/ds-reseal.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
+import {
+  KIT_BOUND_MESSAGE, describeSwitch, findRegistrySwitch, firstMalformedComponent, manifestIsKitBound,
+} from "./ds-reseal-guards.js";
+import type { RegistrySwitch } from "./ds-reseal-guards.js";
+import { appliedText, describeDrift, hashList, previewText } from "./ds-reseal-render.js";
 
 const CMD = "ds reseal";
 const KNOWN_FLAGS = ["dir", "apply", "reason"] as const;
@@ -30,55 +36,11 @@ const MAX_REASON = 256;
 /** Failures that are about the store as a whole, not about a file that failed validation. */
 const NOT_A_FILE_REFUSAL = new Set(["DS_NOT_FOUND", "BAD_MANIFEST", "READ_ERROR", "WRITE_ERROR", "UNKNOWN_FLAG", "BAD_ARG"]);
 
-interface DriftReport {
-  file: "tokens" | "registry";
-  path: string;
-  manifestHash: string;
-  currentHash: string;
-  unit: "tokens" | "components";
-  /** The manifest records hashes only, so the count at seal time is not knowable. */
-  before: null;
-  after: number;
-}
-
 function errorCodeOf(e: unknown): string {
   const code = e instanceof Error ? (e as { code?: unknown }).code : undefined;
   return typeof code === "string" ? code : "BAD_DS";
 }
-
-function describeDrift(ds: DesignSystem, d: HashDrift): DriftReport {
-  const tokens = d.file === "tokens";
-  return {
-    file: d.file,
-    path: basename(tokens ? ds.paths.tokens : ds.paths.registry),
-    manifestHash: d.expected,
-    currentHash: d.actual,
-    unit: tokens ? "tokens" : "components",
-    before: null,
-    after: tokens ? countTokens(ds.tokens) : ds.registry.components.length,
-  };
-}
-
-/** "tokens=sha256-…; registry=sha256-…" — one entry for every drifted file, in a fixed order. */
-const hashList = (drift: DriftReport[], pick: "manifestHash" | "currentHash"): string =>
-  drift.map((d) => `${d.file}=${d[pick]}`).join("; ");
-
-function previewText(paths: DesignSystemPaths, ds: DesignSystem, drift: DriftReport[]): string {
-  const lines = [`ui ds reseal — preview, nothing written (${paths.dir})`, ""];
-  for (const d of drift) {
-    lines.push(
-      `${d.path}  (${d.file})`,
-      `  manifest hash : ${d.manifestHash}`,
-      `  current hash  : ${d.currentHash}`,
-      `  ${d.unit}: ${d.after} now; the count at seal time is not recorded in the manifest`,
-    );
-  }
-  const clean = (["tokens", "registry"] as const).filter((f) => !drift.some((d) => d.file === f));
-  for (const f of clean) lines.push(`${basename(f === "tokens" ? paths.tokens : paths.registry)}  (${f})  hash matches the seal`);
-  lines.push("", `Manifest is at generation ${ds.manifest.generation}. Adopt these hashes with:`,
-    '  ui ds reseal --apply --reason "<why the drift is legitimate>"');
-  return lines.join("\n") + "\n";
-}
+const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 export function runReseal(parsed: ParsedArgs): CommandResult {
   const useJson = parsed.json;
@@ -109,7 +71,7 @@ export function runReseal(parsed: ParsedArgs): CommandResult {
       ? pathsForDir(resolve(dirFlag, "design"))
       : discoverDesignSystem(undefined);
   } catch (e) {
-    return fail(errorCodeOf(e), e instanceof Error ? e.message : String(e));
+    return fail(errorCodeOf(e), messageOf(e));
   }
 
   // The registry resolver treats an unparseable / version-less component-registry.json as a
@@ -127,27 +89,43 @@ export function runReseal(parsed: ParsedArgs): CommandResult {
     ds = loadDesignSystem(paths, { allowUnsealed: true });
   } catch (e) {
     const code = errorCodeOf(e);
-    const msg = e instanceof Error ? e.message : String(e);
+    if (!NOT_A_FILE_REFUSAL.has(code) && manifestIsKitBound(paths)) {
+      return fail("RESEAL_KIT_BOUND", `${KIT_BOUND_MESSAGE} (${messageOf(e)})`);
+    }
     return fail(code, NOT_A_FILE_REFUSAL.has(code)
-      ? msg
-      : `reseal refused — ${msg}. Reseal only recomputes hashes of files that still validate; fix the file first.`);
+      ? messageOf(e)
+      : `reseal refused — ${messageOf(e)}. Reseal only recomputes hashes of files that still validate; fix the file first.`);
   }
 
-  const drift = (ds.unsealedDrift ?? []).map((d) => describeDrift(ds, d));
   const generation = ds.manifest.generation;
-  if (drift.length === 0) {
+  const mode = apply ? "apply" : "preview";
+  if ((ds.unsealedDrift ?? []).length === 0) {
     return useJson
-      ? okJson(CMD, { mode: apply ? "apply" : "preview", applied: false, nothingToReseal: true, generation, drift: [] })
+      ? okJson(CMD, { mode, applied: false, nothingToReseal: true, generation, drift: [] })
       : ok(`ui ds reseal: nothing to reseal — every store file matches its sealed hash (gen ${generation}).\n`);
   }
+  if (ds.manifest.kit) return fail("RESEAL_KIT_BOUND", KIT_BOUND_MESSAGE);
 
+  const drifted = ds.unsealedDrift ?? [];
+  let registrySwitch: RegistrySwitch | undefined;
+  if (drifted.some((d) => d.file === "registry")) {
+    const bad = firstMalformedComponent(ds.registry);
+    if (bad >= 0) {
+      return fail("BAD_REGISTRY", `reseal refused — registry component #${bad} is not an object with a non-empty string 'name'. Fix the file first.`);
+    }
+    registrySwitch = findRegistrySwitch(paths, ds.manifest);
+  }
+  // A switched registry is reported as a switch, never as drift of a file it is not.
+  const drift = drifted.filter((d) => registrySwitch === undefined || d.file !== "registry").map((d) => describeDrift(ds, d));
+
+  if (registrySwitch !== undefined && apply) return fail("RESEAL_REGISTRY_SWITCHED", `reseal refused — ${describeSwitch(registrySwitch)}.`);
   if (!apply) {
     return useJson
-      ? okJson(CMD, { mode: "preview", applied: false, nothingToReseal: false, generation, drift })
-      : ok(previewText(paths, ds, drift));
+      ? okJson(CMD, { mode, applied: false, nothingToReseal: false, generation, drift, ...(registrySwitch && { registrySwitch }) })
+      : ok(previewText(paths, ds, drift, registrySwitch));
   }
 
-  const adopted = (file: DriftReport["file"]): string | undefined => drift.find((d) => d.file === file)?.currentHash;
+  const adopted = (file: "tokens" | "registry"): string | undefined => drift.find((d) => d.file === file)?.currentHash;
   const compiledHash = adopted("tokens");
   const registryHash = adopted("registry");
   let result;
@@ -165,18 +143,21 @@ export function runReseal(parsed: ParsedArgs): CommandResult {
       },
       nowIso: new Date().toISOString(),
     });
-    // The point of the command: the store must now load under the full tamper check.
-    loadDesignSystem(paths);
   } catch (e) {
     const code = errorCodeOf(e);
-    return fail(code === "BAD_DS" ? "WRITE_ERROR" : code, e instanceof Error ? e.message : String(e));
+    return fail(code === "BAD_DS" ? "WRITE_ERROR" : code, messageOf(e));
+  }
+  // The point of the command: the store must now load under the full tamper check. The manifest
+  // is already committed here, so a failure must say so.
+  try {
+    loadDesignSystem(paths);
+  } catch (e) {
+    return fail(errorCodeOf(e),
+      `the manifest was already written (generation ${result.generation}, reseal changelog entry appended) but the store ` +
+      `no longer loads clean: ${messageOf(e)}. A store file changed during the run: restore it, then run ui ds reseal again.`);
   }
 
   return useJson
-    ? okJson(CMD, { mode: "apply", applied: true, nothingToReseal: false, generation: result.generation, previousGeneration: generation, reason, drift })
-    : ok(
-      `ui ds reseal: re-sealed ${drift.map((d) => d.path).join(", ")} (gen ${generation} → gen ${result.generation})\n` +
-      drift.map((d) => `  ${d.path}: ${d.manifestHash} → ${d.currentHash}`).join("\n") +
-      `\n  reason recorded in the manifest changelog: ${reason}\n`,
-    );
+    ? okJson(CMD, { mode, applied: true, nothingToReseal: false, generation: result.generation, previousGeneration: generation, reason, drift })
+    : ok(appliedText(drift, generation, result.generation, reason));
 }
