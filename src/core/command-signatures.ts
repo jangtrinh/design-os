@@ -305,12 +305,15 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   },
 
   "ds-usage-lint": {
-    summary: "ENFORCEMENT gate — does the page use the design system's own tokens? (not a conformance claim)",
+    summary: "ENFORCEMENT gate — does the page use the design system's own tokens and fonts? (not a conformance claim)",
     signature: {
-      summary: "Check an HTML file's CSS against the project DS's declared tokens; exit 1 on error-severity findings",
-      positionals: [htmlFile("HTML file to lint")],
-      flags: [{ name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" }],
-      errorCodes: [...IO_CODES, "DS_NOT_FOUND", "BAD_JSON"],
+      summary: "Check a UI source file (or a directory of them) against the project DS's declared tokens and fonts; exit 1 on error-severity findings",
+      positionals: [{ name: "<file|dir>", required: true, summary: "A .html/.svelte/.vue/.jsx/.tsx/.js/.ts file, or a directory walked for them" }],
+      flags: [
+        { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
+        { name: "tokens", type: "string", summary: "DTCG token file to lint against instead of <dir>/design/design.tokens.json" },
+      ],
+      errorCodes: [...IO_CODES, "DS_NOT_FOUND", "BAD_JSON", "NO_UI_FILES"],
     },
   },
 

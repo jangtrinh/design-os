@@ -8,9 +8,15 @@
  * covers it. Nothing checked that until this: a page using
  * `var(--totally-undeclared-token)` plus hardcoded hex passed all four
  * existing floors (taste-lint, validate-layout, content-lint, a11y-lint) with
- * zero errors. v1 is COLOUR-ONLY — hardcoded spacing/radius is a deliberate
- * deferral (literals like `1px` borders / `50%` radii are legitimate and
- * lower-signal; a stricter model can revisit in v2).
+ * zero errors. Colour and FONT FAMILY are covered — hardcoded spacing/radius is a
+ * deliberate deferral (literals like `1px` borders / `50%` radii are legitimate
+ * and lower-signal; a stricter model can revisit). The font rule
+ * (`off-system-font`, ds-usage-font-check.ts) runs when the caller supplies a
+ * font model; without one the call is colour-only, exactly as before.
+ *
+ * Input is any UI source, not only HTML: `lintDsUsageOnMarkup` reads `.html
+ * .svelte .vue .jsx .tsx .js .ts` through polyglot-ui-extractor.ts (style
+ * blocks, inline styles, class lists, CSS template literals).
  *
  * HONESTY (Art VIII): this proves *token usage in the page's own CSS* only.
  * It cannot prove computed/rendered colour, gradients, or inline-SVG fills it
@@ -18,31 +24,20 @@
  * hardcoded colours, M off-system tokens, K undeclared references. Not a CSS
  * parser — a brace/regex scan, same class as taste-lint and css-selector-blocks.
  *
- * Algorithm:
- *   1. Locate every `{ … }` block in <style> content (css-selector-blocks.ts)
- *      and classify each selector (css-selector-mode.ts's shared base/mode
- *      table): `:root` / `@theme` / `[data-theme=…]` / `.dark` are
- *      token-DECLARATION blocks — they legitimately hold colour/dimension
- *      LITERALS (they ARE the token definitions). Their custom-property NAMES
- *      still count as "declared on the page" (for the off-system check); their
- *      bodies are excluded from both checks below.
- *   2. In the remaining (component) CSS:
- *      - undeclared-token (error):   var(--x) declared nowhere — not a DS
- *        token, not on the page itself. A broken/ghost reference.
- *      - off-system-token (warning): var(--x) the PAGE declares itself but the
- *        DS does not — the model invented a token; visible, not build-breaking
- *        (an incomplete DS legitimately forces invention — the linter's job is
- *        to surface it, not fail the build).
- *      - hardcoded-color (error): a hex / rgb() / rgba() / hsl() / hsla()
- *        literal in a colour-bearing property (color, background(-color),
- *        border(-color), outline-color, fill, stroke, box-shadow, text-shadow).
+ * Checks (algorithms: ds-usage-css-checks.ts for colour/tokens, ds-usage-font-check.ts for fonts):
+ *   undeclared-token (error), off-system-token (warning), hardcoded-color (error), off-system-font (error).
+ * Token-DECLARATION blocks (`:root` / `@theme` / `html` / `body` / `[data-theme]` / `.dark`) are
+ * excluded from every check: they hold the literal values that ARE the token definitions.
  */
-import { computeSelectorBlocks } from "./css-selector-blocks.js";
-import { classifySelector } from "./css-selector-mode.js";
-import { lineOf } from "./line-index.js";
+import { createLineIndex } from "./line-index.js";
+import { analyse, colourAndTokenFindings, pageDeclaredVarsOf } from "./ds-usage-css-checks.js";
+import { extractUiRecords, uiSourceExtension } from "./polyglot-ui-extractor.js";
+import type { UiRecord } from "./polyglot-ui-extractor.js";
+import { checkFontFamilyDeclarations, checkFontUtilities } from "./ds-usage-font-check.js";
+import type { FontTokenModel } from "./ds-usage-font-check.js";
 
 export type DsUsageSeverity = "error" | "warning";
-export type DsUsageCheckId = "undeclared-token" | "off-system-token" | "hardcoded-color";
+export type DsUsageCheckId = "undeclared-token" | "off-system-token" | "hardcoded-color" | "off-system-font";
 
 export interface DsUsageFinding {
   checkId: DsUsageCheckId;
@@ -59,105 +54,80 @@ export interface DsUsageLintResult {
   hardcodedColorCount: number;
   offSystemTokenCount: number;
   undeclaredTokenCount: number;
+  offSystemFontCount: number;
+  /** font-family values built at build time (`${…}`) that could not be evaluated — counted, never passed silently. */
+  unevaluatedFontCount: number;
 }
 
 export interface DsUsageLintOptions {
   /** Every CSS custom-property name (with leading "--") the DS declares. */
   declaredVars: ReadonlySet<string>;
+  /** The DS's font tokens; absent = the font rule does not run. */
+  fonts?: FontTokenModel;
 }
 
-// Longest-alternative-first so "background-color"/"border-color" win over their
-// shorter prefix siblings at the same start position.
-const COLOR_PROPS_RE =
-  /\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:\s*([^;{}]+)[;}]/gi;
-const VAR_RE = /var\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,[^)]*)?\)/g;
-const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F])/;
-const COLOR_FN_RE = /\b(?:rgba?|hsla?)\s*\([^)]*\)/i;
-const CUSTOM_PROP_DECL_RE = /(--[a-zA-Z0-9_-]+)\s*:/g;
-
-/** Blank a matched span to same-length spaces so byte offsets survive (mirrors taste-lint). */
-function blank(s: string, re: RegExp): string {
-  return s.replace(re, (m) => " ".repeat(m.length));
-}
-
-/** :root / @theme / [data-theme=…] / .dark — the shared base/mode table (css-selector-mode.ts)
- * doubles as "is this a token-declaration block", since those are exactly the selectors a
- * compiled DS (or its own semantic-alias layer) declares custom properties under. */
-function isDeclarationSelector(selector: string): boolean {
-  return classifySelector(selector).kind !== "unmapped";
-}
-
-export function lintDsUsage(html: string, opts: DsUsageLintOptions): DsUsageLintResult {
-  // Blank both comment kinds (CSS /* */ and HTML <!-- -->) so a commented-out
-  // reference or hex never trips a check. Same-length spans; offsets hold.
-  const scan = blank(blank(html, /<!--[\s\S]*?-->/g), /\/\*[\s\S]*?\*\//g);
-
-  const blocks = computeSelectorBlocks(scan, true);
-  const declRanges = blocks.filter((b) => isDeclarationSelector(b.selector));
-  const inDeclRange = (idx: number): boolean => declRanges.some((b) => b.start <= idx && idx < b.end);
-
-  // Every custom-property NAME the page itself declares in a decl block —
-  // literal or alias value both count; only the name matters for off-system.
-  const pageDeclaredVars = new Set<string>();
-  for (const b of declRanges) {
-    const body = scan.slice(b.start, b.end);
-    for (const m of body.matchAll(CUSTOM_PROP_DECL_RE)) pageDeclaredVars.add(m[1] as string);
-  }
-
+/** The font rule over the extractor's records: font-family declarations in style text, Tailwind utilities in class lists. */
+function fontFindings(records: readonly UiRecord[], fonts: FontTokenModel): { findings: DsUsageFinding[]; unevaluated: number } {
   const findings: DsUsageFinding[] = [];
-
-  // ── var(--x) usage, component CSS only (decl-block usage is the alias layer itself) ──
-  for (const m of scan.matchAll(VAR_RE)) {
-    const idx = m.index ?? 0;
-    if (inDeclRange(idx)) continue;
-    const name = m[1] as string;
-    if (opts.declaredVars.has(name)) continue; // real DS token — fine
-    const line = lineOf(html, idx);
-    if (pageDeclaredVars.has(name)) {
-      findings.push({
-        checkId: "off-system-token",
-        severity: "warning",
-        message: `${name} is not in the project design system — add via 'ui ds change-token' or it dies with the page.`,
-        line,
-      });
-    } else {
-      findings.push({
-        checkId: "undeclared-token",
-        severity: "error",
-        message: `var(${name}) is declared nowhere — not a DS token, not in the page's own :root/@theme/[data-theme]/.dark. Broken reference.`,
-        line,
-      });
+  let unevaluated = 0;
+  for (const r of records) {
+    if (r.styles !== "") {
+      const a = analyse(r.styles, false);
+      const fontFaces = a.blocks.filter((b) => /^@font-face\b/i.test(b.selector));
+      const idx = createLineIndex(a.scan);
+      const skipAt = (i: number): boolean => a.inDeclRange(i) || fontFaces.some((b) => b.start <= i && i < b.end);
+      const { violations, dynamic } = checkFontFamilyDeclarations(a.scan, fonts, skipAt, (i) => idx.lineOf(i));
+      unevaluated += dynamic;
+      for (const v of violations) findings.push({ checkId: "off-system-font", severity: "error", message: v.message, line: r.line + v.line - 1 });
+    }
+    for (const message of checkFontUtilities(r.classes, fonts)) {
+      findings.push({ checkId: "off-system-font", severity: "error", message, line: r.line });
     }
   }
+  return { findings, unevaluated };
+}
 
-  // ── hardcoded colour literal in a colour-bearing property, component CSS only ──
-  for (const m of scan.matchAll(COLOR_PROPS_RE)) {
-    const idx = m.index ?? 0;
-    if (inDeclRange(idx)) continue;
-    const prop = (m[1] as string).toLowerCase();
-    const value = (m[2] as string).trim();
-    const hexHit = HEX_RE.exec(value)?.[0];
-    const fnHit = COLOR_FN_RE.exec(value)?.[0];
-    const literal = hexHit ?? fnHit;
-    if (literal === undefined) continue;
-    findings.push({
-      checkId: "hardcoded-color",
-      severity: "error",
-      message: `hardcoded colour '${literal}' in '${prop}' — the DS covers colour; style with a token instead.`,
-      line: lineOf(html, idx),
-    });
-  }
-
+function summarise(findings: DsUsageFinding[], unevaluatedFontCount: number): DsUsageLintResult {
   findings.sort((a, b) => a.line - b.line);
-
   const errorCount = findings.filter((f) => f.severity === "error").length;
-  const warningCount = findings.length - errorCount;
+  const count = (id: DsUsageCheckId): number => findings.filter((f) => f.checkId === id).length;
   return {
     findings,
     errorCount,
-    warningCount,
-    hardcodedColorCount: findings.filter((f) => f.checkId === "hardcoded-color").length,
-    offSystemTokenCount: findings.filter((f) => f.checkId === "off-system-token").length,
-    undeclaredTokenCount: findings.filter((f) => f.checkId === "undeclared-token").length,
+    warningCount: findings.length - errorCount,
+    hardcodedColorCount: count("hardcoded-color"),
+    offSystemTokenCount: count("off-system-token"),
+    undeclaredTokenCount: count("undeclared-token"),
+    offSystemFontCount: count("off-system-font"),
+    unevaluatedFontCount,
   };
+}
+
+/**
+ * Lint any UI source file (`opts.file` names its type; default HTML). HTML is judged as one
+ * CSS-bearing text, exactly as v1 did; every other type is judged record by record, with each
+ * record's lines mapped back to the file. The page-declared var set is file-wide, so a `:root`
+ * block in one style record legitimises its vars in another.
+ */
+export function lintDsUsageOnMarkup(source: string, opts: DsUsageLintOptions & { file?: string }): DsUsageLintResult {
+  const file = opts.file ?? "markup.html";
+  const records = extractUiRecords(file, source);
+  const findings: DsUsageFinding[] = [];
+  if (uiSourceExtension(file) === ".html") {
+    const a = analyse(source, true);
+    findings.push(...colourAndTokenFindings(a, opts.declaredVars, pageDeclaredVarsOf(a)));
+  } else {
+    const parts = records.filter((r) => r.styles !== "").map((r) => ({ r, a: analyse(r.styles, false) }));
+    const pageVars = new Set(parts.flatMap(({ a }) => [...pageDeclaredVarsOf(a)]));
+    for (const { r, a } of parts) {
+      for (const f of colourAndTokenFindings(a, opts.declaredVars, pageVars)) findings.push({ ...f, line: r.line + f.line - 1 });
+    }
+  }
+  const fonts = opts.fonts === undefined ? { findings: [], unevaluated: 0 } : fontFindings(records, opts.fonts);
+  return summarise([...findings, ...fonts.findings], fonts.unevaluated);
+}
+
+/** HTML in, findings out — the original entry point. */
+export function lintDsUsage(html: string, opts: DsUsageLintOptions): DsUsageLintResult {
+  return lintDsUsageOnMarkup(html, opts);
 }

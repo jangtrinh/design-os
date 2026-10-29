@@ -25,6 +25,11 @@ interface RuleBase {
 export interface TokenBanRule extends RuleBase {
   kind: "token-ban";
   tokens: string[];
+  /**
+   * Tag names (`["code", "pre"]`): an occurrence inside one of these elements, opening tag included,
+   * is not a finding. It is counted and located as an exclusion, never dropped silently.
+   */
+  excludeElements?: string[];
 }
 /** Widen here (and in VALIDATORS) when a new kind lands. */
 export type AdherenceRule = TokenBanRule;
@@ -62,6 +67,22 @@ function requireString(o: Obj, field: string, c: RuleCtx): string {
   return v;
 }
 
+/** `excludeElements`: absent, or an array of distinct (case-insensitive) HTML tag names. */
+function parseExcludeElements(v: unknown, c: RuleCtx): string[] | undefined {
+  if (v === undefined) return undefined;
+  if (!Array.isArray(v)) return badField(c, "excludeElements", "must be an array of tag names such as [\"code\", \"pre\"]");
+  const seen = new Map<string, number>();
+  v.forEach((t, i) => {
+    const field = `excludeElements[${i}]`;
+    if (typeof t !== "string" || !/^[A-Za-z][A-Za-z0-9-]*$/.test(t)) badField(c, field, "must be a tag name (letters, digits and hyphens, e.g. \"code\")");
+    const key = (t as string).toLowerCase(); // tag names are case-insensitive in HTML
+    const first = seen.get(key);
+    if (first !== undefined) badField(c, field, `repeats excludeElements[${first}] (tag names are case-insensitive)`);
+    seen.set(key, i);
+  });
+  return v as string[];
+}
+
 const COMMON_KEYS = ["id", "kind", "severity", "message", "source"];
 
 interface Validator<R extends AdherenceRule> {
@@ -71,7 +92,7 @@ interface Validator<R extends AdherenceRule> {
 }
 const VALIDATORS: { [K in AdherenceRuleKind]: Validator<Extract<AdherenceRule, { kind: K }>> } = {
   "token-ban": {
-    keys: ["tokens"],
+    keys: ["tokens", "excludeElements"],
     validate: (o, base, c) => {
       const tokens = o["tokens"];
       if (!Array.isArray(tokens) || tokens.length === 0) return badField(c, "tokens", "must be a non-empty array of strings");
@@ -85,7 +106,8 @@ const VALIDATORS: { [K in AdherenceRuleKind]: Validator<Extract<AdherenceRule, {
         if (first !== undefined) badField(c, field, `repeats tokens[${first}] (matching is case-insensitive)`);
         seen.set(key, i);
       });
-      return { ...base, kind: "token-ban", tokens: tokens as string[] };
+      const excludeElements = parseExcludeElements(o["excludeElements"], c);
+      return { ...base, kind: "token-ban", tokens: tokens as string[], ...(excludeElements !== undefined && { excludeElements }) };
     },
   },
 };

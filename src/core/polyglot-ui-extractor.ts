@@ -92,7 +92,11 @@ export function extractUiRecords(file: string, source: string): UiRecord[] {
     }
     for (const m of text.matchAll(FONT_FAMILY_PROP_RE)) push(m.index ?? 0, { styles: `*{font-family: ${firstDefined(m)};}` });
   }
-  for (const m of text.matchAll(CLASS_ATTR_RE)) push(m.index ?? 0, { classes: classTokens(firstDefined(m)) });
+  // Read, then blank: a class attribute's string must not be read again as a bare string literal below.
+  text = text.replace(CLASS_ATTR_RE, (whole: string, d: string, s: string, t: string, offset: number) => {
+    push(offset, { classes: classTokens(d ?? s ?? t ?? "") });
+    return spaces(whole);
+  });
   if (ext !== ".html") {
     for (const m of text.matchAll(STRING_LITERAL_RE)) {
       const tokens = classTokens(firstDefined(m));
