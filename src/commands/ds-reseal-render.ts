@@ -7,7 +7,8 @@ import { basename } from "node:path";
 import { countTokens } from "../core/design-system.js";
 import type { DesignSystem, DesignSystemPaths, HashDrift } from "../core/design-system.js";
 import { forTerminal } from "../core/output.js";
-import type { RegistrySwitch } from "./ds-reseal-guards.js";
+import { describeShadowed } from "./ds-reseal-guards.js";
+import type { RegistrySwitch, ShadowedRegistry } from "./ds-reseal-guards.js";
 
 export interface DriftReport {
   file: "tokens" | "registry";
@@ -37,7 +38,7 @@ export function describeDrift(ds: DesignSystem, d: HashDrift): DriftReport {
 export const hashList = (drift: DriftReport[], pick: "manifestHash" | "currentHash"): string =>
   drift.map((d) => `${d.file}=${d[pick]}`).join("; ");
 
-export function previewText(paths: DesignSystemPaths, ds: DesignSystem, drift: DriftReport[], registrySwitch?: RegistrySwitch): string {
+export function previewText(paths: DesignSystemPaths, ds: DesignSystem, drift: DriftReport[], registrySwitch?: RegistrySwitch, shadowed?: ShadowedRegistry): string {
   const lines = [`ui ds reseal — preview, nothing written (${paths.dir})`, ""];
   for (const d of drift) {
     lines.push(
@@ -60,6 +61,7 @@ export function previewText(paths: DesignSystemPaths, ds: DesignSystem, drift: D
   for (const f of (["tokens", "registry"] as const).filter((x) => !shown.has(x))) {
     lines.push(`${basename(f === "tokens" ? paths.tokens : paths.registry)}  (${f})  hash matches the seal`);
   }
+  if (shadowed !== undefined) lines.push(describeShadowed(shadowed, paths));
   lines.push("");
   if (registrySwitch !== undefined) {
     lines.push("--apply would be refused (RESEAL_REGISTRY_SWITCHED): remove or rename the resolved file first, or re-register through ui registry.");
@@ -70,8 +72,11 @@ export function previewText(paths: DesignSystemPaths, ds: DesignSystem, drift: D
   return lines.join("\n") + "\n";
 }
 
-export function appliedText(drift: DriftReport[], from: number, to: number, reason: string): string {
+export function appliedText(
+  paths: DesignSystemPaths, drift: DriftReport[], from: number, to: number, reason: string, shadowed?: ShadowedRegistry,
+): string {
   return `ui ds reseal: re-sealed ${drift.map((d) => d.path).join(", ")} (gen ${from} → gen ${to})\n` +
     drift.map((d) => `  ${d.path}: ${d.manifestHash} → ${d.currentHash}`).join("\n") +
-    `\n  reason recorded in the manifest changelog: ${forTerminal(reason, 256)}\n`;
+    `\n  reason recorded in the manifest changelog: ${forTerminal(reason, 256)}\n` +
+    (shadowed === undefined ? "" : `  ${describeShadowed(shadowed, paths)}\n`);
 }

@@ -8,10 +8,13 @@
  * (generation bump + ONE changelog entry carrying the reason). Hash drift ONLY: the store is
  * loaded with the tamper check relaxed and nothing else, so it must still pass the checks
  * every load runs (JSON parse, token shape and $type, alias resolution - dangling and cycle,
- * the registry's root shape) plus: every registry component is an object with a non-empty
- * string name. Token value formats and other per-component fields are NOT checked. A failure
- * is refused in preview and in apply. A registry file switch and a kit-bound store are
- * refused too (ds-reseal-guards.ts). No store file is ever rewritten - only the manifest.
+ * the registry's root shape); when the registry file is among the drifted files, every
+ * component must also be an object with a non-empty string name. Token value formats and other
+ * per-component fields are NOT checked. A failure is refused in preview and in apply. A registry
+ * file switch is reported by preview (exit 0, nothing written) and refused only by --apply; a
+ * kit-bound store that drifted or fails validation is refused in both (ds-reseal-guards.ts). When both registry files exist
+ * and the alternate one is loaded, the default file is reported as present but not loaded
+ * (preview and apply), never refused. No store file is ever rewritten - only the manifest.
  */
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -24,7 +27,7 @@ import { reseal } from "../core/ds-reseal.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import {
-  KIT_BOUND_MESSAGE, describeSwitch, findRegistrySwitch, firstMalformedComponent, manifestIsKitBound,
+  KIT_BOUND_MESSAGE, describeSwitch, findRegistrySwitch, findShadowedRegistry, firstMalformedComponent, manifestIsKitBound,
 } from "./ds-reseal-guards.js";
 import type { RegistrySwitch } from "./ds-reseal-guards.js";
 import { appliedText, describeDrift, hashList, previewText } from "./ds-reseal-render.js";
@@ -118,11 +121,14 @@ export function runReseal(parsed: ParsedArgs): CommandResult {
   // A switched registry is reported as a switch, never as drift of a file it is not.
   const drift = drifted.filter((d) => registrySwitch === undefined || d.file !== "registry").map((d) => describeDrift(ds, d));
 
+  const shadowed = findShadowedRegistry(paths);
+  const shadowedField = shadowed === undefined ? {} : { shadowedRegistry: shadowed };
+
   if (registrySwitch !== undefined && apply) return fail("RESEAL_REGISTRY_SWITCHED", `reseal refused — ${describeSwitch(registrySwitch)}.`);
   if (!apply) {
     return useJson
-      ? okJson(CMD, { mode, applied: false, nothingToReseal: false, generation, drift, ...(registrySwitch && { registrySwitch }) })
-      : ok(previewText(paths, ds, drift, registrySwitch));
+      ? okJson(CMD, { mode, applied: false, nothingToReseal: false, generation, drift, ...(registrySwitch && { registrySwitch }), ...shadowedField })
+      : ok(previewText(paths, ds, drift, registrySwitch, shadowed));
   }
 
   const adopted = (file: "tokens" | "registry"): string | undefined => drift.find((d) => d.file === file)?.currentHash;
@@ -158,6 +164,6 @@ export function runReseal(parsed: ParsedArgs): CommandResult {
   }
 
   return useJson
-    ? okJson(CMD, { mode, applied: true, nothingToReseal: false, generation: result.generation, previousGeneration: generation, reason, drift })
-    : ok(appliedText(drift, generation, result.generation, reason));
+    ? okJson(CMD, { mode, applied: true, nothingToReseal: false, generation: result.generation, previousGeneration: generation, reason, drift, ...shadowedField })
+    : ok(appliedText(paths, drift, generation, result.generation, reason, shadowed));
 }

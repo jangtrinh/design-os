@@ -4,6 +4,7 @@
  *
  *  - a registry FILE SWITCH: the sealed `component-registry.json` still exists and still matches
  *    the sealed hash, but the resolver now prefers `figma-component-registry.json`;
+ *  - (reported, not refused) a default registry shadowed by the alternate file in use;
  *  - a registry component that is not an object with a non-empty string `name`
  *    (`loadRegistry` is deliberately lenient about records, so a `null` one loads and then
  *    crashes every reader);
@@ -19,6 +20,8 @@ import type { Registry } from "../core/registry-store.js";
 
 export interface RegistryFileFacts { path: string; hash: string; components: number }
 export interface RegistrySwitch { sealed: RegistryFileFacts; resolved: RegistryFileFacts }
+/** The default registry file when it exists but the alternate one is the one in use. */
+export interface ShadowedRegistry { file: string; components: number | null }
 
 const DEFAULT_REGISTRY = "component-registry.json";
 
@@ -41,6 +44,27 @@ export function findRegistrySwitch(paths: DesignSystemPaths, manifest: DSManifes
   const resolved = factsOf(paths.registry);
   if (sealed === undefined || resolved === undefined || sealed.hash !== manifest.registryHash) return undefined;
   return { sealed, resolved };
+}
+
+/**
+ * The default `component-registry.json` when it sits next to the alternate file that the
+ * resolver loaded instead. The manifest does not record which file it sealed, so this is
+ * reported, never refused. `components` is null when the file is not a readable component list.
+ */
+export function findShadowedRegistry(paths: DesignSystemPaths): ShadowedRegistry | undefined {
+  const defaultPath = resolve(paths.dir, DEFAULT_REGISTRY);
+  if (paths.registry === defaultPath || !existsSync(defaultPath)) return undefined;
+  try {
+    const json = JSON.parse(readFileSync(defaultPath, "utf8")) as { components?: unknown } | null;
+    const list = json !== null && typeof json === "object" ? json.components : undefined;
+    return { file: DEFAULT_REGISTRY, components: Array.isArray(list) ? list.length : null };
+  } catch { return { file: DEFAULT_REGISTRY, components: null }; }
+}
+
+/** One-line note for the text output (the resolved file is named, never guessed). */
+export function describeShadowed(s: ShadowedRegistry, paths: DesignSystemPaths): string {
+  const count = s.components === null ? "unreadable" : `${s.components} components`;
+  return `note: ${s.file} also present (${count}), not loaded — the resolved registry is ${basename(paths.registry)}`;
 }
 
 /** Message for a refused switch (names both files and both hashes). */

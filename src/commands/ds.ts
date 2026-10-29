@@ -224,11 +224,15 @@ Subcommands:
   generation and appends ONE changelog entry (kind reseal) with the reason and old -> new hash
   per file; no store file is rewritten, only the manifest. Hash drift only: the store must still pass
   the checks every load runs (JSON, token shape and $type, dangling alias, alias cycle, registry root
-  shape) and every registry component must be an object with a non-empty string name; token value
-  formats and other per-component fields are not checked. A failing file is refused, in preview and
-  apply - fix the file first. Also refused: a registry file switch (the sealed component-registry.json
-  still matches the manifest but figma-component-registry.json is now in use) and a kit-bound store
-  (its lock pins the bytes). An untampered store reports 'nothing to reseal'; --apply is then a no-op.
+  shape); when the registry drifted, every component must also be an object with a non-empty string
+  name. Token value formats and other per-component fields are not checked. A failing file is refused,
+  in preview and apply - fix the file first. A registry file switch (the sealed component-registry.json
+  still matches the manifest but figma-component-registry.json is now in use) is reported by preview
+  (exit 0, nothing written, no apply hint) and refused only by --apply (RESEAL_REGISTRY_SWITCHED). When
+  both registry files exist and the alternate one is loaded, preview and --apply note that
+  component-registry.json is present but not loaded (--json: shadowedRegistry); this is never refused.
+  A kit-bound store (its lock pins the bytes) that drifted or fails validation is refused. An
+  untampered store reports 'nothing to reseal'; --apply is then a no-op.
 
 'ds set-role' options:
   <token.path>       Existing token path (e.g. color.surface-content) — BAD_TOKEN if unknown
