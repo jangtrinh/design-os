@@ -1,0 +1,99 @@
+<!--
+Frozen fixture: jangtrinh/oi-browser @ 06de5e2
+Screen: CLI Core settings (bad screen)
+Source: src/client/berry-cli-terminal-dock.js (style template literal + buildSettingsPanelHtml output)
+Harness data: HARNESS_SPECS from src/server/cli-harness-router.js @ 06de5e2, binaryPath null,
+  installed true only for auto/local (no CLI binary resolved), activeHarnessId "auto", recentRuns [].
+Extraction: scripted render, see SOURCES.md. CSS and markup are verbatim; nothing was edited by hand.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CLI Core settings (bad screen)</title>
+<style>
+    .oi-sidebar-cli-link { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 32px; padding: 0 8px; margin-top: 2px; border-radius: 8px; font-size: 13.5px; color: oklch(var(--foreground) / 0.8); text-decoration: none; cursor: pointer; transition: background 0.12s ease, color 0.12s ease; }
+    .oi-sidebar-cli-link:hover { background: var(--theme-surface-hover, rgba(0,0,0,0.04)); color: oklch(var(--foreground)); }
+    .oi-sidebar-cli-left { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+    .oi-sidebar-cli-badge { display: inline-flex; align-items: center; gap: 5px; padding: 1px 7px; border-radius: 9999px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; font-weight: 500; background: oklch(var(--muted)); color: oklch(var(--muted-foreground)); border: 1px solid oklch(var(--border) / 0.8); }
+    .oi-cli-dot { width: 6px; height: 6px; border-radius: 9999px; background: #15803d; flex-shrink: 0; }
+    .oi-cli-dot.offline { background: oklch(var(--muted-foreground) / 0.35); }
+    [data-testid="ai-provider-settings"] > div:not(#oi-cli-settings-host):not(:first-child) { display: none !important; }
+    .oi-cli-settings-wrap { margin-top: 8px; display: flex; flex-direction: column; gap: 18px; color: oklch(var(--foreground)); }
+    .oi-cli-card { background: oklch(var(--background)); border: 1px solid oklch(var(--border)); border-radius: 16px; overflow: hidden; }
+    .oi-cli-card-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid oklch(var(--border) / 0.7); background: oklch(var(--card) / 0.45); }
+    .oi-cli-card-title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: oklch(var(--foreground)); }
+    .oi-cli-card-title img { width: 22px; height: 22px; object-fit: contain; }
+    .oi-cli-card-sub { font-size: 12px; color: oklch(var(--muted-foreground)); margin-top: 2px; }
+    .oi-cli-status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 500; background: #dcfce7; color: #166534; }
+    .oi-cli-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 20px; border-bottom: 1px solid oklch(var(--border) / 0.55); }
+    .oi-cli-row:last-child { border-bottom: none; }
+    .oi-cli-row-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .oi-cli-row-top { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: oklch(var(--foreground)); }
+    .oi-cli-role-tag { padding: 1px 8px; border-radius: 9999px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; background: oklch(var(--muted)); color: oklch(var(--muted-foreground)); }
+    .oi-cli-row-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: oklch(var(--muted-foreground)); }
+    .oi-cli-select-btn { padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 500; border: 1px solid oklch(var(--border)); background: oklch(var(--background)); color: oklch(var(--foreground)); cursor: pointer; transition: all 0.12s ease; white-space: nowrap; }
+    .oi-cli-select-btn:hover { background: oklch(var(--muted)); }
+    .oi-cli-select-btn.active { background: #b9382c; color: #ffffff; border-color: #b9382c; font-weight: 600; }
+    .oi-cli-aff-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 20px; }
+    .oi-cli-aff-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-radius: 10px; border: 1px solid oklch(var(--border) / 0.7); background: oklch(var(--card) / 0.35); font-size: 12px; }
+    .oi-cli-aff-who { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; color: oklch(var(--foreground)); }
+    .oi-cli-aff-who img { width: 20px; height: 20px; object-fit: contain; }
+    .oi-cli-aff-cli { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: oklch(var(--muted-foreground)); font-weight: 600; }
+    .oi-cli-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 20px; background: oklch(var(--card) / 0.3); border-bottom: 1px solid oklch(var(--border) / 0.6); }
+    .oi-cli-qbtn { padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: oklch(var(--background)); color: oklch(var(--muted-foreground)); border: 1px solid oklch(var(--border)); cursor: pointer; }
+    .oi-cli-qbtn:hover { color: oklch(var(--foreground)); background: oklch(var(--muted)); }
+    .oi-cli-form { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid oklch(var(--border) / 0.6); }
+    .oi-cli-input { flex: 1; background: oklch(var(--background)); color: oklch(var(--foreground)); border: 1px solid oklch(var(--border)); border-radius: 9999px; padding: 8px 14px; font-size: 12.5px; outline: none; }
+    .oi-cli-input:focus { border-color: #b9382c; box-shadow: 0 0 0 2px rgba(185,56,44,0.15); }
+    .oi-cli-send { background: #b9382c; color: #ffffff; font-weight: 600; font-size: 12px; border: none; border-radius: 9999px; padding: 8px 16px; cursor: pointer; }
+    .oi-cli-term { max-height: 200px; overflow-y: auto; padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; background: oklch(var(--card) / 0.25); }
+    .oi-cli-run { padding: 10px 12px; border-radius: 10px; background: oklch(var(--background)); border: 1px solid oklch(var(--border) / 0.8); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+    .oi-cli-run-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .oi-cli-cmd { font-weight: 600; color: oklch(var(--foreground)); }
+    .oi-cli-badge { padding: 1px 8px; border-radius: 9999px; font-size: 10px; background: #dcfce7; color: #166534; font-weight: 600; }
+    .oi-cli-out { color: oklch(var(--muted-foreground)); white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+<div id="oi-cli-settings-host">
+<div class="oi-cli-settings-wrap" data-testid="oi-cli-panel">
+    <section class="oi-cli-card">
+      <div class="oi-cli-card-hdr">
+        <div>
+          <div class="oi-cli-card-title"><img src="/fruits-3d/guava.png" alt="Ổi" /><span>CLI Core — Multi-CLI Harness Router</span></div>
+          <div class="oi-cli-card-sub">Định tuyến yêu cầu của Biệt đội Trái cây qua các CLI bản quyền trên máy (không tốn phí API token).</div>
+        </div>
+        <span class="oi-cli-status-pill"><span class="oi-cli-dot"></span>5/5 CLIs Ready</span>
+      </div>
+      <div>
+        <div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot "></span><span>Auto (Theo Companion)</span><span class="oi-cli-role-tag">AUTO</span></div><div class="oi-cli-row-path">Tự động chọn CLI tối ưu theo từng loại quả Companion</div></div><button class="oi-cli-select-btn active" data-harness="auto">Selected</button></div><div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot offline"></span><span>Claude Code CLI</span><span class="oi-cli-role-tag">CLAUDE</span></div><div class="oi-cli-row-path">Chiến lược, phân tích sâu &amp; tổng hợp tài liệu</div></div><button class="oi-cli-select-btn " data-harness="claude">Select</button></div><div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot offline"></span><span>Antigravity CLI</span><span class="oi-cli-role-tag">AGY</span></div><div class="oi-cli-row-path">Agentic điều phối đa bước, Deep Research &amp; JSON Schema</div></div><button class="oi-cli-select-btn " data-harness="agy">Select</button></div><div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot offline"></span><span>OpenAI Codex CLI</span><span class="oi-cli-role-tag">CODEX</span></div><div class="oi-cli-row-path">Kỹ thuật, bóc tách bảng biểu &amp; mã nguồn</div></div><button class="oi-cli-select-btn " data-harness="codex">Select</button></div><div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot offline"></span><span>xAI Grok Build</span><span class="oi-cli-role-tag">GROK</span></div><div class="oi-cli-row-path">Tốc độ cao, Sales Outreach &amp; Growth Copy</div></div><button class="oi-cli-select-btn " data-harness="grok">Select</button></div><div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot offline"></span><span>Orca ADE Runtime</span><span class="oi-cli-role-tag">ORCA</span></div><div class="oi-cli-row-path">Quản lý phiên Worker &amp; Terminal Orchestration</div></div><button class="oi-cli-select-btn " data-harness="orca">Select</button></div><div class="oi-cli-row"><div class="oi-cli-row-main"><div class="oi-cli-row-top"><span class="oi-cli-dot "></span><span>Local Deterministic</span><span class="oi-cli-role-tag">LOCAL</span></div><div class="oi-cli-row-path">Lõi phản hồi tức thì (0ms, không cần CLI ngoài)</div></div><button class="oi-cli-select-btn " data-harness="local">Select</button></div>
+      </div>
+    </section>
+    <section class="oi-cli-card">
+      <div class="oi-cli-card-hdr"><div><div class="oi-cli-card-title"><span>Companion → CLI Affinity Matrix</span></div><div class="oi-cli-card-sub">Ánh xạ mặc định khi bật chế độ Auto Router cho 9 trợ lý trái cây.</div></div></div>
+      <div class="oi-cli-aff-grid">
+        <div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/guava.png" alt="Ổi · Research" /><span>Ổi · Research</span></span><span class="oi-cli-aff-cli">claude</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/mangosteen.png" alt="Măng Cụt · Consulting" /><span>Măng Cụt · Consulting</span></span><span class="oi-cli-aff-cli">agy</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/durian.png" alt="Sầu Riêng · Recruiting" /><span>Sầu Riêng · Recruiting</span></span><span class="oi-cli-aff-cli">grok</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/dragon-fruit.png" alt="Thanh Long · Executive" /><span>Thanh Long · Executive</span></span><span class="oi-cli-aff-cli">claude</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/melon.png" alt="Bưởi · Engineering" /><span>Bưởi · Engineering</span></span><span class="oi-cli-aff-cli">codex</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/peach.png" alt="Vú Sữa · Operations" /><span>Vú Sữa · Operations</span></span><span class="oi-cli-aff-cli">agy</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/mango.png" alt="Xoài · Sales" /><span>Xoài · Sales</span></span><span class="oi-cli-aff-cli">claude</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/raspberry.png" alt="Chôm Chôm · Marketing" /><span>Chôm Chôm · Marketing</span></span><span class="oi-cli-aff-cli">grok</span></div><div class="oi-cli-aff-cell"><span class="oi-cli-aff-who"><img src="/fruits-3d/lychee.png" alt="Vải · Support" /><span>Vải · Support</span></span><span class="oi-cli-aff-cli">orca</span></div>
+      </div>
+    </section>
+    <section class="oi-cli-card">
+      <div class="oi-cli-card-hdr"><div><div class="oi-cli-card-title"><span>Interactive CLI Diagnostic & Runner</span></div><div class="oi-cli-card-sub">Kiểm tra trực tiếp phiên bản, trạng thái và thực thi lệnh qua Auto (Theo Companion).</div></div></div>
+      <div class="oi-cli-quick">
+        <button class="oi-cli-qbtn" data-qharness="orca" data-qcmd="status --json">orca status --json</button>
+        <button class="oi-cli-qbtn" data-qharness="claude" data-qcmd="--version">claude --version</button>
+        <button class="oi-cli-qbtn" data-qharness="agy" data-qcmd="--help">agy --help</button>
+        <button class="oi-cli-qbtn" data-qharness="codex" data-qcmd="--version">codex --version</button>
+        <button class="oi-cli-qbtn" data-qharness="grok" data-qcmd="--help">grok --help</button>
+      </div>
+      <form class="oi-cli-form" id="oi-cli-form">
+        <input class="oi-cli-input" id="oi-cli-input" placeholder="Chạy lệnh hoặc prompt với Auto (Theo Companion)..."  />
+        <button class="oi-cli-send" type="submit">Chạy lệnh</button>
+      </form>
+      <div class="oi-cli-term" id="oi-cli-term-out">
+        
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>
