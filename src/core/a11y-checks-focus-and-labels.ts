@@ -17,8 +17,9 @@ import { cssRegions, cssRules, lineOf } from "./taste-checks-shared.js";
 const blank = (m: string): string => m.replace(/[^\n]/g, " ");
 
 /** Markup only: script/pre/code/kbd/samp regions blanked. A page that MENTIONS
- *  a class in prose, a code sample, or a template string is not using it. */
-function markupOnly(html: string): string {
+ *  a class in prose, a code sample, or a template string is not using it.
+ *  Exported for a11y-checks-links, which reads the same live-markup world. */
+export function markupOnly(html: string): string {
   return html.replace(/<(script|pre|code|kbd|samp)\b[\s\S]*?<\/\1\s*>/gi, blank);
 }
 

@@ -280,6 +280,23 @@
       ]
     },
     {
+      "id": "existing-surface-upgrade-audit",
+      "path": "knowledge/existing-surface-upgrade-audit.md",
+      "description": "The diagnostic catalogue and fix order for upgrading an existing web surface in place, inside its own stack and design system.",
+      "when": [
+        "upgrade",
+        "polish",
+        "improve-existing",
+        "looks-generic",
+        "looks-cheap",
+        "ai-made",
+        "redesign-existing",
+        "existing-site",
+        "audit-existing-ui",
+        "cleanup"
+      ]
+    },
+    {
       "id": "figma-agent-hand",
       "path": "knowledge/figma-agent-hand.md",
       "description": "Driving the figma-agent CLI — the optional Figma hand outside the deterministic binary.",
@@ -352,6 +369,26 @@
         "scroll-animation",
         "motion-t5",
         "pin"
+      ]
+    },
+    {
+      "id": "landing-conversion-craft",
+      "path": "knowledge/landing-conversion-craft.md",
+      "description": "The conversion layer of a landing page: intake, the mandatory section skeleton, conversion copy, the tagline section, proof honesty, SEO and the ship list.",
+      "when": [
+        "landing-page",
+        "conversion",
+        "cta",
+        "intake",
+        "objections",
+        "faq",
+        "risk-reversal",
+        "social-proof",
+        "seo",
+        "aeo",
+        "noindex",
+        "tagline",
+        "ship-checklist"
       ]
     },
     {

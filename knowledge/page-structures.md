@@ -24,7 +24,7 @@ does not.
 brief leads with a measured result, so the number is the composition`. Choosing on paper
 forces a reason; choosing in your head defaults to the template you have built most often.
 
-### The catalog (21 shapes — one line each; pick one, then build it)
+### The catalog (22 shapes — one line each; pick one, then build it)
 
 - **Bento Grid** — a mosaic of unequal tiles, each a self-contained proof; density without a table.
 - **Long Document** — a single reading column, generous measure, headings as the only chrome.
@@ -47,6 +47,7 @@ forces a reason; choosing in your head defaults to the template you have built m
 - **Map-Diagram** — a spatial or schematic layout where position encodes relationship.
 - **Ecosystem Index** — a hub that routes to many surfaces; the shape is the routing map.
 - **Component Playground** — an interactive sandbox; the reader drives, the page responds.
+- **Comparison** — the reader is choosing between options; a side-by-side verdict with honest trade-offs is the page.
 
 ### Reading the pick out of the brief
 
@@ -54,7 +55,8 @@ Let the brief's centre of gravity choose the shape. A measured result → Stat-L
 strong claim → Marquee Hero or Manifesto. A tool the reader operates → Workbench or
 Component Playground. A set of like things → Catalogue, Bento Grid, or Portfolio Grid. A
 sequence to walk → Narrative Workflow. Reference material to navigate → Index-First or Long
-Document. When two shapes both fit, prefer the one your last surface did *not* use (§2).
+Document. Options the reader is weighing ("X vs Y", "best for") → Comparison. When two shapes
+both fit, prefer the one your last surface did *not* use (§2).
 
 ## §2 Diversification & memory — resist the default attractor
 
@@ -78,6 +80,11 @@ exclude the last one. Memory is what turns "pick one" into "pick a *different* o
 - **A design system exists** (a `design/` store, components at lifecycle `stable`) →
   **conformance mode**: the pages must *share* the system, and divergence is now the bug.
   The curator's DS-conformance gate already enforces this direction.
+
+**Landing pages fix the section order.** A page that converts one offer carries the mandatory
+skeleton in `landing-conversion-craft.md` §2, so two landing pages share section order and count by
+design; their distance is measured on the other four axes, and the macrostructure plus the focal
+placement remain the floor for "a different page".
 
 Switching modes is a deliberate call (a new marketing initiative *may* branch away from the
 product DS on purpose), never accidental drift — say which mode you are in before you build.
@@ -146,7 +153,12 @@ the background behind it, shows nothing — a boundary that passes contrast but 
 touch minimum); `validate-layout` owns `css-100vw-width`, `root-overflow-x-hidden`,
 `clickable-no-pointer` (a non-native clickable with no `cursor:pointer`), and
 `font-display-missing` (a font with no `font-display` → FOIT + swap-in shift). If a tell is on
-that list, the linter has it — spend your attention on the tells that are not.
+that list, the linter has it — spend your attention on the tells that are not. The landing
+ship list is machine-checked too, as warnings: `a11y-lint` owns `dead-link-href` (an `href` of
+`#` or `javascript:` on an enabled link) and `skip-link-missing` (a `<nav>` and a `<main>` with
+no in-page link before the navigation); `content-lint` owns `window-alert`, `seo-meta-missing`
+and `favicon-missing`; `taste-lint` owns `scroll-listener-unthrottled` (a scroll listener in a
+page that never calls `requestAnimationFrame`).
 
 ## §6 When to read this file
 
@@ -157,4 +169,5 @@ a component has eight states, not a hero, and `figma-craft/component-design.md` 
 
 **Cross-refs:** `figma-craft/workflow-experience.md` (preview-first — lock the shape on the
 cheapest medium before committing to it) · `content-design.md` (§ Honest copy) ·
-`taste-rubric.md` (the axis definitions the machine floor enforces).
+`taste-rubric.md` (the axis definitions the machine floor enforces) ·
+`landing-conversion-craft.md` (the section skeleton and conversion copy of a landing page).

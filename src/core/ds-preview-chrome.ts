@@ -5,6 +5,18 @@
  * that shows the design system is itself built from it. Kept as a data constant
  * (configuration-like) rather than assembled in code.
  */
+/**
+ * Head lines every specimen page carries. A specimen is a working page for the people who
+ * build the design system, not an offer anyone should find in a search engine, so it asks
+ * not to be indexed (which also retires the description / og:* obligation) and ships an
+ * inline SVG favicon so the tab is not a blank globe and no second file has to travel with
+ * the page. The mark is a plain rounded square in a dark neutral: it
+ * names nothing, so it cannot contradict any design system.
+ */
+export const SPECIMEN_HEAD_META =
+  `<meta name="robots" content="noindex">\n` +
+  `<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMyIgZmlsbD0iIzE4MTgxOCIvPjwvc3ZnPg==">\n`;
+
 export const SPECIMEN_CHROME_CSS = `
 /* ── Specimen chrome — every value resolves through the compiled semantic tier ── */
 * { box-sizing: border-box; margin: 0; }

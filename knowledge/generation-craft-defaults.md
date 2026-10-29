@@ -105,6 +105,10 @@ correctly. Emit these from the first keystroke:
   programmatic focus target is the one legitimate suppression.
 - Nested rounded corners stay concentric (outer = inner + padding); transitions name
   exact properties, never `all`; animation ships with a `prefers-reduced-motion` path.
+- Landing heads carry a meta description, `og:title`, `og:image` and a favicon, or
+  `<meta name="robots" content="noindex">` instead of the three meta tags; a skip link comes
+  before the navigation; no `href="#"`; no `alert(`; scroll work goes through
+  `requestAnimationFrame` or an `IntersectionObserver`.
 - Copy is typeset: `…` `’` curly quotes; button labels start with a verb and repeat the
   consequence (never a bare OK/Yes) — the autofixer repairs CSS and attributes only,
   so copy violations always cost a refine round.

@@ -52,6 +52,7 @@ Checks (the machine-verifiable subset of knowledge/taste-rubric.md; error unless
   keyframes-layout-props     Motion         @keyframes animating a layout property (width/height/top/…)
   overshoot-easing           Motion         transition uses overshoot/bounce cubic-bezier (y outside [0,1])
   focus-ring-animates-in     Motion         focus ring transitions in (it must appear instantly)
+  scroll-listener-unthrottled Motion        scroll listener in a page with no requestAnimationFrame (warning)
   raw-hex-when-token-exists  Consistency    arbitrary hex not in the DS palette (needs --tokens)
 
 Subjective axis judgment (is the composition authored? the scale on one ratio?)

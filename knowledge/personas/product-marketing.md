@@ -7,7 +7,7 @@ floating compositions. Pick this family when the goal is to explain and sell a
 product, not to run it.
 
 **Personas in this family:** Modular System Layout · Inclusive Clarity ·
-Organic Mesh Gradients · Floating Composition
+Organic Mesh Gradients · Floating Composition · Conversion Monochrome
 
 See `persona-index.md` for the cross-family lookup table and auto-selection rules.
 
@@ -155,3 +155,52 @@ feature cards. Hero sections with floating device mockups. Diagonal rhythm.
 touching edges. NO crowded compositions. NO heavy textures.
 **Avoid list:** dense grids; flat layouts; heavy borders; crowded sections; corporate
 rigidity.
+
+---
+
+## Conversion Monochrome
+
+- **Slug:** `conversion-monochrome`
+- **Family:** product-marketing
+- **UI types:** landing
+- **Density:** comfortable
+- **Color mode:** both
+- **Keywords:** conversion, landing, monochrome, launch, trial, waitlist, saas, minimal, flat
+
+**Philosophy** — One offer, argued in a single neutral voice: one typeface, flat surfaces, one
+accent, and motion that decelerates into place. The page earns attention through copy and
+proof, not decoration. Pair it with `landing-conversion-craft.md`, which owns the section
+skeleton. A project design system or soul always wins over every value below; pick this persona
+only when neither exists.
+
+### Aesthetic DNA
+
+| Field | Direction |
+|---|---|
+| **Typography** | One face per site: Geist, Manrope or Poppins; Geist Mono only for code, data or numerals. Never italic. Weights 400–700, never 800–900. Sizes snap to the Tailwind default scale (snap down, take the paired line height). Buttons `text-base` semibold, header buttons `text-sm` semibold. Copy without hyphens: rewrite the phrase. |
+| **Color philosophy** | Dark surfaces only from `#000000` · `#181818` · `#1F1F1F` · `#272727` · `#313131` · `#131209`. One accent. The hero heading — and only it — carries a left-to-right text gradient: dark `#FFFFFF`→`#9B9B9B`, light `#000000`→`#666666`. |
+| **Spacing** | Only 0 · 2 · 4 · 8 · 12 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96 px. Main buttons 8 px vertical and 12 px horizontal padding with `min-height: 44px`, so the target meets the touch floor. |
+| **Depth** | Flat. Elevation only where it communicates hierarchy. |
+| **Borders** | Tailwind radius values only; nested shapes with a gap under 32 px take inner = outer − gap when the result exceeds 2. Borders go all the way round or not at all. |
+| **Texture** | None. No background gradients of any kind. |
+
+**Interactions** — Base curve `cubic-bezier(0.22, 1, 0.36, 1)`: 500 ms for movement, 300 ms for
+colour and opacity, never under 200 ms; never `ease`, `linear` or `ease-in-out`. Transform and
+opacity only. Sections rise 32 px and fade in over 600–800 ms once, through
+`IntersectionObserver`. Under reduced motion, a plain fade.
+
+**Layout** — Navigation floats off the top edge, centred and sized to its content, on a
+translucent surface that still draws its own edge (it must not trip `mode-invisible-surface`).
+The menu icon morphs between states on the base curve. The mobile menu is a full-height panel;
+its links arrive in reading order, rising 24 px, 60 ms apart, the whole sequence under 400 ms.
+Hero heading and subheading capped at 680 px with line breaks where the thought breaks.
+
+**Anti-patterns** — NO second typeface for display. NO italic emphasis — use weight, size or
+colour. NO gradient behind content. NO one-sided card borders. NO icon family other than
+Phosphor, Solar or Iconamoon.
+**Avoid list:** Inter, Roboto, Arial, Open Sans, Helvetica; Material Icons; Material Symbols;
+ambient hero glows; browser-default easing.
+
+**Declared exceptions** — two `design-tells.md` warnings are this persona's choice, not an
+accident, and the generation contract records them as exceptions: `overused-font` when the face
+is Geist, and `gradient-text` on the hero heading only. A gradient anywhere else is still a tell.

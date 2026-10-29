@@ -5,7 +5,7 @@
  * Scope is deliberately narrow: only WCAG criteria decidable from static markup with
  * near-zero false positives (alt presence, page language, title, positive tabindex,
  * viewport zoom, missing viewport meta on a responsive doc, unnamed icon/emoji
- * controls, heading hierarchy). Everything requiring
+ * controls, heading hierarchy, dead `#` links, a missing skip link). Everything requiring
  * a rendered DOM (real contrast, focus visibility, focus ORDER meaning) is Tier 2
  * (a browser workspace); everything requiring judgment (alt *quality*) is human.
  *
@@ -21,6 +21,7 @@ import {
 // runtime cycle with this module (it imports lineAt back), and routing these two
 // through it left them undefined in some load orders under the test runner's interop.
 import { checkInputUnlabeled, checkFocusOutlineRemoved } from "./a11y-checks-focus-and-labels.js";
+import { checkDeadLinkHref, checkSkipLinkMissing } from "./a11y-checks-links.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 
@@ -52,6 +53,8 @@ const CHECKS = [
   checkPasteBlocked,
   checkInputUnlabeled,
   checkFocusOutlineRemoved,
+  checkDeadLinkHref,
+  checkSkipLinkMissing,
 ];
 
 /** 1-based line number of a byte offset in the source. */

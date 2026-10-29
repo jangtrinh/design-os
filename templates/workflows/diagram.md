@@ -51,6 +51,7 @@ Produce one HTML file, self-contained and openable offline with no network calls
 - **Accessibility** — every shape/edge with meaning gets a `<title>` and/or `aria-label`; use real text (not text-as-path) so it's selectable and screen-reader legible; ensure contrast holds in both light backgrounds and, where feasible, without relying on color alone to convey status.
 - **Inspectable `data-*` metadata** — every node and edge carries `data-*` attributes identifying what it is (id, kind, source reference) so the diagram is machine-inspectable without parsing rendered pixels.
 - Keep the HTML minimal: inline `<style>` for layout/typography is fine; no external stylesheets, fonts, or CDN links.
+- **A findable head** — a diagram page is indexed: a `<meta name="description">` that says what the diagram shows, `og:title`, and a favicon as a `data:image/png;base64,` link (an SVG data URI is refused by `no-external-ref` because SVG can carry script). Add `og:image` when the page is published, pointing at the absolute URL of the diagram's rendered image; until that image exists, `ui gate` reports `seo-meta-missing` for it, and the hand-over says so.
 
 ## 4. product-flow preflight (only for the product-flow grammar)
 

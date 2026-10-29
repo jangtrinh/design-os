@@ -118,6 +118,12 @@ Read only the relevant parts of:
 - `knowledge/user-evidence.md` when claims or research are present;
 - `knowledge/prompt-modes.md` when a visual reference is supplied.
 - `knowledge/web-technique-craft.md` and `knowledge/web-techniques/catalog.json` while compiling directions.
+- `knowledge/landing-conversion-craft.md` **in full** when the page converts one offer (a launch,
+  trial, demo, waitlist, download or campaign page). Run its §1 intake before the brief, map every
+  §2 skeleton job to a contract section, and write its §9 copy-first outline into the contract.
+  A homepage, docs site or multi-product site skips it.
+- Greenfield with no design system: `conversion-monochrome` (`knowledge/personas/product-marketing.md`)
+  is a candidate persona for a landing page; a project DS or soul always outranks it.
 
 Write a version 2 `design-brief.json` matching `schemas/design-brief.schema.json`, with
 `activationRef: "capability-activation.json"`. Preserve the raw request,
