@@ -13,6 +13,13 @@ Refine is the model's own self-correction loop. It runs up to **2 passes** with
 `ui autofix` between passes. It is distinct from — and runs inside — the larger taste-gate
 loop in `templates/workflows/critique.md`, which has its own outer pass budget.
 
+**Upgrading an existing project surface.** When the user asks to improve, polish or clean up a
+page that already exists in their project (not a variant this tool generated), read
+`knowledge/existing-surface-upgrade-audit.md` first and follow its scan → diagnose → report →
+fix procedure and fix order; add `knowledge/landing-conversion-craft.md` when the page is a
+landing page. Its type and colour fixes snap stray values to the project's own design system,
+which keeps the identity this pass promises; a change of system is a `redesign`, not a refine.
+
 ## Inputs
 
 - Current variant HTML file path (e.g. `./variant.html`). If the host CLI has an implicit
