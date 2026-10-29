@@ -70,6 +70,8 @@
   `<script>` bodies. `<p>Brand color: #ff385c</p>`, a `title="Text color: #333"` and a
   `<code>background:#000</code>` sample are page text and no longer fail the gate. Measured on the 59
   tracked example and fixture pages: 798 findings before and after, none changed.
+  A closing tag with whitespace (`</style >`) ends its block, and an unquoted `style=color:#f00` is
+  read as styling like a quoted one.
 - `ui gate coverage` keeps the design-dir meaning of "tokens present" for `raw-hex-when-token-exists`
   (the gate only grades it against `--tokens`) and reports the `ds-usage` rows from the token file the
   family reads, so a project with only `brand/design/` tokens no longer claims a raw-hex check the run
