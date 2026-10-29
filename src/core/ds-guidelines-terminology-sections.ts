@@ -4,10 +4,9 @@
  * CONTEXT.md wins when a term is in both; every disagreement is recorded in the manifest.
  * A glossary the flat reader cannot read is skipped with its line and cause, never half-read; the build goes on.
  */
-import {
-  formatGlossaryRefusal, mergeTerminology, parseContextTerms, parseGlossaryYaml,
-} from "./ds-guidelines-glossary-reader.js";
+import { mergeTerminology, parseContextTerms } from "./ds-guidelines-glossary-reader.js";
 import type { GlossaryTerm, TermConflict } from "./ds-guidelines-glossary-reader.js";
+import { formatGlossaryRefusal, parseGlossaryYaml } from "./ds-guidelines-glossary-yaml-reader.js";
 import { blockPart, slug, textPart, uniqueId } from "./ds-guidelines-model.js";
 import type { GuidelineFile, OptionalInput, RuleEntry, SkippedSource } from "./ds-guidelines-model.js";
 

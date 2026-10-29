@@ -3,7 +3,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
-import { formatGlossaryRefusal, parseGlossaryYaml } from "../src/core/ds-guidelines-glossary-reader.js";
+import { formatGlossaryRefusal, parseGlossaryYaml } from "../src/core/ds-guidelines-glossary-yaml-reader.js";
 
 const FIXTURES = join(import.meta.dirname, "fixtures", "ds-guidelines");
 const NOW = "2026-10-15T00:00:00Z";
