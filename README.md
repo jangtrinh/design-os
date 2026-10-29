@@ -249,9 +249,9 @@ Once installed, `skills/design-os/SKILL.md` activates automatically when your pr
 | `/doctor` | Claude Code / Codex | Read-only diagnostic check of installed skill paths, plugin manifests, and runtime prerequisites |
 | `python3 scripts/self_check.py` | Terminal / CI | Deterministic offline verification of manifests, skill contracts, and governance files |
 | `npx @easestart/design-os doctor` | Terminal / CI | Inspect active runtime adapters (Claude Code, Codex, Gemini CLI, Antigravity) and installed skill packs |
-| `ui taste-lint` — 34 absolute checks | Terminal / CI | Generated-UI taste checks across motion, typography, spacing, and focus states |
+| `ui taste-lint` — 35 absolute checks | Terminal / CI | Generated-UI taste checks across motion, typography, spacing, and focus states |
 | `ui validate-layout` — 20 checks | Terminal / CI | Structural and overflow safety checks (`100vw` traps, unclosed tags, sticky overflow) |
-| `ui content-lint` — 12 checks | Terminal / CI | Honest copy checks (placeholder text, lorem-ipsum, generic names, all-caps shouting) |
+| `ui content-lint` — 15 checks | Terminal / CI | Honest copy checks (placeholder text, lorem-ipsum, generic names, all-caps shouting) |
 | `ui tell-lint` — 43 checks, any language | Terminal / CI | Polyglot design-tell checks across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI, and Flutter |
 | `ui ds guidelines build \| check \| export --target figma` | Terminal / CI | Compile a cited guidelines pack from your sealed design system, rulings and glossary; lint it; export a ready-to-upload Figma library guidelines bundle |
 | `skills/design-os-designer` — `build.mjs`, `validate.mjs`, `look.mjs` | Any agent runtime | The shipped design skill: build an evidence folder for a page, run `ui gate` plus file checks, render a three-width sheet with measured items; `ui init` wires it into Claude Code, Antigravity and Codex |

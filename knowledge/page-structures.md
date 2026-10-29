@@ -153,7 +153,12 @@ the background behind it, shows nothing — a boundary that passes contrast but 
 touch minimum); `validate-layout` owns `css-100vw-width`, `root-overflow-x-hidden`,
 `clickable-no-pointer` (a non-native clickable with no `cursor:pointer`), and
 `font-display-missing` (a font with no `font-display` → FOIT + swap-in shift). If a tell is on
-that list, the linter has it — spend your attention on the tells that are not.
+that list, the linter has it — spend your attention on the tells that are not. The landing
+ship list is machine-checked too, as warnings: `a11y-lint` owns `dead-link-href` (an `href` of
+`#` or `javascript:` on an enabled link) and `skip-link-missing` (a `<nav>` and a `<main>` with
+no in-page link before the navigation); `content-lint` owns `window-alert`, `seo-meta-missing`
+and `favicon-missing`; `taste-lint` owns `scroll-listener-unthrottled` (a scroll listener in a
+page that never calls `requestAnimationFrame`).
 
 ## §6 When to read this file
 

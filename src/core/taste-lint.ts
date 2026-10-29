@@ -32,6 +32,7 @@
  *   Motion        → linear-easing, transition-all, animation-no-reduced-motion,
  *                   keyframes-layout-props
  *   Motion        → overshoot-easing, focus-ring-animates-in
+ *   Motion        → scroll-listener-unthrottled (scroll handler, no requestAnimationFrame; warning)
  *   Consistency   → raw-hex-when-token-exists (needs DS token set)
  *   Consistency   → radius-sprawl            (> 4 distinct border-radius values; warning-only)
  *   Layout        → container-nesting-depth  (≥ 3 nested purely-presentational wrappers; warning)
@@ -66,6 +67,7 @@ import { checkEqualNestedRadii } from "./taste-checks-concentric-radius.js";
 import { gsapChecks } from "./taste-checks-gsap.js";
 import { stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 import { videoScrubChecks } from "./taste-checks-video-scrub.js";
+import { checkScrollListenerUnthrottled } from "./taste-checks-scroll.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { countBySeverity } from "./finding-schema.js";
 
@@ -164,6 +166,8 @@ export function lintTaste(html: string, opts: TasteLintOptions = {}): TasteLintR
     // knowledge/scroll-cinema-direction.md. Each guards a failure only a real
     // phone shows, so a desktop review cannot catch them.
     ...videoScrubChecks(stripped),
+    // Motion axis, scroll-handler subset — a warning that never changes a verdict.
+    ...checkScrollListenerUnthrottled(stripped),
   ];
 
   // Sort by rubric axis order, then by line (undefined lines last).

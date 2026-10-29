@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-10-29 - Landing conversion craft, the Conversion Monochrome persona and six advisory ship-list checks
+
+### Added
+- `knowledge/landing-conversion-craft.md`: the mandatory landing-page skeleton (the jobs every
+  section must do, the section order, conversion rules, the tagline section, honest proof and sample
+  data, states, SEO and the ship list), with its machine floor in section 9. Rewritten in this
+  repository's words from the two public Elaya skills recorded in
+  `knowledge/sources/elayadesign-skills--202610.md`.
+- `knowledge/existing-surface-upgrade-audit.md`: the diagnostic catalogue and fix order for upgrading
+  an existing web surface in place, inside its own stack and design system.
+- The `conversion-monochrome` persona (product-marketing, landing): one typeface, flat surfaces, one
+  accent, motion that decelerates into place. Registered in `persona-index.md` and `personas.json`
+  next to its section in `personas/product-marketing.md`; a project design system or soul still wins.
+- A `Comparison` page shape in `knowledge/page-structures.md`, for pages where the reader is choosing
+  between options.
+- Six advisory checks, all `warning`, so none of them can change a gate verdict by itself:
+  `dead-link-href` and `skip-link-missing` (`ui a11y-lint`), `window-alert`, `seo-meta-missing` and
+  `favicon-missing` (`ui content-lint`), `scroll-listener-unthrottled` (`ui taste-lint`, Motion).
+  `ui gate` runs all six in its existing families. `seo-meta-missing` and `favicon-missing` judge
+  full documents only (`<html>` or `<head>` present), and a page with `<meta name="robots"
+  content="noindex">` is exempt from `seo-meta-missing`.
+
+### Changed
+- `ui ds preview` pages (whole-page and per-component) now carry `<meta name="robots"
+  content="noindex">` and an inline SVG favicon, the component-kit Breadcrumb and Pagination
+  specimens link to real paths instead of `href="#"`, the two `skills/design-os-designer` example
+  pages carry the same two head lines, and `schemas/template-descriptions.json`
+  is regenerated for the `generate` and `refine` workflow edits that shipped without it.
+
 ## 2026-10-29 - ds status names a non-object registry record and says re-import
 
 ### Fixed

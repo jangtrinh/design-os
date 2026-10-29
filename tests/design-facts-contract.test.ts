@@ -175,17 +175,17 @@ describe("fact collector", () => {
 describe("CHECK_CATALOG requires widening", () => {
   it("leaves every existing row on the legacy string form", () => {
     const legacy = CHECK_CATALOG.filter((e) => isLegacyRequires(e.requires));
-    // The 89 pre-existing rows keep the legacy string form; the 36 `tell` rows
+    // The 95 pre-existing rows keep the legacy string form; the 36 `tell` rows
     // added in phase 05 use the fact-set form, which is the whole point of the
     // widening. Both must coexist.
-    expect(legacy.length).toBe(89);
-    expect(CHECK_CATALOG.length).toBe(138);
+    expect(legacy.length).toBe(95);
+    expect(CHECK_CATALOG.length).toBe(144);
   });
 
   it("keeps the family split the gate composes", () => {
     const byFamily: Record<string, number> = {};
     for (const e of CHECK_CATALOG) byFamily[e.family] = (byFamily[e.family] ?? 0) + 1;
-    expect(byFamily).toEqual({ layout: 20, a11y: 14, taste: 34, tell: 43, content: 17, autofix: 10 });
+    expect(byFamily).toEqual({ layout: 20, a11y: 16, taste: 35, tell: 43, content: 20, autofix: 10 });
   });
 
   it("accepts a fact-based requirement without disturbing the legacy ones", () => {
@@ -299,7 +299,7 @@ describe("README states what the catalog actually holds", () => {
     // that command runs — which is the family count only where the two coincide.
     //
     // `content` is the one place they do not, and asserting otherwise was itself a
-    // drifted claim: `ui content-lint` runs the 12 regex checks, while the five
+    // drifted claim: `ui content-lint` runs the 15 regex checks, while the five
     // fact-based content rows (the voice tells and `prompt-leak-metadata`) are
     // computed from facts and reach the reader through `ui tell-lint`. Comparing the
     // command's advertised number to the family total forced the README to overstate
