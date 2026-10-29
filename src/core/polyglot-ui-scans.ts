@@ -7,9 +7,7 @@
  * unchanged (text that went missing would move every later finding).
  */
 
-const STYLE_OPEN_RE = /<style\b/gi;
-const STYLE_CLOSE_RE = /<\/style>/gi;
-const JSX_STYLE_OPEN_RE = /\bstyle\s*=\s*\{\{/g;
+const JSX_OPEN_RE = /\bstyle\s*=\s*\{\{/g;
 /** A property declaration inside a brace-free block: `name: value` with at least one value character. */
 const DECLARATION_RE = /[\w-]\s*:[^;]/;
 
@@ -49,21 +47,23 @@ export function blankInterpolations(text: string): string {
   return out + text.slice(from);
 }
 
-/** Read every `<style>…</style>` through `read`, and return the text with those spans blanked. One pass. */
-export function readStyleBlocks(text: string, read: (offset: number, css: string) => void): string {
+/** Read every `<tag>…</tag>` (`style`, `script`) through `read`, and return the text with those spans blanked. One pass. */
+export function readElementBodies(text: string, tag: "style" | "script", read: (offset: number, body: string) => void): string {
+  const OPEN_RE = new RegExp(`<${tag}\\b`, "gi");
+  const CLOSE_RE = new RegExp(`</${tag}>`, "gi");
   let out = "";
   let from = 0;
   let gt = -1;
   for (;;) {
-    STYLE_OPEN_RE.lastIndex = from;
-    const open = STYLE_OPEN_RE.exec(text);
+    OPEN_RE.lastIndex = from;
+    const open = OPEN_RE.exec(text);
     if (open === null) break;
     if (gt < open.index) {
       gt = text.indexOf(">", open.index);
       if (gt === -1) break;
     }
-    STYLE_CLOSE_RE.lastIndex = gt + 1;
-    const close = STYLE_CLOSE_RE.exec(text);
+    CLOSE_RE.lastIndex = gt + 1;
+    const close = CLOSE_RE.exec(text);
     if (close === null) break; // no closer after this opener means none after any later one either
     const css = text.slice(gt + 1, close.index);
     if (css.trim() !== "") read(gt + 1, css);
@@ -74,14 +74,17 @@ export function readStyleBlocks(text: string, read: (offset: number, css: string
   return out + text.slice(from);
 }
 
+/** Read every `<style>…</style>` through `read`, and return the text with those spans blanked. One pass. */
+export const readStyleBlocks = (text: string, read: (offset: number, css: string) => void): string => readElementBodies(text, "style", read);
+
 /** Read every `style={{ … }}` through `read` and blank it. The body is whatever precedes the first `}`. One pass. */
 export function readJsxStyleObjects(text: string, read: (offset: number, body: string) => void): string {
   let out = "";
   let from = 0;
   let brace = -1;
   for (;;) {
-    JSX_STYLE_OPEN_RE.lastIndex = from;
-    const open = JSX_STYLE_OPEN_RE.exec(text);
+    JSX_OPEN_RE.lastIndex = from;
+    const open = JSX_OPEN_RE.exec(text);
     if (open === null) break;
     const bodyStart = open.index + open[0].length;
     if (brace < bodyStart) {

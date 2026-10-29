@@ -20,6 +20,7 @@ import { computeSelectorBlocks } from "./css-selector-blocks.js";
 import type { CssBlock } from "./css-selector-blocks.js";
 import { classifySelector } from "./css-selector-mode.js";
 import { lineOf } from "./line-index.js";
+import { readElementBodies } from "./polyglot-ui-scans.js";
 import type { DsUsageFinding } from "./ds-usage-lint.js";
 
 // Longest-alternative-first so "background-color"/"border-color" win over their
@@ -28,22 +29,29 @@ const COLOR_PROP_RE =
   /\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:/gi;
 const INLINE_STYLE_RE = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
 
-/** Value ranges `[start, end)` of the inline `style="..."` attributes in `scan`, in order. */
-function inlineStyleRanges(scan: string): [number, number][] {
+/**
+ * The ranges `[start, end)` of an HTML text where CSS lives, sorted by start: the bodies of `<style>`
+ * and `<script>` elements and the values of `style="..."` attributes. A colour-looking `color: #xxx`
+ * anywhere else is page text, an attribute's prose or a code sample, not styling.
+ */
+function cssBearingRanges(scan: string): [number, number][] {
   const ranges: [number, number][] = [];
+  const add = (offset: number, body: string): void => void ranges.push([offset, offset + body.length]);
+  readElementBodies(scan, "style", add);
+  readElementBodies(scan, "script", add);
   for (const m of scan.matchAll(INLINE_STYLE_RE)) {
     const value = m[1] ?? m[2] ?? "";
     const end = (m.index ?? 0) + m[0].length - 1; // the closing quote
     ranges.push([end - value.length, end]);
   }
-  return ranges;
+  return ranges.sort((a, b) => a[0] - b[0]);
 }
 
 /**
  * Where the value that starts at `from` ends. It stops at `;`, `{` or `}`; at a `<` or `>` outside
  * parentheses (a value never runs on into the next tag: without that bound `style="color:var(--x)"`
  * read through the tag into the page text up to the next `;`, an `&middot;` entity, and took a hex in
- * a swatch label for a hardcoded colour); and at `limit`, the closing quote of an inline style. A
+ * a swatch label for a hardcoded colour); and at `limit`, the end of the CSS-bearing range it sits in. A
  * quote anywhere else is part of the value (`url("a.png")`, a script object's `'#fff'`). One pass.
  */
 function valueEnd(scan: string, from: number, limit: number): number {
@@ -84,6 +92,8 @@ export interface Analysed {
   blocks: CssBlock[];
   declRanges: CssBlock[];
   inDeclRange: (idx: number) => boolean;
+  /** HTML only: where CSS lives (see {@link cssBearingRanges}); undefined = the whole text is CSS. */
+  cssRanges?: [number, number][];
 }
 
 export function analyse(text: string, isHtml: boolean): Analysed {
@@ -92,7 +102,11 @@ export function analyse(text: string, isHtml: boolean): Analysed {
   const scan = blank(blank(text, /<!--[\s\S]*?-->/g), /\/\*[\s\S]*?\*\//g);
   const blocks = computeSelectorBlocks(scan, isHtml);
   const declRanges = blocks.filter((b) => isDeclarationSelector(b.selector));
-  return { text, scan, blocks, declRanges, inDeclRange: (idx) => declRanges.some((b) => b.start <= idx && idx < b.end) };
+  return {
+    text, scan, blocks, declRanges,
+    inDeclRange: (idx) => declRanges.some((b) => b.start <= idx && idx < b.end),
+    ...(isHtml && { cssRanges: cssBearingRanges(scan) }),
+  };
 }
 
 /** Every custom-property NAME the text itself declares in a decl block — literal or
@@ -141,15 +155,19 @@ export function colourAndTokenFindings(
   }
 
   // ── hardcoded colour literal in a colour-bearing property, component CSS only ──
-  const ranges = inlineStyleRanges(scan);
+  const ranges = a.cssRanges;
   let r = 0;
   COLOR_PROP_RE.lastIndex = 0;
   for (let m = COLOR_PROP_RE.exec(scan); m !== null; m = COLOR_PROP_RE.exec(scan)) {
     const idx = m.index;
     const start = idx + m[0].length;
-    while (r < ranges.length && (ranges[r] as [number, number])[1] <= idx) r++;
-    const range = ranges[r];
-    const limit = range !== undefined && range[0] <= idx ? range[1] : scan.length;
+    let limit = scan.length;
+    if (ranges !== undefined) {
+      while (r < ranges.length && (ranges[r] as [number, number])[1] <= idx) r++;
+      const range = ranges[r];
+      if (range === undefined || range[0] > idx) continue; // page text, not styling
+      limit = range[1];
+    }
     const end = valueEnd(scan, start, limit);
     COLOR_PROP_RE.lastIndex = end; // the value is consumed: a property inside it is not a second declaration
     if (inDeclRange(idx)) continue;
