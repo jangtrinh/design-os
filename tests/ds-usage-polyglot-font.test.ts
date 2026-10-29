@@ -3,8 +3,12 @@
  * `excludeElements` on `token-ban`, the preview chrome, and the `ds-usage` gate family.
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { run } from "../src/cli.js";
+import { SPECIMEN_CHROME_CSS } from "../src/core/ds-preview-chrome.js";
 import { extractUiRecords, uiSourceExtension, UI_SOURCE_EXTENSIONS } from "../src/core/polyglot-ui-extractor.js";
 import { lintDsUsage, lintDsUsageOnMarkup } from "../src/core/ds-usage-lint.js";
 import type { DsUsageLintOptions } from "../src/core/ds-usage-lint.js";
@@ -323,5 +327,88 @@ describe("token-ban excludeElements", () => {
     expect(r.findings).toEqual([]);
     expect(r.excluded).toHaveLength(1);
     expect(r.excluded[0]?.element).toBe("code");
+  });
+});
+
+describe("hardcoded-color value boundary (found by linting the generated specimen)", () => {
+  const colours = (html: string): string[] =>
+    lintDsUsage(html, { declaredVars: new Set(["--color-a"]) }).findings
+      .filter((f) => f.checkId === "hardcoded-color").map((f) => /'([^']+)'/.exec(f.message)?.[1] ?? "?");
+
+  it("an inline style that ends without ';' does not run on into the page text and read a swatch label as a colour", () => {
+    const html = `<div style="background:var(--color-a);color:var(--color-a)">Aa</div><code>#D5E5FF / #000114 &middot; 16:1</code>`;
+    expect(colours(html)).toEqual([]);
+  });
+
+  it("the LAST declaration of an inline style is still read when it has no ';', in a tag followed by more markup", () => {
+    expect(colours(`<i style="width:87%;background:#e67f43"></i><b>x</b>`)).toEqual(["#e67f43"]);
+    expect(colours(`<i style='color:rgb(1,2,3)'></i>`)).toEqual(["rgb(1,2,3)"]);
+  });
+
+  it("the quote that closes an inline style ends the value: a hex in the NEXT attribute is not a colour", () => {
+    expect(colours(`<p style="color:var(--color-a)" title="#ff0000 is red">x</p>`)).toEqual([]);
+  });
+
+  it("a quoted segment inside a value is part of it: a colour after url(\"...\") is still found", () => {
+    expect(colours(`<style>.a { background: url("a.png") #ff0000; }</style>`)).toEqual(["#ff0000"]);
+  });
+
+  it("a stray ')' in a value does not stop the closing quote from ending it", () => {
+    expect(colours(`<p style="color:var(--color-a))" title="#ff0000 is red">x</p>`)).toEqual([]);
+  });
+
+  it("a quoted string value (a JS object literal in a <script>) is read as that string", () => {
+    expect(colours(`<script>new Chart(c, { ticks: { color: '#8A93A3' }, grid: { color: "#363B45" } });</script>`)).toEqual(["#8A93A3", "#363B45"]);
+  });
+
+  it("parentheses nest to any depth: a hex three groups deep inside a gradient is still found", () => {
+    const css = `<style>.a { background:\n radial-gradient(60% 80% at 15% 10%, color-mix(in srgb, var(--color-a) 55%, #ff0000), transparent); }</style>`;
+    expect(colours(css)).toEqual(["#ff0000"]);
+  });
+
+  it("a declaration closed by '}' with no ';' is still read, across a newline", () => {
+    expect(colours(`<style>.a { color:\n #fff\n}</style>`)).toEqual(["#fff"]);
+  });
+});
+
+describe("generated preview chrome passes the font allowlist with no exemption", () => {
+  const PERSONA_DATA = fileURLToPath(new URL("../knowledge/personas/personas.json", import.meta.url));
+  const quiet = (args: string[]): number => {
+    const o = process.stdout.write.bind(process.stdout);
+    const e = process.stderr.write.bind(process.stderr);
+    process.stdout.write = () => true;
+    process.stderr.write = () => true;
+    try { return run(args); } finally { process.stdout.write = o; process.stderr.write = e; }
+  };
+  /** Strip CSS comments so an assertion reads the rules, never the prose that explains them. */
+  const noComments = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("the chrome stylesheet declares its own mono token and applies it by var(), never as a literal stack", () => {
+    const css = noComments(SPECIMEN_CHROME_CSS);
+    expect(css).toMatch(/:root\s*\{[^}]*--ds-chrome-font-mono\s*:\s*ui-monospace,\s*Menlo,\s*monospace/);
+    const applied = [...css.matchAll(/font-family\s*:\s*([^;}]+)/g)].map((m) => (m[1] as string).trim());
+    expect(applied.filter((v) => /mono|menlo/i.test(v))).toEqual(["var(--ds-chrome-font-mono)", "var(--ds-chrome-font-mono)", "var(--ds-chrome-font-mono)"]);
+  });
+
+  it("a real ds init + ds preview specimen and a per-component page have 0 ds-usage errors, font rule included", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-chrome-font-"));
+    try {
+      expect(quiet(["ds", "init", "acme", "--persona", "liquid-glass", "--intent", "a calm dense SaaS instrument", "--dir", dir, "--persona-data", PERSONA_DATA])).toBe(0);
+      expect(quiet(["ds", "preview", "--dir", dir])).toBe(0);
+      expect(quiet(["ds", "preview", "--dir", dir, "--split", join(dir, "pages")])).toBe(0);
+      const ds = optsFor(JSON.parse(readFileSync(join(dir, "design", "design.tokens.json"), "utf8")));
+      expect(ds.fonts?.firstFamilies.size, "the kit DS declares font tokens").toBeGreaterThan(0);
+      for (const file of [join(dir, "design", "preview", "specimen.html"), join(dir, "pages", "control-button.html")]) {
+        const html = readFileSync(file, "utf8");
+        expect(html, file).toContain("--ds-chrome-font-mono");
+        const r = lintDsUsage(html, ds);
+        expect(r.findings.filter((f) => f.severity === "error"), file).toEqual([]);
+        expect(r.offSystemFontCount, file).toBe(0);
+        // The chrome var is page-declared, not a DS token: a warning by the colour model, never an error.
+        expect(r.findings.some((f) => f.checkId === "off-system-token" && f.message.includes("--ds-chrome-font-mono")), file).toBe(true);
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

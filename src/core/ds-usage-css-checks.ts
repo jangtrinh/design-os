@@ -24,8 +24,39 @@ import type { DsUsageFinding } from "./ds-usage-lint.js";
 
 // Longest-alternative-first so "background-color"/"border-color" win over their
 // shorter prefix siblings at the same start position.
-const COLOR_PROPS_RE =
-  /\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:\s*([^;{}]+)[;}]/gi;
+//
+// A value runs to the next `;` or `}` or, in an inline `style="..."` that ends without a `;`, to the
+// closing quote. It never crosses `<` or `>`: without that bound `style="color:var(--x)"` ran on through
+// the tag into page text up to the next `;` (a `&middot;` entity) and read a hex in a swatch label as a
+// hardcoded colour. `cutValue` then ends the value at the quote that closes the attribute.
+const COLOR_PROPS_RE = new RegExp(
+  String.raw`\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:\s*([^;{}<>]+)(?=[;}<>])`,
+  "gi",
+);
+
+/**
+ * The part of a matched value that belongs to the declaration. A value that opens with a quote is a
+ * string literal (`color:'#8A93A3'` in a JS object) and is that string. Otherwise the value ends at the
+ * first quote outside parentheses: that is the quote closing an inline `style="..."`, and whatever
+ * follows it (`title="#ff0000"`) is another attribute. A quote inside parentheses (`url("a.png")`)
+ * belongs to the value, at any nesting depth.
+ */
+function cutValue(raw: string): string {
+  const v = raw.trimStart();
+  const first = v[0];
+  if (first === '"' || first === "'") {
+    const end = v.indexOf(first, 1);
+    return end === -1 ? v : v.slice(0, end + 1);
+  }
+  let depth = 0;
+  for (let i = 0; i < v.length; i++) {
+    const c = v[i];
+    if (c === "(") depth++;
+    else if (c === ")") depth = Math.max(0, depth - 1);
+    else if ((c === '"' || c === "'") && depth === 0) return v.slice(0, i);
+  }
+  return v;
+}
 const VAR_RE = /var\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,[^)]*)?\)/g;
 const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F])/;
 const COLOR_FN_RE = /\b(?:rgba?|hsla?)\s*\([^)]*\)/i;
@@ -105,7 +136,7 @@ export function colourAndTokenFindings(a: Analysed, declaredVars: ReadonlySet<st
     const idx = m.index ?? 0;
     if (inDeclRange(idx)) continue;
     const prop = (m[1] as string).toLowerCase();
-    const value = (m[2] as string).trim();
+    const value = cutValue(m[2] as string).trim();
     const hexHit = HEX_RE.exec(value)?.[0];
     const fnHit = COLOR_FN_RE.exec(value)?.[0];
     const literal = hexHit ?? fnHit;
