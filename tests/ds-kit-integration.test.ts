@@ -304,7 +304,7 @@ describe("bound kit Figma sidecar boundary", () => {
   });
   it.each(["registry", "sidecar-only", "no-change"])("reconcile --apply refuses %s writes with no filesystem change", (kind) => {
     const { root } = adopted(), paths = pathsForDir(join(root, "design")), markup = join(temp(), "owner.html"); fs.writeFileSync(markup, "<button>Owner</button>");
-    expect(cli(["registry", "register", "Control/Owner", "--category", "action", "--markup", markup, "--file", paths.registry]).code).toBe(0);
+    expect(cli(["registry", "register", "Control/Owner", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry]).code).toBe(0);
     const frame = { v: 1, ts: 1000, op: kind === "registry" ? "deleted" : "updated", nodeId: "1:1", nodeName: "Control/Owner", nodeType: "COMPONENT", changedProps: [], origin: "LOCAL", scopeHint: "local", page: "Owner", fileKey: "owner" };
     put(root, "design/figma.changes.jsonl", JSON.stringify(frame) + "\n");
     const capturePath = join(temp(), "capture.json"); fs.writeFileSync(capturePath, canonicalStringify({ v: 1, captured: [{ nodeId: "1:1", name: "Control/Owner", node: { type: "FRAME", name: "Control/Owner", layoutMode: "VERTICAL", itemSpacing: 24 } }], failed: [] }));
@@ -346,7 +346,7 @@ describe("orphan kit ownership boundary", () => {
     const before = filesystemState(root);
     expect(() => loadDesignSystem(paths)).toThrow(expect.objectContaining({ code: "DS_TAMPERED" }));
     expect(filesystemState(root)).toEqual(before);
-    const register = cli(["registry", "register", "Control/New", "--category", "action", "--markup", markup, "--file", paths.registry]);
+    const register = cli(["registry", "register", "Control/New", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry]);
     expect(register).toMatchObject({ code: 1, error: { code: "DS_TAMPERED" } });
     expect(filesystemState(root)).toEqual(before);
     const apply = cli(["figma", "reconcile", "--dir", root, "--apply"]);
@@ -372,7 +372,7 @@ describe("orphan kit ownership boundary", () => {
     const root = temp(), paths = pathsForDir(join(root, "design")), markup = join(temp(), "standalone.html");
     fs.writeFileSync(markup, "<button>Standalone</button>");
     expect(() => loadDesignSystem(paths)).toThrow(expect.objectContaining({ code: "DS_NOT_FOUND" }));
-    expect(cli(["registry", "register", "Control/Standalone", "--category", "action", "--markup", markup, "--file", paths.registry]).code).toBe(0);
+    expect(cli(["registry", "register", "Control/Standalone", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry]).code).toBe(0);
     expect(JSON.parse(read(root, "design/component-registry.json").toString()).components).toHaveLength(1);
     const frame = { v: 1, ts: 1000, op: "deleted", nodeId: "1:1", nodeName: "Control/Standalone", nodeType: "COMPONENT", changedProps: [], origin: "LOCAL", scopeHint: "local", page: "Owner", fileKey: "owner" };
     put(root, "design/figma.changes.jsonl", JSON.stringify(frame) + "\n");
@@ -409,10 +409,10 @@ describe("sanctioned kit evolution", () => {
     const { root } = adopted(), paths = pathsForDir(join(root, "design"));
     const capture = read(root, "source/registry.json"), spec = read(root, "kit.json"), receipt = read(root, "evidence/receipt.json");
     const markup = join(temp(), "owner.html"); fs.writeFileSync(markup, "<button>Owner replacement</button>");
-    expect(cli(["registry", "register", "Owner Item 40", "--category", "display", "--markup", markup, "--file", paths.registry, "--force"]).data).toMatchObject({ replaced: true, component: { name: "Owner Item 40" } });
-    for (const name of ["Button", "Owner friendly — 布局"]) expect(cli(["registry", "register", name, "--category", "action", "--markup", markup, "--file", paths.registry]).data).toMatchObject({ replaced: false, component: { name } });
+    expect(cli(["registry", "register", "Owner Item 40", "--category", "display", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry, "--force"]).data).toMatchObject({ replaced: true, component: { name: "Owner Item 40" } });
+    for (const name of ["Button", "Owner friendly — 布局"]) expect(cli(["registry", "register", name, "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry]).data).toMatchObject({ replaced: false, component: { name } });
     const seal = read(root, "kit.lock.json"), registry = read(root, "design/component-registry.json"), manifest = read(root, "design/ds.manifest.json");
-    expect(cli(["registry", "register", "button", "--category", "action", "--markup", markup, "--file", paths.registry, "--force"]).error?.code).toBe("BAD_NAME");
+    expect(cli(["registry", "register", "button", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry, "--force"]).error?.code).toBe("BAD_NAME");
     expect(read(root, "kit.lock.json")).toEqual(seal); expect(read(root, "design/component-registry.json")).toEqual(registry); expect(read(root, "design/ds.manifest.json")).toEqual(manifest);
     const ds = loadDesignSystem(paths);
     expect(ds.registry.components).toHaveLength(43); expect(ds.kit?.status).toBe("stale"); expect(ds.manifest.generation).toBe(4);
@@ -429,7 +429,7 @@ describe("sanctioned kit evolution", () => {
   it.each(["owner item 40", "Ｏｗｎｅｒ Item 40", "Owner   Item 40"])("kit growth rejects normalized owner-name collision %s before writing", (name) => {
     const { root } = adopted(), paths = pathsForDir(join(root, "design")), markup = join(temp(), "owner.html"); fs.writeFileSync(markup, "<button>Owner</button>");
     const before = new Map(["design/component-registry.json", "design/ds.manifest.json", "kit.lock.json"].map((path) => [path, read(root, path)]));
-    expect(cli(["registry", "register", name, "--category", "display", "--markup", markup, "--file", paths.registry, "--force"]).error?.code).toBe("BAD_NAME");
+    expect(cli(["registry", "register", name, "--category", "display", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry, "--force"]).error?.code).toBe("BAD_NAME");
     for (const [path, bytes] of before) expect(read(root, path)).toEqual(bytes);
     expect(loadDesignSystem(paths).kit?.status).toBe("verified");
   });
@@ -438,7 +438,7 @@ describe("sanctioned kit evolution", () => {
   });
   it("registry growth becomes stale without recapturing mappings", () => {
     const { root } = adopted(); const mappings = read(root, "kit.json"); const markup = join(temp(), "new.html"); fs.writeFileSync(markup, "<button>New</button>");
-    expect(cli(["registry", "register", "Control/New", "--category", "action", "--markup", markup, "--file", join(root, "design/component-registry.json")]).code).toBe(0);
+    expect(cli(["registry", "register", "Control/New", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", join(root, "design/component-registry.json")]).code).toBe(0);
     expect(loadDesignSystem(pathsForDir(join(root, "design"))).kit?.status).toBe("stale"); expect(read(root, "kit.json")).toEqual(mappings);
   });
   it("registry-only evolution preserves nested raw DTCG and metadata before a sanctioned role write", () => {
@@ -447,7 +447,7 @@ describe("sanctioned kit evolution", () => {
     const immutable = ["design/design.tokens.json", "source/tokens.json", "source/registry.json", "kit.json", "src/theme.css", "evidence/receipt.json"];
     const before = new Map(immutable.map((path) => [path, read(root, path)]));
     const markup = join(temp(), "new.html"); fs.writeFileSync(markup, "<button>New</button>");
-    expect(cli(["registry", "register", "Control/New", "--category", "action", "--markup", markup, "--file", paths.registry]).code).toBe(0);
+    expect(cli(["registry", "register", "Control/New", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry]).code).toBe(0);
     const grown = loadDesignSystem(paths);
     expect(grown.kit?.status).toBe("stale"); expect(grown.manifest.generation).toBe(2);
     expect(grown.kit?.tokensHash).toBe(prior.kit?.tokensHash); expect(grown.manifest.compiledHash).toBe(prior.manifest.compiledHash);
