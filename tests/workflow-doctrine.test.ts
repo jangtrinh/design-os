@@ -48,6 +48,59 @@ describe("workflow doctrine — no workflow mandates the dead `states` field (sp
     expect(content).toMatch(/states.*field.*(?:unset|never)|(?:unset|never).*states.*field/is);
   });
 
+  // Step 6 of extract and step 4 of learn seal the design system, so every register command the
+  // workflows print runs against a sealed store: it must carry a source or an explicit approval.
+  describe("a register command in a code block states where the component comes from", () => {
+    const REGISTER = /^\s*(?:\$\s*)?ui registry register\b/;
+    const fencedCommands = (content: string): string[] => {
+      const commands: string[] = [];
+      for (const block of content.matchAll(/```[a-z]*\n([\s\S]*?)```/g)) {
+        const lines = block[1]!.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+          if (!REGISTER.test(lines[i]!)) continue;
+          let command = lines[i]!;
+          while (command.trimEnd().endsWith("\\") && i + 1 < lines.length) command += "\n" + lines[++i]!;
+          commands.push(command);
+        }
+      }
+      return commands;
+    };
+
+    it("sees the register command of extract.md (sanity: the scan finds something)", () => {
+      expect(fencedCommands(readFileSync(join(WORKFLOWS_DIR, "extract.md"), "utf8")).length).toBeGreaterThan(0);
+    });
+
+    it("the scan itself fails a register line with neither flag", () => {
+      const bad = fencedCommands("```bash\nui registry register A/B \\\n    --category x \\\n    --markup m.html\n```\n");
+      expect(bad).toHaveLength(1);
+      expect(/--source-ref|--synthetic-approved/.test(bad[0]!)).toBe(false);
+    });
+
+    for (const file of files) {
+      it(`${file}: every fenced register command has --source-ref or --synthetic-approved`, () => {
+        for (const command of fencedCommands(readFileSync(join(WORKFLOWS_DIR, file), "utf8"))) {
+          expect(command, command).toMatch(/--source-ref|--synthetic-approved/);
+        }
+      });
+    }
+
+    it("extract.md says what to do with HTML that lives outside the project root", () => {
+      const content = readFileSync(join(WORKFLOWS_DIR, "extract.md"), "utf8");
+      expect(content).toMatch(/outside the project\s+root/);
+      expect(content).toMatch(/copy the\s+file into the project and reference the copy/);
+      expect(content).toMatch(/naming the original location/);
+    });
+
+    it("extract.md and learn.md say what REGISTRY_MARKUP_DRIFT means and not to bypass it", () => {
+      for (const file of ["extract.md", "learn.md"]) {
+        const content = readFileSync(join(WORKFLOWS_DIR, file), "utf8");
+        expect(content, file).toContain("REGISTRY_MARKUP_DRIFT");
+        expect(content, file).toMatch(/--source-ref/);
+        expect(content, file).toMatch(/--synthetic-approved/);
+      }
+    });
+  });
+
   it("learn.md §3b documents the same correction", () => {
     const content = readFileSync(join(WORKFLOWS_DIR, "learn.md"), "utf8");
     expect(content).toMatch(/`states`\s+field on a registry record is dead/);

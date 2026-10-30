@@ -28,6 +28,7 @@ import {
 import { pathsForDir, registryFileForDir } from "../core/design-system.js";
 import { reseal, loadDesignSystemForReseal } from "../core/ds-reseal.js";
 import { assertTokensExist } from "../core/registry-token-check.js";
+import { parseProvenanceFlags, resolveRegisterProvenance } from "./registry-provenance.js";
 
 const CMD = "registry";
 const DEFAULT_REGISTRY_DIR = "./design";
@@ -38,6 +39,8 @@ Usage:
   ui registry register <name> --category <c> --markup <file|->
                         [--tokens a,b,c] [--variants x,y] [--states s1,s2]
                         [--description "..."] [--force] [--file <path>] [--json]
+                        [--source-ref <path:start-end|figma:nodeId> |
+                         --synthetic-approved --reason "<text>"]
   ui registry lookup <name> [--file <path>] [--json]
   ui registry list [--category <c>] [--file <path>] [--json]
 
@@ -49,6 +52,11 @@ Subcommands:
 Options:
   --file <path>    Registry file path (default: ./design/component-registry.json)
   --force          Overwrite an existing component (register only)
+  --source-ref <r> Ground truth of the markup: <path>:<startLine>[-<endLine>] relative to the
+                   project root (the parent of design/), or figma:<nodeId> from design/ds.json /
+                   design/canvas-inventory.json. Verified, hashed and recorded as 'provenance'.
+  --synthetic-approved --reason "<text>"
+                   Approve markup that has no source; the reason is recorded. Exclusive with --source-ref.
   --json           Emit a JSON envelope instead of human-readable output
   -h, --help       Show this help
 
@@ -67,8 +75,19 @@ States enum:
   (each observed state folds into --variants as "State=<PascalCase>" — e.g.
   "hover" -> "State=Hover"; the record's own "states" field is never written)
 
+Sealed design systems (design/ds.manifest.json exists):
+  register requires --source-ref or --synthetic-approved --reason, and the markup must pass
+  the design system's usage lint (off-system-font, hardcoded-color, token-ban rules, ...).
+  Warnings are printed and do not block. Nothing is written when any check refuses.
+  Before the seal both flags are optional; one that is given is still verified and recorded.
+
 Error codes:
-  BAD_ARG            Missing subcommand, positional, or required flag
+  BAD_ARG            Missing subcommand, positional, or required flag; --source-ref together with
+                     --synthetic-approved; --reason without --synthetic-approved or left empty
+  REGISTRY_MISSING_SOURCE_REF  Sealed design system, no --source-ref and no synthetic approval
+  REGISTRY_BAD_SOURCE_REF      --source-ref malformed, file or line range absent, path outside
+                               the project root, Figma node or inventory absent
+  REGISTRY_MARKUP_DRIFT        The markup has an error-severity usage-lint or token-ban finding
   BAD_NAME           Invalid name for the registry, or normalized kit name collision
   BAD_STATE          A --states value not in the enum
   BAD_TOKEN          Bad --tokens format, OR (DS present) unresolvable path — distinct msgs
@@ -147,6 +166,14 @@ function runRegister(parsed: ParsedArgs): CommandResult {
     return useJson ? errJson(sub, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
   }
 
+  // Argument shape first: nothing is read before the provenance flags are known to be coherent.
+  let provenanceFlags;
+  try {
+    provenanceFlags = parseProvenanceFlags(parsed.flags);
+  } catch (e) {
+    return asResult(useJson, sub, e);
+  }
+
   const force = parsed.flags["force"] === true;
   const registryPath = resolveRegistryPath(parsed);
 
@@ -201,6 +228,15 @@ function runRegister(parsed: ParsedArgs): CommandResult {
     return asResult(useJson, sub, e);
   }
 
+  // Provenance: the sealed-store ground-truth rule (flags, source ref, markup lint). Throws before any write.
+  let provenance, warnings: string[];
+  try {
+    ({ provenance, warnings } = resolveRegisterProvenance(provenanceFlags, markup, dsPaths, markupArg === "-" ? undefined : markupArg));
+  } catch (e) {
+    return asResult(useJson, sub, e);
+  }
+  if (provenance !== undefined) record = { ...record, provenance };
+
   // Load or create registry
   let reg;
   try {
@@ -253,13 +289,15 @@ function runRegister(parsed: ParsedArgs): CommandResult {
       file: registryPath,
       component: record,
       replaced: result.replaced,
+      ...(warnings.length > 0 && { warnings }),
     });
   }
 
   const verb = result.replaced ? "replaced" : "registered";
+  const provenanceLine = provenance === undefined ? "" : `provenance: ${provenance.kind} ${provenance.sourceRef}\n`;
   return {
     exitCode: 0,
-    stdout: `${verb}: ${record.name} (${record.category}) → ${registryPath}\n`,
+    stdout: `${verb}: ${record.name} (${record.category}) → ${registryPath}\n${provenanceLine}${warnings.map((w) => `${w}\n`).join("")}`,
   };
 }
 

@@ -333,6 +333,7 @@ For every canonical component from step 3:
 ui registry register <Category/Variant> \
     --category <category> \
     --markup <component-fragment.html> \
+    --source-ref <path>:<startLine>-<endLine> \
     --tokens <token-path-1>,<token-path-2>,... \
     --variants <v1>,<v2> \
     --states <s1>,<s2> \
@@ -345,6 +346,25 @@ Where:
 - `--category` is the lowercase category slug.
 - `--markup` is the minimal complete fragment from step 2 — either inline
   via `-` and stdin, or a temp file path.
+- `--source-ref` is the ground truth the fragment came from. Step 6 sealed the design
+  system, and a sealed system registers a component only with a verified source:
+  - **Code source** (a file in the project): `--source-ref <path>:<startLine>-<endLine>`,
+    the path relative to the project root (the parent of `design/`), lines 1-based and
+    inclusive (`src/lib/Card.svelte:1-38`; one line is `path:12`). Point at the
+    component's real source file, never at the fragment file you are registering and
+    never at anything under `design/`.
+  - **Figma source**: `--source-ref figma:<nodeId>` for a component or component set
+    listed in `design/ds.json` or `design/canvas-inventory.json`.
+  - **No source** (a fragment captured from a live URL, or composed by hand): replace
+    `--source-ref` with `--synthetic-approved --reason "<why there is no source>"`. The
+    reason is recorded with the component. If the user's HTML lives outside the project
+    root (for example `~/Downloads/page.html`), a ref to it is refused: either copy the
+    file into the project and reference the copy, or use `--synthetic-approved --reason`
+    naming the original location.
+- The fragment is also linted against the design system before anything is written.
+  `REGISTRY_MARKUP_DRIFT` means it has a literal colour, an off-system font or a banned
+  token: rewrite the fragment to use the design system's tokens and register again.
+  Never work around it with a different flag, and do not edit the store by hand.
 - `--tokens` lists the design tokens this component visibly uses (color,
   spacing, typography, radius). Best-effort from the markup; missing
   entries can be added later with `--force`.

@@ -106,6 +106,7 @@ describe("seal invariant — behavioral: every sanctioned write leaves the DS lo
     const r = capture([
       "registry", "register", "Button/Primary",
       "--category", "action", "--markup", fix("registry-markup.html"),
+      "--synthetic-approved", "--reason", "fixture markup with no source",
       "--file", registryPath,
     ]);
     expect(r.code).toBe(0);

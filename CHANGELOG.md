@@ -1,5 +1,60 @@
 # Changelog
 
+## 2026-10-30 - `ui registry register` requires ground truth once the design system is sealed
+
+### Added
+- `ui registry register --source-ref <path:start-end | figma:<nodeId>>` and
+  `--synthetic-approved --reason "<text>"`. A code ref is relative to the project root (the parent of
+  `design/`), lines are 1-based inclusive (`path:12` is one line), and the record keeps the `sha256` of
+  the exact lines joined with `\n`. A Figma ref must be a component or component-set id in
+  `design/ds.json` or `design/canvas-inventory.json`; the record keeps the canonical hash of that
+  inventory entry. A synthetic approval stores `sourceRef: "synthetic"`, the hash of the markup and the
+  reason. All three land on the component as `provenance: { kind, sourceRef, sha256, reason? }`
+  (`kind` is `code`, `figma` or `synthetic-approved`; unknown keys inside it are rejected on load and
+  validate; `schemas/component-registry.schema.json` describes it).
+- Error codes `REGISTRY_MISSING_SOURCE_REF`, `REGISTRY_BAD_SOURCE_REF` and `REGISTRY_MARKUP_DRIFT`, listed in
+  `ui registry --help` and `ui schema`. `--source-ref` together with `--synthetic-approved`, `--reason`
+  without `--synthetic-approved`, and an empty or whitespace-only reason are `BAD_ARG`.
+
+### Changed
+- When `design/ds.manifest.json` exists next to the registry, `register` refuses a component that has
+  neither a source ref nor a reasoned synthetic approval (`REGISTRY_MISSING_SOURCE_REF`), refuses a ref that
+  does not verify (`REGISTRY_BAD_SOURCE_REF`: malformed, missing file, line range past the end of the file,
+  path outside the project root or through a link out of it, a file that cannot be read (the message
+  names the path and the OS error code), unknown Figma node, or no inventory present),
+  and lints the markup the way `ui gate` does: any `error` from the `ds-usage` checks
+  (`off-system-font`, `hardcoded-color`, `undeclared-token`) or from a promoted `token-ban` rule refuses it
+  (`REGISTRY_MARKUP_DRIFT`, one line per finding with its check id and line). `off-system-token` warnings
+  and checks that did not run are printed and do not block. Checks run in the order arguments, source,
+  markup; a refusal writes nothing and does not reseal.
+- A design system without a manifest registers exactly as before. A provenance flag given there is still
+  verified and recorded.
+- A synthetic approval skips the source, not the design system: its markup is linted too.
+- A code ref must point at the component's real source. It is refused with `REGISTRY_BAD_SOURCE_REF`,
+  because it would vouch for itself, when it is the `--markup` file being registered (file form; stdin has
+  no file; a hard link or a symlink to it counts, because files are compared by device and inode), or one of
+  the design system's own files: any `*.json` / `*.jsonl` under `design/`, anything under `design/rules/`,
+  and the files the `ui` CLI generates there (`soul.md`, `DESIGN.md`, `audit.md`, `preview/`, `guidelines/`,
+  `figma-export/`, `harvest-inbox/`). A test runs each offline writer with a default output in the store and
+  fails if anything it creates is not classified. Hand-authored source that lives under `design/` (a page, a stylesheet,
+  `components/*.svelte`) is accepted. The message names the kind of file and says markup with no real source
+  can be registered with `--synthetic-approved --reason "<why>"`. Paths are resolved with the filesystem's
+  own spelling, so a case variant on a case-insensitive filesystem cannot dodge the check.
+- The recorded code ref is canonical: the on-disk path relative to the project root with forward slashes,
+  plus the numeric range. `src/../src/a.svelte:1`, `SRC/A.svelte:1` and `src\a.svelte:1` all record
+  `src/a.svelte:1`, `a.svelte:01-002` records `a.svelte:1-2`, and `provenance: code ...` prints that form.
+  Figma refs are recorded as typed. When a ref's file does not exist and its path contains a backslash,
+  the message adds that backslashes are read as path separators.
+- `templates/workflows/extract.md` (step 8) and `learn.md` now register with `--source-ref` for code and
+  Figma sources, `--synthetic-approved --reason` only for fragments with no source, and say that
+  `REGISTRY_MARKUP_DRIFT` means the fragment must be rewritten to the design system's tokens, not bypassed.
+  `extract.md` also says what to do with HTML that lives outside the project root: copy it into the project
+  and reference the copy, or approve it as synthetic with a reason naming the original location.
+  A doctrine test fails any fenced `ui registry register` command in a workflow that carries neither flag.
+- The shape of the provenance flags is checked before the markup is read or the record is validated, on
+  sealed and unsealed stores alike, so a bad flag combination is `BAD_ARG` even when the markup file is
+  missing.
+
 ## 2026-10-30 - ease-design 0.6.2
 
 The design-system usage release. `ui gate` can now fail a page that drifts from its own design system,

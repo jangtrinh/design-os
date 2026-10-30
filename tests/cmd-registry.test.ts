@@ -274,7 +274,7 @@ describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
     const reg = captureRun([
       "registry", "register", "Button/Primary",
       "--category", "action", "--markup", fix("registry-markup.html"),
-      "--file", registryPath,
+      "--synthetic-approved", "--reason", "fixture markup with no source", "--file", registryPath,
     ]);
     expect(reg.code).toBe(0);
     const status = captureRun(["ds", "status", "--dir", tmp, "--json"]);
@@ -287,7 +287,7 @@ describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
     captureRun([
       "registry", "register", "Button/Primary",
       "--category", "action", "--markup", fix("registry-markup.html"),
-      "--file", registryPath,
+      "--synthetic-approved", "--reason", "fixture markup with no source", "--file", registryPath,
     ]);
     const manifest = loadManifest(join(tmp, "design", "ds.manifest.json"));
     const last = manifest.changelog[manifest.changelog.length - 1];
@@ -304,7 +304,7 @@ describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
       "registry", "register", "Button/Primary",
       "--category", "action", "--markup", fix("registry-markup.html"),
       "--tokens", "NOT A VALID TOKEN",
-      "--file", registryPath, "--json",
+      "--synthetic-approved", "--reason", "fixture markup with no source", "--file", registryPath, "--json",
     ]);
     expect(r.code).toBe(1);
     const json = JSON.parse(r.out) as { error: { code: string } };
@@ -324,7 +324,7 @@ describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
       "registry", "register", "Button/Primary",
       "--category", "action", "--markup", fix("registry-markup.html"),
       "--tokens", "color.this-token-does-not-exist-anywhere",
-      "--file", registryPath, "--json",
+      "--synthetic-approved", "--reason", "fixture markup with no source", "--file", registryPath, "--json",
     ]);
     expect(r.code).toBe(1);
     const json = JSON.parse(r.out) as { error: { code: string; message: string } };
@@ -346,7 +346,7 @@ describe("ui registry register — sealed DS integration (spec 009 P1)", () => {
       "registry", "register", "Button/Primary",
       "--category", "action", "--markup", fix("registry-markup.html"),
       "--tokens", realPath,
-      "--file", registryPath, "--json",
+      "--synthetic-approved", "--reason", "fixture markup with no source", "--file", registryPath, "--json",
     ]);
     expect(r.code).toBe(0);
     const json = JSON.parse(r.out) as { data: { component: { tokensUsed: string[] } } };
