@@ -149,6 +149,16 @@ describe("code refs", () => {
     expect(expectRefusal(["--source-ref", "src/nope.svelte:1-2"], "REGISTRY_BAD_SOURCE_REF")).toContain("src/nope.svelte");
   });
 
+  it("says a backslash is read as a path separator when the file is not found", () => {
+    const message = expectRefusal(["--source-ref", "src\\no-such-file.svelte:1"], "REGISTRY_BAD_SOURCE_REF");
+    expect(message).toContain("does not exist");
+    expect(message).toContain("backslashes are read as path separators");
+  });
+
+  it("does not mention backslashes when the path has none", () => {
+    expect(expectRefusal(["--source-ref", "src/no-such-file.svelte:1"], "REGISTRY_BAD_SOURCE_REF")).not.toContain("backslash");
+  });
+
   it("refuses a directory", () => {
     expectRefusal(["--source-ref", "src:1-2"], "REGISTRY_BAD_SOURCE_REF");
   });
@@ -264,8 +274,20 @@ describe("a ref into the design system's own directory", () => {
     }
   });
 
+  it.each([
+    ["the Figma export upload note", "design/figma-export/UPLOAD.md", "ui ds guidelines export"],
+    ["a file of the Figma export bundle", "design/figma-export/figma-guidelines/components.md", "ui ds guidelines export"],
+    ["the audit report", "design/audit.md", "ui designmd audit"],
+  ])("refuses %s (%s), written by %s", (_label, rel, writer) => {
+    const p = sealedProject();
+    put(p, rel);
+    const message = expectRefusal(["--source-ref", `${rel}:1`], "REGISTRY_BAD_SOURCE_REF", p);
+    expect(message).toContain("a design-system file");
+    expect(message).toContain(writer);
+  });
+
   it("lists the generated paths the writers really use", () => {
-    expect(CLI_GENERATED_STORE_PATHS.map((e) => e.path)).toEqual(expect.arrayContaining(["soul.md", "DESIGN.md", "preview", "guidelines", "harvest-inbox"]));
+    expect(CLI_GENERATED_STORE_PATHS.map((e) => e.path)).toEqual(expect.arrayContaining(["soul.md", "DESIGN.md", "audit.md", "preview", "guidelines", "figma-export", "harvest-inbox"]));
   });
 });
 
@@ -283,6 +305,17 @@ describe("the recorded source ref is canonical", () => {
     const p = sealedProject();
     expect(p.register(["--source-ref", "src\\widget.svelte:1-3"]).code).toBe(0);
     expect(registered(p)[0]!.provenance!["sourceRef"]).toBe("src/widget.svelte:1-3");
+  });
+
+  it.each([
+    ["leading zeros are dropped from a range", "src/widget.svelte:01-0003", "src/widget.svelte:1-3"],
+    ["leading zeros are dropped from a single line", "src/widget.svelte:04", "src/widget.svelte:4"],
+    ["an explicit one-line range stays a range", "src/widget.svelte:3-3", "src/widget.svelte:3-3"],
+  ])("the range is numeric: %s", (_label, typed, recorded) => {
+    const p = sealedProject();
+    const r = p.register(["--source-ref", typed]);
+    expect(r.code, r.err).toBe(0);
+    expect(registered(p)[0]!.provenance!["sourceRef"]).toBe(recorded);
   });
 
   it("a single line keeps its form: path:4", () => {

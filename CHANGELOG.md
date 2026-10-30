@@ -34,14 +34,17 @@
   because it would vouch for itself, when it is the `--markup` file being registered (file form; stdin has
   no file; a hard link or a symlink to it counts, because files are compared by device and inode), or one of
   the design system's own files: any `*.json` / `*.jsonl` under `design/`, anything under `design/rules/`,
-  and the files the `ui` CLI generates there (`soul.md`, `DESIGN.md`, `preview/`, `guidelines/`,
-  `harvest-inbox/`). Hand-authored source that lives under `design/` (a page, a stylesheet,
+  and the files the `ui` CLI generates there (`soul.md`, `DESIGN.md`, `audit.md`, `preview/`, `guidelines/`,
+  `figma-export/`, `harvest-inbox/`). A test runs each offline writer with a default output in the store and
+  fails if anything it creates is not classified. Hand-authored source that lives under `design/` (a page, a stylesheet,
   `components/*.svelte`) is accepted. The message names the kind of file and says markup with no real source
   can be registered with `--synthetic-approved --reason "<why>"`. Paths are resolved with the filesystem's
   own spelling, so a case variant on a case-insensitive filesystem cannot dodge the check.
 - The recorded code ref is canonical: the on-disk path relative to the project root with forward slashes,
-  plus the range as typed. `src/../src/a.svelte:1`, `SRC/A.svelte:1` and `src\a.svelte:1` all record
-  `src/a.svelte:1`, and `provenance: code ...` prints that form. Figma refs are recorded as typed.
+  plus the numeric range. `src/../src/a.svelte:1`, `SRC/A.svelte:1` and `src\a.svelte:1` all record
+  `src/a.svelte:1`, `a.svelte:01-002` records `a.svelte:1-2`, and `provenance: code ...` prints that form.
+  Figma refs are recorded as typed. When a ref's file does not exist and its path contains a backslash,
+  the message adds that backslashes are read as path separators.
 - `templates/workflows/extract.md` (step 8) and `learn.md` now register with `--source-ref` for code and
   Figma sources, `--synthetic-approved --reason` only for fragments with no source, and say that
   `REGISTRY_MARKUP_DRIFT` means the fragment must be rewritten to the design system's tokens, not bypassed.

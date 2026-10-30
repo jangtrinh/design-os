@@ -95,7 +95,10 @@ function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefCon
   if (!insideRoot(projectRoot, file)) {
     throw bad(`path '${path}' escapes the project root '${projectRoot}'`);
   }
-  if (!existsSync(file)) throw bad(`file '${path}' does not exist under the project root '${projectRoot}'`);
+  if (!existsSync(file)) {
+    const hint = path.includes("\\") ? " (backslashes are read as path separators)" : "";
+    throw bad(`file '${path}' does not exist under the project root '${projectRoot}'${hint}`);
+  }
   let text: string;
   let canonicalPath: string;
   try {
@@ -127,7 +130,7 @@ function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefCon
   if (end > count) {
     throw bad(`line range ${start}-${end} is past the end of '${path}', which has ${count} line(s)`);
   }
-  return { kind: "code", sourceRef: `${canonicalPath}:${startText}${endText === undefined ? "" : `-${endText}`}`, sha256: sha256OfText(lines.slice(start - 1, end).join("\n")) };
+  return { kind: "code", sourceRef: `${canonicalPath}:${start}${endText === undefined ? "" : `-${end}`}`, sha256: sha256OfText(lines.slice(start - 1, end).join("\n")) };
 }
 
 /** The component and component-set entries of one inventory file, or undefined when the file is absent. */
