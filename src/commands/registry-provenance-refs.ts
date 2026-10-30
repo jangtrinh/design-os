@@ -10,15 +10,24 @@
  * Every refusal is a `REGISTRY_BAD_SOURCE_REF` naming the exact cause and the path or node; an I/O
  * failure on the referenced file (permissions, a directory race, a file too large to read) is one too.
  *
- * Controller ruling (a reference that proves nothing is refused): a code ref whose real path is the
- * `--markup` file being registered, or lies inside the design system's own store directory, is refused.
- * The reference must point at the component's real source, not at the markup it is meant to vouch for
- * or at the design system's own files. A markup piped on stdin has no file, so only the store rule applies.
+ * Controller ruling (a reference that proves nothing is refused). A code ref is refused when it is
+ * the `--markup` file being registered (same device and inode, so a hard link or a symlink to it
+ * counts; stdin has no file), or one of the design system's own files: any `*.json` / `*.jsonl`
+ * under the store, anything under `rules/`, and the files the `ui` CLI generates into it (see
+ * registry-provenance-store-files.ts). Hand-authored source that lives under `design/` is a valid ref.
+ * Every path is resolved with `realpathSync.native`, so a case variant of a path on a case-insensitive
+ * filesystem cannot dodge a guard.
+ *
+ * The recorded code ref is canonical: the on-disk path relative to the real project root, with forward
+ * slashes, plus the range as typed. `src/../src/a.svelte:1`, `SRC/A.svelte:1` and `src\a.svelte:1` all
+ * record `src/a.svelte:1`. (A backslash in a typed path is a separator, so a POSIX file whose name
+ * contains one cannot be referenced.)
  */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { canonicalHash } from "../core/ds-manifest.js";
+import { designSystemFileKind } from "./registry-provenance-store-files.js";
 import { RegistryError } from "../core/registry-store.js";
 import type { ComponentProvenance } from "../core/registry-store.js";
 
@@ -57,8 +66,16 @@ function ioFailure(what: string, path: string, e: unknown): RegistryError {
 }
 
 const realPathOrUndefined = (path: string): string | undefined => {
-  try { return realpathSync(path); } catch { return undefined; }
+  try { return realpathSync.native(path); } catch { return undefined; }
 };
+
+/** True when both paths are the same file on disk (same device and inode): hard links, symlinks, case variants. */
+function sameFile(a: string, b: string): boolean {
+  try {
+    const x = statSync(a), y = statSync(b);
+    return x.dev === y.dev && x.ino === y.ino;
+  } catch { return false; }
+}
 
 function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefContext): ComponentProvenance {
   const m = CODE_REF.exec(sourceRef);
@@ -74,27 +91,31 @@ function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefCon
   if (isAbsolute(path) || /^[A-Za-z]:[\\/]/.test(path) || path.startsWith("\\")) {
     throw bad(`path '${path}' is absolute — give it relative to the project root '${projectRoot}'`);
   }
-  const file = resolve(projectRoot, path);
+  const file = resolve(projectRoot, path.replace(/\\/g, "/"));
   if (!insideRoot(projectRoot, file)) {
     throw bad(`path '${path}' escapes the project root '${projectRoot}'`);
   }
   if (!existsSync(file)) throw bad(`file '${path}' does not exist under the project root '${projectRoot}'`);
   let text: string;
+  let canonicalPath: string;
   try {
     if (!statSync(file).isFile()) throw bad(`'${path}' is not a file`);
     // A symlink inside the root must not smuggle in a file from outside it.
-    const real = realpathSync(file);
-    if (!insideRoot(realpathSync(projectRoot), real)) {
+    const real = realpathSync.native(file);
+    const realRoot = realpathSync.native(projectRoot);
+    if (!insideRoot(realRoot, real)) {
       throw bad(`path '${path}' resolves through a link to a file outside the project root '${projectRoot}'`);
     }
-    const markupReal = ctx.markupFile === undefined ? undefined : realPathOrUndefined(ctx.markupFile);
-    if (markupReal !== undefined && real === markupReal) {
+    if (ctx.markupFile !== undefined && sameFile(real, ctx.markupFile)) {
       throw bad(`'${path}' is the markup file being registered — the reference must point at the component's real source, not at the markup it is meant to vouch for`);
     }
     const storeReal = realPathOrUndefined(ctx.storeDir);
-    if (storeReal !== undefined && insideRoot(storeReal, real)) {
-      throw bad(`'${path}' is inside the design system '${ctx.storeDir}' — the reference must point at the component's real source, not at the design system's own files`);
+    const kind = storeReal !== undefined && insideRoot(storeReal, real) ? designSystemFileKind(relative(storeReal, real)) : undefined;
+    if (kind !== undefined) {
+      throw bad(`'${path}' is a design-system file (${kind}) — the reference must point at the component's real source, not at the design system's own files; ` +
+        `markup with no real source can be registered with --synthetic-approved --reason "<why>"`);
     }
+    canonicalPath = relative(realRoot, real).split(sep).join("/");
     text = readFileSync(file, "utf8");
   } catch (e) {
     if (e instanceof RegistryError) throw e;
@@ -106,7 +127,7 @@ function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefCon
   if (end > count) {
     throw bad(`line range ${start}-${end} is past the end of '${path}', which has ${count} line(s)`);
   }
-  return { kind: "code", sourceRef, sha256: sha256OfText(lines.slice(start - 1, end).join("\n")) };
+  return { kind: "code", sourceRef: `${canonicalPath}:${startText}${endText === undefined ? "" : `-${endText}`}`, sha256: sha256OfText(lines.slice(start - 1, end).join("\n")) };
 }
 
 /** The component and component-set entries of one inventory file, or undefined when the file is absent. */

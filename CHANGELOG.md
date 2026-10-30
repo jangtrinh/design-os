@@ -30,12 +30,23 @@
 - A design system without a manifest registers exactly as before. A provenance flag given there is still
   verified and recorded.
 - A synthetic approval skips the source, not the design system: its markup is linted too.
-- A code ref must point at the component's real source: a ref whose real path is the `--markup` file being
-  registered (file form; stdin has no file), or lies inside the design system's store directory
-  (`design/`), is refused with `REGISTRY_BAD_SOURCE_REF`, because it would vouch for itself.
+- A code ref must point at the component's real source. It is refused with `REGISTRY_BAD_SOURCE_REF`,
+  because it would vouch for itself, when it is the `--markup` file being registered (file form; stdin has
+  no file; a hard link or a symlink to it counts, because files are compared by device and inode), or one of
+  the design system's own files: any `*.json` / `*.jsonl` under `design/`, anything under `design/rules/`,
+  and the files the `ui` CLI generates there (`soul.md`, `DESIGN.md`, `preview/`, `guidelines/`,
+  `harvest-inbox/`). Hand-authored source that lives under `design/` (a page, a stylesheet,
+  `components/*.svelte`) is accepted. The message names the kind of file and says markup with no real source
+  can be registered with `--synthetic-approved --reason "<why>"`. Paths are resolved with the filesystem's
+  own spelling, so a case variant on a case-insensitive filesystem cannot dodge the check.
+- The recorded code ref is canonical: the on-disk path relative to the project root with forward slashes,
+  plus the range as typed. `src/../src/a.svelte:1`, `SRC/A.svelte:1` and `src\a.svelte:1` all record
+  `src/a.svelte:1`, and `provenance: code ...` prints that form. Figma refs are recorded as typed.
 - `templates/workflows/extract.md` (step 8) and `learn.md` now register with `--source-ref` for code and
   Figma sources, `--synthetic-approved --reason` only for fragments with no source, and say that
   `REGISTRY_MARKUP_DRIFT` means the fragment must be rewritten to the design system's tokens, not bypassed.
+  `extract.md` also says what to do with HTML that lives outside the project root: copy it into the project
+  and reference the copy, or approve it as synthetic with a reason naming the original location.
   A doctrine test fails any fenced `ui registry register` command in a workflow that carries neither flag.
 - The shape of the provenance flags is checked before the markup is read or the record is validated, on
   sealed and unsealed stores alike, so a bad flag combination is `BAD_ARG` even when the markup file is

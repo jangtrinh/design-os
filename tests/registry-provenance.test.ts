@@ -5,17 +5,30 @@
  * path, the record's shape and the guarantee that a refusal writes nothing.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { chmodSync, existsSync, symlinkSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { chmodSync, existsSync, linkSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { CLI_GENERATED_STORE_PATHS } from "../src/commands/registry-provenance-store-files.js";
 import { canonicalHash } from "../src/core/ds-manifest.js";
 import { loadDesignSystem, pathsForDir } from "../src/core/design-system.js";
 import { RegistryError, loadRegistry, saveRegistry, validateComponentRecord } from "../src/core/registry-store.js";
 import {
-  CLEAN_MARKUP, FAKE_MONOSPACE, SOURCE_FILE_TEXT, cleanupProjects, sealedProject, sha256Text, snapshot, unsealedProject,
+  CLEAN_MARKUP, FAKE_MONOSPACE, SOURCE_FILE_TEXT, capture, cleanupProjects, sealedProject, sha256Text, snapshot, unsealedProject,
 } from "./registry-provenance-harness.js";
 import type { Captured, Project } from "./registry-provenance-harness.js";
 
 afterEach(() => cleanupProjects());
+
+/** Probed, never assumed: does this filesystem treat `A` and `a` as the same file? */
+function caseInsensitiveFileSystem(): boolean {
+  const dir = mkdtempSync(join(tmpdir(), "registry-provenance-case-"));
+  try {
+    writeFileSync(join(dir, "probe.txt"), "x");
+    return existsSync(join(dir, "PROBE.TXT"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 const errorOf = (r: Captured): { code: string; message: string } =>
   (JSON.parse(r.out) as { error: { code: string; message: string } }).error;
@@ -185,18 +198,130 @@ describe("a ref must point at the component's real source", () => {
     expectRefusal(["--source-ref", "src/../clean.html:1"], "REGISTRY_BAD_SOURCE_REF", p);
   });
 
-  it("refuses a file inside the design system store: the manifest", () => {
-    const message = expectRefusal(["--source-ref", "design/ds.manifest.json:1-2"], "REGISTRY_BAD_SOURCE_REF");
-    expect(message).toMatch(MESSAGE);
-    expect(message).toContain("design system");
-  });
-
-  it("refuses the registry file itself", () => {
-    expectRefusal(["--source-ref", "design/component-registry.json:1-2"], "REGISTRY_BAD_SOURCE_REF");
-  });
-
   it("accepts a source file that is not the markup and is outside the store", () => {
     expect(sealedProject().register(["--source-ref", "src/widget.svelte:1-3"]).code).toBe(0);
+  });
+
+  it("refuses a hard link to the markup file", () => {
+    const p = sealedProject();
+    linkSync(p.markupFile, join(p.root, "src", "hl.html"));
+    expect(expectRefusal(["--source-ref", "src/hl.html:1"], "REGISTRY_BAD_SOURCE_REF", p)).toMatch(MESSAGE);
+  });
+
+  it.skipIf(!caseInsensitiveFileSystem())("refuses the markup file and the store reached through a case variant of the path", () => {
+    const p = sealedProject();
+    expectRefusal(["--source-ref", "CLEAN.html:1"], "REGISTRY_BAD_SOURCE_REF", p);
+    expectRefusal(["--source-ref", "DESIGN/ds.manifest.json:1-2"], "REGISTRY_BAD_SOURCE_REF", p);
+  });
+});
+
+describe("a ref into the design system's own directory", () => {
+  const put = (p: Project, rel: string, text = "line one\nline two\n"): void => {
+    if (existsSync(join(p.root, rel))) return; // the real store files stay as `ds init` wrote them
+    mkdirSync(dirname(join(p.root, rel)), { recursive: true });
+    writeFileSync(join(p.root, rel), text);
+  };
+
+  it.each([
+    ["a component source", "design/components/Button.svelte"],
+    ["a hand-authored page", "design/vibe-bw-dls.html"],
+    ["a hand-authored stylesheet", "design/bw-dls.css"],
+  ])("accepts %s: %s", (_label, rel) => {
+    const p = sealedProject();
+    put(p, rel);
+    const r = p.register(["--source-ref", `${rel}:1`]);
+    expect(r.code, r.err).toBe(0);
+    expect(registered(p)[0]!.provenance).toMatchObject({ kind: "code", sourceRef: `${rel}:1` });
+  });
+
+  it.each([
+    ["the manifest", "design/ds.manifest.json", "a store data file"],
+    ["the registry", "design/component-registry.json", "a store data file"],
+    ["a registry shard", "design/registry/other-shard.json", "a store data file"],
+    ["a json file the user added", "design/knowledge/rulings.json", "a store data file"],
+    ["a jsonl log", "design/memory.events.jsonl", "a store data file"],
+    ["an upper-case extension", "design/Notes.JSON", "a store data file"],
+    ["a markdown file under rules/", "design/rules/no-mono.md", "promoted rules"],
+    ["a source file under rules/", "design/rules/check.mjs", "promoted rules"],
+  ])("refuses %s (%s) as %s, and says how to register markup that has no source", (_label, rel, kind) => {
+    const p = sealedProject();
+    put(p, rel);
+    const message = expectRefusal(["--source-ref", `${rel}:1`], "REGISTRY_BAD_SOURCE_REF", p);
+    expect(message).toContain("a design-system file");
+    expect(message).toContain(kind);
+    expect(message).toContain('--synthetic-approved --reason "<why>"');
+  });
+
+  it("refuses every file the ui CLI generates into the store, naming the writer", () => {
+    const p = sealedProject();
+    expect(CLI_GENERATED_STORE_PATHS.length).toBeGreaterThan(0);
+    for (const entry of CLI_GENERATED_STORE_PATHS) {
+      const rel = entry.directory ? `design/${entry.path}/generated.txt` : `design/${entry.path}`;
+      put(p, rel);
+      const message = expectRefusal(["--source-ref", `${rel}:1`], "REGISTRY_BAD_SOURCE_REF", p);
+      expect(message, rel).toContain("generated by");
+      expect(message, rel).toContain(entry.writer);
+    }
+  });
+
+  it("lists the generated paths the writers really use", () => {
+    expect(CLI_GENERATED_STORE_PATHS.map((e) => e.path)).toEqual(expect.arrayContaining(["soul.md", "DESIGN.md", "preview", "guidelines", "harvest-inbox"]));
+  });
+});
+
+describe("the recorded source ref is canonical", () => {
+  it("two spellings of the same file record the same ref", () => {
+    const a = sealedProject();
+    const b = sealedProject();
+    expect(a.register(["--source-ref", "src/widget.svelte:1-3"]).code).toBe(0);
+    expect(b.register(["--source-ref", "src/../src/./widget.svelte:1-3"]).code).toBe(0);
+    expect(registered(a)[0]!.provenance).toEqual(registered(b)[0]!.provenance);
+    expect(registered(b)[0]!.provenance!["sourceRef"]).toBe("src/widget.svelte:1-3");
+  });
+
+  it("a backslash spelling records forward slashes", () => {
+    const p = sealedProject();
+    expect(p.register(["--source-ref", "src\\widget.svelte:1-3"]).code).toBe(0);
+    expect(registered(p)[0]!.provenance!["sourceRef"]).toBe("src/widget.svelte:1-3");
+  });
+
+  it("a single line keeps its form: path:4", () => {
+    const p = sealedProject();
+    expect(p.register(["--source-ref", "src/../src/widget.svelte:4"]).code).toBe(0);
+    expect(registered(p)[0]!.provenance!["sourceRef"]).toBe("src/widget.svelte:4");
+  });
+
+  it.skipIf(!caseInsensitiveFileSystem())("a case variant records the on-disk case", () => {
+    const p = sealedProject();
+    expect(p.register(["--source-ref", "SRC/Widget.SVELTE:1-3"]).code).toBe(0);
+    expect(registered(p)[0]!.provenance!["sourceRef"]).toBe("src/widget.svelte:1-3");
+  });
+
+  it.skipIf(!caseInsensitiveFileSystem())("a registry path spelled in another case still accepts a real source and still refuses the store's own files", () => {
+    const p = sealedProject();
+    const odd = p.registryFile.replace("/project/design/", "/PROJECT/DESIGN/");
+    expect(odd).not.toBe(p.registryFile);
+    const register = (ref: string): Captured => capture([
+      "registry", "register", "Table/Fake", "--category", "data", "--markup", p.markupFile, "--file", odd, "--source-ref", ref, "--json",
+    ]);
+    const refused = register("design/ds.manifest.json:1-2");
+    expect(errorOf(refused).code).toBe("REGISTRY_BAD_SOURCE_REF");
+    expect(errorOf(refused).message).toContain("a design-system file");
+    const accepted = register("src/widget.svelte:1-3");
+    expect(accepted.code, accepted.out).toBe(0);
+    expect(registered(p)[0]!.provenance!["sourceRef"]).toBe("src/widget.svelte:1-3");
+  });
+
+  it("a figma ref is recorded as typed", () => {
+    const p = sealedProject();
+    writeFileSync(join(p.designDir, "ds.json"), JSON.stringify({ components: [{ id: "7:8", key: "k", name: "Dot", type: "COMPONENT" }] }));
+    expect(p.register(["--source-ref", "figma:7:8"]).code).toBe(0);
+    expect(registered(p)[0]!.provenance!["sourceRef"]).toBe("figma:7:8");
+  });
+
+  it("the success line prints the canonical form", () => {
+    const r = sealedProject().register(["--source-ref", "src/../src/widget.svelte:1-3"]);
+    expect(r.out).toContain("provenance: code src/widget.svelte:1-3\n");
   });
 });
 
