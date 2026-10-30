@@ -33,6 +33,10 @@
 - A code ref must point at the component's real source: a ref whose real path is the `--markup` file being
   registered (file form; stdin has no file), or lies inside the design system's store directory
   (`design/`), is refused with `REGISTRY_BAD_SOURCE_REF`, because it would vouch for itself.
+- `templates/workflows/extract.md` (step 8) and `learn.md` now register with `--source-ref` for code and
+  Figma sources, `--synthetic-approved --reason` only for fragments with no source, and say that
+  `REGISTRY_MARKUP_DRIFT` means the fragment must be rewritten to the design system's tokens, not bypassed.
+  A doctrine test fails any fenced `ui registry register` command in a workflow that carries neither flag.
 - The shape of the provenance flags is checked before the markup is read or the record is validated, on
   sealed and unsealed stores alike, so a bad flag combination is `BAD_ARG` even when the markup file is
   missing.

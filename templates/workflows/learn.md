@@ -289,7 +289,15 @@ source names and actual export build/render proof; it is a separate authorizatio
 not permission to execute code during `/ui:learn`.
 
 With these three settled, `extract.md`'s steps 2–3 (discovery + canonical
-naming) and step 8 (register) run unchanged against the sampled files.
+naming) and step 8 (register) run against the sampled files. Their source IS the
+code: register each component with `--source-ref <path>:<startLine>-<endLine>`
+(path relative to the project root, pointing at the component's real source file —
+not at the fragment you register and not under `design/`). The design system is
+sealed by then, so a register without `--source-ref` (or `--synthetic-approved
+--reason "<why>"` for a fragment with no source) is refused. A
+`REGISTRY_MARKUP_DRIFT` refusal means the fragment still carries a literal colour,
+an off-system font or a banned token: rewrite it to use the design system's tokens
+and register again, do not bypass it.
 
 ### Step 4 — Compile and verify
 
