@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-10-29 - `ui registry register` requires ground truth once the design system is sealed
+## 2026-10-30 - `ui registry register` requires ground truth once the design system is sealed
 
 ### Added
 - `ui registry register --source-ref <path:start-end | figma:<nodeId>>` and
@@ -54,6 +54,42 @@
 - The shape of the provenance flags is checked before the markup is read or the record is validated, on
   sealed and unsealed stores alike, so a bad flag combination is `BAD_ARG` even when the markup file is
   missing.
+
+## 2026-10-30 - ease-design 0.6.2
+
+The design-system usage release. `ui gate` can now fail a page that drifts from its own design system,
+a sealed store that drifted has a sanctioned way back, and a task's reuse of existing components is a
+checkable plan. Each item is described in full in its dated entry below.
+
+### Added
+- **`ds-usage` gate family** (seventh family of `ui gate`) and `ui ds-usage-lint <file|dir>`: undeclared
+  and off-system tokens, hardcoded colours, a closed font allowlist (`off-system-font`) and the
+  owner-promoted `token-ban` rules, read from HTML, Svelte, Vue, JSX, TSX, JS and TS.
+- **`ui ds reseal`**: the preview-then-`--apply --reason` way out of `DS_TAMPERED` when the token or
+  registry file no longer hashes to what the manifest sealed; it leaves one changelog entry.
+- **Design reuse ladder and `ui reuse-plan check`**: validates a task's reuse plan against the component
+  registry, pattern files and tokens.
+- **Design-system guidelines pack** (`ui ds guidelines build | check | export`) and the public
+  `design-os-designer` skill shipped in the package.
+
+### Changed
+- `mode-invisible-surface` composites a translucent tint over the layers actually behind it instead of
+  the page's overall colour mode.
+- `ui gate --dir <project>` starts design-system discovery in that project, and a detected design system
+  whose token file cannot be read now fails the gate with `token-coverage/tokens-not-readable`.
+- `ui ds guidelines build | check` name the line and cause of a glossary they skipped.
+
+### Fixed
+- `ui ds status` on a registry holding a non-object record exits 1 with `BAD_REGISTRY` and the record's
+  index, instead of `internal error` (exit 2).
+- A `<style>` block written inside a template literal in a script file was read twice, doubling its
+  findings.
+
+### Note for 0.6.1 users
+`ui gate` gained the `ds-usage` family, and its checks include `error` severities (any `error` fails
+the gate; `off-system-token` stays a warning). A project that passed the gate on 0.6.1 can fail on 0.6.2 when its pages use fonts or colours
+outside its design system. That is the new family working, not a regression; with no token file and no
+promoted token-ban rule the family is skipped with a printed reason.
 
 ## 2026-10-29 - ds-usage is a blocking gate family, with a closed font allowlist and polyglot input
 

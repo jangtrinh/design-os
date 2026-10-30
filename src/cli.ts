@@ -80,7 +80,7 @@ import { personaCommand } from "./commands/persona.js";
 
 // Keep in sync with package.json "version". A test (tests/cli-version.test.ts)
 // asserts these match, so drift fails CI rather than shipping silently.
-const VERSION = "0.6.1";
+const VERSION = "0.6.2";
 
 // ─── Command registry ─────────────────────────────────────────────────────────
 
