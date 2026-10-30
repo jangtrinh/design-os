@@ -28,7 +28,7 @@ import {
 import { pathsForDir, registryFileForDir } from "../core/design-system.js";
 import { reseal, loadDesignSystemForReseal } from "../core/ds-reseal.js";
 import { assertTokensExist } from "../core/registry-token-check.js";
-import { resolveRegisterProvenance } from "./registry-provenance.js";
+import { parseProvenanceFlags, resolveRegisterProvenance } from "./registry-provenance.js";
 
 const CMD = "registry";
 const DEFAULT_REGISTRY_DIR = "./design";
@@ -166,6 +166,14 @@ function runRegister(parsed: ParsedArgs): CommandResult {
     return useJson ? errJson(sub, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
   }
 
+  // Argument shape first: nothing is read before the provenance flags are known to be coherent.
+  let provenanceFlags;
+  try {
+    provenanceFlags = parseProvenanceFlags(parsed.flags);
+  } catch (e) {
+    return asResult(useJson, sub, e);
+  }
+
   const force = parsed.flags["force"] === true;
   const registryPath = resolveRegistryPath(parsed);
 
@@ -223,7 +231,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
   // Provenance: the sealed-store ground-truth rule (flags, source ref, markup lint). Throws before any write.
   let provenance, warnings: string[];
   try {
-    ({ provenance, warnings } = resolveRegisterProvenance(parsed.flags, markup, dsPaths));
+    ({ provenance, warnings } = resolveRegisterProvenance(provenanceFlags, markup, dsPaths, markupArg === "-" ? undefined : markupArg));
   } catch (e) {
     return asResult(useJson, sub, e);
   }

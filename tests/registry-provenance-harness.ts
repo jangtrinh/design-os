@@ -88,11 +88,16 @@ export function sealedProject(): Project {
 }
 
 /** A project with a `design/` folder and no manifest: nothing has been sealed yet. */
-export function unsealedProject(): Project {
+export function unsealedProject(opts: { withTokens?: boolean } = {}): Project {
   const parent = mkdtempSync(join(tmpdir(), "registry-provenance-unsealed-"));
   created.push(parent);
   const root = join(parent, "project");
   mkdirSync(join(root, "design"), { recursive: true });
+  // The token file of a real `ds init` store, without its manifest: markup that drifts from it
+  // WOULD be refused if the lint ran, so a register that passes proves the lint did not run.
+  if (opts.withTokens === true) {
+    cpSync(join(sealedProject().designDir, "design.tokens.json"), join(root, "design", "design.tokens.json"));
+  }
   return project(root);
 }
 

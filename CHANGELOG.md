@@ -20,7 +20,8 @@
 - When `design/ds.manifest.json` exists next to the registry, `register` refuses a component that has
   neither a source ref nor a reasoned synthetic approval (`REGISTRY_MISSING_SOURCE_REF`), refuses a ref that
   does not verify (`REGISTRY_BAD_SOURCE_REF`: malformed, missing file, line range past the end of the file,
-  path outside the project root or through a link out of it, unknown Figma node, or no inventory present),
+  path outside the project root or through a link out of it, a file that cannot be read (the message
+  names the path and the OS error code), unknown Figma node, or no inventory present),
   and lints the markup the way `ui gate` does: any `error` from the `ds-usage` checks
   (`off-system-font`, `hardcoded-color`, `undeclared-token`) or from a promoted `token-ban` rule refuses it
   (`REGISTRY_MARKUP_DRIFT`, one line per finding with its check id and line). `off-system-token` warnings
@@ -29,6 +30,12 @@
 - A design system without a manifest registers exactly as before. A provenance flag given there is still
   verified and recorded.
 - A synthetic approval skips the source, not the design system: its markup is linted too.
+- A code ref must point at the component's real source: a ref whose real path is the `--markup` file being
+  registered (file form; stdin has no file), or lies inside the design system's store directory
+  (`design/`), is refused with `REGISTRY_BAD_SOURCE_REF`, because it would vouch for itself.
+- The shape of the provenance flags is checked before the markup is read or the record is validated, on
+  sealed and unsealed stores alike, so a bad flag combination is `BAD_ARG` even when the markup file is
+  missing.
 
 ## 2026-10-29 - ds-usage is a blocking gate family, with a closed font allowlist and polyglot input
 

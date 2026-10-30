@@ -7,11 +7,17 @@
  *            1-based inclusive lines; hash = sha256 of the sliced lines joined with `\n`.
  *   - figma: `figma:<nodeId>` that is a component or component-set in `design/ds.json` or
  *            `design/canvas-inventory.json`; hash = canonical hash of the matched inventory entry.
- * Every refusal is a `REGISTRY_BAD_SOURCE_REF` naming the exact cause and the path or node.
+ * Every refusal is a `REGISTRY_BAD_SOURCE_REF` naming the exact cause and the path or node; an I/O
+ * failure on the referenced file (permissions, a directory race, a file too large to read) is one too.
+ *
+ * Controller ruling (a reference that proves nothing is refused): a code ref whose real path is the
+ * `--markup` file being registered, or lies inside the design system's own store directory, is refused.
+ * The reference must point at the component's real source, not at the markup it is meant to vouch for
+ * or at the design system's own files. A markup piped on stdin has no file, so only the store rule applies.
  */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { canonicalHash } from "../core/ds-manifest.js";
 import { RegistryError } from "../core/registry-store.js";
 import type { ComponentProvenance } from "../core/registry-store.js";
@@ -26,18 +32,35 @@ export function sha256OfText(text: string): string {
 const FIGMA_REF = /^figma:(\d+:\d+)$/;
 const CODE_REF = /^(.+):(\d+)(?:-(\d+))?$/;
 
-/** Parse and verify a `--source-ref` value. `storeDir` is the design system's `design/` folder. */
-export function verifySourceRef(sourceRef: string, storeDir: string): ComponentProvenance {
-  if (sourceRef.startsWith("figma:")) return verifyFigmaRef(sourceRef, storeDir);
-  return verifyCodeRef(sourceRef, resolve(storeDir, ".."));
+export interface SourceRefContext {
+  /** The `design/` folder of the design system being registered into. */
+  storeDir: string;
+  /** The `--markup` file when the markup came from a file; absent for stdin. */
+  markupFile?: string;
+}
+
+/** Parse and verify a `--source-ref` value. */
+export function verifySourceRef(sourceRef: string, ctx: SourceRefContext): ComponentProvenance {
+  if (sourceRef.startsWith("figma:")) return verifyFigmaRef(sourceRef, ctx.storeDir);
+  return verifyCodeRef(sourceRef, resolve(ctx.storeDir, ".."), ctx);
 }
 
 function insideRoot(root: string, target: string): boolean {
   const rel = relative(root, target);
-  return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
+  return rel !== "" && rel !== ".." && !rel.startsWith(".." + sep) && !isAbsolute(rel);
 }
 
-function verifyCodeRef(sourceRef: string, projectRoot: string): ComponentProvenance {
+/** The path and the OS error code, so a caller can act on it. */
+function ioFailure(what: string, path: string, e: unknown): RegistryError {
+  const code = e !== null && typeof e === "object" && "code" in e ? String((e as NodeJS.ErrnoException).code) : "error";
+  return bad(`cannot ${what} '${path}': ${code} (${e instanceof Error ? e.message : String(e)})`);
+}
+
+const realPathOrUndefined = (path: string): string | undefined => {
+  try { return realpathSync(path); } catch { return undefined; }
+};
+
+function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefContext): ComponentProvenance {
   const m = CODE_REF.exec(sourceRef);
   if (m === null) {
     throw bad(`'${sourceRef}' is not <path>:<startLine>[-<endLine>] or figma:<nodeId> (e.g. src/lib/Card.svelte:1-38)`);
@@ -48,7 +71,7 @@ function verifyCodeRef(sourceRef: string, projectRoot: string): ComponentProvena
   if (start < 1 || end < start) {
     throw bad(`line range ${start}-${end} in '${sourceRef}' is invalid: lines are 1-based and start must not exceed end`);
   }
-  if (isAbsolute(path) || /^[A-Za-z]:/.test(path) || path.startsWith("\\")) {
+  if (isAbsolute(path) || /^[A-Za-z]:[\\/]/.test(path) || path.startsWith("\\")) {
     throw bad(`path '${path}' is absolute — give it relative to the project root '${projectRoot}'`);
   }
   const file = resolve(projectRoot, path);
@@ -56,12 +79,27 @@ function verifyCodeRef(sourceRef: string, projectRoot: string): ComponentProvena
     throw bad(`path '${path}' escapes the project root '${projectRoot}'`);
   }
   if (!existsSync(file)) throw bad(`file '${path}' does not exist under the project root '${projectRoot}'`);
-  if (!statSync(file).isFile()) throw bad(`'${path}' is not a file`);
-  // A symlink inside the root must not smuggle in a file from outside it.
-  if (!insideRoot(realpathSync(projectRoot), realpathSync(file))) {
-    throw bad(`path '${path}' resolves through a link to a file outside the project root '${projectRoot}'`);
+  let text: string;
+  try {
+    if (!statSync(file).isFile()) throw bad(`'${path}' is not a file`);
+    // A symlink inside the root must not smuggle in a file from outside it.
+    const real = realpathSync(file);
+    if (!insideRoot(realpathSync(projectRoot), real)) {
+      throw bad(`path '${path}' resolves through a link to a file outside the project root '${projectRoot}'`);
+    }
+    const markupReal = ctx.markupFile === undefined ? undefined : realPathOrUndefined(ctx.markupFile);
+    if (markupReal !== undefined && real === markupReal) {
+      throw bad(`'${path}' is the markup file being registered — the reference must point at the component's real source, not at the markup it is meant to vouch for`);
+    }
+    const storeReal = realPathOrUndefined(ctx.storeDir);
+    if (storeReal !== undefined && insideRoot(storeReal, real)) {
+      throw bad(`'${path}' is inside the design system '${ctx.storeDir}' — the reference must point at the component's real source, not at the design system's own files`);
+    }
+    text = readFileSync(file, "utf8");
+  } catch (e) {
+    if (e instanceof RegistryError) throw e;
+    throw ioFailure("read", path, e);
   }
-  const text = readFileSync(file, "utf8");
   const lines = text === "" ? [] : text.split(/\r?\n/);
   if (lines.length > 0 && lines[lines.length - 1] === "") lines.pop(); // the newline that ends the last line
   const count = lines.length;

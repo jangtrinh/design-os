@@ -8,7 +8,10 @@
  * given is still verified and recorded.
  *
  * Check order (nothing is written by this module, so a refusal at any step leaves the store untouched):
- * flag shape -> source verification -> markup lint.
+ * flag shape (`parseProvenanceFlags`, before the markup is read) -> source verification -> markup lint.
+ *
+ * A code ref that points at the markup file being registered, or into the design system's own store,
+ * is refused (controller ruling, see registry-provenance-refs.ts): it would vouch for itself.
  *
  * Not covered here: composition-contract rules (they do not exist yet) and whether the markup matches
  * the referenced slice (the reference proves where the markup claims to come from, not that it equals it).
@@ -28,7 +31,7 @@ export interface RegisterProvenanceResult {
   warnings: string[];
 }
 
-interface ProvenanceFlags {
+export interface ProvenanceFlags {
   sourceRef?: string;
   syntheticApproved: boolean;
   reason?: string;
@@ -43,7 +46,12 @@ function stringFlag(flags: Record<string, string | boolean>, key: string): strin
   return v;
 }
 
-function parseFlags(flags: Record<string, string | boolean>): ProvenanceFlags {
+/**
+ * Validate the shape of the provenance flags alone: no file is read, so this runs first on every
+ * store, sealed or not.
+ * @throws RegistryError("BAD_ARG")
+ */
+export function parseProvenanceFlags(flags: Record<string, string | boolean>): ProvenanceFlags {
   const sourceRef = stringFlag(flags, "source-ref");
   const reason = stringFlag(flags, "reason");
   const approval = flags["synthetic-approved"];
@@ -102,21 +110,22 @@ function lintMarkup(markup: string, paths: DesignSystemPaths): string[] {
 
 /**
  * Decide the provenance of a component about to be registered and gate it on the design system.
- * @param flags  The parsed flags of the register call (`source-ref`, `synthetic-approved`, `reason`).
+ * @param given  The flags, already shape-checked by `parseProvenanceFlags`.
  * @param paths  The resolved store: its `manifest` decides sealed, its `dir` is where the project root and inventories hang from.
- * @throws RegistryError with BAD_ARG, REGISTRY_MISSING_SOURCE_REF, REGISTRY_BAD_SOURCE_REF or REGISTRY_MARKUP_DRIFT.
+ * @param markupFile  The `--markup` file, absent when the markup came from stdin.
+ * @throws RegistryError with REGISTRY_MISSING_SOURCE_REF, REGISTRY_BAD_SOURCE_REF or REGISTRY_MARKUP_DRIFT.
  */
 export function resolveRegisterProvenance(
-  flags: Record<string, string | boolean>,
+  given: ProvenanceFlags,
   markup: string,
   paths: DesignSystemPaths,
+  markupFile?: string,
 ): RegisterProvenanceResult {
-  const given = parseFlags(flags);
   const sealed = existsSync(paths.manifest);
 
   let provenance: ComponentProvenance | undefined;
   if (given.sourceRef !== undefined) {
-    provenance = verifySourceRef(given.sourceRef, paths.dir);
+    provenance = verifySourceRef(given.sourceRef, { storeDir: paths.dir, ...(markupFile !== undefined && { markupFile }) });
   } else if (given.syntheticApproved) {
     provenance = { kind: "synthetic-approved", sourceRef: "synthetic", sha256: sha256OfText(markup), reason: given.reason! };
   } else if (sealed) {

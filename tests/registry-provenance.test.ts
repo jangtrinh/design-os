@@ -5,11 +5,11 @@
  * path, the record's shape and the guarantee that a refusal writes nothing.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { existsSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { canonicalHash } from "../src/core/ds-manifest.js";
 import { loadDesignSystem, pathsForDir } from "../src/core/design-system.js";
-import { loadRegistry, saveRegistry, validateComponentRecord } from "../src/core/registry-store.js";
+import { RegistryError, loadRegistry, saveRegistry, validateComponentRecord } from "../src/core/registry-store.js";
 import {
   CLEAN_MARKUP, FAKE_MONOSPACE, SOURCE_FILE_TEXT, cleanupProjects, sealedProject, sha256Text, snapshot, unsealedProject,
 } from "./registry-provenance-harness.js";
@@ -118,6 +118,20 @@ describe("code refs", () => {
     expectRefusal(["--source-ref", ref], "REGISTRY_BAD_SOURCE_REF");
   });
 
+  it("reads a path that contains a colon: a:b:1 is file 'a:b', line 1", () => {
+    const p = sealedProject();
+    writeFileSync(join(p.root, "a:b"), "only line\n");
+    const r = p.register(["--source-ref", "a:b:1"]);
+    expect(r.code, r.err).toBe(0);
+    expect(registered(p)[0]!.provenance).toEqual({ kind: "code", sourceRef: "a:b:1", sha256: sha256Text("only line") });
+  });
+
+  it("accepts a file whose name starts with two dots: it does not escape the root", () => {
+    const p = sealedProject();
+    writeFileSync(join(p.root, "..notes.txt"), "dots\n");
+    expect(p.register(["--source-ref", "..notes.txt:1"]).code).toBe(0);
+  });
+
   it("refuses a missing file and names the path", () => {
     expect(expectRefusal(["--source-ref", "src/nope.svelte:1-2"], "REGISTRY_BAD_SOURCE_REF")).toContain("src/nope.svelte");
   });
@@ -157,6 +171,94 @@ describe("code refs", () => {
   });
 });
 
+describe("a ref must point at the component's real source", () => {
+  const MESSAGE = /real source/;
+
+  it("refuses the markup file being registered", () => {
+    const message = expectRefusal(["--source-ref", "clean.html:1"], "REGISTRY_BAD_SOURCE_REF");
+    expect(message).toMatch(MESSAGE);
+    expect(message).toContain("markup");
+  });
+
+  it("refuses the markup file reached through another spelling of its path", () => {
+    const p = sealedProject();
+    expectRefusal(["--source-ref", "src/../clean.html:1"], "REGISTRY_BAD_SOURCE_REF", p);
+  });
+
+  it("refuses a file inside the design system store: the manifest", () => {
+    const message = expectRefusal(["--source-ref", "design/ds.manifest.json:1-2"], "REGISTRY_BAD_SOURCE_REF");
+    expect(message).toMatch(MESSAGE);
+    expect(message).toContain("design system");
+  });
+
+  it("refuses the registry file itself", () => {
+    expectRefusal(["--source-ref", "design/component-registry.json:1-2"], "REGISTRY_BAD_SOURCE_REF");
+  });
+
+  it("accepts a source file that is not the markup and is outside the store", () => {
+    expect(sealedProject().register(["--source-ref", "src/widget.svelte:1-3"]).code).toBe(0);
+  });
+});
+
+describe("a ref whose file cannot be read", () => {
+  const asRoot = typeof process.getuid === "function" && process.getuid() === 0;
+
+  it.skipIf(asRoot)("is REGISTRY_BAD_SOURCE_REF with the path and the OS error code, as JSON", () => {
+    const p = sealedProject();
+    const locked = join(p.root, "src", "locked.txt");
+    writeFileSync(locked, "secret\n");
+    chmodSync(locked, 0o000);
+    try {
+      const message = expectRefusal(["--source-ref", "src/locked.txt:1"], "REGISTRY_BAD_SOURCE_REF", p);
+      expect(message).toContain("src/locked.txt");
+      expect(message).toContain("EACCES");
+    } finally {
+      chmodSync(locked, 0o644);
+    }
+  });
+
+  it.skipIf(asRoot)("exits 1 on stderr in text mode, not an internal error", () => {
+    const p = sealedProject();
+    const locked = join(p.root, "src", "locked.txt");
+    writeFileSync(locked, "secret\n");
+    chmodSync(locked, 0o000);
+    try {
+      const before = snapshot(p.designDir);
+      const r = p.register(["--source-ref", "src/locked.txt:1"]);
+      expect(r.code).toBe(1);
+      expect(r.err).toContain("REGISTRY_BAD_SOURCE_REF");
+      expect(r.err).toContain("EACCES");
+      expect(r.err).not.toContain("internal error");
+      expect(snapshot(p.designDir)).toEqual(before);
+    } finally {
+      chmodSync(locked, 0o644);
+    }
+  });
+});
+
+describe("arguments are validated before anything is read", () => {
+  const CONFLICT = ["--source-ref", "src/widget.svelte:1", "--synthetic-approved", "--reason", "y"];
+
+  it("a missing markup file does not hide conflicting provenance flags (sealed)", () => {
+    expectRefusal(CONFLICT, "BAD_ARG", sealedProject());
+    const p = sealedProject();
+    const r = p.register([...CONFLICT, "--json"], { markup: join(p.root, "no-such-markup.html") });
+    expect(errorOf(r).code).toBe("BAD_ARG");
+  });
+
+  it("same on an unsealed store", () => {
+    const p = unsealedProject();
+    const r = p.register([...CONFLICT, "--json"], { markup: join(p.root, "no-such-markup.html") });
+    expect(errorOf(r).code).toBe("BAD_ARG");
+  });
+
+  it("conflicting flags beat an invalid component name", () => {
+    const p = sealedProject();
+    const r = p.register([...CONFLICT, "--json"], { name: "not a valid name" });
+    expect(errorOf(r).code).toBe("BAD_ARG");
+  });
+});
+
 describe("figma refs", () => {
   const dsJson = { components: [{ id: "6326:20179", key: "k1", name: "Section Header", type: "COMPONENT_SET", page: { id: "220:7791", name: "P" } }, { id: "7:8", key: "k2", name: "Dot", type: "COMPONENT", page: { id: "1:1", name: "P" } }], tokens: [], styles: [], counts: { components: 2, tokens: 0, styles: 0 } };
   const canvas = { schema: 2, components: [{ id: "10427:182798", key: "k3", name: "Cell", type: "COMPONENT", pageId: "1:1", page: "P", flags: [], users: 0, w: 1, h: 1 }], componentSets: [{ id: "55:66", key: "k4", name: "Set", type: "COMPONENT_SET", pageId: "1:1", page: "P", flags: [], variants: [], props: [], users: 1, propsError: false }] };
@@ -182,6 +284,16 @@ describe("figma refs", () => {
   it("refuses an unknown node and names it", () => {
     const p = withInventories();
     expect(expectRefusal(["--source-ref", "figma:9:9"], "REGISTRY_BAD_SOURCE_REF", p)).toContain("9:9");
+  });
+
+  it("ds.json wins over canvas-inventory.json when both hold the node with different entries", () => {
+    const p = sealedProject();
+    const fromDs = { id: "77:88", key: "from-ds", name: "Same node in ds.json", type: "COMPONENT" };
+    const fromCanvas = { id: "77:88", key: "from-canvas", name: "Same node in canvas", type: "COMPONENT", users: 3 };
+    writeFileSync(join(p.designDir, "ds.json"), JSON.stringify({ components: [fromDs], tokens: [], styles: [], counts: {} }));
+    writeFileSync(join(p.designDir, "canvas-inventory.json"), JSON.stringify({ schema: 2, components: [fromCanvas], componentSets: [] }));
+    expect(p.register(["--source-ref", "figma:77:88"]).code).toBe(0);
+    expect(registered(p)[0]!.provenance!["sha256"]).toBe(canonicalHash(fromDs));
   });
 
   it("works with only one of the two inventories present", () => {
@@ -236,9 +348,13 @@ describe("unsealed store", () => {
     expect(registered(p)[0]!.provenance).toMatchObject({ kind: "synthetic-approved", sourceRef: "synthetic", reason: "prototype" });
   });
 
-  it("does not lint markup before the seal", () => {
-    const p = unsealedProject();
-    expect(p.register([], { markup: FAKE_MONOSPACE }).code).toBe(0);
+  it("does not lint markup before the seal, even when the design tokens are already there", () => {
+    const p = unsealedProject({ withTokens: true });
+    expect(existsSync(join(p.designDir, "design.tokens.json"))).toBe(true);
+    expect(existsSync(p.manifestFile)).toBe(false);
+    const r = p.register([], { markup: FAKE_MONOSPACE });
+    expect(r.code, r.err).toBe(0);
+    expect(r.out + r.err).not.toContain("off-system-font");
   });
 });
 
@@ -288,15 +404,18 @@ describe("the record's provenance shape", () => {
   });
 
   it.each([
-    ["an unknown key", { ...valid, extra: 1 }],
-    ["an unknown kind", { ...valid, kind: "guess" }],
-    ["a missing sourceRef", { kind: "code", sha256: valid.sha256 }],
-    ["a malformed sha256", { ...valid, sha256: "abc" }],
-    ["a reason on a non-synthetic record", { ...valid, reason: "why" }],
-    ["a synthetic record with no reason", { kind: "synthetic-approved", sourceRef: "synthetic", sha256: valid.sha256 }],
-    ["a synthetic record with a blank reason", { kind: "synthetic-approved", sourceRef: "synthetic", sha256: valid.sha256, reason: " " }],
-    ["a non-object", "code"],
-  ])("rejects %s", (_label, provenance) => {
-    expect(() => validateComponentRecord({ ...base, provenance })).toThrow();
+    ["an unknown key", { ...valid, extra: 1 }, "BAD_REGISTRY"],
+    ["an unknown kind", { ...valid, kind: "guess" }, "BAD_ARG"],
+    ["a missing sourceRef", { kind: "code", sha256: valid.sha256 }, "BAD_ARG"],
+    ["a malformed sha256", { ...valid, sha256: "abc" }, "BAD_ARG"],
+    ["a reason on a non-synthetic record", { ...valid, reason: "why" }, "BAD_ARG"],
+    ["a synthetic record with no reason", { kind: "synthetic-approved", sourceRef: "synthetic", sha256: valid.sha256 }, "BAD_ARG"],
+    ["a synthetic record with a blank reason", { kind: "synthetic-approved", sourceRef: "synthetic", sha256: valid.sha256, reason: " " }, "BAD_ARG"],
+    ["a non-object", "code", "BAD_ARG"],
+  ])("rejects %s with %s-coded RegistryError", (_label, provenance, code) => {
+    let caught: unknown;
+    try { validateComponentRecord({ ...base, provenance }); } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(RegistryError);
+    expect((caught as RegistryError).code).toBe(code);
   });
 });
