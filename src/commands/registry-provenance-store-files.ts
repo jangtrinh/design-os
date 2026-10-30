@@ -9,6 +9,10 @@
  *   (b) anything under `rules/` (the promoted adherence rules);
  *   (c) files the `ui` CLI itself generates into the store, listed in `CLI_GENERATED_STORE_PATHS`.
  * Everything else under `design/` is allowed.
+ *
+ * The list in (c) is kept by hand, so tests/registry-provenance-generated-paths.test.ts runs each
+ * offline writer that has a default output in the store and fails if it creates anything this
+ * module does not classify.
  */
 import { sep } from "node:path";
 
@@ -25,8 +29,10 @@ export interface GeneratedStorePath {
 export const CLI_GENERATED_STORE_PATHS: readonly GeneratedStorePath[] = [
   { path: "soul.md", writer: "ui ds init (src/core/ds-soul.ts scaffold)" },
   { path: "DESIGN.md", writer: "ui ingest figma-ds (src/commands/ingest-figma-ds.ts)" },
+  { path: "audit.md", writer: "ui designmd audit (src/commands/designmd-audit-impl.ts, <folder>/audit.md)" },
   { path: "preview", directory: true, writer: "ui ds preview (src/commands/ds-preview-impl.ts, preview/specimen.html)" },
   { path: "guidelines", directory: true, writer: "ui ds guidelines build (src/commands/ds-guidelines-write.ts)" },
+  { path: "figma-export", directory: true, writer: "ui ds guidelines export (src/commands/ds-guidelines-export-impl.ts, default --out)" },
   { path: "harvest-inbox", directory: true, writer: "ui ds init / ui ds import (src/core/ds-fuel-line.ts)" },
 ];
 
