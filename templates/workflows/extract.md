@@ -357,7 +357,10 @@ Where:
     listed in `design/ds.json` or `design/canvas-inventory.json`.
   - **No source** (a fragment captured from a live URL, or composed by hand): replace
     `--source-ref` with `--synthetic-approved --reason "<why there is no source>"`. The
-    reason is recorded with the component.
+    reason is recorded with the component. If the user's HTML lives outside the project
+    root (for example `~/Downloads/page.html`), a ref to it is refused: either copy the
+    file into the project and reference the copy, or use `--synthetic-approved --reason`
+    naming the original location.
 - The fragment is also linted against the design system before anything is written.
   `REGISTRY_MARKUP_DRIFT` means it has a literal colour, an off-system font or a banned
   token: rewrite the fragment to use the design system's tokens and register again.

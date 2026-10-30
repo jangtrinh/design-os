@@ -84,6 +84,13 @@ describe("workflow doctrine — no workflow mandates the dead `states` field (sp
       });
     }
 
+    it("extract.md says what to do with HTML that lives outside the project root", () => {
+      const content = readFileSync(join(WORKFLOWS_DIR, "extract.md"), "utf8");
+      expect(content).toMatch(/outside the project\s+root/);
+      expect(content).toMatch(/copy the\s+file into the project and reference the copy/);
+      expect(content).toMatch(/naming the original location/);
+    });
+
     it("extract.md and learn.md say what REGISTRY_MARKUP_DRIFT means and not to bypass it", () => {
       for (const file of ["extract.md", "learn.md"]) {
         const content = readFileSync(join(WORKFLOWS_DIR, file), "utf8");

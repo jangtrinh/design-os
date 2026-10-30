@@ -139,7 +139,7 @@
     {
       "path": "workflows/extract.md",
       "description": "Extract a design system from existing HTML. Use when the user provides HTML and wants its tokens and components harvested into a project design system.",
-      "sourceSha256": "29484d4254f9d2eca88978fde229f3cc30ec4e384cd99f7386a509aa0ac5e68a"
+      "sourceSha256": "c01b9d57785e403477db6897990ac1b39e9a8b241ef8113bb6d23dbe6924a0b0"
     },
     {
       "path": "workflows/figma-comments.md",
