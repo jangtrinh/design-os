@@ -372,7 +372,7 @@ describe("orphan kit ownership boundary", () => {
     const root = temp(), paths = pathsForDir(join(root, "design")), markup = join(temp(), "standalone.html");
     fs.writeFileSync(markup, "<button>Standalone</button>");
     expect(() => loadDesignSystem(paths)).toThrow(expect.objectContaining({ code: "DS_NOT_FOUND" }));
-    expect(cli(["registry", "register", "Control/Standalone", "--category", "action", "--markup", markup, "--synthetic-approved", "--reason", "fixture markup with no source", "--file", paths.registry]).code).toBe(0);
+    expect(cli(["registry", "register", "Control/Standalone", "--category", "action", "--markup", markup, "--file", paths.registry]).code).toBe(0);
     expect(JSON.parse(read(root, "design/component-registry.json").toString()).components).toHaveLength(1);
     const frame = { v: 1, ts: 1000, op: "deleted", nodeId: "1:1", nodeName: "Control/Standalone", nodeType: "COMPONENT", changedProps: [], origin: "LOCAL", scopeHint: "local", page: "Owner", fileKey: "owner" };
     put(root, "design/figma.changes.jsonl", JSON.stringify(frame) + "\n");
@@ -435,6 +435,15 @@ describe("sanctioned kit evolution", () => {
   });
   it.each(["   ", "Owner\nName", "Owner\x7fName", "Owner\ud800Name"])("source-authored name rejects blanks, controls and malformed Unicode: %j", (name) => {
     expect(() => validateSourceAuthoredComponentRecord({ name, category: "display", markup: "<div/>", tokensUsed: [] })).toThrow();
+  });
+  it("a sealed kit-bound store refuses a register with no provenance and writes nothing", () => {
+    const { root } = adopted(), paths = pathsForDir(join(root, "design")), markup = join(temp(), "bare.html");
+    fs.writeFileSync(markup, "<button>Bare</button>");
+    const before = filesystemState(root);
+    const refused = cli(["registry", "register", "Control/Bare", "--category", "action", "--markup", markup, "--file", paths.registry]);
+    expect(refused).toMatchObject({ code: 1, error: { code: "REGISTRY_MISSING_SOURCE_REF" } });
+    expect(filesystemState(root)).toEqual(before);
+    expect(Object.keys(before)).toEqual(expect.arrayContaining(["kit.lock.json", "design/ds.manifest.json", "design/component-registry.json"]));
   });
   it("registry growth becomes stale without recapturing mappings", () => {
     const { root } = adopted(); const mappings = read(root, "kit.json"); const markup = join(temp(), "new.html"); fs.writeFileSync(markup, "<button>New</button>");
