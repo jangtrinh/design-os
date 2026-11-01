@@ -372,6 +372,15 @@ DESIGN:OS is free and source-available (PolyForm Shield). The Autonomous Design 
 - [Ontology là gì? apply vào build AI design agent như thế nào?](https://www.youtube.com/watch?v=wxFz82DTu_o) (7:33): What an ontology is and how it grounds an AI design agent: shared vocabulary, semantic RAG and reusable design decisions. Vietnamese, with English terms.
 - [Autonomous Design Agent · Tập 03: Model + Harness và 6 trụ cột DESIGN:OS](https://www.youtube.com/watch?v=OYWsj7Jt8aw) (8:44): Agent = Model + Harness: the six pillars of DESIGN:OS (single source of truth, Ontology Graph RAG, dual-layer spec, 126 CI gates, 9-verb patch, watchers). Vietnamese, with English terms.
 
+Autonomous Design Agent (ADA) short series, six short episodes (Vietnamese, with English terms; English-titled playlist: [ADA (English)](https://www.youtube.com/playlist?list=PLAgHz-2MRSJw), Vietnamese playlist: [ADA · Tiếng Việt](https://www.youtube.com/playlist?list=PLSEs3nxfIWqo)):
+
+1. [Storybook + W3C DTCG Tokens: Hard Boundaries for Designers and AI Agents](https://www.youtube.com/watch?v=4frBjPmXH1U) (3:10)
+2. [Ontology Graph RAG: Why AI Picks the Wrong UI Component](https://www.youtube.com/watch?v=ox2ReqYqS78) (3:02)
+3. [Spec-Driven Development: Lock the Spec Before AI Writes Code](https://www.youtube.com/watch?v=GHkxR-TzR24) (2:25)
+4. [Harness 2.0: The Control Frame That Keeps AI Agents Out of Endless Loops](https://www.youtube.com/watch?v=klBRG-kIKJg) (2:43)
+5. [Two-way bridge: One Comment, the AI Fixes Design and Code](https://www.youtube.com/watch?v=c6yc314JsTI) (2:44)
+6. [Watchers, a 2-Mac Cluster and PII Guard: Infrastructure for Long-Running AI Agents](https://www.youtube.com/watch?v=9XliozE3uT8) (2:06)
+
 More: [Autonomous Design Agent series](https://www.youtube.com/@designosbyjang/playlists).
 
 ---
