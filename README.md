@@ -4,6 +4,8 @@
 
 Install once to equip any AI coding agent with 12+ domain design skills, deterministic verification gates, 2:1 axonometric art direction, and live Figma / SVG / 3D / SwiftUI / packaging workflows.
 
+**DESIGN:OS is free** to use and modify. Source-available under PolyForm Shield 1.0.0. Install with `npx @easestart/design-os init`.
+
 <p align="center">
   <img src="assets/cover.png" alt="DESIGN:OS CLI — 2:1 Axonometric Technical Architecture" width="840">
 </p>
@@ -403,6 +405,15 @@ More: [Autonomous Design Agent series](https://www.youtube.com/@designosbyjang/p
 - **Security & Privacy**: Zero telemetry — see [`SECURITY.md`](SECURITY.md) and [`PRIVACY.md`](PRIVACY.md).
 - **Changelog & LLM Index**: Track releases in [`CHANGELOG.md`](CHANGELOG.md) and machine-readable index in [`llms.txt`](llms.txt).
 - **License**: [PolyForm Shield 1.0.0](LICENSE) © [Jang Trinh](https://github.com/jangtrinh). Free to use and modify, including for paid client work; you may not resell it or build a competing product from it.
+
+---
+
+## Listed on
+
+- [dalisoft/awesome-ai-coding](https://github.com/dalisoft/awesome-ai-coding)
+- [Skills Directory](https://www.skillsdirectory.com/skills/jangtrinh-design-os)
+- [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli/blob/main/README.md)
+- [SkillsMP](https://skillsmp.com/creators/jangtrinh)
 
 ---
 
