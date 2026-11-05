@@ -29,13 +29,23 @@ function readOptional(projectDir: string, abs: string): OptionalInput {
   }
 }
 
+/**
+ * `ontology/glossary.yaml` at the project root wins; otherwise `design/knowledge/glossary.yaml`, next to the
+ * rulings. An adopted kit refuses undeclared root files, so the design/ store is its only post-adoption home.
+ */
+function glossaryPath(projectDir: string, designDir: string): string {
+  const root = join(projectDir, "ontology", "glossary.yaml");
+  const store = join(designDir, "knowledge", "glossary.yaml");
+  return !existsSync(root) && existsSync(store) ? store : root;
+}
+
 /** `rulingsFlag` (--rulings) overrides the default `design/knowledge/rulings.json`. */
 export function readPackInputs(projectDir: string, designDir: string, rulingsFlag: string | undefined): PackInputs {
   const rulingsAbs = rulingsFlag !== undefined ? resolve(rulingsFlag) : join(designDir, "knowledge", "rulings.json");
   return {
     rulings: readOptional(projectDir, rulingsAbs),
     context: readOptional(projectDir, join(projectDir, "CONTEXT.md")),
-    glossary: readOptional(projectDir, join(projectDir, "ontology", "glossary.yaml")),
+    glossary: readOptional(projectDir, glossaryPath(projectDir, designDir)),
     conventions: readOptional(projectDir, join(projectDir, "CONVENTIONS.md")),
     soul: readOptional(projectDir, join(designDir, "soul.md")),
   };

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-05 - adopted kits admit the host files design:os writes
+
+### Fixed
+- `ui init` and `ui agents init` in an adopted kit project (`ui ds kit adopt`) no longer make
+  `ui ds kit verify` fail with `DS_TAMPERED: kit integrity: Undeclared file`. Kit integrity now lets an
+  undeclared design:os host file coexist with the kit: the `ui init` adapter trees for all three runtimes,
+  an `AGENTS.md` holding the ease-design sentinel block, and `.claude/agents/*.md` files carrying the
+  design-os agent stamp. Declared kit content stays hash-bound, a host file the kit declared stays bound,
+  and every other undeclared file (a hand-written agent, `.claude/settings.json`, a stray source file)
+  still fails.
+- `ui ds guidelines build | check` read the ontology glossary from `design/knowledge/glossary.yaml` when
+  the project root has no `ontology/glossary.yaml`, so an adopted kit can gain a glossary after adoption.
+  A root `ontology/glossary.yaml` added later still fails integrity, and the error now names
+  `design/knowledge/glossary.yaml`.
+- `ui init --json` reports every file it writes: each `adapters[]` entry carries its `wrapper` script
+  (`.claude/design-os-model.sh` and peers), and the new `files` array lists the manifests, adapter tree,
+  wrappers and any `--with-agents` agents.
+
 ## 2026-10-30 - ease-design 0.6.2
 
 The design-system usage release. `ui gate` can now fail a page that drifts from its own design system,
