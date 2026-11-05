@@ -33,6 +33,22 @@ export type ComponentStatus = "draft" | "beta" | "stable";
  */
 export type ComponentScope = "local" | "global";
 
+/** Where a registered component's markup came from (see `validateProvenance`). */
+export type ProvenanceKind = "code" | "figma" | "synthetic-approved";
+
+/**
+ * Ground truth for a component, recorded by `ui registry register` once the design system is sealed.
+ * `code` / `figma`: `sourceRef` is `path:start-end` or `figma:<nodeId>` and `sha256` is the hash of the
+ * referenced slice or inventory entry at registration time. `synthetic-approved`: `sourceRef` is
+ * `"synthetic"`, `sha256` is the hash of the markup itself, and `reason` says why no source exists.
+ */
+export interface ComponentProvenance {
+  kind: ProvenanceKind;
+  sourceRef: string;
+  sha256: string;
+  reason?: string;
+}
+
 export interface ComponentRecord {
   name: string;
   category: string;
@@ -55,6 +71,8 @@ export interface ComponentRecord {
    * Orthogonal to `markup`, which stays one-way design→code. See `figma-node-reader.ts`.
    */
   figmaNode?: string;
+  /** Ground-truth source of the markup; absent on records written before the design system was sealed. */
+  provenance?: ComponentProvenance;
 }
 
 export interface Registry {
@@ -109,8 +127,11 @@ export const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([
   "name", "category", "markup", "tokensUsed", "variants", "states", "description", "status",
-  "scope", "deprecated", "figmaNode",
+  "scope", "deprecated", "figmaNode", "provenance",
 ]);
+const PROVENANCE_KEYS = new Set(["kind", "sourceRef", "sha256", "reason"]);
+const PROVENANCE_KINDS = new Set<string>(["code", "figma", "synthetic-approved"]);
+const PROVENANCE_HASH = /^sha256-[A-Za-z0-9_-]+$/;
 const VALID_STATUSES = new Set<string>(["draft", "beta", "stable"]);
 const VALID_SCOPES = new Set<string>(["local", "global"]);
 /** Default reuse scope for records that predate the `scope` field (spec 004 migration). */
@@ -156,6 +177,47 @@ export function validateFigmaNodePointer(relPath: unknown): string {
     );
   }
   return relPath;
+}
+
+/**
+ * Validate a `ComponentRecord.provenance`: exactly `kind`, `sourceRef`, `sha256` and, for
+ * `synthetic-approved` only, a non-blank `reason`. Unknown keys are rejected so a record cannot
+ * carry unreviewed claims beside the verified ones.
+ *
+ * @throws RegistryError("BAD_ARG") on a bad value, ("BAD_REGISTRY") on an unknown key.
+ */
+export function validateProvenance(value: unknown): ComponentProvenance {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new RegistryError("BAD_ARG", "component.provenance must be a plain object");
+  }
+  const p = value as Record<string, unknown>;
+  for (const key of Object.keys(p)) {
+    if (!PROVENANCE_KEYS.has(key)) {
+      throw new RegistryError("BAD_REGISTRY", `component.provenance has unexpected property '${key}' — allowed: ${[...PROVENANCE_KEYS].join(", ")}`);
+    }
+  }
+  if (typeof p["kind"] !== "string" || !PROVENANCE_KINDS.has(p["kind"])) {
+    throw new RegistryError("BAD_ARG", `component.provenance.kind must be one of: ${[...PROVENANCE_KINDS].join(", ")}`);
+  }
+  if (typeof p["sourceRef"] !== "string" || p["sourceRef"].length === 0) {
+    throw new RegistryError("BAD_ARG", "component.provenance.sourceRef is required and must be a non-empty string");
+  }
+  if (typeof p["sha256"] !== "string" || !PROVENANCE_HASH.test(p["sha256"])) {
+    throw new RegistryError("BAD_ARG", "component.provenance.sha256 must match ^sha256-[A-Za-z0-9_-]+$");
+  }
+  const synthetic = p["kind"] === "synthetic-approved";
+  if (synthetic && (typeof p["reason"] !== "string" || p["reason"].trim() === "")) {
+    throw new RegistryError("BAD_ARG", "component.provenance.reason is required (non-blank) when kind is 'synthetic-approved'");
+  }
+  if (!synthetic && p["reason"] !== undefined) {
+    throw new RegistryError("BAD_ARG", `component.provenance.reason is only allowed when kind is 'synthetic-approved', not '${p["kind"]}'`);
+  }
+  return {
+    kind: p["kind"] as ProvenanceKind,
+    sourceRef: p["sourceRef"],
+    sha256: p["sha256"],
+    ...(synthetic && { reason: p["reason"] as string }),
+  };
 }
 
 /**
@@ -267,6 +329,9 @@ function validateRecord(rec: unknown, sourceAuthored: boolean): ComponentRecord 
     validateFigmaNodePointer(r["figmaNode"]);
   }
 
+  // Optional: provenance (ground-truth source) — absent on records registered before the seal.
+  const provenance = r["provenance"] === undefined ? undefined : validateProvenance(r["provenance"]);
+
   // additionalProperties: false — reject keys outside the schema
   for (const key of Object.keys(r)) {
     if (!COMPONENT_ALLOWED_KEYS.has(key)) {
@@ -291,6 +356,7 @@ function validateRecord(rec: unknown, sourceAuthored: boolean): ComponentRecord 
     ...(r["deprecated"] !== undefined && { deprecated: r["deprecated"] as boolean }),
     // No migration default: a record without a sidecar simply has no pointer (P3 no-op).
     ...(r["figmaNode"] !== undefined && { figmaNode: r["figmaNode"] as string }),
+    ...(provenance !== undefined && { provenance }),
   };
 }
 

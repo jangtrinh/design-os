@@ -585,8 +585,11 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "description", type: "string", summary: "Free-text component description" },
           { name: "force", type: "boolean", summary: "Overwrite an existing component" },
           { name: "file", type: "string", summary: "Registry file path (default ./design/component-registry.json)" },
+          { name: "source-ref", type: "string", summary: "Ground truth of the markup: <path>:<startLine>[-<endLine>] relative to the project root, or figma:<nodeId>; verified, hashed and recorded as provenance. Required on a sealed design system unless --synthetic-approved" },
+          { name: "synthetic-approved", type: "boolean", summary: "Approve markup that has no source (needs --reason; exclusive with --source-ref); recorded as provenance" },
+          { name: "reason", type: "string", summary: "Why the markup has no source; only with --synthetic-approved" },
         ],
-        errorCodes: ["BAD_ARG", "BAD_NAME", "BAD_STATE", "BAD_TOKEN", "NAME_EXISTS", "FILE_NOT_FOUND", "BAD_REGISTRY", "DS_TAMPERED", "BAD_MANIFEST", "READ_ERROR", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "BAD_NAME", "BAD_STATE", "BAD_TOKEN", "NAME_EXISTS", "FILE_NOT_FOUND", "BAD_REGISTRY", "DS_TAMPERED", "BAD_MANIFEST", "REGISTRY_MISSING_SOURCE_REF", "REGISTRY_BAD_SOURCE_REF", "REGISTRY_MARKUP_DRIFT", "READ_ERROR", "WRITE_ERROR"],
       },
       lookup: {
         summary: "Find a component by canonical name",

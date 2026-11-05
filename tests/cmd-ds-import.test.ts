@@ -175,10 +175,13 @@ describe("ui ds import — D2: --force refuses to wipe a non-empty registry (spe
     const markup = join(tmp, "markup.html");
     writeFileSync(markup, "<button>Primary</button>", "utf8");
     const registryPath = join(tmp, "design", "component-registry.json");
-    capture([
+    const seeded = capture([
       "registry", "register", "Button/Primary",
-      "--category", "action", "--markup", markup, "--file", registryPath,
+      "--category", "action", "--markup", markup,
+      "--synthetic-approved", "--reason", "fixture markup with no source",
+      "--file", registryPath,
     ]);
+    expect(seeded.code, "seeding the registry must succeed for the wipe guard to have something to protect").toBe(0);
   }
 
   it("--force over a non-empty registry fails REGISTRY_NOT_EMPTY", () => {
