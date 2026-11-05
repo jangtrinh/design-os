@@ -97,3 +97,26 @@ describe("skip-link-missing", () => {
     expect(r.warningCount).toBe(1);
   });
 });
+
+describe("review round: inert templates and where a skip link lands", () => {
+  const skip = (html: string): number => checkSkipLinkMissing(html).length;
+
+  it("does not flag a dead link that lives only inside a <template>", () => {
+    expect(dead('<template><a href="#">Remove</a></template>')).toBe(0);
+    expect(dead('<template><a href="#">Remove</a></template><a href="#">Live</a>')).toBe(1);
+  });
+
+  it("is not satisfied by a skip link parked inside a <template>", () => {
+    expect(skip('<template><a href="#main">Skip</a></template><nav><a href="/p">P</a></nav><main id="main"></main>')).toBe(1);
+  });
+
+  it("is not satisfied by an in-page link that lands before the navigation", () => {
+    expect(skip('<header id="top"><a href="#top">Brand</a></header><nav><a href="/p">P</a></nav><main id="main"></main>')).toBe(1);
+    expect(skip('<a href="#nowhere">Skip</a><nav><a href="/p">P</a></nav><main id="main"></main>')).toBe(1);
+  });
+
+  it("accepts a skip link whose target comes after the navigation", () => {
+    expect(skip('<a href="#main">Skip</a><nav><a href="/p">P</a></nav><main id="main"></main>')).toBe(0);
+    expect(skip('<a href="#content">Skip</a><nav></nav><main><h1 id="content">Hi</h1></main>')).toBe(0);
+  });
+});

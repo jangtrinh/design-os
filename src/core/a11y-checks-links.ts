@@ -7,13 +7,13 @@
  *   dead-link-href     `<a href="#">` or `<a href="javascript:…">` that is not marked disabled
  *   skip-link-missing  a document with `<nav>` and `<main>` and no in-page link before the nav
  *
- * Regex-based and precision-first like the rest of this family. Script, `<pre>` and
- * `<code>` regions are blanked first: an anchor inside a template string or a code sample is
- * not a link on the page.
+ * Regex-based and precision-first like the rest of this family. Script, `<pre>`, `<code>`
+ * and `<template>` regions are blanked first: an anchor inside a template string, a code
+ * sample or an inert template is not a link on the page.
  */
 import type { A11yFinding } from "./a11y-lint.js";
 import { markupOnly } from "./a11y-checks-focus-and-labels.js";
-import { lineOf } from "./taste-checks-shared.js";
+import { blankTemplateContent, lineOf } from "./taste-checks-shared.js";
 
 /** Value of an attribute in one start tag; `data-href` and friends do not count. */
 function attrOf(tag: string, name: string): string | undefined {
@@ -32,7 +32,7 @@ function attrOf(tag: string, name: string): string | undefined {
  */
 export function checkDeadLinkHref(html: string): A11yFinding[] {
   const out: A11yFinding[] = [];
-  const markup = markupOnly(html);
+  const markup = blankTemplateContent(markupOnly(html));
   let nth = 0;
   for (const m of markup.matchAll(/<a\b[^>]*>/gi)) {
     nth++;
@@ -57,26 +57,40 @@ export function checkDeadLinkHref(html: string): A11yFinding[] {
 // ── 2.4.1 Bypass blocks ──
 
 /**
- * checkSkipLinkMissing — a document that has both a `<nav>` and a `<main>` but no in-page
- * link (`<a href="#something">`) before the first `<nav>`. A keyboard user otherwise tabs
- * through every navigation link on every page before reaching the content. The skip link
- * has to come first in tab order, so "before the first nav" is the test, not "somewhere".
- * A bare `#` is not an in-page link (that is `dead-link-href`'s finding) and does not count.
+ * checkSkipLinkMissing — a document that has both a `<nav>` and a `<main>` but no skip link:
+ * an in-page link before the first `<nav>` whose target sits after that nav's start. A
+ * keyboard user otherwise tabs through every navigation link on every page before reaching
+ * the content. The link has to come first in tab order, so "before the first nav" is half of
+ * the test; the other half is where it lands, because `<a href="#top">` on a logo is an
+ * in-page link that leaves the reader in front of the same navigation. A bare `#` is not an
+ * in-page link (that is `dead-link-href`'s finding) and does not count.
  */
 export function checkSkipLinkMissing(html: string): A11yFinding[] {
-  const markup = markupOnly(html);
+  const markup = blankTemplateContent(markupOnly(html));
   const nav = /<nav(?=[\s>/])/i.exec(markup);
   if (nav === null || !/<main(?=[\s>/])/i.test(markup)) return [];
   const before = markup.slice(0, nav.index);
   for (const m of before.matchAll(/<a\b[^>]*>/gi)) {
-    if (/^#[^\s#]/.test(attrOf(m[0], "href")?.trim() ?? "")) return [];
+    const href = attrOf(m[0], "href")?.trim() ?? "";
+    if (!/^#[^\s#]/.test(href)) continue;
+    if (targetOffset(markup, href.slice(1)) > nav.index) return [];
   }
   return [{
     checkId: "skip-link-missing", severity: "warning", sc: "2.4.1",
-    message: "the page has a <nav> and a <main> but no in-page link before the navigation — keyboard users must tab through every nav link to reach the content; add <a href=\"#main\">Skip to content</a> as the first focusable element",
+    message: "the page has a <nav> and a <main> but no skip link — no in-page link before the navigation lands past it, so keyboard users must tab through every nav link to reach the content; add <a href=\"#main\">Skip to content</a> as the first focusable element",
     line: lineOf(markup, nav.index),
-    expected: "an <a href=\"#…\"> before the first <nav>",
+    expected: "an <a href=\"#…\"> before the first <nav> whose target comes after it",
     actual: "none",
     fixHint: "add a visually-hidden-until-focused skip link as the first child of <body>, targeting the <main> id",
   }];
+}
+
+/** Offset of the element whose `id` equals `id`, or -1 when no element carries it. */
+function targetOffset(markup: string, id: string): number {
+  let decoded = id;
+  try { decoded = decodeURIComponent(id); } catch { /* a malformed escape stays literal */ }
+  for (const m of markup.matchAll(/<[a-z][\w-]*\b[^>]*>/gi)) {
+    if (attrOf(m[0], "id") === decoded) return m.index;
+  }
+  return -1;
 }

@@ -194,3 +194,23 @@ describe("wiring", () => {
     expect((runGate(fixed).families.content?.findings ?? []).map((f) => f.checkId)).not.toContain("seo-meta-missing");
   });
 });
+
+describe("review round: global receivers, robots none and inert templates", () => {
+  const doc = (head: string): string => `<!doctype html><html><head><title>t</title>${head}</head><body></body></html>`;
+
+  it("flags alert on every global receiver and still ignores other objects", () => {
+    for (const js of ["self.alert(1);", "globalThis.alert(1);", "top.alert(1);", "parent.alert(1);"]) expect(alerts(js), js).toBe(1);
+    expect(alerts("ui.self.alert(1); toast.alert(1);")).toBe(0);
+  });
+
+  it("treats robots none as noindex", () => {
+    expect(checkSeoMetaMissing(doc('<meta name="robots" content="none">'))).toHaveLength(0);
+    expect(checkSeoMetaMissing(doc('<meta name="robots" content="nofollow">'))).toHaveLength(1);
+  });
+
+  it("ignores head tags parked inside a <template>", () => {
+    expect(checkSeoMetaMissing(doc('<template><meta name="robots" content="noindex"></template>'))).toHaveLength(1);
+    expect(checkFaviconMissing(doc('<template><link rel="icon" href="/f.png"></template>'))).toHaveLength(1);
+    expect(checkFaviconMissing(doc('<link rel="icon" href="/f.png">'))).toHaveLength(0);
+  });
+});

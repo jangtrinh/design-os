@@ -34,8 +34,17 @@ describe("scroll-listener-unthrottled", () => {
     expect(hits(page('addEventListener("scroll", () => requestAnimationFrame(update));'))).toBe(0);
   });
 
-  it("is silent when requestAnimationFrame appears in a different inline script", () => {
-    expect(hits(page('addEventListener("scroll", f);', "function tick(){ window.requestAnimationFrame(tick); }"))).toBe(0);
+  it("is not cleared by requestAnimationFrame in a different inline script", () => {
+    expect(hits(page('addEventListener("scroll", f);', "function tick(){ window.requestAnimationFrame(tick); }"))).toBe(1);
+  });
+
+  it("is not cleared by requestAnimationFrame mentioned only in a string", () => {
+    expect(hits(page('console.log("requestAnimationFrame"); addEventListener("scroll", () => { document.body.style.top = scrollY + "px"; });'))).toBe(1);
+  });
+
+  it("is silent on a scroll listener quoted inside a string", () => {
+    expect(hits(page("const s = 'addEventListener(\"scroll\", fn)';"))).toBe(0);
+    expect(hits(page('const s = "window.onscroll = f";'))).toBe(0);
   });
 
   it("is not satisfied by requestAnimationFrame mentioned only in a comment", () => {

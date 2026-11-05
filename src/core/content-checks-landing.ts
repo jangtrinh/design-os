@@ -17,12 +17,13 @@
  * snippet, an email block, a section pasted into a CMS) has no head to put these in, and
  * judging it would turn every fragment into a finding.
  *
- * Commented-out markup and script bodies are blanked before the head checks run, so a
- * `<link rel="icon">` quoted in a code sample or a comment is not a favicon.
+ * Commented-out markup, script bodies and inert `<template>` content are blanked before the
+ * head checks run, so a `<link rel="icon">` quoted in a comment or parked in a template is
+ * not a favicon, and a `noindex` inside a template does not excuse the page.
  */
 import type { FloorFindingBase } from "./finding-schema.js";
 import { inlineScripts } from "./js-source-mask.js";
-import { blankDeadMarkup, lineOf, stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
+import { blankDeadMarkup, blankTemplateContent, lineOf, stripCommentsPreservingOffsets } from "./taste-checks-shared.js";
 
 export type LandingContentFinding = FloorFindingBase;
 
@@ -40,8 +41,11 @@ function documentStart(markup: string): number {
 
 // ── window-alert ──
 
-/** `alert(` or `window.alert(` as a call; `.alert(` on any other object is not the dialog. */
-const ALERT_CALL = /(?<![.\w$])(?:window\s*\.\s*)?alert\s*\(/g;
+/**
+ * `alert(` as a call, bare or on a global receiver (`window`, `self`, `globalThis`, `top`,
+ * `parent`); `.alert(` on any other object is a method of that object, not the dialog.
+ */
+const ALERT_CALL = /(?<![.\w$])(?:(?:window|self|globalThis|top|parent)\s*\.\s*)?alert\s*\(/g;
 
 export function checkWindowAlert(html: string): LandingContentFinding[] {
   const out: LandingContentFinding[] = [];
@@ -70,12 +74,13 @@ export function checkWindowAlert(html: string): LandingContentFinding[] {
 const filled = (v: string | undefined): boolean => v !== undefined && v.trim() !== "";
 
 export function checkSeoMetaMissing(html: string): LandingContentFinding[] {
-  const markup = blankDeadMarkup(html);
+  const markup = blankTemplateContent(blankDeadMarkup(html));
   const at = documentStart(markup);
   if (at === -1) return [];
   const metas = [...markup.matchAll(/<meta\b[^>]*>/gi)].map((m) => m[0]);
-  // A page that asks not to be indexed has no search snippet or share card to write.
-  const noindex = metas.some((t) => attrOf(t, "name")?.trim().toLowerCase() === "robots" && /\bnoindex\b/i.test(attrOf(t, "content") ?? ""));
+  // A page that asks not to be indexed (`noindex`, or `none` = noindex + nofollow) has no
+  // search snippet or share card to write.
+  const noindex = metas.some((t) => attrOf(t, "name")?.trim().toLowerCase() === "robots" && /\b(?:noindex|none)\b/i.test(attrOf(t, "content") ?? ""));
   if (noindex) return [];
   const has = (key: string, attr: "name" | "property"): boolean =>
     metas.some((t) => attrOf(t, attr)?.trim().toLowerCase() === key && filled(attrOf(t, "content")));
@@ -98,7 +103,7 @@ export function checkSeoMetaMissing(html: string): LandingContentFinding[] {
 // ── favicon-missing ──
 
 export function checkFaviconMissing(html: string): LandingContentFinding[] {
-  const markup = blankDeadMarkup(html);
+  const markup = blankTemplateContent(blankDeadMarkup(html));
   const at = documentStart(markup);
   if (at === -1) return [];
   // `rel` is a token list: "shortcut icon" is an icon, "apple-touch-icon" alone is not.
