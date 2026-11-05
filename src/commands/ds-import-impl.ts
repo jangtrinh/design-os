@@ -18,6 +18,7 @@ import { parseTokenFile } from "../core/token-model.js";
 import { importFlatTokens } from "../core/token-import.js";
 import { recognizeRoles } from "../core/role-recognition.js";
 import { wireFuelLine } from "../core/ds-fuel-line.js";
+import { harvestProject } from "../core/negative-space-proposals.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -132,10 +133,24 @@ export function runImport(parsed: ParsedArgs): CommandResult {
   // soul.md (e.g. a `/ui:learn` evidence-draft) or heartbeat.json.
   const fuelLine = wireFuelLine(designDir);
 
+  // Negative-space pass: count the cliches this project's source never uses and PROPOSE bans (soul.md
+  // `## Never (proposed)` + _adherence.proposed.json; never the binding files). The store above is
+  // already written and sealed, so a harvest failure is a warning with its cause, not a failed import.
+  let harvest: { probesAtZero: number; proposals: number } | { error: string };
+  try {
+    const h = harvestProject({ projectDir, sourceDir: projectDir, write: true });
+    harvest = {
+      probesAtZero: h.report.probes.filter((p) => p.count === 0 && p.scannedFiles > 0).length,
+      proposals: h.plan.filter((x) => x.status === "propose").length,
+    };
+  } catch (e) {
+    harvest = { error: e instanceof Error ? e.message : String(e) };
+  }
+
   const summary = {
     name, dir: designDir, ...stats, categories: Object.keys(annotated).length,
     rolesRecognized: recognition.recognized, roleGaps: recognition.gaps,
-    soul: fuelLine.soul, heartbeat: fuelLine.heartbeat,
+    soul: fuelLine.soul, heartbeat: fuelLine.heartbeat, harvest,
   };
   if (useJson) return okJsonWithExit(CMD, summary, 0);
   const typeLine = Object.entries(stats.byType).map(([t, n]) => `${n} ${t}`).join(", ");
@@ -145,6 +160,9 @@ export function runImport(parsed: ParsedArgs): CommandResult {
     ...(stats.skipped > 0 ? [`  skipped ${stats.skipped} un-typeable token(s): ${stats.skippedKeys.slice(0, 6).map((s) => s.key).join(", ")}${stats.skipped > 6 ? " …" : ""}`] : []),
     `  soul: ${fuelLine.soul.path} (draft — edit then set status: ratified)`,
     `  heartbeat: ${fuelLine.heartbeat.path}`,
+    "error" in harvest
+      ? `  warning: harvest skipped — ${harvest.error}`
+      : `  harvest: ${harvest.probesAtZero} probes at 0 → ${harvest.proposals} proposals (review: ui ds harvest-bans --source ${projectDir} --dir ${projectDir})`,
     `  next: ui ds a11y --dir ${parsed.flags["dir"] ?? "."}  ·  ui ds status --dir ${parsed.flags["dir"] ?? "."}`,
   ];
   return { exitCode: 0, stdout: lines.join("\n") + "\n" };
