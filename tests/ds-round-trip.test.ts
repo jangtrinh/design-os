@@ -75,6 +75,7 @@ describe("DS round-trip", () => {
       "--category", "interactive",
       "--markup", markupFile,
       "--tokens", "color.primary,radius.button",
+      "--synthetic-approved", "--reason", "fixture markup with no source",
       "--file", join(tmp, "design", "component-registry.json"),
       "--json",
     ]);

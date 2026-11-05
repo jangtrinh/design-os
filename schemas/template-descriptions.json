@@ -139,7 +139,7 @@
     {
       "path": "workflows/extract.md",
       "description": "Extract a design system from existing HTML. Use when the user provides HTML and wants its tokens and components harvested into a project design system.",
-      "sourceSha256": "cac2216ffec9b86da9ee3f27a9fd4f262c7787c92787418b6960224dfc734669"
+      "sourceSha256": "c01b9d57785e403477db6897990ac1b39e9a8b241ef8113bb6d23dbe6924a0b0"
     },
     {
       "path": "workflows/figma-comments.md",
@@ -179,7 +179,7 @@
     {
       "path": "workflows/learn.md",
       "description": "Teach ease-design an existing project's design system — scan the repo, harvest tokens/components/interaction states from real evidence, and compile the DS so generation matches the product. Use when initializing ease-design on a project that already has UI, or to re-learn after a major redesign.",
-      "sourceSha256": "2e18406d5dc821ab60f54c25c56f07f20b1dea0d9c3186fa8e9fd67fa75135a5"
+      "sourceSha256": "4314f6af6fd16400602e47e019b63fac5a1da489f8a99364f5246230571f17eb"
     },
     {
       "path": "workflows/native-ios.md",

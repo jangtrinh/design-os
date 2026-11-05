@@ -72,6 +72,21 @@
           "type": "string",
           "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[^\\\\:]+\\.figma\\.json$",
           "description": "Pointer to this component's Figma node sidecar (spec 005), relative to the design dir — e.g. 'components/button-primary.figma.json'. Holds the buildable FigmaExportNode spec; the tree is never inlined here. Absent = no mirror captured yet. Must stay inside the design dir: no absolute path, no '..' traversal. Orthogonal to 'markup', which stays one-way design→code."
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Ground-truth source of the markup, recorded by 'ui registry register' once the design system is sealed. kind 'code': sourceRef is 'path:start-end' (relative to the project root); kind 'figma': sourceRef is 'figma:<nodeId>'; sha256 is the hash of the referenced slice or inventory entry at registration time. kind 'synthetic-approved': sourceRef is 'synthetic', sha256 hashes the markup itself, and reason states why no source exists.",
+          "properties": {
+            "kind": { "enum": ["code", "figma", "synthetic-approved"] },
+            "sourceRef": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^sha256-[A-Za-z0-9_-]+$" },
+            "reason": { "type": "string", "pattern": "\\S" }
+          },
+          "required": ["kind", "sourceRef", "sha256"],
+          "allOf": [
+            { "if": { "properties": { "kind": { "const": "synthetic-approved" } } }, "then": { "required": ["reason"] }, "else": { "not": { "required": ["reason"] } } }
+          ],
+          "additionalProperties": false
         }
       },
       "required": ["name", "category", "markup", "tokensUsed"],
