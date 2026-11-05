@@ -7,10 +7,12 @@
  */
 import { lineAt } from "./a11y-lint.js";
 import { checkDumbPunctuation } from "./content-checks-punctuation.js";
+import { landingContentChecks } from "./content-checks-landing.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 // Re-exported so the public `ease-design/lint` surface (which does
 // `export * from "./core/content-checks.js"`) carries every content check.
 export { checkDumbPunctuation } from "./content-checks-punctuation.js";
+export { checkWindowAlert, checkSeoMetaMissing, checkFaviconMissing } from "./content-checks-landing.js";
 
 export type ContentSeverity = "error" | "warning";
 /** Content findings speak the shared FloorFinding schema (finding-schema.ts). */
@@ -170,5 +172,5 @@ export function checkBareConfirmButton(html: string): ContentFinding[] {
 export const allContentChecks = [
   checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
   checkAllCapsShout, checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage,
-  checkBareConfirmButton, checkDumbPunctuation,
+  checkBareConfirmButton, checkDumbPunctuation, ...landingContentChecks,
 ] as const;

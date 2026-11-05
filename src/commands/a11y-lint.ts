@@ -27,6 +27,8 @@ Checks (WCAG SC) — decidable from static markup, precision-first:
   the scripted-listener form is a warning) ·
   input-unlabeled (3.3.2 — a text control with no label association; a placeholder is not a label) ·
   focus-outline-removed (2.4.7 — outline killed on focus with no visible replacement anywhere) ·
+  dead-link-href (4.1.2 — a link whose href is "#" or javascript: and is not aria-disabled; warning) ·
+  skip-link-missing (2.4.1 — a <nav> and a <main> with no in-page link before the nav; warning) ·
   heading hierarchy (1.3.1/2.4.6, warnings).
 
 A pass is NOT "accessible" and NOT "WCAG AA conformant": this verifies what static markup

@@ -119,6 +119,10 @@ native receipt routes only to its exact `native-macos`, `native-ios`, or `native
 HTML or a sibling arm. Existing web artifact: same direction plus a vibe-word nudge → `iterate`; same direction but a craft/quality problem
 ("polish", failing axes) → `refine`; direction rejected outright → `redesign`; cannot
 tell which → **ask #2** ("keep this direction, or throw it away?").
+An existing page in the user's own project that should look less generic, cheaper-looking or
+"AI made" while keeping its direction is `refine`, driven by
+`existing-surface-upgrade-audit.md`; a new page that converts one offer reads
+`landing-conversion-craft.md` inside `generate`.
 
 **Ask #3 — the ambiguous reference.** A reference handed over without a sentence saying
 replicate-vs-inspired: ask once. It decides faithful capture (`from-url`/`from-ref`,

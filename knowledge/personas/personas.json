@@ -1409,5 +1409,59 @@
       "pastel fills",
       "hairline borders"
     ]
+  },
+  {
+    "slug": "conversion-monochrome",
+    "family": "product-marketing",
+    "uiTypes": [
+      "landing"
+    ],
+    "density": "comfortable",
+    "colorMode": "both",
+    "trending": false,
+    "keywords": [
+      "conversion",
+      "landing",
+      "monochrome",
+      "launch",
+      "trial",
+      "waitlist",
+      "saas",
+      "minimal",
+      "flat"
+    ],
+    "typography": {
+      "fontFamilyDisplay": "Geist, system-ui, sans-serif",
+      "fontFamilyBody": "Geist, system-ui, sans-serif",
+      "fontWeightBody": 400,
+      "fontWeightHeading": 600
+    },
+    "colorPhilosophy": {
+      "primaryHex": "#2563EB",
+      "neutralHex": "#737373",
+      "successHex": "#10B981",
+      "warningHex": "#F59E0B",
+      "dangerHex": "#EF4444",
+      "infoHex": "#3B82F6",
+      "bgLightHex": "#FFFFFF",
+      "bgDarkHex": "#181818"
+    },
+    "radius": {
+      "sm": "4px",
+      "md": "8px",
+      "lg": "16px",
+      "full": "9999px"
+    },
+    "spacing": {
+      "base": 4
+    },
+    "shadowIntensity": "none",
+    "antiPatterns": [
+      "Inter, Roboto, Arial, Open Sans, Helvetica",
+      "Material Icons",
+      "Material Symbols",
+      "ambient hero glows",
+      "browser-default easing"
+    ]
   }
 ]

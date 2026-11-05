@@ -153,7 +153,9 @@ export function writeText(path: string, text: string): void {
 export function htmlPage(head = "", body = "<p>Version two ships next week.</p>"): string {
   return [
     "<!doctype html>", '<html lang="en">', "<head>", '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">', "<title>Fixture page</title>", head,
+    '<meta name="viewport" content="width=device-width, initial-scale=1">', "<title>Fixture page</title>",
+    // A fixture is not an offer to be found: noindex retires the description/og obligation, the empty data: icon the favicon one.
+    '<meta name="robots" content="noindex">', '<link rel="icon" href="data:,">', head,
     "<style>", "  body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; font-size: 1rem; line-height: 1.5; color: #1b2a2f; background: #ffffff; }",
     "  h1 { font-size: 1.75rem; margin: 0 0 16px; text-wrap: balance; }", "</style>", "</head>", "<body>", "<main>",
     "<h1>Release notes</h1>", body, "</main>", "</body>", "</html>", "",

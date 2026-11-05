@@ -57,7 +57,9 @@ readability formulas misfire and are deliberately excluded):
   `text-in-image` · `all-caps-shout` (text-content caps; taste-lint owns CSS-transform caps) ·
   `bare-confirm-button` (a bare OK/Okay/Yes/No label — start with a verb, repeat the
   consequence) · `dumb-punctuation` (typewriter `...`/`'`/`"` in visible copy — typeset
-  copy uses `…` `’` `“ ”`).
+  copy uses `…` `’` `“ ”`) · `window-alert` (`alert(` called from a page script — show the
+  message inline) · `seo-meta-missing` (an indexable full document without a meta description,
+  `og:title` or `og:image`) · `favicon-missing` (a full document with no `<link rel="icon">`).
 
 ## Honest copy — never fabricate evidence
 Copy must not invent evidence to fill a layout. No fabricated metrics (`10× faster`,

@@ -31,13 +31,13 @@ const markup = `<nav class="ui-kit ui-pg" aria-label="Pagination">
   </style>
   <ul class="ui-pg__list">
     <li><a class="ui-pg__link" href="#" aria-disabled="true" tabindex="-1">Previous</a></li>
-    <li><a class="ui-pg__link" href="#" aria-current="page">1</a></li>
-    <li><a class="ui-pg__link is-hover" href="#">2</a></li>
-    <li><a class="ui-pg__link is-focus" href="#">3</a></li>
-    <li><a class="ui-pg__link" href="#">4</a></li>
+    <li><a class="ui-pg__link" href="?page=1" aria-current="page">1</a></li>
+    <li><a class="ui-pg__link is-hover" href="?page=2">2</a></li>
+    <li><a class="ui-pg__link is-focus" href="?page=3">3</a></li>
+    <li><a class="ui-pg__link" href="?page=4">4</a></li>
     <li class="ui-pg__ellipsis" aria-hidden="true">…</li>
-    <li><a class="ui-pg__link" href="#">12</a></li>
-    <li><a class="ui-pg__link" href="#">Next</a></li>
+    <li><a class="ui-pg__link" href="?page=12">12</a></li>
+    <li><a class="ui-pg__link" href="?page=2">Next</a></li>
   </ul>
 </nav>`;
 

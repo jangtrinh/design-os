@@ -22,11 +22,11 @@ const markup = `<nav class="ui-kit ui-bc" aria-label="Breadcrumb">
     .ui-bc__current { color: var(--color-foreground); font-weight: var(--font-weight-medium); }
   </style>
   <ol class="ui-bc__list">
-    <li><a class="ui-bc__link" href="#">Home</a></li>
+    <li><a class="ui-bc__link" href="/">Home</a></li>
     <li class="ui-bc__sep" aria-hidden="true">/</li>
-    <li><a class="ui-bc__link" href="#">Design systems</a></li>
+    <li><a class="ui-bc__link" href="/design-systems">Design systems</a></li>
     <li class="ui-bc__sep" aria-hidden="true">/</li>
-    <li><a class="ui-bc__link" href="#">Aurora</a></li>
+    <li><a class="ui-bc__link" href="/design-systems/aurora">Aurora</a></li>
     <li class="ui-bc__sep" aria-hidden="true">/</li>
     <li><span class="ui-bc__current" aria-current="page">Tokens</span></li>
   </ol>

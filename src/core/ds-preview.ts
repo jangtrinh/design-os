@@ -18,7 +18,7 @@
  */
 import { emitCss } from "./token-emit.js";
 import { checkTokenContrast } from "./ds-a11y.js";
-import { SPECIMEN_CHROME_CSS } from "./ds-preview-chrome.js";
+import { SPECIMEN_CHROME_CSS, SPECIMEN_HEAD_META } from "./ds-preview-chrome.js";
 import {
   esc, colorSection, typeSection, shapeSection, motionSection, componentsSection,
 } from "./ds-preview-sections.js";
@@ -72,6 +72,7 @@ export function buildSpecimenPage(ds: DesignSystem): SpecimenModel {
     `<head>\n` +
     `<meta charset="utf-8">\n` +
     `<meta name="viewport" content="width=device-width, initial-scale=1">\n` +
+    SPECIMEN_HEAD_META +
     `<title>${esc(m.name)} &mdash; Design System Specimen</title>\n` +
     `<style>\n` +
     emitCss(ds.resolved) +
@@ -132,6 +133,7 @@ function buildComponentPage(ds: DesignSystem, component: ComponentRecord): strin
     `<head>\n` +
     `<meta charset="utf-8">\n` +
     `<meta name="viewport" content="width=device-width, initial-scale=1">\n` +
+    SPECIMEN_HEAD_META +
     `<title>${esc(component.name)} &mdash; ${esc(m.name)} specimen</title>\n` +
     `<style>\n` +
     emitCss(ds.resolved) +
