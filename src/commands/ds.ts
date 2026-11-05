@@ -16,6 +16,7 @@ import { runImport } from "./ds-import-impl.js";
 import { runSpecimen } from "./ds-specimen-impl.js";
 import { runPreview } from "./ds-preview-impl.js";
 import { runSoul } from "./ds-soul-impl.js";
+import { runHarvestBans } from "./ds-harvest-bans.js";
 import { runGuidelines } from "./ds-guidelines-impl.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
@@ -38,6 +39,8 @@ Usage:
   ui ds preview [--dir <project>] [--out <file>] [--split <dir>] [--json]
   ui ds soul init  [--dir <project>] [--force] [--studio]
   ui ds soul check [--dir <project>] [--json] [--studio]
+  ui ds harvest-bans --source <dir> [--dir <project>] [--write] [--json]
+  ui ds harvest-bans --accept <NS-id> [--dir <project>] [--json]
   ui ds guidelines build|check [--dir <project>] [--out <pack-dir>] [--rulings <file>] [--allow-unsealed] [--now <UTC-ISO>] [--json]
   ui ds guidelines export --target figma [--dir <project>] [--pack <pack-dir>] [--out <dir>] [--budget <n>kb] [--allow-unsealed] [--json]
   ui ds guidelines check --profile figma --bundle <figma-guidelines dir> [--json]
@@ -58,6 +61,7 @@ Subcommands:
   specimen       Report each component's variant×state matrix + applicable-state gaps (missing disabled/empty)
   preview        Generate a self-contained specimen.html from the compiled tokens + registry
   soul           Scaffold + structure-lint the declared design stance (design/soul.md)
+  harvest-bans   Count the SaaS cliches a codebase never uses (12 probes) and PROPOSE them as bans; the owner promotes
   guidelines     Compile the sealed design system into a guidelines pack (design/guidelines/) + lint it
 
 'ds kit' operations:
@@ -293,6 +297,23 @@ Subcommands:
   A missing file is the error finding 'soul-missing' (an explicit check expects
   a soul). Everywhere else the soul is OPTIONAL — absence is never an error.
 
+'ds harvest-bans' options:
+  --source <dir>   Source tree to scan (UI files + *token*.json); required unless --accept
+  --dir <path>     Project directory holding design/ (default: cwd)
+  --write          Record proposals: the '## Never (proposed)' block of design/soul.md and
+                   design/rules/_adherence.proposed.json. Without it: a dry run, nothing written.
+  --accept <id>    Promote one proposed machine rule (NS-01, NS-10, NS-11 today) into
+                   design/rules/_adherence.rules.json and remove it from the proposed file.
+                   Validates both files first; soul.md is not edited (move the bullet yourself).
+                   A bullet-only probe is refused with BAD_ARG (its rule kind arrives later).
+  Every probe reports count AND scanned-file denominator; look-alikes (font-mono inside <code>,
+  a palette token in a tokens JSON, a vendored tailwind-merge list) are listed as excluded with
+  their reason and not counted. A Figma inventory (design/ds.json, design/canvas-inventory.json)
+  is judged by component names and sizes only; fill, font and effect probes report
+  'not evaluated', never zero. A probe is proposed only when its count is 0 over at least one
+  scanned file and at least one UI source file was read. A harvest NEVER writes the binding
+  '## Never' or _adherence.rules.json. 'ds import' runs the same pass (proposals only).
+
 Project layout (all under <project-dir>/design/):
   design.tokens.json       DTCG two-tier tokens
   component-registry.json  Canonical component records
@@ -357,6 +378,11 @@ Error codes:
   EXISTS             'ds soul init' target soul.md exists (use --force)
   WRITE_ERROR        'ds soul init' could not write the scaffold
   READ_ERROR         'ds soul check' could not read soul.md
+  FILE_NOT_FOUND     'ds harvest-bans' --source directory does not exist
+  ADHERENCE_BAD_JSON       'ds harvest-bans' (or --accept): a rules file is not valid JSON
+  ADHERENCE_BAD_FIELD      'ds harvest-bans' (or --accept): a rule has a missing or invalid field
+  ADHERENCE_UNKNOWN_KIND   'ds harvest-bans' (or --accept): a rule names a kind that is not implemented
+  ADHERENCE_DUPLICATE_ID   'ds harvest-bans' (or --accept): two rules in one file share an id
   PACK_NOT_FOUND     'ds guidelines check' found no pack directory (run 'ds guidelines build')
   UNKNOWN_NAME       'ds guidelines check' finding: a token:/component: span names nothing in the DS
   GENERATED_BLOCK_TAMPERED  'ds guidelines check' finding: a generated block was edited or its markers damaged
@@ -422,6 +448,7 @@ export const dsCommand = {
       case "specimen":     return runSpecimen(parsed);
       case "preview":      return runPreview(parsed);
       case "soul":         return runSoul(parsed);
+      case "harvest-bans": return runHarvestBans(parsed);
       case "guidelines":   return runGuidelines(parsed);
       case undefined: {
         const msg = "ui ds requires a subcommand. Run 'ui ds --help'.";

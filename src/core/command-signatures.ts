@@ -981,6 +981,17 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "EXISTS", "WRITE_ERROR", "READ_ERROR"],
       },
+      "harvest-bans": {
+        summary: "Count the cliches a codebase never uses (12 probes with denominators) and propose them as bans; --accept promotes one machine rule",
+        positionals: [],
+        flags: [
+          { name: "source", type: "string", summary: "Source tree to scan (UI files and *token*.json); required unless --accept" },
+          { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
+          { name: "write", type: "boolean", summary: "Record proposals in the '## Never (proposed)' block of soul.md and _adherence.proposed.json; without it a dry run writes nothing" },
+          { name: "accept", type: "string", summary: "Promote one proposed machine rule (NS-nn) into _adherence.rules.json and remove it from the proposed file; soul.md is not edited" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "BAD_JSON", "ADHERENCE_BAD_JSON", "ADHERENCE_BAD_FIELD", "ADHERENCE_UNKNOWN_KIND", "ADHERENCE_DUPLICATE_ID"],
+      },
       guidelines: {
         summary: "Compile the sealed design system into a guidelines pack (design/guidelines/) and lint it",
         positionals: [{ name: "<build|check|export>", required: true, summary: "build writes the guidelines pack + manifest; check lints names, generated blocks and slots (exit 1 on errors; --profile figma validates an exported bundle); export --target figma writes the Figma bundle + UPLOAD.md" }],
