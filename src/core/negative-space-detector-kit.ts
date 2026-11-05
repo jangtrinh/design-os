@@ -1,0 +1,119 @@
+/**
+ * negative-space-detector-kit.ts - the shared vocabulary of the negative-space probes: what a probe
+ * sees of one file (`FileCtx`), what it answers (`Detection`), and the small readers every detector
+ * leans on (token scan with element exclusion, class-token parsing, pastel/tint judgement).
+ *
+ * A probe never fails a file: it returns hits (the cliche is present), and `excluded` entries
+ * (an occurrence the probe saw and deliberately did not count, each with the reason), so a zero is
+ * always a zero over a stated set of files and a stated list of skipped look-alikes (Art VIII).
+ */
+import { evaluateTokenBansDetailed } from "./adherence-rules.js";
+import type { TokenBanRule } from "./adherence-rules.js";
+import { createLineIndex } from "./line-index.js";
+import { extractUiRecords } from "./polyglot-ui-extractor.js";
+import type { UiRecord } from "./polyglot-ui-extractor.js";
+
+export interface Hit { file: string; line: number; excerpt: string }
+export interface Exclusion { file: string; line: number; reason: string }
+export interface Detection { hits: Hit[]; excluded: Exclusion[] }
+export interface FileCtx {
+  /** Path relative to the walked root, `/`-separated. */
+  file: string;
+  source: string;
+  json: boolean;
+  /** Extractor records; empty for JSON files. */
+  records: UiRecord[];
+  lineOf: (offset: number) => number;
+  lines: string[];
+}
+export type Detector = (f: FileCtx) => Detection;
+
+export function makeFileCtx(file: string, source: string): FileCtx {
+  const json = file.toLowerCase().endsWith(".json");
+  return { file, source, json, records: json ? [] : extractUiRecords(file, source), lineOf: createLineIndex(source).lineOf, lines: source.split("\n") };
+}
+
+export const clip = (s: string, max = 90): string => {
+  const one = s.replace(/\s+/g, " ").trim();
+  return one.length > max ? `${one.slice(0, max - 1)}…` : one;
+};
+export const emptyDetection = (): Detection => ({ hits: [], excluded: [] });
+
+/** Text around the first occurrence of `needle` on a 1-based line (a minified bundle is one very long line). */
+export function around(f: FileCtx, line: number, needle: string): string {
+  const text = f.lines[line - 1] ?? "";
+  const at = Math.max(0, text.toLowerCase().indexOf(needle.toLowerCase()));
+  return clip(text.slice(Math.max(0, at - 30), at + needle.length + 40));
+}
+
+/**
+ * Literal, case-insensitive scan through the same evaluator a promoted `token-ban` rule uses, so a
+ * probe that counts 0 and the ban it proposes can never disagree about the same text.
+ * `count` is token occurrences: a token that contains another (`ui-monospace`, `monospace`) counts twice.
+ */
+export function scanTokens(f: FileCtx, tokens: readonly string[], excludeElements?: readonly string[]): Detection {
+  const rule: TokenBanRule = { id: "probe", kind: "token-ban", severity: "error", message: "probe", source: "probe", tokens: [...tokens], ...(excludeElements !== undefined && { excludeElements: [...excludeElements] }) };
+  const { findings, excluded } = evaluateTokenBansDetailed([rule], f.source);
+  return {
+    hits: findings.map((x) => ({ file: f.file, line: x.line, excerpt: around(f, x.line, x.token) })),
+    excluded: excluded.map((x) => ({ file: f.file, line: x.line, reason: `inside <${x.element}>` })),
+  };
+}
+
+export interface ParsedClass { variants: string[]; base: string }
+/** `md:hover:bg-red-100` -> variants [md, hover], base bg-red-100 (a colon inside `[...]` is not a variant). */
+export function parseClass(token: string): ParsedClass {
+  let depth = 0;
+  let last = -1;
+  for (let i = 0; i < token.length; i++) {
+    const c = token[i];
+    if (c === "[") depth++;
+    else if (c === "]") depth--;
+    else if (c === ":" && depth === 0) last = i;
+  }
+  return last === -1 ? { variants: [], base: token } : { variants: token.slice(0, last).split(":"), base: token.slice(last + 1) };
+}
+const RESPONSIVE = new Set(["sm", "md", "lg", "xl", "2xl"]);
+export interface ClassRecord { line: number; raw: string[]; resting: string[] }
+/** One entry per class list: `resting` holds the base of every token that applies at rest (no hover/focus/dark variant). */
+export function classRecords(f: FileCtx): ClassRecord[] {
+  return f.records.filter((r) => r.classes.length > 0).map((r) => ({
+    line: r.line,
+    raw: r.classes,
+    resting: r.classes.map(parseClass).filter((p) => p.variants.every((v) => RESPONSIVE.has(v))).map((p) => p.base),
+  }));
+}
+/** CSS declaration bodies (`a:b; c:d`) of every brace-free block in a record's style text. */
+export const cssBlocks = (r: UiRecord): string[] => [...r.styles.matchAll(/\{([^{}]*)\}/g)].map((m) => m[1] ?? "");
+
+const CHROMA = "red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose";
+const PASTEL_FILL = new RegExp(`^bg-(?:${CHROMA})-(?:50|100|200)$|^bg-(?:${CHROMA})-\\d{2,3}/(?:5|10|15|20|25)$`);
+const BRAND_TINT = /^bg-(?:primary|accent|secondary|muted|brand)\/(?:5|10|15|20|25)$/;
+export const isPastelFillClass = (base: string): boolean => PASTEL_FILL.test(base);
+export const isTintedFillClass = (base: string): boolean => PASTEL_FILL.test(base) || BRAND_TINT.test(base);
+
+const HEX_RE = /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3})(?![0-9a-z])/gi;
+/** Light (>= 0.85) and clearly coloured (saturation >= 0.5): a semantic tint, not white, grey or a brand colour. */
+export function isPastelHex(hex: string): boolean {
+  let h = hex.slice(1).toLowerCase();
+  if (h.length === 3) h = [...h].map((c) => c + c).join("");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as [number, number, number];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  const l = (max + min) / 2;
+  return d > 0 && l >= 0.85 && d / (1 - Math.abs(2 * l - 1)) >= 0.5;
+}
+/** The Tailwind 50 and 100 steps of the chromatic scales: the semantic tints a token file might define. */
+const SEMANTIC_TINTS = new Set(
+  ("fee2e2 ffedd5 fef3c7 fef9c3 ecfccb dcfce7 d1fae5 ccfbf1 cffafe e0f2fe dbeafe e0e7ff ede9fe f3e8ff fae8ff fce7f3 ffe4e6 "
+    + "fef2f2 fff7ed fffbeb fefce8 f7fee7 f0fdf4 ecfdf5 f0fdfa ecfeff f0f9ff eff6ff eef2ff f5f3ff faf5ff fdf4ff fdf2f8 fff1f2").split(" "),
+);
+export const isSemanticTintHex = (hex: string): boolean => SEMANTIC_TINTS.has(hex.slice(1).toLowerCase());
+export const hexesIn = (text: string): { hex: string; index: number }[] => [...text.matchAll(HEX_RE)].map((m) => ({ hex: m[0], index: m.index ?? 0 }));
+
+/** True when a declaration body sets a radius of 999px or more (a pill). */
+export const hasPillRadius = (decls: string): boolean => {
+  const m = /border-radius\s*:\s*([^;]+)/i.exec(decls);
+  return m !== null && [...(m[1] ?? "").matchAll(/(\d+(?:\.\d+)?)px/g)].some((p) => Number(p[1]) >= 999);
+};
