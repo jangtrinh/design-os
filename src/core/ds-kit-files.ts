@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { closeSync, constants, fstatSync, lstatSync, openSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { KitError, type KitFile } from './ds-kit-types.js';
+import { isGeneratedHostFile, undeclaredFileMessage } from './ds-kit-host-files.js';
 export function hashKitBytes(buffer: Buffer): string { return `sha256:${createHash('sha256').update(buffer).digest('hex')}`; }
 export function kitPath(path: unknown): string {
   if (typeof path !== 'string' || !path || path.includes('\\') || [...path].some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127 || c.codePointAt(0)! >= 0xD800 && c.codePointAt(0)! <= 0xDFFF) || /[<>:"|?*]/.test(path) || path.startsWith('/') || path.split('/').some(p => !p || p === '.' || p === '..' || /[. ]$/.test(p) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(p)))
@@ -65,7 +66,8 @@ export function indexKitContent(root: string, artifacts: string[]): KitFile[] {
         continue;
       }
       if (stat.isDirectory()) walk(rel);
-      else if (!stat.isFile() || !declared.has(rel)) throw new KitError('KIT_UNDECLARED', `Undeclared file: ${rel}`);
+      else if (!stat.isFile()) throw new KitError('KIT_UNDECLARED', `Undeclared file: ${rel}`);
+      else if (!declared.has(rel) && !isGeneratedHostFile(rel, () => readKitFile(root, rel))) throw new KitError('KIT_UNDECLARED', undeclaredFileMessage(rel));
     }
   };
   try { walk(''); } catch (error) {

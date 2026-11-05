@@ -12,7 +12,7 @@
  *
  * `requires` names the context a check needs to be ACTIVE for a project:
  *   none   — always runs on any HTML artifact;
- *   tokens — needs the DS token file (only the taste raw-hex Consistency check).
+ *   tokens — needs the DS token file (the taste raw-hex Consistency check and the ds-usage family).
  * Checks that are content-conditional (GSAP/video checks self-silence when the
  * library/element is absent) still list as "none": they are available, their
  * subject just may not appear in a given artifact.
@@ -47,6 +47,13 @@ export interface CatalogEntry {
 }
 
 export const CHECK_CATALOG: readonly CatalogEntry[] = [
+  // ds-usage: judged against the project's own tokens, so every row needs the token file. Promoted
+  // `token-ban` rules also report through this family, under ids `token-ban/<rule id>` that belong to
+  // the project's rule file and are deliberately not catalogued here.
+  { id: "undeclared-token", family: "ds-usage", requires: "tokens" },
+  { id: "off-system-token", family: "ds-usage", requires: "tokens" },
+  { id: "hardcoded-color", family: "ds-usage", requires: "tokens" },
+  { id: "off-system-font", family: "ds-usage", requires: "tokens" },
   { id: "absolute-without-relative", family: "layout", requires: "none" },
   { id: "avoidable-screenshot-crop", family: "layout", requires: "none" },
   { id: "clickable-no-pointer", family: "layout", requires: "none" },

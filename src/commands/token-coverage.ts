@@ -1,7 +1,7 @@
 /**
  * `ui token-coverage <file.html> [--tokens <f>] [--floor <0..1>] [--json]` —
  * does the page actually STYLE with the project's tokens, or hardcode values
- * a token already covers? Complements ds-usage-lint.ts (colour-only, var-
+ * a token already covers? Complements ds-usage-lint.ts (colour + font-family, var-
  * reference honesty) with a coverage NUMBER across every value-bearing
  * category: color, font-family, font-size, spacing, radius, shadow. See
  * token-coverage.ts for the classify-and-aggregate algorithm.

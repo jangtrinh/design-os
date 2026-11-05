@@ -347,7 +347,9 @@ export const initCommand = {
       written: boolean;
       replaced: boolean;
     }[] = [];
-    const adapterResults: { runtime: Runtime; paths: string[] }[] = [];
+    // `paths` mirrors the manifest's adapters[] contract (wrapper excluded); `wrapper` names the
+    // model-adapter script so the JSON report still covers every file written.
+    const adapterResults: { runtime: Runtime; paths: string[]; wrapper: string }[] = [];
 
     const allWrittenManifests: string[] = [];
     // Per-runtime adapter artifacts that were successfully written (flat list
@@ -466,6 +468,7 @@ export const initCommand = {
       adapterResults.push({
         runtime: entry.runtime,
         paths: nonWrapperArtifacts.map((a) => a.absPath),
+        wrapper: wrapperAbsPath,
       });
     }
 
@@ -508,7 +511,13 @@ export const initCommand = {
 
     // ── Emit result ────────────────────────────────────────────────────────
     if (useJson) {
-      const data: Record<string, unknown> = { manifests, adapters: adapterResults };
+      // `files`: every path this run wrote — manifests, adapter tree, wrapper scripts, agents.
+      const files = [
+        ...manifests.map((m) => m.path),
+        ...adapterResults.flatMap((a) => [...a.paths, a.wrapper]),
+        ...(agentsWritten ?? []).filter((a) => a.written).map((a) => a.path),
+      ];
+      const data: Record<string, unknown> = { manifests, adapters: adapterResults, files };
       if (hint !== null) data.nextStep = hint.nextStep;
       if (agentsWritten !== null) data.agents = agentsWritten;
       return okJson(CMD, data);
