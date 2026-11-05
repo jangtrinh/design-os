@@ -196,11 +196,12 @@ Machine-checked (advisory warnings in `ui gate`; they never reject a page by the
 | --- | --- | --- |
 | `dead-link-href` | `a11y-lint` | a link whose `href` is `#` or `javascript:` on an element that is not disabled |
 | `window-alert` | `content-lint` | `alert(` used in a page script |
-| `seo-meta-missing` | `content-lint` | a full document, not marked `noindex`, without a meta description, `og:title` or `og:image` |
+| `seo-meta-missing` | `content-lint` | a full document, not marked `noindex` or `none`, without a meta description, `og:title` or `og:image` |
 | `favicon-missing` | `content-lint` | a full document without `<link rel="icon">` |
-| `skip-link-missing` | `a11y-lint` | a document with `<nav>` and `<main>` and no in-page link before the navigation |
-| `scroll-listener-unthrottled` | `taste-lint` | a `scroll` listener in a script that never calls `requestAnimationFrame` |
-| `marketing-buzzword`, `click-here-link` | `content-lint` | the vague-verb list (§3) and "learn more"/"click here" links (§4) — existing |
+| `skip-link-missing` | `a11y-lint` | a document with `<nav>` and `<main>` and no in-page link before the navigation that lands after it |
+| `scroll-listener-unthrottled` | `taste-lint` | a `scroll` listener in a script that never calls `requestAnimationFrame` (strings and comments do not count) |
+| `marketing-buzzword` | `tell-lint` (and `ui gate`) | the vague-verb list (§3) — existing |
+| `click-here-link` | `content-lint` | "learn more" and "click here" links (§4) — existing |
 
 Everything else in this file is the host's judgment, checked by the look items and the critic.
 

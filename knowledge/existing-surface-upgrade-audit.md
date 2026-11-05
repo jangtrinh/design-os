@@ -49,19 +49,21 @@ direction change, the user says yes, and the work moves to `redesign` before any
 ### Fix order
 
 Constitution Article X decides collisions: accessibility → tap reliability → performance →
-layout → type and colour → motion → decoration. So the order is:
+layout → type and colour → motion → decoration. Inside that chain, the cheapest change with
+the largest visible gain goes first, so the order is:
 
 1. **Floor failures** — every gate error, missing focus ring, contrast failure and undersized
-   target, first, whatever its visual cost.
-2. **Type face** — the largest visible improvement at the lowest risk.
-3. **Colour and surfaces** — snap to the system's palette, remove stray background effects.
-4. **Hover, active and focus states.**
-5. **Layout and spacing** — grid, max width, the spacing scale, concentric radii.
+   target, first, whatever its visual cost (accessibility, then tap reliability).
+2. **Performance** — scroll handlers off the frame budget, animated `top`/`left`/`width`/`height`,
+   oversized or unbundled assets, layout shift while loading.
+3. **Layout and spacing** — grid, max width, the spacing scale, concentric radii, alignment.
+4. **Type face**, then **colour and surfaces** — snap to the system's palette, remove stray
+   background effects. The largest visible improvement, once nothing above it is broken.
+5. **Hover, active and loading, empty and error states.**
 6. **Motion** — easing, scroll reveals, navigation and the mobile menu.
-7. **Generic components** — swap the patterns named below.
-8. **Loading, empty and error states.**
-9. **Copy** — clichés out, specifics in, CTAs fixed.
-10. **Type scale polish.**
+7. **Generic components and decoration** — swap the patterns named below.
+8. **Copy** — clichés out, specifics in, CTAs fixed.
+9. **Type scale polish.**
 
 ## The catalogue
 

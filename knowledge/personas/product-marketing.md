@@ -185,8 +185,9 @@ only when neither exists.
 | **Texture** | None. No background gradients of any kind. |
 
 **Interactions** — Base curve `cubic-bezier(0.22, 1, 0.36, 1)`: 500 ms for movement, 300 ms for
-colour and opacity, never under 200 ms; never `ease`, `linear` or `ease-in-out`. Transform and
-opacity only. Sections rise 32 px and fade in over 600–800 ms once, through
+colour and opacity, never under 200 ms; never `ease`, `linear` or `ease-in-out`. Movement
+animates `transform` and `opacity` only; colour changes (hover, the tagline reveal) are the one
+non-compositor property, at the 300 ms colour timing. Sections rise 32 px and fade in over 600–800 ms once, through
 `IntersectionObserver`. Under reduced motion, a plain fade.
 
 **Layout** — Navigation floats off the top edge, centred and sized to its content, on a
