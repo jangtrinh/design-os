@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-11-10 - `ui ds harvest-bans` proposes what a codebase never does
+
+### Added
+- `ui ds harvest-bans --source <dir> [--dir <project>] [--write] [--accept <NS-id>] [--json]`. Onboarding
+  used to record only what exists; this counts the SaaS cliches the source never uses, so a new screen
+  stops filling the gap with them. Twelve probes (`NS-01` monospace, `NS-02` pastel pill badge, `NS-03`
+  uppercase micro-tag, `NS-04` header bar inside a card, `NS-05` page subtitle, `NS-06` verbose row
+  description, `NS-07` filled action in a row, `NS-08` KPI stat grid, `NS-09` tinted icon tile, `NS-10`
+  gradient, `NS-11` glow or avatar ring, `NS-12` billing or credit chrome). Every probe reports its count
+  AND the files it read, lists look-alikes it did not count with the reason (`font-mono` inside `<code>` or
+  `<pre>`, a palette tint defined in a tokens JSON, a vendored tailwind-merge value list), and reports
+  hits capped with "+N more". Source files come from the same walk as `ui ds-usage-lint` (same excludes,
+  same skip reporting); `*token*.json` files are also read by the probes where a palette or font token is
+  evidence. A Figma inventory (`design/ds.json`, `design/canvas-inventory.json`) is judged by component
+  names and sizes only; a probe it cannot judge reports `figma inventory has no <fills|fonts|...>` and is
+  never counted as zero from Figma.
+- A zero is evidence, not a decision. `--write` records proposals only: a bullet per probe with a zero
+  count (over at least one scanned file, and only when a UI source file was read) in a `## Never (proposed)`
+  block of `design/soul.md`, placed right after the binding `## Never`, and a `token-ban` rule in
+  `design/rules/_adherence.proposed.json` where one can express the ban (`NS-01`, `NS-10`, `NS-11`; the
+  others wait for their rule kind). A harvest never writes the binding `## Never` or
+  `_adherence.rules.json`, replaces its own block on every run (the second `--write` changes nothing), keeps
+  every other byte of `soul.md`, and skips an id the owner already promoted. Without `--write` it is a dry
+  run and writes nothing.
+- `--accept <NS-id>` promotes one proposed machine rule: both rules files are validated, the rule is
+  appended to `_adherence.rules.json`, then removed from the proposed file (a failed second write restores
+  the first). `soul.md` is not edited; the owner moves the bullet. A bullet-only probe and an unknown id
+  are `BAD_ARG`. Rules-file errors surface as `ADHERENCE_BAD_JSON`, `ADHERENCE_BAD_FIELD`,
+  `ADHERENCE_UNKNOWN_KIND` and `ADHERENCE_DUPLICATE_ID`; they are listed in `ui ds --help` and `ui schema`.
+- `ui ds import` runs the same pass over the project (proposals only) and prints
+  `harvest: N probes at 0 -> N proposals`. A harvest failure is printed as a warning with its cause and
+  does not fail an import whose store was already written. The `--json` summary gains a `harvest` object.
+
+### Changed
+- `design/soul.md` helpers in `ds-soul` own the `## Never (proposed)` block. `ui ds soul check` still fails
+  a comment-only binding `## Never` (`soul-empty-section` is an error); proposed bullets never satisfy it.
+
 ## 2026-11-11 - `ui onboard questions` and `ui onboard answer` record owner rulings
 
 ### Added
