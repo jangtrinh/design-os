@@ -29,7 +29,7 @@ export const detectPastelPill: Detector = (f) => {
   const d = emptyDetection();
   if (f.json) {
     for (const { hex, index } of hexesIn(f.source)) {
-      if (isSemanticTintHex(hex)) d.excluded.push({ file: f.file, line: f.lineOf(index), reason: "color token definition in tokens JSON (no pill container)" });
+      if (isSemanticTintHex(hex)) d.excluded.push({ file: f.file, line: f.lineOf(index), reason: "color token definition in tokens JSON" });
     }
     return d;
   }
@@ -54,7 +54,7 @@ export const detectUppercaseTag: Detector = (f) => {
   for (const r of classRecords(f)) {
     if (!r.raw.some((t) => parseClass(t).base === "uppercase")) continue;
     // a lone "uppercase" string next to "lowercase","capitalize" is the tailwind-merge config's value list, not a class
-    if (vendored && r.raw.length === 1) d.excluded.push({ file: f.file, line: r.line, reason: "vendored tailwind-merge config (value enumeration, not a class list)" });
+    if (vendored && r.raw.length === 1) d.excluded.push({ file: f.file, line: r.line, reason: "vendored tailwind-merge config" });
     else d.hits.push({ file: f.file, line: r.line, excerpt: clip(r.raw.join(" ")) });
   }
   for (const rec of f.records) {
