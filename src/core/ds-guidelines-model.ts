@@ -75,7 +75,7 @@ export interface PackInputs {
   rulings: OptionalInput;
   /** Product glossary: `CONTEXT.md` at the project root. */
   context: OptionalInput;
-  /** Ontology glossary: `ontology/glossary.yaml` at the project root. */
+  /** Ontology glossary: `ontology/glossary.yaml` at the project root, else `design/knowledge/glossary.yaml` (an adopted kit's home). */
   glossary: OptionalInput;
   /** Measured house style: `CONVENTIONS.md` at the project root (from `ui synthesize-conventions`). */
   conventions: OptionalInput;

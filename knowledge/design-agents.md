@@ -65,6 +65,13 @@ explicit `ui init --with-agents` flag exercises the opt-in in the same run
 agents as they want; a project with zero agents is a fully supported state
 (`agents check` reports it as a warning, never an error).
 
+In an adopted kit project (`ui ds kit adopt`), generate agents straight into it and
+leave them out of `kit.json` artifacts. Kit integrity admits an undeclared
+`.claude/agents/*.md` only when it carries the design-os stamp (the same mark §6
+reads), so a hand-written agent there still fails `ui ds kit verify`. Declaring a
+generated agent binds its bytes, and the next `agents init --force` then reads as
+tampering. See `ds-kit-onboarding.md` §5 for the full host-file rule.
+
 ## §5 Runtime scope
 
 **This scope is about SUBAGENTS only** (`ui agents` → `.claude/agents/`) — NOT the
