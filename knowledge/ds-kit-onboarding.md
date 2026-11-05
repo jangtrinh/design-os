@@ -216,6 +216,21 @@ The kit binding participates in the normal DS revision and owner-local lesson ch
 Editing TSX, CSS, source, mappings, lock files or evidence outside sanctioned writes
 fails integrity. An accepted lesson cannot float to another implementation revision.
 
+Host files that design:os writes itself may sit beside the adopted kit undeclared:
+`ui init` adapter trees (`.claude/` or `.agent/` manifest, `commands/ui/`,
+`workflows/ui-*`, `skills/design-os-*`, `rules/design-os-routing.md`,
+`design-os-model.sh`, `AGENTS.ease-design.json`), an `AGENTS.md` that holds the
+ease-design sentinel block, and `.claude/agents/*.md` files carrying the design-os
+agent stamp. They configure the agent host, and the CLI re-renders them, so do not
+declare them in `kit.json`. A declared host file stays hash-bound like any other
+content: re-rendering it then fails integrity until a new revision is adopted. Any
+other undeclared file, including a hand-written agent or `.claude/settings.json`,
+still fails. Owner knowledge added after adoption lives in the `design/` store: rulings
+in `design/knowledge/rulings.json`, the ontology glossary in
+`design/knowledge/glossary.yaml` (`ds guidelines build` reads it when the project
+root has no `ontology/glossary.yaml`). A root glossary added later fails integrity,
+and the error names this path.
+
 ## 6. Grow with the owner
 
 Sanctioned token/role and registry writes preserve prior integrity, update the bound
@@ -239,4 +254,5 @@ the owner's actual review decision; successful adoption does not fabricate that 
 - **Coverage reduced to the starter floor.** A minimum count does not account for every captured ID. Keep all supplied mappings and observed options; unresolved items, duplicate owner identities and lost token/mode projections block completeness.
 - **Screenshots show different code.** Bind the actual implementation exports, consumer CSS and dependency/import closure used by the harness. Preserved original source alone cannot justify a screenshot of adapted code.
 - **Evidence treated as its own judge.** Hashes bind the declared subject and proof bytes; they cannot establish visual quality or authenticate a review author. Require independent source, render and behavior assessment before writing passed cases.
+- **Generated host files declared as content.** Declaring `ui init` or `ui agents init` output in `kit.json` freezes it: the next re-render reads as tampering. Leave these files undeclared; integrity already admits them by their design:os path or mark.
 - **Growth silently inherits an old pass.** Sanctioned changes create a new revision with stale proof; arbitrary source edits fail integrity. Stage and verify the new candidate rather than accepting lessons against stale proof or healing unauthorized edits.
