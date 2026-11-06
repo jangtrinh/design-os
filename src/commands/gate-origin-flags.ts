@@ -56,7 +56,7 @@ export function originSummaryLines(s: OriginSummary): string[] {
   const out: string[] = [];
   if (s.byOrigin !== undefined) {
     const o = s.byOrigin;
-    out.push(`  origin: authored ${o.authored.errors} error(s) / ${o.authored.warnings} warning(s); kit ${o.kit.errors} / ${o.kit.warnings}; framework ${o.framework.errors} / ${o.framework.warnings} — only authored errors fail`);
+    out.push(`  origin: authored ${o.authored.errors} error(s) / ${o.authored.warnings} warning(s); kit ${o.kit.errors} / ${o.kit.warnings}; framework ${o.framework.errors} / ${o.framework.warnings}; tool ${o.tool.errors} / ${o.tool.warnings} — only authored errors fail`);
     for (const r of (s.byRule ?? []).filter((x) => x.origin !== "authored")) {
       out.push(`    ${r.origin}: ${r.rule} — ${r.errors} error(s), ${r.warnings} warning(s)`);
     }

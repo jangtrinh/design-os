@@ -85,10 +85,12 @@ Options:
                 --skip "layout: embeddable fragment,content: mirror evidence"
   --token-coverage-floor <n>  Minimum ui token-coverage score before the gate
                 fails (default: 0.8; only applies when a token file is found)
-  --origin      Label every finding authored / kit / framework and fail only on AUTHORED
-                errors. Framework = a custom property a framework emits by itself
-                (Tailwind --tw-*, --spacing, --text-*, …; Radix --radix-*). Kit = named
-                only in the --kit sources. Everything else — including anything the
+  --origin      Label every finding authored / kit / framework / tool and fail only on
+                AUTHORED errors. Framework = a custom property a framework emits by itself
+                (Tailwind --tw-*, --spacing, --text-*, …; Radix --radix-*), or anything
+                declared by a package the --src files import from node_modules (followed
+                automatically). Kit = named only in the --kit sources. Tool = the
+                autofixer's raw-HTML convention (img-onerror). Everything else — including anything the
                 tool cannot attribute — is authored, so attribution never hides debt.
                 Non-authored findings are still counted and printed as a roll-up.
   --src <paths> Comma-separated authored source files/folders (kit paths inside are

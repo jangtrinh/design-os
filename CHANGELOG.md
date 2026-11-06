@@ -10,6 +10,14 @@
   sources, needs `--src`, and implies `--origin`. Anything the tool cannot attribute is authored.
   Non-authored findings are still counted and printed as a per-rule roll-up; the JSON carries
   `origin`, `originReason` per finding and `data.origin` (`byOrigin`, `byRule`, `countedErrors`).
+- Origin mode follows the project's own imports into installed packages: CSS reached from a bare
+  `@import` (e.g. `@import "shadcn/tailwind.css"`) or a JS side-effect / `.css` import resolves to
+  `node_modules/<pkg>` the way Node does, and every name that package declares is `framework`,
+  with the package and the importing file in `originReason`. No paths are listed by hand; an
+  installed package the project never imports contributes nothing.
+- A fourth origin, `tool`: the autofixer's raw-HTML convention (`img-onerror`), not a defect in a
+  source. `autofix-not-clean` is now one error per pending repair, each with its own origin
+  (`hover-media-guard` takes the origin of the unguarded `:hover` rules it would wrap).
 - `ui gate --baseline <f>` and `--write-baseline <f>`: accepted findings (fingerprint = family,
   rule, element, message; never the line) are labelled `baselined` and do not fail the gate; a new
   copy of an accepted finding still does. A file that is not a baseline is refused (`BAD_BASELINE`).
@@ -22,6 +30,9 @@
   recomposed at rest against the source photo and at the largest load and scroll offsets.
 
 ### Fixed
+- Origin attribution ignores a variant's context class: in `.dark\:x:is(.dark *)` the `dark` inside
+  `:is()` names where the rule applies, not the rule, so an app that toggles `class="dark"` no
+  longer makes every kit `dark:` utility authored.
 - `ui gate --tokens` accepts DTCG `$description` / `$extensions` / `$deprecated` / `$schema`
   metadata at the file root and on groups (was: "category `$description` must be an object").
 - `taste/font-scale-sprawl` no longer counts `--*-font-size` custom-property declarations.

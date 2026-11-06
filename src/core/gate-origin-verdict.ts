@@ -3,7 +3,7 @@
  * which findings still COUNT toward the exit code.
  *
  * Counting rule: an error counts unless it is baselined, and — in origin mode —
- * unless it is attributed to a kit or a framework. Nothing is dropped: every
+ * unless it is attributed to a kit, a framework or the tool's own convention. Nothing is dropped: every
  * finding stays in the result, labelled, and the totals per origin are reported,
  * so "the gate passed" never hides how much non-authored noise is still there.
  */
@@ -11,6 +11,7 @@ import type { GateFamily, GateResult } from "./gate.js";
 import { GATE_FAMILIES } from "./gate.js";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { createOriginAttributor, readSourceText } from "./gate-origin.js";
+import { importedPackageCss } from "./gate-origin-packages.js";
 import type { FindingOrigin } from "./gate-origin.js";
 import { baselineMatcher, fingerprintOf, readBaseline, writeBaseline } from "./gate-baseline.js";
 
@@ -48,6 +49,8 @@ export function applyOriginVerdict(result: GateResult, opts: OriginVerdictOption
       html: opts.html,
       ...(opts.srcPaths !== undefined && { authored: readSourceText(opts.srcPaths, opts.kitPaths ?? []) }),
       ...(opts.kitPaths !== undefined && { kit: readSourceText(opts.kitPaths) }),
+      // CSS of the packages the project's own files import (node_modules), found by following imports.
+      ...(opts.srcPaths !== undefined && { packages: importedPackageCss([...opts.srcPaths, ...(opts.kitPaths ?? [])]) }),
     })
     : undefined;
 
@@ -70,7 +73,7 @@ export function applyOriginVerdict(result: GateResult, opts: OriginVerdictOption
   const take = baselinePath !== undefined ? baselineMatcher(readBaseline(baselinePath)) : undefined;
 
   const baselined: Tally = { errors: 0, warnings: 0 };
-  const byOrigin: Record<FindingOrigin, Tally> = { authored: { errors: 0, warnings: 0 }, kit: { errors: 0, warnings: 0 }, framework: { errors: 0, warnings: 0 } };
+  const byOrigin: Record<FindingOrigin, Tally> = { authored: { errors: 0, warnings: 0 }, kit: { errors: 0, warnings: 0 }, framework: { errors: 0, warnings: 0 }, tool: { errors: 0, warnings: 0 } };
   const byRule = new Map<string, { rule: string; origin: FindingOrigin; errors: number; warnings: number }>();
   let countedErrors = 0;
   for (const { fam, f } of all) {

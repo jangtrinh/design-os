@@ -19,6 +19,7 @@ import { lintTaste } from "./taste-lint.js";
 import { allContentChecks } from "./content-checks.js";
 import type { ContentFinding } from "./content-checks.js";
 import { runAutofix } from "./html-autofix.js";
+import { autofixRepairFindings } from "./gate-autofix-repair-findings.js";
 import { lintTell } from "./tell-lint.js";
 import { extractHtml } from "./extractors/html/html-extractor.js";
 import { extractorById } from "./design-facts/index.js";
@@ -165,11 +166,8 @@ export function runGate(rawHtml: string, opts: GateOptions = {}): GateResult {
     } else {
       // Dry-run cleanliness: any repair the autofixer WOULD apply is a floor the
       // artifact has not met — the caller runs `ui autofix --write`, then gates.
-      const { findings } = runAutofix(html);
-      families.autofix = familyResult(findings.length === 0 ? [] : [{
-        checkId: "autofix-not-clean", severity: "error",
-        message: `the autofixer would still apply ${findings.length} repair(s): ${findings.map((f) => f.ruleId).join(", ")} — run \`ui autofix --write\` first, then gate`,
-      }]);
+      // One error per pending repair, each naming what it would touch (origin attribution).
+      families.autofix = familyResult(autofixRepairFindings(html, runAutofix(html).findings));
     }
   }
 
