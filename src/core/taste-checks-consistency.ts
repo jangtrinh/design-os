@@ -5,6 +5,13 @@
  */
 import type { TasteFinding } from "./taste-lint.js";
 import { cssRegions, lineOf } from "./taste-checks-shared.js";
+import { documentDeclarationSites } from "./css-declaration-sites.js";
+
+/** Where a colour/background declaration spells `hex` — the finding's sites for origin attribution. */
+function hexSites(html: string, hex: string): string[] {
+  const esc = hex.replace(/[#]/g, "\\#");
+  return documentDeclarationSites(html, (d) => new RegExp(`^(?:--[\\w-]*-)?(?:color|background(?:-color)?)\\s*:\\s*${esc}\\b`, "i").test(d));
+}
 
 // ─── Consistency: no raw hex when a token exists (rubric lines 139–144) ─────────
 
@@ -47,6 +54,7 @@ export function checkRawHexWhenTokenExists(
         checkId: "raw-hex-when-token-exists", axis: "Consistency", severity: "error",
         message: `arbitrary color ${m[1]} is not a design-system token (rubric Consistency: every color must resolve to a token) — use the nearest token utility or register the color`,
         line: lineOf(html, m.index),
+        subjects: [`.${m[0]}`],
       });
     }
   }
@@ -60,6 +68,7 @@ export function checkRawHexWhenTokenExists(
       findings.push({
         checkId: "raw-hex-when-token-exists", axis: "Consistency", severity: "error",
         message: `inline color ${m[1]} is not a design-system token (rubric Consistency: every color must resolve to a token) — use a token-backed utility`,
+        subjects: hexSites(html, m[1] ?? ""),
       });
     }
   }

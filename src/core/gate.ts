@@ -27,6 +27,8 @@ import { CHECK_CATALOG } from "./check-catalog.js";
 import type { CatalogEntry } from "./check-catalog.js";
 import { DS_USAGE_SKIP_REASON, runDsUsageFamily } from "./ds-usage-gate.js";
 import type { DsUsageGateInput } from "./ds-usage-gate.js";
+import { spreadDenseLines } from "./gate-dense-line-localise.js";
+import type { DenseLineSpread } from "./gate-dense-line-localise.js";
 
 export const GATE_FAMILIES = ["layout", "a11y", "taste", "tell", "content", "ds-usage", "autofix"] as const;
 export type GateFamily = (typeof GATE_FAMILIES)[number];
@@ -77,7 +79,11 @@ function familyResult(findings: GateFamilyResult["findings"]): GateFamilyResult 
   return { ...countBySeverity(findings), findings };
 }
 
-export function runGate(html: string, opts: GateOptions = {}): GateResult {
+export function runGate(rawHtml: string, opts: GateOptions = {}): GateResult {
+  // A dense line (a captured app body on one line) is spread so findings name an element;
+  // every finding is mapped back to its ORIGINAL line below. Identity for normal files.
+  const spread = spreadDenseLines(rawHtml);
+  const html = spread.html;
   const skip = opts.skip ?? {};
   const families: GateResult["families"] = {};
   const skipped: string[] = [];
@@ -167,6 +173,14 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
     }
   }
 
+  if (spread.changed) {
+    for (const fam of GATE_FAMILIES) {
+      const r = families[fam];
+      if (r === undefined) continue;
+      r.findings = r.findings.map((f) => localiseFinding(f, spread));
+    }
+  }
+
   let errorCount = 0;
   let warningCount = 0;
   let advisoryCount = 0;
@@ -179,6 +193,15 @@ export function runGate(html: string, opts: GateOptions = {}): GateResult {
   }
   // pass keys on errors alone: an advisory finding prints and never fails.
   return { families, skipped, partial, errorCount, warningCount, advisoryCount, pass: errorCount === 0 };
+}
+
+/** Map a finding judged on the spread document back to the original line, naming its element. */
+function localiseFinding(f: FloorFindingBase, spread: DenseLineSpread): FloorFindingBase {
+  if (f.line === undefined) return f;
+  const ref = f.nodeRef ?? spread.refAt(f.line);
+  const line = spread.originalLine(f.line);
+  if (ref === undefined || f.repairScope === "global") return { ...f, line };
+  return { ...f, line, nodeRef: ref } as FloorFindingBase;
 }
 
 // ─── Coverage — the registry triage routes on ─────────────────────────────────

@@ -106,4 +106,11 @@ export type FloorFindingBase = {
   actual?: string;
   /** One imperative repair clause, authored per-rule. */
   fixHint?: string;
+  /**
+   * What the finding is ABOUT, for origin attribution (gate-origin.ts): CSS
+   * selectors, `--custom-property` names or `@keyframes <name>`. Set by rules that
+   * aggregate many sites into one finding, so a finding is attributed to a kit or
+   * framework only when EVERY site is — one authored site keeps it authored.
+   */
+  subjects?: string[];
 } & RepairTarget;
