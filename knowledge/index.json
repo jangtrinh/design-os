@@ -36,7 +36,11 @@
         "asset-production",
         "media-pipeline",
         "batch-generation",
-        "orchestration"
+        "orchestration",
+        "image-curation",
+        "banned-scene",
+        "layered-hero",
+        "parallax-hero"
       ]
     },
     {
@@ -329,6 +333,21 @@
         "screen-states",
         "transition",
         "journey"
+      ]
+    },
+    {
+      "id": "generated-photography-art-direction",
+      "path": "knowledge/generated-photography-art-direction.md",
+      "description": "A fill-in art-direction template for generated photography — subject and casting, light, palette, banned scenes, crop and copy zones, QA checklist.",
+      "when": [
+        "art-direction",
+        "generated-photography",
+        "photo-direction",
+        "image-prompt",
+        "banned-scene",
+        "casting",
+        "hero-photo",
+        "image-qa"
       ]
     },
     {

@@ -1,7 +1,7 @@
 ---
 id: asset-production-orchestration
 description: "Ordering and gating a multi-asset production run so generated media arrives usable."
-when: [asset-production, media-pipeline, batch-generation, orchestration]
+when: [asset-production, media-pipeline, batch-generation, orchestration, image-curation, banned-scene, layered-hero, parallax-hero]
 ---
 
 # Asset Production Orchestration
@@ -132,6 +132,60 @@ master or target composition. Inspect at least:
 PSD is a delivery container assembled from curated transparent layers. It is NOT the sole source of
 truth. Keep the PNG layers and `asset-manifest.json` beside it so web delivery remains portable.
 
+### 8. Curate every generated photo at zoom against the banned-scene list
+
+Generated photography fails on details a contact sheet hides: a hand gesture, what a finger
+touches, a prop in the background, a face in the second row. Curation therefore opens EVERY
+candidate at 100% zoom or more and walks a fixed checklist — people (gesture, hands, gaze, what
+each hand touches), scene (props, screens, documents, signage), and the project's banned-scene
+list — before the candidate can be selected. The verdict per image goes into `curation.json` with
+the checklist line that decided it.
+
+The banned-scene list comes from the project's art direction
+(`generated-photography-art-direction.md` holds the template). It MUST be part of the common
+prompt from the FIRST batch, not added after a reviewer finds the first bad image, because a list
+that arrives late leaves every earlier batch generated without it and every round of review
+re-finds the same scene.
+
+Treat a near-variant of a banned scene as the same scene. If "pointing at a chart" is banned, so
+are a finger resting on a printed report, a seated person pointing at a screen, a pen tapping a
+graph, and a hand gesturing at a whiteboard. The model routes around the literal wording; the
+reader of the page sees the same staged gesture.
+
+ALLOWED: rejecting a candidate on one checklist line, with the line recorded; regenerating with
+the banned scene and its variants restated in the prompt.
+
+NOT ALLOWED: approving from thumbnails or a contact sheet, because the gesture or the touched
+object that breaks the direction is usually under 5% of the frame and invisible at that size.
+NOT ALLOWED: accepting a near-variant because it is "not literally" the banned wording, because the
+list bans what the viewer reads, not a string.
+
+### 9. Layered and parallax heroes: recompose in motion, not only at rest
+
+A hero split into planes (background, people, foreground objects) that move at different speeds
+is a composition that changes with scroll and load. Section 7's recomposition at rest proves only
+the first frame. For a layered hero, also:
+
+- **Rest check against the original.** At scroll offset 0 and the final load state, the
+  recomposed planes MUST match the source photo they were cut from — overlay or difference the
+  two. A plane that is offset, rescaled, or recoloured at rest is a cutting error, not a motion
+  effect.
+- **Recompose at the extremes.** Render the stack at the LARGEST offsets the page can produce: the
+  maximum scroll travel of the hero, the largest parallax ratio, the widest and the narrowest
+  supported viewport, and the end state of any load animation. Look for doubled edges, a plane
+  that uncovers a hole or a hard background edge, and an object that appears twice.
+- **One owner per object.** The front plane owns the people AND everything they touch — the chair
+  a person sits on, the desk under their hands, the cup they hold, the laptop they type on. No
+  object exists in both planes. A touched object left in the background separates from the hand
+  the moment the planes move apart, and a copy kept in both planes shows as a doubled edge.
+
+ALLOWED: inpainting the background plane where a front-plane object used to be, then checking that
+area at the maximum offset.
+
+NOT ALLOWED: approving a layered hero from a screenshot at rest, because the doubled edges and holes
+only exist once the planes have moved. NOT ALLOWED: splitting a person from the object they touch
+across planes, because the contact point tears as soon as the parallax speeds differ.
+
 ## Runtime Selection
 
 Prefer provider generation plus local deterministic processing on a normal developer machine.
@@ -152,3 +206,7 @@ ComfyUI may assist visual exploration but MUST NOT become a hidden dependency of
 | PSD cannot reproduce web output | PSD became the only truth | Rebuild from curated PNG layers and the manifest |
 | License status is assumed | Code and checkpoint terms were conflated | Stop publication until each applicable license is recorded |
 | Model retries grow without bound | No fallback threshold exists | Stop prompt repair and route to segmentation/matting |
+| A banned gesture survives several review rounds | Candidates approved from thumbnails; the banned-scene list reached the prompt after the first batch | Curate each image at zoom with the §8 checklist; put the list and its near-variants in the common prompt and regenerate the affected batches |
+| A near-variant of a banned scene is approved | The list was matched as wording ("pointing"), not as what the viewer reads | Reject it as the same scene; add the variant to the list beside its parent |
+| Doubled edges or holes appear when a layered hero moves | Recomposition was checked only at rest; an object exists in both planes or a touched object stayed behind | Recompose at the §9 extremes; move every touched object to the front plane and inpaint the background where it was |
+| A layered hero does not match its source photo at rest | A plane was offset, rescaled or recoloured while cutting | Run the §9 rest check against the original and re-cut the plane |
