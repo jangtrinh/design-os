@@ -11,14 +11,16 @@
  *     indicator on modern phones. (Top-0 headers are intentionally not flagged —
  *     see BOTTOM_ANCHOR; the top inset only bites in undetectable standalone/PWA.)
  *
- * Registered as warnings in layout-lint.ts (the document still renders). Pure
- * string/regex — no DOM, no deps. Precision-first: each fires only on POSITIVE
+ * Registered as warnings in layout-lint.ts (the document still renders).
+ * input-font-below-16 reads the computed cascade (computed-style-probe.ts); the
+ * other two are string/regex. Precision-first: each fires only on POSITIVE
  * markup evidence; ambiguous cases are left un-flagged. M1 (touch-target size)
  * ships separately as tap-target-undersized (taste-checks-tap-target.ts) — one
  * home per rule; this module does not duplicate it.
  */
 import type { LayoutFinding } from "./layout-lint.js";
 import { cssRegions, cssRules, lineOf } from "./taste-checks-shared.js";
+import { baseClasses, computedStyleProbe } from "./computed-style-probe.js";
 
 // ─── shared ─────────────────────────────────────────────────────────────────────
 
@@ -80,31 +82,46 @@ export function checkTapSpacingCramped(html: string): LayoutFinding[] {
 // ─── input-font-below-16 ────────────────────────────────────────────────────────
 
 /** Input types that take no text focus, so iOS never zooms them. */
-const NON_TEXT_INPUT = /\btype\s*=\s*["']?(?:checkbox|radio|hidden|range|color|submit|button|reset|file|image)\b/i;
-/** A sub-16px font: text-xs (12) / text-sm (14) always, or an explicit px value. */
-const SUB16_FONT = /\btext-(?:xs|sm)\b|\btext-\[(\d+(?:\.\d+)?)px\]|font-size\s*:\s*(\d+(?:\.\d+)?)px/i;
+const NON_TEXT_INPUT_TYPES = new Set(["checkbox", "radio", "hidden", "range", "color", "submit", "button", "reset", "file", "image"]);
+/** A sub-16px base class: text-xs (12) / text-sm (14), or an arbitrary px value (checked < 16 by the caller). */
+const SUB16_CLASS = /(?:^|\s)text-(?:xs|sm)(?=\s|$)|(?:^|\s)text-\[(\d+(?:\.\d+)?)px\](?=\s|$)/i;
 
 /**
  * input-font-below-16: a text-entry `<input>` / `<textarea>` / `<select>` whose
  * font-size is under 16px. iOS Safari auto-zooms the viewport when a focused
  * control's text is below 16px, then does not zoom back out — a jarring mobile
- * defect. `text-xs`/`text-sm` always flag; an arbitrary/inline px size flags only
- * when the number is < 16. Non-text input types (checkbox, submit, …) are skipped.
+ * defect. Non-text input types (checkbox, submit, …) are skipped.
+ *
+ * The control's OWN font size decides, read in this order:
+ *  1. the computed value — the winning stylesheet/inline `font-size` for that
+ *     element in the default (mobile-first, no `@media`) cascade;
+ *  2. only when no rule sets it: the element's BASE classes (`text-xs`/`text-sm`,
+ *     `text-[Npx]` < 16) — never a variant such as `file:text-sm` (the
+ *     file-selector button) or `md:text-sm` (a wider viewport), which are not the
+ *     control's base font. On a real compiled page the regex over the raw tag read
+ *     `file:text-sm` on a 16px input and fired on every view.
  */
 export function checkInputFontBelow16(html: string): LayoutFinding[] {
   const findings: LayoutFinding[] = [];
-  for (const m of html.matchAll(/<(input|textarea|select)\b([^>]*)>/gi)) {
-    const tag = (m[1] ?? "").toLowerCase();
-    const attrs = m[2] ?? "";
-    if (tag === "input" && NON_TEXT_INPUT.test(attrs)) continue;
-    const sm = SUB16_FONT.exec(attrs);
-    if (sm === null) continue;
-    const px = sm[1] ?? sm[2];
-    if (px !== undefined && parseFloat(px) >= 16) continue;
+  const probe = computedStyleProbe(html);
+  if (probe === undefined) return findings;
+  for (const el of probe.elements) {
+    const tag = el.tagName;
+    if (tag !== "input" && tag !== "textarea" && tag !== "select") continue;
+    if (tag === "input" && NON_TEXT_INPUT_TYPES.has((el.attribs["type"] ?? "text").toLowerCase())) continue;
+    let px = probe.px(el, "font-size");
+    if (px === undefined) {
+      const base = baseClasses(el).join(" ");
+      const sm = SUB16_CLASS.exec(base);
+      if (sm === null) continue;
+      px = sm[1] !== undefined ? parseFloat(sm[1]) : 14;
+    }
+    if (px >= 16) continue;
     findings.push({
       checkId: "input-font-below-16", severity: "warning",
-      message: `<${tag}> uses a font-size below 16px — iOS Safari zooms the page (and stays zoomed) when a control under 16px gains focus; set text-base (16px) or larger on form controls`,
-      line: lineOf(html, m.index),
+      message: `<${tag}> uses a font-size below 16px (${px}px) — iOS Safari zooms the page (and stays zoomed) when a control under 16px gains focus; set text-base (16px) or larger on form controls`,
+      line: probe.line(el),
+      nodeRef: probe.ref(el),
     });
   }
   return findings;

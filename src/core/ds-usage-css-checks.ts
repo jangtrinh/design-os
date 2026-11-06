@@ -25,8 +25,22 @@ import type { DsUsageFinding } from "./ds-usage-lint.js";
 
 // Longest-alternative-first so "background-color"/"border-color" win over their
 // shorter prefix siblings at the same start position.
+//
+// A custom property whose name ENDS in one of them (`--tw-ring-offset-color: #fff`) is captured
+// whole: `\b` used to start the match at `color`, so the finding named a `color` declaration
+// that does not exist, and the name origin attribution needs was cut off.
 const COLOR_PROP_RE =
-  /\b(box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke)\s*:/gi;
+  /(?<![\w-])((?:--[\w-]*?-)?(?:box-shadow|text-shadow|background-color|outline-color|border-color|background|border|color|fill|stroke))\s*:/gi;
+
+/**
+ * True when `idx` sits in an at-rule PRELUDE (`@supports (color: rgb(from red r g b))`): a feature
+ * query tests whether the browser understands a value; it styles nothing.
+ */
+function inAtRulePrelude(scan: string, idx: number): boolean {
+  let k = idx - 1;
+  while (k >= 0 && scan[k] !== "{" && scan[k] !== "}" && scan[k] !== ";") k--;
+  return /@(?:supports|media|container|import)\b/i.test(scan.slice(k + 1, idx));
+}
 const INLINE_STYLE_RE = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
 
 /**
@@ -170,7 +184,7 @@ export function colourAndTokenFindings(
     }
     const end = valueEnd(scan, start, limit);
     COLOR_PROP_RE.lastIndex = end; // the value is consumed: a property inside it is not a second declaration
-    if (inDeclRange(idx)) continue;
+    if (inDeclRange(idx) || inAtRulePrelude(scan, idx)) continue;
     const prop = (m[1] as string).toLowerCase();
     const value = scan.slice(start, end).trim();
     const literal = HEX_RE.exec(value)?.[0] ?? COLOR_FN_RE.exec(value)?.[0];

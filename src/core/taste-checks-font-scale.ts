@@ -11,7 +11,8 @@
  * (`text-[13px]` / `text-[1.1rem]`), raw CSS `font-size: 17px`, and inline
  * `style="font-size:..."`. NOT counted: named Tailwind steps (`text-sm`/`text-lg`
  * …) — those already ride a fixed ratio — and `font-size: var(--…)` token
- * references, which by definition resolve to a design-system scale. A document
+ * references, which by definition resolve to a design-system scale, and custom
+ * property declarations named `--*-font-size` (the token scale itself). A document
  * that dresses type entirely from a token scale or the named ramp trips nothing.
  *
  * Thresholds: > 10 distinct arbitrary sizes → error (definite sprawl); > 7 →
@@ -53,8 +54,11 @@ function distinctArbitrarySizes(html: string): Set<number> {
 
   // Raw `font-size:` in <style> rules and inline styles. `var(--…)` values carry no
   // literal length and are skipped (they resolve to a token scale by construction).
+  // The lookbehind keeps a CUSTOM PROPERTY whose name ends in `font-size`
+  // (`--typography-body-font-size: 16px`) out of the count: that is the design
+  // system DECLARING its scale, the opposite of hand-picking a size.
   const css = cssRegions(html);
-  const fsRe = /font-size\s*:\s*(\d+(?:\.\d+)?)(px|rem|em|pt)\b/gi;
+  const fsRe = /(?<![\w-])font-size\s*:\s*(\d+(?:\.\d+)?)(px|rem|em|pt)\b/gi;
   while ((m = fsRe.exec(css)) !== null) {
     const px = toPx(m[1] ?? "", m[2] ?? "");
     if (px !== null) sizes.add(px);

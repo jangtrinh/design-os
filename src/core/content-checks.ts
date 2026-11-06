@@ -118,14 +118,30 @@ export function checkPluralSHack(html: string): ContentFinding[] {
 }
 
 // ── text-in-image (warning) ──
+/**
+ * Evidence that an alt TRANSCRIBES copy painted into the image rather than
+ * describing a scene: a call-to-action verb up front, offer/price markers, a
+ * shout (`!`), or mostly-capitalised words. The file name is never evidence — a
+ * photo called hero-home.jpg with a descriptive alt is the normal, correct case,
+ * and guessing from the name fired on every hero photo of a real site.
+ */
+const CTA_LEAD = /^(?:get|save|shop|buy|order|join|sign\s+up|start|try|book|download|subscribe|claim|discover|register)\b/i;
+const OFFER_MARKER = /%|[$€£¥₫]\s?\d|\d\s?[$€£¥₫]|\b(?:off|sale|free|discount|deal|limited)\b|!/i;
+function altReadsAsCopy(alt: string): boolean {
+  const words = alt.trim().split(/\s+/).filter(Boolean);
+  if (words.length < 4) return false;
+  if (CTA_LEAD.test(alt.trim()) || OFFER_MARKER.test(alt)) return true;
+  const letters = words.filter((w) => /\p{L}{2,}/u.test(w));
+  const shouted = letters.filter((w) => w === w.toUpperCase() && w !== w.toLowerCase());
+  return letters.length > 0 && shouted.length / letters.length >= 0.5;
+}
+
 export function checkTextInImage(html: string): ContentFinding[] {
   const out: ContentFinding[] = [];
   for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
     const tag = m[0];
     const alt = /\balt\s*=\s*"([^"]*)"/i.exec(tag)?.[1] ?? "";
-    const src = /\bsrc\s*=\s*"([^"]*)"/i.exec(tag)?.[1] ?? "";
-    const looksHeadline = /(banner|hero|cta|headline|title|promo)/i.test(src);
-    if (looksHeadline && alt.trim().split(/\s+/).length >= 4) {
+    if (altReadsAsCopy(alt)) {
       out.push({ checkId: "text-in-image", severity: "warning", message: "headline text baked into an image (untranslatable, unselectable) — render it as HTML text", line: lineAt(html, m.index) });
     }
   }
