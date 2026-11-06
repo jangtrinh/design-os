@@ -17,18 +17,33 @@
  *     author also writes is the author's.
  *  3. Else FRAMEWORK when it is a custom property only a framework emits by
  *     itself (Tailwind's runtime/theme namespaces, Radix/Base UI runtime vars).
- *  4. Else KIT when it appears in the unmodified kit sources (`--kit`).
- *  5. Anything else — no subject, or a subject found nowhere — is AUTHORED, with
+ *  4. Else FRAMEWORK when a package the project imports declares it: CSS reached
+ *     from a bare `@import` / side-effect import into node_modules
+ *     (gate-origin-packages.ts) — found by following imports, never hand-listed.
+ *     For a class, the kit check (5) runs first: a kit that uses a package class
+ *     owns that usage.
+ *  5. Else KIT when it appears in the unmodified kit sources (`--kit`).
+ *  6. Anything else — no subject, or a subject found nowhere — is AUTHORED, with
  *     the reason printed. Unknown never becomes "not my problem".
  * A finding is non-authored only when EVERY subject is; then KIT if any subject
- * is kit, else FRAMEWORK.
+ * is kit, else FRAMEWORK, else TOOL.
+ *
+ * TOOL is the gate's own raw-HTML convention, not a defect in any source: the
+ * `img-onerror` repair (inline `onerror` + picsum fallback script) applies to every
+ * `<img>` of a page rendered by a component framework, which handles image errors
+ * in its own code. Its subject is `@tool <repair id>`.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import type { FloorFindingBase } from "./finding-schema.js";
 import { indexStyleRegions, subjectsOf } from "./gate-origin-subjects.js";
+import type { PackageCss } from "./gate-origin-packages.js";
+import { classesOf, containsName, containsToken, declaresClass, escapeRe } from "./gate-origin-text-match.js";
 
-export type FindingOrigin = "authored" | "kit" | "framework";
+export { classesOf } from "./gate-origin-text-match.js";
+
+export type FindingOrigin = "authored" | "kit" | "framework" | "tool";
+export const FINDING_ORIGINS: readonly FindingOrigin[] = ["authored", "kit", "framework", "tool"];
 
 /**
  * Custom properties a framework writes on its own. Deliberately NOT `--color-*`
@@ -53,6 +68,8 @@ export interface OriginSources {
   authored?: string;
   /** Text of the unmodified kit sources (`--kit`). Undefined = not given. */
   kit?: string;
+  /** CSS of the packages the project imports (node_modules), each with its name. */
+  packages?: readonly PackageCss[];
 }
 
 export interface OriginContext extends OriginSources {
@@ -117,17 +134,19 @@ export function createOriginAttributor(ctx: OriginContext): (f: FloorFindingBase
     const verdicts = subjects.map((s) => ({ s, v: classify(s) }));
     const authored = verdicts.find((x) => x.v.origin === "authored");
     if (authored !== undefined) return { origin: "authored", originReason: `${authored.s}: ${authored.v.originReason}` };
-    const kit = verdicts.find((x) => x.v.origin === "kit");
-    const pick = kit ?? verdicts[0];
+    const pick = verdicts.find((x) => x.v.origin === "kit") ?? verdicts.find((x) => x.v.origin === "framework") ?? verdicts[0];
     return { origin: pick!.v.origin, originReason: `${pick!.s}: ${pick!.v.originReason}` };
   };
 }
 
 /** One subject → its origin. Subjects are `--var`, `.class`, `@keyframes name`, or a selector chain. */
 function classifySubject(subject: string, ctx: OriginSources): Attributed {
+  if (subject.startsWith("@tool ")) return { origin: "tool", originReason: `${subject.slice("@tool ".length)} is the autofixer's raw-HTML convention, not a defect in a source` };
   if (subject.startsWith("--")) {
     if (ctx.authored !== undefined && containsName(ctx.authored, subject)) return { origin: "authored", originReason: "named in the authored sources" };
     if (FRAMEWORK_VAR.some((re) => re.test(subject))) return { origin: "framework", originReason: "a framework runtime variable" };
+    const pkg = ctx.packages?.find((p) => containsName(p.text, subject));
+    if (pkg !== undefined) return packageVerdict(pkg, "declared");
     if (ctx.kit !== undefined && containsName(ctx.kit, subject)) return { origin: "kit", originReason: "named only in the kit sources" };
     return { origin: "authored", originReason: ctx.kit === undefined ? "not a framework variable (pass --kit to attribute kit names)" : "found in neither the kit nor a framework" };
   }
@@ -137,8 +156,10 @@ function classifySubject(subject: string, ctx: OriginSources): Attributed {
   for (const t of tokens) {
     if (ctx.authored !== undefined && containsToken(ctx.authored, t)) return { origin: "authored", originReason: `'${t}' is used in the authored sources` };
   }
+  if (ctx.authored !== undefined && ctx.kit !== undefined && tokens.every((t) => containsToken(ctx.kit!, t))) return { origin: "kit", originReason: "used only in the kit sources" };
+  const pkg = ctx.packages?.find((p) => tokens.every((t) => declaresClass(p.text, t)));
+  if (pkg !== undefined) return packageVerdict(pkg, "a class");
   if (ctx.authored === undefined || ctx.kit === undefined) return { origin: "authored", originReason: "class origin needs --kit and --src" };
-  if (tokens.every((t) => containsToken(ctx.kit!, t))) return { origin: "kit", originReason: "used only in the kit sources" };
   return { origin: "authored", originReason: "a class found in neither the authored nor the kit sources" };
 }
 
@@ -149,32 +170,14 @@ function classifySubject(subject: string, ctx: OriginSources): Attributed {
 function classifyKeyframes(name: string, ctx: OriginSources): Attributed {
   const used = (text: string): boolean => containsName(text, name) || containsName(text, `animate-${name}`);
   if (ctx.authored !== undefined && used(ctx.authored)) return { origin: "authored", originReason: `'${name}' is run from the authored sources` };
+  if (ctx.authored !== undefined && ctx.kit !== undefined && used(ctx.kit)) return { origin: "kit", originReason: `'${name}' is run only from the kit sources` };
+  const pkg = ctx.packages?.find((p) => new RegExp(`@keyframes\\s+${escapeRe(name)}(?![\\w-])`).test(p.text));
+  if (pkg !== undefined) return packageVerdict(pkg, "keyframes");
   if (ctx.authored === undefined || ctx.kit === undefined) return { origin: "authored", originReason: "keyframes origin needs --kit and --src" };
-  if (used(ctx.kit)) return { origin: "kit", originReason: `'${name}' is run only from the kit sources` };
   return { origin: "authored", originReason: "keyframes run from neither the authored nor the kit sources" };
 }
 
-/** Class names of a selector chain, unescaped (`.hover\:bg-x\/10` → `hover:bg-x/10`). */
-export function classesOf(selector: string): string[] {
-  const out = new Set<string>();
-  for (const m of selector.matchAll(/\.((?:\\.|[\w-])+)/g)) out.add((m[1] ?? "").replace(/\\(.)/g, "$1"));
-  return [...out];
-}
-
-/**
- * A name (custom property, keyframes, utility base) occurs, bounded only by
- * name characters — `[--x:1px]`, `var(--x)` and `data-open:animate-x` all count.
- */
-function containsName(text: string, name: string): boolean {
-  if (!text.includes(name)) return false;
-  const esc = name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-  return new RegExp(`(?<![\\w-])${esc}(?![\\w-])`).test(text);
-}
-
-/** A full class token (variants included) occurs as a whole token, not inside a longer class. */
-function containsToken(text: string, token: string): boolean {
-  if (!text.includes(token)) return false;
-  const esc = token.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-  // Not followed by `:` or `(`: `transition: opacity …` in a stylesheet is a property, not the class.
-  return new RegExp(`(?<![\\w\\-:/\\[\\].!])${esc}(?![\\w\\-/\\[\\]:(])`).test(text);
+/** A package-declared subject: framework, naming the package and the import that brought it. */
+function packageVerdict(pkg: PackageCss, what: string): Attributed {
+  return { origin: "framework", originReason: `${what} in the package '${pkg.name}' (node_modules), imported by ${relative(process.cwd(), pkg.importer) || pkg.importer}` };
 }
