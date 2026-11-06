@@ -12,10 +12,15 @@
  * stylesheet is never flagged (precision over recall — a warning that fires on a
  * fine control is worse than a missed marginal one).
  *
- * Pure string/regex — no DOM, no deps.
+ * Reads the computed cascade through computed-style-probe.ts (the DOM the fact
+ * extractor uses); class-string evidence is only the fallback for an element no
+ * stylesheet rule sizes.
  */
 import type { TasteFinding } from "./taste-lint.js";
-import { lineOf } from "./taste-checks-shared.js";
+import * as du from "domutils";
+import type { Element } from "domhandler";
+import { baseClasses, computedStyleProbe } from "./computed-style-probe.js";
+import type { ComputedStyleProbe } from "./computed-style-probe.js";
 
 const MIN_TAP = 44; // px — the touch-target floor
 const CHECK_ID = "tap-target-undersized";
@@ -83,56 +88,67 @@ function isIconOnly(inner: string): boolean {
   return text.length === 0;
 }
 
+/** Not tappable at all: hidden, aria-hidden, click-through, or visually hidden for screen readers. */
+function notTappable(el: Element, probe: ComputedStyleProbe): boolean {
+  const a = el.attribs;
+  if (el.tagName === "input" && (a["type"] ?? "").toLowerCase() === "hidden") return true;
+  if (a["hidden"] !== undefined || a["aria-hidden"] === "true") return true;
+  if (probe.value(el, "display") === "none" || probe.value(el, "pointer-events") === "none") return true;
+  // Visually hidden (`sr-only`: an absolute 1×1px box) — a skip link for keyboards, never a touch target.
+  const w = probe.px(el, "width"), h = probe.px(el, "height");
+  return probe.value(el, "position") === "absolute" && w !== undefined && h !== undefined && w <= 1 && h <= 1;
+}
+
+/** Inline style text, so the class-only fallback keeps reading `style="height:32px"` when no stylesheet rule set it. */
+function classEvidence(el: Element): string {
+  return `${baseClasses(el).join(" ")} ${el.attribs["style"] ?? ""}`;
+}
+
 /**
  * Flag an interactive control whose touch target is provably under 44px.
  *  A. fixed height < 44px (a hard ceiling — padding cannot grow it);
  *  B. min-height floor < 44px with no vertical padding to reach 44px;
  *  C. icon-only control with ≤ 8px vertical padding and no height token at all.
+ *
+ * Each size is the element's OWN: the computed value from the cascade first
+ * (stylesheet + inline, default state), and only when no rule sets it, its BASE
+ * classes. A variant class is never the element's size — `[&_svg]:size-4` sizes a
+ * child svg and `sm:h-8` a wider viewport; reading them off the raw tag fired on
+ * every 44px kit button of a real compiled page.
  */
 export function checkTapTargetUndersized(html: string): TasteFinding[] {
   const findings: TasteFinding[] = [];
-  const seen = new Set<number>(); // dedup by source offset
+  const probe = computedStyleProbe(html);
+  if (probe === undefined) return findings;
 
-  // Scan 1 — opening interactive tags: prongs A & B (explicit size tokens).
-  const tagRe = /<([a-zA-Z][\w-]*)\b([^>]*)>/g;
-  let m: RegExpExecArray | null;
-  while ((m = tagRe.exec(html)) !== null) {
-    const tag = m[1] ?? "";
-    const attrs = m[2] ?? "";
-    if (!isInteractive(tag, attrs)) continue;
-    const fixed = fixedHeightPx(attrs);
-    const floor = minHeightPx(attrs);
-    const pad = verticalPadPx(attrs);
+  for (const el of probe.elements) {
+    const tag = el.tagName;
+    const attrs = ` ${Object.entries(el.attribs).map(([k, v]) => `${k}="${v}"`).join(" ")}`;
+    if (!isInteractive(tag, attrs) || notTappable(el, probe)) continue;
+    const ev = classEvidence(el);
+    const fixed = probe.px(el, "height") ?? fixedHeightPx(ev);
+    const floor = probe.px(el, "min-height") ?? minHeightPx(ev);
+    const padTop = probe.px(el, "padding-top");
+    const padBottom = probe.px(el, "padding-bottom");
+    const pad = padTop !== undefined || padBottom !== undefined
+      ? Math.max(padTop ?? 0, padBottom ?? 0)
+      : verticalPadPx(ev);
     let msg: string | null = null;
     if (fixed !== null && fixed < MIN_TAP) {
       msg = `interactive control has a fixed height of ${fixed}px, below the ${MIN_TAP}px touch-target minimum (rubric Spacing: touch targets ≥ ~44px) — raise it to h-11 / min-h-[44px]`;
     } else if (floor !== null && floor < MIN_TAP && pad === 0) {
       msg = `interactive control sets min-height ${floor}px (< ${MIN_TAP}px) with no vertical padding to reach the ${MIN_TAP}px touch-target floor — raise the min-height or add padding`;
+    } else if (fixed === null && floor === null && pad <= 8 && isPressable(tag, attrs) && isIconOnly(du.getInnerHTML(el))) {
+      msg = `icon-only control has no explicit height and only ${pad}px vertical padding — likely below the ${MIN_TAP}px touch-target floor; add min-h-[44px] or more padding`;
     }
     if (msg !== null) {
-      seen.add(m.index);
-      findings.push({ checkId: CHECK_ID, axis: "Spacing", severity: "warning", message: msg, line: lineOf(html, m.index) });
+      findings.push({ checkId: CHECK_ID, axis: "Spacing", severity: "warning", message: msg, line: probe.line(el), nodeRef: probe.ref(el) });
     }
   }
-
-  // Scan 2 — icon-only <button>/<a role=button>: prong C (no height token, tiny padding).
-  const elRe = /<(button|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
-  while ((m = elRe.exec(html)) !== null) {
-    if (seen.has(m.index)) continue;
-    const tag = m[1] ?? "";
-    const attrs = m[2] ?? "";
-    const inner = m[3] ?? "";
-    if (tag.toLowerCase() === "a" && !/\brole\s*=\s*["']?button\b/i.test(attrs)) continue;
-    if (fixedHeightPx(attrs) !== null || minHeightPx(attrs) !== null) continue; // sized → scan 1's job
-    if (!isIconOnly(inner)) continue;
-    if (verticalPadPx(attrs) > 8) continue; // adequate padding around the icon
-    const pad = verticalPadPx(attrs);
-    findings.push({
-      checkId: CHECK_ID, axis: "Spacing", severity: "warning",
-      message: `icon-only control has no explicit height and only ${pad}px vertical padding — likely below the ${MIN_TAP}px touch-target floor; add min-h-[44px] or more padding`,
-      line: lineOf(html, m.index),
-    });
-  }
-
   return findings;
+}
+
+/** Prong C's subjects: a <button>, or an <a> acting as one. */
+function isPressable(tag: string, attrs: string): boolean {
+  return tag === "button" || (tag === "a" && /\brole\s*=\s*["']?button\b/i.test(attrs));
 }

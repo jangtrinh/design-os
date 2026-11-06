@@ -7,6 +7,9 @@
  */
 import type { LayoutFinding } from "./layout-lint.js";
 import { lineOf } from "./line-index.js";
+import type { Element } from "domhandler";
+import { baseClasses, computedStyleProbe } from "./computed-style-probe.js";
+import type { ComputedStyleProbe } from "./computed-style-probe.js";
 
 // ─── Error-severity checks ────────────────────────────────────────────────────
 
@@ -107,20 +110,44 @@ export function checkViewportUnitOnBody(html: string): LayoutFinding[] {
 }
 
 /**
- * nested-scroll-container: 2+ elements with overflow:auto/scroll or
- * overflow-auto/overflow-scroll Tailwind classes.
- * Heuristic: counts total occurrences; flags if ≥ 2 (cannot verify true nesting
- * without a DOM parser — documented limitation).
+ * nested-scroll-container: a scroll container INSIDE another scroll container —
+ * the nesting that traps wheel/touch scrolling and focus.
+ *
+ * Judged on the DOM, not on text. An element scrolls when its computed
+ * `overflow`/`overflow-x`/`overflow-y` (stylesheet or inline, default cascade) is
+ * `auto` or `scroll`; only when no rule sets them do its BASE classes
+ * (`overflow-auto`, `overflow-y-scroll`, …) count. The old version counted the
+ * string "overflow: auto" anywhere in the document, so one unused utility rule
+ * compiled into a framework stylesheet (selector + declaration = "2") fired on
+ * every page, and two siblings that never nest fired too.
  */
 export function checkNestedScrollContainer(html: string): LayoutFinding[] {
-  const inlineScroll = (html.match(/overflow\s*:\s*(auto|scroll)/gi) ?? []).length;
-  const twScroll = (html.match(/\boverflow-(auto|scroll)\b/g) ?? []).length;
-  const total = inlineScroll + twScroll;
-  if (total >= 2) {
-    return [{ checkId: "nested-scroll-container", severity: "warning",
-      message: `${total} scroll containers detected — nested scrollable areas may trap focus (heuristic count, not true nesting check)` }];
+  const probe = computedStyleProbe(html);
+  if (probe === undefined) return [];
+  const scrolls = new Set<Element>();
+  for (const el of probe.elements) if (isScrollContainer(el, probe)) scrolls.add(el);
+  const nested: Element[] = [];
+  for (const el of scrolls) {
+    for (let p = el.parent; p !== null; p = p.parent) {
+      if (scrolls.has(p as Element)) { nested.push(el); break; }
+    }
   }
-  return [];
+  return nested.map((el) => ({
+    checkId: "nested-scroll-container", severity: "warning" as const,
+    message: `a scroll container sits inside another scroll container (${scrolls.size} in the page) — nested scrollable areas trap wheel/touch scrolling and focus; let one of them grow instead`,
+    line: probe.line(el),
+    nodeRef: probe.ref(el),
+  }));
+}
+
+const SCROLL_VALUE = /^(?:auto|scroll)$/;
+const SCROLL_CLASS = /^overflow(?:-[xy])?-(?:auto|scroll)$/;
+
+function isScrollContainer(el: Element, probe: ComputedStyleProbe): boolean {
+  const props = ["overflow", "overflow-x", "overflow-y"];
+  const computed = props.map((p) => probe.value(el, p)).filter((v): v is string => v !== undefined);
+  if (computed.length > 0) return computed.some((v) => v.trim().split(/\s+/).some((part) => SCROLL_VALUE.test(part)));
+  return baseClasses(el).some((c) => SCROLL_CLASS.test(c));
 }
 
 /** absolute-without-relative: position:absolute present but no position:relative anywhere. */

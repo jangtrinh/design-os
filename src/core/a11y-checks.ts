@@ -110,14 +110,35 @@ const ICON_GLYPHS = "×✕✓✔▶◀▲▼☰≡⋮⋯…→←↑↓«»‹�
 // eslint-disable-next-line no-misleading-character-class
 const EMOJI_OR_GLYPH = new RegExp(`^(?:[\\p{Extended_Pictographic}\\uFE0F\\u200D${ICON_GLYPHS}\\s]|[\\u{1F1E6}-\\u{1F1FF}])+$`, "u");
 
+/**
+ * Ids named by a `<label for="…">` that carries visible text. A `<button>` is a
+ * labelable element, so `<label for>` gives it its accessible name — the pattern
+ * every custom checkbox/switch (a `<button role="checkbox">` plus a label) uses.
+ */
+function idsNamedByLabelFor(html: string): Set<string> {
+  const ids = new Set<string>();
+  for (const m of html.matchAll(/<label\b([^>]*)>([\s\S]*?)<\/label>/gi)) {
+    const forId = /(?:^|\s)for\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[1] ?? "");
+    const id = forId?.[1] ?? forId?.[2] ?? forId?.[3];
+    const text = (m[2] ?? "").replace(/<[^>]*>/g, "").replace(/&[a-z#0-9]+;/gi, " ").trim();
+    if (id !== undefined && id !== "" && text !== "") ids.add(id);
+  }
+  return ids;
+}
+
 export function checkIconControlUnnamed(html: string): A11yFinding[] {
   const out: A11yFinding[] = [];
+  const labelled = idsNamedByLabelFor(html);
   const re = /<(button|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
   for (const m of html.matchAll(re)) {
     const openAttrs = m[2] ?? "";
     const inner = m[3] ?? "";
     // A programmatic name via ARIA/title exempts it.
     if (hasAttr(openAttrs, "aria-label") || hasAttr(openAttrs, "aria-labelledby") || hasAttr(openAttrs, "title")) continue;
+    // So does a non-empty <label for> pointing at a <button> (an <a> is not labelable).
+    const ownId = /(?:^|\s)id\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(openAttrs);
+    const id = ownId?.[1] ?? ownId?.[2] ?? ownId?.[3];
+    if ((m[1] ?? "").toLowerCase() === "button" && id !== undefined && labelled.has(id)) continue;
     // A nested <img alt>/<svg><title> also names it; be conservative and skip those.
     if (/<img\b[^>]*\balt\s*=\s*("|')?[^"'\s>]+/i.test(inner) || /<title\b/i.test(inner)) continue;
     const text = inner.replace(/<[^>]*>/g, "").replace(/&[a-z#0-9]+;/gi, " ").trim();
