@@ -148,6 +148,28 @@ function parseLeaf(path: string, leaf: Record<string, unknown>): Token {
 }
 
 /**
+ * DTCG metadata keys a group (or the file root) may carry beside its children.
+ * They document the tokens and are never a category, group or token themselves,
+ * so the walkers skip them instead of refusing a valid file. Each has a fixed
+ * shape; a wrong shape is still a BAD_TOKEN, because "skip metadata" must not
+ * become "skip anything that starts with $".
+ */
+const METADATA_KEY_SHAPES: Record<string, (v: unknown) => boolean> = {
+  $description: (v) => typeof v === "string",
+  $schema: (v) => typeof v === "string",
+  $deprecated: (v) => typeof v === "boolean" || typeof v === "string",
+  $extensions: (v) => typeof v === "object" && v !== null && !Array.isArray(v),
+};
+
+/** True when `key` is DTCG metadata to skip; throws when its value has the wrong shape. */
+function isMetadataKey(key: string, val: unknown, at: string): boolean {
+  const shapeOk = METADATA_KEY_SHAPES[key];
+  if (shapeOk === undefined) return false;
+  if (!shapeOk(val)) throw new TokenError("BAD_TOKEN", `'${at}' has the wrong shape for DTCG metadata (${typeof val})`);
+  return true;
+}
+
+/**
  * Recursively walk a category's group to any depth, flattening every nested
  * group into `out` at the top tokenName level — segments below the first join
  * with "-" (PR-FU3-r2 A6). `namePrefix` is "" for a direct child of the
@@ -164,6 +186,7 @@ function flattenCategory(
   for (const [key, val] of Object.entries(groupVal)) {
     const tokenName = namePrefix === "" ? key : `${namePrefix}-${key}`;
     const errorPath = `${pathPrefix}.${key}`;
+    if (isMetadataKey(key, val, errorPath)) continue;
     if (typeof val !== "object" || val === null || Array.isArray(val)) {
       throw new TokenError("BAD_TOKEN", `token '${errorPath}' must be an object`);
     }
@@ -206,6 +229,7 @@ export function parseTokenFile(json: unknown): TokenTree {
   const tree: TokenTree = {};
 
   for (const [category, groupVal] of Object.entries(top)) {
+    if (isMetadataKey(category, groupVal, category)) continue;
     if (typeof groupVal !== "object" || groupVal === null || Array.isArray(groupVal)) {
       throw new TokenError("BAD_TOKEN", `category '${category}' must be an object`);
     }
