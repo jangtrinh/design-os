@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-11-06 - `ui gate` origin attribution, baseline and element localisation; false-positive fixes; generated-photo knowledge
+
+### Added
+- `ui gate --origin` labels every finding `authored`, `kit` or `framework` and fails only on
+  authored errors. Framework = a custom property a framework emits by itself (Tailwind `--tw-*`,
+  `--spacing`, `--text-*`, …; Radix `--radix-*`). `--src <paths>` names the authored sources (a
+  subject found there is authored, whatever it looks like); `--kit <paths>` names the unmodified kit
+  sources, needs `--src`, and implies `--origin`. Anything the tool cannot attribute is authored.
+  Non-authored findings are still counted and printed as a per-rule roll-up; the JSON carries
+  `origin`, `originReason` per finding and `data.origin` (`byOrigin`, `byRule`, `countedErrors`).
+- `ui gate --baseline <f>` and `--write-baseline <f>`: accepted findings (fingerprint = family,
+  rule, element, message; never the line) are labelled `baselined` and do not fail the gate; a new
+  copy of an accepted finding still does. A file that is not a baseline is refused (`BAD_BASELINE`).
+- Element localisation: on a page whose rendered body is one line (Playwright `page.content()` from
+  a dev server) every body finding now carries the element's `nodeRef` and keeps its original line.
+- `knowledge/generated-photography-art-direction.md`: a generic fill-in art direction for generated
+  photography (casting, light, palette, banned scenes with near-variants, crop and copy zones, QA).
+- `knowledge/asset-production-orchestration.md` sections 8 and 9: per-image curation at zoom against
+  a banned-scene list that is in the prompt from the first batch, and layered/parallax heroes
+  recomposed at rest against the source photo and at the largest load and scroll offsets.
+
+### Fixed
+- `ui gate --tokens` accepts DTCG `$description` / `$extensions` / `$deprecated` / `$schema`
+  metadata at the file root and on groups (was: "category `$description` must be an object").
+- `taste/font-scale-sprawl` no longer counts `--*-font-size` custom-property declarations.
+- `content/text-in-image` no longer guesses from the file name; it fires when the alt reads as
+  promotional copy.
+- `taste/tap-target-undersized`, `layout/input-font-below-16` and `layout/nested-scroll-container`
+  read the element's computed style (cascade + `calc()`), never a variant class such as
+  `[&_svg]:size-4` or `file:text-sm`, and nesting is checked on the DOM.
+- `a11y/icon-control-unnamed` accepts a non-empty `<label for>` naming a `<button>`.
+- `ds-usage/hardcoded-color` names a custom-property declaration as itself
+  (`--tw-ring-offset-color`, not `color`) and ignores `@supports`/`@media` feature queries.
+
 ## 2026-11-05 - Landing conversion craft, the Conversion Monochrome persona and six advisory ship-list checks
 
 ### Added

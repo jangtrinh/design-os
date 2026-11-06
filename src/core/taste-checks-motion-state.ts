@@ -10,6 +10,7 @@
  */
 import type { TasteFinding } from "./taste-lint.js";
 import { cssRegions, cssRules } from "./taste-checks-shared.js";
+import { documentDeclarationSites } from "./css-declaration-sites.js";
 
 // ─── Motion: never overshoot/bounce on UI state transitions (rubric Axis 4) ─────
 
@@ -81,7 +82,12 @@ export function checkFocusRingAnimatesIn(html: string): TasteFinding[] {
   while ((m = propDecl.exec(css)) !== null) {
     if (OUTLINE_TOKEN.test(m[1] ?? "")) { hitA = true; break; }
   }
-  if (hitA) findings.push({ checkId: "focus-ring-animates-in", axis: "Motion", severity: "error", message: FOCUS_RING_MSG });
+  if (hitA) {
+    findings.push({
+      checkId: "focus-ring-animates-in", axis: "Motion", severity: "error", message: FOCUS_RING_MSG,
+      subjects: documentDeclarationSites(html, /^transition(?:-property)?\s*:\s*[^;}"']*\boutline(?:-color|-width|-offset)?\b/i),
+    });
+  }
 
   // Prong B: a :focus rule that transitions box-shadow or outline into view.
   let hitB = false;
@@ -95,7 +101,11 @@ export function checkFocusRingAnimatesIn(html: string): TasteFinding[] {
     }
     if (hitB) break;
   }
-  if (hitB) findings.push({ checkId: "focus-ring-animates-in", axis: "Motion", severity: "error", message: FOCUS_RING_MSG });
+  if (hitB) {
+    // Prong B's sites are the :focus rules themselves, so its subjects are their selectors.
+    const focusSites = cssRules(css).filter((r) => FOCUS_SELECTOR.test(r.selector) && /transition(?:-property)?\s*:[^;}]*(?:box-shadow|outline)/i.test(r.body)).map((r) => r.selector);
+    findings.push({ checkId: "focus-ring-animates-in", axis: "Motion", severity: "error", message: FOCUS_RING_MSG, subjects: focusSites });
+  }
 
   return findings;
 }

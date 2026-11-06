@@ -23,13 +23,17 @@ import type { TokenCoverageResult } from "../core/token-coverage.js";
 import { DEFAULT_TOKEN_COVERAGE_FLOOR } from "./token-coverage.js";
 import { setFamilyAccentContext } from "../core/tell-rules-color.js";
 import { hexToOKLCH } from "../core/color-convert.js";
+import { applyOriginVerdict } from "../core/gate-origin-verdict.js";
+import type { LabelledFinding, OriginSummary } from "../core/gate-origin-verdict.js";
+import { originSummaryLines, parseOriginFlags } from "./gate-origin-flags.js";
 
 const CMD = "gate";
 
 export const GATE_HELP = `ui gate — composed floor judge (every linter family, one verdict)
 
 Usage:
-  ui gate <file.html> [--tokens <f>] [--dir <project>] [--family <slug>] [--skip <family>:<reason>[,...]] [--json]
+  ui gate <file.html> [--tokens <f>] [--dir <project>] [--family <slug>] [--skip <family>:<reason>[,...]]
+          [--origin] [--src <paths>] [--kit <paths>] [--baseline <f> | --write-baseline <f>] [--json]
   ui gate coverage [--dir <project>] [--json]
 
 Runs, in one call:
@@ -81,12 +85,31 @@ Options:
                 --skip "layout: embeddable fragment,content: mirror evidence"
   --token-coverage-floor <n>  Minimum ui token-coverage score before the gate
                 fails (default: 0.8; only applies when a token file is found)
+  --origin      Label every finding authored / kit / framework and fail only on AUTHORED
+                errors. Framework = a custom property a framework emits by itself
+                (Tailwind --tw-*, --spacing, --text-*, …; Radix --radix-*). Kit = named
+                only in the --kit sources. Everything else — including anything the
+                tool cannot attribute — is authored, so attribution never hides debt.
+                Non-authored findings are still counted and printed as a roll-up.
+  --src <paths> Comma-separated authored source files/folders (kit paths inside are
+                excluded). A subject found here is authored, whatever it looks like.
+  --kit <paths> Comma-separated UNMODIFIED kit source files/folders. Needs --src (a kit
+                class an author also uses must stay authored). Implies --origin.
+  --baseline <f>        Accepted findings (from --write-baseline): matching findings are
+                        labelled "baselined" and do not fail the gate; new ones do.
+  --write-baseline <f>  Write every current error/warning to <f> as the baseline, then
+                        judge against it (so this run passes on findings, not on coverage).
   --json        Emit a JSON envelope instead of human-readable output
 
+Body findings of a page whose whole body sits on one line (a captured app,
+\`page.content()\`) are localised: each carries the element's nodeRef selector
+and its original line.
+
 Exit codes:
-  0  No error-severity findings in any run family (warnings allowed), and
-     token-coverage (when it ran) is at or above its floor
-  1  Any error-severity finding, pending autofix repairs, token-coverage below
+  0  No COUNTED error-severity finding in any run family (warnings allowed), and
+     token-coverage (when it ran) is at or above its floor. Counted = not baselined,
+     and with --origin also authored.
+  1  Any counted error-severity finding, pending autofix repairs, token-coverage below
      its floor, or a user/file error
 
 Error codes:
@@ -95,6 +118,7 @@ Error codes:
   TOKENS_NOT_READABLE  --tokens path missing/unparsable — refused rather than silently weaker
   FAMILY_NOT_FOUND     --family names a slug not in knowledge/personas/families.json,
                        or that file cannot be found/parsed
+  BAD_BASELINE   --baseline is missing, unparsable, or not a ui gate baseline
   FILE_NOT_FOUND The input file does not exist
   READ_ERROR     The input file cannot be read
 `;
@@ -203,7 +227,9 @@ export const gateCommand = {
 
   run(parsed: ParsedArgs): CommandResult {
     const useJson = parsed.json;
-    const file = parsed.positionals[0];
+    // `--origin` is a bare flag; `ui gate --origin page.html` must not swallow the file as its value.
+    const originValue = parsed.flags["origin"];
+    const file = parsed.positionals[0] ?? (typeof originValue === "string" ? originValue : undefined);
     if (file === "coverage") {
       const dir = typeof parsed.flags["dir"] === "string" ? (parsed.flags["dir"] as string) : process.cwd();
       // Resolve the DS the way every DS command does (walks up to .git) — a
@@ -266,6 +292,9 @@ export const gateCommand = {
       const msg = `--dir '${dirFlag}' does not exist — pass the project folder that holds design/`;
       return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
     }
+    const originFlags = parseOriginFlags(parsed);
+    if (typeof originFlags === "string") return useJson ? errJson(CMD, "BAD_ARG", originFlags) : errText(`ui: ${originFlags}\n`);
+
     const tokensFlag = parsed.flags["tokens"];
     let knownHexes: Set<string> | undefined;
     if (typeof tokensFlag === "string") {
@@ -388,11 +417,22 @@ export const gateCommand = {
       setFamilyAccentContext(undefined);
     }
     if (familyPolicy !== undefined) result = applyGatePolicy(result, familyPolicy);
+    let originSummary: OriginSummary | undefined;
+    if (originFlags.originMode || originFlags.baselinePath !== undefined || originFlags.writeBaselinePath !== undefined) {
+      try {
+        ({ result, summary: originSummary } = applyOriginVerdict(result, { ...originFlags, html, file }));
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        return useJson ? errJson(CMD, "BAD_BASELINE", msg) : errText(`ui: ${msg}\n`);
+      }
+    }
+    const familiesPass = originSummary !== undefined ? originSummary.countedErrors === 0 : result.pass;
     result.errorCount += loaded.errors.length + (tokensUnreadable ? 1 : 0);
-    const pass = result.pass && loaded.errors.length === 0 && !tokenCoverageFails && !tokensUnreadable;
+    const pass = familiesPass && loaded.errors.length === 0 && !tokenCoverageFails && !tokensUnreadable;
     const exitCode = pass ? 0 : 1;
 
-    const lines: string[] = [`gate: ${file} — ${result.errorCount} error(s), ${result.warningCount} warning(s)${pass ? " — PASS" : ""}`];
+    const lines: string[] = [`gate: ${file} — ${result.errorCount} error(s), ${result.warningCount} warning(s)${originSummary !== undefined ? ` — ${originSummary.countedErrors} counted` : ""}${pass ? " — PASS" : ""}`];
+    if (originSummary !== undefined) lines.push(...originSummaryLines(originSummary));
     for (const e of loaded.errors) lines.push(`  ✗ [${e.checkId}]: ${e.message}`);
     if (tokensUnreadable) {
       lines.push(`  ✗ [token-coverage/tokens-not-readable]: ${tokenCoverageSource.path ?? "the token file"} — ${tokenCoverageSource.error ?? ""}`);
@@ -406,8 +446,12 @@ export const gateCommand = {
       if (r === undefined) continue;
       if (r.findings.length === 0) { lines.push(`  ${fam}: clean`); continue; }
       lines.push(`  ${fam}: ${r.errorCount} error(s), ${r.warningCount} warning(s)`);
-      for (const f of r.findings) {
-        lines.push(`    ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]${f.line !== undefined ? ` line ${f.line}` : ""}: ${f.message}`);
+      for (const f of r.findings as LabelledFinding[]) {
+        // In origin mode the per-finding list is the authored, un-baselined work; the rest is the roll-up above.
+        if (originSummary?.mode === "authored" && (f.origin !== "authored" || f.baselined === true)) continue;
+        const tag = f.baselined === true ? " (baselined)" : "";
+        const where = `${f.line !== undefined ? ` line ${f.line}` : ""}${f.nodeRef !== undefined ? ` ${f.nodeRef}` : ""}`;
+        lines.push(`    ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]${where}${tag}: ${f.message}`);
       }
     }
     for (const fam of GATE_FAMILIES) for (const n of result.families[fam]?.notes ?? []) lines.push(`  note ${fam}: ${n}`);
@@ -424,7 +468,7 @@ export const gateCommand = {
         actual: tokenCoverageSource.path, fixHint: "fix the project's token file",
       }]
       : [];
-    const data = { file, ...result, pass, tokenCoverage, tokenCoverageSource, tokenCoverageFindings, tokenCoverageFloor, linkedCssErrors: loaded.errors };
+    const data = { file, ...result, pass, ...(originSummary !== undefined && { origin: originSummary }), tokenCoverage, tokenCoverageSource, tokenCoverageFindings, tokenCoverageFloor, linkedCssErrors: loaded.errors };
     const out = useJson ? okJsonWithExit(CMD, data, exitCode) : { exitCode, stdout: lines.join("\n") + "\n" };
     return withOutcome(out, parsed, { type: "lint_run", actor: "ui gate", projectDir: file, data: lintOutcomeData("gate", file, { findings: [...Object.values(result.families).flatMap((r) => r.findings), ...tokenCoverageFindings], errorCount: result.errorCount, warningCount: result.warningCount }) });
   },

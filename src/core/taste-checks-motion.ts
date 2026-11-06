@@ -5,6 +5,7 @@
  * per-axis modules under the 200-line guideline.
  */
 import type { TasteFinding } from "./taste-lint.js";
+import { documentDeclarationSites } from "./css-declaration-sites.js";
 import { cssRegions } from "./taste-checks-shared.js";
 
 // ─── Motion: directional easing, never linear (rubric lines 147, 153) ───────────
@@ -26,6 +27,7 @@ export function checkLinearOrAllTransition(html: string): TasteFinding[] {
     findings.push({
       checkId: "linear-easing", axis: "Motion", severity: "error",
       message: `transition uses linear easing (rubric: "never linear for UI transitions — linear reads mechanical") — use ease-out for enter, ease-in for exit`,
+      subjects: documentDeclarationSites(html, /^transition(?:-timing-function)?\s*:\s*[^;}"']*\blinear\b/i),
     });
   }
 
@@ -35,6 +37,7 @@ export function checkLinearOrAllTransition(html: string): TasteFinding[] {
     findings.push({
       checkId: "transition-all", axis: "Motion", severity: "error",
       message: `transition targets "all" properties (rubric: "Animate transform and opacity, not layout properties") — name the specific properties to transition`,
+      subjects: documentDeclarationSites(html, /^transition(?:-property)?\s*:\s*(?:[^;}"']*\s)?all\b/i),
     });
   }
 
@@ -128,8 +131,10 @@ export function checkKeyframesLayoutProps(html: string): TasteFinding[] {
       findings.push({
         checkId: "keyframes-layout-props", axis: "Motion", severity: "error",
         message: `@keyframes "${name}" animates layout property "${prop}" (rubric Motion: "Animate transform and opacity, not layout properties") — animate transform/opacity instead`,
+        subjects: [`@keyframes ${name}`],
       });
     }
   }
   return findings;
 }
+

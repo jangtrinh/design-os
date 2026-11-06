@@ -22,6 +22,7 @@
  */
 import type { TasteFinding } from "./taste-lint.js";
 import { cssRegions } from "./taste-checks-shared.js";
+import { documentDeclarationSites } from "./css-declaration-sites.js";
 
 const CHECK_ID = "font-scale-sprawl";
 const WARN_OVER = 7;
@@ -76,11 +77,17 @@ function distinctArbitrarySizes(html: string): Set<number> {
 export function checkFontScaleSprawl(html: string): TasteFinding[] {
   const count = distinctArbitrarySizes(html).size;
   if (count <= WARN_OVER) return [];
+  // Every site that contributed a size, so origin attribution can tell a kit's
+  // compiled utilities from an author's hand-picked `text-[13px]`.
+  const subjects = new Set<string>();
+  for (const m of html.matchAll(/\btext-\[\d+(?:\.\d+)?(?:px|rem|em|pt)\]/gi)) subjects.add(`.${m[0]}`);
+  for (const site of documentDeclarationSites(html, /^font-size\s*:\s*\d+(?:\.\d+)?(?:px|rem|em|pt)\b/i)) subjects.add(site);
   const severity = count > ERROR_OVER ? "error" : "warning";
   return [{
     checkId: CHECK_ID,
     axis: "Typography",
     severity,
+    subjects: [...subjects],
     message: `${count} distinct hand-picked font sizes (rubric Typography: "pick one modular ratio and derive the scale from it; do not hand-pick unrelated sizes") — derive the scale from one ratio or map these onto the design-system type steps`,
   }];
 }

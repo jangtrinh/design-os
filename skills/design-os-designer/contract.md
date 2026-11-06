@@ -1,4 +1,4 @@
-<!-- sha256: 1d4b1b75abcb6e894da5de9115d25a4ba0398e0a0413c7577fae62dd3f837cdc -->
+<!-- sha256: 686d1437736465485de1e2e16e6efd85e2590e5b4fd51bfdac3512ebaa2d0b66 -->
 # Generated command contract
 
 Generated from `src/core/command-signatures.ts` through `ui schema --json`. Do not edit: validate.mjs
@@ -17,8 +17,13 @@ Usage: `ui gate <file.html> [flags]`
 | `--skip` | string | Comma-separated <family>:<reason> pairs — declared partial gating |
 | `--dir` | string | Project directory to probe for tokens/DS (default: the file's folder; coverage mode: cwd) |
 | `--token-coverage-floor` | string | Minimum ui token-coverage score before the gate fails (default: 0.8) |
+| `--origin` | boolean | Label findings authored/kit/framework and fail only on authored errors |
+| `--src` | string | Comma-separated authored source files/folders (origin attribution) |
+| `--kit` | string | Comma-separated unmodified kit source files/folders; needs --src; implies --origin |
+| `--baseline` | string | Accepted-findings file: matching findings do not fail the gate |
+| `--write-baseline` | string | Write the current errors/warnings as a baseline file, then judge against it |
 
-Error codes: `BAD_ARG`, `FILE_NOT_FOUND`, `READ_ERROR`, `TOKENS_NOT_READABLE`, `FAMILY_NOT_FOUND`
+Error codes: `BAD_ARG`, `FILE_NOT_FOUND`, `READ_ERROR`, `TOKENS_NOT_READABLE`, `FAMILY_NOT_FOUND`, `BAD_BASELINE`
 
 ## ui validate-layout
 
