@@ -56,10 +56,30 @@ describe("ui design lint — two-token-sources", () => {
     const r = lint(project({ "design/ds.manifest.json": MANIFEST, "design/tokens.json": tokens(7), "design/design.tokens.json": tokens(12) }));
     const hits = r.findings.filter((f) => f.checkId === "two-token-sources");
     expect(hits).toHaveLength(1);
-    expect(hits[0]).toMatchObject({ severity: "error", fix: "Answer the source-authority question: ui onboard questions" });
+    expect(hits[0]!.severity).toBe("error");
+    expect(hits[0]!.fix).toBe("Keep one source: delete one of the two files, or declare design/design.tokens.json derived in design/design-dir.json");
+    expect(`${hits[0]!.message} ${hits[0]!.fix}`).not.toContain("ui onboard questions");
     expect(hits[0]!.message).toContain("12 tokens");
     expect(hits[0]!.message).toContain("7 tokens");
     expect(r.exitCode).toBe(1);
+  });
+
+  it("a single token reads \"1 token\", several read \"N tokens\"", () => {
+    const r = lint(project({ "design/ds.manifest.json": MANIFEST, "design/tokens.json": tokens(1), "design/design.tokens.json": tokens(2) }));
+    const msg = r.findings.find((f) => f.checkId === "two-token-sources")!.message;
+    expect(msg).toContain("(2 tokens)");
+    expect(msg).toContain("(1 token)");
+    expect(msg).not.toContain("1 tokens");
+  });
+
+  it("object values that differ only in key order are the same token set", () => {
+    const doc = (value: string): string => `{ "color": { "brand": { "$type": "color", "$value": ${value} } } }`;
+    const r = lint(project({
+      "design/ds.manifest.json": MANIFEST,
+      "design/tokens.json": doc('{ "r": 1, "g": 2, "nested": { "a": 1, "b": 2 } }'),
+      "design/design.tokens.json": doc('{ "nested": { "b": 2, "a": 1 }, "g": 2, "r": 1 }'),
+    }));
+    expect(r.findings).toEqual([]);
   });
 
   it("equal token sets → nothing", () => {
