@@ -1,95 +1,141 @@
-# DESIGN:OS (`design-os`)
+# DESIGN:OS CLI
 
-**Multi-runtime design operating system and CLI for Claude Code, OpenAI Codex, Gemini CLI, and Google Antigravity.**
-
-Install once to equip any AI coding agent with 12+ domain design skills, deterministic verification gates, 2:1 axonometric art direction, and live Figma / SVG / 3D / SwiftUI / packaging workflows.
-
-**DESIGN:OS is free** to use and modify. Source-available under PolyForm Shield 1.0.0. Install with `npx @easestart/design-os init`.
-
-<p align="center">
-  <img src="assets/cover.png" alt="DESIGN:OS CLI — 2:1 Axonometric Technical Architecture" width="840">
+<p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/cover-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/readme/cover-light.png">
+  <img src="assets/readme/cover-dark.png" alt="design:os by Jang" width="100%">
+</picture>
 </p>
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm_Shield_1.0.0-202020?style=flat-square&labelColor=202020&color=444444" alt="PolyForm Shield 1.0.0 License"></a>
-  <img src="https://img.shields.io/badge/Claude_Code_%C2%B7_Codex_%C2%B7_Gemini_%C2%B7_Antigravity-skill-202020?style=flat-square&labelColor=202020&color=444444" alt="Compatible agents">
-  <a href="commands/doctor.md"><img src="https://img.shields.io/badge/diagnostics-%2Fdoctor-202020?style=flat-square&labelColor=202020&color=444444" alt="Doctor command"></a>
-  <a href="https://jangtrinh.github.io/design-os/"><img src="https://img.shields.io/badge/live_docs-GitHub_Pages-202020?style=flat-square&labelColor=202020&color=444444" alt="Live GitHub Pages"></a>
-  <a href="https://buymeacoffee.com/jangtrinh"><img src="https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
+**Onboard your project's design system into one standard ontology, then build an autonomous design agent on it.**
+
+DESIGN:OS CLI reads the tokens, components and docs your project already has and compiles them into a sealed `design/` store: DTCG tokens with modes, a component registry, a declared stance and a hash-sealed manifest. Your coding agent (Claude Code, Codex or Antigravity) then loads that store before every task, works with the project's own names and values, and runs deterministic gates on what it makes. The CLI itself never calls a model and sends nothing off your machine.
+
+FREE + source-available ([PolyForm Shield 1.0.0](LICENSE)). Published on npm as [`ease-design`](https://www.npmjs.com/package/ease-design); the command is `ui`.
+
+<p>
+  <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#commands">Commands</a> · <a href="#install-for-your-agent">Install for your agent</a> · <a href="#limits">Limits</a>
 </p>
-
-<p align="center">
-  <a href="#quickstart">Quickstart</a> · <a href="#what-it-makes">What it makes</a> · <a href="#installation">Install</a> · <a href="#how-it-works">How it works</a> · <a href="#commands--diagnostics">Commands</a> · <a href="#quality-bar--limitations">Limits</a>
-</p>
-
----
-
-## Why this exists
-
-AI coding agents write functional code quickly, but their default visual output suffers from inconsistent spacing, hallucinated tokens, rainbow badges, and zero verification gates. **DESIGN:OS** turns aesthetic taste and design systems engineering into deterministic, runtime-agnostic contracts.
-
-| Dimension | Generic AI / Manual Workflow | DESIGN:OS CLI (`DESIGN:OS`) |
-| :--- | :--- | :--- |
-| **Visual Quality** | Generic purple-gradient AI slop and ad-hoc CSS | Token-locked typography, 8pt modular grid, and 2:1 axonometric art direction |
-| **Context Budget** | Dumping massive style guides into every prompt | Progressive skill disclosure (`SKILL.md` router + on-demand domain packs) |
-| **Verification** | Visual eyeballing with zero automated checks | Deterministic CLI gates (`self_check.py`, contrast, and anti-flop audits) |
-| **Multi-Agent Parity** | Locked to a single IDE or proprietary prompt format | One canonical skill tree across Claude Code, Codex, Gemini CLI & Antigravity |
-| **Privacy & Telemetry** | Opaque cloud telemetry or unverified third-party APIs | **Zero telemetry** — 100% local execution ([`PRIVACY.md`](PRIVACY.md) audited) |
-
----
 
 ## Quickstart
 
-### 1. Install the plugin or CLI
+Node 20 or later. Run these in your project:
 
-**In Claude Code:**
+```bash
+npx ease-design scan                    # what design signals does this project have?
+npx ease-design init --runtime claude   # or codex, antigravity, or --all
+npx ease-design onboard                 # setup checklist and the next command to run
+```
+
+Onboard a CSS design system (custom properties) into the store:
+
+```bash
+npx ease-design designmd extract-tokens index.html --css styles.css --out extract.json
+npx ease-design ingest-css-ds extract.json --out capture --name acme
+npx ease-design ds import capture/tokens.json --dir . --name acme
+npx ease-design ds context              # the block your agent loads first
+```
+
+Optional: generate Claude Code project agents bound to that store.
+
+```bash
+npx ease-design agents init             # designer, curator, figma-hand
+```
+
+To keep `ui` on your path: `npm install -g ease-design`.
+
+## How it works
+
+<p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/flow-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/readme/flow-light.png">
+  <img src="assets/readme/flow-dark.png" alt="design:os by Jang" width="100%">
+</picture>
+</p>
+
+**1. Your design system.** `ui scan` detects the framework, styling and component folders. Tokens come from CSS custom properties (`ui designmd extract-tokens`), a Figma library scan made with [Bridge](https://github.com/jangtrinh/design-os-figma-plugin), or a flat `tokens.json`. Components come from your code exports or the same Figma scan. `CONTEXT.md` and `ontology/glossary.yaml` supply the project's terms.
+
+**2. The standard ontology.** Every source compiles into the same `design/` store:
+
+| File | What it holds |
+| :--- | :--- |
+| `design.tokens.json` | W3C DTCG tokens: primitives, semantic aliases, Light and Dark modes |
+| `component-registry.json` | Every component by its exact owner name, with variants, states and the tokens it uses |
+| `soul.md` | The declared stance: what the system never does, always does, and how it speaks |
+| `ds.manifest.json` | Generation, persona and the hashes that seal the store |
+| `guidelines/` | A cited guidelines pack compiled from the store, rulings and glossary (`ui ds guidelines build`) |
+
+`ui ingest-css-ds`, `ui ingest-figma-ds` and `ui ds import` write it; `ui ds kit plan | prepare | validate | adopt | verify` takes a full component kit from capture to a verified, adopted state. After that, tokens change through `ui ds change-token` and `ui ds set-role`. A hand edit breaks the seal: `ui ds status` and `ui ds context` report the hash mismatch until the change goes through the CLI or `ui ds reseal`.
+
+**3. Your design agent.** `ui init` writes skills, `/ui` commands and routing rules for Claude Code, Antigravity or Codex. `ui agents init` adds three Claude Code subagents named after your project (designer, curator, figma-hand). Each one loads `ui ds context` before it acts, and the designer looks up every component it uses with `ui registry lookup`, so it works from your tokens and components instead of defaults. `ui gate` checks what the agent builds: layout, accessibility, taste, tells, copy and design-system usage, in one verdict.
+
+## Commands
+
+| Command | What it does |
+| :--- | :--- |
+| `ui scan` · `ui onboard` | Detect existing design signals; show the setup checklist. Read-only |
+| `ui ingest-css-ds` · `ui ingest-figma-ds` · `ui ds import` | Compile CSS variables, a Figma scan or a flat `tokens.json` into the `design/` store |
+| `ui ds kit` | Plan, prepare, validate, adopt and verify a complete component kit |
+| `ui ds context` | Emit the active design system as the context block for your agent |
+| `ui ds status` · `ui ds diff` · `ui ds a11y` | Manifest summary; semver-classified diff between two states; token contrast audit |
+| `ui ds guidelines build \| check \| export` | Compile, lint and export the guidelines pack |
+| `ui init` · `ui agents init` | Write the runtime adapters; generate project agents |
+| `ui gate` | Composed floor judge over every linter family: layout, a11y, taste, tell, content, ds-usage |
+| `ui taste-lint` — 35 absolute checks | Generated-UI taste floor: motion, typography, spacing and focus states |
+| `ui validate-layout` — 20 checks | Structure and overflow safety (`100vw` traps, unclosed tags, sticky overflow) |
+| `ui content-lint` — 15 checks | Honest copy: placeholder text, lorem ipsum, generic names, all-caps shouting |
+| `ui tell-lint` — 43 checks, any language | Design tells across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI and Flutter |
+| `ui tokens` · `ui color` | Compile DTCG tokens to CSS, Tailwind or Figma variables; OKLCH colour math |
+| `ui doctor` | Check that the install and the project are healthy |
+
+`ui --help` lists all commands; `ui schema --json` emits machine-readable signatures for every one.
+
+## Install for your agent
+
+`ui init` above wires a project. To install the skill itself:
+
+**Claude Code**
 
 ```text
 /plugin marketplace add jangtrinh/design-os
 /plugin install design-os@design-os
 ```
 
-**Or from your terminal (Codex, Gemini CLI, Antigravity, OpenCode, or standalone CLI):**
+**Codex**
 
 ```bash
-git clone https://github.com/jangtrinh/design-os.git
-cd design-os
-npx @easestart/design-os init
+git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
+mkdir -p ~/.codex/skills/design-os ~/.codex/prompts
+cp -R /tmp/design-os/skills/design-os/* ~/.codex/skills/design-os/
+cp /tmp/design-os/prompts/doctor.md ~/.codex/prompts/design-os-doctor.md
+rm -rf /tmp/design-os
 ```
 
-### 2. Ask in plain English
-
-Open your project in your AI coding agent and describe what you need:
-
-> "Initialize DESIGN:OS in this repo and wire our design tokens and verification gates for Claude Code and Codex."
-
-> "Audit our current frontend components against DESIGN:OS typography, spacing, and WCAG 2.2 AA contrast gates."
-
-> "Scaffold a new product landing page with 2:1 axonometric B&W technical illustrations and SEO/AEO/GEO metadata."
-
-### 3. Verify your setup
+**Gemini CLI and Antigravity**
 
 ```bash
-python3 scripts/self_check.py
+git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
+mkdir -p ~/.gemini/skills/design-os
+cp -R /tmp/design-os/skills/design-os/* ~/.gemini/skills/design-os/
+rm -rf /tmp/design-os
 ```
 
----
+**Other harnesses (OpenCode, Cursor, Windsurf)**
 
-## What it makes
+```bash
+git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
+mkdir -p ~/.agents/skills/design-os
+cp -R /tmp/design-os/skills/design-os/* ~/.agents/skills/design-os/
+rm -rf /tmp/design-os
+```
 
-Every deliverable produced by `design-os` is backed by a deterministic verification gate rather than freehand AI guesswork.
+Check a clone of this repository with `python3 scripts/self_check.py`, or run `/doctor` in Claude Code or Codex.
 
-<p align="center">
-  <img src="assets/cover.png" alt="DESIGN:OS CLI Output Specimen" width="840"><br>
-  <sub>Prompt: <code>"Initialize DESIGN:OS in this repo and wire our design tokens and verification gates for Claude Code and Codex."</code></sub>
-</p>
+## Examples
 
-| Deliverable / Mode | Best for | Output Format | Verification Gate |
-| :--- | :--- | :--- | :--- |
-| **Multi-Runtime Skill Pack** | Wiring Claude Code, Codex, Gemini CLI, and Antigravity to one design standard | `.claude-plugin + skills/` | `python3 scripts/self_check.py` |
-| **Design System Tokens & Gates** | Enforcing spacing, typography, and WCAG 2.2 AA contrast in CI | `JSON / CSS / CLI exit code` | `Zero contrast or grid violations` |
-| **Cross-Engine Orchestration** | Routing tasks to Figma, SVG Animation, 3D Blender, Apple SwiftUI, or Origami CAD | `Verified domain artifacts` | `13-engine ecosystem parity` |
-| **Design-System Guidelines Pack** | Teaching any design agent the rules a library cannot show — owner rulings, look-alike components, measured anti-patterns — and shipping them as a Figma library guidelines bundle | `design/guidelines/*.md + figma-guidelines/` | `ui ds guidelines check` — no invented names, no tampered facts, Figma's 8-file / 200 KB limits |
+Diagrams and charts built with the CLI. Each one is a committed artifact that passes its linter with zero findings.
 
 <!-- BEGIN:examples-grid (generated by scripts/build-examples-gallery.mjs) -->
 
@@ -154,218 +200,23 @@ Every deliverable produced by `design-os` is backed by a deterministic verificat
 
 <!-- END:examples-grid -->
 
----
 
-## Installation
+## Limits
 
-Choose the setup that matches your AI coding agent. Every option installs the same canonical skill (`skills/design-os/SKILL.md`) and `/doctor` diagnostic suite.
-
-### Claude Code
-
-Run these two commands inside Claude Code:
-
-```text
-/plugin marketplace add jangtrinh/design-os
-/plugin install design-os@design-os
-```
-
-### OpenAI Codex
-
-Install to your personal Codex skills directory:
-
-```bash
-git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
-mkdir -p ~/.codex/skills/design-os ~/.codex/prompts
-cp -R /tmp/design-os/skills/design-os/* ~/.codex/skills/design-os/
-cp /tmp/design-os/prompts/doctor.md ~/.codex/prompts/design-os-doctor.md
-rm -rf /tmp/design-os
-```
-
-### Gemini CLI & Google Antigravity
-
-```bash
-git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
-mkdir -p ~/.gemini/skills/design-os
-cp -R /tmp/design-os/skills/design-os/* ~/.gemini/skills/design-os/
-rm -rf /tmp/design-os
-```
-
-### OpenCode, Cursor, Windsurf & Other Agent Harnesses
-
-```bash
-git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
-mkdir -p ~/.agents/skills/design-os
-cp -R /tmp/design-os/skills/design-os/* ~/.agents/skills/design-os/
-rm -rf /tmp/design-os
-```
-
-<details>
-<summary>Verify or uninstall</summary>
-
-**Verify installation:**
-
-```bash
-python3 scripts/self_check.py
-```
-
-Or run `/doctor` inside Claude Code / Codex to inspect installed skill paths, plugin manifests, and gate health.
-
-**Uninstall:**
-
-```bash
-rm -rf ~/.claude/skills/design-os ~/.codex/skills/design-os ~/.gemini/skills/design-os ~/.agents/skills/design-os
-```
-
-</details>
-
----
-
-## Usage & Prompt Cookbook
-
-Once installed, `skills/design-os/SKILL.md` activates automatically when your prompt matches its domain triggers. Browse [`docs/cookbook.md`](docs/cookbook.md) for copy-paste prompt recipes.
-
-**Generate & Scaffold**
-
-```text
-"Initialize DESIGN:OS in this repo and wire our design tokens and verification gates for Claude Code and Codex."
-```
-
-**Audit & Verify**
-
-```text
-"Audit our current frontend components against DESIGN:OS typography, spacing, and WCAG 2.2 AA contrast gates."
-```
-
-**Export & Automate**
-
-```text
-"Scaffold a new product landing page with 2:1 axonometric B&W technical illustrations and SEO/AEO/GEO metadata."
-```
-
----
-
-## Commands & Diagnostics
-
-| Command | Environment | What it does |
-| :--- | :--- | :--- |
-| `/doctor` | Claude Code / Codex | Read-only diagnostic check of installed skill paths, plugin manifests, and runtime prerequisites |
-| `python3 scripts/self_check.py` | Terminal / CI | Deterministic offline verification of manifests, skill contracts, and governance files |
-| `npx @easestart/design-os doctor` | Terminal / CI | Inspect active runtime adapters (Claude Code, Codex, Gemini CLI, Antigravity) and installed skill packs |
-| `ui taste-lint` — 35 absolute checks | Terminal / CI | Generated-UI taste checks across motion, typography, spacing, and focus states |
-| `ui validate-layout` — 20 checks | Terminal / CI | Structural and overflow safety checks (`100vw` traps, unclosed tags, sticky overflow) |
-| `ui content-lint` — 15 checks | Terminal / CI | Honest copy checks (placeholder text, lorem-ipsum, generic names, all-caps shouting) |
-| `ui tell-lint` — 43 checks, any language | Terminal / CI | Polyglot design-tell checks across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI, and Flutter |
-| `ui ds guidelines build \| check \| export --target figma` | Terminal / CI | Compile a cited guidelines pack from your sealed design system, rulings and glossary; lint it; export a ready-to-upload Figma library guidelines bundle |
-| `skills/design-os-designer` — `build.mjs`, `validate.mjs`, `look.mjs` | Any agent runtime | The shipped design skill: build an evidence folder for a page, run `ui gate` plus file checks, render a three-width sheet with measured items; `ui init` wires it into Claude Code, Antigravity and Codex |
-
----
-
-## How it works
-
-1. **Intent Routing** — Your AI agent matches your request against `skills/design-os/SKILL.md` frontmatter triggers.
-2. **Progressive Context Loading** — Only the entry-point `SKILL.md` router loads initially; detailed recipes and scripts load on demand.
-3. **Deterministic Execution** — Domain scripts and contracts execute locally with reproducible inputs and outputs.
-4. **Gate Verification** — `scripts/self_check.py` and domain verifiers (`npx @easestart/design-os init`) validate the artifact before completion.
-5. **Zero-Telemetry Delivery** — Verified files are written directly to your workspace with zero external network calls.
-
-```text
-User Prompt / CLI Invocation
-            │
-            ▼
-┌───────────────────────────────────────────────┐
-│ skills/design-os/SKILL.md
-│ Progressive disclosure router & hard rules    │
-└───────────┬───────────────────────────────────┘
-            │ loads on demand
-            ▼
-┌───────────────────────────────────────────────┐
-│ npx @easestart/design-os doctor
-│ Deterministic build & contract enforcement    │
-└───────────┬───────────────────────────────────┘
-            │ verifies
-            ▼
-┌───────────────────────────────────────────────┐
-│ python3 scripts/self_check.py + /doctor       │
-│ Zero-telemetry local verification gate        │
-└───────────────────────────────────────────────┘
-```
-
-### What loads when
-
-`design-os` uses progressive context disclosure so your agent's context window stays fast and focused:
-
-| File | Loaded when |
-| :--- | :--- |
-| `skills/design-os/SKILL.md` | Always (~100–150 lines) — routing rules, triggers, and execution workflow |
-| `docs/cookbook.md` | When selecting multi-step prompt recipes or domain patterns |
-| `commands/doctor.md` / `prompts/doctor.md` | Only when running `/doctor` diagnostics |
-| `llms.txt` | When indexed by AI answer engines, RAG pipelines, or repo crawlers |
-
----
-
-## File structure
-
-```text
-design-os/
-├── .claude-plugin/
-│   ├── plugin.json                 # Claude Code plugin manifest
-│   └── marketplace.json            # Claude Code marketplace catalog
-├── .codex-plugin/
-│   └── plugin.json                 # OpenAI Codex plugin & interface manifest
-├── .agents/
-│   └── plugins/marketplace.json    # Cross-agent local plugin registry
-├── .factory-plugin/
-│   ├── plugin.json                 # Factory / Droid plugin manifest
-│   └── marketplace.json            # Factory marketplace metadata
-├── skills/
-│   └── design-os/
-│       └── SKILL.md                # Canonical agent skill entrypoint
-├── commands/
-│   └── doctor.md                   # /doctor diagnostic slash command
-├── prompts/
-│   └── doctor.md                   # Codex diagnostic prompt mirror
-├── scripts/
-│   └── self_check.py               # Deterministic repository & skill self-check
-├── docs/
-│   ├── cookbook.md                 # Copy-paste prompt recipes by job
-│   └── llms.txt                    # GEO / LLM discovery index
-├── PRIVACY.md                      # Zero-telemetry & local-first privacy commitment
-├── SECURITY.md                     # Vulnerability disclosure & security policy
-├── CONTRIBUTING.md                 # Contribution workflow & verification rules
-├── CODE_OF_CONDUCT.md              # Contributor Covenant code of conduct
-├── CHANGELOG.md                    # Release history
-├── llms.txt                        # Root LLM indexing manifest
-├── LICENSE                         # PolyForm Shield 1.0.0
-└── README.md
-```
-
----
-
-## Quality bar & Limitations
-
-### It's working if...
-
-- `python3 scripts/self_check.py` prints `ok: design-os self-check passed (design-os)` and exits `0`.
-- `npx @easestart/design-os init` passes with zero contract or test regressions.
-- Your AI coding agent loads `skills/design-os/SKILL.md` automatically when given any prompt from [`docs/cookbook.md`](docs/cookbook.md).
-- Network traffic during execution remains zero (guaranteed by [`PRIVACY.md`](PRIVACY.md)).
-
-### When not to use
-
-- Throwaway backend scripts with zero user-facing UI, CLI, or documentation surface.
-- Teams looking for a hosted cloud SaaS design tool rather than a local-first, git-tracked engineering toolchain.
-- Replacing human brand strategy — DESIGN:OS enforces and scales design systems, not customer discovery.
-
----
+- The CLI compiles, checks and seals. It never calls a model, installs dependencies or fetches a Figma library. The agent is your own coding agent.
+- Project subagents (`ui agents init`) are generated for Claude Code only. Codex and Antigravity get skills and commands through `ui init`.
+- The Figma path needs a scan from [Bridge](https://github.com/jangtrinh/design-os-figma-plugin). The CSS path reads custom properties only.
+- A capture is only as complete as its source. A partial capture stays partial; the kit gates refuse to mark it complete.
+- `ui gate` and `ui ds a11y` are floors, not conformance claims.
 
 ## Watch
 
-DESIGN:OS is free and source-available (PolyForm Shield). The Autonomous Design Agent talks from the [design:os by Jang](https://www.youtube.com/@designosbyjang) channel (Vietnamese, with English terms):
+Talks on the Autonomous Design Agent from the [design:os by Jang](https://www.youtube.com/@designosbyjang) channel (Vietnamese, with English terms):
 
 <p align="left">
-  <a href="https://www.youtube.com/watch?v=cUOa9g1E-fA"><img src="docs/assets/video/cUOa9g1E-fA.jpg" alt="Xây dựng autonomous design agent cho doanh nghiệp? how? (YouTube, 7:06)" width="320"></a>
-  <a href="https://www.youtube.com/watch?v=wxFz82DTu_o"><img src="docs/assets/video/wxFz82DTu_o.jpg" alt="Ontology là gì? apply vào build AI design agent như thế nào? (YouTube, 7:33)" width="320"></a>
-  <a href="https://www.youtube.com/watch?v=OYWsj7Jt8aw"><img src="docs/assets/video/OYWsj7Jt8aw.jpg" alt="Autonomous Design Agent · Tập 03: Model + Harness và 6 trụ cột DESIGN:OS (YouTube, 8:44)" width="320"></a>
+  <a href="https://www.youtube.com/watch?v=cUOa9g1E-fA"><img src="docs/assets/video/cUOa9g1E-fA.jpg" alt="design:os by Jang" width="320"></a>
+  <a href="https://www.youtube.com/watch?v=wxFz82DTu_o"><img src="docs/assets/video/wxFz82DTu_o.jpg" alt="design:os by Jang" width="320"></a>
+  <a href="https://www.youtube.com/watch?v=OYWsj7Jt8aw"><img src="docs/assets/video/OYWsj7Jt8aw.jpg" alt="design:os by Jang" width="320"></a>
 </p>
 
 - [Xây dựng autonomous design agent cho doanh nghiệp? how?](https://www.youtube.com/watch?v=cUOa9g1E-fA) (7:06): How the DESIGN:OS CLI, plugin bridge and deterministic gates turn an ontology into an autonomous design agent for enterprise design systems. Vietnamese, with English terms.
@@ -383,53 +234,18 @@ Autonomous Design Agent (ADA) short series, six short episodes (Vietnamese, with
 
 More: [Autonomous Design Agent series](https://www.youtube.com/@designosbyjang/playlists).
 
----
 
-## DESIGN:OS Ecosystem
+## DESIGN:OS
 
-`design-os` is one of the 13 source-available engines in the **`DESIGN:OS`** ecosystem:
+The CLI is one of the DESIGN:OS tools. The others: [Studio](https://github.com/jangtrinh/design-os-studio), [Bridge](https://github.com/jangtrinh/design-os-figma-plugin), [3D Blender](https://github.com/jangtrinh/design-os-3d-blender), [SVG Animation](https://github.com/jangtrinh/design-os-svg-animation), [Code2Flow](https://github.com/jangtrinh/design-os-code2flow), [Knowledge Builder](https://github.com/jangtrinh/design-os-knowledge-builder) and more on [jangtrinh.github.io](https://jangtrinh.github.io/).
 
-| Engine | Live Docs | Repository | Layer |
-| :--- | :--- | :--- | :--- |
-| **DESIGN:OS CLI** | [jangtrinh.github.io/design-os](https://jangtrinh.github.io/design-os/) | [`jangtrinh/design-os`](https://github.com/jangtrinh/design-os) | `cli` |
-| **Knowledge Builder** | [jangtrinh.github.io/design-os-knowledge-builder](https://jangtrinh.github.io/design-os-knowledge-builder/) | [`jangtrinh/design-os-knowledge-builder`](https://github.com/jangtrinh/design-os-knowledge-builder) | `compiler` |
-| **Figma Plugin & CLI** | [jangtrinh.github.io/design-os-figma-plugin](https://jangtrinh.github.io/design-os-figma-plugin/) | [`jangtrinh/design-os-figma-plugin`](https://github.com/jangtrinh/design-os-figma-plugin) | `plugin` |
-| **SVG Animation Engine** | [jangtrinh.github.io/design-os-svg-animation](https://jangtrinh.github.io/design-os-svg-animation/) | [`jangtrinh/design-os-svg-animation`](https://github.com/jangtrinh/design-os-svg-animation) | `engine` |
-| **3D Blender Agent** | [jangtrinh.github.io/design-os-3d-blender](https://jangtrinh.github.io/design-os-3d-blender/) | [`jangtrinh/design-os-3d-blender`](https://github.com/jangtrinh/design-os-3d-blender) | `3d / cad` |
-| **OPAH ONE Drone** | [jangtrinh.github.io/design-os-drone-showcase](https://jangtrinh.github.io/design-os-drone-showcase/) | [`jangtrinh/design-os-drone-showcase`](https://github.com/jangtrinh/design-os-drone-showcase) | `hardware` |
-| **GitHub Pages Engine** | [jangtrinh.github.io/design-os-github-page](https://jangtrinh.github.io/design-os-github-page/) | [`jangtrinh/design-os-github-page`](https://github.com/jangtrinh/design-os-github-page) | `pages` |
-| **Apple Design OS** | [jangtrinh.github.io/design-os-apple](https://jangtrinh.github.io/design-os-apple/) | [`jangtrinh/design-os-apple`](https://github.com/jangtrinh/design-os-apple) | `swiftui` |
-| **Agent Teacher** | [jangtrinh.github.io/design-os-pedagogy](https://jangtrinh.github.io/design-os-pedagogy/) | [`jangtrinh/design-os-pedagogy`](https://github.com/jangtrinh/design-os-pedagogy) | `pedagogy` |
-| **Origami CAD** | [jangtrinh.github.io/design-os-origami](https://jangtrinh.github.io/design-os-origami/) | [`jangtrinh/design-os-origami`](https://github.com/jangtrinh/design-os-origami) | `packaging` |
-| **Voice UX Architecture** | [jangtrinh.github.io/design-os-voice-ux](https://jangtrinh.github.io/design-os-voice-ux/) | [`jangtrinh/design-os-voice-ux`](https://github.com/jangtrinh/design-os-voice-ux) | `voice-ai` |
-| **Code2Flow** | [jangtrinh.github.io/design-os-code2flow](https://jangtrinh.github.io/design-os-code2flow/) | [`jangtrinh/design-os-code2flow`](https://github.com/jangtrinh/design-os-code2flow) | `ast / audit` |
-| **Generative UI** | [jangtrinh.github.io/design-os-generative-ui](https://jangtrinh.github.io/design-os-generative-ui/) | [`jangtrinh/design-os-generative-ui`](https://github.com/jangtrinh/design-os-generative-ui) | `runtime` |
+Docs: [jangtrinh.github.io/design-os](https://jangtrinh.github.io/design-os/) · Changelog: [CHANGELOG.md](CHANGELOG.md) · Index for AI agents: [llms.txt](llms.txt)
 
----
+## Contributing and license
 
-## Contributing, Governance & License
+- [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [SECURITY.md](SECURITY.md) · [PRIVACY.md](PRIVACY.md)
+- [PolyForm Shield 1.0.0](LICENSE). FREE to use and modify, including for paid client work; you may not resell it or build a competing product from it.
 
-- **Contributing**: See [`CONTRIBUTING.md`](CONTRIBUTING.md) for pull request guidelines and verification gates (`python3 scripts/self_check.py`).
-- **Code of Conduct**: Governed by [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
-- **Security & Privacy**: Zero telemetry — see [`SECURITY.md`](SECURITY.md) and [`PRIVACY.md`](PRIVACY.md).
-- **Changelog & LLM Index**: Track releases in [`CHANGELOG.md`](CHANGELOG.md) and machine-readable index in [`llms.txt`](llms.txt).
-- **License**: [PolyForm Shield 1.0.0](LICENSE) © [Jang Trinh](https://github.com/jangtrinh). Free to use and modify, including for paid client work; you may not resell it or build a competing product from it.
+Listed on [dalisoft/awesome-ai-coding](https://github.com/dalisoft/awesome-ai-coding), [Skills Directory](https://www.skillsdirectory.com/skills/jangtrinh-design-os), [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli/blob/main/README.md) and [SkillsMP](https://skillsmp.com/creators/jangtrinh).
 
----
-
-## Listed on
-
-- [dalisoft/awesome-ai-coding](https://github.com/dalisoft/awesome-ai-coding)
-- [Skills Directory](https://www.skillsdirectory.com/skills/jangtrinh-design-os)
-- [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli/blob/main/README.md)
-- [SkillsMP](https://skillsmp.com/creators/jangtrinh)
-
----
-
-If `design-os` saves you time, a star on GitHub helps other engineers and AI agents find it.
-
-<p align="left">
-  <a href="https://buymeacoffee.com/jangtrinh">
-    <img src="https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee">
-  </a>
-</p>
+Built by [Jang Trịnh](https://github.com/jangtrinh), creative technologist and autonomous system architect.
