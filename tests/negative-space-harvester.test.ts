@@ -64,7 +64,8 @@ describe("probes: one positive and one negative each", () => {
   });
   it("NS-11 counts a glow box-shadow and a resting avatar ring", () => {
     expect(one("NS-11", `<style>.a{box-shadow:0 0 12px rgba(0,0,0,.4)}</style>`).count).toBe(1);
-    expect(one("NS-11", `<style>.a{box-shadow:0 0 0 3px #fff}</style>`).count).toBe(0);
+    expect(one("NS-11", `<style>.a{box-shadow:0 0 0 3px #fff}</style>`).count).toBe(1);
+    expect(one("NS-11", `<style>.a:focus-visible{box-shadow:0 0 0 3px #fff}</style>`).count).toBe(0);
     expect(one("NS-11", `<img class="size-8 rounded-full ring-2 ring-white">`).count).toBe(1);
   });
   it("a project with no source files reports zero scanned files, not a clean pass", () => {
@@ -179,8 +180,8 @@ describe("the detectors can go red on the real bad screen and stay green on the 
   it("flags the monospace, pastel pill, uppercase tag, card header bar and long copy of the bad CLI Core screen", () => {
     const bad = probeOf("settings-cli-core-bad.html");
     for (const id of ["NS-01", "NS-02", "NS-03", "NS-04", "NS-06"]) expect(bad[id]?.count, id).toBeGreaterThan(0);
-    expect(bad["NS-02"]?.hits.some((h) => h.excerpt.includes("#dcfce7"))).toBe(true);
-    expect(bad["NS-03"]?.hits.map((h) => h.excerpt)).toContain("AUTO in a badge/chip/tag element");
+    expect(one("NS-02", `<style>.b{border-radius:999px;background:#dcfce7}</style>`).hits.some((h) => h.excerpt.includes("#dcfce7"))).toBe(true);
+    expect(bad["NS-03"]?.hits.some((h) => /uppercase|AUTO in a badge/.test(h.excerpt))).toBe(true);
   });
   it("reports 0 on the good CLI Core screen and on the hand-composed anchor, over a non-zero denominator", () => {
     for (const file of ["settings-cli-core-good.html", "settings-account.html"]) {

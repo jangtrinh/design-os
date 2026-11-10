@@ -12,7 +12,7 @@ import type { TokenBanRule } from "./adherence-rules.js";
 import { createLineIndex } from "./line-index.js";
 import { extractUiRecords, uiSourceExtension } from "./polyglot-ui-extractor.js";
 import type { UiRecord } from "./polyglot-ui-extractor.js";
-import { blankDelimited, blankInterpolations, spaces, templateLiterals } from "./polyglot-ui-scans.js";
+import { blankDelimited, blankInterpolations, classTokens, spaces, templateLiterals } from "./polyglot-ui-scans.js";
 
 /** Stylesheet types the harvest reads on top of the UI-source walk. */
 export const STYLE_EXTENSIONS = [".css", ".scss", ".less"] as const;
@@ -65,10 +65,19 @@ function declarationLiterals(file: string, source: string, lineOf: (offset: numb
     .map((t) => ({ file, line: lineOf(t.at), styles: t.value, classes: [], markup: "" }));
 }
 
+/** `@apply rounded-full bg-green-100;` in a record's style text, as a record whose classes the class detectors judge. */
+function applyRecords(records: UiRecord[]): UiRecord[] {
+  return records.flatMap((r) => [...r.styles.matchAll(/@apply\s+([^;}]+)/g)].map((m) => ({
+    file: r.file, line: r.line, styles: "", markup: "",
+    classes: classTokens((m[1] ?? "").replace(/!important/g, " ")).map((t) => t.replace(/^!/, "")).filter((t) => t !== ""),
+  }))).filter((r) => r.classes.length > 0);
+}
+
 export function makeFileCtx(file: string, source: string): FileCtx {
   const kind = fileKindOf(file);
   const lineOf = createLineIndex(source).lineOf;
-  const records = kind === "json" ? [] : kind === "style" ? styleRecords(file, source, lineOf) : [...extractUiRecords(file, source), ...declarationLiterals(file, source, lineOf)];
+  const base = kind === "json" ? [] : kind === "style" ? styleRecords(file, source, lineOf) : [...extractUiRecords(file, source), ...declarationLiterals(file, source, lineOf)];
+  const records = [...base, ...applyRecords(base)];
   return { file, source, kind, json: kind === "json", records, lineOf, lines: source.split("\n") };
 }
 
@@ -146,11 +155,23 @@ export function isPastelHex(hex: string): boolean {
   let h = hex.slice(1).toLowerCase();
   if (h.length === 3) h = [...h].map((c) => c + c).join("");
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as [number, number, number];
+  return isPastelUnit(r, g, b);
+}
+function isPastelUnit(r: number, g: number, b: number): boolean {
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const d = max - min;
   const l = (max + min) / 2;
   return d > 0 && l >= 0.85 && d / (1 - Math.abs(2 * l - 1)) >= 0.5;
+}
+const RGB_RE = /rgba?\(\s*(\d{1,3}(?:\.\d+)?)[\s,]+(\d{1,3}(?:\.\d+)?)[\s,]+(\d{1,3}(?:\.\d+)?)/gi;
+const HSL_RE = /hsla?\(\s*-?\d+(?:\.\d+)?(?:deg)?[\s,]+(\d+(?:\.\d+)?)%[\s,]+(\d+(?:\.\d+)?)%/gi;
+/** A fill value that is a light, clearly coloured `#hex`, `rgb()` or `hsl()`; a `var()` reference is not judged (a listed limit). */
+export function hasPastelFill(value: string): boolean {
+  if (hexesIn(value).some((h) => isPastelHex(h.hex))) return true;
+  for (const m of value.matchAll(RGB_RE)) if (isPastelUnit(Number(m[1]) / 255, Number(m[2]) / 255, Number(m[3]) / 255)) return true;
+  for (const m of value.matchAll(HSL_RE)) if (Number(m[2]) >= 85 && Number(m[1]) >= 50) return true;
+  return false;
 }
 /** The Tailwind 50 and 100 steps of the chromatic scales: the semantic tints a token file might define. */
 const SEMANTIC_TINTS = new Set(
@@ -160,8 +181,8 @@ const SEMANTIC_TINTS = new Set(
 export const isSemanticTintHex = (hex: string): boolean => SEMANTIC_TINTS.has(hex.slice(1).toLowerCase());
 export const hexesIn = (text: string): { hex: string; index: number }[] => [...text.matchAll(HEX_RE)].map((m) => ({ hex: m[0], index: m.index ?? 0 }));
 
-/** True when a declaration body sets a radius of 999px or more (a pill). */
+/** True when a declaration body sets a radius of 999 or more in px, em or rem (a pill). */
 export const hasPillRadius = (decls: string): boolean => {
   const m = /border-radius\s*:\s*([^;]+)/i.exec(decls);
-  return m !== null && [...(m[1] ?? "").matchAll(/(\d+(?:\.\d+)?)px/g)].some((p) => Number(p[1]) >= 999);
+  return m !== null && [...(m[1] ?? "").matchAll(/(\d+(?:\.\d+)?)(?:px|r?em)\b/g)].some((p) => Number(p[1]) >= 999);
 };
