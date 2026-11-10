@@ -219,6 +219,21 @@ describe("a failing detector is state for ui onboard and a bug for every command
   });
 });
 
+describe("a writing command fails before it writes", () => {
+  it("ui onboard answer with a broken detector records no ruling and leaves the manifest and the pending file byte-identical", () => {
+    const boom: KindEmitter = { kind: "scan-budget", sense: () => null, detect: () => { throw new Error("emitter bug"); } };
+    const dir = scratchProject();
+    const c = { ...clusterOf("token-path-collision", ["p/a"]), raisedBy: "ingest-figma-ds" };
+    writePending(dir, [c]);
+    const manifest = join(dir, "design", "design-dir.json");
+    const pendingBefore = readFileSync(join(dir, PENDING_REL), "utf8");
+    const file = answersFile(dir, { answers: [{ fingerprint: c.fingerprint, choice: "a" }] });
+    expect(() => runOnboardAnswer(argsOf("--file", file, "--cwd", dir, "--now", NOW, "--json"), dir, [boom])).toThrow("emitter bug");
+    expect(existsSync(manifest)).toBe(false);
+    expect(readFileSync(join(dir, PENDING_REL), "utf8")).toBe(pendingBefore);
+  });
+});
+
 describe("an answer check sees every earlier ruling of the kind", () => {
   /** A collections-like kind: keeping a member whose alias target was dropped earlier would leave an alias dangling. */
   const aliases: Record<string, string> = { c7: "c5" };
