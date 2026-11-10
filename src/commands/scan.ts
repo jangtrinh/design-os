@@ -29,8 +29,11 @@ Usage:
   ui scan [--cwd <path>] [--json]
 
 Walks a project directory (read-only) and reports the framework, styling
-approach, representative CSS/HTML files, component directories, and whether a
-compiled design system is already present — then prints a routing verdict.
+approach, representative CSS/HTML files, component directories, nested app
+roots (a package.json below the root, with its framework and Tailwind v4 CSS
+entry), and whether a compiled design system is already present — then prints
+a routing verdict. When the walk hits its entry cap, it says which first-level
+directories consumed the budget. Dot-directories are not walked.
 
 Options:
   --cwd <path>  Directory to scan (default: current working directory)
@@ -65,6 +68,13 @@ function formatText(r: ScanResult): string {
   if (r.framework !== null) lines.push(`framework: ${r.framework}`);
   if (r.styling.length > 0) lines.push(`styling: ${r.styling.join(", ")}`);
   if (r.tailwindConfig !== null) lines.push(`tailwind config: ${r.tailwindConfig}`);
+  if (r.tailwindCss !== null) lines.push(`tailwind v4 css: ${r.tailwindCss}`);
+  for (const a of r.apps) {
+    const parts = [a.framework ?? "no framework", a.styling.length > 0 ? a.styling.join("+") : "no styling"];
+    if (a.tailwindCss !== null) parts.push(`tailwind v4 css ${a.tailwindCss}`);
+    if (a.componentDirs.length > 0) parts.push(`${a.componentDirs.length} component dir(s)`);
+    lines.push(`app: ${a.path} (${parts.join(", ")})`);
+  }
   if (r.componentDirs.length > 0) {
     lines.push(
       `component dirs: ${r.componentDirs.map((d) => `${d.path} (${d.files} files)`).join(", ")}`,
@@ -74,6 +84,14 @@ function formatText(r: ScanResult): string {
   if (r.cssFiles.length > 0) lines.push(`css files: ${fileList(r.cssFiles)}`);
   if (r.designMd !== null) lines.push(`DESIGN.md: ${r.designMd}`);
   if (r.dsStatus !== "none") lines.push(`design system: ${r.dsStatus}`);
+  if (r.truncated) {
+    const top = r.budget[0];
+    lines.push(
+      `scan stopped at ${r.visited} entries — the map above is incomplete.` +
+        (top !== undefined ? ` Largest consumer: ${top.dir} (${top.visited} entries). Next: ui scan --cwd <app directory> to scan one subtree on its own.` : ""),
+    );
+    if (r.budget.length > 1) lines.push(`budget: ${r.budget.map((b) => `${b.dir} (${b.visited})`).join(", ")}`);
+  }
   lines.push(VERDICT_LINE[r.verdict]);
   return lines.join("\n") + "\n";
 }

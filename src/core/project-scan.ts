@@ -24,6 +24,12 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, extname, join, relative, sep } from "node:path";
 import type { Dirent } from "node:fs";
 import { pathsForDir, loadDesignSystem, DSError } from "./design-system.js";
+import {
+  buildApps, findTailwindV4Css, frameworkOf, ownerOf, stylingOf,
+} from "./project-scan-apps.js";
+import type { AppCandidate, AppRoot } from "./project-scan-apps.js";
+
+export type { AppRoot } from "./project-scan-apps.js";
 
 // ─── Result shape ───────────────────────────────────────────────────────────────
 
@@ -50,6 +56,12 @@ export interface ScanResult {
   truncated: boolean;
   /** Directory entries visited. Equals MAX_ENTRIES when truncated by the entry cap. */
   visited: number;
+  /** Tailwind v4 CSS-first entry of the scan root itself (`tailwindcss` dep + `@import "tailwindcss"` / `@theme`), or null. */
+  tailwindCss: string | null;
+  /** Nested app roots (a package.json below the scan root, outside test trees), sorted by path. The scan root's own signals stay in the fields above. */
+  apps: AppRoot[];
+  /** When truncated: the first-level directories that consumed the entry budget, most entries first, top 5. Empty otherwise. */
+  budget: Array<{ dir: string; visited: number }>;
 }
 
 // ─── Tunables ───────────────────────────────────────────────────────────────────
@@ -74,6 +86,14 @@ export const SKIP_DIRS = new Set([
   ".next", ".turbo", ".cache", ".agent", ".claude", "design",
   ".venv", "venv", "__pycache__",
 ]);
+/**
+ * Dot-directories are skipped as a class, the way the lint target resolver has
+ * always skipped them (lint-target.ts): every tool cache, ours and anyone's,
+ * without the kernel naming a product. Corpus count recorded with spec 033
+ * task 2.1: 0 component dirs under a dot-directory across 32 projects, 13,856
+ * entries (9.8%) and 245 code files that are not UI components.
+ */
+export const isSkippedDir = (name: string): boolean => SKIP_DIRS.has(name) || name.startsWith(".");
 /** Shared with the lint target resolver — see SKIP_DIRS. */
 export const MAX_DEPTH = 6;
 export const MAX_ENTRIES = 4000;
@@ -92,8 +112,6 @@ const COMPONENT_DIR_NAMES = new Set(["components", "ui", "widgets"]);
 // __tests__ alone measured 289 files across 2 projects, none of them a
 // component dir; counting by name without this guard over-collects.
 const TEST_DIR_NAMES = new Set(["__tests__", "__mocks__", "test", "tests", "spec", "stories"]);
-/** package.json dep names, checked in this priority order (next before react). */
-const FRAMEWORK_PRIORITY = ["next", "react", "vue", "svelte", "astro", "vite"];
 const TAILWIND_CONFIG_RE = /^tailwind\.config\.(js|ts|cjs|mjs)$/;
 
 // ─── Small helpers ───────────────────────────────────────────────────────────────
@@ -139,9 +157,12 @@ function readDeps(root: string): Record<string, string> {
 interface WalkAccum {
   css: Array<{ path: string; bytes: number }>;
   html: Array<{ path: string; bytes: number }>;
-  scssCount: number;
+  scssPaths: string[];
   tailwindConfigs: string[];
   componentDirs: Array<{ path: string; files: number }>;
+  appCandidates: AppCandidate[];
+  /** Entries visited per first-level directory (the entry itself counts for its own bucket). */
+  byTop: Map<string, number>;
   visited: number;
   truncated: boolean;
 }
@@ -165,6 +186,8 @@ interface WalkItem {
   hasComponentsAncestor: boolean;
   /** This dir's own name, or an ancestor's, is a TEST_DIR_NAMES entry. */
   inTestTree: boolean;
+  /** The first-level directory this dir sits under (itself when first-level); null for the scan root. */
+  top: string | null;
 }
 
 // BFS: a queue of WalkItem. Within each level, entries keep sortedEntries'
@@ -175,11 +198,11 @@ interface WalkItem {
 function walk(root: string, start: string, acc: WalkAccum): void {
   const startBase = basename(start).toLowerCase();
   const queue: WalkItem[] = [
-    { dir: start, depth: 0, hasComponentsAncestor: false, inTestTree: TEST_DIR_NAMES.has(startBase) },
+    { dir: start, depth: 0, hasComponentsAncestor: false, inTestTree: TEST_DIR_NAMES.has(startBase), top: null },
   ];
   while (queue.length > 0) {
     if (acc.visited >= MAX_ENTRIES) { acc.truncated = true; return; }
-    const { dir, depth, hasComponentsAncestor, inTestTree } = queue.shift()!;
+    const { dir, depth, hasComponentsAncestor, inTestTree, top } = queue.shift()!;
     if (depth > MAX_DEPTH) continue; // depth cap: skip this branch, map stays honest elsewhere
     const entries = sortedEntries(dir);
 
@@ -194,27 +217,35 @@ function walk(root: string, start: string, acc: WalkAccum): void {
       if (directCode >= 3) acc.componentDirs.push({ path: relPath(root, dir), files: directCode });
     }
 
+    // A package.json below the scan root marks an app root candidate (FR-013); fixtures under a test tree are not apps.
+    if (depth > 0 && !inTestTree && entries.some((e) => e.isFile() && e.name === "package.json")) {
+      acc.appCandidates.push({ path: relPath(root, dir), deps: readDeps(dir) });
+    }
+
     const childHasComponentsAncestor = hasComponentsAncestor || base === "components";
 
     for (const e of entries) {
       if (acc.visited >= MAX_ENTRIES) { acc.truncated = true; return; }
       acc.visited++;
+      const bucket = top ?? (e.isDirectory() ? e.name : null);
+      if (bucket !== null) acc.byTop.set(bucket, (acc.byTop.get(bucket) ?? 0) + 1);
       const full = join(dir, e.name);
       if (e.isDirectory()) {
-        if (SKIP_DIRS.has(e.name)) continue;
+        if (isSkippedDir(e.name)) continue;
         const childBase = e.name.toLowerCase();
         queue.push({
           dir: full,
           depth: depth + 1,
           hasComponentsAncestor: childHasComponentsAncestor,
           inTestTree: inTestTree || TEST_DIR_NAMES.has(childBase),
+          top: bucket,
         });
       } else if (e.isFile()) {
         const lower = e.name.toLowerCase();
         if (TAILWIND_CONFIG_RE.test(lower)) acc.tailwindConfigs.push(relPath(root, full));
         const ext = extname(lower);
         if (ext === ".css") acc.css.push({ path: relPath(root, full), bytes: fileBytes(full) });
-        else if (ext === ".scss") acc.scssCount++;
+        else if (ext === ".scss") acc.scssPaths.push(relPath(root, full));
         else if (ext === ".html") acc.html.push({ path: relPath(root, full), bytes: fileBytes(full) });
       }
     }
@@ -243,32 +274,37 @@ function detectDsStatus(root: string): ScanResult["dsStatus"] {
 export function scanProject(root: string): ScanResult {
   const deps = readDeps(root);
 
-  const framework = FRAMEWORK_PRIORITY.find((fw) => fw in deps) ?? null;
+  const framework = frameworkOf(deps);
 
   const acc: WalkAccum = {
-    css: [], html: [], scssCount: 0, tailwindConfigs: [], componentDirs: [], visited: 0,
-    truncated: false,
+    css: [], html: [], scssPaths: [], tailwindConfigs: [], componentDirs: [],
+    appCandidates: [], byTop: new Map(), visited: 0, truncated: false,
   };
   walk(root, root, acc);
 
   const tailwindConfig =
     acc.tailwindConfigs.length > 0 ? [...acc.tailwindConfigs].sort()[0]! : null;
 
-  const hasTailwindDep = "tailwindcss" in deps;
-  const hasCssInJs =
-    "styled-components" in deps || Object.keys(deps).some((k) => k.startsWith("@emotion"));
-
-  const styling: string[] = [];
-  if (tailwindConfig !== null || hasTailwindDep) styling.push("tailwind");
-  if (acc.css.length > 0) styling.push("css");
-  if (acc.scssCount > 0) styling.push("scss");
-  if (hasCssInJs) styling.push("css-in-js");
+  const styling = stylingOf(deps, {
+    tailwindConfig: tailwindConfig !== null, css: acc.css.length, scss: acc.scssPaths.length,
+  });
 
   const cssFiles = [...acc.css].sort(byBytesDescThenPath).slice(0, 5);
   const htmlFiles = [...acc.html].sort(byBytesDescThenPath).slice(0, 5);
   const componentDirs = [...acc.componentDirs].sort((a, b) =>
     a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
   );
+
+  const apps = buildApps(root, acc.appCandidates, {
+    cssPaths: acc.css.map((f) => f.path), scssPaths: acc.scssPaths,
+    tailwindConfigs: acc.tailwindConfigs, componentDirs: acc.componentDirs,
+  });
+  const rootCss = acc.css.map((f) => f.path).filter((p) => ownerOf(p, acc.appCandidates) === null);
+  const budget = acc.truncated
+    ? [...acc.byTop].map(([dir, visited]) => ({ dir, visited }))
+        .sort((a, b) => b.visited - a.visited || (a.dir < b.dir ? -1 : a.dir > b.dir ? 1 : 0))
+        .slice(0, 5)
+    : [];
 
   const designMd = existsSync(join(root, "DESIGN.md")) ? "./DESIGN.md" : null;
   const dsStatus = detectDsStatus(root);
@@ -283,5 +319,6 @@ export function scanProject(root: string): ScanResult {
     framework, styling, tailwindConfig, cssFiles, htmlFiles,
     componentDirs, designMd, dsStatus, verdict,
     truncated: acc.truncated, visited: acc.visited,
+    tailwindCss: findTailwindV4Css(root, deps, rootCss), apps, budget,
   };
 }
