@@ -33,23 +33,28 @@ export const REGION_INSTRUCTION =
 /** One line of a soul with what the scan knows about it. */
 interface Ln { text: string; start: number; end: number; fence: boolean; heading: string }
 
-/** Lines with their offsets, fenced-code state and the nearest `#`/`##` heading above (a marker in a fence is text). */
-function scan(text: string): Ln[] {
-  const out: Ln[] = [];
-  let fence: { ch: string; len: number } | null = null;
+/** Lines with their offsets, fenced-code state and the nearest `#`/`##` heading above (a marker in a fence is text). `unclosed` is the 1-based line that opened a fence the file never closes. */
+function scan(text: string): Ln[] & { unclosed?: number } {
+  const out: Ln[] & { unclosed?: number } = [];
+  let fence: { ch: string; len: number; line: number } | null = null;
   let heading = "";
   let start = 0;
   for (const raw of text.split("\n")) {
     const t = raw.replace(/\r$/, "");
     const open = /^ {0,3}(`{3,}|~{3,})/.exec(t);
     let inFence = fence !== null;
-    if (fence === null && open !== null) { fence = { ch: (open[1] as string)[0] as string, len: (open[1] as string).length }; inFence = true; }
+    if (fence === null && open !== null) { fence = { ch: (open[1] as string)[0] as string, len: (open[1] as string).length, line: out.length + 1 }; inFence = true; }
     else if (fence !== null && new RegExp(`^ {0,3}\\${fence.ch}{${fence.len},}[ \\t]*$`).test(t)) fence = null;
     if (!inFence && /^#{1,2}[ \t]+\S/.test(t)) heading = t.trimEnd();
     out.push({ text: t, start, end: start + t.length, fence: inFence, heading });
     start += raw.length + 1;
   }
+  if (fence !== null) out.unclosed = fence.line;
   return out;
+}
+/** Line that opened a code fence the soul never closes (everything after it is fence text), else null. */
+export function unclosedFence(text: string): number | null {
+  return scan(text).unclosed ?? null;
 }
 const isProposedHeading = (l: Ln): boolean => !l.fence && l.text.trimEnd() === PROPOSED_NEVER_HEADING;
 const isBinding = (heading: string): boolean => /^##[ \t]+Never[ \t]*$/.test(heading);
@@ -140,6 +145,11 @@ export function misplacedRegion(text: string): { line: number; heading: string }
 export function applyProposedRegion(text: string, lines: readonly string[], where = "design/soul.md"): string {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   const scanned = scan(text);
+  // End of file does not close a fence: the tool cannot know where the owner meant it to end, and every later line
+  // (the heading, the markers) would be unreadable, so the tool would append another section on every run.
+  if (scanned.unclosed !== undefined) {
+    throw refuse(`${where}: the code fence opened on line ${scanned.unclosed} is never closed, so the harvest wrote nothing. Next: close the fence (add a closing \`\`\` or ~~~ line), then run the harvest again.`);
+  }
   const region = findRegion(scanned, where);
   if (region !== null) {
     assertOnlyGenerated(region, where);

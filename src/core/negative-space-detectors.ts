@@ -179,12 +179,17 @@ const COLOURED_SHADOW = /^(?:drop-)?shadow-(?:red|orange|amber|yellow|lime|green
 const DROP_SHADOW_GLOW = /drop-shadow\(\s*0(?:px)?\s+0(?:px)?\s+[1-9]/gi;
 const SPREAD_RING = /box-shadow\s*:[^;}]*?(?<![\w.])(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+(?:[2-9]|[1-9]\d)(?:\.\d+)?px/i;
 const GLOW_CSS = /(?<=(?:box-shadow\s*:|,)\s*)(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+[1-9]\d*(?:\.\d+)?px/gi;
+/** True when every selector of the rule is a focus selector (`:focus*`, or a class or attribute name containing `focus`). */
+function isFocusRule(styles: string): boolean {
+  const selectors = (styles.split("{")[0] ?? "").split(",").map((x) => x.trim()).filter((x) => x !== "");
+  return selectors.length > 0 && selectors.every((x) => /:focus|[.[][\w-]*focus/i.test(x));
+}
 export const detectGlowOrRing: Detector = (f) => {
   const d: Detection = scanTokens(f, GLOW_TOKENS);
   for (const m of f.source.matchAll(GLOW_CSS)) d.hits.push({ file: f.file, line: f.lineOf(m.index ?? 0), excerpt: around(f, f.lineOf(m.index ?? 0), "box-shadow") });
   for (const rec of f.records) {
-    // a rule for :focus is accessibility, not decoration
-    if (/:focus/.test(rec.styles.split("{")[0] ?? "")) continue;
+    // a rule whose every selector is a focus selector is accessibility, not decoration
+    if (isFocusRule(rec.styles)) continue;
     for (const m of rec.styles.matchAll(DROP_SHADOW_GLOW)) d.hits.push({ file: f.file, line: rec.line, excerpt: clip(`filter ${m[0]}…`) });
     const ring = SPREAD_RING.exec(rec.styles);
     if (ring !== null) d.hits.push({ file: f.file, line: rec.line, excerpt: clip(ring[0].replace(/\s+/g, " ")) });

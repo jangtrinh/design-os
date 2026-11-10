@@ -36,18 +36,21 @@
   fine. An edited or added line between the markers is refused (`PROPOSED_BLOCK_EDITED`, exit 1, the line
   named, nothing written). Markers under any other heading (for example after the `## Never (proposed)`
   heading was deleted) are refused the same way, and `ui ds soul check` reports them as an error. Marker
-  lines inside a fenced code block are text.
+  lines inside a fenced code block are text. A soul that ends inside a code fence that was never closed is
+  refused the same way (the message names the line that opened it; end of file does not close it) and
+  `ui ds soul check` reports it as an error, so the file never grows on repeated runs.
 - The report lists the first-level directories the files came from (up to five, most files first, plus the
   files directly in the source root) and says how to narrow the source with `--source <dir>`; run from the
-  project root, a planning folder can hold most of the files read.
+  project root, a planning folder can hold most of the files read. Directories beyond the five rows are
+  summed with their file count, so the rows add up to the files read.
 - More forms are matched: `@apply` lists in stylesheets, pill radii in `em` and `rem`, light fills written as
   `rgb()` or `hsl()`, glow as `filter: drop-shadow(0 0 ...)`, a zero-offset spread ring
-  (`box-shadow: 0 0 0 3px`, outside `:focus` rules), and `Menlo`, `Consolas`, `Monaco` and `Courier` in a
+  (`box-shadow: 0 0 0 3px`, unless every selector of the rule is a focus selector), and `Menlo`, `Consolas`, `Monaco` and `Courier` in a
   font declaration. `styled.pre` and `styled.code` are exempt for monospace like `<pre>` and `<code>`, and one
-  line counts once per probe. Listed as limits (report and help): a fill that is only a `var()` reference,
-  object-style CSS-in-JS, and nested SCSS selectors.
+  line counts once per probe. Listed as limits (report and help): a fill that is only a `var()` reference or
+  written with `oklch()`, `lab()`, `lch()` or `color-mix()`, object-style CSS-in-JS, and nested SCSS selectors.
 - `ui ds soul check` warns once, naming the file, when `design/rules/_adherence.rules.json` exists and cannot
-  be parsed. The registry provenance check and the harvest share one reader of the Figma inventory files.
+  be parsed or has a shape the loader rejects. The registry provenance check and the harvest share one reader of the Figma inventory files.
 - `--accept <NS-id>` promotes one proposed machine rule: both rules files are validated, the rule is appended
   to `_adherence.rules.json`, then removed from the proposed file (a failed second write restores the first).
   `soul.md` is not edited; the owner moves the bullet. Until a line under the binding `## Never` names the id,
@@ -61,8 +64,8 @@
   not fail an import whose store was already written. The `--json` summary gains a `harvest` object.
 
 ### Changed
-- The harvest reads each file once, runs every probe on it and keeps only the hits: a synthetic tree of 10,000
-  files (342 MB) peaked at 3.6 GB and 75 s before, and 0.18 GB and 49 s after.
+- The harvest reads each file once, runs every probe on it and keeps only the hits. Measured on a synthetic
+  tree of 10,000 files (342 MB): 0.18 GB peak memory and 49 s.
 - `ui ds soul check` still fails a comment-only binding `## Never` (`soul-empty-section` is an error);
   proposed bullets never satisfy it.
 
