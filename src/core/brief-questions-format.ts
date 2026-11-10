@@ -3,7 +3,7 @@
  * and a Markdown gap sheet for async teams. Pure — the kernel emits the questions,
  * each runtime maps them.
  */
-import type { BriefQuestion, QuestionsDoc } from "./brief-questions-build.js";
+import type { QuestionsDoc } from "./brief-questions-build.js";
 
 /** AskUserQuestion takes at most 4 questions per call, 2–4 options each, header ≤ 12 chars. */
 export const CLAUDE_MAX_QUESTIONS = 4;
@@ -28,21 +28,33 @@ export function parseQuestionsDoc(raw: unknown): QuestionsDoc | string {
   return raw as unknown as QuestionsDoc;
 }
 
-/** Recommended first, tagged "(Recommended)"; capped at 4 options without ever dropping the recommended one. */
-function claudeOptions(q: BriefQuestion): { label: string; description: string }[] {
-  const rec = q.options.filter((o) => o.label === q.recommended);
-  const rest = q.options.filter((o) => o.label !== q.recommended);
-  return [...rec.map((o) => ({ label: `${o.label} (Recommended)`, description: o.description })), ...rest].slice(0, CLAUDE_MAX_OPTIONS);
+/** A question in the runtime-neutral shape both `ui brief questions` and `ui onboard questions` format. */
+export interface FormatOption { label: string; description: string; recommended?: boolean }
+export interface FormatQuestion { id: string; header: string; question: string; multiSelect: boolean; options: FormatOption[] }
+
+/** Recommended first, tagged "(Recommended)"; capped at 4 options without ever dropping a recommended one. */
+export function formatClaudeOptions(options: FormatOption[]): { label: string; description: string }[] {
+  const rec = options.filter((o) => o.recommended === true);
+  const rest = options.filter((o) => o.recommended !== true);
+  return [...rec.map((o) => ({ label: `${o.label} (Recommended)`, description: o.description })), ...rest.map((o) => ({ label: o.label, description: o.description }))].slice(0, CLAUDE_MAX_OPTIONS);
 }
 
-export function toClaudePayload(doc: QuestionsDoc): { questions: unknown[]; remaining: number; remainingIds: string[] } {
-  const head = doc.questions.slice(0, CLAUDE_MAX_QUESTIONS);
-  const tail = doc.questions.slice(CLAUDE_MAX_QUESTIONS);
+/** The AskUserQuestion payload: at most 4 questions, the rest counted and named in `remaining`. */
+export function toClaudeQuestionPayload(all: FormatQuestion[]): { questions: unknown[]; remaining: number; remainingIds: string[] } {
+  const head = all.slice(0, CLAUDE_MAX_QUESTIONS);
+  const tail = all.slice(CLAUDE_MAX_QUESTIONS);
   return {
-    questions: head.map((q) => ({ question: q.question, header: q.header.slice(0, CLAUDE_HEADER_MAX), multiSelect: false, options: claudeOptions(q) })),
+    questions: head.map((q) => ({ question: q.question, header: q.header.slice(0, CLAUDE_HEADER_MAX), multiSelect: q.multiSelect, options: formatClaudeOptions(q.options) })),
     remaining: tail.length,
     remainingIds: tail.map((q) => q.id),
   };
+}
+
+export function toClaudePayload(doc: QuestionsDoc): { questions: unknown[]; remaining: number; remainingIds: string[] } {
+  return toClaudeQuestionPayload(doc.questions.map((q) => ({
+    id: q.id, header: q.header, question: q.question, multiSelect: false,
+    options: q.options.map((o) => ({ label: o.label, description: o.description, recommended: o.label === q.recommended })),
+  })));
 }
 
 export function toGapSheet(doc: QuestionsDoc): string {
