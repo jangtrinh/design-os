@@ -1,0 +1,44 @@
+{
+  "questions": [
+    {
+      "question": "Which states does screens[users] need?",
+      "header": "States",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "empty, loading, error, full (Recommended)",
+          "description": "The four states every data screen carries"
+        },
+        {
+          "label": "full only",
+          "description": "A static screen with no data states"
+        },
+        {
+          "label": "all six",
+          "description": "Adds partial and permission-denied"
+        }
+      ]
+    },
+    {
+      "question": "Which language should the UI copy use?",
+      "header": "Language",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "Vietnamese (Recommended)",
+          "description": "All UI copy in Vietnamese"
+        },
+        {
+          "label": "English",
+          "description": "All UI copy in English"
+        },
+        {
+          "label": "Mixed",
+          "description": "English UI chrome, Vietnamese content"
+        }
+      ]
+    }
+  ],
+  "remaining": 0,
+  "remainingIds": []
+}
