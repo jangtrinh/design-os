@@ -24,9 +24,9 @@ Copy-paste recipes for **DESIGN:OS CLI** (`skills/design-os/SKILL.md`).
 # Run deterministic offline self-check
 python3 scripts/self_check.py
 
-# Run primary domain verification / workflow
-npx @easestart/design-os init
+# Wire this project for your agent (or --all)
+npx ease-design init --runtime <claude|codex|antigravity>
 
-# Run primary CLI command
-npx @easestart/design-os doctor
+# Check the install (add --cwd <project> to check a project too)
+npx ease-design doctor
 ```

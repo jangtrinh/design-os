@@ -22,4 +22,4 @@ Run a read-only diagnostic check of the `design-os` installation and repository 
    - Manifest integrity (`.claude-plugin`, `.codex-plugin`, `.agents/plugins`, `.factory-plugin`)
    - Canonical skill (`skills/design-os/SKILL.md`)
    - Trust & privacy governance (`PRIVACY.md`, `SECURITY.md`, `LICENSE`)
-   - Domain command readiness (`npx @easestart/design-os doctor`)
+   - Domain command readiness (`npx ease-design doctor`, or `ui doctor` when installed globally)
