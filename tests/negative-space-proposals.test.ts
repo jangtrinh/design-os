@@ -12,14 +12,15 @@ import { fileURLToPath } from "node:url";
 import { harvestNegativeSpace } from "../src/core/negative-space-harvester.js";
 import { acceptProposal, planProposals, writeProposals } from "../src/core/negative-space-proposals.js";
 import type { AcceptIO } from "../src/core/negative-space-proposals.js";
-import { applyProposedNeverBlock, bindingNeverIds, checkSoul, PROPOSED_NEVER_HEADING } from "../src/core/ds-soul.js";
+import { checkSoul } from "../src/core/ds-soul.js";
+import { applyProposedRegion, bindingNeverIds, PROPOSED_NEVER_HEADING } from "../src/core/ds-soul-proposed-region.js";
 import { loadAdherenceRules } from "../src/core/adherence-rules.js";
 
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "oi-browser", "source", "native");
 
 const REAL_SOUL = `---
 status: ratified
-owner: jang
+owner: design-lead
 ---
 
 # Design Soul — Ổi Browser
@@ -85,7 +86,7 @@ describe("soul block ownership", () => {
     const at = (s: string): number => after.indexOf(s);
     expect(at("## Never\n")).toBeLessThan(at(PROPOSED_NEVER_HEADING));
     expect(at(PROPOSED_NEVER_HEADING)).toBeLessThan(at("## Always"));
-    expect(after).toContain("- NS-01 monospace on UI controls or tables — 0 of 1 scanned files under src/");
+    expect(after).toContain("- NS-01 monospace on UI controls or tables — 0 hits in 1 file(s) read under src/; 0 file(s) not read");
   });
   it("replaces the block on re-run instead of appending, and the second run changes nothing", () => {
     const p = project();
@@ -133,9 +134,9 @@ describe("soul block ownership", () => {
     expect(existsSync(join(q.design, "soul.md"))).toBe(false);
     expect(existsSync(proposedPath(q))).toBe(false);
   });
-  it("applyProposedNeverBlock keeps CRLF files CRLF", () => {
+  it("applyProposedRegion keeps CRLF files CRLF", () => {
     const crlf = REAL_SOUL.replace(/\n/g, "\r\n");
-    const out = applyProposedNeverBlock(crlf, ["- NS-01 x — 0 of 1 scanned files under src/"]);
+    const out = applyProposedRegion(crlf, ["- NS-01 x — 0 of 1 scanned files under src/"]);
     expect(out.replace(/\r\n/g, "").includes("\n")).toBe(false);
   });
 });
@@ -168,8 +169,9 @@ describe("binding files are never written by a harvest", () => {
     const p = project({ soul, rules });
     const { plan } = harvestWrite(p);
     expect(plan.find((x) => x.id === "NS-10")).toMatchObject({ status: "skip-promoted" });
-    expect(plan.find((x) => x.id === "NS-01")).toMatchObject({ status: "skip-promoted" });
-    expect(soulOf(p)).not.toContain("- NS-10 monospace");
+    expect(plan.find((x) => x.id === "NS-01")).toMatchObject({ status: "accepted" });
+    expect(soulOf(p)).not.toContain("- NS-10 gradient");
+    expect(soulOf(p)).toContain("- NS-01 monospace on UI controls or tables — accepted: move this line under '## Never'");
     expect(bindingNeverIds(soul)).toEqual(["NS-10"]);
   });
 });
@@ -212,7 +214,7 @@ describe("proposals follow the evidence", () => {
     const p = project({ files: { "app.html": `<p>Receipt <code class="font-mono">id</code></p>` } });
     const report = harvestNegativeSpace({ sourceDir: p.src });
     const bullet = planProposals(report, { bindingRuleIds: new Set(), boundNeverIds: new Set() }, "src/").find((x) => x.id === "NS-01")?.bullet;
-    expect(bullet).toBe("- NS-01 monospace on UI controls or tables — 0 of 1 scanned files under src/ (1 excluded: inside <code>)");
+    expect(bullet).toBe("- NS-01 monospace on UI controls or tables — 0 hits in 1 file(s) read under src/; 0 file(s) not read (skipped: unreadable, oversized or symlink); other template/style files met and not read: none (1 excluded: inside <code>)");
   });
 });
 

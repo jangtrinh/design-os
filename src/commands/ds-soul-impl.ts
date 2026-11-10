@@ -18,6 +18,7 @@ import { join, resolve } from "node:path";
 import { errJson, errText, ok, okJson, okJsonWithExit } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { writeSoulScaffold, checkSoul, SOUL_FILENAME } from "../core/ds-soul.js";
+import { withPromotedRuleWarnings } from "../core/ds-soul-promoted-check.js";
 import { STUDIO_SOUL_FILENAME, checkStudioSoul, writeStudioSoulScaffold } from "../core/ds-soul-studio.js";
 import { FACTORY_SOUL } from "../core/ds-soul-factory.js";
 import { easeHome } from "../core/memory-store.js";
@@ -196,7 +197,7 @@ export function runSoul(parsed: ParsedArgs): CommandResult {
     } catch (e) {
       return err("READ_ERROR", `cannot read '${soulPath}': ${e instanceof Error ? e.message : String(e)}`);
     }
-    result = checkSoul(text);
+    result = withPromotedRuleWarnings(checkSoul(text), text, designDir);
   }
 
   const exitCode = result.errorCount > 0 ? 1 : 0;
