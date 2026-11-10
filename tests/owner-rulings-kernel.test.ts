@@ -226,6 +226,7 @@ describe("pending store", () => {
       "an empty file": "",
       "no clusters array": { version: 1 },
       "a non-string member": { version: 1, round: 1, clusters: [{ ...raw(good), members: [1, 2] }] },
+      "a non-string member whose fingerprint was computed over its string form": { version: 1, round: 1, clusters: [{ ...raw(good), members: [1, 2], samples: [1, 2], fingerprint: fingerprintOf("scan-budget", ["1", "2"]) }] },
       "a wrong fingerprint": { version: 1, round: 1, clusters: [{ ...raw(good), fingerprint: "f".repeat(64) }] },
       "a short fingerprint": { version: 1, round: 1, clusters: [{ ...raw(good), fingerprint: "f" }] },
       "a wrong count": { version: 1, round: 1, clusters: [{ ...raw(good), count: 9 }] },
