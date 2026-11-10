@@ -9,7 +9,7 @@ import { inferDtcgType, pathOf } from "../src/core/figma-ds-tokens.js";
 import type { DsVariable } from "../src/core/figma-ds-tokens.js";
 
 const DIR = join(process.cwd(), "tests", "fixtures", "owner-rulings");
-const load = (name: string): { tokens: DsVariable[]; components: { id: string; name: string; page: string }[] } =>
+const load = (name: string): { tokens: DsVariable[]; components: { id: string; name: string; page: { id: string; name: string } }[] } =>
   JSON.parse(readFileSync(join(DIR, name), "utf8"));
 
 /** Collections with their variable counts, and every token path that two different collections both map to. */
@@ -32,12 +32,12 @@ function measureCollections(tokens: DsVariable[]): { counts: Map<string, number>
 
 const MARKER = /^(❌|\[(archived|deprecated)\])\s*/i;
 
-function measurePages(components: { name: string; page: string }[]): { perPage: Map<string, number>; marked: number; duplicates: number; surplus: number } {
+function measurePages(components: { name: string; page: { name: string } }[]): { perPage: Map<string, number>; marked: number; duplicates: number; surplus: number } {
   const perPage = new Map<string, number>();
   const names = new Map<string, number>();
   let marked = 0;
   for (const c of components) {
-    perPage.set(c.page, (perPage.get(c.page) ?? 0) + 1);
+    perPage.set(c.page.name, (perPage.get(c.page.name) ?? 0) + 1);
     if (MARKER.test(c.name)) marked++;
     const stripped = c.name.replace(MARKER, "");
     names.set(stripped, (names.get(stripped) ?? 0) + 1);

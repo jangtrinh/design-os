@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/figma-ds-scan.schema.json",
+  "title": "Figma design-system scan",
+  "description": "The one scan file that `ui ingest-figma-ds` reads. Two hosts write it: the Figma plugin (`figma-agent scan-design-system`) and DESIGN:OS Studio (`designos <file.fig> --scan-design-system`). The hosts sense, the kernel judges: every field after `styles` is optional for the reader, and a scan without them is read as 'not sensed'. Ids are always Figma ids, never a host's own numbers. `tokens` lists the variables of LOCAL collections only.",
+  "type": "object",
+  "required": ["components", "tokens", "styles"],
+  "additionalProperties": false,
+  "properties": {
+    "components": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+    "tokens": { "type": "array", "items": { "$ref": "#/definitions/variable" } },
+    "styles": { "type": "array", "items": { "$ref": "#/definitions/style" } },
+    "frames": { "type": "array", "items": { "$ref": "#/definitions/frame" } },
+    "sensing": { "$ref": "#/definitions/sensing" },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "components": { "type": "integer", "minimum": 0 },
+        "tokens": { "type": "integer", "minimum": 0 },
+        "styles": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "definitions": {
+    "nodeId": { "description": "A Figma node id: `<n>:<n>`.", "type": "string", "pattern": "^[0-9]+:[0-9]+$" },
+    "variableId": { "description": "A Figma variable id: `VariableID:` followed by the id.", "type": "string", "pattern": "^VariableID:[^\\s]+$" },
+    "page": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": { "id": { "$ref": "#/definitions/nodeId" }, "name": { "type": "string" } }
+    },
+    "instanceRef": {
+      "type": "object",
+      "required": ["component", "count"],
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "description": "The main component, resolved to its component set when it is a variant: a node id (`<n>:<n>`) for a local one, a hex key for a library one. The two forms are told apart by their shape.",
+          "type": "string",
+          "pattern": "^([0-9]+:[0-9]+|[0-9a-f]+)$"
+        },
+        "count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "instances": { "description": "Sorted by component.", "type": "array", "items": { "$ref": "#/definitions/instanceRef" } },
+    "component": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/nodeId" },
+        "key": { "type": "string", "pattern": "^[0-9a-f]+$" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["COMPONENT", "COMPONENT_SET"] },
+        "page": { "$ref": "#/definitions/page" },
+        "section": { "type": "string" },
+        "width": { "type": "number", "minimum": 0 },
+        "variantAxes": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } },
+        "boundVariables": { "description": "Sorted, unique variable ids bound inside the component's own subtree (a walk stops at an instance).", "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/variableId" } },
+        "instances": { "$ref": "#/definitions/instances" },
+        "unresolvedInstances": { "description": "Written only when above 0.", "type": "integer", "minimum": 1 }
+      }
+    },
+    "variable": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "additionalProperties": false,
+      "anyOf": [{ "required": ["value"] }, { "required": ["valuesByMode"] }],
+      "properties": {
+        "id": { "$ref": "#/definitions/variableId" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "collection": { "type": "string" },
+        "remote": { "description": "Variables of a remote collection never belong here; a host that tags remoteness writes false.", "const": false },
+        "value": {},
+        "valuesByMode": { "type": "object" }
+      }
+    },
+    "style": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "type": { "enum": ["PAINT", "TEXT", "EFFECT", "GRID"] }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "required": ["id", "name", "page", "w", "h", "instances"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/nodeId" },
+        "name": { "type": "string" },
+        "page": { "$ref": "#/definitions/page" },
+        "section": { "type": "string" },
+        "w": { "type": "number", "minimum": 0 },
+        "h": { "type": "number", "minimum": 0 },
+        "instances": { "$ref": "#/definitions/instances" },
+        "unresolvedInstances": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "sensing": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["complete", "skipped"] },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}
