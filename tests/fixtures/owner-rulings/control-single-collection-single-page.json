@@ -1,39 +1,55 @@
 {
   "components": [
     {
-      "id": "C:0",
+      "id": "1:0",
       "name": "Control Widget 0",
       "type": "COMPONENT",
-      "page": "Library"
+      "page": {
+        "id": "0:1",
+        "name": "Library"
+      }
     },
     {
-      "id": "C:1",
+      "id": "1:1",
       "name": "Control Widget 1",
       "type": "COMPONENT",
-      "page": "Library"
+      "page": {
+        "id": "0:1",
+        "name": "Library"
+      }
     },
     {
-      "id": "C:2",
+      "id": "1:2",
       "name": "Control Widget 2",
       "type": "COMPONENT",
-      "page": "Library"
+      "page": {
+        "id": "0:1",
+        "name": "Library"
+      }
     },
     {
-      "id": "C:3",
+      "id": "1:3",
       "name": "Control Widget 3",
       "type": "COMPONENT",
-      "page": "Library"
+      "page": {
+        "id": "0:1",
+        "name": "Library"
+      }
     },
     {
-      "id": "C:4",
+      "id": "1:4",
       "name": "Control Widget 4",
       "type": "COMPONENT",
-      "page": "Library"
+      "page": {
+        "id": "0:1",
+        "name": "Library"
+      }
     }
   ],
+  "styles": [],
   "tokens": [
     {
-      "id": "V:core-0",
+      "id": "VariableID:1:0",
       "name": "color/brand-000",
       "type": "COLOR",
       "collection": "Core",
@@ -45,7 +61,7 @@
       }
     },
     {
-      "id": "V:core-1",
+      "id": "VariableID:1:1",
       "name": "color/brand-001",
       "type": "COLOR",
       "collection": "Core",
@@ -57,7 +73,7 @@
       }
     },
     {
-      "id": "V:core-2",
+      "id": "VariableID:1:2",
       "name": "color/brand-002",
       "type": "COLOR",
       "collection": "Core",
@@ -69,7 +85,7 @@
       }
     },
     {
-      "id": "V:core-3",
+      "id": "VariableID:1:3",
       "name": "color/brand-003",
       "type": "COLOR",
       "collection": "Core",
@@ -81,7 +97,7 @@
       }
     },
     {
-      "id": "V:core-4",
+      "id": "VariableID:1:4",
       "name": "color/brand-004",
       "type": "COLOR",
       "collection": "Core",
@@ -93,7 +109,7 @@
       }
     },
     {
-      "id": "V:core-5",
+      "id": "VariableID:1:5",
       "name": "color/brand-005",
       "type": "COLOR",
       "collection": "Core",
@@ -105,7 +121,7 @@
       }
     },
     {
-      "id": "V:core-6",
+      "id": "VariableID:1:6",
       "name": "color/brand-006",
       "type": "COLOR",
       "collection": "Core",
@@ -117,7 +133,7 @@
       }
     },
     {
-      "id": "V:core-7",
+      "id": "VariableID:1:7",
       "name": "color/brand-007",
       "type": "COLOR",
       "collection": "Core",
@@ -129,7 +145,7 @@
       }
     },
     {
-      "id": "V:core-8",
+      "id": "VariableID:1:8",
       "name": "color/brand-008",
       "type": "COLOR",
       "collection": "Core",
@@ -141,7 +157,7 @@
       }
     },
     {
-      "id": "V:core-9",
+      "id": "VariableID:1:9",
       "name": "color/brand-009",
       "type": "COLOR",
       "collection": "Core",
@@ -153,7 +169,7 @@
       }
     },
     {
-      "id": "V:core-10",
+      "id": "VariableID:1:10",
       "name": "color/brand-010",
       "type": "COLOR",
       "collection": "Core",
@@ -165,7 +181,7 @@
       }
     },
     {
-      "id": "V:core-11",
+      "id": "VariableID:1:11",
       "name": "color/brand-011",
       "type": "COLOR",
       "collection": "Core",

@@ -2,7 +2,7 @@
   "components": [],
   "tokens": [
     {
-      "id": "V:prim-0",
+      "id": "VariableID:1:0",
       "name": "primitives/color/shade-000",
       "type": "COLOR",
       "collection": "Primitives",
@@ -14,7 +14,7 @@
       }
     },
     {
-      "id": "V:prim-1",
+      "id": "VariableID:1:1",
       "name": "primitives/color/shade-001",
       "type": "COLOR",
       "collection": "Primitives",
@@ -26,7 +26,7 @@
       }
     },
     {
-      "id": "V:prim-2",
+      "id": "VariableID:1:2",
       "name": "primitives/color/shade-002",
       "type": "COLOR",
       "collection": "Primitives",
@@ -38,7 +38,7 @@
       }
     },
     {
-      "id": "V:prim-3",
+      "id": "VariableID:1:3",
       "name": "primitives/color/shade-003",
       "type": "COLOR",
       "collection": "Primitives",
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "V:prim-4",
+      "id": "VariableID:1:4",
       "name": "primitives/color/shade-004",
       "type": "COLOR",
       "collection": "Primitives",
@@ -62,7 +62,7 @@
       }
     },
     {
-      "id": "V:prim-5",
+      "id": "VariableID:1:5",
       "name": "primitives/color/shade-005",
       "type": "COLOR",
       "collection": "Primitives",
@@ -74,7 +74,7 @@
       }
     },
     {
-      "id": "V:prim-6",
+      "id": "VariableID:1:6",
       "name": "primitives/color/shade-006",
       "type": "COLOR",
       "collection": "Primitives",
@@ -86,7 +86,7 @@
       }
     },
     {
-      "id": "V:prim-7",
+      "id": "VariableID:1:7",
       "name": "primitives/color/shade-007",
       "type": "COLOR",
       "collection": "Primitives",
@@ -98,7 +98,7 @@
       }
     },
     {
-      "id": "V:prim-8",
+      "id": "VariableID:1:8",
       "name": "primitives/color/shade-008",
       "type": "COLOR",
       "collection": "Primitives",
@@ -110,7 +110,7 @@
       }
     },
     {
-      "id": "V:prim-9",
+      "id": "VariableID:1:9",
       "name": "primitives/color/shade-009",
       "type": "COLOR",
       "collection": "Primitives",
@@ -122,7 +122,7 @@
       }
     },
     {
-      "id": "V:prim-10",
+      "id": "VariableID:1:10",
       "name": "primitives/color/shade-010",
       "type": "COLOR",
       "collection": "Primitives",
@@ -134,7 +134,7 @@
       }
     },
     {
-      "id": "V:prim-11",
+      "id": "VariableID:1:11",
       "name": "primitives/color/shade-011",
       "type": "COLOR",
       "collection": "Primitives",
@@ -146,7 +146,7 @@
       }
     },
     {
-      "id": "V:prim-12",
+      "id": "VariableID:1:12",
       "name": "primitives/color/shade-012",
       "type": "COLOR",
       "collection": "Primitives",
@@ -158,7 +158,7 @@
       }
     },
     {
-      "id": "V:prim-13",
+      "id": "VariableID:1:13",
       "name": "primitives/color/shade-013",
       "type": "COLOR",
       "collection": "Primitives",
@@ -170,7 +170,7 @@
       }
     },
     {
-      "id": "V:prim-14",
+      "id": "VariableID:1:14",
       "name": "primitives/color/shade-014",
       "type": "COLOR",
       "collection": "Primitives",
@@ -182,7 +182,7 @@
       }
     },
     {
-      "id": "V:prim-15",
+      "id": "VariableID:1:15",
       "name": "primitives/color/shade-015",
       "type": "COLOR",
       "collection": "Primitives",
@@ -194,7 +194,7 @@
       }
     },
     {
-      "id": "V:prim-16",
+      "id": "VariableID:1:16",
       "name": "primitives/color/shade-016",
       "type": "COLOR",
       "collection": "Primitives",
@@ -206,7 +206,7 @@
       }
     },
     {
-      "id": "V:prim-17",
+      "id": "VariableID:1:17",
       "name": "primitives/color/shade-017",
       "type": "COLOR",
       "collection": "Primitives",
@@ -218,7 +218,7 @@
       }
     },
     {
-      "id": "V:prim-18",
+      "id": "VariableID:1:18",
       "name": "primitives/color/shade-018",
       "type": "COLOR",
       "collection": "Primitives",
@@ -230,7 +230,7 @@
       }
     },
     {
-      "id": "V:prim-19",
+      "id": "VariableID:1:19",
       "name": "primitives/color/shade-019",
       "type": "COLOR",
       "collection": "Primitives",
@@ -242,7 +242,7 @@
       }
     },
     {
-      "id": "V:prim-20",
+      "id": "VariableID:1:20",
       "name": "primitives/color/shade-020",
       "type": "COLOR",
       "collection": "Primitives",
@@ -254,7 +254,7 @@
       }
     },
     {
-      "id": "V:prim-21",
+      "id": "VariableID:1:21",
       "name": "primitives/color/shade-021",
       "type": "COLOR",
       "collection": "Primitives",
@@ -266,7 +266,7 @@
       }
     },
     {
-      "id": "V:prim-22",
+      "id": "VariableID:1:22",
       "name": "primitives/color/shade-022",
       "type": "COLOR",
       "collection": "Primitives",
@@ -278,7 +278,7 @@
       }
     },
     {
-      "id": "V:prim-23",
+      "id": "VariableID:1:23",
       "name": "primitives/color/shade-023",
       "type": "COLOR",
       "collection": "Primitives",
@@ -290,7 +290,7 @@
       }
     },
     {
-      "id": "V:prim-24",
+      "id": "VariableID:1:24",
       "name": "primitives/color/shade-024",
       "type": "COLOR",
       "collection": "Primitives",
@@ -302,7 +302,7 @@
       }
     },
     {
-      "id": "V:prim-25",
+      "id": "VariableID:1:25",
       "name": "primitives/color/shade-025",
       "type": "COLOR",
       "collection": "Primitives",
@@ -314,7 +314,7 @@
       }
     },
     {
-      "id": "V:prim-26",
+      "id": "VariableID:1:26",
       "name": "primitives/color/shade-026",
       "type": "COLOR",
       "collection": "Primitives",
@@ -326,7 +326,7 @@
       }
     },
     {
-      "id": "V:prim-27",
+      "id": "VariableID:1:27",
       "name": "primitives/color/shade-027",
       "type": "COLOR",
       "collection": "Primitives",
@@ -338,7 +338,7 @@
       }
     },
     {
-      "id": "V:prim-28",
+      "id": "VariableID:1:28",
       "name": "primitives/color/shade-028",
       "type": "COLOR",
       "collection": "Primitives",
@@ -350,7 +350,7 @@
       }
     },
     {
-      "id": "V:prim-29",
+      "id": "VariableID:1:29",
       "name": "primitives/color/shade-029",
       "type": "COLOR",
       "collection": "Primitives",
@@ -362,7 +362,7 @@
       }
     },
     {
-      "id": "V:prim-30",
+      "id": "VariableID:1:30",
       "name": "primitives/color/shade-030",
       "type": "COLOR",
       "collection": "Primitives",
@@ -374,7 +374,7 @@
       }
     },
     {
-      "id": "V:prim-31",
+      "id": "VariableID:1:31",
       "name": "primitives/color/shade-031",
       "type": "COLOR",
       "collection": "Primitives",
@@ -386,7 +386,7 @@
       }
     },
     {
-      "id": "V:prim-32",
+      "id": "VariableID:1:32",
       "name": "primitives/color/shade-032",
       "type": "COLOR",
       "collection": "Primitives",
@@ -398,7 +398,7 @@
       }
     },
     {
-      "id": "V:prim-33",
+      "id": "VariableID:1:33",
       "name": "primitives/color/shade-033",
       "type": "COLOR",
       "collection": "Primitives",
@@ -410,7 +410,7 @@
       }
     },
     {
-      "id": "V:prim-34",
+      "id": "VariableID:1:34",
       "name": "primitives/color/shade-034",
       "type": "COLOR",
       "collection": "Primitives",
@@ -422,7 +422,7 @@
       }
     },
     {
-      "id": "V:prim-35",
+      "id": "VariableID:1:35",
       "name": "primitives/color/shade-035",
       "type": "COLOR",
       "collection": "Primitives",
@@ -434,7 +434,7 @@
       }
     },
     {
-      "id": "V:prim-36",
+      "id": "VariableID:1:36",
       "name": "primitives/color/shade-036",
       "type": "COLOR",
       "collection": "Primitives",
@@ -446,7 +446,7 @@
       }
     },
     {
-      "id": "V:prim-37",
+      "id": "VariableID:1:37",
       "name": "primitives/color/shade-037",
       "type": "COLOR",
       "collection": "Primitives",
@@ -458,7 +458,7 @@
       }
     },
     {
-      "id": "V:prim-38",
+      "id": "VariableID:1:38",
       "name": "primitives/color/shade-038",
       "type": "COLOR",
       "collection": "Primitives",
@@ -470,7 +470,7 @@
       }
     },
     {
-      "id": "V:prim-39",
+      "id": "VariableID:1:39",
       "name": "primitives/color/shade-039",
       "type": "COLOR",
       "collection": "Primitives",
@@ -482,7 +482,7 @@
       }
     },
     {
-      "id": "V:prim-40",
+      "id": "VariableID:1:40",
       "name": "primitives/color/shade-040",
       "type": "COLOR",
       "collection": "Primitives",
@@ -494,7 +494,7 @@
       }
     },
     {
-      "id": "V:prim-41",
+      "id": "VariableID:1:41",
       "name": "primitives/color/shade-041",
       "type": "COLOR",
       "collection": "Primitives",
@@ -506,7 +506,7 @@
       }
     },
     {
-      "id": "V:prim-42",
+      "id": "VariableID:1:42",
       "name": "primitives/color/shade-042",
       "type": "COLOR",
       "collection": "Primitives",
@@ -518,7 +518,7 @@
       }
     },
     {
-      "id": "V:prim-43",
+      "id": "VariableID:1:43",
       "name": "primitives/color/shade-043",
       "type": "COLOR",
       "collection": "Primitives",
@@ -530,7 +530,7 @@
       }
     },
     {
-      "id": "V:prim-44",
+      "id": "VariableID:1:44",
       "name": "primitives/color/shade-044",
       "type": "COLOR",
       "collection": "Primitives",
@@ -542,7 +542,7 @@
       }
     },
     {
-      "id": "V:prim-45",
+      "id": "VariableID:1:45",
       "name": "primitives/color/shade-045",
       "type": "COLOR",
       "collection": "Primitives",
@@ -554,7 +554,7 @@
       }
     },
     {
-      "id": "V:prim-46",
+      "id": "VariableID:1:46",
       "name": "primitives/color/shade-046",
       "type": "COLOR",
       "collection": "Primitives",
@@ -566,7 +566,7 @@
       }
     },
     {
-      "id": "V:prim-47",
+      "id": "VariableID:1:47",
       "name": "primitives/color/shade-047",
       "type": "COLOR",
       "collection": "Primitives",
@@ -578,7 +578,7 @@
       }
     },
     {
-      "id": "V:prim-48",
+      "id": "VariableID:1:48",
       "name": "primitives/color/shade-048",
       "type": "COLOR",
       "collection": "Primitives",
@@ -590,7 +590,7 @@
       }
     },
     {
-      "id": "V:prim-49",
+      "id": "VariableID:1:49",
       "name": "primitives/color/shade-049",
       "type": "COLOR",
       "collection": "Primitives",
@@ -602,7 +602,7 @@
       }
     },
     {
-      "id": "V:prim-50",
+      "id": "VariableID:1:50",
       "name": "primitives/color/shade-050",
       "type": "COLOR",
       "collection": "Primitives",
@@ -614,7 +614,7 @@
       }
     },
     {
-      "id": "V:prim-51",
+      "id": "VariableID:1:51",
       "name": "primitives/color/shade-051",
       "type": "COLOR",
       "collection": "Primitives",
@@ -626,7 +626,7 @@
       }
     },
     {
-      "id": "V:prim-52",
+      "id": "VariableID:1:52",
       "name": "primitives/color/shade-052",
       "type": "COLOR",
       "collection": "Primitives",
@@ -638,7 +638,7 @@
       }
     },
     {
-      "id": "V:prim-53",
+      "id": "VariableID:1:53",
       "name": "primitives/color/shade-053",
       "type": "COLOR",
       "collection": "Primitives",
@@ -650,7 +650,7 @@
       }
     },
     {
-      "id": "V:prim-54",
+      "id": "VariableID:1:54",
       "name": "primitives/color/shade-054",
       "type": "COLOR",
       "collection": "Primitives",
@@ -662,7 +662,7 @@
       }
     },
     {
-      "id": "V:prim-55",
+      "id": "VariableID:1:55",
       "name": "primitives/color/shade-055",
       "type": "COLOR",
       "collection": "Primitives",
@@ -674,7 +674,7 @@
       }
     },
     {
-      "id": "V:prim-56",
+      "id": "VariableID:1:56",
       "name": "primitives/color/shade-056",
       "type": "COLOR",
       "collection": "Primitives",
@@ -686,7 +686,7 @@
       }
     },
     {
-      "id": "V:prim-57",
+      "id": "VariableID:1:57",
       "name": "primitives/color/shade-057",
       "type": "COLOR",
       "collection": "Primitives",
@@ -698,7 +698,7 @@
       }
     },
     {
-      "id": "V:prim-58",
+      "id": "VariableID:1:58",
       "name": "primitives/color/shade-058",
       "type": "COLOR",
       "collection": "Primitives",
@@ -710,7 +710,7 @@
       }
     },
     {
-      "id": "V:prim-59",
+      "id": "VariableID:1:59",
       "name": "primitives/color/shade-059",
       "type": "COLOR",
       "collection": "Primitives",
@@ -722,7 +722,7 @@
       }
     },
     {
-      "id": "V:prim-60",
+      "id": "VariableID:1:60",
       "name": "primitives/color/shade-060",
       "type": "COLOR",
       "collection": "Primitives",
@@ -734,7 +734,7 @@
       }
     },
     {
-      "id": "V:prim-61",
+      "id": "VariableID:1:61",
       "name": "primitives/color/shade-061",
       "type": "COLOR",
       "collection": "Primitives",
@@ -746,7 +746,7 @@
       }
     },
     {
-      "id": "V:prim-62",
+      "id": "VariableID:1:62",
       "name": "primitives/color/shade-062",
       "type": "COLOR",
       "collection": "Primitives",
@@ -758,7 +758,7 @@
       }
     },
     {
-      "id": "V:prim-63",
+      "id": "VariableID:1:63",
       "name": "primitives/color/shade-063",
       "type": "COLOR",
       "collection": "Primitives",
@@ -770,7 +770,7 @@
       }
     },
     {
-      "id": "V:prim-64",
+      "id": "VariableID:1:64",
       "name": "primitives/color/shade-064",
       "type": "COLOR",
       "collection": "Primitives",
@@ -782,7 +782,7 @@
       }
     },
     {
-      "id": "V:prim-65",
+      "id": "VariableID:1:65",
       "name": "primitives/color/shade-065",
       "type": "COLOR",
       "collection": "Primitives",
@@ -794,7 +794,7 @@
       }
     },
     {
-      "id": "V:prim-66",
+      "id": "VariableID:1:66",
       "name": "primitives/color/shade-066",
       "type": "COLOR",
       "collection": "Primitives",
@@ -806,7 +806,7 @@
       }
     },
     {
-      "id": "V:prim-67",
+      "id": "VariableID:1:67",
       "name": "primitives/color/shade-067",
       "type": "COLOR",
       "collection": "Primitives",
@@ -818,7 +818,7 @@
       }
     },
     {
-      "id": "V:prim-68",
+      "id": "VariableID:1:68",
       "name": "primitives/color/shade-068",
       "type": "COLOR",
       "collection": "Primitives",
@@ -830,7 +830,7 @@
       }
     },
     {
-      "id": "V:prim-69",
+      "id": "VariableID:1:69",
       "name": "primitives/color/shade-069",
       "type": "COLOR",
       "collection": "Primitives",
@@ -842,7 +842,7 @@
       }
     },
     {
-      "id": "V:prim-70",
+      "id": "VariableID:1:70",
       "name": "primitives/color/shade-070",
       "type": "COLOR",
       "collection": "Primitives",
@@ -854,7 +854,7 @@
       }
     },
     {
-      "id": "V:prim-71",
+      "id": "VariableID:1:71",
       "name": "primitives/color/shade-071",
       "type": "COLOR",
       "collection": "Primitives",
@@ -866,7 +866,7 @@
       }
     },
     {
-      "id": "V:prim-72",
+      "id": "VariableID:1:72",
       "name": "primitives/color/shade-072",
       "type": "COLOR",
       "collection": "Primitives",
@@ -878,7 +878,7 @@
       }
     },
     {
-      "id": "V:prim-73",
+      "id": "VariableID:1:73",
       "name": "primitives/color/shade-073",
       "type": "COLOR",
       "collection": "Primitives",
@@ -890,7 +890,7 @@
       }
     },
     {
-      "id": "V:prim-74",
+      "id": "VariableID:1:74",
       "name": "primitives/color/shade-074",
       "type": "COLOR",
       "collection": "Primitives",
@@ -902,7 +902,7 @@
       }
     },
     {
-      "id": "V:prim-75",
+      "id": "VariableID:1:75",
       "name": "primitives/color/shade-075",
       "type": "COLOR",
       "collection": "Primitives",
@@ -914,7 +914,7 @@
       }
     },
     {
-      "id": "V:prim-76",
+      "id": "VariableID:1:76",
       "name": "primitives/color/shade-076",
       "type": "COLOR",
       "collection": "Primitives",
@@ -926,7 +926,7 @@
       }
     },
     {
-      "id": "V:prim-77",
+      "id": "VariableID:1:77",
       "name": "primitives/color/shade-077",
       "type": "COLOR",
       "collection": "Primitives",
@@ -938,7 +938,7 @@
       }
     },
     {
-      "id": "V:prim-78",
+      "id": "VariableID:1:78",
       "name": "primitives/color/shade-078",
       "type": "COLOR",
       "collection": "Primitives",
@@ -950,7 +950,7 @@
       }
     },
     {
-      "id": "V:prim-79",
+      "id": "VariableID:1:79",
       "name": "primitives/color/shade-079",
       "type": "COLOR",
       "collection": "Primitives",
@@ -962,7 +962,7 @@
       }
     },
     {
-      "id": "V:prim-80",
+      "id": "VariableID:1:80",
       "name": "primitives/color/shade-080",
       "type": "COLOR",
       "collection": "Primitives",
@@ -974,7 +974,7 @@
       }
     },
     {
-      "id": "V:prim-81",
+      "id": "VariableID:1:81",
       "name": "primitives/color/shade-081",
       "type": "COLOR",
       "collection": "Primitives",
@@ -986,7 +986,7 @@
       }
     },
     {
-      "id": "V:prim-82",
+      "id": "VariableID:1:82",
       "name": "primitives/color/shade-082",
       "type": "COLOR",
       "collection": "Primitives",
@@ -998,7 +998,7 @@
       }
     },
     {
-      "id": "V:prim-83",
+      "id": "VariableID:1:83",
       "name": "primitives/color/shade-083",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1010,7 +1010,7 @@
       }
     },
     {
-      "id": "V:prim-84",
+      "id": "VariableID:1:84",
       "name": "primitives/color/shade-084",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1022,7 +1022,7 @@
       }
     },
     {
-      "id": "V:prim-85",
+      "id": "VariableID:1:85",
       "name": "primitives/color/shade-085",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1034,7 +1034,7 @@
       }
     },
     {
-      "id": "V:prim-86",
+      "id": "VariableID:1:86",
       "name": "primitives/color/shade-086",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1046,7 +1046,7 @@
       }
     },
     {
-      "id": "V:prim-87",
+      "id": "VariableID:1:87",
       "name": "primitives/color/shade-087",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1058,7 +1058,7 @@
       }
     },
     {
-      "id": "V:prim-88",
+      "id": "VariableID:1:88",
       "name": "primitives/color/shade-088",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1070,7 +1070,7 @@
       }
     },
     {
-      "id": "V:prim-89",
+      "id": "VariableID:1:89",
       "name": "primitives/color/shade-089",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1082,7 +1082,7 @@
       }
     },
     {
-      "id": "V:prim-90",
+      "id": "VariableID:1:90",
       "name": "primitives/color/shade-090",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1094,7 +1094,7 @@
       }
     },
     {
-      "id": "V:prim-91",
+      "id": "VariableID:1:91",
       "name": "primitives/color/shade-091",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1106,7 +1106,7 @@
       }
     },
     {
-      "id": "V:prim-92",
+      "id": "VariableID:1:92",
       "name": "primitives/color/shade-092",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1118,7 +1118,7 @@
       }
     },
     {
-      "id": "V:prim-93",
+      "id": "VariableID:1:93",
       "name": "primitives/color/shade-093",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1130,7 +1130,7 @@
       }
     },
     {
-      "id": "V:prim-94",
+      "id": "VariableID:1:94",
       "name": "primitives/color/shade-094",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1142,7 +1142,7 @@
       }
     },
     {
-      "id": "V:prim-95",
+      "id": "VariableID:1:95",
       "name": "primitives/color/shade-095",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1154,7 +1154,7 @@
       }
     },
     {
-      "id": "V:prim-96",
+      "id": "VariableID:1:96",
       "name": "primitives/color/shade-096",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1166,7 +1166,7 @@
       }
     },
     {
-      "id": "V:prim-97",
+      "id": "VariableID:1:97",
       "name": "primitives/color/shade-097",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1178,7 +1178,7 @@
       }
     },
     {
-      "id": "V:prim-98",
+      "id": "VariableID:1:98",
       "name": "primitives/color/shade-098",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1190,7 +1190,7 @@
       }
     },
     {
-      "id": "V:prim-99",
+      "id": "VariableID:1:99",
       "name": "primitives/color/shade-099",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1202,7 +1202,7 @@
       }
     },
     {
-      "id": "V:prim-100",
+      "id": "VariableID:1:100",
       "name": "primitives/color/shade-100",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1214,7 +1214,7 @@
       }
     },
     {
-      "id": "V:prim-101",
+      "id": "VariableID:1:101",
       "name": "primitives/color/shade-101",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1226,7 +1226,7 @@
       }
     },
     {
-      "id": "V:prim-102",
+      "id": "VariableID:1:102",
       "name": "primitives/color/shade-102",
       "type": "COLOR",
       "collection": "Primitives",
@@ -1238,2481 +1238,2481 @@
       }
     },
     {
-      "id": "V:sem-0",
+      "id": "VariableID:2:0",
       "name": "semantic/color/role-000",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-0"
+          "id": "VariableID:1:0"
         }
       }
     },
     {
-      "id": "V:sem-1",
+      "id": "VariableID:2:1",
       "name": "semantic/color/role-001",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-1"
+          "id": "VariableID:1:1"
         }
       }
     },
     {
-      "id": "V:sem-2",
+      "id": "VariableID:2:2",
       "name": "semantic/color/role-002",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-2"
+          "id": "VariableID:1:2"
         }
       }
     },
     {
-      "id": "V:sem-3",
+      "id": "VariableID:2:3",
       "name": "semantic/color/role-003",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-3"
+          "id": "VariableID:1:3"
         }
       }
     },
     {
-      "id": "V:sem-4",
+      "id": "VariableID:2:4",
       "name": "semantic/color/role-004",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-4"
+          "id": "VariableID:1:4"
         }
       }
     },
     {
-      "id": "V:sem-5",
+      "id": "VariableID:2:5",
       "name": "semantic/color/role-005",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-5"
+          "id": "VariableID:1:5"
         }
       }
     },
     {
-      "id": "V:sem-6",
+      "id": "VariableID:2:6",
       "name": "semantic/color/role-006",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-6"
+          "id": "VariableID:1:6"
         }
       }
     },
     {
-      "id": "V:sem-7",
+      "id": "VariableID:2:7",
       "name": "semantic/color/role-007",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-7"
+          "id": "VariableID:1:7"
         }
       }
     },
     {
-      "id": "V:sem-8",
+      "id": "VariableID:2:8",
       "name": "semantic/color/role-008",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-8"
+          "id": "VariableID:1:8"
         }
       }
     },
     {
-      "id": "V:sem-9",
+      "id": "VariableID:2:9",
       "name": "semantic/color/role-009",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-9"
+          "id": "VariableID:1:9"
         }
       }
     },
     {
-      "id": "V:sem-10",
+      "id": "VariableID:2:10",
       "name": "semantic/color/role-010",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-10"
+          "id": "VariableID:1:10"
         }
       }
     },
     {
-      "id": "V:sem-11",
+      "id": "VariableID:2:11",
       "name": "semantic/color/role-011",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-11"
+          "id": "VariableID:1:11"
         }
       }
     },
     {
-      "id": "V:sem-12",
+      "id": "VariableID:2:12",
       "name": "semantic/color/role-012",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-12"
+          "id": "VariableID:1:12"
         }
       }
     },
     {
-      "id": "V:sem-13",
+      "id": "VariableID:2:13",
       "name": "semantic/color/role-013",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-13"
+          "id": "VariableID:1:13"
         }
       }
     },
     {
-      "id": "V:sem-14",
+      "id": "VariableID:2:14",
       "name": "semantic/color/role-014",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-14"
+          "id": "VariableID:1:14"
         }
       }
     },
     {
-      "id": "V:sem-15",
+      "id": "VariableID:2:15",
       "name": "semantic/color/role-015",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-15"
+          "id": "VariableID:1:15"
         }
       }
     },
     {
-      "id": "V:sem-16",
+      "id": "VariableID:2:16",
       "name": "semantic/color/role-016",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-16"
+          "id": "VariableID:1:16"
         }
       }
     },
     {
-      "id": "V:sem-17",
+      "id": "VariableID:2:17",
       "name": "semantic/color/role-017",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-17"
+          "id": "VariableID:1:17"
         }
       }
     },
     {
-      "id": "V:sem-18",
+      "id": "VariableID:2:18",
       "name": "semantic/color/role-018",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-18"
+          "id": "VariableID:1:18"
         }
       }
     },
     {
-      "id": "V:sem-19",
+      "id": "VariableID:2:19",
       "name": "semantic/color/role-019",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-19"
+          "id": "VariableID:1:19"
         }
       }
     },
     {
-      "id": "V:sem-20",
+      "id": "VariableID:2:20",
       "name": "semantic/color/role-020",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-20"
+          "id": "VariableID:1:20"
         }
       }
     },
     {
-      "id": "V:sem-21",
+      "id": "VariableID:2:21",
       "name": "semantic/color/role-021",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-21"
+          "id": "VariableID:1:21"
         }
       }
     },
     {
-      "id": "V:sem-22",
+      "id": "VariableID:2:22",
       "name": "semantic/color/role-022",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-22"
+          "id": "VariableID:1:22"
         }
       }
     },
     {
-      "id": "V:sem-23",
+      "id": "VariableID:2:23",
       "name": "semantic/color/role-023",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-23"
+          "id": "VariableID:1:23"
         }
       }
     },
     {
-      "id": "V:sem-24",
+      "id": "VariableID:2:24",
       "name": "semantic/color/role-024",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-24"
+          "id": "VariableID:1:24"
         }
       }
     },
     {
-      "id": "V:sem-25",
+      "id": "VariableID:2:25",
       "name": "semantic/color/role-025",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-25"
+          "id": "VariableID:1:25"
         }
       }
     },
     {
-      "id": "V:sem-26",
+      "id": "VariableID:2:26",
       "name": "semantic/color/role-026",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-26"
+          "id": "VariableID:1:26"
         }
       }
     },
     {
-      "id": "V:sem-27",
+      "id": "VariableID:2:27",
       "name": "semantic/color/role-027",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-27"
+          "id": "VariableID:1:27"
         }
       }
     },
     {
-      "id": "V:sem-28",
+      "id": "VariableID:2:28",
       "name": "semantic/color/role-028",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-28"
+          "id": "VariableID:1:28"
         }
       }
     },
     {
-      "id": "V:sem-29",
+      "id": "VariableID:2:29",
       "name": "semantic/color/role-029",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-29"
+          "id": "VariableID:1:29"
         }
       }
     },
     {
-      "id": "V:sem-30",
+      "id": "VariableID:2:30",
       "name": "semantic/color/role-030",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-30"
+          "id": "VariableID:1:30"
         }
       }
     },
     {
-      "id": "V:sem-31",
+      "id": "VariableID:2:31",
       "name": "semantic/color/role-031",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-31"
+          "id": "VariableID:1:31"
         }
       }
     },
     {
-      "id": "V:sem-32",
+      "id": "VariableID:2:32",
       "name": "semantic/color/role-032",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-32"
+          "id": "VariableID:1:32"
         }
       }
     },
     {
-      "id": "V:sem-33",
+      "id": "VariableID:2:33",
       "name": "semantic/color/role-033",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-33"
+          "id": "VariableID:1:33"
         }
       }
     },
     {
-      "id": "V:sem-34",
+      "id": "VariableID:2:34",
       "name": "semantic/color/role-034",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-34"
+          "id": "VariableID:1:34"
         }
       }
     },
     {
-      "id": "V:sem-35",
+      "id": "VariableID:2:35",
       "name": "semantic/color/role-035",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-35"
+          "id": "VariableID:1:35"
         }
       }
     },
     {
-      "id": "V:sem-36",
+      "id": "VariableID:2:36",
       "name": "semantic/color/role-036",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-36"
+          "id": "VariableID:1:36"
         }
       }
     },
     {
-      "id": "V:sem-37",
+      "id": "VariableID:2:37",
       "name": "semantic/color/role-037",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-37"
+          "id": "VariableID:1:37"
         }
       }
     },
     {
-      "id": "V:sem-38",
+      "id": "VariableID:2:38",
       "name": "semantic/color/role-038",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-38"
+          "id": "VariableID:1:38"
         }
       }
     },
     {
-      "id": "V:sem-39",
+      "id": "VariableID:2:39",
       "name": "semantic/color/role-039",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-39"
+          "id": "VariableID:1:39"
         }
       }
     },
     {
-      "id": "V:sem-40",
+      "id": "VariableID:2:40",
       "name": "semantic/color/role-040",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-40"
+          "id": "VariableID:1:40"
         }
       }
     },
     {
-      "id": "V:sem-41",
+      "id": "VariableID:2:41",
       "name": "semantic/color/role-041",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-41"
+          "id": "VariableID:1:41"
         }
       }
     },
     {
-      "id": "V:sem-42",
+      "id": "VariableID:2:42",
       "name": "semantic/color/role-042",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-42"
+          "id": "VariableID:1:42"
         }
       }
     },
     {
-      "id": "V:sem-43",
+      "id": "VariableID:2:43",
       "name": "semantic/color/role-043",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-43"
+          "id": "VariableID:1:43"
         }
       }
     },
     {
-      "id": "V:sem-44",
+      "id": "VariableID:2:44",
       "name": "semantic/color/role-044",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-44"
+          "id": "VariableID:1:44"
         }
       }
     },
     {
-      "id": "V:sem-45",
+      "id": "VariableID:2:45",
       "name": "semantic/color/role-045",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-45"
+          "id": "VariableID:1:45"
         }
       }
     },
     {
-      "id": "V:sem-46",
+      "id": "VariableID:2:46",
       "name": "semantic/color/role-046",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-46"
+          "id": "VariableID:1:46"
         }
       }
     },
     {
-      "id": "V:sem-47",
+      "id": "VariableID:2:47",
       "name": "semantic/color/role-047",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-47"
+          "id": "VariableID:1:47"
         }
       }
     },
     {
-      "id": "V:sem-48",
+      "id": "VariableID:2:48",
       "name": "semantic/color/role-048",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-48"
+          "id": "VariableID:1:48"
         }
       }
     },
     {
-      "id": "V:sem-49",
+      "id": "VariableID:2:49",
       "name": "semantic/color/role-049",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-49"
+          "id": "VariableID:1:49"
         }
       }
     },
     {
-      "id": "V:sem-50",
+      "id": "VariableID:2:50",
       "name": "semantic/color/role-050",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-50"
+          "id": "VariableID:1:50"
         }
       }
     },
     {
-      "id": "V:sem-51",
+      "id": "VariableID:2:51",
       "name": "semantic/color/role-051",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-51"
+          "id": "VariableID:1:51"
         }
       }
     },
     {
-      "id": "V:sem-52",
+      "id": "VariableID:2:52",
       "name": "semantic/color/role-052",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-52"
+          "id": "VariableID:1:52"
         }
       }
     },
     {
-      "id": "V:sem-53",
+      "id": "VariableID:2:53",
       "name": "semantic/color/role-053",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-53"
+          "id": "VariableID:1:53"
         }
       }
     },
     {
-      "id": "V:sem-54",
+      "id": "VariableID:2:54",
       "name": "semantic/color/role-054",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-54"
+          "id": "VariableID:1:54"
         }
       }
     },
     {
-      "id": "V:sem-55",
+      "id": "VariableID:2:55",
       "name": "semantic/color/role-055",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-55"
+          "id": "VariableID:1:55"
         }
       }
     },
     {
-      "id": "V:sem-56",
+      "id": "VariableID:2:56",
       "name": "semantic/color/role-056",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-56"
+          "id": "VariableID:1:56"
         }
       }
     },
     {
-      "id": "V:sem-57",
+      "id": "VariableID:2:57",
       "name": "semantic/color/role-057",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-57"
+          "id": "VariableID:1:57"
         }
       }
     },
     {
-      "id": "V:sem-58",
+      "id": "VariableID:2:58",
       "name": "semantic/color/role-058",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-58"
+          "id": "VariableID:1:58"
         }
       }
     },
     {
-      "id": "V:sem-59",
+      "id": "VariableID:2:59",
       "name": "semantic/color/role-059",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-59"
+          "id": "VariableID:1:59"
         }
       }
     },
     {
-      "id": "V:sem-60",
+      "id": "VariableID:2:60",
       "name": "semantic/color/role-060",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-60"
+          "id": "VariableID:1:60"
         }
       }
     },
     {
-      "id": "V:sem-61",
+      "id": "VariableID:2:61",
       "name": "semantic/color/role-061",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-61"
+          "id": "VariableID:1:61"
         }
       }
     },
     {
-      "id": "V:sem-62",
+      "id": "VariableID:2:62",
       "name": "semantic/color/role-062",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-62"
+          "id": "VariableID:1:62"
         }
       }
     },
     {
-      "id": "V:sem-63",
+      "id": "VariableID:2:63",
       "name": "semantic/color/role-063",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-63"
+          "id": "VariableID:1:63"
         }
       }
     },
     {
-      "id": "V:sem-64",
+      "id": "VariableID:2:64",
       "name": "semantic/color/role-064",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-64"
+          "id": "VariableID:1:64"
         }
       }
     },
     {
-      "id": "V:sem-65",
+      "id": "VariableID:2:65",
       "name": "semantic/color/role-065",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-65"
+          "id": "VariableID:1:65"
         }
       }
     },
     {
-      "id": "V:sem-66",
+      "id": "VariableID:2:66",
       "name": "semantic/color/role-066",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-66"
+          "id": "VariableID:1:66"
         }
       }
     },
     {
-      "id": "V:sem-67",
+      "id": "VariableID:2:67",
       "name": "semantic/color/role-067",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-67"
+          "id": "VariableID:1:67"
         }
       }
     },
     {
-      "id": "V:sem-68",
+      "id": "VariableID:2:68",
       "name": "semantic/color/role-068",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-68"
+          "id": "VariableID:1:68"
         }
       }
     },
     {
-      "id": "V:sem-69",
+      "id": "VariableID:2:69",
       "name": "semantic/color/role-069",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-69"
+          "id": "VariableID:1:69"
         }
       }
     },
     {
-      "id": "V:sem-70",
+      "id": "VariableID:2:70",
       "name": "semantic/color/role-070",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-70"
+          "id": "VariableID:1:70"
         }
       }
     },
     {
-      "id": "V:sem-71",
+      "id": "VariableID:2:71",
       "name": "semantic/color/role-071",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-71"
+          "id": "VariableID:1:71"
         }
       }
     },
     {
-      "id": "V:sem-72",
+      "id": "VariableID:2:72",
       "name": "semantic/color/role-072",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-72"
+          "id": "VariableID:1:72"
         }
       }
     },
     {
-      "id": "V:sem-73",
+      "id": "VariableID:2:73",
       "name": "semantic/color/role-073",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-73"
+          "id": "VariableID:1:73"
         }
       }
     },
     {
-      "id": "V:sem-74",
+      "id": "VariableID:2:74",
       "name": "semantic/color/role-074",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-74"
+          "id": "VariableID:1:74"
         }
       }
     },
     {
-      "id": "V:sem-75",
+      "id": "VariableID:2:75",
       "name": "semantic/color/role-075",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-75"
+          "id": "VariableID:1:75"
         }
       }
     },
     {
-      "id": "V:sem-76",
+      "id": "VariableID:2:76",
       "name": "semantic/color/role-076",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-76"
+          "id": "VariableID:1:76"
         }
       }
     },
     {
-      "id": "V:sem-77",
+      "id": "VariableID:2:77",
       "name": "semantic/color/role-077",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-77"
+          "id": "VariableID:1:77"
         }
       }
     },
     {
-      "id": "V:sem-78",
+      "id": "VariableID:2:78",
       "name": "semantic/color/role-078",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-78"
+          "id": "VariableID:1:78"
         }
       }
     },
     {
-      "id": "V:sem-79",
+      "id": "VariableID:2:79",
       "name": "semantic/color/role-079",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-79"
+          "id": "VariableID:1:79"
         }
       }
     },
     {
-      "id": "V:sem-80",
+      "id": "VariableID:2:80",
       "name": "semantic/color/role-080",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-80"
+          "id": "VariableID:1:80"
         }
       }
     },
     {
-      "id": "V:sem-81",
+      "id": "VariableID:2:81",
       "name": "semantic/color/role-081",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-81"
+          "id": "VariableID:1:81"
         }
       }
     },
     {
-      "id": "V:sem-82",
+      "id": "VariableID:2:82",
       "name": "semantic/color/role-082",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-82"
+          "id": "VariableID:1:82"
         }
       }
     },
     {
-      "id": "V:sem-83",
+      "id": "VariableID:2:83",
       "name": "semantic/color/role-083",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-83"
+          "id": "VariableID:1:83"
         }
       }
     },
     {
-      "id": "V:sem-84",
+      "id": "VariableID:2:84",
       "name": "semantic/color/role-084",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-84"
+          "id": "VariableID:1:84"
         }
       }
     },
     {
-      "id": "V:sem-85",
+      "id": "VariableID:2:85",
       "name": "semantic/color/role-085",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-85"
+          "id": "VariableID:1:85"
         }
       }
     },
     {
-      "id": "V:sem-86",
+      "id": "VariableID:2:86",
       "name": "semantic/color/role-086",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-86"
+          "id": "VariableID:1:86"
         }
       }
     },
     {
-      "id": "V:sem-87",
+      "id": "VariableID:2:87",
       "name": "semantic/color/role-087",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-87"
+          "id": "VariableID:1:87"
         }
       }
     },
     {
-      "id": "V:sem-88",
+      "id": "VariableID:2:88",
       "name": "semantic/color/role-088",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-88"
+          "id": "VariableID:1:88"
         }
       }
     },
     {
-      "id": "V:sem-89",
+      "id": "VariableID:2:89",
       "name": "semantic/color/role-089",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-89"
+          "id": "VariableID:1:89"
         }
       }
     },
     {
-      "id": "V:sem-90",
+      "id": "VariableID:2:90",
       "name": "semantic/color/role-090",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-90"
+          "id": "VariableID:1:90"
         }
       }
     },
     {
-      "id": "V:sem-91",
+      "id": "VariableID:2:91",
       "name": "semantic/color/role-091",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-91"
+          "id": "VariableID:1:91"
         }
       }
     },
     {
-      "id": "V:sem-92",
+      "id": "VariableID:2:92",
       "name": "semantic/color/role-092",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-92"
+          "id": "VariableID:1:92"
         }
       }
     },
     {
-      "id": "V:sem-93",
+      "id": "VariableID:2:93",
       "name": "semantic/color/role-093",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-93"
+          "id": "VariableID:1:93"
         }
       }
     },
     {
-      "id": "V:sem-94",
+      "id": "VariableID:2:94",
       "name": "semantic/color/role-094",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-94"
+          "id": "VariableID:1:94"
         }
       }
     },
     {
-      "id": "V:sem-95",
+      "id": "VariableID:2:95",
       "name": "semantic/color/role-095",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-95"
+          "id": "VariableID:1:95"
         }
       }
     },
     {
-      "id": "V:sem-96",
+      "id": "VariableID:2:96",
       "name": "semantic/color/role-096",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-96"
+          "id": "VariableID:1:96"
         }
       }
     },
     {
-      "id": "V:sem-97",
+      "id": "VariableID:2:97",
       "name": "semantic/color/role-097",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-97"
+          "id": "VariableID:1:97"
         }
       }
     },
     {
-      "id": "V:sem-98",
+      "id": "VariableID:2:98",
       "name": "semantic/color/role-098",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-98"
+          "id": "VariableID:1:98"
         }
       }
     },
     {
-      "id": "V:sem-99",
+      "id": "VariableID:2:99",
       "name": "semantic/color/role-099",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-99"
+          "id": "VariableID:1:99"
         }
       }
     },
     {
-      "id": "V:sem-100",
+      "id": "VariableID:2:100",
       "name": "semantic/color/role-100",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-100"
+          "id": "VariableID:1:100"
         }
       }
     },
     {
-      "id": "V:sem-101",
+      "id": "VariableID:2:101",
       "name": "semantic/color/role-101",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-101"
+          "id": "VariableID:1:101"
         }
       }
     },
     {
-      "id": "V:sem-102",
+      "id": "VariableID:2:102",
       "name": "semantic/color/role-102",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-102"
+          "id": "VariableID:1:102"
         }
       }
     },
     {
-      "id": "V:sem-103",
+      "id": "VariableID:2:103",
       "name": "semantic/color/role-103",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-0"
+          "id": "VariableID:1:0"
         }
       }
     },
     {
-      "id": "V:sem-104",
+      "id": "VariableID:2:104",
       "name": "semantic/color/role-104",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-1"
+          "id": "VariableID:1:1"
         }
       }
     },
     {
-      "id": "V:sem-105",
+      "id": "VariableID:2:105",
       "name": "semantic/color/role-105",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-2"
+          "id": "VariableID:1:2"
         }
       }
     },
     {
-      "id": "V:sem-106",
+      "id": "VariableID:2:106",
       "name": "semantic/color/role-106",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-3"
+          "id": "VariableID:1:3"
         }
       }
     },
     {
-      "id": "V:sem-107",
+      "id": "VariableID:2:107",
       "name": "semantic/color/role-107",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-4"
+          "id": "VariableID:1:4"
         }
       }
     },
     {
-      "id": "V:sem-108",
+      "id": "VariableID:2:108",
       "name": "semantic/color/role-108",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-5"
+          "id": "VariableID:1:5"
         }
       }
     },
     {
-      "id": "V:sem-109",
+      "id": "VariableID:2:109",
       "name": "semantic/color/role-109",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-6"
+          "id": "VariableID:1:6"
         }
       }
     },
     {
-      "id": "V:sem-110",
+      "id": "VariableID:2:110",
       "name": "semantic/color/role-110",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-7"
+          "id": "VariableID:1:7"
         }
       }
     },
     {
-      "id": "V:sem-111",
+      "id": "VariableID:2:111",
       "name": "semantic/color/role-111",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-8"
+          "id": "VariableID:1:8"
         }
       }
     },
     {
-      "id": "V:sem-112",
+      "id": "VariableID:2:112",
       "name": "semantic/color/role-112",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-9"
+          "id": "VariableID:1:9"
         }
       }
     },
     {
-      "id": "V:sem-113",
+      "id": "VariableID:2:113",
       "name": "semantic/color/role-113",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-10"
+          "id": "VariableID:1:10"
         }
       }
     },
     {
-      "id": "V:sem-114",
+      "id": "VariableID:2:114",
       "name": "semantic/color/role-114",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-11"
+          "id": "VariableID:1:11"
         }
       }
     },
     {
-      "id": "V:sem-115",
+      "id": "VariableID:2:115",
       "name": "semantic/color/role-115",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-12"
+          "id": "VariableID:1:12"
         }
       }
     },
     {
-      "id": "V:sem-116",
+      "id": "VariableID:2:116",
       "name": "semantic/color/role-116",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-13"
+          "id": "VariableID:1:13"
         }
       }
     },
     {
-      "id": "V:sem-117",
+      "id": "VariableID:2:117",
       "name": "semantic/color/role-117",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-14"
+          "id": "VariableID:1:14"
         }
       }
     },
     {
-      "id": "V:sem-118",
+      "id": "VariableID:2:118",
       "name": "semantic/color/role-118",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-15"
+          "id": "VariableID:1:15"
         }
       }
     },
     {
-      "id": "V:sem-119",
+      "id": "VariableID:2:119",
       "name": "semantic/color/role-119",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-16"
+          "id": "VariableID:1:16"
         }
       }
     },
     {
-      "id": "V:sem-120",
+      "id": "VariableID:2:120",
       "name": "semantic/color/role-120",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-17"
+          "id": "VariableID:1:17"
         }
       }
     },
     {
-      "id": "V:sem-121",
+      "id": "VariableID:2:121",
       "name": "semantic/color/role-121",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-18"
+          "id": "VariableID:1:18"
         }
       }
     },
     {
-      "id": "V:sem-122",
+      "id": "VariableID:2:122",
       "name": "semantic/color/role-122",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-19"
+          "id": "VariableID:1:19"
         }
       }
     },
     {
-      "id": "V:sem-123",
+      "id": "VariableID:2:123",
       "name": "semantic/color/role-123",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-20"
+          "id": "VariableID:1:20"
         }
       }
     },
     {
-      "id": "V:sem-124",
+      "id": "VariableID:2:124",
       "name": "semantic/color/role-124",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-21"
+          "id": "VariableID:1:21"
         }
       }
     },
     {
-      "id": "V:sem-125",
+      "id": "VariableID:2:125",
       "name": "semantic/color/role-125",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-22"
+          "id": "VariableID:1:22"
         }
       }
     },
     {
-      "id": "V:sem-126",
+      "id": "VariableID:2:126",
       "name": "semantic/color/role-126",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-23"
+          "id": "VariableID:1:23"
         }
       }
     },
     {
-      "id": "V:sem-127",
+      "id": "VariableID:2:127",
       "name": "semantic/color/role-127",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-24"
+          "id": "VariableID:1:24"
         }
       }
     },
     {
-      "id": "V:sem-128",
+      "id": "VariableID:2:128",
       "name": "semantic/color/role-128",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-25"
+          "id": "VariableID:1:25"
         }
       }
     },
     {
-      "id": "V:sem-129",
+      "id": "VariableID:2:129",
       "name": "semantic/color/role-129",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-26"
+          "id": "VariableID:1:26"
         }
       }
     },
     {
-      "id": "V:sem-130",
+      "id": "VariableID:2:130",
       "name": "semantic/color/role-130",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-27"
+          "id": "VariableID:1:27"
         }
       }
     },
     {
-      "id": "V:sem-131",
+      "id": "VariableID:2:131",
       "name": "semantic/color/role-131",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-28"
+          "id": "VariableID:1:28"
         }
       }
     },
     {
-      "id": "V:sem-132",
+      "id": "VariableID:2:132",
       "name": "semantic/color/role-132",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-29"
+          "id": "VariableID:1:29"
         }
       }
     },
     {
-      "id": "V:sem-133",
+      "id": "VariableID:2:133",
       "name": "semantic/color/role-133",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-30"
+          "id": "VariableID:1:30"
         }
       }
     },
     {
-      "id": "V:sem-134",
+      "id": "VariableID:2:134",
       "name": "semantic/color/role-134",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-31"
+          "id": "VariableID:1:31"
         }
       }
     },
     {
-      "id": "V:sem-135",
+      "id": "VariableID:2:135",
       "name": "semantic/color/role-135",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-32"
+          "id": "VariableID:1:32"
         }
       }
     },
     {
-      "id": "V:sem-136",
+      "id": "VariableID:2:136",
       "name": "semantic/color/role-136",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-33"
+          "id": "VariableID:1:33"
         }
       }
     },
     {
-      "id": "V:sem-137",
+      "id": "VariableID:2:137",
       "name": "semantic/color/role-137",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-34"
+          "id": "VariableID:1:34"
         }
       }
     },
     {
-      "id": "V:sem-138",
+      "id": "VariableID:2:138",
       "name": "semantic/color/role-138",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-35"
+          "id": "VariableID:1:35"
         }
       }
     },
     {
-      "id": "V:sem-139",
+      "id": "VariableID:2:139",
       "name": "semantic/color/role-139",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-36"
+          "id": "VariableID:1:36"
         }
       }
     },
     {
-      "id": "V:sem-140",
+      "id": "VariableID:2:140",
       "name": "semantic/color/role-140",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-37"
+          "id": "VariableID:1:37"
         }
       }
     },
     {
-      "id": "V:sem-141",
+      "id": "VariableID:2:141",
       "name": "semantic/color/role-141",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-38"
+          "id": "VariableID:1:38"
         }
       }
     },
     {
-      "id": "V:sem-142",
+      "id": "VariableID:2:142",
       "name": "semantic/color/role-142",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-39"
+          "id": "VariableID:1:39"
         }
       }
     },
     {
-      "id": "V:sem-143",
+      "id": "VariableID:2:143",
       "name": "semantic/color/role-143",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-40"
+          "id": "VariableID:1:40"
         }
       }
     },
     {
-      "id": "V:sem-144",
+      "id": "VariableID:2:144",
       "name": "semantic/color/role-144",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-41"
+          "id": "VariableID:1:41"
         }
       }
     },
     {
-      "id": "V:sem-145",
+      "id": "VariableID:2:145",
       "name": "semantic/color/role-145",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-42"
+          "id": "VariableID:1:42"
         }
       }
     },
     {
-      "id": "V:sem-146",
+      "id": "VariableID:2:146",
       "name": "semantic/color/role-146",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-43"
+          "id": "VariableID:1:43"
         }
       }
     },
     {
-      "id": "V:sem-147",
+      "id": "VariableID:2:147",
       "name": "semantic/color/role-147",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-44"
+          "id": "VariableID:1:44"
         }
       }
     },
     {
-      "id": "V:sem-148",
+      "id": "VariableID:2:148",
       "name": "semantic/color/role-148",
       "type": "COLOR",
       "collection": "Semantic",
       "valuesByMode": {
         "Light": {
           "type": "VARIABLE_ALIAS",
-          "id": "V:prim-45"
+          "id": "VariableID:1:45"
         }
       }
     },
     {
-      "id": "V:space-0",
+      "id": "VariableID:3:0",
       "name": "spacing/space/step-000",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 0
     },
     {
-      "id": "V:space-1",
+      "id": "VariableID:3:1",
       "name": "spacing/space/step-001",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 4
     },
     {
-      "id": "V:space-2",
+      "id": "VariableID:3:2",
       "name": "spacing/space/step-002",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 8
     },
     {
-      "id": "V:space-3",
+      "id": "VariableID:3:3",
       "name": "spacing/space/step-003",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 12
     },
     {
-      "id": "V:space-4",
+      "id": "VariableID:3:4",
       "name": "spacing/space/step-004",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 16
     },
     {
-      "id": "V:space-5",
+      "id": "VariableID:3:5",
       "name": "spacing/space/step-005",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 20
     },
     {
-      "id": "V:space-6",
+      "id": "VariableID:3:6",
       "name": "spacing/space/step-006",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 24
     },
     {
-      "id": "V:space-7",
+      "id": "VariableID:3:7",
       "name": "spacing/space/step-007",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 28
     },
     {
-      "id": "V:space-8",
+      "id": "VariableID:3:8",
       "name": "spacing/space/step-008",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 32
     },
     {
-      "id": "V:space-9",
+      "id": "VariableID:3:9",
       "name": "spacing/space/step-009",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 36
     },
     {
-      "id": "V:space-10",
+      "id": "VariableID:3:10",
       "name": "spacing/space/step-010",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 40
     },
     {
-      "id": "V:space-11",
+      "id": "VariableID:3:11",
       "name": "spacing/space/step-011",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 44
     },
     {
-      "id": "V:space-12",
+      "id": "VariableID:3:12",
       "name": "spacing/space/step-012",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 48
     },
     {
-      "id": "V:space-13",
+      "id": "VariableID:3:13",
       "name": "spacing/space/step-013",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 52
     },
     {
-      "id": "V:space-14",
+      "id": "VariableID:3:14",
       "name": "spacing/space/step-014",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 56
     },
     {
-      "id": "V:space-15",
+      "id": "VariableID:3:15",
       "name": "spacing/space/step-015",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 60
     },
     {
-      "id": "V:space-16",
+      "id": "VariableID:3:16",
       "name": "spacing/space/step-016",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 64
     },
     {
-      "id": "V:space-17",
+      "id": "VariableID:3:17",
       "name": "spacing/space/step-017",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 68
     },
     {
-      "id": "V:space-18",
+      "id": "VariableID:3:18",
       "name": "spacing/space/step-018",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 72
     },
     {
-      "id": "V:space-19",
+      "id": "VariableID:3:19",
       "name": "spacing/space/step-019",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 76
     },
     {
-      "id": "V:space-20",
+      "id": "VariableID:3:20",
       "name": "spacing/space/step-020",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 80
     },
     {
-      "id": "V:space-21",
+      "id": "VariableID:3:21",
       "name": "spacing/space/step-021",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 84
     },
     {
-      "id": "V:space-22",
+      "id": "VariableID:3:22",
       "name": "spacing/space/step-022",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 88
     },
     {
-      "id": "V:space-23",
+      "id": "VariableID:3:23",
       "name": "spacing/space/step-023",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 92
     },
     {
-      "id": "V:space-24",
+      "id": "VariableID:3:24",
       "name": "spacing/space/step-024",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 96
     },
     {
-      "id": "V:space-25",
+      "id": "VariableID:3:25",
       "name": "spacing/space/step-025",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 100
     },
     {
-      "id": "V:space-26",
+      "id": "VariableID:3:26",
       "name": "spacing/space/step-026",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 104
     },
     {
-      "id": "V:space-27",
+      "id": "VariableID:3:27",
       "name": "spacing/space/step-027",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 108
     },
     {
-      "id": "V:space-28",
+      "id": "VariableID:3:28",
       "name": "spacing/space/step-028",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 112
     },
     {
-      "id": "V:space-29",
+      "id": "VariableID:3:29",
       "name": "spacing/space/step-029",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 116
     },
     {
-      "id": "V:space-30",
+      "id": "VariableID:3:30",
       "name": "spacing/space/step-030",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 120
     },
     {
-      "id": "V:space-31",
+      "id": "VariableID:3:31",
       "name": "spacing/space/step-031",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 124
     },
     {
-      "id": "V:space-32",
+      "id": "VariableID:3:32",
       "name": "spacing/space/step-032",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 128
     },
     {
-      "id": "V:space-33",
+      "id": "VariableID:3:33",
       "name": "spacing/space/step-033",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 132
     },
     {
-      "id": "V:space-34",
+      "id": "VariableID:3:34",
       "name": "spacing/space/step-034",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 136
     },
     {
-      "id": "V:space-35",
+      "id": "VariableID:3:35",
       "name": "spacing/space/step-035",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 140
     },
     {
-      "id": "V:space-36",
+      "id": "VariableID:3:36",
       "name": "spacing/space/step-036",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 144
     },
     {
-      "id": "V:space-37",
+      "id": "VariableID:3:37",
       "name": "spacing/space/step-037",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 148
     },
     {
-      "id": "V:space-38",
+      "id": "VariableID:3:38",
       "name": "spacing/space/step-038",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 152
     },
     {
-      "id": "V:space-39",
+      "id": "VariableID:3:39",
       "name": "spacing/space/step-039",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 156
     },
     {
-      "id": "V:space-40",
+      "id": "VariableID:3:40",
       "name": "spacing/space/step-040",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 160
     },
     {
-      "id": "V:space-41",
+      "id": "VariableID:3:41",
       "name": "spacing/space/step-041",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 164
     },
     {
-      "id": "V:space-42",
+      "id": "VariableID:3:42",
       "name": "spacing/space/step-042",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 168
     },
     {
-      "id": "V:space-43",
+      "id": "VariableID:3:43",
       "name": "spacing/space/step-043",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 172
     },
     {
-      "id": "V:space-44",
+      "id": "VariableID:3:44",
       "name": "spacing/space/step-044",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 176
     },
     {
-      "id": "V:space-45",
+      "id": "VariableID:3:45",
       "name": "spacing/space/step-045",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 180
     },
     {
-      "id": "V:space-46",
+      "id": "VariableID:3:46",
       "name": "spacing/space/step-046",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 184
     },
     {
-      "id": "V:space-47",
+      "id": "VariableID:3:47",
       "name": "spacing/space/step-047",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 188
     },
     {
-      "id": "V:space-48",
+      "id": "VariableID:3:48",
       "name": "spacing/space/step-048",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 192
     },
     {
-      "id": "V:space-49",
+      "id": "VariableID:3:49",
       "name": "spacing/space/step-049",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 196
     },
     {
-      "id": "V:space-50",
+      "id": "VariableID:3:50",
       "name": "spacing/space/step-050",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 200
     },
     {
-      "id": "V:space-51",
+      "id": "VariableID:3:51",
       "name": "spacing/space/step-051",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 204
     },
     {
-      "id": "V:space-52",
+      "id": "VariableID:3:52",
       "name": "spacing/space/step-052",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 208
     },
     {
-      "id": "V:space-53",
+      "id": "VariableID:3:53",
       "name": "spacing/space/step-053",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 212
     },
     {
-      "id": "V:space-54",
+      "id": "VariableID:3:54",
       "name": "spacing/space/step-054",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 216
     },
     {
-      "id": "V:space-55",
+      "id": "VariableID:3:55",
       "name": "spacing/space/step-055",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 220
     },
     {
-      "id": "V:space-56",
+      "id": "VariableID:3:56",
       "name": "spacing/space/step-056",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 224
     },
     {
-      "id": "V:space-57",
+      "id": "VariableID:3:57",
       "name": "spacing/space/step-057",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 228
     },
     {
-      "id": "V:space-58",
+      "id": "VariableID:3:58",
       "name": "spacing/space/step-058",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 232
     },
     {
-      "id": "V:space-59",
+      "id": "VariableID:3:59",
       "name": "spacing/space/step-059",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 236
     },
     {
-      "id": "V:space-60",
+      "id": "VariableID:3:60",
       "name": "spacing/space/step-060",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 240
     },
     {
-      "id": "V:space-61",
+      "id": "VariableID:3:61",
       "name": "spacing/space/step-061",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 244
     },
     {
-      "id": "V:space-62",
+      "id": "VariableID:3:62",
       "name": "spacing/space/step-062",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 248
     },
     {
-      "id": "V:space-63",
+      "id": "VariableID:3:63",
       "name": "spacing/space/step-063",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 252
     },
     {
-      "id": "V:space-64",
+      "id": "VariableID:3:64",
       "name": "spacing/space/step-064",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 256
     },
     {
-      "id": "V:space-65",
+      "id": "VariableID:3:65",
       "name": "spacing/space/step-065",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 260
     },
     {
-      "id": "V:space-66",
+      "id": "VariableID:3:66",
       "name": "spacing/space/step-066",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 264
     },
     {
-      "id": "V:space-67",
+      "id": "VariableID:3:67",
       "name": "spacing/space/step-067",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 268
     },
     {
-      "id": "V:space-68",
+      "id": "VariableID:3:68",
       "name": "spacing/space/step-068",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 272
     },
     {
-      "id": "V:space-69",
+      "id": "VariableID:3:69",
       "name": "spacing/space/step-069",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 276
     },
     {
-      "id": "V:space-70",
+      "id": "VariableID:3:70",
       "name": "spacing/space/step-070",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 280
     },
     {
-      "id": "V:space-71",
+      "id": "VariableID:3:71",
       "name": "spacing/space/step-071",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 284
     },
     {
-      "id": "V:space-72",
+      "id": "VariableID:3:72",
       "name": "spacing/space/step-072",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 288
     },
     {
-      "id": "V:space-73",
+      "id": "VariableID:3:73",
       "name": "spacing/space/step-073",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 292
     },
     {
-      "id": "V:space-74",
+      "id": "VariableID:3:74",
       "name": "spacing/space/step-074",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 296
     },
     {
-      "id": "V:space-75",
+      "id": "VariableID:3:75",
       "name": "spacing/space/step-075",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 300
     },
     {
-      "id": "V:space-76",
+      "id": "VariableID:3:76",
       "name": "spacing/space/step-076",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 304
     },
     {
-      "id": "V:space-77",
+      "id": "VariableID:3:77",
       "name": "spacing/space/step-077",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 308
     },
     {
-      "id": "V:space-78",
+      "id": "VariableID:3:78",
       "name": "spacing/space/step-078",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 312
     },
     {
-      "id": "V:space-79",
+      "id": "VariableID:3:79",
       "name": "spacing/space/step-079",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 316
     },
     {
-      "id": "V:space-80",
+      "id": "VariableID:3:80",
       "name": "spacing/space/step-080",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 320
     },
     {
-      "id": "V:space-81",
+      "id": "VariableID:3:81",
       "name": "spacing/space/step-081",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 324
     },
     {
-      "id": "V:space-82",
+      "id": "VariableID:3:82",
       "name": "spacing/space/step-082",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 328
     },
     {
-      "id": "V:space-83",
+      "id": "VariableID:3:83",
       "name": "spacing/space/step-083",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 332
     },
     {
-      "id": "V:space-84",
+      "id": "VariableID:3:84",
       "name": "spacing/space/step-084",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 336
     },
     {
-      "id": "V:space-85",
+      "id": "VariableID:3:85",
       "name": "spacing/space/step-085",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 340
     },
     {
-      "id": "V:space-86",
+      "id": "VariableID:3:86",
       "name": "spacing/space/step-086",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 344
     },
     {
-      "id": "V:space-87",
+      "id": "VariableID:3:87",
       "name": "spacing/space/step-087",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 348
     },
     {
-      "id": "V:space-88",
+      "id": "VariableID:3:88",
       "name": "spacing/space/step-088",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 352
     },
     {
-      "id": "V:space-89",
+      "id": "VariableID:3:89",
       "name": "spacing/space/step-089",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 356
     },
     {
-      "id": "V:space-90",
+      "id": "VariableID:3:90",
       "name": "spacing/space/step-090",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 360
     },
     {
-      "id": "V:space-91",
+      "id": "VariableID:3:91",
       "name": "spacing/space/step-091",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 364
     },
     {
-      "id": "V:space-92",
+      "id": "VariableID:3:92",
       "name": "spacing/space/step-092",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 368
     },
     {
-      "id": "V:space-93",
+      "id": "VariableID:3:93",
       "name": "spacing/space/step-093",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 372
     },
     {
-      "id": "V:space-94",
+      "id": "VariableID:3:94",
       "name": "spacing/space/step-094",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 376
     },
     {
-      "id": "V:space-95",
+      "id": "VariableID:3:95",
       "name": "spacing/space/step-095",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 380
     },
     {
-      "id": "V:space-96",
+      "id": "VariableID:3:96",
       "name": "spacing/space/step-096",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 384
     },
     {
-      "id": "V:space-97",
+      "id": "VariableID:3:97",
       "name": "spacing/space/step-097",
       "type": "FLOAT",
       "collection": "Spacing Primitives",
       "value": 388
     },
     {
-      "id": "V:pa-0",
+      "id": "VariableID:4:0",
       "name": "plugin-export/color/c-000",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3724,7 +3724,7 @@
       }
     },
     {
-      "id": "V:pa-1",
+      "id": "VariableID:4:1",
       "name": "plugin-export/color/c-001",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3736,7 +3736,7 @@
       }
     },
     {
-      "id": "V:pa-2",
+      "id": "VariableID:4:2",
       "name": "plugin-export/color/c-002",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3748,7 +3748,7 @@
       }
     },
     {
-      "id": "V:pa-3",
+      "id": "VariableID:4:3",
       "name": "plugin-export/color/c-003",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3760,7 +3760,7 @@
       }
     },
     {
-      "id": "V:pa-4",
+      "id": "VariableID:4:4",
       "name": "plugin-export/color/c-004",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3772,7 +3772,7 @@
       }
     },
     {
-      "id": "V:pa-5",
+      "id": "VariableID:4:5",
       "name": "plugin-export/color/c-005",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3784,7 +3784,7 @@
       }
     },
     {
-      "id": "V:pa-6",
+      "id": "VariableID:4:6",
       "name": "plugin-export/color/c-006",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3796,7 +3796,7 @@
       }
     },
     {
-      "id": "V:pa-7",
+      "id": "VariableID:4:7",
       "name": "plugin-export/color/c-007",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3808,7 +3808,7 @@
       }
     },
     {
-      "id": "V:pa-8",
+      "id": "VariableID:4:8",
       "name": "plugin-export/color/c-008",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3820,7 +3820,7 @@
       }
     },
     {
-      "id": "V:pa-9",
+      "id": "VariableID:4:9",
       "name": "plugin-export/color/c-009",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3832,7 +3832,7 @@
       }
     },
     {
-      "id": "V:pa-10",
+      "id": "VariableID:4:10",
       "name": "plugin-export/color/c-010",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3844,7 +3844,7 @@
       }
     },
     {
-      "id": "V:pa-11",
+      "id": "VariableID:4:11",
       "name": "plugin-export/color/c-011",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3856,7 +3856,7 @@
       }
     },
     {
-      "id": "V:pa-12",
+      "id": "VariableID:4:12",
       "name": "plugin-export/color/c-012",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3868,7 +3868,7 @@
       }
     },
     {
-      "id": "V:pa-13",
+      "id": "VariableID:4:13",
       "name": "plugin-export/color/c-013",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3880,7 +3880,7 @@
       }
     },
     {
-      "id": "V:pa-14",
+      "id": "VariableID:4:14",
       "name": "plugin-export/color/c-014",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3892,7 +3892,7 @@
       }
     },
     {
-      "id": "V:pa-15",
+      "id": "VariableID:4:15",
       "name": "plugin-export/color/c-015",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3904,7 +3904,7 @@
       }
     },
     {
-      "id": "V:pa-16",
+      "id": "VariableID:4:16",
       "name": "plugin-export/color/c-016",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3916,7 +3916,7 @@
       }
     },
     {
-      "id": "V:pa-17",
+      "id": "VariableID:4:17",
       "name": "plugin-export/color/c-017",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3928,7 +3928,7 @@
       }
     },
     {
-      "id": "V:pa-18",
+      "id": "VariableID:4:18",
       "name": "plugin-export/color/c-018",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3940,7 +3940,7 @@
       }
     },
     {
-      "id": "V:pa-19",
+      "id": "VariableID:4:19",
       "name": "plugin-export/color/c-019",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3952,7 +3952,7 @@
       }
     },
     {
-      "id": "V:pa-20",
+      "id": "VariableID:4:20",
       "name": "plugin-export/color/c-020",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3964,7 +3964,7 @@
       }
     },
     {
-      "id": "V:pa-21",
+      "id": "VariableID:4:21",
       "name": "plugin-export/color/c-021",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3976,7 +3976,7 @@
       }
     },
     {
-      "id": "V:pa-22",
+      "id": "VariableID:4:22",
       "name": "plugin-export/color/c-022",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -3988,7 +3988,7 @@
       }
     },
     {
-      "id": "V:pa-23",
+      "id": "VariableID:4:23",
       "name": "plugin-export/color/c-023",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4000,7 +4000,7 @@
       }
     },
     {
-      "id": "V:pa-24",
+      "id": "VariableID:4:24",
       "name": "plugin-export/color/c-024",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4012,7 +4012,7 @@
       }
     },
     {
-      "id": "V:pa-25",
+      "id": "VariableID:4:25",
       "name": "plugin-export/color/c-025",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4024,7 +4024,7 @@
       }
     },
     {
-      "id": "V:pa-26",
+      "id": "VariableID:4:26",
       "name": "plugin-export/color/c-026",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4036,7 +4036,7 @@
       }
     },
     {
-      "id": "V:pa-27",
+      "id": "VariableID:4:27",
       "name": "plugin-export/color/c-027",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4048,7 +4048,7 @@
       }
     },
     {
-      "id": "V:pa-28",
+      "id": "VariableID:4:28",
       "name": "plugin-export/color/c-028",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4060,7 +4060,7 @@
       }
     },
     {
-      "id": "V:pa-29",
+      "id": "VariableID:4:29",
       "name": "plugin-export/color/c-029",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4072,7 +4072,7 @@
       }
     },
     {
-      "id": "V:pa-30",
+      "id": "VariableID:4:30",
       "name": "plugin-export/color/c-030",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4084,7 +4084,7 @@
       }
     },
     {
-      "id": "V:pa-31",
+      "id": "VariableID:4:31",
       "name": "plugin-export/color/c-031",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4096,7 +4096,7 @@
       }
     },
     {
-      "id": "V:pa-32",
+      "id": "VariableID:4:32",
       "name": "plugin-export/color/c-032",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4108,7 +4108,7 @@
       }
     },
     {
-      "id": "V:pa-33",
+      "id": "VariableID:4:33",
       "name": "plugin-export/color/c-033",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4120,7 +4120,7 @@
       }
     },
     {
-      "id": "V:pa-34",
+      "id": "VariableID:4:34",
       "name": "plugin-export/color/c-034",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4132,7 +4132,7 @@
       }
     },
     {
-      "id": "V:pa-35",
+      "id": "VariableID:4:35",
       "name": "plugin-export/color/c-035",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4144,7 +4144,7 @@
       }
     },
     {
-      "id": "V:pa-36",
+      "id": "VariableID:4:36",
       "name": "plugin-export/color/c-036",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4156,7 +4156,7 @@
       }
     },
     {
-      "id": "V:pa-37",
+      "id": "VariableID:4:37",
       "name": "plugin-export/color/c-037",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4168,7 +4168,7 @@
       }
     },
     {
-      "id": "V:pa-38",
+      "id": "VariableID:4:38",
       "name": "plugin-export/color/c-038",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4180,7 +4180,7 @@
       }
     },
     {
-      "id": "V:pa-39",
+      "id": "VariableID:4:39",
       "name": "plugin-export/color/c-039",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4192,7 +4192,7 @@
       }
     },
     {
-      "id": "V:pa-40",
+      "id": "VariableID:4:40",
       "name": "plugin-export/color/c-040",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4204,7 +4204,7 @@
       }
     },
     {
-      "id": "V:pa-41",
+      "id": "VariableID:4:41",
       "name": "plugin-export/color/c-041",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4216,7 +4216,7 @@
       }
     },
     {
-      "id": "V:pa-42",
+      "id": "VariableID:4:42",
       "name": "plugin-export/color/c-042",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4228,7 +4228,7 @@
       }
     },
     {
-      "id": "V:pa-43",
+      "id": "VariableID:4:43",
       "name": "plugin-export/color/c-043",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4240,7 +4240,7 @@
       }
     },
     {
-      "id": "V:pa-44",
+      "id": "VariableID:4:44",
       "name": "plugin-export/color/c-044",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4252,7 +4252,7 @@
       }
     },
     {
-      "id": "V:pa-45",
+      "id": "VariableID:4:45",
       "name": "plugin-export/color/c-045",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4264,7 +4264,7 @@
       }
     },
     {
-      "id": "V:pa-46",
+      "id": "VariableID:4:46",
       "name": "plugin-export/color/c-046",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4276,7 +4276,7 @@
       }
     },
     {
-      "id": "V:pa-47",
+      "id": "VariableID:4:47",
       "name": "plugin-export/color/c-047",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4288,7 +4288,7 @@
       }
     },
     {
-      "id": "V:pa-48",
+      "id": "VariableID:4:48",
       "name": "plugin-export/color/c-048",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4300,7 +4300,7 @@
       }
     },
     {
-      "id": "V:pa-49",
+      "id": "VariableID:4:49",
       "name": "plugin-export/color/c-049",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4312,7 +4312,7 @@
       }
     },
     {
-      "id": "V:pa-50",
+      "id": "VariableID:4:50",
       "name": "plugin-export/color/c-050",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4324,7 +4324,7 @@
       }
     },
     {
-      "id": "V:pa-51",
+      "id": "VariableID:4:51",
       "name": "plugin-export/color/c-051",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4336,7 +4336,7 @@
       }
     },
     {
-      "id": "V:pa-52",
+      "id": "VariableID:4:52",
       "name": "plugin-export/color/c-052",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4348,7 +4348,7 @@
       }
     },
     {
-      "id": "V:pa-53",
+      "id": "VariableID:4:53",
       "name": "plugin-export/color/c-053",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4360,7 +4360,7 @@
       }
     },
     {
-      "id": "V:pa-54",
+      "id": "VariableID:4:54",
       "name": "plugin-export/color/c-054",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4372,7 +4372,7 @@
       }
     },
     {
-      "id": "V:pa-55",
+      "id": "VariableID:4:55",
       "name": "plugin-export/color/c-055",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4384,7 +4384,7 @@
       }
     },
     {
-      "id": "V:pa-56",
+      "id": "VariableID:4:56",
       "name": "plugin-export/color/c-056",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4396,7 +4396,7 @@
       }
     },
     {
-      "id": "V:pa-57",
+      "id": "VariableID:4:57",
       "name": "plugin-export/color/c-057",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4408,7 +4408,7 @@
       }
     },
     {
-      "id": "V:pa-58",
+      "id": "VariableID:4:58",
       "name": "plugin-export/color/c-058",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4420,7 +4420,7 @@
       }
     },
     {
-      "id": "V:pa-59",
+      "id": "VariableID:4:59",
       "name": "plugin-export/color/c-059",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4432,7 +4432,7 @@
       }
     },
     {
-      "id": "V:pa-60",
+      "id": "VariableID:4:60",
       "name": "plugin-export/color/c-060",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4444,7 +4444,7 @@
       }
     },
     {
-      "id": "V:pa-61",
+      "id": "VariableID:4:61",
       "name": "plugin-export/color/c-061",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4456,7 +4456,7 @@
       }
     },
     {
-      "id": "V:pa-62",
+      "id": "VariableID:4:62",
       "name": "plugin-export/color/c-062",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4468,7 +4468,7 @@
       }
     },
     {
-      "id": "V:pa-63",
+      "id": "VariableID:4:63",
       "name": "plugin-export/color/c-063",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4480,7 +4480,7 @@
       }
     },
     {
-      "id": "V:pa-64",
+      "id": "VariableID:4:64",
       "name": "plugin-export/color/c-064",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4492,7 +4492,7 @@
       }
     },
     {
-      "id": "V:pa-65",
+      "id": "VariableID:4:65",
       "name": "plugin-export/color/c-065",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4504,7 +4504,7 @@
       }
     },
     {
-      "id": "V:pa-66",
+      "id": "VariableID:4:66",
       "name": "plugin-export/color/c-066",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4516,7 +4516,7 @@
       }
     },
     {
-      "id": "V:pa-67",
+      "id": "VariableID:4:67",
       "name": "plugin-export/color/c-067",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4528,7 +4528,7 @@
       }
     },
     {
-      "id": "V:pa-68",
+      "id": "VariableID:4:68",
       "name": "plugin-export/color/c-068",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4540,7 +4540,7 @@
       }
     },
     {
-      "id": "V:pa-69",
+      "id": "VariableID:4:69",
       "name": "plugin-export/color/c-069",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4552,7 +4552,7 @@
       }
     },
     {
-      "id": "V:pa-70",
+      "id": "VariableID:4:70",
       "name": "plugin-export/color/c-070",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4564,7 +4564,7 @@
       }
     },
     {
-      "id": "V:pa-71",
+      "id": "VariableID:4:71",
       "name": "plugin-export/color/c-071",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4576,7 +4576,7 @@
       }
     },
     {
-      "id": "V:pa-72",
+      "id": "VariableID:4:72",
       "name": "plugin-export/color/c-072",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4588,7 +4588,7 @@
       }
     },
     {
-      "id": "V:pa-73",
+      "id": "VariableID:4:73",
       "name": "plugin-export/color/c-073",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4600,7 +4600,7 @@
       }
     },
     {
-      "id": "V:pa-74",
+      "id": "VariableID:4:74",
       "name": "plugin-export/color/c-074",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4612,7 +4612,7 @@
       }
     },
     {
-      "id": "V:pa-75",
+      "id": "VariableID:4:75",
       "name": "plugin-export/color/c-075",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4624,7 +4624,7 @@
       }
     },
     {
-      "id": "V:pa-76",
+      "id": "VariableID:4:76",
       "name": "plugin-export/color/a-only-076",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4636,7 +4636,7 @@
       }
     },
     {
-      "id": "V:pa-77",
+      "id": "VariableID:4:77",
       "name": "plugin-export/color/a-only-077",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4648,7 +4648,7 @@
       }
     },
     {
-      "id": "V:pa-78",
+      "id": "VariableID:4:78",
       "name": "plugin-export/color/a-only-078",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4660,7 +4660,7 @@
       }
     },
     {
-      "id": "V:pa-79",
+      "id": "VariableID:4:79",
       "name": "plugin-export/color/a-only-079",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4672,7 +4672,7 @@
       }
     },
     {
-      "id": "V:pa-80",
+      "id": "VariableID:4:80",
       "name": "plugin-export/color/a-only-080",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4684,7 +4684,7 @@
       }
     },
     {
-      "id": "V:pa-81",
+      "id": "VariableID:4:81",
       "name": "plugin-export/color/a-only-081",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4696,7 +4696,7 @@
       }
     },
     {
-      "id": "V:pa-82",
+      "id": "VariableID:4:82",
       "name": "plugin-export/color/a-only-082",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4708,7 +4708,7 @@
       }
     },
     {
-      "id": "V:pa-83",
+      "id": "VariableID:4:83",
       "name": "plugin-export/color/a-only-083",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4720,7 +4720,7 @@
       }
     },
     {
-      "id": "V:pa-84",
+      "id": "VariableID:4:84",
       "name": "plugin-export/color/a-only-084",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4732,7 +4732,7 @@
       }
     },
     {
-      "id": "V:pa-85",
+      "id": "VariableID:4:85",
       "name": "plugin-export/color/a-only-085",
       "type": "COLOR",
       "collection": "Plugin Export A",
@@ -4744,7 +4744,7 @@
       }
     },
     {
-      "id": "V:pb-0",
+      "id": "VariableID:5:0",
       "name": "plugin-export/color/c-000",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4756,7 +4756,7 @@
       }
     },
     {
-      "id": "V:pb-1",
+      "id": "VariableID:5:1",
       "name": "plugin-export/color/c-001",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4768,7 +4768,7 @@
       }
     },
     {
-      "id": "V:pb-2",
+      "id": "VariableID:5:2",
       "name": "plugin-export/color/c-002",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4780,7 +4780,7 @@
       }
     },
     {
-      "id": "V:pb-3",
+      "id": "VariableID:5:3",
       "name": "plugin-export/color/c-003",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4792,7 +4792,7 @@
       }
     },
     {
-      "id": "V:pb-4",
+      "id": "VariableID:5:4",
       "name": "plugin-export/color/c-004",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4804,7 +4804,7 @@
       }
     },
     {
-      "id": "V:pb-5",
+      "id": "VariableID:5:5",
       "name": "plugin-export/color/c-005",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4816,7 +4816,7 @@
       }
     },
     {
-      "id": "V:pb-6",
+      "id": "VariableID:5:6",
       "name": "plugin-export/color/c-006",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4828,7 +4828,7 @@
       }
     },
     {
-      "id": "V:pb-7",
+      "id": "VariableID:5:7",
       "name": "plugin-export/color/c-007",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4840,7 +4840,7 @@
       }
     },
     {
-      "id": "V:pb-8",
+      "id": "VariableID:5:8",
       "name": "plugin-export/color/c-008",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4852,7 +4852,7 @@
       }
     },
     {
-      "id": "V:pb-9",
+      "id": "VariableID:5:9",
       "name": "plugin-export/color/c-009",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4864,7 +4864,7 @@
       }
     },
     {
-      "id": "V:pb-10",
+      "id": "VariableID:5:10",
       "name": "plugin-export/color/c-010",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4876,7 +4876,7 @@
       }
     },
     {
-      "id": "V:pb-11",
+      "id": "VariableID:5:11",
       "name": "plugin-export/color/c-011",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4888,7 +4888,7 @@
       }
     },
     {
-      "id": "V:pb-12",
+      "id": "VariableID:5:12",
       "name": "plugin-export/color/c-012",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4900,7 +4900,7 @@
       }
     },
     {
-      "id": "V:pb-13",
+      "id": "VariableID:5:13",
       "name": "plugin-export/color/c-013",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4912,7 +4912,7 @@
       }
     },
     {
-      "id": "V:pb-14",
+      "id": "VariableID:5:14",
       "name": "plugin-export/color/c-014",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4924,7 +4924,7 @@
       }
     },
     {
-      "id": "V:pb-15",
+      "id": "VariableID:5:15",
       "name": "plugin-export/color/c-015",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4936,7 +4936,7 @@
       }
     },
     {
-      "id": "V:pb-16",
+      "id": "VariableID:5:16",
       "name": "plugin-export/color/c-016",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4948,7 +4948,7 @@
       }
     },
     {
-      "id": "V:pb-17",
+      "id": "VariableID:5:17",
       "name": "plugin-export/color/c-017",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4960,7 +4960,7 @@
       }
     },
     {
-      "id": "V:pb-18",
+      "id": "VariableID:5:18",
       "name": "plugin-export/color/c-018",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4972,7 +4972,7 @@
       }
     },
     {
-      "id": "V:pb-19",
+      "id": "VariableID:5:19",
       "name": "plugin-export/color/c-019",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4984,7 +4984,7 @@
       }
     },
     {
-      "id": "V:pb-20",
+      "id": "VariableID:5:20",
       "name": "plugin-export/color/c-020",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -4996,7 +4996,7 @@
       }
     },
     {
-      "id": "V:pb-21",
+      "id": "VariableID:5:21",
       "name": "plugin-export/color/c-021",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5008,7 +5008,7 @@
       }
     },
     {
-      "id": "V:pb-22",
+      "id": "VariableID:5:22",
       "name": "plugin-export/color/c-022",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5020,7 +5020,7 @@
       }
     },
     {
-      "id": "V:pb-23",
+      "id": "VariableID:5:23",
       "name": "plugin-export/color/c-023",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5032,7 +5032,7 @@
       }
     },
     {
-      "id": "V:pb-24",
+      "id": "VariableID:5:24",
       "name": "plugin-export/color/c-024",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5044,7 +5044,7 @@
       }
     },
     {
-      "id": "V:pb-25",
+      "id": "VariableID:5:25",
       "name": "plugin-export/color/c-025",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5056,7 +5056,7 @@
       }
     },
     {
-      "id": "V:pb-26",
+      "id": "VariableID:5:26",
       "name": "plugin-export/color/c-026",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5068,7 +5068,7 @@
       }
     },
     {
-      "id": "V:pb-27",
+      "id": "VariableID:5:27",
       "name": "plugin-export/color/c-027",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5080,7 +5080,7 @@
       }
     },
     {
-      "id": "V:pb-28",
+      "id": "VariableID:5:28",
       "name": "plugin-export/color/c-028",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5092,7 +5092,7 @@
       }
     },
     {
-      "id": "V:pb-29",
+      "id": "VariableID:5:29",
       "name": "plugin-export/color/c-029",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5104,7 +5104,7 @@
       }
     },
     {
-      "id": "V:pb-30",
+      "id": "VariableID:5:30",
       "name": "plugin-export/color/c-030",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5116,7 +5116,7 @@
       }
     },
     {
-      "id": "V:pb-31",
+      "id": "VariableID:5:31",
       "name": "plugin-export/color/c-031",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5128,7 +5128,7 @@
       }
     },
     {
-      "id": "V:pb-32",
+      "id": "VariableID:5:32",
       "name": "plugin-export/color/c-032",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5140,7 +5140,7 @@
       }
     },
     {
-      "id": "V:pb-33",
+      "id": "VariableID:5:33",
       "name": "plugin-export/color/c-033",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5152,7 +5152,7 @@
       }
     },
     {
-      "id": "V:pb-34",
+      "id": "VariableID:5:34",
       "name": "plugin-export/color/c-034",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5164,7 +5164,7 @@
       }
     },
     {
-      "id": "V:pb-35",
+      "id": "VariableID:5:35",
       "name": "plugin-export/color/c-035",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5176,7 +5176,7 @@
       }
     },
     {
-      "id": "V:pb-36",
+      "id": "VariableID:5:36",
       "name": "plugin-export/color/c-036",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5188,7 +5188,7 @@
       }
     },
     {
-      "id": "V:pb-37",
+      "id": "VariableID:5:37",
       "name": "plugin-export/color/c-037",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5200,7 +5200,7 @@
       }
     },
     {
-      "id": "V:pb-38",
+      "id": "VariableID:5:38",
       "name": "plugin-export/color/c-038",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5212,7 +5212,7 @@
       }
     },
     {
-      "id": "V:pb-39",
+      "id": "VariableID:5:39",
       "name": "plugin-export/color/c-039",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5224,7 +5224,7 @@
       }
     },
     {
-      "id": "V:pb-40",
+      "id": "VariableID:5:40",
       "name": "plugin-export/color/c-040",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5236,7 +5236,7 @@
       }
     },
     {
-      "id": "V:pb-41",
+      "id": "VariableID:5:41",
       "name": "plugin-export/color/c-041",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5248,7 +5248,7 @@
       }
     },
     {
-      "id": "V:pb-42",
+      "id": "VariableID:5:42",
       "name": "plugin-export/color/c-042",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5260,7 +5260,7 @@
       }
     },
     {
-      "id": "V:pb-43",
+      "id": "VariableID:5:43",
       "name": "plugin-export/color/c-043",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5272,7 +5272,7 @@
       }
     },
     {
-      "id": "V:pb-44",
+      "id": "VariableID:5:44",
       "name": "plugin-export/color/c-044",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5284,7 +5284,7 @@
       }
     },
     {
-      "id": "V:pb-45",
+      "id": "VariableID:5:45",
       "name": "plugin-export/color/c-045",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5296,7 +5296,7 @@
       }
     },
     {
-      "id": "V:pb-46",
+      "id": "VariableID:5:46",
       "name": "plugin-export/color/c-046",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5308,7 +5308,7 @@
       }
     },
     {
-      "id": "V:pb-47",
+      "id": "VariableID:5:47",
       "name": "plugin-export/color/c-047",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5320,7 +5320,7 @@
       }
     },
     {
-      "id": "V:pb-48",
+      "id": "VariableID:5:48",
       "name": "plugin-export/color/c-048",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5332,7 +5332,7 @@
       }
     },
     {
-      "id": "V:pb-49",
+      "id": "VariableID:5:49",
       "name": "plugin-export/color/c-049",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5344,7 +5344,7 @@
       }
     },
     {
-      "id": "V:pb-50",
+      "id": "VariableID:5:50",
       "name": "plugin-export/color/c-050",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5356,7 +5356,7 @@
       }
     },
     {
-      "id": "V:pb-51",
+      "id": "VariableID:5:51",
       "name": "plugin-export/color/c-051",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5368,7 +5368,7 @@
       }
     },
     {
-      "id": "V:pb-52",
+      "id": "VariableID:5:52",
       "name": "plugin-export/color/c-052",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5380,7 +5380,7 @@
       }
     },
     {
-      "id": "V:pb-53",
+      "id": "VariableID:5:53",
       "name": "plugin-export/color/c-053",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5392,7 +5392,7 @@
       }
     },
     {
-      "id": "V:pb-54",
+      "id": "VariableID:5:54",
       "name": "plugin-export/color/c-054",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5404,7 +5404,7 @@
       }
     },
     {
-      "id": "V:pb-55",
+      "id": "VariableID:5:55",
       "name": "plugin-export/color/c-055",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5416,7 +5416,7 @@
       }
     },
     {
-      "id": "V:pb-56",
+      "id": "VariableID:5:56",
       "name": "plugin-export/color/c-056",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5428,7 +5428,7 @@
       }
     },
     {
-      "id": "V:pb-57",
+      "id": "VariableID:5:57",
       "name": "plugin-export/color/c-057",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5440,7 +5440,7 @@
       }
     },
     {
-      "id": "V:pb-58",
+      "id": "VariableID:5:58",
       "name": "plugin-export/color/c-058",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5452,7 +5452,7 @@
       }
     },
     {
-      "id": "V:pb-59",
+      "id": "VariableID:5:59",
       "name": "plugin-export/color/c-059",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5464,7 +5464,7 @@
       }
     },
     {
-      "id": "V:pb-60",
+      "id": "VariableID:5:60",
       "name": "plugin-export/color/c-060",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5476,7 +5476,7 @@
       }
     },
     {
-      "id": "V:pb-61",
+      "id": "VariableID:5:61",
       "name": "plugin-export/color/c-061",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5488,7 +5488,7 @@
       }
     },
     {
-      "id": "V:pb-62",
+      "id": "VariableID:5:62",
       "name": "plugin-export/color/c-062",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5500,7 +5500,7 @@
       }
     },
     {
-      "id": "V:pb-63",
+      "id": "VariableID:5:63",
       "name": "plugin-export/color/c-063",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5512,7 +5512,7 @@
       }
     },
     {
-      "id": "V:pb-64",
+      "id": "VariableID:5:64",
       "name": "plugin-export/color/c-064",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5524,7 +5524,7 @@
       }
     },
     {
-      "id": "V:pb-65",
+      "id": "VariableID:5:65",
       "name": "plugin-export/color/c-065",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5536,7 +5536,7 @@
       }
     },
     {
-      "id": "V:pb-66",
+      "id": "VariableID:5:66",
       "name": "plugin-export/color/c-066",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5548,7 +5548,7 @@
       }
     },
     {
-      "id": "V:pb-67",
+      "id": "VariableID:5:67",
       "name": "plugin-export/color/c-067",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5560,7 +5560,7 @@
       }
     },
     {
-      "id": "V:pb-68",
+      "id": "VariableID:5:68",
       "name": "plugin-export/color/c-068",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5572,7 +5572,7 @@
       }
     },
     {
-      "id": "V:pb-69",
+      "id": "VariableID:5:69",
       "name": "plugin-export/color/c-069",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5584,7 +5584,7 @@
       }
     },
     {
-      "id": "V:pb-70",
+      "id": "VariableID:5:70",
       "name": "plugin-export/color/c-070",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5596,7 +5596,7 @@
       }
     },
     {
-      "id": "V:pb-71",
+      "id": "VariableID:5:71",
       "name": "plugin-export/color/c-071",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5608,7 +5608,7 @@
       }
     },
     {
-      "id": "V:pb-72",
+      "id": "VariableID:5:72",
       "name": "plugin-export/color/c-072",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5620,7 +5620,7 @@
       }
     },
     {
-      "id": "V:pb-73",
+      "id": "VariableID:5:73",
       "name": "plugin-export/color/c-073",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5632,7 +5632,7 @@
       }
     },
     {
-      "id": "V:pb-74",
+      "id": "VariableID:5:74",
       "name": "plugin-export/color/c-074",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5644,7 +5644,7 @@
       }
     },
     {
-      "id": "V:pb-75",
+      "id": "VariableID:5:75",
       "name": "plugin-export/color/c-075",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5656,7 +5656,7 @@
       }
     },
     {
-      "id": "V:pb-76",
+      "id": "VariableID:5:76",
       "name": "plugin-export/color/b-only-076",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5668,7 +5668,7 @@
       }
     },
     {
-      "id": "V:pb-77",
+      "id": "VariableID:5:77",
       "name": "plugin-export/color/b-only-077",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5680,7 +5680,7 @@
       }
     },
     {
-      "id": "V:pb-78",
+      "id": "VariableID:5:78",
       "name": "plugin-export/color/b-only-078",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5692,7 +5692,7 @@
       }
     },
     {
-      "id": "V:pb-79",
+      "id": "VariableID:5:79",
       "name": "plugin-export/color/b-only-079",
       "type": "COLOR",
       "collection": "Plugin Export B",
@@ -5703,5 +5703,6 @@
         "a": 1
       }
     }
-  ]
+  ],
+  "styles": []
 }

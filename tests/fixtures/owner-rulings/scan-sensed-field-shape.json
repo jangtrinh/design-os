@@ -1,0 +1,18 @@
+{
+  "components": [
+    { "id": "1:1", "key": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678", "name": "Button", "type": "COMPONENT_SET", "page": { "id": "0:1", "name": "Library" }, "variantAxes": { "Size": ["Small", "Large"] }, "boundVariables": ["VariableID:1:1", "VariableID:2:1"], "instances": [{ "component": "1:2", "count": 1 }] },
+    { "id": "1:2", "name": "Icon Slot", "type": "COMPONENT", "page": { "id": "0:1", "name": "Library" }, "boundVariables": ["VariableID:1:1"] },
+    { "id": "1:3", "name": "Login Card", "type": "COMPONENT", "page": { "id": "0:2", "name": "Feature Area A" }, "instances": [{ "component": "1:1", "count": 2 }, { "component": "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567", "count": 1 }], "unresolvedInstances": 1 }
+  ],
+  "tokens": [
+    { "id": "VariableID:1:1", "name": "primitives/color/shade-001", "type": "COLOR", "collection": "Primitives", "value": { "r": 0.1, "g": 0.2, "b": 0.3, "a": 1 } },
+    { "id": "VariableID:2:1", "name": "semantic/color/role-001", "type": "COLOR", "collection": "Semantic", "valuesByMode": { "Light": { "type": "VARIABLE_ALIAS", "id": "VariableID:1:1" } } }
+  ],
+  "styles": [{ "id": "S:1", "name": "Body", "type": "TEXT" }],
+  "frames": [
+    { "id": "5:1", "name": "Sign in", "page": { "id": "0:2", "name": "Feature Area A" }, "section": "Flows", "w": 1440, "h": 900, "instances": [{ "component": "1:1", "count": 3 }] },
+    { "id": "5:2", "name": "Empty sketch", "page": { "id": "0:3", "name": "Feature Area B" }, "w": 375, "h": 812, "instances": [] }
+  ],
+  "sensing": { "status": "complete" },
+  "counts": { "components": 3, "tokens": 2, "styles": 1 }
+}

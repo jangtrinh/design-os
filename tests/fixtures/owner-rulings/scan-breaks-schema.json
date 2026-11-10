@@ -1,0 +1,10 @@
+{
+  "components": [
+    { "name": "Missing id", "type": "COMPONENT" },
+    { "id": 7, "name": "Host-internal numeric id", "type": "COMPONENT" }
+  ],
+  "tokens": [
+    { "id": "VariableID:9:1", "name": "from-remote/color/x", "type": "COLOR", "collection": "Remote Library", "remote": true, "value": { "r": 0, "g": 0, "b": 0, "a": 1 } }
+  ],
+  "styles": []
+}
