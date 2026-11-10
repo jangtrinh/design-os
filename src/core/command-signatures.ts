@@ -1051,10 +1051,11 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       flags: [
         { name: "out", type: "string", summary: "Output directory (default: current working directory)" },
         { name: "name", type: "string", summary: "Design-system name for DESIGN.md (default: the --out folder name)" },
+        { name: "cwd", type: "string", summary: "The project whose owner rulings apply and where pending questions are written (default: current working directory)" },
         { name: "seed-memory", type: "boolean", summary: "Also seed 'ui memory' (harvested + component_registered events)" },
         { name: "now", type: "string", summary: "Deterministic clock for the seeded memory graph (ISO-8601)" },
       ],
-      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DS", "MEMORY_LOCKED", "MEMORY_COMMITTED", "WRITE_ERROR"],
+      errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "BAD_DS", "SEALED_PATH_COLLISION", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", "BAD_PENDING", "BAD_MANIFEST", "MEMORY_LOCKED", "MEMORY_COMMITTED", "WRITE_ERROR"],
     },
   },
 

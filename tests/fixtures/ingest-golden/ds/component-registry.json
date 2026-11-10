@@ -1,0 +1,39 @@
+{
+  "components": [
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Badge",
+      "scope": "local",
+      "tokensUsed": []
+    },
+    {
+      "category": "COMPONENT_SET",
+      "description": "Figma COMPONENT_SET · props: Size(Small,Large), Tone(Primary,Ghost)",
+      "markup": "",
+      "name": "Button",
+      "scope": "local",
+      "tokensUsed": [],
+      "variants": [
+        "Size=Large",
+        "Size=Small",
+        "Tone=Ghost",
+        "Tone=Primary"
+      ]
+    },
+    {
+      "category": "Card",
+      "description": "Figma COMPONENT_SET · props: State(Default,Hover)",
+      "markup": "",
+      "name": "Card/Elevated",
+      "scope": "local",
+      "tokensUsed": [],
+      "variants": [
+        "State=Default",
+        "State=Hover"
+      ]
+    }
+  ],
+  "version": "0.1.0"
+}

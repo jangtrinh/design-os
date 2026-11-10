@@ -1,0 +1,17 @@
+{
+  "collisions": [
+    {
+      "path": "color.brand",
+      "variables": [
+        {
+          "id": "VariableID:1:1",
+          "collection": "Alpha"
+        },
+        {
+          "id": "VariableID:2:1",
+          "collection": "Beta"
+        }
+      ]
+    }
+  ]
+}

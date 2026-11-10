@@ -1,0 +1,25 @@
+{
+  "components": [
+    {
+      "category": "COMPONENT_SET",
+      "description": "Figma COMPONENT_SET · props: Size(Small,Large)",
+      "markup": "",
+      "name": "Button",
+      "scope": "local",
+      "tokensUsed": [],
+      "variants": [
+        "Size=Large",
+        "Size=Small"
+      ]
+    },
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Card",
+      "scope": "local",
+      "tokensUsed": []
+    }
+  ],
+  "version": "0.1.0"
+}

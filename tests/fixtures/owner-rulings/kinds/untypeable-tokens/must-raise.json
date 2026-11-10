@@ -1,0 +1,9 @@
+{
+  "items": [
+    {
+      "id": "VariableID:1:1",
+      "name": "flag/enabled",
+      "reason": "unmappable-type"
+    }
+  ]
+}

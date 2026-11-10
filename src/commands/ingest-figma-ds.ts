@@ -26,7 +26,11 @@ import type { CommandResult } from "../core/output.js";
 import { errJson, errJsonWithData, errText, okJson } from "../core/output.js";
 import { saveRegistry } from "../core/registry-store.js";
 import { registryFileForDir } from "../core/design-system.js";
-import { parseDsFile, ingestDesignSystem, DsIngestError } from "../core/figma-ds-ingest.js";
+import { parseDsFile, planIngest, DsIngestError } from "../core/figma-ds-ingest.js";
+import { ledgerLines } from "../core/figma-ds-ledger.js";
+import { blockOnOpenClusters } from "../core/owner-rulings/block-contract.js";
+import type { ClusterKind } from "../core/owner-rulings/cluster-kinds.js";
+import { RulingStoreError, readRulingStore } from "../core/owner-rulings/ruling-store.js";
 import {
   buildEvent,
   validateEvent,
@@ -39,14 +43,26 @@ import { seedMemoryBatch } from "../core/memory-seed-batch.js";
 
 const CMD = "ingest-figma-ds";
 
+/** The questions this command computes completely: it replaces its own stored ones with what it finds now. */
+const OWN_KINDS: readonly ClusterKind[] = [
+  "figma-collections", "token-path-collision", "figma-library-pages", "screen-pages",
+  "archived-marked-nodes", "duplicate-component-names", "classification-conflicts", "untypeable-tokens",
+];
+
 export const INGEST_FIGMA_DS_HELP = `ui ingest-figma-ds — onboard an existing Figma design system
 
 Usage:
-  ui ingest-figma-ds <ds.json> [--out <dir>] [--name <slug>] [--seed-memory] [--now <iso>] [--json]
+  ui ingest-figma-ds <ds.json> [--out <dir>] [--name <slug>] [--cwd <dir>] [--seed-memory] [--now <iso>] [--json]
 
 Takes a 'figma-agent scan-design-system' output (Variables + Styles + Components)
 and compiles it — deterministically, zero-network, zero-LLM — into ease-design's
 portable stores so an AI can understand, remember, and work on the DS on any runtime.
+
+It asks instead of dropping or guessing. When the scan holds something only the owner can settle (two
+collections that map to one token path, nodes on several pages, archive-marked or duplicate names, variables that
+cannot become tokens), the command writes NOTHING, exits 1 with ONBOARD_BLOCKED_NEEDS_OWNER_RULING, and leaves the
+questions in <cwd>/.design-os/onboard/pending.json. Next: ui onboard questions, then ui onboard answer --file, then
+run this command again. Every item left out is counted under a named reason in the closing ledger.
 
 Writes (into <out>, default: current directory):
   tokens.json             DTCG tokens — primitive literals + semantic aliases; Light/Dark modes
@@ -57,6 +73,7 @@ Writes (into <out>, default: current directory):
 Options:
   --out <dir>      Output directory (default: current working directory)
   --name <slug>    Design-system name for DESIGN.md (default: the --out folder name)
+  --cwd <dir>      The project whose owner rulings apply (default: current working directory)
   --seed-memory    Also seed 'ui memory' (harvested + component_registered events)
   --now <iso>      Deterministic clock for the seeded memory graph (ISO-8601)
   --json           Emit a JSON envelope instead of human-readable text
@@ -69,6 +86,9 @@ Modes:
 Error codes:
   BAD_ARG          Missing <ds.json> positional, or invalid --now
   UNKNOWN_FLAG     Unrecognised --flag (rejected, with a did-you-mean hint)
+  ONBOARD_BLOCKED_NEEDS_OWNER_RULING  A question has no owner ruling; nothing was written
+  BAD_PENDING      <cwd>/.design-os/onboard/pending.json is unreadable (transient; safe to delete)
+  BAD_MANIFEST     <cwd>/design/design-dir.json is unreadable
   FILE_NOT_FOUND   ds.json does not exist (ENOENT)
   READ_ERROR       ds.json exists but cannot be read
   BAD_JSON         ds.json is not valid JSON
@@ -170,13 +190,18 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     );
   }
 
+  const cwd = resolve(flagStr(parsed, "cwd") ?? process.cwd());
   try {
     const ds = parseDsFile(json);
     const name = flagStr(parsed, "name") ?? basename(outDir);
     const source = `figma scan-design-system (${basename(dsPath)})`;
-    result = { ...ingestDesignSystem(ds, name, source), outDir, source, name };
+    const plan = planIngest(ds, name, source, readRulingStore(cwd).rulings);
+    const blocked = blockOnOpenClusters({ command: CMD, projectDir: cwd, detections: plan.detections, ownKinds: OWN_KINDS, json: useJson });
+    if (blocked !== null) return blocked;
+    if (plan.result === null) throw new Error("the ingest has no open question and no result: this is a bug in the ingest stages");
+    result = { ...plan.result, outDir, source, name };
   } catch (e) {
-    if (e instanceof DsIngestError) return err(e.code, e.message);
+    if (e instanceof DsIngestError || e instanceof RulingStoreError) return err(e.code, e.message);
     throw e;
   }
 
@@ -217,6 +242,11 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     icons: result.icons.count,
     screens: result.screens.length,
     memorySeeded: parsed.flags["seed-memory"] === true,
+    ledger: result.ledger,
+    excluded: result.excluded,
+    pageSignal: result.pageSignal,
+    bindings: result.bindings,
+    ...(result.frames === null ? {} : { frames: result.frames }),
     ...(foreignRegistryAtDefaultPath && { foreignRegistryAtDefaultPath }),
   };
   if (useJson) return okJson(CMD, data);
@@ -230,6 +260,9 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     `  component-registry.json ${result.componentNames.length} components${classifiedNote.length > 0 ? ` (${classifiedNote.join(" · ")} classified out)` : ""}`,
     `  DESIGN.md              ${result.counts.styles} styles documented`,
     ...(data.memorySeeded ? ["  design/memory.events.jsonl  seeded"] : []),
+    "  ledger",
+    ...ledgerLines(result.ledger).map((l) => `    ${l}`),
+    ...(result.pageSignal === "absent" ? ["    pageSignal: absent (the scan carries no page; the page question was skipped)"] : []),
     ...(foreignRegistryAtDefaultPath
       ? [`  ! component-registry.json is a FOREIGN file — wrote ${registryPath} instead`]
       : []),
