@@ -24,7 +24,7 @@ Activate this skill when the user asks to:
 ## Core Execution Workflow
 
 1. **Inspect Context**: Read the target repository or workspace constraints before mutating files.
-2. **Execute Deterministically**: Run `npx @easestart/design-os init` or `npx @easestart/design-os doctor` rather than guessing outputs freehand.
+2. **Execute Deterministically**: Run `npx ease-design init --runtime <claude|codex|antigravity>` or `npx ease-design doctor` (`ui init` / `ui doctor` when installed globally) rather than guessing outputs freehand.
 3. **Verify Quality Gates**: Run `python3 scripts/self_check.py` and confirm zero errors before reporting completion.
 
 ## Quality Bar & Anti-Scope
