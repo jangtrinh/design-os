@@ -3,7 +3,7 @@
  * twice in the registry, each declared heuristic counted, and a heuristic that contradicts a sensed fact asked about
  * instead of applied.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { classifyRegistry } from "../src/core/figma-ds-registry.js";
@@ -58,14 +58,13 @@ describe("the registry never holds a name twice (AC-5, AC-23)", () => {
   const dupScan = scanOf({ components: [comp("1:1", "🟢 Button", LIB), comp("1:2", "Button", LIB), comp("1:3", "Chip", LIB), comp("1:4", "Chip", LIB, { page: { id: "0:2", name: "Other" } })] });
 
   it("two nodes that differ only by a status marker are duplicates; the question names them", () => {
-    const q = ask(dupScan);
-    expect(q.map((c) => c.kind)).toEqual(["figma-library-pages"]);
-    const project = newProject();
-    const scan = scanOf({ components: [comp("1:1", "🟢 Button", LIB), comp("1:2", "Button", LIB)] });
-    const dup = ask(scan).find((c) => c.kind === "duplicate-component-names")!;
+    const dup = ask(scanOf({ components: [comp("1:1", "🟢 Button", LIB), comp("1:2", "Button", LIB)] })).find((c) => c.kind === "duplicate-component-names")!;
     expect(dup.members).toEqual(["1:2"]);
     expect(dup.question).toContain("Button");
-    expect(project).toBeDefined();
+  });
+
+  it("the duplicate question waits for the page question: a name repeated across pages is not asked until the pages are ruled", () => {
+    expect(ask(dupScan).map((c) => c.kind)).toEqual(["figma-library-pages"]);
   });
 
   it("whichever way the owner answers, the written registry has zero repeated names and ds kit plan accepts it", () => {
@@ -95,8 +94,8 @@ describe("the registry never holds a name twice (AC-5, AC-23)", () => {
     const dir = newProject();
     const source = join(dir, "registry.json");
     const rec = (name: string): object => ({ name, category: "x", markup: "", tokensUsed: [] });
-    require("node:fs").writeFileSync(source, JSON.stringify({ version: "0.1.0", components: [rec("Card"), rec("Card")] }));
-    require("node:fs").writeFileSync(join(dir, "tokens.json"), JSON.stringify({ color: { a: { $value: "#000000", $type: "color" } } }));
+    writeFileSync(source, JSON.stringify({ version: "0.1.0", components: [rec("Card"), rec("Card")] }));
+    writeFileSync(join(dir, "tokens.json"), JSON.stringify({ color: { a: { $value: "#000000", $type: "color" } } }));
     expect(() => planKit({ source, kind: "registry", tokens: join(dir, "tokens.json"), out: join(dir, "kit"), name: "Synthetic" })).toThrow(/ui ingest-figma-ds.*duplicate-component-names/s);
   });
 });
