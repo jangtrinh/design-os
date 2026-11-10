@@ -743,14 +743,36 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
 
   onboard: {
     summary: "Show this project's setup checklist and what to do next",
-    signature: {
-      summary: "Report a project's onboarding readiness checklist",
-      positionals: [],
-      flags: [
-        { name: "cwd", type: "string", summary: "Project directory to inspect (default: current working directory)" },
-        { name: "no-banner", type: "boolean", summary: "Omit the wordmark banner from text output" },
-      ],
-      errorCodes: [],
+    subcommands: {
+      status: {
+        summary: "Report a project's onboarding readiness checklist (the default; includes the owner rulings row)",
+        positionals: [],
+        flags: [
+          { name: "cwd", type: "string", summary: "Project directory to inspect (default: current working directory)" },
+          { name: "no-banner", type: "boolean", summary: "Omit the wordmark banner from text output" },
+        ],
+        errorCodes: [],
+      },
+      questions: {
+        summary: "Detect project-level anomalies and print the open owner questions (writes .design-os/onboard/pending.json)",
+        positionals: [],
+        flags: [
+          { name: "cwd", type: "string", summary: "Project directory (default: current working directory)" },
+          { name: "format", type: "string", values: ["claude", "markdown", "json"], summary: "Output format (default: json)" },
+          { name: "round", type: "string", summary: "Round of 4 questions to emit, claude format (default: 1)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_MANIFEST", "WRITE_ERROR", "NO_PENDING_QUESTIONS"],
+      },
+      answer: {
+        summary: "Record the owner's answers as rulings in design/design-dir.json (schema version 2)",
+        positionals: [],
+        flags: [
+          { name: "file", type: "string", required: true, summary: "Answers file: { answers: [{ fingerprint, choice, members? }] }" },
+          { name: "now", type: "string", required: true, summary: "ISO-8601 timestamp recorded on each ruling" },
+          { name: "cwd", type: "string", summary: "Project directory (default: current working directory)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "BAD_MANIFEST", "WRITE_ERROR", "STALE_ANSWER", "BAD_ANSWER", "DANGLING_AFTER_SELECTION"],
+      },
     },
   },
 

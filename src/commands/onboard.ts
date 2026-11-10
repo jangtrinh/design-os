@@ -18,25 +18,57 @@ import type { CommandResult } from "../core/output.js";
 import { okJson } from "../core/output.js";
 import { resolvePackageRoots } from "../core/init-stub.js";
 import { renderBanner, ruleHeader, checkItem } from "../core/report-style.js";
+import { errJson, errText } from "../core/output.js";
+import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
+import { runOnboardAnswer } from "./onboard-answer.js";
+import { runOnboardQuestions } from "./onboard-questions.js";
+import { rulingsRow } from "./onboard-rulings-row.js";
+import type { RulingsRow } from "./onboard-rulings-row.js";
 
 const CMD = "onboard";
 
 export const ONBOARD_HELP = `ui onboard — this project's setup checklist and what to do next
 
 Usage:
-  ui onboard [--cwd <project-dir>] [--no-banner] [--json]
+  ui onboard [status] [--cwd <project-dir>] [--no-banner] [--json]
+  ui onboard questions [--cwd <project-dir>] [--format claude|markdown|json] [--round <n>] [--json]
+  ui onboard answer --file <answers.json> --now <iso> [--cwd <project-dir>] [--json]
+
+Subcommands:
+  status     The setup checklist (the default). Reads the filesystem only; never writes, never
+             installs. Reports which setup steps are done, which are missing, and the exact
+             command to fix each one, including the \`owner rulings\` row: none needed,
+             N pending, or M recorded and K stale, with the questions-to-ready count.
+  questions  Detects the project-level anomalies, merges them with what a blocked command left in
+             .design-os/onboard/pending.json, drops what a stored ruling already covers, writes
+             pending.json and prints the open questions. 'claude' emits the AskUserQuestion payload
+             (max 4 questions per round, 2-4 options, multiSelect for set-valued kinds), 'markdown'
+             a sheet a team can answer asynchronously, 'json' (default) the clusters as stored.
+  answer     Records the owner's choices as rulings in design/design-dir.json (schema version 2).
+             answers.json: { "answers": [ { "fingerprint": "...", "choice": "id" | ["id", ...],
+             "members": { "<member>": "<id>" } } ] }. It has no interactive mode and reads no TTY.
 
 Options:
-  --cwd <path>  Project directory to inspect (default: current working directory)
-  --no-banner   Omit the wordmark banner from text output
-  --json        Emit a JSON envelope instead of human-readable output
-  -h, --help    Show this help
+  --cwd <path>   Project directory (default: current working directory)
+  --no-banner    Omit the wordmark banner from the status text output
+  --format <f>   questions output: claude | markdown | json
+  --round <n>    questions: which round of 4 questions to emit (claude format, default 1)
+  --file <path>  answer: the answers file
+  --now <iso>    answer: ISO-8601 timestamp recorded on each ruling (the kernel reads no clock)
+  --json         Emit a JSON envelope instead of human-readable output
+  -h, --help     Show this help
 
-Reads the filesystem only; never writes, never installs. Reports which setup
-steps are done, which are missing, and the exact command to fix each one.
+A command that meets an anomaly it cannot resolve from a ruling writes nothing and exits 1; the
+questions are then asked with 'ui onboard questions' and recorded with 'ui onboard answer'.
 
 Exit codes:
-  0  Always (informational — read \`ready\` in --json mode, or the header verdict)
+  status     0 always (informational — read \`ready\` in --json mode, or the header verdict)
+  questions  0 questions emitted · 1 error
+  answer     0 rulings recorded · 1 refused, nothing written
+
+Error codes:
+  BAD_ARG | UNKNOWN_FLAG | FILE_NOT_FOUND | WRITE_ERROR | BAD_MANIFEST (questions, answer)
+  NO_PENDING_QUESTIONS (questions) · STALE_ANSWER | BAD_ANSWER | DANGLING_AFTER_SELECTION (answer)
 `;
 
 // ─── Step model ─────────────────────────────────────────────────────────────
@@ -122,7 +154,7 @@ function figmaAgentOnPath(): boolean {
     .some((dir) => existsSync(join(dir, "figma-agent")));
 }
 
-function detectSteps(cwd: string): Step[] {
+function detectSteps(cwd: string, rulings: RulingsRow): Step[] {
   const hasAdapters =
     existsSync(join(cwd, ".claude", "ease-design.json")) ||
     existsSync(join(cwd, ".agent", "ease-design.json")) ||
@@ -142,6 +174,7 @@ function detectSteps(cwd: string): Step[] {
     { id: "ds", label: "design system", state: hasDs ? "done" : "pending", optional: false, hint: HINTS.ds },
     { id: "soul", label: "design soul", state: soulState, optional: false, hint: HINTS.soul },
     { id: "heartbeat", label: "learning loop (soul · heartbeat · harvest)", state: hasHeartbeat ? "done" : "pending", optional: false, hint: HINTS.heartbeat },
+    { id: "rulings", label: rulings.label, state: rulings.state, optional: false, hint: rulings.hint },
     { id: "agents", label: "project agents      (optional)", state: hasAgents ? "done" : "pending", optional: true, hint: HINTS.agents },
     // The hint depends on whether the agent is reachable: tell an equipped
     // machine to open the plugin, and an unequipped one where to get it.
@@ -164,13 +197,16 @@ function firstPendingHint(steps: Step[]): string | null {
 
 // ─── Text formatting ────────────────────────────────────────────────────────
 
-function formatText(steps: Step[], ready: boolean, banner: boolean, templatesRoot: string): string {
+function formatText(steps: Step[], ready: boolean, banner: boolean, templatesRoot: string, rulings: RulingsRow): string {
   const lines: string[] = [];
   if (banner) lines.push(renderBanner(templatesRoot));
   lines.push(ruleHeader("onboarding", ready ? "READY" : "SETUP"));
   lines.push("");
   for (const step of steps) {
     lines.push(checkItem(step.state, step.label, step.hint));
+  }
+  if (rulings.recorded + rulings.pending > 0) {
+    lines.push(`  questions to ready: ${rulings.recorded} answered, ${rulings.pending} pending`);
   }
   lines.push("");
   const next = ready
@@ -183,30 +219,51 @@ function formatText(steps: Step[], ready: boolean, banner: boolean, templatesRoo
 
 // ─── Command handler ────────────────────────────────────────────────────────
 
+function runStatus(parsed: ParsedArgs): CommandResult {
+  // The central flag guard cannot see a bare `ui onboard` once the command has subcommands, so guard here.
+  const unknown = findUnknownFlag(parsed.flags, ["cwd", "no-banner"]);
+  if (unknown !== null) {
+    const msg = unknownFlagMessage(unknown);
+    return parsed.json ? errJson(CMD, "UNKNOWN_FLAG", msg) : errText(`ui: ${msg}\n`);
+  }
+  const useJson = parsed.json;
+  const cwdFlag = parsed.flags["cwd"];
+  const targetCwd = typeof cwdFlag === "string" ? cwdFlag : processCwd();
+  const banner = parsed.flags["no-banner"] !== true;
+
+  const rulings = rulingsRow(targetCwd);
+  const steps = detectSteps(targetCwd, rulings);
+  const ready = computeReady(steps);
+
+  if (useJson) {
+    return okJson(CMD, {
+      steps: steps.map((s) => ({ id: s.id, state: s.state, optional: s.optional })),
+      ready,
+      rulings: { pending: rulings.pending, recorded: rulings.recorded, stale: rulings.stale },
+    });
+  }
+
+  const thisFile = fileURLToPath(import.meta.url);
+  const { templatesRoot } = resolvePackageRoots(dirname(thisFile));
+  return { exitCode: 0, stdout: formatText(steps, ready, banner, templatesRoot ?? "", rulings) };
+}
+
 export const onboardCommand = {
   name: CMD,
   summary: "Show this project's setup checklist and what to do next",
-  hasSubcommands: false,
+  hasSubcommands: true,
   help: ONBOARD_HELP,
 
   run(parsed: ParsedArgs): CommandResult {
-    const useJson = parsed.json;
-    const cwdFlag = parsed.flags["cwd"];
-    const targetCwd = typeof cwdFlag === "string" ? cwdFlag : processCwd();
-    const banner = parsed.flags["no-banner"] !== true;
-
-    const steps = detectSteps(targetCwd);
-    const ready = computeReady(steps);
-
-    if (useJson) {
-      return okJson(CMD, {
-        steps: steps.map((s) => ({ id: s.id, state: s.state, optional: s.optional })),
-        ready,
-      });
+    switch (parsed.subcommand) {
+      case undefined:
+      case "status": return runStatus(parsed);
+      case "questions": return runOnboardQuestions(parsed, processCwd());
+      case "answer": return runOnboardAnswer(parsed, processCwd());
+      default: {
+        const msg = `unknown subcommand '${parsed.subcommand}'. Run 'ui onboard --help'.`;
+        return parsed.json ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+      }
     }
-
-    const thisFile = fileURLToPath(import.meta.url);
-    const { templatesRoot } = resolvePackageRoots(dirname(thisFile));
-    return { exitCode: 0, stdout: formatText(steps, ready, banner, templatesRoot ?? "") };
   },
 };
