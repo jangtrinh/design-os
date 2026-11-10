@@ -57,21 +57,23 @@ describe("where the files read came from", () => {
 });
 
 describe("the met count is read plus skipped", () => {
-  it.skipIf(process.getuid?.() === 0)("counts an unreadable token JSON, an oversized file and a symlink", () => {
+  it.skipIf(process.getuid?.() === 0)("counts unreadable, oversized and symlinked files of every kind", () => {
     const dir = scratch({
       "pages/settings.html": "<h1>x</h1>", "components/badge.tsx": "export const A = 1;",
       "styles/a.css": ".a{color:red}", "styles/b.css": ".b{color:red}",
       "design-tokens.json": `{"a":"#fff"}`, "locked-tokens.json": `{"b":"#000"}`,
       "vendor/big.js": "x".repeat(2 * 1024 * 1024 + 10), "outside/real.css": ".z{}",
+      "big-tokens.json": `{"pad":"${"x".repeat(2 * 1024 * 1024)}"}`,
     });
     symlinkSync(join(dir, "outside", "real.css"), join(dir, "styles", "linked.css"));
+    symlinkSync(join(dir, "design-tokens.json"), join(dir, "link-tokens.json"));
     chmodSync(join(dir, "locked-tokens.json"), 0o000);
     const { walk } = harvestNegativeSpace({ sourceDir: dir });
     chmodSync(join(dir, "locked-tokens.json"), 0o644);
     const read = walk.uiFiles + walk.styleFiles + walk.tokenJsonFiles;
     const skippedFiles = walk.skipped.filter((s) => !s.path.endsWith("/")).length;
     expect(read).toBe(2 + 3 + 1); // outside/real.css is a stylesheet too
-    expect(skippedFiles).toBe(3);
+    expect(skippedFiles).toBe(5); // oversized js, symlinked css, oversized token JSON, symlinked token JSON, unreadable token JSON
     expect(walk.total).toBe(read + skippedFiles);
   });
 });
