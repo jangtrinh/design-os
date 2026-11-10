@@ -114,6 +114,14 @@ def _render_text(
         f"  DS role coverage: {roles['roled_tokens']}/{roles['total_tokens']} "
         f"tokens carry a design-os.role"
     )
+    if signals.get("tokens_path") is not None:
+        lines.append(f"  token file read: {signals['tokens_path']}")
+    differ = signals.get("token_sources_differ")
+    if differ is not None:
+        lines.append(
+            f"  token sources differ: {signals['tokens_path']} has {differ['sealed']} tokens, "
+            f"design/tokens.json has {differ['design_dir']} — role coverage above reads the first"
+        )
 
     reg = signals["registry"]
     lines.append(

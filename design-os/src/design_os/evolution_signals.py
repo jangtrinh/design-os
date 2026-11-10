@@ -17,6 +17,8 @@ _HEARTBEAT_CONFIG_REL = Path(_DESIGN) / "heartbeat.json"
 _HEARTBEAT_STATE_REL = Path(_DESIGN) / "heartbeat-state.json"
 _REGISTRY_REL = Path(_DESIGN) / "component-registry.json"
 _TOKENS_REL = Path(_DESIGN) / "design.tokens.json"
+# The hand-edited token file the design-directory contract names (docs/design-directory.md).
+_DESIGN_TOKENS_REL = Path(_DESIGN) / "tokens.json"
 # Taste-hub votes root defaults to <project>/taste (taste-store.ts resolveTasteRoot);
 # design/votes.jsonl is also checked in case a project keeps it alongside the ledger.
 _VOTES_RELS = (Path(_DESIGN) / "votes.jsonl", Path("taste") / "votes.jsonl")
@@ -96,6 +98,33 @@ def read_roles_signal(project_dir: Path) -> dict[str, Any]:
                 if isinstance(ext, dict) and isinstance(ext.get("design-os.role"), str):
                     roled += 1
     return {"total_tokens": total, "roled_tokens": roled}
+
+
+def _count_leaf_tokens(node: Any) -> int:
+    """Leaf tokens (objects carrying `$value`) of a DTCG document, at any group depth — the
+    same count `ui design lint` reports for `two-token-sources`. `$`-prefixed keys are
+    metadata, never groups."""
+    if not isinstance(node, dict):
+        return 0
+    if "$value" in node:
+        return 1
+    return sum(_count_leaf_tokens(v) for k, v in node.items() if not str(k).startswith("$"))
+
+
+def read_token_sources_signal(project_dir: Path) -> dict[str, Any]:
+    """Which token file the role-coverage signal read, and whether a second token file
+    disagrees with it (spec 033 FR-018). `tokens_path` is the project-relative path of the
+    file read (None when it does not exist). `token_sources_differ` appears only when
+    `design/tokens.json` also exists with a different token count than the sealed store."""
+    sealed_path = project_dir / _TOKENS_REL
+    sealed = _read_json(sealed_path)
+    out: dict[str, Any] = {"tokens_path": _TOKENS_REL.as_posix() if sealed is not None else None}
+    other = _read_json(project_dir / _DESIGN_TOKENS_REL)
+    if sealed is not None and other is not None:
+        sealed_n, other_n = _count_leaf_tokens(sealed), _count_leaf_tokens(other)
+        if sealed_n != other_n:
+            out["token_sources_differ"] = {"sealed": sealed_n, "design_dir": other_n}
+    return out
 
 
 def read_taste_votes_signal(project_dir: Path) -> dict[str, Any]:
