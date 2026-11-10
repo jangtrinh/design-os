@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-11-11 - `ui onboard questions` and `ui onboard answer` record owner rulings
+
+### Added
+- `ui onboard questions [--format claude|markdown|json] [--round <n>]`: prints the open questions
+  that need an owner's ruling (at most four per round; `claude` emits a native question payload,
+  `markdown` a sheet a team can answer later, with the full member list of every question).
+  Exit 1 `NO_PENDING_QUESTIONS` when nothing is open.
+- `ui onboard answer --file <answers.json> [--now <UTC-ISO>]`: validates the answers and records
+  each one as an owner ruling in `design/design-dir.json` (`onboard.rulings`). It refuses, with
+  nothing written, an answer to a question that is no longer open (`STALE_ANSWER`), a choice that is
+  not one of the question's options (`BAD_ANSWER`), and a selection that would leave a reference
+  dangling (`DANGLING_AFTER_SELECTION`). It has no interactive mode.
+- `ui onboard`: an `owner rulings` row (`none needed`, `N pending`, or `M recorded, K stale`), with
+  the count of questions answered and still open. `ready` is false while a question is open.
+  `ui onboard status` is the same command by name.
+- `design/design-dir.json` schema version 2: an optional `onboard` object that holds the rulings.
+  Version 1 files stay valid and are read as "no rulings"; recording a ruling upgrades the file and
+  keeps its key order and every other value.
+- A shared contract for commands that must ask instead of guessing: a command that meets an anomaly
+  of its own kinds without a ruling writes nothing to its output, exits 1 with
+  `ONBOARD_BLOCKED_NEEDS_OWNER_RULING`, and stores the question in
+  `.design-os/onboard/pending.json` (transient, safe to delete). A ruling answers a question once:
+  later runs ask only about members no ruling covers. No command raises a question yet; the
+  detectors arrive with the commands that use them.
+
+### Changed
+- `ui onboard <word>` with an unknown subcommand is a usage error (exit 1, with the list of
+  subcommands).
+
 ## 2026-11-10 - `ui scan` reports nested apps and where its budget went; lint and evolution agree with the kernel on token sources
 
 ### Added
