@@ -116,7 +116,7 @@ export function parseStoredCluster(raw: unknown): Cluster | string {
   const { kind, question, members, options, fingerprint, count, samples, evidence, delta, raisedBy } = raw;
   if (!isClusterKind(kind)) return "a cluster has an unknown kind";
   if (typeof question !== "string") return `cluster '${kind}' needs a question string`;
-  if (typeof raisedBy !== "string") return `cluster '${kind}' needs a raisedBy string (the command that raised it)`;
+  if (typeof raisedBy !== "string" || raisedBy === "") return `cluster '${kind}' needs a non-empty raisedBy string (the command that raised it)`;
   if (!isStrings(members) || members.length === 0) return `cluster '${kind}' needs a non-empty list of string members`;
   if (!Array.isArray(options)) return `cluster '${kind}' needs an options list`;
   const parsed: ClusterOption[] = [];
