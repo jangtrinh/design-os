@@ -42,7 +42,8 @@ export function planKit(options: PlanKitOptions): { root: string; capturedIds: s
     const name = inputString(record["name"], `raw component ${index} name`, "BAD_KIT");
     const id = options.kind === "figma" ? inputString(record["id"], `raw Figma component ${index} id`, "BAD_KIT") : index;
     const sourceId = `owner:${id}`;
-    if (seenIds.has(sourceId) || seenNames.has(name)) throw new KitAdoptionError("BAD_KIT", `duplicate source identity/name '${sourceId}' / '${record["name"]}'`);
+    if (seenNames.has(name)) throw new KitAdoptionError("BAD_KIT", `duplicate component name '${name}': a registry holds a name once. Re-run 'ui ingest-figma-ds' on the scan and answer the duplicate-component-names question ('ui onboard questions'), then plan the kit from the registry it writes.`);
+    if (seenIds.has(sourceId)) throw new KitAdoptionError("BAD_KIT", `duplicate source identity '${sourceId}'`);
     seenIds.add(sourceId); seenNames.add(name);
     return { sourceId, name, disposition: "unresolved", reason: "Owner implementation and evidence not yet authored" };
   });
