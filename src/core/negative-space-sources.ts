@@ -2,15 +2,14 @@
  * negative-space-sources.ts - the files the negative-space harvest reads besides the UI-source walk:
  * token JSON files (`*token*.json`) and the Figma inventory. Both report what they did not read.
  */
-import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
+import { lstatSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { DSError } from "./design-system.js";
+import { INVENTORY_FILE_NAMES, InventoryJsonError, readInventoryEntries } from "./figma-inventory-entries.js";
 import type { FigmaComponent } from "./negative-space-probes.js";
 import { EXCLUDED_UI_DIRECTORIES, MAX_UI_FILE_BYTES } from "./polyglot-ui-walk.js";
 import type { UiSkip } from "./polyglot-ui-walk.js";
-
-const INVENTORY_FILES = ["ds.json", "canvas-inventory.json"] as const;
 
 /**
  * Token JSON files met outside excluded directories. A file that is not read is reported with its reason:
@@ -45,22 +44,21 @@ export function walkTokenJson(root: string, skipPrefixes: readonly string[]): { 
 export function readInventory(designDir: string): { files: string[]; components: (FigmaComponent & { file: string })[] } {
   const files: string[] = [];
   const components: (FigmaComponent & { file: string })[] = [];
-  for (const name of INVENTORY_FILES) {
+  for (const name of INVENTORY_FILE_NAMES) {
     const path = join(designDir, name);
-    if (!existsSync(path)) continue;
-    let doc: unknown;
-    try { doc = JSON.parse(readFileSync(path, "utf8").replace(/^\uFEFF/, "")); }
-    catch (e) { throw new DSError("BAD_JSON", `Figma inventory '${path}' is not readable JSON (${e instanceof Error ? e.message : String(e)}). Fix the file or remove it.`); }
+    let entries: Record<string, unknown>[] | undefined;
+    try { entries = readInventoryEntries(path); }
+    catch (e) {
+      if (e instanceof InventoryJsonError) throw new DSError("BAD_JSON", `${e.message}. Fix the file or remove it.`);
+      throw e;
+    }
+    if (entries === undefined) continue;
     const label = `design/${name}`;
     files.push(label);
-    const o = (doc !== null && typeof doc === "object" ? doc : {}) as Record<string, unknown>;
-    for (const key of ["components", "componentSets"]) {
-      const list = Array.isArray(o[key]) ? (o[key] as unknown[]) : [];
-      for (const c of list) {
-        if (c === null || typeof c !== "object" || typeof (c as { name?: unknown }).name !== "string") continue;
-        const { name, w, h } = c as { name: string; w?: unknown; h?: unknown };
-        components.push({ name, file: label, ...(typeof w === "number" && { w }), ...(typeof h === "number" && { h }) });
-      }
+    for (const c of entries) {
+      if (typeof c["name"] !== "string") continue;
+      const { name: componentName, w, h } = c as { name: string; w?: unknown; h?: unknown };
+      components.push({ name: componentName, file: label, ...(typeof w === "number" && { w }), ...(typeof h === "number" && { h }) });
     }
   }
   return { files, components };

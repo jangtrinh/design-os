@@ -30,6 +30,8 @@ import type { UiSkip } from "./polyglot-ui-walk.js";
 export type { Exclusion, Hit } from "./negative-space-detector-kit.js";
 
 export const HIT_CAP = 10;
+/** First-level directories listed in the report (files directly in the source root are one more row). */
+export const DIRECTORY_ROWS = 5;
 export const EXCLUDED_CAP = 20;
 /** Template and style types the harvest meets and does not read; counted per extension in the report. */
 export const UNREAD_TEMPLATE_STYLE_EXTENSIONS: readonly string[] = [".astro", ".ejs", ".erb", ".hbs", ".liquid", ".mdx", ".njk", ".pcss", ".php", ".pug", ".sass", ".styl", ".twig"];
@@ -62,6 +64,10 @@ export interface HarvestReport {
     uiFiles: number; styleFiles: number; tokenJsonFiles: number; total: number; skipped: UiSkip[];
     /** Template and style files met and not read, per extension (sorted). */
     unread: Record<string, number>;
+    /** Where the files read came from: up to DIRECTORY_ROWS first-level directories, most files first, ties by path, then one `./` row for files directly in the source root. */
+    directories: { path: string; files: number }[];
+    /** First-level directories with files read that are not listed above. */
+    directoriesOmitted: number;
   };
   figma: { present: boolean; files: string[]; components: number };
   probes: ProbeResult[];
@@ -76,6 +82,11 @@ export interface HarvestOptions {
   skipPrefixes?: readonly string[];
 }
 
+/** One line counts once per probe: two tokens on a line (`"JetBrains Mono", monospace`) are one finding. */
+function oncePerLine<T extends { file: string; line: number }>(items: T[]): T[] {
+  const seen = new Set<string>();
+  return items.filter((x) => { const k = `${x.file}:${x.line}`; if (seen.has(k)) return false; seen.add(k); return true; });
+}
 const why = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 interface Acc { count: number; scanned: number; hits: Hit[]; excluded: Exclusion[]; excludedTotal: number }
 
@@ -92,17 +103,22 @@ export function harvestNegativeSpace(opts: HarvestOptions): HarvestReport {
 
   const accs: Acc[] = NEGATIVE_SPACE_PROBES.map(() => ({ count: 0, scanned: 0, hits: [], excluded: [], excludedTotal: 0 }));
   const read: Record<FileKind, number> = { ui: 0, style: 0, json: 0 };
+  const perDirectory = new Map<string, number>();
   const scan = (abs: string, rel: string): void => {
     let source: string;
     try { source = readFileSync(abs, "utf8"); }
     catch (e) { skipped.push({ path: rel, reason: `cannot read: ${why(e)}` }); return; }
     const ctx = makeFileCtx(rel, source);
     read[ctx.kind]++;
+    const slash = rel.indexOf("/");
+    const top = slash === -1 ? "./" : `${rel.slice(0, slash)}/`;
+    perDirectory.set(top, (perDirectory.get(top) ?? 0) + 1);
     NEGATIVE_SPACE_PROBES.forEach((probe, i) => {
       if (ctx.kind === "json" ? !probe.readsJson : ctx.kind === "style" && !probe.readsStyles) return;
       const acc = accs[i] as Acc;
       acc.scanned++;
       const d = probe.detect(ctx);
+      d.hits = oncePerLine(d.hits);
       acc.count += d.hits.length;
       acc.excludedTotal += d.excluded.length;
       if (acc.hits.length < HIT_CAP) acc.hits.push(...[...d.hits].sort((a, b) => a.line - b.line).slice(0, HIT_CAP - acc.hits.length));
@@ -140,13 +156,16 @@ export function harvestNegativeSpace(opts: HarvestOptions): HarvestReport {
     };
   });
 
+  // the root row is its own: it is not a directory, so it never competes for one of the listed places
+  const rootFiles = perDirectory.get("./") ?? 0;
+  const dirRows = [...perDirectory].filter(([p]) => p !== "./").map(([path, files]) => ({ path, files })).sort((a, b) => b.files - a.files || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
   const unread = Object.fromEntries(Object.entries(ui.unread ?? {}).sort(([a], [b]) => (a < b ? -1 : 1)));
   return {
     sourceDir: opts.sourceDir,
     walk: {
       uiFiles: read.ui, styleFiles: read.style, tokenJsonFiles: read.json,
-      total: ui.total - keep.filter((k) => !k).length + read.json + tokens.skipped.length,
-      skipped, unread,
+      total: ui.total - keep.filter((k) => !k).length + tokens.files.length + tokens.skipped.length,
+      skipped, unread, directories: [...dirRows.slice(0, DIRECTORY_ROWS), ...(rootFiles > 0 ? [{ path: "./", files: rootFiles }] : [])], directoriesOmitted: Math.max(0, dirRows.length - DIRECTORY_ROWS),
     },
     figma: { present, files: inventory.files, components: inventory.components.length },
     probes,
