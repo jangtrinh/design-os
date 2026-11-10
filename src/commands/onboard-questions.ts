@@ -9,7 +9,8 @@ import { errJson, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
 import { PendingStoreError, writePending } from "../core/owner-rulings/pending-store.js";
-import { orderClusters, roundCount, toOwnerClaudePayload, toOwnerMarkdown } from "../core/owner-rulings/questions-format.js";
+import { CLUSTER_KIND_TABLE } from "../core/owner-rulings/cluster-kinds.js";
+import { orderClusters, PER_MEMBER_ANSWER_NOTE, roundCount, toOwnerClaudePayload, toOwnerMarkdown } from "../core/owner-rulings/questions-format.js";
 import { computeRulingState } from "../core/owner-rulings/ruling-state.js";
 import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
 
@@ -31,8 +32,9 @@ export function runOnboardQuestions(parsed: ParsedArgs, defaultCwd: string, emit
   let state;
   try { state = computeRulingState(cwd, emitters === undefined ? {} : { emitters }); }
   catch (e) {
+    // A store's own failure is reported with its code; an emitter's bug keeps its message and stack.
     if (e instanceof RulingStoreError || e instanceof PendingStoreError) return err(e.code, e.message);
-    return err("READ_ERROR", e instanceof Error ? e.message : "cannot read the project");
+    throw e;
   }
   const ordered = orderClusters(state.pending);
   if (ordered.length === 0) return err("NO_PENDING_QUESTIONS", "nothing is pending: every anomaly the kernel can detect from the project has an owner ruling");
@@ -43,6 +45,7 @@ export function runOnboardQuestions(parsed: ParsedArgs, defaultCwd: string, emit
 
   if (format === "markdown") return { exitCode: 0, stdout: toOwnerMarkdown(ordered) };
   if (format === "claude") return { exitCode: 0, stdout: `${JSON.stringify(toOwnerClaudePayload(ordered, round), null, 2)}\n` };
-  if (parsed.json) return okJson(SUB, { clusters: ordered, pendingPath: ".design-os/onboard/pending.json" });
-  return { exitCode: 0, stdout: `${JSON.stringify({ clusters: ordered }, null, 2)}\n` };
+  const perMember = ordered.some((c) => CLUSTER_KIND_TABLE[c.kind].setValued) ? { perMemberAnswer: PER_MEMBER_ANSWER_NOTE } : {};
+  if (parsed.json) return okJson(SUB, { clusters: ordered, ...perMember, pendingPath: ".design-os/onboard/pending.json" });
+  return { exitCode: 0, stdout: `${JSON.stringify({ clusters: ordered, ...perMember }, null, 2)}\n` };
 }

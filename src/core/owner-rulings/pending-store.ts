@@ -1,12 +1,12 @@
 /**
  * The pending store: `<project>/.design-os/onboard/pending.json` (CD-2). Transient, safe to delete, never read as a
- * ruling; written by a blocked command and by `ui onboard questions` only (FR-002).
+ * ruling; rewritten by a command that can block (it replaces the clusters of its own kinds on every run) and by nothing else.
  *
  * Threat model: the file sits in the user's own project next to the manifest and is as trusted as the manifest. The
  * validation below exists against corruption and accidental hand edits; option ids are not signed. A file that
  * fails validation is never filtered: reading it throws BAD_PENDING so the owner is told, not silently re-asked.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { isRecord } from "../knowledge-promotion-ruling.js";
 import { writeJsonAtomic } from "./atomic-write.js";
@@ -45,6 +45,11 @@ export function writePending(projectDir: string, clusters: readonly Cluster[], r
   const doc: PendingDoc = { version: 1, round, clusters: [...clusters] };
   writeJsonAtomic(join(projectDir, PENDING_REL), doc);
   return join(projectDir, PENDING_REL);
+}
+
+/** Removes the pending file; a file that is not there is already the wanted state. */
+export function removePending(projectDir: string): void {
+  rmSync(join(projectDir, PENDING_REL), { force: true });
 }
 
 /**

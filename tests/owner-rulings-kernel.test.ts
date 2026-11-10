@@ -23,10 +23,7 @@ const single = (members: string[], kind: ClusterInput["kind"] = "scan-budget"): 
 const setValued = (groups: Record<string, string[]>, kind: ClusterInput["kind"] = "app-roots"): Cluster =>
   buildCluster({
     kind, question: "Which stay?", members: Object.values(groups).flat(),
-    options: [
-      ...Object.entries(groups).map(([id, selects]) => ({ id, label: id, consequence: `keeps ${selects.length}`, selects })),
-      { id: "review-individually", label: "Review individually", consequence: "asks per member" },
-    ],
+    options: Object.entries(groups).map(([id, selects]) => ({ id, label: id, consequence: `keeps ${selects.length}`, selects })),
   });
 
 const AT = "2026-11-10T14:00:00.000Z";
@@ -83,6 +80,20 @@ describe("buildCluster", () => {
     expect(() => make([opt("x", ["a"]), opt("y", ["b"])])).toThrow(/every member/);
     expect(() => make([opt("x", ["a", "b", "c", "z"]), opt("y", [])])).toThrow(/not a member/);
     expect(() => make([opt("x", ["a", "b", "c"]), opt("y")])).toThrow(/selects/);
+  });
+});
+
+describe("a multi-select question never spends an option slot on the per-member sheet", () => {
+  const opt = (id: string, selects?: string[]): ClusterInput["options"][number] => ({ id, label: id, consequence: id, ...(selects === undefined ? {} : { selects }) });
+  it("refuses review-individually among the options of a set-valued kind", () => {
+    expect(() => buildCluster({ kind: "app-roots", question: "q", members: ["a", "b"], options: [opt("x", ["a", "b"]), opt("review-individually")] })).toThrow(/review-individually/);
+  });
+  it("accepts four member or group options on a set-valued kind", () => {
+    const c = buildCluster({ kind: "app-roots", question: "q", members: ["a", "b", "c", "d", "e", "f"], options: [opt("a", ["a"]), opt("b", ["b"]), opt("c", ["c"]), opt("rest", ["d", "e", "f"])] });
+    expect(c.options).toHaveLength(4);
+  });
+  it("still lets a single-choice kind carry review-individually as its last option", () => {
+    expect(single(["a"]).options.at(-1)?.id).toBe("review-individually");
   });
 });
 
@@ -174,6 +185,15 @@ describe("ruling store (manifest version 2)", () => {
       expect(() => appendRulings(dir, [good, r]), JSON.stringify(r)).toThrow(RulingStoreError);
       expect(read(dir)).toBe(before);
     }
+  });
+
+  it("refuses a single-choice ruling that chose review-individually without a members map, or mapped a member to it", () => {
+    const c = single(["m1", "m2"]);
+    const dir = scratchProject();
+    expect(() => appendRulings(dir, [ruling(c, { choice: "review-individually" })])).toThrow(/members/);
+    expect(() => appendRulings(dir, [ruling(c, { choice: "review-individually", members: { m1: "keep-all", m2: "review-individually" } })])).toThrow(/members/);
+    write(dir, { version: 2, onboard: { rulings: [{ ...ruling(c), choice: "review-individually" }] } });
+    expect(() => readRulingStore(dir)).toThrow(RulingStoreError);
   });
 
   it("requires a set-valued ruling to carry a keep/drop map over exactly its covers", () => {

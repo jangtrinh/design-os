@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isRecord } from "../knowledge-promotion-ruling.js";
 import { writeJsonAtomic } from "./atomic-write.js";
-import { CLUSTER_KIND_TABLE, isClusterKind } from "./cluster-kinds.js";
+import { CLUSTER_KIND_TABLE, REVIEW_INDIVIDUALLY, isClusterKind } from "./cluster-kinds.js";
 import type { ClusterKind } from "./cluster-kinds.js";
 import { FINGERPRINT } from "./fingerprint.js";
 
@@ -72,6 +72,9 @@ export function parseRuling(raw: unknown, index: number): Ruling {
   }
   if (typeof choice !== "string" || choice === "") return bad("is single-choice: choice must be one option id");
   if (members !== undefined && !sameKeys(members, covers)) return bad("members must map exactly the covered members");
+  // "review individually" is not an outcome: it says the answer is per member, so the map must exist and name real options.
+  if (choice === REVIEW_INDIVIDUALLY && members === undefined) return bad(`chose '${REVIEW_INDIVIDUALLY}' but has no members map`);
+  if (members !== undefined && Object.values(members).some((v) => v === REVIEW_INDIVIDUALLY)) return bad(`has a members map in which an outcome is '${REVIEW_INDIVIDUALLY}', which is not an option`);
   return { kind, fingerprint, choice, covers, ...(members === undefined ? {} : { members: members as Record<string, string> }), actor, at };
 }
 

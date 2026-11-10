@@ -9,7 +9,7 @@ import type { ClusterKind } from "./cluster-kinds.js";
 import { EMITTERS } from "./emitters.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 import { readPending } from "./pending-store.js";
-import { governingRuling, resolveDetections } from "./resolve-detections.js";
+import { indexRulings, resolveDetections } from "./resolve-detections.js";
 import { readRulingStore } from "./ruling-store.js";
 import type { Ruling } from "./ruling-store.js";
 
@@ -30,6 +30,8 @@ export interface RulingState {
   /** Rulings recorded in the store. */
   recorded: number;
   stale: Ruling[];
+  /** The kinds whose detectors ran in this call: their stored clusters are replaced by `pending`'s own. */
+  recomputed: ClusterKind[];
   /** Per kind, member -> outcome, from the detections that ran. */
   outcomes: Record<string, Record<string, string>>;
 }
@@ -54,11 +56,13 @@ export function computeRulingState(projectDir: string, options: RulingStateOptio
 
   const recomputed = new Set<ClusterKind>([...ran, ...detections.map((d) => d.kind)]);
   const resolution = resolveDetections(detections, store.rulings);
-  const kept = stored.filter((c) => !recomputed.has(c.kind) && c.members.some((m) => governingRuling(store.rulings, c.kind, m) === undefined));
+  const index = indexRulings(store.rulings);
+  const kept = stored.filter((c) => !recomputed.has(c.kind) && c.members.some((m) => index.get(c.kind)?.has(m) !== true));
   return {
     pending: [...kept, ...resolution.open],
     recorded: store.rulings.length,
     stale: resolution.stale,
+    recomputed: [...recomputed],
     outcomes: resolution.outcomes as Record<string, Record<string, string>>,
   };
 }
