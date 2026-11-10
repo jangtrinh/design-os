@@ -85,7 +85,7 @@ const REQUIRED_SECTIONS = ["Never", "Always", "Voice"] as const;
 type RequiredSection = (typeof REQUIRED_SECTIONS)[number];
 
 /** Locate a `## <Name>` section's body — text between its heading and the next `## ` heading, or EOF. */
-export function sectionBody(text: string, name: RequiredSection): { body: string; line: number } | null {
+function sectionBody(text: string, name: RequiredSection): { body: string; line: number } | null {
   const headingRe = new RegExp(`^##[ \\t]+${name}[ \\t]*$`, "m");
   const m = headingRe.exec(text);
   if (m === null) return null;
