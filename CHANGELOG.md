@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-11-10 - `ui ds harvest-bans` proposes what a codebase never does
+## 2026-11-11 - `ui ds harvest-bans` proposes what a codebase never does
 
 ### Added
 - `ui ds harvest-bans --source <dir> [--dir <project>] [--write] [--accept <NS-id>] [--json]`. Onboarding
@@ -65,9 +65,6 @@
   files (342 MB) peaked at 3.6 GB and 75 s before, and 0.18 GB and 49 s after.
 - `ui ds soul check` still fails a comment-only binding `## Never` (`soul-empty-section` is an error);
   proposed bullets never satisfy it.
-
-- `design/soul.md` helpers in `ds-soul` own the `## Never (proposed)` block. `ui ds soul check` still fails
-  a comment-only binding `## Never` (`soul-empty-section` is an error); proposed bullets never satisfy it.
 
 ## 2026-11-11 - `ui onboard questions` and `ui onboard answer` record owner rulings
 
