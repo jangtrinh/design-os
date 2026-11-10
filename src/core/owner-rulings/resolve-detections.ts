@@ -8,6 +8,7 @@
 import { buildCluster } from "./cluster.js";
 import type { Cluster } from "./cluster.js";
 import type { ClusterKind } from "./cluster-kinds.js";
+import { runEmitter } from "./emitter-failure.js";
 import { sortedUnique } from "./fingerprint.js";
 import type { KindDetection } from "./kind-emitter.js";
 import { outcomeOf } from "./ruling-store.js";
@@ -50,7 +51,8 @@ export function governedOutcomes(index: RulingIndex, kind: ClusterKind): Record<
   return out;
 }
 
-export function resolveDetections(detections: readonly KindDetection[], rulings: readonly Ruling[]): Resolution {
+/** `raisedBy` is stamped on every question built here: the command that is asking. */
+export function resolveDetections(detections: readonly KindDetection[], rulings: readonly Ruling[], raisedBy = ""): Resolution {
   const index = indexRulings(rulings);
   const open: Cluster[] = [];
   const outcomes: Resolution["outcomes"] = {};
@@ -61,8 +63,8 @@ export function resolveDetections(detections: readonly KindDetection[], rulings:
     const governing = index.get(d.kind);
     const unruled = d.members.filter((m) => governing?.has(m) !== true);
     if (unruled.length > 0) {
-      const asked = d.ask(unruled);
-      open.push(buildCluster({ kind: d.kind, question: asked.question, members: unruled, options: asked.options, evidence: asked.evidence, ...(unruled.length < d.members.length ? { delta: true as const } : {}) }));
+      const asked = runEmitter(d.kind, () => d.ask(unruled));
+      open.push(buildCluster({ kind: d.kind, question: asked.question, members: unruled, options: asked.options, evidence: asked.evidence, raisedBy, ...(unruled.length < d.members.length ? { delta: true as const } : {}) }));
     }
     const per: Record<string, string> = { ...(outcomes[d.kind] ?? {}) };
     const seen = domains.get(d.kind) ?? new Set<string>();

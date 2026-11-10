@@ -39,6 +39,8 @@ export interface Cluster {
   evidence?: unknown;
   /** Set when the cluster holds only the members that no earlier ruling governs. */
   delta?: true;
+  /** The command that raised it: a command replaces only the stored questions it raised itself. */
+  raisedBy: string;
 }
 
 export interface ClusterInput {
@@ -48,6 +50,7 @@ export interface ClusterInput {
   options: readonly ClusterOption[];
   evidence?: unknown;
   delta?: true;
+  raisedBy?: string;
 }
 
 /** Recommended options first (stable); `review individually`, when present, stays last. */
@@ -101,6 +104,7 @@ export function buildCluster(input: ClusterInput): Cluster {
     options,
     ...(input.evidence === undefined ? {} : { evidence: input.evidence }),
     ...(input.delta === true ? { delta: true as const } : {}),
+    raisedBy: input.raisedBy ?? "",
   };
 }
 
@@ -109,9 +113,10 @@ const isStrings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x)
 /** Reads a cluster from a stored file in full: the cluster, or the first thing that is wrong with it. */
 export function parseStoredCluster(raw: unknown): Cluster | string {
   if (!isRecord(raw)) return "a cluster is not an object";
-  const { kind, question, members, options, fingerprint, count, samples, evidence, delta } = raw;
+  const { kind, question, members, options, fingerprint, count, samples, evidence, delta, raisedBy } = raw;
   if (!isClusterKind(kind)) return "a cluster has an unknown kind";
   if (typeof question !== "string") return `cluster '${kind}' needs a question string`;
+  if (typeof raisedBy !== "string") return `cluster '${kind}' needs a raisedBy string (the command that raised it)`;
   if (!isStrings(members) || members.length === 0) return `cluster '${kind}' needs a non-empty list of string members`;
   if (!Array.isArray(options)) return `cluster '${kind}' needs an options list`;
   const parsed: ClusterOption[] = [];
@@ -125,7 +130,7 @@ export function parseStoredCluster(raw: unknown): Cluster | string {
   }
   if (delta !== undefined && delta !== true) return `cluster '${kind}' has a malformed delta flag`;
   let built: Cluster;
-  try { built = buildCluster({ kind, question, members, options: parsed, evidence, ...(delta === true ? { delta: true as const } : {}) }); }
+  try { built = buildCluster({ kind, question, members, options: parsed, evidence, raisedBy, ...(delta === true ? { delta: true as const } : {}) }); }
   catch (e) { return e instanceof Error ? e.message : "a cluster is malformed"; }
   if (typeof fingerprint !== "string" || !FINGERPRINT.test(fingerprint) || fingerprint !== built.fingerprint) {
     return `cluster '${kind}': the fingerprint does not match its members`;

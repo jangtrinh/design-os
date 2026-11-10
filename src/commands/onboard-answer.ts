@@ -12,7 +12,7 @@ import { errJson, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { validateAnswers } from "../core/owner-rulings/answer-validator.js";
 import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
-import { PendingStoreError, readPending, removePending, writePending } from "../core/owner-rulings/pending-store.js";
+import { PendingStoreError, readPending, syncPending } from "../core/owner-rulings/pending-store.js";
 import { computeRulingState } from "../core/owner-rulings/ruling-state.js";
 import { appendRulings, readRulingStore, RulingStoreError } from "../core/owner-rulings/ruling-store.js";
 
@@ -53,9 +53,7 @@ export function runOnboardAnswer(parsed: ParsedArgs, defaultCwd: string, emitter
   catch (e) { return err(e instanceof RulingStoreError ? e.code : "WRITE_ERROR", e instanceof Error ? e.message : "cannot write design/design-dir.json"); }
   const answered = new Set(verdict.answered.map((c) => c.fingerprint));
   try {
-    const left = pending.filter((c) => !answered.has(c.fingerprint));
-    if (left.length === 0) removePending(cwd);
-    else writePending(cwd, left, 1);
+    syncPending(cwd, pending.filter((c) => !answered.has(c.fingerprint)));
   }
   catch { return err("WRITE_ERROR", "rulings were recorded but .design-os/onboard/pending.json could not be updated; it is transient and safe to delete"); }
 

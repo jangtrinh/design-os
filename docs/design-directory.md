@@ -72,9 +72,13 @@ member is never an option but is always accepted: answer `"choice": ["review-ind
 `keep` or `drop` for exactly the question's members. An option that selects no member may be chosen only on its own. A
 single-choice ruling that chose `review-individually` must carry the `members` map, and no member may map to it.
 
-Every run of a command that can block replaces its own kinds' questions in `pending.json` with what it finds now, and
-removes the file once nothing is left; questions of other kinds stay as they were. `ui onboard` only reads. An answer is
-checked against every ruling already recorded for its kind, not only against the question it answers.
+Each stored question records the command that raised it. Every run of a command that can block replaces the questions
+that command raised with what it finds now (a project-level question is replaced by whichever command ran its detector),
+and removes the file, and its `onboard/` directory when empty, once nothing is left; a question another command raised
+stays, even when both raise the same kind. `ui onboard questions` does the same before it reports that nothing is pending.
+`ui onboard` only reads, and reports a detector that throws in its `owner rulings` row (not ready, exit 0); every command
+that writes lets such an exception propagate. An answer file is validated as a whole: the answer check of a kind sees
+every ruling already recorded plus every answer of the file, so the order of the answers does not matter.
 
 Writing a ruling means the file is re-serialised as 2-space JSON with a final newline: formatting is not preserved, but key order is,
 and every key other than `version` and `onboard` keeps its value. The manifest has one writer at a time; there is no lock,

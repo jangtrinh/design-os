@@ -8,7 +8,7 @@ import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
-import { PendingStoreError, writePending } from "../core/owner-rulings/pending-store.js";
+import { PendingStoreError, syncPending } from "../core/owner-rulings/pending-store.js";
 import { CLUSTER_KIND_TABLE } from "../core/owner-rulings/cluster-kinds.js";
 import { orderClusters, PER_MEMBER_ANSWER_NOTE, roundCount, toOwnerClaudePayload, toOwnerMarkdown } from "../core/owner-rulings/questions-format.js";
 import { computeRulingState } from "../core/owner-rulings/ruling-state.js";
@@ -30,18 +30,21 @@ export function runOnboardQuestions(parsed: ParsedArgs, defaultCwd: string, emit
   if (!Number.isInteger(round) || round < 1) return err("BAD_ARG", "--round must be a positive integer");
 
   let state;
-  try { state = computeRulingState(cwd, emitters === undefined ? {} : { emitters }); }
+  try { state = computeRulingState(cwd, { command: "ui onboard questions", ...(emitters === undefined ? {} : { emitters }) }); }
   catch (e) {
     // A store's own failure is reported with its code; an emitter's bug keeps its message and stack.
     if (e instanceof RulingStoreError || e instanceof PendingStoreError) return err(e.code, e.message);
     throw e;
   }
   const ordered = orderClusters(state.pending);
+  // Clean up first: a project-level question whose anomaly is gone must not outlive this run, even when nothing is left to ask.
+  try { syncPending(cwd, ordered); }
+  catch (e) {
+    if (e instanceof PendingStoreError) return err(e.code, e.message);
+    return err("WRITE_ERROR", "cannot write .design-os/onboard/pending.json");
+  }
   if (ordered.length === 0) return err("NO_PENDING_QUESTIONS", "nothing is pending: every anomaly the kernel can detect from the project has an owner ruling");
   if (format === "claude" && round > roundCount(ordered)) return err("NO_PENDING_QUESTIONS", `round ${round} has no questions; there ${roundCount(ordered) === 1 ? "is 1 round" : `are ${roundCount(ordered)} rounds`}`);
-
-  try { writePending(cwd, ordered, 1); }
-  catch { return err("WRITE_ERROR", "cannot write .design-os/onboard/pending.json"); }
 
   if (format === "markdown") return { exitCode: 0, stdout: toOwnerMarkdown(ordered) };
   if (format === "claude") return { exitCode: 0, stdout: `${JSON.stringify(toOwnerClaudePayload(ordered, round), null, 2)}\n` };

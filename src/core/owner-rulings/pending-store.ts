@@ -1,13 +1,16 @@
 /**
  * The pending store: `<project>/.design-os/onboard/pending.json` (CD-2). Transient, safe to delete, never read as a
- * ruling; rewritten by a command that can block (it replaces the clusters of its own kinds on every run) and by nothing else.
+ * ruling. A command replaces the questions it raised itself on every run, and the file goes when none is left.
+ *
+ * Writers, and only these: a command that can block (`blockOnOpenClusters`), `ui onboard questions` and
+ * `ui onboard answer`. `ui onboard` and every other command only read it.
  *
  * Threat model: the file sits in the user's own project next to the manifest and is as trusted as the manifest. The
  * validation below exists against corruption and accidental hand edits; option ids are not signed. A file that
  * fails validation is never filtered: reading it throws BAD_PENDING so the owner is told, not silently re-asked.
  */
-import { existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, rmSync, rmdirSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { isRecord } from "../knowledge-promotion-ruling.js";
 import { writeJsonAtomic } from "./atomic-write.js";
 import { parseStoredCluster } from "./cluster.js";
@@ -47,9 +50,25 @@ export function writePending(projectDir: string, clusters: readonly Cluster[], r
   return join(projectDir, PENDING_REL);
 }
 
-/** Removes the pending file; a file that is not there is already the wanted state. */
+/**
+ * Removes the pending file, and the `onboard/` directory when that leaves it empty; a file that is not there is
+ * already the wanted state. `.design-os/` itself is never removed.
+ */
 export function removePending(projectDir: string): void {
-  rmSync(join(projectDir, PENDING_REL), { force: true });
+  const file = join(projectDir, PENDING_REL);
+  rmSync(file, { force: true });
+  try { rmdirSync(dirname(file)); }
+  catch (e) {
+    const code = (e as NodeJS.ErrnoException).code;
+    if (code !== "ENOTEMPTY" && code !== "EEXIST" && code !== "ENOENT") throw e;
+  }
+}
+
+/** Makes the stored questions equal to `next`: no write when nothing changed, the file removed when `next` is empty. */
+export function syncPending(projectDir: string, next: readonly Cluster[]): void {
+  if (JSON.stringify(next) === JSON.stringify(readPending(projectDir).clusters)) return;
+  if (next.length === 0) removePending(projectDir);
+  else writePending(projectDir, next, 1);
 }
 
 /**

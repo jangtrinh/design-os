@@ -2,6 +2,7 @@
  * The `owner rulings` row of `ui onboard`: read-only, in memory. A store that cannot be read becomes a row that quotes
  * the reader's reason and the fix, so `ui onboard` still exits 0.
  */
+import { failedEmitterKind } from "../core/owner-rulings/emitter-failure.js";
 import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { computeRulingState } from "../core/owner-rulings/ruling-state.js";
@@ -40,7 +41,14 @@ export function rulingsRow(projectDir: string, emitters?: readonly KindEmitter[]
   } catch (e) {
     // The stores' own messages already name the file, the reason and the fix; anything else is not ours to disguise.
     if (e instanceof PendingStoreError) return { ...none, state: "pending", label: "owner rulings: unreadable pending file", hint: e.message, unreadable: e.message };
-    if (!(e instanceof RulingStoreError)) throw e;
+    if (!(e instanceof RulingStoreError)) {
+      // A detector that throws is state this read-only status reports; anything that is not an emitter's own failure is a bug here.
+      const kind = failedEmitterKind(e);
+      if (kind === undefined) throw e;
+      const why = `the ${kind} detector failed: ${e instanceof Error ? e.message : String(e)}`;
+      const hint = `${why}; ui onboard cannot tell what the owner still has to rule on until that detector is fixed`;
+      return { ...none, state: "pending", label: `owner rulings: ${why}`, hint, unreadable: hint };
+    }
     const hint = `${e.message}; repair that file by hand or restore it from version control, then run \`ui onboard\` again`;
     return { ...none, state: "warn", label: "owner rulings: unreadable", hint, unreadable: hint };
   }
