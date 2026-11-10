@@ -5,7 +5,7 @@
 import { toClaudeQuestionPayload } from "../brief-questions-format.js";
 import type { FormatQuestion } from "../brief-questions-format.js";
 import type { Cluster } from "./cluster.js";
-import { CLUSTER_KIND_TABLE } from "./cluster-kinds.js";
+import { CLUSTER_KIND_TABLE, REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
 
 export const QUESTIONS_PER_ROUND = 4;
 
@@ -41,7 +41,7 @@ export function toOwnerClaudePayload(clusters: readonly Cluster[], round: number
     rounds: roundCount(clusters),
     answerKey: asked.map((c) => ({
       fingerprint: c.fingerprint, kind: c.kind, multiSelect: CLUSTER_KIND_TABLE[c.kind].setValued,
-      options: c.options.map((o) => ({ id: o.id, label: o.label })),
+      options: c.options.map((o) => ({ id: o.id, label: o.label, ...(o.selects === undefined ? {} : { selects: o.selects }) })),
     })),
   };
 }
@@ -52,7 +52,13 @@ export function toOwnerMarkdown(clusters: readonly Cluster[]): string {
   for (const c of orderClusters(clusters)) {
     const multi = CLUSTER_KIND_TABLE[c.kind].setValued;
     lines.push(`## ${c.kind} · ${c.count} affected`, "", c.question, "", `Fingerprint: \`${c.fingerprint}\``, multi ? "Pick every option that applies." : "Pick one option.", "");
-    for (const o of c.options) lines.push(`- [ ] \`${o.id}\` ${o.label}${o.recommended === true ? " (Recommended)" : ""} — ${o.consequence}`);
+    for (const o of c.options) {
+      lines.push(`- [ ] \`${o.id}\` ${o.label}${o.recommended === true ? " (Recommended)" : ""} — ${o.consequence}`);
+      if (o.selects !== undefined) lines.push(`  - stands for: ${o.selects.join(", ")}`);
+    }
+    if (multi && c.options.some((o) => o.id === REVIEW_INDIVIDUALLY)) {
+      lines.push("", `To decide member by member, answer with choice \`["${REVIEW_INDIVIDUALLY}"]\` and a members map giving each member "keep" or "drop".`);
+    }
     lines.push("", "Members:", ...c.members.map((m) => `- ${m}`), "", "Answer: ", "");
   }
   return `${lines.join("\n")}\n`;

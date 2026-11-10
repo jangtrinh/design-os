@@ -1,39 +1,64 @@
 /**
- * The current ruling state of a project, computed in memory: detected project-level clusters, plus what blocked
- * commands left in pending.json, minus what the stored rulings already cover. Read-only — `ui onboard` and the
- * writers (`ui onboard questions`, a blocked command) all start from this one function.
+ * The current ruling state of a project, computed in memory: the detections (project-level ones sensed here, plus a
+ * calling command's own), resolved against the stored rulings, plus the stored pending clusters of other commands.
+ * Read-only — `ui onboard`, `ui onboard questions` and a blocked command all start from this one function.
  */
-import { applyRulings } from "./apply-rulings.js";
 import type { Cluster } from "./cluster.js";
+import { PROJECT_LEVEL_KINDS } from "./cluster-kinds.js";
 import type { ClusterKind } from "./cluster-kinds.js";
-import { readPending, mergePending } from "./pending-store.js";
-import { detectProjectClusters } from "./project-detectors.js";
+import { EMITTERS } from "./emitters.js";
+import type { KindDetection, KindEmitter } from "./kind-emitter.js";
+import { readPending } from "./pending-store.js";
+import { governingRuling, resolveDetections } from "./resolve-detections.js";
 import { readRulingStore } from "./ruling-store.js";
 import type { Ruling } from "./ruling-store.js";
 
+export interface RulingStateOptions {
+  /** Defaults to the registry; a test passes its own list in-process. */
+  emitters?: readonly KindEmitter[];
+  /** A calling command's own detections. */
+  detections?: readonly KindDetection[];
+  /** The kinds the calling command computed completely: its stored clusters of these kinds are replaced. */
+  ownKinds?: readonly ClusterKind[];
+  /** Run the project-level emitters (sense + detect). Default true. */
+  projectLevel?: boolean;
+}
+
 export interface RulingState {
-  /** Every cluster still open after the rulings were applied, delta clusters included. */
+  /** Every cluster still open: from the detections, plus stored ones no ruling fully governs. */
   pending: Cluster[];
-  /** Clusters the rulings resolved. */
-  resolvedCount: number;
   /** Rulings recorded in the store. */
   recorded: number;
   stale: Ruling[];
-  checkedKinds: ClusterKind[];
-  /** The candidate set before rulings were applied (what pending.json would be merged from). */
-  candidates: Cluster[];
+  /** Per kind, member -> outcome, from the detections that ran. */
+  outcomes: Record<string, Record<string, string>>;
 }
 
-/** Throws RulingStoreError when `design/design-dir.json` cannot be read. */
-export function computeRulingState(projectDir: string, extra: readonly Cluster[] = [], extraKinds: readonly ClusterKind[] = []): RulingState {
+/** Throws RulingStoreError or PendingStoreError when a store cannot be read. */
+export function computeRulingState(projectDir: string, options: RulingStateOptions = {}): RulingState {
+  const emitters = options.emitters ?? EMITTERS;
   const store = readRulingStore(projectDir);
-  const detection = detectProjectClusters(projectDir);
   const stored = readPending(projectDir).clusters;
-  const replace = [...detection.checkedKinds, ...extraKinds];
-  const candidates = mergePending(stored, [...detection.clusters, ...extra], replace);
-  const applied = applyRulings(candidates, store.rulings, { checkedKinds: replace });
+
+  const detections: KindDetection[] = [];
+  const ran = new Set<ClusterKind>(options.ownKinds ?? []);
+  if (options.projectLevel !== false) {
+    for (const e of emitters) {
+      if (!PROJECT_LEVEL_KINDS.includes(e.kind) || e.sense === undefined) continue;
+      ran.add(e.kind); // the detector ran: its answer, even "nothing", replaces what was stored for the kind
+      const found = e.detect(e.sense(projectDir));
+      if (found !== null) detections.push(found);
+    }
+  }
+  detections.push(...(options.detections ?? []));
+
+  const recomputed = new Set<ClusterKind>([...ran, ...detections.map((d) => d.kind)]);
+  const resolution = resolveDetections(detections, store.rulings);
+  const kept = stored.filter((c) => !recomputed.has(c.kind) && c.members.some((m) => governingRuling(store.rulings, c.kind, m) === undefined));
   return {
-    pending: applied.pending, resolvedCount: applied.resolved.length, recorded: store.rulings.length,
-    stale: applied.stale, checkedKinds: replace as ClusterKind[], candidates,
+    pending: [...kept, ...resolution.open],
+    recorded: store.rulings.length,
+    stale: resolution.stale,
+    outcomes: resolution.outcomes as Record<string, Record<string, string>>,
   };
 }

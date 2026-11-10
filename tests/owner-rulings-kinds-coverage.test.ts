@@ -1,30 +1,26 @@
 /**
- * The kinds table and its staged coverage rule (AC-14). The table is pinned to the spec's closed list, the schema's
- * enum is the same list, and a kind with an emitter but no must-raise / must-not-raise fixture fails the suite.
+ * The kinds table, the emitter registry and the coverage rule. The table is pinned to the spec's closed list, the
+ * schema's enum is the same list, the registry partitions the kinds, and every registered emitter is RUN on a fixture
+ * that must raise it and one that must not.
  */
-import { readdirSync, readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { CLUSTER_KIND_TABLE, CLUSTER_KINDS } from "../src/core/owner-rulings/cluster-kinds.js";
-import { kindsCoverageGaps } from "../src/core/owner-rulings/kinds-coverage.js";
 import { CLAUDE_HEADER_MAX } from "../src/core/brief-questions-format.js";
+import { CLUSTER_KIND_TABLE, CLUSTER_KINDS } from "../src/core/owner-rulings/cluster-kinds.js";
+import type { ClusterKind } from "../src/core/owner-rulings/cluster-kinds.js";
+import { EMITTERS, KINDS_WITHOUT_EMITTER } from "../src/core/owner-rulings/emitters.js";
+import type { KindDetection, KindEmitter } from "../src/core/owner-rulings/kind-emitter.js";
+import { kindsCoverageGaps, MUST_NOT_RAISE, MUST_RAISE } from "../src/core/owner-rulings/kinds-coverage.js";
 
 const ROOT = process.cwd();
-const EMITTER_DIR = join(ROOT, "src", "core", "owner-rulings");
 const FIXTURE_DIR = join(ROOT, "tests", "fixtures", "owner-rulings", "kinds");
 
-/** The 14 kinds of the spec's closed list (FR-003). */
 const SPEC_KINDS = [
   "figma-collections", "token-path-collision", "figma-library-pages", "screen-pages", "archived-marked-nodes",
   "duplicate-component-names", "classification-conflicts", "untypeable-tokens", "ambiguous-roles", "scan-budget",
   "app-roots", "source-authority", "component-name-collision", "inferred-links",
 ];
-
-function listFixtures(): string[] {
-  if (!existsSync(FIXTURE_DIR)) return [];
-  return readdirSync(FIXTURE_DIR, { withFileTypes: true }).filter((d) => d.isDirectory())
-    .flatMap((d) => readdirSync(join(FIXTURE_DIR, d.name)).map((f) => `${d.name}/${f}`));
-}
 
 describe("the kinds table", () => {
   it("is the closed list of the spec: 14 kinds, no more, no fewer", () => {
@@ -32,8 +28,7 @@ describe("the kinds table", () => {
     expect(Object.keys(CLUSTER_KIND_TABLE).sort()).toEqual([...SPEC_KINDS].sort());
   });
   it("marks exactly the four set-valued kinds multi-select", () => {
-    const multi = CLUSTER_KINDS.filter((k) => CLUSTER_KIND_TABLE[k].setValued).sort();
-    expect(multi).toEqual(["app-roots", "figma-collections", "figma-library-pages", "screen-pages"]);
+    expect(CLUSTER_KINDS.filter((k) => CLUSTER_KIND_TABLE[k].setValued).sort()).toEqual(["app-roots", "figma-collections", "figma-library-pages", "screen-pages"]);
   });
   it("gives every kind a header that fits the question limit and a unique ask rank", () => {
     for (const k of CLUSTER_KINDS) expect(CLUSTER_KIND_TABLE[k].header.length, k).toBeLessThanOrEqual(CLAUDE_HEADER_MAX);
@@ -45,27 +40,61 @@ describe("the kinds table", () => {
   });
 });
 
-describe("kinds coverage (staged — complete when every kind has an emitter)", () => {
-  it("holds on the real tree: every emitter present has both fixtures", () => {
-    expect(kindsCoverageGaps({ emitterFiles: readdirSync(EMITTER_DIR), fixtureFiles: listFixtures() })).toEqual([]);
+describe("the emitter registry", () => {
+  const emitted = EMITTERS.map((e) => e.kind as string);
+  it("EMITTERS and KINDS_WITHOUT_EMITTER are disjoint and together equal the kinds table", () => {
+    expect(emitted.filter((k) => (KINDS_WITHOUT_EMITTER as readonly string[]).includes(k))).toEqual([]);
+    expect([...emitted, ...KINDS_WITHOUT_EMITTER].sort()).toEqual([...CLUSTER_KINDS].sort());
   });
-  it("fails for a kind with an emitter and no must-raise fixture (mutation: one fixture removed)", () => {
-    const gaps = kindsCoverageGaps({
-      emitterFiles: ["kind-scan-budget.ts", "kind-app-roots.ts"],
-      fixtureFiles: ["scan-budget/must-raise.json", "scan-budget/must-not-raise.json", "app-roots/must-not-raise.json"],
-    });
-    expect(gaps).toEqual(["kind 'app-roots' has an emitter and no must-raise.json fixture"]);
+  it("lists all 14 kinds as without an emitter today", () => {
+    expect(EMITTERS).toHaveLength(0);
+    expect(KINDS_WITHOUT_EMITTER).toHaveLength(14);
   });
-  it("fails for a kind with an emitter and no must-not-raise fixture", () => {
-    const gaps = kindsCoverageGaps({ emitterFiles: ["kind-scan-budget.ts"], fixtureFiles: ["scan-budget/must-raise.json"] });
-    expect(gaps).toEqual(["kind 'scan-budget' has an emitter and no must-not-raise.json fixture"]);
+  it("holds the coverage rule on the real registry and the real fixtures", () => {
+    const readFixture = (kind: string, file: string): unknown => {
+      const p = join(FIXTURE_DIR, kind, file);
+      return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : undefined;
+    };
+    expect(kindsCoverageGaps({ emitters: EMITTERS, readFixture })).toEqual([]);
   });
-  it("fails for an emitter whose kind is not in the table (mutation: one kind removed from the table)", () => {
-    const withoutApps = CLUSTER_KINDS.filter((k) => k !== "app-roots");
-    const gaps = kindsCoverageGaps({ kinds: withoutApps, emitterFiles: ["kind-app-roots.ts"], fixtureFiles: ["app-roots/must-raise.json", "app-roots/must-not-raise.json"] });
-    expect(gaps).toEqual(["emitter kind-app-roots.ts has no row in the kinds table"]);
+});
+
+describe("the coverage rule runs emitters (injected)", () => {
+  /** An emitter that raises one member per name listed in the fixture's `names`. */
+  const emitter = (kind: ClusterKind, behaviour: "correct" | "never" | "always" = "correct"): KindEmitter => ({
+    kind,
+    detect(input: unknown): KindDetection | null {
+      const names = (input as { names?: string[] }).names ?? [];
+      const members = behaviour === "never" ? [] : behaviour === "always" ? ["x"] : names;
+      return { kind, members, domain: members, ask: () => ({ question: "q", options: [] }) };
+    },
   });
-  it("is quiet when nothing has an emitter yet", () => {
-    expect(kindsCoverageGaps({ emitterFiles: ["cluster.ts", "kinds-coverage.ts"], fixtureFiles: [] })).toEqual([]);
+  const fixtures = (map: Record<string, unknown>) => (kind: string, file: string): unknown => map[`${kind}/${file}`];
+  const both = { [`scan-budget/${MUST_RAISE}`]: { names: ["a"] }, [`scan-budget/${MUST_NOT_RAISE}`]: { names: [] } };
+
+  it("a correct emitter with both fixtures is not a gap", () => {
+    expect(kindsCoverageGaps({ emitters: [emitter("scan-budget")], readFixture: fixtures(both) })).toEqual([]);
+  });
+  it("an emitter that raises nothing on its must-raise fixture is a gap", () => {
+    expect(kindsCoverageGaps({ emitters: [emitter("scan-budget", "never")], readFixture: fixtures(both) }))
+      .toEqual([`kind 'scan-budget' raises nothing on its ${MUST_RAISE} fixture`]);
+  });
+  it("an emitter that raises on its must-not-raise fixture is a gap", () => {
+    expect(kindsCoverageGaps({ emitters: [emitter("scan-budget", "always")], readFixture: fixtures(both) }))
+      .toEqual([`kind 'scan-budget' raises 1 member(s) on its ${MUST_NOT_RAISE} fixture`]);
+  });
+  it("an emitter with a missing fixture is a gap, for each missing file", () => {
+    expect(kindsCoverageGaps({ emitters: [emitter("scan-budget")], readFixture: fixtures({ [`scan-budget/${MUST_RAISE}`]: { names: ["a"] } }) }))
+      .toEqual([`kind 'scan-budget' has an emitter and no ${MUST_NOT_RAISE} fixture`]);
+    expect(kindsCoverageGaps({ emitters: [emitter("scan-budget")], readFixture: fixtures({}) })).toHaveLength(2);
+  });
+  it("an emitter for a kind that is not in the table is a gap", () => {
+    expect(kindsCoverageGaps({ emitters: [emitter("invented" as ClusterKind)], readFixture: fixtures({}) }))
+      .toEqual(["emitter for 'invented' has no row in the kinds table"]);
+  });
+  it("a file named like an emitter that raises nothing is no longer enough: only what detect() returns counts", () => {
+    const hollow: KindEmitter = { kind: "app-roots", detect: () => null };
+    const gaps = kindsCoverageGaps({ emitters: [hollow], readFixture: fixtures({ [`app-roots/${MUST_RAISE}`]: {}, [`app-roots/${MUST_NOT_RAISE}`]: {} }) });
+    expect(gaps).toEqual([`kind 'app-roots' raises nothing on its ${MUST_RAISE} fixture`]);
   });
 });

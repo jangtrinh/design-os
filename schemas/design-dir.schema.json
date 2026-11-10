@@ -48,7 +48,11 @@
                 ]
               },
               "covers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Member identities the answer ruled on; a later cluster whose members are all covered is already answered" },
-              "members": { "type": "object", "description": "Per-member option ids; present only after `review individually`" },
+              "members": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "description": "Set-valued kinds: always present, member -> keep | drop. Single-choice kinds: present only after `review individually`, member -> option id"
+              },
               "actor": { "const": "owner" },
               "at": { "type": "string", "minLength": 1, "description": "ISO-8601 timestamp given to `ui onboard answer --now`" }
             }

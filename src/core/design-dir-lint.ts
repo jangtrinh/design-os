@@ -41,7 +41,7 @@ function declaredDerived(view: ProjectView, schema: Schema, out: DesignFinding[]
   const issues = doc === undefined ? [`$: not valid JSON`] : validateMethodSchema(doc, schema);
   if (issues.length > 0) {
     out.push({ checkId: "bad-manifest", severity: "error", path: MANIFEST_PATH, message: `${MANIFEST_PATH} does not match the design-dir schema: ${issues.slice(0, 3).join("; ")}`,
-      fix: "Shape: { \"version\": 1, \"derived\": [{ \"path\": \"…\", \"derived_from\": \"design/tokens.json\" }] } (schemas/design-dir.schema.json)" });
+      fix: "Shape: { \"version\": 1 | 2, \"derived\": [{ \"path\": \"…\", \"derived_from\": \"design/tokens.json\" }], \"onboard\"?: { \"rulings\": […] } } — onboard only at version 2 (schemas/design-dir.schema.json)" });
     return new Set();
   }
   return new Set(((doc as { derived?: { path: string }[] }).derived ?? []).map((d) => d.path));

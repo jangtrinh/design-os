@@ -51,19 +51,29 @@ Exit code 1 means at least one error. Warnings never fail the run.
 
 When a command meets something it cannot resolve on its own (a collision, an ambiguous role, a truncated scan), it writes
 nothing, exits 1 and leaves the open questions in `.design-os/onboard/pending.json` (transient, never a ruling). Read them
-with `ui onboard questions`; record the owner's answers with `ui onboard answer --file <answers.json> --now <iso>`. Each
+with `ui onboard questions`; record the owner's answers with `ui onboard answer --file <answers.json> [--now <iso>]`. Each
 answer becomes a ruling under `onboard.rulings` in `design/design-dir.json`, which is then version 2:
 
 ```json
 { "version": 2,
   "derived": [ { "path": "design/design.tokens.json", "derived_from": "design/tokens.json" } ],
-  "onboard": { "rulings": [ { "kind": "scan-budget", "fingerprint": "<sha-256>", "choice": "skip-generated",
-                              "covers": ["generated"], "actor": "owner", "at": "2026-11-10T21:00:00+07:00" } ] } }
+  "onboard": { "rulings": [ { "kind": "scan-budget", "fingerprint": "<64 lowercase hex>", "choice": "skip-generated",
+                              "covers": ["generated"], "actor": "owner", "at": "2026-11-10T14:00:00.000Z" } ] } }
 ```
 
 Version 1 files stay valid and read as "no rulings"; `onboard` is accepted only at version 2. `covers` lists the members the
-answer ruled on: a later run asks only about members no ruling covers. `actor` is always `owner`. Writing a ruling leaves
-`derived` and every other key untouched. `ui onboard` shows the state in its `owner rulings` row.
+answer ruled on; a later run asks only about the members no ruling covers, and when two rulings of a kind cover one member
+the later ruling in the file governs it. A ruling of a multi-select kind always carries `members`, a keep or drop entry for
+every covered member; no reader interprets option ids. `actor` is always `owner`. `ui onboard` shows the state in its
+`owner rulings` row.
+
+Writing a ruling means the file is re-serialised as 2-space JSON with a final newline: formatting is not preserved, but key order is,
+and every key other than `version` and `onboard` keeps its value. The manifest has one writer at a time; there is no lock,
+so do not run two `ui onboard answer` calls against one project at once.
+
+`pending.json` sits in your project next to the manifest and is as trusted as the manifest. It is validated in full against
+corruption and accidental hand edits (a malformed file is refused with `BAD_PENDING`, never silently ignored); option ids
+are not signed and no digest is kept.
 
 ## The principles index
 
