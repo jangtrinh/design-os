@@ -81,13 +81,19 @@ describe("ui design lint — negative controls", () => {
     expect(r.exitCode).toBe(1);
     expect(r.findings[0]).toMatchObject({ checkId: "art-direction-outside-design", fix: "git mv 'docs/art-direction-guidelines.md' design/art-direction/art-direction-guidelines.md" });
   });
-  it("supersession in a decisions file, and SUPERSEDED prose without the field → errors", () => {
-    const rulings = { schema: "rulings/1", rulings: [{ id: "r-a", text: "old. SUPERSEDED by r-b", superseded_by: undefined }, { id: "r-ok", text: "fine", superseded_by: "r-b" }, { id: "r-low", text: "was superseded by r-b last week" }, { id: "r-word", text: "a supersededness metric" }] };
+  it("supersession in a decisions file, and a text that STARTS with the (SUPERSEDED …) marker without the field → errors", () => {
+    const rulings = { schema: "rulings/1", rulings: [
+      { id: "r-a", text: "(SUPERSEDED 2026-01-01 by r-b) old.", superseded_by: undefined },
+      { id: "r-ok", text: "(SUPERSEDED 2026-01-01 by r-b) fine", superseded_by: "r-b" },
+      { id: "r-mention", text: "was superseded by r-b last week" },
+      { id: "r-active", text: "this supersedes R-1" },
+      { id: "r-partial", text: "(PARTIALLY SUPERSEDED 2026-01-01 by r-b) still holds" },
+      { id: "r-word", text: "a supersededness metric" },
+    ] };
     const r = lint(project({ "design/knowledge/decisions/am.md": "- R1 superseded by R2\n- R3 plain\n", "design/knowledge/rulings.json": JSON.stringify(rulings) }));
     expect(r.findings.map((f) => `${f.checkId}:${f.path}`)).toEqual([
       "supersession-outside-rulings:design/knowledge/decisions/am.md",
       "supersession-not-in-field:design/knowledge/rulings.json#r-a",
-      "supersession-not-in-field:design/knowledge/rulings.json#r-low",
     ]);
   });
   it("principles.md without an index → error; with a drifted index → error; regenerated → clean", () => {

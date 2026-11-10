@@ -27,10 +27,12 @@ re-generated from `design/ds.json`, so they are never older than it by more than
 
 | Rule | Severity | Fix |
 |------|----------|-----|
-| Exactly one token source: `design/tokens.json`. Any other `tokens.json` or `*.tokens.json` in the project is a finding unless declared derived | error | delete it, or declare it in `design/design-dir.json` |
+| Exactly one token source: `design/tokens.json`. Any other `tokens.json` or `*.tokens.json` in the project is a finding (`extra-token-file`) unless declared derived. Once `design/ds.manifest.json` exists, `design/design.tokens.json` is the store `ui ds` sealed and is not reported | error | delete it, or declare it in `design/design-dir.json` |
+| `design/design.tokens.json` and `design/tokens.json` both exist and their token sets differ (`two-token-sources`; one finding, with both token counts). A file declared derived is exempt, equal sets are silent | error | answer the source-authority question: `ui onboard questions` |
 | Tracked log or cache under `design/` | error | `git rm --cached`, add the pattern to `.gitignore` |
 | Art direction outside `design/art-direction/` | error | `git mv` it there |
-| Supersession in a decisions file, or prose that says "superseded" without `superseded_by` | error | set `superseded_by` on the ruling, drop the note |
+| Supersession in a decisions file (`supersession-outside-rulings`: any line containing "supersed") | error | set `superseded_by` on the ruling, drop the note |
+| A ruling whose text **starts with** a `(SUPERSEDED …)` marker but has no `superseded_by` (`supersession-not-in-field`). The marker is the one `knowledge/ds-guidelines.md` defines (`parseSupersededMarker`): active voice ("this supersedes R-1"), a mention elsewhere in the text, and `(PARTIALLY SUPERSEDED …)` are not markers | error | set `superseded_by` to the replacing ruling id, drop the marker |
 | `principles.md` without a current `principles.json` | error | `ui design principles-index` |
 | `design/tokens.json` missing | error | create it |
 | `soul.md`, `principles.md`, `knowledge/rulings.json` missing | warning | add it |

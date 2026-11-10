@@ -4,6 +4,7 @@
  */
 import type { ProjectView } from "./design-dir-scan.js";
 import { buildPrinciplesIndex, serializePrinciplesIndex } from "./design-dir-principles.js";
+import { parseSupersededMarker } from "./ds-guidelines-rulings-reader.js";
 import { validateMethodSchema } from "./method-json-schema.js";
 import type { Schema } from "./method-json-schema.js";
 
@@ -13,6 +14,9 @@ export interface DesignFinding {
 
 export const TOKEN_SOURCE = "design/tokens.json";
 export const MANIFEST_PATH = "design/design-dir.json";
+/** The token store `ui ds` seals (design-system.ts): never an "extra" token file once the manifest exists. */
+export const SEALED_TOKENS = "design/design.tokens.json";
+export const SEALED_MANIFEST = "design/ds.manifest.json";
 export const STALE_INGEST_DAYS = 14;
 const DAY_MS = 86_400_000;
 
@@ -48,10 +52,12 @@ export function lintDesignDir(view: ProjectView, schema: Schema): DesignFinding[
   const derived = declaredDerived(view, schema, out);
 
   if (!has(TOKEN_SOURCE)) out.push({ checkId: "missing-token-source", severity: "error", path: TOKEN_SOURCE, message: "the single token source design/tokens.json is missing", fix: "Create design/tokens.json (or move the canonical file there) — it is the only hand-edited token file" });
-  for (const p of view.files.filter((f) => isTokenFile(f) && f !== TOKEN_SOURCE && !derived.has(f))) {
+  const sealed = has(SEALED_MANIFEST);
+  for (const p of view.files.filter((f) => isTokenFile(f) && f !== TOKEN_SOURCE && !derived.has(f) && !(sealed && f === SEALED_TOKENS))) {
     out.push({ checkId: "extra-token-file", severity: "error", path: p, message: `a second token file: ${p}`,
       fix: `Delete it, or declare it in ${MANIFEST_PATH} as { "path": "${p}", "derived_from": "${TOKEN_SOURCE}" } if a build step emits it` });
   }
+  lintTwoTokenSources(view, derived, out);
   for (const [path, what] of [["design/soul.md", "the project soul"], ["design/principles.md", "the principles"], ["design/knowledge/rulings.json", "the rulings"]] as const) {
     if (!has(path)) out.push({ checkId: "missing-required-file", severity: "warning", path, message: `${path} (${what}) is missing`, fix: `Add ${path} — see docs/design-directory.md` });
   }
@@ -73,16 +79,50 @@ export function lintDesignDir(view: ProjectView, schema: Schema): DesignFinding[
     const n = (view.read(p) ?? "").split("\n").filter((l) => /supersed/i.test(l)).length;
     if (n > 0) out.push({ checkId: "supersession-outside-rulings", severity: "error", path: p, message: `${n} line(s) record supersession in a decisions file`, fix: "Record it once, as superseded_by on the ruling in design/knowledge/rulings.json, and drop the note here" });
   }
-  const rulings = (parseJson(view.read("design/knowledge/rulings.json")) as { rulings?: { id?: string; text?: string; detail?: string; superseded_by?: unknown }[] } | undefined)?.rulings;
+  const rulings = (parseJson(view.read("design/knowledge/rulings.json")) as { rulings?: { id?: string; text?: string; superseded_by?: unknown }[] } | undefined)?.rulings;
   for (const r of Array.isArray(rulings) ? rulings : []) {
-    if (r.superseded_by === undefined && /\bsupersed(?:ed|es)\b/i.test(`${r.text ?? ""} ${r.detail ?? ""}`)) {
-      out.push({ checkId: "supersession-not-in-field", severity: "error", path: `design/knowledge/rulings.json#${r.id ?? "?"}`, message: "the prose says it is superseded but superseded_by is not set", fix: "Set superseded_by to the replacing ruling id, then remove the marker from the prose" });
+    // One rule, one implementation (Art IV): the marker is the one knowledge/ds-guidelines.md defines.
+    const marker = typeof r.text === "string" ? parseSupersededMarker(r.text) : undefined;
+    if (marker !== undefined && r.superseded_by === undefined) {
+      out.push({ checkId: "supersession-not-in-field", severity: "error", path: `design/knowledge/rulings.json#${r.id ?? "?"}`, message: "the text starts with a `(SUPERSEDED …)` marker but `superseded_by` is not set",
+        fix: `Set superseded_by to the replacing ruling id${marker.by === undefined ? "" : ` (the marker names ${marker.by})`}, then remove the marker from the text` });
     }
   }
 
   lintPrinciplesIndex(view, out);
   lintStaleIngest(view, out);
   return out;
+}
+
+/** Leaf tokens of a DTCG document as path → serialized $value (null when the text is not a JSON object). */
+function tokenValues(text: string | null): Map<string, string> | null {
+  const doc = parseJson(text);
+  if (doc === null || typeof doc !== "object" || Array.isArray(doc)) return null;
+  const out = new Map<string, string>();
+  const visit = (node: unknown, path: string): void => {
+    if (node === null || typeof node !== "object" || Array.isArray(node)) return;
+    const rec = node as Record<string, unknown>;
+    if ("$value" in rec) { out.set(path, JSON.stringify(rec["$value"])); return; }
+    for (const k of Object.keys(rec).sort()) if (!k.startsWith("$")) visit(rec[k], path === "" ? k : `${path}.${k}`);
+  };
+  visit(doc, "");
+  return out;
+}
+
+/**
+ * Both the sealed store and the hand-edited file exist and disagree: the project must say which one is the
+ * source. A file declared derived is the contract's own route for keeping a second file, so it is not a finding.
+ */
+function lintTwoTokenSources(view: ProjectView, derived: Set<string>, out: DesignFinding[]): void {
+  if (!view.files.includes(SEALED_TOKENS) || !view.files.includes(TOKEN_SOURCE) || derived.has(SEALED_TOKENS)) return;
+  const sealed = tokenValues(view.read(SEALED_TOKENS));
+  const hand = tokenValues(view.read(TOKEN_SOURCE));
+  if (sealed === null || hand === null) return; // an unreadable file is not a comparison; the JSON error belongs to the token commands
+  const same = sealed.size === hand.size && [...sealed].every(([k, v]) => hand.get(k) === v);
+  if (same) return;
+  out.push({ checkId: "two-token-sources", severity: "error", path: SEALED_TOKENS,
+    message: `${SEALED_TOKENS} (${sealed.size} tokens) and ${TOKEN_SOURCE} (${hand.size} tokens) both exist and differ`,
+    fix: "Answer the source-authority question: ui onboard questions" });
 }
 
 function lintPrinciplesIndex(view: ProjectView, out: DesignFinding[]): void {
