@@ -2,7 +2,7 @@
  * runHarvestBans - `ui ds harvest-bans --source <dir> [--dir <project>] [--write] [--accept <NS-id>] [--json]`.
  *
  * Counts the SaaS cliches a codebase never uses (12 probes, each with its denominator) and proposes
- * them as bans. Proposals only: `--write` fills the `## Never (proposed)` block of design/soul.md and
+ * them as bans. Proposals only: `--write` fills the generated region of `## Never (proposed)` in design/soul.md and
  * design/rules/_adherence.proposed.json; the binding `## Never` and `_adherence.rules.json` are never
  * written by a harvest. `--accept <NS-id>` is the owner's act: it moves one proposed machine rule into
  * the binding rules file. Without `--write` the run is a dry run and writes nothing.
@@ -27,16 +27,20 @@ function renderText(h: ProjectHarvest, write: boolean): string {
   const w = report.walk;
   const lines = [
     `ds harvest-bans: ${report.sourceDir}`,
-    `  read ${w.uiFiles} UI source file(s) and ${w.tokenJsonFiles} token JSON file(s) (${w.total} met, ${w.skipped.length} skipped)`,
+    `  read ${w.uiFiles} UI source file(s), ${w.styleFiles} stylesheet(s) and ${w.tokenJsonFiles} token JSON file(s) (${w.total} met, ${w.skipped.length} skipped)`,
     report.figma.present
       ? `  figma inventory: ${report.figma.components} component(s) from ${report.figma.files.join(", ")} (names and sizes only)`
       : "  figma inventory: none (design/ds.json and design/canvas-inventory.json absent)",
   ];
+  const unread = Object.entries(w.unread).map(([ext, n]) => `${ext} ${n}`);
+  lines.push(`  other template/style files met and not read: ${unread.length === 0 ? "none" : unread.join(", ")}`);
   for (const s of w.skipped.slice(0, 5)) lines.push(`  skipped ${s.path}: ${s.reason}`);
   if (w.skipped.length > 5) lines.push(`  +${w.skipped.length - 5} more skipped`);
   for (const p of report.probes) {
     const step = plan.find((x) => x.id === p.id);
     lines.push(`${p.id} ${p.slug}: ${p.count} found in ${p.scannedFiles} scanned file(s)${step === undefined ? "" : ` -> ${step.status === "propose" ? `propose: ${step.note}` : `no proposal: ${step.note}`}`}`);
+    lines.push(`    matches: ${p.matches}`);
+    if (p.skippedFiles > 0) lines.push(`    ${p.skippedFiles} file(s) of the kinds this probe judges were not read (see skipped)`);
     for (const x of p.hits) lines.push(`    hit ${x.file}${x.line > 0 ? `:${x.line}` : ""}  ${x.excerpt}`);
     if (p.hitsOmitted > 0) lines.push(`    +${p.hitsOmitted} more`);
     for (const x of p.excluded.slice(0, SHOWN_EXCLUDED)) lines.push(`    excluded ${x.file}:${x.line}  ${x.reason}`);
@@ -44,11 +48,14 @@ function renderText(h: ProjectHarvest, write: boolean): string {
     if (hiddenExcluded > 0) lines.push(`    +${hiddenExcluded} more excluded`);
     for (const n of p.notEvaluated) lines.push(`    not evaluated: ${n}`);
   }
+  lines.push("limits (what no probe sees):", ...report.limits.map((l) => `  - ${l}`));
   const proposals = plan.filter((x) => x.status === "propose");
   const rules = proposals.filter((x) => x.rule !== undefined).length;
   lines.push(`proposals: ${proposals.length} (${proposals.length} bullet(s), ${rules} machine rule(s))`);
+  const accepted = plan.filter((x) => x.status === "accepted");
+  if (accepted.length > 0) lines.push(`accepted, waiting for a line under '## Never': ${accepted.map((x) => x.id).join(", ")}`);
   if (write && h.written !== undefined) {
-    lines.push(`  soul: ${h.written.soul.path} ${h.written.soul.changed ? "updated" : "unchanged"} (only the '## Never (proposed)' block)`);
+    lines.push(`  soul: ${h.written.soul.path} ${h.written.soul.changed ? "updated" : "unchanged"} (only the generated region of '## Never (proposed)')`);
     lines.push(`  rules: ${h.written.proposedRules.path} ${h.written.proposedRules.changed ? "updated" : "unchanged"}`);
     lines.push("  binding '## Never' and _adherence.rules.json: not touched. Promote with: ui ds harvest-bans --accept <NS-id>");
   } else {
@@ -75,7 +82,7 @@ export function runHarvestBans(parsed: ParsedArgs): CommandResult {
       if (source !== undefined || write !== undefined) return err("BAD_ARG", "--accept promotes a proposed rule and takes no --source or --write. Usage: ui ds harvest-bans --accept <NS-id> [--dir <project>]");
       const r = acceptProposal(designDir, accept);
       if (useJson) return okJsonWithExit(CMD, { accepted: r.id, rules: r.rulesPath, proposed: r.proposedPath }, 0);
-      return { exitCode: 0, stdout: `ds harvest-bans: ${r.id} promoted to ${r.rulesPath} and removed from ${r.proposedPath}.\n  soul.md was not changed: move the ${r.id} bullet from '## Never (proposed)' into '## Never' yourself.\n` };
+      return { exitCode: 0, stdout: `ds harvest-bans: ${r.id} promoted to ${r.rulesPath} and removed from ${r.proposedPath}.\n  soul.md was not changed: move the ${r.id} bullet from '## Never (proposed)' into '## Never' yourself.\n  Until a line under '## Never' names ${r.id}, every harvest keeps its bullet in '## Never (proposed)', marked accepted; 'ui ds soul check' warns while it is not moved.\n` };
     }
     if (typeof source !== "string" || source.length === 0) return err("BAD_ARG", "missing --source <dir>. Usage: ui ds harvest-bans --source <dir> [--dir <project>] [--write] [--json]");
     const sourceDir = resolve(source);

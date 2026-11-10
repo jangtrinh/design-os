@@ -870,7 +870,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         errorCodes: ["UNKNOWN_FLAG", "DS_NOT_FOUND", "BAD_JSON"],
       },
       import: {
-        summary: "Onboard an existing flat tokens.json into the DTCG store",
+        summary: "Onboard an existing flat tokens.json into the DTCG store and propose bans (the harvest-bans pass, proposals only)",
         positionals: [{ name: "<tokens.json>", required: true, summary: "Flat token file { category: { name: value } }" }],
         flags: [
           { name: "dir", type: "string", summary: "Project directory to write design/ into (default cwd)" },
@@ -985,12 +985,12 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         summary: "Count the cliches a codebase never uses (12 probes with denominators) and propose them as bans; --accept promotes one machine rule",
         positionals: [],
         flags: [
-          { name: "source", type: "string", summary: "Source tree to scan (UI files and *token*.json); required unless --accept" },
+          { name: "source", type: "string", summary: "Source tree to scan (UI files, .css/.scss/.less stylesheets and *token*.json); required unless --accept" },
           { name: "dir", type: "string", summary: "Project directory holding design/ (default: cwd)" },
-          { name: "write", type: "boolean", summary: "Record proposals in the '## Never (proposed)' block of soul.md and _adherence.proposed.json; without it a dry run writes nothing" },
+          { name: "write", type: "boolean", summary: "Record proposals: the generated region (between the markers) of '## Never (proposed)' in soul.md and _adherence.proposed.json; without it a dry run writes nothing" },
           { name: "accept", type: "string", summary: "Promote one proposed machine rule (NS-nn) into _adherence.rules.json and remove it from the proposed file; soul.md is not edited" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "BAD_JSON", "ADHERENCE_BAD_JSON", "ADHERENCE_BAD_FIELD", "ADHERENCE_UNKNOWN_KIND", "ADHERENCE_DUPLICATE_ID"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "FILE_NOT_FOUND", "READ_ERROR", "WRITE_ERROR", "BAD_JSON", "PROPOSED_BLOCK_EDITED", "ADHERENCE_BAD_JSON", "ADHERENCE_BAD_FIELD", "ADHERENCE_UNKNOWN_KIND", "ADHERENCE_DUPLICATE_ID"],
       },
       guidelines: {
         summary: "Compile the sealed design system into a guidelines pack (design/guidelines/) and lint it",

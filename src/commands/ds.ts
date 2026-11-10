@@ -113,6 +113,10 @@ Subcommands:
   lossless (never renames/drops/injects). Output reports "N roles recognized,
   M gaps: <role list>" — the gaps are reported, never auto-injected. Correct a
   mis-recognition afterwards with 'ui ds set-role'.
+  Import also PROPOSES bans: it runs the 'ds harvest-bans' pass over the project (the
+  generated region of '## Never (proposed)' in design/soul.md and
+  design/rules/_adherence.proposed.json), never the binding '## Never' or
+  _adherence.rules.json. A harvest failure is a warning; the import still succeeds.
 
 'ds specimen' options:
   --dir <path>       Project directory holding design/ (default: cwd)
@@ -298,21 +302,29 @@ Subcommands:
   a soul). Everywhere else the soul is OPTIONAL — absence is never an error.
 
 'ds harvest-bans' options:
-  --source <dir>   Source tree to scan (UI files + *token*.json); required unless --accept
+  --source <dir>   Source tree to scan (UI files, .css/.scss/.less stylesheets, *token*.json); required unless --accept
   --dir <path>     Project directory holding design/ (default: cwd)
-  --write          Record proposals: the '## Never (proposed)' block of design/soul.md and
-                   design/rules/_adherence.proposed.json. Without it: a dry run, nothing written.
+  --write          Record proposals: the generated region of '## Never (proposed)' in design/soul.md
+                   (between the ds-harvest-bans markers) and design/rules/_adherence.proposed.json.
+                   Without it: a dry run, nothing written.
   --accept <id>    Promote one proposed machine rule (NS-01, NS-10, NS-11 today) into
                    design/rules/_adherence.rules.json and remove it from the proposed file.
                    Validates both files first; soul.md is not edited (move the bullet yourself).
-                   A bullet-only probe is refused with BAD_ARG (its rule kind arrives later).
-  Every probe reports count AND scanned-file denominator; look-alikes (font-mono inside <code>,
-  a palette token in a tokens JSON, a vendored tailwind-merge list) are listed as excluded with
-  their reason and not counted. A Figma inventory (design/ds.json, design/canvas-inventory.json)
-  is judged by component names and sizes only; fill, font and effect probes report
-  'not evaluated', never zero. A probe is proposed only when its count is 0 over at least one
-  scanned file and at least one UI source file was read. A harvest NEVER writes the binding
-  '## Never' or _adherence.rules.json. 'ds import' runs the same pass (proposals only).
+                   A second --accept of the same id says it is already promoted. A bullet-only
+                   probe is refused with BAD_ARG (its rule kind arrives later).
+  Every probe prints one sentence of what it matches, its count AND its scanned-file denominator;
+  the report ends with the limits no probe sees. Look-alikes (font-mono inside <code>, a palette
+  token in a tokens JSON, a vendored tailwind-merge list) are listed as excluded with their reason
+  and not counted. A Figma inventory (design/ds.json, design/canvas-inventory.json) is judged by
+  component names and sizes only; fill, font and effect probes report 'not evaluated', never zero.
+  A probe is proposed only when its count is 0 over at least one file of the kinds it judges and
+  at least one UI source or stylesheet file was read; each bullet and rule source states the files
+  read, the files not read, and other template/style files (.mdx, .astro, ...) met and not read.
+  Only the lines between the markers are the tool's: your notes and bullets anywhere else in the
+  file are never touched. If the text between the markers was edited, the write is refused
+  (PROPOSED_BLOCK_EDITED) and nothing is written. An accepted id keeps its bullet, marked accepted,
+  until a line under '## Never' names it; 'ds soul check' warns until then. A harvest NEVER writes
+  the binding '## Never' or _adherence.rules.json. 'ds import' runs the same pass (proposals only).
 
 Project layout (all under <project-dir>/design/):
   design.tokens.json       DTCG two-tier tokens
@@ -379,6 +391,7 @@ Error codes:
   WRITE_ERROR        'ds soul init' could not write the scaffold
   READ_ERROR         'ds soul check' could not read soul.md
   FILE_NOT_FOUND     'ds harvest-bans' --source directory does not exist
+  PROPOSED_BLOCK_EDITED    'ds harvest-bans --write': the text between the ds-harvest-bans markers in soul.md was edited (nothing written)
   ADHERENCE_BAD_JSON       'ds harvest-bans' (or --accept): a rules file is not valid JSON
   ADHERENCE_BAD_FIELD      'ds harvest-bans' (or --accept): a rule has a missing or invalid field
   ADHERENCE_UNKNOWN_KIND   'ds harvest-bans' (or --accept): a rule names a kind that is not implemented

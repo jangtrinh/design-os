@@ -85,7 +85,7 @@ const REQUIRED_SECTIONS = ["Never", "Always", "Voice"] as const;
 type RequiredSection = (typeof REQUIRED_SECTIONS)[number];
 
 /** Locate a `## <Name>` section's body — text between its heading and the next `## ` heading, or EOF. */
-function sectionBody(text: string, name: RequiredSection): { body: string; line: number } | null {
+export function sectionBody(text: string, name: RequiredSection): { body: string; line: number } | null {
   const headingRe = new RegExp(`^##[ \\t]+${name}[ \\t]*$`, "m");
   const m = headingRe.exec(text);
   if (m === null) return null;
@@ -122,69 +122,6 @@ function frontmatterStatus(text: string): string | null {
   if (fm === null) return null;
   const m = /^status:[ \t]*(\S+)/m.exec(fm[1] ?? "");
   return m?.[1] ?? null;
-}
-
-// ─── Proposed bans (owned by `ui ds harvest-bans`) ───────────────────────────────
-
-export const PROPOSED_NEVER_HEADING = "## Never (proposed)";
-const PROPOSED_MARKER =
-  "<!-- Owned by `ui ds harvest-bans`: rewritten on every harvest. To promote a ban, move its bullet into '## Never' and run `ui ds harvest-bans --accept <NS-id>` for its machine rule. -->";
-const PROPOSED_HEADING_RE = /^## Never \(proposed\)[ \t]*\r?$/m;
-const OWNED_BULLET_RE = /^- NS-\d\d\b/;
-
-/** Probe ids (`NS-01`) named by the bullets of the BINDING `## Never` section, in order, without repeats. */
-export function bindingNeverIds(text: string): string[] {
-  const section = sectionBody(text, "Never");
-  if (section === null) return [];
-  const ids: string[] = [];
-  for (const m of section.body.matchAll(/^[ \t]*[-*][ \t]+(.*)$/gm)) {
-    for (const id of (m[1] ?? "").match(/\bNS-\d\d\b/g) ?? []) if (!ids.includes(id)) ids.push(id);
-  }
-  return ids;
-}
-
-/** `[start, end)` of the harvester's block: its heading, its marker comment and its `- NS-nn` bullets (blank lines between). */
-function proposedRegion(text: string): { start: number; end: number } | null {
-  const m = PROPOSED_HEADING_RE.exec(text);
-  if (m === null) return null;
-  const start = m.index;
-  let end = start + m[0].length;
-  let pos = end;
-  for (;;) {
-    const nl = text.indexOf("\n", pos);
-    if (nl === -1) break;
-    const lineStart = nl + 1;
-    const nextNl = text.indexOf("\n", lineStart);
-    const lineEnd = nextNl === -1 ? text.length : nextNl;
-    const line = text.slice(lineStart, lineEnd).replace(/\r$/, "");
-    if (line.trim() === "") { pos = lineEnd; continue; }
-    if (line !== PROPOSED_MARKER && !OWNED_BULLET_RE.test(line)) break;
-    end = lineEnd;
-    pos = lineEnd;
-  }
-  return { start, end };
-}
-
-/**
- * Write the harvester's `## Never (proposed)` block into a soul and touch nothing else: an existing block is
- * replaced in place (bullets the owner moved out are gone, text the owner added after it survives); a new one
- * goes right after the binding `## Never` section (end of file when there is none). With no bullets and no
- * block there is nothing to write and the text is returned as it is. The block has its own heading, so it can
- * never satisfy the binding section's `soul-empty-section` check.
- */
-export function applyProposedNeverBlock(text: string, bullets: readonly string[]): string {
-  const eol = text.includes("\r\n") ? "\r\n" : "\n";
-  const block = [PROPOSED_NEVER_HEADING, "", PROPOSED_MARKER, ...bullets].join(eol);
-  const region = proposedRegion(text);
-  if (region !== null) return text.slice(0, region.start) + block + text.slice(region.end);
-  if (bullets.length === 0) return text;
-  const never = /^##[ \t]+Never[ \t]*\r?$/m.exec(text);
-  const next = never === null ? null : /^##[ \t]+\S/m.exec(text.slice(never.index + never[0].length));
-  if (never !== null && next !== null) {
-    const at = never.index + never[0].length + next.index;
-    return text.slice(0, at) + block + eol + eol + text.slice(at);
-  }
-  return (text.endsWith("\n") ? text : text + eol) + eol + block + eol;
 }
 
 // ─── Linter (checkSoul) ────────────────────────────────────────────────────────
