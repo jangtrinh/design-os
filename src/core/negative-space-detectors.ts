@@ -12,16 +12,47 @@
  * negative-space-probes.ts (`NEGATIVE_SPACE_LIMITS`) so a report can print them next to the counts.
  */
 import {
-  classRecords, clip, cssBlocks, emptyDetection, hasPillRadius, hexesIn, isPastelFillClass, isPastelHex, isSemanticTintHex, isTintedFillClass,
+  classRecords, clip, cssBlocks, emptyDetection, hasPastelFill, hasPillRadius, hexesIn, isPastelFillClass, isSemanticTintHex, isTintedFillClass,
   parseClass, scanTokens, around,
 } from "./negative-space-detector-kit.js";
-import type { Detection, Detector } from "./negative-space-detector-kit.js";
+import type { Detection, Detector, FileCtx } from "./negative-space-detector-kit.js";
+import { blankInterpolations, templateLiterals } from "./polyglot-ui-scans.js";
 
 export const MONOSPACE_TOKENS = ["ui-monospace", "monospace", "font-mono", "SFMono", "JetBrains Mono", "Fira Code"] as const;
 export const GRADIENT_TOKENS = ["linear-gradient(", "radial-gradient(", "conic-gradient(", "bg-gradient-", "bg-linear-", "bg-radial", "bg-conic"] as const;
 export const GLOW_TOKENS = ["shadow-[0_0_", "drop-shadow-[0_0_", "shadow-glow", "ring-glow"] as const;
 
-export const detectMonospace: Detector = (f) => scanTokens(f, MONOSPACE_TOKENS, ["code", "pre"]);
+/** Families named without a generic keyword; searched only inside a font declaration, so a word in copy never counts. */
+const NAMED_FAMILY = /(?:font-family|fontFamily|\bfont)\s*:\s*[^;}\n]*?\b(Menlo|Consolas|Monaco|Courier New|Courier)\b/gi;
+const STYLED_EXEMPT = /styled(?:\.(pre|code)|\(\s*["']?(pre|code)["']?\s*\))(?:<[^>`]*>)?\s*$/;
+
+/** Line ranges of template literals tagged `styled.pre` / `styled.code`: the CSS-in-JS twin of the <pre> and <code> exemption. */
+function styledExemptRanges(f: FileCtx): { from: number; to: number; tag: string }[] {
+  if (!/styled/.test(f.source)) return [];
+  return templateLiterals(blankInterpolations(f.source)).flatMap((t) => {
+    const m = STYLED_EXEMPT.exec(f.source.slice(Math.max(0, t.at - 80), t.at - 1));
+    return m === null ? [] : [{ from: f.lineOf(t.at), to: f.lineOf(t.at + t.value.length), tag: (m[1] ?? m[2]) as string }];
+  });
+}
+
+export const detectMonospace: Detector = (f) => {
+  const d = scanTokens(f, MONOSPACE_TOKENS, ["code", "pre"]);
+  for (const m of f.source.matchAll(NAMED_FAMILY)) {
+    const line = f.lineOf(m.index ?? 0);
+    d.hits.push({ file: f.file, line, excerpt: around(f, line, m[1] as string) });
+  }
+  const ranges = styledExemptRanges(f);
+  if (ranges.length === 0) return d;
+  const inside = (line: number): string | undefined => ranges.find((r) => line >= r.from && line <= r.to)?.tag;
+  const kept: typeof d.hits = [];
+  for (const h of d.hits) {
+    const tag = inside(h.line);
+    if (tag === undefined) kept.push(h);
+    else d.excluded.push({ file: f.file, line: h.line, reason: `inside styled.${tag}` });
+  }
+  d.hits = kept;
+  return d;
+};
 export const detectGradient: Detector = (f) => scanTokens(f, GRADIENT_TOKENS);
 
 const isPillClass = (b: string): boolean => b === "rounded-full" || /^rounded-\[(?:999|9999)\d*px\]$/.test(b);
@@ -41,7 +72,7 @@ export const detectPastelPill: Detector = (f) => {
   for (const rec of f.records) {
     for (const body of cssBlocks(rec)) {
       const bg = /background(?:-color)?\s*:\s*([^;]*)/i.exec(body)?.[1] ?? "";
-      if (hasPillRadius(body) && hexesIn(bg).some((h) => isPastelHex(h.hex))) d.hits.push({ file: f.file, line: rec.line, excerpt: clip(body) });
+      if (hasPillRadius(body) && hasPastelFill(bg)) d.hits.push({ file: f.file, line: rec.line, excerpt: clip(body) });
     }
   }
   return d;
@@ -136,7 +167,7 @@ export const detectTintedIconTile: Detector = (f) => {
     for (const body of cssBlocks(rec)) {
       const px = (p: string): number => Number(new RegExp(`(?:^|[;\\s])${p}\\s*:\\s*(\\d+)px`, "i").exec(body)?.[1] ?? 0);
       const bg = /background(?:-color)?\s*:\s*([^;]*)/i.exec(body)?.[1] ?? "";
-      if (TILE_PX(px("width")) && TILE_PX(px("height")) && /border-radius/i.test(body) && !hasPillRadius(body) && hexesIn(bg).some((h) => isPastelHex(h.hex))) {
+      if (TILE_PX(px("width")) && TILE_PX(px("height")) && /border-radius/i.test(body) && !hasPillRadius(body) && hasPastelFill(bg)) {
         d.hits.push({ file: f.file, line: rec.line, excerpt: clip(body) });
       }
     }
@@ -145,10 +176,19 @@ export const detectTintedIconTile: Detector = (f) => {
 };
 
 const COLOURED_SHADOW = /^(?:drop-)?shadow-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?:\/\d+)?$/;
+const DROP_SHADOW_GLOW = /drop-shadow\(\s*0(?:px)?\s+0(?:px)?\s+[1-9]/gi;
+const SPREAD_RING = /box-shadow\s*:[^;}]*?(?<![\w.])(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+(?:[2-9]|[1-9]\d)(?:\.\d+)?px/i;
 const GLOW_CSS = /(?<=(?:box-shadow\s*:|,)\s*)(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+[1-9]\d*(?:\.\d+)?px/gi;
 export const detectGlowOrRing: Detector = (f) => {
   const d: Detection = scanTokens(f, GLOW_TOKENS);
   for (const m of f.source.matchAll(GLOW_CSS)) d.hits.push({ file: f.file, line: f.lineOf(m.index ?? 0), excerpt: around(f, f.lineOf(m.index ?? 0), "box-shadow") });
+  for (const rec of f.records) {
+    // a rule for :focus is accessibility, not decoration
+    if (/:focus/.test(rec.styles.split("{")[0] ?? "")) continue;
+    for (const m of rec.styles.matchAll(DROP_SHADOW_GLOW)) d.hits.push({ file: f.file, line: rec.line, excerpt: clip(`filter ${m[0]}…`) });
+    const ring = SPREAD_RING.exec(rec.styles);
+    if (ring !== null) d.hits.push({ file: f.file, line: rec.line, excerpt: clip(ring[0].replace(/\s+/g, " ")) });
+  }
   for (const r of classRecords(f)) {
     // a focus ring (focus:/focus-visible:/focus-within: variant) is accessibility, not decoration; only a resting ring on a round element counts
     const ring = r.resting.find((b) => /^ring-(?:[2-8])$/.test(b));

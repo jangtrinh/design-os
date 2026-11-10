@@ -313,17 +313,24 @@ Subcommands:
                    A second --accept of the same id says it is already promoted. A bullet-only
                    probe is refused with BAD_ARG (its rule kind arrives later).
   Every probe prints one sentence of what it matches, its count AND its scanned-file denominator;
-  the report ends with the limits no probe sees. Look-alikes (font-mono inside <code>, a palette
-  token in a tokens JSON, a vendored tailwind-merge list) are listed as excluded with their reason
+  the report ends with the limits no probe sees (among them: a fill that is only a var() reference,
+  object-style CSS-in-JS such as { borderRadius: 9999 }, and nested SCSS selectors) and lists the
+  first-level directories the files came from, so a source that is too wide can be narrowed.
+  Look-alikes (font-mono inside <code>, a palette token in a tokens JSON, a vendored tailwind-merge list) are listed as excluded with their reason
   and not counted. A Figma inventory (design/ds.json, design/canvas-inventory.json) is judged by
   component names and sizes only; fill, font and effect probes report 'not evaluated', never zero.
   A probe is proposed only when its count is 0 over at least one file of the kinds it judges and
   at least one UI source or stylesheet file was read; each bullet and rule source states the files
   read, the files not read, and other template/style files (.mdx, .astro, ...) met and not read.
-  Only the lines between the markers are the tool's: your notes and bullets anywhere else in the
-  file are never touched. If the text between the markers was edited, the write is refused
-  (PROPOSED_BLOCK_EDITED) and nothing is written. An accepted id keeps its bullet, marked accepted,
-  until a line under '## Never' names it; 'ds soul check' warns until then. A harvest NEVER writes
+  Only the lines between the markers are the tool's, and only under '## Never (proposed)': your notes
+  and bullets anywhere else in the file are never touched. To promote a ban, CUT its bullet out of the
+  region and paste it under '## Never'; the next harvest drops it from the region (a line you delete
+  without moving it comes back while its count is zero). Reordering lines and blank lines between the
+  markers are fine. An edited or added line between the markers, markers under another heading (for
+  example after the '## Never (proposed)' heading was deleted), or damaged markers refuse the write
+  (PROPOSED_BLOCK_EDITED) and nothing is written; 'ds soul check' reports a misplaced region as an
+  error. Marker lines inside a fenced code block are text. An accepted id keeps its bullet, marked
+  accepted, until a line under '## Never' names it; 'ds soul check' warns until then. A harvest NEVER writes
   the binding '## Never' or _adherence.rules.json. 'ds import' runs the same pass (proposals only).
 
 Project layout (all under <project-dir>/design/):

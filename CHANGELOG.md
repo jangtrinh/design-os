@@ -28,10 +28,26 @@
   (unreadable, oversized, symlink) and the other template or style files met and not read (`.mdx`, `.astro`,
   ...). A harvest never writes the binding `## Never` or `_adherence.rules.json`. Without `--write` it is a
   dry run and writes nothing.
-- The generated lines sit between `ds-harvest-bans:begin` and `ds-harvest-bans:end` comments; the begin marker
-  carries a hash of the text. Only that text is rewritten: an owner note or bullet anywhere else in the file
-  stays byte-identical, and the second `--write` changes nothing. If the text between the markers was edited
-  the write is refused (`PROPOSED_BLOCK_EDITED`, exit 1) with the differing lines named and nothing written.
+- The generated lines sit between `ds-harvest-bans:begin` and `ds-harvest-bans:end` comments under a
+  `## Never (proposed)` heading. Only that text is rewritten: an owner note or bullet anywhere else in the
+  file stays byte-identical, and the second `--write` changes nothing. Promotion is cut and paste: cut a
+  bullet out of the region and paste it under `## Never`; the next harvest (and `ui ds import`) drops it from
+  the region. Reordering lines, blank lines, and deleting a line (it comes back while its count is zero) are
+  fine. An edited or added line between the markers is refused (`PROPOSED_BLOCK_EDITED`, exit 1, the line
+  named, nothing written). Markers under any other heading (for example after the `## Never (proposed)`
+  heading was deleted) are refused the same way, and `ui ds soul check` reports them as an error. Marker
+  lines inside a fenced code block are text.
+- The report lists the first-level directories the files came from (up to five, most files first, plus the
+  files directly in the source root) and says how to narrow the source with `--source <dir>`; run from the
+  project root, a planning folder can hold most of the files read.
+- More forms are matched: `@apply` lists in stylesheets, pill radii in `em` and `rem`, light fills written as
+  `rgb()` or `hsl()`, glow as `filter: drop-shadow(0 0 ...)`, a zero-offset spread ring
+  (`box-shadow: 0 0 0 3px`, outside `:focus` rules), and `Menlo`, `Consolas`, `Monaco` and `Courier` in a
+  font declaration. `styled.pre` and `styled.code` are exempt for monospace like `<pre>` and `<code>`, and one
+  line counts once per probe. Listed as limits (report and help): a fill that is only a `var()` reference,
+  object-style CSS-in-JS, and nested SCSS selectors.
+- `ui ds soul check` warns once, naming the file, when `design/rules/_adherence.rules.json` exists and cannot
+  be parsed. The registry provenance check and the harvest share one reader of the Figma inventory files.
 - `--accept <NS-id>` promotes one proposed machine rule: both rules files are validated, the rule is appended
   to `_adherence.rules.json`, then removed from the proposed file (a failed second write restores the first).
   `soul.md` is not edited; the owner moves the bullet. Until a line under the binding `## Never` names the id,
