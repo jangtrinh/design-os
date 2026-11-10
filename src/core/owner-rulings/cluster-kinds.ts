@@ -51,6 +51,9 @@ export const CLUSTER_KIND_TABLE: Readonly<Record<ClusterKind, ClusterKindSpec>> 
   "inferred-links": { raisedBy: ["ui ontology build"], setValued: false, header: "Links", rank: 140 },
 };
 
+/** The kinds detected from the project itself and raised by `ui onboard questions`. */
+export const PROJECT_LEVEL_KINDS: readonly ClusterKind[] = CLUSTER_KINDS.filter((k) => CLUSTER_KIND_TABLE[k].raisedBy.includes("ui onboard questions"));
+
 export function isClusterKind(value: unknown): value is ClusterKind {
   return typeof value === "string" && (CLUSTER_KINDS as readonly string[]).includes(value);
 }

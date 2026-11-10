@@ -1,15 +1,18 @@
-/** Cluster fingerprints (CD-4): SHA-256 over the kind and the sorted, de-duplicated member identities. */
+/**
+ * Cluster fingerprints: SHA-256 over the JSON array [kind, sorted unique members]. JSON string encoding leaves no
+ * delimiter ambiguity (one member "a\nb" differs from the two members "a" and "b"), and every member is normalised
+ * to Unicode NFC first, so the two spellings of an accented name are one member.
+ */
 import { createHash } from "node:crypto";
 import type { ClusterKind } from "./cluster-kinds.js";
 
-/** Stable member order: plain code-unit comparison, so the order never depends on the locale. */
+/** Stable member order: NFC, then plain code-unit comparison, so the order never depends on the locale. */
 export function sortedUnique(members: readonly string[]): string[] {
-  return [...new Set(members)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return [...new Set(members.map((m) => m.normalize("NFC")))].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 export function fingerprintOf(kind: ClusterKind, members: readonly string[]): string {
-  const h = createHash("sha256");
-  h.update(`${kind}\n`);
-  for (const m of sortedUnique(members)) h.update(`${m}\n`);
-  return h.digest("hex");
+  return createHash("sha256").update(JSON.stringify([kind, sortedUnique(members)])).digest("hex");
 }
+
+export const FINGERPRINT = /^[0-9a-f]{64}$/;
