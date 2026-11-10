@@ -27,6 +27,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { canonicalHash } from "../core/ds-manifest.js";
+import { INVENTORY_FILE_NAMES, InventoryJsonError, readInventoryEntries } from "../core/figma-inventory-entries.js";
 import { designSystemFileKind } from "./registry-provenance-store-files.js";
 import { RegistryError } from "../core/registry-store.js";
 import type { ComponentProvenance } from "../core/registry-store.js";
@@ -135,20 +136,18 @@ function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefCon
 
 /** The component and component-set entries of one inventory file, or undefined when the file is absent. */
 function inventoryEntries(file: string): { id?: unknown }[] | undefined {
-  if (!existsSync(file)) return undefined;
-  let parsed: unknown;
-  try { parsed = JSON.parse(readFileSync(file, "utf8")); }
-  catch (e) { throw bad(`Figma inventory '${file}' is not readable JSON (${e instanceof Error ? e.message : String(e)})`); }
-  const o = (parsed !== null && typeof parsed === "object" ? parsed : {}) as Record<string, unknown>;
-  const list = (v: unknown): { id?: unknown }[] => (Array.isArray(v) ? v.filter((x): x is { id?: unknown } => x !== null && typeof x === "object") : []);
-  return [...list(o["components"]), ...list(o["componentSets"])];
+  try { return readInventoryEntries(file); }
+  catch (e) {
+    if (e instanceof InventoryJsonError) throw bad(`Figma inventory '${file}' is not readable JSON (${e.detail})`);
+    throw e;
+  }
 }
 
 function verifyFigmaRef(sourceRef: string, storeDir: string): ComponentProvenance {
   const m = FIGMA_REF.exec(sourceRef);
   if (m === null) throw bad(`'${sourceRef}' is not a Figma node reference: expected figma:<nodeId> with an id like 8660:117742`);
   const nodeId = m[1]!;
-  const files = ["ds.json", "canvas-inventory.json"].map((f) => join(storeDir, f));
+  const files = INVENTORY_FILE_NAMES.map((f) => join(storeDir, f));
   const loaded = files.map((f) => ({ f, entries: inventoryEntries(f) }));
   if (loaded.every((l) => l.entries === undefined)) {
     throw bad(`cannot verify Figma node ${nodeId}: no inventory found — looked for ${files.map((f) => `'${f}'`).join(" and ")}`);

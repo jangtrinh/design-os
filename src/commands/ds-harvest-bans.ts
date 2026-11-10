@@ -32,6 +32,12 @@ function renderText(h: ProjectHarvest, write: boolean): string {
       ? `  figma inventory: ${report.figma.components} component(s) from ${report.figma.files.join(", ")} (names and sizes only)`
       : "  figma inventory: none (design/ds.json and design/canvas-inventory.json absent)",
   ];
+  if (w.directories.length > 0) {
+    lines.push("  where the files read came from (most first):");
+    for (const d of w.directories) lines.push(`    ${d.path === "./" ? "./ (files directly in the source root)" : d.path}  ${d.files} file(s)`);
+    if (w.directoriesOmitted > 0) lines.push(`    +${w.directoriesOmitted} more director${w.directoriesOmitted === 1 ? "y" : "ies"}`);
+    lines.push("  to narrow the source: ui ds harvest-bans --source <dir> --write");
+  }
   const unread = Object.entries(w.unread).map(([ext, n]) => `${ext} ${n}`);
   lines.push(`  other template/style files met and not read: ${unread.length === 0 ? "none" : unread.join(", ")}`);
   for (const s of w.skipped.slice(0, 5)) lines.push(`  skipped ${s.path}: ${s.reason}`);
