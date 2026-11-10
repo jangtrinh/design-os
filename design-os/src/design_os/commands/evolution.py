@@ -119,8 +119,8 @@ def _render_text(
     differ = signals.get("token_sources_differ")
     if differ is not None:
         lines.append(
-            f"  token sources differ: {signals['tokens_path']} has {differ['sealed']} tokens, "
-            f"design/tokens.json has {differ['design_dir']} — role coverage above reads the first"
+            f"  token sources differ: design/tokens.json has {differ['design_dir']} tokens; "
+            f"role coverage above reads {signals['tokens_path']}"
         )
 
     reg = signals["registry"]
