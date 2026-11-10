@@ -207,7 +207,7 @@ Diagrams and charts built with the CLI. Each one is a committed artifact that pa
 
 ## Watch
 
-DESIGN:OS is free and source-available (PolyForm Shield). The Autonomous Design Agent talks from the [design:os by Jang](https://www.youtube.com/@designosbyjang) channel (Vietnamese, with English terms):
+Talks on the Autonomous Design Agent from the [design:os by Jang](https://www.youtube.com/@designosbyjang) channel (Vietnamese, with English terms):
 
 <p align="left">
   <a href="https://www.youtube.com/watch?v=cUOa9g1E-fA"><img src="docs/assets/video/cUOa9g1E-fA.jpg" alt="design:os by Jang" width="320"></a>
