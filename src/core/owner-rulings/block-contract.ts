@@ -20,7 +20,7 @@ import { PROJECT_LEVEL_KINDS } from "./cluster-kinds.js";
 import type { ClusterKind } from "./cluster-kinds.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 import type { Cluster } from "./cluster.js";
-import { PENDING_REL, PendingStoreError, readPending, removePending, writePending } from "./pending-store.js";
+import { PENDING_REL, PendingStoreError, syncPending } from "./pending-store.js";
 import { orderClusters } from "./questions-format.js";
 import { computeRulingState } from "./ruling-state.js";
 import type { RulingState } from "./ruling-state.js";
@@ -48,26 +48,20 @@ export function blockOnOpenClusters(input: BlockInput): CommandResult | null {
     input.json ? errJsonWithData(input.command, code, message, {}) : errText(`ui: ${code}: ${message}\n`);
   const projectLevel = input.runsProjectDetectors === true;
   let state: RulingState;
-  let stored: Cluster[];
   try {
-    state = computeRulingState(input.projectDir, { detections: input.detections, ownKinds: input.ownKinds, projectLevel, ...(input.emitters === undefined ? {} : { emitters: input.emitters }) });
-    stored = readPending(input.projectDir).clusters;
+    state = computeRulingState(input.projectDir, { detections: input.detections, ownKinds: input.ownKinds, command: input.command, projectLevel, ...(input.emitters === undefined ? {} : { emitters: input.emitters }) });
   } catch (e) {
     // Only the stores' own failures become an envelope; a bug in an emitter keeps its own message and stack.
     if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(e.code, e.message);
     throw e;
   }
-  const mine = new Set<ClusterKind>(state.recomputed);
-  const blocking = orderClusters(state.pending.filter((c) => input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))));
+  // A question another command raised stays stored but is not this command's to block on (project-level kinds are everyone's).
+  const foreign = (c: Cluster): boolean => !PROJECT_LEVEL_KINDS.includes(c.kind) && c.raisedBy !== input.command;
+  const blocking = orderClusters(state.pending.filter((c) => (input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))) && !foreign(c)));
 
-  // The command's own kinds are replaced by what it detects now: the open ones when it blocks, none when it does not.
-  const next = orderClusters([...stored.filter((c) => !mine.has(c.kind)), ...state.pending.filter((c) => mine.has(c.kind))]);
-  try {
-    if (JSON.stringify(next) !== JSON.stringify(stored)) {
-      if (next.length === 0) removePending(input.projectDir);
-      else writePending(input.projectDir, next, 1);
-    }
-  } catch (e) {
+  // What this command raised is replaced by what it detects now: the open ones when it blocks, none when it does not.
+  try { syncPending(input.projectDir, orderClusters(state.pending)); }
+  catch (e) {
     return fail("WRITE_ERROR", e instanceof Error ? e.message : "cannot write .design-os/onboard/pending.json");
   }
   if (blocking.length === 0) return null;

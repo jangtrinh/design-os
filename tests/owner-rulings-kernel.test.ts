@@ -249,6 +249,8 @@ describe("pending store", () => {
       "a non-string member whose fingerprint was computed over its string form": { version: 1, round: 1, clusters: [{ ...raw(good), members: [1, 2], samples: [1, 2], fingerprint: fingerprintOf("scan-budget", ["1", "2"]) }] },
       "a wrong fingerprint": { version: 1, round: 1, clusters: [{ ...raw(good), fingerprint: "f".repeat(64) }] },
       "a short fingerprint": { version: 1, round: 1, clusters: [{ ...raw(good), fingerprint: "f" }] },
+      "no raisedBy": { version: 1, round: 1, clusters: [{ ...raw(good), raisedBy: undefined }] },
+      "a non-string raisedBy": { version: 1, round: 1, clusters: [{ ...raw(good), raisedBy: 7 }] },
       "a wrong count": { version: 1, round: 1, clusters: [{ ...raw(good), count: 9 }] },
       "unsorted members": { version: 1, round: 1, clusters: [{ ...raw(good), members: ["b", "a"] }] },
       "options without ids": { version: 1, round: 1, clusters: [{ ...raw(good), options: [{ id: "a" }, { id: "b" }] }] },

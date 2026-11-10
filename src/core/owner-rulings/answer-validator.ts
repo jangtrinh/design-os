@@ -9,8 +9,9 @@
  * accepted. Single-choice kinds: `choice` is one option id; after `review-individually`, `members` maps each member
  * to an option id.
  *
- * The kind's own answer check sees the outcomes of the whole kind: the stored rulings, the earlier answers of the same
- * file and this answer, the newest winning, so a delta answer cannot undo what an earlier ruling decided.
+ * Every answer of the file is validated first; then the kind's own answer check sees the outcomes of the whole kind
+ * once all of them are applied: the stored rulings, then the whole file, the newest winning. So the result does not
+ * depend on the order of the answers, and a delta answer cannot undo what an earlier ruling decided.
  */
 import { isRecord } from "../knowledge-promotion-ruling.js";
 import type { Cluster } from "./cluster.js";
@@ -94,11 +95,13 @@ export function validateAnswers(pending: readonly Cluster[], raw: unknown, at: s
     const built = (CLUSTER_KIND_TABLE[cluster.kind].setValued ? buildSetValued : buildSingle)(cluster, entry["choice"], entry["members"]);
     if ("ok" in built) return built;
     const ruling: Ruling = { kind: cluster.kind, fingerprint: fp, choice: built.choice, covers: [...cluster.members], ...(built.members === undefined ? {} : { members: built.members }), actor: "owner", at };
-    const outcomes = governedOutcomes(indexRulings([...stored, ...rulings, ruling]), cluster.kind);
-    const dangling = emitters.find((e) => e.kind === cluster.kind)?.checkAnswer?.(cluster, outcomes) ?? null;
-    if (dangling !== null) return refuse("DANGLING_AFTER_SELECTION", dangling);
     answered.push(cluster);
     rulings.push(ruling);
+  }
+  const index = indexRulings([...stored, ...rulings]);
+  for (const cluster of answered) {
+    const dangling = emitters.find((e) => e.kind === cluster.kind)?.checkAnswer?.(cluster, governedOutcomes(index, cluster.kind)) ?? null;
+    if (dangling !== null) return refuse("DANGLING_AFTER_SELECTION", dangling);
   }
   return { ok: true, rulings, answered };
 }

@@ -2,12 +2,13 @@
  * The life of a question across runs: a member spelled two ways is one member, a command cleans up its own stored
  * questions, and an answer check sees every earlier ruling of the kind.
  */
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { rulingsRow } from "../src/commands/onboard-rulings-row.js";
 import { runOnboardAnswer } from "../src/commands/onboard-answer.js";
 import { runOnboardQuestions } from "../src/commands/onboard-questions.js";
+import { runStatus } from "../src/commands/onboard-status.js";
 import { blockOnOpenClusters } from "../src/core/owner-rulings/block-contract.js";
 import type { BlockInput } from "../src/core/owner-rulings/block-contract.js";
 import type { Cluster } from "../src/core/owner-rulings/cluster.js";
@@ -58,7 +59,7 @@ describe("a command cleans up its own stored questions", () => {
   it("leaves the clusters of other kinds untouched, and keeps the file while they remain", () => {
     const dir = scratchProject();
     const other = clusterOf("component-name-collision", ["Button"]);
-    writePending(dir, [other, clusterOf("token-path-collision", ["p/a"])]);
+    writePending(dir, [other, { ...clusterOf("token-path-collision", ["p/a"]), raisedBy: "ingest-figma-ds" }]);
     expect(block(dir, [detectionOf("token-path-collision", [])])).toBeNull();
     expect(readPending(dir).clusters).toEqual([other]);
   });
@@ -93,6 +94,128 @@ describe("a command cleans up its own stored questions", () => {
     capture(["onboard", "--cwd", dir, "--no-banner"]);
     expect(rulingsRow(dir)).toMatchObject({ pending: 1 });
     expect(hashTree(dir)).toBe(before);
+  });
+});
+
+describe("a command replaces only the questions it raised", () => {
+  const shared = (dir: string, command: string, members: string[]): ReturnType<typeof block> =>
+    block(dir, [detectionOf("untypeable-tokens", members)], { command, ownKinds: ["untypeable-tokens"] });
+
+  it("a second command that shares the kind and finds nothing neither blocks nor removes the first command's question", () => {
+    const dir = scratchProject();
+    expect(shared(dir, "ds-import", ["import:tok1"])?.exitCode).toBe(1);
+    const bytes = readFileSync(join(dir, PENDING_REL), "utf8");
+    expect(shared(dir, "ingest-figma-ds", [])).toBeNull();
+    expect(readFileSync(join(dir, PENDING_REL), "utf8")).toBe(bytes);
+    expect(rulingsRow(dir)).toMatchObject({ pending: 1 });
+  });
+  it("the second command that finds its own anomaly blocks only on its own question, and both stay stored", () => {
+    const dir = scratchProject();
+    shared(dir, "ds-import", ["import:tok1"]);
+    const r = shared(dir, "ingest-figma-ds", ["ingest:tok2"]);
+    expect(blockedClusters(r).map((c) => c.members)).toEqual([["ingest:tok2"]]);
+    expect(readPending(dir).clusters.map((c) => c.raisedBy).sort()).toEqual(["ds-import", "ingest-figma-ds"]);
+  });
+  it("the command that raised a question replaces it when its anomaly is gone", () => {
+    const dir = scratchProject();
+    shared(dir, "ds-import", ["import:tok1"]);
+    expect(shared(dir, "ds-import", [])).toBeNull();
+    expect(existsSync(join(dir, PENDING_REL))).toBe(false);
+  });
+  it("a project-level kind the second command computes itself is replaced whoever raised it", () => {
+    const dir = scratchProject();
+    block(dir, [detectionOf("scan-budget", ["generated"])], { command: "door-a", ownKinds: ["scan-budget"] });
+    expect(block(dir, [detectionOf("scan-budget", [])], { command: "door-b", ownKinds: ["scan-budget"] })).toBeNull();
+    expect(existsSync(join(dir, PENDING_REL))).toBe(false);
+  });
+  it("the same question raised by two commands is stored once, as the later command's", () => {
+    const dir = scratchProject();
+    shared(dir, "ds-import", ["tok"]);
+    const r = shared(dir, "ingest-figma-ds", ["tok"]);
+    expect(blockedClusters(r)).toHaveLength(1);
+    expect(readPending(dir).clusters.map((c) => c.raisedBy)).toEqual(["ingest-figma-ds"]);
+  });
+  it("a project-level kind is replaced by whichever command ran its detector", () => {
+    const dir = scratchProject();
+    block(dir, [detectionOf("scan-budget", ["generated"])], { command: "door-a", ownKinds: ["scan-budget"] });
+    const quiet: KindEmitter = { kind: "scan-budget", sense: () => null, detect: () => null };
+    expect(block(dir, [], { command: "door-b", ownKinds: [], runsProjectDetectors: true, emitters: [quiet] })).toBeNull();
+    expect(existsSync(join(dir, PENDING_REL))).toBe(false);
+  });
+});
+
+describe("ui onboard questions cleans up before it says nothing is pending", () => {
+  it("removes a project-level question whose anomaly is gone, so it can no longer be answered", () => {
+    const dir = scratchProject();
+    const first = block(dir, [detectionOf("scan-budget", ["generated"])], { command: "door", ownKinds: ["scan-budget"] });
+    const fp = blockedClusters(first)[0]!.fingerprint;
+    const gone: KindEmitter = { kind: "scan-budget", sense: () => null, detect: () => null };
+    const r = runOnboardQuestions(argsOf("--cwd", dir, "--json"), dir, [gone]);
+    expect(r.exitCode).toBe(1);
+    expect(JSON.parse(r.stdout!).error.code).toBe("NO_PENDING_QUESTIONS");
+    expect(existsSync(join(dir, PENDING_REL))).toBe(false);
+    const a = runOnboardAnswer(argsOf("--file", answersFile(dir, { answers: [{ fingerprint: fp, choice: "a" }] }), "--cwd", dir, "--now", NOW, "--json"), dir, [gone]);
+    expect(a.exitCode).toBe(1);
+    expect(JSON.parse(a.stdout!).error.code).toBe("STALE_ANSWER");
+    expect(existsSync(join(dir, "design", "design-dir.json"))).toBe(false);
+  });
+});
+
+describe("removing the last pending file", () => {
+  it("removes the onboard directory when it is empty, and never .design-os itself", () => {
+    const dir = scratchProject();
+    block(dir, [detectionOf("token-path-collision", ["p/a"])]);
+    expect(block(dir, [detectionOf("token-path-collision", [])])).toBeNull();
+    expect(existsSync(join(dir, ".design-os", "onboard"))).toBe(false);
+    expect(existsSync(join(dir, ".design-os"))).toBe(true);
+  });
+  it("keeps the onboard directory when it holds anything else", () => {
+    const dir = scratchProject();
+    block(dir, [detectionOf("token-path-collision", ["p/a"])]);
+    writeFileSync(join(dir, ".design-os", "onboard", "notes.txt"), "keep me");
+    expect(block(dir, [detectionOf("token-path-collision", [])])).toBeNull();
+    expect(readdirSync(join(dir, ".design-os", "onboard"))).toEqual(["notes.txt"]);
+  });
+  it("the pending store's header lists every writer", () => {
+    const header = readFileSync(join(process.cwd(), "src", "core", "owner-rulings", "pending-store.ts"), "utf8").split("*/")[0]!;
+    for (const writer of ["blockOnOpenClusters", "ui onboard questions", "ui onboard answer"]) expect(header).toContain(writer);
+    expect(header).not.toContain("and by nothing else");
+  });
+});
+
+describe("a failing detector is state for ui onboard and a bug for every command that writes", () => {
+  const boom: KindEmitter = { kind: "scan-budget", sense: () => null, detect: () => { throw new Error("emitter bug"); } };
+  it("ui onboard exits 0, prints its other rows, names the kind and the error in the rulings row, and is not ready", () => {
+    const dir = scratchProject();
+    const text = runStatus(argsOf("--cwd", dir, "--no-banner"), [boom]);
+    expect(text.exitCode).toBe(0);
+    expect(text.stdout).toContain("git initialized");
+    expect(text.stdout).toContain("scan-budget");
+    expect(text.stdout).toContain("emitter bug");
+    expect(text.stdout).toContain("SETUP");
+    const json = JSON.parse(runStatus(argsOf("--cwd", dir, "--json"), [boom]).stdout!).data;
+    expect(json.ready).toBe(false);
+    expect(json.steps.find((x: { id: string }) => x.id === "rulings").state).toBe("pending");
+    expect(json.rulings.unreadable).toContain("scan-budget");
+    expect(json.rulings.unreadable).toContain("emitter bug");
+  });
+  it("a detector whose question builder throws is reported the same way", () => {
+    const e: KindEmitter = { kind: "scan-budget", sense: () => null, detect: () => ({ kind: "scan-budget", members: ["x"], domain: ["x"], ask: () => { throw new Error("ask bug"); } }) };
+    const r = JSON.parse(runStatus(argsOf("--cwd", scratchProject(), "--json"), [e]).stdout!).data;
+    expect(r.rulings.unreadable).toContain("scan-budget");
+    expect(r.rulings.unreadable).toContain("ask bug");
+  });
+  it("an exception that did not come from an emitter's detector is not swallowed by the status", () => {
+    const broken = { get kind(): never { throw new Error("not a detector"); } } as unknown as KindEmitter;
+    expect(() => runStatus(argsOf("--cwd", scratchProject(), "--json"), [broken])).toThrow("not a detector");
+  });
+  it("the blocking contract, ui onboard questions and ui onboard answer still propagate the same exception", () => {
+    const dir = scratchProject();
+    expect(() => block(dir, [], { ownKinds: [], runsProjectDetectors: true, emitters: [boom] })).toThrow("emitter bug");
+    expect(() => runOnboardQuestions(argsOf("--cwd", dir), dir, [boom])).toThrow("emitter bug");
+    const c = clusterOf("token-path-collision", ["p/a"]);
+    writePending(dir, [c]);
+    expect(() => runOnboardAnswer(argsOf("--file", answersFile(dir, { answers: [{ fingerprint: c.fingerprint, choice: "a" }] }), "--cwd", dir, "--now", NOW, "--json"), dir, [boom])).toThrow("emitter bug");
   });
 });
 
@@ -153,6 +276,29 @@ describe("an answer check sees every earlier ruling of the kind", () => {
     expect(r.exitCode).toBe(1);
     expect(JSON.parse(r.stdout!).error.code).toBe("DANGLING_AFTER_SELECTION");
     expect(existsSync(join(dir, "design", "design-dir.json"))).toBe(false);
+  });
+  it("does not depend on the order of the answers in a file", () => {
+    const dir = scratchProject();
+    appendRulings(dir, [earlier("drop")]);
+    const reKeep = clusterOf("figma-collections", ["c5"]);
+    const dependant = delta();
+    const other = clusterOf("scan-budget", ["walk"]);
+    const keepDependant = { fingerprint: dependant.fingerprint, choice: ["keep-c7"] };
+    const keepTarget = { fingerprint: reKeep.fingerprint, choice: ["keep-c5"] };
+    const unrelated = { fingerprint: other.fingerprint, choice: "a" };
+    writePending(dir, [reKeep, dependant, other]);
+    for (const answers of [[keepDependant, keepTarget], [keepTarget, keepDependant]]) {
+      const r = run(dir, answersFile(dir, { answers }));
+      expect(r.exitCode, JSON.stringify(answers)).toBe(0);
+      rmSync(join(dir, "design"), { recursive: true });
+      appendRulings(dir, [earlier("drop")]);
+      writePending(dir, [reKeep, dependant, other]);
+    }
+    for (const answers of [[keepDependant], [unrelated, keepDependant], [keepDependant, unrelated]]) {
+      const r = run(dir, answersFile(dir, { answers }));
+      expect(r.exitCode, JSON.stringify(answers)).toBe(1);
+      expect(JSON.parse(r.stdout!).error.code).toBe("DANGLING_AFTER_SELECTION");
+    }
   });
   it("the new answer wins over an earlier ruling of the same member", () => {
     const dir = scratchProject();

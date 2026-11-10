@@ -9,6 +9,7 @@ import { resolvePackageRoots } from "../core/init-stub.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { renderBanner, ruleHeader, checkItem } from "../core/report-style.js";
+import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
 import { rulingsRow } from "./onboard-rulings-row.js";
 import type { RulingsRow } from "./onboard-rulings-row.js";
 
@@ -162,7 +163,8 @@ function formatText(steps: Step[], ready: boolean, banner: boolean, templatesRoo
 
 // ─── Command handler ────────────────────────────────────────────────────────
 
-export function runStatus(parsed: ParsedArgs): CommandResult {
+/** `emitters` defaults to the registry; only an in-process caller (a test) can pass another list. */
+export function runStatus(parsed: ParsedArgs, emitters?: readonly KindEmitter[]): CommandResult {
   // The central flag guard cannot see a bare `ui onboard` once the command has subcommands, so guard here.
   const unknown = findUnknownFlag(parsed.flags, ["cwd", "no-banner"]);
   if (unknown !== null) {
@@ -174,7 +176,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
   const targetCwd = typeof cwdFlag === "string" ? cwdFlag : processCwd();
   const banner = parsed.flags["no-banner"] !== true;
 
-  const rulings = rulingsRow(targetCwd);
+  const rulings = rulingsRow(targetCwd, emitters);
   const steps = detectSteps(targetCwd, rulings);
   const ready = computeReady(steps);
 
