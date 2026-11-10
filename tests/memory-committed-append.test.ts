@@ -12,6 +12,8 @@ import { ingestFigmaDsCommand } from "../src/commands/ingest-figma-ds.js";
 import { synthesizeConventionsCommand } from "../src/commands/synthesize-conventions.js";
 import { seedMemoryBatch } from "../src/core/memory-seed-batch.js";
 import { parseDsFile, ingestDesignSystem } from "../src/core/figma-ds-ingest.js";
+import { readRulingStore } from "../src/core/owner-rulings/ruling-store.js";
+import { preferring, seedRulings } from "./figma-ingest-helpers.js";
 import { parseDnaFile, synthesizeConventions } from "../src/core/figma-conventions-synth.js";
 
 vi.mock("node:fs", async (importOriginal) => {
@@ -121,7 +123,9 @@ describe("committed append cleanup failures", () => {
     const fixture = new URL(ingest ? "./fixtures/figma-ds/ds.json" : "./fixtures/figma-conventions/usage-dna.json", import.meta.url).pathname;
     for (const json of [true, false]) {
       failCleanup();
-      const parsed = parseArgs([handler.name, "--out", dir, "--seed-memory", "--now", NOW, ...(json ? ["--json"] : [])]);
+      // The fixture's two untypeable variables are answered "exclude", the way the old code skipped them.
+      if (ingest) seedRulings(dir, parseDsFile(JSON.parse(readFileSync(fixture, "utf8"))), preferring("exclude"));
+      const parsed = parseArgs([handler.name, "--out", dir, ...(ingest ? ["--cwd", dir] : []), "--seed-memory", "--now", NOW, ...(json ? ["--json"] : [])]);
       parsed.positionals = [fixture];
       const result = handler.run(parsed);
       expect(result.exitCode).toBe(1);
@@ -145,12 +149,14 @@ function batchCommand(command: "ingest" | "synthesize", json = true) {
   const ingest = command === "ingest";
   const handler = ingest ? ingestFigmaDsCommand : synthesizeConventionsCommand;
   const fixture = new URL(ingest ? "./fixtures/figma-ds/ds.json" : "./fixtures/figma-conventions/usage-dna.json", import.meta.url).pathname;
-  const parsed = parseArgs([handler.name, "--out", dir, "--seed-memory", "--now", NOW, ...(json ? ["--json"] : [])]);
-  parsed.positionals = [fixture];
   const source = JSON.parse(readFileSync(fixture, "utf8"));
+  // The fixture's two untypeable variables are answered "exclude", the way the old code skipped them.
+  if (ingest) seedRulings(dir, parseDsFile(source), preferring("exclude"));
+  const parsed = parseArgs([handler.name, "--out", dir, ...(ingest ? ["--cwd", dir] : []), "--seed-memory", "--now", NOW, ...(json ? ["--json"] : [])]);
+  parsed.positionals = [fixture];
   let expectedCount: number;
   if (ingest) {
-    const result = ingestDesignSystem(parseDsFile(source), "test", "fixture");
+    const result = ingestDesignSystem(parseDsFile(source), "test", "fixture", readRulingStore(dir).rulings);
     expectedCount = 1 + result.componentNames.length + Number(result.icons.count > 0) + Number(result.screens.length > 0);
   } else {
     expectedCount = 1 + synthesizeConventions(parseDnaFile(source), undefined, "fixture").insights.length;

@@ -2,18 +2,24 @@
  * Figma design-system scan → component registry (deterministic, zero-network).
  *
  * Input: the `components` array from `figma-agent scan-design-system` (ds.json).
- * Each entry: { id, key?, name, type: COMPONENT|COMPONENT_SET, variantAxes? }.
+ * Each entry: { id, key?, name, type: COMPONENT|COMPONENT_SET, variantAxes?, page? }.
  * Output: a Registry object in the on-disk shape of src/core/registry-store.ts,
  * so `ui registry list|lookup --file <ingested>` reads it directly.
  *
- * The EXACT Figma component name is preserved (never PascalCase-normalised): the
- * "resolve by NAME, never id" rule (knowledge/figma-craft, F2) makes the name the
- * stable key against the live file, so mangling it would break later reconcile /
- * real-instance authoring. These records are therefore authored directly here,
- * not pushed through `ui registry register` (whose Category/Variant name pattern
- * exists for code-authored components, not scanned Figma inventory).
+ * The EXACT Figma component name is preserved (never PascalCase-normalised) apart from lifecycle and archive markers:
+ * the "resolve by NAME, never id" rule (knowledge/figma-craft, F2) makes the name the stable key against the live
+ * file. These records are authored directly here, not pushed through `ui registry register` (whose Category/Variant
+ * name pattern exists for code-authored components, not scanned Figma inventory).
+ *
+ * The registry never holds a name twice (FR-010): `classifyRegistry` withholds every record of a duplicated name and
+ * reports it, so a duplicate is a question for the owner, never a written record.
  */
-import type { Registry, ComponentRecord, ComponentStatus } from "./registry-store.js";
+import { HEURISTICS, classifyHeuristic, recordHeuristics, statusMarkerOf, stripArchiveMarkers, stripMarkers } from "./figma-ds-heuristics.js";
+import type { DsComponentKind, Heuristic } from "./figma-ds-heuristics.js";
+import type { Registry, ComponentRecord } from "./registry-store.js";
+
+export type { DsComponentKind } from "./figma-ds-heuristics.js";
+export { SCREEN_MIN_WIDTH } from "./figma-ds-heuristics.js";
 
 export interface DsComponent {
   id: string;
@@ -22,14 +28,15 @@ export interface DsComponent {
   type: string; // COMPONENT | COMPONENT_SET
   /** variant axis name → its options, e.g. { Size: ["Small","Large"], Tone: ["Primary"] }. */
   variantAxes?: Record<string, string[]>;
-  /** Optional (forward-compat): frame width in px, if the scan carries it. */
+  /** Optional: frame width in px, if the scan carries it. */
   width?: number;
-  /** Optional (forward-compat): the enclosing section/page name, if the scan carries it. */
+  /** The page (the scan's `page`) or section the node sits in; the section heuristics read it. */
   section?: string;
+  /** Sensed (optional): sorted variable ids bound inside the component. */
+  boundVariables?: string[];
+  /** Sensed (optional): the components used directly inside this one. */
+  instances?: { component: string; count: number }[];
 }
-
-/** How a scanned node is bucketed: a real DS component, an icon, or a full-screen frame. */
-export type DsComponentKind = "icon" | "screen" | "component";
 
 /** Bulk representation of the icon inventory — one summary row, never one row per icon. */
 export interface IconSummary {
@@ -39,76 +46,96 @@ export interface IconSummary {
   sample: string[];
 }
 
+export interface ClassifyOptions {
+  /** Nodes the owner ruled to be components although a heuristic put them elsewhere. */
+  asComponent?: ReadonlySet<string>;
+  /** Nodes the owner ruled to be screens although no heuristic said so. */
+  asScreen?: ReadonlySet<string>;
+  /** Nodes kept although they carry an archive marker: the marker leaves the name and the record is deprecated. */
+  deprecatedIds?: ReadonlySet<string>;
+  /** Stored name per node id, for a duplicate the owner kept under a distinct name. */
+  renames?: ReadonlyMap<string, string>;
+  /** Sensed `tokensUsed` per node id: sorted token paths of the variables bound inside the component. */
+  tokensUsed?: ReadonlyMap<string, string[]>;
+}
+
 /** The outcome of classifying a scan: a clean component registry + bulked icons + separated screens. */
 export interface ClassifiedRegistry {
-  /** Real DS components only (icons/screens excluded), registry-store shape. */
+  /** Real DS components only (icons/screens excluded), registry-store shape, no name twice. */
   registry: Registry;
-  /** Icons rolled up into a single summary instead of flooding the registry. */
   icons: IconSummary;
   /** Screen-frame names (sorted) — full designs, NOT design-system components. */
   screens: string[];
+  /** How many nodes each declared heuristic applied to (class heuristics: every node; record heuristics: every record). */
+  classifiedByHeuristic: Record<Heuristic, number>;
+  /** Records withheld because their stored name occurs more than once: the node ids of each such name. */
+  duplicates: { name: string; ids: string[] }[];
 }
 
 /** How many icon names to keep as a representative sample in the bulk summary. */
 const ICON_SAMPLE_LIMIT = 20;
-/** A very wide frame is a full screen design, not a component (only if width is known). */
-const SCREEN_MIN_WIDTH = 1024;
-/** Name looks like an icon: starts with "Icon"/"Icon /"/"Icon/" (as a whole token), or mentions lucide. */
-const ICON_NAME = /(^icon(\s|\/|$)|lucide)/i;
-/** Section/page looks like the icon library (a "00"/Lucide/Icons section). */
-const ICON_SECTION = /^(00\b|lucide|icons?\b)/i;
-/** Name looks like a screen: leading section/screen number (e.g. "01 · Login", "10 - Bar"). */
-const SCREEN_NAME = /^\d/;
 
-/**
- * Bucket one scanned node into icon | screen | component (deterministic, name-first).
- * Icons are checked before screens so an "Icon" library entry never reads as a screen.
- * width/section are used only when the scan actually carries them (it currently does not).
- */
+/** Bucket one scanned node into icon | screen | component (deterministic, name-first). */
 export function classifyComponent(c: DsComponent): DsComponentKind {
-  const name = c.name.trim();
-  if (ICON_NAME.test(name)) return "icon";
-  if (c.section !== undefined && ICON_SECTION.test(c.section.trim())) return "icon";
-  if (SCREEN_NAME.test(name)) return "screen";
-  if (typeof c.width === "number" && c.width >= SCREEN_MIN_WIDTH) return "screen";
-  return "component";
+  return classifyHeuristic(c).kind;
+}
+
+/** The class of a node: the owner's ruling when there is one, else the heuristics'. */
+export function effectiveClass(c: DsComponent, opts: ClassifyOptions = {}): { kind: DsComponentKind; heuristic?: Heuristic } {
+  if (opts.asComponent?.has(c.id) === true) return { kind: "component" };
+  if (opts.asScreen?.has(c.id) === true) {
+    const h = classifyHeuristic(c).heuristic;
+    return h === undefined ? { kind: "screen" } : { kind: "screen", heuristic: h };
+  }
+  return classifyHeuristic(c);
+}
+
+/** The name a node is stored under before any owner rename. */
+export function storedName(c: DsComponent, deprecated = false): string {
+  const clean = stripMarkers(c.name);
+  return deprecated ? stripArchiveMarkers(clean) : clean;
 }
 
 /**
- * Classify a whole scan: real components become a registry, icons roll up into one
- * summary, and screen-frames are separated out (names only). This is the C0.1 default —
- * it keeps the registry to the real DS components instead of drowning it in icon rows.
+ * Classify a whole scan: real components become a registry, icons roll up into one summary, and screen-frames are
+ * separated out (names only). A duplicated stored name never reaches the registry (see `duplicates`).
  */
-export function classifyRegistry(components: DsComponent[]): ClassifiedRegistry {
+export function classifyRegistry(components: DsComponent[], opts: ClassifyOptions = {}): ClassifiedRegistry {
   const real: DsComponent[] = [];
   const iconNames: string[] = [];
   const screenNames: string[] = [];
+  const counts = Object.fromEntries(HEURISTICS.map((h) => [h, 0])) as Record<Heuristic, number>;
   for (const c of components) {
-    switch (classifyComponent(c)) {
-      case "icon":
-        iconNames.push(c.name);
-        break;
-      case "screen":
-        screenNames.push(c.name);
-        break;
-      default:
-        real.push(c);
-    }
+    const { kind, heuristic } = effectiveClass(c, opts);
+    if (heuristic !== undefined) counts[heuristic]++;
+    if (kind === "icon") iconNames.push(c.name);
+    else if (kind === "screen") screenNames.push(c.name);
+    else real.push(c);
   }
   iconNames.sort((a, b) => a.localeCompare(b));
   screenNames.sort((a, b) => a.localeCompare(b));
+  const byName = new Map<string, DsComponent[]>();
+  for (const c of real) {
+    const name = opts.renames?.get(c.id) ?? storedName(c, opts.deprecatedIds?.has(c.id) === true);
+    (byName.get(name) ?? byName.set(name, []).get(name)!).push(c);
+  }
+  const duplicates = [...byName].filter(([, cs]) => cs.length > 1).map(([name, cs]) => ({ name, ids: cs.map((c) => c.id) }));
+  const dupIds = new Set(duplicates.flatMap((d) => d.ids));
+  const kept = real.filter((c) => !dupIds.has(c.id));
+  for (const c of kept) for (const h of recordHeuristics(c)) counts[h]++;
   return {
-    registry: buildRegistry(real),
+    registry: buildRegistry(kept, opts),
     icons: { kind: "icon-set", count: iconNames.length, sample: iconNames.slice(0, ICON_SAMPLE_LIMIT) },
     screens: screenNames,
+    classifiedByHeuristic: counts,
+    duplicates,
   };
 }
 
 /** Category for a scanned component: the first "/" segment of its name, else its Figma node type. */
-function categoryOf(c: DsComponent): string {
-  const slash = c.name.indexOf("/");
-  if (slash > 0) return c.name.slice(0, slash).trim();
-  return c.type;
+function categoryOf(name: string, type: string): string {
+  const slash = name.indexOf("/");
+  return slash > 0 ? name.slice(0, slash).trim() : type;
 }
 
 /** Flatten variant axes to a sorted "Axis=Option" list for ComponentRecord.variants. */
@@ -126,32 +153,21 @@ function propSummary(axes: Record<string, string[]>): string {
   return parts.length > 0 ? `props: ${parts.join(", ")}` : "";
 }
 
-/** shadcn lifecycle markers: 🟢 = stable, 🔵/🟡 = beta. Read from the component or its page name. */
-function statusFromMarker(...names: (string | undefined)[]): ComponentStatus | undefined {
-  const hay = names.filter((s): s is string => s !== undefined).join(" ");
-  if (/🟢/u.test(hay)) return "stable";
-  if (/🔵|🟡/u.test(hay)) return "beta";
-  return undefined;
-}
-/** Drop lifecycle-marker emoji from a name so the stored name stays clean/aliasable. */
-function stripMarkers(s: string): string {
-  return s.replace(/[🟢🔵🟡]/gu, "").replace(/\s+/g, " ").trim();
-}
-
 /** Build a registry (registry-store shape) from ds.json components. Sorted by name. */
-export function buildRegistry(components: DsComponent[]): Registry {
+export function buildRegistry(components: DsComponent[], opts: ClassifyOptions = {}): Registry {
   const records: ComponentRecord[] = components.map((c) => {
     const axes = c.variantAxes ?? {};
     const hasAxes = Object.keys(axes).length > 0;
     const descParts = [`Figma ${c.type}`];
     if (hasAxes) descParts.push(propSummary(axes));
-    const cleanName = stripMarkers(c.name);
-    const status = statusFromMarker(c.name, c.section);
+    const deprecated = opts.deprecatedIds?.has(c.id) === true;
+    const cleanName = storedName(c, deprecated);
+    const status = statusMarkerOf(c.section === undefined ? c.name : `${c.name} ${c.section}`);
     const rec: ComponentRecord = {
-      name: cleanName,
-      category: categoryOf({ ...c, name: cleanName }),
+      name: opts.renames?.get(c.id) ?? cleanName,
+      category: categoryOf(cleanName, c.type),
       markup: "", // no HTML from a Figma scan; instances are authored on-canvas later
-      tokensUsed: [],
+      tokensUsed: opts.tokensUsed?.get(c.id) ?? [],
       description: descParts.join(" · "),
       // TODO(spec 004 P1/P4): map scope from the Figma publish-status / `remote` signal once
       // the capture stream carries it. The current scan (DsComponent) exposes no publish
@@ -160,6 +176,7 @@ export function buildRegistry(components: DsComponent[]): Registry {
     };
     if (hasAxes) rec.variants = variantList(axes);
     if (status !== undefined) rec.status = status;
+    if (deprecated) rec.deprecated = true;
     return rec;
   });
   records.sort((a, b) => a.name.localeCompare(b.name));

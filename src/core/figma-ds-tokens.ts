@@ -1,170 +1,74 @@
 /**
  * Figma design-system scan → DTCG token tree (deterministic, zero-network).
  *
- * Input: the `tokens` array from `figma-agent scan-design-system` (ds.json).
- * Each entry is a Figma Variable: { id, name, type, collection?, value?, valuesByMode? }.
- * Output: a two-tier DTCG TokenTree (token-model.ts shape) where
- *   - a variable holding a literal value → a PRIMITIVE token ($value is a literal),
- *   - a variable holding a VARIABLE_ALIAS → a SEMANTIC token ($value is "{path}").
- * That literal-vs-alias split IS the primitive/semantic tier distinction
- * (see knowledge/token-taxonomy.md — primitives are literals at the graph bottom,
- * semantics alias primitives).
+ * The conversion helpers live in figma-ds-token-values.ts and are re-exported here. This module builds the tree and
+ * says, for every variable that is not in it, why: nothing is dropped without a reason.
  *
- * Figma Variable *modes* (e.g. Light / Dark) map to: the base/light mode → `$value`,
- * every other mode → `$extensions["mode.<name>"] = { $value }`. `ui tokens compile`
- * resolves `$value` and ignores `$extensions`, so the compiled output stays valid
- * while the dark layer is preserved and documented.
+ * A token path that two variables map to is a collision. It is never resolved here: the caller passes the owner's
+ * ruling (`winners`), and a collision with no ruling leaves every variable of it out of the tree and listed in
+ * `collisions`, so a caller that never asks cannot silently keep one of them.
  *
  * This module never touches the filesystem; it is a pure transform.
  */
+import { colorToHex, inferDtcgType, isAliasValue, literalValue, pathOf, pickBaseMode, rawPathOf, sanitizeSeg } from "./figma-ds-token-values.js";
+import type { DsVariable, DtcgLeaf, DtcgTree, DtcgType } from "./figma-ds-token-values.js";
 
-// ─── Input shape (subset of ds.json we consume) ───────────────────────────────
+export * from "./figma-ds-token-values.js";
 
-export interface DsVariable {
-  id: string;
-  name: string;
-  type: string; // Figma resolvedType: COLOR | FLOAT | STRING | BOOLEAN
-  collection?: string;
-  value?: unknown;
-  /** Optional richer form: mode-name → value (Light/Dark). Forward-compatible. */
-  valuesByMode?: Record<string, unknown>;
+/** Why a variable is left out of the tree (a collision is its own thing: see `collisions`). */
+export const SKIP_REASONS = ["unmappable-type", "null-leaf", "dangling-alias", "alias-cycle", "bad-colour"] as const;
+export type SkipReason = (typeof SKIP_REASONS)[number];
+
+export interface PathCollision {
+  /** `category.token`. */
+  path: string;
+  /** The variables that map to it, in scan order. */
+  variables: { id: string; collection: string }[];
 }
 
-// ─── DTCG leaf/tree (mirrors token-model.ts, kept local to avoid a cycle) ──────
-
-export type DtcgType = "color" | "dimension" | "fontFamily" | "fontWeight" | "number";
-
-export interface DtcgLeaf {
-  $value: string | number;
-  $type: DtcgType;
-  $description?: string;
-  $extensions?: Record<string, unknown>;
+export interface BuildOptions {
+  /** The collections that are built (default: all). A variable of any other collection is excluded and counted. */
+  collections?: ReadonlySet<string>;
+  /** Per colliding path, the id of the variable that keeps it; "" keeps none. A path with no entry is unresolved. */
+  winners?: ReadonlyMap<string, string>;
+  /** Variables the owner chose to keep as raw string tokens although they cannot be typed. */
+  keepRaw?: ReadonlySet<string>;
 }
-
-export type DtcgTree = Record<string, Record<string, DtcgLeaf>>;
 
 export interface TokenBuildResult {
   tree: DtcgTree;
   primitives: number;
   semantics: number;
-  /** Variables skipped because their type is unmappable (bool/non-font string) or their alias dangles. */
+  /** Variables of the built collections that are not in the tree, for any reason (kept for older callers). */
   skipped: number;
+  /** Collisions among the built collections. Empty means nothing collides. */
+  collisions: PathCollision[];
+  excluded: {
+    /** Variables of collections that were not built, per collection, in scan order of first appearance. */
+    collections: { name: string; count: number }[];
+    /** Variables that lost a collision the owner ruled on. */
+    collisionLosers: string[];
+    /** Variables of a collision nobody has ruled on yet. */
+    collisionUnresolved: string[];
+    skipped: Record<SkipReason, string[]>;
+  };
+  /** Variables kept as raw string tokens by the owner's choice. */
+  rawKept: string[];
+  /** Variable id → `category.token` of the token written for it, for every variable in the tree. */
+  pathById: Map<string, string>;
 }
 
-// ─── Name → 2-level path (category.token) ─────────────────────────────────────
-
-/** Collection/tier labels stripped from a variable path (tier lives in literal-vs-alias, not the name). */
-const TIER_PREFIXES = new Set([
-  "primitives", "primitive", "core", "global", "base", "foundation",
-  "semantic", "semantics", "tokens", "token", "alias", "aliases", "theme", "themes",
-]);
-
-const DIMENSION_HINTS = [
-  "space", "spacing", "size", "radius", "radii", "gap", "padding", "margin",
-  "inset", "width", "height", "border-width", "stroke", "elevation-size",
-];
-const WEIGHT_HINTS = ["weight", "font-weight"];
-const FONT_HINTS = ["font-family", "family", "typeface", "font"];
-
-/** Lowercase, collapse to the alias-safe [a-z0-9-] alphabet. Never empty. */
-export function sanitizeSeg(s: string): string {
-  const out = s
-    .toLowerCase()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return out.length > 0 ? out : "x";
-}
-
-/** Map a Figma resolvedType (+ name hints) to a DTCG $type, or null when unmappable. */
-export function inferDtcgType(name: string, figmaType: string): DtcgType | null {
-  const n = name.toLowerCase();
-  const has = (hints: string[]): boolean => hints.some((h) => n.includes(h));
-  switch (figmaType) {
-    case "COLOR": return "color";
-    case "FLOAT":
-      if (has(WEIGHT_HINTS)) return "fontWeight";
-      if (has(DIMENSION_HINTS)) return "dimension";
-      return "number";
-    case "STRING":
-      return has(FONT_HINTS) ? "fontFamily" : null;
-    default:
-      return null; // BOOLEAN and anything else
+/** The value used for tier/type detection: the base mode's value, else the flat `value`. */
+function firstValue(v: DsVariable): unknown {
+  if (v.valuesByMode !== undefined) {
+    const base = pickBaseMode(Object.keys(v.valuesByMode));
+    if (base !== undefined) return v.valuesByMode[base];
   }
+  return v.value;
 }
-
-/** The category bucket for a single-segment (unpathed) variable, derived from its type. */
-function categoryForType(type: DtcgType, name: string): string {
-  switch (type) {
-    case "color": return "color";
-    case "fontFamily":
-    case "fontWeight": return "font";
-    case "dimension": {
-      const n = name.toLowerCase();
-      const hit = DIMENSION_HINTS.find((h) => n.includes(h));
-      return hit !== undefined ? sanitizeSeg(hit) : "dimension";
-    }
-    default: return "number";
-  }
-}
-
-/** Split a Figma variable name into a DTCG 2-level path (the token model is exactly category.token). */
-export function pathOf(name: string, type: DtcgType): { category: string; token: string } {
-  let segs = name.split("/").map((s) => s.trim()).filter((s) => s.length > 0);
-  if (segs.length > 1 && TIER_PREFIXES.has(sanitizeSeg(segs[0] ?? ""))) segs = segs.slice(1);
-  const clean = segs.map(sanitizeSeg);
-  if (clean.length <= 1) {
-    return { category: categoryForType(type, name), token: clean[0] ?? "x" };
-  }
-  return { category: clean[0] as string, token: clean.slice(1).join("-") };
-}
-
-// ─── Value conversion ─────────────────────────────────────────────────────────
-
-function isAliasValue(v: unknown): v is { type: string; id: string } {
-  return (
-    typeof v === "object" && v !== null &&
-    (v as Record<string, unknown>)["type"] === "VARIABLE_ALIAS" &&
-    typeof (v as Record<string, unknown>)["id"] === "string"
-  );
-}
-
-function chan(v: number): string {
-  const h = Math.max(0, Math.min(255, Math.round(v * 255))).toString(16);
-  return h.length === 1 ? "0" + h : h;
-}
-
-/** Figma color {r,g,b,a?} floats → #RRGGBB (or #RRGGBBAA when a < 1). Uppercase. */
-export function colorToHex(v: unknown): string | null {
-  if (typeof v !== "object" || v === null) return null;
-  const c = v as Record<string, unknown>;
-  if (typeof c["r"] !== "number" || typeof c["g"] !== "number" || typeof c["b"] !== "number") return null;
-  const a = typeof c["a"] === "number" ? c["a"] : 1;
-  const base = `#${chan(c["r"])}${chan(c["g"])}${chan(c["b"])}`.toUpperCase();
-  return a >= 1 ? base : `${base}${chan(a)}`.toUpperCase();
-}
-
-/** Convert one literal Figma value to a DTCG $value for the given type, or null if unconvertible. */
-function literalValue(type: DtcgType, v: unknown): string | number | null {
-  switch (type) {
-    case "color": return colorToHex(v);
-    case "dimension": return typeof v === "number" ? `${v}px` : null;
-    case "fontWeight":
-    case "number": return typeof v === "number" ? v : null;
-    case "fontFamily": return typeof v === "string" ? v : null;
-  }
-}
-
-// ─── Build ────────────────────────────────────────────────────────────────────
 
 /** Resolve a variable's DTCG $type, following alias chains to the target's type. */
-function resolveType(
-  v: DsVariable,
-  byId: Map<string, DsVariable>,
-  memo: Map<string, DtcgType | null>,
-  seen: Set<string>,
-): DtcgType | null {
+function resolveType(v: DsVariable, byId: Map<string, DsVariable>, memo: Map<string, DtcgType | null>, seen: Set<string>): DtcgType | null {
   if (memo.has(v.id)) return memo.get(v.id) ?? null;
   const direct = firstValue(v);
   if (isAliasValue(direct)) {
@@ -180,83 +84,44 @@ function resolveType(
   return t;
 }
 
-/** The value used for tier/type detection: the base mode's value, else the flat `value`. */
-function firstValue(v: DsVariable): unknown {
-  if (v.valuesByMode !== undefined) {
-    const modes = Object.keys(v.valuesByMode);
-    const base = pickBaseMode(modes);
-    if (base !== undefined) return v.valuesByMode[base];
+/** Why a variable has no DTCG type: follow its alias chain to the end. */
+function typeSkipReason(v: DsVariable, byId: Map<string, DsVariable>): SkipReason {
+  const seen = new Set<string>();
+  let cur = v;
+  for (;;) {
+    const val = firstValue(cur);
+    if (!isAliasValue(val)) return "unmappable-type";
+    if (seen.has(cur.id)) return "alias-cycle";
+    seen.add(cur.id);
+    const next = byId.get(val.id);
+    if (next === undefined) return "dangling-alias";
+    cur = next;
   }
-  return v.value;
 }
 
-/** Prefer a Light/Default mode as the base $value; else the first declared mode. */
-export function pickBaseMode(modes: string[]): string | undefined {
-  const pref = modes.find((m) => /^(light|default|value|mode ?1|light ?mode)$/i.test(m.trim()));
-  return pref ?? modes[0];
-}
+type Leaf = { leaf: DtcgLeaf } | { reason: SkipReason };
 
-/** Build the DTCG token tree from ds.json variables. Deterministic; sorted keys. */
-export function buildTokensTree(variables: DsVariable[]): TokenBuildResult {
-  const byId = new Map(variables.map((v) => [v.id, v]));
-  const typeMemo = new Map<string, DtcgType | null>();
-  const pathById = new Map<string, { category: string; token: string }>();
-  for (const v of variables) {
-    const t = resolveType(v, byId, typeMemo, new Set());
-    if (t !== null) pathById.set(v.id, pathOf(v.name, t));
-  }
-
-  const tree: DtcgTree = {};
-  let primitives = 0;
-  let semantics = 0;
-  let skipped = 0;
-  const seenPaths = new Set<string>();
-
-  for (const v of variables) {
-    const type = typeMemo.get(v.id) ?? null;
-    const path = pathById.get(v.id);
-    if (type === null || path === undefined) { skipped++; continue; }
-    const dotted = `${path.category}.${path.token}`;
-    if (seenPaths.has(dotted)) { skipped++; continue; } // first mapping wins
-    const leaf = buildLeaf(v, type, pathById, dotted);
-    if (leaf === null) { skipped++; continue; }
-    seenPaths.add(dotted);
-    (tree[path.category] ??= {})[path.token] = leaf;
-    if (typeof leaf.$value === "string" && /^\{.+\}$/.test(leaf.$value)) semantics++;
-    else primitives++;
-  }
-
-  return { tree: sortTree(tree), primitives, semantics, skipped };
-}
-
-/** Convert one variable (all its modes) into a DTCG leaf, or null if the base value is unusable. */
-function buildLeaf(
-  v: DsVariable,
-  type: DtcgType,
-  pathById: Map<string, { category: string; token: string }>,
-  selfDotted: string,
-): DtcgLeaf | null {
+/** Convert one variable (all its modes) into a DTCG leaf, or say why the base value is unusable. */
+function buildLeaf(v: DsVariable, type: DtcgType, pathById: Map<string, string>, selfDotted: string): Leaf {
+  let failure: SkipReason = "null-leaf";
   const toValue = (raw: unknown): string | number | null => {
     if (isAliasValue(raw)) {
-      const tp = pathById.get(raw.id);
-      if (tp === undefined) return null; // dangling alias → unusable
-      const target = `${tp.category}.${tp.token}`;
-      // A self-referential alias (own id, or a distinct Figma var that collapsed to the same
-      // DTCG path) has no resolvable value and would make the whole token file unresolvable
-      // ("alias cycle detected"). Drop it rather than emit `{self}`.
-      if (target === selfDotted) return null;
+      const target = pathById.get(raw.id);
+      if (target === undefined) { failure = "dangling-alias"; return null; }
+      // A self-referential alias (own id, or a distinct Figma var that collapsed to the same DTCG path) has no
+      // resolvable value and would make the whole token file unresolvable ("alias cycle detected").
+      if (target === selfDotted) { failure = "alias-cycle"; return null; }
       return `{${target}}`;
     }
-    return literalValue(type, raw);
+    const lit = literalValue(type, raw);
+    if (lit === null) failure = type === "color" && raw !== null && raw !== undefined && colorToHex(raw) === null ? "bad-colour" : "null-leaf";
+    return lit;
   };
 
-  const modeEntries: Array<[string, unknown]> =
-    v.valuesByMode !== undefined ? Object.entries(v.valuesByMode) : [["", v.value]];
-  const modeNames = modeEntries.map(([m]) => m);
-  const base = pickBaseMode(modeNames) ?? "";
-  const baseRaw = modeEntries.find(([m]) => m === base)?.[1];
-  const baseVal = toValue(baseRaw);
-  if (baseVal === null) return null;
+  const modeEntries: Array<[string, unknown]> = v.valuesByMode !== undefined ? Object.entries(v.valuesByMode) : [["", v.value]];
+  const base = pickBaseMode(modeEntries.map(([m]) => m)) ?? "";
+  const baseVal = toValue(modeEntries.find(([m]) => m === base)?.[1]);
+  if (baseVal === null) return { reason: failure };
 
   const leaf: DtcgLeaf = { $value: baseVal, $type: type };
   const extensions: Record<string, unknown> = {};
@@ -266,7 +131,105 @@ function buildLeaf(
     if (mv !== null) extensions[`mode.${sanitizeSeg(mode)}`] = { $value: mv };
   }
   if (Object.keys(extensions).length > 0) leaf.$extensions = extensions;
-  return leaf;
+  return { leaf };
+}
+
+/** A raw string token for a variable the owner chose to keep although it cannot be typed. */
+function rawLeaf(v: DsVariable): DtcgLeaf {
+  const raw = firstValue(v);
+  return { $value: typeof raw === "string" ? raw : JSON.stringify(raw ?? null), $type: "string", $description: `kept raw from Figma ${v.type}` };
+}
+
+/** Build the DTCG token tree from ds.json variables. Deterministic; sorted keys. */
+export function buildTokensTree(variables: DsVariable[], opts: BuildOptions = {}): TokenBuildResult {
+  const byId = new Map(variables.map((v) => [v.id, v]));
+  const typeMemo = new Map<string, DtcgType | null>();
+  for (const v of variables) resolveType(v, byId, typeMemo, new Set());
+
+  const inScope = (v: DsVariable): boolean => opts.collections === undefined || opts.collections.has(v.collection ?? "");
+  const outOfScope = new Map<string, number>();
+  const scoped: DsVariable[] = [];
+  for (const v of variables) {
+    if (inScope(v)) scoped.push(v);
+    else outOfScope.set(v.collection ?? "", (outOfScope.get(v.collection ?? "") ?? 0) + 1);
+  }
+
+  // Paths of every typed variable that is built; a collision is two of them on one path.
+  const pathById = new Map<string, { category: string; token: string }>();
+  for (const v of scoped) {
+    const t = typeMemo.get(v.id) ?? null;
+    if (t !== null) pathById.set(v.id, pathOf(v.name, t));
+  }
+  const dottedOf = (id: string): string | undefined => { const p = pathById.get(id); return p === undefined ? undefined : `${p.category}.${p.token}`; };
+  // An alias whose target maps to its own path adds nothing (it would be `{itself}`): a cycle, not a collision.
+  const selfAliasIds = new Set<string>();
+  const groups = new Map<string, DsVariable[]>();
+  for (const v of scoped) {
+    const own = dottedOf(v.id);
+    if (own === undefined) continue;
+    const raw = firstValue(v);
+    if (isAliasValue(raw) && dottedOf(raw.id) === own) { selfAliasIds.add(v.id); continue; }
+    (groups.get(own) ?? groups.set(own, []).get(own)!).push(v);
+  }
+  const collisions: PathCollision[] = [...groups].filter(([, vs]) => vs.length > 1)
+    .map(([path, vs]) => ({ path, variables: vs.map((v) => ({ id: v.id, collection: v.collection ?? "" })) }));
+  const loserIds = new Set<string>();
+  const unresolvedIds = new Set<string>();
+  for (const c of collisions) {
+    const winner = opts.winners?.get(c.path);
+    for (const m of c.variables) {
+      if (winner === undefined) unresolvedIds.add(m.id);
+      else if (m.id !== winner) loserIds.add(m.id);
+    }
+  }
+
+  const dottedById = new Map<string, string>();
+  for (const [id, p] of pathById) dottedById.set(id, `${p.category}.${p.token}`);
+  const tree: DtcgTree = {};
+  const excludedSkipped = Object.fromEntries(SKIP_REASONS.map((r) => [r, [] as string[]])) as Record<SkipReason, string[]>;
+  const writtenPath = new Map<string, string>();
+  const rawKept: string[] = [];
+  let primitives = 0;
+  let semantics = 0;
+  const put = (category: string, token: string, leaf: DtcgLeaf, id: string): void => {
+    (tree[category] ??= {})[token] = leaf;
+    writtenPath.set(id, `${category}.${token}`);
+    if (typeof leaf.$value === "string" && /^\{.+\}$/.test(leaf.$value)) semantics++;
+    else primitives++;
+  };
+
+  for (const v of scoped) {
+    if (loserIds.has(v.id) || unresolvedIds.has(v.id)) continue;
+    if (selfAliasIds.has(v.id)) {
+      if (opts.keepRaw?.has(v.id) === true) { const rp = rawPathOf(v.name, v.id); put(rp.category, rp.token, rawLeaf(v), v.id); rawKept.push(v.id); }
+      else excludedSkipped["alias-cycle"].push(v.id);
+      continue;
+    }
+    const type = typeMemo.get(v.id) ?? null;
+    const path = pathById.get(v.id);
+    if (type === null || path === undefined) {
+      if (opts.keepRaw?.has(v.id) === true) { const rp = rawPathOf(v.name, v.id); put(rp.category, rp.token, rawLeaf(v), v.id); rawKept.push(v.id); }
+      else excludedSkipped[typeSkipReason(v, byId)].push(v.id);
+      continue;
+    }
+    const built = buildLeaf(v, type, dottedById, `${path.category}.${path.token}`);
+    if ("reason" in built) {
+      if (opts.keepRaw?.has(v.id) === true) { const rp = rawPathOf(v.name, v.id); put(rp.category, rp.token, rawLeaf(v), v.id); rawKept.push(v.id); }
+      else excludedSkipped[built.reason].push(v.id);
+      continue;
+    }
+    put(path.category, path.token, built.leaf, v.id);
+  }
+
+  const skipped = SKIP_REASONS.reduce((n, r) => n + excludedSkipped[r].length, 0) + loserIds.size + unresolvedIds.size;
+  return {
+    tree: sortTree(tree), primitives, semantics, skipped, collisions,
+    excluded: {
+      collections: [...outOfScope].map(([name, count]) => ({ name, count })),
+      collisionLosers: [...loserIds], collisionUnresolved: [...unresolvedIds], skipped: excludedSkipped,
+    },
+    rawKept, pathById: writtenPath,
+  };
 }
 
 /** Return a copy with category + token keys sorted, for byte-stable output. */

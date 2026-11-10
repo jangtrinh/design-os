@@ -1,35 +1,31 @@
 /**
  * Figma design-system ingest — the pure orchestrator (zero-network, zero-LLM).
  *
- * Validates a parsed ds.json (the `figma-agent scan-design-system` output) and
- * transforms it into the portable ease-design stores: a DTCG token tree, a
- * component registry, and a DESIGN.md knowledge doc. The command wrapper
- * (src/commands/ingest-figma-ds.ts) owns all filesystem I/O and memory seeding;
- * this module is a deterministic value → value transform.
+ * Validates a parsed ds.json (the `figma-agent scan-design-system` output) and transforms it into the portable
+ * ease-design stores: a DTCG token tree, a component registry, and a DESIGN.md knowledge doc. It asks instead of
+ * dropping or guessing: `planIngest` returns every question the scan raises, and the stores only once the owner's
+ * rulings answer all of them. The command wrapper (src/commands/ingest-figma-ds.ts) owns all filesystem I/O, the block
+ * contract and memory seeding; this module is a deterministic value → value transform.
  */
-import { buildTokensTree } from "./figma-ds-tokens.js";
-import type { DsVariable, DtcgTree } from "./figma-ds-tokens.js";
-import { classifyRegistry } from "./figma-ds-registry.js";
-import type { DsComponent, IconSummary } from "./figma-ds-registry.js";
 import { buildDesignDoc } from "./figma-ds-designdoc.js";
-import type { DsStyle } from "./figma-ds-designdoc.js";
+import type { DesignExclusions } from "./figma-ds-designdoc.js";
+import { componentStage } from "./figma-ds-ingest-components.js";
+import type { BindingReport, ComponentFinal } from "./figma-ds-ingest-components.js";
+import { rulingView } from "./figma-ds-ingest-rulings.js";
+import { tokenStage } from "./figma-ds-ingest-tokens.js";
+import { buildLedger } from "./figma-ds-ledger.js";
+import type { Ledger } from "./figma-ds-ledger.js";
+import type { IconSummary } from "./figma-ds-registry.js";
+import type { DsFile } from "./figma-ds-scan-read.js";
+import { SKIP_REASONS } from "./figma-ds-tokens.js";
+import type { DtcgTree } from "./figma-ds-tokens.js";
 import type { Registry } from "./registry-store.js";
+import type { KindDetection } from "./owner-rulings/kind-emitter.js";
+import type { Ruling } from "./owner-rulings/ruling-store.js";
+import { HEURISTICS } from "./figma-ds-heuristics.js";
 
-/** Typed failure for a malformed ds.json (shape, not JSON syntax). */
-export class DsIngestError extends Error {
-  readonly code: string;
-  constructor(code: string, message: string) {
-    super(message);
-    this.name = "DsIngestError";
-    this.code = code;
-  }
-}
-
-export interface DsFile {
-  components: DsComponent[];
-  tokens: DsVariable[];
-  styles: DsStyle[];
-}
+export { DsIngestError, parseDsFile } from "./figma-ds-scan-read.js";
+export type { DsFile } from "./figma-ds-scan-read.js";
 
 export interface IngestResult {
   tree: DtcgTree;
@@ -43,58 +39,72 @@ export interface IngestResult {
   icons: IconSummary;
   /** Screen-frame names — full designs, not DS components. */
   screens: string[];
+  ledger: Ledger;
+  /** Everything that was left out, named: the collections and pages, with their counts. */
+  excluded: DesignExclusions;
+  pageSignal: DsFile["pageSignal"];
+  bindings: BindingReport;
+  frames: ComponentFinal["frames"];
 }
 
-function requireArray(obj: Record<string, unknown>, key: string): unknown[] {
-  const v = obj[key];
-  if (!Array.isArray(v)) {
-    throw new DsIngestError("BAD_DS", `ds.json is missing the '${key}' array (is this a scan-design-system output?)`);
+export interface IngestPlan {
+  /** Every question the scan raises now, whether or not a ruling already answers it. */
+  detections: KindDetection[];
+  /** Null while any question is open. */
+  result: IngestResult | null;
+  ledger: Ledger;
+}
+
+/** Plan an ingest against the owner's rulings. Deterministic. */
+export function planIngest(ds: DsFile, name: string, source: string, rulings: readonly Ruling[] = []): IngestPlan {
+  const view = rulingView(rulings);
+  const t = tokenStage(ds.tokens, view);
+  const c = componentStage(ds, view, t.built, t.kept);
+  const detections = [...t.detections, ...c.detections];
+  const zero = Object.fromEntries(HEURISTICS.map((h) => [h, 0])) as Ledger["classifiedByHeuristic"];
+  const base = { variables: ds.tokens.length, components: ds.components.length };
+  if (t.built === null || c.final === null) {
+    return { detections, result: null, ledger: buildLedger({ ...base, writtenTokens: 0, writtenComponents: 0, excluded: {}, pending: base.variables + base.components, classifiedByHeuristic: zero }) };
   }
-  return v;
-}
-
-/** Validate the parsed ds.json into a typed DsFile, or throw DsIngestError("BAD_DS"). */
-export function parseDsFile(json: unknown): DsFile {
-  if (json === null || typeof json !== "object" || Array.isArray(json)) {
-    throw new DsIngestError("BAD_DS", "ds.json must be a JSON object with components/tokens/styles arrays");
-  }
-  const obj = json as Record<string, unknown>;
-  const components = requireArray(obj, "components") as DsComponent[];
-  const tokens = requireArray(obj, "tokens") as DsVariable[];
-  const styles = requireArray(obj, "styles") as DsStyle[];
-  return { components, tokens, styles };
-}
-
-/** Transform a validated ds.json into the portable stores. Deterministic. */
-export function ingestDesignSystem(ds: DsFile, name: string, source: string): IngestResult {
-  const built = buildTokensTree(ds.tokens);
-  const classified = classifyRegistry(ds.components);
-  const registry = classified.registry;
-  const counts = {
-    tokens: ds.tokens.length,
-    components: registry.components.length, // real DS components only
-    styles: ds.styles.length,
-    icons: classified.icons.count,
-    screens: classified.screens.length,
+  const built = t.built;
+  const f = c.final;
+  const registry = f.classified.registry;
+  const excluded = {
+    "collection-not-selected": built.excluded.collections.reduce((n, x) => n + x.count, 0),
+    "path-collision": built.excluded.collisionLosers.length,
+    ...Object.fromEntries(SKIP_REASONS.map((r) => [r, built.excluded.skipped[r].length])),
+    "page-not-selected": f.excludedPages.reduce((n, x) => n + x.count, 0),
+    "archived-excluded": f.archivedExcluded,
+    "duplicate-excluded": f.duplicateExcluded,
+    "classified-icon": f.classified.icons.count,
+    "classified-screen": f.classified.screens.length,
   };
+  const ledger = buildLedger({
+    ...base, writtenTokens: built.primitives + built.semantics, writtenComponents: registry.components.length,
+    excluded, pending: 0, classifiedByHeuristic: f.classified.classifiedByHeuristic,
+  });
+  const counts = { tokens: ds.tokens.length, components: registry.components.length, styles: ds.styles.length, icons: f.classified.icons.count, screens: f.classified.screens.length };
+  const exclusions: DesignExclusions = { collections: built.excluded.collections, pages: f.excludedPages };
   const designMd = buildDesignDoc({
-    name,
-    source,
-    tree: built.tree,
-    registry,
-    styles: ds.styles,
-    counts,
-    icons: classified.icons,
-    screens: classified.screens,
+    name, source, tree: built.tree, registry, styles: ds.styles, counts, icons: f.classified.icons, screens: f.classified.screens,
+    ledger, exclusions, frames: f.frames, bindings: f.bindings,
   });
   return {
-    tree: built.tree,
-    registry,
-    designMd,
-    counts,
-    stats: { primitives: built.primitives, semantics: built.semantics, skippedTokens: built.skipped },
-    componentNames: registry.components.map((c) => c.name),
-    icons: classified.icons,
-    screens: classified.screens,
+    detections,
+    ledger,
+    result: {
+      tree: built.tree, registry, designMd, counts,
+      stats: { primitives: built.primitives, semantics: built.semantics, skippedTokens: built.skipped },
+      componentNames: registry.components.map((x) => x.name),
+      icons: f.classified.icons, screens: f.classified.screens, ledger, excluded: exclusions,
+      pageSignal: ds.pageSignal, bindings: f.bindings, frames: f.frames,
+    },
   };
+}
+
+/** Transform a validated ds.json into the portable stores, or throw when a question is still open. */
+export function ingestDesignSystem(ds: DsFile, name: string, source: string, rulings: readonly Ruling[] = []): IngestResult {
+  const plan = planIngest(ds, name, source, rulings);
+  if (plan.result === null) throw new Error(`the scan raises ${plan.detections.filter((d) => d.members.length > 0).length} question(s) that need an owner ruling: use planIngest and ask them`);
+  return plan.result;
 }

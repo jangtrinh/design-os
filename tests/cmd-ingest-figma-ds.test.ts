@@ -9,6 +9,7 @@ import { mkdtempSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { run } from "../src/cli.js";
+import { ingestUntilReady, preferring } from "./figma-ingest-helpers.js";
 
 function capture(args: string[]): { code: number; out: string; err: string } {
   let out = "";
@@ -34,10 +35,14 @@ const DS_MIXED = resolve(__dirname, "fixtures/figma-ds/ds-mixed.json");
 const savedHome = process.env["EASE_DESIGN_HOME"];
 let home: string;
 let out: string;
+/** The project whose rulings apply: the fixture's two untypeable variables are answered "exclude", the way the old code skipped them. */
+let project: string;
 
 beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), "ease-home-"));
   out = mkdtempSync(join(tmpdir(), "ease-ingest-"));
+  project = mkdtempSync(join(tmpdir(), "ease-project-"));
+  ingestUntilReady(DS, project, mkdtempSync(join(tmpdir(), "ease-seed-")), preferring("exclude"));
   process.env["EASE_DESIGN_HOME"] = home;
 });
 afterEach(() => {
@@ -53,7 +58,7 @@ function json(args: string[]): { code: number; env: Env } {
 
 describe("ui ingest-figma-ds — happy path", () => {
   it("compiles ds.json into tokens + registry + DESIGN.md with correct tiers", () => {
-    const { code, env } = json(["ingest-figma-ds", DS, "--out", out, "--json"]);
+    const { code, env } = json(["ingest-figma-ds", DS, "--out", out, "--cwd", project, "--json"]);
     expect(code).toBe(0);
     expect(env.ok).toBe(true);
     const counts = env.data.counts as { tokens: number; components: number; styles: number; icons: number; screens: number };
@@ -66,7 +71,7 @@ describe("ui ingest-figma-ds — happy path", () => {
   });
 
   it("emits DTCG primitives as literals and semantics as aliases, with Light/Dark modes", () => {
-    capture(["ingest-figma-ds", DS, "--out", out]);
+    capture(["ingest-figma-ds", DS, "--out", out, "--cwd", project]);
     const tree = JSON.parse(readFileSync(join(out, "tokens.json"), "utf8")) as Record<string, Record<string, { $value: unknown; $type: string; $extensions?: Record<string, { $value: unknown }> }>>;
 
     // Primitive color literal — exact hex from rgba floats.
@@ -88,7 +93,7 @@ describe("ui ingest-figma-ds — happy path", () => {
   });
 
   it("produces a tokens.json that `ui tokens compile` resolves (no dangling aliases)", () => {
-    capture(["ingest-figma-ds", DS, "--out", out]);
+    capture(["ingest-figma-ds", DS, "--out", out, "--cwd", project]);
     const { code, env } = json(["tokens", "compile", join(out, "tokens.json"), "--json"]);
     expect(code).toBe(0);
     expect(env.ok).toBe(true);
@@ -97,7 +102,7 @@ describe("ui ingest-figma-ds — happy path", () => {
   });
 
   it("registers components with their exact names, variants, and category", () => {
-    capture(["ingest-figma-ds", DS, "--out", out]);
+    capture(["ingest-figma-ds", DS, "--out", out, "--cwd", project]);
     const reg = join(out, "component-registry.json");
     const list = json(["registry", "list", "--file", reg, "--json"]);
     expect(list.env.data.count).toBe(3);
@@ -117,7 +122,7 @@ describe("ui ingest-figma-ds — happy path", () => {
   });
 
   it("writes a DESIGN.md documenting tiers, components, and styles", () => {
-    capture(["ingest-figma-ds", DS, "--out", out, "--name", "Acme DS"]);
+    capture(["ingest-figma-ds", DS, "--out", out, "--cwd", project, "--name", "Acme DS"]);
     const md = readFileSync(join(out, "DESIGN.md"), "utf8");
     expect(md).toContain("# Acme DS — Design System");
     expect(md).toContain("### Primitives");
@@ -134,7 +139,7 @@ describe("ui ingest-figma-ds — happy path", () => {
 
   it("seeds ui memory when --seed-memory is given", () => {
     const nowIso = "2026-07-09T00:00:00.000Z";
-    const { code } = capture(["ingest-figma-ds", DS, "--out", out, "--seed-memory", "--now", nowIso]);
+    const { code } = capture(["ingest-figma-ds", DS, "--out", out, "--cwd", project, "--seed-memory", "--now", nowIso]);
     expect(code).toBe(0);
     expect(existsSync(join(out, "design", "memory.events.jsonl"))).toBe(true);
     const q = json(["memory", "query", "--dir", out, "--json"]);
@@ -145,14 +150,14 @@ describe("ui ingest-figma-ds — happy path", () => {
   });
 
   it("does NOT seed memory by default", () => {
-    capture(["ingest-figma-ds", DS, "--out", out]);
+    capture(["ingest-figma-ds", DS, "--out", out, "--cwd", project]);
     expect(existsSync(join(out, "design", "memory.events.jsonl"))).toBe(false);
   });
 
   it("is deterministic — identical ds.json + name + now → identical bytes", () => {
     const a = mkdtempSync(join(tmpdir(), "ease-a-"));
     const b = mkdtempSync(join(tmpdir(), "ease-b-"));
-    const args = (o: string): string[] => ["ingest-figma-ds", DS, "--out", o, "--name", "X", "--now", "2026-07-09T00:00:00.000Z"];
+    const args = (o: string): string[] => ["ingest-figma-ds", DS, "--out", o, "--cwd", project, "--name", "X", "--now", "2026-07-09T00:00:00.000Z"];
     capture(args(a));
     capture(args(b));
     for (const f of ["tokens.json", "component-registry.json", "DESIGN.md"]) {
@@ -276,7 +281,7 @@ describe("ui ingest-figma-ds — error paths", () => {
   });
 
   it("BAD_ARG for an invalid --now", () => {
-    const { code, env } = json(["ingest-figma-ds", DS, "--out", out, "--now", "not-a-date", "--json"]);
+    const { code, env } = json(["ingest-figma-ds", DS, "--out", out, "--cwd", project, "--now", "not-a-date", "--json"]);
     expect(code).toBe(1);
     expect(env.error?.code).toBe("BAD_ARG");
   });
@@ -286,7 +291,7 @@ describe("ui ingest-figma-ds — error paths", () => {
     // manifest-backed registry there. Landing this command's UNSEALED bundle at
     // the same path leaves loadDesignSystem reading a registry with no manifest.
     const sealedDir = join(out, "design");
-    const { code, env } = json(["ingest-figma-ds", DS, "--out", sealedDir, "--json"]);
+    const { code, env } = json(["ingest-figma-ds", DS, "--cwd", project, "--out", sealedDir, "--json"]);
     expect(code).toBe(1);
     expect(env.error?.code).toBe("SEALED_PATH_COLLISION");
     // Refused BEFORE any write — a partial bundle at the sealed path would be
@@ -297,7 +302,7 @@ describe("ui ingest-figma-ds — error paths", () => {
 
   it("does not refuse an --out that merely CONTAINS 'design' as a substring", () => {
     const notSealed = join(out, "design-system-export");
-    const { code, env } = json(["ingest-figma-ds", DS, "--out", notSealed, "--json"]);
+    const { code, env } = json(["ingest-figma-ds", DS, "--cwd", project, "--out", notSealed, "--json"]);
     expect(code).toBe(0);
     expect(env.ok).toBe(true);
   });

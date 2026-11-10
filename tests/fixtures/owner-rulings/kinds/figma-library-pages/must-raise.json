@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {
+      "id": "0:1",
+      "name": "Library",
+      "nodes": 5
+    },
+    {
+      "id": "0:2",
+      "name": "Feature",
+      "nodes": 2
+    }
+  ]
+}

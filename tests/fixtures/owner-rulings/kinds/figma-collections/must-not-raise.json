@@ -1,0 +1,14 @@
+{
+  "collections": [
+    {
+      "name": "Alpha",
+      "count": 3
+    },
+    {
+      "name": "Beta",
+      "count": 3
+    }
+  ],
+  "collisions": [],
+  "aliases": []
+}

@@ -1,0 +1,45 @@
+{
+  "components": [
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Control Widget 0",
+      "scope": "local",
+      "tokensUsed": []
+    },
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Control Widget 1",
+      "scope": "local",
+      "tokensUsed": []
+    },
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Control Widget 2",
+      "scope": "local",
+      "tokensUsed": []
+    },
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Control Widget 3",
+      "scope": "local",
+      "tokensUsed": []
+    },
+    {
+      "category": "COMPONENT",
+      "description": "Figma COMPONENT",
+      "markup": "",
+      "name": "Control Widget 4",
+      "scope": "local",
+      "tokensUsed": []
+    }
+  ],
+  "version": "0.1.0"
+}

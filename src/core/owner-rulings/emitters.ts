@@ -6,18 +6,27 @@
  */
 import type { ClusterKind } from "./cluster-kinds.js";
 import type { KindEmitter } from "./kind-emitter.js";
+import { archivedMarkedNodesEmitter } from "./kind-archived-marked-nodes.js";
+import { classificationConflictsEmitter } from "./kind-classification-conflicts.js";
+import { duplicateComponentNamesEmitter } from "./kind-duplicate-component-names.js";
+import { figmaCollectionsEmitter } from "./kind-figma-collections.js";
+import { figmaLibraryPagesEmitter } from "./kind-figma-library-pages.js";
+import { screenPagesEmitter } from "./kind-screen-pages.js";
+import { tokenPathCollisionEmitter } from "./kind-token-path-collision.js";
+import { untypeableTokensEmitter } from "./kind-untypeable-tokens.js";
 
-export const EMITTERS: readonly KindEmitter[] = [];
+export const EMITTERS: readonly KindEmitter[] = [
+  figmaCollectionsEmitter,
+  tokenPathCollisionEmitter,
+  figmaLibraryPagesEmitter,
+  screenPagesEmitter,
+  archivedMarkedNodesEmitter,
+  duplicateComponentNamesEmitter,
+  classificationConflictsEmitter,
+  untypeableTokensEmitter,
+];
 
 export const KINDS_WITHOUT_EMITTER: readonly ClusterKind[] = [
-  "figma-collections",
-  "token-path-collision",
-  "figma-library-pages",
-  "screen-pages",
-  "archived-marked-nodes",
-  "duplicate-component-names",
-  "classification-conflicts",
-  "untypeable-tokens",
   "ambiguous-roles",
   "scan-budget",
   "app-roots",
