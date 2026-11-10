@@ -5,6 +5,7 @@
 import type { ProjectView } from "./design-dir-scan.js";
 import { buildPrinciplesIndex, serializePrinciplesIndex } from "./design-dir-principles.js";
 import { parseSupersededMarker } from "./ds-guidelines-rulings-reader.js";
+import { canonicalStringify } from "./ds-manifest.js";
 import { validateMethodSchema } from "./method-json-schema.js";
 import type { Schema } from "./method-json-schema.js";
 
@@ -94,6 +95,8 @@ export function lintDesignDir(view: ProjectView, schema: Schema): DesignFinding[
   return out;
 }
 
+const count = (n: number): string => `${n} ${n === 1 ? "token" : "tokens"}`;
+
 /** Leaf tokens of a DTCG document as path → serialized $value (null when the text is not a JSON object). */
 function tokenValues(text: string | null): Map<string, string> | null {
   const doc = parseJson(text);
@@ -102,7 +105,8 @@ function tokenValues(text: string | null): Map<string, string> | null {
   const visit = (node: unknown, path: string): void => {
     if (node === null || typeof node !== "object" || Array.isArray(node)) return;
     const rec = node as Record<string, unknown>;
-    if ("$value" in rec) { out.set(path, JSON.stringify(rec["$value"])); return; }
+    // The kernel's canonical rule (sorted keys), so key order inside an object value is not a difference.
+    if ("$value" in rec) { out.set(path, canonicalStringify(rec["$value"])); return; }
     for (const k of Object.keys(rec).sort()) if (!k.startsWith("$")) visit(rec[k], path === "" ? k : `${path}.${k}`);
   };
   visit(doc, "");
@@ -121,8 +125,8 @@ function lintTwoTokenSources(view: ProjectView, derived: Set<string>, out: Desig
   const same = sealed.size === hand.size && [...sealed].every(([k, v]) => hand.get(k) === v);
   if (same) return;
   out.push({ checkId: "two-token-sources", severity: "error", path: SEALED_TOKENS,
-    message: `${SEALED_TOKENS} (${sealed.size} tokens) and ${TOKEN_SOURCE} (${hand.size} tokens) both exist and differ`,
-    fix: "Answer the source-authority question: ui onboard questions" });
+    message: `${SEALED_TOKENS} (${count(sealed.size)}) and ${TOKEN_SOURCE} (${count(hand.size)}) both exist and differ`,
+    fix: `Keep one source: delete one of the two files, or declare ${SEALED_TOKENS} derived in ${MANIFEST_PATH}` });
 }
 
 function lintPrinciplesIndex(view: ProjectView, out: DesignFinding[]): void {
