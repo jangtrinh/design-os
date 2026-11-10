@@ -44,7 +44,7 @@ describe("the per-member answer on a multi-select question", () => {
   });
   it("an option that selects nothing is valid only as the single chosen option", () => {
     const c = buildCluster({
-      kind: "app-roots", question: "q", members: ["a", "b"],
+      kind: "app-roots", question: "q", members: ["a", "b"], raisedBy: "test-command",
       options: [{ id: "keep-a", label: "a", consequence: "a", selects: ["a"] }, { id: "keep-b", label: "b", consequence: "b", selects: ["b"] }, { id: "none", label: "none", consequence: "keeps none", selects: [] }],
     });
     const dir = scratchProject();

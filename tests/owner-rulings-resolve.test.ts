@@ -140,7 +140,7 @@ describe("stale rulings are judged against the domain of a detection that ran", 
 describe("ruling state over a project", () => {
   const stored = (): { dir: string; cluster: ReturnType<typeof buildCluster> } => {
     const dir = scratchProject();
-    const cluster = buildCluster({ kind: "source-authority", question: "Which source wins?", members: ["tokens"], options: [{ id: "a", label: "A", consequence: "a" }, { id: "b", label: "B", consequence: "b" }] });
+    const cluster = buildCluster({ kind: "source-authority", question: "Which source wins?", members: ["tokens"], options: [{ id: "a", label: "A", consequence: "a" }, { id: "b", label: "B", consequence: "b" }], raisedBy: "ui onboard questions" });
     writePending(dir, [cluster]);
     return { dir, cluster };
   };
@@ -163,7 +163,7 @@ describe("ruling state over a project", () => {
   });
   it("keeps a stored cluster when only some of its members are governed, and drops it when all are", () => {
     const dir = scratchProject();
-    const cluster = buildCluster({ kind: "source-authority", question: "q", members: ["one", "two"], options: [{ id: "a", label: "A", consequence: "a" }, { id: "b", label: "B", consequence: "b" }] });
+    const cluster = buildCluster({ kind: "source-authority", question: "q", members: ["one", "two"], options: [{ id: "a", label: "A", consequence: "a" }, { id: "b", label: "B", consequence: "b" }], raisedBy: "ui onboard questions" });
     writePending(dir, [cluster]);
     appendRulings(dir, [singleRuling(["one"], "a")]);
     expect(computeRulingState(dir, { emitters: [] }).pending).toEqual([cluster]);

@@ -17,13 +17,13 @@ const SINGLE: ClusterInput["options"] = [
   { id: "review-individually", label: "Review individually", consequence: "asks per member" },
 ];
 const single = (members: string[], kind: ClusterInput["kind"] = "scan-budget"): Cluster =>
-  buildCluster({ kind, question: "Which?", members, options: SINGLE });
+  buildCluster({ kind, question: "Which?", members, options: SINGLE, raisedBy: "test-command" });
 
 /** A set-valued cluster whose options stand for groups of members. */
 const setValued = (groups: Record<string, string[]>, kind: ClusterInput["kind"] = "app-roots"): Cluster =>
   buildCluster({
     kind, question: "Which stay?", members: Object.values(groups).flat(),
-    options: Object.entries(groups).map(([id, selects]) => ({ id, label: id, consequence: `keeps ${selects.length}`, selects })),
+    options: Object.entries(groups).map(([id, selects]) => ({ id, label: id, consequence: `keeps ${selects.length}`, selects })), raisedBy: "test-command",
   });
 
 const AT = "2026-11-10T14:00:00.000Z";
@@ -251,6 +251,7 @@ describe("pending store", () => {
       "a short fingerprint": { version: 1, round: 1, clusters: [{ ...raw(good), fingerprint: "f" }] },
       "no raisedBy": { version: 1, round: 1, clusters: [{ ...raw(good), raisedBy: undefined }] },
       "a non-string raisedBy": { version: 1, round: 1, clusters: [{ ...raw(good), raisedBy: 7 }] },
+      "an empty raisedBy": { version: 1, round: 1, clusters: [{ ...raw(good), raisedBy: "" }] },
       "a wrong count": { version: 1, round: 1, clusters: [{ ...raw(good), count: 9 }] },
       "unsorted members": { version: 1, round: 1, clusters: [{ ...raw(good), members: ["b", "a"] }] },
       "options without ids": { version: 1, round: 1, clusters: [{ ...raw(good), options: [{ id: "a" }, { id: "b" }] }] },

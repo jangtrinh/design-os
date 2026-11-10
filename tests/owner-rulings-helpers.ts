@@ -70,7 +70,7 @@ export function optionsFor(kind: ClusterKind, members: readonly string[]): Clust
 
 /** A cluster as it would sit in pending.json. */
 export const clusterOf = (kind: ClusterKind, members: string[]): Cluster =>
-  buildCluster({ kind, question: `Question for ${kind}?`, members, options: optionsFor(kind, members) });
+  buildCluster({ kind, question: `Question for ${kind}?`, members, options: optionsFor(kind, members), raisedBy: "test-command" });
 
 /** A detection whose questions are built from the members actually asked. */
 export const detectionOf = (kind: ClusterKind, members: string[], domain: string[] = members): KindDetection => ({
