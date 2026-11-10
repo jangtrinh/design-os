@@ -21,12 +21,13 @@ from design_os.evolution_signals import (
     read_registry_signal,
     read_roles_signal,
     read_taste_votes_signal,
+    read_token_sources_signal,
 )
 
 __all__ = [
     "read_ledger_signal", "read_graph_signal", "read_soul_signal",
     "read_heartbeat_signal", "read_registry_signal", "read_roles_signal",
-    "read_taste_votes_signal", "compute_verdict", "gather_signals", "learning_clock",
+    "read_taste_votes_signal", "read_token_sources_signal", "compute_verdict", "gather_signals", "learning_clock",
 ]
 
 _DESIGN = "design"
@@ -162,6 +163,9 @@ def gather_signals(project_dir: Path, now: datetime) -> dict[str, Any]:
         "registry": read_registry_signal(project_dir, ledger),
         "roles": read_roles_signal(project_dir),
         "taste_votes": read_taste_votes_signal(project_dir),
+        # FR-018: which token file the role signal read, and whether a second one disagrees.
+        # Reported only; the verdict below never reads tokens.
+        **read_token_sources_signal(project_dir),
     }
     signals["clock"] = learning_clock(ledger, now)
     signals["verdict"] = compute_verdict(signals, now)
