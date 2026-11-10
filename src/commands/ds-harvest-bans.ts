@@ -35,7 +35,7 @@ function renderText(h: ProjectHarvest, write: boolean): string {
   if (w.directories.length > 0) {
     lines.push("  where the files read came from (most first):");
     for (const d of w.directories) lines.push(`    ${d.path === "./" ? "./ (files directly in the source root)" : d.path}  ${d.files} file(s)`);
-    if (w.directoriesOmitted > 0) lines.push(`    +${w.directoriesOmitted} more director${w.directoriesOmitted === 1 ? "y" : "ies"}`);
+    if (w.directoriesOmitted > 0) lines.push(`    +${w.directoriesOmitted} more director${w.directoriesOmitted === 1 ? "y" : "ies"} (${w.directoriesOmittedFiles} file(s))`);
     lines.push("  to narrow the source: ui ds harvest-bans --source <dir> --write");
   }
   const unread = Object.entries(w.unread).map(([ext, n]) => `${ext} ${n}`);

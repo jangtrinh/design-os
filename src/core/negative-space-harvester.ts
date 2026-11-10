@@ -68,6 +68,8 @@ export interface HarvestReport {
     directories: { path: string; files: number }[];
     /** First-level directories with files read that are not listed above. */
     directoriesOmitted: number;
+    /** Files read under those omitted directories, so the rows add up to the files read. */
+    directoriesOmittedFiles: number;
   };
   figma: { present: boolean; files: string[]; components: number };
   probes: ProbeResult[];
@@ -165,7 +167,7 @@ export function harvestNegativeSpace(opts: HarvestOptions): HarvestReport {
     walk: {
       uiFiles: read.ui, styleFiles: read.style, tokenJsonFiles: read.json,
       total: ui.total - keep.filter((k) => !k).length + tokens.files.length + tokens.skipped.length,
-      skipped, unread, directories: [...dirRows.slice(0, DIRECTORY_ROWS), ...(rootFiles > 0 ? [{ path: "./", files: rootFiles }] : [])], directoriesOmitted: Math.max(0, dirRows.length - DIRECTORY_ROWS),
+      skipped, unread, directories: [...dirRows.slice(0, DIRECTORY_ROWS), ...(rootFiles > 0 ? [{ path: "./", files: rootFiles }] : [])], directoriesOmitted: Math.max(0, dirRows.length - DIRECTORY_ROWS), directoriesOmittedFiles: dirRows.slice(DIRECTORY_ROWS).reduce((n, d) => n + d.files, 0),
     },
     figma: { present, files: inventory.files, components: inventory.components.length },
     probes,

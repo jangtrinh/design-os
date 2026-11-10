@@ -4,14 +4,16 @@
  *   - A promoted ban that was never moved: `ui ds harvest-bans --accept <NS-id>` writes the machine rule and
  *     leaves soul.md to the owner. A rule in `_adherence.rules.json` whose id no line under the binding
  *     `## Never` names is a ban the gates enforce and the declared stance does not state (warning).
- *   - A rules file that exists and cannot be parsed is said once, naming the file (warning).
+ *   - A rules file that exists and cannot be parsed, or that the loader rejects, is said once, naming the file (warning).
+ *   - A code fence that is never closed (error): the harvest refuses to write after it.
  *   - A harvest region that is not under `## Never (proposed)` (error): the tool writes only there, and
  *     generated bullets must never stand in for the binding stance.
  */
 import { existsSync, readFileSync } from "node:fs";
 
+import { parseAdherenceRules } from "./adherence-rules.js";
 import type { SoulCheckResult, SoulFinding } from "./ds-soul.js";
-import { bindingNeverIds, misplacedRegion, PROPOSED_NEVER_HEADING } from "./ds-soul-proposed-region.js";
+import { bindingNeverIds, misplacedRegion, PROPOSED_NEVER_HEADING, unclosedFence } from "./ds-soul-proposed-region.js";
 import { NEGATIVE_SPACE_PROBES } from "./negative-space-probes.js";
 import { bindingRulesPath } from "./negative-space-rule-files.js";
 
@@ -19,8 +21,7 @@ import { bindingRulesPath } from "./negative-space-rule-files.js";
 function promotedProbeIds(path: string): { ids: string[] } | { unreadable: string } {
   if (!existsSync(path)) return { ids: [] };
   try {
-    const doc = JSON.parse(readFileSync(path, "utf8").replace(/^\uFEFF/, "")) as { rules?: { id?: unknown }[] };
-    const ids = (Array.isArray(doc.rules) ? doc.rules : []).map((r) => r.id);
+    const ids = parseAdherenceRules(readFileSync(path, "utf8"), path, "binding").map((r) => r.rule.id);
     return { ids: NEGATIVE_SPACE_PROBES.map((p) => p.id).filter((id) => ids.includes(id)) };
   } catch (e) { return { unreadable: e instanceof Error ? e.message : String(e) }; }
 }
@@ -36,6 +37,13 @@ export function withHarvestFindings(result: SoulCheckResult, soulText: string, d
     extra.push({
       checkId: "soul-harvest-region-misplaced", severity: "error", line: misplaced.line,
       message: `the ds-harvest-bans region sits under '${misplaced.heading === "" ? "no heading" : misplaced.heading}', not under '${PROPOSED_NEVER_HEADING}' — put the heading back above the begin marker, or delete both markers and the lines between them`,
+    });
+  }
+  const unclosed = unclosedFence(soulText);
+  if (unclosed !== null) {
+    extra.push({
+      checkId: "soul-unclosed-code-fence", severity: "error", line: unclosed,
+      message: "this code fence is never closed, so everything after it is code text and the harvest refuses to write — add the closing fence line",
     });
   }
   if ("unreadable" in promoted) {

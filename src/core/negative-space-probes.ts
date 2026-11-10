@@ -64,7 +64,7 @@ export const NEGATIVE_SPACE_LIMITS: readonly string[] = [
   "A component prop such as a page-header description is not seen as a page subtitle (NS-05).",
   "A tinted bar with no card-header class or element that wraps a title inside a card is not seen as a card header (NS-04).",
   "A class or style assembled at runtime is not seen. Comments and strings are matched as text, which can only suppress a proposal.",
-  "A fill that is only a var() reference (for example background: var(--green-100)) is not judged light or coloured (NS-02, NS-09).",
+  "A fill that is only a var() reference (for example background: var(--green-100)), or written with oklch(), lab(), lch() or color-mix(), is not judged light or coloured (NS-02, NS-09).",
   "Object-style CSS-in-JS ({ borderRadius: 9999, background: '#dcfce7' }) is not read for pills and tiles; only template-literal CSS is.",
   "Nested SCSS or LESS selectors are not joined: only the innermost brace-free rule blocks are judged for pills and tiles.",
   "A code or pre rule in a stylesheet that sets a monospace family still counts for NS-01 (styled.code and styled.pre are exempt).",
