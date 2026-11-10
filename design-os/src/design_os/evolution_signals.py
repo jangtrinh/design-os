@@ -116,10 +116,14 @@ def read_token_sources_signal(project_dir: Path) -> dict[str, Any]:
     disagrees with it (spec 033 FR-018). `tokens_path` is the project-relative path of the
     file read (None when it does not exist). `token_sources_differ` appears only when
     `design/tokens.json` also exists with a different token count than the sealed store."""
-    sealed_path = project_dir / _TOKENS_REL
-    sealed = _read_json(sealed_path)
-    out: dict[str, Any] = {"tokens_path": _TOKENS_REL.as_posix() if sealed is not None else None}
+    # A token document is a JSON object; an array, string or number is unreadable, not "0 tokens".
+    sealed = _read_json(project_dir / _TOKENS_REL)
     other = _read_json(project_dir / _DESIGN_TOKENS_REL)
+    if not isinstance(sealed, dict):
+        sealed = None
+    if not isinstance(other, dict):
+        other = None
+    out: dict[str, Any] = {"tokens_path": _TOKENS_REL.as_posix() if sealed is not None else None}
     if sealed is not None and other is not None:
         sealed_n, other_n = _count_leaf_tokens(sealed), _count_leaf_tokens(other)
         if sealed_n != other_n:
