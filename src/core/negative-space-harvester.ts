@@ -6,38 +6,46 @@
  * not judge (Art VIII: no "absent" without the files that were looked at). A zero is evidence, not a
  * decision; turning it into a proposal is negative-space-proposals.ts, and a ban is the owner's act.
  *
- * Sources come from the polyglot UI walk (same excludes, same skip reporting), plus token JSON files
- * (`*token*.json`) for the probes where a palette or font token is evidence. A Figma inventory
- * (`design/ds.json`, `design/canvas-inventory.json`) holds component names and sizes only, so it can
- * add hits by name/size and can never count a fill or font probe as zero: those say what is missing.
+ * Sources come from the polyglot UI walk widened with stylesheets (`.css`, `.scss`, `.less`), so a
+ * cliche that lives in a rule is seen; plus token JSON files (`*token*.json`) for the probes where a
+ * palette or font token is evidence. Files of other template or style types are counted per extension
+ * and NOT read; skipped files (unreadable, oversized, symbolic link) are counted per kind. Every number
+ * reaches the report, so the evidence line can state what was read and what was not.
+ * A Figma inventory (`design/ds.json`, `design/canvas-inventory.json`) holds component names and sizes
+ * only, so it can add hits by name/size and can never count a fill or font probe as zero.
  *
- * Deterministic: sorted walk, no clock, no network; two runs over one tree give identical reports.
+ * One pass: each file is read once, every detector runs on it, only the hits are kept, and the file's
+ * text is released before the next one is read. Deterministic: sorted walk, no clock, no network.
  */
-import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 
-import { DSError } from "./design-system.js";
-import { makeFileCtx } from "./negative-space-detector-kit.js";
-import type { Exclusion, FileCtx, Hit } from "./negative-space-detector-kit.js";
-import { NEGATIVE_SPACE_PROBES } from "./negative-space-probes.js";
-import type { FigmaComponent } from "./negative-space-probes.js";
-import { EXCLUDED_UI_DIRECTORIES, MAX_UI_FILE_BYTES, walkUiSources } from "./polyglot-ui-walk.js";
+import { fileKindOf, makeFileCtx, STYLE_EXTENSIONS } from "./negative-space-detector-kit.js";
+import type { Exclusion, FileKind, Hit } from "./negative-space-detector-kit.js";
+import { NEGATIVE_SPACE_LIMITS, NEGATIVE_SPACE_PROBES } from "./negative-space-probes.js";
+import { readInventory, walkTokenJson } from "./negative-space-sources.js";
+import { uiSourceExtension } from "./polyglot-ui-extractor.js";
+import { walkUiSources } from "./polyglot-ui-walk.js";
 import type { UiSkip } from "./polyglot-ui-walk.js";
 
 export type { Exclusion, Hit } from "./negative-space-detector-kit.js";
 
 export const HIT_CAP = 10;
 export const EXCLUDED_CAP = 20;
-const INVENTORY_FILES = ["ds.json", "canvas-inventory.json"] as const;
+/** Template and style types the harvest meets and does not read; counted per extension in the report. */
+export const UNREAD_TEMPLATE_STYLE_EXTENSIONS: readonly string[] = [".astro", ".ejs", ".erb", ".hbs", ".liquid", ".mdx", ".njk", ".pcss", ".php", ".pug", ".sass", ".styl", ".twig"];
 
 export interface ProbeResult {
   id: string;
   slug: string;
   summary: string;
+  /** One plain sentence of what the detector matches. */
+  matches: string;
   /** Occurrences found in the files read plus Figma name/size hits. */
   count: number;
-  /** Files this probe read (UI source, plus token JSON for the probes that use it). */
+  /** Files this probe read (the kinds it judges: UI source, plus stylesheets and token JSON where it uses them). */
   scannedFiles: number;
+  /** Files of the kinds this probe judges that were met and not read (unreadable, oversized, symbolic link). */
+  skippedFiles: number;
   /** The first HIT_CAP hits in walk order; `hitsOmitted` is the rest. */
   hits: Hit[];
   hitsOmitted: number;
@@ -50,9 +58,15 @@ export interface ProbeResult {
 }
 export interface HarvestReport {
   sourceDir: string;
-  walk: { uiFiles: number; tokenJsonFiles: number; total: number; skipped: UiSkip[] };
+  walk: {
+    uiFiles: number; styleFiles: number; tokenJsonFiles: number; total: number; skipped: UiSkip[];
+    /** Template and style files met and not read, per extension (sorted). */
+    unread: Record<string, number>;
+  };
   figma: { present: boolean; files: string[]; components: number };
   probes: ProbeResult[];
+  /** What no probe sees (printed with every report). */
+  limits: readonly string[];
 }
 export interface HarvestOptions {
   sourceDir: string;
@@ -62,55 +76,12 @@ export interface HarvestOptions {
   skipPrefixes?: readonly string[];
 }
 
-/** Token JSON files met outside excluded directories; unreadable or oversized ones are reported, not read. */
-function walkTokenJson(root: string, skipPrefixes: readonly string[]): { files: string[]; relative: string[]; skipped: UiSkip[] } {
-  const out = { files: [] as string[], relative: [] as string[], skipped: [] as UiSkip[] };
-  const visit = (abs: string, rel: string): void => {
-    let names: string[];
-    try { names = readdirSync(abs).sort(); } catch { return; } // the UI walk already reported this directory
-    for (const name of names) {
-      const childAbs = join(abs, name);
-      const childRel = rel === "" ? name : `${rel}/${name}`;
-      let st;
-      try { st = lstatSync(childAbs); } catch { continue; }
-      if (st.isSymbolicLink()) continue;
-      if (st.isDirectory()) { if (!EXCLUDED_UI_DIRECTORIES.includes(name)) visit(childAbs, childRel); continue; }
-      if (!st.isFile() || !/token.*\.json$/i.test(name) || skipPrefixes.some((p) => childRel.startsWith(p))) continue;
-      if (st.size > MAX_UI_FILE_BYTES) out.skipped.push({ path: childRel, reason: `larger than ${MAX_UI_FILE_BYTES / (1024 * 1024)} MB (${st.size} bytes)` });
-      else { out.files.push(childAbs); out.relative.push(childRel); }
-    }
-  };
-  visit(root, "");
-  return out;
-}
-
-function readInventory(designDir: string): { files: string[]; components: (FigmaComponent & { file: string })[] } {
-  const files: string[] = [];
-  const components: (FigmaComponent & { file: string })[] = [];
-  for (const name of INVENTORY_FILES) {
-    const path = join(designDir, name);
-    if (!existsSync(path)) continue;
-    let doc: unknown;
-    try { doc = JSON.parse(readFileSync(path, "utf8").replace(/^\uFEFF/, "")); }
-    catch (e) { throw new DSError("BAD_JSON", `Figma inventory '${path}' is not readable JSON (${e instanceof Error ? e.message : String(e)}). Fix the file or remove it.`); }
-    const label = `design/${name}`;
-    files.push(label);
-    const o = (doc !== null && typeof doc === "object" ? doc : {}) as Record<string, unknown>;
-    for (const key of ["components", "componentSets"]) {
-      const list = Array.isArray(o[key]) ? (o[key] as unknown[]) : [];
-      for (const c of list) {
-        if (c === null || typeof c !== "object" || typeof (c as { name?: unknown }).name !== "string") continue;
-        const { name, w, h } = c as { name: string; w?: unknown; h?: unknown };
-        components.push({ name, file: label, ...(typeof w === "number" && { w }), ...(typeof h === "number" && { h }) });
-      }
-    }
-  }
-  return { files, components };
-}
+const why = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+interface Acc { count: number; scanned: number; hits: Hit[]; excluded: Exclusion[]; excludedTotal: number }
 
 export function harvestNegativeSpace(opts: HarvestOptions): HarvestReport {
   const skipPrefixes = opts.skipPrefixes ?? [];
-  const ui = walkUiSources(opts.sourceDir);
+  const ui = walkUiSources(opts.sourceDir, { extraExtensions: STYLE_EXTENSIONS, unreadExtensions: UNREAD_TEMPLATE_STYLE_EXTENSIONS });
   const skipped = [...ui.skipped];
   const keep = ui.relative.map((rel) => !skipPrefixes.some((p) => rel.startsWith(p)));
   for (const p of skipPrefixes) {
@@ -119,46 +90,66 @@ export function harvestNegativeSpace(opts: HarvestOptions): HarvestReport {
   const tokens = walkTokenJson(opts.sourceDir, skipPrefixes);
   skipped.push(...tokens.skipped);
 
-  const uiCtxs: FileCtx[] = ui.files.flatMap((abs, i) => {
-    if (keep[i] !== true) return [];
-    try { return [makeFileCtx(ui.relative[i] as string, readFileSync(abs, "utf8"))]; }
-    catch (e) { skipped.push({ path: ui.relative[i] as string, reason: `cannot read: ${e instanceof Error ? e.message : String(e)}` }); return []; }
-  });
-  const jsonCtxs: FileCtx[] = tokens.files.flatMap((abs, i) => {
-    try { return [makeFileCtx(tokens.relative[i] as string, readFileSync(abs, "utf8"))]; }
-    catch (e) { skipped.push({ path: tokens.relative[i] as string, reason: `cannot read: ${e instanceof Error ? e.message : String(e)}` }); return []; }
-  });
+  const accs: Acc[] = NEGATIVE_SPACE_PROBES.map(() => ({ count: 0, scanned: 0, hits: [], excluded: [], excludedTotal: 0 }));
+  const read: Record<FileKind, number> = { ui: 0, style: 0, json: 0 };
+  const scan = (abs: string, rel: string): void => {
+    let source: string;
+    try { source = readFileSync(abs, "utf8"); }
+    catch (e) { skipped.push({ path: rel, reason: `cannot read: ${why(e)}` }); return; }
+    const ctx = makeFileCtx(rel, source);
+    read[ctx.kind]++;
+    NEGATIVE_SPACE_PROBES.forEach((probe, i) => {
+      if (ctx.kind === "json" ? !probe.readsJson : ctx.kind === "style" && !probe.readsStyles) return;
+      const acc = accs[i] as Acc;
+      acc.scanned++;
+      const d = probe.detect(ctx);
+      acc.count += d.hits.length;
+      acc.excludedTotal += d.excluded.length;
+      if (acc.hits.length < HIT_CAP) acc.hits.push(...[...d.hits].sort((a, b) => a.line - b.line).slice(0, HIT_CAP - acc.hits.length));
+      if (acc.excluded.length < EXCLUDED_CAP) acc.excluded.push(...[...d.excluded].sort((a, b) => a.line - b.line).slice(0, EXCLUDED_CAP - acc.excluded.length));
+    });
+  };
+  ui.files.forEach((abs, i) => { if (keep[i] === true) scan(abs, ui.relative[i] as string); });
+  tokens.files.forEach((abs, i) => scan(abs, tokens.relative[i] as string));
 
   const inventory = opts.designDir === undefined ? { files: [], components: [] } : readInventory(opts.designDir);
   const present = inventory.files.length > 0;
+  // a skipped FILE of a kind the harvest reads (a directory, or an entry that could not be inspected, has no kind)
+  const readable = (path: string): boolean => uiSourceExtension(path) !== undefined || fileKindOf(path) !== "ui";
+  const skippedFiles = skipped.filter((s) => !s.path.endsWith("/") && readable(s.path)).map((s) => fileKindOf(s.path));
 
-  const probes = NEGATIVE_SPACE_PROBES.map((probe): ProbeResult => {
-    const ctxs = probe.readsJson ? [...uiCtxs, ...jsonCtxs] : uiCtxs;
-    const hits: Hit[] = [];
-    const excluded: Exclusion[] = [];
-    for (const ctx of ctxs) {
-      const d = probe.detect(ctx);
-      hits.push(...[...d.hits].sort((a, b) => a.line - b.line));
-      excluded.push(...[...d.excluded].sort((a, b) => a.line - b.line));
-    }
+  const probes = NEGATIVE_SPACE_PROBES.map((probe, i): ProbeResult => {
+    const acc = accs[i] as Acc;
+    const hits = acc.hits;
+    let figmaHits = 0;
     for (const c of inventory.components) {
       const evidence = probe.figma?.(c);
-      if (evidence !== undefined) hits.push({ file: c.file, line: 0, excerpt: evidence });
+      if (evidence === undefined) continue;
+      figmaHits++;
+      if (hits.length < HIT_CAP) hits.push({ file: c.file, line: 0, excerpt: evidence });
     }
+    const count = acc.count + figmaHits;
+    const judged = (k: FileKind): boolean => (k === "json" ? probe.readsJson : k === "style" ? probe.readsStyles : true);
     return {
-      id: probe.id, slug: probe.slug, summary: probe.summary,
-      count: hits.length, scannedFiles: ctxs.length,
-      hits: hits.slice(0, HIT_CAP), hitsOmitted: Math.max(0, hits.length - HIT_CAP),
-      excluded: excluded.slice(0, EXCLUDED_CAP), excludedOmitted: Math.max(0, excluded.length - EXCLUDED_CAP),
+      id: probe.id, slug: probe.slug, summary: probe.summary, matches: probe.matches,
+      count, scannedFiles: acc.scanned, skippedFiles: skippedFiles.filter(judged).length,
+      hits, hitsOmitted: Math.max(0, count - hits.length),
+      excluded: acc.excluded, excludedOmitted: Math.max(0, acc.excludedTotal - acc.excluded.length),
       notEvaluated: present ? [`figma inventory has no ${probe.figmaGap}`] : [],
       figmaScanned: inventory.components.length,
     };
   });
 
+  const unread = Object.fromEntries(Object.entries(ui.unread ?? {}).sort(([a], [b]) => (a < b ? -1 : 1)));
   return {
     sourceDir: opts.sourceDir,
-    walk: { uiFiles: uiCtxs.length, tokenJsonFiles: jsonCtxs.length, total: ui.total - keep.filter((k) => !k).length + jsonCtxs.length, skipped },
+    walk: {
+      uiFiles: read.ui, styleFiles: read.style, tokenJsonFiles: read.json,
+      total: ui.total - keep.filter((k) => !k).length + read.json + tokens.skipped.length,
+      skipped, unread,
+    },
     figma: { present, files: inventory.files, components: inventory.components.length },
     probes,
+    limits: NEGATIVE_SPACE_LIMITS,
   };
 }

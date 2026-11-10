@@ -8,7 +8,8 @@
  * returned in `excluded` with the reason, never silently dropped and never counted.
  *
  * Honest limits: this reads the text of the file, not what a build would emit; a class assembled at
- * runtime is not seen (same as the polyglot extractor).
+ * runtime is not seen (same as the polyglot extractor). The limits the probes share are listed in
+ * negative-space-probes.ts (`NEGATIVE_SPACE_LIMITS`) so a report can print them next to the counts.
  */
 import {
   classRecords, clip, cssBlocks, emptyDetection, hasPillRadius, hexesIn, isPastelFillClass, isPastelHex, isSemanticTintHex, isTintedFillClass,
@@ -17,7 +18,7 @@ import {
 import type { Detection, Detector } from "./negative-space-detector-kit.js";
 
 export const MONOSPACE_TOKENS = ["ui-monospace", "monospace", "font-mono", "SFMono", "JetBrains Mono", "Fira Code"] as const;
-export const GRADIENT_TOKENS = ["linear-gradient(", "bg-gradient-"] as const;
+export const GRADIENT_TOKENS = ["linear-gradient(", "radial-gradient(", "conic-gradient(", "bg-gradient-", "bg-linear-", "bg-radial", "bg-conic"] as const;
 export const GLOW_TOKENS = ["shadow-[0_0_", "drop-shadow-[0_0_", "shadow-glow", "ring-glow"] as const;
 
 export const detectMonospace: Detector = (f) => scanTokens(f, MONOSPACE_TOKENS, ["code", "pre"]);
@@ -143,6 +144,7 @@ export const detectTintedIconTile: Detector = (f) => {
   return d;
 };
 
+const COLOURED_SHADOW = /^(?:drop-)?shadow-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?:\/\d+)?$/;
 const GLOW_CSS = /(?<=(?:box-shadow\s*:|,)\s*)(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+[1-9]\d*(?:\.\d+)?px/gi;
 export const detectGlowOrRing: Detector = (f) => {
   const d: Detection = scanTokens(f, GLOW_TOKENS);
@@ -151,6 +153,8 @@ export const detectGlowOrRing: Detector = (f) => {
     // a focus ring (focus:/focus-visible:/focus-within: variant) is accessibility, not decoration; only a resting ring on a round element counts
     const ring = r.resting.find((b) => /^ring-(?:[2-8])$/.test(b));
     if (ring !== undefined && r.resting.some(isPillClass)) d.hits.push({ file: f.file, line: r.line, excerpt: clip(r.raw.join(" ")) });
+    const coloured = r.resting.find((b) => COLOURED_SHADOW.test(b));
+    if (coloured !== undefined) d.hits.push({ file: f.file, line: r.line, excerpt: clip(`coloured shadow ${coloured}`) });
   }
   return d;
 };

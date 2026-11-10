@@ -10,8 +10,19 @@
 import { evaluateTokenBansDetailed } from "./adherence-rules.js";
 import type { TokenBanRule } from "./adherence-rules.js";
 import { createLineIndex } from "./line-index.js";
-import { extractUiRecords } from "./polyglot-ui-extractor.js";
+import { extractUiRecords, uiSourceExtension } from "./polyglot-ui-extractor.js";
 import type { UiRecord } from "./polyglot-ui-extractor.js";
+import { blankDelimited, blankInterpolations, spaces, templateLiterals } from "./polyglot-ui-scans.js";
+
+/** Stylesheet types the harvest reads on top of the UI-source walk. */
+export const STYLE_EXTENSIONS = [".css", ".scss", ".less"] as const;
+export type FileKind = "ui" | "style" | "json";
+/** What a path is to the harvest: token JSON, a stylesheet, or (everything else it reads) UI source. */
+export function fileKindOf(path: string): FileKind {
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".json")) return "json";
+  return STYLE_EXTENSIONS.some((e) => lower.endsWith(e)) ? "style" : "ui";
+}
 
 export interface Hit { file: string; line: number; excerpt: string }
 export interface Exclusion { file: string; line: number; reason: string }
@@ -20,17 +31,45 @@ export interface FileCtx {
   /** Path relative to the walked root, `/`-separated. */
   file: string;
   source: string;
+  kind: FileKind;
   json: boolean;
-  /** Extractor records; empty for JSON files. */
+  /** Extractor records (stylesheets: one per rule block); empty for JSON files. */
   records: UiRecord[];
   lineOf: (offset: number) => number;
   lines: string[];
 }
 export type Detector = (f: FileCtx) => Detection;
 
+const RULE_BLOCK = /([^{}]*)\{([^{}]*)\}/g;
+const SCRIPT_EXT = new Set([".jsx", ".tsx", ".js", ".ts"]);
+const looksDeclared = /[\w-]\s*:\s*[^;\s]/;
+
+/** A stylesheet as records: one per innermost rule block, selector included, at the line the rule starts. */
+function styleRecords(file: string, source: string, lineOf: (offset: number) => number): UiRecord[] {
+  let text = blankDelimited(source, "/*", "*/", spaces);
+  if (!file.toLowerCase().endsWith(".css")) text = text.replace(/(^|\n)[ \t]*\/\/[^\n]*/g, (m) => spaces(m));
+  return [...text.matchAll(RULE_BLOCK)].map((m) => {
+    const lead = (m[1] ?? "").length - (m[1] ?? "").trimStart().length;
+    return { file, line: lineOf((m.index ?? 0) + lead), styles: `${(m[1] ?? "").trim()}{${m[2] ?? ""}}`, classes: [], markup: "" };
+  });
+}
+
+/**
+ * CSS-in-JS text without braces (`styled.div` + a template literal holding `border-radius: 999px; background: #dcfce7`):
+ * the extractor only reads brace blocks, so these literals become records of their own.
+ */
+function declarationLiterals(file: string, source: string, lineOf: (offset: number) => number): UiRecord[] {
+  if (!SCRIPT_EXT.has(uiSourceExtension(file) ?? "")) return [];
+  return templateLiterals(blankInterpolations(source))
+    .filter((t) => !/[{}]/.test(t.value) && looksDeclared.test(t.value))
+    .map((t) => ({ file, line: lineOf(t.at), styles: t.value, classes: [], markup: "" }));
+}
+
 export function makeFileCtx(file: string, source: string): FileCtx {
-  const json = file.toLowerCase().endsWith(".json");
-  return { file, source, json, records: json ? [] : extractUiRecords(file, source), lineOf: createLineIndex(source).lineOf, lines: source.split("\n") };
+  const kind = fileKindOf(file);
+  const lineOf = createLineIndex(source).lineOf;
+  const records = kind === "json" ? [] : kind === "style" ? styleRecords(file, source, lineOf) : [...extractUiRecords(file, source), ...declarationLiterals(file, source, lineOf)];
+  return { file, source, kind, json: kind === "json", records, lineOf, lines: source.split("\n") };
 }
 
 export const clip = (s: string, max = 90): string => {
@@ -83,14 +122,23 @@ export function classRecords(f: FileCtx): ClassRecord[] {
     resting: r.classes.map(parseClass).filter((p) => p.variants.every((v) => RESPONSIVE.has(v))).map((p) => p.base),
   }));
 }
-/** CSS declaration bodies (`a:b; c:d`) of every brace-free block in a record's style text. */
-export const cssBlocks = (r: UiRecord): string[] => [...r.styles.matchAll(/\{([^{}]*)\}/g)].map((m) => m[1] ?? "");
+/** CSS declaration bodies (`a:b; c:d`) of every brace-free block in a record's style text (a brace-less record is one body). */
+export const cssBlocks = (r: UiRecord): string[] => {
+  if (r.styles.trim() === "") return [];
+  return r.styles.includes("{") ? [...r.styles.matchAll(/\{([^{}]*)\}/g)].map((m) => m[1] ?? "") : [r.styles];
+};
 
 const CHROMA = "red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose";
 const PASTEL_FILL = new RegExp(`^bg-(?:${CHROMA})-(?:50|100|200)$|^bg-(?:${CHROMA})-\\d{2,3}/(?:5|10|15|20|25)$`);
 const BRAND_TINT = /^bg-(?:primary|accent|secondary|muted|brand)\/(?:5|10|15|20|25)$/;
-export const isPastelFillClass = (base: string): boolean => PASTEL_FILL.test(base);
-export const isTintedFillClass = (base: string): boolean => PASTEL_FILL.test(base) || BRAND_TINT.test(base);
+const ARBITRARY_HEX_FILL = /^bg-\[(#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3}))\]$/i;
+/** `bg-[#dcfce7]`: an arbitrary light, clearly coloured fill is a tint exactly like the 50/100/200 steps. */
+const isArbitraryTint = (base: string): boolean => {
+  const hex = ARBITRARY_HEX_FILL.exec(base)?.[1];
+  return hex !== undefined && (isPastelHex(hex) || isSemanticTintHex(hex));
+};
+export const isPastelFillClass = (base: string): boolean => PASTEL_FILL.test(base) || isArbitraryTint(base);
+export const isTintedFillClass = (base: string): boolean => PASTEL_FILL.test(base) || BRAND_TINT.test(base) || isArbitraryTint(base);
 
 const HEX_RE = /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3})(?![0-9a-z])/gi;
 /** Light (>= 0.85) and clearly coloured (saturation >= 0.5): a semantic tint, not white, grey or a brand colour. */
