@@ -87,7 +87,8 @@ export function findTailwindV4Css(
   return null;
 }
 
-const under = (path: string, appPath: string): boolean => path.startsWith(appPath + "/");
+/** The app root itself counts: a package directory named `ui` is both the app and its component directory. */
+const under = (path: string, appPath: string): boolean => path === appPath || path.startsWith(appPath + "/");
 
 /** The deepest app root that contains `path`, or null (the scan root owns it). */
 export function ownerOf(path: string, apps: readonly AppCandidate[]): string | null {

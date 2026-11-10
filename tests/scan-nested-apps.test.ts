@@ -9,7 +9,7 @@ import { join } from "node:path";
 
 import { MAX_ENTRIES, scanProject } from "../src/core/project-scan.js";
 import { ui } from "./ksync-helpers.js";
-import { V4_CSS, wideAppProject, writeFiles } from "./scan-wide-app-fixture.js";
+import { V4_CSS, manyDirectoriesProject, wideAppProject, writeFiles } from "./scan-wide-app-fixture.js";
 
 const dirs: string[] = [];
 afterEach(() => { for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true }); });
@@ -100,6 +100,40 @@ describe("ui scan — Tailwind v4 detection needs both the dependency and the CS
   it("a package.json inside a test tree is a fixture, not an app root", () => {
     const r = scanProject(proj({ "tests/fixtures/demo/package.json": pkg({ react: "19" }), "apps/real/package.json": pkg({ react: "19" }) }));
     expect(r.apps.map((a) => a.path)).toEqual(["apps/real"]);
+  });
+});
+
+describe("ui scan — a package directory that is itself a component directory", () => {
+  it("a package named ui with its own package.json owns its direct code files", () => {
+    const r = scanProject(proj({
+      "packages/ui/package.json": pkg({ react: "19" }),
+      "packages/ui/a.tsx": "", "packages/ui/b.tsx": "", "packages/ui/c.tsx": "",
+    }));
+    expect(r.componentDirs).toEqual([{ path: "packages/ui", files: 3 }]);
+    expect(r.apps[0]).toMatchObject({ path: "packages/ui", componentDirs: [{ path: "packages/ui", files: 3 }] });
+  });
+});
+
+describe("ui scan — root entry and budget rows on a tree with many first-level directories", () => {
+  const many = (): ReturnType<typeof scanProject> => {
+    const root = manyDirectoriesProject(); dirs.push(root); return scanProject(root);
+  };
+  it("the root's own Tailwind v4 entry is reported, and it is not taken from a nested app", () => {
+    const r = many();
+    expect(r.truncated).toBe(true);
+    expect(r.apps.find((a) => a.path === "apps/web")!.tailwindCss).toBe("apps/web/aaa.css");
+    expect(r.tailwindCss).toBe("styles.css");
+  });
+  it("budget keeps the five largest first-level directories", () => {
+    const r = many();
+    expect(r.budget).toHaveLength(5);
+    expect(r.budget.every((b) => b.visited > 0)).toBe(true);
+  });
+  it("files directly in the root are not budget rows", () => {
+    const root = wideAppProject({ wideDirs: 45, filesPerDir: 100 }); dirs.push(root);
+    const r = scanProject(root);
+    expect(r.budget.map((b) => b.dir).sort()).toEqual(["apps", "zdata"]);
+    expect(many().budget.map((b) => b.dir)).not.toContain("notes.txt");
   });
 });
 
