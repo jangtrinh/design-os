@@ -1,6 +1,6 @@
 /**
- * The `owner rulings` row of `ui onboard` (FR-007): read-only, in memory. It never throws — `ui onboard` always
- * exits 0 — so an unreadable store becomes a row that names the file and the next step.
+ * The `owner rulings` row of `ui onboard`: read-only, in memory. A store that cannot be read becomes a row that quotes
+ * the reader's reason and the fix, so `ui onboard` still exits 0.
  */
 import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
@@ -14,6 +14,8 @@ export interface RulingsRow {
   pending: number;
   recorded: number;
   stale: number;
+  /** Set only when a store could not be read: the reader's reason and the fix, for `--json`. */
+  unreadable?: string;
 }
 
 const QUESTIONS_HINT = "run `ui onboard questions` to see what the owner has to rule on";
@@ -36,8 +38,10 @@ export function rulingsRow(projectDir: string, emitters?: readonly KindEmitter[]
     }
     return { ...base, state: "done", label: "owner rulings: none needed", hint: "" };
   } catch (e) {
-    if (e instanceof PendingStoreError) return { ...none, state: "pending", label: "owner rulings: unreadable pending file", hint: e.message };
-    const why = e instanceof RulingStoreError ? e.message : "the ruling store could not be read";
-    return { ...none, state: "warn", label: "owner rulings: unreadable", hint: `${why}; fix the file, then run \`ui design lint\`` };
+    // The stores' own messages already name the file, the reason and the fix; anything else is not ours to disguise.
+    if (e instanceof PendingStoreError) return { ...none, state: "pending", label: "owner rulings: unreadable pending file", hint: e.message, unreadable: e.message };
+    if (!(e instanceof RulingStoreError)) throw e;
+    const hint = `${e.message}; repair that file by hand or restore it from version control, then run \`ui onboard\` again`;
+    return { ...none, state: "warn", label: "owner rulings: unreadable", hint, unreadable: hint };
   }
 }

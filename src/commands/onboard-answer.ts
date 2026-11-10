@@ -12,9 +12,9 @@ import { errJson, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { validateAnswers } from "../core/owner-rulings/answer-validator.js";
 import type { KindEmitter } from "../core/owner-rulings/kind-emitter.js";
-import { PendingStoreError, readPending, writePending } from "../core/owner-rulings/pending-store.js";
+import { PendingStoreError, readPending, removePending, writePending } from "../core/owner-rulings/pending-store.js";
 import { computeRulingState } from "../core/owner-rulings/ruling-state.js";
-import { appendRulings, RulingStoreError } from "../core/owner-rulings/ruling-store.js";
+import { appendRulings, readRulingStore, RulingStoreError } from "../core/owner-rulings/ruling-store.js";
 
 const SUB = "onboard answer";
 
@@ -40,15 +40,23 @@ export function runOnboardAnswer(parsed: ParsedArgs, defaultCwd: string, emitter
   }
 
   let pending;
-  try { pending = readPending(cwd).clusters; }
-  catch (e) { return err(e instanceof PendingStoreError ? e.code : "READ_ERROR", e instanceof Error ? e.message : "cannot read pending.json"); }
-  const verdict = validateAnswers(pending, raw, now, emitters);
+  let stored;
+  try { pending = readPending(cwd).clusters; stored = readRulingStore(cwd).rulings; }
+  catch (e) {
+    if (e instanceof PendingStoreError || e instanceof RulingStoreError) return err(e.code, e.message);
+    throw e;
+  }
+  const verdict = validateAnswers(pending, raw, now, stored, emitters);
   if (!verdict.ok) return err(verdict.code, verdict.message);
 
   try { appendRulings(cwd, verdict.rulings); }
   catch (e) { return err(e instanceof RulingStoreError ? e.code : "WRITE_ERROR", e instanceof Error ? e.message : "cannot write design/design-dir.json"); }
   const answered = new Set(verdict.answered.map((c) => c.fingerprint));
-  try { writePending(cwd, pending.filter((c) => !answered.has(c.fingerprint)), 1); }
+  try {
+    const left = pending.filter((c) => !answered.has(c.fingerprint));
+    if (left.length === 0) removePending(cwd);
+    else writePending(cwd, left, 1);
+  }
   catch { return err("WRITE_ERROR", "rulings were recorded but .design-os/onboard/pending.json could not be updated; it is transient and safe to delete"); }
 
   const remaining = computeRulingState(cwd, emitters === undefined ? {} : { emitters }).pending.length;

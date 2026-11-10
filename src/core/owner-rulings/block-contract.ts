@@ -5,20 +5,25 @@
  * transient pending.json under `<project>/.design-os/onboard/`.
  *
  * "Nothing written" is a statement about the command's output. When the output directory is the project root, the
- * pending file lands inside it, so the tree under test excludes `.design-os/`.
+ * pending file lands inside it, so the tree under test excludes `.design-os/`. On every run the command replaces its
+ * own kinds' stored questions with what it finds now (none when nothing is open) and removes the file once it is
+ * empty; other kinds are left as stored, and the file is not rewritten when nothing changed.
  *
  * A command blocks only on its own questions: the kinds in `ownKinds`, plus the project-level kinds when it is one
  * of the doors that run the project-level detectors. A cluster another command left in pending.json is kept in the
- * file but does not block. This function never throws: a store error becomes an exit-1 envelope.
+ * file but does not block. A store read failure keeps the store's code and a write failure is WRITE_ERROR, both as
+ * an exit-1 envelope; anything else (an emitter's own bug) propagates unchanged.
  */
 import { errJsonWithData, errText } from "../output.js";
 import type { CommandResult } from "../output.js";
 import { PROJECT_LEVEL_KINDS } from "./cluster-kinds.js";
 import type { ClusterKind } from "./cluster-kinds.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
-import { PENDING_REL, PendingStoreError, writePending } from "./pending-store.js";
+import type { Cluster } from "./cluster.js";
+import { PENDING_REL, PendingStoreError, readPending, removePending, writePending } from "./pending-store.js";
 import { orderClusters } from "./questions-format.js";
 import { computeRulingState } from "./ruling-state.js";
+import type { RulingState } from "./ruling-state.js";
 import { RulingStoreError } from "./ruling-store.js";
 
 export const BLOCKED_CODE = "ONBOARD_BLOCKED_NEEDS_OWNER_RULING";
@@ -41,22 +46,37 @@ export interface BlockInput {
 export function blockOnOpenClusters(input: BlockInput): CommandResult | null {
   const fail = (code: string, message: string): CommandResult =>
     input.json ? errJsonWithData(input.command, code, message, {}) : errText(`ui: ${code}: ${message}\n`);
+  const projectLevel = input.runsProjectDetectors === true;
+  let state: RulingState;
+  let stored: Cluster[];
   try {
-    const projectLevel = input.runsProjectDetectors === true;
-    const state = computeRulingState(input.projectDir, { detections: input.detections, ownKinds: input.ownKinds, projectLevel, ...(input.emitters === undefined ? {} : { emitters: input.emitters }) });
-    const blocking = orderClusters(state.pending.filter((c) => input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))));
-    if (blocking.length === 0) return null;
-
-    writePending(input.projectDir, orderClusters(state.pending), 1);
-    const next = "ui onboard questions --format claude   (or --format markdown for a sheet a team can answer)";
-    const message = `${blocking.length} cluster(s) need an owner ruling; nothing was written to the output. Next: ${next}`;
-    if (input.json) {
-      return errJsonWithData(input.command, BLOCKED_CODE, message, { blocked: { round: 1, clusters: blocking, pendingPath: PENDING_REL } });
-    }
-    const lines = blocking.map((c) => `  ${c.kind}: ${c.count} affected — ${c.question}`);
-    return errText(`ui: ${BLOCKED_CODE}\n${lines.join("\n")}\nui: ${message}\n`);
+    state = computeRulingState(input.projectDir, { detections: input.detections, ownKinds: input.ownKinds, projectLevel, ...(input.emitters === undefined ? {} : { emitters: input.emitters }) });
+    stored = readPending(input.projectDir).clusters;
   } catch (e) {
+    // Only the stores' own failures become an envelope; a bug in an emitter keeps its own message and stack.
     if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(e.code, e.message);
+    throw e;
+  }
+  const mine = new Set<ClusterKind>(state.recomputed);
+  const blocking = orderClusters(state.pending.filter((c) => input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))));
+
+  // The command's own kinds are replaced by what it detects now: the open ones when it blocks, none when it does not.
+  const next = orderClusters([...stored.filter((c) => !mine.has(c.kind)), ...state.pending.filter((c) => mine.has(c.kind))]);
+  try {
+    if (JSON.stringify(next) !== JSON.stringify(stored)) {
+      if (next.length === 0) removePending(input.projectDir);
+      else writePending(input.projectDir, next, 1);
+    }
+  } catch (e) {
     return fail("WRITE_ERROR", e instanceof Error ? e.message : "cannot write .design-os/onboard/pending.json");
   }
+  if (blocking.length === 0) return null;
+
+  const how = "ui onboard questions --format claude   (or --format markdown for a sheet a team can answer)";
+  const message = `${blocking.length} cluster(s) need an owner ruling; nothing was written to the output. Next: ${how}`;
+  if (input.json) {
+    return errJsonWithData(input.command, BLOCKED_CODE, message, { blocked: { round: 1, clusters: blocking, pendingPath: PENDING_REL } });
+  }
+  const lines = blocking.map((c) => `  ${c.kind}: ${c.count} affected — ${c.question}`);
+  return errText(`ui: ${BLOCKED_CODE}\n${lines.join("\n")}\nui: ${message}\n`);
 }

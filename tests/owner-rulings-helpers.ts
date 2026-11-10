@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { run } from "../src/cli.js";
 import { parseArgs } from "../src/core/cli-args.js";
 import type { ParsedArgs } from "../src/core/cli-args.js";
-import { buildCluster } from "../src/core/owner-rulings/cluster.js";
+import { MAX_OPTIONS, buildCluster } from "../src/core/owner-rulings/cluster.js";
 import type { Cluster, ClusterOption } from "../src/core/owner-rulings/cluster.js";
 import { CLUSTER_KIND_TABLE } from "../src/core/owner-rulings/cluster-kinds.js";
 import type { ClusterKind } from "../src/core/owner-rulings/cluster-kinds.js";
@@ -50,18 +50,21 @@ export function scratchProject(): string {
 }
 
 /**
- * Options for a cluster of `kind` over `members`: a multi-select kind gets one option per member (`keep-<m>`
- * selecting it) and a single-choice kind gets `a` and `b`. The last option is always `review-individually`.
+ * Options for a cluster of `kind` over `members`. A multi-select kind gets up to four options that stand for members
+ * or groups of members (`keep-<m>`; with more than four members the last option stands for "the other" ones; a lone
+ * member gets `keep-none` beside it). A single-choice kind gets `a`, `b` and `review-individually`.
  */
 export function optionsFor(kind: ClusterKind, members: readonly string[]): ClusterOption[] {
-  const review: ClusterOption = { id: "review-individually", label: "Review individually", consequence: "asks per member" };
   if (CLUSTER_KIND_TABLE[kind].setValued) {
-    const per = members.slice(0, 3).map((m, i, all) => ({
-      id: `keep-${m}`, label: `Keep ${m}`, consequence: `keeps ${m}`, ...(i === 0 ? { recommended: true } : {}),
-      selects: i === all.length - 1 ? members.slice(i) : [m],
+    const singles = members.length <= MAX_OPTIONS ? members : members.slice(0, MAX_OPTIONS - 1);
+    const opts: ClusterOption[] = singles.map((m, i) => ({
+      id: `keep-${m}`, label: `Keep ${m}`, consequence: `keeps ${m}`, ...(i === 0 ? { recommended: true } : {}), selects: [m],
     }));
-    return [...per, review];
+    if (members.length > MAX_OPTIONS) opts.push({ id: "keep-others", label: `The other ${members.length - singles.length}`, consequence: "keeps them", selects: members.slice(singles.length) });
+    if (opts.length < 2) opts.push({ id: "keep-none", label: "None of these", consequence: "keeps none", selects: [] });
+    return opts;
   }
+  const review: ClusterOption = { id: "review-individually", label: "Review individually", consequence: "asks per member" };
   return [{ id: "a", label: "Option A", consequence: `does A to ${members.length}`, recommended: true }, { id: "b", label: "Option B", consequence: "does B" }, review];
 }
 

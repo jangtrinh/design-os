@@ -67,6 +67,15 @@ the later ruling in the file governs it. A ruling of a multi-select kind always 
 every covered member; no reader interprets option ids. `actor` is always `owner`. `ui onboard` shows the state in its
 `owner rulings` row.
 
+A multi-select question spends all of its (at most four) option slots on members or groups of members; deciding member by
+member is never an option but is always accepted: answer `"choice": ["review-individually"]` with a `members` map of
+`keep` or `drop` for exactly the question's members. An option that selects no member may be chosen only on its own. A
+single-choice ruling that chose `review-individually` must carry the `members` map, and no member may map to it.
+
+Every run of a command that can block replaces its own kinds' questions in `pending.json` with what it finds now, and
+removes the file once nothing is left; questions of other kinds stay as they were. `ui onboard` only reads. An answer is
+checked against every ruling already recorded for its kind, not only against the question it answers.
+
 Writing a ruling means the file is re-serialised as 2-space JSON with a final newline: formatting is not preserved, but key order is,
 and every key other than `version` and `onboard` keeps its value. The manifest has one writer at a time; there is no lock,
 so do not run two `ui onboard answer` calls against one project at once.

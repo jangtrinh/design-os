@@ -182,7 +182,7 @@ export function runStatus(parsed: ParsedArgs): CommandResult {
     return okJson(CMD, {
       steps: steps.map((s) => ({ id: s.id, state: s.state, optional: s.optional })),
       ready,
-      rulings: { pending: rulings.pending, recorded: rulings.recorded, stale: rulings.stale },
+      rulings: { pending: rulings.pending, recorded: rulings.recorded, stale: rulings.stale, ...(rulings.unreadable === undefined ? {} : { unreadable: rulings.unreadable }) },
     });
   }
 

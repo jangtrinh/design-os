@@ -6,6 +6,7 @@ import { toClaudeQuestionPayload } from "../brief-questions-format.js";
 import type { FormatQuestion } from "../brief-questions-format.js";
 import type { Cluster } from "./cluster.js";
 import { CLUSTER_KIND_TABLE, REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
+import { DROP, KEEP } from "./ruling-store.js";
 
 export const QUESTIONS_PER_ROUND = 4;
 
@@ -30,6 +31,9 @@ function toFormatQuestion(c: Cluster): FormatQuestion {
   };
 }
 
+/** How a multi-select question is answered member by member; it is never one of the options. */
+const PER_MEMBER_NOTE = `To decide member by member, answer with choice ["${REVIEW_INDIVIDUALLY}"] and a members map giving each member "${KEEP}" or "${DROP}".`;
+
 /** One round of the AskUserQuestion payload, plus the key that maps each question back to its fingerprint and option ids. */
 export function toOwnerClaudePayload(clusters: readonly Cluster[], round: number): Record<string, unknown> {
   const ordered = orderClusters(clusters).slice((round - 1) * QUESTIONS_PER_ROUND);
@@ -42,11 +46,15 @@ export function toOwnerClaudePayload(clusters: readonly Cluster[], round: number
     answerKey: asked.map((c) => ({
       fingerprint: c.fingerprint, kind: c.kind, multiSelect: CLUSTER_KIND_TABLE[c.kind].setValued,
       options: c.options.map((o) => ({ id: o.id, label: o.label, ...(o.selects === undefined ? {} : { selects: o.selects }) })),
+      ...(CLUSTER_KIND_TABLE[c.kind].setValued ? { perMemberAnswer: { choice: [REVIEW_INDIVIDUALLY], values: [KEEP, DROP], members: c.members } } : {}),
     })),
   };
 }
 
 /** The sheet a team can answer asynchronously: every cluster with every member listed (FR-004). */
+/** The note a json listing carries once for all its multi-select questions. */
+export const PER_MEMBER_ANSWER_NOTE = PER_MEMBER_NOTE;
+
 export function toOwnerMarkdown(clusters: readonly Cluster[]): string {
   const lines = ["# Owner questions", "", "Answer each question, then give the host an answers file: `ui onboard answer --file <answers.json>`.", ""];
   for (const c of orderClusters(clusters)) {
@@ -56,9 +64,7 @@ export function toOwnerMarkdown(clusters: readonly Cluster[]): string {
       lines.push(`- [ ] \`${o.id}\` ${o.label}${o.recommended === true ? " (Recommended)" : ""} — ${o.consequence}`);
       if (o.selects !== undefined) lines.push(`  - stands for: ${o.selects.join(", ")}`);
     }
-    if (multi && c.options.some((o) => o.id === REVIEW_INDIVIDUALLY)) {
-      lines.push("", `To decide member by member, answer with choice \`["${REVIEW_INDIVIDUALLY}"]\` and a members map giving each member "keep" or "drop".`);
-    }
+    if (multi) lines.push("", PER_MEMBER_NOTE);
     lines.push("", "Members:", ...c.members.map((m) => `- ${m}`), "", "Answer: ", "");
   }
   return `${lines.join("\n")}\n`;

@@ -19,7 +19,8 @@ export interface ClusterOption {
   recommended?: boolean;
   /**
    * Set-valued kinds only: the member identities this option stands for (one option may stand for a group). Over
-   * the options other than `review-individually` the lists are disjoint and together equal the cluster's members.
+   * the options the lists are disjoint and together equal the cluster's members. An empty list is an option that
+   * keeps none of them.
    */
   selects?: string[];
 }
@@ -58,16 +59,17 @@ function orderOptions(options: readonly ClusterOption[]): ClusterOption[] {
 
 /** The reason an option set cannot stand for these members, or null. Single-choice kinds carry no selects. */
 function selectsProblem(kind: ClusterKind, members: readonly string[], options: readonly ClusterOption[]): string | null {
-  const real = options.filter((o) => o.id !== REVIEW_INDIVIDUALLY);
   if (!CLUSTER_KIND_TABLE[kind].setValued) {
     return options.some((o) => o.selects !== undefined) ? `cluster '${kind}' is single-choice: its options carry no selects` : null;
   }
-  if (options.some((o) => o.id === REVIEW_INDIVIDUALLY && o.selects !== undefined)) return `cluster '${kind}': ${REVIEW_INDIVIDUALLY} carries no selects`;
-  if (real.some((o) => o.selects === undefined)) return `cluster '${kind}' is set-valued: every option needs selects`;
+  // The per-member answer is always available without an option, so no slot is spent on it.
+  if (options.some((o) => o.id === REVIEW_INDIVIDUALLY)) return `cluster '${kind}' is set-valued: ${REVIEW_INDIVIDUALLY} is not an option (a per-member answer is always accepted)`;
+  if (options.some((o) => o.selects === undefined)) return `cluster '${kind}' is set-valued: every option needs selects`;
+  const memberSet = new Set(members);
   const seen = new Set<string>();
-  for (const o of real) {
+  for (const o of options) {
     for (const m of sortedUnique(o.selects ?? [])) {
-      if (!members.includes(m)) return `cluster '${kind}': option '${o.id}' selects '${m}', which is not a member`;
+      if (!memberSet.has(m)) return `cluster '${kind}': option '${o.id}' selects '${m}', which is not a member`;
       if (seen.has(m)) return `cluster '${kind}': the selects of the options must be disjoint ('${m}' appears twice)`;
       seen.add(m);
     }

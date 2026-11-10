@@ -3,16 +3,22 @@
  * All-or-nothing: the first problem refuses the whole file, so a refused answer writes nothing.
  *
  * Set-valued kinds: `choice` is a non-empty list of distinct option ids; the kernel expands it into a keep/drop map
- * over every member from the chosen options' `selects`. `review-individually` is valid only as the single element,
- * with a `members` map of keep/drop for exactly the cluster's members. Single-choice kinds: `choice` is one option id;
- * after `review-individually`, `members` maps each member to an option id.
+ * over every member from the chosen options' `selects`; an option that selects nothing is valid only as the single
+ * chosen option. `review-individually` is never an option of such a cluster (it would cost a slot a member needs),
+ * yet `["review-individually"]` with a `members` map of keep/drop for exactly the cluster's members is always
+ * accepted. Single-choice kinds: `choice` is one option id; after `review-individually`, `members` maps each member
+ * to an option id.
+ *
+ * The kind's own answer check sees the outcomes of the whole kind: the stored rulings, the earlier answers of the same
+ * file and this answer, the newest winning, so a delta answer cannot undo what an earlier ruling decided.
  */
 import { isRecord } from "../knowledge-promotion-ruling.js";
 import type { Cluster } from "./cluster.js";
 import { CLUSTER_KIND_TABLE, REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
 import { EMITTERS } from "./emitters.js";
 import type { KindEmitter } from "./kind-emitter.js";
-import { DROP, KEEP, outcomeOf } from "./ruling-store.js";
+import { governedOutcomes, indexRulings } from "./resolve-detections.js";
+import { DROP, KEEP } from "./ruling-store.js";
 import type { Ruling } from "./ruling-store.js";
 
 export type AnswerErrorCode = "STALE_ANSWER" | "BAD_ANSWER" | "DANGLING_AFTER_SELECTION";
@@ -20,7 +26,10 @@ export interface AnswerRefusal { ok: false; code: AnswerErrorCode; message: stri
 export interface AnswerAccepted { ok: true; rulings: Ruling[]; answered: Cluster[] }
 
 const refuse = (code: AnswerErrorCode, message: string): AnswerRefusal => ({ ok: false, code, message });
-const sameSet = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((x) => b.includes(x));
+const sameSet = (a: readonly string[], b: readonly string[]): boolean => {
+  const inB = new Set(b);
+  return a.length === inB.size && new Set(a).size === inB.size && a.every((x) => inB.has(x));
+};
 const isStrings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
 const labelOf = (c: Cluster): string => `${c.kind} (${c.fingerprint.slice(0, 12)})`;
 
@@ -28,18 +37,23 @@ type Built = { choice: string | string[]; members?: Record<string, string> } | A
 
 function buildSetValued(c: Cluster, choice: unknown, members: unknown): Built {
   const ids = c.options.map((o) => o.id);
-  if (!isStrings(choice) || choice.length === 0 || new Set(choice).size !== choice.length || !choice.every((x) => ids.includes(x))) {
-    return refuse("BAD_ANSWER", `${labelOf(c)} is a multi-select question: choice must be a non-empty list of distinct ids from [${ids.join(", ")}]`);
-  }
-  if (choice.includes(REVIEW_INDIVIDUALLY)) {
+  if (isStrings(choice) && choice.includes(REVIEW_INDIVIDUALLY)) {
     if (choice.length !== 1) return refuse("BAD_ANSWER", `${labelOf(c)}: '${REVIEW_INDIVIDUALLY}' cannot be combined with other options`);
     if (!isRecord(members) || !sameSet(Object.keys(members), c.members) || !Object.values(members).every((v) => v === KEEP || v === DROP)) {
       return refuse("BAD_ANSWER", `${labelOf(c)}: '${REVIEW_INDIVIDUALLY}' needs a members map with exactly the ${c.count} member ids, each "${KEEP}" or "${DROP}"`);
     }
     return { choice, members: members as Record<string, string> };
   }
-  if (members !== undefined) return refuse("BAD_ANSWER", `${labelOf(c)}: members is only valid after '${REVIEW_INDIVIDUALLY}'`);
-  const kept = new Set(c.options.filter((o) => choice.includes(o.id)).flatMap((o) => o.selects ?? []));
+  if (!isStrings(choice) || choice.length === 0 || new Set(choice).size !== choice.length || !choice.every((x) => ids.includes(x))) {
+    return refuse("BAD_ANSWER", `${labelOf(c)} is a multi-select question: choice must be a non-empty list of distinct ids from [${ids.join(", ")}], or ["${REVIEW_INDIVIDUALLY}"] with a members map`);
+  }
+  const chosen = c.options.filter((o) => choice.includes(o.id));
+  if (choice.length > 1) {
+    const none = chosen.find((o) => (o.selects ?? []).length === 0);
+    if (none !== undefined) return refuse("BAD_ANSWER", `${labelOf(c)}: '${none.id}' selects nothing, so it cannot be combined with other options`);
+  }
+  if (members !== undefined) return refuse("BAD_ANSWER", `${labelOf(c)}: members is only valid with '${REVIEW_INDIVIDUALLY}'`);
+  const kept = new Set(chosen.flatMap((o) => o.selects ?? []));
   return { choice, members: Object.fromEntries(c.members.map((m) => [m, kept.has(m) ? KEEP : DROP])) };
 }
 
@@ -60,7 +74,8 @@ function buildSingle(c: Cluster, choice: unknown, members: unknown): Built {
   return { choice, members: members as Record<string, string> };
 }
 
-export function validateAnswers(pending: readonly Cluster[], raw: unknown, at: string, emitters: readonly KindEmitter[] = EMITTERS): AnswerAccepted | AnswerRefusal {
+/** `stored` is every ruling already recorded: the answer check of a kind reads them next to the new answers. */
+export function validateAnswers(pending: readonly Cluster[], raw: unknown, at: string, stored: readonly Ruling[] = [], emitters: readonly KindEmitter[] = EMITTERS): AnswerAccepted | AnswerRefusal {
   if (!isRecord(raw) || !Array.isArray(raw["answers"])) return refuse("BAD_ANSWER", 'the answers file must be { "answers": [ … ] }');
   if (raw["answers"].length === 0) return refuse("BAD_ANSWER", "the answers file answers nothing");
 
@@ -79,7 +94,7 @@ export function validateAnswers(pending: readonly Cluster[], raw: unknown, at: s
     const built = (CLUSTER_KIND_TABLE[cluster.kind].setValued ? buildSetValued : buildSingle)(cluster, entry["choice"], entry["members"]);
     if ("ok" in built) return built;
     const ruling: Ruling = { kind: cluster.kind, fingerprint: fp, choice: built.choice, covers: [...cluster.members], ...(built.members === undefined ? {} : { members: built.members }), actor: "owner", at };
-    const outcomes = Object.fromEntries(cluster.members.map((m) => [m, outcomeOf(ruling, m)]));
+    const outcomes = governedOutcomes(indexRulings([...stored, ...rulings, ruling]), cluster.kind);
     const dangling = emitters.find((e) => e.kind === cluster.kind)?.checkAnswer?.(cluster, outcomes) ?? null;
     if (dangling !== null) return refuse("DANGLING_AFTER_SELECTION", dangling);
     answered.push(cluster);

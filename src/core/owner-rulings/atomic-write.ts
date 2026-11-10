@@ -2,7 +2,7 @@
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
-/** Writes `value` as 2-space JSON with a final newline. Creates the directory; leaves no partial file on a failed write. */
+/** Writes `value` as 2-space JSON with a final newline. Creates the directory, writes a temporary file beside the target, then renames it over the target. */
 export function writeJsonAtomic(path: string, value: unknown): void {
   mkdirSync(dirname(path), { recursive: true });
   const tmp = `${path}.tmp-${process.pid}`;

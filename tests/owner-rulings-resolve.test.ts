@@ -23,11 +23,9 @@ function collections(members: string[], domain: string[] = members): KindDetecti
     kind: "figma-collections", members, domain, asked,
     ask(these) {
       asked.push([...these]);
-      const options: ClusterOption[] = [
-        ...these.map((m) => ({ id: `keep-${m}`, label: `Keep ${m}`, consequence: `keeps ${m}`, selects: [m] })),
-        { id: "review-individually", label: "Review individually", consequence: `asks about ${these.length} collection(s)` },
-      ];
-      return { question: `Which of ${these.join(", ")} stay?`, options: options.slice(0, 4), evidence: { asked: these } };
+      const options: ClusterOption[] = these.map((m) => ({ id: `keep-${m}`, label: `Keep ${m}`, consequence: `keeps ${m}`, selects: [m] }));
+      if (options.length < 2) options.push({ id: "keep-none", label: "None of these", consequence: "keeps none", selects: [] });
+      return { question: `Which of ${these.join(", ")} stay?`, options, evidence: { asked: these } };
     },
   };
 }
@@ -70,6 +68,36 @@ describe("an open question is built by the kernel from ask(), for exactly the me
     const r = resolveDetections([d], [setRuling("figma-collections", ["Alpha", "Beta"], ["Alpha"])]);
     expect(r.open).toEqual([]);
     expect(r.outcomes["figma-collections"]).toEqual({ Alpha: "keep", Beta: "drop" });
+  });
+});
+
+describe("one spelling of a member everywhere", () => {
+  const nfc = "Caf\u00e9/color";
+  const nfd = "Cafe\u0301/color";
+  it("a detection that spells a member in NFD is resolved by a ruling stored in NFC: not open, an outcome, not stale", () => {
+    expect(nfc).not.toBe(nfd);
+    const r = resolveDetections([authority([nfd], [nfd])], [singleRuling([nfc], "a")]);
+    expect(r.open).toEqual([]);
+    expect(r.stale).toEqual([]);
+    expect(r.outcomes["source-authority"]).toEqual({ [nfc]: "a" });
+  });
+  it("a domain that spells a covered member in NFD does not make its ruling stale", () => {
+    const r = resolveDetections([authority([], [nfd])], [singleRuling([nfc], "a")]);
+    expect(r.stale).toEqual([]);
+  });
+  it("members and domain are de-duplicated after normalising", () => {
+    const r = resolveDetections([authority([nfc, nfd], [nfc, nfd])], []);
+    expect(r.open[0]!.members).toEqual([nfc]);
+    expect(r.open[0]!.count).toBe(1);
+  });
+});
+
+describe("resolution is linear in the number of members", () => {
+  it("20000 members under one ruling resolve to 20000 outcomes and no open question", () => {
+    const members = Array.from({ length: 20_000 }, (_, i) => `path/${String(i).padStart(5, "0")}`);
+    const r = resolveDetections([authority(members)], [singleRuling(members, "a")]);
+    expect(r.open).toEqual([]);
+    expect(Object.keys(r.outcomes["source-authority"]!)).toHaveLength(20_000);
   });
 });
 
@@ -132,6 +160,15 @@ describe("ruling state over a project", () => {
     expect(state.pending[0]!.members).toEqual(["more", "tokens"]);
     const none = computeRulingState(dir, { emitters: [], detections: [], ownKinds: ["source-authority"] });
     expect(none.pending).toEqual([]);
+  });
+  it("keeps a stored cluster when only some of its members are governed, and drops it when all are", () => {
+    const dir = scratchProject();
+    const cluster = buildCluster({ kind: "source-authority", question: "q", members: ["one", "two"], options: [{ id: "a", label: "A", consequence: "a" }, { id: "b", label: "B", consequence: "b" }] });
+    writePending(dir, [cluster]);
+    appendRulings(dir, [singleRuling(["one"], "a")]);
+    expect(computeRulingState(dir, { emitters: [] }).pending).toEqual([cluster]);
+    appendRulings(dir, [singleRuling(["two"], "b", "two")]);
+    expect(computeRulingState(dir, { emitters: [] }).pending).toEqual([]);
   });
   it("runs the project-level emitters' sense and detect over plain data", () => {
     const dir = scratchProject();
