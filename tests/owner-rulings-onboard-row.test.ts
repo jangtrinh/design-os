@@ -157,6 +157,6 @@ describe("ui design lint — manifest schema version 2", () => {
     const f = r.findings.find((x) => x.checkId === "bad-manifest");
     expect(f).toBeDefined();
     expect(f!.fix).toContain("onboard");
-    expect(f!.fix).toMatch(/"version": 1 \| 2|version 2/);
+    expect(f!.fix).toContain('"version": 1 | 2');
   });
 });
