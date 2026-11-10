@@ -83,6 +83,10 @@ To keep `ui` on your path: `npm install -g ease-design`.
 | `ui ds guidelines build \| check \| export` | Compile, lint and export the guidelines pack |
 | `ui init` · `ui agents init` | Write the runtime adapters; generate project agents |
 | `ui gate` | Composed floor judge over every linter family: layout, a11y, taste, tell, content, ds-usage |
+| `ui taste-lint` — 35 absolute checks | Generated-UI taste floor: motion, typography, spacing and focus states |
+| `ui validate-layout` — 20 checks | Structure and overflow safety (`100vw` traps, unclosed tags, sticky overflow) |
+| `ui content-lint` — 15 checks | Honest copy: placeholder text, lorem ipsum, generic names, all-caps shouting |
+| `ui tell-lint` — 43 checks, any language | Design tells across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI and Flutter |
 | `ui tokens` · `ui color` | Compile DTCG tokens to CSS, Tailwind or Figma variables; OKLCH colour math |
 | `ui doctor` | Check that the install and the project are healthy |
 
