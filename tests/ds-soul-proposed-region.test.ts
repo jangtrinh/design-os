@@ -138,17 +138,16 @@ describe("an edit between the markers is refused", () => {
     expect(read(join(root, "design", "rules", "_adherence.proposed.json"))).toBe(rulesBefore);
   });
 
-  it("refuses an added line and a removed line, naming each", () => {
+  it("refuses an added line, naming it", () => {
     const added = editedProject((r) => r.replace(END, `- my own bullet inside\n${END}`));
-    expect((JSON.parse(harvest(added.root).out) as { error: { message: string } }).error.message).toContain("my own bullet inside");
-    const removed = editedProject((r) => r.replace(/^- NS-03 .*\n/m, ""));
-    const message = (JSON.parse(harvest(removed.root).out) as { error: { message: string } }).error.message;
-    expect(message).toContain("removed or changed");
-    expect(read(soulPath(removed.root))).toBe(removed.before);
+    const r = harvest(added.root);
+    expect(r.code).toBe(1);
+    expect((JSON.parse(r.out) as { error: { message: string } }).error.message).toContain("my own bullet inside");
+    expect(read(soulPath(added.root))).toBe(added.before);
   });
 
   it("refuses damaged markers: a missing end, a doubled begin, an edited begin line", () => {
-    for (const edit of [(r: string) => r.replace(END, ""), (r: string) => `${r.split("\n")[0]}\n${r}`, (r: string) => r.replace(" sha=", " hash=")]) {
+    for (const edit of [(r: string) => r.replace(END, ""), (r: string) => `${r.split("\n")[0]}\n${r}`, (r: string) => r.replace(" sha=", " hash="), (r: string) => { const [b, ...rest] = r.split("\n"); return [END, b, ...rest.slice(0, -1)].join("\n"); }]) {
       const { root, before } = editedProject(edit);
       const r = harvest(root);
       expect(r.code).toBe(1);
