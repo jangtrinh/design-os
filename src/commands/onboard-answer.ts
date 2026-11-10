@@ -46,6 +46,14 @@ export function runOnboardAnswer(parsed: ParsedArgs, defaultCwd: string, emitter
     if (e instanceof PendingStoreError || e instanceof RulingStoreError) return err(e.code, e.message);
     throw e;
   }
+  // Run the detectors once, before anything is validated or written: a broken detector ends the command here, with the
+  // manifest and the pending file untouched. What it finds also tells how many questions remain once the answers are in.
+  let detected;
+  try { detected = computeRulingState(cwd, emitters === undefined ? {} : { emitters }); }
+  catch (e) {
+    if (e instanceof RulingStoreError || e instanceof PendingStoreError) return err(e.code, e.message);
+    throw e;
+  }
   const verdict = validateAnswers(pending, raw, now, stored, emitters);
   if (!verdict.ok) return err(verdict.code, verdict.message);
 
@@ -57,7 +65,7 @@ export function runOnboardAnswer(parsed: ParsedArgs, defaultCwd: string, emitter
   }
   catch { return err("WRITE_ERROR", "rulings were recorded but .design-os/onboard/pending.json could not be updated; it is transient and safe to delete"); }
 
-  const remaining = computeRulingState(cwd, emitters === undefined ? {} : { emitters }).pending.length;
+  const remaining = detected.pending.filter((c) => !answered.has(c.fingerprint)).length;
   const summaries = verdict.rulings.map((r) => `${r.kind}: ${Array.isArray(r.choice) ? r.choice.join(", ") : r.choice} (${r.covers.length} covered, ${r.at})`);
   if (parsed.json) {
     return okJson(SUB, { recorded: verdict.rulings.map((r) => ({ kind: r.kind, fingerprint: r.fingerprint, choice: r.choice, covered: r.covers.length })), remaining, summaries });
