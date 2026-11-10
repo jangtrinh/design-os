@@ -1,0 +1,59 @@
+/**
+ * Renders clusters as owner questions. The AskUserQuestion payload goes through the formatter that `ui brief
+ * questions` also uses (PD-2), so the limits (4 questions, 2-4 options, header <= 12) live in one place.
+ */
+import { toClaudeQuestionPayload } from "../brief-questions-format.js";
+import type { FormatQuestion } from "../brief-questions-format.js";
+import type { Cluster } from "./cluster.js";
+import { CLUSTER_KIND_TABLE } from "./cluster-kinds.js";
+
+export const QUESTIONS_PER_ROUND = 4;
+
+/** Ask order: the kinds whose answer can dissolve other clusters first; ties by fingerprint. */
+export function orderClusters(clusters: readonly Cluster[]): Cluster[] {
+  return [...clusters].sort((a, b) =>
+    CLUSTER_KIND_TABLE[a.kind].rank - CLUSTER_KIND_TABLE[b.kind].rank || (a.fingerprint < b.fingerprint ? -1 : 1));
+}
+
+export function roundCount(clusters: readonly Cluster[]): number {
+  return Math.max(1, Math.ceil(clusters.length / QUESTIONS_PER_ROUND));
+}
+
+function toFormatQuestion(c: Cluster): FormatQuestion {
+  const sample = c.samples.length < c.count ? `${c.samples.join(", ")} … (${c.count} in all)` : c.samples.join(", ");
+  return {
+    id: c.fingerprint,
+    header: CLUSTER_KIND_TABLE[c.kind].header,
+    question: `${c.question}\n${c.count} affected: ${sample}`,
+    multiSelect: CLUSTER_KIND_TABLE[c.kind].setValued,
+    options: c.options.map((o) => ({ label: o.label, description: o.consequence, recommended: o.recommended === true })),
+  };
+}
+
+/** One round of the AskUserQuestion payload, plus the key that maps each question back to its fingerprint and option ids. */
+export function toOwnerClaudePayload(clusters: readonly Cluster[], round: number): Record<string, unknown> {
+  const ordered = orderClusters(clusters).slice((round - 1) * QUESTIONS_PER_ROUND);
+  const payload = toClaudeQuestionPayload(ordered.map(toFormatQuestion));
+  const asked = ordered.slice(0, QUESTIONS_PER_ROUND);
+  return {
+    ...payload,
+    round,
+    rounds: roundCount(clusters),
+    answerKey: asked.map((c) => ({
+      fingerprint: c.fingerprint, kind: c.kind, multiSelect: CLUSTER_KIND_TABLE[c.kind].setValued,
+      options: c.options.map((o) => ({ id: o.id, label: o.label })),
+    })),
+  };
+}
+
+/** The sheet a team can answer asynchronously: every cluster with every member listed (FR-004). */
+export function toOwnerMarkdown(clusters: readonly Cluster[]): string {
+  const lines = ["# Owner questions", "", "Answer each question, then give the host an answers file: `ui onboard answer --file <answers.json>`.", ""];
+  for (const c of orderClusters(clusters)) {
+    const multi = CLUSTER_KIND_TABLE[c.kind].setValued;
+    lines.push(`## ${c.kind} · ${c.count} affected`, "", c.question, "", `Fingerprint: \`${c.fingerprint}\``, multi ? "Pick every option that applies." : "Pick one option.", "");
+    for (const o of c.options) lines.push(`- [ ] \`${o.id}\` ${o.label}${o.recommended === true ? " (Recommended)" : ""} — ${o.consequence}`);
+    lines.push("", "Members:", ...c.members.map((m) => `- ${m}`), "", "Answer: ", "");
+  }
+  return `${lines.join("\n")}\n`;
+}

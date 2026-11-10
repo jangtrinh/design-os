@@ -2,12 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://ease-design.dev/schemas/design-dir.schema.json",
   "title": "design/ directory contract",
-  "description": "Root: the optional manifest design/design-dir.json that declares token files derived from design/tokens.json. $defs.principlesIndex: the emitted design/principles.json.",
+  "description": "Root: the optional manifest design/design-dir.json. Version 1 declares token files derived from design/tokens.json. Version 2 additionally carries the owner rulings of `ui onboard answer` under `onboard`. $defs.principlesIndex: the emitted design/principles.json.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version"],
   "properties": {
-    "version": { "const": 1 },
+    "version": { "enum": [1, 2] },
     "derived": {
       "type": "array",
       "items": {
@@ -19,8 +19,61 @@
           "derived_from": { "const": "design/tokens.json" }
         }
       }
+    },
+    "onboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Version 2 only. Owner rulings recorded by `ui onboard answer`; actor is always owner.",
+      "properties": {
+        "rulings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "fingerprint", "choice", "covers", "actor", "at"],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "figma-collections", "token-path-collision", "figma-library-pages", "screen-pages",
+                  "archived-marked-nodes", "duplicate-component-names", "classification-conflicts",
+                  "untypeable-tokens", "ambiguous-roles", "scan-budget", "app-roots", "source-authority",
+                  "component-name-collision", "inferred-links"
+                ]
+              },
+              "fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "choice": {
+                "oneOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+                ]
+              },
+              "covers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Member identities the answer ruled on; a later cluster whose members are all covered is already answered" },
+              "members": { "type": "object", "description": "Per-member option ids; present only after `review individually`" },
+              "actor": { "const": "owner" },
+              "at": { "type": "string", "minLength": 1, "description": "ISO-8601 timestamp given to `ui onboard answer --now`" }
+            }
+          }
+        },
+        "scan": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "skip": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Project-relative directory names the scan walk skips" },
+            "roots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Project-relative app roots the scan walk starts from" }
+          }
+        }
+      }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "version": { "const": 1 } } },
+      "then": {
+        "additionalProperties": false,
+        "properties": { "version": {}, "derived": {} }
+      }
+    }
+  ],
   "$defs": {
     "principlesIndex": {
       "type": "object",

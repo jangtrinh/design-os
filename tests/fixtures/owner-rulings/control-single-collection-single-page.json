@@ -1,0 +1,180 @@
+{
+  "components": [
+    {
+      "id": "C:0",
+      "name": "Control Widget 0",
+      "type": "COMPONENT",
+      "page": "Library"
+    },
+    {
+      "id": "C:1",
+      "name": "Control Widget 1",
+      "type": "COMPONENT",
+      "page": "Library"
+    },
+    {
+      "id": "C:2",
+      "name": "Control Widget 2",
+      "type": "COMPONENT",
+      "page": "Library"
+    },
+    {
+      "id": "C:3",
+      "name": "Control Widget 3",
+      "type": "COMPONENT",
+      "page": "Library"
+    },
+    {
+      "id": "C:4",
+      "name": "Control Widget 4",
+      "type": "COMPONENT",
+      "page": "Library"
+    }
+  ],
+  "tokens": [
+    {
+      "id": "V:core-0",
+      "name": "color/brand-000",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-1",
+      "name": "color/brand-001",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.1450980392156863,
+        "g": 0.3568627450980392,
+        "b": 0.20784313725490197,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-2",
+      "name": "color/brand-002",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.2901960784313726,
+        "g": 0.7137254901960784,
+        "b": 0.41568627450980394,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-3",
+      "name": "color/brand-003",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.43529411764705883,
+        "g": 0.06666666666666667,
+        "b": 0.6235294117647059,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-4",
+      "name": "color/brand-004",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.5803921568627451,
+        "g": 0.4235294117647059,
+        "b": 0.8313725490196079,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-5",
+      "name": "color/brand-005",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.7254901960784313,
+        "g": 0.7803921568627451,
+        "b": 0.03529411764705882,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-6",
+      "name": "color/brand-006",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.8705882352941177,
+        "g": 0.13333333333333333,
+        "b": 0.24313725490196078,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-7",
+      "name": "color/brand-007",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.011764705882352941,
+        "g": 0.49019607843137253,
+        "b": 0.45098039215686275,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-8",
+      "name": "color/brand-008",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.1568627450980392,
+        "g": 0.8470588235294118,
+        "b": 0.6588235294117647,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-9",
+      "name": "color/brand-009",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.30196078431372547,
+        "g": 0.2,
+        "b": 0.8666666666666667,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-10",
+      "name": "color/brand-010",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.4470588235294118,
+        "g": 0.5568627450980392,
+        "b": 0.07058823529411765,
+        "a": 1
+      }
+    },
+    {
+      "id": "V:core-11",
+      "name": "color/brand-011",
+      "type": "COLOR",
+      "collection": "Core",
+      "value": {
+        "r": 0.592156862745098,
+        "g": 0.9137254901960784,
+        "b": 0.2784313725490196,
+        "a": 1
+      }
+    }
+  ]
+}

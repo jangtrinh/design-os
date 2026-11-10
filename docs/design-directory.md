@@ -9,7 +9,7 @@ project with `ui design lint <project-root>`; the shape of the two JSON files be
 ```text
 design/
   tokens.json              the ONE token source, hand-edited
-  design-dir.json          optional manifest: token files generated from tokens.json
+  design-dir.json          optional manifest: derived token files; owner rulings at version 2
   soul.md                  stance: Never / Always / Voice
   principles.md            why: `### <ID> · <title>` with Yields when + Test bullets
   principles.json          machine index of principles.md (emitted, never hand-edited)
@@ -46,6 +46,24 @@ Exit code 1 means at least one error. Warnings never fail the run.
 ```json
 { "version": 1, "derived": [ { "path": "design/design.tokens.json", "derived_from": "design/tokens.json" } ] }
 ```
+
+## Owner rulings (manifest version 2)
+
+When a command meets something it cannot resolve on its own (a collision, an ambiguous role, a truncated scan), it writes
+nothing, exits 1 and leaves the open questions in `.design-os/onboard/pending.json` (transient, never a ruling). Read them
+with `ui onboard questions`; record the owner's answers with `ui onboard answer --file <answers.json> --now <iso>`. Each
+answer becomes a ruling under `onboard.rulings` in `design/design-dir.json`, which is then version 2:
+
+```json
+{ "version": 2,
+  "derived": [ { "path": "design/design.tokens.json", "derived_from": "design/tokens.json" } ],
+  "onboard": { "rulings": [ { "kind": "scan-budget", "fingerprint": "<sha-256>", "choice": "skip-generated",
+                              "covers": ["generated"], "actor": "owner", "at": "2026-11-10T21:00:00+07:00" } ] } }
+```
+
+Version 1 files stay valid and read as "no rulings"; `onboard` is accepted only at version 2. `covers` lists the members the
+answer ruled on: a later run asks only about members no ruling covers. `actor` is always `owner`. Writing a ruling leaves
+`derived` and every other key untouched. `ui onboard` shows the state in its `owner rulings` row.
 
 ## The principles index
 
