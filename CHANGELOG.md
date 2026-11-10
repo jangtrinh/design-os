@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-11-10 - `ui scan` reports nested apps and where its budget went; lint and evolution agree with the kernel on token sources
+
+### Added
+- `ui scan`: `apps[]` lists every nested app root (a directory with its own `package.json`, outside
+  test trees) with its framework, styling, Tailwind v4 CSS entry and component directories. The scan
+  root keeps its top-level fields and gains `tailwindCss` for its own v4 entry (a CSS file with
+  `@import "tailwindcss"` or `@theme`, plus the `tailwindcss` dependency).
+- `ui scan`: when the walk hits its entry cap, `budget[]` names the first-level directories that
+  used most of it (at most five), and the text output prints the next step.
+- `ui design lint`: `two-token-sources` (error) when `design/design.tokens.json` and
+  `design/tokens.json` both exist and their token sets differ. Values are compared in canonical
+  form, so key order inside a value is not a difference; a file declared derived is exempt.
+- `design-os evolution`: `tokens_path` (the token file the role-coverage signal read) and, when
+  `design/tokens.json` holds a different number of tokens, `token_sources_differ`.
+
+### Changed
+- `ui scan` no longer walks directories whose name starts with a dot.
+- `ui design lint`: `extra-token-file` no longer reports `design/design.tokens.json` when the design
+  system is sealed (`design/ds.manifest.json` exists).
+- `ui design lint`: `supersession-not-in-field` reads the same leading `(SUPERSEDED …)` marker as
+  the guidelines generator; a ruling that only mentions the word in its text is no longer reported.
+
 ## 2026-11-06 - `ui gate` origin attribution, baseline and element localisation; false-positive fixes; generated-photo knowledge
 
 ### Added
