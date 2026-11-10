@@ -47,7 +47,7 @@ describe("ui design lint — negative controls", () => {
     expect(r.exitCode).toBe(0);
   });
   it("a manifest that violates the schema → bad-manifest, exit 1", () => {
-    const r = lint(project({ "design/design-dir.json": JSON.stringify({ version: 2 }) }));
+    const r = lint(project({ "design/design-dir.json": JSON.stringify({ version: 3 }) }));
     expect(ids(r.findings)).toContain("bad-manifest");
     expect(r.exitCode).toBe(1);
   });
