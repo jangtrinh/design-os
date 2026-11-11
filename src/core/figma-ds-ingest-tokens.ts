@@ -34,7 +34,9 @@ export function collectionsInput(variables: DsVariable[], all: TokenBuildResult)
   const byId = new Map(variables.map((v) => [v.id, v]));
   const pairs = new Map<string, { a: string; b: string; paths: number }>();
   for (const c of all.collisions) {
-    const cols = [...new Set(c.variables.map((v) => v.collection))].sort();
+    // Two collections collide when two variables with their own values map to one path: an alias of the other one on
+    // its own path is not a second value, so it makes no collision between collections.
+    const cols = [...new Set(c.variables.filter((v) => v.aliasOf === undefined).map((v) => v.collection))].sort();
     for (let i = 0; i < cols.length; i++) for (let j = i + 1; j < cols.length; j++) {
       const key = `${cols[i]}\u0000${cols[j]}`;
       const p = pairs.get(key) ?? { a: cols[i] as string, b: cols[j] as string, paths: 0 };
@@ -71,8 +73,8 @@ export function tokenStage(variables: DsVariable[], view: RulingView): TokenStag
     }
   }
   const among = buildTokensTree(variables, { collections: kept });
-  const aliasedBy: Record<string, number> = {};
-  for (const v of variables) if (kept.has(v.collection ?? "")) for (const id of aliasTargets(v)) aliasedBy[id] = (aliasedBy[id] ?? 0) + 1;
+  const aliasedBy: Record<string, string[]> = {};
+  for (const v of variables) if (kept.has(v.collection ?? "")) for (const id of aliasTargets(v)) (aliasedBy[id] ??= []).push(v.id);
   const collisions = collisionDetections({ collisions: among.collisions, aliasedBy });
   detections.push(...collisions);
   if (!collisions.every((d) => view.ruled(d))) return { detections, kept, built: null };

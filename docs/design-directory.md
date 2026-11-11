@@ -83,6 +83,11 @@ id (`keep:<variableId>`, `keep:<nodeId>`), never by position or by a name that c
 reader. A question may also carry `labels` (a display name per member): every place that prints a member prints
 `label (id)`.
 
+A variable that aliases the variable on its own token path (another collection, same path) is a member of the collision
+but can never keep the path: its member offers only the variable it aliases and `keep-none`, its label says what it
+aliases, and it does not make two collections collide for the collections question. The ingest does not flatten such a
+variable: when it carries other modes, they leave with it, counted and named under the `path-collision` reason.
+
 `ui onboard` does not run the Figma ingest's detectors, so it never reports an ingest ruling as stale; the ingest
 replaces its own stored questions on every run.
 

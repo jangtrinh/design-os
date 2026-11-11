@@ -11,13 +11,20 @@ import type { ClusterOption, MemberChoice } from "./cluster.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
 import type { AskResult, KindDetection, KindEmitter } from "./kind-emitter.js";
 
-export interface CollisionVariable { id: string; name: string; collection: string; value?: string }
+export interface CollisionVariable {
+  id: string;
+  name: string;
+  collection: string;
+  value?: string;
+  /** Set when this variable aliases another variable of the same collision: it has no value of its own on the path. */
+  aliasOf?: { id: string; name: string; collection: string };
+}
 
 export interface CollisionInput {
   /** Every colliding path with the variables on it, in scan order. */
   collisions: { path: string; variables: CollisionVariable[] }[];
-  /** Per variable id, how many aliases point at it (any mode). Absent means "not counted". */
-  aliasedBy?: Record<string, number>;
+  /** Per variable id, the ids of the variables that alias it (any mode). Absent means "not counted". */
+  aliasedBy?: Record<string, string[]>;
 }
 
 /** Options name at most three collections; a fourth would not fit beside `review individually`. */
@@ -36,17 +43,27 @@ interface Collision { member: string; path: string; variables: CollisionVariable
 /** The member id of one collision: the path plus the sorted ids of the variables on it. */
 export const collisionMember = (path: string, variables: readonly { id: string }[]): string => `${path}#${variables.map((v) => v.id).sort().join(",")}`;
 const memberOf = collisionMember;
-const describe = (v: CollisionVariable): string => `${v.name} (${v.collection === "" ? "(no collection)" : v.collection}${v.value === undefined || v.value === "" ? "" : ` = ${v.value}`})`;
 const collectionText = (c: string): string => (c === "" ? "(no collection)" : c);
+const describe = (v: CollisionVariable): string => v.aliasOf !== undefined
+  ? `${v.name} (${collectionText(v.collection)}) aliases ${v.aliasOf.name} (${collectionText(v.aliasOf.collection)}) on the same path`
+  : `${v.name} (${collectionText(v.collection)}${v.value === undefined || v.value === "" ? "" : ` = ${v.value}`})`;
 
-function groupAsk(collections: readonly string[], all: ReadonlyMap<string, Collision>, aliasedBy: Record<string, number>, members: readonly string[]): AskResult {
+function groupAsk(collections: readonly string[], all: ReadonlyMap<string, Collision>, aliasedBy: Record<string, string[]>, members: readonly string[]): AskResult {
   const asked = members.map((m) => all.get(m)).filter((c): c is Collision => c !== undefined);
-  const lost = (keep: (c: Collision) => string): number =>
-    asked.reduce((n, c) => n + c.variables.filter((v) => v.id !== keep(c)).reduce((k, v) => k + (aliasedBy[v.id] ?? 0), 0), 0);
+  // Aliases that point at a variable which would lose, counted only when their own source is still written under the
+  // option: a source that loses in this question leaves with its path, so it is never asked as a dangling alias.
+  const lost = (keep: (c: Collision) => string): number => {
+    const losers = new Set(asked.flatMap((c) => c.variables.filter((v) => v.id !== keep(c)).map((v) => v.id)));
+    return [...losers].reduce((n, id) => n + (aliasedBy[id] ?? []).filter((source) => !losers.has(source)).length, 0);
+  };
   const aliasNote = (n: number): string => `${n} alias(es) point at variables that would lose${n > 0 ? "; each is then asked as a dangling alias" : ""}`;
 
   const options: ClusterOption[] = [];
-  const qualifying = collections.filter((col) => asked.every((c) => c.variables.filter((v) => v.collection === col).length === 1));
+  // A collection is offered only when the variable it picks has a value of its own on every path of the group.
+  const qualifying = collections.filter((col) => asked.every((c) => {
+    const there = c.variables.filter((v) => v.collection === col);
+    return there.length === 1 && there[0]?.aliasOf === undefined;
+  }));
   for (const col of qualifying.slice(0, MAX_COLLECTION_OPTIONS)) {
     const pick = (c: Collision): string => (c.variables.find((v) => v.collection === col) as CollisionVariable).id;
     options.push({
@@ -69,7 +86,7 @@ function groupAsk(collections: readonly string[], all: ReadonlyMap<string, Colli
   const memberChoices: Record<string, MemberChoice[]> = {};
   const labels: Record<string, string> = {};
   for (const c of asked) {
-    memberChoices[c.member] = [...c.variables.map((v) => ({ id: keepOutcome(v.id), label: `Keep ${describe(v)}` })), { id: KEEP_NONE_OUTCOME, label: "Exclude all of them" }];
+    memberChoices[c.member] = [...c.variables.filter((v) => v.aliasOf === undefined).map((v) => ({ id: keepOutcome(v.id), label: `Keep ${describe(v)}` })), { id: KEEP_NONE_OUTCOME, label: "Exclude all of them" }];
     labels[c.member] = `${c.path}: ${c.variables.map(describe).join(" or ")}`;
   }
   return {

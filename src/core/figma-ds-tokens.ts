@@ -14,9 +14,9 @@
  *
  * This module never touches the filesystem; it is a pure transform.
  */
-import { SKIP_REASONS, buildLeaf, failureOf, isKeepable, rawLeaf, resolveType, shortValue, typeSkipReason } from "./figma-ds-token-leaves.js";
+import { SKIP_REASONS, buildLeaf, failureOf, firstValue, isKeepable, rawLeaf, resolveType, shortValue, typeSkipReason } from "./figma-ds-token-leaves.js";
 import type { SkipDetail, SkipReason } from "./figma-ds-token-leaves.js";
-import { pathOf, rawPathOf } from "./figma-ds-token-values.js";
+import { isAliasValue, pathOf, rawPathOf } from "./figma-ds-token-values.js";
 import type { DsVariable, DtcgLeaf, DtcgTree, DtcgType } from "./figma-ds-token-values.js";
 
 export * from "./figma-ds-token-values.js";
@@ -27,7 +27,7 @@ export interface PathCollision {
   /** `category.token`. */
   path: string;
   /** The variables that map to it, in scan order. `value` is a short display of the base value, when one fits. */
-  variables: { id: string; name: string; collection: string; value: string }[];
+  variables: { id: string; name: string; collection: string; value: string; aliasOf?: { id: string; name: string; collection: string } }[];
 }
 
 export interface BuildOptions {
@@ -109,7 +109,12 @@ export function buildTokensTree(variables: DsVariable[], opts: BuildOptions = {}
     (groups.get(dotted) ?? groups.set(dotted, []).get(dotted)!).push(v);
   }
   const collisions: PathCollision[] = [...groups].filter(([, vs]) => vs.length > 1)
-    .map(([path, vs]) => ({ path, variables: vs.map((v) => ({ id: v.id, name: v.name, collection: v.collection ?? "", value: shortValue(v) })) }));
+    .map(([path, vs]) => ({ path, variables: vs.map((v) => {
+      // A variable that aliases another variable on its own path has no value of its own there: it cannot keep the path.
+      const raw = firstValue(v);
+      const target = isAliasValue(raw) && pathOfId.get(raw.id) === path ? byId.get(raw.id) : undefined;
+      return { id: v.id, name: v.name, collection: v.collection ?? "", value: shortValue(v), ...(target === undefined ? {} : { aliasOf: { id: target.id, name: target.name, collection: target.collection ?? "" } }) };
+    }) }));
   const loserIds = new Set<string>();
   const unresolvedIds = new Set<string>();
   for (const c of collisions) {
