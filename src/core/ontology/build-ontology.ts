@@ -11,6 +11,7 @@ import { BUILD_LABEL } from "./blocking-clusters.js";
 import { orphanNodes } from "./coverage.js";
 import { appliedDefines, termCandidates } from "./inferred-candidates.js";
 import { buildLinks } from "./link-rules.js";
+import { nodeId } from "./node-ids.js";
 import { withRepeats } from "./repeated-values.js";
 import type { NodeSources } from "./node-sources.js";
 import { ONTOLOGY_SCHEMA, byText } from "./ontology-types.js";
@@ -40,8 +41,16 @@ export function buildOntology(s: NodeSources, rulings: readonly Ruling[]): Built
   };
   // An orphan is covered only while an open question reaches it: the term or the node of a pair still awaiting a ruling.
   const asked = new Set(openPairs.flatMap((m) => { const pair = parsePair(m); return pair === null ? [] : [pair.term, pair.node]; }));
-  const per = new Map<NodeKind, number>();
-  for (const n of orphanNodes(ontology)) if (!asked.has(n.id)) per.set(n.kind, (per.get(n.kind) ?? 0) + 1);
-  ontology.uncovered = [...per].map(([kind, count]) => ({ kind, count })).sort((a, b) => byText(a.kind, b.kind));
+  // A node with a reference counted unresolved (the link layer) or not understood (the reader) is the one the source line counts: the same facts, per node.
+  const counted = new Set([...result.unresolvedFrom, ...s.ring2.rulings.filter((r) => r.notUnderstood > 0).map((r) => nodeId("ruling", r.id)), ...s.ring2.principles.filter((p) => p.notUnderstood > 0).map((p) => nodeId("principle", p.id))]);
+  const per = new Map<NodeKind, { count: number; withCountedReference: number }>();
+  for (const n of orphanNodes(ontology)) {
+    if (asked.has(n.id)) continue;
+    const row = per.get(n.kind) ?? { count: 0, withCountedReference: 0 };
+    row.count++;
+    if (counted.has(n.id)) row.withCountedReference++;
+    per.set(n.kind, row);
+  }
+  ontology.uncovered = [...per].map(([kind, row]) => ({ kind, count: row.count, ...(row.withCountedReference > 0 ? { withCountedReference: row.withCountedReference } : {}) })).sort((a, b) => byText(a.kind, b.kind));
   return { ontology, detections, terms };
 }

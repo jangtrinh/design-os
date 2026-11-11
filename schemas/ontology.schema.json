@@ -18,7 +18,7 @@
     },
     "uncovered": {
       "type": "array",
-      "items": { "type": "object", "required": ["kind", "count"], "additionalProperties": false, "properties": { "kind": { "$ref": "#/definitions/nodeKind" }, "count": { "type": "integer", "minimum": 1 } } }
+      "items": { "type": "object", "required": ["kind", "count"], "additionalProperties": false, "properties": { "kind": { "$ref": "#/definitions/nodeKind" }, "count": { "type": "integer", "minimum": 1 }, "withCountedReference": { "type": "integer", "minimum": 1 } } }
     }
   },
   "definitions": {
