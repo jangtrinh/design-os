@@ -1,5 +1,7 @@
 /** The shapes of `ui ds surface` (spec 033 FR-019, FR-020): the output `design-os-surface/1` and what registration needs beside it. */
 
+import type { StyleBreakdown } from "./style-references.js";
+
 export const SURFACE_SCHEMA = "design-os-surface/1";
 
 export interface SurfaceComponent {
@@ -10,8 +12,12 @@ export interface SurfaceComponent {
   dir: string;
   /** Token paths the component's own source references, resolved exactly; sorted. */
   tokens: string[];
-  /** References that resolve to no token, plus one per class-composing helper call. */
+  /** References that resolve to no token, plus one per class-composing helper call: the sum of the keys of `unresolved`. */
   unresolvedStyles: number;
+  /** `unresolvedStyles` by kind, so nothing is invisible (spec 033 FR-019). */
+  unresolved: StyleBreakdown;
+  /** Theme-key utilities (`text-sm`, `bg-nope`) that name no token: not in the sum, because the kernel cannot tell a colour from a size without the app's theme. */
+  utilitiesNamingNoToken: number;
 }
 export interface SurfaceCollision { name: string; files: string[] }
 export interface SurfaceShadowed { name: string; file: string; fingerprint: string }

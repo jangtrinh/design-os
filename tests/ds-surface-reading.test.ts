@@ -159,12 +159,12 @@ describe("the token references of one component", () => {
   const read = (src: string) => readStyleReferences("x/A.tsx", src, lookup);
   it("resolves a custom property and a theme-key utility exactly, and counts the rest", () => {
     expect(read('export const A = () => <div style={{ color: "var(--color-primary)", margin: "var(--space-md)", border: "var(--nope)" }} className="bg-ink px-4" />;'))
-      .toEqual({ tokens: ["color.ink", "color.primary", "space.md"], unresolvedStyles: 1 });
+      .toMatchObject({ tokens: ["color.ink", "color.primary", "space.md"], unresolvedStyles: 1, unresolved: { customProperty: 1 }, utilitiesNamingNoToken: 0 });
   });
   it("treats a custom property that two tokens carry as no token", () => {
     const l = buildTokenLookup({ a: { "b-c": { $type: "color", $value: "#1" } }, "a-b": { c: { $type: "color", $value: "#2" } } });
     expect(l.resolve("a-b-c")).toBeNull(); // a.b-c and a-b.c both carry it
-    expect(l.resolve("b-c")).toBe("a.b-c");
+    expect(l.resolve("b-c")).toBeNull(); // the bare leaf of a.b-c is not a name the kernel emits
     expect(buildTokenLookup(undefined).resolve("color-primary")).toBeNull();
   });
   it("blanks every helper call, counts each once, and keeps lines", () => {

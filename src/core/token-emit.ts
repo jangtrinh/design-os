@@ -13,7 +13,7 @@ import type { ResolvedMap, ResolvedToken } from "./token-model.js";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Convert a dotted token path to a CSS custom property name. "color.primary" → "--color-primary" */
-function pathToCssVar(path: string): string {
+export function pathToCssVar(path: string): string {
   return "--" + path.replace(/\./g, "-");
 }
 

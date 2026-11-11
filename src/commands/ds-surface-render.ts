@@ -16,6 +16,11 @@ export function renderSurfaceText(d: SurfaceData): string {
     `ds surface: app '${d.app}' — ${plural(d.components.length, "component")}, ${plural(d.collisions.length, "collision")}, ${plural(d.screens.length, "screen")}, ${plural(d.stories.length, "story", "stories")}, ${plural(d.unstoried.length, "unstoried component")}`,
     `  tokens: ${withTokens} of ${d.components.length} component(s) reference tokens exactly; ${plural(unresolved, "style reference")} resolve to no token`,
   ];
+  const kinds: Record<string, number> = {};
+  for (const c of d.components) for (const [k, n] of Object.entries(c.unresolved)) kinds[k] = (kinds[k] ?? 0) + n;
+  const shown = Object.entries(kinds).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${n}`);
+  const noToken = d.components.reduce((n, c) => n + c.utilitiesNamingNoToken, 0);
+  if (shown.length > 0 || noToken > 0) lines.push(`  unresolved by kind: ${shown.length > 0 ? shown.join(", ") : "none"}${noToken > 0 ? `; ${plural(noToken, "theme-key utility", "theme-key utilities")} name no token (not in the sum: a colour and a size look alike without the app's theme)` : ""}`);
   if (d.tokenStore.status === "unverified") lines.push(`  token store: unverified, ${d.tokenStore.drifted?.join(" and ")} no longer match the seal (read as they are; ui ds reseal adopts them)`);
   else if (d.tokenStore.status === "none") lines.push("  token store: none sealed in this project, so no reference resolves to a token");
   if (d.tailwindCss !== undefined) lines.push(`  tailwind v4 css: ${d.tailwindCss}`);
