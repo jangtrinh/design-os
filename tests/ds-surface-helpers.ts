@@ -5,7 +5,7 @@
  */
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { capture } from "./owner-rulings-helpers.js";
 import { keyOf, submit } from "./project-kinds-helpers.js";
 import type { KeyEntry } from "./project-kinds-helpers.js";
@@ -34,7 +34,11 @@ export function sealedFixture(): string {
   return dir;
 }
 
-export const surface = (project: string, ...extra: string[]): ReturnType<typeof capture> => capture(["ds", "surface", "--cwd", project, "--json", ...extra]);
+/** A surface read writes `pending.json` into the project, so a project inside the repository's tree is refused: copy the fixture first. */
+export const surface = (project: string, ...extra: string[]): ReturnType<typeof capture> => {
+  if (resolve(project).startsWith(`${resolve(process.cwd())}${sep}`)) throw new Error(`surface(): '${project}' is inside the repository; run on fixtureCopy() so a test never writes into a tracked directory`);
+  return capture(["ds", "surface", "--cwd", project, "--json", ...extra]);
+};
 
 export const pkg = (deps: Record<string, string>): string => JSON.stringify({ name: "x", dependencies: deps });
 const three = (base: string): Record<string, string> => Object.fromEntries(["A", "B", "C"].map((n) => [`${base}/${n}.tsx`, `export function ${n}Thing() { return <div className="x" />; }\n`]));

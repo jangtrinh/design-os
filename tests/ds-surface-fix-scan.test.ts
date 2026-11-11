@@ -8,7 +8,7 @@ import { componentDirsOf } from "../src/core/ds-surface/component-dirs.js";
 import { scanProject } from "../src/core/project-scan.js";
 import { capture } from "./owner-rulings-helpers.js";
 import { wideFiles } from "./project-kinds-helpers.js";
-import { FIXTURE, answerKind, envelope, pkg, projectFrom, surface } from "./ds-surface-helpers.js";
+import { answerKind, envelope, fixtureCopy, pkg, projectFrom, surface } from "./ds-surface-helpers.js";
 
 const component = (n: string): string => `export const ${n} = () => <i />;\n`;
 const cappedApp = (): string => projectFrom({
@@ -69,6 +69,6 @@ describe("the scan and the surface share one component-directory rule", () => {
     expect(surfaceDirs).not.toContain("src/components/two");
   });
   it("the embedded-app fixture yields the same directories either way", () => {
-    expect(envelope(surface(FIXTURE).out).data!["components"]).toHaveLength(7);
+    expect(envelope(surface(fixtureCopy()).out).data!["components"]).toHaveLength(7);
   });
 });
