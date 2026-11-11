@@ -1,0 +1,42 @@
+{
+  "rulings": [
+    {
+      "id": "R-1",
+      "category": "component-reuse",
+      "text": "Compose screens from `component:Card` and style it with `token:color.ink`; lay cards out as in `pattern:card-grid`. Never rebuild `component:Ghost`.",
+      "scope": "global",
+      "source": ["fixture"],
+      "since": "2026-01-01"
+    },
+    {
+      "id": "R-2",
+      "category": "screen-composition",
+      "text": "Checkout keeps one primary action per view.",
+      "scope": { "apps": ["web"], "features": ["checkout"] },
+      "source": ["fixture"]
+    },
+    {
+      "id": "R-3",
+      "category": "screen-composition",
+      "text": "An older wording of the cards rule.",
+      "scope": "global",
+      "source": ["fixture"],
+      "superseded_by": "R-1"
+    },
+    {
+      "id": "R-4",
+      "category": "screen-composition",
+      "text": "A ruling that names a successor nobody wrote.",
+      "scope": "global",
+      "source": ["fixture"],
+      "superseded_by": "R-99"
+    },
+    {
+      "id": "R-5",
+      "category": "workflow-process",
+      "text": "Hand a design over with its notes attached.",
+      "scope": { "apps": [], "features": [] },
+      "source": ["fixture"]
+    }
+  ]
+}
