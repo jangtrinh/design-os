@@ -111,6 +111,5 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
   const lines = findings.length === 0
     ? [`agents check${scope}: ${agentsDir} — 0 findings.`]
     : [`agents check${scope}: ${agentsDir} — ${errorCount} error(s), ${warningCount} warning(s)`, ...findings.map((f) => `  ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]: ${f.message}`)];
-  if (without.length > 0) lines.push(`checked: ${found.join(", ")}; no generated target found for: ${without.join(", ")}`);
   return { exitCode, stdout: lines.join("\n") + "\n" };
 }

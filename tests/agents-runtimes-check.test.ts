@@ -32,7 +32,10 @@ describe("ui agents check", () => {
     expect(got.code).toBe(0);
     expect(got.data.runtimesChecked).toEqual(["claude"]);
     expect(got.data.runtimesWithoutTargets).toEqual(["antigravity", "codex"]);
-    expect(capture(["agents", "check", "--dir", p]).out).toContain("no generated target found for: antigravity, codex");
+    const text = capture(["agents", "check", "--dir", p]).out;
+    expect(text).toContain("no target for antigravity, codex");
+    expect(text.match(/antigravity, codex/g)).toHaveLength(1);
+    expect(text).not.toContain("no generated target found");
   });
   it("a hand edit of one runtime's roster fails it, one finding per file, in the code of that runtime", () => {
     const p = projectOf();
