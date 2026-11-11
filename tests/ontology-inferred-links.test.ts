@@ -14,7 +14,7 @@ describe("the kind has an emitter and the coverage pin is empty", () => {
 
 describe("candidates: the registry's own name normalisation, nothing else", () => {
   const nodes = [
-    { id: "term:card", kind: "term", name: "card" }, { id: "term:Cards", kind: "term", name: "Cards" }, { id: "term:Card Header", kind: "term", name: "Card Header" }, { id: "term:SIGN  in", kind: "term", name: " SIGN  in " },
+    { id: "term:card", kind: "term", name: "card" }, { id: "term:Cards", kind: "term", name: "Cards" }, { id: "term:Card Header", kind: "term", name: "Card Header" }, { id: "term:Sign", kind: "term", name: "Sign" }, { id: "term:SIGN  in", kind: "term", name: " SIGN  in " },
     { id: "component:Card", kind: "component", name: "Card" }, { id: "screen:5:1", kind: "screen", name: "Sign in" }, { id: "rule:x", kind: "rule", name: "card" },
   ];
   const byTerm = Object.fromEntries(termCandidates(nodes as never).map((t) => [t.id, t.candidates.map((c) => c.id)]));
@@ -25,6 +25,7 @@ describe("candidates: the registry's own name normalisation, nothing else", () =
   it("no substring, no plural, no similarity: those terms have no candidate, and a rule's text is never one", () => {
     expect(byTerm["term:Cards"]).toEqual([]);
     expect(byTerm["term:Card Header"]).toEqual([]);
+    expect(byTerm["term:Sign"]).toEqual([]); // a prefix of a node's name is not that name
     expect(byTerm["term:card"]).not.toContain("rule:x");
   });
 });
