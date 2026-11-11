@@ -11,6 +11,7 @@ import { appRootsEmitter } from "./kind-app-roots.js";
 import { archivedMarkedNodesEmitter } from "./kind-archived-marked-nodes.js";
 import { classificationConflictsEmitter } from "./kind-classification-conflicts.js";
 import { componentNameCollisionEmitter } from "./kind-component-name-collision.js";
+import { componentSourceMatchEmitter } from "./kind-component-source-match.js";
 import { duplicateComponentNamesEmitter } from "./kind-duplicate-component-names.js";
 import { figmaCollectionsEmitter } from "./kind-figma-collections.js";
 import { figmaLibraryPagesEmitter } from "./kind-figma-library-pages.js";
@@ -34,6 +35,7 @@ export const EMITTERS: readonly KindEmitter[] = [
   appRootsEmitter,
   sourceAuthorityEmitter,
   componentNameCollisionEmitter,
+  componentSourceMatchEmitter,
 ];
 
 export const KINDS_WITHOUT_EMITTER: readonly ClusterKind[] = [

@@ -19,11 +19,11 @@ const FIXTURE_DIR = join(ROOT, "tests", "fixtures", "owner-rulings", "kinds");
 const SPEC_KINDS = [
   "figma-collections", "token-path-collision", "figma-library-pages", "screen-pages", "archived-marked-nodes",
   "duplicate-component-names", "classification-conflicts", "untypeable-tokens", "ambiguous-roles", "scan-budget",
-  "app-roots", "source-authority", "component-name-collision", "inferred-links",
+  "app-roots", "source-authority", "component-name-collision", "component-source-match", "inferred-links",
 ];
 
 describe("the kinds table", () => {
-  it("is the closed list of the spec: 14 kinds, no more, no fewer", () => {
+  it("is the closed list of the spec: 15 kinds, no more, no fewer", () => {
     expect([...CLUSTER_KINDS].sort()).toEqual([...SPEC_KINDS].sort());
     expect(Object.keys(CLUSTER_KIND_TABLE).sort()).toEqual([...SPEC_KINDS].sort());
   });
@@ -47,7 +47,7 @@ describe("the emitter registry", () => {
     expect([...emitted, ...KINDS_WITHOUT_EMITTER].sort()).toEqual([...CLUSTER_KINDS].sort());
   });
   it("registers the Figma-ingest, import, project-level and surface kinds and leaves the later kind without an emitter", () => {
-    expect([...emitted].sort()).toEqual(["ambiguous-roles", "app-roots", "archived-marked-nodes", "classification-conflicts", "component-name-collision", "duplicate-component-names", "figma-collections", "figma-library-pages", "scan-budget", "screen-pages", "source-authority", "token-path-collision", "untypeable-tokens"]);
+    expect([...emitted].sort()).toEqual(["ambiguous-roles", "app-roots", "archived-marked-nodes", "classification-conflicts", "component-name-collision", "component-source-match", "duplicate-component-names", "figma-collections", "figma-library-pages", "scan-budget", "screen-pages", "source-authority", "token-path-collision", "untypeable-tokens"]);
     expect([...KINDS_WITHOUT_EMITTER].sort()).toEqual(["inferred-links"]);
   });
   it("holds the coverage rule on the real registry and the real fixtures", () => {
