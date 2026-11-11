@@ -114,8 +114,8 @@ describe("the export reader", () => {
   it("does not read a constant, a type, a hook or a declaration with no markup as a component", () => {
     const r = readComponentExports("x/a.tsx", 'export const API_URL = "x";\nexport const Colors = { a: 1 };\nexport function useThing() { return 1; }\nexport type Props = {};\nexport interface Q {}\n');
     expect(r.components).toEqual([]);
-    expect(r.unread.map((u) => u.name)).toEqual(["Colors"]);
-    expect(readComponentExports("x/a.tsx", "export const LOGO = <svg />;\n")).toEqual({ components: [], reExports: [], unread: [] }); // an all-capitals constant is not a component name
+    expect(r.unread.map((u) => u.name)).toEqual(["API_URL", "Colors"]); // an all-caps constant is listed, never read
+    expect(readComponentExports("x/a.tsx", "export const LOGO = <svg />;\n")).toMatchObject({ components: [], reExports: [], unread: [{ name: "LOGO" }] }); // an all-capitals name is not a component name, and is listed
   });
   it("reports an anonymous default export as not read, with its line", () => {
     const r = readComponentExports("x/a.tsx", "export default function () { return <div />; }\n");

@@ -35,6 +35,46 @@ export function blankComments(source: string): string {
   return noBlock.replace(/(^|[\s;{}(),])\/\/[^\n]*/gm, (m, lead: string) => lead + spaces(m.slice(lead.length)));
 }
 
+/**
+ * The text with string and template literals blanked (same length and lines): a one-line quoted string, and a template
+ * literal that may span lines. A quote that does not close on its line (an apostrophe in JSX text) is left alone, so it
+ * cannot hide the exports after it.
+ */
+export function blankStrings(text: string): string {
+  let out = "";
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i] as string;
+    if (c === "`") {
+      let j = i + 1;
+      while (j < text.length && text[j] !== "`") { if (text[j] === "\\") j++; j++; }
+      out += c + spaces(text.slice(i + 1, j)) + (text[j] ?? "");
+      i = j;
+    } else if (c === '"' || c === "'") {
+      let j = i + 1;
+      while (j < text.length && text[j] !== c && text[j] !== "\n") { if (text[j] === "\\") j++; j++; }
+      // A module specifier (`from "./a"`) is not a string to hide: the barrel reader needs it.
+      if (text[j] === c && !/\bfrom\s*$/.test(out)) { out += c + " ".repeat(j - i - 1) + c; i = j; } else out += c;
+    } else out += c;
+  }
+  return out;
+}
+
+/** Names bound by the declarators after the first one of an `export const A = ..., B = ...` statement, read at bracket depth 0. */
+function extraDeclarators(statement: string): string[] {
+  const names: string[] = [];
+  let depth = 0;
+  for (let i = 0; i < statement.length; i++) {
+    const c = statement[i] as string;
+    if ("([{".includes(c)) depth++;
+    else if (")]}".includes(c)) depth--;
+    else if (c === "," && depth === 0) {
+      const m = /^\s*([A-Za-z_$][\w$]*)\s*(?::[^=,]+)?=[^=>]/.exec(statement.slice(i + 1));
+      if (m !== null) names.push(m[1] as string);
+    }
+  }
+  return names;
+}
+
 function spanFrom(lines: readonly string[], startIdx: number): { startLine: number; endLine: number } {
   let j = startIdx + 1;
   while (j < lines.length && !TOP_LEVEL.test(lines[j] as string)) j++;
@@ -66,11 +106,11 @@ export function readComponentExports(file: string, source: string): SourceExport
     else out.unread.push({ name, line: 1, reason: `the file name '${name}' is not an upper-camel component name` });
     return out;
   }
-  const SCRIPT_ONLY = [".ts", ".js", ".mjs"];
-  if (ext !== ".tsx" && ext !== ".jsx" && !SCRIPT_ONLY.includes(ext)) return out;
+  const SCRIPT_ONLY = [".ts", ".mjs"]; // a .js file may hold JSX: it is read the way a .jsx file is
+  if (ext !== ".tsx" && ext !== ".jsx" && ext !== ".js" && !SCRIPT_ONLY.includes(ext)) return out;
   const readsComponents = !SCRIPT_ONLY.includes(ext);
 
-  const text = blankComments(source);
+  const text = blankStrings(blankComments(source));
   const lines = text.split("\n");
   const starts = lineStarts(text);
   const seen = new Set<string>();
@@ -79,6 +119,11 @@ export function readComponentExports(file: string, source: string): SourceExport
     const span = spanFrom(lines, idx);
     if (!MARKUP.test(lines.slice(span.startLine - 1, span.endLine).join("\n"))) {
       out.unread.push({ name, line: span.startLine, reason: "the declaration holds no markup, so it is not read as a component" });
+      seen.add(name);
+      return;
+    }
+    if (/^(?:export\s+)?(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*(?::[^=]+)?=\s*[[{]/.test(lines[idx] as string)) {
+      out.unread.push({ name, line: span.startLine, reason: "an object or array holding markup is not read as a component" });
       seen.add(name);
       return;
     }
@@ -106,7 +151,15 @@ export function readComponentExports(file: string, source: string): SourceExport
     } else if (/^export\s+default\b/.test(line)) {
       out.unread.push({ name: "(default)", line: idx + 1, reason: "the default export is not a named declaration" });
     } else if ((m = /^export\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)/.exec(line)) !== null || (m = /^export\s+(?:abstract\s+)?class\s+([A-Za-z_$][\w$]*)/.exec(line)) !== null || (m = /^export\s+(?:const|let|var)\s+([A-Za-z_$][\w$]*)/.exec(line)) !== null) {
-      if (isComponentName(m[1] as string)) add(m[1] as string, false, idx);
+      const name = m[1] as string;
+      if (isComponentName(name)) add(name, false, idx);
+      else if (/^[A-Z]/.test(name)) out.unread.push({ name, line: idx + 1, reason: "the name has no lower-case letter, so it is not read as a component" });
+      if (/^export\s+(?:const|let|var)\b/.test(line)) {
+        const span = spanFrom(lines, idx);
+        for (const extra of extraDeclarators(lines.slice(span.startLine - 1, span.endLine).join("\n").replace(/^export\s+(?:const|let|var)\s+[A-Za-z_$][\w$]*/, ""))) {
+          if (/^[A-Z]/.test(extra)) out.unread.push({ name: extra, line: idx + 1, reason: "the second declarator of one const statement is not read: give it its own export statement" });
+        }
+      }
     } else if ((m = /^export\s*(?:type\s*)?\*\s*(?:as\s+\w+\s*)?from\s*['"]([^'"]+)['"]/.exec(line)) !== null) {
       out.reExports.push({ names: [], star: true, spec: m[1] as string });
     }

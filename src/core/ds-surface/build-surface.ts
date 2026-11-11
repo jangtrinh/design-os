@@ -26,7 +26,7 @@ export interface BuildSurfaceInput {
   scan: SurfaceUnread["scan"];
 }
 
-const COMPONENT_EXT = /\.(?:tsx|jsx|vue|svelte)$/i;
+const COMPONENT_EXT = /\.(?:tsx|jsx|js|vue|svelte)$/i;
 const NON_COMPONENT_FILE = /\.(?:stories|story|test|spec)\.[A-Za-z]+$/i;
 const NON_COMPONENT_DIR = new Set(["__tests__", "__mocks__", "test", "tests", "spec", "stories"]);
 const STORY_FILE = /\.(?:stories|story)\.(?:tsx|ts|jsx|js|vue|svelte)$/i;
