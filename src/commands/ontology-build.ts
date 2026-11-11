@@ -14,8 +14,10 @@ import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
 import { coverageTable } from "../core/ontology/coverage.js";
 import { serializeOntology } from "../core/ontology/emit-ontology.js";
+import { graphErrors } from "../core/ontology/graph-errors.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 import { blockedSummaryText, buildText } from "./ontology-render.js";
+import { refusalText } from "./ontology-refusal.js";
 import { fail, isResult, prepare } from "./ontology-shared.js";
 
 const CMD = "ontology build";
@@ -27,6 +29,8 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   if (isResult(ready)) return ready;
   const { dir, built, sources } = ready;
   const o = built.ontology;
+  const bad = graphErrors(o.nodes, o.links);
+  if (bad.length > 0) return fail(CMD, json, bad[0]!.code, refusalText(bad));
   const outFlag = typeof parsed.flags["out"] === "string" ? parsed.flags["out"] : ONTOLOGY_REL;
   const target = resolve(dir, outFlag);
   const outRel = relative(dir, target).split("\\").join("/");
