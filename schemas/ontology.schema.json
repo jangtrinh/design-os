@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ease-design/schemas/ontology.schema.json",
+  "title": "Design ontology",
+  "description": "design/knowledge/ontology.json, emitted by `ui ontology build` and never hand-edited. Nodes and exact links, plus the report of every source (read, missing or not sensed) and every link kind (written, unresolved, not sensed). No timestamp and no absolute path: the same tree gives the same bytes from any checkout. A node id is `<kind>:<key>` where the key survives a reordering of its source.",
+  "type": "object",
+  "required": ["schema", "nodes", "links", "sources", "linkReports", "proposals", "uncovered"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "design-os-ontology/1" },
+    "nodes": { "type": "array", "items": { "$ref": "#/definitions/node" } },
+    "links": { "type": "array", "items": { "$ref": "#/definitions/link" } },
+    "sources": { "type": "array", "items": { "$ref": "#/definitions/source" } },
+    "linkReports": { "type": "array", "items": { "$ref": "#/definitions/linkReport" } },
+    "proposals": {
+      "type": "object", "required": ["rules", "soul"], "additionalProperties": false,
+      "properties": { "rules": { "type": "integer", "minimum": 0 }, "soul": { "type": "integer", "minimum": 0 } }
+    },
+    "uncovered": {
+      "type": "array",
+      "items": { "type": "object", "required": ["kind", "count"], "additionalProperties": false, "properties": { "kind": { "$ref": "#/definitions/nodeKind" }, "count": { "type": "integer", "minimum": 1 } } }
+    }
+  },
+  "definitions": {
+    "nodeKind": { "enum": ["project", "token", "component", "screen", "rule", "gate", "ruling", "principle", "term", "pattern", "app", "feature"] },
+    "linkKind": { "enum": ["uses-component", "consumes-token", "constrains", "checked-by", "belongs-to", "governs", "superseded-by", "defines"] },
+    "node": {
+      "type": "object",
+      "required": ["id", "kind", "name"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z]+:.+$" },
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "name": { "type": "string" },
+        "standalone": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "link": {
+      "type": "object", "required": ["kind", "from", "to"], "additionalProperties": false,
+      "properties": { "kind": { "$ref": "#/definitions/linkKind" }, "from": { "type": "string" }, "to": { "type": "string" } }
+    },
+    "source": {
+      "type": "object", "required": ["kind", "status", "nodes", "note"], "additionalProperties": false,
+      "properties": {
+        "kind": { "$ref": "#/definitions/nodeKind" },
+        "status": { "enum": ["read", "missing", "not-sensed"] },
+        "nodes": { "type": "integer", "minimum": 0 },
+        "note": { "type": "string" }
+      }
+    },
+    "linkReport": {
+      "type": "object", "required": ["link", "written", "unresolved", "notSensed", "details"], "additionalProperties": false,
+      "properties": {
+        "link": { "$ref": "#/definitions/linkKind" },
+        "written": { "type": "integer", "minimum": 0 },
+        "unresolved": { "type": "integer", "minimum": 0 },
+        "notSensed": { "type": "integer", "minimum": 0 },
+        "notSensedReason": { "type": "string" },
+        "notChecked": { "type": "integer", "minimum": 0 },
+        "details": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
