@@ -125,14 +125,19 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   const open = openQuestionsOf(cwd);
   const data = { ...model.output, ...(plan === null ? {} : { register: plan.preview }), ...(open === undefined ? {} : { pending: open }) };
 
-  if (outFile !== undefined) {
+  // `--out` is written last, after everything that can refuse the call has passed, so a refusal leaves no file behind.
+  const writeOut = (): CommandResult | null => {
+    if (outFile === undefined) return null;
     const target = resolve(cwd, outFile);
     try { mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, `${JSON.stringify(model.output, null, 2)}\n`, "utf8"); }
     catch (e) { return err("WRITE_ERROR", `cannot write '${target}': ${e instanceof Error ? e.message : String(e)}`); }
-  }
-  if (!apply || plan === null) return json ? okJson(CMD, data) : { exitCode: 0, stdout: renderSurfaceText(data) };
+    return null;
+  };
+  if (!apply || plan === null) { const failed = writeOut(); if (failed !== null) return failed; return json ? okJson(CMD, data) : { exitCode: 0, stdout: renderSurfaceText(data) }; }
   try {
     const done = registerRecordsOnce(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens })), nowFlag ?? new Date().toISOString(), "ui ds surface --register");
+    const failed = writeOut();
+    if (failed !== null) return failed; // the batch is already written: the refusal names only the file that could not be
     const applied = { ...data, applied: { file: relative(cwd, done.file).split("\\").join("/"), registered: done.registered, linked: done.linked, separate: done.separate, sealed: done.sealed, ...(done.generation === undefined ? {} : { generation: done.generation }), warnings: done.warnings } };
     return json ? okJson(CMD, applied) : { exitCode: 0, stdout: renderSurfaceText(applied) };
   } catch (e) {
