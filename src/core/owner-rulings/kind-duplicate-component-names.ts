@@ -8,6 +8,7 @@
  */
 import type { ClusterOption, MemberChoice } from "./cluster.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
+import { memberWithIds } from "./fingerprint.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 
 export interface DuplicateNode { id: string; name: string; page?: string; pageId?: string }
@@ -29,11 +30,12 @@ export function duplicateGroups(nodes: readonly DuplicateNode[]): DuplicateGroup
   const byName = new Map<string, DuplicateNode[]>();
   for (const n of nodes) (byName.get(n.name) ?? byName.set(n.name, []).get(n.name)!).push(n);
   return [...byName].filter(([, bearers]) => bearers.length > 1)
-    .map(([name, bearers]) => ({ member: `${name}#${bearers.map((b) => b.id).sort().join(",")}`, name, bearers }));
+    .map(([name, bearers]) => ({ member: memberWithIds(name, bearers.map((b) => b.id)), name, bearers }));
 }
 
 const pageKey = (n: DuplicateNode): string | undefined => n.pageId ?? n.page;
-const pageName = (n: DuplicateNode): string => n.page ?? "(no page)";
+/** Where a node sits, in words: `on <page>`, or `with no page`. */
+const where = (n: DuplicateNode): string => (n.page === undefined ? "with no page" : `on ${n.page}`);
 
 function detect(raw: unknown): KindDetection | null {
   const input = raw as DuplicateNamesInput | null;
@@ -57,7 +59,7 @@ function detect(raw: unknown): KindDetection | null {
         .sort((a, b) => (size.get(b) ?? 0) - (size.get(a) ?? 0) || (order.get(a) ?? 0) - (order.get(b) ?? 0))
         .slice(0, MAX_PAGE_OPTIONS);
       const options: ClusterOption[] = pages.map((p) => {
-        const label = pageName(input.nodes.find((n) => pageKey(n) === p) as DuplicateNode);
+        const label = (input.nodes.find((n) => pageKey(n) === p) as DuplicateNode).page ?? p;
         return {
           id: `keep-page:${p}`, label: `Keep the one on page ${label}`,
           consequence: `${rows.length} name(s): the node on ${label} keeps the name, the other node(s) are excluded and counted`,
@@ -81,11 +83,11 @@ function detect(raw: unknown): KindDetection | null {
       const labels: Record<string, string> = {};
       for (const g of rows) {
         memberChoices[g.member] = [
-          ...g.bearers.map((b) => ({ id: keepNode(b.id), label: `Keep the one on ${pageName(b)} (${b.id})` })),
+          ...g.bearers.map((b) => ({ id: keepNode(b.id), label: `Keep the one ${where(b)} (${b.id})` })),
           { id: RENAME_ALL, label: "Keep all under distinct names" },
           { id: EXCLUDE_ALL, label: "Exclude all of them" },
         ];
-        labels[g.member] = `${g.name}: ${g.bearers.map((b) => `on ${pageName(b)}`).join(", ")}`;
+        labels[g.member] = `${g.name}: ${g.bearers.map(where).join(", ")}`;
       }
       return {
         question: `${rows.length} name(s) occur more than once after marker stripping (${shown}${rows.length > 3 ? ", …" : ""}). Which node keeps each name?`,

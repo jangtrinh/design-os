@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://ease-design/schemas/figma-ds-scan.schema.json",
   "title": "Figma design-system scan",
-  "description": "The one scan file that `ui ingest-figma-ds` reads. Two hosts write it: the Figma plugin (`figma-agent scan-design-system`) and DESIGN:OS Studio (`designos <file.fig> --scan-design-system`). The hosts sense, the kernel judges: every field after `styles` is optional for the reader, and a scan without them is read as 'not sensed'. Ids are always Figma ids, never a host's own numbers. `tokens` lists the variables of LOCAL collections only.",
+  "description": "The one scan file that `ui ingest-figma-ds` reads. Two hosts write it: the Figma plugin (`figma-agent scan-design-system`) and DESIGN:OS Studio (`designos <file.fig> --scan-design-system`). The hosts sense, the kernel judges: every field after `styles` is optional for the reader, and a scan without them is read as 'not sensed'. Ids are always Figma ids, never a host's own numbers. `tokens` lists the variables of LOCAL collections only. The contract is strict (no extra fields). A host that adds a field changes this schema in the same change.",
   "type": "object",
   "required": ["components", "tokens", "styles"],
   "additionalProperties": false,

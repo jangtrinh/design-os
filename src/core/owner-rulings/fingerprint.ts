@@ -11,6 +11,11 @@ export function sortedUnique(members: readonly string[]): string[] {
   return [...new Set(members.map((m) => m.normalize("NFC")))].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
+/** The member id of something identified by a key and the ids of the things on it: `<key>#<sorted ids>`. */
+export function memberWithIds(key: string, ids: readonly string[]): string {
+  return `${key}#${[...ids].sort().join(",")}`;
+}
+
 export function fingerprintOf(kind: ClusterKind, members: readonly string[]): string {
   return createHash("sha256").update(JSON.stringify([kind, sortedUnique(members)])).digest("hex");
 }

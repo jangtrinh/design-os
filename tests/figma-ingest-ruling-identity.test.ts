@@ -129,7 +129,7 @@ describe("keeping the second variable and the second node (review individually)"
     const keepSecondNode: Choose = (c) => (c.kind === "duplicate-component-names" ? reviewing((m) => `keep:${idsOf(m)[1]}`)(c) : takeRecommended(c));
     const { final } = ingestUntilReady(writeScan(project, scan), project, out, keepSecondNode, ["--json"]);
     expect(JSON.parse(final.out).data.ledger.excluded["duplicate-excluded"]).toBe(1);
-    expect(JSON.parse(final.out).data.excluded.items["duplicate-excluded"]).toEqual([{ id: "1:1", name: "Card" }]);
+    expect(JSON.parse(final.out).data.excluded.items["duplicate-excluded"]).toEqual([{ id: "1:1", name: "Card", where: "Library" }]);
   });
 });
 

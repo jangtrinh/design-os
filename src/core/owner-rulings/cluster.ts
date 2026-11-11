@@ -5,6 +5,7 @@
 import { isRecord } from "../knowledge-promotion-ruling.js";
 import { CLUSTER_KIND_TABLE, REVIEW_INDIVIDUALLY, isClusterKind } from "./cluster-kinds.js";
 import type { ClusterKind } from "./cluster-kinds.js";
+import { isStringMap, modeProblem, parseMemberChoices, sortedKeys } from "./cluster-assigned-mode.js";
 import { FINGERPRINT, fingerprintOf, sortedUnique } from "./fingerprint.js";
 
 export const MAX_SAMPLES = 5;
@@ -95,50 +96,6 @@ function selectsProblem(kind: ClusterKind, members: readonly string[], options: 
   return missing === undefined ? null : `cluster '${kind}': the selects must together cover every member ('${missing}' is in no option)`;
 }
 
-const sameKeySet = (map: Record<string, unknown>, members: readonly string[]): boolean => {
-  const keys = Object.keys(map).map((k) => k.normalize("NFC"));
-  return new Set(keys).size === members.length && members.every((m) => keys.includes(m));
-};
-
-/**
- * Single-choice clusters are plain (no assigns, no memberChoices) or assigned (memberChoices over exactly the members,
- * every option but `review individually` assigning each member one of its choices). A mix is refused.
- */
-function modeProblem(kind: ClusterKind, members: readonly string[], options: readonly ClusterOption[], memberChoices: ClusterInput["memberChoices"]): string | null {
-  const anyAssigns = options.some((o) => o.assigns !== undefined);
-  if (CLUSTER_KIND_TABLE[kind].setValued) {
-    return anyAssigns || memberChoices !== undefined ? `cluster '${kind}' is set-valued: it carries neither assigns nor memberChoices` : null;
-  }
-  if (!anyAssigns && memberChoices === undefined) return null;
-  if (memberChoices === undefined) return `cluster '${kind}' mixes plain and assigned options: options carry assigns but there is no memberChoices`;
-  if (!sameKeySet(memberChoices, members)) return `cluster '${kind}' is assigned: memberChoices must cover exactly its members`;
-  const choiceIds = new Map<string, Set<string>>();
-  for (const [m, list] of Object.entries(memberChoices)) {
-    if (list.length === 0 || new Set(list.map((c) => c.id)).size !== list.length || list.some((c) => c.id === "" || c.id === REVIEW_INDIVIDUALLY)) {
-      return `cluster '${kind}' is assigned: member '${m}' needs at least one choice with distinct ids`;
-    }
-    choiceIds.set(m.normalize("NFC"), new Set(list.map((c) => c.id)));
-  }
-  for (const o of options) {
-    if (o.id === REVIEW_INDIVIDUALLY) {
-      if (o.assigns !== undefined) return `cluster '${kind}' is assigned: '${REVIEW_INDIVIDUALLY}' carries no assigns`;
-      continue;
-    }
-    if (o.assigns === undefined) return `cluster '${kind}' mixes plain and assigned options: '${o.id}' has no assigns`;
-    if (!sameKeySet(o.assigns, members)) return `cluster '${kind}': the assigns of '${o.id}' must cover exactly its members`;
-    for (const [m, v] of Object.entries(o.assigns)) {
-      if (choiceIds.get(m.normalize("NFC"))?.has(v) !== true) return `cluster '${kind}': '${o.id}' assigns '${v}' to '${m}', which is not one of that member's choices`;
-    }
-  }
-  return null;
-}
-
-/** Re-keys a member map in sorted NFC member order, so the stored form never depends on insertion order. */
-function sortedKeys<T>(map: Record<string, T>, members: readonly string[]): Record<string, T> {
-  const nfc = new Map(Object.entries(map).map(([k, v]) => [k.normalize("NFC"), v]));
-  return Object.fromEntries(members.filter((m) => nfc.has(m)).map((m) => [m, nfc.get(m) as T]));
-}
-
 /** Throws on a cluster the spec forbids: no members, 2-4 options, unique option ids, selects that do not partition. */
 export function buildCluster(input: ClusterInput): Cluster {
   const members = sortedUnique(input.members);
@@ -176,21 +133,6 @@ export function buildCluster(input: ClusterInput): Cluster {
 }
 
 const isStrings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
-
-const isStringMap = (v: unknown): v is Record<string, string> => isRecord(v) && Object.values(v).every((x) => typeof x === "string");
-
-function parseMemberChoices(raw: unknown): Record<string, MemberChoice[]> | undefined | string {
-  if (raw === undefined) return undefined;
-  if (!isRecord(raw)) return "has memberChoices that is not an object";
-  const out: Record<string, MemberChoice[]> = {};
-  for (const [m, list] of Object.entries(raw)) {
-    if (!Array.isArray(list) || !list.every((c) => isRecord(c) && typeof c["id"] === "string" && typeof c["label"] === "string")) {
-      return `has memberChoices for '${m}' that is not a list of { id, label }`;
-    }
-    out[m] = list.map((c) => ({ id: (c as Record<string, string>)["id"] as string, label: (c as Record<string, string>)["label"] as string }));
-  }
-  return out;
-}
 
 /** Reads a cluster from a stored file in full: the cluster, or the first thing that is wrong with it. */
 export function parseStoredCluster(raw: unknown): Cluster | string {

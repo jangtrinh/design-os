@@ -6,7 +6,8 @@
 import { EXCLUDE_ALL, RENAME_ALL, duplicateGroups } from "./owner-rulings/kind-duplicate-component-names.js";
 import type { DuplicateNode } from "./owner-rulings/kind-duplicate-component-names.js";
 
-export interface NamedItem { id: string; name: string }
+/** An excluded node, named; `where` tells nodes of one name apart: its page, or "no page". */
+export interface NamedItem { id: string; name: string; where?: string }
 
 export function resolveDuplicates(nodes: readonly DuplicateNode[], outcomeOf: (member: string) => string | undefined): { excluded: NamedItem[]; renames: Map<string, string> } {
   const groups = duplicateGroups(nodes);
@@ -21,12 +22,12 @@ export function resolveDuplicates(nodes: readonly DuplicateNode[], outcomeOf: (m
     if (outcome === RENAME_ALL) { rename.push(g); continue; }
     const keptId = outcome.startsWith("keep:") ? outcome.slice("keep:".length) : undefined;
     if (keptId !== undefined && g.bearers.some((b) => b.id === keptId)) taken.add(g.name);
-    for (const b of g.bearers) if (b.id !== keptId) excluded.push({ id: b.id, name: b.name });
+    for (const b of g.bearers) if (b.id !== keptId) excluded.push({ id: b.id, name: b.name, where: b.page ?? "no page" });
   }
   // Renames come last so a distinct name never takes one that another ruling keeps.
   for (const g of rename) {
     for (const b of g.bearers) {
-      const base = `${b.name} · ${b.page ?? "unpaged"}`;
+      const base = `${b.name} · ${b.page ?? "no page"}`;
       let candidate = base;
       for (let k = 2; taken.has(candidate); k++) candidate = `${base} (${k})`;
       taken.add(candidate);

@@ -9,6 +9,7 @@
  */
 import type { ClusterOption, MemberChoice } from "./cluster.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
+import { memberWithIds } from "./fingerprint.js";
 import type { AskResult, KindDetection, KindEmitter } from "./kind-emitter.js";
 
 export interface CollisionVariable {
@@ -41,7 +42,7 @@ export function collisionWinner(outcome: string): string {
 interface Collision { member: string; path: string; variables: CollisionVariable[] }
 
 /** The member id of one collision: the path plus the sorted ids of the variables on it. */
-export const collisionMember = (path: string, variables: readonly { id: string }[]): string => `${path}#${variables.map((v) => v.id).sort().join(",")}`;
+export const collisionMember = (path: string, variables: readonly { id: string }[]): string => memberWithIds(path, variables.map((v) => v.id));
 const memberOf = collisionMember;
 const collectionText = (c: string): string => (c === "" ? "(no collection)" : c);
 const describe = (v: CollisionVariable): string => v.aliasOf !== undefined
