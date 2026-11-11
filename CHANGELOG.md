@@ -1,5 +1,60 @@
 # Changelog
 
+## 2026-11-11 - `ui ingest-figma-ds` asks the owner instead of dropping or guessing
+
+### Changed
+- `ui ingest-figma-ds` no longer keeps the first of two things and stays silent about the other. When a scan holds
+  something only the owner can settle, the command writes nothing, exits 1 with
+  `ONBOARD_BLOCKED_NEEDS_OWNER_RULING` and stores its questions in `<cwd>/.design-os/onboard/pending.json`. Answer
+  with `ui onboard questions` and `ui onboard answer --file`, then run the ingest again. It asks about: variable
+  collections that map to the same token paths (which collections stay, with a recommendation computed on the alias
+  graph), two variables on one token path (which variable keeps it), component nodes on several pages (which pages
+  hold the library), frames on several pages (which pages hold screens), archive-marked nodes, repeated component
+  names (which node keeps the name, or all renamed `<name> · <page>`), a screen heuristic that contradicts how a
+  node is used, and variables that cannot become typed tokens (grouped by reason).
+- A ruling names what it keeps by id. Renaming a collection, a page or a node, or reordering the scan, never changes
+  what is written and asks nothing again; a new variable on a ruled path or a new node under a ruled name is asked.
+  No option is positional: "keep the first" is gone.
+- An alias is written only when its target is written. An alias to a variable that was left out is asked as a
+  dangling alias; it is never re-pointed and never written as a dangling reference, so the written `tokens.json`
+  always passes `ui tokens compile`. A variable that aliases the variable on its own token path cannot keep that
+  path; the question says what it aliases.
+- "Keep as raw string tokens" applies only to variables whose every mode value is a string, a number or a boolean;
+  the raw token carries every mode. Everything else that cannot be typed can only be excluded, and the option says
+  how many that is.
+- Every run ends with a ledger in the JSON envelope, the text output and `DESIGN.md`:
+  `in = written + excluded + pending`, with one count per reason and a count for each name heuristic that classified
+  a node. Items left out by an owner answer are listed with id and name in the envelope; the text names ten per
+  reason, then points at `--json`.
+- New `--cwd <dir>` selects the project whose owner rulings apply; a directory that does not exist is refused with
+  `BAD_ARG`.
+- Component records carry `tokensUsed` from the variables bound to the component, by variable id, when the scan
+  holds bindings; a binding into a collection the owner left out is counted.
+- Questions with more than four members put the recommended set first as one option, then the largest members, and
+  group the rest; without a recommendation the largest come first, ties in scan order. The Markdown sheet lists
+  every member as `name (id)` with the choices that member may take.
+- `ui ds kit plan` names the next action when it meets a repeated component name.
+
+### Added
+- `schemas/figma-ds-scan.schema.json`: one contract for the scan both Figma hosts write (the plugin and the `.fig`
+  reader). The kernel's scan fixtures are validated against it. A host that adds a field changes the schema in the
+  same change.
+- Owner-ruling kernel: an option of a single-choice question can give each member its own outcome (`assigns`,
+  `memberChoices`), and members carry display labels. The `--format claude` answer key shows the per-member answer
+  in the shape `ui onboard answer` accepts.
+
+### Fixed
+- `ui onboard answer` runs the detectors before it validates or writes, so a broken detector leaves the manifest and
+  the pending file untouched.
+- The pending reader refuses a stored question that names no command.
+
+### Migration
+- A scan that used to ingest in one run may now stop with questions. Nothing was lost before that the ledger does
+  not now show: the earlier ingest kept the first variable of a colliding path, the first node of a repeated name,
+  and skipped untypeable variables without a line.
+- Scans with one collection, one page and no repeated names produce the same `tokens.json` and
+  `component-registry.json` as before; `DESIGN.md` gains a closing ledger section.
+
 ## 2026-11-11 - `ui ds harvest-bans` proposes what a codebase never does
 
 ### Added
