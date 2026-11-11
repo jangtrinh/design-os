@@ -6,6 +6,7 @@
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { canonicalHash, canonicalStringify } from "../src/core/ds-manifest.js";
 import { capture } from "./owner-rulings-helpers.js";
 import { keyOf, submit } from "./project-kinds-helpers.js";
 
@@ -36,6 +37,25 @@ function answerScreenPages(project: string, keep: readonly string[], pages: read
   if (done.code !== 0) throw new Error(`answer failed: ${done.out}${done.err}`);
 }
 
+/** Answers every open question of `kind` with one of its options, the way the `--format claude` answer key lets a host. */
+function answerOptions(project: string, kind: string, choice: string): void {
+  const entries = keyOf(project).filter((k) => k.kind === kind);
+  if (entries.length === 0) throw new Error(`the ingest raised a question this helper does not answer: ${keyOf(project).map((k) => k.kind).join(", ")}`);
+  const done = submit(project, entries.map((k) => ({ fingerprint: k.fingerprint, choice })));
+  if (done.code !== 0) throw new Error(`answer failed: ${done.out}${done.err}`);
+}
+
+/** Rewrites the sealed component registry through `change` and reseals the pair, the way an adopted edit would be. */
+export function editRegistry(project: string, change: (registry: { components: Record<string, any>[] }) => void): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const d = join(project, "design");
+  const registry = JSON.parse(readFileSync(join(d, "component-registry.json"), "utf8")) as { components: Record<string, any>[] }; // eslint-disable-line @typescript-eslint/no-explicit-any
+  change(registry);
+  const manifest = JSON.parse(readFileSync(join(d, "ds.manifest.json"), "utf8")) as Record<string, unknown>;
+  manifest["registryHash"] = canonicalHash(registry);
+  writeFileSync(join(d, "component-registry.json"), canonicalStringify(registry));
+  writeFileSync(join(d, "ds.manifest.json"), canonicalStringify(manifest));
+}
+
 export type Scan = { components: Record<string, any>[]; tokens: Record<string, any>[]; frames?: Record<string, any>[]; sensing?: Record<string, any> }; // eslint-disable-line @typescript-eslint/no-explicit-any
 export interface Ring1Options {
   soul?: boolean; scan?: boolean; promoted?: boolean;
@@ -60,8 +80,9 @@ export function ring1Project(options: Ring1Options = {}): string {
   const input = options.edit === undefined ? scan : editedScan(scan, bundle, options.edit);
   const ingest = (): ReturnType<typeof capture> => capture(["ingest-figma-ds", input, "--out", bundle, "--cwd", project, "--now", NOW, "--json"]);
   let done = ingest();
-  if (done.code !== 0 && keyOf(project).some((k) => k.kind === "screen-pages")) {
-    answerScreenPages(project, ["0:2"], ["0:2", "0:3"]);
+  for (let round = 0; round < 3 && done.code !== 0 && keyOf(project).length > 0; round++) {
+    if (keyOf(project).some((k) => k.kind === "screen-pages")) answerScreenPages(project, ["0:2"], ["0:2", "0:3"]);
+    else answerOptions(project, "archived-marked-nodes", "keep-archived");
     done = ingest();
   }
   if (done.code !== 0) throw new Error(`ingest failed: ${done.out}${done.err}`);

@@ -4,6 +4,7 @@
  * reader per kind; a source that is absent yields zero nodes and one summary line, never a failure and never an
  * invented node. A source that exists and cannot be read is refused by name (`OntologyReadError`).
  */
+import { rulingView, withOutcome } from "../figma-ds-ingest-rulings.js";
 import { readRulingStore } from "../owner-rulings/ruling-store.js";
 import type { Ruling } from "../owner-rulings/ruling-store.js";
 import { gateNodes } from "./gate-table.js";
@@ -34,6 +35,8 @@ export interface NodeSources {
   scan: DsFile | null;
   figma: FigmaFacts | null;
   code: CodeFacts | null;
+  /** Scan nodes the owner kept as deprecated (`archived-marked-nodes`): the ingest strips their archive marker to derive the stored name. */
+  keptDeprecated: ReadonlySet<string>;
 }
 
 const PROJECT: OntNode = { id: "project:root", kind: "project", name: "project" };
@@ -60,6 +63,8 @@ export function readNodeSources(projectDir: string, rulings?: readonly Ruling[])
   const rules = readRuleNodes(projectDir);
   const ring2 = readRing2(projectDir);
   const gates = gateNodes();
+  // The ingest's own question and outcome name: the nodes the owner kept although their name carries an archive marker.
+  const keptDeprecated = withOutcome(rulingView(ruled), "archived-marked-nodes", (figma.scan?.components ?? []).map((c) => c.id), "keep-archived");
 
   const screens = withScreenMeta([...figma.nodes, ...code.nodes], ring2.meta);
   const nodes = [PROJECT, ...stores.tokens, ...stores.components, ...screens, ...rules.nodes, ...gates, ...ring2.nodes].sort((a, b) => byText(a.id, b.id));
@@ -68,5 +73,5 @@ export function readNodeSources(projectDir: string, rulings?: readonly Ruling[])
   byKind.set("project", { kind: "project", status: "read", nodes: 1, note: "always one node" });
   byKind.set("gate", { kind: "gate", status: "read", nodes: gates.length, note: `${gates.length} gate families of the kernel` });
   const reports = NODE_KINDS.map((k) => byKind.get(k) as SourceReport);
-  return { nodes, reports, stores, rules, ring2, scan: figma.scan, figma: figma.figma, code: code.code };
+  return { nodes, reports, stores, rules, ring2, scan: figma.scan, figma: figma.figma, code: code.code, keptDeprecated };
 }
