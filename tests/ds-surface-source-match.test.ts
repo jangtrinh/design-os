@@ -311,7 +311,8 @@ describe("the record shape and the link function", () => {
   const code = { sourceRef: "src/a/Card.tsx:1-3", sha256: "sha256-BBBB" };
   it("accepts a `code` reference of exactly sourceRef and sha256, with the shape of a code provenance", () => {
     expect(validateSourceAuthoredComponentRecord({ ...rec, code }).code).toEqual(code);
-    expect(() => validateComponentRecord({ ...rec, code: { ...code, kind: "code" } })).toThrow(RegistryError);
+    expect(() => validateSourceAuthoredComponentRecord({ ...rec, code: { ...code, kind: "code" } })).toThrow(/unexpected property 'kind'/);
+    expect(() => validateComponentRecord({ ...rec, code })).toThrow(RegistryError); // the strict name rule of a design-owned record still applies
     expect(() => validateSourceAuthoredComponentRecord({ ...rec, code: { sourceRef: "no-lines", sha256: "sha256-BBBB" } })).toThrow(RegistryError);
     expect(() => validateSourceAuthoredComponentRecord({ ...rec, code: { sourceRef: code.sourceRef, sha256: "nope" } })).toThrow(RegistryError);
     expect(() => validateSourceAuthoredComponentRecord({ ...rec, code: "x" })).toThrow(RegistryError);
@@ -321,6 +322,7 @@ describe("the record shape and the link function", () => {
     const linked = linkCodeSource(reg, { name: "Card", code, tokens: ["color.surface", "color.ink"] });
     expect(linked.components[0]).toMatchObject({ name: "Card", code, tokensUsed: ["color.ink", "color.surface"], provenance: rec.provenance, markup: "m" });
     expect(() => linkCodeSource(reg, { name: "card", code, tokens: [] })).toThrow(RegistryError);
+    expect(() => linkCodeSource(reg, { name: "Card", code: { sourceRef: "no-lines", sha256: code.sha256 }, tokens: [] })).toThrow(RegistryError); // the linked record is validated, not trusted
     expect(() => linkCodeSource(reg, { name: "Own", code, tokens: [] })).toThrow(/already/);
     expect(() => linkCodeSource(linked, { name: "Card", code, tokens: [] })).toThrow(/already/);
   });
