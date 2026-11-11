@@ -129,6 +129,7 @@ id, fails the emit with `BAD_PRINCIPLES`.
 ```sh
 ui ontology build [--dir <project>] [--out design/knowledge/ontology.json] [--json]
 ui ontology lint  [--dir <project>] [--file design/knowledge/ontology.json] [--strict] [--json]
+ui ontology query "<text>" [--area <name>] [--budget <chars>] [--dir <project>] [--json]
 ```
 
 `design/knowledge/ontology.json` (`design-os-ontology/1`, `schemas/ontology.schema.json`) is one knowledge graph of the
@@ -138,6 +139,24 @@ re-emits in memory and compares bytes); orphans (no link, not standalone) are wa
 the kind coverage table (`nodes`, `linked`, `orphan`, `standalone`, `source missing`) and the link reports (`written`,
 `unresolved`, `not sensed`, `not checked`, and the owner-ruled pairs no candidate matches; `--json`: `linkReports`) are
 always printed. An open question the build depends on is an error that names `ui onboard questions`, for every kind.
+
+An **area** is a field the build writes on a node, with a key that says where the grouping comes from: `page:<page name>`
+for a component the Figma ingest wrote and the scan ties to a scan component (`page:<name> (<page id>)` for both when
+two pages share a name), `dir:<category>` for a component registered from code (the directory of its file),
+`tokens:<first segment of the token path>` and `rulings:<category>`. A node with no source for an area carries none and
+is counted, with the reason, in the build summary, the lint and the component source line (`withoutArea`): an area is
+never taken from a name.
+
+`ui ontology query "<text>"` reads only `design/knowledge/ontology.json`, and only while it equals what a build from the
+current sources writes (a stale or missing file is refused with `ONTOLOGY_STALE` and the one action that works; the query
+never rebuilds and never writes). It scores each node by the number of distinct query words in its name and aliases (ties
+by node id), expands two links in both directions, and packs the result in one fixed order: rules, patterns, components,
+tokens, rulings that are not superseded, sibling screens. A rule that constrains the whole project reaches every match.
+Each entry names its node id and the project-relative file to open; `--budget` (default 12000) bounds the pack text in
+characters and cuts whole entries from the end of the order, saying how many of each group were left out. `--area` is
+exact: the full key or the name after its prefix; a name two areas share is `ONTOLOGY_AREA_AMBIGUOUS` and a name none has
+is `ONTOLOGY_AREA_UNKNOWN`, each listing keys. A text that matches nothing exits 0 with `matches: 0`, the three nearest
+titles and no pack. `ui agents init` writes the areas into each agent, so an agent knows which query to run for its task.
 `--out` and `--file` must name a file inside the project (real paths are compared, so a symbolic link that points outside is refused). The `screen` source keeps one status per door (`doors`), so a
 Figma scan never sensed for frames stays `not-sensed` next to a code door that was read. Project structure is never an
 orphan: the `project` node and the `gate` nodes belong to the kernel.

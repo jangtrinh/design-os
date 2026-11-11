@@ -74,16 +74,25 @@ tampering. See `ds-kit-onboarding.md` §5 for the full host-file rule.
 
 ## §5 Runtime scope
 
-**This scope is about SUBAGENTS only** (`ui agents` → `.claude/agents/`) — NOT the
-`ui init` runtime adapters. Subagents are Claude Code only for now: codex and
-antigravity have no stable subagent format yet; when they do, the same templates +
-genealogy naming will emit their trees. Until then no *subagent tree* is written for them.
+`ui agents init` renders one roster (`templates/agents/<role>.md`) to the three runtimes `ui init` supports. The default
+of `--runtimes` is the `RUNTIMES` constant, not what is installed:
 
-This is NOT the same as runtime support. `ui init` DOES emit design:os skills +
-workflows for antigravity (`.agent/skills/design-os-*/`, `.agent/workflows/ui-*.md`) and
-codex/agents-md (`AGENTS.md` sentinel) — that is a separate mechanism, see the adapters
-under `src/adapters/`, not this file. "Nothing is written" here means *no subagent
-roster*, never "design:os is unavailable on that runtime."
+| Runtime | Target |
+|---|---|
+| Claude Code | `.claude/agents/<name>.md` (the bytes outside the area block are the render, unchanged) |
+| Antigravity | `.agent/skills/design-os-<name>/SKILL.md` |
+| Codex | the design-os agents section of `AGENTS.md`, written through the upsert-section artifact between its own sentinels (the text around it, and the ease-design block `ui init` writes, are never rewritten) |
+
+`ui init --with-agents` stays the Claude Code opt-in. This is NOT the same as runtime support: `ui init` emits design:os
+skills and workflows for antigravity and codex through a separate mechanism, see the adapters under `src/adapters/`.
+
+Each rendered agent carries one generated block between `<!-- design-os:ontology-areas:start -->` and
+`<!-- design-os:ontology-areas:end -->`: one line per area of `design/knowledge/ontology.json` with its node count and the
+exact `ui ontology query "<your task>" --area "<key>"` command, and how to ask the owner an open ruling question (Claude
+Code: `AskUserQuestion` with the options `ui onboard questions --format claude` prints; the other runtimes: print the
+numbered questions `ui onboard questions` prints and wait). With no ontology the block says so and names
+`ui ontology build`. It is the one deliberate exception to §3: it sits between markers, `ui agents init --force`
+regenerates it, and `ui agents check` re-renders it from the ontology file and compares (`ONTOLOGY_STALE`).
 
 ## §6 Drift check — the emitter/linter pair
 
