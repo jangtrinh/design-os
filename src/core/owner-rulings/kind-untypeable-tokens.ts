@@ -30,6 +30,10 @@ export interface UntypeableInput {
    * that would keep them. This kind knows no door, so it never words that advice itself.
    */
   hint?: string;
+  /** What the door calls one member in the question; default "variable(s)" (the Figma door). */
+  noun?: string;
+  /** False at a door whose members have no modes, so the keep-raw consequence does not mention them. Default true. */
+  modes?: boolean;
 }
 
 const LABELS: Record<string, string> = {
@@ -75,11 +79,12 @@ function detect(raw: unknown): KindDetection | null {
       const parts = groups.map((g) => `${reasonLabel(g.reason)} (${g.count}: ${g.examples.join(", ")}${g.count > g.examples.length ? ", …" : ""})`);
       const keepers = asked.filter(keepable);
       const none = keepers.length === 0;
+      const noun = input.noun ?? "variable(s)";
       const options: ClusterOption[] = [];
       if (!none) {
         options.push({
           id: KEEP_RAW, label: "Keep them as raw string tokens",
-          consequence: `${keepers.length} token(s) written under "raw" with every mode as a string; ${asked.length - keepers.length} can only be excluded (an alias, an object or a single failing mode has no string to keep), counted per reason and named`,
+          consequence: `${keepers.length} token(s) written under "raw" ${input.modes === false ? "as a string" : "with every mode as a string"}; ${asked.length - keepers.length} can only be excluded (${input.modes === false ? "an alias, an object or a null" : "an alias, an object or a single failing mode"} has no string to keep), counted per reason and named`,
           assigns: Object.fromEntries(asked.map((i) => [i.id, keepable(i) ? KEEP_RAW : EXCLUDE])),
         });
       }
@@ -88,10 +93,10 @@ function detect(raw: unknown): KindDetection | null {
         consequence: `${asked.length} left out, counted per reason and named in the ledger`,
         assigns: Object.fromEntries(asked.map((i) => [i.id, EXCLUDE])),
       });
-      options.push({ id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${asked.length} variable(s); you choose per variable` });
+      options.push({ id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${asked.length} ${noun}; you choose per ${noun.replace("(s)", "")}` });
       const hint = none && input.hint !== undefined ? ` ${input.hint}` : "";
       return {
-        question: `${asked.length} variable(s) cannot become typed tokens: ${parts.join("; ")}. What happens to them?${hint}`,
+        question: `${asked.length} ${noun} cannot become typed tokens: ${parts.join("; ")}. What happens to them?${hint}`,
         options,
         memberChoices: Object.fromEntries(asked.map((i) => [i.id, keepable(i)
           ? [{ id: KEEP_RAW, label: "Keep as a raw string token" }, { id: EXCLUDE, label: "Exclude it" }]

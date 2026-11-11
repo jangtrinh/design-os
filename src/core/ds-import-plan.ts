@@ -79,6 +79,13 @@ export function assertLedgerBalances(l: ImportLedger): void {
   if (l.written.total + l.excluded.total + l.pending !== l.in) throw new Error(`ledger does not add up: in ${l.in} = written ${l.written.total} + excluded ${l.excluded.total} + pending ${l.pending}`);
 }
 
+/** Merging the kept-raw tokens into the tree must leave every typed token where it was, untouched. */
+export function assertTypedTokensKept(typed: TokenTree, tree: TokenTree): void {
+  for (const [cat, group] of Object.entries(typed)) {
+    for (const name of Object.keys(group)) if (tree[cat]?.[name] !== group[name]) throw new Error(`internal: the token ${cat}.${name} was replaced while the plan was built`);
+  }
+}
+
 /** The importer and the skip finder walk the file by one rule; a disagreement is a bug, never a quiet difference. */
 export function assertSkipFinderAgrees(importerSkipped: number, finderNamed: number): void {
   if (importerSkipped !== finderNamed) throw new Error(`internal: the import skipped ${importerSkipped} members and the skip finder named ${finderNamed}`);
@@ -113,6 +120,7 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
 
   const untypeable = untypeableTokensEmitter.detect({
     items: items.map((i) => ({ id: i.id, name: i.name, reason: i.reason, keepable: i.raw !== undefined })),
+    noun: "member(s)", modes: false,
     ...(aliasSkips.length > 0 ? { hint: ADVICE } : {}),
   });
   if (untypeable !== null && untypeable.members.length > 0) detections.push(untypeable);
@@ -124,8 +132,8 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
     const kept = Object.fromEntries(Object.entries(group).filter(([name]) => !excludedAliases.has(`${cat}.${name}`)));
     if (Object.keys(kept).length > 0) typed[cat] = kept;
   }
-  const ambiguous = recognizeRoles(typed).ambiguous;
-  const roles = ambiguousRolesEmitter.detect({ ambiguous });
+  const { ambiguous, ambiguousFamilies } = recognizeRoles(typed);
+  const roles = ambiguousRolesEmitter.detect({ ambiguous, families: ambiguousFamilies });
   if (roles !== null && roles.members.length > 0) detections.push(roles);
 
   if (!detections.every((d) => view.ruled(d))) return { detections, result: null, sourcePaths };
@@ -150,9 +158,7 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
     excludedItems[r] = those;
   }
   const treeCount = Object.values(tree).reduce((n, g) => n + Object.keys(g).length, 0);
-  for (const [cat, group] of Object.entries(typed)) {
-    for (const name of Object.keys(group)) if (tree[cat]?.[name] !== group[name]) throw new Error(`internal: the token ${cat}.${name} was replaced while the plan was built`);
-  }
+  assertTypedTokensKept(typed, tree);
   // The aliases that cannot be written are among the imported tokens already; only the source members and the keys
   // that lost a collision come on top.
   const total = base.stats.imported + source.length + lost.length;

@@ -5,7 +5,8 @@
  * survives a reorder of the file and a rename is a new member. The answer is applied through `ui ds set-role`.
  *
  * Single-choice, assigned: one outcome per token. There is no recommended role: a tie is the case where the name
- * cannot decide, so the options are "leave them all without a role" and the per-token sheet.
+ * cannot decide, so the options are "leave them all without a role" and the per-token sheet. A token's choices are
+ * the roles that tied for it, plus none; a caller that does not know which tied offers every canonical role.
  */
 import { CANONICAL_ROLES } from "../role-recognition.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
@@ -15,6 +16,8 @@ import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 export interface AmbiguousRolesInput {
   /** Token paths (`category.name`) that `recognizeRoles` reported as ambiguous. */
   ambiguous: string[];
+  /** Per token path, the roles that tied (`recognizeRoles(...).ambiguousFamilies`). Absent: every canonical role is offered. */
+  families?: Record<string, readonly string[]>;
 }
 
 export const NO_ROLE = "none";
@@ -22,8 +25,8 @@ export const LEAVE_UNASSIGNED = "leave-unassigned";
 
 const leafOf = (path: string): string => path.slice(path.indexOf(".") + 1);
 
-const CHOICES: MemberChoice[] = [
-  ...CANONICAL_ROLES.map((r) => ({ id: r, label: `Role ${r}` })),
+const choicesFor = (roles: readonly string[]): MemberChoice[] => [
+  ...roles.map((r) => ({ id: r, label: `Role ${r}` })),
   { id: NO_ROLE, label: "Leave it without a role" },
 ];
 
@@ -46,7 +49,7 @@ function detect(raw: unknown): KindDetection | null {
           },
           { id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${members.length} token(s); you give each a role, applied through ui ds set-role` },
         ],
-        memberChoices: Object.fromEntries(members.map((m) => [m, CHOICES])),
+        memberChoices: Object.fromEntries(members.map((m) => [m, choicesFor(input.families?.[m] ?? CANONICAL_ROLES)])),
         labels: Object.fromEntries(members.map((m) => [m, leafOf(m)])),
       };
     },

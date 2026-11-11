@@ -43,7 +43,12 @@ export function runOnboardQuestions(parsed: ParsedArgs, defaultCwd: string, emit
     if (e instanceof PendingStoreError) return err(e.code, e.message);
     return err("WRITE_ERROR", "cannot write .design-os/onboard/pending.json");
   }
-  if (ordered.length === 0) return err("NO_PENDING_QUESTIONS", "nothing is pending: every anomaly the kernel can detect from the project has an owner ruling");
+  if (ordered.length === 0) {
+    // Say only what is true: a ruling is mentioned when one is recorded, never because an anomaly went away.
+    return err("NO_PENDING_QUESTIONS", state.recorded > 0
+      ? `nothing is pending: no anomaly is open (${state.recorded} owner ruling(s) recorded)`
+      : "nothing is pending: the kernel detects no anomaly in this project, and no owner ruling is recorded");
+  }
   if (format === "claude" && round > roundCount(ordered)) return err("NO_PENDING_QUESTIONS", `round ${round} has no questions; there ${roundCount(ordered) === 1 ? "is 1 round" : `are ${roundCount(ordered)} rounds`}`);
 
   if (format === "markdown") return { exitCode: 0, stdout: toOwnerMarkdown(ordered) };

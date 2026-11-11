@@ -1,8 +1,8 @@
 /**
  * `app-roots` (FR-013): the scan found more than one nested app root (a `package.json` below the scan root). A
  * multi-select question: which are this project's apps. The member is the app root, project-relative; the answer is
- * recorded per root (`keep` / `drop`), so a stored ruling does not depend on how the options were grouped. A root that
- * is not kept is not walked by `ui scan` from then on.
+ * recorded per root (`keep` / `drop`), so a stored ruling does not depend on how the options were grouped. A root
+ * ruled `drop` is not walked by `ui scan` from then on; a root no ruling covers is walked.
  *
  * The recommended set is the roots that name a framework, when that is a proper part of the roots (an entry without a
  * framework is a shared package or a fixture directory, never an app by default). When every root names one, or none
@@ -17,6 +17,8 @@ import { setValuedOptions } from "./set-valued-options.js";
 export interface AppRootsInput {
   /** In scan order (sorted by path). `componentDirs` is how many component directories the root owns. */
   apps: { path: string; framework: string | null; styling: string[]; componentDirs: number }[];
+  /** True when the walk stopped at the entry cap: the counts then cover only the part that was walked. */
+  truncated?: boolean;
 }
 
 function detect(raw: unknown): KindDetection | null {
@@ -36,7 +38,7 @@ function detect(raw: unknown): KindDetection | null {
       const dirs = (group: readonly string[]): number => group.reduce((n, m) => n + dirsOf(m), 0);
       const list = members.map((m) => `${m} (${frameworkOf(m)}, ${dirsOf(m)} component dir(s))`).join(", ");
       return {
-        question: `${members.length} nested app roots were found: ${list}. Which are this project's apps? The ones left out are not walked by ui scan.`,
+        question: `${members.length} nested app roots were found: ${list}. Which are this project's apps? The ones left out are not walked by ui scan.${input.truncated === true ? " The scan stopped at its entry cap, so these counts cover only the part that was walked; answer the scan-budget question to see the rest." : ""}`,
         options: setValuedOptions({
           members, recommended, weight: dirsOf,
           describe(group, role) {
@@ -54,7 +56,7 @@ function detect(raw: unknown): KindDetection | null {
 /** Gathers the nested app roots of the walk, with the owner's skips honoured and no app root pruned (a pruned root could not be asked about). */
 function sense(projectDir: string): AppRootsInput {
   const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: scanRulingsOf(projectDir).skip });
-  return { apps: r.apps.map((a) => ({ path: a.path, framework: a.framework, styling: a.styling, componentDirs: a.componentDirs.length })) };
+  return { truncated: r.truncated, apps: r.apps.map((a) => ({ path: a.path, framework: a.framework, styling: a.styling, componentDirs: a.componentDirs.length })) };
 }
 
 export const appRootsEmitter: KindEmitter = { kind: "app-roots", sense, detect };

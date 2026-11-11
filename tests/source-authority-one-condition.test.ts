@@ -59,6 +59,8 @@ describe("the finding says what to do in each state of the question", () => {
   });
   it("after the answer it names the ruled file and never tells the owner to answer again", () => {
     const p = answered("authority:design/tokens.json");
+    const none = JSON.parse(capture(["onboard", "questions", "--cwd", p, "--json"]).out) as { error: { message: string } };
+    expect(none.error.message).toBe("nothing is pending: no anomaly is open (1 owner ruling(s) recorded)");
     expect(pending(p)).toBe(0);
     const fix = twoSources(p)[0]!.fix;
     expect(fix).toBe("The owner ruled design/tokens.json is the source (design/design-dir.json, onboard.rulings): make design/design.tokens.json agree with it or remove it, or declare design/design.tokens.json derived");

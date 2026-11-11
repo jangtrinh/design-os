@@ -30,6 +30,8 @@ export interface RecognitionResult {
   unrecognized: string[];
   /** Genuine ties (≥2 families, equal strength) — flagged, never guessed; owner resolves via `ds set-role` (Phase 2). */
   ambiguous: string[];
+  /** For each ambiguous path, the roles that tied (additive: lets a caller ask about the tied roles only). */
+  ambiguousFamilies: Record<string, Role[]>;
 }
 
 // Hue re-export skip: a `{knownHue}-{number}` leaf (optionally `color-`
@@ -159,6 +161,7 @@ export function recognizeRoles(tree: TokenTree): RecognitionResult {
   const foundRoles = new Set<Role>();
   const unrecognized: string[] = [];
   const ambiguous: string[] = [];
+  const ambiguousFamilies: Record<string, Role[]> = {};
   let recognized = 0;
 
   for (const [category, group] of Object.entries(tree)) {
@@ -178,6 +181,7 @@ export function recognizeRoles(tree: TokenTree): RecognitionResult {
       if (hit.kind === "ambiguous") {
         outGroup[name] = token;
         ambiguous.push(path);
+        ambiguousFamilies[path] = hit.families;
         continue;
       }
       if (hit.kind === "none") {
@@ -195,5 +199,5 @@ export function recognizeRoles(tree: TokenTree): RecognitionResult {
   }
 
   const gaps = CANONICAL_ROLES.filter((r) => !foundRoles.has(r));
-  return { annotated, recognized, gaps, unrecognized, ambiguous };
+  return { annotated, recognized, gaps, unrecognized, ambiguous, ambiguousFamilies };
 }

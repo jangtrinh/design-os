@@ -138,8 +138,19 @@ describe("app-roots", () => {
   });
 });
 
+describe("app-roots while the scan is capped", () => {
+  it("says its counts cover only the part that was walked, and says nothing of the kind when the walk finished", () => {
+    const capped = projectWith({ "package.json": "{}", ...wideFiles("bulk"), ...TWO_APPS });
+    const d = appRootsEmitter.detect(appRootsEmitter.sense!(capped))!;
+    expect(d.ask(d.members).question).toContain("The scan stopped at its entry cap, so these counts cover only the part that was walked");
+    const whole = projectWith({ "package.json": "{}", ...TWO_APPS });
+    const w = appRootsEmitter.detect(appRootsEmitter.sense!(whole))!;
+    expect(w.ask(w.members).question).not.toContain("entry cap");
+  });
+});
+
 describe("source-authority", () => {
-  const project = (): string => projectWith({ "package.json": "{}", ...TWO_SOURCES });
+  const project =(): string => projectWith({ "package.json": "{}", ...TWO_SOURCES });
   it("is raised for a sealed store beside a differing second source, with the measured difference and both files named", () => {
     const p = project();
     capture(["onboard", "questions", "--cwd", p]);
