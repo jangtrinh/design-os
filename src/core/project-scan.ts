@@ -28,7 +28,7 @@ import {
   buildApps, findTailwindV4Css, frameworkOf, ownerOf, readDeps, stylingOf,
 } from "./project-scan-apps.js";
 import type { AppCandidate, AppRoot } from "./project-scan-apps.js";
-import { NO_SCAN_RULINGS, honouredOf, onWayToKeptRoot, walkDecision } from "./project-scan-rulings.js";
+import { NO_SCAN_RULINGS, honouredOf, walkDecision } from "./project-scan-rulings.js";
 import type { Honoured, ScanRulings } from "./project-scan-rulings.js";
 
 export type { AppRoot } from "./project-scan-apps.js";
@@ -205,7 +205,7 @@ function walk(root: string, start: string, acc: WalkAccum): void {
     if (depth > MAX_DEPTH) continue; // depth cap: skip this branch, map stays honest elsewhere
     const entries = sortedEntries(dir);
     if (corridor === true) {
-      for (const e of entries) if (e.isDirectory() && onWayToKeptRoot(acc.rulings, relPath(root, join(dir, e.name)))) enter(e, dir, depth, { hasComponentsAncestor, inTestTree, top });
+      for (const e of entries) if (e.isDirectory()) enter(e, dir, depth, { hasComponentsAncestor, inTestTree, top });
       continue;
     }
 

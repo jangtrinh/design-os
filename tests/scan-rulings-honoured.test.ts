@@ -209,6 +209,23 @@ describe("the deepest ruled path decides, for skip, keep and drop together", () 
     expect(r.honoured!.keptInsideSkipped).toEqual(["libs/app"]);
     expect(ui(["scan", "--cwd", root]).stdout).toContain("kept app roots inside a skipped directory, walked: libs/app");
   });
+  it("a root kept and skipped at the same path is kept", () => {
+    const root = twoApps();
+    appendRulings(root, [ruling("scan-budget", { "apps/web": "skip" }, "skip:apps/web"), roots({ "apps/web": "keep" })]);
+    const r = scanOf(root);
+    expect(appPaths(r)).toContain("apps/web");
+    expect(r.componentDirs.map((d) => d.path)).toContain("apps/web/components");
+  });
+  it("a kept root that exists but lies deeper than the walk goes is named as not reached, with the line", () => {
+    const root = tmp("scan-deep-kept-");
+    const deep = "a/b/c/d/e/f/g/app";
+    writeFiles(root, { [`${deep}/package.json`]: pkg({ react: "19" }), "apps/web/package.json": pkg({ next: "15" }) });
+    appendRulings(root, [roots({ [deep]: "keep", "apps/web": "keep" })]);
+    const r = scanOf(root);
+    expect(r.honoured!.notReached).toEqual([deep]);
+    expect(r.honoured!.roots).toEqual(["apps/web"]);
+    expect(ui(["scan", "--cwd", root]).stdout).toContain(`kept app roots the walk did not reach (scan capped or too deep): ${deep}`);
+  });
   it("a directory ruled skip inside a kept root is not entered", () => {
     const root = tmp("scan-skip-in-keep-");
     writeFiles(root, { "apps/web/package.json": pkg({ next: "15" }), ...comps("apps/web"), "apps/web/generated/g.css": "", "apps/web/generated/package.json": pkg({}) });

@@ -67,11 +67,6 @@ export function walkDecision(rulings: ScanRulings, rel: string): WalkDecision {
   return rulings.keepRoots.some((k) => k.startsWith(`${rel}/`)) ? "corridor" : "prune";
 }
 
-/** True when `rel` is a kept root or lies on the way to one: the only thing entered inside a corridor. */
-export function onWayToKeptRoot(rulings: ScanRulings, rel: string): boolean {
-  return rulings.keepRoots.some((k) => within(k, rel));
-}
-
 export interface Honoured {
   /** Skipped directories that exist. */
   skip: string[];
