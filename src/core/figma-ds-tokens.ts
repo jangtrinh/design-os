@@ -73,7 +73,7 @@ function settle(candidates: DsVariable[], types: Map<string, DtcgType | null>, d
     for (const v of candidates) {
       if (!alive.has(v.id)) continue;
       const f = failureOf(v, types.get(v.id) as DtcgType, alive);
-      if (f !== null) failing.push([v, { reason: f.reason, ...(f.mode === undefined ? {} : { mode: f.mode }), keepable: isKeepable(f.reason, v) }]);
+      if (f !== null) failing.push([v, { reason: f.reason, ...(f.mode === undefined ? {} : { mode: f.mode }), keepable: isKeepable(f.reason, v, f.mode) }]);
     }
     for (const [v, d] of failing) { alive.delete(v.id); detail.set(v.id, d); changed = true; }
   }

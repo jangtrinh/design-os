@@ -60,12 +60,12 @@ describe("AC-22 (the Figma door): every skip reason is counted, asked in one que
     const out = newProject();
     const { final } = ingestUntilReady(writeScan(project, reasons()), project, out, preferring("keep-raw"), ["--json"]);
     const tree = JSON.parse(readFileSync(join(out, "tokens.json"), "utf8")) as Record<string, Record<string, { $type: string; $value: string }>>;
-    // the three alias-reason variables have no value to keep: they are excluded, never written as an alias blob
-    expect(Object.keys(tree["raw"]!)).toHaveLength(3);
+    // only the boolean has a primitive value in every mode; an object, a null and an alias are excluded, never written as a blob
+    expect(Object.keys(tree["raw"]!)).toHaveLength(1);
     expect(Object.values(tree["raw"]!).some((t) => t.$value.includes("VARIABLE_ALIAS"))).toBe(false);
     expect(Object.values(tree["raw"]!).every((t) => t.$type === "string")).toBe(true);
     expect(() => resolveTokens(parseTokenFile(tree))).not.toThrow();
-    expect(JSON.parse(final.out).data.ledger.excluded).toMatchObject({ "dangling-alias": 1, "alias-cycle": 2, total: 3 });
+    expect(JSON.parse(final.out).data.ledger.excluded).toMatchObject({ "bad-colour": 1, "null-leaf": 1, "dangling-alias": 1, "alias-cycle": 2, total: 5 });
   });
 
   it("review individually decides member by member", () => {

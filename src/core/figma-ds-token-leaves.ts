@@ -60,7 +60,8 @@ export function typeSkipReason(v: DsVariable, byId: Map<string, DsVariable>): Sk
   for (;;) {
     const val = firstValue(cur);
     if (!isAliasValue(val)) return "dangling-alias";
-    if (seen.has(cur.id)) return "alias-cycle";
+    // A cycle is a walk that returns to where it started; a walk that runs into a cycle ends at an unwritable target.
+    if (seen.has(cur.id)) return cur.id === v.id ? "alias-cycle" : "dangling-alias";
     seen.add(cur.id);
     const next = byId.get(val.id);
     if (next === undefined) return "dangling-alias";
@@ -68,7 +69,19 @@ export function typeSkipReason(v: DsVariable, byId: Map<string, DsVariable>): Sk
   }
 }
 
-export const isKeepable = (reason: SkipReason, v: DsVariable): boolean => !ALIAS_REASONS.includes(reason) && !isAliasValue(firstValue(v));
+const isPrimitive = (x: unknown): x is string | number | boolean => typeof x === "string" || typeof x === "number" || typeof x === "boolean";
+
+/** Every mode of a variable with its value; a flat `value` is one unnamed mode. */
+function modeValues(v: DsVariable): Array<[string, unknown]> {
+  return v.valuesByMode !== undefined ? Object.entries(v.valuesByMode) : [["", v.value]];
+}
+
+/**
+ * The owner may keep a variable as a raw string token only when every mode value is a primitive and no failure is tied
+ * to one mode: a raw token carries each mode as a string, and an object, an alias or a null has no string to carry.
+ */
+export const isKeepable = (reason: SkipReason, v: DsVariable, mode?: string): boolean =>
+  mode === undefined && !ALIAS_REASONS.includes(reason) && modeValues(v).every(([, raw]) => isPrimitive(raw));
 
 type Failure = { reason: SkipReason; mode?: string };
 
@@ -114,10 +127,19 @@ export function buildLeaf(v: DsVariable, type: DtcgType, dottedOf: (id: string) 
   return leaf;
 }
 
-/** A raw string token for a variable the owner chose to keep although it cannot be typed (never an alias object). */
+/**
+ * A raw string token for a variable the owner chose to keep although it cannot be typed. Only a keepable variable
+ * (see `isKeepable`) reaches here: the base mode is `$value` and every other mode sits in the per-mode shape typed
+ * tokens use, each as a string. No object is ever serialised into a value.
+ */
 export function rawLeaf(v: DsVariable): DtcgLeaf {
-  const raw = firstValue(v);
-  return { $value: typeof raw === "string" ? raw : JSON.stringify(raw ?? null), $type: "string", $description: `kept raw from Figma ${v.type}` };
+  const entries = modeValues(v);
+  const base = pickBaseMode(entries.map(([m]) => m)) ?? "";
+  const leaf: DtcgLeaf = { $value: String(entries.find(([m]) => m === base)?.[1]), $type: "string", $description: `kept raw from Figma ${v.type}` };
+  const extensions: Record<string, unknown> = {};
+  for (const [mode, raw] of entries) if (mode !== base && mode !== "") extensions[`mode.${sanitizeSeg(mode)}`] = { $value: String(raw) };
+  if (Object.keys(extensions).length > 0) leaf.$extensions = extensions;
+  return leaf;
 }
 
 /** A short display of a variable's base value for a question, or "" when nothing short fits. */

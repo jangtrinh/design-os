@@ -23,7 +23,14 @@ export interface UntypeableItem {
   keepable?: boolean;
 }
 
-export interface UntypeableInput { items: UntypeableItem[] }
+export interface UntypeableInput {
+  items: UntypeableItem[];
+  /**
+   * One sentence the calling door adds when no member has a value to keep, naming the earlier answer of its own flow
+   * that would keep them. This kind knows no door, so it never words that advice itself.
+   */
+  hint?: string;
+}
 
 const LABELS: Record<string, string> = {
   "unmappable-type": "unmappable type",
@@ -72,7 +79,7 @@ function detect(raw: unknown): KindDetection | null {
       if (!none) {
         options.push({
           id: KEEP_RAW, label: "Keep them as raw string tokens",
-          consequence: `${keepers.length} token(s) written under "raw" with their value as a string; ${asked.length - keepers.length} left out (an alias has no value to keep), counted per reason and named`,
+          consequence: `${keepers.length} token(s) written under "raw" with every mode as a string; ${asked.length - keepers.length} can only be excluded (an alias, an object or a single failing mode has no string to keep), counted per reason and named`,
           assigns: Object.fromEntries(asked.map((i) => [i.id, keepable(i) ? KEEP_RAW : EXCLUDE])),
         });
       }
@@ -82,7 +89,7 @@ function detect(raw: unknown): KindDetection | null {
         assigns: Object.fromEntries(asked.map((i) => [i.id, EXCLUDE])),
       });
       options.push({ id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${asked.length} variable(s); you choose per variable` });
-      const hint = none ? " None has a value to keep: an alias is written only when its target is written, so keep the target by changing the collections answer or the collision answer." : "";
+      const hint = none && input.hint !== undefined ? ` ${input.hint}` : "";
       return {
         question: `${asked.length} variable(s) cannot become typed tokens: ${parts.join("; ")}. What happens to them?${hint}`,
         options,
