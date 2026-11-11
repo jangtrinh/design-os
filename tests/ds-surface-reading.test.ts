@@ -53,7 +53,12 @@ describe("the embedded-app fixture", () => {
       { file: "src/components/ui/Button.stories.tsx", components: ["Button"] },
       { file: "src/components/ui/Card.stories.tsx", components: ["Badge", "Card"] },
     ]);
-    expect(d["unstoried"]).toEqual(["Avatar", "Button", "Tabs"]); // Button: the one in kit/ has no story
+    // per file and name: Button is storied in ui/ and unstoried in kit/, and each entry says which file
+    expect(d["unstoried"]).toEqual([
+      { name: "Avatar", file: "src/components/kit/Avatar.tsx" },
+      { name: "Button", file: "src/components/kit/Button.tsx" },
+      { name: "Tabs", file: "src/components/ui/Tabs.tsx" },
+    ]);
   });
   it("reports the planted collision, the Tailwind v4 entry, and nothing it could not read", () => {
     const d = surfaceOf(project);

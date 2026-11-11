@@ -45,7 +45,8 @@ export interface SurfaceOutput {
   shadowed: SurfaceShadowed[];
   screens: SurfaceLink[];
   stories: SurfaceLink[];
-  unstoried: string[];
+  /** Components no story file imports, per file and name, so a collided name is not both storied and unstoried without saying which file. */
+  unstoried: { name: string; file: string }[];
   tailwindCss?: string;
   /** The store the tokens were resolved against: sealed, unverified (its files drifted from their seal; read as they are) or none. */
   tokenStore: { status: "sealed" | "unverified" | "none"; drifted?: string[] };
