@@ -85,7 +85,7 @@ describe("the lint reports a pair that differs", () => {
     const doc = JSON.parse(read(p, "design/conventions.json"));
     doc.totals.autoFrames += 1;
     write(p, "design/conventions.json", `${JSON.stringify(doc, null, 2)}\n`);
-    expect(pairFindings(p)).toHaveLength(1);
+    expect(pairFindings(p).map((f) => f.message.split(" ")[0])).toEqual(["the", "CONVENTIONS.md"]); // the stored rules no longer follow the totals, and the Markdown is not their render
   });
   it("reports the JSON without its Markdown as an error, and the Markdown without its JSON as a warning", () => {
     const p = withConventions();

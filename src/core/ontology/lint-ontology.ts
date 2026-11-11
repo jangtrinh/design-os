@@ -5,7 +5,7 @@
  * are warnings, errors under `--strict`. It never writes and never raises a question.
  */
 import { orphanNodes } from "./coverage.js";
-import { parseConventionsDoc, renderConventionsMarkdown } from "./conventions-machine-form.js";
+import { derivedRules, parseConventionsDoc, renderConventionsMarkdown } from "./conventions-machine-form.js";
 import { serializeOntology } from "./emit-ontology.js";
 import { graphErrors, sample } from "./graph-errors.js";
 import { NODE_KINDS, byText } from "./ontology-types.js";
@@ -41,8 +41,10 @@ function pairFindings(c: LintInput["conventions"]): LintFinding[] {
   try { parsed = parseConventionsDoc(JSON.parse(c.json)); } catch { parsed = "not valid JSON"; }
   if (typeof parsed === "string") return [{ code: PAIR_CODE, severity: "error", message: `design/conventions.json cannot be read (${parsed}); re-run ui synthesize-conventions` }];
   if (c.md === null) return [{ code: PAIR_CODE, severity: "error", message: "design/conventions.json exists but CONVENTIONS.md is missing; re-run ui synthesize-conventions" }];
-  if (c.md !== renderConventionsMarkdown(parsed)) return [{ code: PAIR_CODE, severity: "error", message: "CONVENTIONS.md differs from a fresh render of design/conventions.json; re-run ui synthesize-conventions, which writes the pair together" }];
-  return [];
+  const out: LintFinding[] = [];
+  if (JSON.stringify(parsed.rules) !== JSON.stringify(derivedRules(parsed))) out.push({ code: PAIR_CODE, severity: "error", message: "the rules stored in design/conventions.json differ from the rules its totals give, so they become no node; re-run ui synthesize-conventions" });
+  if (c.md !== renderConventionsMarkdown(parsed)) out.push({ code: PAIR_CODE, severity: "error", message: "CONVENTIONS.md differs from a fresh render of design/conventions.json; re-run ui synthesize-conventions, which writes the pair together" });
+  return out;
 }
 
 export function lintOntology(input: LintInput): LintResult {

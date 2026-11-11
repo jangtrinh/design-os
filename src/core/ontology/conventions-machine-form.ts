@@ -5,6 +5,8 @@
  * an agent reads as `rule` nodes, each with the counts it was measured on ("radius 8 on 412 of 430 uses").
  * No time and no absolute path: the same measurement gives the same bytes.
  */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { buildConventionsDoc } from "../figma-conventions-emit.js";
 import type { Totals } from "../figma-conventions-emit.js";
 import type { DsScale } from "../figma-conventions-synth.js";
@@ -84,15 +86,26 @@ export function conventionsDocOf(t: Totals, ds: DsScale | undefined, source: str
   };
 }
 
+const totalsOf = (t: ConventionsDoc["totals"]): Totals => ({ ...t, spacing: new Map(t.spacing), radius: new Map(t.radius), fonts: new Map(t.fonts), components: new Map(t.components) });
+
+/** The rules a document's totals give: the only source of the `rule` nodes. The stored `rules` list is never read as a fact. */
+export const derivedRules = (doc: ConventionsDoc): MeasuredRule[] => measuredRules(totalsOf(doc.totals));
+
 /** The Markdown of a conventions document: the only function that produces `CONVENTIONS.md`. */
 export function renderConventionsMarkdown(doc: ConventionsDoc): string {
-  const t = doc.totals;
-  const totals: Totals = { ...t, spacing: new Map(t.spacing), radius: new Map(t.radius), fonts: new Map(t.fonts), components: new Map(t.components) };
+  const totals = totalsOf(doc.totals);
   const ds: DsScale | undefined = doc.designSystem === null ? undefined : { spacing: new Set(doc.designSystem.spacing), radius: new Set(doc.designSystem.radius), fonts: new Set(doc.designSystem.fonts), present: true };
   return buildConventionsDoc(totals, ds, doc.source).md;
 }
 
 export const serializeConventions = (doc: ConventionsDoc): string => `${JSON.stringify(doc, null, 2)}\n`;
+
+/** Writes the pair together, the Markdown rendered from the JSON and from nothing else: the two cannot describe different measurements. */
+export function writeConventionsPair(outDir: string, doc: ConventionsDoc): void {
+  mkdirSync(join(outDir, "design"), { recursive: true });
+  writeFileSync(join(outDir, CONVENTIONS_MD_REL), renderConventionsMarkdown(doc), "utf8");
+  writeFileSync(join(outDir, CONVENTIONS_JSON_REL), serializeConventions(doc), "utf8");
+}
 
 /** A parsed `design/conventions.json`, or the first thing wrong with it. */
 export function parseConventionsDoc(raw: unknown): ConventionsDoc | string {
@@ -102,6 +115,9 @@ export function parseConventionsDoc(raw: unknown): ConventionsDoc | string {
   const t = o.totals as ConventionsDoc["totals"];
   for (const key of ["spacing", "radius", "fonts", "components", "truncated", "missing", "perSection"] as const) if (!Array.isArray(t[key])) return `totals.${key} must be a list`;
   for (const key of ["sections", "walkedSections", "screens", "nodesWalked", "autoFrames", "rawFrames", "boundFills", "rawFills"] as const) if (typeof t[key] !== "number") return `totals.${key} must be a number`;
+  const rows = (list: unknown, key: "number" | "string"): boolean => (list as unknown[]).every((r) => Array.isArray(r) && r.length === 2 && typeof r[0] === key && typeof r[1] === "number");
+  for (const key of ["spacing", "radius"] as const) if (!rows(t[key], "number")) return `totals.${key} must be rows of [number, count]`;
+  for (const key of ["fonts", "components"] as const) if (!rows(t[key], "string")) return `totals.${key} must be rows of [name, count]`;
   for (const r of o.rules) if (typeof r?.id !== "string" || typeof r.statement !== "string" || typeof r.measured?.on !== "number" || typeof r.measured.of !== "number") return "a rule needs id, statement and measured on/of";
   return o as ConventionsDoc;
 }

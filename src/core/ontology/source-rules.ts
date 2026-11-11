@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { AdherenceRuleError, loadAdherenceRules } from "../adherence-rules.js";
 import { DSError } from "../design-system.js";
-import { parseConventionsDoc, CONVENTIONS_JSON_REL } from "./conventions-machine-form.js";
+import { derivedRules, parseConventionsDoc, CONVENTIONS_JSON_REL } from "./conventions-machine-form.js";
 import type { ConventionsDoc, MeasuredRule } from "./conventions-machine-form.js";
 import { gateFamilyFor } from "./gate-table.js";
 import type { RuleOrigin } from "./gate-table.js";
@@ -39,8 +39,9 @@ function adherenceNodes(projectDir: string): { nodes: OntNode[]; facts: RuleFact
   return { nodes, facts, proposed: loaded.proposed.length };
 }
 
+/** Derived from the document's totals, never from its stored `rules`: an edited or added rule becomes no node (the lint reports it). */
 function conventionNodes(doc: ConventionsDoc): OntNode[] {
-  return doc.rules.map((r: MeasuredRule): OntNode => ({ id: nodeId("rule", `convention:${r.id}`), kind: "rule", name: r.statement, origin: "convention", category: r.category, measured: r.measured }));
+  return derivedRules(doc).map((r: MeasuredRule): OntNode => ({ id: nodeId("rule", `convention:${r.id}`), kind: "rule", name: r.statement, origin: "convention", category: r.category, measured: r.measured }));
 }
 
 export function readRuleNodes(projectDir: string): RuleRead {

@@ -189,8 +189,9 @@ refused by name (`ONTOLOGY_BAD_SOURCE`), never read as "0 apps".
 
 `design/conventions.json` (`design-os-conventions/1`) is written by `ui synthesize-conventions` together with
 `CONVENTIONS.md`. The Markdown is a pure render of the JSON, so `ui ontology lint` compares a render of the JSON with the
-Markdown on disk (`CONVENTIONS_PAIR_DRIFT`). Its `rules` become `rule` nodes with `origin: "convention"` and the counts
-they were measured on.
+Markdown on disk (`CONVENTIONS_PAIR_DRIFT`). The `rule` nodes with `origin: "convention"` and the counts they were measured
+on are derived from its `totals` by one function; the stored `rules` list is never trusted, and a list that differs from
+the derived one is the same drift, so an edited or added rule becomes no node.
 
 ## Notes
 
