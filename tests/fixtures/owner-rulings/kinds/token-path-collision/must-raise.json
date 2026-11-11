@@ -5,11 +5,13 @@
       "variables": [
         {
           "id": "VariableID:1:1",
-          "collection": "Alpha"
+          "collection": "Alpha",
+          "name": "color/brand"
         },
         {
           "id": "VariableID:2:1",
-          "collection": "Beta"
+          "collection": "Beta",
+          "name": "color/brand"
         }
       ]
     }

@@ -27,7 +27,7 @@ describe("AC-4: the page question comes first, and only then the markers and the
     const { final } = ingestUntilReady(ELEVEN, project, out, (c) => {
       asked.push([c.kind]);
       if (c.kind === "figma-library-pages") return [c.options.find((o) => o.label.includes("Library"))!.id];
-      return c.kind === "archived-marked-nodes" ? "exclude-archived" : "exclude-surplus";
+      return c.kind === "archived-marked-nodes" ? "exclude-archived" : "exclude-all";
     }, ["--json"]);
     expect(asked).toEqual([["figma-library-pages"], ["archived-marked-nodes"], ["duplicate-component-names"]]);
     const data = JSON.parse(final.out).data as { ledger: { in: { components: number }; written: { components: number }; excluded: Record<string, number>; pending: number }; excluded: { pages: { name: string; count: number }[] } };
@@ -36,8 +36,9 @@ describe("AC-4: the page question comes first, and only then the markers and the
     expect(data.excluded.pages).toHaveLength(10);
     expect(data.ledger.excluded["page-not-selected"]).toBe(304);
     expect(data.ledger.excluded["archived-excluded"]).toBe(25);
-    expect(data.ledger.excluded["duplicate-excluded"]).toBe(12);
-    expect(data.ledger.written.components).toBe(477 - 25 - 12);
+    // "exclude all of them" leaves out every bearer of a repeated name: 9 names, 21 nodes (12 more than the first of each)
+    expect(data.ledger.excluded["duplicate-excluded"]).toBe(21);
+    expect(data.ledger.written.components).toBe(477 - 25 - 21);
     expect(data.ledger.pending).toBe(0);
   });
 
@@ -63,8 +64,14 @@ describe("AC-4: the page question comes first, and only then the markers and the
     const out = newProject();
     const scan = JSON.parse(readFileSync(ELEVEN, "utf8")) as { components: { id: string; name: string; page: { id: string; name: string } }[] };
     const path = writeScan(project, scan);
-    ingestUntilReady(path, project, out, (c) => (c.kind === "figma-library-pages" ? [c.options.find((o) => o.label.includes("Library"))!.id] : c.kind === "archived-marked-nodes" ? "exclude-archived" : "exclude-surplus"));
-    for (const c of scan.components) { c.name = `${c.name} renamed`; if (c.page.name === "Library") c.page.name = "Library, renamed"; }
+    ingestUntilReady(path, project, out, (c) => (c.kind === "figma-library-pages" ? [c.options.find((o) => o.label.includes("Library"))!.id] : c.kind === "archived-marked-nodes" ? "exclude-archived" : "exclude-all"));
+    // A page is renamed everywhere; a node is renamed when its name is its own (a repeated name is part of its question's member).
+    const times = new Map<string, number>();
+    for (const c of scan.components) times.set(c.name, (times.get(c.name) ?? 0) + 1);
+    for (const c of scan.components) {
+      if (times.get(c.name) === 1 && !/^[^\p{L}\p{N}]/u.test(c.name)) c.name = `${c.name} renamed`;
+      c.page.name = `${c.page.name}, renamed`;
+    }
     writeScan(project, scan);
     const again = capture([...ingestArgs(path, project, out), "--json"]);
     expect(again.code, again.out).toBe(0);
@@ -122,7 +129,7 @@ describe("the per-member sheet never costs an option slot", () => {
     const project = newProject();
     capture([...ingestArgs(ELEVEN, project, newProject())]);
     const sheet = capture(["onboard", "questions", "--format", "markdown", "--cwd", project]).out;
-    for (const page of ["Library", "Feature Area A", "Feature Area J"]) expect(sheet).toContain(`- ${readPageId(page)}`);
+    for (const page of ["Library", "Feature Area A", "Feature Area J"]) expect(sheet).toContain(`- ${page} (${readPageId(page)})`);
     expect(takeRecommended).toBeDefined();
   });
 });

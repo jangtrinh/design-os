@@ -74,8 +74,8 @@ export function planIngest(ds: DsFile, name: string, source: string, rulings: re
     "path-collision": built.excluded.collisionLosers.length,
     ...Object.fromEntries(SKIP_REASONS.map((r) => [r, built.excluded.skipped[r].length])),
     "page-not-selected": f.excludedPages.reduce((n, x) => n + x.count, 0),
-    "archived-excluded": f.archivedExcluded,
-    "duplicate-excluded": f.duplicateExcluded,
+    "archived-excluded": f.archivedExcluded.length,
+    "duplicate-excluded": f.duplicateExcluded.length,
     "classified-icon": f.classified.icons.count,
     "classified-screen": f.classified.screens.length,
   };
@@ -84,7 +84,17 @@ export function planIngest(ds: DsFile, name: string, source: string, rulings: re
     excluded, pending: 0, classifiedByHeuristic: f.classified.classifiedByHeuristic,
   });
   const counts = { tokens: ds.tokens.length, components: registry.components.length, styles: ds.styles.length, icons: f.classified.icons.count, screens: f.classified.screens.length };
-  const exclusions: DesignExclusions = { collections: built.excluded.collections, pages: f.excludedPages };
+  // Every item the owner ruled out, with its id and name: the envelope lists them all, the text surfaces cap the names.
+  const variableName = new Map(ds.tokens.map((v) => [v.id, v.name]));
+  const named = (ids: readonly string[]): { id: string; name: string }[] => ids.map((id) => ({ id, name: variableName.get(id) ?? id }));
+  const items: NonNullable<DesignExclusions["items"]> = {
+    "path-collision": named(built.excluded.collisionLosers),
+    ...Object.fromEntries(SKIP_REASONS.map((r) => [r, named(built.excluded.skipped[r])])),
+    "archived-excluded": f.archivedExcluded,
+    "duplicate-excluded": f.duplicateExcluded,
+  };
+  for (const key of Object.keys(items) as (keyof typeof items)[]) if ((items[key]?.length ?? 0) === 0) delete items[key];
+  const exclusions: DesignExclusions = { collections: built.excluded.collections, pages: f.excludedPages, items };
   const designMd = buildDesignDoc({
     name, source, tree: built.tree, registry, styles: ds.styles, counts, icons: f.classified.icons, screens: f.classified.screens,
     ledger, exclusions, frames: f.frames, bindings: f.bindings,

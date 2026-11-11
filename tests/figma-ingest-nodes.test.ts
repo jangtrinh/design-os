@@ -59,7 +59,7 @@ describe("the registry never holds a name twice (AC-5, AC-23)", () => {
 
   it("two nodes that differ only by a status marker are duplicates; the question names them", () => {
     const dup = ask(scanOf({ components: [comp("1:1", "🟢 Button", LIB), comp("1:2", "Button", LIB)] })).find((c) => c.kind === "duplicate-component-names")!;
-    expect(dup.members).toEqual(["1:2"]);
+    expect(dup.members).toEqual(["Button#1:1,1:2"]);
     expect(dup.question).toContain("Button");
   });
 
@@ -68,7 +68,7 @@ describe("the registry never holds a name twice (AC-5, AC-23)", () => {
   });
 
   it("whichever way the owner answers, the written registry has zero repeated names and ds kit plan accepts it", () => {
-    for (const answer of ["exclude-surplus", "keep-renamed"]) {
+    for (const answer of ["exclude-all", "rename-all"]) {
       const project = newProject();
       const out = newProject();
       const scan = scanOf({ components: [comp("1:1", "🟢 Button", LIB), comp("1:2", "Button", LIB), comp("1:3", "Button", LIB), comp("1:4", "Chip", LIB)], tokens: [] });
@@ -76,8 +76,7 @@ describe("the registry never holds a name twice (AC-5, AC-23)", () => {
       const registry = JSON.parse(readFileSync(join(out, "component-registry.json"), "utf8")) as { components: { name: string }[] };
       const names = registry.components.map((c) => c.name);
       expect(new Set(names).size).toBe(names.length);
-      expect(names).toHaveLength(answer === "exclude-surplus" ? 2 : 4);
-      if (answer === "keep-renamed") expect(names).toEqual(["Button", "Button · Library", "Button · Library (2)", "Chip"]);
+      expect(names).toEqual(answer === "exclude-all" ? ["Chip"] : ["Button · Library", "Button · Library (2)", "Button · Library (3)", "Chip"]);
       const plan = planKit({ source: join(out, "component-registry.json"), kind: "registry", tokens: join(out, "tokens.json"), out: join(newProject(), "kit"), name: "Synthetic" });
       expect(plan.complete).toBe(false);
     }

@@ -1,47 +1,95 @@
 /**
- * `duplicate-component-names` (FR-010): two kept nodes share a name after marker stripping. The registry never
- * holds a name twice, so the owner decides. The first node of a name in the scan keeps it; the members of the
- * question are the repeated nodes after it, so a per-member answer is meaningful: exclude that node, or keep it under
- * a distinct name (`<name> · <page>`, with an ordinal when the same page repeats the name).
+ * `duplicate-component-names` (FR-010): two kept nodes share a name after marker stripping. The registry never holds a
+ * name twice, so the owner decides. The question is assigned: a member is one repeated name, `<name>#<id>,<id>` (the
+ * name plus the sorted ids of the kept nodes that bear it), and its outcome names what happens to the bearers:
+ * `keep:<nodeId>` (that node keeps the name, the others are excluded and counted), `rename-all` (every bearer is
+ * written as `<name> · <page>`, with an ordinal when the page repeats the name) or `exclude-all`. No node keeps a name
+ * by being first in the scan.
  */
+import type { ClusterOption, MemberChoice } from "./cluster.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 
+export interface DuplicateNode { id: string; name: string; page?: string; pageId?: string }
 export interface DuplicateNamesInput {
   /** Kept nodes in scan order; `name` is the stored name (markers already stripped). */
-  nodes: { id: string; name: string; page?: string }[];
+  nodes: DuplicateNode[];
 }
 
-/** The repeated nodes: every node after the first of its name. */
-export function surplusNodes(nodes: DuplicateNamesInput["nodes"]): DuplicateNamesInput["nodes"] {
-  const seen = new Set<string>();
-  const out: DuplicateNamesInput["nodes"] = [];
-  for (const n of nodes) {
-    if (seen.has(n.name)) out.push(n);
-    else seen.add(n.name);
-  }
-  return out;
+export const RENAME_ALL = "rename-all";
+export const EXCLUDE_ALL = "exclude-all";
+const MAX_PAGE_OPTIONS = 2;
+
+export const keepNode = (nodeId: string): string => `keep:${nodeId}`;
+
+export interface DuplicateGroup { member: string; name: string; bearers: DuplicateNode[] }
+
+/** Every name borne by two or more nodes, in the order of its first node, with its bearers in scan order. */
+export function duplicateGroups(nodes: readonly DuplicateNode[]): DuplicateGroup[] {
+  const byName = new Map<string, DuplicateNode[]>();
+  for (const n of nodes) (byName.get(n.name) ?? byName.set(n.name, []).get(n.name)!).push(n);
+  return [...byName].filter(([, bearers]) => bearers.length > 1)
+    .map(([name, bearers]) => ({ member: `${name}#${bearers.map((b) => b.id).sort().join(",")}`, name, bearers }));
 }
+
+const pageKey = (n: DuplicateNode): string | undefined => n.pageId ?? n.page;
+const pageName = (n: DuplicateNode): string => n.page ?? "(no page)";
 
 function detect(raw: unknown): KindDetection | null {
   const input = raw as DuplicateNamesInput | null;
   if (input === null || typeof input !== "object" || !Array.isArray(input.nodes)) return null;
-  const surplus = surplusNodes(input.nodes);
+  const groups = duplicateGroups(input.nodes);
+  const by = new Map(groups.map((g) => [g.member, g]));
+  const size = new Map<string, number>();
+  for (const n of input.nodes) { const k = pageKey(n); if (k !== undefined) size.set(k, (size.get(k) ?? 0) + 1); }
+  const order = new Map<string, number>();
+  for (const n of input.nodes) { const k = pageKey(n); if (k !== undefined && !order.has(k)) order.set(k, order.size); }
+  const members = groups.map((g) => g.member);
   return {
     kind: "duplicate-component-names",
-    members: surplus.map((n) => n.id),
-    domain: surplus.map((n) => n.id),
-    ask(members) {
-      const asked = new Set(members);
-      const names = [...new Set(surplus.filter((n) => asked.has(n.id)).map((n) => n.name))];
-      const shown = names.slice(0, 3).join(", ");
+    members,
+    domain: members,
+    ask(asked) {
+      const rows = asked.map((m) => by.get(m)).filter((g): g is DuplicateGroup => g !== undefined);
+      const shown = rows.slice(0, 3).map((g) => g.name).join(", ");
+      const pages = [...new Set(input.nodes.map(pageKey).filter((k): k is string => k !== undefined))]
+        .filter((p) => rows.every((g) => g.bearers.filter((b) => pageKey(b) === p).length === 1))
+        .sort((a, b) => (size.get(b) ?? 0) - (size.get(a) ?? 0) || (order.get(a) ?? 0) - (order.get(b) ?? 0))
+        .slice(0, MAX_PAGE_OPTIONS);
+      const options: ClusterOption[] = pages.map((p) => {
+        const label = pageName(input.nodes.find((n) => pageKey(n) === p) as DuplicateNode);
+        return {
+          id: `keep-page:${p}`, label: `Keep the one on page ${label}`,
+          consequence: `${rows.length} name(s): the node on ${label} keeps the name, the other node(s) are excluded and counted`,
+          assigns: Object.fromEntries(rows.map((g) => [g.member, keepNode((g.bearers.find((b) => pageKey(b) === p) as DuplicateNode).id)])),
+        };
+      });
+      options.push({
+        id: RENAME_ALL, label: "Keep all under distinct names",
+        consequence: `${rows.reduce((n, g) => n + g.bearers.length, 0)} record(s) written as "<name> · <page>" (with an ordinal when a page repeats the name)`,
+        assigns: Object.fromEntries(rows.map((g) => [g.member, RENAME_ALL])),
+      });
+      if (options.length + 2 <= 4) {
+        options.push({
+          id: EXCLUDE_ALL, label: "Exclude all of them",
+          consequence: `${rows.reduce((n, g) => n + g.bearers.length, 0)} node(s) left out of the registry, counted and named`,
+          assigns: Object.fromEntries(rows.map((g) => [g.member, EXCLUDE_ALL])),
+        });
+      }
+      options.push({ id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${rows.length} name(s) with their nodes; you choose per name` });
+      const memberChoices: Record<string, MemberChoice[]> = {};
+      const labels: Record<string, string> = {};
+      for (const g of rows) {
+        memberChoices[g.member] = [
+          ...g.bearers.map((b) => ({ id: keepNode(b.id), label: `Keep the one on ${pageName(b)} (${b.id})` })),
+          { id: RENAME_ALL, label: "Keep all under distinct names" },
+          { id: EXCLUDE_ALL, label: "Exclude all of them" },
+        ];
+        labels[g.member] = `${g.name}: ${g.bearers.map((b) => `on ${pageName(b)}`).join(", ")}`;
+      }
       return {
-        question: `${names.length} name(s) occur more than once after marker stripping (${shown}${names.length > 3 ? ", …" : ""}); the first node of each keeps the name. What happens to the ${members.length} repeated node(s)?`,
-        options: [
-          { id: "exclude-surplus", label: "Exclude the repeated nodes", consequence: `${members.length} node(s) left out of the registry, counted and named` },
-          { id: "keep-renamed", label: "Keep them under a distinct name", consequence: `${members.length} record(s) written as "<name> · <page>" (with an ordinal when the page repeats the name)` },
-          { id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${members.length} node(s); you choose per node` },
-        ],
+        question: `${rows.length} name(s) occur more than once after marker stripping (${shown}${rows.length > 3 ? ", …" : ""}). Which node keeps each name?`,
+        options, memberChoices, labels,
       };
     },
   };
