@@ -170,7 +170,7 @@ describe("ui ingest-figma-ds — C0.1 classification (icons bulked, screens sepa
   // ds-mixed.json: 2 real components (Button, Card), 3 icons (Icon, Icon / X,
   // Icon / Search, lucide-menu → 4), 2 screens (01 · Foo, 10 · Bar).
   it("keeps the registry to real components — icons/screens excluded", () => {
-    const { env } = json(["ingest-figma-ds", DS_MIXED, "--out", out, "--json"]);
+    const { env } = json(["ingest-figma-ds", DS_MIXED, "--cwd", project, "--out", out, "--json"]);
     const counts = env.data.counts as { components: number; icons: number; screens: number };
     expect(counts.components).toBe(2); // Button, Card only
     expect(counts.icons).toBe(4);      // Icon, Icon / X, Icon / Search, lucide-menu
@@ -191,7 +191,7 @@ describe("ui ingest-figma-ds — C0.1 classification (icons bulked, screens sepa
   });
 
   it("documents icons in bulk and screens separately in DESIGN.md", () => {
-    capture(["ingest-figma-ds", DS_MIXED, "--out", out, "--name", "Mixed DS"]);
+    capture(["ingest-figma-ds", DS_MIXED, "--cwd", project, "--out", out, "--name", "Mixed DS"]);
     const md = readFileSync(join(out, "DESIGN.md"), "utf8");
     // Inventory line carries the classified breakdown.
     expect(md).toContain("1 variables · 2 components · 4 icons · 2 screens · 1 styles");
@@ -210,7 +210,7 @@ describe("ui ingest-figma-ds — C0.1 classification (icons bulked, screens sepa
 
   it("aggregates icons/screens into single memory events — never one-per-icon", () => {
     const nowIso = "2026-07-09T00:00:00.000Z";
-    capture(["ingest-figma-ds", DS_MIXED, "--out", out, "--seed-memory", "--now", nowIso]);
+    capture(["ingest-figma-ds", DS_MIXED, "--cwd", project, "--out", out, "--seed-memory", "--now", nowIso]);
     const q = json(["memory", "query", "--dir", out, "--json"]);
     const events = q.env.data.events as Array<{ type: string; data: Record<string, unknown> }>;
 
@@ -236,7 +236,7 @@ describe("ui ingest-figma-ds — C0.1 classification (icons bulked, screens sepa
   it("is deterministic on the mixed fixture — identical bytes", () => {
     const a = mkdtempSync(join(tmpdir(), "ease-ma-"));
     const b = mkdtempSync(join(tmpdir(), "ease-mb-"));
-    const args = (o: string): string[] => ["ingest-figma-ds", DS_MIXED, "--out", o, "--name", "M", "--now", "2026-07-09T00:00:00.000Z"];
+    const args = (o: string): string[] => ["ingest-figma-ds", DS_MIXED, "--cwd", project, "--out", o, "--name", "M", "--now", "2026-07-09T00:00:00.000Z"];
     capture(args(a));
     capture(args(b));
     for (const f of ["tokens.json", "component-registry.json", "DESIGN.md"]) {
