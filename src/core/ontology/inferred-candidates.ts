@@ -1,7 +1,7 @@
 /**
  * `defines` candidates and what an owner ruling turns them into. A term is a candidate for a node only when its name
  * equals the node's name after the registry's own name normalisation (case and spacing). Only a ruling writes a link.
- * A term the owner ruled standalone (and linked to nothing) is not an orphan.
+ * A term the owner ruled standalone (and linked to nothing) is not an orphan, nor is a node the owner ruled no term defines.
  */
 import { normalizedName } from "../registry-code-source.js";
 import { LINK_OUTCOME, STANDALONE_OUTCOME, pairMember } from "../owner-rulings/kind-inferred-links.js";
@@ -19,19 +19,34 @@ export function termCandidates(nodes: readonly OntNode[]): InferredTerm[] {
   }));
 }
 
-/** The `defines` links the owner ruled, and the terms ruled standalone. `outcomes` is member -> outcome of the stored rulings. */
-export function appliedDefines(terms: readonly InferredTerm[], outcomes: Readonly<Record<string, string>>): { links: OntLink[]; standalone: Set<string> } {
+export interface AppliedDefines {
+  links: OntLink[];
+  /** Terms ruled standalone with no pair linked. */
+  standalone: Set<string>;
+  /** Nodes of a pair ruled standalone: the owner decided they define no term, so they are not orphans (unless linked elsewhere). */
+  standaloneNodes: Set<string>;
+  /** Recorded pairs that match no current candidate (the term or the node was renamed or removed), sorted. */
+  stale: string[];
+}
+
+/** The `defines` links the owner ruled, and what was ruled standalone. `outcomes` is member -> outcome of the stored rulings. */
+export function appliedDefines(terms: readonly InferredTerm[], outcomes: Readonly<Record<string, string>>): AppliedDefines {
   const links: OntLink[] = [];
   const standalone = new Set<string>();
+  const standaloneNodes = new Set<string>();
+  const current = new Set<string>();
   for (const t of terms) {
     let linked = 0;
     let declined = 0;
     for (const c of t.candidates) {
-      const outcome = outcomes[pairMember(t.id, c.id)];
+      const member = pairMember(t.id, c.id);
+      current.add(member);
+      const outcome = outcomes[member];
       if (outcome === LINK_OUTCOME) { links.push({ kind: "defines", from: t.id, to: c.id }); linked++; }
-      else if (outcome === STANDALONE_OUTCOME) declined++;
+      else if (outcome === STANDALONE_OUTCOME) { declined++; standaloneNodes.add(c.id); }
     }
     if (linked === 0 && declined > 0) standalone.add(t.id);
   }
-  return { links, standalone };
+  const stale = Object.keys(outcomes).filter((m) => !current.has(m)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return { links, standalone, standaloneNodes, stale };
 }
