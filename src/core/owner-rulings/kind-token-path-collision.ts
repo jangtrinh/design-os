@@ -43,7 +43,7 @@ function groupAsk(collections: readonly string[], all: ReadonlyMap<string, Colli
   const asked = members.map((m) => all.get(m)).filter((c): c is Collision => c !== undefined);
   const lost = (keep: (c: Collision) => string): number =>
     asked.reduce((n, c) => n + c.variables.filter((v) => v.id !== keep(c)).reduce((k, v) => k + (aliasedBy[v.id] ?? 0), 0), 0);
-  const aliasNote = (n: number): string => `${n} alias(es) point at variables that would lose; each is then asked as a dangling alias`;
+  const aliasNote = (n: number): string => `${n} alias(es) point at variables that would lose${n > 0 ? "; each is then asked as a dangling alias" : ""}`;
 
   const options: ClusterOption[] = [];
   const qualifying = collections.filter((col) => asked.every((c) => c.variables.filter((v) => v.collection === col).length === 1));
