@@ -62,8 +62,8 @@ describe("two keys that become one token path are asked about", () => {
   }
   it("the question counts the aliases that name the keys at stake", () => {
     const project = projectWith({ "package.json": "{}" });
-    capture(args(write({ colors: { brand: { x: "#111111" }, link: "{colors.brand.x}" }, "colors-brand": { x: "#222222" } }), project));
-    // the alias is only at stake once the collision is answered: it is not asked about in the same round
+    capture(args(write({ colors: { brand: { x: "#111111" }, link: "{colors-brand.x}" }, "colors-brand": { x: "#222222" } }), project));
+    // the alias names the second key; until the collision is ruled the import asks about the collision only
     expect(readPending(project).clusters.map((c) => c.kind)).toEqual(["token-path-collision"]);
     expect(readPending(project).clusters.find((x) => x.kind === "token-path-collision")!.options[0]!.consequence).toContain("1 alias(es) name these keys; each is then asked as a dangling alias");
   });
@@ -112,6 +112,32 @@ describe("two keys that become one token path are asked about", () => {
     expect(stored.raisedBy).toBe("ds import");
     expect(capture(args(write({ colors: { ink: "#000000" } }), project)).code).toBe(0);
     expect(readPending(project).clusters.some((c) => c.kind === "token-path-collision")).toBe(false);
+  });
+});
+
+describe("until every collision is ruled the import asks about collisions only", () => {
+  const SECOND = { colors: { brand: { x: "#111111" }, link: "{colors-brand.x}", note: "zzz", ink: "#000000" }, "colors-brand": { x: "#222222" } };
+  it("round 1: the collision alone, even when the file also holds an untypeable member and an alias to the second key", () => {
+    const project = projectWith({ "package.json": "{}" });
+    capture(args(write(SECOND), project));
+    expect(readPending(project).clusters.map((c) => c.kind)).toEqual(["token-path-collision"]);
+  });
+  it("keeping the second key: the alias is written at its path, and only the untypeable member is asked next", () => {
+    const { project, final } = answered(SECOND, { keep: "/colors-brand/x" });
+    expect(json(final.out).error!.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    const kinds = readPending(project).clusters;
+    expect(kinds.map((c) => c.kind)).toEqual(["untypeable-tokens"]);
+    expect(kinds[0]!.members).toEqual(["/colors/note"]);
+  });
+  it("keeping the second key with nothing else to ask: the alias is written and no dangling question is raised", () => {
+    const { project, final } = answered({ ...SECOND, colors: { brand: { x: "#111111" }, link: "{colors-brand.x}", ink: "#000000" } }, { keep: "/colors-brand/x" });
+    expect(final.code, final.out).toBe(0);
+    expect((sealedTokens(project)["colors"]!["link"] as { $value: string }).$value).toBe("{colors-brand.x}");
+  });
+  it("keeping the first key: the alias names the loser and is asked as dangling, after the collision", () => {
+    const { project, final } = answered({ ...SECOND, colors: { brand: { x: "#111111" }, link: "{colors-brand.x}", ink: "#000000" } }, { keep: "/colors/brand/x" });
+    expect(json(final.out).error!.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(readPending(project).clusters.find((c) => c.kind === "untypeable-tokens")!.members).toEqual(["colors.link"]);
   });
 });
 
