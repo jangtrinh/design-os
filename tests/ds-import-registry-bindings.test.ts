@@ -108,6 +108,13 @@ describe("a sealed registry that cannot be read is refused, not counted as empty
     const r = capture(["ds", "import", tokens, "--dir", project, "--force", "--json"]);
     expect(json(r.out).error!.code).toBe("BAD_SEALED_REGISTRY");
   });
+  it("a registry file that is not JSON at all is refused too, without --force as well", () => {
+    const project = projectWith({ "package.json": "{}", "design/figma-component-registry.json": "{ not json" });
+    const { tokens } = ingest(smallScan());
+    const r = capture(["ds", "import", tokens, "--dir", project, "--json"]);
+    expect(json(r.out).error!.code).toBe("BAD_SEALED_REGISTRY");
+    expect(existsSync(join(project, "design", "design.tokens.json"))).toBe(false);
+  });
   it("--reset-registry is the explicit way out: it replaces the unreadable registry and the store verifies", () => {
     const { project, tokens, registry } = sealed();
     writeFileSync(join(project, "design", "component-registry.json"), CORRUPT);
