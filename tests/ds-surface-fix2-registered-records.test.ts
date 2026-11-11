@@ -68,7 +68,7 @@ describe("separate where `<name> · code` is held by another door", () => {
     expect(r.code).toBe(1);
     const e = envelope(r.out).error!;
     expect(e.code).toBe("SURFACE_SEPARATE_NAME_HELD");
-    expect(e.message).toContain("rename or remove the holding record");
+    expect(e.message).toContain('"Card · code" is held by a record from figma:9:1'); // the facts; the answer cannot be changed by another answer (see fix3-small-fixes)
     expect(hashTree(p, ["design"])).toBe(before);
   });
 });

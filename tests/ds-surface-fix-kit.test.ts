@@ -13,6 +13,7 @@ import { emitKitTheme } from "../src/core/ds-kit-theme.js";
 import { hashKitBytes } from "../src/core/ds-kit-files.js";
 import { prepareKit } from "../src/core/ds-kit-validate.js";
 import { BatchRegisterError, registerRecordsOnce } from "../src/commands/registry-register-batch.js";
+import { envelope, surface } from "./ds-surface-helpers.js";
 
 const roots: string[] = [];
 const temp = (): string => { const root = fs.mkdtempSync(join(tmpdir(), "ease-kit-integration-")); roots.push(root); return root; };
@@ -32,7 +33,7 @@ const put = (root: string, path: string, value: unknown): void => {
 const read = (root: string, path: string): Buffer => fs.readFileSync(join(root, path));
 
 /** Host evidence here exercises byte binding, not a claim of reviewed production UI. */
-function candidate(nested = false): string {
+function candidate(nested = false, sources: Record<string, string> = {}): string {
   const root = temp();
   const tokens = { color: { canvas: { $type: "color", $value: "#ffffff" }, ink: { $type: "color", $value: "#111111" },
     ...(nested && { owner: { muted: { $type: "color", $value: "#777777", $description: "Owner nested swatch",
@@ -43,6 +44,7 @@ function candidate(nested = false): string {
   put(root, "src/theme.css", emitKitTheme(tokens, { background: "color.canvas", foreground: "color.ink" }));
   put(root, "package.json", { name: "owner-test-kit", private: true, type: "module" });
   put(root, "package-lock.json", { name: "owner-test-kit", lockfileVersion: 3, packages: {} });
+  for (const [path, text] of Object.entries(sources)) put(root, path, text); // application sources the kit declares as artifacts
   put(root, "src/components.tsx", components.map((c, i) => `export function OwnerItem${i}() { return <div>${c.name}</div>; }`).join("\n"));
   const cases = [{ id: "build", kind: "build", subject: "kit", description: "Test-host build evidence and import closure" }, { id: "kit-review", kind: "review", subject: "kit", description: "Source scope, tuple/state facts and owner fidelity reviewed by test host" }];
   const mappings = components.map((component, index) => {
@@ -51,7 +53,7 @@ function candidate(nested = false): string {
     for (const kind of ["render", "review", "behavior"]) cases.push({ id: `${kind}-${index}`, kind, subject: `owner:${index}`, description: `${kind}: Size=Small default for ${component.name}; source tuple/state facts` });
     return { sourceId: `owner:${index}`, name: component.name, disposition: "component", implementation: { path: "src/components.tsx", export: `OwnerItem${index}`, strategy: "custom", primitives: [] }, markup: `src/item-${index}.html`, variants: ["Size=Small"], states: ["default"], cases: ids };
   });
-  const artifacts = ["source/registry.json", "source/tokens.json", "src/theme.css", "src/components.tsx", "package.json", "package-lock.json", ...components.map((_, index) => `src/item-${index}.html`)];
+  const artifacts = ["source/registry.json", "source/tokens.json", "src/theme.css", "src/components.tsx", "package.json", "package-lock.json", ...components.map((_, index) => `src/item-${index}.html`), ...Object.keys(sources)];
   put(root, "kit.json", { version: 1, name: "Owner DS — Exact Name", intent: "Faithful owner test kit", target: "react-shadcn-tailwind", minimumComponents: 25,
     sources: [{ id: "owner", kind: "registry", path: "source/registry.json", hash: hashKitBytes(read(root, "source/registry.json")), scope: "complete", limitations: [] }],
     tokens: "source/tokens.json", theme: "src/theme.css", aliases: { background: "color.canvas", foreground: "color.ink" }, mappings, artifacts, cases, evidence: "evidence/receipt.json" });
@@ -64,8 +66,8 @@ function candidate(nested = false): string {
   put(root, "evidence/receipt.json", { version: 1, contentHash: prepared.contentHash, cases: receiptCases });
   return root;
 }
-function adopted(nested = false): { source: string; root: string } {
-  const source = candidate(nested), root = join(temp(), "adopted");
+function adopted(nested = false, sources: Record<string, string> = {}): { source: string; root: string } {
+  const source = candidate(nested, sources), root = join(temp(), "adopted");
   const result = cli(["ds", "kit", "adopt", source, "--out", root, "--now", "2026-10-09T00:00:00.000Z"]);
   expect(result.code, JSON.stringify(result)).toBe(0);
   return { source, root };
@@ -124,4 +126,42 @@ describe("a kit-bound store", () => {
     expect(out).toContain('"code": {');
     expect(out).toContain('"sourceRef": "src/components.tsx:1-1"');
   });
+  it("registers from code on a kit-bound store, and an edit of a declared source is refused as tampering before anything is refreshed", () => {
+    const viaSingle = adopted().root; single(viaSingle);
+    const component = (name: string, cls: string): string => `export function ${name}Box() { return <div className="${cls}">${name}</div>; }\n`;
+    const sources: Record<string, string> = { "apps/web/package.json": JSON.stringify({ name: "web", dependencies: { react: "18" } }) };
+    for (const name of ["Alpha", "Beta", "Gamma"]) sources[`apps/web/components/${name}.tsx`] = component(name, "p-2");
+    const { root } = adopted(false, sources);
+    const first = surface(root, "--register", "--apply", "--now", NOW);
+    expect(first.code, first.out).toBe(0);
+    expect(envelope(first.out).data!["applied"]).toMatchObject({ registered: 3, sealed: true });
+    expect(statusOf(root)).toEqual({ code: 0 });
+    expect(lockStatus(root)).toBe(lockStatus(viaSingle));
+    const registry = fs.readFileSync(dsFile(root), "utf8");
+
+    put(root, "apps/web/components/Alpha.tsx", component("Alpha", "p-4"));
+    const edited = surface(root, "--register", "--apply", "--now", NOW);
+    expect(edited.code).toBe(1);
+    expect(envelope(edited.out).error).toMatchObject({ code: "DS_TAMPERED", message: expect.stringContaining("Byte hash mismatch: apps/web/components/Alpha.tsx") });
+    expect(fs.readFileSync(dsFile(root), "utf8")).toBe(registry);
+  }, 30000);
+  it("refreshes a code record on a kit-bound store through the narrow write: resealed once, the store still reads, the lock in the same state", () => {
+    const viaSingle = adopted().root; single(viaSingle);
+    const sources: Record<string, string> = { "apps/web/package.json": JSON.stringify({ name: "web", dependencies: { react: "18" } }) };
+    for (const name of ["Alpha", "Beta", "Gamma"]) sources[`apps/web/components/${name}.tsx`] = `export function ${name}Box() { return <div className="p-2">${name}</div>; }\n`;
+    const { root } = adopted(false, sources);
+    expect(surface(root, "--register", "--apply", "--now", NOW).code).toBe(0);
+    const generation = (): number => (JSON.parse(fs.readFileSync(join(root, "design", "ds.manifest.json"), "utf8")) as { generation: number }).generation;
+    const record = (): { variants?: string[]; provenance: { sourceRef: string } } => (JSON.parse(fs.readFileSync(dsFile(root), "utf8")) as { components: { name: string; variants?: string[]; provenance: { sourceRef: string } }[] }).components.find((c) => c.name === "AlphaBox")!;
+    const held = generation();
+    expect(record().variants).toBeUndefined();
+
+    const slice = `export function AlphaBox() { return <div className="p-2">Alpha</div>; }`;
+    const done = registerRecordsOnce(root, [], [], NOW, "test", { refreshes: [{ name: "AlphaBox", sourceRef: record().provenance.sourceRef, markup: slice, tokens: [], variants: ["Size=Small"], linked: false }], leftOut: 0 });
+    expect(done).toMatchObject({ registered: 0, refreshed: 1, sealed: true });
+    expect(generation()).toBe(held + 1);
+    expect(record().variants).toEqual(["Size=Small"]);
+    expect(statusOf(root)).toEqual({ code: 0 });
+    expect(lockStatus(root)).toBe(lockStatus(viaSingle));
+  }, 30000);
 });
