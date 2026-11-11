@@ -14,7 +14,7 @@
  *    hash is `unchanged`, anything else is `changed` and the caller refuses it by name. No record is ever replaced.
  */
 import { sha256OfText } from "../../commands/registry-provenance-refs.js";
-import { hasCodeSource, unionTokens } from "../registry-code-source.js";
+import { hasCodeSource, normalizedName, unionTokens } from "../registry-code-source.js";
 import { SAME_OUTCOME, SEPARATE_OUTCOME, sourceMatchMemberOf } from "../owner-rulings/kind-component-source-match.js";
 import { NO_PROVENANCE_ID } from "../owner-rulings/kind-component-source-match.js";
 import { governingRuling } from "../owner-rulings/resolve-detections.js";
@@ -39,6 +39,10 @@ export interface PlannedRecord {
 }
 export interface PlannedLink { name: string; sourceRef: string; sha256: string; tokens: string[]; tokensAdded: string[] }
 export interface ChangedSource { name: string; file: string; heldRef: string; nowRef: string }
+/** A registered record with a code source whose component is no longer in the app: listed, never deleted. */
+export interface RegisteredNotFound { name: string; sourceRef: string }
+/** A component the owner ruled "separate" whose `<name> · code` is held by a record of another door. */
+export interface SeparateNameHeld { name: string; heldBy: string }
 export interface AwaitingMatch { name: string; existingSource: string | null; file: string }
 export interface RegisterPreview {
   /** New records, the `<name> · code` ones included. */
@@ -50,6 +54,10 @@ export interface RegisterPreview {
   /** Components whose registered code source differs from the tree: refused by name, never replaced. */
   changed: ChangedSource[];
   awaitingSourceMatch: AwaitingMatch[];
+  /** Records registered from code whose component the app no longer holds (nothing is deleted). */
+  registeredNotFound: RegisteredNotFound[];
+  /** Components ruled "separate" whose `<name> · code` is already held by a record of another door: `--apply` refuses them by name. */
+  separateNameHeld: SeparateNameHeld[];
   /** Components registered with no variants because no extractor read them exactly. */
   notRead: { count: number; components: string[]; /** The ones left without variants because their props hold more than one literal union. */ severalUnions: string[] };
   awaitingRuling: SurfaceCollision[];
@@ -72,6 +80,7 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
   const links: PlannedLink[] = [];
   const changed: ChangedSource[] = [];
   const awaitingSourceMatch: AwaitingMatch[] = [];
+  const separateNameHeld: SeparateNameHeld[] = [];
   const notRead: string[] = [];
   const severalUnions: string[] = [];
   let unchanged = 0;
@@ -103,10 +112,23 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
       links.push({ name: record.name, sourceRef, sha256, tokens, tokensAdded: unionTokens([], tokens).filter((t) => !record.tokensUsed.includes(t)) });
     } else if (outcome === SEPARATE_OUTCOME) {
       const own = held.get(separateName(d.name));
-      if (own !== undefined && hasCodeSource(own)) sameDoor(own); else asNew(separateName(d.name), true);
+      if (own === undefined) asNew(separateName(d.name), true);
+      else if (hasCodeSource(own)) sameDoor(own);
+      else separateNameHeld.push({ name: d.name, heldBy: own.name });
     } else {
       awaitingSourceMatch.push({ name: d.name, existingSource: record.provenance?.sourceRef ?? null, file: d.file });
     }
+  }
+  const appRoot = model.output.app === "." ? "" : model.output.app;
+  const present = new Set(model.details.map((d) => normalizedName(d.name)));
+  const registeredNotFound: RegisteredNotFound[] = [];
+  for (const r of existing?.components ?? []) {
+    const source = r.code ?? (r.provenance?.kind === "code" ? r.provenance : undefined);
+    if (source === undefined) continue;
+    const file = source.sourceRef.replace(/:\d+(?:-\d+)?$/, "");
+    if (appRoot !== "" && !file.startsWith(`${appRoot}/`)) continue; // another app's record: this run did not read that app
+    const codeName = r.name.endsWith(" · code") ? r.name.slice(0, -" · code".length) : r.name;
+    if (!present.has(normalizedName(codeName))) registeredNotFound.push({ name: r.name, sourceRef: source.sourceRef });
   }
   return {
     batch, links,
@@ -114,6 +136,7 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
       records: batch.map((b) => ({ name: b.name, category: b.category, sourceRef: b.sourceRef, tokensUsed: b.tokensUsed, variants: b.variants })),
       links: links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokensAdded: l.tokensAdded })),
       unchanged, changed, awaitingSourceMatch,
+      registeredNotFound: registeredNotFound.sort((a, b) => byText(a.name, b.name)), separateNameHeld,
       notRead: { count: notRead.length, components: [...new Set(notRead)].sort(byText), severalUnions: [...new Set(severalUnions)].sort(byText) },
       awaitingRuling: rulings.unruled,
       wouldRefuse: { count: 0, byCode: {}, items: [] },

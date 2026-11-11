@@ -14,6 +14,7 @@ import { validLessonTimestamp } from "../core/memory-lessons.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { scanProject } from "../core/project-scan.js";
+import { findTailwindV4Css, readDeps } from "../core/project-scan-apps.js";
 import { scanRulingsOf } from "../core/project-scan-rulings.js";
 import { renderSurfaceText } from "./ds-surface-render.js";
 import { openQuestionsOf, surfaceBlock } from "./ds-surface-block.js";
@@ -82,7 +83,7 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   const files = readAppFiles(cwd, app, appRoots, rulings);
   const model = buildSurface({
     app: app === "" ? "." : app, componentDirs: componentDirsOf(files.sources.keys()),
-    tailwindCss: app === "" ? scan.tailwindCss : (scan.apps.find((a) => a.path === app)?.tailwindCss ?? null),
+    tailwindCss: findTailwindV4Css(cwd, readDeps(join(cwd, app)), files.css), // the surface's own walk, so a capped project scan cannot hide the entry
     files, lookup: buildTokenLookup(ds?.tokens),
     scan: { truncated: scan.truncated, visited: scan.visited, budget: scan.budget },
   });
@@ -115,6 +116,11 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     // The preview predicts the write: the same checks, nothing written, every refusal listed with its code.
     try { plan.preview.wouldRefuse = predictBatchRefusals(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens }))); }
     catch (e) { if (!(e instanceof BatchRegisterError)) throw e; plan.preview.wouldRefuse = { count: 0, byCode: {}, items: [], notChecked: `${e.code}: ${e.message}` }; }
+    // The owner ruled "separate", and the name that answer needs is taken by a record of another door: refused by name, before anything is written.
+    if (apply && plan.preview.separateNameHeld.length > 0) {
+      const held = plan.preview.separateNameHeld;
+      return err("SURFACE_SEPARATE_NAME_HELD", `${held.length} component(s) were ruled different from the record of their name, but the name they would be registered under is held by another record (${held.slice(0, 5).map((h) => `"${h.name} · code"`).join(", ")}${held.length > 5 ? ", ..." : ""}). Nothing was written. The answer cannot land until that name is free: rename or remove the holding record in its own door, then run ui ds surface --register --apply again.`);
+    }
     // A registered code source that no longer matches the tree stops a write before anything is written, `--out` included.
     if (apply && plan.preview.changed.length > 0) {
       const held = plan.preview.changed;
