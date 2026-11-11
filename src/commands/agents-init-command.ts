@@ -19,6 +19,7 @@ import type { AgentRole } from "../core/agents-gen.js";
 import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL, agentFile, codexSection, plainRender } from "../core/agents-targets.js";
 import { RUNTIMES } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
+import { overLimitMessage } from "./agents-doc-limit-refusal.js";
 import { isFail, isRosterRole, loadProject, targetContext } from "./agents-shared.js";
 
 interface Row { runtime: Runtime; role: AgentRole; name: string; path: string; written: true }
@@ -76,6 +77,14 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   if (runtimes.includes("codex") && existsSync(join(proj.root, CODEX_REL))) {
     const shape = classifySectionMarkers(readFileSync(join(proj.root, CODEX_REL), "utf8"), CODEX_AGENTS_BEGIN, CODEX_AGENTS_END);
     if (shape.shape === "malformed") return err("AGENTS_SECTION_MALFORMED", `the design-os agents section of AGENTS.md has ${shape.begins} start marker line(s) and ${shape.ends} end marker line(s), so nothing was written; make them one start line followed by one end line, or remove them, then run the command again`);
+  }
+
+  // Codex reads only the first bytes of AGENTS.md: a section it would cut is refused, before anything is written.
+  if (runtimes.includes("codex")) {
+    const file = join(proj.root, CODEX_REL);
+    const rosterNote = typeof parsed.flags["runtimes"] === "string" ? parsed.flags["runtimes"] : null;
+    const cut = overLimitMessage({ host: existsSync(file) ? readFileSync(file, "utf8") : null, roles, ctx, runtimes, runtimesFlag: rosterNote, force: parsed.flags["force"] === true });
+    if (cut !== null) return err("AGENTS_DOC_OVER_LIMIT", cut);
   }
 
   // EXISTS pre-flight — all-or-nothing, never a silent overwrite.

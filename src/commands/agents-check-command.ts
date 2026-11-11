@@ -15,6 +15,7 @@ import { countBySeverity } from "../core/finding-schema.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
+import { CODEX_PROJECT_DOC_MAX_BYTES } from "../core/agents-doc-limit.js";
 import { ROSTER } from "../core/agents-gen.js";
 import type { AgentRole } from "../core/agents-gen.js";
 import { blocksIn, stripBlocks } from "../core/agents-areas-block.js";
@@ -91,6 +92,7 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
       judge(a.rel, `'${a.name}' for Antigravity`, a.text, agentFile(ctx, "antigravity", role).content, DRIFT,
         `'${a.rel}' (${a.stamp.role}) differs from the roster outside its area block — a hand edit, a changed template, or a renamed studio or project; regenerate it: ${heal}`);
     }
+    if (section !== null && section.bytes > CODEX_PROJECT_DOC_MAX_BYTES) findings.push({ checkId: "AGENTS_DOC_OVER_LIMIT", severity: "error", message: `AGENTS.md is ${section.bytes} bytes and Codex reads only the first ${CODEX_PROJECT_DOC_MAX_BYTES} bytes, so the agents section may be cut; shorten the project's own text in AGENTS.md` });
     if (section !== null) {
       judge("AGENTS.md", "the design-os agents section of AGENTS.md", section.text, codexSection(ctx, sectionRoles), DRIFT,
         `the design-os agents section of AGENTS.md differs from the roster outside its area blocks — a hand edit, a changed template, or a renamed studio or project; regenerate it: ${heal}`);

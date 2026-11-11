@@ -116,7 +116,7 @@ export function scanAntigravity(root: string): ScannedAgent[] | Fail {
 }
 
 /** The design-os agents section of AGENTS.md: its text and the roles it holds, or null when the file has none. */
-export type CodexScan = { text: string; roles: string[] } | { malformed: MarkerReport } | null | Fail;
+export type CodexScan = { text: string; roles: string[]; bytes: number } | { malformed: MarkerReport } | null | Fail;
 export function scanCodex(root: string): CodexScan {
   const p = join(root, CODEX_REL);
   if (!existsSync(p)) return null;
@@ -130,5 +130,5 @@ export function scanCodex(root: string): CodexScan {
   const end = host.indexOf(CODEX_AGENTS_END, start);
   const text = host.slice(start, end + CODEX_AGENTS_END.length);
   const roles = [...text.matchAll(/<!--\s*design-os agents\s*·\s*roster-role:\s*([a-z][a-z0-9-]*)\s*·\s*template-hash:\s*[0-9a-f]{8}\s*-->/g)].map((m) => m[1] as string);
-  return { text, roles };
+  return { text, roles, bytes: Buffer.byteLength(host) };
 }
