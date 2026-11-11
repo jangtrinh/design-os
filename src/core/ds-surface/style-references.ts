@@ -20,6 +20,7 @@ import type { TokenTree } from "../token-model.js";
 import { pathToCssVar } from "../token-emit.js";
 import { extractUiRecords } from "../polyglot-ui-extractor.js";
 import { blankDelimited, spaces } from "../polyglot-ui-scans.js";
+import { stringMask } from "./source-text-masks.js";
 
 export interface TokenLookup {
   /** The one token path a custom-property name resolves to, or null (none, or more than one). Name without the dashes. */
@@ -56,19 +57,6 @@ const THEME_CALL = /\btheme\s*\(/g;
 const LITERAL_COLOR = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\s*\(/g;
 const CLASS_ATTR = /(?<![\w-])(?:class|className)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
 const MODULE_IMPORT = /import\s+([A-Za-z_$][\w$]*)\s+from\s+["'][^"']*\.module\.(?:css|scss|sass|less)["']/g;
-
-/** True for every character that sits inside a string or a template literal (the quotes included). */
-function stringMask(text: string): Uint8Array {
-  const mask = new Uint8Array(text.length);
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i] as string;
-    if (c !== '"' && c !== "'" && c !== "`") continue;
-    const start = i;
-    for (i++; i < text.length && text[i] !== c; i++) if (text[i] === "\\") i++;
-    mask.fill(1, start, Math.min(i + 1, text.length));
-  }
-  return mask;
-}
 
 /** Index just past the `)` that closes the call opened at `open`, reading strings so a `)` inside one does not close it; -1 when unclosed. */
 function closeOf(text: string, open: number): number {
