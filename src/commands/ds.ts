@@ -144,21 +144,27 @@ Subcommands:
                      ONBOARD_BLOCKED_NEEDS_OWNER_RULING
   --cwd <dir>        Project directory (default: cwd); every path in the output is relative to it
   --out <file>       Write the surface (design-os-surface/1) to a file; a write, so an open question blocks it
-  --register         Preview the registry records: name, sourceRef (file:start-end) and tokensUsed per component, the
-                     components whose variants no extractor reads exactly (notRead), and names already in the registry
-  --apply            With --register: write the records through the shared registration path (provenance and markup
-                     rules of 'ui registry register') and reseal once. Refused, writing nothing, while a name is already
-                     registered (SURFACE_NAMES_ALREADY_REGISTERED: the rule for those names is not decided) or a
-                     collision is unanswered
+  --register         Preview what would be written: name, sourceRef (file:start-end) and tokensUsed per new record, the
+                     components whose variants no extractor reads exactly (notRead), the existing records that would gain
+                     a code reference (links), what is unchanged, what changed, and the names awaiting a ruling
+  --apply            With --register: write the new records and links in one batch through the shared registration
+                     path (provenance and markup rules of 'ui registry register') and reseal once; a run with nothing
+                     to write does not reseal. Refused, writing nothing, while a collision or a name held by a record
+                     from another door is unanswered, and when a component registered from code has a source that
+                     changed since (SURFACE_REGISTERED_SOURCE_CHANGED; ui registry register ... --force re-registers it)
   --now <UTC-ISO>    The clock of the reseal changelog entry (default: now)
   Read-only unless --out or --register --apply is given; the only file a read-only call writes is the pending
   question list. It runs the project-level detectors itself (scan budget, app roots, token source) and exits 1
   ONBOARD_BLOCKED_NEEDS_OWNER_RULING until they are answered, with no prior 'ui onboard questions'. A component name
   exported from more than one file is asked (component-name-collision), never resolved; after the ruling the losing
-  files are listed under 'shadowed' and no component leaves the output. Tokens are resolved exactly against the sealed
+  files are listed under 'shadowed' and no component leaves the output. With --register, a component found in code
+  whose exact name is a record already in the registry from another door (Figma, a synthetic approval, no provenance)
+  is asked once per group (component-source-match): "same" keeps that record, with its provenance, and adds the code
+  reference and the tokens read from code; "separate" registers the code component as '<name> · code'. Nothing is linked
+  by name alone and no record is replaced. Tokens are resolved exactly against the sealed
   store (a custom property or theme key that is exactly one token); a reference that resolves to none, and each class
   list composed through cn()/clsx()/cva(), is counted under unresolvedStyles, never mapped to the nearest token.
-  Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_NAMES_ALREADY_REGISTERED,
+  Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_REGISTERED_SOURCE_CHANGED,
   SURFACE_COLLISION_NOT_ASKABLE, BATCH_REFUSED (nothing written; every refused record is named).
 
 'ds specimen' options:
