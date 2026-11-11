@@ -166,7 +166,7 @@ export function importFlatTokens(flat: unknown, winners: ReadonlyMap<string, str
     if (group.length === 1) { standing.add(group[0] as Candidate); continue; }
     collisions.push({ path, keys: group.map((g) => g.key) });
     const winnerId = winners.get(path) ?? (group[0] as Candidate).key.id;
-    for (const g of group) (g.key.id === winnerId ? standing.add(g) : losers.push(g.key));
+    for (const g of group) { if (g.key.id === winnerId) standing.add(g); else losers.push(g.key); }
   }
 
   const dtcg: ImportResult["dtcg"] = {};
