@@ -20,7 +20,7 @@ import type { TokenTree } from "../token-model.js";
 import { pathToCssVar } from "../token-emit.js";
 import { extractUiRecords } from "../polyglot-ui-extractor.js";
 import { blankDelimited, spaces } from "../polyglot-ui-scans.js";
-import { stringMask } from "./source-text-masks.js";
+import { blankComments, stringMask } from "./source-text-masks.js";
 
 export interface TokenLookup {
   /** The one token path a custom-property name resolves to, or null (none, or more than one). Name without the dashes. */
@@ -58,14 +58,13 @@ const LITERAL_COLOR = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\s*\(/g;
 const CLASS_ATTR = /(?<![\w-])(?:class|className)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
 const MODULE_IMPORT = /import\s+([A-Za-z_$][\w$]*)\s+from\s+["'][^"']*\.module\.(?:css|scss|sass|less)["']/g;
 
-/** Index just past the `)` that closes the call opened at `open`, reading strings so a `)` inside one does not close it; -1 when unclosed. */
-function closeOf(text: string, open: number): number {
+/** Index just past the `)` that closes the call opened at `open`; a `)` inside a string (`inString`, the one masker's mask) does not close it; -1 when unclosed. */
+function closeOf(text: string, open: number, inString: Uint8Array): number {
   let depth = 0;
   for (let i = open; i < text.length; i++) {
-    const c = text[i] as string;
-    if (c === '"' || c === "'" || c === "`") {
-      for (i++; i < text.length && text[i] !== c; i++) if (text[i] === "\\") i++;
-    } else if (c === "(") depth++;
+    if (inString[i] === 1) continue;
+    const c = text[i];
+    if (c === "(") depth++;
     else if (c === ")" && --depth === 0) return i + 1;
   }
   return -1;
@@ -73,7 +72,8 @@ function closeOf(text: string, open: number): number {
 
 /** The source with comments and every helper call blanked (same length and lines), and how many calls were blanked. */
 export function blankHelperCalls(source: string): { text: string; calls: number } {
-  let text = blankDelimited(blankDelimited(source, "<!--", "-->", spaces), "/*", "*/", spaces).replace(/(^|\s)\/\/[^\n]*/g, (m) => spaces(m));
+  const noHtmlComments = blankDelimited(source, "<!--", "-->", spaces);
+  let text = blankComments(noHtmlComments); // the one masker decides comments and strings together
   const inString = stringMask(text);
   let calls = 0;
   for (let from = 0; ;) {
@@ -82,7 +82,7 @@ export function blankHelperCalls(source: string): { text: string; calls: number 
     if (m === null) break;
     if (inString[m.index] === 1) { from = m.index + m[0].length; continue; } // a helper name inside a string counts nothing
     const open = m.index + m[0].length - 1;
-    const end = closeOf(text, open);
+    const end = closeOf(text, open, inString);
     if (end === -1) { from = open + 1; continue; }
     text = text.slice(0, m.index) + spaces(text.slice(m.index, end)) + text.slice(end);
     calls++;
