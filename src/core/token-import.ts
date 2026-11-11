@@ -41,6 +41,14 @@ export interface ImportResult {
 /** The JSON pointer of a key path: the stable id of a source member (a rename changes it, a reorder does not). */
 export const pointerOf = (ptr: readonly string[]): string => `/${ptr.map((seg) => seg.replace(/~/g, "~0").replace(/\//g, "~1")).join("/")}`;
 
+/**
+ * What an alias looks like in the file being imported: any `{...}` without a brace or a space inside, whatever its case.
+ * The strict form (`isAlias`) is what the store accepts; a source alias is rewritten to it when it names a source key
+ * that is written, and is a dangling alias when it does not.
+ */
+const ALIAS_SHAPE_RE = /^\{[^{}\s]+\}$/;
+const isAliasShape = (v: unknown): v is string => typeof v === "string" && ALIAS_SHAPE_RE.test(v);
+
 const COLOR_RE = /^#[0-9a-f]{3,8}$/i;
 const COLOR_FN_RE = /^(?:rgb|rgba|hsl|hsla|oklch|oklab|color)\(/i;
 const DIM_RE = /^-?\d*\.?\d+(?:px|rem|em|%|vh|vw|vmin|vmax)$/i;
@@ -64,7 +72,7 @@ export function inferToken(category: string, name: string, value: unknown): { $v
     // (token-taxonomy.md:110) — ALIAS_RE already exists (token-model.ts), change-token
     // already accepts aliases; only this front door refused. No literal to type from, so
     // fall back to a category/name hint (color dominates the real alias layer).
-    if (isAlias(v)) return { $value: v, $type: aliasTypeHint(ctx) };
+    if (isAliasShape(v)) return { $value: v, $type: aliasTypeHint(ctx) };
     return { skip: `unmappable string value "${String(value).slice(0, 24)}"` };
   }
   if (typeof value === "number") return numeric(category, name, value);
@@ -90,7 +98,7 @@ function numeric(category: string, name: string, n: number): { $value: string | 
 }
 
 type DtcgToken = ImportResult["dtcg"][string][string];
-interface Candidate { path: string; cat: string; name: string; token: DtcgToken; key: SourceKey }
+interface Candidate { path: string; cat: string; name: string; token: DtcgToken; key: SourceKey; /** The alias's $type is a guess from its own name until it is taken from the token it resolves to. */ hinted?: boolean }
 
 /**
  * Convert a flat token object to DTCG + import stats. `_`-prefixed top keys (metadata) are ignored.
@@ -142,7 +150,7 @@ export function importFlatTokens(flat: unknown, winners: ReadonlyMap<string, str
       // verbatim and become unreferencable from any component. Sanitize on the way in.
       const catSan = sanitizeSeg(cat);
       const nameSan = sanitizeSeg(name);
-      candidates.push({ path: `${catSan}.${nameSan}`, cat: catSan, name: nameSan, key, token: r });
+      candidates.push({ path: `${catSan}.${nameSan}`, cat: catSan, name: nameSan, key, token: r, ...(isAliasShape(r.$value) ? { hinted: true } : {}) });
     }
   };
 
@@ -184,14 +192,38 @@ export function importFlatTokens(flat: unknown, winners: ReadonlyMap<string, str
   const unreachableAliases = new Set<string>();
   const aliasesNaming = new Map<string, number>();
   for (const c of candidates) {
-    if (!standing.has(c) || typeof c.token.$value !== "string" || !isAlias(c.token.$value)) continue;
+    if (!standing.has(c) || !isAliasShape(c.token.$value)) continue;
     const target = c.token.$value.slice(1, -1);
     const named = bySourceName.get(target);
-    if (named === undefined) continue; // names no source key: it may still name a written path, as it always could
+    if (named === undefined) { // names no source key: it may still name a written path, as it always could, if it is a path
+      if (!isAlias(c.token.$value)) unreachableAliases.add(c.path);
+      continue;
+    }
     aliasesNaming.set(target, (aliasesNaming.get(target) ?? 0) + 1);
     const writtenPaths = [...new Set(named.filter((n) => standing.has(n)).map((n) => n.path))];
     if (writtenPaths.length === 1) c.token.$value = `{${writtenPaths[0]}}`;
     else unreachableAliases.add(c.path);
+  }
+  // A written alias has the $type of the token it resolves to, through a chain, from the terminal token.
+  const written = new Map<string, Candidate>();
+  for (const c of candidates) if (standing.has(c)) written.set(c.path, c);
+  for (const c of candidates) {
+    if (!standing.has(c) || c.hinted !== true || unreachableAliases.has(c.path)) continue;
+    const seen = new Set<string>([c.path]);
+    let at: Candidate | undefined = c;
+    while (at !== undefined && isAlias(at.token.$value) && !unreachableAliases.has(at.path)) {
+      const next: Candidate | undefined = written.get((at.token.$value as string).slice(1, -1));
+      if (next === undefined || seen.has(next.path)) { at = undefined; break; }
+      seen.add(next.path);
+      at = next;
+    }
+    if (at !== undefined && !isAlias(at.token.$value)) {
+      if (c.token.$type !== at.token.$type) {
+        if ((stats.byType[c.token.$type] = (stats.byType[c.token.$type] ?? 1) - 1) === 0) delete stats.byType[c.token.$type];
+        c.token.$type = at.token.$type;
+        stats.byType[c.token.$type] = (stats.byType[c.token.$type] ?? 0) + 1;
+      }
+    }
   }
   return { dtcg, stats, collisions, losers, unreachableAliases, aliasesNaming };
 }
