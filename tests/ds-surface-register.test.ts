@@ -57,7 +57,7 @@ describe("the register preview", () => {
     const byName = Object.fromEntries(d["register"]["records"].map((r: { name: string; variants: string[] }) => [r.name, r.variants]));
     expect(byName["Badge"]).toEqual(["Tone=neutral", "Tone=danger"]);
     expect(byName["Tabs"]).toEqual([]); // its look is chosen through an object: nothing is inferred from the name or the keys
-    expect(d["register"]["notRead"]).toEqual({ count: 4, components: ["Avatar", "Card", "Panel", "Tabs"] });
+    expect(d["register"]["notRead"]).toEqual({ count: 4, components: ["Avatar", "Card", "Panel", "Tabs"], severalUnions: [] });
   });
   it("writes nothing: the tree is byte-identical, apart from the pending question list", () => {
     const p = sealedFixture();

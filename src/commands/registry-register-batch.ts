@@ -21,9 +21,9 @@ import { loadDesignSystemForReseal, reseal } from "../core/ds-reseal.js";
 import { assertTokensExist } from "../core/registry-token-check.js";
 import { linkCodeSource } from "./registry-link-code-source.js";
 import { verifySourceRef } from "./registry-provenance-refs.js";
-import { RegistryError, createEmptyRegistry, loadRegistry, registerComponent, saveRegistry, validateSourceAuthoredComponentRecord } from "../core/registry-store.js";
+import { RegistryError, createEmptyRegistry, loadRegistry, registerComponent, saveRegistry } from "../core/registry-store.js";
 import type { ComponentRecord, Registry } from "../core/registry-store.js";
-import { resolveRegisterProvenance } from "./registry-provenance.js";
+import { checkRecordForRegistry } from "./registry-record-checks.js";
 
 export interface BatchRecord {
   name: string;
@@ -78,7 +78,22 @@ export function readExistingRegistry(projectDir: string): Registry | null {
 const codeOf = (e: unknown, fallback: string): string => (e !== null && typeof e === "object" && "code" in e ? String((e as { code: unknown }).code) : fallback);
 const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
-export function registerRecordsOnce(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[], nowIso: string, by: string): BatchResult {
+/** What checking a batch found, with nothing written. */
+interface BatchCheck {
+  ds: ReturnType<typeof loadDesignSystemForReseal>;
+  dsPaths: ReturnType<typeof pathsForDir>;
+  registry: Registry;
+  accepted: ComponentRecord[];
+  refusals: BatchRefusal[];
+  warnings: string[];
+}
+
+/**
+ * Every record and link is checked the way the write checks it (the shared record checks of `ui registry register`,
+ * the token check, `NAME_EXISTS`, the link rules), and nothing is written. The preview and the write both call it, so a
+ * preview lists exactly the refusals the write would meet.
+ */
+function checkBatch(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[]): BatchCheck {
   const dsPaths = pathsForDir(join(projectDir, "design"));
   let ds: ReturnType<typeof loadDesignSystemForReseal>;
   try { ds = loadDesignSystemForReseal(dsPaths); }
@@ -94,20 +109,14 @@ export function registerRecordsOnce(projectDir: string, records: readonly BatchR
   const refusals: BatchRefusal[] = [];
   const warnings: string[] = [];
   const accepted: ComponentRecord[] = [];
-  const normalized = (value: string): string => value.normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
   for (const rec of records) {
     try {
-      let record = validateSourceAuthoredComponentRecord({
-        name: rec.name, category: rec.category, markup: rec.markup, tokensUsed: rec.tokensUsed,
-        ...(rec.variants.length > 0 && { variants: rec.variants }),
+      const { record, warnings: notes } = checkRecordForRegistry({
+        raw: { name: rec.name, category: rec.category, markup: rec.markup, tokensUsed: rec.tokensUsed, ...(rec.variants.length > 0 && { variants: rec.variants }) },
+        sourceAuthored: true, markup: rec.markup, provenanceFlags: { sourceRef: rec.sourceRef, syntheticApproved: false },
+        dsPaths, kit: ds?.kit !== undefined, registry,
       });
-      const { provenance, warnings: notes } = resolveRegisterProvenance({ sourceRef: rec.sourceRef, syntheticApproved: false }, rec.markup, dsPaths);
-      if (provenance !== undefined) record = { ...record, provenance };
       assertTokensExist(record.tokensUsed, ds?.tokens);
-      if (ds?.kit) {
-        const clash = registry.components.find((c) => c.name !== record.name && normalized(c.name) === normalized(record.name));
-        if (clash !== undefined) throw new RegistryError("BAD_NAME", `owner name '${record.name}' collides with exact registered label '${clash.name}'`);
-      }
       registry = registerComponent(registry, record, false).registry;
       accepted.push(record);
       warnings.push(...notes.map((n) => `${rec.name}: ${n}`));
@@ -126,6 +135,19 @@ export function registerRecordsOnce(projectDir: string, records: readonly BatchR
       refusals.push({ name: link.name, code: e.code, message: e.message });
     }
   }
+  return { ds, dsPaths, registry, accepted, refusals, warnings };
+}
+
+/** The refusals a write of this batch would meet, counted per code; nothing is written. */
+export function predictBatchRefusals(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[]): { count: number; byCode: Record<string, number>; items: BatchRefusal[] } {
+  const { refusals } = checkBatch(projectDir, records, links);
+  const byCode: Record<string, number> = {};
+  for (const r of refusals) byCode[r.code] = (byCode[r.code] ?? 0) + 1;
+  return { count: refusals.length, byCode: Object.fromEntries(Object.entries(byCode).sort(([a], [b]) => (a < b ? -1 : 1))), items: refusals };
+}
+
+export function registerRecordsOnce(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[], nowIso: string, by: string): BatchResult {
+  const { ds, dsPaths, registry, accepted, refusals, warnings } = checkBatch(projectDir, records, links);
   if (refusals.length > 0) {
     throw new BatchRegisterError("BATCH_REFUSED", `${refusals.length} of ${records.length + links.length} record(s) were refused and nothing was written`, refusals);
   }

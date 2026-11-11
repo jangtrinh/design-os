@@ -15,8 +15,6 @@ import { errJson, errText, okJson } from "../core/output.js";
 import { readMarkup } from "../core/registry-markup-reader.js";
 import {
   RegistryError,
-  validateComponentRecord,
-  validateSourceAuthoredComponentRecord,
   createEmptyRegistry,
   loadRegistry,
   saveRegistry,
@@ -28,7 +26,8 @@ import {
 import { pathsForDir, registryFileForDir } from "../core/design-system.js";
 import { reseal, loadDesignSystemForReseal } from "../core/ds-reseal.js";
 import { assertTokensExist } from "../core/registry-token-check.js";
-import { parseProvenanceFlags, resolveRegisterProvenance } from "./registry-provenance.js";
+import { parseProvenanceFlags } from "./registry-provenance.js";
+import { checkRecordForRegistry } from "./registry-record-checks.js";
 
 const CMD = "registry";
 const DEFAULT_REGISTRY_DIR = "./design";
@@ -221,23 +220,7 @@ function runRegister(parsed: ParsedArgs): CommandResult {
     }),
   };
 
-  let record;
-  try {
-    record = ds?.kit ? validateSourceAuthoredComponentRecord(rawRecord) : validateComponentRecord(rawRecord);
-  } catch (e) {
-    return asResult(useJson, sub, e);
-  }
-
-  // Provenance: the sealed-store ground-truth rule (flags, source ref, markup lint). Throws before any write.
-  let provenance, warnings: string[];
-  try {
-    ({ provenance, warnings } = resolveRegisterProvenance(provenanceFlags, markup, dsPaths, markupArg === "-" ? undefined : markupArg));
-  } catch (e) {
-    return asResult(useJson, sub, e);
-  }
-  if (provenance !== undefined) record = { ...record, provenance };
-
-  // Load or create registry
+  // Load or create the registry first: the shared checks compare the name with the registered labels of a kit-bound store.
   let reg;
   try {
     reg = ds?.registry ?? loadRegistry(registryPath);
@@ -249,14 +232,24 @@ function runRegister(parsed: ParsedArgs): CommandResult {
     }
   }
 
+  // The checks `ui ds surface --register` shares: validation, the sealed-store provenance rule (flags, source ref,
+  // markup lint), and the kit name clash. Throws before any write.
+  let record, provenance, warnings: string[];
+  try {
+    const checked = checkRecordForRegistry({
+      raw: rawRecord, sourceAuthored: ds?.kit !== undefined, markup, provenanceFlags, markupFile: markupArg === "-" ? undefined : markupArg,
+      dsPaths, kit: ds?.kit !== undefined, registry: reg,
+    });
+    record = checked.record;
+    provenance = record.provenance;
+    warnings = checked.warnings;
+  } catch (e) {
+    return asResult(useJson, sub, e);
+  }
+
   // Register (may throw NAME_EXISTS)
   let result;
   try {
-    if (ds?.kit) {
-      const normalized = (value: string): string => value.normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
-      const collision = reg.components.find((component) => component.name !== record.name && normalized(component.name) === normalized(record.name));
-      if (collision) throw new RegistryError("BAD_NAME", `owner name '${record.name}' collides with exact registered label '${collision.name}'`);
-    }
     result = registerComponent(reg, record, force);
   } catch (e) {
     return asResult(useJson, sub, e);

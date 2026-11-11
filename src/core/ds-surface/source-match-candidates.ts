@@ -5,7 +5,7 @@
  * A candidate is asked when its name is exactly the name of a record whose provenance is not `code` and that has no code
  * source of its own; a record that came from the code door is the same door, which is not a question.
  */
-import { hasCodeSource } from "../../commands/registry-link-code-source.js";
+import { hasCodeSource } from "../registry-code-source.js";
 import type { SourceMatchCandidate } from "../owner-rulings/kind-component-source-match.js";
 import { NO_PROVENANCE_ID } from "../owner-rulings/kind-component-source-match.js";
 import type { Registry } from "../registry-store.js";
