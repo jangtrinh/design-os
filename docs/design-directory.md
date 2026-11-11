@@ -177,7 +177,8 @@ the command that would sense it. `checked-by` comes from one table in `src/core/
 like a node (the registry's name normalisation: case and spacing, nothing else) raises one `inferred-links` question; only
 an owner answer writes the `defines` link, and `standalone` marks the term as not an orphan. An open question blocks the
 write (`ONBOARD_BLOCKED_NEEDS_OWNER_RULING`, nothing written, the summary still shown). A node no candidate covers raises
-no question and stays an orphan; the summary counts those per kind.
+no question and stays an orphan; the summary counts those per kind, and says how many of them had a reference counted as
+unresolved or not understood (`withCountedReference` in the file, "see the ruling source line" in the text).
 
 `screens.meta.json` (`screens-meta/1`) is supplied by a project, and the kernel reads these fields and ignores the rest:
 `{ "schema": "screens-meta/1", "at", "screens": { "<screen id>": { "name", "app", "feature", "figmaId", "kind", "page",

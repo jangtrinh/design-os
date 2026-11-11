@@ -66,8 +66,8 @@ export interface Ontology {
   linkReports: LinkReport[];
   /** Proposals waiting for a ruling: not nodes. */
   proposals: { rules: number; soul: number };
-  /** Orphans no question covers, per kind (a node with no candidate raises nothing). */
-  uncovered: { kind: NodeKind; count: number }[];
+  /** Orphans no question covers, per kind (a node with no candidate raises nothing); `withCountedReference`: how many of them had a reference counted as unresolved or not understood (absent when 0). */
+  uncovered: { kind: NodeKind; count: number; withCountedReference?: number }[];
 }
 
 export const byText = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);

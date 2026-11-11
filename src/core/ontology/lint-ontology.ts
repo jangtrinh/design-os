@@ -4,7 +4,7 @@
  * from the file on disk, compared by bytes: the method `principles.json` uses), a conventions pair that differs. Orphans
  * are warnings, errors under `--strict`. It never writes and never raises a question.
  */
-import { orphanNodes } from "./coverage.js";
+import { orphanNodes, orphanReason } from "./coverage.js";
 import { parseConventionsDoc } from "./conventions-machine-form.js";
 import { PAIR_CODE, pairDrift } from "./conventions-pair.js";
 export { PAIR_CODE };
@@ -78,7 +78,7 @@ export function lintOntology(input: LintInput): LintResult {
       const mine = orphans.filter((n) => n.kind === kind).map((n) => n.id).sort(byText);
       if (mine.length > 0) findings.push({ code: "ONTOLOGY_ORPHAN", severity: input.strict ? "error" : "warning", message: `${mine.length} ${kind} node(s) have no link and are not standalone: ${sample(mine)}` });
     }
-    for (const u of ontology.uncovered ?? []) findings.push({ code: "ONTOLOGY_ORPHAN_UNASKED", severity: "warning", message: `${u.count} ${u.kind} orphan(s) have no candidate, so no question covers them yet` });
+    for (const u of ontology.uncovered ?? []) findings.push({ code: "ONTOLOGY_ORPHAN_UNASKED", severity: "warning", message: `${u.count} ${u.kind} orphan(s) have no candidate, so no question covers them yet${orphanReason(u) === "" ? "" : ` (${orphanReason(u)})`}` });
   }
   findings.push(...pair);
   return { findings, ontology };

@@ -22,6 +22,11 @@ export function orphanNodes(o: Pick<Ontology, "nodes" | "links">): OntNode[] {
   return o.nodes.filter((n) => !touched.has(n.id) && n.standalone !== true && !STRUCTURAL_KINDS.includes(n.kind));
 }
 
+/** The words after an orphan count that had references counted as lost, or "" when none: shared by the build text and the lint. */
+export function orphanReason(u: Ontology["uncovered"][number]): string {
+  return u.withCountedReference === undefined ? "" : `${u.withCountedReference} of them name a target that was not found or not understood: see the ${u.kind} source line`;
+}
+
 export function coverageTable(o: Ontology): CoverageRow[] {
   const orphans = new Set(orphanNodes(o).map((n) => n.id));
   const touched = new Set(o.links.flatMap((l) => [l.from, l.to]));

@@ -2,7 +2,7 @@
  * The text a person reads for `ui ontology build` and `ui ontology lint`: the meaning leads and a code follows it, and
  * a line names a next action only when that action would succeed. The coverage table is always printed.
  */
-import { coverageTable } from "../core/ontology/coverage.js";
+import { coverageTable, orphanReason } from "../core/ontology/coverage.js";
 import type { LintFinding } from "../core/ontology/lint-ontology.js";
 import type { LinkReport, Ontology } from "../core/ontology/ontology-types.js";
 
@@ -37,7 +37,7 @@ export function summaryText(o: Ontology): string {
     for (const d of s.doors ?? []) lines.push(`    ${pad(d.door === "figma" ? "Figma" : "code", 8)}${pad(d.status, 11)}${d.note}`);
   }
   lines.push("", "Coverage", coverageText(o), "", linksText(o.linkReports));
-  if (o.uncovered.length > 0) lines.push("", `Orphans no question covers: ${o.uncovered.map((u) => `${u.count} ${u.kind}`).join(", ")} (no candidate to ask about; they stay orphans)`);
+  if (o.uncovered.length > 0) lines.push("", `Orphans no question covers: ${o.uncovered.map((u) => `${u.count} ${u.kind}${orphanReason(u) === "" ? "" : ` (${orphanReason(u)})`}`).join(", ")} (no candidate to ask about; they stay orphans)`);
   const waiting = [o.proposals.rules > 0 ? `${o.proposals.rules} adherence rule(s)` : "", o.proposals.soul > 0 ? `${o.proposals.soul} soul rule(s)` : ""].filter((s) => s !== "");
   if (waiting.length > 0) lines.push("", `Proposals waiting, not nodes: ${waiting.join(", ")}`);
   return lines.join("\n");
