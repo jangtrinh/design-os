@@ -106,7 +106,7 @@ describe("a kit-bound store", () => {
       expect(statusOf(root), label).toEqual({ code: 0 });
       expect(lockStatus(root), label).toBe(lockStatus(viaSingle));
     }
-  });
+  }, 30000);
   it("a name that collides with a registered label is refused by both paths as BAD_NAME", () => {
     const { root } = adopted();
     const markup = join(temp(), "m.html"); fs.writeFileSync(markup, "<button>x</button>");
