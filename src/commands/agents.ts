@@ -54,7 +54,7 @@ Naming (genealogy — studio × project × role):
 Identity is RUNTIME-READ, never baked: a generated agent's first action is
 'ui ds context' (which carries the project soul + the studio soul), so soul
 edits propagate with zero drift. Only the NAME is baked at generate time —
-rename the studio or project → 'ui agents init --force'.
+rename the studio or project → 'ui agents init --force' (it regenerates the runtimes the project already has).
 
 Ontology areas: each agent carries one generated block, fenced by
 <!-- design-os:ontology-areas:start --> and <!-- design-os:ontology-areas:end -->, that lists the areas of
@@ -74,7 +74,7 @@ it from the ontology file and compares. A project with no ontology gets a block 
 'check' findings (one per file; it checks only the runtimes that have a target on disk and names the others):
   agent-stale          (error)   a Claude Code file no longer matches its template render outside its area block —
                                 the template changed, the file was hand-edited, or the studio/project name moved;
-                                fix: 'ui agents init --force'
+                                fix: 'ui agents init --force' (it regenerates the runtimes the project already has)
   AGENTS_ROSTER_DRIFT  (error)   an Antigravity file or the Codex section differs from the roster outside its blocks,
                                 or a role one runtime holds is missing from another
   ONTOLOGY_STALE       (error)   an area block differs from a fresh render of the ontology file
