@@ -20,6 +20,7 @@ import { openQuestionsOf, surfaceBlock } from "./ds-surface-block.js";
 import { BatchRegisterError, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
 import { readAppFiles } from "../core/ds-surface/app-source-files.js";
 import { buildSurface } from "../core/ds-surface/build-surface.js";
+import { componentDirsOf } from "../core/ds-surface/component-dirs.js";
 import { chooseAppRoot } from "../core/ds-surface/choose-app-root.js";
 import { applyCollisionRulings } from "../core/ds-surface/collision-rulings.js";
 import { planRegistration } from "../core/ds-surface/register-plan.js";
@@ -78,11 +79,12 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
 
   const app = choice.app;
   const appRoots = scan.apps.map((a) => a.path);
-  const dirs = app === "" ? scan.componentDirs.filter((d) => !appRoots.some((r) => d.path === r || d.path.startsWith(`${r}/`))) : (scan.apps.find((a) => a.path === app)?.componentDirs ?? []);
+  const files = readAppFiles(cwd, app, appRoots, rulings);
   const model = buildSurface({
-    app: app === "" ? "." : app, componentDirs: dirs.map((d) => d.path),
+    app: app === "" ? "." : app, componentDirs: componentDirsOf(files.sources.keys()),
     tailwindCss: app === "" ? scan.tailwindCss : (scan.apps.find((a) => a.path === app)?.tailwindCss ?? null),
-    files: readAppFiles(cwd, app, appRoots, rulings), lookup: buildTokenLookup(ds?.tokens),
+    files, lookup: buildTokenLookup(ds?.tokens),
+    scan: { truncated: scan.truncated, visited: scan.visited, budget: scan.budget },
   });
   const sizes: Record<string, number> = {};
   for (const c of model.output.components) sizes[c.dir] = (sizes[c.dir] ?? 0) + 1;

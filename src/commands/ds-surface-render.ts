@@ -24,6 +24,7 @@ export function renderSurfaceText(d: SurfaceData): string {
   const askedFor = d.collisions.length - new Set(d.shadowed.map((s) => s.name)).size;
   if (askedFor > 0) lines.push(`  question: ${plural(askedFor, "collision")} need an owner ruling and are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
   const u = d.unread;
+  if (u.scan.truncated) lines.push(`  scan: the project scan stopped at its entry cap (${u.scan.visited} entries visited), so app roots may be missing; the components above come from reading the chosen app itself and are not cut by it`);
   if (u.files.length + u.exports.length + u.unresolvedImports > 0) {
     lines.push(`  not read: ${plural(u.files.length, "file")}, ${plural(u.exports.length, "export")}, ${plural(u.unresolvedImports, "import")} that matched no single file (listed with --json)`);
   }

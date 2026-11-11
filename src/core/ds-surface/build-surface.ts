@@ -14,7 +14,7 @@ import { readStyleReferences } from "./style-references.js";
 import type { TokenLookup } from "./style-references.js";
 import { readVariants } from "./variants-reader.js";
 import { SURFACE_SCHEMA, byText, idOf } from "./surface-types.js";
-import type { ComponentDetail, SurfaceCollision, SurfaceLink, SurfaceModel } from "./surface-types.js";
+import type { ComponentDetail, SurfaceCollision, SurfaceLink, SurfaceModel, SurfaceUnread } from "./surface-types.js";
 import type { AppFiles } from "./app-source-files.js";
 
 export interface BuildSurfaceInput {
@@ -23,6 +23,7 @@ export interface BuildSurfaceInput {
   tailwindCss: string | null;
   files: AppFiles;
   lookup: TokenLookup;
+  scan: SurfaceUnread["scan"];
 }
 
 const COMPONENT_EXT = /\.(?:tsx|jsx|vue|svelte)$/i;
@@ -116,7 +117,7 @@ export function buildSurface(input: BuildSurfaceInput): SurfaceModel {
       unstoried: [...new Set(components.filter((c) => !storied.has(idOf(c))).map((c) => c.name))].sort(byText),
       ...(input.tailwindCss === null ? {} : { tailwindCss: input.tailwindCss }),
       tokenStore: { status: "none" },
-      unread: { files: input.files.unread, exports: exportUnread.sort((a, b) => byText(a.file, b.file) || a.line - b.line), unresolvedImports },
+      unread: { files: input.files.unread, exports: exportUnread.sort((a, b) => byText(a.file, b.file) || a.line - b.line), unresolvedImports, scan: input.scan },
     },
   };
 }
