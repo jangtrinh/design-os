@@ -5,7 +5,7 @@
  * specifier that should be a project file but matches none (or more than one) is counted, never guessed.
  */
 import { posix } from "node:path";
-import { blankComments } from "./source-export-reader.js";
+import { blankComments } from "./source-text-masks.js";
 
 export interface ImportedName { imported: string; local: string }
 export interface SourceImport {

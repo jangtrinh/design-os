@@ -7,9 +7,19 @@
  * `.vue` or `.svelte` file is one component whose name is the file name (the framework's own convention) when that
  * name is upper-camel. A re-export (`export { X } from "./x"`, `export * from "./x"`) is not a component here; it is
  * returned apart so the import side can follow a barrel file.
+ *
+ * An `export` keyword is read as a declaration only at statement position (`export-statement-position.ts`): any other
+ * keyword (in markup text, a regular-expression literal, a namespace or ambient module body) is listed under `unread` and
+ * is never a component, a re-export or a collision member.
+ *
+ * Known limit, not built: markup that sits inside no bracket (a multi-line `export const X = <pre> ... </pre>` written
+ * without parentheses) whose text has a line starting with `export const <UpperCamel> =` is read as a declaration. A
+ * formatter wraps such markup in parentheses. A regular-expression literal that holds a bracket skews the depth, so the
+ * exports after it are listed instead of read: a listed export is visible, a phantom record is a wrong fact.
  */
 import { basename } from "node:path";
-import { blankDelimited, spaces } from "../polyglot-ui-scans.js";
+import { statementPositions } from "./export-statement-position.js";
+import { blankComments, blankStrings, lineIndexOf, lineStarts, scanStrings } from "./source-text-masks.js";
 
 export interface ExportedComponent {
   name: string;
@@ -21,7 +31,11 @@ export interface ExportedComponent {
 }
 export interface ReExport { names: { exported: string; local: string }[]; star: boolean; spec: string }
 export interface UnreadExport { name: string; line: number; reason: string }
-/** How the `export` keywords of a script file were accounted for: total = claimed by a reader + listed as not read. */
+/**
+ * How the `export` keywords of a script file were accounted for: keywords = claimed + listed. `claimed` is a keyword a reader
+ * took or the position rule set aside (that one is also in `unread` with its reason); `listed` is a keyword at statement
+ * position that no reader recognised.
+ */
 export interface ExportAccounting { keywords: number; claimed: number; listed: number }
 export interface SourceExports { components: ExportedComponent[]; reExports: ReExport[]; unread: UnreadExport[]; accounting: ExportAccounting }
 
@@ -30,36 +44,6 @@ export const isComponentName = (name: string): boolean => /^[A-Z][A-Za-z0-9]*[a-
 
 const MARKUP = /<\/?[A-Za-z][\w.-]*(?:\s[^<>]*)?\/?>|createElement\s*\(|\bjsx\s*\(/;
 const TOP_LEVEL = /^(?:export|const|let|var|function|class|type|interface|import|enum|declare|async|abstract)\b/;
-
-/** The text with comments blanked, same length and same lines. */
-export function blankComments(source: string): string {
-  const noBlock = blankDelimited(source, "/*", "*/", spaces);
-  return noBlock.replace(/(^|[\s;{}(),])\/\/[^\n]*/gm, (m, lead: string) => lead + spaces(m.slice(lead.length)));
-}
-
-/**
- * The text with string and template literals blanked (same length and lines): a one-line quoted string, and a template
- * literal that may span lines. A quote that does not close on its line (an apostrophe in JSX text) is left alone, so it
- * cannot hide the exports after it.
- */
-export function blankStrings(text: string): string {
-  let out = "";
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i] as string;
-    if (c === "`") {
-      let j = i + 1;
-      while (j < text.length && text[j] !== "`") { if (text[j] === "\\") j++; j++; }
-      out += c + spaces(text.slice(i + 1, j)) + (text[j] ?? "");
-      i = j;
-    } else if (c === '"' || c === "'") {
-      let j = i + 1;
-      while (j < text.length && text[j] !== c && text[j] !== "\n") { if (text[j] === "\\") j++; j++; }
-      // A module specifier (`from "./a"`) is not a string to hide: the barrel reader needs it.
-      if (text[j] === c && !/\bfrom\s*$/.test(out)) { out += c + " ".repeat(j - i - 1) + c; i = j; } else out += c;
-    } else out += c;
-  }
-  return out;
-}
 
 /** Names bound by the declarators after the first one of an `export const A = ..., B = ...` statement, read at bracket depth 0. */
 function extraDeclarators(statement: string): string[] {
@@ -85,16 +69,8 @@ function spanFrom(lines: readonly string[], startIdx: number): { startLine: numb
   return { startLine: startIdx + 1, endLine: last + 1 };
 }
 
-const lineStarts = (text: string): number[] => {
-  const starts = [0];
-  for (let i = 0; i < text.length; i++) if (text[i] === "\n") starts.push(i + 1);
-  return starts;
-};
-const lineIndexOf = (starts: readonly number[], idx: number): number => {
-  let lo = 0, hi = starts.length - 1;
-  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if ((starts[mid] as number) <= idx) lo = mid; else hi = mid - 1; }
-  return lo;
-};
+/** The first upper-case word after `export`: the name a listed keyword is reported under. */
+const firstUpperWord = (rest: string): string => /\b[A-Z][A-Za-z0-9_$]*/.exec(rest.replace(/^export\b/, ""))?.[0] ?? "(export)";
 
 const DECL = (name: string): RegExp => new RegExp(`^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?(?:function\\s*\\*?|class|const|let|var)\\s+${name}\\b`);
 
@@ -120,9 +96,14 @@ export function readComponentExports(file: string, source: string): SourceExport
   if (ext !== ".tsx" && ext !== ".jsx" && ext !== ".js" && !SCRIPT_ONLY.includes(ext)) return out;
   const readsComponents = !SCRIPT_ONLY.includes(ext);
 
-  const text = blankStrings(blankComments(source.replace(/^\uFEFF/, "")));
+  const noComments = blankComments(source.replace(/^\uFEFF/, ""));
+  const strings = scanStrings(noComments);
+  const text = blankStrings(noComments, strings);
   const lines = text.split("\n");
   const starts = lineStarts(text);
+  if (strings.unclosedTemplateAt !== -1) {
+    out.unread.push({ name: "(file)", line: lineIndexOf(starts, strings.unclosedTemplateAt) + 1, reason: "a template literal never closes, so every `export` keyword after it is hidden from the count and nothing after it was read" });
+  }
   const seen = new Set<string>();
   const add = (name: string, isDefault: boolean, idx: number, head = lines[idx] as string): void => {
     if (seen.has(name)) return;
@@ -177,11 +158,13 @@ export function readComponentExports(file: string, source: string): SourceExport
   };
 
   const keywords = [...text.matchAll(EXPORT_KEYWORD)].map((m) => m.index as number);
+  const standing = statementPositions(text, keywords);
   const claimed = new Set<number>();
   const braceReExports: ReExport[] = []; // appended after the star re-exports, the order the output has always had
 
   // `export { A, B as C }` and `export { A } from "./a"` can span lines, so they are read on the whole text.
   for (const m of text.matchAll(/(^|[\s;}])export\s+(type\s+)?\{([^}]*)\}\s*(?:from\s*['"]([^'"]+)['"])?/g)) {
+    if (!standing.has((m.index ?? 0) + (m[1] as string).length)) continue; // not a declaration: the keyword loop lists it
     claimed.add((m.index ?? 0) + (m[1] as string).length);
     if (m[2] !== undefined) continue;
     const names = (m[3] as string).split(",").map((s) => s.trim()).filter((s) => s !== "").map((part) => {
@@ -208,12 +191,13 @@ export function readComponentExports(file: string, source: string): SourceExport
     const idx = lineIndexOf(starts, p);
     const end = text.indexOf("\n", p);
     const rest = text.slice(p, end === -1 ? undefined : end);
-    const listIt = (name: string, reason: string): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting.listed++; };
+    const listIt = (name: string, reason: string, setAside = false): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting[setAside ? "claimed" : "listed"]++; };
+    if (!standing.has(p)) { listIt(firstUpperWord(rest), "an `export` keyword that is not at the start of a top-level statement is not read as a declaration", true); continue; }
     const namespace = /^export\s*(?:type\s*)?\*\s*as\s+([A-Za-z_$][\w$]*)\s*from/.exec(rest);
     if (namespace !== null) { listIt(namespace[1] as string, "`export * as <name> from` re-exports a namespace: it is listed here and not followed as a barrel"); continue; }
     if (!readsComponents) { readStatement(rest, idx); out.accounting.claimed++; continue; } // a script file holds no component: only its barrel re-exports are read
     if (readStatement(rest, idx) || TYPE_ONLY_EXPORT.test(rest)) { out.accounting.claimed++; continue; }
-    listIt(/\b[A-Z][A-Za-z0-9_$]*/.exec(rest.replace(/^export\b/, ""))?.[0] ?? "(export)", "export form not read");
+    listIt(firstUpperWord(rest), "export form not read");
   }
   out.reExports.push(...braceReExports);
   out.components.sort((a, b) => a.startLine - b.startLine || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));

@@ -11,7 +11,7 @@
  * props, so props are never written. A props type with more than one literal union writes none of them: the record has no
  * field that keeps which prop a value belongs to, and one union written with the others left out would be a silent loss.
  */
-import { blankComments } from "./source-export-reader.js";
+import { blankComments } from "./source-text-masks.js";
 
 const LITERAL_UNION = /^\s*(?:"[^"\n]*"|'[^'\n]*')(?:\s*\|\s*(?:"[^"\n]*"|'[^'\n]*'))+\s*$/;
 
