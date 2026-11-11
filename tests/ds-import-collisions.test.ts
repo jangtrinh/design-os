@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { assertLedgerBalances, assertSkipFinderAgrees, planImport } from "../src/core/ds-import-plan.js";
+import { assertLedgerBalances, assertSkipFinderAgrees, assertTypedTokensKept, planImport } from "../src/core/ds-import-plan.js";
 import { readPending } from "../src/core/owner-rulings/pending-store.js";
 import { capture } from "./owner-rulings-helpers.js";
 import { keyOf, projectWith, submit } from "./project-kinds-helpers.js";
@@ -79,6 +79,9 @@ describe("two keys that become one token path are asked about", () => {
     const data = json(final.out).data!;
     expect(data["ledger"]).toMatchObject({ in: 3, written: { total: 2 }, excluded: { total: 1, "path-collision": 1 } });
     expect(data["excluded"]["path-collision"]).toEqual([{ id: "/colors/primary", name: "colors.primary" }]);
+    expect(data["imported"]).toBe(2);
+    expect(data["skipped"]).toBe(1);
+    expect(data["skippedKeys"]).toEqual([{ key: "colors.primary", reason: "path-collision" }]);
     expect((sealedTokens(project)["colors"]!["primary"] as { $value: string }).$value).toBe("#111111");
     expect(capture(["ds", "status", "--dir", project, "--json"]).code).toBe(0);
   });
@@ -143,6 +146,12 @@ describe("an alias is written pointing at the written path of the token it names
     expect(c.members).toEqual(["colors.link"]);
     expect(c.labels!["colors.link"]).toBe("colors.link: dangling alias");
   });
+  it("an alias whose text is the winner's written path but names the loser's source key is asked, never pointed at the winner", () => {
+    const tokens = { colors: { brand: { x: "#111111" }, link: "{colors-brand.x}", ink: "#000000" }, "colors-brand": { x: "#222222" } };
+    const { project, final } = answered(tokens, { keep: "/colors/brand/x" });
+    expect(json(final.out).error!.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(readPending(project).clusters.find((x) => x.kind === "untypeable-tokens")!.members).toEqual(["colors.link"]);
+  });
   it("an alias to the winner follows it: it is written at the winner's path, not asked", () => {
     const { project, final } = answered(withAlias, { keep: "/colors/brand/x" });
     expect(final.code, final.out).toBe(0);
@@ -159,6 +168,12 @@ describe("the guards behind the questions", () => {
   it("the skip finder and the importer must agree on how many members were skipped", () => {
     expect(() => assertSkipFinderAgrees(3, 2)).toThrow("the import skipped 3 members and the skip finder named 2");
     expect(() => assertSkipFinderAgrees(2, 2)).not.toThrow();
+  });
+  it("a typed token that the merge replaced or dropped is refused by name", () => {
+    const typed = { raw: { keep: { $value: "#111111", $type: "color" as const } } };
+    expect(() => assertTypedTokensKept(typed, { raw: { keep: { $value: "zzz", $type: "string" as const } } })).toThrow("the token raw.keep was replaced while the plan was built");
+    expect(() => assertTypedTokensKept(typed, {})).toThrow("raw.keep");
+    expect(() => assertTypedTokensKept(typed, { raw: { ...typed.raw, other: { $value: "a", $type: "string" as const } } })).not.toThrow();
   });
   it("a file whose keys do not collide has no collision question and a ledger that balances", () => {
     const plan = planImport({ colors: { a: "#111111", b: "#222222" } }, []);

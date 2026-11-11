@@ -67,6 +67,7 @@ describe("ui onboard questions", () => {
     const empty = capture(["onboard", "questions", "--cwd", scratchProject(), "--json"]);
     expect(empty.code).toBe(1);
     expect(errorCode(empty.out)).toBe("NO_PENDING_QUESTIONS");
+    expect(JSON.parse(empty.out).error.message).toBe("nothing is pending: the kernel detects no anomaly in this project, and no owner ruling is recorded");
   });
 
   it("with injected project-level emitters, one pass writes every detected cluster to pending.json", () => {

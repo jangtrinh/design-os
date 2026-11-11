@@ -86,6 +86,15 @@ describe("the import door raises one untypeable-tokens question, sub-grouped by 
     expect(keep.consequence).toContain(`${c.count - keepable} can only be excluded`);
     expect(c.options.at(-1)!.id).toBe("review-individually");
   });
+  it("the door names its own noun: a flat file has no variables and no modes", () => {
+    const project = projectWith({ "package.json": "{}" });
+    capture(importArgs(source(EVERY_REASON), project));
+    const c = readPending(project).clusters.find((x) => x.kind === "untypeable-tokens")!;
+    const text = [c.question, ...c.options.map((o) => o.consequence ?? "")].join("\n");
+    expect(text).not.toMatch(/variable|mode/i);
+    expect(c.question).toContain("9 member(s) cannot become typed tokens");
+    expect(c.options.find((o) => o.id === "review-individually")!.consequence).toBe("a sheet lists the 9 member(s); you choose per member");
+  });
   it("nothing is asked twice: after the answer the same file imports, and a reordered file asks nothing", () => {
     const { project, first, final } = importAnswered(EVERY_REASON, (kind) => (kind === "untypeable-tokens" ? "exclude" : "leave-unassigned"));
     expect(first.code).toBe(1);
@@ -177,7 +186,9 @@ describe("ambiguous-roles", () => {
     expect(c.members).toEqual(["colors.card-popover", "colors.primary-secondary"]);
     expect(c.labels).toEqual({ "colors.card-popover": "card-popover", "colors.primary-secondary": "primary-secondary" });
     expect(c.options.map((o) => o.id)).toEqual(["leave-unassigned", "review-individually"]);
-    expect(c.memberChoices!["colors.card-popover"]!.map((x) => x.id)).toContain("popover");
+    // each token is offered the roles that tied for it, and none: not the sixteen canonical roles
+    expect(c.memberChoices!["colors.card-popover"]!.map((x) => x.id).sort()).toEqual(["card", "none", "popover"]);
+    expect(c.memberChoices!["colors.primary-secondary"]!.map((x) => x.id).sort()).toEqual(["none", "primary", "secondary"]);
   });
   it("an answer is applied through `ui ds set-role`: the role lands on exactly that token, with a set-role changelog entry", () => {
     const project = projectWith({ "package.json": "{}" });
