@@ -138,6 +138,12 @@ describe("a template the scanner cannot close never hides the rest of the file",
     expect(r.unread.find((u) => u.name === "Ghost")?.reason).toMatch(NOT_AT_STATEMENT);
     expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
   });
+  it("an interpolation that cannot close: the template is closed at the next backtick, so its text is still masked", () => {
+    const r = read("const t = `x ${\nexport function Ghost() { return <i />; }\n`;\nexport function After() { return <i />; }\n");
+    expect(names(r)).toEqual(["After"]);
+    expect(r.unread.filter((u) => u.name === "(file)")).toHaveLength(1);
+    expect(r.accounting).toEqual({ keywords: 1, claimed: 1, listed: 0 });
+  });
   it("a comment pattern inside a template that removes its closing backtick: the export after it is read", () => {
     const r = read("const t = `a /* b`;\nconst u = `c */`;\nexport function After() { return <i />; }\n");
     expect(names(r)).toEqual(["After"]);
