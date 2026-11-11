@@ -4,8 +4,10 @@
  */
 import { DUPLICATE_CODE } from "../core/ontology/graph-errors.js";
 import type { GraphError } from "../core/ontology/graph-errors.js";
+import { INGEST_COMMAND, INGEST_OUT_REL } from "../core/ontology/source-screens-figma.js";
 
-const REGISTRY_CAUSE = "design/component-registry.json holds a component name more than once; ui ingest-figma-ds asks about duplicate component names, so answer that question (ui onboard questions) and ingest again";
+// True whether the repeat came from the ingest or from a registry edited by hand and resealed: the registry is written again from the scan.
+const REGISTRY_CAUSE = `design/component-registry.json holds a component name more than once; run the ingest again with ${INGEST_COMMAND} (it asks when two components of the scan share a name), then seal what it wrote with ui ds import ${INGEST_OUT_REL}/tokens.json --registry ${INGEST_OUT_REL}/component-registry.json --force --reset-registry (replacing the registry removes the records registered from code, and ui ds surface --register --apply writes them again)`;
 
 export function refusalText(errors: readonly GraphError[]): string {
   const parts = errors.map((e) => {
