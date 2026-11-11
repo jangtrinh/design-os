@@ -75,7 +75,8 @@ tampering. See `ds-kit-onboarding.md` §5 for the full host-file rule.
 ## §5 Runtime scope
 
 `ui agents init` renders one roster (`templates/agents/<role>.md`) to the three runtimes `ui init` supports. The default
-of `--runtimes` is the `RUNTIMES` constant, not what is installed:
+of `--runtimes` is the runtimes the project already holds a generated target for (so a bare `--force` never adds a runtime
+the project never had); a project with no target gets all three. `--runtimes` named explicitly is obeyed exactly:
 
 | Runtime | Target |
 |---|---|

@@ -1235,7 +1235,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Project directory holding design/ (default: walk up from cwd)" },
-          { name: "runtimes", type: "string", summary: "Comma-separated runtimes to render: claude,codex,antigravity (default: all three, not what is installed)" },
+          { name: "runtimes", type: "string", summary: "Comma-separated runtimes to render: claude,codex,antigravity (default: the runtimes this project already has a target for; all three when it has none)" },
           { name: "roster", type: "string", summary: "Comma-separated roles to generate: designer,curator,figma-hand (default: all 3)" },
           { name: "force", type: "boolean", summary: "Overwrite existing agent targets" },
         ],

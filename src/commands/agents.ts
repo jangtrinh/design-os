@@ -31,7 +31,8 @@ Usage:
   ui agents check [--dir <project>] [--json]
 
 Subcommands:
-  init    Render one roster to each runtime's target (opt-in; 'ui init' never runs this)
+  init    Render one roster to each runtime's target (opt-in; 'ui init' never runs this). Without --runtimes it
+          regenerates the runtimes the project already has a target for, and all three on a first run
   list    Scan .claude/agents/*.md for design-os stamps → role / name / hash / fresh
   check   Findings-linter over the generated agents of every runtime found; exit 1 on error-severity findings
 
@@ -63,7 +64,7 @@ it from the ontology file and compares. A project with no ontology gets a block 
 
 'init' options:
   --dir <path>        Project directory holding design/ (default: walk up from cwd)
-  --runtimes <csv>    Runtimes to render, from: claude, codex, antigravity (default: all three; not what is installed)
+  --runtimes <csv>    Runtimes to render, from: claude, codex, antigravity (default: the runtimes this project already has a target for; all three when it has none)
   --roster <csv>      Roles to generate, from: designer, curator, figma-hand (default: all 3)
   --force             Overwrite existing targets (without it, an existing target → EXISTS)
 

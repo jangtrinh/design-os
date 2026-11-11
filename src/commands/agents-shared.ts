@@ -9,7 +9,8 @@ import { discoverDesignSystem, pathsForDir } from "../core/design-system.js";
 import { loadManifest, DSManifestError } from "../core/ds-manifest.js";
 import { easeHome } from "../core/memory-store.js";
 import { STUDIO_SOUL_FILENAME, soulName } from "../core/ds-soul-studio.js";
-import { resolvePackageRoots } from "../core/init-stub.js";
+import { RUNTIMES, resolvePackageRoots } from "../core/init-stub.js";
+import type { Runtime } from "../core/init-stub.js";
 import { ROSTER, parseAgentStamp } from "../core/agents-gen.js";
 import type { AgentRole, AgentStamp } from "../core/agents-gen.js";
 import { ontologyView } from "../core/agents-areas-block.js";
@@ -131,4 +132,16 @@ export function scanCodex(root: string): CodexScan {
   const text = host.slice(start, end + CODEX_AGENTS_END.length);
   const roles = [...text.matchAll(/<!--\s*design-os agents\s*·\s*roster-role:\s*([a-z][a-z0-9-]*)\s*·\s*template-hash:\s*[0-9a-f]{8}\s*-->/g)].map((m) => m[1] as string);
   return { text, roles, bytes: Buffer.byteLength(host) };
+}
+
+/** The runtimes the project already holds a generated target for, in canonical order: the scan `ui agents check` makes. */
+export function runtimesWithTargets(root: string): Runtime[] | Fail {
+  const claude = scanClaude(root);
+  if (isFail(claude)) return claude;
+  const antigravity = scanAntigravity(root);
+  if (isFail(antigravity)) return antigravity;
+  const codex = scanCodex(root);
+  if (codex !== null && isFail(codex)) return codex;
+  const hasSection = codex !== null && !isFail(codex) && !("malformed" in codex) && codex.roles.length > 0;
+  return RUNTIMES.filter((r) => (r === "claude" ? claude.length > 0 : r === "antigravity" ? antigravity.length > 0 : hasSection));
 }

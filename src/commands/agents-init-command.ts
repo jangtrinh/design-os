@@ -2,8 +2,8 @@
  * `ui agents init` — one roster (templates/agents/<role>.md) rendered to each selected runtime's target: Claude Code
  * (.claude/agents/<name>.md), Antigravity (.agent/skills/design-os-agent-<name>/SKILL.md) and Codex (the design-os agents
  * section of AGENTS.md, written through the upsert-section artifact, so the text around it is never rewritten). Each
- * agent carries the generated ontology-areas block. The default of --runtimes is the RUNTIMES constant, not what is
- * installed. All-or-nothing: an existing target without --force is refused before anything is written.
+ * agent carries the generated ontology-areas block. The default of --runtimes is the runtimes the project already
+ * holds a target for, or the RUNTIMES constant when it holds none. All-or-nothing: an existing target without --force is refused before anything is written.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -22,7 +22,7 @@ import type { Runtime } from "../core/init-stub.js";
 import { closingLines, initLines, priorOf } from "./agents-init-report.js";
 import type { InitRow } from "./agents-init-report.js";
 import { overLimitMessage } from "./agents-doc-limit-refusal.js";
-import { isFail, isRosterRole, loadProject, targetContext } from "./agents-shared.js";
+import { isFail, isRosterRole, loadProject, runtimesWithTargets, targetContext } from "./agents-shared.js";
 
 /** `--runtimes a,b`: the named runtimes in canonical order, or the refusal that names the unknown one. */
 function parseRuntimes(flag: string | boolean | undefined): Runtime[] | string {
@@ -53,8 +53,13 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   if (isFail(proj)) return err(proj.code, proj.message);
   const ctx = targetContext(proj.root, proj.project);
   if (isFail(ctx)) return err(ctx.code, ctx.message);
-  const runtimes = parseRuntimes(parsed.flags["runtimes"]);
+  // Without --runtimes the run regenerates what the project already holds; a project with no target gets every runtime.
+  const held = runtimesWithTargets(proj.root);
+  if (isFail(held)) return err(held.code, held.message);
+  const defaulted = parsed.flags["runtimes"] === undefined && held.length > 0;
+  const runtimes = defaulted ? held : parseRuntimes(parsed.flags["runtimes"]);
   if (typeof runtimes === "string") return err("BAD_ARG", runtimes);
+  const withoutTarget = RUNTIMES.filter((r) => !runtimes.includes(r) && !held.includes(r));
   const roles = parseRoster(parsed.flags["roster"]);
   if (typeof roles === "string") return err("BAD_ARG", roles);
 
@@ -103,8 +108,9 @@ export function runInit(parsed: ParsedArgs): CommandResult {
 
   // `agents` keeps the shape `ui init --with-agents` reads: the Claude Code rows. `targets` lists every runtime.
   const claude = rows.filter((r) => r.runtime === "claude").map(({ role, name, path, written, replaced, differedOutsideBlock }) => ({ role, name, path, written, replaced, differedOutsideBlock }));
-  if (parsed.json) return okJson(sub, { agents: claude, targets: rows });
+  if (parsed.json) return okJson(sub, { agents: claude, targets: rows, runtimes, runtimesWithoutTarget: withoutTarget });
   const lines = initLines(rows, join(proj.root, CODEX_REL));
+  if (defaulted) lines.push(`Regenerated the runtimes this project already has: ${runtimes.join(", ")}.`, ...(withoutTarget.length === 0 ? [] : [`No target yet for ${withoutTarget.join(", ")}; add them with: ui agents init --runtimes ${withoutTarget.join(",")}`]));
   if (ctx.studio === null) lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   lines.push(...closingLines(rows));
   if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), "Then: ui agents init --force");
