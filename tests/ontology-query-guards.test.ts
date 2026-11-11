@@ -55,6 +55,15 @@ describe("sibling screens", () => {
   });
 });
 
+describe("a matched screen whose feature no other screen shares", () => {
+  const nodes = [node("screen:1", "Sign in"), node("screen:2", "Dashboard"), node("feature:f", "Account"), node("component:Card", "Card")];
+  const links = [link("belongs-to", "screen:1", "feature:f"), link("uses-component", "screen:1", "component:Card"), link("uses-component", "screen:2", "component:Card")];
+  it("is not its own sibling by feature, so it keeps the siblings it reaches through a shared component", () => {
+    const groups = queryOntology(ontology(nodes, links), "Sign in", null, 100000).pack?.groups ?? [];
+    expect(groups.find((g) => g.group === "sibling screens")?.entries.map((e) => e.id)).toEqual(["screen:2"]);
+  });
+});
+
 describe("the area list", () => {
   it("counts the areas the rulings carry beside those of components and tokens", () => {
     const rows = listAreas({ nodes: [node("component:Card", "Card", { area: "page:Kit" }), node("ruling:a", "a", { area: "rulings:layout" }), node("ruling:b", "b", { area: "rulings:layout" })] });
