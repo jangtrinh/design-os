@@ -85,7 +85,7 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
         `'${a.name}' (${a.stamp.role}) is stale — the file no longer matches its template render; run 'ui agents init --force' to regenerate`);
     }
     for (const { a, role } of antigravityFiles) {
-      judge(a.rel, `'${a.rel}'`, a.text, agentFile(ctx, "antigravity", role).content, DRIFT,
+      judge(a.rel, `'${a.name}' for Antigravity`, a.text, agentFile(ctx, "antigravity", role).content, DRIFT,
         `'${a.rel}' (${a.stamp.role}) differs from the roster outside its area block — a hand edit, a changed template, or a renamed studio or project; regenerate it: ${heal}`);
     }
     if (section !== null) {
