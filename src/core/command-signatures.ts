@@ -777,7 +777,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
   },
 
   ontology: {
-    summary: "Build and lint the design ontology (nodes and exact links) of a project",
+    summary: "Build, lint and query the design ontology (nodes and exact links) of a project",
     subcommands: {
       build: {
         summary: "Write design/knowledge/ontology.json from the sealed stores and the project's other sources; raises inferred-links questions; refuses, writing nothing, on a duplicate id, a dangling link, a conventions pair that differs or an unreadable source",
@@ -797,6 +797,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "strict", type: "boolean", summary: "Orphans are errors, not warnings" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", "ONTOLOGY_STALE", "ONTOLOGY_DANGLING_LINK", "ONTOLOGY_DUPLICATE_ID", "CONVENTIONS_PAIR_DRIFT"],
+      },
+      query: {
+        summary: "Find what the ontology knows about a task: lexical retrieval over names and aliases, a 2-hop expansion over links, a budgeted pack (rules, patterns, components, tokens, rulings, sibling screens); a stale file is refused, never queried; no match exits 0 with matches: 0",
+        positionals: [{ name: "<text>", required: true, summary: "The task, as text with at least one word" }],
+        flags: [
+          { name: "dir", type: "string", summary: "Project directory (default: current working directory)" },
+          { name: "area", type: "string", summary: "Only the nodes of this area: the full key (page:Buttons) or the name after its prefix; exact" },
+          { name: "budget", type: "string", summary: "The most characters the pack may hold (default 12000)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONTOLOGY_STALE", "ONTOLOGY_AREA_AMBIGUOUS", "ONTOLOGY_AREA_UNKNOWN"],
       },
     },
   },

@@ -4,6 +4,26 @@
  */
 import { byText } from "./ontology-types.js";
 import type { Ontology } from "./ontology-types.js";
+import { score, wordsOf } from "./query-text.js";
+
+export type AreaChoice = { key: string } | { problem: "ambiguous" | "unknown"; keys: string[] };
+
+const afterPrefix = (key: string): string => key.slice(key.indexOf(":") + 1);
+
+/**
+ * `--area` is exact: the full key, or the name after its prefix. A name two keys share is ambiguous (the full keys are
+ * listed); a name no key carries is unknown (the three nearest keys by the query's own word measure are listed). No
+ * trimming, no case folding, no fuzzy match.
+ */
+export function resolveArea(areas: readonly AreaRow[], name: string): AreaChoice {
+  if (areas.some((a) => a.key === name)) return { key: name };
+  const named = areas.filter((a) => afterPrefix(a.key) === name).map((a) => a.key);
+  if (named.length === 1) return { key: named[0] as string };
+  if (named.length > 1) return { problem: "ambiguous", keys: named };
+  const query = new Set(wordsOf(name));
+  const nearest = areas.map((a) => ({ key: a.key, near: score(query, new Set(wordsOf(a.key))) })).sort((a, b) => b.near - a.near || byText(a.key, b.key));
+  return { problem: "unknown", keys: nearest.slice(0, 3).map((a) => a.key) };
+}
 
 export interface AreaRow { key: string; nodes: number }
 
