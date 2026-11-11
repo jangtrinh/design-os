@@ -784,15 +784,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Project directory (default: current working directory)" },
-          { name: "out", type: "string", summary: "Output file, relative to the project (default: design/knowledge/ontology.json)" },
+          { name: "out", type: "string", summary: "Output file, inside the project (default: design/knowledge/ontology.json)" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
       },
       lint: {
-        summary: "Check the ontology against its sources: dangling links, duplicate ids, a stale file, a conventions pair that differs; prints the coverage table",
+        summary: "Check the ontology against its sources: dangling links, duplicate ids, a stale file, a conventions pair that differs; prints the coverage table and the link reports",
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Project directory (default: current working directory)" },
+          { name: "file", type: "string", summary: "The ontology file to check, inside the project (default: design/knowledge/ontology.json)" },
           { name: "strict", type: "boolean", summary: "Orphans are errors, not warnings" },
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", "ONTOLOGY_STALE", "ONTOLOGY_DANGLING_LINK", "ONTOLOGY_DUPLICATE_ID", "CONVENTIONS_PAIR_DRIFT"],

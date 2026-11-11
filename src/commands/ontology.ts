@@ -16,7 +16,7 @@ export const ONTOLOGY_HELP = `ui ontology — the design ontology of a project (
 
 Usage:
   ui ontology build [--dir <project>] [--out <file>] [--json]
-  ui ontology lint  [--dir <project>] [--strict] [--json]
+  ui ontology lint  [--dir <project>] [--file <file>] [--strict] [--json]
 
 build   Reads the sealed token store and component registry, the Figma scan (design/ds.json) or the code surface for
         screens, the ratified soul, promoted rules, measured conventions (design/conventions.json) and the optional
@@ -28,18 +28,20 @@ build   Reads the sealed token store and component registry, the Figma scan (des
         would be written is still shown. Missing sources are reported, never an error.
 lint    Fails on a link to a node that does not exist, a duplicate node id, a stale file (a fresh emit differs from the
         file) and a CONVENTIONS.md that differs from a render of design/conventions.json. Orphans (a node with no link
-        that is not standalone) are warnings; --strict makes them errors. Always prints the coverage table. Never
-        writes and never raises a question.
+        that is not standalone) are warnings; --strict makes them errors. Always prints the coverage table and the link
+        reports (written, unresolved, not sensed, not checked, owner-ruled pairs no candidate matches; --json: linkReports).
+        Never writes and never raises a question. An open question the build depends on is an error naming ui onboard questions.
 
 Options:
   --dir <project>   Project directory (default: current working directory)
-  --out <file>      build: output file, relative to the project (default: design/knowledge/ontology.json)
+  --out <file>      build: output file, inside the project (default: design/knowledge/ontology.json)
+  --file <file>     lint: the file to check, inside the project (default: design/knowledge/ontology.json)
   --strict          lint: orphans are errors
   --json            Emit a JSON envelope instead of text
   -h, --help        Show this help
 
 Error codes:
-  BAD_ARG                              A flag needs a value
+  BAD_ARG                              A flag needs a value, or --out/--file names a path outside the project
   UNKNOWN_FLAG                         Unrecognised --flag (rejected, with a did-you-mean hint)
   READ_ERROR                           The project directory cannot be read
   WRITE_ERROR                          The ontology file could not be written

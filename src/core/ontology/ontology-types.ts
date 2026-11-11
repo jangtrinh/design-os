@@ -33,7 +33,10 @@ export interface SourceReport {
   nodes: number;
   /** One plain line: what was read, or why it was not and which command produces it. */
   note: string;
+  /** A source with two doors (`screen`: Figma and code) keeps one status per door, so a door never sensed stays visible next to one that was read. */
+  doors?: SourceDoor[];
 }
+export interface SourceDoor { door: "figma" | "code"; status: SourceReport["status"]; nodes: number; note: string }
 
 /** A reference that matches nothing, or a link whose source was never sensed, counted per link kind. */
 export interface LinkReport {

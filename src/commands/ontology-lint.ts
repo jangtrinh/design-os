@@ -17,10 +17,10 @@ import { CONVENTIONS_JSON_REL, CONVENTIONS_MD_REL } from "../core/ontology/conve
 import { lintOntology } from "../core/ontology/lint-ontology.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 import { lintText } from "./ontology-render.js";
-import { fail, isResult, prepare } from "./ontology-shared.js";
+import { fail, insideProject, isResult, prepare } from "./ontology-shared.js";
 
 const CMD = "ontology lint";
-const KNOWN = ["dir", "strict"] as const;
+const KNOWN = ["dir", "strict", "file"] as const;
 
 const readIfPresent = (dir: string, rel: string): string | null => (existsSync(join(dir, rel)) ? readFileSync(join(dir, rel), "utf8") : null);
 
@@ -28,20 +28,22 @@ export function runOntologyLint(parsed: ParsedArgs): CommandResult {
   const ready = prepare(parsed, CMD, KNOWN);
   if (isResult(ready)) return ready;
   const { dir, built } = ready;
+  const file = insideProject(CMD, parsed.json, dir, "file", typeof parsed.flags["file"] === "string" ? parsed.flags["file"] : ONTOLOGY_REL);
+  if (typeof file !== "string") return file;
   let open: ReturnType<typeof blockingClusters>;
   try { open = blockingClusters(dir, built.detections); }
   catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(CMD, parsed.json, e.code, e.message); throw e; }
   const result = lintOntology({
     fresh: open.length === 0 ? built.ontology : null,
     ...(open.length === 0 ? {} : { blockedReason: blockingSummary(open) }),
-    disk: readIfPresent(dir, ONTOLOGY_REL),
+    disk: readIfPresent(dir, file),
     conventions: { json: readIfPresent(dir, CONVENTIONS_JSON_REL), md: readIfPresent(dir, CONVENTIONS_MD_REL) },
     strict: parsed.flags["strict"] === true,
   });
   const errors = result.findings.filter((f) => f.severity === "error").length;
   const exitCode = errors > 0 ? 1 : 0;
   if (parsed.json) {
-    return okJsonWithExit(CMD, { errors, warnings: result.findings.length - errors, findings: result.findings, coverage: result.ontology === null ? [] : coverageTable(result.ontology) }, exitCode);
+    return okJsonWithExit(CMD, { errors, warnings: result.findings.length - errors, findings: result.findings, coverage: result.ontology === null ? [] : coverageTable(result.ontology), linkReports: result.ontology?.linkReports ?? [] }, exitCode);
   }
   return { exitCode, stdout: lintText(result.findings, result.ontology) };
 }

@@ -5,7 +5,7 @@
  * 1, nothing written but the pending question list, and the summary of what would be written is still shown.
  */
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
-import { dirname, relative, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
@@ -18,7 +18,7 @@ import { graphErrors } from "../core/ontology/graph-errors.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 import { blockedSummaryText, buildText } from "./ontology-render.js";
 import { refusalText } from "./ontology-refusal.js";
-import { fail, isResult, prepare } from "./ontology-shared.js";
+import { fail, insideProject, isResult, prepare } from "./ontology-shared.js";
 
 const CMD = "ontology build";
 const KNOWN = ["dir", "out"] as const;
@@ -31,9 +31,9 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   const o = built.ontology;
   const bad = graphErrors(o.nodes, o.links);
   if (bad.length > 0) return fail(CMD, json, bad[0]!.code, refusalText(bad));
-  const outFlag = typeof parsed.flags["out"] === "string" ? parsed.flags["out"] : ONTOLOGY_REL;
-  const target = resolve(dir, outFlag);
-  const outRel = relative(dir, target).split("\\").join("/");
+  const outRel = insideProject(CMD, json, dir, "out", typeof parsed.flags["out"] === "string" ? parsed.flags["out"] : ONTOLOGY_REL);
+  if (typeof outRel !== "string") return outRel;
+  const target = resolve(dir, outRel);
 
   let blocked: CommandResult | null;
   try { blocked = blockOnOpenClusters({ command: CMD, projectDir: dir, detections: built.detections, ownKinds: ["inferred-links"], runsProjectDetectors: true, json }); }

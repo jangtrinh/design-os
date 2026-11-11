@@ -4,7 +4,7 @@
  */
 import { coverageTable } from "../core/ontology/coverage.js";
 import type { LintFinding } from "../core/ontology/lint-ontology.js";
-import type { Ontology } from "../core/ontology/ontology-types.js";
+import type { LinkReport, Ontology } from "../core/ontology/ontology-types.js";
 
 const pad = (s: string | number, n: number): string => String(s).padEnd(n);
 
@@ -15,18 +15,27 @@ export function coverageText(o: Ontology): string {
   return lines.join("\n");
 }
 
-/** The summary shared by a written build and a blocked one: what is in the graph and what could not be linked. */
-export function summaryText(o: Ontology): string {
-  const lines: string[] = [];
-  lines.push("Sources");
-  for (const s of o.sources) lines.push(`  ${pad(s.kind, 10)}${pad(s.status, 11)}${s.note}`);
-  lines.push("", "Coverage", coverageText(o), "", "Links");
-  for (const l of o.linkReports) {
+/** What each link kind found: written, unresolved, not sensed (with its reason), not checked, and the detail lines. */
+export function linksText(reports: readonly LinkReport[]): string {
+  const lines = ["Links"];
+  for (const l of reports) {
     const parts = [`${l.written} written`, `${l.unresolved} unresolved`, `${l.notSensed} not sensed`, ...(l.notChecked === undefined ? [] : [`${l.notChecked} not checked`])];
     lines.push(`  ${pad(l.link, 16)}${parts.join(" · ")}`);
     if (l.notSensedReason !== undefined) lines.push(`    not sensed: ${l.notSensedReason}`);
     for (const d of l.details) lines.push(`    ${d}`);
   }
+  return lines.join("\n");
+}
+
+/** The summary shared by a written build and a blocked one: what is in the graph and what could not be linked. */
+export function summaryText(o: Ontology): string {
+  const lines: string[] = [];
+  lines.push("Sources");
+  for (const s of o.sources) {
+    lines.push(`  ${pad(s.kind, 10)}${pad(s.status, 11)}${s.note}`);
+    for (const d of s.doors ?? []) lines.push(`    ${pad(d.door === "figma" ? "Figma" : "code", 8)}${pad(d.status, 11)}${d.note}`);
+  }
+  lines.push("", "Coverage", coverageText(o), "", linksText(o.linkReports));
   if (o.uncovered.length > 0) lines.push("", `Orphans no question covers: ${o.uncovered.map((u) => `${u.count} ${u.kind}`).join(", ")} (no candidate to ask about; they stay orphans)`);
   const waiting = [o.proposals.rules > 0 ? `${o.proposals.rules} adherence rule(s)` : "", o.proposals.soul > 0 ? `${o.proposals.soul} soul rule(s)` : ""].filter((s) => s !== "");
   if (waiting.length > 0) lines.push("", `Proposals waiting, not nodes: ${waiting.join(", ")}`);
@@ -48,5 +57,6 @@ export function lintText(findings: readonly LintFinding[], o: Ontology | null): 
   for (const f of errors) lines.push(`  error: ${f.message} (${f.code})`);
   for (const f of warnings) lines.push(`  warning: ${f.message} (${f.code})`);
   lines.push("", "Coverage", o === null ? "  no ontology to count: run ui ontology build" : coverageText(o));
+  if (o !== null) lines.push("", linksText(o.linkReports ?? []));
   return `${lines.join("\n")}\n`;
 }

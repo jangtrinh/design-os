@@ -56,8 +56,9 @@ export interface LinkResult { links: OntLink[]; reports: LinkReport[] }
 export function buildLinks(s: NodeSources): LinkResult {
   const reports: LinkReport[] = [];
   const links: OntLink[] = [];
-  const screenNote = s.figma === null && s.code === null ? s.reports.find((x) => x.kind === "screen") : undefined;
-  const uses = usesComponentLinks(s.figma, s.code, s.stores.records, s.keptDeprecated, screenNote?.status === "not-sensed" ? screenNote.note : undefined);
+  // A Figma scan never sensed for frames keeps its reason on the report whether or not the code door was read.
+  const figmaDoor = s.reports.find((x) => x.kind === "screen")?.doors?.find((d) => d.door === "figma");
+  const uses = usesComponentLinks(s.figma, s.code, s.stores.records, s.keptDeprecated, figmaDoor?.status === "not-sensed" ? figmaDoor.note : undefined);
   const consumes = consumesToken(s);
 
   const constrains = report("constrains");
