@@ -29,7 +29,7 @@ export function must(args: string[]): ReturnType<typeof capture> {
 }
 
 /** Answers the screen-pages question of the ingest: the pages named `keep` are kept, the others dropped. */
-function answerScreenPages(project: string, keep: readonly string[], pages: readonly string[]): void {
+export function answerScreenPages(project: string, keep: readonly string[], pages: readonly string[]): void {
   const entry = keyOf(project).find((k) => k.kind === "screen-pages");
   if (entry === undefined) throw new Error("the ingest raised no screen-pages question");
   const members = Object.fromEntries(pages.map((p) => [p, keep.includes(p) ? "keep" : "drop"]));

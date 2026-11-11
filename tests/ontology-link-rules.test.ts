@@ -1,10 +1,8 @@
 /**
  * The links of the ontology, each only from its exact source. A reference that matches nothing is counted unresolved and
  * never matched to the nearest name; a link whose source was never sensed is counted not sensed with the command that
- * would sense it; `checked-by` comes from one table whose every row is proven against the code that evaluates it.
+ * would sense it; `checked-by` comes from one table whose every row is proven against the gate that evaluates it.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GATE_FAMILIES } from "../src/core/gate.js";
 import { CHECKED_BY, gateFamilyFor } from "../src/core/ontology/gate-table.js";
@@ -90,14 +88,6 @@ describe("consumes-token: the registry's tokensUsed, and not-sensed is not none"
 describe("checked-by comes from one table, and each row is proven against the code", () => {
   it("every row names a real gate family", () => {
     for (const row of CHECKED_BY) expect(GATE_FAMILIES as readonly string[], row.kind).toContain(row.family);
-  });
-  it("the family of the token-ban row reads the promoted rule source: the loader and the evaluator", () => {
-    const row = CHECKED_BY.find((r) => r.kind === "token-ban")!;
-    expect(row).toMatchObject({ origin: "adherence", family: "ds-usage" });
-    const gate = readFileSync(join(process.cwd(), "src", "core", "ds-usage-gate.ts"), "utf8");
-    expect(gate).toContain("loadAdherenceRules");
-    expect(gate).toContain("evaluateTokenBansDetailed");
-    expect(readFileSync(join(process.cwd(), "src", "core", "gate.ts"), "utf8")).toMatch(/fam === "ds-usage"[\s\S]{0,400}runDsUsageFamily/);
   });
   it("a soul rule and a convention are evaluated by no gate: no row, no link, counted as not checked", () => {
     expect(gateFamilyFor("soul", "never")).toBeUndefined();

@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { DSError, loadDesignSystem, pathsForDir } from "../design-system.js";
 import type { ComponentRecord } from "../registry-store.js";
 import { nodeId } from "./node-ids.js";
+import { INGEST_COMMAND, INGEST_OUT_REL } from "./source-screens-figma.js";
 import { OntologyReadError } from "./read-error.js";
 import type { OntNode, SourceReport } from "./ontology-types.js";
 
@@ -48,9 +49,9 @@ export function readSealedStores(projectDir: string): StoreRead {
     };
   } catch (e) {
     if (!(e instanceof DSError)) throw e;
-    if (e.code !== "DS_NOT_FOUND") throw new OntologyReadError(e.code, `${e.message}. The ontology reads only a sealed store: reseal it with ui ds reseal, then run ui ontology build again`);
+    if (e.code !== "DS_NOT_FOUND") throw new OntologyReadError(e.code, `${e.message.replace(/[.\s]+$/, "")}. The ontology reads only a sealed store: restore the file, or adopt the change with ui ds reseal --apply --reason "<why>", then run ui ontology build again`);
     const registryHere = existsSync(join(projectDir, "design", "component-registry.json"));
-    const registryNote = registryHere ? "design/component-registry.json is not sealed: run ui ds import <tokens.json> --registry design/component-registry.json" : "no sealed component registry: run ui ingest-figma-ds then ui ds import --registry, or ui ds surface --register --apply";
+    const registryNote = registryHere ? "design/component-registry.json is not sealed: run ui ds import <tokens.json> --registry design/component-registry.json" : `no sealed component registry: run ${INGEST_COMMAND}, then ui ds import ${INGEST_OUT_REL}/tokens.json --registry ${INGEST_OUT_REL}/component-registry.json, or ui ds surface --register --apply`;
     return {
       tokens: [], components: [], records: [], tokenPaths: new Set(),
       reports: [
