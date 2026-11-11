@@ -20,7 +20,7 @@
 import { basename } from "node:path";
 import { DECL, EXPORT_ASSIGNMENT, EXPORT_KEYWORD, MARKUP, TYPE_ONLY_EXPORT, extraDeclarators, firstUpperWord, spanFrom } from "./export-declaration-patterns.js";
 import { statementPositions } from "./export-statement-position.js";
-import { blankComments, blankStrings, lineIndexOf, lineStarts, scanStrings, undecidedFromLine } from "./source-text-masks.js";
+import { blankComments, blankStrings, lineIndexOf, lineStarts, scanSource, undecidedFromLine } from "./source-text-masks.js";
 
 export interface ExportedComponent {
   name: string;
@@ -56,8 +56,9 @@ export function readComponentExports(file: string, source: string): SourceExport
   if (ext !== ".tsx" && ext !== ".jsx" && ext !== ".js" && !SCRIPT_ONLY.includes(ext)) return out;
   const readsComponents = !SCRIPT_ONLY.includes(ext);
 
-  const noComments = blankComments(source.replace(/^\uFEFF/, ""));
-  const strings = scanStrings(noComments);
+  const clean = source.replace(/^\uFEFF/, "");
+  const strings = scanSource(clean); // comments and strings in one pass
+  const noComments = blankComments(clean, strings);
   const starts = lineStarts(noComments);
   // In an undecided file only what stands before the first line with an odd number of backticks is decided (see the masker).
   // From that line on the strings are not masked: every `export` keyword there is found, and listed, and none is read.
