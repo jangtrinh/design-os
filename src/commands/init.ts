@@ -25,7 +25,7 @@ import {
   unlinkSync,
   readFileSync,
 } from "node:fs";
-import { dirname, resolve, join } from "node:path";
+import { basename, dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cwd as processCwd } from "node:process";
 import type { ParsedArgs } from "../core/cli-args.js";
@@ -41,6 +41,7 @@ import {
 } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
 import { generateAdapter } from "../adapters/index.js";
+import { classifySectionMarkers, malformedSectionMessage } from "../core/adapter-section-markers.js";
 import type { GenerateAdapterInput } from "../adapters/index.js";
 import { renderBanner } from "../core/report-style.js";
 import { agentsCommand } from "./agents.js";
@@ -287,6 +288,19 @@ export const initCommand = {
         return useJson ? errJson(CMD, "WRITE_ERROR", msg) : errText(`ui: ${msg}\n`);
       }
       runtimeAdapters.push({ runtime: entry.runtime, artifacts });
+    }
+
+    // A host file whose section markers are not one start line followed by one end line is refused before the first
+    // manifest is written, forced or not: nothing of this run, and so nothing that existed, is touched.
+    for (const { artifacts } of runtimeAdapters) {
+      for (const art of artifacts) {
+        if (art.mode !== "upsert-section" || !existsSync(art.absPath)) continue;
+        const report = classifySectionMarkers(readFileSync(art.absPath, "utf8"), art.sentinelBegin, art.sentinelEnd);
+        if (report.shape === "malformed") {
+          const msg = malformedSectionMessage(basename(art.absPath), report);
+          return useJson ? errJson(CMD, "SECTION_MALFORMED", msg) : errText(`ui: ${msg}\n`);
+        }
+      }
     }
 
     if (!force) {
