@@ -780,7 +780,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     summary: "Build and lint the design ontology (nodes and exact links) of a project",
     subcommands: {
       build: {
-        summary: "Write design/knowledge/ontology.json from the sealed stores and the project's other sources; raises inferred-links questions",
+        summary: "Write design/knowledge/ontology.json from the sealed stores and the project's other sources; raises inferred-links questions; refuses, writing nothing, on a duplicate id, a dangling link, a conventions pair that differs or an unreadable source",
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Project directory (default: current working directory)" },
@@ -789,7 +789,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
       },
       lint: {
-        summary: "Check the ontology against its sources: dangling links, duplicate ids, a stale file, a conventions pair that differs; prints the coverage table and the link reports",
+        summary: "Judge the build it would run now and the file on disk: dangling links, duplicate ids, a stale file, a conventions pair that differs; open questions name their next action (ui onboard questions, or ui ontology build for the ones only the build raises); orphans are warnings; prints the coverage table and the link reports",
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Project directory (default: current working directory)" },
