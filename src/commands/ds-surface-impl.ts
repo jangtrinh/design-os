@@ -9,8 +9,6 @@
 import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
-import { pathsForDir } from "../core/design-system.js";
-import { loadDesignSystemForReseal } from "../core/ds-reseal.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { validLessonTimestamp } from "../core/memory-lessons.js";
 import { errJson, errText, okJson } from "../core/output.js";
@@ -25,6 +23,7 @@ import { buildSurface } from "../core/ds-surface/build-surface.js";
 import { chooseAppRoot } from "../core/ds-surface/choose-app-root.js";
 import { applyCollisionRulings } from "../core/ds-surface/collision-rulings.js";
 import { planRegistration } from "../core/ds-surface/register-plan.js";
+import { readTokenStore } from "../core/ds-surface/token-store.js";
 import { buildTokenLookup } from "../core/ds-surface/style-references.js";
 import { collisionNameDetections, unaskableCollisions } from "../core/owner-rulings/kind-component-name-collision.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
@@ -69,10 +68,10 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     return err(choice.code, choice.message);
   }
 
-  const paths = pathsForDir(join(cwd, "design"));
-  let ds;
-  try { ds = loadDesignSystemForReseal(paths); }
+  let store;
+  try { store = readTokenStore(join(cwd, "design"), writes); }
   catch (e) { return err(e !== null && typeof e === "object" && "code" in e ? String((e as { code: unknown }).code) : "READ_ERROR", e instanceof Error ? e.message : String(e)); }
+  const ds = store.ds;
 
   const app = choice.app;
   const appRoots = scan.apps.map((a) => a.path);
@@ -88,11 +87,12 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   const blocked = block(collisionNameDetections(collisionInput), true);
   if (blocked !== null) return blocked;
 
-  let store;
-  try { store = readRulingStore(cwd); }
+  let stored;
+  try { stored = readRulingStore(cwd); }
   catch (e) { if (e instanceof RulingStoreError) return err(e.code, e.message); throw e; }
-  const ruled = applyCollisionRulings(model.output.collisions, store.rulings);
+  const ruled = applyCollisionRulings(model.output.collisions, stored.rulings);
   model.output.shadowed = ruled.shadowed;
+  model.output.tokenStore = store.status === "unverified" ? { status: store.status, drifted: store.drifted } : { status: store.status };
   const unaskable = unaskableCollisions(collisionInput);
   if (writes && unaskable.length > 0) {
     return err("SURFACE_COLLISION_NOT_ASKABLE", `${unaskable.length} component name(s) are exported twice from one directory in every directory they run between (${unaskable.map((c) => c.name).join(", ")}), so no question can keep one file per name. Rename one export, then run again. Nothing was written.`);
@@ -100,7 +100,7 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
 
   let plan = null;
   if (register) {
-    try { plan = planRegistration(model, ruled, readExistingRegistry(cwd)); }
+    try { plan = planRegistration(model, ruled, ds !== undefined ? ds.registry : readExistingRegistry(cwd)); }
     catch (e) { if (e instanceof BatchRegisterError) return err(e.code, e.message); throw e; }
     // Names that are already registered stop a write before anything is written, `--out` included.
     if (apply && plan.preview.alreadyRegistered.count > 0) {

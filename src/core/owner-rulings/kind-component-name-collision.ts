@@ -52,7 +52,9 @@ function directoriesOf(items: readonly NameCollision[], sizes: Record<string, nu
 function groups(input: NameCollisionInput): Map<string, NameCollision[]> {
   const out = new Map<string, NameCollision[]>();
   for (const c of input.collisions) {
-    const key = JSON.stringify([...new Set(c.files.map(dirOf))].sort(byText));
+    // A name with two files in one directory cannot be kept by directory there, so it is grouped apart from the names that can.
+    const dirs = c.files.map(dirOf);
+    const key = JSON.stringify([[...new Set(dirs)].sort(byText), [...new Set(dirs.filter((d, i) => dirs.indexOf(d) !== i))].sort(byText)]);
     out.set(key, [...(out.get(key) ?? []), c]);
   }
   return out;

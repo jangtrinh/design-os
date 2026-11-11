@@ -4,7 +4,7 @@
  * read. A style that resolves to no token is counted, never mapped to the nearest one; classes composed through `cn()`
  * are counted and map to no token; the same tree gives the same bytes.
  */
-import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -73,6 +73,24 @@ describe("the embedded-app fixture", () => {
     const d = surfaceOf(fixtureCopy());
     expect(d["components"].every((c: { tokens: string[] }) => c.tokens.length === 0)).toBe(true);
     expect(d["components"].find((c: { file: string }) => c.file.endsWith("ui/Button.tsx")).unresolvedStyles).toBe(3);
+  });
+  it("names the store it resolved against: sealed, none, or unverified when the files drifted from their seal", () => {
+    expect(surfaceOf(project)["tokenStore"]).toEqual({ status: "sealed" });
+    expect(surfaceOf(fixtureCopy())["tokenStore"]).toEqual({ status: "none" });
+    const drifted = sealedFixture();
+    const file = join(drifted, "design", "design.tokens.json");
+    writeFileSync(file, readFileSync(file, "utf8").replace("#1a2b3c", "#1a2b3d"));
+    const d = surfaceOf(drifted);
+    expect(d["tokenStore"]).toEqual({ status: "unverified", drifted: ["tokens"] });
+    expect(d["components"].find((c: { file: string }) => c.file.endsWith("kit/Button.tsx")).tokens).toEqual(["color.primary"]); // read as it is on disk
+  });
+  it("refuses a write on a store that drifted from its seal, as every other writer does, and writes nothing", () => {
+    const drifted = sealedFixture();
+    const file = join(drifted, "design", "design.tokens.json");
+    writeFileSync(file, readFileSync(file, "utf8").replace("#1a2b3c", "#1a2b3d"));
+    const r = surface(drifted, "--out", "surface.json");
+    expect(envelope(r.out).error?.code).toBe("DS_TAMPERED");
+    expect(() => readFileSync(join(drifted, "surface.json"))).toThrow();
   });
   it("is read-only: the tree is byte-identical after a run, apart from the pending question list of the block contract", () => {
     const before = hashTree(project, [".design-os"]);
@@ -181,6 +199,25 @@ describe("which app root is read (`--app` default, FR-019)", () => {
     const e = envelope(r.out);
     expect(e.error?.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
     expect(e.data!["blocked"].clusters.map((c: { kind: string }) => c.kind)).toEqual(["app-roots"]);
+  });
+});
+
+describe("the walk honours the owner's rulings and says what it could not resolve", () => {
+  const pack = (dir: string): Record<string, string> => Object.fromEntries(["Aaa", "Bbb", "Ccc"].map((n) => [`${dir}/${n}.tsx`, `export const ${n}Box = () => <i />;\n`]));
+  it("does not read a directory the owner ruled to skip", () => {
+    const project = projectFrom({ "package.json": JSON.stringify({ name: "x", dependencies: { react: "18" } }), ...pack("src/components"), ...pack("legacy/components") });
+    expect(surfaceOf(project)["components"]).toHaveLength(6);
+    const ruling = { kind: "scan-budget", fingerprint: "a".repeat(64), choice: "skip", covers: ["legacy"], actor: "owner", at: "2026-11-11T09:00:00Z" };
+    mkdirSync(join(project, "design"), { recursive: true });
+    writeFileSync(join(project, "design", "design-dir.json"), JSON.stringify({ version: 2, onboard: { rulings: [ruling] } }));
+    expect(surfaceOf(project)["components"].map((c: { file: string }) => c.file)).toEqual(["src/components/Aaa.tsx", "src/components/Bbb.tsx", "src/components/Ccc.tsx"]);
+  });
+  it("counts an import of a project file that matches no single file, and never invents the target", () => {
+    const project = fixtureCopy();
+    writeFileSync(join(project, "src/pages/lost.tsx"), 'import { Ghost } from "../components/ui/Ghost";\nimport Card from "../components/ui/Card";\nexport default function Lost() { return <Card />; }\n');
+    const d = surfaceOf(project);
+    expect(d["unread"]["unresolvedImports"]).toBe(1);
+    expect(d["screens"].find((s: { file: string }) => s.file.endsWith("lost.tsx")).components).toEqual(["Card"]);
   });
 });
 

@@ -142,6 +142,17 @@ describe("after the ruling", () => {
     expect(pending(p)[0]!.members[0]).toContain("src/components/ui/ButtonCopy.tsx");
     expect(existsSync(join(p, "design", "design-dir.json"))).toBe(true);
   });
+  it("a name exported twice from one directory in every directory it runs between cannot be asked: a write says so and writes nothing", () => {
+    const p = sealedFixture();
+    for (const dir of ["ui", "kit"]) for (const ext of ["tsx", "jsx"]) writeFileSync(join(p, `src/components/${dir}/Chip.${ext}`), "export const Chip = () => <i />;\n");
+    expect(surface(p).code).toBe(0);
+    expect(envelope(surface(p).out).data!["collisions"].map((c: { name: string }) => c.name)).toContain("Chip");
+    expect(pending(p)[0]!.members).toEqual([BUTTON]); // the name that can be asked is asked, and alone
+    expect(answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id })).code).toBe(0);
+    const r = surface(p, "--out", "surface.json");
+    expect(envelope(r.out).error?.code).toBe("SURFACE_COLLISION_NOT_ASKABLE");
+    expect(() => readFileSync(join(p, "surface.json"))).toThrow();
+  });
   it("the question goes when the collision goes", () => {
     const p = sealedFixture();
     surface(p);

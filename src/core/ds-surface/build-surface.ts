@@ -115,6 +115,7 @@ export function buildSurface(input: BuildSurfaceInput): SurfaceModel {
       stories,
       unstoried: [...new Set(components.filter((c) => !storied.has(idOf(c))).map((c) => c.name))].sort(byText),
       ...(input.tailwindCss === null ? {} : { tailwindCss: input.tailwindCss }),
+      tokenStore: { status: "none" },
       unread: { files: input.files.unread, exports: exportUnread.sort((a, b) => byText(a.file, b.file) || a.line - b.line), unresolvedImports },
     },
   };

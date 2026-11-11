@@ -9,6 +9,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { BatchRegisterError, registerRecordsOnce } from "../src/commands/registry-register-batch.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { TOKENS_FILE, answerKind, envelope, fixtureCopy, sealedFixture, surface } from "./ds-surface-helpers.js";
 
@@ -125,6 +126,31 @@ describe("--apply through the shared registration path", () => {
     expect(r.code, r.out).toBe(0);
     expect(envelope(r.out).data!["applied"]).toMatchObject({ registered: 6, sealed: false });
     expect(registryOf(p).components[0]!.provenance).toMatchObject({ kind: "code" });
+  });
+});
+
+describe("the shared registration path itself", () => {
+  it("never forces: a name that is taken is refused as NAME_EXISTS and the store is untouched", () => {
+    const p = sealedWithRegistry(["Card"]);
+    const before = hashTree(p, [".design-os"]);
+    const record = { name: "Card", category: "src/components/ui", markup: "x", tokensUsed: [], variants: [], sourceRef: "src/components/ui/Card.tsx:3-5" };
+    try { registerRecordsOnce(p, [record], NOW, "test"); expect.unreachable("the taken name must be refused"); }
+    catch (e) {
+      expect(e).toBeInstanceOf(BatchRegisterError);
+      expect((e as BatchRegisterError).refusals).toMatchObject([{ name: "Card", code: "NAME_EXISTS" }]);
+    }
+    expect(hashTree(p, [".design-os"])).toBe(before);
+  });
+  it("applies the provenance rule of a sealed store: a source reference that points at no file refuses the batch", () => {
+    const p = sealedWithRegistry([]);
+    const record = { name: "Ghost", category: "x", markup: "x", tokensUsed: [], variants: [], sourceRef: "src/nowhere/Ghost.tsx:1-2" };
+    expect(() => registerRecordsOnce(p, [record], NOW, "test")).toThrow(BatchRegisterError);
+  });
+  it("refuses a token the sealed store does not hold", () => {
+    const p = sealedFixture();
+    const record = { name: "Panel", category: "x", markup: "x", tokensUsed: ["color.nope"], variants: [], sourceRef: "src/components/kit/Panel.tsx:3-10" };
+    try { registerRecordsOnce(p, [record], NOW, "test"); expect.unreachable("an unknown token must be refused"); }
+    catch (e) { expect((e as BatchRegisterError).refusals).toMatchObject([{ name: "Panel", code: "BAD_TOKEN" }]); }
   });
 });
 
