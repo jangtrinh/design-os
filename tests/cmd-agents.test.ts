@@ -107,7 +107,7 @@ describe("ui agents init", () => {
     expect(existsSync(agentPath(tmp, "curator-meridian-store.md"))).toBe(true);
     expect(existsSync(agentPath(tmp, "figma-meridian-store.md"))).toBe(true);
     expect(r.stdout).toContain("ui ds soul init --studio");
-    expect(r.stdout).toContain("agents are Claude Code subagents — delegate with their names.");
+    expect(r.stdout).toContain("Claude Code: the agents are subagents; delegate to them by name.");
     expect(readFileSync(agentPath(tmp, "designer-meridian-store.md"), "utf8")).not.toContain("studio's soul");
   });
 

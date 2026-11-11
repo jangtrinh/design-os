@@ -110,9 +110,10 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
   const without = found.length === 0 ? [] : RUNTIMES.filter((r) => !found.includes(r));
 
   if (parsed.json) return okJsonWithExit(sub, { dir: agentsDir, findings, errorCount, warningCount, runtimesChecked: found, runtimesWithoutTargets: without }, exitCode);
+  const scope = found.length === 0 ? "" : ` (checked ${found.join(", ")}${without.length > 0 ? `; no target for ${without.join(", ")}` : ""})`;
   const lines = findings.length === 0
-    ? [`agents check: ${agentsDir} — 0 findings.`]
-    : [`agents check: ${agentsDir} — ${errorCount} error(s), ${warningCount} warning(s)`, ...findings.map((f) => `  ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]: ${f.message}`)];
+    ? [`agents check${scope}: ${agentsDir} — 0 findings.`]
+    : [`agents check${scope}: ${agentsDir} — ${errorCount} error(s), ${warningCount} warning(s)`, ...findings.map((f) => `  ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]: ${f.message}`)];
   if (without.length > 0) lines.push(`checked: ${found.join(", ")}; no generated target found for: ${without.join(", ")}`);
   return { exitCode, stdout: lines.join("\n") + "\n" };
 }

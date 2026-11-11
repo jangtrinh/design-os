@@ -7,6 +7,7 @@ import { findSentinelBlock } from "../core/adapter-writer.js";
 import type { AdapterArtifact } from "../adapters/index.js";
 import { stripBlocks } from "../core/agents-areas-block.js";
 import type { AgentRole } from "../core/agents-gen.js";
+import { RUNTIMES } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
 
 export const DIFFERED_NOTE = "its text outside the area block differed from what this version generates; that text is not kept";
@@ -21,6 +22,17 @@ export function priorOf(a: AdapterArtifact): Prior {
   const range = findSentinelBlock(text, a.sentinelBegin, a.sentinelEnd);
   if (range === null) return { replaced: false, differedOutsideBlock: false };
   return { replaced: true, differedOutsideBlock: stripBlocks(text.slice(range.start, range.end)) !== stripBlocks(a.content) };
+}
+
+const RUNTIME_LINE: Record<Runtime, string> = {
+  claude: "Claude Code: the agents are subagents; delegate to them by name.",
+  antigravity: "Antigravity: the agent skills under .agent/skills are read when Antigravity starts in the project.",
+  codex: "Codex: the agents section of AGENTS.md is read when Codex starts in the project.",
+};
+
+/** One closing line per runtime that was written, in the order of the runtimes. */
+export function closingLines(rows: readonly InitRow[]): string[] {
+  return RUNTIMES.filter((r) => rows.some((x) => x.runtime === r)).map((r) => RUNTIME_LINE[r]);
 }
 
 export function initLines(rows: readonly InitRow[], codexPath: string): string[] {
