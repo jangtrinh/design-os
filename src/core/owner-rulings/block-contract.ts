@@ -43,6 +43,12 @@ export interface BlockInput {
    * Default none: a command that does not pass it behaves exactly as before.
    */
   tolerated?: readonly ClusterKind[];
+  /**
+   * The label stamped on the questions this call raises and used to tell its own stored questions from another run's.
+   * Default: `command`. A command that reads one part of a project at a time (`ui ds surface --app <root>`) passes one
+   * label per part, so a run on one part replaces only what that part's run raised.
+   */
+  raisedBy?: string;
   emitters?: readonly KindEmitter[];
   json: boolean;
 }
@@ -54,14 +60,14 @@ export function blockOnOpenClusters(input: BlockInput): CommandResult | null {
   const projectLevel = input.runsProjectDetectors === true;
   let state: RulingState;
   try {
-    state = computeRulingState(input.projectDir, { detections: input.detections, ownKinds: input.ownKinds, command: input.command, projectLevel, ...(input.emitters === undefined ? {} : { emitters: input.emitters }) });
+    state = computeRulingState(input.projectDir, { detections: input.detections, ownKinds: input.ownKinds, command: input.raisedBy ?? input.command, projectLevel, ...(input.emitters === undefined ? {} : { emitters: input.emitters }) });
   } catch (e) {
     // Only the stores' own failures become an envelope; a bug in an emitter keeps its own message and stack.
     if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(e.code, e.message);
     throw e;
   }
   // A question another command raised stays stored but is not this command's to block on (project-level kinds are everyone's).
-  const foreign = (c: Cluster): boolean => !PROJECT_LEVEL_KINDS.includes(c.kind) && c.raisedBy !== input.command;
+  const foreign = (c: Cluster): boolean => !PROJECT_LEVEL_KINDS.includes(c.kind) && c.raisedBy !== (input.raisedBy ?? input.command);
   const blocking = orderClusters(state.pending.filter((c) => (input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))) && !foreign(c) && !(input.tolerated ?? []).includes(c.kind)));
 
   // What this command raised is replaced by what it detects now: the open ones when it blocks, none when it does not.

@@ -51,7 +51,7 @@
       "labels": {
         "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx": "Button: src/components/kit/Button.tsx or src/components/ui/Button.tsx"
       },
-      "raisedBy": "ds surface"
+      "raisedBy": "ds surface --app ."
     }
   ]
 }

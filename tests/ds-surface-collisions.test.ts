@@ -71,7 +71,7 @@ describe("the question at the command", () => {
     expect(r.code).toBe(0);
     expect(envelope(r.out).data!["collisions"]).toHaveLength(1);
     const [c] = pending(p);
-    expect(c).toMatchObject({ kind: COLLISION, raisedBy: "ds surface", members: [BUTTON] });
+    expect(c).toMatchObject({ kind: COLLISION, raisedBy: "ds surface --app .", members: [BUTTON] });
     expect(c!.options.map((o) => o.id)).toEqual(["public-dir:src/components/ui", "public-dir:src/components/kit", "review-individually"]);
   });
   it("the Markdown sheet prints each member as `name: files (id)` with its choices by path", () => {
