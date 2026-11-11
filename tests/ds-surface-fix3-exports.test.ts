@@ -108,13 +108,39 @@ describe("the whole-text reader of `export { … }` follows the same rule", () =
   });
 });
 
-describe("a template literal that never closes", () => {
-  const r = read("const a = `never closes;\nexport function Hidden() { return <i />; }\n");
-  it("lists the file once, with the reason", () => {
-    expect(names(r)).toEqual([]);
+const UNDECIDED = /string structure of this file could not be decided/;
+
+describe("a template the scanner cannot close never hides the rest of the file", () => {
+  it("a quote in a regular expression inside an interpolation does not break the template, and the file is not listed", () => {
+    const r = read("const row = `\"${v.replace(/\"/g, '\"\"')}\"`;\nexport function Row() { return <i />; }\n");
+    expect(names(r)).toEqual(["Row"]);
+    expect(r.unread).toEqual([]);
+    expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
+  });
+  it("a backtick in a regular expression with no further backtick: the export after it is read, the file is listed once", () => {
+    const r = read("const tick = /`/g;\nexport function Tick() { return <i />; }\n");
+    expect(names(r)).toEqual(["Tick"]);
+    expect(r.unread).toEqual([{ name: "(file)", line: 1, reason: expect.stringMatching(UNDECIDED) }]);
+    expect(r.unread[0]!.reason).toMatch(/read by the plain rule and may be incomplete/);
+    expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
+  });
+  it("a backtick that never closes: nothing after it is masked, and the file is listed once", () => {
+    const r = read("const a = `never closes;\nexport function Shown() { return <i />; }\n");
+    expect(names(r)).toEqual(["Shown"]);
     expect(r.unread).toHaveLength(1);
-    expect(r.unread[0]!.reason).toMatch(/template literal never closes/);
-    expect(r.unread[0]!.line).toBe(1);
+    expect(r.unread[0]!.reason).toMatch(UNDECIDED);
+    expect(r.unread[0]!.reason).not.toMatch(/hidden/);
+  });
+  it("with a later, well-formed template in the file: the file is listed and no keyword is read from the template's text", () => {
+    const r = read("export function Tick() { return <i />; }\nconst tick = /`/g;\nconst t = `x export function Ghost() { return <div/> } y`;\n");
+    expect(names(r)).toEqual(["Tick"]);
+    expect(r.unread.filter((u) => u.name === "(file)")).toHaveLength(1);
+    expect(r.unread.find((u) => u.name === "Ghost")?.reason).toMatch(NOT_AT_STATEMENT);
+    expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
+  });
+  it("a comment pattern inside a template that removes its closing backtick: the export after it is read", () => {
+    const r = read("const t = `a /* b`;\nconst u = `c */`;\nexport function After() { return <i />; }\n");
+    expect(names(r)).toEqual(["After"]);
   });
 });
 
@@ -147,5 +173,12 @@ describe("through the command: the file of the controller's reproduction", () =>
     const d = envelope(surface(withUsage("export const Card = () => null;")).out).data!;
     expect((d["collisions"] as { name: string }[]).map((c) => c.name)).toEqual(["Button"]);
     expect(d["pending"].count).toBe(base["pending"].count);
+  });
+  it("a CSV-escape template before an exported component: the component is read and nothing is listed", () => {
+    const p = sealedFixture();
+    writeFileSync(join(p, "src/components/ui/Row.tsx"), "const quote = (v: string) => `\"${v.replace(/\"/g, '\"\"')}\"`;\nexport function Row() { return <i className=\"p-2\">{quote(\"a\")}</i>; }\n");
+    const d = envelope(surface(p).out).data!;
+    expect((d["components"] as { name: string }[]).map((c) => c.name)).toContain("Row");
+    expect(d["unread"].exports).toEqual([]);
   });
 });

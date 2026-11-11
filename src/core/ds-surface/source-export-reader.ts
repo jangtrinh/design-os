@@ -34,8 +34,7 @@ export interface ReExport { names: { exported: string; local: string }[]; star: 
 export interface UnreadExport { name: string; line: number; reason: string }
 /**
  * How the `export` keywords of a script file were accounted for: keywords = claimed + listed. `claimed` is a keyword a reader
- * took or the position rule set aside (that one is also in `unread` with its reason); `listed` is a keyword at statement
- * position that no reader recognised.
+ * took; `listed` is a keyword that is also in `unread` with its reason (no reader recognised it, or the position rule set it aside).
  */
 export interface ExportAccounting { keywords: number; claimed: number; listed: number }
 export interface SourceExports { components: ExportedComponent[]; reExports: ReExport[]; unread: UnreadExport[]; accounting: ExportAccounting }
@@ -62,8 +61,8 @@ export function readComponentExports(file: string, source: string): SourceExport
   const text = blankStrings(noComments, strings);
   const lines = text.split("\n");
   const starts = lineStarts(text);
-  if (strings.unclosedTemplateAt !== -1) {
-    out.unread.push({ name: "(file)", line: lineIndexOf(starts, strings.unclosedTemplateAt) + 1, reason: "a template literal never closes, so every `export` keyword after it is hidden from the count and nothing after it was read" });
+  if (strings.undecidedTemplateAt !== -1) {
+    out.unread.push({ name: "(file)", line: lineIndexOf(starts, strings.undecidedTemplateAt) + 1, reason: "the string structure of this file could not be decided (a backtick or quote in a regular expression, or a comment pattern in a template); its exports were read by the plain rule and may be incomplete" });
   }
   const seen = new Set<string>();
   const add = (name: string, isDefault: boolean, idx: number, head = lines[idx] as string): void => {
