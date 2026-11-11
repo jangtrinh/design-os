@@ -20,14 +20,16 @@
  * `truncated: true`, on a tree far under the entry cap, and built a wrong
  * theory instead of noticing one route dir was 7 levels deep).
  */
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { basename, extname, join, relative, sep } from "node:path";
 import type { Dirent } from "node:fs";
 import { pathsForDir, loadDesignSystem, DSError } from "./design-system.js";
 import {
-  buildApps, findTailwindV4Css, frameworkOf, ownerOf, stylingOf,
+  buildApps, findTailwindV4Css, frameworkOf, ownerOf, readDeps, stylingOf,
 } from "./project-scan-apps.js";
 import type { AppCandidate, AppRoot } from "./project-scan-apps.js";
+import { NO_SCAN_RULINGS, honouredOf, prunesAppRoot } from "./project-scan-rulings.js";
+import type { ScanRulings } from "./project-scan-rulings.js";
 
 export type { AppRoot } from "./project-scan-apps.js";
 
@@ -62,6 +64,8 @@ export interface ScanResult {
   apps: AppRoot[];
   /** When truncated: the first-level directories that consumed the entry budget, most entries first, top 5. Empty otherwise. */
   budget: Array<{ dir: string; visited: number }>;
+  /** Present only when an owner ruling shaped the walk: the directories skipped and the app roots kept. */
+  honoured?: { skip: string[]; roots: string[] };
 }
 
 // ─── Tunables ───────────────────────────────────────────────────────────────────
@@ -137,21 +141,6 @@ function byBytesDescThenPath(
   return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
 }
 
-/** Merge dependencies + devDependencies from a root package.json (empty on any error). */
-function readDeps(root: string): Record<string, string> {
-  const pkgPath = join(root, "package.json");
-  if (!existsSync(pkgPath)) return {};
-  try {
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    return { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
-  } catch {
-    return {};
-  }
-}
-
 // ─── Filesystem walk ─────────────────────────────────────────────────────────────
 
 interface WalkAccum {
@@ -165,6 +154,7 @@ interface WalkAccum {
   byTop: Map<string, number>;
   visited: number;
   truncated: boolean;
+  rulings: ScanRulings;
 }
 
 function sortedEntries(dir: string): Dirent[] {
@@ -205,6 +195,8 @@ function walk(root: string, start: string, acc: WalkAccum): void {
     const { dir, depth, hasComponentsAncestor, inTestTree, top } = queue.shift()!;
     if (depth > MAX_DEPTH) continue; // depth cap: skip this branch, map stays honest elsewhere
     const entries = sortedEntries(dir);
+    // An app root the owner did not keep is not walked at all (onboard.scan.roots).
+    if (depth > 0 && !inTestTree && entries.some((e) => e.isFile() && e.name === "package.json") && prunesAppRoot(acc.rulings, relPath(root, dir))) continue;
 
     // >=3 direct code-file children qualifies a dir if its own name is
     // components|ui|widgets, OR a "components" dir is one of its ancestors —
@@ -231,7 +223,7 @@ function walk(root: string, start: string, acc: WalkAccum): void {
       if (bucket !== null) acc.byTop.set(bucket, (acc.byTop.get(bucket) ?? 0) + 1);
       const full = join(dir, e.name);
       if (e.isDirectory()) {
-        if (isSkippedDir(e.name)) continue;
+        if (isSkippedDir(e.name) || acc.rulings.skip.includes(relPath(root, full))) continue;
         const childBase = e.name.toLowerCase();
         queue.push({
           dir: full,
@@ -271,14 +263,14 @@ function detectDsStatus(root: string): ScanResult["dsStatus"] {
  * same tree always yields byte-identical output. Assumes `root` is a readable
  * directory (callers validate first and surface READ_ERROR otherwise).
  */
-export function scanProject(root: string): ScanResult {
+export function scanProject(root: string, rulings: ScanRulings = NO_SCAN_RULINGS): ScanResult {
   const deps = readDeps(root);
 
   const framework = frameworkOf(deps);
 
   const acc: WalkAccum = {
     css: [], html: [], scssPaths: [], tailwindConfigs: [], componentDirs: [],
-    appCandidates: [], byTop: new Map(), visited: 0, truncated: false,
+    appCandidates: [], byTop: new Map(), visited: 0, truncated: false, rulings,
   };
   walk(root, root, acc);
 
@@ -320,5 +312,6 @@ export function scanProject(root: string): ScanResult {
     componentDirs, designMd, dsStatus, verdict,
     truncated: acc.truncated, visited: acc.visited,
     tailwindCss: findTailwindV4Css(root, deps, rootCss), apps, budget,
+    ...(honouredOf(rulings) === undefined ? {} : { honoured: honouredOf(rulings) }),
   };
 }
