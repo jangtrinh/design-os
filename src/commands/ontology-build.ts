@@ -27,8 +27,10 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   const json = parsed.json;
   const ready = prepare(parsed, CMD, KNOWN);
   if (isResult(ready)) return ready;
-  const { dir, built } = ready;
+  const { dir, built, sources } = ready;
   const o = built.ontology;
+  const drift = sources.rules.pairDrift;
+  if (drift.length > 0) return fail(CMD, json, drift[0]!.code, `nothing was written: ${drift.map((d) => d.message).join("; ")}`);
   const bad = graphErrors(o.nodes, o.links);
   if (bad.length > 0) return fail(CMD, json, bad[0]!.code, refusalText(bad));
   const outRel = insideProject(CMD, json, dir, "out", typeof parsed.flags["out"] === "string" ? parsed.flags["out"] : ONTOLOGY_REL);

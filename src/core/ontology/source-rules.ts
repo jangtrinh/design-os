@@ -9,7 +9,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { AdherenceRuleError, loadAdherenceRules } from "../adherence-rules.js";
 import { DSError } from "../design-system.js";
-import { derivedRules, parseConventionsDoc, CONVENTIONS_JSON_REL } from "./conventions-machine-form.js";
+import { pairDrift } from "./conventions-pair.js";
+import type { PairFinding } from "./conventions-pair.js";
+import { derivedRules, parseConventionsDoc, CONVENTIONS_JSON_REL, CONVENTIONS_MD_REL } from "./conventions-machine-form.js";
 import type { ConventionsDoc, MeasuredRule } from "./conventions-machine-form.js";
 import { gateFamilyFor } from "./gate-table.js";
 import type { RuleOrigin } from "./gate-table.js";
@@ -20,7 +22,7 @@ import type { OntNode, SourceReport } from "./ontology-types.js";
 
 /** What link rules need of a rule: where it came from, its kind (adherence only) and its source's own target. */
 export interface RuleFact { id: string; origin: RuleOrigin; kind: string }
-export interface RuleRead { nodes: OntNode[]; facts: RuleFact[]; report: SourceReport; proposals: { rules: number; soul: number }; conventions: ConventionsDoc | null }
+export interface RuleRead { nodes: OntNode[]; facts: RuleFact[]; report: SourceReport; proposals: { rules: number; soul: number }; conventions: ConventionsDoc | null; pairDrift: PairFinding[] }
 
 export const SOUL_REL = "design/soul.md";
 
@@ -70,15 +72,19 @@ export function readRuleNodes(projectDir: string): RuleRead {
   lines.push(adherence.nodes.length > 0 ? `adherence: ${adherence.nodes.length} promoted` : "adherence: no promoted rule file");
 
   let conventions: ConventionsDoc | null = null;
+  let drift: PairFinding[] = [];
   const convPath = join(projectDir, CONVENTIONS_JSON_REL);
   if (existsSync(convPath)) {
     const parsed = parseConventionsDoc(parseSourceJson(CONVENTIONS_JSON_REL, readFileSync(convPath, "utf8")));
     if (typeof parsed === "string") throw new OntologyReadError(BAD_SOURCE, `${CONVENTIONS_JSON_REL}: ${parsed}; re-run ui synthesize-conventions`);
     conventions = parsed;
-    const cn = conventionNodes(parsed);
+    const mdPath = join(projectDir, CONVENTIONS_MD_REL);
+    drift = pairDrift(parsed, existsSync(mdPath) ? readFileSync(mdPath, "utf8") : null);
+    // Conventions are read only as a consistent pair: while the pair drifts no convention node exists (the build refuses, the lint reports).
+    const cn = drift.length > 0 ? [] : conventionNodes(parsed);
     nodes.push(...cn);
     facts.push(...cn.map((n): RuleFact => ({ id: n.id, origin: "convention", kind: String(n["category"]) })));
-    lines.push(`conventions: ${cn.length} measured`);
+    lines.push(drift.length > 0 ? "conventions: the pair drifts, none read" : `conventions: ${cn.length} measured`);
   } else lines.push("conventions: absent (ui synthesize-conventions)");
 
   const waiting = [adherence.proposed > 0 ? `${adherence.proposed} adherence` : "", soulProposed > 0 ? `${soulProposed} soul` : ""].filter((s) => s !== "");
@@ -86,5 +92,5 @@ export function readRuleNodes(projectDir: string): RuleRead {
   const report: SourceReport = nodes.length > 0
     ? { kind: "rule", status: "read", nodes: nodes.length, note: lines.join("; ") }
     : { kind: "rule", status: "not-sensed", nodes: 0, note: `no ratified or promoted rule source: ${lines.join("; ")}` };
-  return { nodes, facts, report, proposals: { rules: adherence.proposed, soul: soulProposed }, conventions };
+  return { nodes, facts, report, proposals: { rules: adherence.proposed, soul: soulProposed }, conventions, pairDrift: drift };
 }

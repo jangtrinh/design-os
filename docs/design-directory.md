@@ -195,7 +195,9 @@ refused by name (`ONTOLOGY_BAD_SOURCE`), never read as "0 apps".
 `CONVENTIONS.md`. The Markdown is a pure render of the JSON, so `ui ontology lint` compares a render of the JSON with the
 Markdown on disk (`CONVENTIONS_PAIR_DRIFT`). The `rule` nodes with `origin: "convention"` and the counts they were measured
 on are derived from its `totals` by one function; the stored `rules` list is never trusted, and a list that differs from
-the derived one is the same drift, so an edited or added rule becomes no node.
+the derived one is the same drift. Conventions are read only as a consistent pair: while the stored rules or the Markdown
+differ from what the totals give, `ui ontology build` refuses with `CONVENTIONS_PAIR_DRIFT` and writes nothing. Known limit:
+a pair forged consistently (totals, rules and Markdown edited to agree) cannot be detected without the usage-dna.
 
 ## Notes
 
