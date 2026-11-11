@@ -42,7 +42,7 @@ function capture(args: string[]): { code: number } {
 
 // ─── 1. STATIC: every sealed-artifact writer must import reseal ───────────────────────
 
-const ALLOWLIST = new Set(["ingest-figma-ds.ts", "ds-init-impl.ts", "ds-import-impl.ts"]);
+const ALLOWLIST = new Set(["ingest-figma-ds.ts", "ds-init-impl.ts", "ds-import-seal.ts"]);
 const SAVE_REGISTRY_CALL_RE = /\bsaveRegistry\s*\(/;
 const WRITES_TOKENS_RE = /writeFileSync\(\s*paths\.tokens\b/;
 const RESEAL_IMPORT_RE = /from\s+"\.\.\/core\/ds-reseal\.js"/;

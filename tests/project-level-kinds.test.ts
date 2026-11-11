@@ -168,6 +168,9 @@ describe("source-authority", () => {
     expect(sourceAuthorityEmitter.detect(sourceAuthorityEmitter.sense!(derived))!.members).toEqual([]);
     expect(sourceAuthorityEmitter.sense!(projectWith({ "design/tokens.json": tokenDoc({ a: "#111111" }) }))).toBeNull();
   });
+  it("a project directory that does not exist has no second source, and sensing it does not throw", () => {
+    expect(sourceAuthorityEmitter.sense!(join(project(), "does-not-exist"))).toBeNull();
+  });
   it("the answer names the source by file: `authority:design/tokens.json` stores authoritative for that file and not for the other", () => {
     const p = project();
     capture(["onboard", "questions", "--cwd", p]);
