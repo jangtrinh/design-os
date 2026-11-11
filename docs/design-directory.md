@@ -14,8 +14,12 @@ design/
   principles.md            why: `### <ID> · <title>` with Yields when + Test bullets
   principles.json          machine index of principles.md (emitted, never hand-edited)
   art-direction/           art direction documents (not docs/)
+  ds.json                  the Figma scan (figma-agent scan-design-system), read by the ontology
+  conventions.json         measured conventions in machine form (ui synthesize-conventions), emitted
   knowledge/
     rulings.json           case law; the ONLY place supersession is recorded
+    ontology.json          the design ontology (ui ontology build), emitted, never hand-edited
+    screens.meta.json      optional: apps, features and screen metadata supplied by the project
     ksync/                 Figma ↔ code pins and drift
 ```
 
@@ -119,6 +123,61 @@ ui design principles-index design/principles.md --out design/principles.json --c
 Each entry is `{ id, title, yields_when, test }` in document order. Headings without an id
 (worked examples, section titles) are skipped. An entry missing either bullet, or a repeated
 id, fails the emit with `BAD_PRINCIPLES`.
+
+## The design ontology
+
+```sh
+ui ontology build [--dir <project>] [--out design/knowledge/ontology.json] [--json]
+ui ontology lint  [--dir <project>] [--strict] [--json]
+```
+
+`design/knowledge/ontology.json` (`design-os-ontology/1`, `schemas/ontology.schema.json`) is one knowledge graph of the
+project, emitted and never hand-edited. It has no timestamp and no absolute path: the same tree gives the same bytes from
+any checkout. `ui ontology lint` fails on a link whose target does not exist, a duplicate node id and a stale file (it
+re-emits in memory and compares bytes); orphans (no link, not standalone) are warnings and errors under `--strict`;
+the kind coverage table (`nodes`, `linked`, `orphan`, `standalone`, `source missing`) is always printed. Project
+structure is never an orphan: the `project` node and the `gate` nodes belong to the kernel.
+
+Sources, each read only from its own path under the project:
+
+| Kind | Source | Produced by |
+|---|---|---|
+| `token` | the sealed token store, `design/design.tokens.json` | `ui ds import`, `ui ingest-figma-ds` |
+| `component` | the sealed registry, `design/component-registry.json` | `ui ds import --registry`, `ui ds surface --register` |
+| `screen` | Figma: the frames of the pages the `screen-pages` ruling kept, in `design/ds.json`; code: the page files of the surface, built in memory | `figma-agent scan-design-system --out design/ds.json`; `ui ds surface` |
+| `rule` | a ratified `design/soul.md` (`## Never`, `## Always`), `design/rules/_adherence.rules.json`, `design/conventions.json` | `ui ds soul`, `ui ds harvest-bans --accept`, `ui synthesize-conventions` |
+| `gate` | the gate families and check catalog of the kernel | the kernel |
+| `ruling`, `principle`, `term`, `pattern`, `app`, `feature` (optional) | `design/knowledge/rulings.json`, `design/principles.json`, `**Term**:` entries of `CONTEXT.md`, `design/patterns/*.md`, `design/knowledge/screens.meta.json` | the project |
+
+A source that is absent contributes zero nodes and one line of the summary; a source that exists and cannot be read is
+refused by name (`ONTOLOGY_BAD_SOURCE`); a store that drifted from its seal is refused (`DS_TAMPERED`). Proposed rules
+(`_adherence.proposed.json`, `## Never (proposed)`) and a draft soul are not nodes: the summary counts them.
+
+A node id is `<kind>:<key>` and the key survives a reordering of its source: a token's path, a registry record's name, a
+Figma frame's node id, a page file's project-relative path, an adherence rule's own id, a gate family's name. A soul rule
+has no id of its own: its key is its section and the first 12 hex characters of the SHA-256 of its text with whitespace
+collapsed (`rule:soul:never:2f3642b671e3`). No id and no field holds a line number, an absolute path or a time.
+
+A link is exact or it is asked. `uses-component` resolves by identity: the instances of a frame (an id or a key), closed
+over `components[].instances`, against the registry (the registry records a Figma component under the name the ingest
+derived from the node, so a node whose derived name is shared or was renamed ties to nothing); a code screen's imports
+against the record's code reference. A reference that matches nothing is counted `unresolved`; a link whose source the
+host never sensed (a scan without frames or bindings, or with `sensing.status = "skipped"`) is counted `not-sensed`, with
+the command that would sense it. `checked-by` comes from one table in `src/core/ontology/gate-table.ts`: only promoted
+`token-ban` rules are evaluated by a gate (`ds-usage`); every other rule is counted as not checked. A glossary term named
+like a node (the registry's name normalisation: case and spacing, nothing else) raises one `inferred-links` question; only
+an owner answer writes the `defines` link, and `standalone` marks the term as not an orphan. An open question blocks the
+write (`ONBOARD_BLOCKED_NEEDS_OWNER_RULING`, nothing written, the summary still shown). A node no candidate covers raises
+no question and stays an orphan; the summary counts those per kind.
+
+`screens.meta.json` (`screens-meta/1`) is supplied by the project:
+`{ "schema": "screens-meta/1", "apps": [{ "id", "name" }], "features": [{ "id", "name", "app" }], "screens": [{ "screen":
+"<screen node id>", "feature", "app", ...strings }] }`; the extra string fields become the screen node's `meta`.
+
+`design/conventions.json` (`design-os-conventions/1`) is written by `ui synthesize-conventions` together with
+`CONVENTIONS.md`. The Markdown is a pure render of the JSON, so `ui ontology lint` compares a render of the JSON with the
+Markdown on disk (`CONVENTIONS_PAIR_DRIFT`). Its `rules` become `rule` nodes with `origin: "convention"` and the counts
+they were measured on.
 
 ## Notes
 
