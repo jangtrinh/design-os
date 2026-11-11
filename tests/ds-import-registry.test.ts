@@ -3,7 +3,7 @@
  * registry `ui ingest-figma-ds` wrote under one manifest; every record is validated first; a sealed registry is never
  * replaced without `--reset-registry`; the ingest's error text names the flag.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalHash } from "../src/core/ds-manifest.js";
@@ -111,12 +111,13 @@ describe("a sealed registry is never replaced without --reset-registry", () => {
     expect(r.code, r.out).toBe(0);
     expect(capture(["ds", "status", "--dir", project, "--json"]).code).toBe(0);
   });
-  it("a registry flag over a non-empty registry is guarded even when the tokens file is gone", () => {
+  it("--registry without --force is guarded too when the tokens file is gone but a registry with components is still there", () => {
     const { project, tokens, registry } = sealed();
-    capture(["onboard", "--cwd", project, "--no-banner"]);
-    writeFileSync(join(project, "design", "design.tokens.json"), "{}");
-    const r = capture(["ds", "import", tokens, "--registry", registry, "--dir", project, "--force", "--json"]);
+    rmSync(join(project, "design", "design.tokens.json"));
+    const before = hashTree(project);
+    const r = capture(["ds", "import", tokens, "--registry", registry, "--dir", project, "--json"]);
     expect(json(r.out).error!.code).toBe("REGISTRY_NOT_EMPTY");
+    expect(hashTree(project)).toBe(before);
   });
 });
 
