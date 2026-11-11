@@ -35,7 +35,6 @@ describe("the headline of ui agents check", () => {
     const p = builtRing1();
     init(p, "--runtimes", "claude");
     const line = headline(p);
-    expect(line).toContain("checked claude");
-    expect(line).toContain("no target for antigravity, codex");
+    expect(line).toContain("(checked claude; no target for antigravity, codex)");
   });
 });
