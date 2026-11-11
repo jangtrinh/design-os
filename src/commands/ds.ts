@@ -152,8 +152,9 @@ Subcommands:
                      path (provenance and markup rules of 'ui registry register') and reseal once; a run with nothing
                      to write does not reseal. Refused, writing nothing, while a collision, a name held by a record from
                      another door, a registered component whose source changed, or a record the design-system lint
-                     refuses is unanswered, and when the owner ruled "stop" for a lint-refused component
-                     (SURFACE_LINT_STOPPED)
+                     refuses is unanswered, when the owner ruled "stop" for a lint-refused component
+                     (SURFACE_LINT_STOPPED), and when the owner ruled a component different from the record of its
+                     name but "<name> · code" is held by a record of another door (SURFACE_SEPARATE_NAME_HELD)
   --now <UTC-ISO>    The clock of the reseal changelog entry (default: now)
   Read-only unless --out or --register --apply is given; the only file a read-only call writes is the pending
   question list. It runs the project-level detectors itself (scan budget, app roots, token source) and exits 1
@@ -174,7 +175,7 @@ Subcommands:
   store (a custom property or theme key that is exactly one token); a reference that resolves to none, and each class
   list composed through cn()/clsx()/cva(), is counted under unresolvedStyles, never mapped to the nearest token.
   Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_LINT_STOPPED,
-  BATCH_REFUSED (nothing written; every refused record is named).
+  SURFACE_SEPARATE_NAME_HELD, BATCH_REFUSED (nothing written; every refused record is named).
 
 'ds specimen' options:
   --dir <path>       Project directory holding design/ (default: cwd)

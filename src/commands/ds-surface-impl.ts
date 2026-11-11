@@ -115,7 +115,8 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     // The owner ruled "separate", and the name that answer needs is taken by a record of another door: refused by name, before anything is written.
     if (apply && plan.preview.separateNameHeld.length > 0) {
       const held = plan.preview.separateNameHeld;
-      return err("SURFACE_SEPARATE_NAME_HELD", `${held.length} component(s) were ruled different from the record of their name, but the name they would be registered under is held by another record (${held.slice(0, 5).map((h) => `"${h.name} · code"`).join(", ")}${held.length > 5 ? ", ..." : ""}). Nothing was written. The answer cannot land until that name is free: rename or remove the holding record in its own door, then run ui ds surface --register --apply again.`);
+      const holder = (name: string): string => { const source = existing?.components.find((c) => c.name === name)?.provenance?.sourceRef; return source === undefined ? "a record with no provenance" : `a record from ${source}`; };
+      return err("SURFACE_SEPARATE_NAME_HELD", `${held.length} component(s) were ruled different from the record of their name, but the name they would be registered under is held by another record: ${held.slice(0, 5).map((h) => `"${h.heldBy}" is held by ${holder(h.heldBy)}`).join("; ")}${held.length > 5 ? "; ..." : ""}. Nothing was written.`);
     }
     // The owner ruled `stop` for a component the design-system lint refuses: nothing is written until it passes.
     if (apply && plan.preview.lintStopped.length > 0) {

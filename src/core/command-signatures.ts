@@ -892,7 +892,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "apply", type: "boolean", summary: "With --register: write the records through the shared registration path and reseal once; refused while a question is unanswered" },
           { name: "now", type: "string", summary: "UTC ISO-8601 instant for the reseal changelog entry (default now)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "BAD_MANIFEST", "BAD_PENDING", "BAD_REGISTRY", "DS_TAMPERED", "WRITE_ERROR", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", "SURFACE_APP_AMBIGUOUS", "SURFACE_APP_NOT_A_ROOT", "SURFACE_APP_DROPPED", "SURFACE_LINT_STOPPED", "BATCH_REFUSED"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "BAD_MANIFEST", "BAD_PENDING", "BAD_REGISTRY", "DS_TAMPERED", "WRITE_ERROR", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", "SURFACE_APP_AMBIGUOUS", "SURFACE_APP_NOT_A_ROOT", "SURFACE_APP_DROPPED", "SURFACE_LINT_STOPPED", "SURFACE_SEPARATE_NAME_HELD", "BATCH_REFUSED"],
       },
       context: {
         summary: "Emit the active design system as a context block for the host model",

@@ -8,27 +8,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { capture } from "./owner-rulings-helpers.js";
-import { answerKind, envelope, keyOf, sealedFixture, submit, surface } from "./ds-surface-helpers.js";
+import { envelope, keyOf, sealedFixture, submit, surface } from "./ds-surface-helpers.js";
+import { writable } from "./ds-surface-fix3-helpers.js";
 import { NOW, answerMatch, apply, figma, readyProject, registryOf } from "./ds-surface-source-match-helpers.js";
 import { CHANGED, LINT, addUnregistrableComponent, clustersOf, edit, lintProject, registeredProject } from "./ds-surface-questions-helpers.js";
 
-const COLLISION = "component-name-collision";
 const run = (p: string, ...more: string[]): string => capture(["ds", "surface", "--cwd", p, "--register", ...more]).out;
 const nextOf = (out: string): string[] => out.split("\n").filter((l) => /^ {2}next:/.test(l));
 const ledgerOf = (out: string): string => out.split("\n").find((l) => l.startsWith("  ledger:")) ?? "";
 const answerAll = (p: string, kind: string, id: string) => submit(p, keyOf(p).filter((k) => k.kind === kind).map((k) => ({ fingerprint: k.fingerprint, choice: k.options.find((o) => o.id === id)!.id })));
-
-/** The fixture sealed, its collision ruled and its planted undeclared token removed: a run that has records to write and nothing that blocks. */
-function writable(): string {
-  const p = sealedFixture();
-  surface(p);
-  expect(answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id })).code).toBe(0);
-  for (const f of ["src/components/ui/Button.tsx", "src/components/kit/Button.tsx"]) {
-    const file = join(p, f);
-    writeFileSync(file, readFileSync(file, "utf8").replace(', borderColor: "var(--color-missing)"', ""));
-  }
-  return p;
-}
 
 describe("the closing next line follows the state of the run", () => {
   it("something to write and nothing blocks: it names the apply command", () => {

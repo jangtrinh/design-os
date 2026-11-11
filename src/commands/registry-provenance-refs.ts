@@ -98,7 +98,7 @@ function verifyCodeRef(sourceRef: string, projectRoot: string, ctx: SourceRefCon
   }
   if (!existsSync(file)) {
     const hint = path.includes("\\") ? " (backslashes are read as path separators)" : "";
-    throw bad(`file '${path}' does not exist under the project root '${projectRoot}'${hint}`);
+    throw bad(`'${sourceRef}': the file '${path}' does not exist under the project root${hint}`); // no absolute path: a preview and a file written by --out are the same from any checkout
   }
   let text: string;
   let canonicalPath: string;
