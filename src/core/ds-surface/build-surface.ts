@@ -12,7 +12,7 @@ import { buildImportGraph } from "./import-graph.js";
 import { readComponentExports } from "./source-export-reader.js";
 import { readStyleReferences } from "./style-references.js";
 import type { TokenLookup } from "./style-references.js";
-import { readVariants } from "./variants-reader.js";
+import { readVariantsDetail } from "./variants-reader.js";
 import { SURFACE_SCHEMA, byText, idOf } from "./surface-types.js";
 import type { ComponentDetail, SurfaceCollision, SurfaceLink, SurfaceModel, SurfaceUnread } from "./surface-types.js";
 import type { AppFiles } from "./app-source-files.js";
@@ -77,7 +77,7 @@ export function buildSurface(input: BuildSurfaceInput): SurfaceModel {
       const refs = readStyleReferences(file, slice, input.lookup);
       declared.push({ name: c.name, file, isDefault: c.isDefault });
       components.push({ name: c.name, file, dir: dirOf(file), tokens: refs.tokens, unresolvedStyles: refs.unresolvedStyles, unresolved: refs.unresolved, utilitiesNamingNoToken: refs.utilitiesNamingNoToken });
-      details.push({ name: c.name, file, dir: dirOf(file), startLine: c.startLine, endLine: c.endLine, source: slice, variants: readVariants(c.name, source) });
+      details.push({ name: c.name, file, dir: dirOf(file), startLine: c.startLine, endLine: c.endLine, source: slice, ...readVariantsDetail(c.name, source) });
     }
   }
   const surfaceIds = new Set(components.map(idOf));

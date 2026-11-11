@@ -63,6 +63,8 @@ export interface ComponentDetail {
   source: string;
   /** Variants an extractor read exactly; empty when none was. */
   variants: string[];
+  /** True when the props type holds more than one literal union, so no variant was written (counted under `notRead`). */
+  severalUnions: boolean;
 }
 
 export interface SurfaceModel { output: SurfaceOutput; details: ComponentDetail[] }

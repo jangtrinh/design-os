@@ -14,7 +14,7 @@
  *    hash is `unchanged`, anything else is `changed` and the caller refuses it by name. No record is ever replaced.
  */
 import { sha256OfText } from "../../commands/registry-provenance-refs.js";
-import { hasCodeSource, unionTokens } from "../../commands/registry-link-code-source.js";
+import { hasCodeSource, unionTokens } from "../registry-code-source.js";
 import { SAME_OUTCOME, SEPARATE_OUTCOME, sourceMatchMemberOf } from "../owner-rulings/kind-component-source-match.js";
 import { NO_PROVENANCE_ID } from "../owner-rulings/kind-component-source-match.js";
 import { governingRuling } from "../owner-rulings/resolve-detections.js";
@@ -51,8 +51,13 @@ export interface RegisterPreview {
   changed: ChangedSource[];
   awaitingSourceMatch: AwaitingMatch[];
   /** Components registered with no variants because no extractor read them exactly. */
-  notRead: { count: number; components: string[] };
+  notRead: { count: number; components: string[]; /** The ones left without variants because their props hold more than one literal union. */ severalUnions: string[] };
   awaitingRuling: SurfaceCollision[];
+  /**
+   * What a write of this plan would refuse, counted per code, from the same checks the write runs (filled by the command,
+   * which reads the store). `notChecked` says why the checks could not run (a store that drifted from its seal).
+   */
+  wouldRefuse: { count: number; byCode: Record<string, number>; items: { name: string; code: string; message: string }[]; notChecked?: string };
   /** Files left out of the registry because the owner ruled another file of the name public. */
   shadowedNotRegistered: number;
 }
@@ -68,6 +73,7 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
   const changed: ChangedSource[] = [];
   const awaitingSourceMatch: AwaitingMatch[] = [];
   const notRead: string[] = [];
+  const severalUnions: string[] = [];
   let unchanged = 0;
 
   for (const d of registrableDetails(model, rulings)) {
@@ -76,6 +82,7 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
     const tokens = tokensOf.get(idOf(d)) ?? [];
     const asNew = (name: string, separate: boolean): void => {
       if (d.variants.length === 0) notRead.push(d.name);
+      if (d.severalUnions) severalUnions.push(d.name);
       batch.push({ name, category: d.dir, sourceRef, tokensUsed: tokens, variants: d.variants, markup: d.source, ...(separate && { separate: true as const }) });
     };
     /** The same door: the registered code source is compared with the tree, never replaced. */
@@ -107,8 +114,9 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
       records: batch.map((b) => ({ name: b.name, category: b.category, sourceRef: b.sourceRef, tokensUsed: b.tokensUsed, variants: b.variants })),
       links: links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokensAdded: l.tokensAdded })),
       unchanged, changed, awaitingSourceMatch,
-      notRead: { count: notRead.length, components: [...new Set(notRead)].sort(byText) },
+      notRead: { count: notRead.length, components: [...new Set(notRead)].sort(byText), severalUnions: [...new Set(severalUnions)].sort(byText) },
       awaitingRuling: rulings.unruled,
+      wouldRefuse: { count: 0, byCode: {}, items: [] },
       shadowedNotRegistered: rulings.shadowed.length,
     },
   };

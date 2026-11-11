@@ -17,7 +17,7 @@ import { scanProject } from "../core/project-scan.js";
 import { scanRulingsOf } from "../core/project-scan-rulings.js";
 import { renderSurfaceText } from "./ds-surface-render.js";
 import { openQuestionsOf, surfaceBlock } from "./ds-surface-block.js";
-import { BatchRegisterError, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
+import { BatchRegisterError, predictBatchRefusals, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
 import { readAppFiles } from "../core/ds-surface/app-source-files.js";
 import { buildSurface } from "../core/ds-surface/build-surface.js";
 import { componentDirsOf } from "../core/ds-surface/component-dirs.js";
@@ -112,6 +112,9 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   let plan = null;
   if (register) {
     plan = planRegistration(model, ruled, existing, stored.rulings);
+    // The preview predicts the write: the same checks, nothing written, every refusal listed with its code.
+    try { plan.preview.wouldRefuse = predictBatchRefusals(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens }))); }
+    catch (e) { if (!(e instanceof BatchRegisterError)) throw e; plan.preview.wouldRefuse = { count: 0, byCode: {}, items: [], notChecked: `${e.code}: ${e.message}` }; }
     // A registered code source that no longer matches the tree stops a write before anything is written, `--out` included.
     if (apply && plan.preview.changed.length > 0) {
       const held = plan.preview.changed;

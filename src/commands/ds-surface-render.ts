@@ -40,6 +40,12 @@ export function renderSurfaceText(d: SurfaceData): string {
     for (const rec of r.records) lines.push(`    ${rec.name}  ${rec.sourceRef}  tokens: ${rec.tokensUsed.length === 0 ? "none" : rec.tokensUsed.join(", ")}`);
     lines.push(`  notRead: ${plural(r.notRead.count, "component")} registered with no variants because no extractor reads them exactly`);
     if (r.awaitingRuling.length > 0) lines.push(`  awaiting a ruling: ${r.awaitingRuling.map((c) => c.name).join(", ")} (which file is public is the question; nothing is planned for them)`);
+    if (r.wouldRefuse.notChecked !== undefined) lines.push(`  refusals not predicted: ${r.wouldRefuse.notChecked}`);
+    if (r.wouldRefuse.count > 0) {
+      lines.push(`  would be refused: ${plural(r.wouldRefuse.count, "record")} (${Object.entries(r.wouldRefuse.byCode).map(([code, n]) => `${code} ${n}`).join(", ")}); --apply writes nothing while any is refused`);
+      for (const i of r.wouldRefuse.items.slice(0, 10)) lines.push(`    ${i.name}  ${i.code}`);
+    }
+    if (r.notRead.severalUnions.length > 0) lines.push(`  several variant unions: ${r.notRead.severalUnions.join(", ")} hold more than one literal union in their props, so no variant was written (the record keeps no prop name per value)`);
     if (r.links.length > 0) {
       lines.push(`  links: ${plural(r.links.length, "existing record")} would gain a code reference (the record, its provenance and its markup stay as they are)`);
       for (const l of r.links) lines.push(`    ${l.name}  ${l.sourceRef}  tokens added: ${l.tokensAdded.length === 0 ? "none" : l.tokensAdded.join(", ")}`);

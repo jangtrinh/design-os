@@ -5,6 +5,7 @@
  * record from code. A record that already has a code source (a `code` provenance or a `code` reference) is refused, so a
  * link is never written twice and a code source is never swapped here (`ui registry register ... --force` does that).
  */
+import { hasCodeSource, unionTokens } from "../core/registry-code-source.js";
 import { RegistryError, validateSourceAuthoredComponentRecord } from "../core/registry-store.js";
 import type { CodeReference, Registry } from "../core/registry-store.js";
 
@@ -15,14 +16,6 @@ export interface CodeLink {
   /** Token paths the code source references. */
   tokens: readonly string[];
 }
-
-/** The sorted, unique union of the tokens a record holds and the tokens read from code. */
-export const unionTokens = (held: readonly string[], fromCode: readonly string[]): string[] =>
-  [...new Set([...held, ...fromCode])].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-
-/** True when the record already has a code source of its own. */
-export const hasCodeSource = (record: { provenance?: { kind: string }; code?: unknown }): boolean =>
-  record.provenance?.kind === "code" || record.code !== undefined;
 
 export function linkCodeSource(registry: Registry, link: CodeLink): Registry {
   const index = registry.components.findIndex((c) => c.name === link.name);
