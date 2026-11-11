@@ -20,6 +20,7 @@ import { RUNTIMES } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
 import { closingLines, initLines, priorOf } from "./agents-init-report.js";
 import type { InitRow } from "./agents-init-report.js";
+import { planAdd } from "./agents-add-plan.js";
 import { preflight, refusalText } from "./agents-preflight.js";
 import { isFail, isRosterRole, loadProject, regenerateCommand, runtimesWithTargets, targetContext } from "./agents-shared.js";
 
@@ -58,7 +59,7 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   const defaulted = parsed.flags["runtimes"] === undefined && held.length > 0;
   const runtimes = defaulted ? held : parseRuntimes(parsed.flags["runtimes"]);
   if (typeof runtimes === "string") return err("BAD_ARG", runtimes);
-  const withoutTarget = RUNTIMES.filter((r) => !runtimes.includes(r) && !held.includes(r));
+  const candidates = RUNTIMES.filter((r) => !runtimes.includes(r) && !held.includes(r));
   const roles = parseRoster(parsed.flags["roster"]);
   if (typeof roles === "string") return err("BAD_ARG", roles);
 
@@ -99,9 +100,14 @@ export function runInit(parsed: ParsedArgs): CommandResult {
 
   // `agents` keeps the shape `ui init --with-agents` reads: the Claude Code rows. `targets` lists every runtime.
   const claude = rows.filter((r) => r.runtime === "claude").map(({ role, name, path, written, replaced, differedOutsideBlock }) => ({ role, name, path, written, replaced, differedOutsideBlock }));
-  if (parsed.json) return okJson(sub, { agents: claude, targets: rows, runtimes, runtimesWithoutTarget: withoutTarget });
+  // The line that adds the other runtimes names only those its own pre-flight would write; the rest get words.
+  const plan = planAdd(proj.root, ctx, defaulted ? candidates : [], roles);
+  const malformed = plan.notAddable.some((n) => n.code === "AGENTS_SECTION_MALFORMED");
+  const withoutTarget = candidates.filter((r) => !(malformed && r === "codex"));
+  if (parsed.json) return okJson(sub, { agents: claude, targets: rows, runtimes, runtimesWithoutTarget: withoutTarget, runtimesNotAddable: Object.fromEntries(plan.notAddable.map((n) => [n.runtime, n.code])) });
   const lines = initLines(rows, join(proj.root, CODEX_REL));
-  if (defaulted) lines.push(`Regenerated the runtimes this project already has: ${runtimes.join(", ")}.`, ...(withoutTarget.length === 0 ? [] : [`No target yet for ${withoutTarget.join(", ")}; add them with: ui agents init --runtimes ${withoutTarget.join(",")}${roles.length < ROSTER.length ? ` --roster ${ROSTER.filter((r) => roles.includes(r)).join(",")}` : ""}`]));
+  const roster = roles.length < ROSTER.length ? ` --roster ${ROSTER.filter((r) => roles.includes(r)).join(",")}` : "";
+  if (defaulted) lines.push(`Regenerated the runtimes this project already has: ${runtimes.join(", ")}.`, ...(plan.addable.length === 0 ? [] : [`No target yet for ${plan.addable.join(", ")}; add them with: ui agents init --runtimes ${plan.addable.join(",")}${roster}`]), ...plan.notAddable.map((n) => n.words));
   if (ctx.studio === null) lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   lines.push(...closingLines(rows));
   if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), `Then: ${regenerateCommand(runtimes, roles)}`);
