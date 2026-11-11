@@ -55,6 +55,14 @@ describe("scan-budget", () => {
     for (const o of c.options) expect(o.id).not.toMatch(/first|:0$/);
     expect(c.options.at(-1)!.id).toBe("review-individually");
   });
+  it("several directories: largest first (owner decision D15), ties in scan order, and the consequences count what each option frees", () => {
+    const d = scanBudgetEmitter.detect({ truncated: true, limit: 4000, skipped: [], budget: [{ dir: "a", visited: 100 }, { dir: "b", visited: 300 }, { dir: "c", visited: 300 }] })!;
+    const asked = d.ask(d.members);
+    expect(asked.options.map((o) => o.id)).toEqual(["skip:b", "skip-all", "keep-all", "review-individually"]);
+    expect(asked.options[0]!.consequence).toBe("300 of the 4000 entries are no longer spent in b; the other 2 stay walked");
+    expect(asked.options[1]!.consequence).toBe("700 of the 4000 entries are no longer spent in these 3 directories");
+    expect(Object.keys(asked.memberChoices!)).toEqual(["b", "c", "a"]);
+  });
   it("skipping the directory dissolves the question: the walk is under the cap, no stale ruling, nothing is asked again", () => {
     const project = projectWith({ "package.json": "{}", ...wideFiles("bulk") });
     capture(["onboard", "questions", "--cwd", project]);
@@ -108,6 +116,13 @@ describe("app-roots", () => {
     const d = appRootsEmitter.detect(appRootsEmitter.sense!(p))!;
     const ids = d.ask(d.members).options.map((o) => o.id);
     expect(ids).toEqual(["member:apps/c", "member:apps/a", "member:apps/b"]);
+  });
+  it("when every root names a framework nothing separates them: no recommended option, largest first by component directories", () => {
+    const p = projectWith({ "package.json": "{}", "apps/a/package.json": JSON.stringify({ dependencies: { next: "15" } }), "apps/b/package.json": JSON.stringify({ dependencies: { react: "19" } }), "apps/b/components/x.tsx": "", "apps/b/components/y.tsx": "", "apps/b/components/z.tsx": "" });
+    const d = appRootsEmitter.detect(appRootsEmitter.sense!(p))!;
+    const options = d.ask(d.members).options;
+    expect(options.some((o) => o.recommended === true)).toBe(false);
+    expect(options.map((o) => o.id)).toEqual(["member:apps/b", "member:apps/a"]);
   });
   it("answering `keep apps/web` stores keep/drop per root and `ui scan` stops walking the other", () => {
     const p = project();
