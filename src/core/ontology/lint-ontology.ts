@@ -7,12 +7,11 @@
 import { orphanNodes } from "./coverage.js";
 import { parseConventionsDoc, renderConventionsMarkdown } from "./conventions-machine-form.js";
 import { serializeOntology } from "./emit-ontology.js";
+import { graphErrors, sample } from "./graph-errors.js";
 import { NODE_KINDS, byText } from "./ontology-types.js";
-import type { NodeKind, OntLink, OntNode, Ontology } from "./ontology-types.js";
+import type { NodeKind, Ontology } from "./ontology-types.js";
 
 export const STALE_CODE = "ONTOLOGY_STALE";
-export const DANGLING_CODE = "ONTOLOGY_DANGLING_LINK";
-export const DUPLICATE_CODE = "ONTOLOGY_DUPLICATE_ID";
 export const PAIR_CODE = "CONVENTIONS_PAIR_DRIFT";
 export const BLOCKED_FRESH_CODE = "ONBOARD_BLOCKED_NEEDS_OWNER_RULING";
 
@@ -28,26 +27,12 @@ export interface LintInput {
 }
 export interface LintResult { findings: LintFinding[]; ontology: Ontology | null }
 
-const sample = (list: readonly string[], n = 3): string => `${list.slice(0, n).join(", ")}${list.length > n ? ", ..." : ""}`;
-
 function parseDisk(text: string): Ontology | string {
   let doc: unknown;
   try { doc = JSON.parse(text); } catch { return "the ontology file is not valid JSON; run ui ontology build"; }
   const o = doc as Partial<Ontology> | null;
   if (o === null || typeof o !== "object" || !Array.isArray(o.nodes) || !Array.isArray(o.links)) return "the ontology file has no nodes and links lists; run ui ontology build";
   return o as Ontology;
-}
-
-function duplicates(nodes: readonly OntNode[]): string[] {
-  const seen = new Set<string>();
-  const dup = new Set<string>();
-  for (const n of nodes) { if (seen.has(n.id)) dup.add(n.id); seen.add(n.id); }
-  return [...dup].sort(byText);
-}
-
-function dangling(nodes: readonly OntNode[], links: readonly OntLink[]): OntLink[] {
-  const ids = new Set(nodes.map((n) => n.id));
-  return links.filter((l) => !ids.has(l.from) || !ids.has(l.to));
 }
 
 function pairFindings(c: LintInput["conventions"]): LintFinding[] {
@@ -74,10 +59,7 @@ export function lintOntology(input: LintInput): LintResult {
   }
   const view = onDisk ?? input.fresh;
   if (view !== null) {
-    const dup = duplicates(view.nodes);
-    if (dup.length > 0) err(DUPLICATE_CODE, `${dup.length} node id(s) appear more than once: ${sample(dup)}`);
-    const lost = dangling(view.nodes, view.links);
-    if (lost.length > 0) err(DANGLING_CODE, `${lost.length} link(s) point at a node that does not exist: ${sample(lost.map((l) => `${l.kind} ${l.from} -> ${l.to}`))}`);
+    for (const e of graphErrors(view.nodes, view.links)) err(e.code, e.message);
   }
   if (onDisk !== null) {
     if (input.fresh === null) err(BLOCKED_FRESH_CODE, `${input.blockedReason ?? "an open question blocks a fresh emit"}, so the file cannot be compared with a fresh emit: ui onboard questions --format claude`);
