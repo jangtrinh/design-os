@@ -101,13 +101,22 @@ Subcommands:
   --dir <path>       Project directory to write design/ into (default: cwd)
   --name <name>      DS name for the sealed manifest (default: imported-ds)
   --force            Overwrite an existing design.tokens.json
-  --reset-registry   Confirm --force may wipe a non-empty registry (required alongside
-                     --force when component-registry.json already has components —
-                     REGISTRY_NOT_EMPTY otherwise)
+  --registry <file>  The unsealed component-registry.json that 'ui ingest-figma-ds' wrote:
+                     every record is validated (BAD_REGISTRY, nothing written), then the
+                     tokens and the registry are sealed under one manifest
+  --reset-registry   Confirm --force or --registry may replace a non-empty sealed registry
+                     (required when component-registry.json already has components —
+                     REGISTRY_NOT_EMPTY otherwise; there is no merge)
   Converts a flat { category: { name: value } } token file into DTCG, inferring
   $type per value (color/dimension/number/fontFamily/fontWeight/duration). Nested
   groups are hoisted to <cat>-<sub>. Un-typeable values (box-shadow strings,
-  bezier easings) are SKIPPED and reported — never emitted with a bad type.
+  bezier easings, null, a bad colour, an alias with no target, an alias loop, a '_' key,
+  a key that is not a group) are never emitted with a bad type and never dropped
+  silently: the import asks (one 'untypeable-tokens' question sub-grouped by reason, and
+  'ambiguous-roles' for colour names that tie between roles) and exits 1
+  ONBOARD_BLOCKED_NEEDS_OWNER_RULING, writing nothing, until 'ui onboard answer' records the
+  owner's choice. The same call runs the project-level detectors (scan budget, app roots,
+  token source of truth). The ledger counts every member by reason.
   Also BAKES role recognition into every $type:color token before sealing
   (spec 011 P2): each recognized token gets $extensions["design-os.role"],
   lossless (never renames/drops/injects). Output reports "N roles recognized,
@@ -380,6 +389,9 @@ Error codes:
   EXISTS             'ds import' target design.tokens.json exists (use --force)
   REGISTRY_NOT_EMPTY 'ds import --force' would wipe a non-empty registry (pass --reset-registry)
   EMPTY_IMPORT       'ds import' found no typeable tokens
+  BAD_REGISTRY       'ds import --registry' file is not a registry, or a record fails validation
+  BAD_PENDING        .design-os/onboard/pending.json is unreadable (transient, safe to delete)
+  ONBOARD_BLOCKED_NEEDS_OWNER_RULING  'ds import' has open questions; run 'ui onboard questions'
   WRITE_ERROR        'ds import' could not write the DS store
   DS_NOT_FOUND       'ds specimen' found no component-registry.json
   BAD_VALUE          'change-token' --value fails type/format check
