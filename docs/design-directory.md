@@ -170,9 +170,17 @@ an owner answer writes the `defines` link, and `standalone` marks the term as no
 write (`ONBOARD_BLOCKED_NEEDS_OWNER_RULING`, nothing written, the summary still shown). A node no candidate covers raises
 no question and stays an orphan; the summary counts those per kind.
 
-`screens.meta.json` (`screens-meta/1`) is supplied by the project:
-`{ "schema": "screens-meta/1", "apps": [{ "id", "name" }], "features": [{ "id", "name", "app" }], "screens": [{ "screen":
-"<screen node id>", "feature", "app", ...strings }] }`; the extra string fields become the screen node's `meta`.
+`screens.meta.json` (`screens-meta/1`) is supplied by a project, and the kernel reads these fields and ignores the rest:
+`{ "schema": "screens-meta/1", "at", "screens": { "<screen id>": { "name", "app", "feature", "figmaId", "kind", "page",
+"purpose", ... } }, "unassigned": [{ "app", "figmaId", "reason" }] }`. `app` nodes are the distinct `app` values and
+`feature` nodes are the distinct (`app`, `feature`) pairs, keyed `feature:<app>/<feature>`; `belongs-to` runs feature to
+app to project. An entry ties to a screen node only when its `figmaId` equals the node id of a Figma frame that is a
+screen node (exact, never by name): the screen then belongs to the entry's feature (to its app when it names no feature)
+and the entry's strings `name`, `kind`, `page` and `purpose` become the node's `meta`. An entry that ties to no screen
+node is counted `unresolved` under `belongs-to` and still contributes its app and feature. `unassigned` and the entries
+without an `app` are counted in the source line; `at` is not copied (the ontology carries no time). A file that declares
+the schema and cannot be read in this shape (`screens` not an object, an entry not an object, `unassigned` not a list) is
+refused by name (`ONTOLOGY_BAD_SOURCE`), never read as "0 apps".
 
 `design/conventions.json` (`design-os-conventions/1`) is written by `ui synthesize-conventions` together with
 `CONVENTIONS.md`. The Markdown is a pure render of the JSON, so `ui ontology lint` compares a render of the JSON with the

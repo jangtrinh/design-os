@@ -1,6 +1,6 @@
 /**
  * Ring-2 sources, the optional enrichers a mature project may have written: rulings, principles, terms, patterns, and
- * the project-supplied `screens.meta.json` (apps, features). An absent source contributes zero nodes and one summary
+ * the project-supplied `screens.meta.json` (apps, features: source-screens-meta.ts). An absent source contributes zero nodes and one summary
  * line; a source that exists and cannot be read is refused by name. Every list is read in a deterministic order and
  * nothing is deduplicated or dropped: a repeated id is the lint's to report.
  */
@@ -9,25 +9,22 @@ import { join } from "node:path";
 import { nodeId } from "./node-ids.js";
 import { BAD_SOURCE, OntologyReadError, parseSourceJson } from "./read-error.js";
 import { byText } from "./ontology-types.js";
+import { readScreensMeta } from "./source-screens-meta.js";
+import type { MetaFact } from "./source-screens-meta.js";
 import type { OntNode, SourceReport } from "./ontology-types.js";
 
 export const RULINGS_REL = "design/knowledge/rulings.json";
 export const PRINCIPLES_REL = "design/principles.json";
 export const TERMS_REL = "CONTEXT.md";
 export const PATTERNS_REL = "design/patterns";
-export const SCREENS_META_REL = "design/knowledge/screens.meta.json";
-export const SCREENS_META_SCHEMA = "screens-meta/1";
 
 export interface RulingFact { id: string; scope: "global" | { apps: string[]; features: string[] } | null; supersededBy?: string; text: string }
 export interface PrincipleFact { id: string; text: string }
-export interface MetaFact { screens: { screen: string; feature?: string; app?: string }[]; features: { id: string; app?: string }[] }
 export interface Ring2Read {
   nodes: OntNode[];
   rulings: RulingFact[];
   principles: PrincipleFact[];
   meta: MetaFact | null;
-  /** Extra fields of `screens.meta.json` per screen node id, written onto the screen node. */
-  screenMeta: Map<string, Record<string, string>>;
   reports: SourceReport[];
 }
 
@@ -105,38 +102,10 @@ function readPatterns(projectDir: string, nodes: OntNode[]): SourceReport {
   return read("pattern", files.length, `${files.length} pattern file(s)`);
 }
 
-function readScreensMeta(projectDir: string, nodes: OntNode[], screenMeta: Map<string, Record<string, string>>): { meta: MetaFact | null; reports: SourceReport[] } {
-  const path = join(projectDir, SCREENS_META_REL);
-  if (!existsSync(path)) return { meta: null, reports: [absent("app", `no ${SCREENS_META_REL}`), absent("feature", `no ${SCREENS_META_REL}`)] };
-  const doc = parseSourceJson(SCREENS_META_REL, readFileSync(path, "utf8"));
-  if (!isObj(doc) || doc["schema"] !== SCREENS_META_SCHEMA) throw new OntologyReadError(BAD_SOURCE, `${SCREENS_META_REL} must declare "schema": "${SCREENS_META_SCHEMA}"`);
-  const meta: MetaFact = { screens: [], features: [] };
-  let apps = 0;
-  for (const a of Array.isArray(doc["apps"]) ? doc["apps"] : []) {
-    const id = isObj(a) ? str(a["id"]) : undefined;
-    if (id !== undefined && isObj(a)) { nodes.push({ id: nodeId("app", id), kind: "app", name: str(a["name"]) ?? id }); apps++; }
-  }
-  for (const f of Array.isArray(doc["features"]) ? doc["features"] : []) {
-    const id = isObj(f) ? str(f["id"]) : undefined;
-    if (id === undefined || !isObj(f)) continue;
-    nodes.push({ id: nodeId("feature", id), kind: "feature", name: str(f["name"]) ?? id });
-    meta.features.push({ id, ...(str(f["app"]) === undefined ? {} : { app: str(f["app"]) as string }) });
-  }
-  for (const s of Array.isArray(doc["screens"]) ? doc["screens"] : []) {
-    const screen = isObj(s) ? str(s["screen"]) : undefined;
-    if (screen === undefined || !isObj(s)) continue;
-    meta.screens.push({ screen, ...(str(s["feature"]) === undefined ? {} : { feature: str(s["feature"]) as string }), ...(str(s["app"]) === undefined ? {} : { app: str(s["app"]) as string }) });
-    const extra = Object.fromEntries(Object.entries(s).filter(([k, v]) => !["screen", "feature", "app"].includes(k) && typeof v === "string").sort((a, b) => byText(a[0], b[0]))) as Record<string, string>;
-    if (Object.keys(extra).length > 0) screenMeta.set(screen, extra);
-  }
-  return { meta, reports: [read("app", apps, `${apps} app(s) from ${SCREENS_META_REL}`), read("feature", meta.features.length, `${meta.features.length} feature(s) from ${SCREENS_META_REL}`)] };
-}
-
 export function readRing2(projectDir: string): Ring2Read {
   const nodes: OntNode[] = [];
   const rulings: RulingFact[] = [];
   const principles: PrincipleFact[] = [];
-  const screenMeta = new Map<string, Record<string, string>>();
   const reports: SourceReport[] = [];
   reports.push(readRulings(projectDir, nodes, rulings));
   reports.push(readPrinciples(projectDir, nodes, principles));
@@ -147,7 +116,8 @@ export function readRing2(projectDir: string): Ring2Read {
     reports.push(read("term", terms.length, `${terms.length} term(s) from ${TERMS_REL}`));
   } else reports.push(absent("term", `no ${TERMS_REL}`));
   reports.push(readPatterns(projectDir, nodes));
-  const metaRead = readScreensMeta(projectDir, nodes, screenMeta);
+  const metaRead = readScreensMeta(projectDir);
+  nodes.push(...metaRead.nodes);
   reports.push(...metaRead.reports);
-  return { nodes, rulings, principles, meta: metaRead.meta, screenMeta, reports };
+  return { nodes, rulings, principles, meta: metaRead.meta, reports };
 }

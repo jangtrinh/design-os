@@ -45,20 +45,21 @@ describe("after the answers", () => {
     expect(ids("pattern")).toEqual(["pattern:card", "pattern:card-grid"]);
     expect(ids("ruling")).toEqual(["ruling:R-1", "ruling:R-2", "ruling:R-3", "ruling:R-4", "ruling:R-5"]);
     expect(ids("app")).toEqual(["app:web"]);
+    expect(ids("feature")).toEqual(["feature:web/checkout"]);
   });
   it("writes only exact links: every target exists, and what a source names exactly is linked", () => {
     const exists = new Set(o.nodes.map((n) => n.id));
     for (const l of o.links) { expect(exists.has(l.from), `${l.kind} from ${l.from}`).toBe(true); expect(exists.has(l.to), `${l.kind} to ${l.to}`).toBe(true); }
-    expect(pairs("governs")).toEqual(expect.arrayContaining(["ruling:R-1>component:Card", "ruling:R-1>token:color.ink", "ruling:R-1>pattern:card-grid", "ruling:R-1>project:root", "ruling:R-2>app:web", "ruling:R-2>feature:checkout", "principle:C1>pattern:card-grid"]));
+    expect(pairs("governs")).toEqual(expect.arrayContaining(["ruling:R-1>component:Card", "ruling:R-1>token:color.ink", "ruling:R-1>pattern:card-grid", "ruling:R-1>project:root", "ruling:R-2>app:web", "ruling:R-2>feature:web/checkout", "principle:C1>pattern:card-grid"]));
     expect(pairs("superseded-by")).toEqual(["ruling:R-3>ruling:R-1"]);
-    expect(pairs("belongs-to")).toEqual(expect.arrayContaining(["screen:5:1>feature:checkout", "screen:5:2>app:web", "feature:checkout>app:web", "app:web>project:root"]));
+    expect(pairs("belongs-to")).toEqual(expect.arrayContaining(["screen:5:1>feature:web/checkout", "screen:5:2>app:web", "feature:web/checkout>app:web", "app:web>project:root"]));
     expect(pairs("defines")).toEqual(["term:Card>component:Card", "term:Card>pattern:card"]);
   });
   it("counts what matches nothing under unresolved, per link kind, and never links it", () => {
     expect(report("governs").unresolved).toBe(1); // `component:Ghost`
     expect(report("governs").details.join(" ")).toContain("component:Ghost");
     expect(report("superseded-by").unresolved).toBe(1); // R-99
-    expect(report("belongs-to").unresolved).toBe(1); // screen:9:9
+    expect(report("belongs-to").unresolved).toBe(2); // the entries for figma ids 9:9 and 8:8: no frame
     expect(report("uses-component").unresolved).toBe(2); // the unresolved instance and the host lookup
     expect(o.nodes.some((n) => n.id === "component:Ghost" || n.id === "ruling:R-99")).toBe(false);
   });
