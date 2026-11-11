@@ -127,7 +127,7 @@ describe("ui design lint — manifest schema version 2", () => {
     return { exitCode: r.exitCode, findings: JSON.parse(r.stdout).data.findings };
   }
   const c = clusterOf("scan-budget", ["walk"]);
-  const v2 = { version: 2, onboard: { rulings: [{ ...ruled(c) }], scan: { skip: ["generated"], roots: ["apps/web"] } } };
+  const v2 = { version: 2, onboard: { rulings: [{ ...ruled(c) }] } };
 
   it("accepts version 1 and version 2 with rulings", () => {
     expect(lintProject({ version: 1 }).findings.map((f) => f.checkId)).not.toContain("bad-manifest");
