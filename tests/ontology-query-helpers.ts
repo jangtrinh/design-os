@@ -92,3 +92,6 @@ export function copyTree(project: string): string {
   cpSync(project, to, { recursive: true });
   return to;
 }
+
+export const GROUPS = ["rules", "patterns", "components", "tokens", "rulings", "sibling screens"];
+export const ids = (d: { pack: { groups: { entries: { id: string }[] }[] } | null }): string[] => (d.pack?.groups ?? []).flatMap((g) => g.entries.map((e) => e.id));
