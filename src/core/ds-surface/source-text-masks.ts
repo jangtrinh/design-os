@@ -8,9 +8,12 @@
  *  - A template literal may span lines and may hold `${ … }` with other templates inside it; the whole span is one string.
  *    Inside `${ … }` only braces and nested templates are tracked, never quotes: a quote in a regular expression
  *    (`.replace(/"/g, '""')`) is far more common in real code than a brace inside a string of an interpolation.
- *  - A template the nested-aware scan cannot close is closed by the plain rule (at the next backtick); with no further
- *    backtick nothing after its opening backtick is masked. The scan never masks to the end of the text, and it reports
- *    the template so the caller can list the file.
+ *  - A template the nested-aware scan cannot close is reported (`undecidedTemplateAt`) and masks nothing: the scan stops
+ *    there and never masks to the end of the text. The caller lists the file and reads nothing from that point on.
+ *
+ * In a file the scan could not decide, the backtick phase can only shift on a line that holds an odd number of backticks
+ * (a line with an even number opens and closes in itself). So everything before the first such line is decided, and
+ * nothing from that line on is: `undecidedFromLine` gives that line and the readers list what stands on or after it.
  *
  * Known limits, not built: a regular expression that holds an even number of backticks shifts the mask between them
  * without a signal; the comment blanker runs before strings are known, so a comment pattern inside a template can remove
@@ -65,17 +68,8 @@ function interpolationEnd(text: string, from: number): number {
 export interface StringScan {
   /** `[start, end)` of every string literal, the quotes included. */
   spans: [number, number][];
-  /** Offset of the first template the nested-aware scan could not close (closed by the plain rule or left unmasked), or -1. */
+  /** Offset of the template the nested-aware scan could not close (the scan stops there), or -1. */
   undecidedTemplateAt: number;
-}
-
-/** Index just past the next unescaped backtick after `open`; -1 when there is none. */
-function plainTemplateEnd(text: string, open: number): number {
-  for (let j = open + 1; j < text.length; j++) {
-    if (text[j] === "\\") j++;
-    else if (text[j] === "`") return j + 1;
-  }
-  return -1;
 }
 
 export function scanStrings(text: string): StringScan {
@@ -84,12 +78,9 @@ export function scanStrings(text: string): StringScan {
     const c = text[i];
     if (c === "`") {
       const end = templateEnd(text, i);
-      if (end !== -1) { scan.spans.push([i, end]); i = end; continue; }
-      if (scan.undecidedTemplateAt === -1) scan.undecidedTemplateAt = i;
-      const plain = plainTemplateEnd(text, i);
-      if (plain === -1) break; // no further backtick: nothing after this one is masked
-      scan.spans.push([i, plain]);
-      i = plain;
+      if (end === -1) { scan.undecidedTemplateAt = i; break; } // nothing after this backtick is masked
+      scan.spans.push([i, end]);
+      i = end;
     } else if ((c === '"' || c === "'") && !isWordChar(text[i - 1])) {
       const end = quotedEnd(text, i);
       if (end === -1) i++; else { scan.spans.push([i, end]); i = end; }
@@ -128,3 +119,10 @@ export const lineIndexOf = (starts: readonly number[], idx: number): number => {
   while (lo < hi) { const mid = (lo + hi + 1) >> 1; if ((starts[mid] as number) <= idx) lo = mid; else hi = mid - 1; }
   return lo;
 };
+
+/** The 0-based line from which an undecided file cannot be trusted: its first line with an odd number of backticks, or the line `fallback` where the scan failed when that is earlier. */
+export function undecidedFromLine(text: string, fallback: number): number {
+  const lines = text.split("\n");
+  const odd = lines.findIndex((l) => (l.split("`").length - 1) % 2 === 1);
+  return odd === -1 ? fallback : Math.min(odd, fallback);
+}

@@ -20,7 +20,7 @@
 import { basename } from "node:path";
 import { DECL, EXPORT_ASSIGNMENT, EXPORT_KEYWORD, MARKUP, TYPE_ONLY_EXPORT, extraDeclarators, firstUpperWord, spanFrom } from "./export-declaration-patterns.js";
 import { statementPositions } from "./export-statement-position.js";
-import { blankComments, blankStrings, lineIndexOf, lineStarts, scanStrings } from "./source-text-masks.js";
+import { blankComments, blankStrings, lineIndexOf, lineStarts, scanStrings, undecidedFromLine } from "./source-text-masks.js";
 
 export interface ExportedComponent {
   name: string;
@@ -58,14 +58,23 @@ export function readComponentExports(file: string, source: string): SourceExport
 
   const noComments = blankComments(source.replace(/^\uFEFF/, ""));
   const strings = scanStrings(noComments);
-  const text = blankStrings(noComments, strings);
+  const starts = lineStarts(noComments);
+  // In an undecided file only what stands before the first line with an odd number of backticks is decided (see the masker).
+  // From that line on the strings are not masked: every `export` keyword there is found, and listed, and none is read.
+  const cutoff = strings.undecidedTemplateAt === -1 ? Infinity : undecidedFromLine(noComments, lineIndexOf(starts, strings.undecidedTemplateAt));
+  const text = cutoff === Infinity ? blankStrings(noComments, strings) : blankStrings(noComments, strings).slice(0, starts[cutoff] as number) + noComments.slice(starts[cutoff]);
   const lines = text.split("\n");
-  const starts = lineStarts(text);
   if (strings.undecidedTemplateAt !== -1) {
-    out.unread.push({ name: "(file)", line: lineIndexOf(starts, strings.undecidedTemplateAt) + 1, reason: "the string structure of this file could not be decided (a backtick or quote in a regular expression, or a comment pattern in a template); its exports were read by the plain rule and may be incomplete" });
+    out.unread.push({ name: "(file)", line: lineIndexOf(starts, strings.undecidedTemplateAt) + 1, reason: `the string structure of this file could not be decided (a backtick or quote in a regular expression, or a comment pattern in a template); what stands before line ${cutoff + 1} was read; from that line on every export is listed and none is read` });
   }
+  const undecided = (idx: number): boolean => idx >= cutoff;
   const seen = new Set<string>();
   const add = (name: string, isDefault: boolean, idx: number, head = lines[idx] as string): void => {
+    if (undecided(idx) && !seen.has(name)) {
+      out.unread.push({ name, line: idx + 1, reason: `the string structure of this file could not be decided from line ${cutoff + 1} on, and this declaration stands there, so it is not read as a component` });
+      seen.add(name);
+      return;
+    }
     if (seen.has(name)) { if (isDefault) { const read = out.components.find((c) => c.name === name); if (read !== undefined) read.isDefault = true; } return; }
     const span = spanFrom(lines, idx);
     if (!MARKUP.test(lines.slice(span.startLine - 1, span.endLine).join("\n"))) {
@@ -126,7 +135,7 @@ export function readComponentExports(file: string, source: string): SourceExport
 
   // `export { A, B as C }` and `export { A } from "./a"` can span lines, so they are read on the whole text.
   for (const m of text.matchAll(/(^|[\s;}])export\s+(type\s+)?\{([^}]*)\}\s*(?:from\s*['"]([^'"]+)['"])?/g)) {
-    if (!standing.has((m.index ?? 0) + (m[1] as string).length)) continue; // not a declaration: the keyword loop lists it
+    if (!standing.has((m.index ?? 0) + (m[1] as string).length) || undecided(lineIndexOf(starts, (m.index ?? 0) + (m[1] as string).length))) continue; // not a declaration: the keyword loop lists it
     claimed.add((m.index ?? 0) + (m[1] as string).length);
     if (m[2] !== undefined) continue;
     const names = (m[3] as string).split(",").map((s) => s.trim()).filter((s) => s !== "").map((part) => {
@@ -154,6 +163,7 @@ export function readComponentExports(file: string, source: string): SourceExport
     const end = text.indexOf("\n", p);
     const rest = text.slice(p, end === -1 ? undefined : end);
     const listIt = (name: string, reason: string): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting.listed++; };
+    if (undecided(idx)) { listIt(firstUpperWord(rest), `the string structure of this file could not be decided from line ${cutoff + 1} on, so this \`export\` keyword is not read as a declaration`); continue; }
     if (!standing.has(p)) { listIt(firstUpperWord(rest), "an `export` keyword that is not at the start of a top-level statement is not read as a declaration"); continue; }
     if (EXPORT_ASSIGNMENT.test(rest)) { listIt("(export =)", "an export assignment is not read"); continue; }
     const namespace = /^export\s*(?:type\s*)?\*\s*as\s+([A-Za-z_$][\w$]*)\s*from/.exec(rest);
