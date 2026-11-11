@@ -31,7 +31,7 @@ describe("only a record the Figma ingest wrote ties to a scan component", () => 
     expect(build(p).code).toBe(0);
     expect(pairs(p).filter((l) => l.startsWith("screen:5:"))).toEqual([]);
     const r = uses(p);
-    expect(r.details.join(" ")).toMatch(/\d+ reference\(s\) match only a record registered from code, which is never tied to a Figma component by name: .*Button/);
+    expect(r.details.join(" ")).toMatch(/\d+ reference\(s\) match only a record another door wrote \(registered from code, or any provenance the Figma ingest does not write\), which is never tied to a Figma component by name: .*Button/);
     expect(r.unresolved).toBeGreaterThanOrEqual(1);
   });
   it("a record the owner linked to code keeps no provenance and still ties", () => {
@@ -49,7 +49,7 @@ describe("only a record the Figma ingest wrote ties to a scan component", () => 
     editRegistry(p, (registry) => { registry.components.find((c) => c["name"] === "Card")!["provenance"] = { kind: "code", sourceRef: "src/Card.tsx:1-9", sha256: "b".repeat(64) }; });
     expect(build(p).code).toBe(0);
     expect(pairs(p).some((l) => l.endsWith(">component:Card"))).toBe(false);
-    expect(uses(p).details.join(" ")).toContain("match only a record registered from code");
+    expect(uses(p).details.join(" ")).toContain("match only a record another door wrote");
   });
 });
 
