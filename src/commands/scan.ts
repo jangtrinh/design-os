@@ -20,8 +20,7 @@ import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import { scanProject } from "../core/project-scan.js";
 import type { ScanResult } from "../core/project-scan.js";
-import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
-import { scanRulingsOf } from "../core/project-scan-rulings.js";
+import { scanRulingsOrUnreadable } from "../core/project-scan-rulings.js";
 
 const CMD = "scan";
 
@@ -36,8 +35,10 @@ roots (a package.json below the root, with its framework and Tailwind v4 CSS
 entry), and whether a compiled design system is already present — then prints
 a routing verdict. When the walk hits its entry cap, it says which first-level
 directories consumed the budget. Dot-directories are not walked. Directories
-and app roots the owner ruled on (design/design-dir.json, onboard.scan) are
-honoured and named in the output; with no ruling the walk is unchanged.
+the owner ruled to skip and app roots the owner ruled to drop (the scan-budget
+and app-roots rulings in design/design-dir.json) are not walked, and the output
+names them and the app roots no ruling covers yet; with no ruling the walk is
+unchanged. If the rulings cannot be read the walk runs without them and says so.
 
 Options:
   --cwd <path>  Directory to scan (default: current working directory)
@@ -52,8 +53,7 @@ Verdicts (the final line of text output):
 
 Exit codes:
   0  Scan completed (any verdict — the verdict is data, not a failure)
-  1  BAD_ARG (unexpected positional), READ_ERROR (root unreadable) or BAD_MANIFEST
-     (design/design-dir.json cannot be read, so its rulings cannot be honoured)
+  1  BAD_ARG (unexpected positional) or READ_ERROR (root unreadable)
 `;
 
 const VERDICT_LINE: Record<ScanResult["verdict"], string> = {
@@ -97,9 +97,14 @@ function formatText(r: ScanResult): string {
     );
     if (r.budget.length > 1) lines.push(`budget: ${r.budget.map((b) => `${b.dir} (${b.visited})`).join(", ")}`);
   }
-  if (r.honoured !== undefined) {
-    const parts = [...(r.honoured.skip.length > 0 ? [`skipped ${r.honoured.skip.join(", ")}`] : []), ...(r.honoured.roots.length > 0 ? [`kept app roots ${r.honoured.roots.join(", ")}`] : [])];
-    lines.push(`owner rulings honoured: ${parts.join("; ")} (design/design-dir.json)`);
+  const h = r.honoured;
+  if (h?.unreadable !== undefined) {
+    lines.push(`owner rulings not honoured: design/design-dir.json cannot be read (${h.unreadable}); walked as if there were none. Next: ui onboard shows the manifest error.`);
+  } else if (h !== undefined) {
+    const parts = [...(h.skip.length > 0 ? [`skipped ${h.skip.join(", ")}`] : []), ...(h.roots.length > 0 ? [`kept app roots ${h.roots.join(", ")}`] : [])];
+    if (parts.length > 0) lines.push(`owner rulings honoured: ${parts.join("; ")} (design/design-dir.json)`);
+    if (h.dropped.length > 0) lines.push(`app roots left out by the owner's ruling, not walked: ${h.dropped.join(", ")}`);
+    if (h.unruled.length > 0) lines.push(`app roots with no ruling yet (walked): ${h.unruled.join(", ")}. Next: ui onboard questions`);
   }
   lines.push(VERDICT_LINE[r.verdict]);
   return lines.join("\n") + "\n";
@@ -130,10 +135,9 @@ export const scanCommand = {
 
     let result: ScanResult;
     try {
-      result = scanProject(root, scanRulingsOf(root));
+      // Read-only: a manifest that cannot be read is reported in the result, and the walk runs as if there were no ruling.
+      result = scanProject(root, scanRulingsOrUnreadable(root));
     } catch (e) {
-      // A ruling that cannot be read cannot be honoured: say so instead of walking as if there were none.
-      if (e instanceof RulingStoreError) return useJson ? errJson(CMD, e.code, e.message) : errText(`ui: ${e.message}\n`);
       const msg = `scan failed for '${root}': ${e instanceof Error ? e.message : String(e)}`;
       return useJson ? errJson(CMD, "READ_ERROR", msg) : errText(`ui: ${msg}\n`);
     }

@@ -57,14 +57,6 @@
               "at": { "type": "string", "minLength": 1, "description": "ISO-8601 timestamp given to `ui onboard answer --now`" }
             }
           }
-        },
-        "scan": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "skip": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Project-relative directory names the scan walk skips" },
-            "roots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Project-relative app roots the scan walk starts from" }
-          }
         }
       }
     }

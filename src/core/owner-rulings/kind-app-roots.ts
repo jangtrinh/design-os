@@ -10,7 +10,7 @@
  * (owner decision D15), ties in scan order.
  */
 import { scanProject } from "../project-scan.js";
-import { scanRulingsOf } from "../project-scan-rulings.js";
+import { NO_SCAN_RULINGS, scanRulingsOf } from "../project-scan-rulings.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 import { setValuedOptions } from "./set-valued-options.js";
 
@@ -53,7 +53,7 @@ function detect(raw: unknown): KindDetection | null {
 
 /** Gathers the nested app roots of the walk, with the owner's skips honoured and no app root pruned (a pruned root could not be asked about). */
 function sense(projectDir: string): AppRootsInput {
-  const r = scanProject(projectDir, { skip: scanRulingsOf(projectDir).skip, keepRoots: [] });
+  const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: scanRulingsOf(projectDir).skip });
   return { apps: r.apps.map((a) => ({ path: a.path, framework: a.framework, styling: a.styling, componentDirs: a.componentDirs.length })) };
 }
 
