@@ -7,36 +7,13 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalHash } from "../src/core/ds-manifest.js";
-import { ingestArgs, ingestUntilReady, newProject, scanOf, takeRecommended, writeScan, colorVar, comp } from "./figma-ingest-helpers.js";
-import type { Choose } from "./figma-ingest-helpers.js";
+import { ingestArgs, newProject, writeScan } from "./figma-ingest-helpers.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { projectWith } from "./project-kinds-helpers.js";
+import { ingest, json, sealRegistry, smallScan } from "./ds-import-registry-helpers.js";
 
 const FIXTURES = join(process.cwd(), "tests", "fixtures", "owner-rulings");
 const read = (file: string): Record<string, unknown> => JSON.parse(readFileSync(join(FIXTURES, file), "utf8")) as Record<string, unknown>;
-type Envelope = { data?: Record<string, any>; error?: { code: string; message: string } }; // eslint-disable-line @typescript-eslint/no-explicit-any
-const json = (out: string): Envelope => JSON.parse(out) as Envelope;
-const LIB = { id: "0:1", name: "Library" };
-
-/** A small scan with named components and one collection: no question is raised. */
-const smallScan = (): Record<string, unknown> => scanOf({
-  tokens: [colorVar("1:1", "color/brand", "Primitives"), colorVar("1:2", "color/ink", "Primitives")],
-  components: [comp("1:1", "Button/Primary", LIB), comp("1:2", "Card/Summary", LIB), comp("1:3", "Chip/Status", LIB)],
-});
-
-/** Ingests `scan` to a fresh out dir, answering whatever it asks; returns the out dir and the ledger. */
-function ingest(scan: Record<string, unknown>): { out: string; written: number; tokens: string; registry: string } {
-  const cwd = newProject();
-  const out = newProject();
-  const file = writeScan(cwd, scan);
-  const choose: Choose = (c) =>
-    c.kind === "figma-library-pages" ? [c.options.find((o) => o.label.includes("Library"))!.id]
-      : c.kind === "archived-marked-nodes" ? "exclude-archived" : c.kind === "duplicate-component-names" ? "exclude-all" : takeRecommended(c);
-  const { final } = ingestUntilReady(file, cwd, out, choose, ["--json"]);
-  const data = json(final.out).data!;
-  return { out, written: data["ledger"].written.components as number, tokens: join(out, "tokens.json"), registry: data["registry"] as string };
-}
-const sealRegistry = (project: string): { components: { name: string }[] } => JSON.parse(readFileSync(join(project, "design", "component-registry.json"), "utf8")) as { components: { name: string }[] };
 
 describe("AC-17: ingest, answer, then `ui ds import --registry` leaves the registry in the sealed store", () => {
   it("the multi-collection, multi-page fixtures: the sealed record count equals the ledger's written count, and `ui ds status` passes", () => {

@@ -23,6 +23,7 @@ import { reseal } from "../core/ds-reseal.js";
 import { tokenExistsInTree } from "../core/registry-token-check.js";
 import { CANONICAL_ROLES } from "../core/role-recognition.js";
 import type { Role } from "../core/role-recognition.js";
+import type { TokenTree } from "../core/token-model.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 
@@ -40,6 +41,16 @@ export class SetRoleError extends Error {
   constructor(readonly code: string, message: string) { super(message); }
 }
 
+/** Refuses a role change that cannot apply to `tokens`: an unknown token or an unknown role. Writes nothing. */
+export function checkRoleApplicable(tokens: TokenTree, tokenPath: string, role: string): void {
+  if (!tokenExistsInTree(tokens, tokenPath)) {
+    throw new SetRoleError("BAD_TOKEN", `token '${tokenPath}' does not exist in the compiled design system`);
+  }
+  if (!isRole(role)) {
+    throw new SetRoleError("BAD_ROLE", `'${role}' is not a known role — expected one of: ${CANONICAL_ROLES.join(", ")}`);
+  }
+}
+
 /**
  * The role change itself, shared by `ui ds set-role` and by `ui ds import` (which applies the roles the owner gave to
  * ambiguous tokens through this very path): load the store, check the token and the role, set one `$extensions` key and
@@ -54,12 +65,7 @@ export function applyRoleToStore(paths: DesignSystemPaths, tokenPath: string, ro
     const code = e instanceof DSError ? e.code : e instanceof DSManifestError ? e.code : "BAD_DS";
     throw new SetRoleError(code, e instanceof Error ? e.message : String(e));
   }
-  if (!tokenExistsInTree(ds.tokens, tokenPath)) {
-    throw new SetRoleError("BAD_TOKEN", `token '${tokenPath}' does not exist in the compiled design system`);
-  }
-  if (!isRole(role)) {
-    throw new SetRoleError("BAD_ROLE", `'${role}' is not a known role — expected one of: ${CANONICAL_ROLES.join(", ")}`);
-  }
+  checkRoleApplicable(ds.tokens, tokenPath, role);
   const categoryGroup = ds.tokens[category]!;
   const existingToken = categoryGroup[tokenName]!;
   const prevRole = (existingToken.$extensions as Record<string, unknown> | undefined)?.["design-os.role"];
