@@ -77,8 +77,10 @@ that command raised with what it finds now (a project-level question is replaced
 and removes the file, and its `onboard/` directory when empty, once nothing is left; a question another command raised
 stays, even when both raise the same kind. `ui onboard questions` does the same before it reports that nothing is pending.
 `ui onboard` only reads, and reports a detector that throws in its `owner rulings` row (not ready, exit 0); every command
-that writes lets such an exception propagate. An answer file is validated as a whole: the answer check of a kind sees
-every ruling already recorded plus every answer of the file, so the order of the answers does not matter.
+that writes lets such an exception propagate; `ui onboard answer` runs the detectors before it validates or records
+anything, so the manifest and the pending file stay untouched. A stored question that names no command is refused like
+any other malformed one. An answer file is validated as a whole: the answer check of a kind sees every ruling already
+recorded plus every answer of the file, so the order of the answers does not matter.
 
 Writing a ruling means the file is re-serialised as 2-space JSON with a final newline: formatting is not preserved, but key order is,
 and every key other than `version` and `onboard` keeps its value. The manifest has one writer at a time; there is no lock,
