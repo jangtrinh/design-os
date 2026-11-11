@@ -36,6 +36,8 @@ export interface SurfaceOutput {
   stories: SurfaceLink[];
   unstoried: string[];
   tailwindCss?: string;
+  /** The store the tokens were resolved against: sealed, unverified (its files drifted from their seal; read as they are) or none. */
+  tokenStore: { status: "sealed" | "unverified" | "none"; drifted?: string[] };
   unread: SurfaceUnread;
 }
 

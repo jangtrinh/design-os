@@ -16,6 +16,8 @@ export function renderSurfaceText(d: SurfaceData): string {
     `ds surface: app '${d.app}' — ${plural(d.components.length, "component")}, ${plural(d.collisions.length, "collision")}, ${plural(d.screens.length, "screen")}, ${plural(d.stories.length, "story", "stories")}, ${plural(d.unstoried.length, "unstoried component")}`,
     `  tokens: ${withTokens} of ${d.components.length} component(s) reference tokens exactly; ${plural(unresolved, "style reference")} resolve to no token`,
   ];
+  if (d.tokenStore.status === "unverified") lines.push(`  token store: unverified, ${d.tokenStore.drifted?.join(" and ")} no longer match the seal (read as they are; ui ds reseal adopts them)`);
+  else if (d.tokenStore.status === "none") lines.push("  token store: none sealed in this project, so no reference resolves to a token");
   if (d.tailwindCss !== undefined) lines.push(`  tailwind v4 css: ${d.tailwindCss}`);
   for (const c of d.collisions) lines.push(`  collision: ${c.name} is exported from ${c.files.join(" and ")}`);
   for (const s of d.shadowed) lines.push(`  shadowed: ${s.name} in ${s.file} (ruling ${s.fingerprint.slice(0, 12)})`);
