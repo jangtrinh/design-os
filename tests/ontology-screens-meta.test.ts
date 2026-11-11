@@ -91,6 +91,16 @@ describe("one figmaId, one entry", () => {
     expect(o.nodes.map((n) => n.id)).toEqual(expect.arrayContaining(["feature:admin/billing", "feature:web/settings"]));
     expect(pairs(p, "belongs-to")).toContain("screen:5:2>feature:web/checkout");
   });
+  it("an entry with no app that shares the id with an entry that has one: the claim counts every entry, so neither ties", () => {
+    const p = project({ screens: { a: entry({ figmaId: "5:1" }), b: entry({ figmaId: "5:1", app: undefined, feature: undefined, name: "No app" }) } });
+    expect(build(p).code).toBe(0);
+    const o = ontologyOf(p);
+    expect(pairs(p, "belongs-to").filter((l) => l.startsWith("screen:5:1>"))).toEqual([]);
+    expect(o.nodes.find((n) => n.id === "screen:5:1")!["meta"]).toBeUndefined();
+    const r = o.linkReports.find((x) => x.link === "belongs-to")!;
+    expect(r.unresolved).toBe(2);
+    expect(r.details.join(" ")).toContain("2 entries claim one figmaId, 5:1");
+  });
 });
 
 describe("a file that declares the schema and cannot be read in this shape", () => {
