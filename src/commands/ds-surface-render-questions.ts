@@ -23,7 +23,7 @@ export function nextLine(r: RegisterPreview, questionOpen: boolean): string {
   return "  next: ui ds surface --register --apply writes these records";
 }
 
-export function renderQuestionLines(r: RegisterPreview, applied = false): string[] {
+export function renderQuestionLines(r: RegisterPreview, applied = false, blocked = false): string[] {
   const lines: string[] = [];
   if (r.awaitingSourceChanged.length > 0) {
     lines.push(`  awaiting a ruling: ${count(r.awaitingSourceChanged.length, "component")} are registered from a source that has changed since; should their records be refreshed? They are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
@@ -52,7 +52,8 @@ export function renderQuestionLines(r: RegisterPreview, applied = false): string
     for (const c of r.lintStopped) lines.push(`    ${c.name}  ${c.code}  ${c.file}`);
   }
   const l = r.ledger;
-  const [write, link, refresh] = applied ? ["written", "linked", "refreshed"] : ["to write", "to link", "to refresh"];
+  // A preview says "to write" only when nothing blocks the write; while a question is open or a refusal stands no count is a promise.
+  const [write, link, refresh] = applied ? ["written", "linked", "refreshed"] : blocked ? ["would write", "would link", "would refresh"] : ["to write", "to link", "to refresh"];
   lines.push(`  ledger: ${l.planned} planned = ${l.written} ${write} + ${l.linked} ${link} + ${l.refreshed} ${refresh} + ${l.unchanged} unchanged + ${l.staleByRuling} stale by ruling + ${l.leftOutByRuling} left out by ruling + ${l.stopped} stopped + ${l.separateNameHeld} name held + ${l.awaitingRuling} awaiting a ruling`);
   return lines;
 }

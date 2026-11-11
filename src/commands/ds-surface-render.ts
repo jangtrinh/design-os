@@ -64,7 +64,7 @@ export function renderSurfaceText(d: SurfaceData): string {
       lines.push(`  separate name held: ${count(r.separateNameHeld.length, "component")} ruled different from their record, but "<name> · code" is held by a record of another door; --apply refuses them by name until the owner frees that name`);
       for (const g of r.separateNameHeld) lines.push(`    ${g.name} · code  held by ${g.heldBy}`);
     }
-    lines.push(...renderQuestionLines(r, d.applied !== undefined));
+    lines.push(...renderQuestionLines(r, d.applied !== undefined, d.pending !== undefined || r.wouldRefuse.count > 0 || r.lintStopped.length > 0 || r.separateNameHeld.length > 0));
     if (r.shadowedNotRegistered > 0) lines.push(`  ${count(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
   }
   if (d.applied !== undefined) {

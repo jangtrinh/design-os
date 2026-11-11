@@ -33,7 +33,17 @@ export function spanFrom(lines: readonly string[], startIdx: number): { startLin
 /** The first upper-case word after `export`: the name a listed keyword is reported under. */
 export const firstUpperWord = (rest: string): string => /\b[A-Z][A-Za-z0-9_$]*/.exec(rest.replace(/^export\b/, ""))?.[0] ?? "(export)";
 
-export const DECL = (name: string): RegExp => new RegExp(`^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?(?:function\\s*\\*?|class|const|let|var)\\s+${name}\\b`);
+const DECL_HEAD = /^(?:export\s+)?(?:default\s+)?(?:async\s+)?(?:function\s*\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/;
+
+/** The 0-based line of the first declaration of every name (an exported declaration counts), built in one pass over the lines. */
+export function indexDeclarations(lines: readonly string[]): Map<string, number> {
+  const at = new Map<string, number>();
+  for (let i = 0; i < lines.length; i++) {
+    const name = DECL_HEAD.exec(lines[i] as string)?.[1];
+    if (name !== undefined && !at.has(name)) at.set(name, i);
+  }
+  return at;
+}
 
 /**
  * Every `export` keyword of a script file (strings, templates and comments masked) ends up in one of two places: a
