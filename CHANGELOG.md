@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-11-11 - `ui ds surface` onboards a design system from a codebase
+
+### Added
+- `ui ds surface [--app <root>] [--cwd <dir>] [--out <file>] [--register [--apply]] [--json]` reads the component
+  directories of one app and reports, as `design-os-surface/1`: every exported component with the token paths its own
+  source references, the screens (route and page files) and stories that import them, the components no story covers,
+  the app's Tailwind v4 entry, the names exported from more than one file, and everything it met and did not read,
+  each with a reason. The command is read-only unless `--out` or `--register --apply` is given, uses no parser,
+  compiler or network, and gives the same bytes for the same tree from any checkout path.
+- Token links are exact. A custom property resolves only by the name the kernel emits for a token
+  (`color.primary` is `--color-primary`, never the bare `--primary`); a theme-key utility resolves only when exactly
+  one token answers it. A reference that resolves to no token is counted, never mapped to the nearest one, and the
+  count is broken down by kind: unresolved custom property, helper call, arbitrary value, `theme()` call, CSS-module
+  class, literal colour, a utility that more than one token answers. A class list is read only where markup holds
+  one.
+- Every `export` keyword of a file is either read or listed, never both. A keyword is read as a declaration only at
+  the start of a top-level statement; one that stands in markup text, in a regular-expression literal or inside a
+  block is listed and never becomes a component. Comments and strings are recognised in one pass, so a comment
+  pattern inside a string (`import.meta.glob("./svg/*.svg")`) hides nothing. A file whose string structure cannot be
+  decided (a backtick or quote inside a regular-expression literal) is listed once, and only the part before the
+  undecided line is read; a component that runs into that part is listed too.
+- The export reader is measured against the TypeScript parser in a test (a development dependency; no file of the
+  kernel imports it, and a test fails if one does): on every fixture and on a table of adversarial sources, no claimed
+  component is missing from the file's exports and no exported component is left neither read nor listed. The shapes
+  that need a real lexer are pinned in a known-limits table of the same test.
+- `ui ds surface --register` previews the registry records the surface would write, and `--apply` writes them in one
+  batch with one reseal, through the same checks as `ui registry register`. The preview runs those checks, so a write
+  holds no surprise: every record that would be refused is listed with its code. A second `--apply` on an unchanged
+  tree writes nothing. The category of a record registered from code is the directory of its file. Every output
+  carries a ledger (planned = to write + to link + to refresh + unchanged + stale by ruling + left out by ruling +
+  stopped + name held + awaiting a ruling); while a question is open or a refusal is predicted the preview says
+  "would write", so no count reads as a promise.
+- The command asks the owner instead of deciding (`ui onboard questions`, `ui onboard answer --file`):
+  - `component-name-collision`: one name exported from two files, in two directories or in one. Nothing is resolved
+    by path order.
+  - `component-source-match`: a component of the code is already held by a record from another source (for example
+    a Figma registry), by the same name or by a name that differs only in case or spacing. "Same" keeps the record
+    byte for byte and adds a `code` reference and the tokens read from code; "separate" registers `<name> · code`.
+  - `component-source-changed`: a registered component whose source changed or moved. "Refresh" updates the record
+    from the source as it is now without replacing it; "keep" leaves it and lists it as stale. Every further change
+    asks again.
+  - `component-lint-refused`: records the design-system lint refuses. "Leave out" writes the other records and lists
+    these by name with their code; "stop" writes nothing and exits 1 `SURFACE_LINT_STOPPED` until they pass.
+- A question blocks a call only when what the call shows or writes depends on its answer. A read is never blocked
+  by a collision or by a registration question; `--register --apply` and `--register --out` are blocked by every
+  open question of the command, exit 1 with `ONBOARD_BLOCKED_NEEDS_OWNER_RULING`, and write nothing. `--out` is
+  written only after everything that can refuse the call has passed.
+- A record that holds both sources carries a `code` reference (`sourceRef`, `sha256`) beside its `provenance`;
+  `ui registry lookup --json` shows it, and `ui registry list`, `ui ds specimen`, `context`, `docs`, `status` and
+  `diff` read such a store unchanged.
+
+### Changed
+- A capped project scan cannot shrink the surface: the component directories of the chosen app come from the
+  surface's own walk through the one rule `ui scan` applies, and a truncated scan is stated in the output.
+- A registration refusal for a source reference that does not exist names the reference and "the project root"
+  instead of an absolute path.
+
+### Known limits
+The source readers work by pattern, without a lexer for regular-expression literals and markup text. The test named
+above pins each of these as it behaves today:
+- A backtick or quote inside a regular-expression literal can make a file undecided: its exports from that line on
+  are listed, not read. A bracket inside one, or an unclosed opener in markup text (`<li>(optional</li>`), makes the
+  exports after it listed instead of read. Mostly built `.js` files are affected.
+- Two regular-expression literals that each hold a backtick can hide an export between them without listing it, and
+  one on a line that also opens a template can make template text read as a declaration.
+- Markup written outside any bracket whose text has a line that starts an export declaration is read as a
+  declaration. A formatter wraps such markup in parentheses.
+- A quote in markup text that pairs with a later quote on the same line hides the class attribute between them.
+- A class list inside an expression (`className={a ? "x" : "y"}`) is neither read nor counted.
+
 ## 2026-11-11 - `ui ds import` asks the owner, seals a Figma registry, and `ui scan` honours owner rulings
 
 ### Changed
