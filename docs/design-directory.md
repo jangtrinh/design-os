@@ -128,15 +128,19 @@ id, fails the emit with `BAD_PRINCIPLES`.
 
 ```sh
 ui ontology build [--dir <project>] [--out design/knowledge/ontology.json] [--json]
-ui ontology lint  [--dir <project>] [--strict] [--json]
+ui ontology lint  [--dir <project>] [--file design/knowledge/ontology.json] [--strict] [--json]
 ```
 
 `design/knowledge/ontology.json` (`design-os-ontology/1`, `schemas/ontology.schema.json`) is one knowledge graph of the
 project, emitted and never hand-edited. It has no timestamp and no absolute path: the same tree gives the same bytes from
 any checkout. `ui ontology lint` fails on a link whose target does not exist, a duplicate node id and a stale file (it
 re-emits in memory and compares bytes); orphans (no link, not standalone) are warnings and errors under `--strict`;
-the kind coverage table (`nodes`, `linked`, `orphan`, `standalone`, `source missing`) is always printed. Project
-structure is never an orphan: the `project` node and the `gate` nodes belong to the kernel.
+the kind coverage table (`nodes`, `linked`, `orphan`, `standalone`, `source missing`) and the link reports (`written`,
+`unresolved`, `not sensed`, `not checked`, and the owner-ruled pairs no candidate matches; `--json`: `linkReports`) are
+always printed. An open question the build depends on is an error that names `ui onboard questions`, for every kind.
+`--out` and `--file` must name a file inside the project. The `screen` source keeps one status per door (`doors`), so a
+Figma scan never sensed for frames stays `not-sensed` next to a code door that was read. Project structure is never an
+orphan: the `project` node and the `gate` nodes belong to the kernel.
 
 Sources, each read only from its own path under the project:
 

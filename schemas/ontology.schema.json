@@ -45,7 +45,19 @@
         "kind": { "$ref": "#/definitions/nodeKind" },
         "status": { "enum": ["read", "missing", "not-sensed"] },
         "nodes": { "type": "integer", "minimum": 0 },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "doors": {
+          "type": "array",
+          "items": {
+            "type": "object", "required": ["door", "status", "nodes", "note"], "additionalProperties": false,
+            "properties": {
+              "door": { "enum": ["figma", "code"] },
+              "status": { "enum": ["read", "missing", "not-sensed"] },
+              "nodes": { "type": "integer", "minimum": 0 },
+              "note": { "type": "string" }
+            }
+          }
+        }
       }
     },
     "linkReport": {

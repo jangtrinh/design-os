@@ -21,7 +21,7 @@ import type { FigmaFacts } from "./source-screens-figma.js";
 import { readSealedStores } from "./source-stores.js";
 import type { StoreRead } from "./source-stores.js";
 import { NODE_KINDS, byText } from "./ontology-types.js";
-import type { OntNode, SourceReport } from "./ontology-types.js";
+import type { OntNode, SourceDoor, SourceReport } from "./ontology-types.js";
 import type { DsFile } from "../figma-ds-scan-read.js";
 
 export interface NodeSources {
@@ -44,7 +44,8 @@ const PROJECT: OntNode = { id: "project:root", kind: "project", name: "project" 
 function mergeScreenReports(figma: SourceReport, code: SourceReport): SourceReport {
   const status = figma.status === "read" || code.status === "read" ? "read" : figma.status === "not-sensed" || code.status === "not-sensed" ? "not-sensed" : "missing";
   const parts = [`Figma: ${figma.note}`, `code: ${code.note}`];
-  return { kind: "screen", status, nodes: figma.nodes + code.nodes, note: parts.join("; ") };
+  const door = (name: SourceDoor["door"], r: SourceReport): SourceDoor => ({ door: name, status: r.status, nodes: r.nodes, note: r.note });
+  return { kind: "screen", status, nodes: figma.nodes + code.nodes, note: parts.join("; "), doors: [door("figma", figma), door("code", code)] };
 }
 
 /** The strings a project supplies for a screen (`name`, `kind`, `page`, `purpose`) become that node's `meta`, for the entries that tie to it. */

@@ -3,7 +3,7 @@
  * source and the in-memory build. A failure to read becomes an exit-1 envelope that names the file or the store.
  */
 import { existsSync, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { isAbsolute, relative, resolve } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { errJson, errText } from "../core/output.js";
@@ -39,6 +39,13 @@ export function prepare(parsed: ParsedArgs, command: string, known: readonly str
     if (e instanceof OntologyReadError || e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(command, json, e.code, e.message);
     throw e;
   }
+}
+
+/** A `--out` or `--file` value as a path relative to the project, or the refusal that names it: it must be a file inside the project. */
+export function insideProject(command: string, json: boolean, dir: string, flag: string, value: string): string | CommandResult {
+  const rel = relative(dir, resolve(dir, value));
+  if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) return fail(command, json, "BAD_ARG", `--${flag} '${value}' must be a file inside the project ${dir}`);
+  return rel.split("\\").join("/");
 }
 
 export const isResult = (v: Prepared | CommandResult): v is CommandResult => "exitCode" in v;

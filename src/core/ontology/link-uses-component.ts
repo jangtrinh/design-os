@@ -106,6 +106,6 @@ export function usesComponentLinks(figma: FigmaFacts | null, code: CodeFacts | n
   const report = empty();
   if (figma !== null) figmaLinks(figma, records, keptDeprecated, report, links);
   if (code !== null) codeLinks(code, records, report, links);
-  if (figma === null && code === null && notSensedReason !== undefined) report.notSensedReason = notSensedReason;
+  if (figma === null && notSensedReason !== undefined) report.notSensedReason = notSensedReason;
   return { links, report };
 }
