@@ -103,6 +103,9 @@ function formatText(r: ScanResult): string {
   } else if (h !== undefined) {
     const parts = [...(h.skip.length > 0 ? [`skipped ${h.skip.join(", ")}`] : []), ...(h.roots.length > 0 ? [`kept app roots ${h.roots.join(", ")}`] : [])];
     if (parts.length > 0) lines.push(`owner rulings honoured: ${parts.join("; ")} (design/design-dir.json)`);
+    if (h.keptInsideSkipped !== undefined) lines.push(`kept app roots inside a skipped directory, walked: ${h.keptInsideSkipped.join(", ")}`);
+    if (h.notFound !== undefined) lines.push(`ruled app roots not found (renamed or removed): ${h.notFound.join(", ")}. Next: ui onboard questions`);
+    if (h.notReached !== undefined) lines.push(`kept app roots the walk did not reach (scan capped or too deep): ${h.notReached.join(", ")}`);
     if (h.dropped.length > 0) lines.push(`app roots left out by the owner's ruling, not walked: ${h.dropped.join(", ")}`);
     if (h.unruled.length > 0) lines.push(`app roots with no ruling yet (walked): ${h.unruled.join(", ")}. Next: ui onboard questions`);
   }
