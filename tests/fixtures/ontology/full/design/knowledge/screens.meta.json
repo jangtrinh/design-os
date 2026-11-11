@@ -1,0 +1,10 @@
+{
+  "schema": "screens-meta/1",
+  "apps": [{ "id": "web", "name": "Web app" }],
+  "features": [{ "id": "checkout", "name": "Checkout", "app": "web" }],
+  "screens": [
+    { "screen": "screen:5:1", "feature": "checkout", "note": "entry point" },
+    { "screen": "screen:5:2", "app": "web" },
+    { "screen": "screen:9:9", "feature": "checkout" }
+  ]
+}

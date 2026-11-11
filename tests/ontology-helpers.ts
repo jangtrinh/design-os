@@ -72,6 +72,15 @@ export function ring1Project(options: Ring1Options = {}): string {
   return project;
 }
 
+export const FULL = join(process.cwd(), "tests", "fixtures", "ontology", "full");
+
+/** The ring-1 project plus every ring-2 file a mature project may have written; one component has no bound-variable entry in its scan. */
+export function fullProject(): string {
+  const project = ring1Project({ edit: (scan) => { delete scan.components.find((c) => c["name"] === "Badge")!["boundVariables"]; } });
+  cpSync(FULL, project, { recursive: true });
+  return project;
+}
+
 export const CODE = join(process.cwd(), "tests", "fixtures", "ontology", "code");
 
 /** The code door: the app is copied, its tokens are sealed by `ui ds import`, its components are registered by `ui ds surface --register --apply`. */

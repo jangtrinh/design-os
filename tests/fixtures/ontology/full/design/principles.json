@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "source": "principles.md",
+  "principles": [
+    {
+      "id": "C1",
+      "title": "Subtract until only the work remains",
+      "yields_when": "it would remove a safety step, or when `pattern:card-grid` already says it.",
+      "test": "a reviewer cannot name a part to take away."
+    },
+    {
+      "id": "C2",
+      "title": "Name the consequence of an action",
+      "yields_when": "the label already carries it.",
+      "test": "each primary button says what happens next."
+    }
+  ]
+}
