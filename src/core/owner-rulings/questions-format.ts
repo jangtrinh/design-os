@@ -51,7 +51,7 @@ export function toOwnerClaudePayload(clusters: readonly Cluster[], round: number
     answerKey: asked.map((c) => ({
       fingerprint: c.fingerprint, kind: c.kind, multiSelect: CLUSTER_KIND_TABLE[c.kind].setValued,
       options: c.options.map((o) => ({ id: o.id, label: o.label, ...(o.selects === undefined ? {} : { selects: o.selects }), ...(o.assigns === undefined ? {} : { assigns: o.assigns }) })),
-      ...(c.memberChoices === undefined ? {} : { memberChoices: c.memberChoices, perMemberAnswer: { choice: [REVIEW_INDIVIDUALLY], members: c.members } }),
+      ...(c.memberChoices === undefined ? {} : { memberChoices: c.memberChoices, perMemberAnswer: { choice: REVIEW_INDIVIDUALLY, members: c.members } }),
       ...(c.labels === undefined ? {} : { labels: c.labels }),
       ...(CLUSTER_KIND_TABLE[c.kind].setValued ? { perMemberAnswer: { choice: [REVIEW_INDIVIDUALLY], values: [KEEP, DROP], members: c.members } } : {}),
     })),
