@@ -85,7 +85,7 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   // part) is answered before anything is written.
   const file = join(proj.root, CODEX_REL);
   const refused = preflight(existsSync(file) ? readFileSync(file, "utf8") : null, ctx, runtimes, roles);
-  if (refused !== null) return err(refused.code, refusalText(refused, { runtimes, roles, force: parsed.flags["force"] === true }));
+  if (refused !== null) return err(refused.code, refusalText(refused, { runtimes, roles, force: parsed.flags["force"] === true || rows.some((r) => r.runtime !== "codex" && r.replaced) }));
 
   // EXISTS pre-flight — all-or-nothing, never a silent overwrite.
   if (parsed.flags["force"] !== true) {

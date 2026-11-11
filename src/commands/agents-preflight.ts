@@ -34,7 +34,7 @@ export function preflight(host: string | null, ctx: TargetContext, runtimes: rea
   return { code: "AGENTS_DOC_OVER_LIMIT", facts: limitFacts(sizes, true), action: shrinkAction(sizes) };
 }
 
-/** The refusal of `ui agents init`: the facts, that nothing was written, and the ways out, each a command that is not refused. */
+/** The refusal of `ui agents init`: the facts, that nothing was written, and the ways out, each a command that is not refused. `run.force` is true when the run was forced or when a target the way out would write exists. */
 export function refusalText(r: Refusal, run: { runtimes: readonly Runtime[]; roles: readonly AgentRole[]; force: boolean }): string {
   if (r.code === "AGENTS_SECTION_MALFORMED") return `${r.facts}, so nothing was written; ${r.action}, then run the command again`;
   const rest = run.runtimes.filter((x) => x !== "codex");

@@ -47,6 +47,25 @@ describe("the size refusal of ui agents init", () => {
     expect(ways).toHaveLength(1);
     expect(capture(ways[0] as string[]).code).toBe(0);
   });
+  it("a run without --force on a project whose targets exist reports the size refusal once, and its way out carries --force and exits 0", () => {
+    const p = bigProject(1000);
+    const done = init(p);
+    expect(done.code).toBe(1);
+    expect(done.err).toContain("AGENTS.md would be");
+    expect(done.err).not.toContain("already exist");
+    const ways = printed(done.err, p);
+    expect(ways).toHaveLength(1);
+    expect(ways[0]).toContain("--force");
+    expect(capture(ways[0] as string[]).code).toBe(0);
+  });
+  it("a run without --force on a project with no target for the other runtimes keeps its way out free of --force", () => {
+    const p = builtRing1();
+    writeFileSync(join(p, "AGENTS.md"), "x".repeat(LIMIT));
+    const ways = printed(init(p).err, p);
+    expect(ways).toHaveLength(1);
+    expect(ways[0]).not.toContain("--force");
+    expect(capture(ways[0] as string[]).code).toBe(0);
+  });
   it("the file after the way out is still one whose only printed action is words, not a refused command", () => {
     const p = bigProject(1000);
     capture(printed(init(p, "--force").err, p)[0] as string[]);
