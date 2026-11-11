@@ -51,8 +51,8 @@ export interface ImportPlan { detections: KindDetection[]; result: ImportResult 
 const ADVICE = "An alias is written only when its target is written: add the missing target to the token file, or exclude the alias.";
 
 /** Raw token names: the source path, sanitized, unique (a clash takes a numeric suffix in id order). */
-function rawNames(items: readonly ImportSkip[]): Map<string, string> {
-  const taken = new Set<string>();
+function rawNames(items: readonly ImportSkip[], alreadyTaken: Iterable<string>): Map<string, string> {
+  const taken = new Set<string>(alreadyTaken);
   const names = new Map<string, string>();
   for (const i of [...items].sort((a, b) => (a.id < b.id ? -1 : 1))) {
     const base = i.name.split(".").map(sanitizeSeg).join("-") || "x";
@@ -96,10 +96,11 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
   const outcome = (i: ImportSkip): string => view.outcome("untypeable-tokens", i.id) ?? EXCLUDE;
   const keptRaw = items.filter((i) => i.raw !== undefined && outcome(i) === KEEP_RAW);
   const excluded = items.filter((i) => !keptRaw.includes(i));
-  const names = rawNames(keptRaw);
+  // The raw group may already hold typed tokens; a kept token goes beside them under a free name, never over one.
+  const names = rawNames(keptRaw, Object.keys(typed["raw"] ?? {}));
   const tree: TokenTree = { ...typed };
   if (keptRaw.length > 0) {
-    tree["raw"] = Object.fromEntries(keptRaw.map((i) => [names.get(i.id) as string, { $value: i.raw as string, $type: "string" as const, $description: "kept raw from the imported token file" }]));
+    tree["raw"] = { ...(typed["raw"] ?? {}), ...Object.fromEntries(keptRaw.map((i) => [names.get(i.id) as string, { $value: i.raw as string, $type: "string" as const, $description: "kept raw from the imported token file" }])) };
   }
   const given = ambiguous.map((path) => ({ path, outcome: view.outcome("ambiguous-roles", path) ?? NO_ROLE }));
   const excludedBy: ImportLedger["excluded"] = { total: excluded.length };
@@ -110,10 +111,13 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
     excludedBy[r] = those.length;
     excludedItems[r] = those.map((i) => ({ id: i.id, name: i.name }));
   }
-  const typedCount = Object.values(typed).reduce((n, g) => n + Object.keys(g).length, 0);
+  const treeCount = Object.values(tree).reduce((n, g) => n + Object.keys(g).length, 0);
+  for (const [cat, group] of Object.entries(typed)) {
+    for (const name of Object.keys(group)) if (tree[cat]?.[name] !== group[name]) throw new Error(`internal: the token ${cat}.${name} was replaced while the plan was built`);
+  }
   // The aliases that cannot be written are among the imported tokens already; only the source members come on top.
   const total = base.stats.imported + source.length;
-  const ledger: ImportLedger = { in: total, written: { total: typedCount + keptRaw.length, typed: typedCount, keptRaw: keptRaw.length }, excluded: excludedBy, pending: 0 };
+  const ledger: ImportLedger = { in: total, written: { total: treeCount, typed: treeCount - keptRaw.length, keptRaw: keptRaw.length }, excluded: excludedBy, pending: 0 };
   if (ledger.written.total + excluded.length + ledger.pending !== ledger.in) throw new Error(`ledger does not add up: in ${ledger.in} = written ${ledger.written.total} + excluded ${excluded.length} + pending 0`);
   const byType: Record<string, number> = {};
   for (const group of Object.values(tree)) for (const t of Object.values(group)) byType[t.$type] = (byType[t.$type] ?? 0) + 1;
