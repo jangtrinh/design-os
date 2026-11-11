@@ -1,0 +1,6 @@
+{
+  "planned": 3,
+  "candidates": [
+    { "name": "Button", "file": "src/components/kit/Button.tsx", "sha": "sha256-AAAA", "code": "REGISTRY_MARKUP_DRIFT" }
+  ]
+}

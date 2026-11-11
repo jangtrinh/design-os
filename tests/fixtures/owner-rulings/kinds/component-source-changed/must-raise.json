@@ -1,0 +1,5 @@
+{
+  "candidates": [
+    { "name": "Card", "heldRef": "src/components/ui/Card.tsx:3-5", "heldSha": "sha256-AAAA", "nowRef": "src/components/ui/Card.tsx:3-6", "nowSha": "sha256-BBBB", "linked": false, "heldTokens": ["color.ink"], "codeTokens": ["color.ink", "color.surface"] }
+  ]
+}
