@@ -25,6 +25,8 @@ export interface SourceMatchCandidate {
   existingId: string;
   /** The project-relative code file the component is found in. */
   file: string;
+  /** The record's own spelling, only when it differs from `name` (the two are equal after the kernel's normalisation). */
+  existingName?: string;
   /** Token paths the existing record already holds. */
   existingTokens: string[];
   /** Token paths the code source references. */
@@ -58,10 +60,10 @@ function ask(candidates: readonly SourceMatchCandidate[], members: readonly stri
   for (const c of asked) {
     const member = sourceMatchMemberOf(c);
     memberChoices[member] = [
-      { id: SAME_OUTCOME, label: `Same component: ${c.name} keeps its record and gains the code reference` },
+      { id: SAME_OUTCOME, label: `Same component: ${c.existingName ?? c.name} keeps its record and gains the code reference` },
       { id: SEPARATE_OUTCOME, label: `Different component: register ${c.name} · code on its own` },
     ];
-    labels[member] = c.name; // the sheet prints `<label> (<member id>)`, and the id already names the existing source and the code file
+    labels[member] = c.existingName === undefined ? c.name : `${c.name} (the registry spells it ${c.existingName})`; // the sheet prints `<label> (<member id>)`, and the id already names the existing source and the code file
   }
   return {
     question: `${asked.length} component(s) found in code have the name of a record that is already in the registry from another source. Are they the same components?`,
