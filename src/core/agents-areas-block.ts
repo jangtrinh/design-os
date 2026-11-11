@@ -1,6 +1,6 @@
 /**
- * The generated ontology-areas block of a project agent: one line per area (its key, its node count and the exact
- * `ui ontology query` command for it), fenced by markers. It is the one deliberate exception to "agent identity is read
+ * The generated ontology-areas block of a project agent: the `ui ontology query` command, named once, then one line
+ * per area (its key and its node count), fenced by markers. It is the one deliberate exception to "agent identity is read
  * at runtime, never baked": it sits between markers, `ui agents init` regenerates it, and `ui agents check` re-renders
  * it from the ontology file and compares (the method `principles.json` uses). Text outside the markers is never touched
  * by a block replacement. The block is never empty and never absent: with no ontology it says so and names the build.
