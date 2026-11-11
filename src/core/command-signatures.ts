@@ -870,15 +870,16 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         errorCodes: ["UNKNOWN_FLAG", "DS_NOT_FOUND", "BAD_JSON"],
       },
       import: {
-        summary: "Onboard an existing flat tokens.json into the DTCG store and propose bans (the harvest-bans pass, proposals only)",
+        summary: "Onboard an existing flat tokens.json into the DTCG store and propose bans (the harvest-bans pass, proposals only); asks the owner about what it cannot type and about the project-level questions",
         positionals: [{ name: "<tokens.json>", required: true, summary: "Flat token file { category: { name: value } }" }],
         flags: [
           { name: "dir", type: "string", summary: "Project directory to write design/ into (default cwd)" },
           { name: "name", type: "string", summary: "DS name for the sealed manifest (default imported-ds)" },
           { name: "force", type: "boolean", summary: "Overwrite an existing design.tokens.json" },
-          { name: "reset-registry", type: "boolean", summary: "Confirm --force may wipe a non-empty registry (required alongside --force when the registry has components)" },
+          { name: "reset-registry", type: "boolean", summary: "Confirm that --force or --registry may replace a non-empty sealed registry (required when the registry has components)" },
+          { name: "registry", type: "string", summary: "The unsealed component-registry.json that ui ingest-figma-ds wrote: every record is validated, then tokens and registry are sealed under one manifest" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "EXISTS", "REGISTRY_NOT_EMPTY", "EMPTY_IMPORT", "KIT_DOWNGRADE", "WRITE_ERROR"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "BAD_REGISTRY", "EXISTS", "REGISTRY_NOT_EMPTY", "EMPTY_IMPORT", "KIT_DOWNGRADE", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
       },
       context: {
         summary: "Emit the active design system as a context block for the host model",

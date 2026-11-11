@@ -17,6 +17,7 @@ import { cwd } from "node:process";
 import { errJson, errText, okJson } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { discoverDesignSystem, loadDesignSystem, pathsForDir, DSError } from "../core/design-system.js";
+import type { DesignSystemPaths } from "../core/design-system.js";
 import { DSManifestError } from "../core/ds-manifest.js";
 import { reseal } from "../core/ds-reseal.js";
 import { tokenExistsInTree } from "../core/registry-token-check.js";
@@ -34,35 +35,70 @@ function isRole(v: string): v is Role {
   return (CANONICAL_ROLES as readonly string[]).includes(v);
 }
 
+/** A refusal of the role change, carrying the error code the command reports. */
+export class SetRoleError extends Error {
+  constructor(readonly code: string, message: string) { super(message); }
+}
+
+/**
+ * The role change itself, shared by `ui ds set-role` and by `ui ds import` (which applies the roles the owner gave to
+ * ambiguous tokens through this very path): load the store, check the token and the role, set one `$extensions` key and
+ * reseal with a `set-role` changelog entry. Throws SetRoleError; the store is untouched when it throws.
+ */
+export function applyRoleToStore(paths: DesignSystemPaths, tokenPath: string, role: string): { changed: boolean; generation: number; compiledHash: string } {
+  const [category, tokenName] = tokenPath.split(".") as [string, string];
+  let ds;
+  try {
+    ds = loadDesignSystem(paths);
+  } catch (e) {
+    const code = e instanceof DSError ? e.code : e instanceof DSManifestError ? e.code : "BAD_DS";
+    throw new SetRoleError(code, e instanceof Error ? e.message : String(e));
+  }
+  if (!tokenExistsInTree(ds.tokens, tokenPath)) {
+    throw new SetRoleError("BAD_TOKEN", `token '${tokenPath}' does not exist in the compiled design system`);
+  }
+  if (!isRole(role)) {
+    throw new SetRoleError("BAD_ROLE", `'${role}' is not a known role — expected one of: ${CANONICAL_ROLES.join(", ")}`);
+  }
+  const categoryGroup = ds.tokens[category]!;
+  const existingToken = categoryGroup[tokenName]!;
+  const prevRole = (existingToken.$extensions as Record<string, unknown> | undefined)?.["design-os.role"];
+  const prevRoleStr = typeof prevRole === "string" ? prevRole : undefined;
+  if (prevRoleStr === role) return { changed: false, generation: ds.manifest.generation, compiledHash: ds.manifest.compiledHash };
+
+  const newExtensions = { ...existingToken.$extensions, "design-os.role": role };
+  const newTokens = { ...ds.tokens, [category]: { ...categoryGroup, [tokenName]: { ...existingToken, $extensions: newExtensions } } };
+  try {
+    const sealed = reseal({
+      ds, paths, tokens: newTokens,
+      entry: { kind: "set-role", by: "ui ds set-role", path: tokenPath, ...(prevRoleStr !== undefined && { from: prevRoleStr }), to: role },
+      nowIso: new Date().toISOString(),
+    });
+    return { changed: true, generation: sealed.generation, compiledHash: sealed.compiledHash };
+  } catch (e) {
+    throw new SetRoleError(e instanceof DSManifestError ? e.code : "WRITE_ERROR", e instanceof Error ? e.message : String(e));
+  }
+}
+
 export function runSetRole(parsed: ParsedArgs): CommandResult {
   const useJson = parsed.json;
   const err = (code: string, msg: string): CommandResult =>
     useJson ? errJson(CMD, code, msg) : errText(`ui: ${msg}\n`);
 
-  // ── Reject unknown flags ────────────────────────────────────────────────────
-
   const unknown = findUnknownFlag(parsed.flags, KNOWN_FLAGS);
   if (unknown !== null) return err("UNKNOWN_FLAG", unknownFlagMessage(unknown));
-
-  // ── Validate positionals ────────────────────────────────────────────────────
 
   const tokenPath = parsed.positionals[0];
   const role = parsed.positionals[1];
   if (typeof tokenPath !== "string" || tokenPath.length === 0 || typeof role !== "string" || role.length === 0) {
     return err("BAD_ARG", "missing required arguments. Usage: ui ds set-role <token.path> <role> [--dir <project>]");
   }
-
-  const parts = tokenPath.split(".");
-  if (parts.length !== 2) {
+  if (tokenPath.split(".").length !== 2) {
     return err("BAD_ARG", `token path '${tokenPath}' must be two-level (e.g. color.primary)`);
   }
-  const [category, tokenName] = parts as [string, string];
-
-  // ── Resolve DS paths ────────────────────────────────────────────────────────
 
   const dirFlag = parsed.flags["dir"];
   const baseDir = typeof dirFlag === "string" ? resolve(dirFlag) : cwd();
-
   let paths;
   try {
     paths = typeof dirFlag === "string" ? pathsForDir(resolve(baseDir, "design")) : discoverDesignSystem(undefined);
@@ -71,67 +107,11 @@ export function runSetRole(parsed: ParsedArgs): CommandResult {
     return err(code, e instanceof Error ? e.message : String(e));
   }
 
-  // ── Load and verify current DS ──────────────────────────────────────────────
-
-  let ds;
   try {
-    ds = loadDesignSystem(paths);
+    const done = applyRoleToStore(paths, tokenPath, role);
+    return okJson(CMD, { path: tokenPath, role, changed: done.changed, generation: done.generation, compiledHash: done.compiledHash });
   } catch (e) {
-    const code = e instanceof DSError ? e.code : e instanceof DSManifestError ? e.code : "BAD_DS";
-    return err(code, e instanceof Error ? e.message : String(e));
+    if (e instanceof SetRoleError) return err(e.code, e.message);
+    throw e;
   }
-
-  // ── Validate the token exists (BAD_TOKEN), then the role is canonical (BAD_ROLE) ──
-
-  if (!tokenExistsInTree(ds.tokens, tokenPath)) {
-    return err("BAD_TOKEN", `token '${tokenPath}' does not exist in the compiled design system`);
-  }
-  if (!isRole(role)) {
-    return err("BAD_ROLE", `'${role}' is not a known role — expected one of: ${CANONICAL_ROLES.join(", ")}`);
-  }
-
-  const categoryGroup = ds.tokens[category]!;
-  const existingToken = categoryGroup[tokenName]!;
-  const prevRole = (existingToken.$extensions as Record<string, unknown> | undefined)?.["design-os.role"];
-  const prevRoleStr = typeof prevRole === "string" ? prevRole : undefined;
-
-  // ── No-op check ─────────────────────────────────────────────────────────────
-
-  if (prevRoleStr === role) {
-    return okJson(CMD, {
-      path: tokenPath, role, changed: false,
-      generation: ds.manifest.generation, compiledHash: ds.manifest.compiledHash,
-    });
-  }
-
-  // ── Build new TokenTree (shallow clone, replace one leaf's $extensions) ─────
-
-  const newExtensions = { ...existingToken.$extensions, "design-os.role": role };
-  const newCategoryGroup = { ...categoryGroup, [tokenName]: { ...existingToken, $extensions: newExtensions } };
-  const newTokens = { ...ds.tokens, [category]: newCategoryGroup };
-
-  // ── Reseal (spec 009 P1: the shared Art IV ceremony) ────────────────────────
-
-  let resealResult;
-  try {
-    resealResult = reseal({
-      ds, paths, tokens: newTokens,
-      entry: {
-        kind: "set-role",
-        by: "ui ds set-role",
-        path: tokenPath,
-        ...(prevRoleStr !== undefined && { from: prevRoleStr }),
-        to: role,
-      },
-      nowIso: new Date().toISOString(),
-    });
-  } catch (e) {
-    const code = e instanceof DSManifestError ? e.code : "WRITE_ERROR";
-    return err(code, e instanceof Error ? e.message : String(e));
-  }
-
-  return okJson(CMD, {
-    path: tokenPath, role, changed: true,
-    generation: resealResult.generation, compiledHash: resealResult.compiledHash,
-  });
 }

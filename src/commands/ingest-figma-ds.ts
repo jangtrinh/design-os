@@ -103,7 +103,8 @@ function runIngest(parsed: ParsedArgs): CommandResult {
       "SEALED_PATH_COLLISION",
       `--out '${outDir}' is the sealed design-system path (a directory named 'design') — ` +
         "ingest-figma-ds writes an unsealed bundle and must not land it there. Use a " +
-        "different --out, then 'ui ds import' to seal it into a project's design/ directory.",
+        "different --out, then 'ui ds import <out>/tokens.json --registry <out>/component-registry.json --dir <project>' " +
+        "to seal the tokens and the registry together into the project's design/ directory.",
     );
   }
 
