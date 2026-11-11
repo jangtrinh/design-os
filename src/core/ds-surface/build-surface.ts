@@ -114,7 +114,7 @@ export function buildSurface(input: BuildSurfaceInput): SurfaceModel {
       shadowed: [],
       screens,
       stories,
-      unstoried: [...new Set(components.filter((c) => !storied.has(idOf(c))).map((c) => c.name))].sort(byText),
+      unstoried: components.filter((c) => !storied.has(idOf(c))).map((c) => ({ name: c.name, file: c.file })).sort((a, b) => byText(a.name, b.name) || byText(a.file, b.file)),
       ...(input.tailwindCss === null ? {} : { tailwindCss: input.tailwindCss }),
       tokenStore: { status: "none" },
       unread: { files: input.files.unread, exports: exportUnread.sort((a, b) => byText(a.file, b.file) || a.line - b.line), unresolvedImports, scan: input.scan },
