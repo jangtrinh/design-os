@@ -98,3 +98,26 @@ describe("the coverage rule runs emitters (injected)", () => {
     expect(gaps).toEqual([`kind 'app-roots' raises nothing on its ${MUST_RAISE} fixture`]);
   });
 });
+
+describe("the coverage rule reads the entry point the commands call (detectAll)", () => {
+  const readFixture = (kind: string, file: string): unknown => {
+    const p = join(FIXTURE_DIR, kind, file);
+    return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : undefined;
+  };
+  const collision = EMITTERS.find((e) => e.kind === "token-path-collision")!;
+
+  it("the collision emitter lists every group: two groups on one input are two detections", () => {
+    const v = (id: string, collection: string): object => ({ id, name: "color/brand", collection });
+    const input = { collisions: [{ path: "color.a", variables: [v("1", "A"), v("2", "B")] }, { path: "color.b", variables: [v("3", "A"), v("4", "C")] }] };
+    expect(collision.detectAll!(input)).toHaveLength(2);
+    expect(collision.detect(input)!.members).toHaveLength(1);
+  });
+  it("an emitter whose detect raises but whose detectAll raises nothing is a gap: the production entry point decides", () => {
+    const broken: KindEmitter = { ...collision, detectAll: () => [] };
+    expect(kindsCoverageGaps({ emitters: [broken], readFixture })).toEqual([`kind 'token-path-collision' raises nothing on its ${MUST_RAISE} fixture`]);
+  });
+  it("an emitter whose detectAll raises on the must-not-raise fixture is a gap even when detect does not", () => {
+    const noisy: KindEmitter = { ...collision, detectAll: () => [{ kind: "token-path-collision", members: ["x"], domain: ["x"], ask: () => ({ question: "q", options: [] }) }] };
+    expect(kindsCoverageGaps({ emitters: [noisy], readFixture })).toEqual([`kind 'token-path-collision' raises 1 member(s) on its ${MUST_NOT_RAISE} fixture`]);
+  });
+});

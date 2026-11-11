@@ -58,10 +58,30 @@ function buildSetValued(c: Cluster, choice: unknown, members: unknown): Built {
   return { choice, members: Object.fromEntries(c.members.map((m) => [m, kept.has(m) ? KEEP : DROP])) };
 }
 
+/** Assigned mode: an option records its own `assigns`; `review-individually` names one of each member's choices. */
+function buildAssigned(c: Cluster, choice: string, members: unknown): Built {
+  if (choice !== REVIEW_INDIVIDUALLY) {
+    if (members !== undefined) return refuse("BAD_ANSWER", `${labelOf(c)}: members is only valid after '${REVIEW_INDIVIDUALLY}'`);
+    return { choice, members: { ...(c.options.find((o) => o.id === choice)?.assigns ?? {}) } };
+  }
+  if (!isRecord(members) || !sameSet(Object.keys(members), c.members)) {
+    return refuse("BAD_ANSWER", `${labelOf(c)}: '${REVIEW_INDIVIDUALLY}' needs a members map with exactly the ${c.count} member ids`);
+  }
+  for (const m of c.members) {
+    const allowed = (c.memberChoices?.[m] ?? []).map((x) => x.id);
+    const v = members[m];
+    if (typeof v !== "string" || !allowed.includes(v)) {
+      return refuse("BAD_ANSWER", `${labelOf(c)}: '${m}' must be one of [${allowed.join(", ")}]`);
+    }
+  }
+  return { choice, members: members as Record<string, string> };
+}
+
 function buildSingle(c: Cluster, choice: unknown, members: unknown): Built {
   const ids = c.options.map((o) => o.id);
   if (typeof choice !== "string") return refuse("BAD_ANSWER", `${labelOf(c)} is a single-choice question: choice must be one option id, not a list`);
   if (!ids.includes(choice)) return refuse("BAD_ANSWER", `${labelOf(c)}: '${choice}' is not one of [${ids.join(", ")}]`);
+  if (c.memberChoices !== undefined) return buildAssigned(c, choice, members);
   if (choice !== REVIEW_INDIVIDUALLY) {
     return members === undefined ? { choice } : refuse("BAD_ANSWER", `${labelOf(c)}: members is only valid after '${REVIEW_INDIVIDUALLY}'`);
   }

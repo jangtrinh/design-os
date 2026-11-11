@@ -23,7 +23,15 @@ export interface ClusterOption {
    * keeps none of them.
    */
   selects?: string[];
+  /**
+   * Single-choice kinds in assigned mode: the outcome each member takes when this option is chosen. Covers exactly
+   * the cluster's members; each value is one of that member's `memberChoices`.
+   */
+  assigns?: Record<string, string>;
 }
+
+/** One outcome a member of an assigned single-choice cluster may take. */
+export interface MemberChoice { id: string; label: string }
 
 export interface Cluster {
   kind: ClusterKind;
@@ -37,6 +45,10 @@ export interface Cluster {
   options: ClusterOption[];
   /** A JSON value the kind's own answer check reads; the kernel stores it and never looks inside. */
   evidence?: unknown;
+  /** Assigned mode only (single-choice kinds): per member, the outcomes it may take. */
+  memberChoices?: Record<string, MemberChoice[]>;
+  /** Display label per member (keys are members): every place that prints a member prints `label (id)`. */
+  labels?: Record<string, string>;
   /** Set when the cluster holds only the members that no earlier ruling governs. */
   delta?: true;
   /** The command that raised it: a command replaces only the stored questions it raised itself. */
@@ -51,6 +63,8 @@ export interface ClusterInput {
   evidence?: unknown;
   delta?: true;
   raisedBy?: string;
+  memberChoices?: Record<string, readonly MemberChoice[]>;
+  labels?: Record<string, string>;
 }
 
 /** Recommended options first (stable); `review individually`, when present, stays last. */
@@ -81,6 +95,50 @@ function selectsProblem(kind: ClusterKind, members: readonly string[], options: 
   return missing === undefined ? null : `cluster '${kind}': the selects must together cover every member ('${missing}' is in no option)`;
 }
 
+const sameKeySet = (map: Record<string, unknown>, members: readonly string[]): boolean => {
+  const keys = Object.keys(map).map((k) => k.normalize("NFC"));
+  return new Set(keys).size === members.length && members.every((m) => keys.includes(m));
+};
+
+/**
+ * Single-choice clusters are plain (no assigns, no memberChoices) or assigned (memberChoices over exactly the members,
+ * every option but `review individually` assigning each member one of its choices). A mix is refused.
+ */
+function modeProblem(kind: ClusterKind, members: readonly string[], options: readonly ClusterOption[], memberChoices: ClusterInput["memberChoices"]): string | null {
+  const anyAssigns = options.some((o) => o.assigns !== undefined);
+  if (CLUSTER_KIND_TABLE[kind].setValued) {
+    return anyAssigns || memberChoices !== undefined ? `cluster '${kind}' is set-valued: it carries neither assigns nor memberChoices` : null;
+  }
+  if (!anyAssigns && memberChoices === undefined) return null;
+  if (memberChoices === undefined) return `cluster '${kind}' mixes plain and assigned options: options carry assigns but there is no memberChoices`;
+  if (!sameKeySet(memberChoices, members)) return `cluster '${kind}' is assigned: memberChoices must cover exactly its members`;
+  const choiceIds = new Map<string, Set<string>>();
+  for (const [m, list] of Object.entries(memberChoices)) {
+    if (list.length === 0 || new Set(list.map((c) => c.id)).size !== list.length || list.some((c) => c.id === "" || c.id === REVIEW_INDIVIDUALLY)) {
+      return `cluster '${kind}' is assigned: member '${m}' needs at least one choice with distinct ids`;
+    }
+    choiceIds.set(m.normalize("NFC"), new Set(list.map((c) => c.id)));
+  }
+  for (const o of options) {
+    if (o.id === REVIEW_INDIVIDUALLY) {
+      if (o.assigns !== undefined) return `cluster '${kind}' is assigned: '${REVIEW_INDIVIDUALLY}' carries no assigns`;
+      continue;
+    }
+    if (o.assigns === undefined) return `cluster '${kind}' mixes plain and assigned options: '${o.id}' has no assigns`;
+    if (!sameKeySet(o.assigns, members)) return `cluster '${kind}': the assigns of '${o.id}' must cover exactly its members`;
+    for (const [m, v] of Object.entries(o.assigns)) {
+      if (choiceIds.get(m.normalize("NFC"))?.has(v) !== true) return `cluster '${kind}': '${o.id}' assigns '${v}' to '${m}', which is not one of that member's choices`;
+    }
+  }
+  return null;
+}
+
+/** Re-keys a member map in sorted NFC member order, so the stored form never depends on insertion order. */
+function sortedKeys<T>(map: Record<string, T>, members: readonly string[]): Record<string, T> {
+  const nfc = new Map(Object.entries(map).map(([k, v]) => [k.normalize("NFC"), v]));
+  return Object.fromEntries(members.filter((m) => nfc.has(m)).map((m) => [m, nfc.get(m) as T]));
+}
+
 /** Throws on a cluster the spec forbids: no members, 2-4 options, unique option ids, selects that do not partition. */
 export function buildCluster(input: ClusterInput): Cluster {
   const members = sortedUnique(input.members);
@@ -91,9 +149,16 @@ export function buildCluster(input: ClusterInput): Cluster {
   if (new Set(input.options.map((o) => o.id)).size !== input.options.length) {
     throw new Error(`cluster '${input.kind}' has a repeated option id`);
   }
-  const problem = selectsProblem(input.kind, members, input.options);
+  const problem = selectsProblem(input.kind, members, input.options) ?? modeProblem(input.kind, members, input.options, input.memberChoices);
   if (problem !== null) throw new Error(problem);
-  const options = orderOptions(input.options).map((o) => (o.selects === undefined ? o : { ...o, selects: sortedUnique(o.selects) }));
+  if (input.labels !== undefined) {
+    const stray = Object.keys(input.labels).find((k) => !members.includes(k.normalize("NFC")));
+    if (stray !== undefined) throw new Error(`cluster '${input.kind}': a label names '${stray}', which is not a member`);
+  }
+  const options = orderOptions(input.options).map((o) => {
+    const withSelects = o.selects === undefined ? o : { ...o, selects: sortedUnique(o.selects) };
+    return withSelects.assigns === undefined ? withSelects : { ...withSelects, assigns: sortedKeys(withSelects.assigns, members) };
+  });
   return {
     kind: input.kind,
     question: input.question,
@@ -102,6 +167,8 @@ export function buildCluster(input: ClusterInput): Cluster {
     samples: members.slice(0, MAX_SAMPLES),
     members,
     options,
+    ...(input.memberChoices === undefined ? {} : { memberChoices: sortedKeys(Object.fromEntries(Object.entries(input.memberChoices).map(([m, l]) => [m, l.map((c) => ({ id: c.id, label: c.label }))])), members) }),
+    ...(input.labels === undefined ? {} : { labels: sortedKeys(input.labels, members) }),
     ...(input.evidence === undefined ? {} : { evidence: input.evidence }),
     ...(input.delta === true ? { delta: true as const } : {}),
     raisedBy: input.raisedBy ?? "",
@@ -110,10 +177,25 @@ export function buildCluster(input: ClusterInput): Cluster {
 
 const isStrings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
 
+const isStringMap = (v: unknown): v is Record<string, string> => isRecord(v) && Object.values(v).every((x) => typeof x === "string");
+
+function parseMemberChoices(raw: unknown): Record<string, MemberChoice[]> | undefined | string {
+  if (raw === undefined) return undefined;
+  if (!isRecord(raw)) return "has memberChoices that is not an object";
+  const out: Record<string, MemberChoice[]> = {};
+  for (const [m, list] of Object.entries(raw)) {
+    if (!Array.isArray(list) || !list.every((c) => isRecord(c) && typeof c["id"] === "string" && typeof c["label"] === "string")) {
+      return `has memberChoices for '${m}' that is not a list of { id, label }`;
+    }
+    out[m] = list.map((c) => ({ id: (c as Record<string, string>)["id"] as string, label: (c as Record<string, string>)["label"] as string }));
+  }
+  return out;
+}
+
 /** Reads a cluster from a stored file in full: the cluster, or the first thing that is wrong with it. */
 export function parseStoredCluster(raw: unknown): Cluster | string {
   if (!isRecord(raw)) return "a cluster is not an object";
-  const { kind, question, members, options, fingerprint, count, samples, evidence, delta, raisedBy } = raw;
+  const { kind, question, members, options, fingerprint, count, samples, evidence, delta, raisedBy, memberChoices, labels } = raw;
   if (!isClusterKind(kind)) return "a cluster has an unknown kind";
   if (typeof question !== "string") return `cluster '${kind}' needs a question string`;
   if (typeof raisedBy !== "string" || raisedBy === "") return `cluster '${kind}' needs a non-empty raisedBy string (the command that raised it)`;
@@ -125,12 +207,16 @@ export function parseStoredCluster(raw: unknown): Cluster | string {
       return `cluster '${kind}' has an option without string id, label and consequence`;
     }
     if (o["selects"] !== undefined && !isStrings(o["selects"])) return `cluster '${kind}' has an option whose selects is not a list of strings`;
+    if (o["assigns"] !== undefined && !isStringMap(o["assigns"])) return `cluster '${kind}' has an option whose assigns is not a map of strings`;
     if (o["recommended"] !== undefined && typeof o["recommended"] !== "boolean") return `cluster '${kind}' has an option whose recommended is not a boolean`;
-    parsed.push({ id: o["id"], label: o["label"], consequence: o["consequence"], ...(o["recommended"] === true ? { recommended: true } : {}), ...(o["selects"] === undefined ? {} : { selects: o["selects"] }) });
+    parsed.push({ id: o["id"], label: o["label"], consequence: o["consequence"], ...(o["recommended"] === true ? { recommended: true } : {}), ...(o["selects"] === undefined ? {} : { selects: o["selects"] }), ...(o["assigns"] === undefined ? {} : { assigns: o["assigns"] }) });
   }
+  const choices = parseMemberChoices(memberChoices);
+  if (typeof choices === "string") return `cluster '${kind}' ${choices}`;
+  if (labels !== undefined && !isStringMap(labels)) return `cluster '${kind}' has labels that are not a map of strings`;
   if (delta !== undefined && delta !== true) return `cluster '${kind}' has a malformed delta flag`;
   let built: Cluster;
-  try { built = buildCluster({ kind, question, members, options: parsed, evidence, raisedBy, ...(delta === true ? { delta: true as const } : {}) }); }
+  try { built = buildCluster({ kind, question, members, options: parsed, evidence, raisedBy, ...(choices === undefined ? {} : { memberChoices: choices }), ...(labels === undefined ? {} : { labels: labels as Record<string, string> }), ...(delta === true ? { delta: true as const } : {}) }); }
   catch (e) { return e instanceof Error ? e.message : "a cluster is malformed"; }
   if (typeof fingerprint !== "string" || !FINGERPRINT.test(fingerprint) || fingerprint !== built.fingerprint) {
     return `cluster '${kind}': the fingerprint does not match its members`;

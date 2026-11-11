@@ -11,14 +11,12 @@ import { MAX_OPTIONS } from "./cluster.js";
 import type { ClusterOption } from "./cluster.js";
 
 export interface SetOptionsSpec {
-  /** The members being asked about (an earlier answer may have removed some). */
+  /** The members being asked about, in scan order (an earlier answer may have removed some). */
   members: readonly string[];
   /** The kind's computed recommended set; only the members being asked about count. Empty or absent: no recommendation. */
   recommended?: readonly string[];
-  /** How big a member is: "largest first" orders by it, then by the member itself. */
+  /** How big a member is: "largest first" orders by it; ties keep the order of `members` (first appearance in the scan). */
   weight(member: string): number;
-  /** Optional replacement for "largest first" among members that are not in the recommended set. */
-  compare?(a: string, b: string): number;
   /** The words of one option; `role` says which slot it is. */
   describe(members: readonly string[], role: "recommended" | "single" | "rest"): { label: string; consequence: string };
 }
@@ -26,16 +24,19 @@ export interface SetOptionsSpec {
 export const KEEP_NONE = "keep:none";
 
 export function setValuedOptions(spec: SetOptionsSpec): ClusterOption[] {
-  const asked = new Set(spec.members);
-  const recommended = [...new Set(spec.recommended ?? [])].filter((m) => asked.has(m)).sort();
-  const compare = spec.compare ?? ((a: string, b: string): number => spec.weight(b) - spec.weight(a) || (a < b ? -1 : a > b ? 1 : 0));
+  const scanOrder = [...new Set(spec.members)];
+  const asked = new Set(scanOrder);
+  const position = new Map(scanOrder.map((m, i) => [m, i]));
+  const recommended = scanOrder.filter((m) => new Set(spec.recommended ?? []).has(m));
+  // Never a string comparison of the members: a tie is broken by where the scan listed them.
+  const compare = (a: string, b: string): number => spec.weight(b) - spec.weight(a) || (position.get(a) ?? 0) - (position.get(b) ?? 0);
   const options: ClusterOption[] = [];
   if (recommended.length > 0) {
     const { label, consequence } = spec.describe(recommended, "recommended");
     options.push({ id: "keep:recommended", label, consequence, recommended: true, selects: recommended });
   }
   const inRecommended = new Set(recommended);
-  const rest = [...asked].filter((m) => !inRecommended.has(m)).sort(compare);
+  const rest = scanOrder.filter((m) => !inRecommended.has(m)).sort(compare);
   const slots = MAX_OPTIONS - options.length;
   const singles = rest.length <= slots ? rest : rest.slice(0, slots - 1);
   for (const m of singles) {
