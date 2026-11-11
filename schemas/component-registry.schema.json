@@ -87,6 +87,16 @@
             { "if": { "properties": { "kind": { "const": "synthetic-approved" } } }, "then": { "required": ["reason"] }, "else": { "not": { "required": ["reason"] } } }
           ],
           "additionalProperties": false
+        },
+        "code": {
+          "type": "object",
+          "description": "The code slice this component is also read from, added by 'ui ds surface --register' when the owner ruled that a component found in code is the same component as this record (which keeps its provenance). sourceRef is 'path:start-end' relative to the project root; sha256 is the hash of that slice at registration time.",
+          "properties": {
+            "sourceRef": { "type": "string", "pattern": "^.+:\\d+(-\\d+)?$" },
+            "sha256": { "type": "string", "pattern": "^sha256-[A-Za-z0-9_-]+$" }
+          },
+          "required": ["sourceRef", "sha256"],
+          "additionalProperties": false
         }
       },
       "required": ["name", "category", "markup", "tokensUsed"],

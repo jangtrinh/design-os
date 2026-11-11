@@ -73,7 +73,14 @@ export interface ComponentRecord {
   figmaNode?: string;
   /** Ground-truth source of the markup; absent on records written before the design system was sealed. */
   provenance?: ComponentProvenance;
+  /**
+   * The code slice the component is also read from, added when a component found in code is the same component as a
+   * record that came from another door (spec 033 D16). Exactly `sourceRef` and `sha256`, the shape of a code provenance.
+   */
+  code?: CodeReference;
 }
+
+export interface CodeReference { sourceRef: string; sha256: string }
 
 export interface Registry {
   version: string;
@@ -127,7 +134,7 @@ export const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([
   "name", "category", "markup", "tokensUsed", "variants", "states", "description", "status",
-  "scope", "deprecated", "figmaNode", "provenance",
+  "scope", "deprecated", "figmaNode", "provenance", "code",
 ]);
 const PROVENANCE_KEYS = new Set(["kind", "sourceRef", "sha256", "reason"]);
 const PROVENANCE_KINDS = new Set<string>(["code", "figma", "synthetic-approved"]);
@@ -218,6 +225,28 @@ export function validateProvenance(value: unknown): ComponentProvenance {
     sha256: p["sha256"],
     ...(synthetic && { reason: p["reason"] as string }),
   };
+}
+
+const CODE_SOURCE_REF = /^.+:\d+(?:-\d+)?$/;
+
+/** Validate a `ComponentRecord.code`: exactly `sourceRef` (`<path>:<start>[-<end>]`) and `sha256`. */
+export function validateCodeReference(value: unknown): CodeReference {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new RegistryError("BAD_ARG", "component.code must be a plain object");
+  }
+  const c = value as Record<string, unknown>;
+  for (const key of Object.keys(c)) {
+    if (key !== "sourceRef" && key !== "sha256") {
+      throw new RegistryError("BAD_REGISTRY", `component.code has unexpected property '${key}' — allowed: sourceRef, sha256`);
+    }
+  }
+  if (typeof c["sourceRef"] !== "string" || !CODE_SOURCE_REF.test(c["sourceRef"])) {
+    throw new RegistryError("BAD_ARG", "component.code.sourceRef must be <path>:<startLine>[-<endLine>]");
+  }
+  if (typeof c["sha256"] !== "string" || !PROVENANCE_HASH.test(c["sha256"])) {
+    throw new RegistryError("BAD_ARG", "component.code.sha256 must match ^sha256-[A-Za-z0-9_-]+$");
+  }
+  return { sourceRef: c["sourceRef"], sha256: c["sha256"] };
 }
 
 /**
@@ -332,6 +361,9 @@ function validateRecord(rec: unknown, sourceAuthored: boolean): ComponentRecord 
   // Optional: provenance (ground-truth source) — absent on records registered before the seal.
   const provenance = r["provenance"] === undefined ? undefined : validateProvenance(r["provenance"]);
 
+  // Optional: code (the code slice of a component that also came from another door, D16).
+  const code = r["code"] === undefined ? undefined : validateCodeReference(r["code"]);
+
   // additionalProperties: false — reject keys outside the schema
   for (const key of Object.keys(r)) {
     if (!COMPONENT_ALLOWED_KEYS.has(key)) {
@@ -357,6 +389,7 @@ function validateRecord(rec: unknown, sourceAuthored: boolean): ComponentRecord 
     // No migration default: a record without a sidecar simply has no pointer (P3 no-op).
     ...(r["figmaNode"] !== undefined && { figmaNode: r["figmaNode"] as string }),
     ...(provenance !== undefined && { provenance }),
+    ...(code !== undefined && { code }),
   };
 }
 
