@@ -73,6 +73,13 @@ export function runImport(parsed: ParsedArgs): CommandResult {
   // way); --reset-registry is the explicit opt-in. The same guard stands in front of --registry: a sealed registry is
   // never replaced by another, and there is no merge. A sealed registry that cannot be read is refused, not counted as empty.
   const resetRegistry = parsed.flags["reset-registry"] === true;
+  // A default-path registry that is not JSON in a sealed project is the sealed registry, damaged (a merge conflict): the
+  // door would route around it to the alternate file and count 0, so it is named here instead.
+  if (paths.foreignRegistryAtDefaultPath && existsSync(paths.manifest) && !existsSync(paths.registry)) {
+    // --reset-registry replaces the damaged file at the default path itself, never the alternate one beside it.
+    if (resetRegistry) { paths.registry = join(paths.dir, "component-registry.json"); paths.foreignRegistryAtDefaultPath = false; }
+    else return err("BAD_SEALED_REGISTRY", `the sealed registry '${join(paths.dir, "component-registry.json")}' cannot be read as a registry (a merge conflict?) — restore it, or pass --reset-registry to replace it`);
+  }
   let existingCount = 0;
   try { existingCount = sealedRegistryCount(paths.registry); }
   catch (e) {

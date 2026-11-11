@@ -3,7 +3,7 @@
  * counted as empty; `--reset-registry` removes everything a registry import wrote; a role the store cannot take is
  * refused before anything is sealed.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { appendRulings } from "../src/core/owner-rulings/ruling-store.js";
@@ -114,6 +114,36 @@ describe("a sealed registry that cannot be read is refused, not counted as empty
     const r = capture(["ds", "import", tokens, "--dir", project, "--json"]);
     expect(json(r.out).error!.code).toBe("BAD_SEALED_REGISTRY");
     expect(existsSync(join(project, "design", "design.tokens.json"))).toBe(false);
+  });
+  it("a sealed default registry that is not JSON (merge-conflict markers) is refused with and without --force, and nothing is written", () => {
+    const { project, tokens, registry } = sealed();
+    const file = join(project, "design", "component-registry.json");
+    writeFileSync(file, "<<<<<<< HEAD\n{}\n");
+    const forced = capture(["ds", "import", tokens, "--registry", registry, "--dir", project, "--force", "--json"]);
+    expect(json(forced.out).error!.code).toBe("BAD_SEALED_REGISTRY");
+    expect(json(forced.out).error!.message).toContain("--reset-registry");
+    rmSync(join(project, "design", "design.tokens.json"));
+    const plain = capture(["ds", "import", tokens, "--dir", project, "--json"]);
+    expect(json(plain.out).error!.code).toBe("BAD_SEALED_REGISTRY");
+    expect(existsSync(join(project, "design", "figma-component-registry.json"))).toBe(false);
+    expect(readFileSync(file, "utf8")).toBe("<<<<<<< HEAD\n{}\n");
+  });
+  it("--reset-registry rewrites the default path: the alternate registry is never created and the store verifies", () => {
+    const { project, tokens } = sealed();
+    writeFileSync(join(project, "design", "component-registry.json"), "<<<<<<< HEAD\n{}\n");
+    const r = capture(["ds", "import", tokens, "--dir", project, "--force", "--reset-registry", "--json"]);
+    expect(r.code, r.out).toBe(0);
+    expect(existsSync(join(project, "design", "figma-component-registry.json"))).toBe(false);
+    expect(sealRegistry(project).components).toEqual([]);
+    expect(capture(["ds", "status", "--dir", project, "--json"]).code).toBe(0);
+  });
+  it("a foreign file at the default path of a project with no sealed manifest behaves as it always did: left alone, the registry goes beside it", () => {
+    const { tokens } = ingest(smallScan());
+    const project = projectWith({ "package.json": "{}", "design/component-registry.json": "{ foreign, not a registry" });
+    const r = capture(["ds", "import", tokens, "--dir", project, "--json"]);
+    expect(r.code, r.out).toBe(0);
+    expect(readFileSync(join(project, "design", "component-registry.json"), "utf8")).toBe("{ foreign, not a registry");
+    expect(existsSync(join(project, "design", "figma-component-registry.json"))).toBe(true);
   });
   it("--reset-registry is the explicit way out: it replaces the unreadable registry and the store verifies", () => {
     const { project, tokens, registry } = sealed();
