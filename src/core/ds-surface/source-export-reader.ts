@@ -12,13 +12,19 @@
  * keyword (in markup text, a regular-expression literal, a namespace or ambient module body) is listed under `unread` and
  * is never a component, a re-export or a collision member.
  *
- * Known limit, not built: markup that sits inside no bracket (a multi-line `export const X = <pre> ... </pre>` written
- * without parentheses) whose text has a line starting with `export const <UpperCamel> =` is read as a declaration. A
- * formatter wraps such markup in parentheses. A regular-expression literal that holds a bracket skews the depth, so the
- * exports after it are listed instead of read: a listed export is visible, a phantom record is a wrong fact.
+ * Known limits, not built (they need a lexer for regular-expression literals and markup text: one follow-up, gated by
+ * `tests/ds-surface-oracle-typescript.test.ts`, whose table of known limits states each as it behaves today):
+ *  - markup that sits inside no bracket (a multi-line `export const X = <pre> ... </pre>` written without parentheses)
+ *    whose text has a line that starts a declaration (`export const`, `export function`, `export default function`,
+ *    `export { X }`) is read as a declaration; a formatter wraps such markup in parentheses;
+ *  - a regular-expression literal that holds a bracket, or an opener in markup text (`<li>(optional</li>`), skews the
+ *    bracket depth, so the exports after it are listed instead of read;
+ *  - a regular expression that holds a backtick on a line that also opens a real template, or two regular expressions
+ *    with a backtick, shifts the string phase (the masker's header says how far the reader trusts such a file).
+ * A listed export is visible; a phantom record is a wrong fact. A keyword is in exactly one of `claimed` and `listed`.
  */
 import { basename } from "node:path";
-import { DECL, EXPORT_ASSIGNMENT, EXPORT_KEYWORD, MARKUP, TYPE_ONLY_EXPORT, extraDeclarators, firstUpperWord, spanFrom } from "./export-declaration-patterns.js";
+import { EXPORT_ASSIGNMENT, EXPORT_KEYWORD, MARKUP, TYPE_ONLY_EXPORT, extraDeclarators, firstUpperWord, indexDeclarations, spanFrom } from "./export-declaration-patterns.js";
 import { statementPositions } from "./export-statement-position.js";
 import { blankComments, blankStrings, lineIndexOf, lineStarts, scanSource, undecidedFromLine } from "./source-text-masks.js";
 
@@ -41,6 +47,8 @@ export interface SourceExports { components: ExportedComponent[]; reExports: ReE
 
 /** Component names are upper-camel with at least one lower-case letter: `API_URL` is a constant, not a component. */
 export const isComponentName = (name: string): boolean => /^[A-Z][A-Za-z0-9]*[a-z][A-Za-z0-9]*$/.test(name);
+
+const NOT_AT_STATEMENT = "an `export` keyword that is not at the start of a top-level statement is not read as a declaration (it stands in markup text, a regular expression or a namespace body, or after an unclosed bracket in text or in a regular expression earlier in the file)";
 
 export function readComponentExports(file: string, source: string): SourceExports {
   const out: SourceExports = { components: [], reExports: [], unread: [], accounting: { keywords: 0, claimed: 0, listed: 0 } };
@@ -78,6 +86,11 @@ export function readComponentExports(file: string, source: string): SourceExport
     }
     if (seen.has(name)) { if (isDefault) { const read = out.components.find((c) => c.name === name); if (read !== undefined) read.isDefault = true; } return; }
     const span = spanFrom(lines, idx);
+    if (undecided(span.endLine - 1)) { // the declaration starts before the boundary but runs into it: its slice cannot be trusted
+      out.unread.push({ name, line: span.startLine, reason: `the string structure of this file could not be decided from line ${cutoff + 1} on, and this declaration runs into it, so it is not read as a component` });
+      seen.add(name);
+      return;
+    }
     if (!MARKUP.test(lines.slice(span.startLine - 1, span.endLine).join("\n"))) {
       out.unread.push({ name, line: span.startLine, reason: "the declaration holds no markup, so it is not read as a component" });
       seen.add(name);
@@ -91,7 +104,8 @@ export function readComponentExports(file: string, source: string): SourceExport
     seen.add(name);
     out.components.push({ name, isDefault, ...span });
   };
-  const localDecl = (name: string): number => lines.findIndex((l) => DECL(name).test(l)); // an exported declaration is the declaration `export default X` and `export { X }` name
+  let declarations: Map<string, number> | undefined; // indexed once per file: a braced export can name thousands of bindings
+  const localDecl = (name: string): number => (declarations ??= indexDeclarations(lines)).get(name) ?? -1; // an exported declaration is the declaration `export default X` and `export { X }` name
 
   /** One statement that starts at an `export` keyword (`rest` is the text from the keyword to the end of its line); true when a reader took it. */
   const readStatement = (rest: string, idx: number): boolean => {
@@ -132,13 +146,17 @@ export function readComponentExports(file: string, source: string): SourceExport
   // `export =` counts only as a statement: `<Tool export={x} />` is an attribute.
   const keywords = found.filter((p) => standing.has(p) || !EXPORT_ASSIGNMENT.test(text.slice(p, p + 24)));
   const claimed = new Set<number>();
+  const setAsideBraced = new Set<number>(); // braced statements that put a name in `unread` and read none: counted as listed
   const braceReExports: ReExport[] = []; // appended after the star re-exports, the order the output has always had
 
   // `export { A, B as C }` and `export { A } from "./a"` can span lines, so they are read on the whole text.
   for (const m of text.matchAll(/(^|[\s;}])export\s+(type\s+)?\{([^}]*)\}\s*(?:from\s*['"]([^'"]+)['"])?/g)) {
     if (!standing.has((m.index ?? 0) + (m[1] as string).length) || undecided(lineIndexOf(starts, (m.index ?? 0) + (m[1] as string).length))) continue; // not a declaration: the keyword loop lists it
-    claimed.add((m.index ?? 0) + (m[1] as string).length);
+    const keywordAt = (m.index ?? 0) + (m[1] as string).length;
+    claimed.add(keywordAt);
     if (m[2] !== undefined) continue;
+    const unreadBefore = out.unread.length;
+    const componentsBefore = out.components.length;
     const names = (m[3] as string).split(",").map((s) => s.trim()).filter((s) => s !== "").map((part) => {
       const [local, exported] = part.split(/\s+as\s+/);
       return { local: local as string, exported: exported ?? (local as string) };
@@ -155,22 +173,29 @@ export function readComponentExports(file: string, source: string): SourceExport
       if (at === -1) out.unread.push({ name, line: reportAt + 1, reason: "the exported binding is not declared in this file" });
       else add(name, isDefault, at);
     }
+    if (readsComponents && spec === undefined && out.unread.length > unreadBefore && out.components.length === componentsBefore) setAsideBraced.add(keywordAt);
   }
 
   for (const p of keywords) {
     out.accounting.keywords++;
-    if (claimed.has(p)) { out.accounting.claimed++; continue; }
+    if (claimed.has(p)) { out.accounting[setAsideBraced.has(p) ? "listed" : "claimed"]++; continue; }
     const idx = lineIndexOf(starts, p);
     const end = text.indexOf("\n", p);
     const rest = text.slice(p, end === -1 ? undefined : end);
     const listIt = (name: string, reason: string): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting.listed++; };
     if (undecided(idx)) { listIt(firstUpperWord(rest), `the string structure of this file could not be decided from line ${cutoff + 1} on, so this \`export\` keyword is not read as a declaration`); continue; }
-    if (!standing.has(p)) { listIt(firstUpperWord(rest), "an `export` keyword that is not at the start of a top-level statement is not read as a declaration"); continue; }
+    if (!standing.has(p)) { listIt(firstUpperWord(rest), NOT_AT_STATEMENT); continue; }
     if (EXPORT_ASSIGNMENT.test(rest)) { listIt("(export =)", "an export assignment is not read"); continue; }
     const namespace = /^export\s*(?:type\s*)?\*\s*as\s+([A-Za-z_$][\w$]*)\s*from/.exec(rest);
     if (namespace !== null) { listIt(namespace[1] as string, "`export * as <name> from` re-exports a namespace: it is listed here and not followed as a barrel"); continue; }
     if (!readsComponents) { readStatement(rest, idx); out.accounting.claimed++; continue; } // a script file holds no component: only its barrel re-exports are read
-    if (readStatement(rest, idx) || TYPE_ONLY_EXPORT.test(rest)) { out.accounting.claimed++; continue; }
+    const unreadBefore = out.unread.length;
+    const componentsBefore = out.components.length;
+    if (readStatement(rest, idx) || TYPE_ONLY_EXPORT.test(rest)) {
+      // a keyword is in exactly one of claimed and listed: one that put a reason in `unread` and read no component is listed
+      out.accounting[out.unread.length > unreadBefore && out.components.length === componentsBefore ? "listed" : "claimed"]++;
+      continue;
+    }
     listIt(firstUpperWord(rest), "export form not read");
   }
   out.reExports.push(...braceReExports);

@@ -118,7 +118,7 @@ describe("table 1: the fixed shapes of the reviews", () => {
 const LIMITS: { title: string; src: string; today: Partial<Verdict> }[] = [
   {
     title: "known limit (lexer follow-up): a regular expression with a backtick on a line that opens a real template reads template text as a component",
-    src: "const a = /`/.test(x) ? `\nexport function Ghost() { return <b />; }\n` : \"\";\nexport function Real() { return <i />; }\n",
+    src: "const a = /`/.test(x) ? `\nexport function Ghost() { return <b />; }\nconst marker = 1;\n` : \"\";\nexport function Real() { return <i />; }\n",
     today: { claimed: [], phantoms: ["Ghost"], listed: ["Real"], silentDrops: [] },
   },
   {
