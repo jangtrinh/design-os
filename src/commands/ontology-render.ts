@@ -33,6 +33,7 @@ export function summaryText(o: Ontology): string {
   lines.push("Sources");
   for (const s of o.sources) {
     lines.push(`  ${pad(s.kind, 10)}${pad(s.status, 11)}${s.note}`);
+    if (s.leftOut !== undefined) lines.push(`    ${s.seen ?? 0} seen; left out: ${Object.entries(s.leftOut).map(([why, n]) => `${n} ${why}`).join("; ")}`);
     for (const d of s.doors ?? []) lines.push(`    ${pad(d.door === "figma" ? "Figma" : "code", 8)}${pad(d.status, 11)}${d.note}`);
   }
   lines.push("", "Coverage", coverageText(o), "", linksText(o.linkReports));

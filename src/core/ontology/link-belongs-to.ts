@@ -20,7 +20,7 @@ export function belongsToLinks(s: NodeSources): { links: OntLink[]; report: Link
   const ties = tieEntries(meta, s.nodes);
   for (const e of meta.entries) {
     const screen = ties.tied.get(e.id);
-    if (screen === undefined || e.app === undefined) continue;
+    if (screen === undefined || e.app === undefined || e.featureBad === true) continue;
     links.push({ kind: "belongs-to", from: screen, to: e.feature === undefined ? nodeId("app", e.app) : nodeId("feature", `${e.app}/${e.feature}`) });
   }
   report.unresolved = ties.untied.length;

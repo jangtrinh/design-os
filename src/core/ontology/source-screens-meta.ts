@@ -13,13 +13,16 @@ import { join } from "node:path";
 import { nodeId } from "./node-ids.js";
 import { BAD_SOURCE, OntologyReadError, parseSourceJson, readSourceText } from "./read-error.js";
 import { byText } from "./ontology-types.js";
+import { isBadString, leave, leftOutRecord } from "./left-out.js";
+import type { LeftOut } from "./left-out.js";
 import type { OntNode, SourceReport } from "./ontology-types.js";
 
 export const SCREENS_META_REL = "design/knowledge/screens.meta.json";
 export const SCREENS_META_SCHEMA = "screens-meta/1";
 const COPIED_FIELDS = ["name", "kind", "page", "purpose"] as const;
 
-export interface MetaEntry { id: string; app?: string; feature?: string; figmaId?: string; fields: Record<string, string> }
+/** `featureBad`: the entry has a `feature` key whose value is not a non-empty string. It is counted, and the screen gets no belongs-to from the entry (an entry with no `feature` key at all belongs to its app). */
+export interface MetaEntry { id: string; app?: string; feature?: string; featureBad?: true; figmaId?: string; fields: Record<string, string> }
 export interface MetaFeature { app: string; name: string; id: string }
 export interface MetaFact {
   entries: MetaEntry[];
@@ -51,14 +54,19 @@ export function readScreensMeta(projectDir: string): MetaRead {
   const apps = new Set<string>();
   const features = new Map<string, MetaFeature>();
   let withoutApp = 0;
+  const left: LeftOut = new Map();
   for (const [id, raw] of Object.entries(screens).sort((a, b) => byText(a[0], b[0]))) {
     if (!isObj(raw)) throw bad(`the entry '${id}' is not an object`);
     const app = str(raw["app"]);
     const feature = str(raw["feature"]);
     const figmaId = str(raw["figmaId"]);
     const fields = Object.fromEntries(COPIED_FIELDS.flatMap((k) => (str(raw[k]) === undefined ? [] : [[k, str(raw[k]) as string]])));
-    entries.push({ id, ...(app === undefined ? {} : { app }), ...(feature === undefined ? {} : { feature }), ...(figmaId === undefined ? {} : { figmaId }), fields });
-    if (app === undefined) { withoutApp++; continue; }
+    const featureBad = isBadString(raw, "feature");
+    if (featureBad) leave(left, "feature that is not a string, so the entry gives its screen no parent");
+    if (isBadString(raw, "figmaId")) leave(left, "figmaId that is not a string");
+    for (const k of COPIED_FIELDS) if (isBadString(raw, k) && !(k in raw && raw[k] === "")) leave(left, "meta field (name, kind, page, purpose) that is not a string");
+    entries.push({ id, ...(app === undefined ? {} : { app }), ...(feature === undefined ? {} : { feature }), ...(featureBad ? { featureBad: true as const } : {}), ...(figmaId === undefined ? {} : { figmaId }), fields });
+    if (app === undefined) { withoutApp++; leave(left, isBadString(raw, "app") ? "app that is not a string" : "without an app"); continue; }
     apps.add(app);
     if (feature !== undefined) features.set(nodeId("feature", `${app}/${feature}`), { app, name: feature, id: nodeId("feature", `${app}/${feature}`) });
   }
@@ -66,13 +74,16 @@ export function readScreensMeta(projectDir: string): MetaRead {
     ...[...apps].map((a): OntNode => ({ id: nodeId("app", a), kind: "app", name: a })),
     ...[...features.values()].map((f): OntNode => ({ id: f.id, kind: "feature", name: f.name })),
   ];
+  const lost = (Array.isArray(unassigned) ? unassigned : []).filter((u) => !isObj(u)).length;
+  if (lost > 0) leave(left, "unassigned entry that is not an object", lost);
+  const leftOut = leftOutRecord(left);
   const meta: MetaFact = { entries, apps: [...apps].sort(byText), features: [...features.values()].sort((a, b) => byText(a.id, b.id)), unassigned: unassigned?.length ?? 0, withoutApp };
   const tail = `${entries.length} screen entr${entries.length === 1 ? "y" : "ies"}, ${meta.unassigned} unassigned${withoutApp > 0 ? `, ${withoutApp} without an app left out and counted` : ""}`;
   return {
     meta, nodes,
     reports: [
-      { kind: "app", status: "read", nodes: apps.size, note: `${apps.size} app(s) from ${SCREENS_META_REL} (${tail})` },
-      { kind: "feature", status: "read", nodes: features.size, note: `${features.size} feature(s) from ${SCREENS_META_REL} (${tail})` },
+      { kind: "app", status: "read", nodes: apps.size, note: `${apps.size} app(s) from ${SCREENS_META_REL} (${tail})`, seen: entries.length, ...(leftOut === undefined ? {} : { leftOut }) },
+      { kind: "feature", status: "read", nodes: features.size, note: `${features.size} feature(s) from ${SCREENS_META_REL} (${tail})`, seen: entries.length, ...(leftOut === undefined ? {} : { leftOut }) },
     ],
   };
 }
