@@ -13,6 +13,7 @@ describe("extractCommands takes a command from every form the tool prints", () =
     ["run with single quotes", "no design-os agents under 'x' — agents are opt-in; run 'ui agents init' to create them", [["agents", "init"]]],
     ["run without quotes", "then run ui ontology build to refresh it", [["ontology", "build"]]],
     ["backticks", "run `ui ontology build`, then `ui agents check` prints the command", [["ontology", "build"], ["agents", "check"]]],
+    ["a command followed by a sentence", "  ✗ [x]: it is stale; regenerate it: ui agents init --force --runtimes claude. The Codex section cannot be regenerated: shorten the text.", [["agents", "init", "--force", "--runtimes", "claude"]]],
     ["run in a sentence stops at the prose", "fix it or remove it, then run ui ontology build again", [["ontology", "build"]]],
   ];
   for (const [label, text, want] of cases) {

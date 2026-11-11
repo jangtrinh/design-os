@@ -10,7 +10,7 @@ import { shellWords } from "./ontology-query-helpers.js";
 export const QUERY_PLACEHOLDER = "<your task>";
 
 const CODE_SUFFIX = /\s*\([A-Z][A-Z_]+\)\s*$/;
-const clean = (raw: string): string => raw.trim().replace(CODE_SUFFIX, "").replace(/[.;,]+$/, "").trim();
+const clean = (raw: string): string => (raw.split(/\.\s+(?=[A-Z])/)[0] as string).trim().replace(CODE_SUFFIX, "").replace(/[.;,]+$/, "").trim();
 
 const PROSE = new Set(["again", "to", "then", "and", "so", "it", "for", "before", "after", "which", "when"]);
 /** An unquoted "run ui ..." in a sentence: the words that look like a command, up to the first word of prose. */

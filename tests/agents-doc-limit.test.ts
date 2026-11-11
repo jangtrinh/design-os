@@ -45,21 +45,25 @@ describe("ui agents init measures the file that would result", () => {
     expect(done.code).toBe(1);
     const err = JSON.parse(done.out).error as { code: string; message: string };
     expect(err.code).toBe("AGENTS_DOC_OVER_LIMIT");
-    expect(err.message).toContain("would read only the first 32768 bytes of AGENTS.md and the agents section would be cut");
-    expect(err.message).toContain(`${fits + 4} bytes`);
-    expect(err.message).toContain(`${section} bytes`);
+    expect(err.message).toContain(`AGENTS.md would be ${LIMIT + 1} bytes, and Codex reads the first 32768 bytes by default, so the last 1 bytes of the file would not be read`);
+    expect(err.message).not.toMatch(/would be cut/);
+    expect(err.message).toContain("nothing was written");
+    const n = (re: RegExp): number => Number(re.exec(err.message)?.[1] ?? 0);
+    expect(n(/the text outside the agents section is (\d+) bytes/), "outside").toBe(fits + 1);
+    expect(n(/, the agents section is (\d+) bytes/), "section").toBe(section);
+    expect(n(/and the (\d+) separator bytes/) + n(/outside the agents section is (\d+) bytes/) + n(/, the agents section is (\d+) bytes/), "the numbers add up to the file size").toBe(LIMIT + 1);
     expect(hashTree(over)).toBe(before);
     expect(existsSync(join(over, ".claude"))).toBe(false);
   });
-  it("every way out the refusal prints succeeds when run as printed, and a shorter roster is one that fits", () => {
+  it("every way out the refusal prints succeeds when run as printed, offers no shorter roster, and the manual action carries a number", () => {
     const { fits } = dims();
     const p = withOwnText(fits + 1);
     const done = init(p);
     expect(done.code).toBe(1);
     const ways = printedCommands(done.err, p);
-    expect(ways.length).toBe(2);
-    expect(ways[0]!.slice(0, 5)).toEqual(["agents", "init", "--runtimes", "claude,antigravity", "--dir"]);
-    expect(ways[1]![2]).toBe("--roster");
+    expect(ways.length).toBe(1);
+    expect(ways[0]!.slice(0, 7)).toEqual(["agents", "init", "--runtimes", "claude,antigravity", "--roster", "designer,curator,figma-hand", "--dir"]);
+    expect(done.err).toContain("or shorten the project's own text in AGENTS.md by at least 1 bytes, then run the command again");
     for (const argv of ways) {
       const q = withOwnText(fits + 1);
       expect(capture([...argv.slice(0, -1), q]).code, argv.join(" ")).toBe(0);

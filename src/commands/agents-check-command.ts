@@ -9,13 +9,15 @@
  *   no-agents            (warning) no stamped agent of any runtime (agents are opt-in)
  * One finding per file; the cure it names reproduces exactly the runtimes and roles found, never more.
  */
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { countBySeverity } from "../core/finding-schema.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
-import { CODEX_PROJECT_DOC_MAX_BYTES } from "../core/agents-doc-limit.js";
+import { CODEX_PROJECT_DOC_MAX_BYTES, docSizes, limitFacts, shrinkAction } from "../core/agents-doc-limit.js";
+import { preflight } from "./agents-preflight.js";
 import { ROSTER } from "../core/agents-gen.js";
 import type { AgentRole } from "../core/agents-gen.js";
 import { blocksIn, stripBlocks } from "../core/agents-areas-block.js";
@@ -75,28 +77,38 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
       else unknownRole("the design-os agents section of AGENTS.md", r);
     }
     const union = new Set<AgentRole>([...rolesOf.values()].flatMap((s) => [...s]));
-    const heal = cure(found, union);
+    // A cure is printed only for the runtimes its own pre-flight would write; what would be refused is said in words.
+    const rosterOfCure = ROSTER.filter((r) => union.has(r));
+    const hostFile = join(root, "AGENTS.md");
+    const refused = found.includes("codex") ? preflight(existsSync(hostFile) ? readFileSync(hostFile, "utf8") : null, ctx, found, rosterOfCure) : null;
+    const writable = refused === null ? found : found.filter((r) => r !== "codex");
+    // `target` is the runtime the finding is about: a finding about the refused Codex section gets the words, not a command.
+    const heal = (what: string, target: Runtime): string => {
+      const manual = refused === null ? "" : `the Codex section cannot be regenerated: ${refused.facts}; ${refused.action}`;
+      if (writable.length === 0 || (refused !== null && target === "codex")) return manual;
+      return `regenerate ${what}: ${cure(writable, union)}${manual === "" ? "" : `. ${manual[0]?.toUpperCase()}${manual.slice(1)}`}`;
+    };
     // "Differs outside the block" and "block differs" are judged apart: outside is the roster, inside is the ontology.
-    const judge = (rel: string, label: string, text: string, expected: string, outsideCode: string, outsideMessage: string): void => {
+    const judge = (target: Runtime, rel: string, label: string, text: string, expected: string, outsideCode: string, outsideMessage: string): void => {
       if (stripBlocks(text) !== stripBlocks(expected)) findings.push({ checkId: outsideCode, severity: "error", message: outsideMessage });
-      else if (ctx.view.state !== "notCurrent" && blocksIn(text).join("") !== blocksIn(expected).join("")) findings.push({ checkId: STALE, severity: "error", message: `the area block of ${label} is not what the ontology gives now (${rel}); regenerate it: ${heal}` });
+      else if (ctx.view.state !== "notCurrent" && blocksIn(text).join("") !== blocksIn(expected).join("")) findings.push({ checkId: STALE, severity: "error", message: `the area block of ${label} is not what the ontology gives now (${rel}); ${heal("it", target)}` });
     };
     for (const { a, role } of claudeFiles) {
-      judge(a.rel, `'${a.name}'`, a.text, agentFile(ctx, "claude", role).content, "agent-stale",
-        `'${a.name}' (${a.stamp.role}) is stale — the file no longer matches its template render; regenerate it: ${heal}`);
+      judge("claude", a.rel, `'${a.name}'`, a.text, agentFile(ctx, "claude", role).content, "agent-stale",
+        `'${a.name}' (${a.stamp.role}) is stale — the file no longer matches its template render; ${heal("it", "claude")}`);
     }
     for (const { a, role } of antigravityFiles) {
-      judge(a.rel, `'${a.name}' for Antigravity`, a.text, agentFile(ctx, "antigravity", role).content, DRIFT,
-        `'${a.rel}' (${a.stamp.role}) differs from the roster outside its area block — a hand edit, a changed template, or a renamed studio or project; regenerate it: ${heal}`);
+      judge("antigravity", a.rel, `'${a.name}' for Antigravity`, a.text, agentFile(ctx, "antigravity", role).content, DRIFT,
+        `'${a.rel}' (${a.stamp.role}) differs from the roster outside its area block — a hand edit, a changed template, or a renamed studio or project; ${heal("it", "antigravity")}`);
     }
-    if (section !== null && section.bytes > CODEX_PROJECT_DOC_MAX_BYTES) findings.push({ checkId: "AGENTS_DOC_OVER_LIMIT", severity: "error", message: `AGENTS.md is ${section.bytes} bytes and Codex reads only the first ${CODEX_PROJECT_DOC_MAX_BYTES} bytes, so the agents section may be cut; shorten the project's own text in AGENTS.md` });
+    if (section !== null && section.bytes > CODEX_PROJECT_DOC_MAX_BYTES) { const sizes = docSizes(readFileSync(hostFile, "utf8"), section.text); findings.push({ checkId: "AGENTS_DOC_OVER_LIMIT", severity: "error", message: `${limitFacts(sizes, false)}; ${shrinkAction(sizes)}` }); }
     if (section !== null) {
-      judge("AGENTS.md", "the design-os agents section of AGENTS.md", section.text, codexSection(ctx, sectionRoles), DRIFT,
-        `the design-os agents section of AGENTS.md differs from the roster outside its area blocks — a hand edit, a changed template, or a renamed studio or project; regenerate it: ${heal}`);
+      judge("codex", "AGENTS.md", "the design-os agents section of AGENTS.md", section.text, codexSection(ctx, sectionRoles), DRIFT,
+        `the design-os agents section of AGENTS.md differs from the roster outside its area blocks — a hand edit, a changed template, or a renamed studio or project; ${heal("it", "codex")}`);
     }
     for (const runtime of found) {
       const missing = ROSTER.filter((r) => union.has(r) && !rolesOf.get(runtime)?.has(r));
-      if (missing.length > 0) findings.push({ checkId: DRIFT, severity: "error", message: `the ${runtime} agents lack the role ${missing.join(", ")} that another runtime holds, so the runtimes do not share one roster; regenerate them: ${heal}` });
+      if (missing.length > 0) findings.push({ checkId: DRIFT, severity: "error", message: `the ${runtime} agents lack the role ${missing.join(", ")} that another runtime holds, so the runtimes do not share one roster; ${heal("them", runtime)}` });
     }
   }
 

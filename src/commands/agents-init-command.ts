@@ -13,7 +13,6 @@ import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { AdapterWriteError, findSentinelBlock, writeAdapterArtifacts } from "../core/adapter-writer.js";
 import type { AdapterArtifact } from "../adapters/index.js";
-import { classifySectionMarkers } from "../core/adapter-section-markers.js";
 import { ROSTER } from "../core/agents-gen.js";
 import type { AgentRole } from "../core/agents-gen.js";
 import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL, agentFile, codexSection, plainRender } from "../core/agents-targets.js";
@@ -21,7 +20,7 @@ import { RUNTIMES } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
 import { closingLines, initLines, priorOf } from "./agents-init-report.js";
 import type { InitRow } from "./agents-init-report.js";
-import { overLimitMessage } from "./agents-doc-limit-refusal.js";
+import { preflight, refusalText } from "./agents-preflight.js";
 import { isFail, isRosterRole, loadProject, regenerateCommand, runtimesWithTargets, targetContext } from "./agents-shared.js";
 
 /** `--runtimes a,b`: the named runtimes in canonical order, or the refusal that names the unknown one. */
@@ -81,19 +80,11 @@ export function runInit(parsed: ParsedArgs): CommandResult {
     }
   }
 
-  // A section whose markers are not one start line followed by one end line is never written over or appended to.
-  if (runtimes.includes("codex") && existsSync(join(proj.root, CODEX_REL))) {
-    const shape = classifySectionMarkers(readFileSync(join(proj.root, CODEX_REL), "utf8"), CODEX_AGENTS_BEGIN, CODEX_AGENTS_END);
-    if (shape.shape === "malformed") return err("AGENTS_SECTION_MALFORMED", `the design-os agents section of AGENTS.md has ${shape.begins} start marker line(s) and ${shape.ends} end marker line(s), so nothing was written; make them one start line followed by one end line, or remove them, then run the command again`);
-  }
-
-  // Codex reads only the first bytes of AGENTS.md: a section it would cut is refused, before anything is written.
-  if (runtimes.includes("codex")) {
-    const file = join(proj.root, CODEX_REL);
-    const rosterNote = typeof parsed.flags["runtimes"] === "string" ? parsed.flags["runtimes"] : null;
-    const cut = overLimitMessage({ host: existsSync(file) ? readFileSync(file, "utf8") : null, roles, ctx, runtimes, runtimesFlag: rosterNote, force: parsed.flags["force"] === true });
-    if (cut !== null) return err("AGENTS_DOC_OVER_LIMIT", cut);
-  }
+  // What the run would be refused for (a section that is not one start line and one end line; a file Codex would read in
+  // part) is answered before anything is written.
+  const file = join(proj.root, CODEX_REL);
+  const refused = preflight(existsSync(file) ? readFileSync(file, "utf8") : null, ctx, runtimes, roles);
+  if (refused !== null) return err(refused.code, refusalText(refused, { runtimes, roles, force: parsed.flags["force"] === true }));
 
   // EXISTS pre-flight — all-or-nothing, never a silent overwrite.
   if (parsed.flags["force"] !== true) {
