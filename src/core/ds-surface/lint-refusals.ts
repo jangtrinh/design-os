@@ -48,6 +48,15 @@ export function withoutLintRefused(plan: RegisterPlan, candidates: readonly Lint
   const dropped = new Set(candidates.map((c) => c.name));
   const batch = plan.batch.filter((b) => !dropped.has(b.name));
   const refreshes = plan.refreshes.filter((r) => !dropped.has(r.name));
+  // A component that is not registered is not "registered with no variants" either: the notRead counts follow the records that stay.
+  const codeName = (name: string): string => (name.endsWith(" · code") ? name.slice(0, -" · code".length) : name);
+  const gone = plan.batch.filter((b) => dropped.has(b.name));
+  const goneNames = new Set(gone.map((b) => codeName(b.name)));
+  preview.notRead = {
+    count: plan.preview.notRead.count - gone.filter((b) => b.variants.length === 0).length,
+    components: plan.preview.notRead.components.filter((n) => !goneNames.has(n)),
+    severalUnions: plan.preview.notRead.severalUnions.filter((n) => !goneNames.has(n)),
+  };
   preview.records = preview.records.filter((r) => !dropped.has(r.name));
   preview.refreshes = preview.refreshes.filter((r) => !dropped.has(r.name));
   preview.ledger = registerLedger(preview, plan.planned);
