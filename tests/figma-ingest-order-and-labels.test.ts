@@ -78,9 +78,10 @@ describe("a question the page answer can dissolve is not asked before it", () =>
   it("archive markers are ruled before duplicate names are asked", () => {
     const project = newProject();
     const lib = page("0:1", "Library");
-    const marked = scanOf({ components: [comp("1:1", "[ARCHIVED] Card", lib), comp("1:2", "Card", lib)] });
+    // two plain "Card" nodes are duplicates whatever the markers say; the marker question is asked first, alone
+    const marked = scanOf({ components: [comp("1:1", "[ARCHIVED] Old", lib), comp("1:2", "Card", lib), comp("1:3", "Card", lib)] });
     expect(kinds(capture([...ingestArgs(writeScan(project, marked), project, newProject()), "--json"]))).toEqual(["archived-marked-nodes"]);
-    const { asked } = ingestUntilReady(writeScan(project, marked), project, newProject(), (c) => (c.kind === "archived-marked-nodes" ? "keep-archived" : "exclude-all"), ["--json"]);
+    const { asked } = ingestUntilReady(writeScan(project, marked), project, newProject(), (c) => (c.kind === "archived-marked-nodes" ? "exclude-archived" : "exclude-all"), ["--json"]);
     expect(asked.map((round) => round.map((c) => c.kind))).toEqual([["archived-marked-nodes"], ["duplicate-component-names"]]);
   });
 });
