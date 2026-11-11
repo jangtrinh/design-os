@@ -66,7 +66,7 @@ describe("ui agents check", () => {
   it("an area block edited by hand, or left from before a rebuild, is ONTOLOGY_STALE until the agents are regenerated", () => {
     const p = projectOf();
     const claude = join(p, claudeFile(p, "designer"));
-    writeFileSync(claude, readFileSync(claude, "utf8").replace("(3 nodes)", "(4 nodes)"));
+    writeFileSync(claude, readFileSync(claude, "utf8").replace("page:Library (3)", "page:Library (4)"));
     expect(codes(p)).toEqual(["ONTOLOGY_STALE"]);
     init(p, "--force");
     expect(check(p).code).toBe(0);

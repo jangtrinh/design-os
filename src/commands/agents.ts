@@ -57,8 +57,8 @@ rename the studio or project → 'ui agents init --force'.
 
 Ontology areas: each agent carries one generated block, fenced by
 <!-- design-os:ontology-areas:start --> and <!-- design-os:ontology-areas:end -->, that lists the areas of
-design/knowledge/ontology.json with their node counts and the exact 'ui ontology query "<your task>" --area "<key>"'
-command for each. It is the one deliberate exception to "never baked": the command regenerates it and 'check' re-renders
+design/knowledge/ontology.json with their node counts, and names the command 'ui ontology query "<your task>" --area "<area key>"'
+once (the Codex section carries one block). It is the one deliberate exception to "never baked": the command regenerates it and 'check' re-renders
 it from the ontology file and compares. A project with no ontology gets a block that says so and names 'ui ontology build'.
 
 'init' options:

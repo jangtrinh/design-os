@@ -2,7 +2,7 @@
  * The three runtime targets of one roster (templates/agents/<role>.md), rendered from the same text:
  *   claude       .claude/agents/<name>.md                      the render, then the area block (bytes outside it are today's)
  *   antigravity  .agent/skills/design-os-agent-<name>/SKILL.md       skill frontmatter, the same body, the area block
- *   codex        the design-os agents section of AGENTS.md     one section per role, the same body, one area block each
+ *   codex        the design-os agents section of AGENTS.md     one area block under the heading, then one section per role with the same body
  * Pure and fs-free; the command layer reads and writes. Every target carries the roster stamp of the role it renders, so
  * `ui agents check` can tell which role a file holds and compare it with a fresh render.
  */
@@ -55,8 +55,8 @@ export function agentFile(ctx: TargetContext, runtime: "claude" | "antigravity",
 /** The design-os agents section of AGENTS.md for the given roles, in roster order; sentinels included. */
 export function codexSection(ctx: TargetContext, roles: readonly AgentRole[]): string {
   const block = renderAreasBlock(ctx.view, "codex");
-  const sections = ROSTER.filter((r) => roles.includes(r)).map((r) => { const { name, text } = plainRender(ctx, r); return `\n### ${name}\n${parts(text).body}${block}`; });
-  return `${CODEX_AGENTS_BEGIN}\n## design-os agents\n${sections.join("")}${CODEX_AGENTS_END}`;
+  const sections = ROSTER.filter((r) => roles.includes(r)).map((r) => { const { name, text } = plainRender(ctx, r); return `\n### ${name}\n${parts(text).body}`; });
+  return `${CODEX_AGENTS_BEGIN}\n## design-os agents\n${block}${sections.join("")}${CODEX_AGENTS_END}`;
 }
 
 export const RUNTIME_LABEL: Record<Runtime, string> = { claude: "Claude Code", codex: "Codex", antigravity: "Antigravity" };

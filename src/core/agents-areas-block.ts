@@ -36,8 +36,10 @@ export function renderAreasBlock(view: OntologyView, runtime: Runtime): string {
   const body = view.state === "areas"
     ? view.areas.length === 0
       ? ["The ontology holds no area yet (no component, token or ruling carries one): query it without --area, for example `ui ontology query \"<your task>\"`."]
-      : ["Ontology areas of this project. Before design work, find what it knows with the command of the area the task belongs to:",
-        ...view.areas.map((a) => `- ${a.key} (${a.nodes} node${a.nodes === 1 ? "" : "s"}): \`ui ontology query "<your task>" --area ${shellQuote(a.key)}\``)]
+      : ["Ontology areas of this project. Before design work, ask the ontology what it knows about the area the task belongs to:",
+        "`ui ontology query \"<your task>\" --area \"<area key>\"`",
+        "Area keys, with the number of nodes in each:",
+        ...view.areas.map((a) => `- ${shellQuote(a.key).slice(1, -1)} (${a.nodes})`)]
     : view.state === "notCurrent"
     ? [`The ontology file (design/knowledge/ontology.json) is not current, so no area is listed: ${view.sentence}.`, ...(view.next === null ? [] : [`Next: ${view.next}`]), "Then: ui agents init --force"]
     : [view.state === "missing"

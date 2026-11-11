@@ -33,14 +33,14 @@ describe("one roster, three targets", () => {
     const agents = read(p, "AGENTS.md");
     expect(agents.startsWith(CODEX_AGENTS_BEGIN)).toBe(true);
     expect(agents.trimEnd().endsWith(CODEX_AGENTS_END)).toBe(true);
-    expect(blocksIn(agents)).toHaveLength(3);
+    expect(blocksIn(agents)).toHaveLength(1);
     for (const file of [read(p, claudeFile(p, "designer")), read(p, `.agent/skills/design-os-agent-designer-${n}/SKILL.md`), agents]) {
       const block = blocksIn(file)[0]!;
       expect(block.startsWith(BLOCK_START)).toBe(true);
       expect(block.trimEnd().endsWith(BLOCK_END)).toBe(true);
       for (const key of ["page:Library", "tokens:color", "tokens:space"]) expect(block).toContain(key);
-      expect(block).toContain('`ui ontology query "<your task>" --area "page:Library"`');
-      expect(block).toMatch(/page:Library \(3 nodes\)/);
+      expect(block).toContain('`ui ontology query "<your task>" --area "<area key>"`');
+      expect(block).toContain("- page:Library (3)");
     }
     expect(done.out).toMatch(/agent written: .*\(designer\)/);
   });

@@ -87,8 +87,9 @@ of `--runtimes` is the `RUNTIMES` constant, not what is installed:
 skills and workflows for antigravity and codex through a separate mechanism, see the adapters under `src/adapters/`.
 
 Each rendered agent carries one generated block between `<!-- design-os:ontology-areas:start -->` and
-`<!-- design-os:ontology-areas:end -->`: one line per area of `design/knowledge/ontology.json` with its node count and the
-exact `ui ontology query "<your task>" --area "<key>"` command, and how to ask the owner an open ruling question (Claude
+`<!-- design-os:ontology-areas:end -->`: the command `ui ontology query "<your task>" --area "<area key>"` once, then one line per
+area of `design/knowledge/ontology.json` with its key and node count (the Codex section carries one block, under its
+heading, not one per role), and how to ask the owner an open ruling question (Claude
 Code: `AskUserQuestion` with the options `ui onboard questions --format claude` prints; the other runtimes: print the
 numbered questions `ui onboard questions` prints and wait). With no ontology the block says so and names
 `ui ontology build`. It is the one deliberate exception to §3: it sits between markers, `ui agents init --force`
