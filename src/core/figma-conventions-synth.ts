@@ -54,6 +54,8 @@ export interface DsScale {
 
 export interface SynthResult {
   conventionsMd: string;
+  /** The rollup the Markdown was built from: the machine form (design/conventions.json) is emitted from the same numbers. */
+  totals: Totals;
   insights: string[];
   stats: {
     sections: number;
@@ -214,6 +216,7 @@ export function synthesizeConventions(dna: SectionDNA[], ds: DsScale | undefined
   const insights = deriveInsights(totals, ds, deviations);
   return {
     conventionsMd: md,
+    totals,
     insights,
     stats: {
       sections: totals.sections,
