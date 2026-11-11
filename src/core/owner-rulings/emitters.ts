@@ -17,6 +17,7 @@ import { componentSourceMatchEmitter } from "./kind-component-source-match.js";
 import { duplicateComponentNamesEmitter } from "./kind-duplicate-component-names.js";
 import { figmaCollectionsEmitter } from "./kind-figma-collections.js";
 import { figmaLibraryPagesEmitter } from "./kind-figma-library-pages.js";
+import { inferredLinksEmitter } from "./kind-inferred-links.js";
 import { scanBudgetEmitter } from "./kind-scan-budget.js";
 import { screenPagesEmitter } from "./kind-screen-pages.js";
 import { sourceAuthorityEmitter } from "./kind-source-authority.js";
@@ -40,8 +41,7 @@ export const EMITTERS: readonly KindEmitter[] = [
   componentSourceMatchEmitter,
   componentSourceChangedEmitter,
   componentLintRefusedEmitter,
+  inferredLinksEmitter,
 ];
 
-export const KINDS_WITHOUT_EMITTER: readonly ClusterKind[] = [
-  "inferred-links",
-];
+export const KINDS_WITHOUT_EMITTER: readonly ClusterKind[] = [];
