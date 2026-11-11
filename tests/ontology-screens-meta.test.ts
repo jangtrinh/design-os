@@ -59,6 +59,26 @@ describe("what is read from the real shape", () => {
   });
 });
 
+describe("one figmaId, one entry", () => {
+  const claimed = (): string => project({ screens: {
+    a: entry({ figmaId: "5:1", name: "First", feature: "settings" }),
+    b: entry({ figmaId: "5:1", name: "Second", app: "admin", feature: "billing" }),
+    c: entry({ figmaId: "5:2", name: "Alone" }),
+  } });
+  it("an id two entries claim ties neither: no metadata, no parent, both counted with the reason, app and feature still read", () => {
+    const p = claimed();
+    expect(build(p).code).toBe(0);
+    const o = ontologyOf(p);
+    expect(pairs(p, "belongs-to").filter((l) => l.startsWith("screen:5:1>"))).toEqual([]);
+    expect(o.nodes.find((n) => n.id === "screen:5:1")!["meta"]).toBeUndefined();
+    const r = o.linkReports.find((x) => x.link === "belongs-to")!;
+    expect(r.unresolved).toBe(2);
+    expect(r.details.join(" ")).toContain("2 entries claim one figmaId, 5:1");
+    expect(o.nodes.map((n) => n.id)).toEqual(expect.arrayContaining(["feature:admin/billing", "feature:web/settings"]));
+    expect(pairs(p, "belongs-to")).toContain("screen:5:2>feature:web/checkout");
+  });
+});
+
 describe("a file that declares the schema and cannot be read in this shape", () => {
   it.each([
     ["screens is a list", { screens: [] }],
