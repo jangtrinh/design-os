@@ -10,7 +10,7 @@
  *
  * Pure except fs reads; deterministic (every list is sorted by path).
  */
-import { closeSync, openSync, readSync } from "node:fs";
+import { closeSync, existsSync, openSync, readFileSync, readSync } from "node:fs";
 import { join } from "node:path";
 
 export interface AppRoot {
@@ -45,6 +45,21 @@ export interface WalkFindings {
 export const FRAMEWORK_PRIORITY = ["next", "react", "vue", "svelte", "astro", "vite"];
 const CSS_HEAD_BYTES = 4096;
 const TAILWIND_V4_RE = /@import\s+(?:url\()?["']tailwindcss(?:["']|\/)|@theme\b/;
+
+/** Merge dependencies + devDependencies from a package.json directory (empty on any error). */
+export function readDeps(root: string): Record<string, string> {
+  const pkgPath = join(root, "package.json");
+  if (!existsSync(pkgPath)) return {};
+  try {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    return { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+  } catch {
+    return {};
+  }
+}
 
 export function frameworkOf(deps: Record<string, string>): string | null {
   return FRAMEWORK_PRIORITY.find((fw) => fw in deps) ?? null;

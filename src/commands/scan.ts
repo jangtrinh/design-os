@@ -20,6 +20,8 @@ import type { CommandResult } from "../core/output.js";
 import { errJson, errText, okJson } from "../core/output.js";
 import { scanProject } from "../core/project-scan.js";
 import type { ScanResult } from "../core/project-scan.js";
+import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
+import { scanRulingsOf } from "../core/project-scan-rulings.js";
 
 const CMD = "scan";
 
@@ -33,7 +35,9 @@ approach, representative CSS/HTML files, component directories, nested app
 roots (a package.json below the root, with its framework and Tailwind v4 CSS
 entry), and whether a compiled design system is already present — then prints
 a routing verdict. When the walk hits its entry cap, it says which first-level
-directories consumed the budget. Dot-directories are not walked.
+directories consumed the budget. Dot-directories are not walked. Directories
+and app roots the owner ruled on (design/design-dir.json, onboard.scan) are
+honoured and named in the output; with no ruling the walk is unchanged.
 
 Options:
   --cwd <path>  Directory to scan (default: current working directory)
@@ -92,6 +96,10 @@ function formatText(r: ScanResult): string {
     );
     if (r.budget.length > 1) lines.push(`budget: ${r.budget.map((b) => `${b.dir} (${b.visited})`).join(", ")}`);
   }
+  if (r.honoured !== undefined) {
+    const parts = [...(r.honoured.skip.length > 0 ? [`skipped ${r.honoured.skip.join(", ")}`] : []), ...(r.honoured.roots.length > 0 ? [`kept app roots ${r.honoured.roots.join(", ")}`] : [])];
+    lines.push(`owner rulings honoured: ${parts.join("; ")} (design/design-dir.json)`);
+  }
   lines.push(VERDICT_LINE[r.verdict]);
   return lines.join("\n") + "\n";
 }
@@ -121,8 +129,10 @@ export const scanCommand = {
 
     let result: ScanResult;
     try {
-      result = scanProject(root);
+      result = scanProject(root, scanRulingsOf(root));
     } catch (e) {
+      // A ruling that cannot be read cannot be honoured: say so instead of walking as if there were none.
+      if (e instanceof RulingStoreError) return useJson ? errJson(CMD, e.code, e.message) : errText(`ui: ${e.message}\n`);
       const msg = `scan failed for '${root}': ${e instanceof Error ? e.message : String(e)}`;
       return useJson ? errJson(CMD, "READ_ERROR", msg) : errText(`ui: ${msg}\n`);
     }
