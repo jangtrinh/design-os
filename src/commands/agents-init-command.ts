@@ -1,6 +1,6 @@
 /**
  * `ui agents init` — one roster (templates/agents/<role>.md) rendered to each selected runtime's target: Claude Code
- * (.claude/agents/<name>.md), Antigravity (.agent/skills/design-os-<name>/SKILL.md) and Codex (the design-os agents
+ * (.claude/agents/<name>.md), Antigravity (.agent/skills/design-os-agent-<name>/SKILL.md) and Codex (the design-os agents
  * section of AGENTS.md, written through the upsert-section artifact, so the text around it is never rewritten). Each
  * agent carries the generated ontology-areas block. The default of --runtimes is the RUNTIMES constant, not what is
  * installed. All-or-nothing: an existing target without --force is refused before anything is written.

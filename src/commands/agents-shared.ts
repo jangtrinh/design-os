@@ -15,7 +15,7 @@ import type { AgentRole, AgentStamp } from "../core/agents-gen.js";
 import { ontologyView } from "../core/agents-areas-block.js";
 import type { OntologyView } from "../core/agents-areas-block.js";
 import { judgeCurrentOnDisk } from "./ontology-current.js";
-import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL } from "../core/agents-targets.js";
+import { ANTIGRAVITY_AGENT_PREFIX, CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL } from "../core/agents-targets.js";
 import type { TargetContext } from "../core/agents-targets.js";
 import { classifySectionMarkers } from "../core/adapter-section-markers.js";
 import type { MarkerReport } from "../core/adapter-section-markers.js";
@@ -110,8 +110,8 @@ export function scanAntigravity(root: string): ScannedAgent[] | Fail {
   const dir = join(root, ".agent", "skills");
   if (!existsSync(dir)) return [];
   try {
-    const names = readdirSync(dir).filter((d) => d.startsWith("design-os-") && existsSync(join(dir, d, "SKILL.md"))).sort();
-    return stamped(names.map((d) => ({ name: d.slice("design-os-".length), rel: `.agent/skills/${d}/SKILL.md`, path: join(dir, d, "SKILL.md") })));
+    const names = readdirSync(dir).filter((d) => d.startsWith(ANTIGRAVITY_AGENT_PREFIX) && existsSync(join(dir, d, "SKILL.md"))).sort();
+    return stamped(names.map((d) => ({ name: d.slice(ANTIGRAVITY_AGENT_PREFIX.length), rel: `.agent/skills/${d}/SKILL.md`, path: join(dir, d, "SKILL.md") })));
   } catch (e) { return fail("READ_ERROR", `cannot read '${dir}': ${errText(e)}`); }
 }
 

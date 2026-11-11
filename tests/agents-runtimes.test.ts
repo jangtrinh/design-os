@@ -23,18 +23,18 @@ describe("one roster, three targets", () => {
     const n = name(p);
     for (const role of ROLES) {
       const claude = read(p, claudeFile(p, role));
-      const skill = read(p, `.agent/skills/design-os-${prefix(role)}-${n}/SKILL.md`);
+      const skill = read(p, `.agent/skills/design-os-agent-${prefix(role)}-${n}/SKILL.md`);
       const stamp = /<!-- design-os agents · roster-role: ([a-z-]+) · template-hash: ([0-9a-f]{8}) -->/.exec(claude)!;
       expect(stamp[1]).toBe(role);
       expect(skill).toContain(stamp[0]);
       expect(read(p, "AGENTS.md")).toContain(stamp[0]);
     }
-    expect(read(p, ".agent/skills/design-os-designer-" + n + "/SKILL.md")).toMatch(/^---\nname: design-os-designer-.+\ndescription: ".+"\n---\n/);
+    expect(read(p, ".agent/skills/design-os-agent-designer-" + n + "/SKILL.md")).toMatch(/^---\nname: design-os-agent-designer-.+\ndescription: ".+"\n---\n/);
     const agents = read(p, "AGENTS.md");
     expect(agents.startsWith(CODEX_AGENTS_BEGIN)).toBe(true);
     expect(agents.trimEnd().endsWith(CODEX_AGENTS_END)).toBe(true);
     expect(blocksIn(agents)).toHaveLength(3);
-    for (const file of [read(p, claudeFile(p, "designer")), read(p, `.agent/skills/design-os-designer-${n}/SKILL.md`), agents]) {
+    for (const file of [read(p, claudeFile(p, "designer")), read(p, `.agent/skills/design-os-agent-designer-${n}/SKILL.md`), agents]) {
       const block = blocksIn(file)[0]!;
       expect(block.startsWith(BLOCK_START)).toBe(true);
       expect(block.trimEnd().endsWith(BLOCK_END)).toBe(true);
@@ -66,7 +66,7 @@ describe("one roster, three targets", () => {
     const p = projectOf();
     const n = name(p);
     expect(blocksIn(read(p, claudeFile(p, "designer")))[0]).toMatch(/AskUserQuestion.*ui onboard questions --format claude/);
-    for (const text of [read(p, `.agent/skills/design-os-designer-${n}/SKILL.md`), read(p, "AGENTS.md")]) {
+    for (const text of [read(p, `.agent/skills/design-os-agent-designer-${n}/SKILL.md`), read(p, "AGENTS.md")]) {
       expect(blocksIn(text)[0]).toMatch(/print the numbered questions that `ui onboard questions` prints and wait for the answer/);
       expect(blocksIn(text)[0]).not.toContain("AskUserQuestion");
     }

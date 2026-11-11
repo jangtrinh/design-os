@@ -1,7 +1,7 @@
 /**
  * The three runtime targets of one roster (templates/agents/<role>.md), rendered from the same text:
  *   claude       .claude/agents/<name>.md                      the render, then the area block (bytes outside it are today's)
- *   antigravity  .agent/skills/design-os-<name>/SKILL.md       skill frontmatter, the same body, the area block
+ *   antigravity  .agent/skills/design-os-agent-<name>/SKILL.md       skill frontmatter, the same body, the area block
  *   codex        the design-os agents section of AGENTS.md     one section per role, the same body, one area block each
  * Pure and fs-free; the command layer reads and writes. Every target carries the roster stamp of the role it renders, so
  * `ui agents check` can tell which role a file holds and compare it with a fresh render.
@@ -14,7 +14,9 @@ import type { Runtime } from "./init-stub.js";
 
 export const CODEX_AGENTS_BEGIN = "<!-- BEGIN design-os agents -->";
 export const CODEX_AGENTS_END = "<!-- END design-os agents -->";
-export const antigravityDir = (name: string): string => `.agent/skills/design-os-${name}`;
+/** The folder prefix of an agent skill: its own, so no agent name can equal a folder the kernel writes under `design-os-`. */
+export const ANTIGRAVITY_AGENT_PREFIX = "design-os-agent-";
+export const antigravityDir = (name: string): string => `.agent/skills/${ANTIGRAVITY_AGENT_PREFIX}${name}`;
 export const claudeRel = (name: string): string => `.claude/agents/${name}.md`;
 export const antigravityRel = (name: string): string => `${antigravityDir(name)}/SKILL.md`;
 export const CODEX_REL = "AGENTS.md";
@@ -47,7 +49,7 @@ export function agentFile(ctx: TargetContext, runtime: "claude" | "antigravity",
   const block = renderAreasBlock(ctx.view, runtime);
   if (runtime === "claude") return { name, rel: claudeRel(name), content: text + block };
   const { description, body } = parts(text);
-  return { name, rel: antigravityRel(name), content: `---\nname: design-os-${name}\n${description}\n---\n${body}${block}` };
+  return { name, rel: antigravityRel(name), content: `---\nname: ${ANTIGRAVITY_AGENT_PREFIX}${name}\n${description}\n---\n${body}${block}` };
 }
 
 /** The design-os agents section of AGENTS.md for the given roles, in roster order; sentinels included. */

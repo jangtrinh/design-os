@@ -80,7 +80,7 @@ of `--runtimes` is the `RUNTIMES` constant, not what is installed:
 | Runtime | Target |
 |---|---|
 | Claude Code | `.claude/agents/<name>.md` (the bytes outside the area block are the render, unchanged) |
-| Antigravity | `.agent/skills/design-os-<name>/SKILL.md` |
+| Antigravity | `.agent/skills/design-os-agent-<name>/SKILL.md` |
 | Codex | the design-os agents section of `AGENTS.md`, written through the upsert-section artifact between its own sentinels (the text around it, and the ease-design block `ui init` writes, are never rewritten) |
 
 `ui init --with-agents` stays the Claude Code opt-in. This is NOT the same as runtime support: `ui init` emits design:os

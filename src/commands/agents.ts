@@ -37,7 +37,7 @@ Subcommands:
 
 Targets (one roster, templates/agents/{designer,curator,figma-hand}.md, rendered to each):
   claude       .claude/agents/<name>.md
-  antigravity  .agent/skills/design-os-<name>/SKILL.md
+  antigravity  .agent/skills/design-os-agent-<name>/SKILL.md
   codex        the design-os agents section of AGENTS.md (the text around it is never rewritten)
 
 Naming (genealogy — studio × project × role):

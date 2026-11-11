@@ -1231,7 +1231,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
     summary: "Generate + lint soul-bound, task-scoped project agents (Claude Code, Codex, Antigravity)",
     subcommands: {
       init: {
-        summary: "Render one roster to each runtime: .claude/agents/<name>.md, .agent/skills/design-os-<name>/SKILL.md and the design-os agents section of AGENTS.md, each with the generated ontology-areas block",
+        summary: "Render one roster to each runtime: .claude/agents/<name>.md, .agent/skills/design-os-agent-<name>/SKILL.md and the design-os agents section of AGENTS.md, each with the generated ontology-areas block",
         positionals: [],
         flags: [
           { name: "dir", type: "string", summary: "Project directory holding design/ (default: walk up from cwd)" },

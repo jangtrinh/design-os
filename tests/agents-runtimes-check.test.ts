@@ -37,12 +37,12 @@ describe("ui agents check", () => {
   it("a hand edit of one runtime's roster fails it, one finding per file, in the code of that runtime", () => {
     const p = projectOf();
     const n = name(p);
-    const skill = join(p, `.agent/skills/design-os-curator-${n}/SKILL.md`);
+    const skill = join(p, `.agent/skills/design-os-agent-curator-${n}/SKILL.md`);
     writeFileSync(skill, readFileSync(skill, "utf8").replace("You are", "You were"));
     let got = check(p);
     expect(got.code).toBe(1);
     expect(got.data.findings.map((f) => f.checkId)).toEqual(["AGENTS_ROSTER_DRIFT"]);
-    expect(got.data.findings[0]!.message).toContain(`.agent/skills/design-os-curator-${n}/SKILL.md`);
+    expect(got.data.findings[0]!.message).toContain(`.agent/skills/design-os-agent-curator-${n}/SKILL.md`);
     init(p, "--force");
     const agents = join(p, "AGENTS.md");
     writeFileSync(agents, readFileSync(agents, "utf8").replace("You are", "You were"));
@@ -131,7 +131,7 @@ describe("ui init --with-agents keeps its behaviour: Claude Code only", () => {
     const done = capture(["init", "--all", "--cwd", p, "--with-agents", "--json"]);
     expect(done.code).toBe(0);
     expect(existsSync(join(p, claudeFile(p, "designer")))).toBe(true);
-    expect(existsSync(join(p, `.agent/skills/design-os-designer-${name(p)}`))).toBe(false);
+    expect(existsSync(join(p, `.agent/skills/design-os-agent-designer-${name(p)}`))).toBe(false);
     expect(read(p, "AGENTS.md")).not.toContain(CODEX_AGENTS_BEGIN);
   });
 });
