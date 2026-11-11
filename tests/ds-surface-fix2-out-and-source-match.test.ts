@@ -9,16 +9,18 @@ import { describe, expect, it } from "vitest";
 import { readPending } from "../src/core/owner-rulings/pending-store.js";
 import { hashTree } from "./owner-rulings-helpers.js";
 import { answerKind, envelope, surface } from "./ds-surface-helpers.js";
+import { CHANGED, LINT, addUnregistrableComponent, cleanButtons, lintProject, registeredAndEdited } from "./ds-surface-questions-helpers.js";
 import { BASE, COLLISION, MATCH, NOW, answerMatch, readyProject, sealedFromFigma } from "./ds-surface-source-match-helpers.js";
 
 const kinds = (p: string): string[] => readPending(p).clusters.map((c) => c.kind);
-const withOpenSourceMatch = (): string => {
-  const p = readyProject();
-  expect(kinds(p)).toContain(MATCH);
-  return p;
-};
+/** The three questions of `--register`, each open in its own project: what the registry write would do depends on the answer. */
+const OPEN: { kind: string; open: () => string }[] = [
+  { kind: MATCH, open: () => readyProject() },
+  { kind: CHANGED, open: () => registeredAndEdited() },
+  { kind: LINT, open: () => lintProject() },
+];
 
-describe("block matrix of an open component-source-match question", () => {
+describe.each(OPEN)("block matrix of an open $kind question", ({ kind, open }) => {
   const rows: { name: string; args: string[]; blocked: boolean }[] = [
     { name: "read", args: [], blocked: false },
     { name: "--out", args: ["--out", "o.json"], blocked: false },
@@ -26,8 +28,14 @@ describe("block matrix of an open component-source-match question", () => {
     { name: "--register --out", args: ["--register", "--out", "o.json"], blocked: true },
     { name: "--register --apply", args: ["--register", "--apply"], blocked: true },
   ];
+  const withOpenQuestion = (): string => {
+    const p = open();
+    surface(p, "--register"); // the question is raised by --register
+    expect(kinds(p)).toContain(kind);
+    return p;
+  };
   it.each(rows)("$name", ({ args, blocked }) => {
-    const p = withOpenSourceMatch();
+    const p = withOpenQuestion();
     const before = hashTree(p, [".design-os"]);
     const r = surface(p, ...args);
     if (blocked) {
@@ -39,21 +47,34 @@ describe("block matrix of an open component-source-match question", () => {
       expect(r.code, r.out).toBe(0);
       expect(existsSync(join(p, "o.json"))).toBe(args.includes("--out"));
     }
-    expect(kinds(p), "a call never drops a stored source-match question").toContain("component-source-match");
+    expect(kinds(p), `a call never drops a stored ${kind} question`).toContain(kind);
   });
-  it("a call without --register does not raise the question", () => {
-    const p = sealedFromFigma(BASE()); surface(p);
-    answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id }));
-    surface(p, "--out", "o.json");
-    expect(kinds(p)).not.toContain(MATCH);
+});
+
+/** Projects where the question is due but no `--register` call has raised it yet. */
+const DUE: { kind: string; due: () => string }[] = [
+  { kind: MATCH, due: () => { const p = sealedFromFigma(BASE()); surface(p); answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id })); cleanButtons(p); return p; } },
+  { kind: CHANGED, due: () => registeredAndEdited() },
+  { kind: LINT, due: () => lintProject(false) },
+];
+describe.each(DUE)("a call without --register does not raise $kind", ({ kind, due }) => {
+  it.each([[], ["--out", "o.json"]])("%j", (...args) => {
+    const p = due();
+    expect(kinds(p)).not.toContain(kind);
+    expect(surface(p, ...args.flat() as string[]).code).toBe(0);
+    expect(kinds(p)).not.toContain(kind);
+    surface(p, "--register");
+    expect(kinds(p)).toContain(kind); // and it is due: --register does raise it
   });
 });
 
 describe("--out is written only after the batch has passed", () => {
   it("a refused batch leaves no --out file", () => {
-    const p = sealedFromFigma(BASE()); // the planted undeclared var(--color-missing) in Button is refused by the sealed store's markup rule
+    const p = sealedFromFigma(BASE());
     surface(p);
     answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id }));
+    cleanButtons(p);
+    addUnregistrableComponent(p); // refused by name: a refusal that is not of the lint family is never asked
     surface(p, "--register");
     answerMatch(p, (k) => ({ choice: k.options[0]!.id }));
     const r = surface(p, "--register", "--apply", "--now", NOW, "--out", "o.json");

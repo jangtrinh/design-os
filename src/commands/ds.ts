@@ -146,12 +146,14 @@ Subcommands:
   --out <file>       Write the surface (design-os-surface/1) to a file; a write, so an open question blocks it
   --register         Preview what would be written: name, sourceRef (file:start-end) and tokensUsed per new record, the
                      components whose variants no extractor reads exactly (notRead), the existing records that would gain
-                     a code reference (links), what is unchanged, what changed, and the names awaiting a ruling
+                     a code reference (links), the records a "refresh" answer would rewrite, what is unchanged, what is
+                     stale by ruling, what the design-system lint left out by ruling, and the names awaiting a ruling
   --apply            With --register: write the new records and links in one batch through the shared registration
                      path (provenance and markup rules of 'ui registry register') and reseal once; a run with nothing
-                     to write does not reseal. Refused, writing nothing, while a collision or a name held by a record
-                     from another door is unanswered, and when a component registered from code has a source that
-                     changed since (SURFACE_REGISTERED_SOURCE_CHANGED; ui registry register ... --force re-registers it)
+                     to write does not reseal. Refused, writing nothing, while a collision, a name held by a record from
+                     another door, a registered component whose source changed, or a record the design-system lint
+                     refuses is unanswered, and when the owner ruled "stop" for a lint-refused component
+                     (SURFACE_LINT_STOPPED)
   --now <UTC-ISO>    The clock of the reseal changelog entry (default: now)
   Read-only unless --out or --register --apply is given; the only file a read-only call writes is the pending
   question list. It runs the project-level detectors itself (scan budget, app roots, token source) and exits 1
@@ -161,10 +163,17 @@ Subcommands:
   whose exact name is a record already in the registry from another door (Figma, a synthetic approval, no provenance)
   is asked once per group (component-source-match): "same" keeps that record, with its provenance, and adds the code
   reference and the tokens read from code; "separate" registers the code component as '<name> · code'. Nothing is linked
-  by name alone and no record is replaced. Tokens are resolved exactly against the sealed
+  by name alone and no record is replaced. A component registered from code whose source changed since is asked
+  once per group (component-source-changed): "refresh" rewrites the record from the source as it is now (a
+  code record: its source, markup, tokens and variants; a linked record: its code reference, and the tokens
+  read from code are added, none is removed), "keep" leaves it as registered and lists it as stale. A record the
+  design-system lint refuses is asked once per group (component-lint-refused): "leave-out" writes the other
+  records in the one batch and lists the left-out names with their refusal code, "stop" makes --apply write
+  nothing (SURFACE_LINT_STOPPED). Any other refusal (a bad name, a bad source reference) stays a refusal by name
+  and nothing is written. Tokens are resolved exactly against the sealed
   store (a custom property or theme key that is exactly one token); a reference that resolves to none, and each class
   list composed through cn()/clsx()/cva(), is counted under unresolvedStyles, never mapped to the nearest token.
-  Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_REGISTERED_SOURCE_CHANGED,
+  Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_LINT_STOPPED,
   BATCH_REFUSED (nothing written; every refused record is named).
 
 'ds specimen' options:
