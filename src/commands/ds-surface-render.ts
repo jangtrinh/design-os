@@ -1,12 +1,13 @@
 /** The text form of `ui ds surface`: counts first, then what needs the owner, then what could not be read. */
 import type { RegisterPreview } from "../core/ds-surface/register-plan.js";
 import type { SurfaceOutput } from "../core/ds-surface/surface-types.js";
+import { renderQuestionLines } from "./ds-surface-render-questions.js";
 
 export type SurfaceData = SurfaceOutput & {
   register?: RegisterPreview;
   /** The questions stored for the owner when the read went through; absent when none is open. */
   pending?: { count: number; path: string };
-  applied?: { file: string; registered: number; linked: number; separate: number; sealed: boolean; generation?: number; warnings: string[] };
+  applied?: { file: string; registered: number; linked: number; separate: number; refreshed: number; leftOut: number; sealed: boolean; generation?: number; warnings: string[] };
 };
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
@@ -51,10 +52,6 @@ export function renderSurfaceText(d: SurfaceData): string {
       for (const l of r.links) lines.push(`    ${l.name}  ${l.sourceRef}  tokens added: ${l.tokensAdded.length === 0 ? "none" : l.tokensAdded.join(", ")}`);
     }
     if (r.unchanged > 0) lines.push(`  unchanged: ${plural(r.unchanged, "component")} already registered from exactly this source; nothing is written for them`);
-    if (r.changed.length > 0) {
-      lines.push(`  changed: ${plural(r.changed.length, "component")} registered from a source that is not what the tree holds now; --apply refuses them and replaces nothing`);
-      for (const c of r.changed) lines.push(`    ${c.name}  registered ${c.heldRef}, tree ${c.nowRef}`);
-    }
     if (r.awaitingSourceMatch.length > 0) {
       lines.push(`  awaiting a ruling: ${plural(r.awaitingSourceMatch.length, "component")} have the name of a record already in the registry; are they the same components? They are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
       for (const i of r.awaitingSourceMatch) lines.push(`    ${i.name}  held by ${i.existingSource ?? "a record with no provenance"}  code file ${i.file}`);
@@ -67,12 +64,13 @@ export function renderSurfaceText(d: SurfaceData): string {
       lines.push(`  separate name held: ${plural(r.separateNameHeld.length, "component")} ruled different from their record, but "<name> · code" is held by a record of another door; --apply refuses them by name until the owner frees that name`);
       for (const g of r.separateNameHeld) lines.push(`    ${g.name} · code  held by ${g.heldBy}`);
     }
+    lines.push(...renderQuestionLines(r));
     if (r.shadowedNotRegistered > 0) lines.push(`  ${plural(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
   }
   if (d.applied !== undefined) {
     const a = d.applied;
-    if (a.registered + a.linked + a.separate === 0) lines.push(`  applied: nothing to write, the registry is as the tree says${a.generation === undefined ? "" : `; no reseal (generation ${a.generation})`}`);
-    else lines.push(`  applied: ${a.registered} new, ${a.linked} linked, ${a.separate} separate; written to ${a.file}${a.sealed ? `, resealed once (generation ${a.generation})` : " (no sealed design system: written unsealed)"}`);
+    if (a.registered + a.linked + a.separate + a.refreshed === 0) lines.push(`  applied: nothing to write, the registry is as the tree says${a.generation === undefined ? "" : `; no reseal (generation ${a.generation})`}`);
+    else lines.push(`  applied: ${a.registered} new, ${a.linked} linked, ${a.separate} separate${a.refreshed > 0 ? `, ${a.refreshed} refreshed` : ""}${a.leftOut > 0 ? `, ${a.leftOut} left out by ruling` : ""}; written to ${a.file}${a.sealed ? `, resealed once (generation ${a.generation})` : " (no sealed design system: written unsealed)"}`);
     for (const w of d.applied.warnings) lines.push(`    ${w}`);
   } else if (r !== undefined) lines.push("  next: ui ds surface --register --apply writes these records");
   return `${lines.join("\n")}\n`;

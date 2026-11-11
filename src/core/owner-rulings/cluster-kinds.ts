@@ -19,6 +19,8 @@ export const CLUSTER_KINDS = [
   "source-authority",
   "component-name-collision",
   "component-source-match",
+  "component-source-changed",
+  "component-lint-refused",
   "inferred-links",
 ] as const;
 
@@ -50,6 +52,8 @@ export const CLUSTER_KIND_TABLE: Readonly<Record<ClusterKind, ClusterKindSpec>> 
   "ambiguous-roles": { raisedBy: ["ui ds import"], setValued: false, header: "Roles", rank: 120 },
   "component-name-collision": { raisedBy: ["ui ds surface"], setValued: false, header: "Name clash", rank: 130 },
   "component-source-match": { raisedBy: ["ui ds surface"], setValued: false, header: "Same source", rank: 135 },
+  "component-source-changed": { raisedBy: ["ui ds surface"], setValued: false, header: "Src changed", rank: 136 },
+  "component-lint-refused": { raisedBy: ["ui ds surface"], setValued: false, header: "Lint refused", rank: 137 },
   "inferred-links": { raisedBy: ["ui ontology build"], setValued: false, header: "Links", rank: 140 },
 };
 

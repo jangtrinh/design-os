@@ -18,18 +18,17 @@ import { findTailwindV4Css, readDeps } from "../core/project-scan-apps.js";
 import { scanRulingsOf } from "../core/project-scan-rulings.js";
 import { renderSurfaceText } from "./ds-surface-render.js";
 import { openQuestionsOf, surfaceBlock } from "./ds-surface-block.js";
-import { BatchRegisterError, predictBatchRefusals, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
+import { BatchRegisterError, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
+import { registerRound } from "./ds-surface-register-round.js";
 import { readAppFiles } from "../core/ds-surface/app-source-files.js";
 import { buildSurface } from "../core/ds-surface/build-surface.js";
 import { componentDirsOf } from "../core/ds-surface/component-dirs.js";
 import { chooseAppRoot } from "../core/ds-surface/choose-app-root.js";
 import { applyCollisionRulings } from "../core/ds-surface/collision-rulings.js";
-import { planRegistration } from "../core/ds-surface/register-plan.js";
 import { readTokenStore } from "../core/ds-surface/token-store.js";
 import { buildTokenLookup } from "../core/ds-surface/style-references.js";
 import { collisionNameDetections } from "../core/owner-rulings/kind-component-name-collision.js";
-import { sourceMatchDetection } from "../core/owner-rulings/kind-component-source-match.js";
-import { sourceMatchCandidates } from "../core/ds-surface/source-match-candidates.js";
+import { codeCounts } from "../core/owner-rulings/kind-component-lint-refused.js";
 import type { Registry } from "../core/registry-store.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { RulingStoreError, readRulingStore } from "../core/owner-rulings/ruling-store.js";
@@ -100,32 +99,27 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     try { existing = ds !== undefined ? ds.registry : readExistingRegistry(cwd); }
     catch (e) { if (e instanceof BatchRegisterError) return err(e.code, e.message); throw e; }
   }
-  const detections = [
-    ...collisionNameDetections(collisionInput),
-    ...(register ? [sourceMatchDetection({ candidates: sourceMatchCandidates(model, ruled, existing) })] : []),
-  ];
-  const blocked = block(detections, true, register ? ["component-name-collision", "component-source-match"] : ["component-name-collision"], `${CMD} --app ${app === "" ? "." : app}`);
+  // With --register the registration's own questions are raised in the same round as the collision (FR-001): the plan the current rulings give decides which of them have members.
+  const round = register ? registerRound(cwd, model, ruled, existing, stored.rulings) : null;
+  const detections = [...collisionNameDetections(collisionInput), ...(round?.detections ?? [])];
+  const ownKinds = ["component-name-collision", ...(round === null ? [] : ["component-source-match", "component-source-changed", "component-lint-refused"])] as Parameters<typeof surfaceBlock>[0]["ownKinds"];
+  const blocked = block(detections, true, ownKinds, `${CMD} --app ${app === "" ? "." : app}`);
   if (blocked !== null) return blocked;
 
   model.output.shadowed = ruled.shadowed;
   model.output.tokenStore = store.status === "unverified" ? { status: store.status, drifted: store.drifted } : { status: store.status };
 
-  let plan = null;
-  if (register) {
-    plan = planRegistration(model, ruled, existing, stored.rulings);
-    // The preview predicts the write: the same checks, nothing written, every refusal listed with its code.
-    try { plan.preview.wouldRefuse = predictBatchRefusals(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens }))); }
-    catch (e) { if (!(e instanceof BatchRegisterError)) throw e; plan.preview.wouldRefuse = { count: 0, byCode: {}, items: [], notChecked: `${e.code}: ${e.message}` }; }
+  const plan = round?.plan ?? null;
+  if (plan !== null) {
     // The owner ruled "separate", and the name that answer needs is taken by a record of another door: refused by name, before anything is written.
     if (apply && plan.preview.separateNameHeld.length > 0) {
       const held = plan.preview.separateNameHeld;
       return err("SURFACE_SEPARATE_NAME_HELD", `${held.length} component(s) were ruled different from the record of their name, but the name they would be registered under is held by another record (${held.slice(0, 5).map((h) => `"${h.name} · code"`).join(", ")}${held.length > 5 ? ", ..." : ""}). Nothing was written. The answer cannot land until that name is free: rename or remove the holding record in its own door, then run ui ds surface --register --apply again.`);
     }
-    // A registered code source that no longer matches the tree stops a write before anything is written, `--out` included.
-    if (apply && plan.preview.changed.length > 0) {
-      const held = plan.preview.changed;
-      const first = held[0] as (typeof held)[number];
-      return err("SURFACE_REGISTERED_SOURCE_CHANGED", `${held.length} component(s) were registered from a source that has changed since (${held.slice(0, 5).map((c) => `${c.name}: ${c.heldRef} is now ${c.nowRef}`).join(", ")}${held.length > 5 ? ", ..." : ""}). Nothing was written and no record was replaced. Next: ui registry register ${first.name} --category <category> --markup <file> --source-ref ${first.nowRef} --force re-registers a changed component.`);
+    // The owner ruled `stop` for a component the design-system lint refuses: nothing is written until it passes.
+    if (apply && plan.preview.lintStopped.length > 0) {
+      const held = plan.preview.lintStopped;
+      return err("SURFACE_LINT_STOPPED", `${held.length} component(s) fail the design-system lint (${codeCounts(held)}) and you ruled to stop until they pass: ${held.slice(0, 5).map((h) => `${h.name} (${h.file})`).join(", ")}${held.length > 5 ? ", ..." : ""}. Nothing was written. Next: fix the component so its markup passes, or add the token it needs to design/design.tokens.json and adopt it with ui ds reseal --apply --reason "<text>", then run ui ds surface --register --apply again.`);
     }
   }
   const open = openQuestionsOf(cwd);
@@ -141,10 +135,10 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   };
   if (!apply || plan === null) { const failed = writeOut(); if (failed !== null) return failed; return json ? okJson(CMD, data) : { exitCode: 0, stdout: renderSurfaceText(data) }; }
   try {
-    const done = registerRecordsOnce(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens })), nowFlag ?? new Date().toISOString(), "ui ds surface --register");
+    const done = registerRecordsOnce(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens })), nowFlag ?? new Date().toISOString(), "ui ds surface --register", { refreshes: plan.refreshes, leftOut: plan.preview.leftOutByRuling.length });
     const failed = writeOut();
     if (failed !== null) return failed; // the batch is already written: the refusal names only the file that could not be
-    const applied = { ...data, applied: { file: relative(cwd, done.file).split("\\").join("/"), registered: done.registered, linked: done.linked, separate: done.separate, sealed: done.sealed, ...(done.generation === undefined ? {} : { generation: done.generation }), warnings: done.warnings } };
+    const applied = { ...data, applied: { file: relative(cwd, done.file).split("\\").join("/"), registered: done.registered, linked: done.linked, separate: done.separate, refreshed: done.refreshed, leftOut: plan.preview.leftOutByRuling.length, sealed: done.sealed, ...(done.generation === undefined ? {} : { generation: done.generation }), warnings: done.warnings } };
     return json ? okJson(CMD, applied) : { exitCode: 0, stdout: renderSurfaceText(applied) };
   } catch (e) {
     if (!(e instanceof BatchRegisterError)) throw e;

@@ -100,11 +100,11 @@ describe("same", () => {
     const before = hashTree(p, [".design-os"]);
     const r = apply(p);
     expect(r.code, r.out).toBe(0);
-    expect(envelope(r.out).data!["register"]).toMatchObject({ unchanged: 6, changed: [], records: [], links: [] });
+    expect(envelope(r.out).data!["register"]).toMatchObject({ unchanged: 6, staleByRuling: [], awaitingSourceChanged: [], records: [], links: [] });
     expect(manifestOf(p).generation).toBe(generation);
     expect(hashTree(p, [".design-os"])).toBe(before);
   });
-  it("a source that changed after --apply is refused by name under one code, nothing is written, and the next action is named", () => {
+  it("a source that changed after --apply is asked about, nothing is written, and no refusal names a command that fails on a store that is not kit-bound", () => {
     const p = same();
     apply(p);
     const file = join(p, "src/components/ui/Card.tsx");
@@ -113,10 +113,9 @@ describe("same", () => {
     const r = apply(p);
     expect(r.code).toBe(1);
     const e = envelope(r.out).error!;
-    expect(e.code).toBe("SURFACE_REGISTERED_SOURCE_CHANGED");
-    expect(e.message).toContain("Card");
-    expect(e.message).toContain("ui registry register");
-    expect(e.message).toContain("--force");
+    expect(e.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(e.message).not.toContain("--force");
+    expect(e.message).not.toContain("ui registry register");
     expect(hashTree(p, [".design-os"])).toBe(before);
   });
 });
@@ -134,7 +133,7 @@ describe("separate", () => {
     for (const name of ["Card", "Panel", "Gone"]) expect(after.find((c) => c.name === name)).toEqual(before.find((c) => c.name === name));
     expect(manifestOf(p).changelog.filter((e) => e.kind === "register").at(-1)!.note).toBe("4 new, 0 linked, 2 separate");
     const again = apply(p);
-    expect(envelope(again.out).data!["register"]).toMatchObject({ unchanged: 6, changed: [], records: [] });
+    expect(envelope(again.out).data!["register"]).toMatchObject({ unchanged: 6, staleByRuling: [], awaitingSourceChanged: [], records: [] });
   });
 });
 

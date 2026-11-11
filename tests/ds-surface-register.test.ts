@@ -13,6 +13,7 @@ import { BatchRegisterError, registerRecordsOnce } from "../src/commands/registr
 import { readPending } from "../src/core/owner-rulings/pending-store.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { TOKENS_FILE, answerKind, envelope, fixtureCopy, sealedFixture, surface } from "./ds-surface-helpers.js";
+import { addUnregistrableComponent, cleanButtons } from "./ds-surface-questions-helpers.js";
 
 const COLLISION = "component-name-collision";
 const NOW = "2026-11-11T09:00:00Z";
@@ -110,15 +111,27 @@ describe("--apply through the shared registration path", () => {
     expect(m.changelog.at(-1)).toMatchObject({ kind: "register", by: "ui ds surface --register", ts: NOW });
     expect(capture(["ds", "status", "--dir", p, "--json"]).code).toBe(0); // the seal holds
   });
-  it("refuses the whole batch when one record fails the design system's markup rule, naming it, and writes nothing", () => {
+  it("a record the design system's markup rule refuses is asked about, not refused: --apply is blocked by the question and writes nothing", () => {
     const p = sealedFixture();
     rulingGiven(p);
     const before = hashTree(p, [".design-os"]);
     const r = surface(p, "--register", "--apply");
     expect(r.code).toBe(1);
+    expect(envelope(r.out).error?.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(readPending(p).clusters.filter((c) => c.kind === "component-lint-refused")).toHaveLength(1);
+    expect(hashTree(p, [".design-os"])).toBe(before);
+  });
+  it("refuses the whole batch when one record is refused by a code outside the lint family, naming it, and writes nothing", () => {
+    const p = sealedFixture();
+    rulingGiven(p);
+    cleanButtons(p);
+    addUnregistrableComponent(p);
+    const before = hashTree(p, [".design-os"]);
+    const r = surface(p, "--register", "--apply");
+    expect(r.code).toBe(1);
     expect(envelope(r.out).error?.code).toBe("BATCH_REFUSED");
-    expect(envelope(r.out).error?.message).toContain("1 of 6 record(s) were refused and nothing was written");
-    expect(envelope(r.out).error?.message).toContain("Button: REGISTRY_MARKUP_DRIFT"); // var(--color-missing) is declared nowhere
+    expect(envelope(r.out).error?.message).toContain("3 of 9 record(s) were refused and nothing was written");
+    expect(envelope(r.out).error?.message).toContain("OddOne: REGISTRY_BAD_SOURCE_REF");
     expect(hashTree(p, [".design-os"])).toBe(before);
   });
   it("on a project with no sealed store writes the registry unsealed, with provenance", () => {

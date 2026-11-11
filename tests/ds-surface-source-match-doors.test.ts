@@ -10,6 +10,7 @@ import { BatchRegisterError, registerRecordsOnce } from "../src/commands/registr
 import type { BatchLink } from "../src/commands/registry-register-batch.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { answerKind, envelope, surface } from "./ds-surface-helpers.js";
+import { CHANGED, addUnregistrableComponent, cleanButtons, clustersOf } from "./ds-surface-questions-helpers.js";
 import { BASE, COLLISION, NOW, answerMatch, apply, figma, manifestOf, pending, readyProject, registryOf, sealedFromFigma } from "./ds-surface-source-match-helpers.js";
 
 describe("the same door is not a question", () => {
@@ -25,23 +26,27 @@ describe("the same door is not a question", () => {
     expect(hashTree(p, [".design-os"])).toBe(before);
     expect(pending(p)).toHaveLength(0);
   });
-  it("a code record whose source changed is refused by name, never replaced", () => {
+  it("a code record whose source changed is asked about, never replaced", () => {
     const p = readyProject([figma("Gone", 3, [])]);
     apply(p);
     const file = join(p, "src/components/kit/Avatar.tsx");
     writeFileSync(file, readFileSync(file, "utf8").replace("rounded-full", "rounded-lg"));
+    const before = hashTree(p, [".design-os"]);
     const r = apply(p);
-    expect(envelope(r.out).error?.code).toBe("SURFACE_REGISTERED_SOURCE_CHANGED");
-    expect(envelope(r.out).error?.message).toContain("Avatar");
+    expect(envelope(r.out).error?.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(clustersOf(p, CHANGED)[0]!.members[0]).toMatch(/^Avatar#/);
+    expect(hashTree(p, [".design-os"])).toBe(before);
   });
-  it("the same text at other lines is a changed reference, refused by name", () => {
+  it("the same text at other lines is a changed reference, asked about with both references in the member", () => {
     const p = readyProject([figma("Gone", 3, [])]);
     apply(p);
     const file = join(p, "src/components/kit/Avatar.tsx");
     writeFileSync(file, `// a line above\n${readFileSync(file, "utf8")}`);
     const r = apply(p);
-    expect(envelope(r.out).error?.code).toBe("SURFACE_REGISTERED_SOURCE_CHANGED");
-    expect(envelope(r.out).error?.message).toMatch(/Avatar: src\/components\/kit\/Avatar\.tsx:\d+-\d+ is now src\/components\/kit\/Avatar\.tsx:\d+-\d+/);
+    expect(envelope(r.out).error?.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    const refs = clustersOf(p, CHANGED)[0]!.members[0]!.split("#")[1]!.split(",").filter((i) => i.startsWith("src/"));
+    expect(refs).toHaveLength(2);
+    expect(refs[0]).not.toBe(refs[1]);
   });
   it("a changed source stops the whole write: a component that is new in the same run is not written either", () => {
     const p = readyProject([figma("Gone", 3, [])]);
@@ -50,7 +55,7 @@ describe("the same door is not a question", () => {
     writeFileSync(file, readFileSync(file, "utf8").replace("rounded-full", "rounded-lg"));
     writeFileSync(join(p, "src/components/kit/Fresh.tsx"), "export function Fresh() { return <div className=\"bg-surface\" />; }\n");
     const before = hashTree(p, [".design-os"]);
-    expect(envelope(apply(p).out).error?.code).toBe("SURFACE_REGISTERED_SOURCE_CHANGED");
+    expect(envelope(apply(p).out).error?.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
     expect(hashTree(p, [".design-os"])).toBe(before);
     expect(registryOf(p).components.map((c) => c.name)).not.toContain("Fresh");
   });
@@ -61,12 +66,14 @@ describe("one batch", () => {
     const p = sealedFromFigma(BASE());
     surface(p);
     answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id }));
+    cleanButtons(p);
+    addUnregistrableComponent(p); // a refusal that is not of the lint family is never asked: the batch refuses it by name
     surface(p, "--register");
     answerMatch(p, (k) => ({ choice: k.options[0]!.id }));
     const before = hashTree(p, [".design-os"]);
-    const r = apply(p); // Button still holds the planted undeclared token, which the sealed store's markup rule refuses
+    const r = apply(p);
     expect(envelope(r.out).error?.code).toBe("BATCH_REFUSED");
-    expect(envelope(r.out).error?.message).toContain("Button: REGISTRY_MARKUP_DRIFT");
+    expect(envelope(r.out).error?.message).toContain("OddOne: REGISTRY_BAD_SOURCE_REF");
     expect(hashTree(p, [".design-os"])).toBe(before);
     expect(registryOf(p).components.find((c) => c.name === "Card")!.code).toBeUndefined();
   });

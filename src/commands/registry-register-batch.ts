@@ -8,8 +8,11 @@
  *
  * The batch also carries the links of a component found in code to a record that came from another door (D16, "same
  * component"): each goes through `linkCodeSource`, the one narrow write that keeps the record and adds the code
- * reference and the tokens. New records, `<name> · code` records and links are checked together and written together:
- * one reseal, one entry whose note carries the three counts. A batch with nothing to write does not reseal.
+ * reference and the tokens. It carries the refreshes of a record whose source changed (D18, "refresh"): each goes
+ * through `refreshCodeSource`, never `force`, and a refreshed code record is checked like a new one (the same record
+ * check, so a refreshed component that fails the design-system lint is refused by name like any other).
+ * New records, `<name> · code` records, links and refreshes are checked together and written together: one reseal, one
+ * entry whose note carries every count. A batch with nothing to write does not reseal.
  *
  * Code names are source-authored (the name a module exports), so the records are validated the way scanned inventory
  * is: the display name stays as written, every other field is strict.
@@ -20,6 +23,7 @@ import { pathsForDir } from "../core/design-system.js";
 import { loadDesignSystemForReseal, reseal } from "../core/ds-reseal.js";
 import { assertTokensExist } from "../core/registry-token-check.js";
 import { linkCodeSource } from "./registry-link-code-source.js";
+import { refreshCodeSource } from "./registry-refresh-code-source.js";
 import { verifySourceRef } from "./registry-provenance-refs.js";
 import { RegistryError, createEmptyRegistry, loadRegistry, registerComponent, saveRegistry } from "../core/registry-store.js";
 import type { ComponentRecord, Registry } from "../core/registry-store.js";
@@ -45,6 +49,19 @@ export interface BatchLink {
   /** Token paths the code source references. */
   tokens: string[];
 }
+/** A record rewritten from the source as it is now (the owner answered `refresh`). */
+export interface BatchRefresh {
+  /** The exact name of the record. */
+  name: string;
+  /** `path:start-end`, relative to the project root. */
+  sourceRef: string;
+  /** The source slice the reference points at. */
+  markup: string;
+  tokens: string[];
+  variants: string[];
+  /** True for a record linked to a record of another door: only its code reference and tokens move, and its markup is not the code's. */
+  linked: boolean;
+}
 export interface BatchRefusal { name: string; code: string; message: string }
 export interface BatchResult {
   file: string;
@@ -52,6 +69,7 @@ export interface BatchResult {
   registered: number;
   linked: number;
   separate: number;
+  refreshed: number;
   sealed: boolean;
   generation?: number;
   warnings: string[];
@@ -93,7 +111,7 @@ interface BatchCheck {
  * the token check, `NAME_EXISTS`, the link rules), and nothing is written. The preview and the write both call it, so a
  * preview lists exactly the refusals the write would meet.
  */
-function checkBatch(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[]): BatchCheck {
+function checkBatch(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[], refreshes: readonly BatchRefresh[] = []): BatchCheck {
   const dsPaths = pathsForDir(join(projectDir, "design"));
   let ds: ReturnType<typeof loadDesignSystemForReseal>;
   try { ds = loadDesignSystemForReseal(dsPaths); }
@@ -125,6 +143,25 @@ function checkBatch(projectDir: string, records: readonly BatchRecord[], links: 
       refusals.push({ name: rec.name, code: e.code, message: e.message });
     }
   }
+  for (const r of refreshes) {
+    try {
+      const held = registry.components.find((c) => c.name === r.name);
+      if (held === undefined) throw new RegistryError("NAME_NOT_FOUND", `no record is named '${r.name}': a record is refreshed by its exact name only`);
+      // A record with a code provenance is checked like a new one (record, source, lint); a linked record's markup is the other door's, so only its source is verified.
+      const proven = r.linked
+        ? verifySourceRef(r.sourceRef, { storeDir: dsPaths.dir })
+        : checkRecordForRegistry({
+            raw: { name: r.name, category: held.category, markup: r.markup, tokensUsed: r.tokens, ...(r.variants.length > 0 && { variants: r.variants }) },
+            sourceAuthored: true, markup: r.markup, provenanceFlags: { sourceRef: r.sourceRef, syntheticApproved: false },
+            dsPaths, kit: ds?.kit !== undefined, registry,
+          }).record.provenance!;
+      assertTokensExist(r.tokens, ds?.tokens);
+      registry = refreshCodeSource(registry, { name: r.name, code: { sourceRef: proven.sourceRef, sha256: proven.sha256 }, markup: r.markup, tokens: r.tokens, variants: r.variants });
+    } catch (e) {
+      if (!(e instanceof RegistryError)) throw e;
+      refusals.push({ name: r.name, code: e.code, message: e.message });
+    }
+  }
   for (const link of links) {
     try {
       const code = verifySourceRef(link.sourceRef, { storeDir: dsPaths.dir });
@@ -139,27 +176,31 @@ function checkBatch(projectDir: string, records: readonly BatchRecord[], links: 
 }
 
 /** The refusals a write of this batch would meet, counted per code; nothing is written. */
-export function predictBatchRefusals(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[]): { count: number; byCode: Record<string, number>; items: BatchRefusal[] } {
-  const { refusals } = checkBatch(projectDir, records, links);
+export function predictBatchRefusals(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[], refreshes: readonly BatchRefresh[] = []): { count: number; byCode: Record<string, number>; items: BatchRefusal[] } {
+  const { refusals } = checkBatch(projectDir, records, links, refreshes);
   const byCode: Record<string, number> = {};
   for (const r of refusals) byCode[r.code] = (byCode[r.code] ?? 0) + 1;
   return { count: refusals.length, byCode: Object.fromEntries(Object.entries(byCode).sort(([a], [b]) => (a < b ? -1 : 1))), items: refusals };
 }
 
-export function registerRecordsOnce(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[], nowIso: string, by: string): BatchResult {
-  const { ds, dsPaths, registry, accepted, refusals, warnings } = checkBatch(projectDir, records, links);
+/** What the write carries beyond new records and links: refreshes, and the count of records the owner ruled out (for the note only). */
+export interface BatchExtras { refreshes?: readonly BatchRefresh[]; leftOut?: number }
+
+export function registerRecordsOnce(projectDir: string, records: readonly BatchRecord[], links: readonly BatchLink[], nowIso: string, by: string, extras: BatchExtras = {}): BatchResult {
+  const refreshes = extras.refreshes ?? [];
+  const { ds, dsPaths, registry, accepted, refusals, warnings } = checkBatch(projectDir, records, links, refreshes);
   if (refusals.length > 0) {
-    throw new BatchRegisterError("BATCH_REFUSED", `${refusals.length} of ${records.length + links.length} record(s) were refused and nothing was written`, refusals);
+    throw new BatchRegisterError("BATCH_REFUSED", `${refusals.length} of ${records.length + links.length + refreshes.length} record(s) were refused and nothing was written`, refusals);
   }
 
   const separate = records.filter((r) => r.separate === true).length;
-  const counts = { registered: accepted.length - separate, linked: links.length, separate };
+  const counts = { registered: accepted.length - separate, linked: links.length, separate, refreshed: refreshes.length };
   try {
-    if (accepted.length === 0 && links.length === 0) {
+    if (accepted.length === 0 && links.length === 0 && refreshes.length === 0) {
       return { file: dsPaths.registry, ...counts, sealed: ds !== undefined, ...(ds === undefined ? {} : { generation: ds.manifest.generation }), warnings };
     }
     if (ds !== undefined) {
-      const note = `${counts.registered} new, ${counts.linked} linked, ${counts.separate} separate`;
+      const note = `${counts.registered} new, ${counts.linked} linked, ${counts.separate} separate${counts.refreshed > 0 ? `, ${counts.refreshed} refreshed` : ""}${(extras.leftOut ?? 0) > 0 ? `, ${extras.leftOut} left out by ruling` : ""}`;
       const done = reseal({ ds, paths: dsPaths, registry, nowIso, entry: { kind: "register", by, note } });
       return { file: dsPaths.registry, ...counts, sealed: true, generation: done.generation, warnings };
     }
