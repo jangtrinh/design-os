@@ -15,6 +15,8 @@ import type { AgentRole, AgentStamp } from "../core/agents-gen.js";
 import { ontologyView } from "../core/agents-areas-block.js";
 import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL } from "../core/agents-targets.js";
 import type { TargetContext } from "../core/agents-targets.js";
+import { classifySectionMarkers } from "../core/adapter-section-markers.js";
+import type { MarkerReport } from "../core/adapter-section-markers.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 
 export type Fail = { fail: true; code: string; message: string };
@@ -108,15 +110,18 @@ export function scanAntigravity(root: string): ScannedAgent[] | Fail {
 }
 
 /** The design-os agents section of AGENTS.md: its text and the roles it holds, or null when the file has none. */
-export function scanCodex(root: string): { text: string; roles: string[] } | null | Fail {
+export type CodexScan = { text: string; roles: string[] } | { malformed: MarkerReport } | null | Fail;
+export function scanCodex(root: string): CodexScan {
   const p = join(root, CODEX_REL);
   if (!existsSync(p)) return null;
   let host: string;
   try { host = readFileSync(p, "utf8"); }
   catch (e) { return fail("READ_ERROR", `cannot read '${p}': ${errText(e)}`); }
+  const shape = classifySectionMarkers(host, CODEX_AGENTS_BEGIN, CODEX_AGENTS_END);
+  if (shape.shape === "none") return null;
+  if (shape.shape === "malformed") return { malformed: shape };
   const start = host.indexOf(CODEX_AGENTS_BEGIN);
-  const end = start === -1 ? -1 : host.indexOf(CODEX_AGENTS_END, start);
-  if (end === -1) return null;
+  const end = host.indexOf(CODEX_AGENTS_END, start);
   const text = host.slice(start, end + CODEX_AGENTS_END.length);
   const roles = [...text.matchAll(/<!--\s*design-os agents\s*·\s*roster-role:\s*([a-z][a-z0-9-]*)\s*·\s*template-hash:\s*[0-9a-f]{8}\s*-->/g)].map((m) => m[1] as string);
   return { text, roles };

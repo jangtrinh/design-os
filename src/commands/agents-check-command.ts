@@ -48,12 +48,14 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
   if (isFail(antigravity)) return err(antigravity.code, antigravity.message);
   const codex = scanCodex(root);
   if (codex !== null && isFail(codex)) return err(codex.code, codex.message);
-  const section = codex === null || isFail(codex) || codex.roles.length === 0 ? null : codex;
+  const malformed = codex !== null && "malformed" in codex ? codex.malformed : null;
+  const section = codex === null || isFail(codex) || "malformed" in codex || codex.roles.length === 0 ? null : codex;
 
   const found: Runtime[] = RUNTIMES.filter((r) => (r === "claude" ? claude.length > 0 : r === "antigravity" ? antigravity.length > 0 : section !== null));
   const findings: AgentFinding[] = [];
+  if (malformed !== null) findings.push({ checkId: "AGENTS_SECTION_MALFORMED", severity: "error", message: `the design-os agents section of AGENTS.md has ${malformed.begins} start marker line(s) and ${malformed.ends} end marker line(s), so it is not checked and is not regenerated; make them one start line followed by one end line, or remove them` });
   if (found.length === 0) {
-    findings.push({ checkId: "no-agents", severity: "warning", message: `no design-os agents under '${agentsDir}' — agents are opt-in; run 'ui agents init' to create them` });
+    if (malformed === null) findings.push({ checkId: "no-agents", severity: "warning", message: `no design-os agents under '${agentsDir}' — agents are opt-in; run 'ui agents init' to create them` });
   } else {
     const proj = loadProject(parsed.flags["dir"]);
     if (isFail(proj)) return err(proj.code, proj.message);

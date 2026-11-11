@@ -20,14 +20,15 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { dirname } from "node:path";
+import { basename, dirname } from "node:path";
+import { classifySectionMarkers, malformedSectionMessage } from "./adapter-section-markers.js";
 import type { AdapterArtifact } from "../adapters/index.js";
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 
 export class AdapterWriteError extends Error {
   constructor(
-    public readonly code: "MANIFEST_EXISTS" | "WRITE_ERROR",
+    public readonly code: "MANIFEST_EXISTS" | "WRITE_ERROR" | "SECTION_MALFORMED",
     message: string,
   ) {
     super(message);
@@ -114,6 +115,13 @@ export function writeAdapterArtifacts(
       );
     }
     return snapshots.get(absPath) !== null;
+  }
+
+  // ── Step 2b: a host file whose section markers are not one start then one end is refused, forced or not ──
+  for (const art of sorted) {
+    if (art.mode !== "upsert-section" || !wasPresent(art.absPath)) continue;
+    const report = classifySectionMarkers((snapshots.get(art.absPath) as Buffer).toString("utf8"), art.sentinelBegin, art.sentinelEnd);
+    if (report.shape === "malformed") throw new AdapterWriteError("SECTION_MALFORMED", malformedSectionMessage(basename(art.absPath), report));
   }
 
   // ── Step 3: collision check ────────────────────────────────────────────────

@@ -13,6 +13,7 @@ import { errJson, errText, ok, okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { AdapterWriteError, findSentinelBlock, writeAdapterArtifacts } from "../core/adapter-writer.js";
 import type { AdapterArtifact } from "../adapters/index.js";
+import { classifySectionMarkers } from "../core/adapter-section-markers.js";
 import { ROSTER } from "../core/agents-gen.js";
 import type { AgentRole } from "../core/agents-gen.js";
 import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL, agentFile, codexSection, plainRender } from "../core/agents-targets.js";
@@ -69,6 +70,12 @@ export function runInit(parsed: ParsedArgs): CommandResult {
       rows.push({ runtime, role, name: f.name, path: join(proj.root, f.rel), written: true });
       artifacts.push({ mode: "write", absPath: join(proj.root, f.rel), content: f.content });
     }
+  }
+
+  // A section whose markers are not one start line followed by one end line is never written over or appended to.
+  if (runtimes.includes("codex") && existsSync(join(proj.root, CODEX_REL))) {
+    const shape = classifySectionMarkers(readFileSync(join(proj.root, CODEX_REL), "utf8"), CODEX_AGENTS_BEGIN, CODEX_AGENTS_END);
+    if (shape.shape === "malformed") return err("AGENTS_SECTION_MALFORMED", `the design-os agents section of AGENTS.md has ${shape.begins} start marker line(s) and ${shape.ends} end marker line(s), so nothing was written; make them one start line followed by one end line, or remove them, then run the command again`);
   }
 
   // EXISTS pre-flight — all-or-nothing, never a silent overwrite.
