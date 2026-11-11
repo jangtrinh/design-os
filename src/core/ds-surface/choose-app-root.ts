@@ -9,6 +9,7 @@
  * An `--app` that names a root the owner ruled out, or a directory that is not an app root, is refused by name.
  * The scan root is the app "" (reported as ".").
  */
+import { isAbsolute, posix, relative, sep } from "node:path";
 import { walkDecision } from "../project-scan-rulings.js";
 import type { ScanRulings } from "../project-scan-rulings.js";
 
@@ -19,17 +20,32 @@ export interface AppChoiceInput {
   rootFramework: string | null;
   rootHasPackage: boolean;
   rulings: ScanRulings;
+  /** The project directory, so an absolute `--app` inside it can be made relative. */
+  projectDir?: string;
 }
 export type AppChoice = { ok: true; app: string } | { ok: false; code: string; message: string };
 
 const refuse = (code: string, message: string): AppChoice => ({ ok: false, code, message });
 const list = (paths: readonly string[]): string => paths.map((p) => `'${p}'`).join(", ");
-const clean = (p: string): string => p.normalize("NFC").replace(/^\.\//, "").replace(/\/+$/, "");
+/**
+ * The project-relative root a `--app` value names: an absolute path inside the project is made relative, `apps/./one`
+ * and `apps//one` are collapsed, and a leading `./` or a trailing `/` goes. A path outside the project stays as typed.
+ */
+function clean(value: string, projectDir?: string): string {
+  let p = value.normalize("NFC");
+  if (projectDir !== undefined && isAbsolute(p)) {
+    const rel = relative(projectDir, p);
+    if (rel !== "" && !rel.startsWith("..") && !isAbsolute(rel)) p = rel.split(sep).join("/");
+    else if (rel === "") p = ".";
+  }
+  const out = posix.normalize(p).replace(/^\.\//, "").replace(/\/+$/, "");
+  return out === "." ? "." : out;
+}
 
 export function chooseAppRoot(input: AppChoiceInput): AppChoice {
   const walked = input.apps.map((a) => a.path);
   if (input.flag !== undefined) {
-    const flag = clean(input.flag);
+    const flag = clean(input.flag, input.projectDir);
     if (flag === "." || flag === "") {
       return input.rootHasPackage ? { ok: true, app: "" } : refuse("SURFACE_APP_NOT_A_ROOT", `'--app ${input.flag}': the scan root holds no package.json, so it is not an app root. App roots found: ${walked.length === 0 ? "none" : list(walked)}`);
     }

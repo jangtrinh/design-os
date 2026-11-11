@@ -60,10 +60,10 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   const choice = chooseAppRoot({
     ...(text("app") === undefined ? {} : { flag: text("app") as string }),
     apps: scan.apps.map((a) => ({ path: a.path, framework: a.framework })),
-    rootFramework: scan.framework, rootHasPackage: existsSync(join(cwd, "package.json")), rulings,
+    rootFramework: scan.framework, rootHasPackage: existsSync(join(cwd, "package.json")), rulings, projectDir: cwd,
   });
-  const block = (detections: Parameters<typeof surfaceBlock>[0]["detections"], appChosen: boolean, ownKinds: Parameters<typeof surfaceBlock>[0]["ownKinds"]): CommandResult | null => {
-    try { return surfaceBlock({ command: CMD, projectDir: cwd, detections, ownKinds, writes, appChosen, json }); }
+  const block = (detections: Parameters<typeof surfaceBlock>[0]["detections"], appChosen: boolean, ownKinds: Parameters<typeof surfaceBlock>[0]["ownKinds"], raisedBy = CMD): CommandResult | null => {
+    try { return surfaceBlock({ command: CMD, raisedBy, projectDir: cwd, detections, ownKinds, writes, appChosen, json }); }
     catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return err(e.code, e.message); throw e; }
   };
   if (!choice.ok) {
@@ -103,7 +103,7 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     ...collisionNameDetections(collisionInput),
     ...(register ? [sourceMatchDetection({ candidates: sourceMatchCandidates(model, ruled, existing) })] : []),
   ];
-  const blocked = block(detections, true, register ? ["component-name-collision", "component-source-match"] : ["component-name-collision"]);
+  const blocked = block(detections, true, register ? ["component-name-collision", "component-source-match"] : ["component-name-collision"], `${CMD} --app ${app === "" ? "." : app}`);
   if (blocked !== null) return blocked;
 
   model.output.shadowed = ruled.shadowed;

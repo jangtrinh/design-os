@@ -17,6 +17,8 @@ import type { CommandResult } from "../core/output.js";
 
 export interface SurfaceBlockInput {
   command: string;
+  /** One label per app root read, so a run on one app replaces only the questions that app's run raised. */
+  raisedBy: string;
   projectDir: string;
   detections: BlockInput["detections"];
   /**
@@ -34,7 +36,7 @@ export interface SurfaceBlockInput {
 /** The refusal to return, or null when the command may go on. */
 export function surfaceBlock(input: SurfaceBlockInput): CommandResult | null {
   const tolerated: ClusterKind[] = input.writes ? [] : [...input.ownKinds, ...(input.appChosen ? (["app-roots"] as const) : [])];
-  return blockOnOpenClusters({ command: input.command, projectDir: input.projectDir, detections: input.detections, ownKinds: input.ownKinds, runsProjectDetectors: true, tolerated, json: input.json });
+  return blockOnOpenClusters({ command: input.command, raisedBy: input.raisedBy, projectDir: input.projectDir, detections: input.detections, ownKinds: input.ownKinds, runsProjectDetectors: true, tolerated, json: input.json });
 }
 
 /** The questions a read went through with: how many are open and where they are stored; undefined when none. */
