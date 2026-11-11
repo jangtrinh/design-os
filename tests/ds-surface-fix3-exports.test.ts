@@ -109,6 +109,7 @@ describe("the whole-text reader of `export { … }` follows the same rule", () =
 });
 
 const UNDECIDED = /string structure of this file could not be decided/;
+const FROM_LINE = /could not be decided from line \d+ on/;
 
 describe("a template the scanner cannot close never hides the rest of the file", () => {
   it("a quote in a regular expression inside an interpolation does not break the template, and the file is not listed", () => {
@@ -117,36 +118,84 @@ describe("a template the scanner cannot close never hides the rest of the file",
     expect(r.unread).toEqual([]);
     expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
   });
-  it("a backtick in a regular expression with no further backtick: the export after it is read, the file is listed once", () => {
+  it("a backtick in a regular expression with no further backtick: the file is listed once, the export after it is listed", () => {
     const r = read("const tick = /`/g;\nexport function Tick() { return <i />; }\n");
-    expect(names(r)).toEqual(["Tick"]);
-    expect(r.unread).toEqual([{ name: "(file)", line: 1, reason: expect.stringMatching(UNDECIDED) }]);
-    expect(r.unread[0]!.reason).toMatch(/read by the plain rule and may be incomplete/);
+    expect(names(r)).toEqual([]);
+    expect(r.unread.filter((u) => u.name === "(file)")).toEqual([{ name: "(file)", line: 1, reason: expect.stringMatching(UNDECIDED) }]);
+    expect(r.unread.find((u) => u.name === "Tick")?.reason).toMatch(FROM_LINE);
     expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
   });
-  it("a backtick that never closes: nothing after it is masked, and the file is listed once", () => {
+  it("a backtick that never closes: nothing is masked, the file is listed once, the export after it is listed", () => {
     const r = read("const a = `never closes;\nexport function Shown() { return <i />; }\n");
-    expect(names(r)).toEqual(["Shown"]);
-    expect(r.unread).toHaveLength(1);
-    expect(r.unread[0]!.reason).toMatch(UNDECIDED);
-    expect(r.unread[0]!.reason).not.toMatch(/hidden/);
+    expect(names(r)).toEqual([]);
+    expect(r.unread.filter((u) => u.name === "(file)")).toHaveLength(1);
+    expect(r.unread.find((u) => u.name === "(file)")!.reason).toMatch(UNDECIDED);
+    expect(r.unread.find((u) => u.name === "(file)")!.reason).not.toMatch(/hidden/);
+    expect(r.unread.find((u) => u.name === "Shown")?.reason).toMatch(FROM_LINE);
   });
   it("with a later, well-formed template in the file: the file is listed and no keyword is read from the template's text", () => {
     const r = read("export function Tick() { return <i />; }\nconst tick = /`/g;\nconst t = `x export function Ghost() { return <div/> } y`;\n");
     expect(names(r)).toEqual(["Tick"]);
     expect(r.unread.filter((u) => u.name === "(file)")).toHaveLength(1);
-    expect(r.unread.find((u) => u.name === "Ghost")?.reason).toMatch(NOT_AT_STATEMENT);
+    expect(r.unread.find((u) => u.name === "Ghost")?.reason).toMatch(FROM_LINE);
     expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
   });
-  it("an interpolation that cannot close: the template is closed at the next backtick, so its text is still masked", () => {
+  it("an interpolation that cannot close: the file is listed once, and every export from that line on is listed, none read", () => {
     const r = read("const t = `x ${\nexport function Ghost() { return <i />; }\n`;\nexport function After() { return <i />; }\n");
-    expect(names(r)).toEqual(["After"]);
+    expect(names(r)).toEqual([]);
     expect(r.unread.filter((u) => u.name === "(file)")).toHaveLength(1);
-    expect(r.accounting).toEqual({ keywords: 1, claimed: 1, listed: 0 });
+    expect(r.accounting).toEqual({ keywords: 2, claimed: 0, listed: 2 });
   });
   it("a comment pattern inside a template that removes its closing backtick: the export after it is read", () => {
     const r = read("const t = `a /* b`;\nconst u = `c */`;\nexport function After() { return <i />; }\n");
     expect(names(r)).toEqual(["After"]);
+  });
+});
+
+describe("in a file whose string structure cannot be decided, only the part before the first odd-backtick line is read", () => {
+  const TICK = "const tick = /`/g;\nexport function Tick() { return <i className=\"text-primary\">{\"a\".replace(tick, \"\")}</i>; }\nconst later = `x\nexport function Ghost() { return <b />; }\n`;\n";
+  it("the controller's file: neither Ghost nor Tick is a component, both are listed, the file once", () => {
+    const r = read(TICK);
+    expect(names(r)).toEqual([]);
+    expect(r.unread.filter((u) => u.name === "(file)")).toHaveLength(1);
+    expect(r.unread.find((u) => u.name === "Tick")).toMatchObject({ line: 2, reason: expect.stringMatching(FROM_LINE) });
+    expect(r.unread.find((u) => u.name === "Ghost")).toMatchObject({ line: 4, reason: expect.stringMatching(FROM_LINE) });
+    expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
+  });
+  it("an export above the first odd line is still read", () => {
+    const r = read(`export function Before() { return <i />; }\n${TICK}`);
+    expect(names(r)).toEqual(["Before"]);
+    expect(r.unread.map((u) => u.name).sort()).toEqual(["(file)", "Ghost", "Tick"]);
+    expect(r.accounting.claimed + r.accounting.listed).toBe(r.accounting.keywords);
+  });
+  it("a template that opens and closes on one line above it does not move the boundary", () => {
+    const r = read(`const a = \`x\`; export function Before() { return <i />; }\n${TICK}`);
+    expect(names(r)).toEqual(["Before"]);
+  });
+  it("a local declaration that a decided `export { A }` names, but that stands after the boundary, is listed", () => {
+    const r = read("export { Inner };\nconst tick = /`/g;\nfunction Inner() { return <i />; }\n");
+    expect(names(r)).toEqual([]);
+    expect(r.unread.find((u) => u.name === "Inner")).toMatchObject({ line: 3, reason: expect.stringMatching(FROM_LINE) });
+  });
+  it("a braced export on or after the boundary is listed, even when it names a declaration above it", () => {
+    const r = read("function Inner() { return <i />; }\nconst tick = /`/g;\nexport { Inner };\n");
+    expect(names(r)).toEqual([]);
+    expect(r.unread.find((u) => u.name === "Inner")).toMatchObject({ line: 3, reason: expect.stringMatching(FROM_LINE) });
+    expect(r.accounting).toEqual({ keywords: 1, claimed: 0, listed: 1 });
+  });
+  it("a decided file with a multi-line template is untouched", () => {
+    const r = read("const t = `a\nb`;\nexport function Ok() { return <i />; }\n");
+    expect(names(r)).toEqual(["Ok"]);
+    expect(r.unread).toEqual([]);
+  });
+  it("through the command: --register plans neither Ghost nor Tick, and both are listed", () => {
+    const p = sealedFixture();
+    writeFileSync(join(p, "src/components/ui/Tick.tsx"), TICK);
+    const d = envelope(surface(p, "--register").out).data!;
+    const planned = (d["register"]["records"] as { name: string }[]).map((r) => r.name);
+    expect(planned).not.toContain("Ghost");
+    expect(planned).not.toContain("Tick");
+    expect((d["unread"].exports as { name: string }[]).map((u) => u.name)).toEqual(expect.arrayContaining(["Ghost", "Tick", "(file)"]));
   });
 });
 
