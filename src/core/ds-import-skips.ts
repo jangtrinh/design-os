@@ -12,7 +12,7 @@
  */
 import { isAlias, isTokenLeaf } from "./token-model.js";
 import type { Token, TokenTree } from "./token-model.js";
-import { inferToken } from "./token-import.js";
+import { inferToken, pointerOf } from "./token-import.js";
 
 export type ImportSkipReason = "unmappable-type" | "null-leaf" | "dangling-alias" | "alias-cycle" | "bad-colour" | "ignored-key" | "not-token-group";
 
@@ -26,7 +26,6 @@ export interface ImportSkip {
   raw?: string;
 }
 
-const esc = (seg: string): string => seg.replace(/~/g, "~0").replace(/\//g, "~1");
 const isPlainObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const isPrimitive = (v: unknown): v is string | number | boolean => ["string", "number", "boolean"].includes(typeof v);
 
@@ -45,7 +44,7 @@ function leafReason(value: unknown): ImportSkipReason {
 export function findSourceSkips(flat: unknown): ImportSkip[] {
   const out: ImportSkip[] = [];
   const add = (ptr: string[], reason: ImportSkipReason, value: unknown): void => {
-    out.push({ id: `/${ptr.map(esc).join("/")}`, name: ptr.join("."), reason, ...(isPrimitive(value) ? { raw: String(value) } : {}) });
+    out.push({ id: pointerOf(ptr), name: ptr.join("."), reason, ...(isPrimitive(value) ? { raw: String(value) } : {}) });
   };
   const visit = (cat: string, entries: [string, unknown][], ptr: string[]): void => {
     for (const [name, value] of entries) {
@@ -69,10 +68,10 @@ const targetOf = (token: Token): string | null => (isAlias(token.$value) ? token
 
 /**
  * The aliases of `tree` that cannot be written: a dangling alias (its target is not a token of the tree, or is itself a
- * dangling alias or an alias that cannot resolve) and an alias cycle (the tokens on a loop; a token that merely leads
+ * dangling alias or an alias that cannot resolve; `unreachable` names the aliases whose target the import left out) and an alias cycle (the tokens on a loop; a token that merely leads
  * into a loop is dangling, not part of it).
  */
-export function findAliasSkips(tree: TokenTree): ImportSkip[] {
+export function findAliasSkips(tree: TokenTree, unreachable: ReadonlySet<string> = new Set()): ImportSkip[] {
   const alias = new Map<string, string>();
   const exists = new Set<string>();
   for (const [cat, group] of Object.entries(tree)) {
@@ -95,6 +94,7 @@ export function findAliasSkips(tree: TokenTree): ImportSkip[] {
         for (const p of chain.slice(0, loopAt)) verdict.set(p, "dangling");
         return;
       }
+      if (unreachable.has(at)) { chain.push(at); for (const p of chain) verdict.set(p, "dangling"); return; }
       const target = alias.get(at);
       if (target === undefined) { for (const p of chain) verdict.set(p, "ok"); return; } // a literal ends the chain
       chain.push(at);

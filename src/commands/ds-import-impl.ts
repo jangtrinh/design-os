@@ -115,7 +115,7 @@ export function runImport(parsed: ParsedArgs): CommandResult {
     return err("BAD_JSON", `import failed: ${e instanceof Error ? e.message : String(e)}`);
   }
   const blocked = blockOnOpenClusters({
-    command: CMD, projectDir, detections: plan.detections, ownKinds: ["untypeable-tokens", "ambiguous-roles"], runsProjectDetectors: true, json: useJson,
+    command: CMD, projectDir, detections: plan.detections, ownKinds: ["untypeable-tokens", "ambiguous-roles", "token-path-collision"], runsProjectDetectors: true, json: useJson,
   });
   if (blocked !== null) return blocked;
   const result = plan.result;
