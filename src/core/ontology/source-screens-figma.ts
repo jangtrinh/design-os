@@ -15,6 +15,10 @@ import { BAD_SOURCE, OntologyReadError, parseSourceJson } from "./read-error.js"
 import type { OntNode, SourceReport } from "./ontology-types.js";
 
 export const SCAN_REL = "design/ds.json";
+/** Where the ingest writes its unsealed bundle: not `design/` (the ingest refuses it) and not the project root (its default). */
+export const INGEST_OUT_REL = ".design-os/figma-ingest";
+/** The ingest run that raises the page question, with the flags that keep its outputs out of the project root; `ui ds import` seals them after. */
+export const INGEST_COMMAND = `ui ingest-figma-ds ${SCAN_REL} --out ${INGEST_OUT_REL}`;
 
 export interface FigmaFacts {
   scan: DsFile;
@@ -43,7 +47,7 @@ export function readFigmaScreens(projectDir: string, rulings: readonly Ruling[])
   const outcomes = governedOutcomes(indexRulings(rulings), "screen-pages");
   if (pages.length > 1) {
     const open = pages.filter((p) => outcomes[p] === undefined);
-    if (open.length > 0) return { nodes: [], figma: null, scan, report: screenReport("missing", 0, `${open.length} of ${pages.length} pages with frames are not ruled as screen pages yet: ui ingest-figma-ds ${SCAN_REL} raises the question`) };
+    if (open.length > 0) return { nodes: [], figma: null, scan, report: screenReport("missing", 0, `${open.length} of ${pages.length} pages with frames are not ruled as screen pages yet: ${INGEST_COMMAND} raises the question`) };
   }
   const kept = scan.frames.filter((f) => pages.length <= 1 || outcomes[f.pageId] !== "drop");
   const nodes = kept.map((f): OntNode => ({
