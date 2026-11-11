@@ -171,7 +171,7 @@ function ledgerBlock(input: DesignDocInput): string[] {
   if (frames !== null && frames !== undefined) {
     out.push("### Existing screens (frames)", "", ...frames.pages.map((p) => `- \`${p.name}\`: ${p.frames} frame(s), ${p.instanceBuilt} built from instances${p.kept ? "" : " — left out"}`), "");
   }
-  if (bindings !== undefined) out.push("### Component links", "", ...bindingLines(bindings), "");
+  if (bindings !== undefined && bindings.sensed + bindings.notSensed > 0) out.push("### Component links", "", ...bindingLines(bindings), "");
   return out;
 }
 

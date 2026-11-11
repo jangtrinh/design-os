@@ -181,3 +181,26 @@ describe("DANGLING_AFTER_SELECTION: a selection that leaves an alias pointing no
     expect(accepted.code).toBe(0);
   });
 });
+
+describe("edges of the collections question", () => {
+  it("variables with no collection form one unnamed collection, asked about like any other, and the whole run balances", () => {
+    const bare = { id: "VariableID:1:1", name: "x/color/brand", type: "COLOR", value: { r: 0, g: 0, b: 0, a: 1 } };
+    const scan = scanOf({ tokens: [bare, colorVar("2:1", "x/color/brand", "Named")] });
+    const q = collectionsQuestion(scan)!;
+    expect(q.members).toEqual(["", "Named"]);
+    const project = newProject();
+    const { final } = ingestUntilReady(writeScan(project, scan), project, newProject(), (c) => [c.options.find((o) => o.id === "member:Named")!.id], ["--json"]);
+    const l = JSON.parse(final.out).data.ledger as { in: { total: number }; written: { total: number }; excluded: { total: number } };
+    expect([l.in.total, l.written.total, l.excluded.total]).toEqual([2, 1, 1]);
+  });
+
+  it("when the output directory is the project itself, a blocked run changes nothing but the pending file", () => {
+    const project = newProject();
+    const path = writeScan(newProject(), JSON.parse(readFileSync(FIVE, "utf8")));
+    const before = hashTree(project, [".design-os"]);
+    const r = capture(ingestArgs(path, project, project));
+    expect(r.code).toBe(1);
+    expect(hashTree(project, [".design-os"])).toBe(before);
+    expect(existsSync(join(project, ".design-os", "onboard", "pending.json"))).toBe(true);
+  });
+});
