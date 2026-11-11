@@ -77,7 +77,7 @@ export function findAliasSkips(tree: TokenTree, unreachable: ReadonlySet<string>
   for (const [cat, group] of Object.entries(tree)) {
     for (const [name, token] of Object.entries(group)) {
       exists.add(`${cat}.${name}`);
-      const target = targetOf(token);
+      const target = targetOf(token) ?? (unreachable.has(`${cat}.${name}`) ? "" : null); // an alias the importer could not write names nothing
       if (target !== null) alias.set(`${cat}.${name}`, target);
     }
   }
