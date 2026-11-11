@@ -120,12 +120,21 @@ describe("ui ds import — error codes", () => {
     expect(errorCode(r)).toBe("EMPTY_IMPORT");
   });
 
-  it("source with only un-typeable values → EMPTY_IMPORT", () => {
+  it("source with only un-typeable values asks first (nothing is skipped silently); once every member is excluded → EMPTY_IMPORT", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-import-err-"));
     const src = writeFlat(tmp, "tokens.json", {
       shadows: { sm: "0 1px 2px rgba(0,0,0,.04)" },
       motion: { ease: "cubic-bezier(0.4,0,0.2,1)" },
     });
+    const asked = capture(["ds", "import", src, "--dir", tmp, "--json"]);
+    expect(asked.code).toBe(1);
+    expect(errorCode(asked)).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(existsSync(join(tmp, "design", "design.tokens.json"))).toBe(false);
+    const pending = JSON.parse(readFileSync(join(tmp, ".design-os", "onboard", "pending.json"), "utf8")) as { clusters: { kind: string; fingerprint: string }[] };
+    const cluster = pending.clusters.find((c) => c.kind === "untypeable-tokens")!;
+    const answers = join(tmp, "answers.json");
+    writeFileSync(answers, JSON.stringify({ answers: [{ fingerprint: cluster.fingerprint, choice: "exclude" }] }));
+    expect(capture(["onboard", "answer", "--file", answers, "--cwd", tmp, "--json"]).code).toBe(0);
     const r = capture(["ds", "import", src, "--dir", tmp, "--json"]);
     expect(r.code).toBe(1);
     expect(errorCode(r)).toBe("EMPTY_IMPORT");
@@ -233,15 +242,15 @@ describe("ui ds import — F2: alias-valued tokens survive import (spec 009 P3 D
 
   it("test_an_alias_only_token_file_is_not_empty_import", () => {
     const tmp = mkdtempSync(join(tmpdir(), "ease-import-alias-only-"));
-    // Every token in the file is alias-valued — none of them are literals, so this
-    // exercises ds-import-impl.ts:64's EMPTY_IMPORT guard on a purely-semantic file.
+    // A purely-semantic file whose aliases point at targets that are not in it used to be sealed with dangling
+    // references; now each is asked about (a dangling alias can only be excluded), and nothing is sealed meanwhile.
     const src = writeFlat(tmp, "tokens.json", {
       color: { "text-primary": "{color.gray-900}", "text-secondary": "{color.gray-700}" },
     });
     const r = capture(["ds", "import", src, "--dir", tmp, "--json"]);
-    expect(r.code).toBe(0);
-    const data = JSON.parse(r.out).data as { imported: number };
-    expect(data.imported).toBe(2);
+    expect(r.code).toBe(1);
+    expect(errorCode(r)).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(existsSync(join(tmp, "design", "design.tokens.json"))).toBe(false);
   });
 });
 

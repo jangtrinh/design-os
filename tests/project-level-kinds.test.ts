@@ -210,3 +210,31 @@ describe("`ui design lint` points at the question it matches", () => {
     expect(capture(["onboard", "questions", "--cwd", p, "--format", "markdown"]).out).toContain("## source-authority");
   });
 });
+
+describe("`ui ds import` runs the same detectors and blocks even when `ui onboard questions` never ran (AC-18)", () => {
+  const flat = (): string => join(projectWith({ "tokens.json": JSON.stringify({ colors: { primary: "#3366ff" } }) }), "tokens.json");
+  it("a sealed store beside a differing second token source: exit 1 ONBOARD_BLOCKED on source-authority, pending.json written, the tree otherwise unchanged", () => {
+    const p = projectWith({ "package.json": "{}", ...TWO_SOURCES });
+    const before = hashTree(p);
+    const r = capture(["ds", "import", flat(), "--dir", p, "--force", "--json"]);
+    expect(r.code).toBe(1);
+    expect(json(r.out).error!.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
+    expect(kindsOf(p)).toEqual(["source-authority"]);
+    expect(hashTree(p, [".design-os"])).toBe(before);
+  });
+  it("all three project-level questions block one import, and once they are answered the import goes through", () => {
+    const p = severalClusters();
+    const src = flat();
+    expect(capture(["ds", "import", src, "--dir", p, "--force", "--json"]).code).toBe(1);
+    expect(kindsOf(p)).toEqual(["app-roots", "scan-budget", "source-authority"]);
+    const answers = keyOf(p).map((k) => ({ fingerprint: k.fingerprint, choice: k.multiSelect ? [k.options[0]!.id] : k.options[0]!.id }));
+    expect(submit(p, answers).code).toBe(0);
+    const again = capture(["ds", "import", src, "--dir", p, "--force", "--json"]);
+    expect(again.code, again.out).toBe(0);
+  });
+  it("a project with none of the three is not asked anything", () => {
+    const p = projectWith({ "package.json": "{}" });
+    expect(capture(["ds", "import", flat(), "--dir", p, "--json"]).code).toBe(0);
+    expect(existsSync(join(p, ".design-os"))).toBe(false);
+  });
+});

@@ -1,0 +1,12 @@
+{
+  "colors": {
+    "primary": "#3366ff",
+    "background": "#ffffff",
+    "foreground": "#111111",
+    "border": "#dddddd",
+    "danger": "{colors.primary}"
+  },
+  "spacing": { "space-1": 4, "space-2": 8, "gutter": "16px" },
+  "typography": { "font-family": "Inter", "font-weight-bold": 700 },
+  "motion": { "duration-fast": "120ms" }
+}

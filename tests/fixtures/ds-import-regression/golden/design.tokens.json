@@ -1,0 +1,69 @@
+{
+  "colors": {
+    "background": {
+      "$extensions": {
+        "design-os.role": "background"
+      },
+      "$type": "color",
+      "$value": "#ffffff"
+    },
+    "border": {
+      "$extensions": {
+        "design-os.role": "border"
+      },
+      "$type": "color",
+      "$value": "#dddddd"
+    },
+    "danger": {
+      "$extensions": {
+        "design-os.role": "destructive"
+      },
+      "$type": "color",
+      "$value": "{colors.primary}"
+    },
+    "foreground": {
+      "$extensions": {
+        "design-os.role": "foreground"
+      },
+      "$type": "color",
+      "$value": "#111111"
+    },
+    "primary": {
+      "$extensions": {
+        "design-os.role": "primary"
+      },
+      "$type": "color",
+      "$value": "#3366ff"
+    }
+  },
+  "motion": {
+    "duration-fast": {
+      "$type": "duration",
+      "$value": "120ms"
+    }
+  },
+  "spacing": {
+    "gutter": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "space-1": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "space-2": {
+      "$type": "dimension",
+      "$value": "8px"
+    }
+  },
+  "typography": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "Inter"
+    },
+    "font-weight-bold": {
+      "$type": "fontWeight",
+      "$value": 700
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "changelog": [],
+  "compiledHash": "sha256-ZIt4mqxGy7aJ98Fl371d8ESJPEsAxcLYyEpPFAkZXks",
+  "createdAt": "<instant>",
+  "generation": 1,
+  "intent": "imported from <repo>/tests/fixtures/ds-import-regression/flat-clean.tokens.json",
+  "name": "regression",
+  "persona": {
+    "family": "imported",
+    "slug": "imported"
+  },
+  "registryHash": "sha256-SSt6U5_2txSLRWCLIhVJ2XMsW2WODUBMKGFj44qhvZI",
+  "version": "1.0.0"
+}

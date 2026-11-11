@@ -1,0 +1,6 @@
+ds import: 11 token(s) [5 color, 3 dimension, 1 fontFamily, 1 fontWeight, 1 duration] across 4 categories → <project>/design
+  5 roles recognized, 11 gaps: card, popover, secondary, muted, accent, input, ring, success, warning, info, neutral
+  soul: <project>/design/soul.md (draft — edit then set status: ratified)
+  heartbeat: <project>/design/heartbeat.json
+  harvest: 0 probes at 0 → 0 proposals (review: ui ds harvest-bans --source <project> --dir <project>)
+  next: ui ds a11y --dir <project>  ·  ui ds status --dir <project>

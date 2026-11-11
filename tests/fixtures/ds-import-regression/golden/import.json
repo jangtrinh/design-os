@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "command": "ds import",
+  "data": {
+    "name": "regression",
+    "dir": "<project>/design",
+    "imported": 11,
+    "skipped": 0,
+    "byType": {
+      "color": 5,
+      "dimension": 3,
+      "fontFamily": 1,
+      "fontWeight": 1,
+      "duration": 1
+    },
+    "skippedKeys": [],
+    "categories": 4,
+    "rolesRecognized": 5,
+    "roleGaps": [
+      "card",
+      "popover",
+      "secondary",
+      "muted",
+      "accent",
+      "input",
+      "ring",
+      "success",
+      "warning",
+      "info",
+      "neutral"
+    ],
+    "soul": {
+      "path": "<project>/design/soul.md",
+      "written": true
+    },
+    "heartbeat": {
+      "path": "<project>/design/heartbeat.json",
+      "written": true
+    },
+    "harvest": {
+      "probesAtZero": 0,
+      "proposals": 0
+    }
+  }
+}
