@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { capture } from "./owner-rulings-helpers.js";
 import { builtRing1, printedCommands } from "./ontology-query-helpers.js";
-import { check, init, pinStudioHome } from "./agents-runtimes-helpers.js";
+import { check, claudeFile, init, pinStudioHome } from "./agents-runtimes-helpers.js";
 
 pinStudioHome();
 const OWN = "# Team notes\n";
@@ -58,6 +58,15 @@ describe("the output says which case applied", () => {
     const d = data(p, "--force");
     expect(d.runtimes).toEqual(["claude"]);
     expect(d.runtimesWithoutTarget).toEqual(["antigravity", "codex"]);
+  });
+  it("the add command carries the roster when this run wrote a subset, so adding a runtime adds no role", () => {
+    const p = builtRing1();
+    expect(init(p, "--runtimes", "claude", "--roster", "designer").code).toBe(0);
+    const done = init(p, "--force", "--roster", "designer");
+    expect(done.out).toContain("add them with: ui agents init --runtimes antigravity,codex --roster designer");
+    const add = printedCommands(done.out, p).find((a) => a.includes("--runtimes"));
+    expect(capture(add as string[]).code).toBe(0);
+    expect(existsSync(join(p, claudeFile(p, "curator")))).toBe(false);
   });
   it("says nothing of the kind on a first run", () => {
     expect(init(builtRing1()).out).not.toMatch(/already has|No target yet/);

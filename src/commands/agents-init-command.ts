@@ -101,7 +101,7 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   const claude = rows.filter((r) => r.runtime === "claude").map(({ role, name, path, written, replaced, differedOutsideBlock }) => ({ role, name, path, written, replaced, differedOutsideBlock }));
   if (parsed.json) return okJson(sub, { agents: claude, targets: rows, runtimes, runtimesWithoutTarget: withoutTarget });
   const lines = initLines(rows, join(proj.root, CODEX_REL));
-  if (defaulted) lines.push(`Regenerated the runtimes this project already has: ${runtimes.join(", ")}.`, ...(withoutTarget.length === 0 ? [] : [`No target yet for ${withoutTarget.join(", ")}; add them with: ui agents init --runtimes ${withoutTarget.join(",")}`]));
+  if (defaulted) lines.push(`Regenerated the runtimes this project already has: ${runtimes.join(", ")}.`, ...(withoutTarget.length === 0 ? [] : [`No target yet for ${withoutTarget.join(", ")}; add them with: ui agents init --runtimes ${withoutTarget.join(",")}${roles.length < ROSTER.length ? ` --roster ${ROSTER.filter((r) => roles.includes(r)).join(",")}` : ""}`]));
   if (ctx.studio === null) lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   lines.push(...closingLines(rows));
   if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), `Then: ${regenerateCommand(runtimes, roles)}`);
