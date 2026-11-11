@@ -76,7 +76,7 @@ export function buildSurface(input: BuildSurfaceInput): SurfaceModel {
       const slice = lines.slice(c.startLine - 1, c.endLine).join("\n");
       const refs = readStyleReferences(file, slice, input.lookup);
       declared.push({ name: c.name, file, isDefault: c.isDefault });
-      components.push({ name: c.name, file, dir: dirOf(file), tokens: refs.tokens, unresolvedStyles: refs.unresolvedStyles });
+      components.push({ name: c.name, file, dir: dirOf(file), tokens: refs.tokens, unresolvedStyles: refs.unresolvedStyles, unresolved: refs.unresolved, utilitiesNamingNoToken: refs.utilitiesNamingNoToken });
       details.push({ name: c.name, file, dir: dirOf(file), startLine: c.startLine, endLine: c.endLine, source: slice, variants: readVariants(c.name, source) });
     }
   }
