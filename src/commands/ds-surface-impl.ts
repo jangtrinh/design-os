@@ -26,7 +26,7 @@ import { applyCollisionRulings } from "../core/ds-surface/collision-rulings.js";
 import { planRegistration } from "../core/ds-surface/register-plan.js";
 import { readTokenStore } from "../core/ds-surface/token-store.js";
 import { buildTokenLookup } from "../core/ds-surface/style-references.js";
-import { collisionNameDetections, unaskableCollisions } from "../core/owner-rulings/kind-component-name-collision.js";
+import { collisionNameDetections } from "../core/owner-rulings/kind-component-name-collision.js";
 import { sourceMatchDetection } from "../core/owner-rulings/kind-component-source-match.js";
 import { sourceMatchCandidates } from "../core/ds-surface/source-match-candidates.js";
 import type { Registry } from "../core/registry-store.js";
@@ -108,10 +108,6 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
 
   model.output.shadowed = ruled.shadowed;
   model.output.tokenStore = store.status === "unverified" ? { status: store.status, drifted: store.drifted } : { status: store.status };
-  const unaskable = unaskableCollisions(collisionInput);
-  if (writes && unaskable.length > 0) {
-    return err("SURFACE_COLLISION_NOT_ASKABLE", `${unaskable.length} component name(s) are exported twice from one directory in every directory they run between (${unaskable.map((c) => c.name).join(", ")}), so no question can keep one file per name. Rename one export, then run again. Nothing was written.`);
-  }
 
   let plan = null;
   if (register) {
