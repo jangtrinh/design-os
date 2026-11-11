@@ -46,7 +46,12 @@ export interface ImportResult {
   stats: { imported: number; skipped: number; byType: Record<string, number>; skippedKeys: { key: string; reason: string }[] };
 }
 
-export interface ImportPlan { detections: KindDetection[]; result: ImportResult | null }
+export interface ImportPlan {
+  detections: KindDetection[];
+  result: ImportResult | null;
+  /** Every token path the file holds, written or not (typed, kept raw or left out): what a registry binding may name. */
+  sourcePaths: ReadonlySet<string>;
+}
 
 const ADVICE = "An alias is written only when its target is written: add the missing target to the token file, or exclude the alias.";
 
@@ -73,6 +78,9 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
   const aliasSkips = findAliasSkips(base.dtcg);
   const items = [...source, ...aliasSkips];
   const detections: KindDetection[] = [];
+  const sourcePaths = new Set<string>();
+  for (const [cat, group] of Object.entries(base.dtcg)) for (const name of Object.keys(group)) sourcePaths.add(`${cat}.${name}`);
+  for (const i of items) { sourcePaths.add(i.name); sourcePaths.add(i.name.split(".").map(sanitizeSeg).join(".")); }
 
   const untypeable = untypeableTokensEmitter.detect({
     items: items.map((i) => ({ id: i.id, name: i.name, reason: i.reason, keepable: i.raw !== undefined })),
@@ -91,7 +99,7 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
   const roles = ambiguousRolesEmitter.detect({ ambiguous });
   if (roles !== null && roles.members.length > 0) detections.push(roles);
 
-  if (!detections.every((d) => view.ruled(d))) return { detections, result: null };
+  if (!detections.every((d) => view.ruled(d))) return { detections, result: null, sourcePaths };
 
   const outcome = (i: ImportSkip): string => view.outcome("untypeable-tokens", i.id) ?? EXCLUDE;
   const keptRaw = items.filter((i) => i.raw !== undefined && outcome(i) === KEEP_RAW);
@@ -122,7 +130,7 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
   const byType: Record<string, number> = {};
   for (const group of Object.values(tree)) for (const t of Object.values(group)) byType[t.$type] = (byType[t.$type] ?? 0) + 1;
   return {
-    detections,
+    detections, sourcePaths,
     result: {
       tree, ledger, excludedItems,
       keptRawItems: keptRaw.map((i) => ({ id: i.id, name: i.name })),

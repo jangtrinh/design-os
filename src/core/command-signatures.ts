@@ -879,7 +879,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "reset-registry", type: "boolean", summary: "Confirm that --force or --registry may replace a non-empty sealed registry (required when the registry has components)" },
           { name: "registry", type: "string", summary: "The unsealed component-registry.json that ui ingest-figma-ds wrote: every record is validated, then tokens and registry are sealed under one manifest" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "BAD_REGISTRY", "EXISTS", "REGISTRY_NOT_EMPTY", "EMPTY_IMPORT", "KIT_DOWNGRADE", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "BAD_REGISTRY", "EXISTS", "REGISTRY_NOT_EMPTY", "BAD_SEALED_REGISTRY", "EMPTY_IMPORT", "KIT_DOWNGRADE", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
       },
       context: {
         summary: "Emit the active design system as a context block for the host model",

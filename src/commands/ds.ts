@@ -103,10 +103,14 @@ Subcommands:
   --force            Overwrite an existing design.tokens.json
   --registry <file>  The unsealed component-registry.json that 'ui ingest-figma-ds' wrote:
                      every record is validated (BAD_REGISTRY, nothing written), then the
-                     tokens and the registry are sealed under one manifest
+                     tokens and the registry are sealed under one manifest. A record that binds
+                     a token the token file does not hold is refused (BAD_REGISTRY); a binding
+                     to a token an answer left out is dropped, counted and named
   --reset-registry   Confirm --force or --registry may replace a non-empty sealed registry
                      (required when component-registry.json already has components —
-                     REGISTRY_NOT_EMPTY otherwise; there is no merge)
+                     REGISTRY_NOT_EMPTY otherwise; there is no merge). It removes the whole
+                     previous registry, shards and index (design/registry/) included. A sealed
+                     registry that cannot be read is refused (BAD_SEALED_REGISTRY) without it
   Converts a flat { category: { name: value } } token file into DTCG, inferring
   $type per value (color/dimension/number/fontFamily/fontWeight/duration). Nested
   groups are hoisted to <cat>-<sub>. Un-typeable values (box-shadow strings,
@@ -388,6 +392,7 @@ Error codes:
   BAD_JSON           'ds import' source is not valid JSON / did not convert
   EXISTS             'ds import' target design.tokens.json exists (use --force)
   REGISTRY_NOT_EMPTY 'ds import --force' would wipe a non-empty registry (pass --reset-registry)
+  BAD_SEALED_REGISTRY  the sealed registry cannot be read (repair or remove it, or pass --reset-registry)
   EMPTY_IMPORT       'ds import' found no typeable tokens
   BAD_REGISTRY       'ds import --registry' file is not a registry, or a record fails validation
   BAD_PENDING        .design-os/onboard/pending.json is unreadable (transient, safe to delete)

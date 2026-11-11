@@ -11,29 +11,27 @@
  * the name cannot decide, and the project-level questions (scan budget, app roots, source of truth)
  * block the import with ONBOARD_BLOCKED_NEEDS_OWNER_RULING before anything is written.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { refuseKitDowngrade } from "../core/ds-kit-seal.js";
 import { pathsForDir } from "../core/design-system.js";
-import { canonicalStringify, canonicalHash, newManifest } from "../core/ds-manifest.js";
-import { createEmptyRegistry, saveRegistry } from "../core/registry-store.js";
+import { createEmptyRegistry } from "../core/registry-store.js";
 import type { Registry } from "../core/registry-store.js";
 import { parseTokenFile } from "../core/token-model.js";
 import { recognizeRoles } from "../core/role-recognition.js";
 import { planImport } from "../core/ds-import-plan.js";
 import type { ImportPlan } from "../core/ds-import-plan.js";
 import { wireFuelLine } from "../core/ds-fuel-line.js";
-import { harvestProject } from "../core/negative-space-proposals.js";
 import { blockOnOpenClusters } from "../core/owner-rulings/block-contract.js";
 import { RulingStoreError, readRulingStore } from "../core/owner-rulings/ruling-store.js";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
-import { ImportRegistryError, loadImportRegistry, sealedRegistryCount } from "./ds-import-registry.js";
-import { extraSummary, hadQuestions, ledgerLines } from "./ds-import-summary.js";
-import type { RoleOutcome } from "./ds-import-summary.js";
-import { SetRoleError, applyRoleToStore } from "./ds-set-role-impl.js";
+import { ImportRegistryError, assertBindingsInFile, dropBindingsOutsideTree, loadImportRegistry, sealedRegistryCount } from "./ds-import-registry.js";
+import { applyRoles, sealImportStore, validateRoles } from "./ds-import-seal.js";
+import { extraSummary, hadQuestions, ledgerLines, runHarvest } from "./ds-import-summary.js";
+import { SetRoleError } from "./ds-set-role-impl.js";
 
 const CMD = "ds import";
 const KNOWN_FLAGS = ["dir", "name", "force", "reset-registry", "registry"] as const;
@@ -71,11 +69,16 @@ export function runImport(parsed: ParsedArgs): CommandResult {
   const force = parsed.flags["force"] === true;
   if (!force && existsSync(paths.tokens)) return err("EXISTS", `${paths.tokens} already exists (use --force to overwrite)`);
 
-  // D2: --force alone must not silently wipe a non-empty registry (dana lost 3 components
-  // + 102 changelog entries this way). --reset-registry is the explicit opt-in. The same guard stands in front of
-  // --registry: a sealed registry is never replaced by another, and there is no merge.
+  // --force alone must not silently wipe a non-empty registry (dana lost 3 components + 102 changelog entries this
+  // way); --reset-registry is the explicit opt-in. The same guard stands in front of --registry: a sealed registry is
+  // never replaced by another, and there is no merge. A sealed registry that cannot be read is refused, not counted as empty.
   const resetRegistry = parsed.flags["reset-registry"] === true;
-  const existingCount = sealedRegistryCount(paths.registry);
+  let existingCount = 0;
+  try { existingCount = sealedRegistryCount(paths.registry); }
+  catch (e) {
+    if (!(e instanceof ImportRegistryError)) throw e;
+    if (!resetRegistry) return err(e.code, e.message);
+  }
   if ((force || registryFlag !== undefined) && !resetRegistry && existingCount > 0) {
     return err(
       "REGISTRY_NOT_EMPTY",
@@ -106,8 +109,9 @@ export function runImport(parsed: ParsedArgs): CommandResult {
   let plan: ImportPlan;
   try {
     plan = planImport(flat, readRulingStore(projectDir).rulings);
+    if (imported !== null) assertBindingsInFile(imported, plan.sourcePaths);
   } catch (e) {
-    if (e instanceof RulingStoreError) return err(e.code, e.message);
+    if (e instanceof RulingStoreError || e instanceof ImportRegistryError) return err(e.code, e.message);
     return err("BAD_JSON", `import failed: ${e instanceof Error ? e.message : String(e)}`);
   }
   const blocked = blockOnOpenClusters({
@@ -126,72 +130,45 @@ export function runImport(parsed: ParsedArgs): CommandResult {
     return err("BAD_JSON", `internal: emitted DTCG did not validate: ${e instanceof Error ? e.message : String(e)}`);
   }
 
-  // Bake role recognition (spec 011 Phase 2) BEFORE sealing, so the seal covers
-  // the annotated tree — deterministic, so the hash is stable. Lossless: every
-  // name/value survives verbatim; only $extensions["design-os.role"] is added.
-  // Never renames, drops, or injects a token (see role-recognition.ts).
+  // Bake role recognition (spec 011 Phase 2) BEFORE sealing, so the seal covers the annotated tree: deterministic, so
+  // the hash is stable. Lossless: only $extensions["design-os.role"] is added (see role-recognition.ts). Every role the
+  // owner gave is validated against that tree first, so a refusal leaves nothing written.
   const recognition = recognizeRoles(result.tree);
   const annotated = recognition.annotated;
+  try { validateRoles(annotated, result.roles); }
+  catch (e) {
+    if (e instanceof SetRoleError) return err(e.code, `${e.message}. Nothing was written.`);
+    throw e;
+  }
 
-  // Seal tokens + registry + manifest.
-  const registry = imported ?? createEmptyRegistry();
+  // A binding is written only when its token is written: the ones an answer left out are named and counted.
+  const { registry, leftOut } = imported === null ? { registry: createEmptyRegistry(), leftOut: [] } : dropBindingsOutsideTree(imported, annotated);
   try {
-    mkdirSync(designDir, { recursive: true });
-    // canonicalStringify already appends a trailing "\n" (ds-manifest.ts) — do not double it.
-    writeFileSync(paths.tokens, canonicalStringify(annotated));
-    // The imported registry goes through the registry store (shards + the canonical file); the hash covers the bytes written.
-    if (imported === null) writeFileSync(paths.registry, canonicalStringify(registry));
-    else saveRegistry(paths.registry, registry);
-    const registryHash = canonicalHash(JSON.parse(readFileSync(paths.registry, "utf8")));
-    const manifest = newManifest({
-      name,
-      persona: { slug: "imported", family: "imported" },
-      intent: `imported from ${src}`,
-      compiledHash: canonicalHash(annotated),
-      registryHash,
-    });
-    writeFileSync(paths.manifest, canonicalStringify(manifest));
+    sealImportStore({ paths, designDir, name, src, tree: annotated, registry, imported: imported !== null, reset: resetRegistry });
   } catch (e) {
     return err("WRITE_ERROR", `could not write DS store: ${e instanceof Error ? e.message : String(e)}`);
   }
-
-  // The roles the owner gave go through the same path as `ui ds set-role`, one reseal each, after the store is sealed.
-  const applied: RoleOutcome[] = [];
-  for (const r of result.roles) {
-    try { applied.push({ ...r, changed: applyRoleToStore(paths, r.path, r.role).changed }); }
-    catch (e) {
-      if (e instanceof SetRoleError) return err(e.code, `the store is sealed, but the role ${r.role} could not be applied to ${r.path}: ${e.message}. Run: ui ds set-role ${r.path} ${r.role}`);
-      throw e;
-    }
+  let applied;
+  try { applied = applyRoles(paths, result.roles); }
+  catch (e) {
+    if (e instanceof SetRoleError) return err(e.code, e.message);
+    throw e;
   }
   const givenRoles = new Set(applied.map((a) => a.role));
 
-  // Wire the learning-loop fuel line (spec 012 P2): soul scaffold + default heartbeat +
-  // harvest-inbox. Never clobbers an existing soul.md or heartbeat.json.
+  // Wire the learning-loop fuel line (spec 012 P2): soul scaffold + default heartbeat + harvest-inbox. Never clobbers
+  // an existing soul.md or heartbeat.json.
   const fuelLine = wireFuelLine(designDir);
-
-  // Negative-space pass: count the cliches this project's source never uses and PROPOSE bans (soul.md
-  // `## Never (proposed)` + _adherence.proposed.json; never the binding files). The store above is
-  // already written and sealed, so a harvest failure is a warning with its cause, not a failed import.
-  let harvest: { probesAtZero: number; proposals: number } | { error: string };
-  try {
-    const h = harvestProject({ projectDir, sourceDir: projectDir, write: true });
-    harvest = {
-      probesAtZero: h.report.probes.filter((p) => p.count === 0 && p.scannedFiles > 0).length,
-      proposals: h.plan.filter((x) => x.status === "propose").length,
-    };
-  } catch (e) {
-    harvest = { error: e instanceof Error ? e.message : String(e) };
-  }
+  const harvest = runHarvest(projectDir);
 
   const gaps = recognition.gaps.filter((g) => !givenRoles.has(g));
-  const asked = hadQuestions(result);
+  const asked = hadQuestions(result) || leftOut.length > 0;
   const summary = {
     name, dir: designDir, ...stats, categories: Object.keys(annotated).length,
     rolesRecognized: recognition.recognized + applied.filter((a) => a.changed).length, roleGaps: gaps,
     ...(imported === null ? {} : { registry: { path: paths.registry, components: registry.components.length } }),
     soul: fuelLine.soul, heartbeat: fuelLine.heartbeat, harvest,
-    ...(asked ? extraSummary(result, applied) : {}),
+    ...(asked ? extraSummary(result, applied, leftOut) : {}),
   };
   if (useJson) return okJsonWithExit(CMD, summary, 0);
   const typeLine = Object.entries(stats.byType).map(([t, n]) => `${n} ${t}`).join(", ");
@@ -199,7 +176,7 @@ export function runImport(parsed: ParsedArgs): CommandResult {
     `ds import: ${stats.imported} token(s) [${typeLine}] across ${summary.categories} categories → ${designDir}`,
     `  ${summary.rolesRecognized} roles recognized, ${gaps.length} gaps: ${gaps.join(", ")}`,
     ...(imported === null ? [] : [`  registry: ${registry.components.length} component(s) sealed with the tokens → ${paths.registry}`]),
-    ...(asked ? ledgerLines(result, applied) : []),
+    ...(asked ? ledgerLines(result, applied, leftOut) : []),
     `  soul: ${fuelLine.soul.path} (draft — edit then set status: ratified)`,
     `  heartbeat: ${fuelLine.heartbeat.path}`,
     "error" in harvest
