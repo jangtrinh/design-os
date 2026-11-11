@@ -24,13 +24,20 @@ build   Reads the sealed token store and component registry, the Figma scan (des
         design/knowledge/screens.meta.json), and writes design/knowledge/ontology.json: nodes and links, no timestamp.
         A link is exact or it is asked: a name that matches nothing is counted unresolved, a field the host never
         sensed is counted not sensed, and a glossary term named like a node raises one inferred-links question.
-        An open question blocks the write (exit 1, nothing written but the pending question list); the summary of what
-        would be written is still shown. Missing sources are reported, never an error.
-lint    Fails on a link to a node that does not exist, a duplicate node id, a stale file (a fresh emit differs from the
-        file) and a CONVENTIONS.md that differs from a render of design/conventions.json. Orphans (a node with no link
-        that is not standalone) are warnings; --strict makes them errors. Always prints the coverage table and the link
-        reports (written, unresolved, not sensed, not checked, owner-ruled pairs no candidate matches; --json: linkReports).
-        Never writes and never raises a question. An open question the build depends on is an error naming ui onboard questions.
+        The build refuses, writing nothing (exit 1), when the graph does not hold together (ONTOLOGY_DUPLICATE_ID,
+        ONTOLOGY_DANGLING_LINK), when design/conventions.json and CONVENTIONS.md differ (CONVENTIONS_PAIR_DRIFT) or when a
+        source cannot be read (ONTOLOGY_BAD_SOURCE). An open question blocks the write too (exit 1, nothing written but
+        the pending question list); the summary of what would be written is still shown. Missing sources are reported,
+        never an error.
+lint    Judges the build it would run now, and the file on disk when there is one. Fails on a link to a node that does
+        not exist, a duplicate node id, a stale file (a fresh emit differs from the file) and a CONVENTIONS.md that
+        differs from a render of design/conventions.json; a refusal the build would give is reported by its own code, and
+        no line promises that ui ontology build cures what it would refuse. Orphans (a node with no link that is not
+        standalone) are warnings (ONTOLOGY_ORPHAN); --strict makes them errors. Orphans no question covers are warnings
+        too (ONTOLOGY_ORPHAN_UNASKED). Always prints the coverage table and the link reports (written, unresolved, not
+        sensed, not checked, owner-ruled pairs no candidate matches; --json: linkReports). Never writes and never raises
+        a question. An open question the build depends on is an error that names its next action: ui onboard questions
+        --format claude when it lists the question, ui ontology build for the questions only the build raises.
 
 Options:
   --dir <project>   Project directory (default: current working directory)
@@ -48,12 +55,14 @@ Error codes:
   BAD_MANIFEST                         design/design-dir.json cannot be read
   BAD_PENDING                          .design-os/onboard/pending.json is malformed
   DS_TAMPERED                          The sealed store drifted from its seal: reseal it, the build never reads it as is
-  ONTOLOGY_BAD_SOURCE                  A source file exists and cannot be read as what it claims to be
+  ONTOLOGY_BAD_SOURCE                  A source file exists and cannot be read as what it claims to be (build refuses)
   ONBOARD_BLOCKED_NEEDS_OWNER_RULING   build: an open question blocks the write; lint: it blocks a fresh emit
   ONTOLOGY_STALE                       lint: a fresh emit from the current sources differs from the file on disk
-  ONTOLOGY_DANGLING_LINK               lint: a link's target does not exist
-  ONTOLOGY_DUPLICATE_ID                lint: a node id appears more than once
-  CONVENTIONS_PAIR_DRIFT               lint: CONVENTIONS.md and design/conventions.json differ
+  ONTOLOGY_DANGLING_LINK               build refuses and lint reports: a link's target does not exist
+  ONTOLOGY_DUPLICATE_ID                build refuses and lint reports: a node id appears more than once
+  CONVENTIONS_PAIR_DRIFT               build refuses and lint reports: CONVENTIONS.md and design/conventions.json differ
+  ONTOLOGY_ORPHAN                      lint warning (error under --strict): a node with no link that is not standalone
+  ONTOLOGY_ORPHAN_UNASKED              lint warning: orphans no question covers
 `;
 
 export const ontologyCommand = {

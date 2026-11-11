@@ -29,7 +29,13 @@ function openQuestionsNote(dir: string, detections: Parameters<typeof blockingCl
   try {
     const open = blockingClusters(dir, detections);
     return open.length === 0 ? "" : `; ${blockingSummary(open).replace(" await", " also await")}`;
-  } catch { return ""; }
+  } catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return ""; throw e; }
+}
+
+/** The errno and the call that failed, never the message: a system message carries the absolute path of the project. */
+function errnoText(e: unknown): string {
+  const { code, syscall } = (e ?? {}) as NodeJS.ErrnoException;
+  return typeof code === "string" ? `${code}${typeof syscall === "string" ? ` during ${syscall}` : ""}` : "an unexpected error";
 }
 
 export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
@@ -62,7 +68,7 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
     writeFileSync(tmp, serializeOntology(o), "utf8");
     renameSync(tmp, target);
   } catch (e) {
-    return fail(CMD, json, "WRITE_ERROR", `cannot write '${outRel}': ${e instanceof Error ? e.message : String(e)}`);
+    return fail(CMD, json, "WRITE_ERROR", `cannot write '${outRel}': ${errnoText(e)}`);
   }
   return json ? okJson(CMD, { out: outRel, ...facts }) : { exitCode: 0, stdout: buildText(o, outRel) };
 }
