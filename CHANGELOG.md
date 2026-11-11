@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-11-11 - `ui ds import` asks the owner, seals a Figma registry, and `ui scan` honours owner rulings
+
+### Changed
+- `ui ds import` no longer skips what it cannot handle. When the token file holds something only the owner can
+  settle, the command writes nothing, exits 1 with `ONBOARD_BLOCKED_NEEDS_OWNER_RULING` and stores its questions in
+  `.design-os/onboard/pending.json`. Answer with `ui onboard questions` and `ui onboard answer --file`, then run the
+  import again. It asks about: tokens that cannot be typed (grouped by reason: unmappable type, null leaf, dangling
+  alias, alias cycle, bad colour, ignored `_` key, not a token group), a colour token whose name ties between roles
+  (only the tied roles and "no role" are offered; answers are applied through `ui ds set-role`), and two keys of the
+  file that become one token path (for example `Primary` and `primary`, or a nested group that lands on a flat group
+  of the same name). Earlier the last key won silently and skipped keys were printed as a sample of six. A collision
+  is asked first, alone: the other questions depend on which key wins, so they follow in the next round.
+- An alias is recognised by its shape (`{...}`), whatever the case of the key it names, and is written at the
+  written path of the token it names, so an alias to a camelCase key or to a token in a nested group now resolves.
+  A written alias takes its type from the token it resolves to. An alias whose target is not written is asked as a
+  dangling alias; it is never pointed at another token and never sealed as a dangling reference.
+- "Keep as raw string tokens" never replaces a token that is already in the `raw` group.
+- Every import ends with a ledger in the JSON envelope and the text output: `in = written + excluded + pending`, one
+  count per reason, and the id and name of every item an owner answer left out.
+- `ui scan` honours the owner's `scan-budget` and `app-roots` rulings: a directory ruled "skip" is not entered, and
+  exactly the app roots ruled "drop" are left out. When answers contain one another the deepest one decides: a kept
+  root inside a skipped directory is still walked, a dropped root inside a kept root is not. The output says what
+  happened: the roots walked, the roots left out, the ruled roots that are no longer found, and the roots no ruling
+  covers yet. With no ruling the output is unchanged. When `design/design-dir.json` cannot be read, `ui scan`
+  still exits 0, walks without rulings and says so.
+- `ui design lint`: the `two-token-sources` finding and the source-authority question share one condition, and the
+  finding's fix text follows the state of the question: it names `ui onboard questions` until the owner answers, then
+  names the file the owner ruled the source and what to do with the other one.
+
+### Added
+- `ui ds import --registry <file>` seals the component registry that `ui ingest-figma-ds` wrote together with the
+  tokens, under one manifest. Every record is validated before anything is written. A sealed registry is never
+  replaced without `--reset-registry`, and one that cannot be read is refused (`BAD_SEALED_REGISTRY`), including a
+  registry file that no longer parses. A component's token binding is written only when its token is: a binding
+  to a token the owner left out is dropped, counted and named; a binding to a token the file does not hold is
+  refused with `BAD_REGISTRY`.
+- Three project-level questions: the scan budget (which large directories to skip when the scan is capped), the app
+  roots (which nested apps belong to the design system), and the token source of truth (when the sealed store and
+  `design/tokens.json` differ). `ui onboard` reports them, `ui onboard questions` raises them in one pass, and
+  `ui ds import` blocks until they are answered.
+
+### Removed
+- The unused `onboard.scan.skip` and `onboard.scan.roots` fields of `design/design-dir.json` (never released, never
+  written by any command). The owner rulings are the one source the scan reads.
+
+### Migration
+- A token file that imported in one run may now stop with questions. Nothing is lost that the ledger does not show.
+- A token file that holds only aliases to tokens in another file can no longer be sealed with dangling references;
+  import a file that also holds the targets.
+- Token files with typeable tokens and unambiguous roles import byte-for-byte as before.
+
 ## 2026-11-11 - `ui ingest-figma-ds` asks the owner instead of dropping or guessing
 
 ### Changed
