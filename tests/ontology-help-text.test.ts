@@ -33,4 +33,7 @@ describe("the ontology summaries of the command signatures", () => {
     expect(subcommands["lint"]!.summary).toMatch(/ui onboard questions, or ui ontology build for the ones only the build raises/);
     expect(subcommands["lint"]!.summary).toContain("orphans are warnings");
   });
+  it("declare the three refusal codes among the error codes of the build", () => {
+    for (const code of ["ONTOLOGY_DUPLICATE_ID", "ONTOLOGY_DANGLING_LINK", "CONVENTIONS_PAIR_DRIFT"]) expect(subcommands["build"]!.errorCodes, code).toContain(code);
+  });
 });

@@ -786,7 +786,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
           { name: "dir", type: "string", summary: "Project directory (default: current working directory)" },
           { name: "out", type: "string", summary: "Output file, inside the project (default: design/knowledge/ontology.json)" },
         ],
-        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "DS_TAMPERED", "ONTOLOGY_BAD_SOURCE", "ONTOLOGY_DUPLICATE_ID", "ONTOLOGY_DANGLING_LINK", "CONVENTIONS_PAIR_DRIFT", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
       },
       lint: {
         summary: "Judge the build it would run now and the file on disk: dangling links, duplicate ids, a stale file, a conventions pair that differs; open questions name their next action (ui onboard questions, or ui ontology build for the ones only the build raises); orphans are warnings; prints the coverage table and the link reports",
