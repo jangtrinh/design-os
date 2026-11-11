@@ -38,6 +38,11 @@ export interface BlockInput {
   ownKinds: readonly ClusterKind[];
   /** True for the two doors that run the project-level detectors themselves. Default false. */
   runsProjectDetectors?: boolean;
+  /**
+   * Kinds that stay in pending.json but do not block this call (a read whose output does not depend on their answer).
+   * Default none: a command that does not pass it behaves exactly as before.
+   */
+  tolerated?: readonly ClusterKind[];
   emitters?: readonly KindEmitter[];
   json: boolean;
 }
@@ -57,7 +62,7 @@ export function blockOnOpenClusters(input: BlockInput): CommandResult | null {
   }
   // A question another command raised stays stored but is not this command's to block on (project-level kinds are everyone's).
   const foreign = (c: Cluster): boolean => !PROJECT_LEVEL_KINDS.includes(c.kind) && c.raisedBy !== input.command;
-  const blocking = orderClusters(state.pending.filter((c) => (input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))) && !foreign(c)));
+  const blocking = orderClusters(state.pending.filter((c) => (input.ownKinds.includes(c.kind) || (projectLevel && PROJECT_LEVEL_KINDS.includes(c.kind))) && !foreign(c) && !(input.tolerated ?? []).includes(c.kind)));
 
   // What this command raised is replaced by what it detects now: the open ones when it blocks, none when it does not.
   try { syncPending(input.projectDir, orderClusters(state.pending)); }

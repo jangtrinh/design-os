@@ -16,7 +16,7 @@ import type { CommandResult } from "../core/output.js";
 import { scanProject } from "../core/project-scan.js";
 import { scanRulingsOf } from "../core/project-scan-rulings.js";
 import { renderSurfaceText } from "./ds-surface-render.js";
-import { surfaceBlock } from "./ds-surface-block.js";
+import { openQuestionsOf, surfaceBlock } from "./ds-surface-block.js";
 import { BatchRegisterError, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
 import { readAppFiles } from "../core/ds-surface/app-source-files.js";
 import { buildSurface } from "../core/ds-surface/build-surface.js";
@@ -66,8 +66,8 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return err(e.code, e.message); throw e; }
   };
   if (!choice.ok) {
-    // The project-level questions come first: a user who never ran `ui onboard questions` is still asked.
-    if (choice.code === "ONBOARD_BLOCKED_NEEDS_OWNER_RULING") { const blocked = block([], false, ["component-name-collision"]); if (blocked !== null) return blocked; }
+    // The project-level questions come first on every refusal: a user who never ran `ui onboard questions` is still asked. An app-choice refusal that is not itself the app-roots question does not wait for it.
+    { const blocked = block([], choice.code !== "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", []); if (blocked !== null) return blocked; }
     return err(choice.code, choice.message);
   }
 
@@ -121,7 +121,8 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
       return err("SURFACE_REGISTERED_SOURCE_CHANGED", `${held.length} component(s) were registered from a source that has changed since (${held.slice(0, 5).map((c) => `${c.name}: ${c.heldRef} is now ${c.nowRef}`).join(", ")}${held.length > 5 ? ", ..." : ""}). Nothing was written and no record was replaced. Next: ui registry register ${first.name} --category <category> --markup <file> --source-ref ${first.nowRef} --force re-registers a changed component.`);
     }
   }
-  const data = { ...model.output, ...(plan === null ? {} : { register: plan.preview }) };
+  const open = openQuestionsOf(cwd);
+  const data = { ...model.output, ...(plan === null ? {} : { register: plan.preview }), ...(open === undefined ? {} : { pending: open }) };
 
   if (outFile !== undefined) {
     const target = resolve(cwd, outFile);

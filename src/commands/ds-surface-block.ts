@@ -1,19 +1,18 @@
 /**
- * The block contract for `ui ds surface` (spec 033 FR-002, FR-003, FR-027). The command always runs the project-level
- * detectors and its own `component-name-collision` detection (and, with `--register`, `component-source-match`) through `blockOnOpenClusters`, which syncs
- * `pending.json`. What blocks depends on whether the call writes:
- *  - a call that writes (`--out`, `--register --apply`) is blocked by every open cluster it asks about, a collision
- *    included, and writes nothing;
- *  - a read-only call is blocked by the project-level clusters (`scan-budget`, `source-authority`, and `app-roots` when
- *    no app root can be chosen) but not by a collision or by `app-roots` once an app root is chosen: it reports the
- *    surface, the question stays in `pending.json`, and the report names it. An answered or unanswered question never
- *    changes what the surface reads.
- * The kernel function is called as it is; a tolerated cluster is recognised from the refusal it returns, which is
- * computed in JSON form and re-rendered in the caller's form only when it really blocks.
+ * The block contract for `ui ds surface` (spec 033 FR-002, FR-003, FR-027; review fix round, section A). The command
+ * always runs the project-level detectors and its own `component-name-collision` detection (and, with `--register`,
+ * `component-source-match`) through `blockOnOpenClusters`, which syncs `pending.json`. One rule decides what blocks:
+ * a question blocks a read only when what the read shows depends on its answer, and every open question of the command
+ * blocks a write (`--out`, `--register --apply`).
+ *  - `scan-budget` and `source-authority` block reads and writes;
+ *  - `app-roots` blocks a read only when no app root can be chosen without it, and blocks every write, `--app` or not;
+ *  - a collision and a source match never block a read (it lists both files and both sources) and always block a write.
+ * The kernel function is told which kinds the call tolerates, so nothing is parsed back out of its output.
  */
 import { blockOnOpenClusters } from "../core/owner-rulings/block-contract.js";
 import type { BlockInput } from "../core/owner-rulings/block-contract.js";
 import type { ClusterKind } from "../core/owner-rulings/cluster-kinds.js";
+import { PENDING_REL, readPending } from "../core/owner-rulings/pending-store.js";
 import type { CommandResult } from "../core/output.js";
 
 export interface SurfaceBlockInput {
@@ -27,26 +26,19 @@ export interface SurfaceBlockInput {
   ownKinds: readonly ClusterKind[];
   /** True when the call writes the project (`--out`, `--register --apply`). */
   writes: boolean;
-  /** True once an app root is chosen: an unanswered `app-roots` question then does not stop the read. */
+  /** True once an app root is chosen: an unanswered `app-roots` question then does not stop a read. */
   appChosen: boolean;
   json: boolean;
 }
 
-function blockedKinds(result: CommandResult): string[] {
-  try {
-    const parsed = JSON.parse(result.stdout ?? "") as { error?: { code?: string }; data?: { blocked?: { clusters?: { kind: string }[] } } };
-    if (parsed.error?.code !== "ONBOARD_BLOCKED_NEEDS_OWNER_RULING") return [];
-    return (parsed.data?.blocked?.clusters ?? []).map((c) => c.kind);
-  } catch { return []; }
-}
-
 /** The refusal to return, or null when the command may go on. */
 export function surfaceBlock(input: SurfaceBlockInput): CommandResult | null {
-  const base = { command: input.command, projectDir: input.projectDir, detections: input.detections, ownKinds: input.ownKinds, runsProjectDetectors: true };
-  const probe = blockOnOpenClusters({ ...base, json: true });
-  if (probe === null) return null;
-  const kinds = blockedKinds(probe);
-  const tolerated = [...(input.writes ? [] : input.ownKinds), ...(input.appChosen ? ["app-roots"] : [])];
-  if (kinds.length > 0 && kinds.every((k) => tolerated.includes(k))) return null;
-  return input.json ? probe : blockOnOpenClusters({ ...base, json: false });
+  const tolerated: ClusterKind[] = input.writes ? [] : [...input.ownKinds, ...(input.appChosen ? (["app-roots"] as const) : [])];
+  return blockOnOpenClusters({ command: input.command, projectDir: input.projectDir, detections: input.detections, ownKinds: input.ownKinds, runsProjectDetectors: true, tolerated, json: input.json });
+}
+
+/** The questions a read went through with: how many are open and where they are stored; undefined when none. */
+export function openQuestionsOf(projectDir: string): { count: number; path: string } | undefined {
+  const count = readPending(projectDir).clusters.length;
+  return count === 0 ? undefined : { count, path: PENDING_REL };
 }
