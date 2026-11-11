@@ -11,6 +11,7 @@ import { BUILD_LABEL } from "./blocking-clusters.js";
 import { orphanNodes } from "./coverage.js";
 import { appliedDefines, termCandidates } from "./inferred-candidates.js";
 import { buildLinks } from "./link-rules.js";
+import { withRepeats } from "./repeated-values.js";
 import type { NodeSources } from "./node-sources.js";
 import { ONTOLOGY_SCHEMA, byText } from "./ontology-types.js";
 import type { LinkReport, NodeKind, Ontology } from "./ontology-types.js";
@@ -34,7 +35,7 @@ export function buildOntology(s: NodeSources, rulings: readonly Ruling[]): Built
   const linkReports = [...result.reports, defines].sort((a, b) => byText(a.link, b.link));
 
   const ontology: Ontology = {
-    schema: ONTOLOGY_SCHEMA, nodes, links, sources: s.reports, linkReports,
+    schema: ONTOLOGY_SCHEMA, nodes, links, sources: withRepeats(s.reports, result.repeats), linkReports,
     proposals: s.rules.proposals, uncovered: [],
   };
   // An orphan is covered only while an open question reaches it: the term or the node of a pair still awaiting a ruling.
