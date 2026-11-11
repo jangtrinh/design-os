@@ -4,6 +4,8 @@ import type { SurfaceOutput } from "../core/ds-surface/surface-types.js";
 
 export type SurfaceData = SurfaceOutput & {
   register?: RegisterPreview;
+  /** The questions stored for the owner when the read went through; absent when none is open. */
+  pending?: { count: number; path: string };
   applied?: { file: string; registered: number; linked: number; separate: number; sealed: boolean; generation?: number; warnings: string[] };
 };
 
@@ -26,8 +28,7 @@ export function renderSurfaceText(d: SurfaceData): string {
   if (d.tailwindCss !== undefined) lines.push(`  tailwind v4 css: ${d.tailwindCss}`);
   for (const c of d.collisions) lines.push(`  collision: ${c.name} is exported from ${c.files.join(" and ")}`);
   for (const s of d.shadowed) lines.push(`  shadowed: ${s.name} in ${s.file} (ruling ${s.fingerprint.slice(0, 12)})`);
-  const askedFor = d.collisions.length - new Set(d.shadowed.map((s) => s.name)).size;
-  if (askedFor > 0) lines.push(`  question: ${plural(askedFor, "collision")} need an owner ruling and are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
+  if (d.pending !== undefined) lines.push(`  question: ${plural(d.pending.count, "open question")} in ${d.pending.path}. Next: ui onboard questions --format claude`);
   const u = d.unread;
   if (u.scan.truncated) lines.push(`  scan: the project scan stopped at its entry cap (${u.scan.visited} entries visited), so app roots may be missing; the components above come from reading the chosen app itself and are not cut by it`);
   if (u.files.length + u.exports.length + u.unresolvedImports > 0) {

@@ -10,8 +10,8 @@
  * the public layer" only means something for names that collide between the same directories. An option is offered
  * for a directory that holds exactly one file of every member of the group, at most three, ordered by the number of
  * components the directory holds, largest first, ties by path (owner decision D15: the kind has no recommendation).
- * A group no directory fits (every directory holds two files of some name) cannot be asked as a question that keeps
- * one file per name; `unaskableCollisions` returns it so the command can say so instead of guessing.
+ * A name no directory fits (every directory holds two files of it) is asked on its own, per file (review fix round,
+ * section E): a refusal that sends the owner to edit code is not an answer.
  */
 import { posix } from "node:path";
 import type { ClusterOption, MemberChoice } from "./cluster.js";
@@ -85,18 +85,37 @@ function groupAsk(items: readonly NameCollision[], sizes: Record<string, number>
   };
 }
 
-/** One detection per set of directories that collide with each other, for the groups a question can be built for. */
-export function collisionNameDetections(input: NameCollisionInput): KindDetection[] {
-  const sizes = input.dirSizes ?? {};
-  return [...groups(input).values()].filter((items) => directoriesOf(items, sizes).fitting.length > 0).map((items) => {
-    const members = items.map(collisionMemberOf);
-    return { kind: "component-name-collision" as const, members, domain: members, ask: (asked: readonly string[]) => groupAsk(items, sizes, asked) };
-  });
+/**
+ * A name no directory can keep (it is exported twice from one directory in every directory the group runs between) is
+ * still a question, one per name: the member is the name with its sorted files and the choices are `keep:<file>`, at
+ * most three as options and every file as a choice of the per-name sheet. Which file is public is the owner's to say.
+ */
+function nameAsk(raw: NameCollision): AskResult {
+  const c = { name: raw.name, files: [...raw.files].sort(byText) };
+  const member = collisionMemberOf(c);
+  const options: ClusterOption[] = c.files.slice(0, MAX_DIRECTORY_OPTIONS).map((file) => ({
+    id: `public-file:${file}`, label: `${file} is the public file`,
+    consequence: `the ${c.files.length - 1} other file(s) of ${c.name} are listed as shadowed; no component leaves the output`,
+    assigns: { [member]: keepFileOutcome(file) },
+  }));
+  options.push({ id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${c.files.length} files of ${c.name}; you choose one` });
+  const extra = c.files.length > MAX_DIRECTORY_OPTIONS ? ` Only ${MAX_DIRECTORY_OPTIONS} of the ${c.files.length} files fit as options: review individually to choose another.` : "";
+  return {
+    question: `${c.name} is exported from ${c.files.length} files of one directory (${c.files.join(", ")}). Which file is the public one?${extra}`,
+    options, memberChoices: { [member]: c.files.map((f) => ({ id: keepFileOutcome(f), label: `Keep ${f} public` })) }, labels: { [member]: `${c.name}: ${c.files.join(" or ")}` },
+  };
 }
 
-/** The collisions no directory fits: a name exported twice from one directory in every directory the group runs between. */
-export function unaskableCollisions(input: NameCollisionInput): NameCollision[] {
-  return [...groups(input).values()].filter((items) => directoriesOf(items, input.dirSizes ?? {}).fitting.length === 0).flat();
+/** One detection per set of directories that collide with each other, and one per name no directory can keep. */
+export function collisionNameDetections(input: NameCollisionInput): KindDetection[] {
+  const sizes = input.dirSizes ?? {};
+  return [...groups(input).values()].flatMap((items) => {
+    if (directoriesOf(items, sizes).fitting.length === 0) {
+      return items.map((c) => ({ kind: "component-name-collision" as const, members: [collisionMemberOf(c)], domain: [collisionMemberOf(c)], ask: () => nameAsk(c) }));
+    }
+    const members = items.map(collisionMemberOf);
+    return [{ kind: "component-name-collision" as const, members, domain: members, ask: (asked: readonly string[]) => groupAsk(items, sizes, asked) }];
+  });
 }
 
 export const componentNameCollisionEmitter: KindEmitter = {

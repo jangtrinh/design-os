@@ -165,7 +165,7 @@ Subcommands:
   store (a custom property or theme key that is exactly one token); a reference that resolves to none, and each class
   list composed through cn()/clsx()/cva(), is counted under unresolvedStyles, never mapped to the nearest token.
   Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_REGISTERED_SOURCE_CHANGED,
-  SURFACE_COLLISION_NOT_ASKABLE, BATCH_REFUSED (nothing written; every refused record is named).
+  BATCH_REFUSED (nothing written; every refused record is named).
 
 'ds specimen' options:
   --dir <path>       Project directory holding design/ (default: cwd)

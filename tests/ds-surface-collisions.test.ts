@@ -8,7 +8,7 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildCluster } from "../src/core/owner-rulings/cluster.js";
-import { collisionMemberOf, collisionNameDetections, componentNameCollisionEmitter, unaskableCollisions } from "../src/core/owner-rulings/kind-component-name-collision.js";
+import { collisionMemberOf, collisionNameDetections, componentNameCollisionEmitter } from "../src/core/owner-rulings/kind-component-name-collision.js";
 import { readPending } from "../src/core/owner-rulings/pending-store.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { answerKind, envelope, sealedFixture, surface } from "./ds-surface-helpers.js";
@@ -51,12 +51,16 @@ describe("the emitter", () => {
     const chip = buildCluster({ kind: COLLISION, members: collisionNameDetections(wide)[0]!.members, ...collisionNameDetections(wide)[0]!.ask(collisionNameDetections(wide)[0]!.members), raisedBy: "x" });
     expect(chip.options[0]!.consequence).toContain("the 2 other file(s) are listed as shadowed; no component leaves the output");
   });
-  it("a directory with two files of one name is no option; a group no directory fits is reported, not asked", () => {
+  it("a directory with two files of one name is no option; a name no directory fits is asked on its own, per file", () => {
     const twice = { collisions: [{ name: "Chip", files: ["src/a/Chip.tsx", "src/a/Chip.jsx", "src/b/Chip.tsx"] }] };
     expect(collisionNameDetections(twice)[0]!.ask(collisionNameDetections(twice)[0]!.members).options.map((o) => o.id)).toEqual(["public-dir:src/b", "review-individually"]);
     const none = { collisions: [{ name: "Chip", files: ["src/a/Chip.tsx", "src/a/Chip.jsx", "src/b/Chip.tsx", "src/b/Chip.jsx"] }] };
-    expect(collisionNameDetections(none)).toEqual([]);
-    expect(unaskableCollisions(none)).toHaveLength(1);
+    const [only] = collisionNameDetections(none);
+    expect(collisionNameDetections(none)).toHaveLength(1);
+    expect(only!.members).toEqual([collisionMemberOf(none.collisions[0]!)]);
+    const ask = only!.ask(only!.members);
+    expect(ask.options.map((o) => o.id)).toEqual(["public-file:src/a/Chip.jsx", "public-file:src/a/Chip.tsx", "public-file:src/b/Chip.jsx", "review-individually"]);
+    expect(ask.memberChoices![only!.members[0]!]!.map((c) => c.id)).toEqual(["keep:src/a/Chip.jsx", "keep:src/a/Chip.tsx", "keep:src/b/Chip.jsx", "keep:src/b/Chip.tsx"]); // every file is a choice of the sheet
   });
 });
 
@@ -142,16 +146,27 @@ describe("after the ruling", () => {
     expect(pending(p)[0]!.members[0]).toContain("src/components/ui/ButtonCopy.tsx");
     expect(existsSync(join(p, "design", "design-dir.json"))).toBe(true);
   });
-  it("a name exported twice from one directory in every directory it runs between cannot be asked: a write says so and writes nothing", () => {
+  it("a name exported twice from one directory in every directory it runs between is asked, per file, and the answer is honoured", () => {
     const p = sealedFixture();
     for (const dir of ["ui", "kit"]) for (const ext of ["tsx", "jsx"]) writeFileSync(join(p, `src/components/${dir}/Chip.${ext}`), "export const Chip = () => <i />;\n");
     expect(surface(p).code).toBe(0);
     expect(envelope(surface(p).out).data!["collisions"].map((c: { name: string }) => c.name)).toContain("Chip");
-    expect(pending(p)[0]!.members).toEqual([BUTTON]); // the name that can be asked is asked, and alone
+    expect(pending(p).map((c) => c.members.map((m) => m.split("#")[0]))).toEqual(expect.arrayContaining([["Button"], ["Chip"]])); // each is asked, the Chip group on its own
     expect(answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id })).code).toBe(0);
     const r = surface(p, "--out", "surface.json");
-    expect(envelope(r.out).error?.code).toBe("SURFACE_COLLISION_NOT_ASKABLE");
-    expect(() => readFileSync(join(p, "surface.json"))).toThrow();
+    expect(r.code, r.out).toBe(0);
+    const out = JSON.parse(readFileSync(join(p, "surface.json"), "utf8")) as { shadowed: { name: string; file: string }[] };
+    expect(out.shadowed.filter((s) => s.name === "Chip")).toHaveLength(3); // one file is kept, the other three are listed
+    expect(pending(p)).toHaveLength(0);
+  });
+  it("the text says a question is in pending.json only for what was written there", () => {
+    const p = sealedFixture();
+    surface(p);
+    answerKind(p, COLLISION, (k) => ({ choice: k.options[0]!.id }));
+    expect(capture(["ds", "surface", "--cwd", p]).out).not.toContain("question:");
+    writeFileSync(join(p, "src/components/ui/Chip.tsx"), "export const Chip = () => <i />;\n");
+    writeFileSync(join(p, "src/components/ui/Chip.jsx"), "export const Chip = () => <i />;\n");
+    expect(capture(["ds", "surface", "--cwd", p]).out).toContain("question: 1 open question in .design-os/onboard/pending.json");
   });
   it("the question goes when the collision goes", () => {
     const p = sealedFixture();
