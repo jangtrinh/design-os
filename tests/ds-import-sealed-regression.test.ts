@@ -1,8 +1,8 @@
 /**
  * Task: a project with unambiguous roles and typeable tokens imports with byte-identical output. The goldens under
  * tests/fixtures/ds-import-regression/golden/ were captured by running the import as it was before it learned to ask
- * (the base of this change); the only thing normalised is what is different on every run: the scratch directory and
- * instants. Regenerate them only deliberately: `UPDATE_GOLDEN=1 npx vitest run tests/ds-import-sealed-regression.test.ts`.
+ * (the base of this change); the only thing normalised is what is different on every run: the scratch directory, the
+ * checkout path and instants. Regenerate them only deliberately: `UPDATE_GOLDEN=1 npx vitest run tests/ds-import-sealed-regression.test.ts`.
  */
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -15,7 +15,8 @@ const GOLDEN = join(FIXTURE, "golden");
 const UPDATE = process.env["UPDATE_GOLDEN"] === "1";
 const INSTANT = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g;
 
-const normalise = (text: string, dir: string): string => text.split(dir).join("<project>").replace(INSTANT, "<instant>");
+/** The scratch directory, the checkout the fixture is read from, and instants: what differs per run and per machine. */
+const normalise = (text: string, dir: string): string => text.split(dir).join("<project>").split(process.cwd()).join("<repo>").replace(INSTANT, "<instant>");
 
 function check(name: string, actual: string): void {
   const file = join(GOLDEN, name);
