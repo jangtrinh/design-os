@@ -123,3 +123,47 @@ export const tokenPathCollisionEmitter: KindEmitter = {
   },
   detectAll: (input) => collisionDetections(input as CollisionInput),
 };
+
+// ─── The flat-file door (`ui ds import`) ───────────────────────────────────────
+
+/** One source key of a flat token file that writes a colliding path; `aliases` counts the aliases that name it. */
+export interface ImportCollisionKey { id: string; name: string; aliases: number }
+export interface ImportCollisionInput { collisions: { path: string; keys: ImportCollisionKey[] }[] }
+
+/** The member id of a collision at the flat-file door: the written path plus the sorted source keys (JSON pointers) that map to it. */
+export const importCollisionMember = (path: string, keys: readonly { id: string }[]): string => memberWithIds(path, keys.map((k) => k.id));
+
+/**
+ * The same kind for a flat token file: two keys that become one written path (`Primary` beside `primary`, or a
+ * hoisted `colors.brand.x` beside a flat `colors-brand.x`). A member is the path plus its source keys; the outcome is
+ * `keep:<source key id>` or `keep-none`. No collection exists at this door, so there is no per-collection option and
+ * no positional one: the options are to exclude every colliding path, or to review them one by one.
+ */
+export function importCollisionDetection(input: ImportCollisionInput): KindDetection | null {
+  if (input.collisions.length === 0) return null;
+  const all = new Map(input.collisions.map((c) => [importCollisionMember(c.path, c.keys), c]));
+  const members = [...all.keys()];
+  return {
+    kind: "token-path-collision", members, domain: members,
+    ask(asked: readonly string[]): AskResult {
+      const rows = asked.flatMap((member) => { const c = all.get(member); return c === undefined ? [] : [{ member, c }]; });
+      const keys = rows.reduce((n, r) => n + r.c.keys.length, 0);
+      const aliases = rows.reduce((n, r) => n + r.c.keys.reduce((a, k) => a + k.aliases, 0), 0);
+      const aliasNote = `${aliases} alias(es) name these keys${aliases > 0 ? "; each is then asked as a dangling alias" : ""}`;
+      const memberChoices: Record<string, MemberChoice[]> = {};
+      const labels: Record<string, string> = {};
+      for (const { member, c } of rows) {
+        memberChoices[member] = [...c.keys.map((k) => ({ id: keepOutcome(k.id), label: `Keep ${k.name}` })), { id: KEEP_NONE_OUTCOME, label: "Exclude all of them" }];
+        labels[member] = `${c.path}: ${c.keys.map((k) => k.name).join(" or ")}`;
+      }
+      return {
+        question: `${rows.length} token path(s) in the file are written by more than one key. Which key keeps each path?`,
+        options: [
+          { id: KEEP_NONE_OUTCOME, label: "Exclude all of them", consequence: `${rows.length} path(s) left out, all ${keys} keys counted and named; ${aliasNote}`, assigns: Object.fromEntries(rows.map((r) => [r.member, KEEP_NONE_OUTCOME])) },
+          { id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${rows.length} token path(s) with their keys; you choose per path` },
+        ],
+        memberChoices, labels,
+      };
+    },
+  };
+}

@@ -3,12 +3,14 @@
  * the token tree to seal, the roles to apply and the ledger. Pure: it never reads a file and never writes one, so a
  * blocked import has written nothing by construction.
  *
- * Two kinds are raised, both in the same pass (the second does not depend on the answer to the first):
- * `untypeable-tokens` (every member the importer cannot type, one question sub-grouped by reason) and
- * `ambiguous-roles` (every colour token whose name ties between roles). A token kept raw lands under the `raw`
+ * Three kinds are raised in the same pass: `untypeable-tokens` (every member the importer cannot type, one question
+ * sub-grouped by reason), `ambiguous-roles` (every colour token whose name ties between roles) and
+ * `token-path-collision` (two keys of the file that become one written path). The first two are computed on the tokens
+ * as written, so they are computed again once the collisions are ruled. A token kept raw lands under the `raw`
  * category as a string with its source path in the name; no object is ever written as a token value.
  */
 import { importFlatTokens } from "./token-import.js";
+import type { ImportResult as FlatImport } from "./token-import.js";
 import { sanitizeSeg } from "./figma-ds-tokens.js";
 import { findAliasSkips, findSourceSkips } from "./ds-import-skips.js";
 import type { ImportSkip, ImportSkipReason } from "./ds-import-skips.js";
@@ -18,17 +20,20 @@ import type { TokenTree } from "./token-model.js";
 import { rulingView } from "./figma-ds-ingest-rulings.js";
 import type { KindDetection } from "./owner-rulings/kind-emitter.js";
 import { ambiguousRolesEmitter, NO_ROLE } from "./owner-rulings/kind-ambiguous-roles.js";
+import { collisionWinner, importCollisionDetection, importCollisionMember } from "./owner-rulings/kind-token-path-collision.js";
 import { EXCLUDE, KEEP_RAW, untypeableTokensEmitter } from "./owner-rulings/kind-untypeable-tokens.js";
 import type { Ruling } from "./owner-rulings/ruling-store.js";
 
-export const IMPORT_REASONS: readonly ImportSkipReason[] = ["unmappable-type", "null-leaf", "dangling-alias", "alias-cycle", "bad-colour", "ignored-key", "not-token-group"];
+/** Why a member of the file is not written: one of the seven it cannot be typed for, or it lost a path collision. */
+export type ImportExclusionReason = ImportSkipReason | "path-collision";
+export const IMPORT_REASONS: readonly ImportExclusionReason[] = ["unmappable-type", "null-leaf", "dangling-alias", "alias-cycle", "bad-colour", "ignored-key", "not-token-group", "path-collision"];
 
 export interface ImportLedger {
   /** Every token and every skipped member of the file. */
   in: number;
   written: { total: number; typed: number; keptRaw: number };
   /** One count per reason that occurred. */
-  excluded: Partial<Record<ImportSkipReason, number>> & { total: number };
+  excluded: Partial<Record<ImportExclusionReason, number>> & { total: number };
   /** Members withheld because a question about them is open; always 0 on a plan that has a result. */
   pending: number;
 }
@@ -38,7 +43,7 @@ export interface ImportResult {
   tree: TokenTree;
   ledger: ImportLedger;
   /** Every excluded member by reason, with id and name (the envelope lists them all). */
-  excludedItems: Partial<Record<ImportSkipReason, { id: string; name: string }[]>>;
+  excludedItems: Partial<Record<ImportExclusionReason, { id: string; name: string }[]>>;
   keptRawItems: { id: string; name: string }[];
   /** Roles the owner gave, to apply through `ui ds set-role` once the store is sealed; `left` stayed without one. */
   roles: { path: string; role: Role }[];
@@ -69,18 +74,42 @@ function rawNames(items: readonly ImportSkip[], alreadyTaken: Iterable<string>):
   return names;
 }
 
+/** The ledger must add up: every member of the file is written, excluded, or still pending. */
+export function assertLedgerBalances(l: ImportLedger): void {
+  if (l.written.total + l.excluded.total + l.pending !== l.in) throw new Error(`ledger does not add up: in ${l.in} = written ${l.written.total} + excluded ${l.excluded.total} + pending ${l.pending}`);
+}
+
+/** The importer and the skip finder walk the file by one rule; a disagreement is a bug, never a quiet difference. */
+export function assertSkipFinderAgrees(importerSkipped: number, finderNamed: number): void {
+  if (importerSkipped !== finderNamed) throw new Error(`internal: the import skipped ${importerSkipped} members and the skip finder named ${finderNamed}`);
+}
+
+/** The collision question for the keys of `flat` that write one path; null when none does. */
+function collisionQuestion(first: FlatImport): ReturnType<typeof importCollisionDetection> {
+  return importCollisionDetection({
+    collisions: first.collisions.map((c) => ({ path: c.path, keys: c.keys.map((k) => ({ ...k, aliases: first.aliasesNaming.get(k.name) ?? 0 })) })),
+  });
+}
+
 export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPlan {
   const view = rulingView(rulings);
-  const base = importFlatTokens(flat);
+  // A colliding path is written by its first key until the owner rules; the plan has no result before that.
+  let base = importFlatTokens(flat);
+  const collision = collisionQuestion(base);
+  if (collision !== null && view.ruled(collision)) {
+    const winners = new Map(base.collisions.map((c) => [c.path, collisionWinner(view.outcome("token-path-collision", importCollisionMember(c.path, c.keys)) ?? "")]));
+    base = importFlatTokens(flat, winners);
+  }
   const source = findSourceSkips(flat);
   const counted = source.filter((s) => s.reason !== "ignored-key").length;
-  if (counted !== base.stats.skipped) throw new Error(`internal: the import skipped ${base.stats.skipped} members and the skip finder named ${counted}`);
-  const aliasSkips = findAliasSkips(base.dtcg);
+  assertSkipFinderAgrees(base.stats.skipped, counted);
+  const aliasSkips = findAliasSkips(base.dtcg, base.unreachableAliases);
   const items = [...source, ...aliasSkips];
   const detections: KindDetection[] = [];
   const sourcePaths = new Set<string>();
   for (const [cat, group] of Object.entries(base.dtcg)) for (const name of Object.keys(group)) sourcePaths.add(`${cat}.${name}`);
   for (const i of items) { sourcePaths.add(i.name); sourcePaths.add(i.name.split(".").map(sanitizeSeg).join(".")); }
+  if (collision !== null) detections.push(collision);
 
   const untypeable = untypeableTokensEmitter.detect({
     items: items.map((i) => ({ id: i.id, name: i.name, reason: i.reason, keepable: i.raw !== undefined })),
@@ -111,22 +140,24 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
     tree["raw"] = { ...(typed["raw"] ?? {}), ...Object.fromEntries(keptRaw.map((i) => [names.get(i.id) as string, { $value: i.raw as string, $type: "string" as const, $description: "kept raw from the imported token file" }])) };
   }
   const given = ambiguous.map((path) => ({ path, outcome: view.outcome("ambiguous-roles", path) ?? NO_ROLE }));
-  const excludedBy: ImportLedger["excluded"] = { total: excluded.length };
+  const lost = base.losers.map((k) => ({ id: k.id, name: k.name }));
+  const excludedBy: ImportLedger["excluded"] = { total: excluded.length + lost.length };
   const excludedItems: ImportResult["excludedItems"] = {};
   for (const r of IMPORT_REASONS) {
-    const those = excluded.filter((i) => i.reason === r);
+    const those = r === "path-collision" ? lost : excluded.filter((i) => i.reason === r).map((i) => ({ id: i.id, name: i.name }));
     if (those.length === 0) continue;
     excludedBy[r] = those.length;
-    excludedItems[r] = those.map((i) => ({ id: i.id, name: i.name }));
+    excludedItems[r] = those;
   }
   const treeCount = Object.values(tree).reduce((n, g) => n + Object.keys(g).length, 0);
   for (const [cat, group] of Object.entries(typed)) {
     for (const name of Object.keys(group)) if (tree[cat]?.[name] !== group[name]) throw new Error(`internal: the token ${cat}.${name} was replaced while the plan was built`);
   }
-  // The aliases that cannot be written are among the imported tokens already; only the source members come on top.
-  const total = base.stats.imported + source.length;
+  // The aliases that cannot be written are among the imported tokens already; only the source members and the keys
+  // that lost a collision come on top.
+  const total = base.stats.imported + source.length + lost.length;
   const ledger: ImportLedger = { in: total, written: { total: treeCount, typed: treeCount - keptRaw.length, keptRaw: keptRaw.length }, excluded: excludedBy, pending: 0 };
-  if (ledger.written.total + excluded.length + ledger.pending !== ledger.in) throw new Error(`ledger does not add up: in ${ledger.in} = written ${ledger.written.total} + excluded ${excluded.length} + pending 0`);
+  assertLedgerBalances(ledger);
   const byType: Record<string, number> = {};
   for (const group of Object.values(tree)) for (const t of Object.values(group)) byType[t.$type] = (byType[t.$type] ?? 0) + 1;
   return {
@@ -137,7 +168,10 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
       roles: given.filter((g) => g.outcome !== NO_ROLE).map((g) => ({ path: g.path, role: g.outcome as Role })),
       rolesLeftUnassigned: given.filter((g) => g.outcome === NO_ROLE).map((g) => g.path),
       // A file with nothing to ask is reported exactly as the importer reported it.
-      stats: items.length === 0 ? base.stats : { imported: ledger.written.total, skipped: excluded.length, byType, skippedKeys: excluded.map((i) => ({ key: i.name, reason: i.reason })) },
+      stats: items.length === 0 && lost.length === 0 ? base.stats : {
+        imported: ledger.written.total, skipped: excludedBy.total, byType,
+        skippedKeys: [...excluded.map((i) => ({ key: i.name, reason: i.reason })), ...lost.map((k) => ({ key: k.name, reason: "path-collision" }))],
+      },
     },
   };
 }

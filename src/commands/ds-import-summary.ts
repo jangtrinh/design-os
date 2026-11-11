@@ -55,7 +55,7 @@ export function ledgerLines(r: ImportResult, applied: readonly RoleOutcome[], le
   return [
     `  ledger: in ${l.in} = written ${l.written.total} (${l.written.typed} typed, ${l.written.keptRaw} kept raw) + excluded ${l.excluded.total} + pending ${l.pending}`,
     ...(reasons.length > 0 ? [`  excluded by reason: ${reasons.map((x) => `${x} ${l.excluded[x]}`).join(", ")}`] : []),
-    ...reasons.map((x) => `    ${reasonLabel(x)}: ${named(r.excludedItems[x] ?? [])}`),
+    ...reasons.map((x) => `    ${x === "path-collision" ? "lost a token-path collision" : reasonLabel(x)}: ${named(r.excludedItems[x] ?? [])}`),
     ...(r.keptRawItems.length > 0 ? [`  kept raw: ${named(r.keptRawItems)}`] : []),
     ...(leftOut.length > 0 ? [`  registry bindings left out: ${leftOut.length} (the token each one names was left out by an answer): ${named(leftOut.map((b) => ({ name: `${b.record} → ${b.token}` })))}`] : []),
     ...(r.roles.length + r.rolesLeftUnassigned.length > 0
