@@ -19,11 +19,13 @@
 import type { TokenTree } from "../token-model.js";
 import { pathToCssVar } from "../token-emit.js";
 import { extractUiRecords } from "../polyglot-ui-extractor.js";
-import { blankDelimited, classTokens, spaces } from "../polyglot-ui-scans.js";
+import { blankDelimited, spaces } from "../polyglot-ui-scans.js";
 
 export interface TokenLookup {
   /** The one token path a custom-property name resolves to, or null (none, or more than one). Name without the dashes. */
   resolve(customProperty: string): string | null;
+  /** How many tokens carry the name: 0 (none), 1 (resolves), 2 or more (ambiguous: nothing resolves, and the name is not "no token"). */
+  answers(customProperty: string): number;
 }
 
 export function buildTokenLookup(tree: TokenTree | undefined): TokenLookup {
@@ -37,19 +39,22 @@ export function buildTokenLookup(tree: TokenTree | undefined): TokenLookup {
       if (leaf.startsWith(`${group}-`)) note(leaf, path);
     }
   }
-  return { resolve: (name) => { const hit = byName.get(name); return hit !== undefined && hit.size === 1 ? ([...hit][0] as string) : null; } };
+  return {
+    resolve: (name) => { const hit = byName.get(name); return hit !== undefined && hit.size === 1 ? ([...hit][0] as string) : null; },
+    answers: (name) => byName.get(name)?.size ?? 0,
+  };
 }
 
-export interface StyleBreakdown { customProperty: number; helperCall: number; arbitraryValue: number; themeCall: number; cssModuleClass: number; literalColor: number }
-export const emptyBreakdown = (): StyleBreakdown => ({ customProperty: 0, helperCall: 0, arbitraryValue: 0, themeCall: 0, cssModuleClass: 0, literalColor: 0 });
-export const sumBreakdown = (b: StyleBreakdown): number => b.customProperty + b.helperCall + b.arbitraryValue + b.themeCall + b.cssModuleClass + b.literalColor;
+export interface StyleBreakdown { customProperty: number; helperCall: number; arbitraryValue: number; themeCall: number; cssModuleClass: number; literalColor: number; ambiguousToken: number }
+export const emptyBreakdown = (): StyleBreakdown => ({ customProperty: 0, helperCall: 0, arbitraryValue: 0, themeCall: 0, cssModuleClass: 0, literalColor: 0, ambiguousToken: 0 });
+export const sumBreakdown = (b: StyleBreakdown): number => b.customProperty + b.helperCall + b.arbitraryValue + b.themeCall + b.cssModuleClass + b.literalColor + b.ambiguousToken;
 
 const HELPER = /\b(?:cn|clsx|cva|twMerge|twJoin|classNames|classnames)\s*\(/g;
 const THEME_KEY = /^(?:bg|text|border|fill|stroke|ring|outline|divide|from|via|to|accent|caret|decoration|placeholder|shadow)-([A-Za-z][A-Za-z0-9-]*)$/;
 const VAR_REF = /var\(\s*--([A-Za-z0-9_-]+)/g;
 const THEME_CALL = /\btheme\s*\(/g;
 const LITERAL_COLOR = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\s*\(/g;
-const CLASS_ATTR = /\b(?:class|className)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
+const CLASS_ATTR = /(?<![\w-])(?:class|className)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
 const MODULE_IMPORT = /import\s+([A-Za-z_$][\w$]*)\s+from\s+["'][^"']*\.module\.(?:css|scss|sass|less)["']/g;
 
 /** True for every character that sits inside a string or a template literal (the quotes included). */
@@ -101,10 +106,27 @@ export function blankHelperCalls(source: string): { text: string; calls: number 
 export interface StyleReading { tokens: string[]; unresolvedStyles: number; unresolved: StyleBreakdown; utilitiesNamingNoToken: number }
 
 /** A class token without its variants (`hover:`), important mark and opacity modifier (`/50`, `/[.5]`). */
-const bareUtility = (token: string): string => (token.split(":").pop() as string).replace(/^!/, "").replace(/\/(?:\d+|\[[^\]]*\])$/, "");
+const bareUtility = (token: string): string => lastOutsideBrackets(token).replace(/^!/, "").replace(/\/(?:\d+|\[[^\]]*\])$/, "");
+
+/** The class tokens of one class list. Like the shared `classTokens`, but a leading `[` is kept: `[color:red]` is an arbitrary property. */
+const classTokens = (value: string): string[] => value.split(/[\s,]+/)
+  .map((t) => t.replace(/^[^\w!:[-]+|[^\w\]-]+$/g, ""))
+  .map((t) => (t.includes("[") ? t : t.replace(/\]+$/, "")))
+  .filter((t) => t !== "" && !/^_+$/.test(t));
+
+/** The part after the last `:` that is not inside `[...]`: `hover:[color:red]` is the arbitrary property `[color:red]`. */
+function lastOutsideBrackets(token: string): string {
+  let depth = 0; let cut = 0;
+  for (let i = 0; i < token.length; i++) {
+    const c = token[i];
+    if (c === "[") depth++; else if (c === "]") depth = Math.max(0, depth - 1); else if (c === ":" && depth === 0) cut = i + 1;
+  }
+  return token.slice(cut);
+}
 
 export function readStyleReferences(file: string, source: string, lookup: TokenLookup): StyleReading {
   const { text, calls } = blankHelperCalls(source);
+  const inString = stringMask(text);
   const tokens = new Set<string>();
   const unresolved = emptyBreakdown();
   unresolved.helperCall = calls;
@@ -123,15 +145,18 @@ export function readStyleReferences(file: string, source: string, lookup: TokenL
   }
   // Class attributes only: a plain string constant is not a class list.
   for (const m of text.matchAll(CLASS_ATTR)) {
+    if (inString[m.index as number] === 1) continue; // `className="…"` written inside a string is documentation, not markup
     for (const cls of classTokens((m[1] ?? m[2] ?? m[3]) as string)) {
       if (cls.includes("var(")) { resolveVars(cls); continue; }
       if (cls.includes("theme(")) { unresolved.themeCall++; continue; }
       const utility = bareUtility(cls);
-      if (utility.includes("[")) { if (/^[a-z][a-z0-9-]*-\[.+\]$/i.test(utility)) unresolved.arbitraryValue++; continue; }
+      if (utility.includes("[")) { if (/^[a-z][a-z0-9-]*-\[.+\]$/i.test(utility) || /^\[[a-z-]+:.+\]$/i.test(utility)) unresolved.arbitraryValue++; continue; }
       const key = THEME_KEY.exec(utility)?.[1];
       if (key === undefined) continue;
       const path = lookup.resolve(`color-${key}`);
-      if (path === null) utilitiesNamingNoToken++; else tokens.add(path);
+      if (path !== null) tokens.add(path);
+      else if (lookup.answers(`color-${key}`) > 1) unresolved.ambiguousToken++;
+      else utilitiesNamingNoToken++;
     }
   }
   // A class taken from a CSS module: `className={styles.title}` names a class the module defines, which is no token.
