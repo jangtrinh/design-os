@@ -115,6 +115,7 @@ describe("the export reader", () => {
     const r = readComponentExports("x/a.tsx", 'export const API_URL = "x";\nexport const Colors = { a: 1 };\nexport function useThing() { return 1; }\nexport type Props = {};\nexport interface Q {}\n');
     expect(r.components).toEqual([]);
     expect(r.unread.map((u) => u.name)).toEqual(["Colors"]);
+    expect(readComponentExports("x/a.tsx", "export const LOGO = <svg />;\n")).toEqual({ components: [], reExports: [], unread: [] }); // an all-capitals constant is not a component name
   });
   it("reports an anonymous default export as not read, with its line", () => {
     const r = readComponentExports("x/a.tsx", "export default function () { return <div />; }\n");
@@ -122,7 +123,7 @@ describe("the export reader", () => {
     expect(r.unread).toEqual([{ name: "(anonymous)", line: 1, reason: "the default export has no upper-camel name" }]);
   });
   it("ignores an export written inside a comment", () => {
-    expect(names("// export function Ghost() { return <div />; }\n/* export const Phantom = () => <i />; */\n")).toEqual([]);
+    expect(names("// export function Ghost() { return <div />; }\n/*\nexport const Phantom = () => <i />;\n*/\n")).toEqual([]);
   });
   it("returns re-exports apart and reads a framework file as one component named by the file", () => {
     const r = readComponentExports("x/index.ts", 'export { A, B as C } from "./a";\nexport * from "./b";\n');
@@ -205,12 +206,24 @@ describe("which app root is read (`--app` default, FR-019)", () => {
 describe("the walk honours the owner's rulings and says what it could not resolve", () => {
   const pack = (dir: string): Record<string, string> => Object.fromEntries(["Aaa", "Bbb", "Ccc"].map((n) => [`${dir}/${n}.tsx`, `export const ${n}Box = () => <i />;\n`]));
   it("does not read a directory the owner ruled to skip", () => {
-    const project = projectFrom({ "package.json": JSON.stringify({ name: "x", dependencies: { react: "18" } }), ...pack("src/components"), ...pack("legacy/components") });
+    const old = { "legacy/pages/old.tsx": 'import { AaaBox } from "../components/Aaa";\nexport default function Old() { return <AaaBox />; }\n' };
+    const project = projectFrom({ "package.json": JSON.stringify({ name: "x", dependencies: { react: "18" } }), ...pack("src/components"), ...pack("legacy/components"), ...old });
     expect(surfaceOf(project)["components"]).toHaveLength(6);
+    expect(surfaceOf(project)["screens"].map((s: { file: string }) => s.file)).toEqual(["legacy/pages/old.tsx"]);
     const ruling = { kind: "scan-budget", fingerprint: "a".repeat(64), choice: "skip", covers: ["legacy"], actor: "owner", at: "2026-11-11T09:00:00Z" };
     mkdirSync(join(project, "design"), { recursive: true });
     writeFileSync(join(project, "design", "design-dir.json"), JSON.stringify({ version: 2, onboard: { rulings: [ruling] } }));
-    expect(surfaceOf(project)["components"].map((c: { file: string }) => c.file)).toEqual(["src/components/Aaa.tsx", "src/components/Bbb.tsx", "src/components/Ccc.tsx"]);
+    const after = surfaceOf(project);
+    expect(after["components"].map((c: { file: string }) => c.file)).toEqual(["src/components/Aaa.tsx", "src/components/Bbb.tsx", "src/components/Ccc.tsx"]);
+    expect(after["screens"]).toEqual([]); // the page under the skipped directory is not read either
+  });
+  it("reads a page file named page.tsx under any directory, and not the pages of another app root", () => {
+    const project = fixtureCopy();
+    mkdirSync(join(project, "src/app/dashboard"), { recursive: true });
+    writeFileSync(join(project, "src/app/dashboard/page.tsx"), 'import Card from "../../components/ui/Card";\nexport default function Dashboard() { return <Card />; }\n');
+    expect(surfaceOf(project)["screens"].map((s: { file: string }) => s.file)).toContain("src/app/dashboard/page.tsx");
+    const withExample = projectFrom({ ...ROOT_APP_WITH_EXAMPLE, "examples/demo/src/pages/demo.tsx": "export default function Demo() { return <div />; }\n" });
+    expect(surfaceOf(withExample)["screens"]).toEqual([]);
   });
   it("counts an import of a project file that matches no single file, and never invents the target", () => {
     const project = fixtureCopy();
