@@ -193,7 +193,9 @@ refused by name (`ONTOLOGY_BAD_SOURCE`), never read as "0 apps".
 Every ring-2 source accounts for what it met: each report carries `seen` (entries) and `leftOut` (reason to count; in the
 file, in `--json`, and printed under the source line when above 0). A value of the wrong type is counted and never read
 as another meaning: `feature: 42` gives the screen no parent, while an entry with no `feature` key at all belongs to its
-app. A `figmaId` claimed by more than one entry ties none of them. An unknown key inside a ruling's `scope` is counted.
+app. A `figmaId` claimed by more than one entry ties none of them. An unknown key inside a ruling's `scope` is counted. A value that names a target already linked (the same app twice, two
+scope names that resolve to one screen, one mention written twice) is one link and is counted under "repeated value"; a
+ruling whose `superseded_by` names itself gets no link and is counted under "names itself".
 
 `design/conventions.json` (`design-os-conventions/1`) is written by `ui synthesize-conventions` together with
 `CONVENTIONS.md`. The Markdown is a pure render of the JSON, so `ui ontology lint` compares a render of the JSON with the

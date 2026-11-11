@@ -22,8 +22,9 @@ export const PRINCIPLES_REL = "design/principles.json";
 export const TERMS_REL = "CONTEXT.md";
 export const PATTERNS_REL = "design/patterns";
 
-export interface RulingFact { id: string; scope: "global" | RulingScope | null; supersededBy?: string; text: string }
-export interface PrincipleFact { id: string; text: string }
+/** `notUnderstood`: how many of the values of this entry the reader counted instead of using (its share of the source line). */
+export interface RulingFact { id: string; scope: "global" | RulingScope | null; supersededBy?: string; text: string; notUnderstood: number }
+export interface PrincipleFact { id: string; text: string; notUnderstood: number }
 export interface Ring2Read {
   nodes: OntNode[];
   rulings: RulingFact[];
@@ -62,14 +63,17 @@ function readRulings(projectDir: string, nodes: OntNode[], facts: RulingFact[]):
     const parsed = parseScope(r["scope"]);
     for (const [why, n] of parsed.skipped) { skipped.set(why, (skipped.get(why) ?? 0) + n); leave(left, `scope: ${why}`, n); }
     const scope = parsed.scope;
-    const supersededBy = str(r["superseded_by"]);
-    if (isBadString(r, "superseded_by")) leave(left, "superseded_by: value that is not a non-empty string");
+    let notUnderstood = [...parsed.skipped.values()].reduce((a, b) => a + b, 0);
+    let supersededBy = str(r["superseded_by"]);
+    if (isBadString(r, "superseded_by")) { leave(left, "superseded_by: value that is not a non-empty string"); notUnderstood++; }
+    if (supersededBy === id) { leave(left, "superseded_by: names itself"); supersededBy = undefined; notUnderstood++; }
     nodes.push({ id: nodeId("ruling", id), kind: "ruling", name: id, category: str(r["category"]) ?? "", text });
-    facts.push({ id, scope, text, ...(supersededBy === undefined ? {} : { supersededBy }) });
+    facts.push({ id, scope, text, notUnderstood, ...(supersededBy === undefined ? {} : { supersededBy }) });
   }
   if (unusable > 0) leave(left, "without id or text", unusable);
   const bad = left.get("superseded_by: value that is not a non-empty string") ?? 0;
-  const notes = [unusable > 0 ? `${unusable} without id or text left out and counted` : "", skippedText(skipped), bad > 0 ? `${bad} superseded_by value(s) not understood and counted` : ""].filter((n) => n !== "");
+  const selfRef = left.get("superseded_by: names itself") ?? 0;
+  const notes = [unusable > 0 ? `${unusable} without id or text left out and counted` : "", skippedText(skipped), bad > 0 ? `${bad} superseded_by value(s) not understood and counted` : "", selfRef > 0 ? `${selfRef} superseded_by value(s) naming their own ruling counted` : ""].filter((n) => n !== "");
   return read("ruling", list.length - unusable, `${list.length - unusable} read${notes.map((n) => `; ${n}`).join("")}`, list.length, left);
 }
 
@@ -81,10 +85,11 @@ function readPrinciples(projectDir: string, nodes: OntNode[], facts: PrincipleFa
   for (const p of list) {
     const id = isObj(p) ? str(p["id"]) : undefined;
     if (!isObj(p) || id === undefined) { unusable++; continue; }
-    for (const key of ["title", "yields_when", "test"]) if (isBadString(p, key)) leave(left, "text field (title, yields_when, test) that is not a string, so its mentions are not read");
+    let notUnderstood = 0;
+    for (const key of ["title", "yields_when", "test"]) if (isBadString(p, key)) { leave(left, "text field (title, yields_when, test) that is not a string, so its mentions are not read"); notUnderstood++; }
     const title = str(p["title"]) ?? id;
     nodes.push({ id: nodeId("principle", id), kind: "principle", name: title, yieldsWhen: str(p["yields_when"]) ?? "", test: str(p["test"]) ?? "" });
-    facts.push({ id, text: [title, str(p["yields_when"]), str(p["test"])].filter((s) => s !== undefined).join("\n") });
+    facts.push({ id, notUnderstood, text: [title, str(p["yields_when"]), str(p["test"])].filter((s) => s !== undefined).join("\n") });
   }
   if (unusable > 0) leave(left, "without id", unusable);
   const text = [...left].filter(([why]) => why.startsWith("text field")).reduce((n, [, c]) => n + c, 0);

@@ -11,6 +11,7 @@ import { gateFamilyFor } from "./gate-table.js";
 import type { RuleOrigin } from "./gate-table.js";
 import { scanEntries, usesComponentLinks } from "./link-uses-component.js";
 import { ringTwoLinks } from "./link-ring2.js";
+import type { Repeats } from "./link-ring2.js";
 import { nodeId } from "./node-ids.js";
 import type { NodeSources } from "./node-sources.js";
 import { SCAN_REL } from "./source-screens-figma.js";
@@ -50,7 +51,16 @@ function consumesToken(s: NodeSources): { links: OntLink[]; report: LinkReport }
   return { links: out, report: r };
 }
 
-export interface LinkResult { links: OntLink[]; reports: LinkReport[] }
+export interface LinkResult {
+  links: OntLink[];
+  reports: LinkReport[];
+  /** Values of rulings and principles that name a target already linked: counted by the caller in the source line. */
+  repeats: Repeats;
+  /** Ruling and principle nodes with a reference counted unresolved. */
+  unresolvedFrom: Set<string>;
+  /** Links the final de-duplication removed: a safety net that no reader should ever need (0 in every fixture). */
+  deduped: number;
+}
 
 /** Every ring-1 and ring-2 link; `defines` is added by the caller from the owner's rulings. */
 export function buildLinks(s: NodeSources): LinkResult {
@@ -79,5 +89,5 @@ export function buildLinks(s: NodeSources): LinkResult {
   const seen = new Set<string>();
   const unique = links.filter((l) => { const k = `${l.kind}\u0000${l.from}\u0000${l.to}`; if (seen.has(k)) return false; seen.add(k); return true; });
   for (const rep of reports) rep.written = unique.filter((l) => l.kind === rep.link).length;
-  return { links: unique, reports };
+  return { links: unique, reports, repeats: ring2.repeats, unresolvedFrom: ring2.unresolvedFrom, deduped: links.length - unique.length };
 }
