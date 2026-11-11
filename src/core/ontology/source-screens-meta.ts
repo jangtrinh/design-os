@@ -8,10 +8,10 @@
  * `feature:<app>/<feature>`. An entry without an `app` contributes no app or feature and is counted. A file that
  * declares the schema and cannot be read in this shape is refused by name: it is never read as "0 apps".
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { nodeId } from "./node-ids.js";
-import { BAD_SOURCE, OntologyReadError, parseSourceJson } from "./read-error.js";
+import { BAD_SOURCE, OntologyReadError, parseSourceJson, readSourceText } from "./read-error.js";
 import { byText } from "./ontology-types.js";
 import type { OntNode, SourceReport } from "./ontology-types.js";
 
@@ -40,7 +40,7 @@ const absent = (kind: SourceReport["kind"]): SourceReport => ({ kind, status: "m
 export function readScreensMeta(projectDir: string): MetaRead {
   const path = join(projectDir, SCREENS_META_REL);
   if (!existsSync(path)) return { meta: null, nodes: [], reports: [absent("app"), absent("feature")] };
-  const doc = parseSourceJson(SCREENS_META_REL, readFileSync(path, "utf8"));
+  const doc = parseSourceJson(SCREENS_META_REL, readSourceText(SCREENS_META_REL, path));
   if (!isObj(doc) || doc["schema"] !== SCREENS_META_SCHEMA) throw new OntologyReadError(BAD_SOURCE, `${SCREENS_META_REL} must declare "schema": "${SCREENS_META_SCHEMA}"`);
   const screens = doc["screens"];
   if (!isObj(screens)) throw bad("'screens' must be an object keyed by screen id");

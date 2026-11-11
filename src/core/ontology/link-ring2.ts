@@ -1,11 +1,12 @@
 /**
- * Ring-2 links, each from its own exact field: `belongs-to` (link-belongs-to.ts), `governs` (a ruling's `scope`: "global" is the project, `{ apps, features }` are those nodes; a
+ * Ring-2 links, each from its own exact field: `belongs-to` (link-belongs-to.ts), `governs` (a ruling's `scope`: "global" is the project, `{ apps, features, screens }` are those nodes; a
  * backticked mention `component:<name>`, `token:<path>` or `pattern:<name>` in a ruling or principle), and
  * `superseded-by` (a ruling's `superseded_by`). A name that matches no node is counted unresolved, never matched to a
  * near one. A ruling that names no target gets no link and stays an orphan.
  */
 import { belongsToLinks } from "./link-belongs-to.js";
 import type { NodeSources } from "./node-sources.js";
+import { tieEntries } from "./screen-meta-ties.js";
 import { nodeId } from "./node-ids.js";
 import type { LinkReport, OntLink } from "./ontology-types.js";
 import { byText } from "./ontology-types.js";
@@ -33,11 +34,18 @@ export function ringTwoLinks(s: NodeSources): { links: OntLink[]; reports: LinkR
     if (ids.has(to)) links.push({ kind, from, to }); else lost(r, what, list);
   };
 
+  const screenIds = new Set(s.nodes.filter((n) => n.kind === "screen").map((n) => n.id));
+  const ties = s.ring2.meta === null ? new Map<string, string>() : tieEntries(s.ring2.meta, s.nodes).tied;
   for (const r of s.ring2.rulings) {
     const from = nodeId("ruling", r.id);
     if (r.scope === "global") links.push({ kind: "governs", from, to: "project:root" });
     else if (r.scope !== null) {
       for (const a of r.scope.apps) add("governs", from, nodeId("app", a), governs, `ruling ${r.id} names app ${a}`, governsLost);
+      for (const sc of r.scope.screens) {
+        const hit = screenIds.has(sc) ? sc : ties.get(sc);
+        if (hit === undefined) lost(governs, `ruling ${r.id} names screen ${sc}, which is no screen node and no screens-meta entry tied to one`, governsLost);
+        else links.push({ kind: "governs", from, to: hit });
+      }
       for (const f of r.scope.features) {
         const hit = featureIn(s.ring2.meta?.features ?? [], r.scope.apps, f);
         if (hit === undefined) lost(governs, `ruling ${r.id} names feature ${f}, which no single app of its scope has`, governsLost);
@@ -50,7 +58,7 @@ export function ringTwoLinks(s: NodeSources): { links: OntLink[]; reports: LinkR
     ...s.ring2.rulings.map((r) => ({ from: nodeId("ruling", r.id), text: r.text })),
     ...s.ring2.principles.map((p) => ({ from: nodeId("principle", p.id), text: p.text })),
   ];
-  for (const m of mentions) for (const hit of m.text.matchAll(MENTION)) add("governs", m.from, `${hit[1]}:${(hit[2] ?? "").trim()}`, governs, `${m.from} mentions ${hit[1]}:${hit[2]}`, governsLost);
+  for (const m of mentions) for (const hit of m.text.matchAll(MENTION)) add("governs", m.from, `${hit[1]}:${hit[2] ?? ""}`, governs, `${m.from} mentions ${hit[1]}:${hit[2]}`, governsLost);
 
   for (const [r, list, label] of [[governs, governsLost, "scope or mention reference(s)"], [superseded, supersededLost, "superseded_by reference(s)"]] as const) {
     if (list.size > 0) r.details.push(`${r.unresolved} ${label} match no node: ${[...list].sort(byText).slice(0, 5).join("; ")}${list.size > 5 ? "; ..." : ""}`);
