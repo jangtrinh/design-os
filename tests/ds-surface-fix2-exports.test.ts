@@ -37,7 +37,7 @@ describe("the invariant: masked export keywords = claimed + listed", () => {
   it("lists a destructured export, an export-star namespace and a namespace declaration, each with its reason", () => {
     const listed = r.unread.filter((u) => u.reason.startsWith("export form not read") || u.reason.includes("export * as"));
     expect(listed.map((u) => u.name).sort()).toEqual(["Alpha", "Forms", "NS"]);
-    expect(r.accounting.listed).toBe(3);
+    expect(r.accounting.listed).toBe(4); // Inside, in `export namespace NS { … }`, is listed by the position rule
     expect(r.unread.find((u) => u.name === "Forms")!.reason).toContain("export * as");
     expect(r.unread.find((u) => u.name === "Alpha")!.reason).toBe("export form not read");
   });
