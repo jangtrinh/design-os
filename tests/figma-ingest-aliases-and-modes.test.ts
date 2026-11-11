@@ -67,7 +67,7 @@ describe("aliases resolve only against variables that are written", () => {
     expect(JSON.stringify(r.tree)).not.toContain("{color.brand}");
   });
   it("an alias to a variable the owner keeps raw is dangling too: a raw token is not an alias target", () => {
-    const vars = asVars([{ id: id("1:1"), name: "color/odd", type: "COLOR", collection: "C", value: BAD }, colorVar("2:1", "color/uses-odd", "C", { Light: aliasTo("1:1") })]);
+    const vars = asVars([{ id: id("1:1"), name: "flags/odd", type: "BOOLEAN", collection: "C", value: true }, colorVar("2:1", "color/uses-odd", "C", { Light: aliasTo("1:1") })]);
     const r = buildTokensTree(vars, { keepRaw: new Set([id("1:1"), id("2:1")]) });
     expect(r.rawKept).toEqual([id("1:1")]);
     expect(r.excluded.skipped["dangling-alias"]).toEqual([id("2:1")]);
@@ -108,7 +108,7 @@ describe("a value that cannot be converted in a non-base mode", () => {
   it("leaves the variable out with the failing value's reason and the mode named; no variable is written with a mode missing", () => {
     const r = buildTokensTree(vars);
     expect(r.excluded.skipped["bad-colour"].concat(r.excluded.skipped["null-leaf"])).toEqual([id("1:1")]);
-    expect(r.skipDetail.get(id("1:1"))).toMatchObject({ mode: "Dark", keepable: true });
+    expect(r.skipDetail.get(id("1:1"))).toMatchObject({ mode: "Dark", keepable: false });
     expect(r.tree).toEqual({});
   });
   it("the ingest asks about it, names the mode, and writes nothing until it is answered", () => {
@@ -124,7 +124,7 @@ describe("a value that cannot be converted in a non-base mode", () => {
 
 describe("the untypeable question is assigned: alias reasons can only be excluded", () => {
   const scan = (): Record<string, unknown> => scanOf({ tokens: [
-    { id: id("1:1"), name: "color/odd", type: "COLOR", collection: "C", value: BAD },
+    { id: id("1:1"), name: "flags/odd", type: "BOOLEAN", collection: "C", value: true },
     colorVar("2:1", "color/uses-odd", "C", { Light: aliasTo("1:1") }),
     colorVar("3:1", "color/dangling", "C", { Light: aliasTo("9:9") }),
     colorVar("4:1", "color/fine", "C"),
@@ -144,7 +144,7 @@ describe("the untypeable question is assigned: alias reasons can only be exclude
     const keep = q.options.find((o) => o.id === "keep-raw")!;
     expect(keep.assigns).toEqual({ [id("1:1")]: "keep-raw", [id("2:1")]: "exclude", [id("3:1")]: "exclude" });
     expect(keep.consequence).toContain("1 token(s) written under \"raw\"");
-    expect(keep.consequence).toContain("2 left out");
+    expect(keep.consequence).toContain("2 can only be excluded");
   });
   it("answering keep-raw writes only the raw token and no alias blob; the rest are counted under their reasons", () => {
     const project = newProject();
@@ -158,7 +158,7 @@ describe("the untypeable question is assigned: alias reasons can only be exclude
   });
   it("when no member has a value to keep, the options are 'Exclude them' and review, and the text names the earlier answer", () => {
     const project = newProject();
-    const noValue = scanOf({ tokens: [colorVar("1:1", "color/dangling", "C", { Light: aliasTo("9:9") })] });
+    const noValue = scanOf({ tokens: [{ id: id("1:1"), name: "flags/x", type: "BOOLEAN", collection: "C", value: null }, colorVar("2:1", "color/dangling", "C", { Light: aliasTo("1:1") })] });
     const q = blocked(capture([...ingestArgs(writeScan(project, noValue), project, newProject()), "--json"]).out)[0]!;
     expect(q.options.map((o) => [o.id, o.label])).toEqual([["exclude", "Exclude them"], ["review-individually", "Review individually"]]);
     expect(q.question).toMatch(/collections answer or the collision answer/);

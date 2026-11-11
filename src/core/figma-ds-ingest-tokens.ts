@@ -85,7 +85,12 @@ export function tokenStage(variables: DsVariable[], view: RulingView): TokenStag
     const d = trial.skipDetail.get(v.id) as SkipDetail;
     return { id: v.id, name: v.name, reason: d.reason, keepable: d.keepable, ...(d.mode === undefined ? {} : { mode: d.mode }) };
   });
-  const untypeable = untypeableTokensEmitter.detect({ items });
+  // The advice names this ingest's own earlier answers, so it is worded here, and only when an alias has a target in
+  // the scan that an earlier answer could have kept (a missing target or a cycle has none).
+  const byId = new Map(variables.map((v) => [v.id, v]));
+  const keepable = items.some((i) => i.reason === "dangling-alias" && aliasTargets(byId.get(i.id) as DsVariable).some((t) => byId.has(t) && t !== i.id));
+  const hint = keepable ? "An alias is written only when its target is written: keep the target by changing the collections answer or the collision answer." : undefined;
+  const untypeable = untypeableTokensEmitter.detect({ items, ...(hint === undefined ? {} : { hint }) });
   if (untypeable !== null && untypeable.members.length > 0) {
     detections.push(untypeable);
     if (!view.ruled(untypeable)) return { detections, kept, built: null };
