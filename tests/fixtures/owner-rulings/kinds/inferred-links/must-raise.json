@@ -1,0 +1,13 @@
+{
+  "terms": [
+    {
+      "id": "term:Card",
+      "name": "Card",
+      "candidates": [
+        { "id": "component:Card", "name": "Card", "kind": "component" },
+        { "id": "pattern:card", "name": "card", "kind": "pattern" }
+      ]
+    },
+    { "id": "term:Ledger", "name": "Ledger", "candidates": [] }
+  ]
+}
