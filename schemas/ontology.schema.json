@@ -46,6 +46,8 @@
         "status": { "enum": ["read", "missing", "not-sensed"] },
         "nodes": { "type": "integer", "minimum": 0 },
         "note": { "type": "string" },
+        "seen": { "type": "integer", "minimum": 0 },
+        "leftOut": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
         "doors": {
           "type": "array",
           "items": {

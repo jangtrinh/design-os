@@ -4,6 +4,7 @@
  * `figmaId` equal to the frame's node id; what cannot be read in this shape is refused by name, never read as zero.
  */
 import { describe, expect, it } from "vitest";
+import { capture } from "./owner-rulings-helpers.js";
 import { build, json, ontologyOf, ring1Project, write } from "./ontology-helpers.js";
 
 const FILE = "design/knowledge/screens.meta.json";
@@ -56,6 +57,19 @@ describe("what is read from the real shape", () => {
     const p = project({ screens: { a: entry({ feature: undefined }) } });
     build(p);
     expect(pairs(p, "belongs-to")).toContain("screen:5:1>app:web");
+  });
+});
+
+describe("a wrong-typed value is counted, never read as another meaning", () => {
+  it("feature: 42 gives the screen no parent, is counted in the file, in --json and in the text; no feature key keeps the app", () => {
+    const p = project({ screens: { a: entry({ feature: 42 }), b: entry({ figmaId: "5:2", feature: undefined }) } });
+    expect(build(p).code).toBe(0);
+    expect(pairs(p, "belongs-to").filter((l) => l.startsWith("screen:5:1>"))).toEqual([]);
+    expect(pairs(p, "belongs-to")).toContain("screen:5:2>app:web");
+    const src = ontologyOf(p).sources.find((x) => x.kind === "app") as unknown as { seen: number; leftOut: Record<string, number> };
+    expect(src.seen).toBe(2);
+    expect(src.leftOut).toEqual({ "feature that is not a string, so the entry gives its screen no parent": 1 });
+    expect(capture(["ontology", "build", "--dir", p]).out).toContain("2 seen; left out: 1 feature that is not a string");
   });
 });
 

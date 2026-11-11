@@ -13,6 +13,8 @@ import type { RulingScope } from "./ruling-scope.js";
 import { byText } from "./ontology-types.js";
 import { readScreensMeta } from "./source-screens-meta.js";
 import type { MetaFact } from "./source-screens-meta.js";
+import { isBadString, leave, leftOutRecord } from "./left-out.js";
+import type { LeftOut } from "./left-out.js";
 import type { OntNode, SourceReport } from "./ontology-types.js";
 
 export const RULINGS_REL = "design/knowledge/rulings.json";
@@ -33,7 +35,10 @@ export interface Ring2Read {
 const isObj = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const str = (v: unknown): string | undefined => (typeof v === "string" && v !== "" ? v : undefined);
 const absent = (kind: SourceReport["kind"], note: string): SourceReport => ({ kind, status: "missing", nodes: 0, note });
-const read = (kind: SourceReport["kind"], n: number, note: string): SourceReport => ({ kind, status: "read", nodes: n, note });
+const read = (kind: SourceReport["kind"], n: number, note: string, seen?: number, left?: LeftOut): SourceReport => {
+  const leftOut = left === undefined ? undefined : leftOutRecord(left);
+  return { kind, status: "read", nodes: n, note, ...(seen === undefined ? {} : { seen }), ...(leftOut === undefined ? {} : { leftOut }) };
+};
 
 function readList(projectDir: string, rel: string, key: string): unknown[] | null {
   const path = join(projectDir, rel);
@@ -49,33 +54,41 @@ function readRulings(projectDir: string, nodes: OntNode[], facts: RulingFact[]):
   if (list === null) return absent("ruling", `no ${RULINGS_REL}`);
   let unusable = 0;
   const skipped = new Map<string, number>();
+  const left: LeftOut = new Map();
   for (const r of list) {
     const id = isObj(r) ? str(r["id"]) : undefined;
     const text = isObj(r) ? str(r["text"]) : undefined;
     if (!isObj(r) || id === undefined || text === undefined) { unusable++; continue; }
     const parsed = parseScope(r["scope"]);
-    for (const [why, n] of parsed.skipped) skipped.set(why, (skipped.get(why) ?? 0) + n);
+    for (const [why, n] of parsed.skipped) { skipped.set(why, (skipped.get(why) ?? 0) + n); leave(left, `scope: ${why}`, n); }
     const scope = parsed.scope;
     const supersededBy = str(r["superseded_by"]);
+    if (isBadString(r, "superseded_by")) leave(left, "superseded_by: value that is not a non-empty string");
     nodes.push({ id: nodeId("ruling", id), kind: "ruling", name: id, category: str(r["category"]) ?? "", text });
     facts.push({ id, scope, text, ...(supersededBy === undefined ? {} : { supersededBy }) });
   }
-  const notes = [unusable > 0 ? `${unusable} without id or text left out and counted` : "", skippedText(skipped)].filter((n) => n !== "");
-  return read("ruling", list.length - unusable, `${list.length - unusable} read${notes.map((n) => `; ${n}`).join("")}`);
+  if (unusable > 0) leave(left, "without id or text", unusable);
+  const bad = left.get("superseded_by: value that is not a non-empty string") ?? 0;
+  const notes = [unusable > 0 ? `${unusable} without id or text left out and counted` : "", skippedText(skipped), bad > 0 ? `${bad} superseded_by value(s) not understood and counted` : ""].filter((n) => n !== "");
+  return read("ruling", list.length - unusable, `${list.length - unusable} read${notes.map((n) => `; ${n}`).join("")}`, list.length, left);
 }
 
 function readPrinciples(projectDir: string, nodes: OntNode[], facts: PrincipleFact[]): SourceReport {
   const list = readList(projectDir, PRINCIPLES_REL, "principles");
   if (list === null) return absent("principle", `no ${PRINCIPLES_REL}`);
   let unusable = 0;
+  const left: LeftOut = new Map();
   for (const p of list) {
     const id = isObj(p) ? str(p["id"]) : undefined;
     if (!isObj(p) || id === undefined) { unusable++; continue; }
+    for (const key of ["title", "yields_when", "test"]) if (isBadString(p, key)) leave(left, "text field (title, yields_when, test) that is not a string, so its mentions are not read");
     const title = str(p["title"]) ?? id;
     nodes.push({ id: nodeId("principle", id), kind: "principle", name: title, yieldsWhen: str(p["yields_when"]) ?? "", test: str(p["test"]) ?? "" });
     facts.push({ id, text: [title, str(p["yields_when"]), str(p["test"])].filter((s) => s !== undefined).join("\n") });
   }
-  return read("principle", list.length - unusable, `${list.length - unusable} read${unusable > 0 ? `; ${unusable} without id counted` : ""}`);
+  if (unusable > 0) leave(left, "without id", unusable);
+  const text = [...left].filter(([why]) => why.startsWith("text field")).reduce((n, [, c]) => n + c, 0);
+  return read("principle", list.length - unusable, `${list.length - unusable} read${unusable > 0 ? `; ${unusable} without id counted` : ""}${text > 0 ? `; ${text} text field(s) that are not strings counted` : ""}`, list.length, left);
 }
 
 /** `**Term**:` entries of CONTEXT.md, outside HTML comments; the definition is the text up to the next blank line or `_Avoid_`. */

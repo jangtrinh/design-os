@@ -190,6 +190,10 @@ node is counted `unresolved` under `belongs-to` and still contributes its app an
 without an `app` are counted in the source line; `at` is not copied (the ontology carries no time). A file that declares
 the schema and cannot be read in this shape (`screens` not an object, an entry not an object, `unassigned` not a list) is
 refused by name (`ONTOLOGY_BAD_SOURCE`), never read as "0 apps".
+Every ring-2 source accounts for what it met: each report carries `seen` (entries) and `leftOut` (reason to count; in the
+file, in `--json`, and printed under the source line when above 0). A value of the wrong type is counted and never read
+as another meaning: `feature: 42` gives the screen no parent, while an entry with no `feature` key at all belongs to its
+app. A `figmaId` claimed by more than one entry ties none of them. An unknown key inside a ruling's `scope` is counted.
 
 `design/conventions.json` (`design-os-conventions/1`) is written by `ui synthesize-conventions` together with
 `CONVENTIONS.md`. The Markdown is a pure render of the JSON, so `ui ontology lint` compares a render of the JSON with the

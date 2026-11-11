@@ -35,6 +35,10 @@ export interface SourceReport {
   note: string;
   /** A source with two doors (`screen`: Figma and code) keeps one status per door, so a door never sensed stays visible next to one that was read. */
   doors?: SourceDoor[];
+  /** Entries the reader met in the source (rulings, principles, screens-meta entries). */
+  seen?: number;
+  /** Reason -> how many entries or values were left out, present only when something was. */
+  leftOut?: Record<string, number>;
 }
 export interface SourceDoor { door: "figma" | "code"; status: SourceReport["status"]; nodes: number; note: string }
 

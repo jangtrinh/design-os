@@ -22,6 +22,7 @@ export function parseScope(raw: unknown): ScopeRead {
   if (typeof raw === "string") { skip("string other than 'global'"); return { scope: null, skipped }; }
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) { skip(`scope given as ${Array.isArray(raw) ? "a list" : `a ${typeName(raw)}`}, not 'global' or an object`); return { scope: null, skipped }; }
   const obj = raw as Record<string, unknown>;
+  for (const key of Object.keys(obj).sort()) if (!(LISTS as readonly string[]).includes(key)) skip(`key the kernel does not read: ${key}`);
   const scope: RulingScope = { apps: [], features: [], screens: [] };
   for (const key of LISTS) {
     const value = obj[key];
