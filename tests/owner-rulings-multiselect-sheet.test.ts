@@ -11,7 +11,7 @@ import { capture, clusterOf, hashTree, scratchProject } from "./owner-rulings-he
 const NOW = "2026-11-10T14:00:00Z";
 const members = ["a", "b", "c", "d", "e", "f"];
 /** Three single options, one group, an exclusive "none" is added only where a test needs it. */
-const six = (): Cluster => clusterOf("app-roots", members);
+const six = (): Cluster => clusterOf("screen-pages", members);
 const answer = (dir: string, c: Cluster, body: Record<string, unknown>): ReturnType<typeof capture> => {
   const file = join(dir, "answers.json");
   writeFileSync(file, JSON.stringify({ answers: [{ fingerprint: c.fingerprint, ...body }] }));
@@ -58,7 +58,7 @@ describe("the per-member answer on a multi-select question", () => {
 });
 
 describe("the question outputs say the per-member answer exists", () => {
-  const seeded = (): string => { const d = scratchProject(); writePending(d, [six(), clusterOf("scan-budget", ["walk"])]); return d; };
+  const seeded = (): string => { const d = scratchProject(); writePending(d, [six(), clusterOf("token-path-collision", ["walk"])]); return d; };
   it("the markdown sheet lists every member and explains the per-member answer", () => {
     const { out } = capture(["onboard", "questions", "--cwd", seeded(), "--format", "markdown"]);
     for (const m of members) expect(out).toContain(`- ${m}`);
@@ -67,9 +67,9 @@ describe("the question outputs say the per-member answer exists", () => {
   });
   it("the claude payload and the json output carry a per-member answer note for multi-select questions", () => {
     const claude = JSON.parse(capture(["onboard", "questions", "--cwd", seeded(), "--format", "claude"]).out);
-    const multi = claude.answerKey.find((k: { kind: string }) => k.kind === "app-roots");
+    const multi = claude.answerKey.find((k: { kind: string }) => k.kind === "screen-pages");
     expect(multi.perMemberAnswer).toMatchObject({ choice: ["review-individually"], values: ["keep", "drop"], members: members });
-    expect(claude.answerKey.find((k: { kind: string }) => k.kind === "scan-budget").perMemberAnswer).toBeUndefined();
+    expect(claude.answerKey.find((k: { kind: string }) => k.kind === "token-path-collision").perMemberAnswer).toBeUndefined();
     const json = JSON.parse(capture(["onboard", "questions", "--cwd", seeded()]).out);
     expect(json.perMemberAnswer).toContain("review-individually");
     expect(JSON.parse(capture(["onboard", "questions", "--cwd", seeded(), "--json"]).out).data.perMemberAnswer).toContain("review-individually");

@@ -6,12 +6,16 @@
  */
 import type { ClusterKind } from "./cluster-kinds.js";
 import type { KindEmitter } from "./kind-emitter.js";
+import { ambiguousRolesEmitter } from "./kind-ambiguous-roles.js";
+import { appRootsEmitter } from "./kind-app-roots.js";
 import { archivedMarkedNodesEmitter } from "./kind-archived-marked-nodes.js";
 import { classificationConflictsEmitter } from "./kind-classification-conflicts.js";
 import { duplicateComponentNamesEmitter } from "./kind-duplicate-component-names.js";
 import { figmaCollectionsEmitter } from "./kind-figma-collections.js";
 import { figmaLibraryPagesEmitter } from "./kind-figma-library-pages.js";
+import { scanBudgetEmitter } from "./kind-scan-budget.js";
 import { screenPagesEmitter } from "./kind-screen-pages.js";
+import { sourceAuthorityEmitter } from "./kind-source-authority.js";
 import { tokenPathCollisionEmitter } from "./kind-token-path-collision.js";
 import { untypeableTokensEmitter } from "./kind-untypeable-tokens.js";
 
@@ -24,13 +28,13 @@ export const EMITTERS: readonly KindEmitter[] = [
   duplicateComponentNamesEmitter,
   classificationConflictsEmitter,
   untypeableTokensEmitter,
+  ambiguousRolesEmitter,
+  scanBudgetEmitter,
+  appRootsEmitter,
+  sourceAuthorityEmitter,
 ];
 
 export const KINDS_WITHOUT_EMITTER: readonly ClusterKind[] = [
-  "ambiguous-roles",
-  "scan-budget",
-  "app-roots",
-  "source-authority",
   "component-name-collision",
   "inferred-links",
 ];

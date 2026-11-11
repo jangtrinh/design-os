@@ -57,8 +57,7 @@ describe("ui design lint — two-token-sources", () => {
     const hits = r.findings.filter((f) => f.checkId === "two-token-sources");
     expect(hits).toHaveLength(1);
     expect(hits[0]!.severity).toBe("error");
-    expect(hits[0]!.fix).toBe("Keep one source: delete one of the two files, or declare design/design.tokens.json derived in design/design-dir.json");
-    expect(`${hits[0]!.message} ${hits[0]!.fix}`).not.toContain("ui onboard questions");
+    expect(hits[0]!.fix).toBe("Answer the source-authority question: ui onboard questions — or keep one source: delete one of the two files, or declare design/design.tokens.json derived in design/design-dir.json");
     expect(hits[0]!.message).toContain("12 tokens");
     expect(hits[0]!.message).toContain("7 tokens");
     expect(r.exitCode).toBe(1);

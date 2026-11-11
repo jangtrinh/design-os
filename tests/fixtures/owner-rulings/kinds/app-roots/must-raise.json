@@ -1,0 +1,6 @@
+{
+  "apps": [
+    { "path": "apps/docs", "framework": null, "styling": ["css"], "componentDirs": 0 },
+    { "path": "apps/web", "framework": "next", "styling": ["tailwind"], "componentDirs": 2 }
+  ]
+}
