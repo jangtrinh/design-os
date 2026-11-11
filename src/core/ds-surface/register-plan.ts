@@ -22,7 +22,7 @@ import { outcomeOf } from "../owner-rulings/ruling-store.js";
 import type { Ruling } from "../owner-rulings/ruling-store.js";
 import type { ComponentRecord, Registry } from "../registry-store.js";
 import type { CollisionRulingResult } from "./collision-rulings.js";
-import { registrableDetails } from "./source-match-candidates.js";
+import { heldRecordFor, registrableDetails } from "./source-match-candidates.js";
 import { byText, idOf } from "./surface-types.js";
 import type { SurfaceCollision, SurfaceModel } from "./surface-types.js";
 
@@ -92,7 +92,7 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
       else changed.push({ name: record.name, file: d.file, heldRef: source.sourceRef, nowRef: sourceRef });
     };
 
-    const record = held.get(d.name);
+    const record = heldRecordFor(existing, d.name);
     if (record === undefined) { asNew(d.name, false); continue; }
     if (hasCodeSource(record)) { sameDoor(record); continue; }
 
@@ -100,7 +100,7 @@ export function planRegistration(model: SurfaceModel, rulings: CollisionRulingRe
     const ruling = governingRuling(matchRulings, "component-source-match", member);
     const outcome = ruling === undefined ? undefined : outcomeOf(ruling, member);
     if (outcome === SAME_OUTCOME) {
-      links.push({ name: d.name, sourceRef, sha256, tokens, tokensAdded: unionTokens([], tokens).filter((t) => !record.tokensUsed.includes(t)) });
+      links.push({ name: record.name, sourceRef, sha256, tokens, tokensAdded: unionTokens([], tokens).filter((t) => !record.tokensUsed.includes(t)) });
     } else if (outcome === SEPARATE_OUTCOME) {
       const own = held.get(separateName(d.name));
       if (own !== undefined && hasCodeSource(own)) sameDoor(own); else asNew(separateName(d.name), true);

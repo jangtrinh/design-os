@@ -10,6 +10,7 @@
  * `Category/Variant` rule on a store that is not kit-bound.
  */
 import type { DesignSystemPaths } from "../core/design-system.js";
+import { normalizedName } from "../core/registry-code-source.js";
 import { RegistryError, validateComponentRecord, validateSourceAuthoredComponentRecord } from "../core/registry-store.js";
 import type { ComponentRecord, Registry } from "../core/registry-store.js";
 import { resolveRegisterProvenance } from "./registry-provenance.js";
@@ -28,7 +29,7 @@ export interface RecordCheckInput {
   registry: Registry;
 }
 
-const normalized = (value: string): string => value.normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+const normalized = normalizedName;
 
 /** The validated record with its provenance, and the notes to print. @throws RegistryError */
 export function checkRecordForRegistry(input: RecordCheckInput): { record: ComponentRecord; warnings: string[] } {
