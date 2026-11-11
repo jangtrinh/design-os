@@ -13,6 +13,7 @@ import { runSetRole } from "./ds-set-role-impl.js";
 import { runStatus } from "./ds-status-impl.js";
 import { runReseal } from "./ds-reseal-impl.js";
 import { runImport } from "./ds-import-impl.js";
+import { runSurface } from "./ds-surface-impl.js";
 import { runSpecimen } from "./ds-specimen-impl.js";
 import { runPreview } from "./ds-preview-impl.js";
 import { runSoul } from "./ds-soul-impl.js";
@@ -28,6 +29,7 @@ export const DS_HELP = `ui ds — Design System SSOT (compile + enforce)
 Usage:
   ui ds kit plan|theme|prepare|validate|adopt|verify [options]
   ui ds init <name> --persona <slug> --intent "<text>" [options]
+  ui ds surface  [--app <root>] [--cwd <dir>] [--out <file>] [--register [--apply]] [--now <UTC-ISO>] [--json]
   ui ds context [--strict] [--with-theme] [--format markdown|json] [options]
   ui ds change-token <path> --value <v> [options]
   ui ds set-role <token.path> <role> [--dir <project>] [--json]
@@ -49,8 +51,11 @@ Subcommands:
   kit            Stage owner captures, emit approved theme CSS, validate, adopt and verify a kit
   init           Compile a project-scoped design system from a persona + intent
   import         Onboard an EXISTING flat tokens.json → the DTCG store (so ds a11y/status/diff work)
+  surface        Read an app's component directories: every exported component with the tokens its source
+                 references, the screens and stories that import them, the name collisions (asked, never
+                 resolved) and what could not be read; --register previews and --apply writes registry records
   context        Emit the active design system as a context block for the host model
-  change-token   Update one token's $value (only sanctioned mutation post-init)
+  change-token  Update one token's $value (only sanctioned mutation post-init)
   set-role       Set/correct one token's recognized role — the owner-edit path for
                  recognition (spec 011 P2); 'ds context' reads this, never recomputes it
   status         Show the manifest summary (generation, persona, hashes)
@@ -130,6 +135,31 @@ Subcommands:
   generated region of '## Never (proposed)' in design/soul.md and
   design/rules/_adherence.proposed.json), never the binding '## Never' or
   _adherence.rules.json. A harvest failure is a warning; the import still succeeds.
+
+'ds surface' options:
+  --app <root>       The app root to read: a directory with a package.json below the scan root, or '.'. Default: the one
+                     app root the owner kept (an app-roots ruling); with none, the scan root when its package.json names
+                     a framework, else the single nested root that does. Two kept roots, a root the owner ruled out and a
+                     directory that is not an app root are refused by name; with no default it exits 1
+                     ONBOARD_BLOCKED_NEEDS_OWNER_RULING
+  --cwd <dir>        Project directory (default: cwd); every path in the output is relative to it
+  --out <file>       Write the surface (design-os-surface/1) to a file; a write, so an open question blocks it
+  --register         Preview the registry records: name, sourceRef (file:start-end) and tokensUsed per component, the
+                     components whose variants no extractor reads exactly (notRead), and names already in the registry
+  --apply            With --register: write the records through the shared registration path (provenance and markup
+                     rules of 'ui registry register') and reseal once. Refused, writing nothing, while a name is already
+                     registered (SURFACE_NAMES_ALREADY_REGISTERED: the rule for those names is not decided) or a
+                     collision is unanswered
+  --now <UTC-ISO>    The clock of the reseal changelog entry (default: now)
+  Read-only unless --out or --register --apply is given; the only file a read-only call writes is the pending
+  question list. It runs the project-level detectors itself (scan budget, app roots, token source) and exits 1
+  ONBOARD_BLOCKED_NEEDS_OWNER_RULING until they are answered, with no prior 'ui onboard questions'. A component name
+  exported from more than one file is asked (component-name-collision), never resolved; after the ruling the losing
+  files are listed under 'shadowed' and no component leaves the output. Tokens are resolved exactly against the sealed
+  store (a custom property or theme key that is exactly one token); a reference that resolves to none, and each class
+  list composed through cn()/clsx()/cva(), is counted under unresolvedStyles, never mapped to the nearest token.
+  Error codes: SURFACE_APP_AMBIGUOUS, SURFACE_APP_NOT_A_ROOT, SURFACE_APP_DROPPED, SURFACE_NAMES_ALREADY_REGISTERED,
+  SURFACE_COLLISION_NOT_ASKABLE, BATCH_REFUSED (nothing written; every refused record is named).
 
 'ds specimen' options:
   --dir <path>       Project directory holding design/ (default: cwd)
@@ -474,6 +504,7 @@ export const dsCommand = {
       case "kit":          return runKit(parsed);
       case "init":         return runInit(parsed);
       case "import":       return runImport(parsed);
+      case "surface":      return runSurface(parsed);
       case "context":      return runContext(parsed);
       case "change-token": return runChangeToken(parsed);
       case "set-role":     return runSetRole(parsed);

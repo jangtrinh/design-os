@@ -1,0 +1,6 @@
+{
+  "collisions": [
+    { "name": "Button", "files": ["src/components/kit/Button.tsx", "src/components/ui/Button.tsx"] }
+  ],
+  "dirSizes": { "src/components/kit": 3, "src/components/ui": 4 }
+}

@@ -10,6 +10,7 @@ import { ambiguousRolesEmitter } from "./kind-ambiguous-roles.js";
 import { appRootsEmitter } from "./kind-app-roots.js";
 import { archivedMarkedNodesEmitter } from "./kind-archived-marked-nodes.js";
 import { classificationConflictsEmitter } from "./kind-classification-conflicts.js";
+import { componentNameCollisionEmitter } from "./kind-component-name-collision.js";
 import { duplicateComponentNamesEmitter } from "./kind-duplicate-component-names.js";
 import { figmaCollectionsEmitter } from "./kind-figma-collections.js";
 import { figmaLibraryPagesEmitter } from "./kind-figma-library-pages.js";
@@ -32,9 +33,9 @@ export const EMITTERS: readonly KindEmitter[] = [
   scanBudgetEmitter,
   appRootsEmitter,
   sourceAuthorityEmitter,
+  componentNameCollisionEmitter,
 ];
 
 export const KINDS_WITHOUT_EMITTER: readonly ClusterKind[] = [
-  "component-name-collision",
   "inferred-links",
 ];
