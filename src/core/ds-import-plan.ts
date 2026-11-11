@@ -91,6 +91,13 @@ export function assertSkipFinderAgrees(importerSkipped: number, finderNamed: num
   if (importerSkipped !== finderNamed) throw new Error(`internal: the import skipped ${importerSkipped} members and the skip finder named ${finderNamed}`);
 }
 
+/** Every token path the importer wrote. */
+function pathsOf(base: FlatImport): Set<string> {
+  const paths = new Set<string>();
+  for (const [cat, group] of Object.entries(base.dtcg)) for (const name of Object.keys(group)) paths.add(`${cat}.${name}`);
+  return paths;
+}
+
 /** The collision question for the keys of `flat` that write one path; null when none does. */
 function collisionQuestion(first: FlatImport): ReturnType<typeof importCollisionDetection> {
   return importCollisionDetection({
@@ -113,10 +120,14 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
   const aliasSkips = findAliasSkips(base.dtcg, base.unreachableAliases);
   const items = [...source, ...aliasSkips];
   const detections: KindDetection[] = [];
-  const sourcePaths = new Set<string>();
-  for (const [cat, group] of Object.entries(base.dtcg)) for (const name of Object.keys(group)) sourcePaths.add(`${cat}.${name}`);
+  const sourcePaths = pathsOf(base);
   for (const i of items) { sourcePaths.add(i.name); sourcePaths.add(i.name.split(".").map(sanitizeSeg).join(".")); }
-  if (collision !== null) detections.push(collision);
+  if (collision !== null) {
+    detections.push(collision);
+    // Which key writes a colliding path decides the other questions, so none is asked before the owner rules: no
+    // provisional winner reaches a question or an answer.
+    if (!view.ruled(collision)) return { detections, result: null, sourcePaths };
+  }
 
   const untypeable = untypeableTokensEmitter.detect({
     items: items.map((i) => ({ id: i.id, name: i.name, reason: i.reason, keepable: i.raw !== undefined })),
