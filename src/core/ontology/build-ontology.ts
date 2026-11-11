@@ -11,11 +11,18 @@ import { BUILD_LABEL } from "./blocking-clusters.js";
 import { orphanNodes } from "./coverage.js";
 import { appliedDefines, termCandidates } from "./inferred-candidates.js";
 import { buildLinks } from "./link-rules.js";
+import { assignAreas } from "./node-areas.js";
 import { nodeId } from "./node-ids.js";
 import { withRepeats } from "./repeated-values.js";
 import type { NodeSources } from "./node-sources.js";
 import { ONTOLOGY_SCHEMA, byText } from "./ontology-types.js";
-import type { LinkReport, NodeKind, Ontology } from "./ontology-types.js";
+import type { LinkReport, NodeKind, Ontology, SourceReport } from "./ontology-types.js";
+
+/** The component source line says how many components carry no area and why, so "no area" is never silent. */
+function withAreaGaps(reports: SourceReport[], withoutArea: Record<string, number>): SourceReport[] {
+  if (Object.keys(withoutArea).length === 0) return reports;
+  return reports.map((r) => (r.kind === "component" ? { ...r, withoutArea } : r));
+}
 
 export interface Built { ontology: Ontology; detections: KindDetection[]; terms: InferredTerm[] }
 
@@ -26,7 +33,8 @@ export function buildOntology(s: NodeSources, rulings: readonly Ruling[]): Built
   const result = buildLinks(s);
   const links = [...result.links, ...applied.links];
   const touched = new Set(links.flatMap((l) => [l.from, l.to]));
-  const nodes = s.nodes.map((n) => (applied.standalone.has(n.id) || (applied.standaloneNodes.has(n.id) && !touched.has(n.id)) ? { ...n, standalone: true as const } : n));
+  const areaed = assignAreas(s.nodes, s);
+  const nodes = areaed.nodes.map((n) => (applied.standalone.has(n.id) || (applied.standaloneNodes.has(n.id) && !touched.has(n.id)) ? { ...n, standalone: true as const } : n));
   const openPairs = resolveDetections(detections, rulings, BUILD_LABEL).open.flatMap((c) => c.members);
   const details = [
     ...(openPairs.length > 0 ? [`${openPairs.length} candidate pair(s) await an owner ruling`] : []),
@@ -36,7 +44,7 @@ export function buildOntology(s: NodeSources, rulings: readonly Ruling[]): Built
   const linkReports = [...result.reports, defines].sort((a, b) => byText(a.link, b.link));
 
   const ontology: Ontology = {
-    schema: ONTOLOGY_SCHEMA, nodes, links, sources: withRepeats(s.reports, result.repeats), linkReports,
+    schema: ONTOLOGY_SCHEMA, nodes, links, sources: withAreaGaps(withRepeats(s.reports, result.repeats), areaed.withoutArea), linkReports,
     proposals: s.rules.proposals, uncovered: [],
   };
   // An orphan is covered only while an open question reaches it: the term or the node of a pair still awaiting a ruling.

@@ -31,7 +31,8 @@
         "id": { "type": "string", "pattern": "^[a-z]+:.+$" },
         "kind": { "$ref": "#/definitions/nodeKind" },
         "name": { "type": "string" },
-        "standalone": { "const": true }
+        "standalone": { "const": true },
+        "area": { "type": "string", "description": "The grouping the source carries: page:<page name>, dir:<category>, tokens:<first path segment> or rulings:<category>. Absent when the source carries none." }
       },
       "additionalProperties": true
     },
@@ -48,6 +49,7 @@
         "note": { "type": "string" },
         "seen": { "type": "integer", "minimum": 0 },
         "leftOut": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
+        "withoutArea": { "type": "object", "description": "Component sources only: reason -> how many components carry no area.", "additionalProperties": { "type": "integer", "minimum": 1 } },
         "doors": {
           "type": "array",
           "items": {

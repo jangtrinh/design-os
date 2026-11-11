@@ -3,6 +3,7 @@
  * a line names a next action only when that action would succeed. The coverage table is always printed.
  */
 import { coverageTable, orphanReason } from "../core/ontology/coverage.js";
+import { listAreas, withoutAreaText } from "../core/ontology/query-areas.js";
 import type { LintFinding } from "../core/ontology/lint-ontology.js";
 import type { LinkReport, Ontology } from "../core/ontology/ontology-types.js";
 
@@ -27,6 +28,13 @@ export function linksText(reports: readonly LinkReport[]): string {
   return lines.join("\n");
 }
 
+/** The areas the build wrote and the components that carry none, with the reason. */
+export function areasText(o: Ontology): string {
+  const areas = listAreas(o);
+  const gap = withoutAreaText(o);
+  return [`Areas: ${areas.length === 0 ? "none (no component, token or ruling carries one)" : areas.map((a) => `${a.key} ${a.nodes}`).join(", ")}`, ...(gap === "" ? [] : [`  ${gap}`])].join("\n");
+}
+
 /** The summary shared by a written build and a blocked one: what is in the graph and what could not be linked. */
 export function summaryText(o: Ontology): string {
   const lines: string[] = [];
@@ -36,7 +44,7 @@ export function summaryText(o: Ontology): string {
     if (s.leftOut !== undefined) lines.push(`    ${s.seen ?? 0} seen; left out: ${Object.entries(s.leftOut).map(([why, n]) => `${n} ${why}`).join("; ")}`);
     for (const d of s.doors ?? []) lines.push(`    ${pad(d.door === "figma" ? "Figma" : "code", 8)}${pad(d.status, 11)}${d.note}`);
   }
-  lines.push("", "Coverage", coverageText(o), "", linksText(o.linkReports));
+  lines.push("", "Coverage", coverageText(o), "", areasText(o), "", linksText(o.linkReports));
   if (o.uncovered.length > 0) lines.push("", `Orphans no question covers: ${o.uncovered.map((u) => `${u.count} ${u.kind}${orphanReason(u) === "" ? "" : ` (${orphanReason(u)})`}`).join(", ")} (no candidate to ask about; they stay orphans)`);
   const waiting = [o.proposals.rules > 0 ? `${o.proposals.rules} adherence rule(s)` : "", o.proposals.soul > 0 ? `${o.proposals.soul} soul rule(s)` : ""].filter((s) => s !== "");
   if (waiting.length > 0) lines.push("", `Proposals waiting, not nodes: ${waiting.join(", ")}`);
@@ -58,6 +66,6 @@ export function lintText(findings: readonly LintFinding[], o: Ontology | null): 
   for (const f of errors) lines.push(`  error: ${f.message} (${f.code})`);
   for (const f of warnings) lines.push(`  warning: ${f.message} (${f.code})`);
   lines.push("", "Coverage", o === null ? "  no ontology to count: run ui ontology build" : coverageText(o));
-  if (o !== null) lines.push("", linksText(o.linkReports ?? []));
+  if (o !== null) lines.push("", areasText(o), "", linksText(o.linkReports ?? []));
   return `${lines.join("\n")}\n`;
 }
