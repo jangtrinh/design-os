@@ -36,7 +36,7 @@ export function readCodeScreens(projectDir: string): CodeScreenRead {
   let roots: string[];
   if (choice.ok) roots = [choice.app];
   else if (choice.code === "SURFACE_APP_AMBIGUOUS") roots = rulings.keepRoots.filter((k) => walked.includes(k)).sort(byText);
-  else return missing(`the code door has no app root to read (${choice.message.split(". ")[0]})`);
+  else return missing(`the code door has no app root to read (${choice.message.split(". Choose with --app")[0]}); answer the app-roots question: ui onboard questions --format claude`);
 
   const screens = new Map<string, SurfaceLink>();
   const components: CodeComponent[] = [];
