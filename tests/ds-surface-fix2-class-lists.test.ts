@@ -70,3 +70,14 @@ describe("a utility that two tokens answer is counted under a key true for it", 
     expect([lookup.answers("color-nothing"), lookup.answers("color-primary"), lookup.answers("color-brand")]).toEqual([0, 1, 2]);
   });
 });
+
+describe("a utility key is looked up as --color-<key> only, never as the bare key", () => {
+  // `space.space-md` was ingested from `--space-md`, so the lookup knows the name `space-md`: `bg-space-md` names `--color-space-md`, which is no token.
+  const spaceLookup = buildTokenLookup({ space: { "space-md": { $type: "dimension", $value: "4px" } } });
+  it("bg-space-md links nothing and is counted as naming no token", () => {
+    const r = readStyleReferences("x/A.tsx", comp('<i className="bg-space-md" />'), spaceLookup);
+    expect(spaceLookup.resolve("space-md")).toBe("space.space-md"); // the premise: the bare key is a known name
+    expect(r.tokens).toEqual([]);
+    expect(r.utilitiesNamingNoToken).toBe(1);
+  });
+});

@@ -59,6 +59,14 @@ export function renderSurfaceText(d: SurfaceData): string {
       lines.push(`  awaiting a ruling: ${plural(r.awaitingSourceMatch.length, "component")} have the name of a record already in the registry; are they the same components? They are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
       for (const i of r.awaitingSourceMatch) lines.push(`    ${i.name}  held by ${i.existingSource ?? "a record with no provenance"}  code file ${i.file}`);
     }
+    if (r.registeredNotFound.length > 0) {
+      lines.push(`  registered from code but no longer found: ${plural(r.registeredNotFound.length, "record")}; nothing is deleted`);
+      for (const g of r.registeredNotFound) lines.push(`    ${g.name}  registered ${g.sourceRef}`);
+    }
+    if (r.separateNameHeld.length > 0) {
+      lines.push(`  separate name held: ${plural(r.separateNameHeld.length, "component")} ruled different from their record, but "<name> · code" is held by a record of another door; --apply refuses them by name until the owner frees that name`);
+      for (const g of r.separateNameHeld) lines.push(`    ${g.name} · code  held by ${g.heldBy}`);
+    }
     if (r.shadowedNotRegistered > 0) lines.push(`  ${plural(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
   }
   if (d.applied !== undefined) {
