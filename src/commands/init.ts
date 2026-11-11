@@ -477,7 +477,8 @@ export const initCommand = {
     // pre-flight, rollback, and stamping stay one implementation.
     let agentsWritten: { role: string; name: string; path: string; written: boolean }[] | null = null;
     if (withAgents) {
-      const agentsFlags: Record<string, string | boolean> = { dir: targetCwd };
+      // `--with-agents` is the Claude Code opt-in: the roster is rendered for that runtime only, whatever `ui agents init` defaults to.
+      const agentsFlags: Record<string, string | boolean> = { dir: targetCwd, runtimes: "claude" };
       if (force) agentsFlags["force"] = true;
       let env: { ok: boolean; data?: { agents?: { role: string; name: string; path: string; written: boolean }[] }; error?: { code: string; message: string } };
       try {
