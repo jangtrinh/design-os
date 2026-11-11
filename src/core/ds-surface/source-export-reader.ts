@@ -21,7 +21,9 @@ export interface ExportedComponent {
 }
 export interface ReExport { names: { exported: string; local: string }[]; star: boolean; spec: string }
 export interface UnreadExport { name: string; line: number; reason: string }
-export interface SourceExports { components: ExportedComponent[]; reExports: ReExport[]; unread: UnreadExport[] }
+/** How the `export` keywords of a script file were accounted for: total = claimed by a reader + listed as not read. */
+export interface ExportAccounting { keywords: number; claimed: number; listed: number }
+export interface SourceExports { components: ExportedComponent[]; reExports: ReExport[]; unread: UnreadExport[]; accounting: ExportAccounting }
 
 /** Component names are upper-camel with at least one lower-case letter: `API_URL` is a constant, not a component. */
 export const isComponentName = (name: string): boolean => /^[A-Z][A-Za-z0-9]*[a-z][A-Za-z0-9]*$/.test(name);
@@ -96,8 +98,16 @@ const lineIndexOf = (starts: readonly number[], idx: number): number => {
 
 const DECL = (name: string): RegExp => new RegExp(`^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?(?:function\\s*\\*?|class|const|let|var)\\s+${name}\\b`);
 
+/**
+ * Every `export` keyword of a script file (strings, templates and comments masked) ends up in one of two places: a
+ * reader claims it (a component, a re-export, a type-only or enum export, a statement it read and set aside with its own
+ * reason), or it is listed under `unread` with the reason "export form not read". Nothing is dropped by a missing shape.
+ */
+const EXPORT_KEYWORD = /(?<![\w$./"'-])export(?![\w$])(?!\s*[:=,)])/g;
+const TYPE_ONLY_EXPORT = /^export\s+(?:type|interface|declare)\b|^export\s+(?:const\s+)?enum\b/;
+
 export function readComponentExports(file: string, source: string): SourceExports {
-  const out: SourceExports = { components: [], reExports: [], unread: [] };
+  const out: SourceExports = { components: [], reExports: [], unread: [], accounting: { keywords: 0, claimed: 0, listed: 0 } };
   const ext = /\.[A-Za-z0-9]+$/.exec(file)?.[0].toLowerCase() ?? "";
   const lineCount = source.split("\n").length;
   if (ext === ".vue" || ext === ".svelte") {
@@ -110,11 +120,11 @@ export function readComponentExports(file: string, source: string): SourceExport
   if (ext !== ".tsx" && ext !== ".jsx" && ext !== ".js" && !SCRIPT_ONLY.includes(ext)) return out;
   const readsComponents = !SCRIPT_ONLY.includes(ext);
 
-  const text = blankStrings(blankComments(source));
+  const text = blankStrings(blankComments(source.replace(/^\uFEFF/, "")));
   const lines = text.split("\n");
   const starts = lineStarts(text);
   const seen = new Set<string>();
-  const add = (name: string, isDefault: boolean, idx: number): void => {
+  const add = (name: string, isDefault: boolean, idx: number, head = lines[idx] as string): void => {
     if (seen.has(name)) return;
     const span = spanFrom(lines, idx);
     if (!MARKUP.test(lines.slice(span.startLine - 1, span.endLine).join("\n"))) {
@@ -122,7 +132,7 @@ export function readComponentExports(file: string, source: string): SourceExport
       seen.add(name);
       return;
     }
-    if (/^(?:export\s+)?(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*(?::[^=]+)?=\s*[[{]/.test(lines[idx] as string)) {
+    if (/^(?:export\s+)?(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*(?::[^=]+)?=\s*[[{]/.test(head)) {
       out.unread.push({ name, line: span.startLine, reason: "an object or array holding markup is not read as a component" });
       seen.add(name);
       return;
@@ -132,56 +142,80 @@ export function readComponentExports(file: string, source: string): SourceExport
   };
   const localDecl = (name: string): number => lines.findIndex((l) => DECL(name).test(l) && !/^export\b/.test(l));
 
-  lines.forEach((line, idx) => {
+  /** One statement that starts at an `export` keyword (`rest` is the text from the keyword to the end of its line); true when a reader took it. */
+  const readStatement = (rest: string, idx: number): boolean => {
     let m: RegExpExecArray | null;
-    if (!readsComponents) {
-      if ((m = /^export\s*(?:type\s*)?\*\s*(?:as\s+\w+\s*)?from\s*['"]([^'"]+)['"]/.exec(line)) !== null) out.reExports.push({ names: [], star: true, spec: m[1] as string });
-      return;
-    }
-    if ((m = /^export\s+default\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)?/.exec(line)) !== null || (m = /^export\s+default\s+class\s+([A-Za-z_$][\w$]*)?/.exec(line)) !== null) {
+    if ((m = /^export\s+default\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)?/.exec(rest)) !== null || (m = /^export\s+default\s+class\s+([A-Za-z_$][\w$]*)?/.exec(rest)) !== null) {
       const name = m[1];
       if (name === undefined || !isComponentName(name)) out.unread.push({ name: name ?? "(anonymous)", line: idx + 1, reason: "the default export has no upper-camel name" });
-      else add(name, true, idx);
-    } else if ((m = /^export\s+default\s+([A-Za-z_$][\w$]*)\s*;?\s*$/.exec(line)) !== null) {
+      else add(name, true, idx, rest);
+      return true;
+    }
+    if ((m = /^export\s+default\s+([A-Za-z_$][\w$]*)\s*;?\s*$/.exec(rest)) !== null) {
       const name = m[1] as string;
       const at = localDecl(name);
       if (!isComponentName(name)) out.unread.push({ name, line: idx + 1, reason: "the default export has no upper-camel name" });
       else if (at === -1) out.unread.push({ name, line: idx + 1, reason: "the default export names a binding that is not declared in this file" });
       else add(name, true, at);
-    } else if (/^export\s+default\b/.test(line)) {
-      out.unread.push({ name: "(default)", line: idx + 1, reason: "the default export is not a named declaration" });
-    } else if ((m = /^export\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)/.exec(line)) !== null || (m = /^export\s+(?:abstract\s+)?class\s+([A-Za-z_$][\w$]*)/.exec(line)) !== null || (m = /^export\s+(?:const|let|var)\s+([A-Za-z_$][\w$]*)/.exec(line)) !== null) {
+      return true;
+    }
+    if (/^export\s+default\b/.test(rest)) { out.unread.push({ name: "(default)", line: idx + 1, reason: "the default export is not a named declaration" }); return true; }
+    if ((m = /^export\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)/.exec(rest)) !== null || (m = /^export\s+(?:abstract\s+)?class\s+([A-Za-z_$][\w$]*)/.exec(rest)) !== null || (m = /^export\s+(?:const|let|var)\s+([A-Za-z_$][\w$]*)/.exec(rest)) !== null) {
       const name = m[1] as string;
-      if (isComponentName(name)) add(name, false, idx);
+      if (isComponentName(name)) add(name, false, idx, rest);
       else if (/^[A-Z]/.test(name)) out.unread.push({ name, line: idx + 1, reason: "the name has no lower-case letter, so it is not read as a component" });
-      if (/^export\s+(?:const|let|var)\b/.test(line)) {
+      if (/^export\s+(?:const|let|var)\b/.test(rest)) {
         const span = spanFrom(lines, idx);
-        for (const extra of extraDeclarators(lines.slice(span.startLine - 1, span.endLine).join("\n").replace(/^export\s+(?:const|let|var)\s+[A-Za-z_$][\w$]*/, ""))) {
+        for (const extra of extraDeclarators(lines.slice(span.startLine - 1, span.endLine).join("\n").replace(/^[\s\S]*?export\s+(?:const|let|var)\s+[A-Za-z_$][\w$]*/, ""))) {
           if (/^[A-Z]/.test(extra)) out.unread.push({ name: extra, line: idx + 1, reason: "the second declarator of one const statement is not read: give it its own export statement" });
         }
       }
-    } else if ((m = /^export\s*(?:type\s*)?\*\s*(?:as\s+\w+\s*)?from\s*['"]([^'"]+)['"]/.exec(line)) !== null) {
-      out.reExports.push({ names: [], star: true, spec: m[1] as string });
+      return true;
     }
-  });
+    if ((m = /^export\s*(?:type\s*)?\*\s*from\s*['"]([^'"]+)['"]/.exec(rest)) !== null) { out.reExports.push({ names: [], star: true, spec: m[1] as string }); return true; }
+    return false;
+  };
+
+  const keywords = [...text.matchAll(EXPORT_KEYWORD)].map((m) => m.index as number);
+  const claimed = new Set<number>();
+  const braceReExports: ReExport[] = []; // appended after the star re-exports, the order the output has always had
 
   // `export { A, B as C }` and `export { A } from "./a"` can span lines, so they are read on the whole text.
-  for (const m of text.matchAll(/(^|\n)export\s+(type\s+)?\{([^}]*)\}\s*(?:from\s*['"]([^'"]+)['"])?/g)) {
+  for (const m of text.matchAll(/(^|[\s;}])export\s+(type\s+)?\{([^}]*)\}\s*(?:from\s*['"]([^'"]+)['"])?/g)) {
+    claimed.add((m.index ?? 0) + (m[1] as string).length);
     if (m[2] !== undefined) continue;
     const names = (m[3] as string).split(",").map((s) => s.trim()).filter((s) => s !== "").map((part) => {
       const [local, exported] = part.split(/\s+as\s+/);
       return { local: local as string, exported: exported ?? (local as string) };
     }).filter((n) => !n.local.startsWith("type "));
     const spec = m[4];
-    if (spec !== undefined) { out.reExports.push({ names, star: false, spec }); continue; }
+    if (spec !== undefined) { braceReExports.push({ names, star: false, spec }); continue; }
     for (const n of names) {
-      if (!readsComponents || !isComponentName(n.exported)) continue;
+      if (!readsComponents) continue;
+      const isDefault = n.exported === "default"; // `export { Inner as default }` exports the local binding as the default
+      const name = isDefault ? n.local : n.exported;
+      if (!isComponentName(name)) continue;
       const at = localDecl(n.local);
       const reportAt = lineIndexOf(starts, (m.index ?? 0) + (m[1] as string).length);
-      if (at === -1) out.unread.push({ name: n.exported, line: reportAt + 1, reason: "the exported binding is not declared in this file" });
-      else add(n.exported, false, at);
+      if (at === -1) out.unread.push({ name, line: reportAt + 1, reason: "the exported binding is not declared in this file" });
+      else add(name, isDefault, at);
     }
   }
+
+  for (const p of keywords) {
+    out.accounting.keywords++;
+    if (claimed.has(p)) { out.accounting.claimed++; continue; }
+    const idx = lineIndexOf(starts, p);
+    const end = text.indexOf("\n", p);
+    const rest = text.slice(p, end === -1 ? undefined : end);
+    const listIt = (name: string, reason: string): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting.listed++; };
+    const namespace = /^export\s*(?:type\s*)?\*\s*as\s+([A-Za-z_$][\w$]*)\s*from/.exec(rest);
+    if (namespace !== null) { listIt(namespace[1] as string, "`export * as <name> from` re-exports a namespace: it is listed here and not followed as a barrel"); continue; }
+    if (!readsComponents) { readStatement(rest, idx); out.accounting.claimed++; continue; } // a script file holds no component: only its barrel re-exports are read
+    if (readStatement(rest, idx) || TYPE_ONLY_EXPORT.test(rest)) { out.accounting.claimed++; continue; }
+    listIt(/\b[A-Z][A-Za-z0-9_$]*/.exec(rest.replace(/^export\b/, ""))?.[0] ?? "(export)", "export form not read");
+  }
+  out.reExports.push(...braceReExports);
   out.components.sort((a, b) => a.startLine - b.startLine || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   return out;
 }
