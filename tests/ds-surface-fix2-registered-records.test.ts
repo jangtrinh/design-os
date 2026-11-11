@@ -7,8 +7,8 @@ import { rmSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
-import { envelope, surface } from "./ds-surface-helpers.js";
-import { answerMatch, apply, figma, readyProject, registryOf } from "./ds-surface-source-match-helpers.js";
+import { WORKSPACE_TWO_APPS, answerKind, envelope, projectFrom, surface } from "./ds-surface-helpers.js";
+import { NOW, answerMatch, apply, figma, readyProject, registryOf } from "./ds-surface-source-match-helpers.js";
 
 describe("a registered component whose code is gone is listed, and nothing is deleted", () => {
   const registered = (): string => {
@@ -29,6 +29,24 @@ describe("a registered component whose code is gone is listed, and nothing is de
   });
   it("lists nothing while every registered component is still in the app", () => {
     expect(envelope(surface(registered(), "--register").out).data!["register"]["registeredNotFound"]).toEqual([]);
+  });
+});
+
+describe("a record of another app root is not reported by a run that did not read that app", () => {
+  it("registering app web does not make app admin's preview list web's records as gone", () => {
+    const comp = (n: string): string => `export const ${n} = () => <i />;\n`;
+    const p = projectFrom({
+      ...WORKSPACE_TWO_APPS,
+      ...Object.fromEntries(["Wa", "Wb", "Wc"].map((n) => [`apps/web/components/${n}.tsx`, comp(n)])),
+      ...Object.fromEntries(["Xa", "Xb", "Xc"].map((n) => [`apps/admin/components/${n}.tsx`, comp(n)])),
+    });
+    surface(p);
+    answerKind(p, "app-roots", (k) => ({ choice: k.perMemberAnswer!.choice, members: Object.fromEntries(k.perMemberAnswer!.members.map((m) => [m, "keep"])) }));
+    const written = surface(p, "--app", "apps/web", "--register", "--apply", "--now", NOW);
+    expect(written.code, written.out).toBe(0);
+    const d = envelope(surface(p, "--app", "apps/admin", "--register").out).data!["register"];
+    expect(d["registeredNotFound"]).toEqual([]);
+    expect(envelope(surface(p, "--app", "apps/web", "--register").out).data!["register"]["registeredNotFound"]).toEqual([]);
   });
 });
 

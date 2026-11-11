@@ -38,6 +38,8 @@ describe("the invariant: masked export keywords = claimed + listed", () => {
     const listed = r.unread.filter((u) => u.reason.startsWith("export form not read") || u.reason.includes("export * as"));
     expect(listed.map((u) => u.name).sort()).toEqual(["Alpha", "Forms", "NS"]);
     expect(r.accounting.listed).toBe(3);
+    expect(r.unread.find((u) => u.name === "Forms")!.reason).toContain("export * as");
+    expect(r.unread.find((u) => u.name === "Alpha")!.reason).toBe("export form not read");
   });
   it("claims type-only and enum exports silently", () => {
     expect(r.unread.map((u) => u.name)).not.toContain("Size");
@@ -47,6 +49,10 @@ describe("the invariant: masked export keywords = claimed + listed", () => {
   it("reads the BOM export, the export after a statement, and the default binding export", () => {
     expect(r.components.map((c) => c.name).sort()).toEqual(["AfterUrl", "Bom", "Inner", "Plain"]);
     expect(r.components.find((c) => c.name === "Inner")?.isDefault).toBe(true);
+  });
+  it("a BOM on the first line does not hide the binding a later `export { X as default }` names", () => {
+    const r = readComponentExports("src/components/Bom2.tsx", "﻿function Inner() { return <i />; }\nexport { Inner as default };\n");
+    expect(r.components.map((c) => c.name)).toEqual(["Inner"]);
   });
   it("reads nothing out of a string or a comment", () => {
     expect(r.components.map((c) => c.name)).not.toContain("InString");
