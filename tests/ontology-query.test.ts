@@ -51,6 +51,14 @@ describe("a query that matches nothing is a result, not an error", () => {
   });
 });
 
+describe("ties in score are broken by node id", () => {
+  it("two tokens that hold the one query word come out in id order, as matches and in the pack", () => {
+    const d = queryData(builtRing1(), "color");
+    expect(d.matches.map((m) => m.id)).toEqual(["token:color.ink", "token:color.paper"]);
+    expect(d.pack!.groups.find((g) => g.group === "tokens")!.entries.map((e) => e.id).slice(0, 2)).toEqual(["token:color.ink", "token:color.paper"]);
+  });
+});
+
 describe("a screen's name returns its components, their tokens and a rule", () => {
   const p = builtRing1();
   it("Sign in: the components the frame uses, the tokens they consume and the rules of the project", () => {
@@ -60,6 +68,11 @@ describe("a screen's name returns its components, their tokens and a rule", () =
     expect(got).toEqual(expect.arrayContaining(["component:Button", "component:Card", "token:color.ink", "token:color.paper", "token:space.gap"]));
     expect(d.pack!.groups.find((g) => g.group === "rules")!.entries.length).toBeGreaterThan(0);
     expect(got.some((id) => id.startsWith("rule:"))).toBe(true);
+  });
+  it("a rule that constrains the whole project reaches a match that no rule's words match", () => {
+    const d = queryData(p, "dashboard");
+    expect(d.matches.map((m) => m.id)).toEqual(["screen:5:2"]);
+    expect(d.pack!.groups.find((g) => g.group === "rules")!.entries.length).toBeGreaterThan(0);
   });
   it("every entry names its id and the project-relative file a host can open", () => {
     const d = queryData(p, "Sign in");

@@ -30,7 +30,7 @@ describe("--area is exact", () => {
     for (const id of ids(d)) expect(id.startsWith("screen:"), id).toBe(false);
   });
   it("no trimming, no case folding, no fuzzy match: a name that matches nothing is refused with the three nearest keys", () => {
-    for (const name of ["library", " Library", "Libra"]) {
+    for (const name of ["library", " Library", "Libra", "page:library", "PAGE:Library"]) {
       const f = failure(p, "card", "--area", name);
       expect(f.code, name).toBe(1);
       expect(f.error.code, name).toBe("ONTOLOGY_AREA_UNKNOWN");
