@@ -18,9 +18,10 @@ export const BLOCKED_FRESH_CODE = "ONBOARD_BLOCKED_NEEDS_OWNER_RULING";
 
 export interface LintFinding { code: string; severity: "error" | "warning"; message: string }
 export interface LintInput {
-  /** The ontology a build would write now; null when an open question blocks it (then `blockedReason` says why). */
-  fresh: Ontology | null;
-  blockedReason?: string;
+  /** The ontology a build would compute now, always: the graph checks run on it even when an open question blocks the write. */
+  fresh: Ontology;
+  /** Set when an open question blocks a fresh emit: what is open, and the action that works. */
+  blocked?: { summary: string; action: string };
   /** The text of the file on disk, or null when there is none. */
   disk: string | null;
   conventions: { json: string | null; md: string | null };
@@ -50,20 +51,19 @@ export function lintOntology(input: LintInput): LintResult {
   let ontology: Ontology | null = null;
   let onDisk: Ontology | null = null;
 
-  if (input.disk === null) err(STALE_CODE, "there is no ontology file yet: ui ontology build writes design/knowledge/ontology.json");
+  if (input.disk === null) err(STALE_CODE, input.blocked === undefined ? "there is no ontology file yet: ui ontology build writes design/knowledge/ontology.json" : "there is no ontology file yet; answer the open questions first, then ui ontology build writes design/knowledge/ontology.json");
   else {
     const parsed = parseDisk(input.disk);
     if (typeof parsed === "string") err(STALE_CODE, parsed);
     else { onDisk = parsed; ontology = parsed; }
   }
   const view = onDisk ?? input.fresh;
-  if (view !== null) {
-    for (const e of graphErrors(view.nodes, view.links)) err(e.code, e.message);
-  }
+  for (const e of graphErrors(view.nodes, view.links)) err(e.code, e.message);
+  const b = input.blocked;
   if (onDisk !== null) {
-    if (input.fresh === null) err(BLOCKED_FRESH_CODE, `${input.blockedReason ?? "an open question blocks a fresh emit"}, so the file cannot be compared with a fresh emit: ui onboard questions --format claude`);
+    if (b !== undefined) err(BLOCKED_FRESH_CODE, `${b.summary}, so the file cannot be compared with a fresh emit: ${b.action}`);
     else if (serializeOntology(input.fresh) !== input.disk) err(STALE_CODE, "the file differs from a fresh emit of the current sources: ui ontology build rewrites it");
-  } else if (input.fresh === null) err(BLOCKED_FRESH_CODE, `${input.blockedReason ?? "an open question blocks a fresh emit"}: ui onboard questions --format claude`);
+  } else if (b !== undefined) err(BLOCKED_FRESH_CODE, `${b.summary}: ${b.action}`);
   ontology = ontology ?? input.fresh;
 
   if (ontology !== null) {

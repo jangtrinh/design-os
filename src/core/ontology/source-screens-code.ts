@@ -36,6 +36,9 @@ export function readCodeScreens(projectDir: string): CodeScreenRead {
   let roots: string[];
   if (choice.ok) roots = [choice.app];
   else if (choice.code === "SURFACE_APP_AMBIGUOUS") roots = rulings.keepRoots.filter((k) => walked.includes(k)).sort(byText);
+  else if (scan.apps.length === 0) return missing("no app root found; the code door is not read");
+  else if (scan.apps.length === 1) return missing(`the only app root found ('${walked[0]}') names no framework; the code door is not read`);
+  // Two or more nested roots raise the app-roots question, which `ui onboard questions` lists.
   else return missing(`the code door has no app root to read (${choice.message.split(". Choose with --app")[0]}); answer the app-roots question: ui onboard questions --format claude`);
 
   const screens = new Map<string, SurfaceLink>();

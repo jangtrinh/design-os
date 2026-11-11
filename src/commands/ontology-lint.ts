@@ -11,7 +11,7 @@ import { okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
-import { blockingClusters, blockingSummary } from "../core/ontology/blocking-clusters.js";
+import { blockingAction, blockingClusters, blockingSummary } from "../core/ontology/blocking-clusters.js";
 import { coverageTable } from "../core/ontology/coverage.js";
 import { CONVENTIONS_JSON_REL, CONVENTIONS_MD_REL } from "../core/ontology/conventions-machine-form.js";
 import { lintOntology } from "../core/ontology/lint-ontology.js";
@@ -34,8 +34,8 @@ export function runOntologyLint(parsed: ParsedArgs): CommandResult {
   try { open = blockingClusters(dir, built.detections); }
   catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(CMD, parsed.json, e.code, e.message); throw e; }
   const result = lintOntology({
-    fresh: open.length === 0 ? built.ontology : null,
-    ...(open.length === 0 ? {} : { blockedReason: blockingSummary(open) }),
+    fresh: built.ontology,
+    ...(open.length === 0 ? {} : { blocked: { summary: blockingSummary(open), action: blockingAction(dir, open) } }),
     disk: readIfPresent(dir, file),
     conventions: { json: readIfPresent(dir, CONVENTIONS_JSON_REL), md: readIfPresent(dir, CONVENTIONS_MD_REL) },
     strict: parsed.flags["strict"] === true,
