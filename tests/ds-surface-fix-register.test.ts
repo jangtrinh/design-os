@@ -2,8 +2,9 @@
  * Registration (review fix round, section G): the preview predicts the write with the same checks and lists what would be
  * refused, per code; a single literal is not a variant set; a props type with more than one literal union writes none.
  */
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { readVariants, readVariantsDetail } from "../src/core/ds-surface/variants-reader.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
@@ -43,6 +44,16 @@ describe("the preview predicts the write", () => {
     expect(r.ok, JSON.stringify(r.error)).toBe(true);
     expect(r.data!["register"]["wouldRefuse"].notChecked).toMatch(/^DS_TAMPERED/);
     expect(r.data!["register"]["records"].length).toBeGreaterThan(0);
+  });
+});
+
+describe("the name rule differs by door, in one shared check", () => {
+  it("ui registry register on a store that is not kit-bound keeps the strict Category/Variant rule", () => {
+    const file = join(mkdtempSync(join(process.env["TMPDIR"] ?? tmpdir(), "ds-surface-name-")), "component-registry.json");
+    const markup = join(dirname(file), "m.html");
+    writeFileSync(markup, "<button>x</button>");
+    const r = capture(["registry", "register", "Plain", "--category", "action", "--markup", markup, "--file", file, "--json"]);
+    expect(envelope(r.out).error?.code).toBe("BAD_NAME");
   });
 });
 
