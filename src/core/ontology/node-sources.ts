@@ -7,6 +7,8 @@
 import { readRulingStore } from "../owner-rulings/ruling-store.js";
 import type { Ruling } from "../owner-rulings/ruling-store.js";
 import { gateNodes } from "./gate-table.js";
+import { tieEntries } from "./screen-meta-ties.js";
+import type { MetaFact } from "./source-screens-meta.js";
 import { readRing2 } from "./source-ring2.js";
 import type { Ring2Read } from "./source-ring2.js";
 import { readRuleNodes } from "./source-rules.js";
@@ -42,6 +44,14 @@ function mergeScreenReports(figma: SourceReport, code: SourceReport): SourceRepo
   return { kind: "screen", status, nodes: figma.nodes + code.nodes, note: parts.join("; ") };
 }
 
+/** The strings a project supplies for a screen (`name`, `kind`, `page`, `purpose`) become that node's `meta`, for the entries that tie to it. */
+function withScreenMeta(screens: OntNode[], meta: MetaFact | null): OntNode[] {
+  if (meta === null) return screens;
+  const ties = tieEntries(meta, screens).tied;
+  const fields = new Map([...ties].map(([entry, node]) => [node, meta.entries.find((e) => e.id === entry)?.fields ?? {}]));
+  return screens.map((n) => { const f = fields.get(n.id); return f === undefined || Object.keys(f).length === 0 ? n : { ...n, meta: f }; });
+}
+
 export function readNodeSources(projectDir: string, rulings?: readonly Ruling[]): NodeSources {
   const ruled = rulings ?? readRulingStore(projectDir).rulings;
   const stores = readSealedStores(projectDir);
@@ -51,10 +61,7 @@ export function readNodeSources(projectDir: string, rulings?: readonly Ruling[])
   const ring2 = readRing2(projectDir);
   const gates = gateNodes();
 
-  const screens = [...figma.nodes, ...code.nodes].map((n) => {
-    const meta = ring2.screenMeta.get(n.id);
-    return meta === undefined ? n : { ...n, meta };
-  });
+  const screens = withScreenMeta([...figma.nodes, ...code.nodes], ring2.meta);
   const nodes = [PROJECT, ...stores.tokens, ...stores.components, ...screens, ...rules.nodes, ...gates, ...ring2.nodes].sort((a, b) => byText(a.id, b.id));
   const byKind = new Map<string, SourceReport>();
   for (const r of [...stores.reports, mergeScreenReports(figma.report, code.report), rules.report, ...ring2.reports]) byKind.set(r.kind, r);

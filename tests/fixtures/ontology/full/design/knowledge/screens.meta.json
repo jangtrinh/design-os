@@ -1,10 +1,11 @@
 {
   "schema": "screens-meta/1",
-  "apps": [{ "id": "web", "name": "Web app" }],
-  "features": [{ "id": "checkout", "name": "Checkout", "app": "web" }],
-  "screens": [
-    { "screen": "screen:5:1", "feature": "checkout", "note": "entry point" },
-    { "screen": "screen:5:2", "app": "web" },
-    { "screen": "screen:9:9", "feature": "checkout" }
-  ]
+  "at": 1760000000,
+  "screens": {
+    "sign-in": { "name": "Sign in", "app": "web", "feature": "checkout", "figmaId": "5:1", "kind": "route", "page": "Flows", "purpose": "entry point", "aliases": [], "masters": [], "overlays": [], "parentScreenId": null, "noteIds": [], "confidence": 0.9, "pageContent": "" },
+    "dashboard": { "name": "Dashboard", "app": "web", "figmaId": "5:2", "kind": "route", "page": "Flows", "purpose": "", "aliases": [], "masters": [], "overlays": [], "parentScreenId": null, "noteIds": [], "confidence": 0.8, "pageContent": "" },
+    "ghost": { "name": "Ghost", "app": "web", "feature": "checkout", "figmaId": "9:9", "kind": "modal", "page": "Flows", "purpose": "", "aliases": [], "masters": [], "overlays": [], "parentScreenId": "sign-in", "noteIds": [], "confidence": 0.5, "pageContent": "" },
+    "loose": { "name": "Loose", "feature": "orphans", "figmaId": "8:8", "kind": "state", "page": "Flows", "purpose": "", "aliases": [], "masters": [], "overlays": [], "parentScreenId": null, "noteIds": [], "confidence": 0.1, "pageContent": "" }
+  },
+  "unassigned": [{ "app": "web", "figmaId": "4:4", "reason": "no feature yet" }]
 }
