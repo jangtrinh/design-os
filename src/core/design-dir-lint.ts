@@ -10,7 +10,6 @@ import { AUTHORITATIVE } from "./owner-rulings/kind-source-authority.js";
 import { governedOutcomes, indexRulings } from "./owner-rulings/resolve-detections.js";
 import { parseRuling } from "./owner-rulings/ruling-store.js";
 import type { Ruling } from "./owner-rulings/ruling-store.js";
-import { validateMethodSchema } from "./method-json-schema.js";
 import type { Schema } from "./method-json-schema.js";
 
 export interface DesignFinding {

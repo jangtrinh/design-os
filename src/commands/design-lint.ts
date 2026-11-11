@@ -1,7 +1,6 @@
 /** `ui design lint <project-root>` — filesystem shell over the design-dir rules. */
-import { readFileSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { statSync } from "node:fs";
+import { resolve } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, forTerminal, okJsonWithExit } from "../core/output.js";
