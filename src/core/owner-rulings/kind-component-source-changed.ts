@@ -33,6 +33,8 @@ export interface SourceChangedCandidate {
   heldTokens: string[];
   codeTokens: string[];
 }
+/** True when the recorded slice hash is the current one: the component only moved. */
+export const onlyMoved = (c: Pick<SourceChangedCandidate, "heldSha" | "nowSha">): boolean => c.heldSha === c.nowSha;
 export interface SourceChangedInput { candidates: SourceChangedCandidate[] }
 
 export const sourceChangedMemberOf = (c: Pick<SourceChangedCandidate, "name" | "heldRef" | "heldSha" | "nowRef" | "nowSha">): string =>
@@ -50,10 +52,11 @@ function ask(candidates: readonly SourceChangedCandidate[], members: readonly st
   const asked = candidates.filter((c) => wanted.has(sourceChangedMemberOf(c)));
   const everyone = (outcome: string): Record<string, string> => Object.fromEntries(asked.map((c) => [sourceChangedMemberOf(c), outcome]));
   const sum = (pick: (m: ReturnType<typeof tokenMovement>) => string[]): number => asked.reduce((n, c) => n + pick(tokenMovement(c)).length, 0);
+  const moved = asked.filter(onlyMoved).length;
   const options: ClusterOption[] = [
     {
       id: REFRESH_OUTCOME, label: "Refresh the records from the source as it is now",
-      consequence: `${asked.length} record(s) get a new code reference; ${sum((m) => m.added)} token path(s) are added; ${sum((m) => m.removed)} token path(s) are removed from code records; ${sum((m) => m.kept)} token path(s) the code no longer references stay on linked records`,
+      consequence: `${asked.length} record(s) get a new code reference${moved > 0 ? ` (${moved} only moved, content unchanged)` : ""}; ${sum((m) => m.added)} token path(s) are added; ${sum((m) => m.removed)} token path(s) are removed from code records; ${sum((m) => m.kept)} token path(s) the code no longer references stay on linked records`,
       assigns: everyone(REFRESH_OUTCOME),
     },
     {
@@ -68,7 +71,7 @@ function ask(candidates: readonly SourceChangedCandidate[], members: readonly st
   for (const c of asked) {
     const member = sourceChangedMemberOf(c);
     memberChoices[member] = [
-      { id: REFRESH_OUTCOME, label: `Refresh ${c.name}: its record takes the source now at ${c.nowRef}` },
+      { id: REFRESH_OUTCOME, label: `Refresh ${c.name}: its record takes the source now at ${c.nowRef}${onlyMoved(c) ? " (content unchanged, only moved)" : ""}` },
       { id: KEEP_OUTCOME, label: `Keep ${c.name} as registered at ${c.heldRef} (listed as stale)` },
     ];
     labels[member] = c.name; // the sheet prints `<label> (<member id>)`, and the id already names both sources and both hashes

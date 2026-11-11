@@ -28,7 +28,11 @@ export interface PlannedRefresh {
   tokensKept: string[];
 }
 /** A record whose source differs from the tree: kept as registered by ruling, or still awaiting one. */
-export interface ChangedSourceItem { name: string; heldRef: string; nowRef: string }
+export interface ChangedSourceItem {
+  name: string; heldRef: string; nowRef: string;
+  /** False when the slice hash is the one the record holds: the component only moved (its lines changed, its content did not). */
+  contentChanged: boolean;
+}
 
 export type SameDoorOutcome =
   | { kind: "unchanged" }
@@ -48,7 +52,7 @@ export function classifySameDoor(record: ComponentRecord, now: CurrentSource, ru
   const member = sourceChangedMemberOf(candidate);
   const ruling = governingRuling(rulings, "component-source-changed", member);
   const outcome = ruling === undefined ? undefined : outcomeOf(ruling, member);
-  const item = { name: record.name, heldRef: held.sourceRef, nowRef: now.sourceRef };
+  const item = { name: record.name, heldRef: held.sourceRef, nowRef: now.sourceRef, contentChanged: held.sha256 !== now.sha256 };
   if (outcome === REFRESH_OUTCOME) {
     const move = tokenMovement(candidate);
     return {

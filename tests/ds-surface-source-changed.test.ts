@@ -181,12 +181,12 @@ describe("keep", () => {
     expect(shown["staleByRuling"].map((s: { name: string }) => s.name)).toEqual(["Avatar", "Card"]);
     expect(shown["awaitingSourceChanged"]).toEqual([]);
     const text = capture(["ds", "surface", "--cwd", p, "--register"]).out;
-    expect(text).toMatch(/stale by ruling: 2 components[\s\S]*Avatar {2}registered src\/components\/kit\/Avatar\.tsx:\d+-\d+, tree src\/components\/kit\/Avatar\.tsx:\d+-\d+/);
+    expect(text).toMatch(/stale by ruling: 2 component\(s\)[\s\S]*Avatar {2}registered src\/components\/kit\/Avatar\.tsx:\d+-\d+, tree src\/components\/kit\/Avatar\.tsx:\d+-\d+/);
     const r = apply(p);
     expect(r.code, r.out).toBe(0);
     expect(registryOf(p).components).toEqual(before);
     expect(manifestOf(p).generation).toBe(generation); // nothing to write: no reseal
-    expect(capture(["ds", "surface", "--cwd", p, "--register", "--apply", "--now", NOW]).out).toContain("stale by ruling: 2 components");
+    expect(capture(["ds", "surface", "--cwd", p, "--register", "--apply", "--now", NOW]).out).toContain("stale by ruling: 2 component(s)");
   });
   it("is written together with a new component in the one batch while the kept records stay as they are", () => {
     const p = kept();

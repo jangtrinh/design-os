@@ -102,11 +102,11 @@ describe("the text form", () => {
   it("names the awaiting names before the ruling, the links after it, and the counts when applied", () => {
     const p = readyProject();
     const text =(...extra: string[]): string => capture(["ds", "surface", "--cwd", p, "--register", ...extra]).out;
-    expect(text()).toContain("awaiting a ruling: 2 components have the name of a record already in the registry");
+    expect(text()).toContain("awaiting a ruling: 2 component(s) have the name of a record already in the registry");
     answerMatch(p, (k) => ({ choice: k.options[0]!.id }));
-    expect(text()).toMatch(/links: 2 existing records would gain a code reference[\s\S]*Card {2}src\/components\/ui\/Card\.tsx:3-5 {2}tokens added: color\.surface/);
+    expect(text()).toMatch(/links: 2 existing record\(s\) would gain a code reference[\s\S]*Card {2}src\/components\/ui\/Card\.tsx:3-5 {2}tokens added: color\.surface/);
     expect(text("--apply", "--now", NOW)).toContain("applied: 4 new, 2 linked, 0 separate; written to design/component-registry.json, resealed once");
-    expect(text()).toContain("unchanged: 6 components already registered from exactly this source");
+    expect(text()).toContain("unchanged: 6 component(s) already registered from exactly this source");
     expect(text("--apply", "--now", NOW)).toContain("applied: nothing to write, the registry is as the tree says; no reseal (generation 2)");
   });
 });

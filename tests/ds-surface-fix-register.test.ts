@@ -43,7 +43,7 @@ describe("the preview predicts the write", () => {
     const p = projectFrom({ "package.json": pkg({ react: "18" }), "src/components/A.tsx": "export const Aaa = () => <i />;\n", "src/components/B.tsx": "export const Bbb = () => <i />;\n", "src/components/C.tsx": "export const Ccc = () => <i />;\n" });
     expect(envelope(surface(p, "--register").out).data!["register"]["wouldRefuse"]).toEqual({ count: 0, byCode: {}, items: [] });
     expect(capture(["ds", "surface", "--cwd", p, "--register"]).out).not.toContain("would be refused");
-    expect(capture(["ds", "surface", "--cwd", unregistrable(), "--register"]).out).toContain("would be refused: 3 records (REGISTRY_BAD_SOURCE_REF 3); --apply writes nothing while any is refused");
+    expect(capture(["ds", "surface", "--cwd", unregistrable(), "--register"]).out).toContain("would be refused: 3 record(s) (REGISTRY_BAD_SOURCE_REF 3); --apply writes nothing while any is refused");
   });
   it("a store that drifted from its seal says the refusals could not be predicted, and the preview still shows", () => {
     const p = ruled();
