@@ -5,7 +5,22 @@
  */
 import type { OntNode } from "./ontology-types.js";
 
-export const wordsOf = (text: string): string[] => (text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []);
+/** Split points inside a run: lower case or digit before an upper-case letter (`PrimaryButton`), and an upper-case run before a capitalised word (`HTMLTable`). */
+const CASE_BOUNDARY = /(?<=[\p{Ll}\p{N}])(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})/u;
+
+/**
+ * The words of a text: every run of letters and digits is split at its case boundaries and lower-cased, and the whole
+ * unsplit run is kept as a word too, so `PrimaryButton` is reached by `primary`, `button`, `primarybutton` and
+ * `PrimaryButton`. Digits stay with the letters before them; an all-caps run (`FAQ`) is one word.
+ */
+export function wordsOf(text: string): string[] {
+  const words: string[] = [];
+  for (const run of text.match(/[\p{L}\p{N}]+/gu) ?? []) {
+    const parts = run.split(CASE_BOUNDARY).map((w) => w.toLowerCase());
+    words.push(...parts, ...(parts.length > 1 ? [run.toLowerCase()] : []));
+  }
+  return words;
+}
 
 /** The words a node is found by: its name, the `name` of its screens-meta entry and the `aliases` it carries. */
 export function nodeWords(n: OntNode): Set<string> {
