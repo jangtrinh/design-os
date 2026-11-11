@@ -6,7 +6,7 @@ import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
 import { errJson, errText, forTerminal, okJsonWithExit } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
-import { resolvePackageRoots } from "../core/init-stub.js";
+import { loadDesignDirSchema } from "../core/design-token-sources.js";
 import { lintDesignDir } from "../core/design-dir-lint.js";
 import { loadProjectView } from "../core/design-dir-scan.js";
 import type { Schema } from "../core/method-json-schema.js";
@@ -14,12 +14,6 @@ import type { Schema } from "../core/method-json-schema.js";
 const SUB = "design lint";
 const err = (json: boolean, code: string, message: string): CommandResult =>
   json ? errJson(SUB, code, message) : errText(`ui: ${message}\n`);
-
-function loadSchema(): Schema {
-  const roots = resolvePackageRoots(dirname(fileURLToPath(import.meta.url)));
-  if (roots.templatesRoot === null) throw new Error("installed schemas are unavailable");
-  return JSON.parse(readFileSync(join(dirname(roots.templatesRoot), "schemas", "design-dir.schema.json"), "utf8")) as Schema;
-}
 
 export function runDesignLint(parsed: ParsedArgs): CommandResult {
   const unknown = findUnknownFlag(parsed.flags, []);
@@ -29,7 +23,7 @@ export function runDesignLint(parsed: ParsedArgs): CommandResult {
   try { if (!statSync(root).isDirectory()) throw new Error(); }
   catch { return err(parsed.json, "NOT_A_DIRECTORY", `'${root}' is not a directory`); }
   let schema: Schema;
-  try { schema = loadSchema(); }
+  try { schema = loadDesignDirSchema(); }
   catch { return err(parsed.json, "SCHEMA_UNAVAILABLE", "installed design-dir schema cannot be read"); }
 
   const findings = lintDesignDir(loadProjectView(root), schema);

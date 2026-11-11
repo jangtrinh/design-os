@@ -121,7 +121,7 @@ export function validateAnswers(pending: readonly Cluster[], raw: unknown, at: s
   const index = indexRulings([...stored, ...rulings]);
   for (const cluster of answered) {
     const dangling = emitters.find((e) => e.kind === cluster.kind)?.checkAnswer?.(cluster, governedOutcomes(index, cluster.kind)) ?? null;
-    if (dangling !== null) return refuse("DANGLING_AFTER_SELECTION", dangling);
+    if (dangling !== null) return typeof dangling === "string" ? refuse("DANGLING_AFTER_SELECTION", dangling) : refuse(dangling.code, dangling.message);
   }
   return { ok: true, rulings, answered };
 }

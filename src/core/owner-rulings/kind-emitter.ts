@@ -25,6 +25,9 @@ export interface KindDetection {
   ask(members: readonly string[]): AskResult;
 }
 
+/** An answer check that refuses with its own error code. */
+export interface AnswerCheckRefusal { code: "BAD_ANSWER" | "DANGLING_AFTER_SELECTION"; message: string }
+
 export interface KindEmitter {
   kind: ClusterKind;
   /**
@@ -33,12 +36,15 @@ export interface KindEmitter {
    */
   detect(input: unknown): KindDetection | null;
   /**
+   * Refuses an answer the data cannot honour. A string is the message of a DANGLING_AFTER_SELECTION; a kind whose
+   * refusal is a malformed answer (not a dangling one) returns `{ code: "BAD_ANSWER", message }`.
+   */
+  checkAnswer?(cluster: Cluster, outcomes: Record<string, string>): string | AnswerCheckRefusal | null;
+  /**
    * A kind that raises more than one question from one input (one per group) lists them all here, and the coverage
    * rule reads this entry point: it is the one the commands call. Without it `detect` is the only entry point.
    */
   detectAll?(input: unknown): KindDetection[];
   /** Project-level kinds only: gathers the plain data `detect` reads. The only part that may touch the disk. */
   sense?(projectDir: string): unknown;
-  /** Refuses an answer the data cannot honour; returns the refusal message (raised as DANGLING_AFTER_SELECTION). */
-  checkAnswer?(cluster: Cluster, outcomes: Record<string, string>): string | null;
 }

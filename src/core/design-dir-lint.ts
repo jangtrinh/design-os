@@ -5,7 +5,11 @@
 import type { ProjectView } from "./design-dir-scan.js";
 import { buildPrinciplesIndex, serializePrinciplesIndex } from "./design-dir-principles.js";
 import { parseSupersededMarker } from "./ds-guidelines-rulings-reader.js";
-import { diffTokenSources } from "./design-token-sources.js";
+import { MANIFEST_FILE, SEALED_STORE, SECOND_SOURCE, readDerived, tokenSourceConflict, tokenSourceInput } from "./design-token-sources.js";
+import { AUTHORITATIVE } from "./owner-rulings/kind-source-authority.js";
+import { governedOutcomes, indexRulings } from "./owner-rulings/resolve-detections.js";
+import { parseRuling } from "./owner-rulings/ruling-store.js";
+import type { Ruling } from "./owner-rulings/ruling-store.js";
 import { validateMethodSchema } from "./method-json-schema.js";
 import type { Schema } from "./method-json-schema.js";
 
@@ -13,10 +17,10 @@ export interface DesignFinding {
   checkId: string; severity: "error" | "warning"; path: string; message: string; fix: string;
 }
 
-export const TOKEN_SOURCE = "design/tokens.json";
-export const MANIFEST_PATH = "design/design-dir.json";
+export const TOKEN_SOURCE = SECOND_SOURCE;
+export const MANIFEST_PATH = MANIFEST_FILE;
 /** The token store `ui ds` seals (design-system.ts): never an "extra" token file once the manifest exists. */
-export const SEALED_TOKENS = "design/design.tokens.json";
+export const SEALED_TOKENS = SEALED_STORE;
 export const SEALED_MANIFEST = "design/ds.manifest.json";
 export const STALE_INGEST_DAYS = 14;
 const DAY_MS = 86_400_000;
@@ -34,17 +38,14 @@ function parseJson(text: string | null): unknown {
   try { return JSON.parse(text); } catch { return undefined; }
 }
 
-/** Token files a project declares as derived from design/tokens.json (design/design-dir.json). */
+/** Token files a project declares as derived from design/tokens.json (design/design-dir.json), read the way the source-authority question reads them. */
 function declaredDerived(view: ProjectView, schema: Schema, out: DesignFinding[]): Set<string> {
-  const doc = parseJson(view.read(MANIFEST_PATH));
-  if (!view.files.includes(MANIFEST_PATH)) return new Set();
-  const issues = doc === undefined ? [`$: not valid JSON`] : validateMethodSchema(doc, schema);
-  if (issues.length > 0) {
-    out.push({ checkId: "bad-manifest", severity: "error", path: MANIFEST_PATH, message: `${MANIFEST_PATH} does not match the design-dir schema: ${issues.slice(0, 3).join("; ")}`,
+  const reading = readDerived(view, schema);
+  if (reading.issues.length > 0) {
+    out.push({ checkId: "bad-manifest", severity: "error", path: MANIFEST_PATH, message: `${MANIFEST_PATH} does not match the design-dir schema: ${reading.issues.slice(0, 3).join("; ")}`,
       fix: "Shape: { \"version\": 1 | 2, \"derived\": [{ \"path\": \"…\", \"derived_from\": \"design/tokens.json\" }], \"onboard\"?: { \"rulings\": […] } } — onboard only at version 2 (schemas/design-dir.schema.json)" });
-    return new Set();
   }
-  return new Set(((doc as { derived?: { path: string }[] }).derived ?? []).map((d) => d.path));
+  return reading.derived;
 }
 
 export function lintDesignDir(view: ProjectView, schema: Schema): DesignFinding[] {
@@ -97,17 +98,31 @@ export function lintDesignDir(view: ProjectView, schema: Schema): DesignFinding[
 
 const count = (n: number): string => `${n} ${n === 1 ? "token" : "tokens"}`;
 
+/** The file the owner ruled is the source, when the manifest holds that ruling; null before the question is answered. */
+function ruledSource(view: ProjectView): string | null {
+  const doc = parseJson(view.read(MANIFEST_PATH)) as { onboard?: { rulings?: unknown } } | undefined;
+  const list = doc?.onboard?.rulings;
+  if (!Array.isArray(list)) return null;
+  let rulings: Ruling[];
+  try { rulings = list.map((r, i) => parseRuling(r, i)); } catch { return null; }
+  return Object.entries(governedOutcomes(indexRulings(rulings), "source-authority")).find(([, outcome]) => outcome === AUTHORITATIVE)?.[0] ?? null;
+}
+
 /**
  * Both the sealed store and the hand-edited file exist and disagree: the project must say which one is the
- * source. A file declared derived is the contract's own route for keeping a second file, so it is not a finding.
+ * source. The condition is the one the source-authority question uses (design-token-sources.ts); a file declared
+ * derived is the contract's own route for keeping a second file, so it is not a finding.
  */
 function lintTwoTokenSources(view: ProjectView, derived: Set<string>, out: DesignFinding[]): void {
-  if (!view.files.includes(SEALED_TOKENS) || !view.files.includes(TOKEN_SOURCE) || derived.has(SEALED_TOKENS)) return;
-  const diff = diffTokenSources(view.read(SEALED_TOKENS), view.read(TOKEN_SOURCE));
-  if (diff === null || diff.same) return; // an unreadable file is not a comparison; the JSON error belongs to the token commands
+  const input = tokenSourceInput(view, derived);
+  const diff = input === null ? null : tokenSourceConflict(input);
+  if (diff === null) return;
+  const ruled = ruledSource(view);
+  const fix = ruled === null
+    ? `Answer the source-authority question: ui onboard questions — or keep one source: delete one of the two files, or declare ${SEALED_TOKENS} derived in ${MANIFEST_PATH}`
+    : `The owner ruled ${ruled} is the source (${MANIFEST_PATH}, onboard.rulings): make ${ruled === SEALED_TOKENS ? TOKEN_SOURCE : SEALED_TOKENS} agree with it or remove it${ruled === TOKEN_SOURCE ? `, or declare ${SEALED_TOKENS} derived` : ""}`;
   out.push({ checkId: "two-token-sources", severity: "error", path: SEALED_TOKENS,
-    message: `${SEALED_TOKENS} (${count(diff.sealedTokens)}) and ${TOKEN_SOURCE} (${count(diff.otherTokens)}) both exist and differ`,
-    fix: `Answer the source-authority question: ui onboard questions — or keep one source: delete one of the two files, or declare ${SEALED_TOKENS} derived in ${MANIFEST_PATH}` });
+    message: `${SEALED_TOKENS} (${count(diff.sealedTokens)}) and ${TOKEN_SOURCE} (${count(diff.otherTokens)}) both exist and differ`, fix });
 }
 
 function lintPrinciplesIndex(view: ProjectView, out: DesignFinding[]): void {

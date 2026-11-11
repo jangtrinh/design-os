@@ -165,7 +165,7 @@ describe("source-authority", () => {
     expect(readRulingStore(p).rulings[0]!.members).toEqual({ "design/design.tokens.json": "not-authoritative", "design/tokens.json": "authoritative" });
     expect(json(capture(["onboard", "--cwd", p, "--json", "--no-banner"]).out).data).toMatchObject({ rulings: { pending: 0, stale: 0, recorded: 1 } });
   });
-  it("a per-file answer that names two sources, or none, is refused DANGLING_AFTER_SELECTION and nothing is recorded", () => {
+  it("a per-file answer that names two sources, or none, is refused BAD_ANSWER and nothing is recorded", () => {
     const p = project();
     capture(["onboard", "questions", "--cwd", p]);
     const key = keyOf(p).find((k) => k.kind === "source-authority")!;
@@ -173,7 +173,7 @@ describe("source-authority", () => {
       const members = Object.fromEntries(key.perMemberAnswer!.members.map((m) => [m, value]));
       const r = submit(p, [{ fingerprint: key.fingerprint, choice: key.perMemberAnswer!.choice, members }]);
       expect(r.code).toBe(1);
-      expect(json(r.out).error!.code).toBe("DANGLING_AFTER_SELECTION");
+      expect(json(r.out).error!.code).toBe("BAD_ANSWER");
     }
     expect(readRulingStore(p).rulings).toEqual([]);
   });
