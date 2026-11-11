@@ -24,7 +24,7 @@ export function belongsToLinks(s: NodeSources): { links: OntLink[]; report: Link
     links.push({ kind: "belongs-to", from: screen, to: e.feature === undefined ? nodeId("app", e.app) : nodeId("feature", `${e.app}/${e.feature}`) });
   }
   report.unresolved = ties.untied.length;
-  const named = ties.untied.map((e) => `${e.id} ties to no screen (${e.figmaId === undefined ? "no figmaId" : `figmaId ${e.figmaId}`})`).sort(byText);
+  const named = ties.untied.map((e) => `${e.id} ties to no screen (${e.figmaId === undefined ? "no figmaId" : ties.claimed.has(e.figmaId) ? `${ties.claimed.get(e.figmaId)} entries claim one figmaId, ${e.figmaId}` : `figmaId ${e.figmaId}`})`).sort(byText);
   if (named.length > 0) report.details.push(`${named.length} screens-meta entr${named.length === 1 ? "y" : "ies"} tie to no screen node: ${named.slice(0, 5).join("; ")}${named.length > 5 ? "; ..." : ""}`);
   return { links, report };
 }
