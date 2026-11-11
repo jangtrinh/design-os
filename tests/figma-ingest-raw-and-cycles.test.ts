@@ -37,6 +37,11 @@ describe("keep raw carries every mode, and only primitives can be kept", () => {
     expect(Object.values(q.memberChoices!)[0]!.map((c) => c.id)).toEqual(["exclude"]);
     expect(q.options.some((o) => o.id === "keep-raw")).toBe(false);
   });
+  it("a failure in one mode offers only exclude even when every value is a primitive", () => {
+    // 4 and "abc" are both primitives: only the single failing mode keeps it from being kept raw
+    const q = ask([{ id: id("5:1"), name: "spacing/gap", type: "FLOAT", collection: "C", valuesByMode: { Light: 4, Dark: "abc" } }]);
+    expect(Object.values(q.memberChoices!)[0]!.map((c) => c.id)).toEqual(["exclude"]);
+  });
   it("an object-valued failure offers only exclude", () => {
     const q = ask([colorVar("3:1", "color/odd", "C", { Light: { r: "x", g: 0, b: 0 } })]);
     expect(Object.values(q.memberChoices!)[0]!.map((c) => c.id)).toEqual(["exclude"]);
