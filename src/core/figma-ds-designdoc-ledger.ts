@@ -8,7 +8,7 @@ import { ledgerLines } from "./figma-ds-ledger.js";
 import type { ExclusionReason, Ledger } from "./figma-ds-ledger.js";
 
 /** One excluded item, named. */
-export interface NamedExclusion { id: string; name: string }
+export interface NamedExclusion { id: string; name: string; where?: string }
 
 /** What was left out because the owner did not keep it, named. */
 export interface DesignExclusions {
@@ -42,7 +42,7 @@ function bindingLines(b: BindingReport): string[] {
 
 /** `name, name, … +N more (full list with --json)`; every name when there are ten or fewer. */
 export function namedList(items: readonly NamedExclusion[]): string {
-  const shown = items.slice(0, NAMES_SHOWN_PER_REASON).map((i) => `\`${i.name}\``).join(", ");
+  const shown = items.slice(0, NAMES_SHOWN_PER_REASON).map((i) => `\`${i.name}\`${i.where === undefined ? "" : ` (${i.where})`}`).join(", ");
   const more = items.length - NAMES_SHOWN_PER_REASON;
   return more > 0 ? `${shown}, +${more} more (full list with \`--json\`)` : shown;
 }

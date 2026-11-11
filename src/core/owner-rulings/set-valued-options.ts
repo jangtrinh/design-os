@@ -48,6 +48,6 @@ export function setValuedOptions(spec: SetOptionsSpec): ClusterOption[] {
     const { label, consequence } = spec.describe(grouped, "rest");
     options.push({ id: "keep:rest", label, consequence, selects: grouped });
   }
-  if (options.length < 2) options.push({ id: KEEP_NONE, label: "Keep none of them", consequence: `${asked.size} left out, counted and named`, selects: [] });
+  if (options.length < 2) options.push({ id: KEEP_NONE, label: "Keep none of them", consequence: `${asked.size} left out and counted, each named`, selects: [] });
   return options;
 }

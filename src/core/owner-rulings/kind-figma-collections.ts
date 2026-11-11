@@ -53,7 +53,7 @@ function detect(raw: unknown): KindDetection | null {
       const asked = new Set(members);
       const pairs = input.collisions.filter((c) => asked.has(c.a) || asked.has(c.b)).map((c) => `${show(c.a)} × ${show(c.b)}: ${c.paths} token paths`);
       const list = members.map((m) => `${show(m)} (${count.get(m) ?? 0} variables)`).join(", ");
-      const question = `Which variable collections stay? ${list}.${pairs.length > 0 ? ` Collisions: ${pairs.join("; ")}.` : ""} Variables of a collection left out are excluded, counted and named.`;
+      const question = `Which variable collections stay? ${list}.${pairs.length > 0 ? ` Collisions: ${pairs.join("; ")}.` : ""} Variables of a collection left out are excluded and counted; the collection is named.`;
       const options = setValuedOptions({
         members,
         recommended,
@@ -64,7 +64,7 @@ function detect(raw: unknown): KindDetection | null {
           const colliding = group.filter((n) => conflicting.has(n));
           const recommendedLabel = colliding.length === 0
             ? `Keep the ${group.length} collection(s) that do not collide`
-            : `Keep ${group.map(show).join(", ")} (${colliding.map(show).join(", ")} collide but are linked by aliases to a collection that does not)`;
+            : `Keep ${group.map(show).join(", ")} (${colliding.map(show).join(", ")} ${colliding.length === 1 ? "collides but is linked by an alias" : "collide but are linked by aliases"} to a collection that does not)`;
           const what = role === "recommended" ? recommendedLabel : role === "single" ? `Keep ${show(group[0] ?? "")}` : `Keep the other ${group.length} (${total} variables)`;
           return { label: what, consequence: `${total} variables kept; ${aliasNote}` };
         },

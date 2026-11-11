@@ -2,7 +2,7 @@
  * `figma-library-pages` (FR-009): component-kind nodes sit on more than one page. A multi-select question over the
  * pages, largest first, with no computed recommendation: which pages hold the design system. The member is the page
  * id from the scan (its name only when the scan carries nothing else). Nodes on pages that are left out are excluded,
- * counted and named per page.
+ * counted per page, and the page named.
  */
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 import { setValuedOptions } from "./set-valued-options.js";
@@ -26,7 +26,7 @@ function detect(raw: unknown): KindDetection | null {
       const position = new Map(members.map((m, i) => [m, i]));
       const list = [...members].sort((a, b) => nodes(b) - nodes(a) || (position.get(a) ?? 0) - (position.get(b) ?? 0)).map((m) => `${nameOf(m)} (${nodes(m)} nodes)`).join(", ");
       return {
-        question: `Component-kind nodes sit on ${members.length} pages: ${list}. Which pages hold the design system? Nodes on a page left out are excluded, counted and named.`,
+        question: `Component-kind nodes sit on ${members.length} pages: ${list}. Which pages hold the design system? Nodes on a page left out are excluded and counted; the page is named.`,
         options: setValuedOptions({
           members,
           weight: nodes,
