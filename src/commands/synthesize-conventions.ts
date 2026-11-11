@@ -6,6 +6,7 @@
  * usage-dna.json, and compiles it, deterministically and with zero network /
  * zero LLM, into:
  *   <out>/CONVENTIONS.md            measured DO/DON'T with counts (+ DS cross-ref)
+ *   <out>/design/conventions.json   the same measurement in machine form; CONVENTIONS.md is a pure render of it
  *   <out>/design/memory.events.jsonl  (with --seed-memory) — prefers/avoids insights
  *
  * With --ds tokens.json, measured values are cross-referenced against the DS
@@ -33,6 +34,7 @@ import {
   MemoryEventError,
 } from "../core/memory-events.js";
 import { MemoryAppendCommittedError } from "../core/memory-error.js";
+import { CONVENTIONS_JSON_REL, conventionsDocOf, renderConventionsMarkdown, serializeConventions } from "../core/ontology/conventions-machine-form.js";
 import { memoryPaths } from "../core/memory-store.js";
 import { seedMemoryBatch } from "../core/memory-seed-batch.js";
 
@@ -51,6 +53,10 @@ CONVENTIONS.md of measured DO/DON'T. It is the applied-grammar companion to
 
 Writes (into <out>, default: current directory):
   CONVENTIONS.md              measured DO/DON'T with counts (Layout · Color · Spacing · Radius · Typography · Components · Per-section · Provenance)
+  design/conventions.json     the same measurement in machine form (design-os-conventions/1): the totals CONVENTIONS.md is
+                              rendered from, and the rules an ontology reads with the counts they were measured on
+                              ('radius 8 on 412 of 430 uses'). The pair is written together; 'ui ontology lint' reports
+                              a CONVENTIONS.md that differs from a render of the JSON
   design/memory.events.jsonl  only with --seed-memory (prefers/avoids insight events)
 
 Options:
@@ -168,10 +174,14 @@ function runSynthesize(parsed: ParsedArgs): CommandResult {
   // 6. Write CONVENTIONS.md (+ optional memory seed)
   const outDir = resolve(flagStr(parsed, "out") ?? process.cwd());
   const conventionsPath = join(outDir, "CONVENTIONS.md");
+  const machinePath = join(outDir, CONVENTIONS_JSON_REL);
   const seed = parsed.flags["seed-memory"] === true;
+  // The Markdown is rendered from the machine form, never beside it: the two cannot describe different measurements.
+  const machine = conventionsDocOf(result.totals, ds, basename(dnaPath));
   try {
-    mkdirSync(outDir, { recursive: true });
-    writeFileSync(conventionsPath, result.conventionsMd, "utf8");
+    mkdirSync(join(outDir, "design"), { recursive: true });
+    writeFileSync(conventionsPath, renderConventionsMarkdown(machine), "utf8");
+    writeFileSync(machinePath, serializeConventions(machine), "utf8");
     if (seed) seedMemory(outDir, `figma scan-conventions (${basename(dnaPath)})`, result.insights, nowIso);
   } catch (e) {
     if (e instanceof MemoryAppendCommittedError) {
@@ -186,6 +196,7 @@ function runSynthesize(parsed: ParsedArgs): CommandResult {
   const data = {
     out: outDir,
     conventions: conventionsPath,
+    conventionsJson: machinePath,
     stats: result.stats,
     dsCrossReferenced: ds !== undefined,
     insights: result.insights,
@@ -194,6 +205,7 @@ function runSynthesize(parsed: ParsedArgs): CommandResult {
   if (useJson) return okJson(CMD, data);
   const lines = [
     `Synthesized applied conventions → ${outDir}`,
+    `  design/conventions.json  ${machine.rules.length} measured rule(s), the machine form of CONVENTIONS.md`,
     `  CONVENTIONS.md  ${result.stats.walkedSections} sections · ${result.stats.screens} screens · ${result.stats.autoPct}% auto-layout · ${result.stats.tokenizedPct}% token-bound fills`,
     ...(ds !== undefined ? [`  deviations      ${result.stats.deviations} (cross-referenced against the DS)`] : ["  deviations      not computed (no --ds supplied)"]),
     ...(result.stats.truncated.length > 0 ? [`  truncated       ${result.stats.truncated.join(", ")} (re-scan with a higher --budget)`] : []),
