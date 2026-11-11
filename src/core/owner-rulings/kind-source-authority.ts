@@ -9,6 +9,7 @@
  * It is the same condition `ui design lint` reports as `two-token-sources`: one function in design-token-sources.ts
  * answers it for both, over the same view of the project. `sense` reads the view; `detect` is pure over its result.
  */
+import { existsSync } from "node:fs";
 import { loadProjectView } from "../design-dir-scan.js";
 import { SEALED_STORE, SECOND_SOURCE, diffTokenSources, loadDesignDirSchema, readDerived, tokenSourceConflict, tokenSourceInput } from "../design-token-sources.js";
 import type { TokenSourceInput } from "../design-token-sources.js";
@@ -62,6 +63,7 @@ function checkAnswer(cluster: Cluster, outcomes: Record<string, string>): Answer
 
 /** The same view and the same condition as `ui design lint`: see design-token-sources.ts. Null when there is one source. */
 function sense(projectDir: string): SourceAuthorityInput | null {
+  if (!existsSync(projectDir)) return null; // a project that does not exist yet has no token files
   const view = loadProjectView(projectDir);
   return tokenSourceInput(view, readDerived(view, loadDesignDirSchema()).derived);
 }
