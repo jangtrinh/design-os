@@ -41,10 +41,10 @@ export function renderAreasBlock(view: OntologyView, runtime: Runtime): string {
         "Area keys, with the number of nodes in each:",
         ...view.areas.map((a) => `- ${shellQuote(a.key).slice(1, -1)} (${a.nodes})`)]
     : view.state === "notCurrent"
-    ? [`The ontology file (design/knowledge/ontology.json) is not current, so no area is listed: ${view.sentence}.`, ...(view.next === null ? [] : [`Next: ${view.next}`]), "Then: ui agents init --force"]
+    ? [`The ontology file (design/knowledge/ontology.json) is not current, so no area is listed: ${view.sentence}.`, ...(view.next === null ? [] : [`Next: ${view.next}`]), "Then: `ui agents check` prints the command that lists the areas here."]
     : [view.state === "missing"
-      ? "This project has no ontology yet (design/knowledge/ontology.json is missing): run `ui ontology build`, then `ui agents init --force` lists its areas here."
-      : "The ontology file cannot be read (design/knowledge/ontology.json): run `ui ontology build`, then `ui agents init --force` lists its areas here."];
+      ? "This project has no ontology yet (design/knowledge/ontology.json is missing): run `ui ontology build`, then `ui agents check` prints the command that lists the areas here."
+      : "The ontology file cannot be read (design/knowledge/ontology.json): run `ui ontology build`, then `ui agents check` prints the command that lists the areas here."];
   return `${[BLOCK_START, ...body, ASKING[runtime], BLOCK_END].join("\n")}\n`;
 }
 

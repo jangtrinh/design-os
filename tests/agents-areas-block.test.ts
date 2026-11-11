@@ -29,7 +29,7 @@ describe("renderAreasBlock", () => {
     }
   });
   it("the no-area, missing and not-current forms keep their text", () => {
-    expect(renderAreasBlock({ state: "missing" }, "claude")).toContain("This project has no ontology yet (design/knowledge/ontology.json is missing): run `ui ontology build`, then `ui agents init --force` lists its areas here.");
+    expect(renderAreasBlock({ state: "missing" }, "claude")).toContain("This project has no ontology yet (design/knowledge/ontology.json is missing): run `ui ontology build`, then `ui agents check` prints the command that lists the areas here.");
     expect(renderAreasBlock({ state: "areas", areas: [] }, "claude")).toContain("The ontology holds no area yet (no component, token or ruling carries one)");
   });
 });

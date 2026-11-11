@@ -93,8 +93,8 @@ area of `design/knowledge/ontology.json` with its key and node count (the Codex 
 heading, not one per role), and how to ask the owner an open ruling question (Claude
 Code: `AskUserQuestion` with the options `ui onboard questions --format claude` prints; the other runtimes: print the
 numbered questions `ui onboard questions` prints and wait). With no ontology the block says so and names
-`ui ontology build`. It is the one deliberate exception to §3: it sits between markers, `ui agents init --force`
-regenerates it, and `ui agents check` re-renders it from the ontology file and compares (`ONTOLOGY_STALE`).
+`ui ontology build`. It is the one deliberate exception to §3: it sits between markers, the command `ui agents check`
+prints regenerates it (the block itself names no `init` command), and `ui agents check` re-renders it from the ontology file and compares (`ONTOLOGY_STALE`).
 
 ## §6 Drift check — the emitter/linter pair
 

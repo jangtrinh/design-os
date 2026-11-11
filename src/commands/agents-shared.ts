@@ -145,3 +145,10 @@ export function runtimesWithTargets(root: string): Runtime[] | Fail {
   const hasSection = codex !== null && !isFail(codex) && !("malformed" in codex) && codex.roles.length > 0;
   return RUNTIMES.filter((r) => (r === "claude" ? claude.length > 0 : r === "antigravity" ? antigravity.length > 0 : hasSection));
 }
+
+/** The command that regenerates exactly these runtimes and, when it is a subset, exactly these roles. */
+export function regenerateCommand(runtimes: readonly Runtime[], roles: ReadonlySet<AgentRole> | readonly AgentRole[]): string {
+  const held = new Set<AgentRole>(roles);
+  const subset = ROSTER.some((r) => !held.has(r));
+  return `ui agents init --force --runtimes ${runtimes.join(",")}${subset ? ` --roster ${ROSTER.filter((r) => held.has(r)).join(",")}` : ""}`;
+}

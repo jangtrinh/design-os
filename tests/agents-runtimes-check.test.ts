@@ -111,7 +111,7 @@ describe("a project with no ontology", () => {
     }
     expect(check(p).code).toBe(0);
     const next = printedCommands(done.out, p);
-    expect(next).toEqual([["ontology", "build", "--dir", p], ["agents", "init", "--force", "--dir", p]]);
+    expect(next).toEqual([["ontology", "build", "--dir", p], ["agents", "init", "--force", "--runtimes", "claude,antigravity,codex", "--dir", p]]);
     for (const argv of next) expect(capture(argv).code, argv.join(" ")).toBe(0);
     expect(read(p, "AGENTS.md")).toContain("page:Library");
     expect(check(p).code).toBe(0);

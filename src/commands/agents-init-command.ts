@@ -22,7 +22,7 @@ import type { Runtime } from "../core/init-stub.js";
 import { closingLines, initLines, priorOf } from "./agents-init-report.js";
 import type { InitRow } from "./agents-init-report.js";
 import { overLimitMessage } from "./agents-doc-limit-refusal.js";
-import { isFail, isRosterRole, loadProject, runtimesWithTargets, targetContext } from "./agents-shared.js";
+import { isFail, isRosterRole, loadProject, regenerateCommand, runtimesWithTargets, targetContext } from "./agents-shared.js";
 
 /** `--runtimes a,b`: the named runtimes in canonical order, or the refusal that names the unknown one. */
 function parseRuntimes(flag: string | boolean | undefined): Runtime[] | string {
@@ -113,8 +113,8 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   if (defaulted) lines.push(`Regenerated the runtimes this project already has: ${runtimes.join(", ")}.`, ...(withoutTarget.length === 0 ? [] : [`No target yet for ${withoutTarget.join(", ")}; add them with: ui agents init --runtimes ${withoutTarget.join(",")}`]));
   if (ctx.studio === null) lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   lines.push(...closingLines(rows));
-  if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), "Then: ui agents init --force");
-  else if (ctx.view.state !== "areas") lines.push("The area block of each agent says there is no ontology yet.", "Next: ui ontology build", "Then: ui agents init --force");
+  if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), `Then: ${regenerateCommand(runtimes, roles)}`);
+  else if (ctx.view.state !== "areas") lines.push("The area block of each agent says there is no ontology yet.", "Next: ui ontology build", `Then: ${regenerateCommand(runtimes, roles)}`);
   else lines.push("Next: ui agents check");
   return ok(lines.join("\n") + "\n");
 }

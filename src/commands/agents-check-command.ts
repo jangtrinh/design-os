@@ -22,7 +22,7 @@ import { blocksIn, stripBlocks } from "../core/agents-areas-block.js";
 import { agentFile, codexSection } from "../core/agents-targets.js";
 import { RUNTIMES } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
-import { isFail, isRosterRole, loadProject, resolveRoot, scanAntigravity, scanClaude, scanCodex, targetContext } from "./agents-shared.js";
+import { isFail, isRosterRole, loadProject, resolveRoot, scanAntigravity, scanClaude, regenerateCommand, scanCodex, targetContext } from "./agents-shared.js";
 import type { ScannedAgent } from "./agents-shared.js";
 
 interface AgentFinding { checkId: string; severity: "error" | "warning"; message: string }
@@ -30,10 +30,7 @@ const DRIFT = "AGENTS_ROSTER_DRIFT";
 const STALE = "ONTOLOGY_STALE";
 
 /** The command that regenerates what is on disk and nothing else: the runtimes found and, when a subset, the roles found. */
-function cure(found: readonly Runtime[], roles: ReadonlySet<AgentRole>): string {
-  const subset = ROSTER.some((r) => !roles.has(r));
-  return `ui agents init --force --runtimes ${found.join(",")}${subset ? ` --roster ${ROSTER.filter((r) => roles.has(r)).join(",")}` : ""}`;
-}
+const cure = regenerateCommand;
 
 export function runCheck(parsed: ParsedArgs): CommandResult {
   const sub = "agents check";
