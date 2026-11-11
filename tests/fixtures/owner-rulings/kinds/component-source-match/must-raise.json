@@ -1,0 +1,5 @@
+{
+  "candidates": [
+    { "name": "Card", "existingId": "figma:1:1", "file": "src/components/ui/Card.tsx", "existingTokens": ["color.ink"], "codeTokens": ["color.ink", "color.surface"] }
+  ]
+}

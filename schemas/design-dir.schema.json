@@ -37,7 +37,7 @@
                   "figma-collections", "token-path-collision", "figma-library-pages", "screen-pages",
                   "archived-marked-nodes", "duplicate-component-names", "classification-conflicts",
                   "untypeable-tokens", "ambiguous-roles", "scan-budget", "app-roots", "source-authority",
-                  "component-name-collision", "inferred-links"
+                  "component-name-collision", "component-source-match", "inferred-links"
                 ]
               },
               "fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
