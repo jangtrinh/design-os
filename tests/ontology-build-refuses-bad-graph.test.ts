@@ -28,7 +28,7 @@ describe("the build refuses a graph its own lint would refuse", () => {
     expect(err.message).toContain("1 node id(s)");
     expect(err.message).toContain("design/component-registry.json");
     expect(err.message).toContain("ui ingest-figma-ds");
-    expect(err.message).toContain("duplicate component names");
+    expect(err.message).toContain("when two components of the scan share a name");
     expect(hashTree(p)).toBe(before);
   });
   it("the text surface says the same, meaning first and the code after it", () => {

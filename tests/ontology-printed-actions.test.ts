@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { capture } from "./owner-rulings-helpers.js";
-import { build, fullProject } from "./ontology-helpers.js";
+import { NOW, build, editRegistry, fullProject, json, ring1Project } from "./ontology-helpers.js";
 
 const PRINTED = /\bui (onboard questions(?: --format claude)?|ontology build)\b/g;
 /** Every command the lint text prints, run as printed, in the order the text prints them (a sentence "run A, then B" is a sequence), on a copy of the project. */
@@ -39,5 +39,32 @@ describe("the commands the lint prints work as printed", () => {
     const ran = runPrinted(p);
     expect(ran.length).toBeGreaterThan(0);
     for (const r of ran) expect(r.text, r.command).not.toMatch(/nothing is pending|NO_PENDING_QUESTIONS/);
+  });
+});
+
+describe("the refusal for a repeated registry name names a path that works", () => {
+  it("running the two printed commands as printed leads to a build that exits 0", () => {
+    const p = ring1Project();
+    editRegistry(p, (r) => { r.components.push({ ...r.components[0]! }); });
+    const refused = build(p);
+    expect(refused.code).toBe(1);
+    const message = json(refused.out).error!.message;
+    const ingest = /ui (ingest-figma-ds \S+ --out \S+)/.exec(message)?.[1];
+    const seal = /ui (ds import \S+ --registry \S+ --force --reset-registry)/.exec(message)?.[1];
+    expect(ingest, message).toBeDefined();
+    expect(seal, message).toBeDefined();
+    expect(message).toContain("removes the records registered from code");
+    expect(message).toContain("ui ds surface --register --apply");
+    expect(message).not.toContain("ui onboard questions");
+    // As printed: from the project directory, with no flag added but the clock of the fixture.
+    const before = process.cwd();
+    process.chdir(p);
+    try {
+      for (const printed of [ingest!, seal!]) {
+        const done = capture([...printed.split(" "), ...(printed.startsWith("ingest-figma-ds") ? ["--now", NOW] : [])]);
+        expect(done.code, `${printed}\n${done.out}${done.err}`).toBe(0);
+      }
+    } finally { process.chdir(before); }
+    expect(build(p).code).toBe(0);
   });
 });
