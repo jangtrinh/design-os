@@ -1,7 +1,7 @@
 /** The text form of `ui ds surface`: counts first, then what needs the owner, then what could not be read. */
 import type { RegisterPreview } from "../core/ds-surface/register-plan.js";
 import type { SurfaceOutput } from "../core/ds-surface/surface-types.js";
-import { renderQuestionLines } from "./ds-surface-render-questions.js";
+import { count, nextLine, renderQuestionLines } from "./ds-surface-render-questions.js";
 
 export type SurfaceData = SurfaceOutput & {
   register?: RegisterPreview;
@@ -37,41 +37,41 @@ export function renderSurfaceText(d: SurfaceData): string {
   }
   const r = d.register;
   if (r !== undefined) {
-    lines.push(`  register preview: ${plural(r.records.length, "record")} would be written`);
+    lines.push(`  register preview: ${count(r.records.length, "record")} would be written`);
     for (const rec of r.records) lines.push(`    ${rec.name}  ${rec.sourceRef}  tokens: ${rec.tokensUsed.length === 0 ? "none" : rec.tokensUsed.join(", ")}`);
-    lines.push(`  notRead: ${plural(r.notRead.count, "component")} registered with no variants because no extractor reads them exactly`);
+    lines.push(`  notRead: ${count(r.notRead.count, "component")} registered with no variants because no extractor reads them exactly`);
     if (r.awaitingRuling.length > 0) lines.push(`  awaiting a ruling: ${r.awaitingRuling.map((c) => c.name).join(", ")} (which file is public is the question; nothing is planned for them)`);
     if (r.wouldRefuse.notChecked !== undefined) lines.push(`  refusals not predicted: ${r.wouldRefuse.notChecked}`);
     if (r.wouldRefuse.count > 0) {
-      lines.push(`  would be refused: ${plural(r.wouldRefuse.count, "record")} (${Object.entries(r.wouldRefuse.byCode).map(([code, n]) => `${code} ${n}`).join(", ")}); --apply writes nothing while any is refused`);
+      lines.push(`  would be refused: ${count(r.wouldRefuse.count, "record")} (${Object.entries(r.wouldRefuse.byCode).map(([code, n]) => `${code} ${n}`).join(", ")}); --apply writes nothing while any is refused`);
       for (const i of r.wouldRefuse.items.slice(0, 10)) lines.push(`    ${i.name}  ${i.code}`);
     }
     if (r.notRead.severalUnions.length > 0) lines.push(`  several variant unions: ${r.notRead.severalUnions.join(", ")} hold more than one literal union in their props, so no variant was written (the record keeps no prop name per value)`);
     if (r.links.length > 0) {
-      lines.push(`  links: ${plural(r.links.length, "existing record")} would gain a code reference (the record, its provenance and its markup stay as they are)`);
+      lines.push(`  links: ${count(r.links.length, "existing record")} would gain a code reference (the record, its provenance and its markup stay as they are)`);
       for (const l of r.links) lines.push(`    ${l.name}  ${l.sourceRef}  tokens added: ${l.tokensAdded.length === 0 ? "none" : l.tokensAdded.join(", ")}`);
     }
-    if (r.unchanged > 0) lines.push(`  unchanged: ${plural(r.unchanged, "component")} already registered from exactly this source; nothing is written for them`);
+    if (r.unchanged > 0) lines.push(`  unchanged: ${count(r.unchanged, "component")} already registered from exactly this source; nothing is written for them`);
     if (r.awaitingSourceMatch.length > 0) {
-      lines.push(`  awaiting a ruling: ${plural(r.awaitingSourceMatch.length, "component")} have the name of a record already in the registry; are they the same components? They are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
+      lines.push(`  awaiting a ruling: ${count(r.awaitingSourceMatch.length, "component")} have the name of a record already in the registry; are they the same components? They are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
       for (const i of r.awaitingSourceMatch) lines.push(`    ${i.name}  held by ${i.existingSource ?? "a record with no provenance"}  code file ${i.file}`);
     }
     if (r.registeredNotFound.length > 0) {
-      lines.push(`  registered from code but no longer found: ${plural(r.registeredNotFound.length, "record")}; nothing is deleted`);
+      lines.push(`  registered from code but no longer found: ${count(r.registeredNotFound.length, "record")}; nothing is deleted`);
       for (const g of r.registeredNotFound) lines.push(`    ${g.name}  registered ${g.sourceRef}`);
     }
     if (r.separateNameHeld.length > 0) {
-      lines.push(`  separate name held: ${plural(r.separateNameHeld.length, "component")} ruled different from their record, but "<name> · code" is held by a record of another door; --apply refuses them by name until the owner frees that name`);
+      lines.push(`  separate name held: ${count(r.separateNameHeld.length, "component")} ruled different from their record, but "<name> · code" is held by a record of another door; --apply refuses them by name until the owner frees that name`);
       for (const g of r.separateNameHeld) lines.push(`    ${g.name} · code  held by ${g.heldBy}`);
     }
-    lines.push(...renderQuestionLines(r));
-    if (r.shadowedNotRegistered > 0) lines.push(`  ${plural(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
+    lines.push(...renderQuestionLines(r, d.applied !== undefined));
+    if (r.shadowedNotRegistered > 0) lines.push(`  ${count(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
   }
   if (d.applied !== undefined) {
     const a = d.applied;
     if (a.registered + a.linked + a.separate + a.refreshed === 0) lines.push(`  applied: nothing to write, the registry is as the tree says${a.generation === undefined ? "" : `; no reseal (generation ${a.generation})`}`);
     else lines.push(`  applied: ${a.registered} new, ${a.linked} linked, ${a.separate} separate${a.refreshed > 0 ? `, ${a.refreshed} refreshed` : ""}${a.leftOut > 0 ? `, ${a.leftOut} left out by ruling` : ""}; written to ${a.file}${a.sealed ? `, resealed once (generation ${a.generation})` : " (no sealed design system: written unsealed)"}`);
     for (const w of d.applied.warnings) lines.push(`    ${w}`);
-  } else if (r !== undefined) lines.push("  next: ui ds surface --register --apply writes these records");
+  } else if (r !== undefined) lines.push(nextLine(r, d.pending !== undefined));
   return `${lines.join("\n")}\n`;
 }

@@ -17,6 +17,7 @@ import { scanProject } from "../core/project-scan.js";
 import { findTailwindV4Css, readDeps } from "../core/project-scan-apps.js";
 import { scanRulingsOf } from "../core/project-scan-rulings.js";
 import { renderSurfaceText } from "./ds-surface-render.js";
+import { LINT_STOPPED_NEXT } from "./ds-surface-render-questions.js";
 import { openQuestionsOf, surfaceBlock } from "./ds-surface-block.js";
 import { BatchRegisterError, readExistingRegistry, registerRecordsOnce } from "./registry-register-batch.js";
 import { registerRound } from "./ds-surface-register-round.js";
@@ -119,7 +120,7 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     // The owner ruled `stop` for a component the design-system lint refuses: nothing is written until it passes.
     if (apply && plan.preview.lintStopped.length > 0) {
       const held = plan.preview.lintStopped;
-      return err("SURFACE_LINT_STOPPED", `${held.length} component(s) fail the design-system lint (${codeCounts(held)}) and you ruled to stop until they pass: ${held.slice(0, 5).map((h) => `${h.name} (${h.file})`).join(", ")}${held.length > 5 ? ", ..." : ""}. Nothing was written. Next: fix the component so its markup passes, or add the token it needs to design/design.tokens.json and adopt it with ui ds reseal --apply --reason "<text>", then run ui ds surface --register --apply again.`);
+      return err("SURFACE_LINT_STOPPED", `${held.length} component(s) fail the design-system lint (${codeCounts(held)}) and you ruled to stop until they pass: ${held.slice(0, 5).map((h) => `${h.name} (${h.file})`).join(", ")}${held.length > 5 ? ", ..." : ""}. Nothing was written. Next: ${LINT_STOPPED_NEXT}.`);
     }
   }
   const open = openQuestionsOf(cwd);

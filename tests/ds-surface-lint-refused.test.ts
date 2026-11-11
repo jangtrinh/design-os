@@ -91,7 +91,7 @@ describe("leave-out", () => {
     // what is not registered is not "registered with no variants" either: Badge reads its variants, so four of the five written have none
     expect(data["register"]["notRead"]).toMatchObject({ count: 4, components: ["Avatar", "Card", "Panel", "Tabs"] });
     const text = capture(["ds", "surface", "--cwd", p, "--register", "--apply", "--now", NOW]).out;
-    expect(text).toMatch(/left out by ruling: 2 components fail the design-system lint and are not registered \(REGISTRY_MARKUP_DRIFT 2\)\n {4}Button {2}REGISTRY_MARKUP_DRIFT {2}src\/components\/ui\/Button\.tsx\n {4}Lamp {2}REGISTRY_MARKUP_DRIFT {2}src\/components\/kit\/Lamp\.tsx/);
+    expect(text).toMatch(/left out by ruling: 2 component\(s\) fail the design-system lint and are not registered \(REGISTRY_MARKUP_DRIFT 2\)\n {4}Button {2}REGISTRY_MARKUP_DRIFT {2}src\/components\/ui\/Button\.tsx\n {4}Lamp {2}REGISTRY_MARKUP_DRIFT {2}src\/components\/kit\/Lamp\.tsx/);
     expect(capture(["ds", "status", "--dir", p, "--json"]).code).toBe(0);
   });
   it("a second --apply writes nothing and does not reseal, and the left-out names are still listed", () => {
