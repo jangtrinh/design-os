@@ -60,7 +60,7 @@ describe("the embedded-app fixture", () => {
     expect(d["schema"]).toBe("design-os-surface/1");
     expect(d["collisions"]).toEqual([{ name: "Button", files: ["src/components/kit/Button.tsx", "src/components/ui/Button.tsx"] }]);
     expect(d["tailwindCss"]).toBe("src/styles.css");
-    expect(d["unread"]).toEqual({ files: [], exports: [], unresolvedImports: 0 });
+    expect(d["unread"]).toEqual({ files: [], exports: [], unresolvedImports: 0, scan: { truncated: false, visited: expect.any(Number), budget: [] } });
   });
   it("gives the same bytes on a second run and from a copy of the tree in another place", () => {
     const again = surface(project).out;

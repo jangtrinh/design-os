@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "round": 1,
+  "clusters": [
+    {
+      "kind": "component-name-collision",
+      "question": "1 component name(s) are exported from more than one file, between src/components/kit and src/components/ui. Which file is the public one for each name?",
+      "fingerprint": "baf4c15a66a65103fcc81c17ab461921d0447212deca751f5e1b9ad6764c296c",
+      "count": 1,
+      "samples": [
+        "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx"
+      ],
+      "members": [
+        "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx"
+      ],
+      "options": [
+        {
+          "id": "public-dir:src/components/ui",
+          "label": "Directory src/components/ui is the public layer",
+          "consequence": "1 component name(s): the file in src/components/ui is the public one and the 1 other file(s) are listed as shadowed; no component leaves the output",
+          "assigns": {
+            "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx": "keep:src/components/ui/Button.tsx"
+          }
+        },
+        {
+          "id": "public-dir:src/components/kit",
+          "label": "Directory src/components/kit is the public layer",
+          "consequence": "1 component name(s): the file in src/components/kit is the public one and the 1 other file(s) are listed as shadowed; no component leaves the output",
+          "assigns": {
+            "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx": "keep:src/components/kit/Button.tsx"
+          }
+        },
+        {
+          "id": "review-individually",
+          "label": "Review individually",
+          "consequence": "a sheet lists the 1 component name(s) with their files; you choose per name"
+        }
+      ],
+      "memberChoices": {
+        "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx": [
+          {
+            "id": "keep:src/components/kit/Button.tsx",
+            "label": "Keep src/components/kit/Button.tsx public"
+          },
+          {
+            "id": "keep:src/components/ui/Button.tsx",
+            "label": "Keep src/components/ui/Button.tsx public"
+          }
+        ]
+      },
+      "labels": {
+        "Button#src/components/kit/Button.tsx,src/components/ui/Button.tsx": "Button: src/components/kit/Button.tsx or src/components/ui/Button.tsx"
+      },
+      "raisedBy": "ds surface"
+    }
+  ]
+}

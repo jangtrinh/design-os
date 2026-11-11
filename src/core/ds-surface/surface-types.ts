@@ -23,6 +23,11 @@ export interface SurfaceUnread {
   exports: { file: string; name: string; line: number; reason: string }[];
   /** Imports of a page or story that name a project file the walk could not pin to one file. */
   unresolvedImports: number;
+  /**
+   * What the project scan, which finds the app roots, reports about its own reach. When `truncated` is true the scan
+   * stopped at its entry cap, so app roots may be missing; the components of the chosen app do not come from it.
+   */
+  scan: { truncated: boolean; visited: number; budget: { dir: string; visited: number }[] };
 }
 
 export interface SurfaceOutput {

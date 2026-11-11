@@ -116,6 +116,16 @@ const COMPONENT_DIR_NAMES = new Set(["components", "ui", "widgets"]);
 // __tests__ alone measured 289 files across 2 projects, none of them a
 // component dir; counting by name without this guard over-collects.
 const TEST_DIR_NAMES = new Set(["__tests__", "__mocks__", "test", "tests", "spec", "stories"]);
+export const isCodeFileName = (name: string): boolean => CODE_EXT.has(extname(name).toLowerCase());
+export const isTestDirName = (name: string): boolean => TEST_DIR_NAMES.has(name.toLowerCase());
+/**
+ * The one rule that says a directory holds components: at least three direct code files, its own name is components,
+ * ui or widgets or a "components" directory sits above it, and it is outside a test tree. The scan and `ui ds surface`
+ * both call it, so the two cannot disagree about which directories are component directories.
+ */
+export function isComponentDir(dirName: string, directCodeFiles: number, hasComponentsAncestor: boolean, inTestTree: boolean): boolean {
+  return !inTestTree && (COMPONENT_DIR_NAMES.has(dirName.toLowerCase()) || hasComponentsAncestor) && directCodeFiles >= 3;
+}
 const TAILWIND_CONFIG_RE = /^tailwind\.config\.(js|ts|cjs|mjs)$/;
 
 // ─── Small helpers ───────────────────────────────────────────────────────────────
@@ -213,12 +223,8 @@ function walk(root: string, start: string, acc: WalkAccum): void {
     // components|ui|widgets, OR a "components" dir is one of its ancestors —
     // unless it sits inside a test tree (see TEST_DIR_NAMES above).
     const base = basename(dir).toLowerCase();
-    if (!inTestTree && (COMPONENT_DIR_NAMES.has(base) || hasComponentsAncestor)) {
-      const directCode = entries.filter(
-        (e) => e.isFile() && CODE_EXT.has(extname(e.name).toLowerCase()),
-      ).length;
-      if (directCode >= 3) acc.componentDirs.push({ path: relPath(root, dir), files: directCode });
-    }
+    const directCode = entries.filter((e) => e.isFile() && isCodeFileName(e.name)).length;
+    if (isComponentDir(base, directCode, hasComponentsAncestor, inTestTree)) acc.componentDirs.push({ path: relPath(root, dir), files: directCode });
 
     // A package.json below the scan root marks an app root candidate (FR-013); fixtures under a test tree are not apps.
     if (depth > 0 && !inTestTree && entries.some((e) => e.isFile() && e.name === "package.json")) {
