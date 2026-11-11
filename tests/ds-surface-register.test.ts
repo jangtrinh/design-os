@@ -2,14 +2,15 @@
  * `ui ds surface --register` previews the registry records and `--apply` writes them through the shared registration
  * path (spec 033 FR-027, AC-15 code door, AC-29): `tokensUsed` equals the component's tokens, each record carries a
  * verified `code` provenance, the store is resealed once, variants are written only where a pattern reads them exactly
- * and every other component is counted under `notRead`. A name already in the registry stops a write: nothing is
- * replaced, renamed or forced, because the rule for those names is not decided.
+ * and every other component is counted under `notRead`. A name already in the registry from another door is asked
+ * about (D16), never replaced, renamed or forced; the questions and the link are tested in ds-surface-source-match.test.ts.
  */
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BatchRegisterError, registerRecordsOnce } from "../src/commands/registry-register-batch.js";
+import { readPending } from "../src/core/owner-rulings/pending-store.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { TOKENS_FILE, answerKind, envelope, fixtureCopy, sealedFixture, surface } from "./ds-surface-helpers.js";
 
@@ -64,9 +65,11 @@ describe("the register preview", () => {
     expect(capture(["ds", "surface", "--cwd", p, "--register"]).code).toBe(0);
     expect(hashTree(p, [".design-os"])).toBe(before);
   });
-  it("lists a name that is already registered with the provenance kind of its record and the code file, and plans nothing for the other names it would not write", () => {
+  it("lists a name that is already registered from another door as awaiting a ruling, with its source and the code file, and plans no record for it", () => {
     const d = envelope(surface(sealedWithRegistry(["Card"]), "--register").out).data!;
-    expect(d["register"]["alreadyRegistered"]).toEqual({ count: 1, items: [{ name: "Card", existingProvenance: "figma", file: "src/components/ui/Card.tsx" }] });
+    expect(d["register"]["awaitingSourceMatch"]).toEqual([{ name: "Card", existingSource: "figma:1:1", file: "src/components/ui/Card.tsx" }]);
+    expect(d["register"]["records"].map((r: { name: string }) => r.name)).not.toContain("Card");
+    expect(d["register"]["links"]).toEqual([]);
   });
 });
 
@@ -134,7 +137,7 @@ describe("the shared registration path itself", () => {
     const p = sealedWithRegistry(["Card"]);
     const before = hashTree(p, [".design-os"]);
     const record = { name: "Card", category: "src/components/ui", markup: "x", tokensUsed: [], variants: [], sourceRef: "src/components/ui/Card.tsx:3-5" };
-    try { registerRecordsOnce(p, [record], NOW, "test"); expect.unreachable("the taken name must be refused"); }
+    try { registerRecordsOnce(p, [record], [], NOW, "test"); expect.unreachable("the taken name must be refused"); }
     catch (e) {
       expect(e).toBeInstanceOf(BatchRegisterError);
       expect((e as BatchRegisterError).refusals).toMatchObject([{ name: "Card", code: "NAME_EXISTS" }]);
@@ -144,34 +147,32 @@ describe("the shared registration path itself", () => {
   it("applies the provenance rule of a sealed store: a source reference that points at no file refuses the batch", () => {
     const p = sealedWithRegistry([]);
     const record = { name: "Ghost", category: "x", markup: "x", tokensUsed: [], variants: [], sourceRef: "src/nowhere/Ghost.tsx:1-2" };
-    expect(() => registerRecordsOnce(p, [record], NOW, "test")).toThrow(BatchRegisterError);
+    expect(() => registerRecordsOnce(p, [record], [], NOW, "test")).toThrow(BatchRegisterError);
   });
   it("refuses a token the sealed store does not hold", () => {
     const p = sealedFixture();
     const record = { name: "Panel", category: "x", markup: "x", tokensUsed: ["color.nope"], variants: [], sourceRef: "src/components/kit/Panel.tsx:3-10" };
-    try { registerRecordsOnce(p, [record], NOW, "test"); expect.unreachable("an unknown token must be refused"); }
+    try { registerRecordsOnce(p, [record], [], NOW, "test"); expect.unreachable("an unknown token must be refused"); }
     catch (e) { expect((e as BatchRegisterError).refusals).toMatchObject([{ name: "Panel", code: "BAD_TOKEN" }]); }
   });
 });
 
 describe("a name that is already in the sealed registry", () => {
-  it("--apply writes nothing at all, exits 1 with a named code that counts the names and says the rule is not decided", () => {
+  it("--apply writes nothing at all while the question is open: exit 1, the record is not replaced", () => {
     const p = sealedWithRegistry(["Card"]);
     rulingGiven(p);
     const before = hashTree(p, [".design-os"]);
     const r = surface(p, "--register", "--apply");
     expect(r.code).toBe(1);
-    const e = envelope(r.out).error!;
-    expect(e.code).toBe("SURFACE_NAMES_ALREADY_REGISTERED");
-    expect(e.message).toContain("1 component name(s) are already registered");
-    expect(e.message).toContain("not decided");
+    expect(envelope(r.out).error?.code).toBe("ONBOARD_BLOCKED_NEEDS_OWNER_RULING");
     expect(hashTree(p, [".design-os"])).toBe(before);
     expect(registryOf(p).components.map((c) => c.name)).toEqual(["Card"]);
   });
-  it("does not stop at the first name: it counts every one and still replaces none", () => {
+  it("does not stop at the first name: every held name is one question and none is replaced", () => {
     const p = sealedWithRegistry(["Card", "Tabs"]);
     rulingGiven(p);
-    expect(envelope(surface(p, "--register", "--apply").out).error!.message).toContain("2 component name(s) are already registered");
+    surface(p, "--register");
+    expect(readPending(p).clusters.find((c) => c.kind === "component-source-match")!.count).toBe(2);
     expect(registryOf(p).components.map((c) => c.provenance?.kind)).toEqual(["figma", "figma"]);
   });
   it("an --out given with --apply is not written either", () => {

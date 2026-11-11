@@ -26,6 +26,9 @@ import { planRegistration } from "../core/ds-surface/register-plan.js";
 import { readTokenStore } from "../core/ds-surface/token-store.js";
 import { buildTokenLookup } from "../core/ds-surface/style-references.js";
 import { collisionNameDetections, unaskableCollisions } from "../core/owner-rulings/kind-component-name-collision.js";
+import { sourceMatchDetection } from "../core/owner-rulings/kind-component-source-match.js";
+import { sourceMatchCandidates } from "../core/ds-surface/source-match-candidates.js";
+import type { Registry } from "../core/registry-store.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { RulingStoreError, readRulingStore } from "../core/owner-rulings/ruling-store.js";
 
@@ -58,13 +61,13 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
     apps: scan.apps.map((a) => ({ path: a.path, framework: a.framework })),
     rootFramework: scan.framework, rootHasPackage: existsSync(join(cwd, "package.json")), rulings,
   });
-  const block = (detections: Parameters<typeof surfaceBlock>[0]["detections"], appChosen: boolean): CommandResult | null => {
-    try { return surfaceBlock({ command: CMD, projectDir: cwd, detections, writes, appChosen, json }); }
+  const block = (detections: Parameters<typeof surfaceBlock>[0]["detections"], appChosen: boolean, ownKinds: Parameters<typeof surfaceBlock>[0]["ownKinds"]): CommandResult | null => {
+    try { return surfaceBlock({ command: CMD, projectDir: cwd, detections, ownKinds, writes, appChosen, json }); }
     catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return err(e.code, e.message); throw e; }
   };
   if (!choice.ok) {
     // The project-level questions come first: a user who never ran `ui onboard questions` is still asked.
-    if (choice.code === "ONBOARD_BLOCKED_NEEDS_OWNER_RULING") { const blocked = block([], false); if (blocked !== null) return blocked; }
+    if (choice.code === "ONBOARD_BLOCKED_NEEDS_OWNER_RULING") { const blocked = block([], false, ["component-name-collision"]); if (blocked !== null) return blocked; }
     return err(choice.code, choice.message);
   }
 
@@ -84,13 +87,23 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   const sizes: Record<string, number> = {};
   for (const c of model.output.components) sizes[c.dir] = (sizes[c.dir] ?? 0) + 1;
   const collisionInput = { collisions: model.output.collisions, dirSizes: sizes };
-  const blocked = block(collisionNameDetections(collisionInput), true);
-  if (blocked !== null) return blocked;
-
   let stored;
   try { stored = readRulingStore(cwd); }
   catch (e) { if (e instanceof RulingStoreError) return err(e.code, e.message); throw e; }
   const ruled = applyCollisionRulings(model.output.collisions, stored.rulings);
+  // The registry the surface is read against: a name already in it, from another door, is asked about once per group.
+  let existing: Registry | null = null;
+  if (register) {
+    try { existing = ds !== undefined ? ds.registry : readExistingRegistry(cwd); }
+    catch (e) { if (e instanceof BatchRegisterError) return err(e.code, e.message); throw e; }
+  }
+  const detections = [
+    ...collisionNameDetections(collisionInput),
+    ...(register ? [sourceMatchDetection({ candidates: sourceMatchCandidates(model, ruled, existing) })] : []),
+  ];
+  const blocked = block(detections, true, register ? ["component-name-collision", "component-source-match"] : ["component-name-collision"]);
+  if (blocked !== null) return blocked;
+
   model.output.shadowed = ruled.shadowed;
   model.output.tokenStore = store.status === "unverified" ? { status: store.status, drifted: store.drifted } : { status: store.status };
   const unaskable = unaskableCollisions(collisionInput);
@@ -100,12 +113,12 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
 
   let plan = null;
   if (register) {
-    try { plan = planRegistration(model, ruled, ds !== undefined ? ds.registry : readExistingRegistry(cwd)); }
-    catch (e) { if (e instanceof BatchRegisterError) return err(e.code, e.message); throw e; }
-    // Names that are already registered stop a write before anything is written, `--out` included.
-    if (apply && plan.preview.alreadyRegistered.count > 0) {
-      const held = plan.preview.alreadyRegistered;
-      return err("SURFACE_NAMES_ALREADY_REGISTERED", `${held.count} component name(s) are already registered (${held.items.slice(0, 5).map((i) => `${i.name} from ${i.existingProvenance ?? "no provenance"}`).join(", ")}${held.count > 5 ? ", ..." : ""}). The rule for names that are already in the registry is not decided, so nothing was written and no record was replaced or renamed. Next: ui ds surface --register lists them.`);
+    plan = planRegistration(model, ruled, existing, stored.rulings);
+    // A registered code source that no longer matches the tree stops a write before anything is written, `--out` included.
+    if (apply && plan.preview.changed.length > 0) {
+      const held = plan.preview.changed;
+      const first = held[0] as (typeof held)[number];
+      return err("SURFACE_REGISTERED_SOURCE_CHANGED", `${held.length} component(s) were registered from a source that has changed since (${held.slice(0, 5).map((c) => `${c.name}: ${c.heldRef} is now ${c.nowRef}`).join(", ")}${held.length > 5 ? ", ..." : ""}). Nothing was written and no record was replaced. Next: ui registry register ${first.name} --category <category> --markup <file> --source-ref ${first.nowRef} --force re-registers a changed component.`);
     }
   }
   const data = { ...model.output, ...(plan === null ? {} : { register: plan.preview }) };
@@ -117,8 +130,8 @@ export function runSurface(parsed: ParsedArgs): CommandResult {
   }
   if (!apply || plan === null) return json ? okJson(CMD, data) : { exitCode: 0, stdout: renderSurfaceText(data) };
   try {
-    const done = registerRecordsOnce(cwd, plan.batch, nowFlag ?? new Date().toISOString(), "ui ds surface --register");
-    const applied = { ...data, applied: { file: relative(cwd, done.file).split("\\").join("/"), registered: done.registered, sealed: done.sealed, ...(done.generation === undefined ? {} : { generation: done.generation }), warnings: done.warnings } };
+    const done = registerRecordsOnce(cwd, plan.batch, plan.links.map((l) => ({ name: l.name, sourceRef: l.sourceRef, tokens: l.tokens })), nowFlag ?? new Date().toISOString(), "ui ds surface --register");
+    const applied = { ...data, applied: { file: relative(cwd, done.file).split("\\").join("/"), registered: done.registered, linked: done.linked, separate: done.separate, sealed: done.sealed, ...(done.generation === undefined ? {} : { generation: done.generation }), warnings: done.warnings } };
     return json ? okJson(CMD, applied) : { exitCode: 0, stdout: renderSurfaceText(applied) };
   } catch (e) {
     if (!(e instanceof BatchRegisterError)) throw e;

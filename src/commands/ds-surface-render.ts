@@ -4,7 +4,7 @@ import type { SurfaceOutput } from "../core/ds-surface/surface-types.js";
 
 export type SurfaceData = SurfaceOutput & {
   register?: RegisterPreview;
-  applied?: { file: string; registered: number; sealed: boolean; generation?: number; warnings: string[] };
+  applied?: { file: string; registered: number; linked: number; separate: number; sealed: boolean; generation?: number; warnings: string[] };
 };
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
@@ -33,14 +33,23 @@ export function renderSurfaceText(d: SurfaceData): string {
     for (const rec of r.records) lines.push(`    ${rec.name}  ${rec.sourceRef}  tokens: ${rec.tokensUsed.length === 0 ? "none" : rec.tokensUsed.join(", ")}`);
     lines.push(`  notRead: ${plural(r.notRead.count, "component")} registered with no variants because no extractor reads them exactly`);
     if (r.awaitingRuling.length > 0) lines.push(`  awaiting a ruling: ${r.awaitingRuling.map((c) => c.name).join(", ")} (which file is public is the question; nothing is planned for them)`);
-    if (r.alreadyRegistered.count > 0) {
-      lines.push(`  alreadyRegistered: ${plural(r.alreadyRegistered.count, "name")} already in the registry; --apply writes nothing while that is so (the rule for them is not decided)`);
-      for (const i of r.alreadyRegistered.items) lines.push(`    ${i.name}  held by ${i.existingProvenance ?? "a record with no provenance"}  code file ${i.file}`);
+    if (r.links.length > 0) {
+      lines.push(`  links: ${plural(r.links.length, "existing record")} would gain a code reference (the record, its provenance and its markup stay as they are)`);
+      for (const l of r.links) lines.push(`    ${l.name}  ${l.sourceRef}  tokens added: ${l.tokensAdded.length === 0 ? "none" : l.tokensAdded.join(", ")}`);
+    }
+    if (r.unchanged > 0) lines.push(`  unchanged: ${plural(r.unchanged, "component")} already registered from exactly this source; nothing is written for them`);
+    if (r.changed.length > 0) {
+      lines.push(`  changed: ${plural(r.changed.length, "component")} registered from a source that is not what the tree holds now; --apply refuses them and replaces nothing`);
+      for (const c of r.changed) lines.push(`    ${c.name}  registered ${c.heldRef}, tree ${c.nowRef}`);
+    }
+    if (r.awaitingSourceMatch.length > 0) {
+      lines.push(`  awaiting a ruling: ${plural(r.awaitingSourceMatch.length, "component")} have the name of a record already in the registry; are they the same components? They are in .design-os/onboard/pending.json. Next: ui onboard questions --format claude`);
+      for (const i of r.awaitingSourceMatch) lines.push(`    ${i.name}  held by ${i.existingSource ?? "a record with no provenance"}  code file ${i.file}`);
     }
     if (r.shadowedNotRegistered > 0) lines.push(`  ${plural(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
   }
   if (d.applied !== undefined) {
-    lines.push(`  applied: ${plural(d.applied.registered, "record")} written to ${d.applied.file}${d.applied.sealed ? `, resealed once (generation ${d.applied.generation})` : " (no sealed design system: written unsealed)"}`);
+    lines.push(`  applied: ${d.applied.registered} new, ${d.applied.linked} linked, ${d.applied.separate} separate; written to ${d.applied.file}${d.applied.sealed ? `, resealed once (generation ${d.applied.generation})` : " (no sealed design system: written unsealed)"}`);
     for (const w of d.applied.warnings) lines.push(`    ${w}`);
   } else if (r !== undefined) lines.push("  next: ui ds surface --register --apply writes these records");
   return `${lines.join("\n")}\n`;
