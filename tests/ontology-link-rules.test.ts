@@ -35,14 +35,14 @@ describe("uses-component, Figma door: by identity, closed over nested components
     const records = [{ name: "Button", category: "c", markup: "", tokensUsed: [] }];
     const scan = { components: [{ id: "1:9", name: "button", type: "COMPONENT" }, { id: "1:8", name: "Buttons", type: "COMPONENT" }], tokens: [], styles: [], pageSignal: "absent" } as never;
     const frames = [{ id: "5:1", name: "F", pageId: "0:1", pageName: "P", instances: [{ component: "1:9", count: 1 }, { component: "1:8", count: 2 }] }];
-    const out = usesComponentLinks({ scan, frames } as never, null, records as never, undefined);
+    const out = usesComponentLinks({ scan, frames } as never, null, records as never, new Set(), undefined);
     expect(out.links).toEqual([]);
     expect(out.report.unresolved).toBe(2);
   });
   it("ties a scan component to a record only when its derived name is the record's and no other node derives it", () => {
     const records = [{ name: "Card", category: "c", markup: "", tokensUsed: [] }, { name: "Button", category: "c", markup: "", tokensUsed: [] }];
     const node = (id: string, name: string, key?: string): never => ({ id, name, type: "COMPONENT", ...(key === undefined ? {} : { key }) }) as never;
-    const map = figmaIdentity([node("1:1", "Card", "aa"), node("1:2", "Card"), node("1:3", "Button", "bb"), node("1:4", "Renamed")], records);
+    const map = figmaIdentity([node("1:1", "Card", "aa"), node("1:2", "Card"), node("1:3", "Button", "bb"), node("1:4", "Renamed")], records, new Set());
     expect([...map.entries()].sort()).toEqual([["1:3", "Button"], ["bb", "Button"]]);
   });
 });

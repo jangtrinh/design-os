@@ -3,25 +3,16 @@
  * node) run on what the build is about to write. An error leaves the tree untouched, names the code, the count, the
  * source that holds the cause and the command that settles it. No node is dropped or renamed to make ids unique.
  */
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { canonicalHash, canonicalStringify } from "../src/core/ds-manifest.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 import { keyOf, submit } from "./project-kinds-helpers.js";
-import { build, codeProject, fullProject, json, lint, ontologyOf, ring1Project } from "./ontology-helpers.js";
+import { build, codeProject, editRegistry, fullProject, json, lint, ontologyOf, ring1Project } from "./ontology-helpers.js";
 
 /** Repeats the first component record under its own name and reseals the pair, as an older registry can hold. */
 function repeatOneName(project: string): string {
-  const d = join(project, "design");
-  const registry = JSON.parse(readFileSync(join(d, "component-registry.json"), "utf8")) as { components: { name: string }[] };
-  const first = registry.components[0]!;
-  registry.components.push({ ...first });
-  const manifest = JSON.parse(readFileSync(join(d, "ds.manifest.json"), "utf8")) as Record<string, unknown>;
-  manifest["registryHash"] = canonicalHash(registry);
-  writeFileSync(join(d, "component-registry.json"), canonicalStringify(registry));
-  writeFileSync(join(d, "ds.manifest.json"), canonicalStringify(manifest));
-  return first.name;
+  let name = "";
+  editRegistry(project, (registry) => { const first = registry.components[0]!; name = first["name"]; registry.components.push({ ...first }); });
+  return name;
 }
 
 describe("the build refuses a graph its own lint would refuse", () => {

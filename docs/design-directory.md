@@ -160,8 +160,13 @@ collapsed (`rule:soul:never:2f3642b671e3`). No id and no field holds a line numb
 
 A link is exact or it is asked. `uses-component` resolves by identity: the instances of a frame (an id or a key), closed
 over `components[].instances`, against the registry (the registry records a Figma component under the name the ingest
-derived from the node, so a node whose derived name is shared or was renamed ties to nothing); a code screen's imports
-against the record's code reference. A reference that matches nothing is counted `unresolved`; a link whose source the
+derived from the node, with the ingest's own function and flags, so a component kept as deprecated ties and a node whose
+derived name is shared or was renamed ties to nothing); a code screen's imports against the record's code reference. Only
+a record the Figma ingest wrote (it writes no provenance, so also one the owner linked to code) takes part in the Figma
+bridge: a component found in one door is never linked by name alone to a record of the other door, `component-source-match`
+is the question that links them, and an instance that matches only a record registered from code is `unresolved` with its
+own count line. Known limits: a component the owner renamed through the duplicate-names ruling does not tie (counted), and
+a new component that reuses a retired name ties to the old record until the ingest records a Figma identity. A reference that matches nothing is counted `unresolved`; a link whose source the
 host never sensed (a scan without frames or bindings, or with `sensing.status = "skipped"`) is counted `not-sensed`, with
 the command that would sense it. `checked-by` comes from one table in `src/core/ontology/gate-table.ts`: only promoted
 `token-ban` rules are evaluated by a gate (`ds-usage`); every other rule is counted as not checked. A glossary term named
