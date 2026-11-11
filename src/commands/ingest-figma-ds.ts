@@ -262,7 +262,7 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     ...(data.memorySeeded ? ["  design/memory.events.jsonl  seeded"] : []),
     "  ledger",
     ...ledgerLines(result.ledger).map((l) => `    ${l}`),
-    ...(result.pageSignal === "absent" ? ["    pageSignal: absent (the scan carries no page; the page question was skipped)"] : []),
+    ...(result.pageSignal === "absent" && result.ledger.in.components > 0 ? ["    pageSignal: absent (the scan carries no page; the page question was skipped)"] : []),
     ...(foreignRegistryAtDefaultPath
       ? [`  ! component-registry.json is a FOREIGN file — wrote ${registryPath} instead`]
       : []),

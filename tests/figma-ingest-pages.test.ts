@@ -58,6 +58,18 @@ describe("AC-4: the page question comes first, and only then the markers and the
     expect(JSON.parse(r.out).data.pageSignal).toBe("absent");
   });
 
+  it("a renamed page or node is not a new member: rulings are keyed by the scan's ids", () => {
+    const project = newProject();
+    const out = newProject();
+    const scan = JSON.parse(readFileSync(ELEVEN, "utf8")) as { components: { id: string; name: string; page: { id: string; name: string } }[] };
+    const path = writeScan(project, scan);
+    ingestUntilReady(path, project, out, (c) => (c.kind === "figma-library-pages" ? [c.options.find((o) => o.label.includes("Library"))!.id] : c.kind === "archived-marked-nodes" ? "exclude-archived" : "exclude-surplus"));
+    for (const c of scan.components) { c.name = `${c.name} renamed`; if (c.page.name === "Library") c.page.name = "Library, renamed"; }
+    writeScan(project, scan);
+    const again = capture([...ingestArgs(path, project, out), "--json"]);
+    expect(again.code, again.out).toBe(0);
+  });
+
   it("a single page asks nothing", () => {
     const project = newProject();
     const control = join(process.cwd(), "tests", "fixtures", "owner-rulings", "control-single-collection-single-page.json");
