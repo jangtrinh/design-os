@@ -29,7 +29,7 @@ export function buildOntology(s: NodeSources, rulings: readonly Ruling[]): Built
   const nodes = s.nodes.map((n) => (applied.standalone.has(n.id) || (applied.standaloneNodes.has(n.id) && !touched.has(n.id)) ? { ...n, standalone: true as const } : n));
   const openPairs = resolveDetections(detections, rulings, BUILD_LABEL).open.flatMap((c) => c.members);
   const details = [
-    ...(openPairs.length > 0 ? [`${openPairs.length} candidate pair(s) await an owner ruling (ui onboard questions)`] : []),
+    ...(openPairs.length > 0 ? [`${openPairs.length} candidate pair(s) await an owner ruling`] : []),
     ...(applied.stale.length > 0 ? [`${applied.stale.length} owner-ruled pair(s) no longer match a candidate: ${applied.stale.slice(0, 5).join("; ")}${applied.stale.length > 5 ? "; ..." : ""}`] : []),
   ];
   const defines: LinkReport = { link: "defines", written: applied.links.length, unresolved: applied.stale.length, notSensed: 0, details };
