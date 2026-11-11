@@ -63,6 +63,8 @@ describe("two keys that become one token path are asked about", () => {
   it("the question counts the aliases that name the keys at stake", () => {
     const project = projectWith({ "package.json": "{}" });
     capture(args(write({ colors: { brand: { x: "#111111" }, link: "{colors.brand.x}" }, "colors-brand": { x: "#222222" } }), project));
+    // the alias is only at stake once the collision is answered: it is not asked about in the same round
+    expect(readPending(project).clusters.map((c) => c.kind)).toEqual(["token-path-collision"]);
     expect(readPending(project).clusters.find((x) => x.kind === "token-path-collision")!.options[0]!.consequence).toContain("1 alias(es) name these keys; each is then asked as a dangling alias");
   });
   it("answered from the claude key alone, as an option: every key of the path is excluded, counted under path-collision and named", () => {
