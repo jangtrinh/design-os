@@ -105,7 +105,15 @@ function collisionQuestion(first: FlatImport): ReturnType<typeof importCollision
   });
 }
 
-export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPlan {
+/** The three backstops of the plan: invariants no input should break, passed in so a test can prove the plan calls each. */
+export interface ImportBackstops {
+  ledgerBalances: (l: ImportLedger) => void;
+  skipFinderAgrees: (importerSkipped: number, finderNamed: number) => void;
+  typedTokensKept: (typed: TokenTree, tree: TokenTree) => void;
+}
+export const IMPORT_BACKSTOPS: ImportBackstops = { ledgerBalances: assertLedgerBalances, skipFinderAgrees: assertSkipFinderAgrees, typedTokensKept: assertTypedTokensKept };
+
+export function planImport(flat: unknown, rulings: readonly Ruling[], backstops: ImportBackstops = IMPORT_BACKSTOPS): ImportPlan {
   const view = rulingView(rulings);
   // A colliding path is written by its first key until the owner rules; the plan has no result before that.
   let base = importFlatTokens(flat);
@@ -116,7 +124,7 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
   }
   const source = findSourceSkips(flat);
   const counted = source.filter((s) => s.reason !== "ignored-key").length;
-  assertSkipFinderAgrees(base.stats.skipped, counted);
+  backstops.skipFinderAgrees(base.stats.skipped, counted);
   const aliasSkips = findAliasSkips(base.dtcg, base.unreachableAliases);
   const items = [...source, ...aliasSkips];
   const detections: KindDetection[] = [];
@@ -169,12 +177,12 @@ export function planImport(flat: unknown, rulings: readonly Ruling[]): ImportPla
     excludedItems[r] = those;
   }
   const treeCount = Object.values(tree).reduce((n, g) => n + Object.keys(g).length, 0);
-  assertTypedTokensKept(typed, tree);
+  backstops.typedTokensKept(typed, tree);
   // The aliases that cannot be written are among the imported tokens already; only the source members and the keys
   // that lost a collision come on top.
   const total = base.stats.imported + source.length + lost.length;
   const ledger: ImportLedger = { in: total, written: { total: treeCount, typed: treeCount - keptRaw.length, keptRaw: keptRaw.length }, excluded: excludedBy, pending: 0 };
-  assertLedgerBalances(ledger);
+  backstops.ledgerBalances(ledger);
   const byType: Record<string, number> = {};
   for (const group of Object.values(tree)) for (const t of Object.values(group)) byType[t.$type] = (byType[t.$type] ?? 0) + 1;
   return {

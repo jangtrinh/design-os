@@ -7,9 +7,8 @@
  * A token's role is about its NAME/intent, not whether $value is a literal or an
  * alias (`surface-content: '#FFFFFF'` is still background). Runs on every COLOR
  * token (`$type: "color"`); skips are a hue-scale name and a numbered scale STEP.
- * The synonym table is TRANSCRIBED from the counted dictionary —
- * studio repo: specs/009-code-road/reports/role-synonym-dictionary.md (13 systems, cited).
- * Not a guess, unlike color-roles.ts's `ROLE_KEYWORDS` this replaces. */
+ * The synonym table is TRANSCRIBED from the counted dictionary (studio repo:
+ * specs/009-code-road/reports/role-synonym-dictionary.md, 13 systems, cited), not a guess. */
 import { type TokenTree, type TokenGroup, type Token } from "./token-model.js";
 
 // Canonical role vocabulary (shadcn's set).
@@ -34,10 +33,8 @@ export interface RecognitionResult {
   ambiguousFamilies: Record<string, Role[]>;
 }
 
-// Hue re-export skip: a `{knownHue}-{number}` leaf (optionally `color-`
-// prefixed) is a primitive palette re-export — dana's `color-blue-100` names
-// `blue-100` literally. Counted hues (blue/cyan/gray/pink/purple in dana); the
-// rest of the Tailwind + common set is speculative until seen live.
+// Hue re-export skip: a `{knownHue}-{number}` leaf (optionally `color-` prefixed) is a primitive palette
+// re-export (dana's `color-blue-100`). Counted hues: blue/cyan/gray/pink/purple; the rest is speculative.
 const HUE_RE =
   /^(color-)?(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|gray|grey|zinc|slate|stone|neutral)-\d+$/;
 

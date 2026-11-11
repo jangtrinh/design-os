@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { assertLedgerBalances, assertSkipFinderAgrees, assertTypedTokensKept, planImport } from "../src/core/ds-import-plan.js";
+import { assertLedgerBalances, assertSkipFinderAgrees, assertTypedTokensKept, IMPORT_BACKSTOPS, planImport } from "../src/core/ds-import-plan.js";
 import { readPending } from "../src/core/owner-rulings/pending-store.js";
 import { capture } from "./owner-rulings-helpers.js";
 import { keyOf, projectWith, submit } from "./project-kinds-helpers.js";
@@ -202,6 +202,16 @@ describe("the guards behind the questions", () => {
     expect(() => assertTypedTokensKept(typed, { raw: { keep: { $value: "zzz", $type: "string" as const } } })).toThrow("the token raw.keep was replaced while the plan was built");
     expect(() => assertTypedTokensKept(typed, {})).toThrow("raw.keep");
     expect(() => assertTypedTokensKept(typed, { raw: { ...typed.raw, other: { $value: "a", $type: "string" as const } } })).not.toThrow();
+  });
+  it("planImport calls each backstop, and a backstop that throws stops the plan", () => {
+    const file = { colors: { a: "#111111", b: "#222222" } };
+    const calls: string[] = [];
+    const spy = { ledgerBalances: (l: Parameters<typeof assertLedgerBalances>[0]) => { calls.push(`ledger:${l.in}`); }, skipFinderAgrees: (a: number, b: number) => { calls.push(`skips:${a}/${b}`); }, typedTokensKept: (t: object) => { calls.push(`typed:${Object.keys(t).join()}`); } };
+    expect(() => planImport(file, [], spy)).not.toThrow();
+    expect(calls).toEqual(["skips:0/0", "typed:colors", "ledger:2"]);
+    for (const [name, message] of [["ledgerBalances", "ledger boom"], ["skipFinderAgrees", "skips boom"], ["typedTokensKept", "typed boom"]] as const) {
+      expect(() => planImport(file, [], { ...IMPORT_BACKSTOPS, [name]: () => { throw new Error(message); } })).toThrow(message);
+    }
   });
   it("a file whose keys do not collide has no collision question and a ledger that balances", () => {
     const plan = planImport({ colors: { a: "#111111", b: "#222222" } }, []);
