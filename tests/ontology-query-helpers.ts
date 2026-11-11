@@ -14,7 +14,7 @@ export interface QueryEntry { id: string; name: string; kind: string; source: st
 export interface QueryGroup { group: string; entries: QueryEntry[]; leftOut: number }
 export interface QueryData {
   query: string; area: string | null; budget: number;
-  matchCount: number; matches: QueryEntry[]; nearest: { id: string; name: string }[];
+  matchCount: number; supersededLeftOut: number; matches: QueryEntry[]; nearest: { id: string; name: string }[];
   pack: { characters: number; text: string; groups: QueryGroup[] } | null;
 }
 

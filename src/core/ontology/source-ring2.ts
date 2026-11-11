@@ -67,7 +67,7 @@ function readRulings(projectDir: string, nodes: OntNode[], facts: RulingFact[]):
     let supersededBy = str(r["superseded_by"]);
     if (isBadString(r, "superseded_by")) { leave(left, "superseded_by: value that is not a non-empty string"); notUnderstood++; }
     if (supersededBy === id) { leave(left, "superseded_by: names itself"); supersededBy = undefined; notUnderstood++; }
-    nodes.push({ id: nodeId("ruling", id), kind: "ruling", name: id, category: str(r["category"]) ?? "", text });
+    nodes.push({ id: nodeId("ruling", id), kind: "ruling", name: id, category: str(r["category"]) ?? "", text, ...(supersededBy === undefined ? {} : { supersededBy }) });
     facts.push({ id, scope, text, notUnderstood, ...(supersededBy === undefined ? {} : { supersededBy }) });
   }
   if (unusable > 0) leave(left, "without id or text", unusable);

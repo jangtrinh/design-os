@@ -32,7 +32,8 @@
         "kind": { "$ref": "#/definitions/nodeKind" },
         "name": { "type": "string" },
         "standalone": { "const": true },
-        "area": { "type": "string", "description": "The grouping the source carries: page:<page name>, dir:<category>, tokens:<first path segment> or rulings:<category>. Absent when the source carries none." }
+        "area": { "type": "string", "description": "The grouping the source carries: page:<page name>, dir:<category>, tokens:<first path segment> or rulings:<category>. Absent when the source carries none." },
+        "supersededBy": { "type": "string", "description": "Rulings only: the id the ruling's own superseded_by field names, kept even when no ruling has that id, so a ruling that declares a successor is never read as current. Absent when the ruling declares none." }
       },
       "additionalProperties": true
     },

@@ -19,14 +19,21 @@ export interface QueryOutcome {
   /** The three nearest titles, present only when nothing matched. */
   nearest: { id: string; name: string }[];
   pack: Pack | null;
+  /** Rulings that matched the words but were left out because a newer ruling replaces them (counted, never packed). */
+  supersededLeftOut: number;
 }
 
 const HOPS = 2;
 const PROJECT = "project:root";
 const bySc = (a: ScoredNode, b: ScoredNode): number => b.score - a.score || byText(a.node.id, b.node.id);
 
+/** Rulings replaced by a newer one: the build wrote a superseded-by link, or the ruling's own field names a successor. */
+function supersededIds(o: Ontology): Set<string> {
+  return new Set([...o.links.filter((l) => l.kind === "superseded-by").map((l) => l.from), ...o.nodes.filter((n) => typeof n["supersededBy"] === "string").map((n) => n.id)]);
+}
+
 function candidates(o: Ontology, area: string | null): OntNode[] {
-  const superseded = new Set(o.links.filter((l) => l.kind === "superseded-by").map((l) => l.from));
+  const superseded = supersededIds(o);
   return o.nodes.filter((n) => !superseded.has(n.id) && (area === null || n["area"] === area));
 }
 
@@ -35,7 +42,7 @@ function expand(o: Ontology, matches: readonly OntNode[], pool: ReadonlyMap<stri
   const near = new Map<string, string[]>();
   for (const l of o.links) { near.set(l.from, [...(near.get(l.from) ?? []), l.to]); near.set(l.to, [...(near.get(l.to) ?? []), l.from]); }
   const byId = new Map(o.nodes.map((n) => [n.id, n]));
-  const superseded = new Set(o.links.filter((l) => l.kind === "superseded-by").map((l) => l.from));
+  const superseded = supersededIds(o);
   const reached = new Set(matches.map((m) => m.id));
   let frontier = [...reached];
   for (let hop = 0; hop < HOPS; hop++) {
@@ -82,9 +89,11 @@ function nearestTitles(pool: readonly OntNode[], words: ReadonlySet<string>): { 
 export function queryOntology(o: Ontology, text: string, area: string | null, budget: number): QueryOutcome {
   const words = new Set(wordsOf(text));
   const pool = candidates(o, area);
+  const held = supersededIds(o);
+  const supersededLeftOut = o.nodes.filter((n) => held.has(n.id) && (area === null || n["area"] === area) && score(words, nodeWords(n)) > 0).length;
   const poolById = new Map(pool.map((n) => [n.id, n]));
   const scored = pool.map((node): ScoredNode => ({ node, score: score(words, nodeWords(node)) })).filter((s) => s.score > 0).sort(bySc);
-  const head = { query: text, area, budget };
+  const head = { query: text, area, budget, supersededLeftOut };
   if (scored.length === 0) return { ...head, matchCount: 0, matches: [], nearest: nearestTitles(pool, words), pack: null };
   const matched = scored.map((s) => s.node);
   const reachedIds = expand(o, matched, poolById, area);
