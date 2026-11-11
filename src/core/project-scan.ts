@@ -28,7 +28,7 @@ import {
   buildApps, findTailwindV4Css, frameworkOf, ownerOf, readDeps, stylingOf,
 } from "./project-scan-apps.js";
 import type { AppCandidate, AppRoot } from "./project-scan-apps.js";
-import { NO_SCAN_RULINGS, honouredOf, onWayToKeptRoot, prunesAppRoot } from "./project-scan-rulings.js";
+import { NO_SCAN_RULINGS, honouredOf, onWayToKeptRoot, walkDecision } from "./project-scan-rulings.js";
 import type { Honoured, ScanRulings } from "./project-scan-rulings.js";
 
 export type { AppRoot } from "./project-scan-apps.js";
@@ -178,6 +178,8 @@ interface WalkItem {
   inTestTree: boolean;
   /** The first-level directory this dir sits under (itself when first-level); null for the scan root. */
   top: string | null;
+  /** A directory the owner left out that holds a kept root: only the way to that root is entered. */
+  corridor?: boolean;
 }
 
 // BFS: a queue of WalkItem. Within each level, entries keep sortedEntries'
@@ -190,19 +192,20 @@ function walk(root: string, start: string, acc: WalkAccum): void {
   const queue: WalkItem[] = [
     { dir: start, depth: 0, hasComponentsAncestor: false, inTestTree: TEST_DIR_NAMES.has(startBase), top: null },
   ];
+  // Queues a child directory unless the walk never enters it or the owner's deepest ruling leaves it out.
+  const enter = (e: Dirent, from: string, depth: number, inherit: Pick<WalkItem, "hasComponentsAncestor" | "inTestTree" | "top">): void => {
+    const full = join(from, e.name);
+    const verdict = isSkippedDir(e.name) ? "prune" : walkDecision(acc.rulings, relPath(root, full));
+    if (verdict === "prune") return;
+    queue.push({ dir: full, depth: depth + 1, ...inherit, inTestTree: inherit.inTestTree || TEST_DIR_NAMES.has(e.name.toLowerCase()), corridor: verdict === "corridor" });
+  };
   while (queue.length > 0) {
     if (acc.visited >= MAX_ENTRIES) { acc.truncated = true; return; }
-    const { dir, depth, hasComponentsAncestor, inTestTree, top } = queue.shift()!;
+    const { dir, depth, hasComponentsAncestor, inTestTree, top, corridor } = queue.shift()!;
     if (depth > MAX_DEPTH) continue; // depth cap: skip this branch, map stays honest elsewhere
     const entries = sortedEntries(dir);
-    // An app root the owner ruled `drop` is not walked; only the way to a root ruled `keep` below it is.
-    const rel = relPath(root, dir);
-    if (depth > 0 && prunesAppRoot(acc.rulings, rel)) {
-      for (const e of entries) {
-        if (e.isDirectory() && onWayToKeptRoot(acc.rulings, `${rel}/${e.name}`)) {
-          queue.push({ dir: join(dir, e.name), depth: depth + 1, hasComponentsAncestor: false, inTestTree: false, top });
-        }
-      }
+    if (corridor === true) {
+      for (const e of entries) if (e.isDirectory() && onWayToKeptRoot(acc.rulings, relPath(root, join(dir, e.name)))) enter(e, dir, depth, { hasComponentsAncestor, inTestTree, top });
       continue;
     }
 
@@ -231,15 +234,7 @@ function walk(root: string, start: string, acc: WalkAccum): void {
       if (bucket !== null) acc.byTop.set(bucket, (acc.byTop.get(bucket) ?? 0) + 1);
       const full = join(dir, e.name);
       if (e.isDirectory()) {
-        if (isSkippedDir(e.name) || acc.rulings.skip.includes(relPath(root, full))) continue;
-        const childBase = e.name.toLowerCase();
-        queue.push({
-          dir: full,
-          depth: depth + 1,
-          hasComponentsAncestor: childHasComponentsAncestor,
-          inTestTree: inTestTree || TEST_DIR_NAMES.has(childBase),
-          top: bucket,
-        });
+        enter(e, dir, depth, { hasComponentsAncestor: childHasComponentsAncestor, inTestTree, top: bucket });
       } else if (e.isFile()) {
         const lower = e.name.toLowerCase();
         if (TAILWIND_CONFIG_RE.test(lower)) acc.tailwindConfigs.push(relPath(root, full));
@@ -299,7 +294,7 @@ export function scanProject(root: string, rulings: ScanRulings = NO_SCAN_RULINGS
     cssPaths: acc.css.map((f) => f.path), scssPaths: acc.scssPaths,
     tailwindConfigs: acc.tailwindConfigs, componentDirs: acc.componentDirs,
   });
-  const honoured = honouredOf(rulings, apps.map((a) => a.path));
+  const honoured = honouredOf(rulings, apps.map((a) => a.path), root);
   const rootCss = acc.css.map((f) => f.path).filter((p) => ownerOf(p, acc.appCandidates) === null);
   const budget = acc.truncated
     ? [...acc.byTop].map(([dir, visited]) => ({ dir, visited }))

@@ -135,7 +135,13 @@ describe("an app-roots ruling prunes exactly the roots ruled drop, by id", () =>
     const r = scanOf(root);
     expect(appPaths(r)).toEqual(["apps/site"]);
     expect(r.honoured!.unruled).toEqual(["apps/site"]);
-    expect(ui(["scan", "--cwd", root]).stdout).not.toContain("verdict: greenfield");
+    // the renamed root is named for what it is: ruled, not found; never listed as kept
+    expect(r.honoured!.roots).toEqual([]);
+    expect(r.honoured!.notFound).toEqual(["apps/web"]);
+    const text = ui(["scan", "--cwd", root]).stdout;
+    expect(text).toContain("ruled app roots not found (renamed or removed): apps/web");
+    expect(text).not.toContain("kept app roots apps/web");
+    expect(text).not.toContain("verdict: greenfield");
   });
   it("a root ruled keep under a root ruled drop is walked, and nothing else of the dropped root is", () => {
     const root = tmp("scan-nested-");
@@ -167,5 +173,61 @@ describe("ui scan with a manifest that cannot be read", () => {
     expect(text.exitCode).toBe(0);
     expect(text.stdout).toContain("owner rulings not honoured: design/design-dir.json cannot be read");
     expect(text.stdout).toContain("Next: ui onboard shows the manifest error");
+  });
+});
+
+describe("the deepest ruled path decides, for skip, keep and drop together", () => {
+  const nested = (): string => {
+    const r = tmp("scan-deepest-");
+    writeFiles(r, {
+      "apps/docs/package.json": pkg({ react: "19" }), ...comps("apps/docs"),
+      "apps/docs/inner/package.json": pkg({ vue: "3" }), ...comps("apps/docs/inner"),
+      "apps/web/package.json": pkg({ next: "15" }),
+    });
+    return r;
+  };
+  it("keep the parent, drop the child: the child is not in apps[], none of its component directories is counted, and the left-out line is true", () => {
+    const root = nested();
+    appendRulings(root, [roots({ "apps/docs": "keep", "apps/docs/inner": "drop", "apps/web": "keep" })]);
+    const r = scanOf(root);
+    expect(appPaths(r)).toEqual(["apps/docs", "apps/web"]);
+    expect(r.componentDirs.map((d) => d.path)).toEqual(["apps/docs/components"]);
+    expect(r.honoured!.dropped).toEqual(["apps/docs/inner"]);
+    const text = ui(["scan", "--cwd", root]).stdout;
+    expect(text).toContain("app roots left out by the owner's ruling, not walked: apps/docs/inner");
+    expect(text).not.toContain("apps/docs/inner/components");
+  });
+  it("a root ruled keep inside a skipped directory is walked and named; the rest of that directory is not entered", () => {
+    const root = tmp("scan-keep-in-skip-");
+    writeFiles(root, { "libs/app/package.json": pkg({ react: "19" }), ...comps("libs/app"), "libs/other/package.json": pkg({ react: "19" }), ...comps("libs/other"), "libs/x.css": "" });
+    appendRulings(root, [ruling("scan-budget", { libs: "skip" }, "skip:libs"), roots({ "libs/app": "keep" })]);
+    const r = scanOf(root);
+    expect(appPaths(r)).toEqual(["libs/app"]);
+    expect(r.componentDirs.map((d) => d.path)).toEqual(["libs/app/components"]);
+    expect(r.cssFiles).toEqual([]);
+    expect(r.honoured!.roots).toEqual(["libs/app"]);
+    expect(r.honoured!.keptInsideSkipped).toEqual(["libs/app"]);
+    expect(ui(["scan", "--cwd", root]).stdout).toContain("kept app roots inside a skipped directory, walked: libs/app");
+  });
+  it("a directory ruled skip inside a kept root is not entered", () => {
+    const root = tmp("scan-skip-in-keep-");
+    writeFiles(root, { "apps/web/package.json": pkg({ next: "15" }), ...comps("apps/web"), "apps/web/generated/g.css": "", "apps/web/generated/package.json": pkg({}) });
+    appendRulings(root, [roots({ "apps/web": "keep" }), ruling("scan-budget", { "apps/web/generated": "skip" }, "skip:apps/web/generated")]);
+    const r = scanOf(root);
+    expect(r.cssFiles).toEqual([]);
+    expect(appPaths(r)).toEqual(["apps/web"]);
+    expect(r.componentDirs.map((d) => d.path)).toEqual(["apps/web/components"]);
+  });
+  it("a root ruled drop that no longer exists is named as not found, never as left out", () => {
+    const root = twoApps();
+    appendRulings(root, [roots({ "apps/gone": "drop", "apps/web": "keep" })]);
+    const r = scanOf(root);
+    expect(r.honoured!.dropped).toEqual([]);
+    expect(r.honoured!.notFound).toEqual(["apps/gone"]);
+  });
+  it("a skipped directory that does not exist is not claimed as skipped", () => {
+    const root = twoApps();
+    appendRulings(root, [ruling("scan-budget", { nowhere: "skip" }, "skip:nowhere")]);
+    expect(scanOf(root).honoured!.skip).toEqual([]);
   });
 });

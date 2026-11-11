@@ -55,7 +55,8 @@ function detect(raw: unknown): KindDetection | null {
 
 /** Gathers the nested app roots of the walk, with the owner's skips honoured and no app root pruned (a pruned root could not be asked about). */
 function sense(projectDir: string): AppRootsInput {
-  const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: scanRulingsOf(projectDir).skip });
+  const rulings = scanRulingsOf(projectDir);
+  const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: rulings.skip, keepRoots: rulings.keepRoots });
   return { truncated: r.truncated, apps: r.apps.map((a) => ({ path: a.path, framework: a.framework, styling: a.styling, componentDirs: a.componentDirs.length })) };
 }
 

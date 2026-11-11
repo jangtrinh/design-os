@@ -138,6 +138,18 @@ describe("app-roots", () => {
   });
 });
 
+describe("scan-budget names the app roots inside a directory it would skip", () => {
+  it("the consequence says the roots the owner keeps inside it stay walked, and says nothing of the kind for a directory without roots", () => {
+    const withRoot = projectWith({ "package.json": "{}", ...wideFiles("bulk"), "bulk/pkg/package.json": JSON.stringify({ dependencies: { react: "19" } }) });
+    const d = scanBudgetEmitter.detect(scanBudgetEmitter.sense!(withRoot))!;
+    const consequence = d.ask(d.members).options[0]!.consequence ?? "";
+    expect(consequence).toContain("1 app root(s) inside it stay walked if you keep them in the app-roots question");
+    const without = projectWith({ "package.json": "{}", ...wideFiles("bulk") });
+    const w = scanBudgetEmitter.detect(scanBudgetEmitter.sense!(without))!;
+    expect(w.ask(w.members).options[0]!.consequence ?? "").not.toContain("app root");
+  });
+});
+
 describe("app-roots while the scan is capped", () => {
   it("says its counts cover only the part that was walked, and says nothing of the kind when the walk finished", () => {
     const capped = projectWith({ "package.json": "{}", ...wideFiles("bulk"), ...TWO_APPS });

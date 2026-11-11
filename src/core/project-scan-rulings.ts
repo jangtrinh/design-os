@@ -7,6 +7,8 @@
  *
  * Paths are project-relative and POSIX, the form the walk reports them in.
  */
+import { existsSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { governedOutcomes, indexRulings } from "./owner-rulings/resolve-detections.js";
 import { readRulingStore, RulingStoreError } from "./owner-rulings/ruling-store.js";
 
@@ -45,35 +47,68 @@ export function scanRulingsOrUnreadable(projectDir: string): ScanRulings {
 
 const within = (rel: string, root: string): boolean => rel === root || rel.startsWith(`${root}/`);
 
-/** True when this directory is an app root the owner ruled out: ruled `drop` or inside one, and not itself ruled `keep` (or inside a kept root). */
-export function prunesAppRoot(rulings: ScanRulings, rel: string): boolean {
-  if (rulings.keepRoots.some((k) => within(rel, k))) return false;
-  return rulings.dropRoots.some((d) => within(rel, d));
+export type WalkDecision = "walk" | "corridor" | "prune";
+
+/**
+ * The one rule for the walk: of the owner's ruled paths (`skip`, `keep`, `drop`) that are this directory or contain it,
+ * the deepest decides. `keep` (or no ruling) walks it; `skip` and `drop` do not, except that a pruned directory with a
+ * root ruled `keep` somewhere below it is a corridor: only what leads to that root is entered, and nothing else of the
+ * directory is counted. On the same path `keep` wins.
+ */
+export function walkDecision(rulings: ScanRulings, rel: string): WalkDecision {
+  const ruled = [
+    ...rulings.skip.map((path) => ({ path, keep: false })),
+    ...rulings.dropRoots.map((path) => ({ path, keep: false })),
+    ...rulings.keepRoots.map((path) => ({ path, keep: true })),
+  ].filter((r) => within(rel, r.path));
+  if (ruled.length === 0) return "walk";
+  const deepest = ruled.reduce((a, b) => (b.path.length > a.path.length || (b.path.length === a.path.length && b.keep) ? b : a));
+  if (deepest.keep) return "walk";
+  return rulings.keepRoots.some((k) => k.startsWith(`${rel}/`)) ? "corridor" : "prune";
 }
 
-/** True when `rel` is a kept root or lies on the way to one: the only thing walked inside a pruned directory. */
+/** True when `rel` is a kept root or lies on the way to one: the only thing entered inside a corridor. */
 export function onWayToKeptRoot(rulings: ScanRulings, rel: string): boolean {
   return rulings.keepRoots.some((k) => within(k, rel));
 }
 
 export interface Honoured {
+  /** Skipped directories that exist. */
   skip: string[];
+  /** Kept app roots that exist and were walked. */
   roots: string[];
-  /** App roots left out of the walk by the owner's ruling. */
+  /** Kept roots that lie inside a skipped directory (walked all the same). */
+  keptInsideSkipped?: string[];
+  /** App roots ruled `drop` that exist: not walked, so not in `apps[]`. */
   dropped: string[];
+  /** Ruled roots (keep or drop) that are no longer an app root on disk. */
+  notFound?: string[];
+  /** Kept roots that exist but the walk did not reach (the entry or depth cap). */
+  notReached?: string[];
   /** App roots the walk found that no `app-roots` ruling covers; shown only when at least one ruling exists. */
   unruled: string[];
   unreadable?: string;
 }
 
-/** What `ui scan` says it honoured; absent when there was no ruling, so the output of a ruling-free scan is unchanged. */
-export function honouredOf(rulings: ScanRulings, appPaths: readonly string[]): Honoured | undefined {
+/** What `ui scan` says it honoured, from what the walk found and the disk holds: only what happened. Absent when there was no ruling. */
+export function honouredOf(rulings: ScanRulings, appPaths: readonly string[], root: string): Honoured | undefined {
   if (rulings.unreadable !== undefined) return { skip: [], roots: [], dropped: [], unruled: [], unreadable: rulings.unreadable };
   if (rulings.skip.length === 0 && rulings.keepRoots.length === 0 && rulings.dropRoots.length === 0) return undefined;
+  const dirExists = (rel: string): boolean => { try { return statSync(join(root, rel)).isDirectory(); } catch { return false; } };
+  const isAppRoot = (rel: string): boolean => existsSync(join(root, rel, "package.json"));
+  const walked = new Set(appPaths);
   const ruled = new Set([...rulings.keepRoots, ...rulings.dropRoots]);
-  const rootRulingExists = ruled.size > 0;
-  return {
-    skip: [...rulings.skip], roots: [...rulings.keepRoots], dropped: [...rulings.dropRoots],
-    unruled: rootRulingExists ? appPaths.filter((p) => !ruled.has(p)) : [],
+  const kept = rulings.keepRoots.filter((k) => walked.has(k));
+  const insideSkipped = kept.filter((k) => rulings.skip.some((p) => k.startsWith(`${p}/`)));
+  const notFound = [...ruled].filter((p) => !isAppRoot(p)).sort();
+  const notReached = rulings.keepRoots.filter((k) => isAppRoot(k) && !walked.has(k));
+  const out: Honoured = {
+    skip: rulings.skip.filter(dirExists), roots: kept,
+    dropped: rulings.dropRoots.filter(isAppRoot),
+    unruled: ruled.size > 0 ? appPaths.filter((p) => !ruled.has(p)) : [],
   };
+  if (insideSkipped.length > 0) out.keptInsideSkipped = insideSkipped;
+  if (notFound.length > 0) out.notFound = notFound;
+  if (notReached.length > 0) out.notReached = notReached;
+  return out;
 }

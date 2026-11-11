@@ -19,7 +19,7 @@ export interface ScanBudgetInput {
   /** The entry cap of the walk. */
   limit: number;
   /** Top first-level directories by entries visited, most first (the scan's `budget[]`). */
-  budget: { dir: string; visited: number }[];
+  budget: { dir: string; visited: number; appRoots?: number }[];
   /** Directories the owner already told the walk to skip: members that exist, so their ruling is not stale. */
   skipped: string[];
 }
@@ -36,6 +36,7 @@ function detect(raw: unknown): KindDetection | null {
   if (input === null || typeof input !== "object" || !Array.isArray(input.budget)) return null;
   const dirs = input.budget.map((b) => b.dir);
   const visited = new Map(input.budget.map((b) => [b.dir, b.visited]));
+  const roots = new Map(input.budget.map((b) => [b.dir, b.appRoots ?? 0]));
   return {
     kind: "scan-budget",
     members: input.truncated ? dirs : [],
@@ -46,15 +47,20 @@ function detect(raw: unknown): KindDetection | null {
       const spent = (group: readonly string[]): number => group.reduce((n, m) => n + (visited.get(m) ?? 0), 0);
       const outcomes = (skip: ReadonlySet<string>): Record<string, string> => Object.fromEntries(ordered.map((m) => [m, skip.has(m) ? SKIP : KEEP_WALKING]));
       const largest = ordered[0] as string;
+      // An app root the owner keeps (app-roots question) inside a skipped directory is still walked: the more specific answer wins.
+      const inside = (group: readonly string[]): string => {
+        const n = group.reduce((a, m) => a + (roots.get(m) ?? 0), 0);
+        return n > 0 ? `; the ${n} app root(s) inside it stay walked if you keep them in the app-roots question` : "";
+      };
       const options: ClusterOption[] = [{
         id: `skip:${largest}`, label: ordered.length === 1 ? `Do not walk ${largest}` : `Do not walk ${largest}, the largest`,
-        consequence: `${spent([largest])} of the ${input.limit} entries are no longer spent in ${largest}; ${ordered.length === 1 ? "nothing else changes" : `the other ${ordered.length - 1} stay walked`}`,
+        consequence: `${spent([largest])} of the ${input.limit} entries are no longer spent in ${largest}; ${ordered.length === 1 ? "nothing else changes" : `the other ${ordered.length - 1} stay walked`}${inside([largest])}`,
         assigns: outcomes(new Set([largest])),
       }];
       if (ordered.length > 1) {
         options.push({
           id: SKIP_ALL, label: `Do not walk any of the ${ordered.length}`,
-          consequence: `${spent(ordered)} of the ${input.limit} entries are no longer spent in these ${ordered.length} directories`,
+          consequence: `${spent(ordered)} of the ${input.limit} entries are no longer spent in these ${ordered.length} directories${inside(ordered)}`,
           assigns: outcomes(new Set(ordered)),
         });
       }
@@ -82,8 +88,9 @@ function detect(raw: unknown): KindDetection | null {
  */
 function sense(projectDir: string): ScanBudgetInput {
   const rulings = scanRulingsOf(projectDir);
-  const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: rulings.skip });
-  const budget = r.budget.filter((b) => !isSkippedDir(b.dir) && !rulings.skip.includes(b.dir));
+  const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: rulings.skip, keepRoots: rulings.keepRoots });
+  const budget = r.budget.filter((b) => !isSkippedDir(b.dir) && !rulings.skip.includes(b.dir))
+    .map((b) => ({ ...b, appRoots: r.apps.filter((a) => a.path.startsWith(`${b.dir}/`)).length }));
   return { truncated: r.truncated, limit: MAX_ENTRIES, budget, skipped: [...rulings.skip] };
 }
 
