@@ -4,14 +4,14 @@
  * question is only raised once the one before it is ruled; the tree is built once all three are.
  */
 import { isAliasValue } from "./figma-ds-token-values.js";
-import { buildTokensTree, SKIP_REASONS } from "./figma-ds-tokens.js";
-import type { DsVariable, TokenBuildResult } from "./figma-ds-tokens.js";
+import { buildTokensTree } from "./figma-ds-tokens.js";
+import type { DsVariable, SkipDetail, TokenBuildResult } from "./figma-ds-tokens.js";
 import { withOutcome } from "./figma-ds-ingest-rulings.js";
 import type { RulingView } from "./figma-ds-ingest-rulings.js";
 import type { KindDetection } from "./owner-rulings/kind-emitter.js";
 import { figmaCollectionsEmitter } from "./owner-rulings/kind-figma-collections.js";
 import type { CollectionsInput } from "./owner-rulings/kind-figma-collections.js";
-import { collisionDetections, collisionWinner } from "./owner-rulings/kind-token-path-collision.js";
+import { collisionDetections, collisionMember, collisionWinner } from "./owner-rulings/kind-token-path-collision.js";
 import { untypeableTokensEmitter } from "./owner-rulings/kind-untypeable-tokens.js";
 
 export interface TokenStage {
@@ -71,20 +71,25 @@ export function tokenStage(variables: DsVariable[], view: RulingView): TokenStag
     }
   }
   const among = buildTokensTree(variables, { collections: kept });
-  const collisions = collisionDetections({ collisions: among.collisions });
+  const aliasedBy: Record<string, number> = {};
+  for (const v of variables) if (kept.has(v.collection ?? "")) for (const id of aliasTargets(v)) aliasedBy[id] = (aliasedBy[id] ?? 0) + 1;
+  const collisions = collisionDetections({ collisions: among.collisions, aliasedBy });
   detections.push(...collisions);
   if (!collisions.every((d) => view.ruled(d))) return { detections, kept, built: null };
+  // The ruling names the variable that keeps a path (or none); it never names a collection or a position.
   const winners = new Map<string, string>();
-  for (const c of among.collisions) winners.set(c.path, collisionWinner(c.variables, view.outcome("token-path-collision", c.path) ?? ""));
+  for (const c of among.collisions) winners.set(c.path, collisionWinner(view.outcome("token-path-collision", collisionMember(c.path, c.variables)) ?? ""));
 
   const trial = buildTokensTree(variables, { collections: kept, winners });
-  const nameOf = new Map(variables.map((v) => [v.id, v.name]));
-  const items = SKIP_REASONS.flatMap((reason) => trial.excluded.skipped[reason].map((id) => ({ id, name: nameOf.get(id) ?? id, reason })));
+  const items = variables.filter((v) => trial.skipDetail.has(v.id)).map((v) => {
+    const d = trial.skipDetail.get(v.id) as SkipDetail;
+    return { id: v.id, name: v.name, reason: d.reason, keepable: d.keepable, ...(d.mode === undefined ? {} : { mode: d.mode }) };
+  });
   const untypeable = untypeableTokensEmitter.detect({ items });
   if (untypeable !== null && untypeable.members.length > 0) {
     detections.push(untypeable);
     if (!view.ruled(untypeable)) return { detections, kept, built: null };
   }
-  const keepRaw = withOutcome(view, "untypeable-tokens", items.map((i) => i.id), "keep-raw");
+  const keepRaw = withOutcome(view, "untypeable-tokens", items.filter((i) => i.keepable).map((i) => i.id), "keep-raw");
   return { detections, kept, built: buildTokensTree(variables, { collections: kept, winners, keepRaw }) };
 }

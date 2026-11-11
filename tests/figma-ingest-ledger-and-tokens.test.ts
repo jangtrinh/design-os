@@ -10,7 +10,7 @@ import { buildLedger } from "../src/core/figma-ds-ledger.js";
 import { parseTokenFile } from "../src/core/token-model.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
 import type { Cluster } from "../src/core/owner-rulings/cluster.js";
-import { aliasTo, colorVar, comp, ingestArgs, ingestUntilReady, newProject, preferring, scanOf, takeRecommended, writeScan } from "./figma-ingest-helpers.js";
+import { aliasTo, colorVar, comp, ingestArgs, ingestUntilReady, newProject, preferring, reviewing, scanOf, takeRecommended, writeScan } from "./figma-ingest-helpers.js";
 import { capture, hashTree } from "./owner-rulings-helpers.js";
 
 const FIX = (name: string): string => join(process.cwd(), "tests", "fixtures", "owner-rulings", name);
@@ -60,10 +60,12 @@ describe("AC-22 (the Figma door): every skip reason is counted, asked in one que
     const out = newProject();
     const { final } = ingestUntilReady(writeScan(project, reasons()), project, out, preferring("keep-raw"), ["--json"]);
     const tree = JSON.parse(readFileSync(join(out, "tokens.json"), "utf8")) as Record<string, Record<string, { $type: string; $value: string }>>;
-    expect(Object.keys(tree["raw"]!)).toHaveLength(6);
+    // the three alias-reason variables have no value to keep: they are excluded, never written as an alias blob
+    expect(Object.keys(tree["raw"]!)).toHaveLength(3);
+    expect(Object.values(tree["raw"]!).some((t) => t.$value.includes("VARIABLE_ALIAS"))).toBe(false);
     expect(Object.values(tree["raw"]!).every((t) => t.$type === "string")).toBe(true);
     expect(() => resolveTokens(parseTokenFile(tree))).not.toThrow();
-    expect(JSON.parse(final.out).data.ledger.excluded.total).toBe(0);
+    expect(JSON.parse(final.out).data.ledger.excluded).toMatchObject({ "dangling-alias": 1, "alias-cycle": 2, total: 3 });
   });
 
   it("review individually decides member by member", () => {
@@ -86,7 +88,8 @@ describe("AC-22 (the Figma door): every skip reason is counted, asked in one que
   it("a variable that is the loser of a collision is excluded under its own reason, not under a skip reason", () => {
     const project = newProject();
     const scan = scanOf({ tokens: [colorVar("1:1", "x/color/brand", "Same"), colorVar("2:1", "x/color/brand", "Same")] });
-    const { final, asked } = ingestUntilReady(writeScan(project, scan), project, newProject(), preferring("keep-first"), ["--json"]);
+    const keepSecond = reviewing((m) => `keep:${m.split("#")[1]!.split(",")[1]!}`);
+    const { final, asked } = ingestUntilReady(writeScan(project, scan), project, newProject(), keepSecond, ["--json"]);
     expect(asked[0]!.map((c) => c.kind)).toEqual(["token-path-collision"]);
     expect(JSON.parse(final.out).data.ledger.excluded).toMatchObject({ "path-collision": 1, total: 1 });
   });
@@ -108,7 +111,7 @@ describe("the ledger equation: in = written + excluded + pending", () => {
       const first = planIngest(ds, "s", "s");
       if (first.result === null) expect(first.ledger.pending).toBe(total);
       const project = newProject();
-      const { final } = ingestUntilReady(path, project, newProject(), (c) => (c.kind === "figma-library-pages" ? takeRecommended(c) : preferring("exclude-surplus")(c)), ["--json"]);
+      const { final } = ingestUntilReady(path, project, newProject(), (c) => (c.kind === "figma-library-pages" ? takeRecommended(c) : preferring("exclude-all")(c)), ["--json"]);
       const l = JSON.parse(final.out).data.ledger as { in: { total: number }; written: { total: number }; excluded: { total: number }; pending: number };
       expect(l.in.total).toBe(total);
       expect(l.written.total + l.excluded.total + l.pending).toBe(total);
@@ -159,7 +162,8 @@ describe("AC-15 (the Figma door): tokensUsed from the bound variables, by variab
     expect(data["bindings"]).toMatchObject({ sensed: 0, notSensed: 1, linked: 0 });
     expect(md).toContain("Not sensed");
     expect(md).toContain("Figma plugin scan");
-    expect(md).toContain("DESIGN:OS Studio scan (version: not released)");
+    expect(md).toContain("DESIGN:OS Studio scan");
+    expect(md).not.toMatch(/version/);
   });
   it("a scan whose sensing was skipped is read as not-sensed even when a field is present", () => {
     const { data, registry } = run(base([comp("1:1", "Button", undefined, { boundVariables: [P] })], { status: "skipped", reason: "timeout" }));

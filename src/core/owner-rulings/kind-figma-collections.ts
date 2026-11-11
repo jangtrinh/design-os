@@ -5,7 +5,7 @@
  * The recommendation is computed on the alias graph, never matched on names: a collection is in conflict when it
  * collides with another; the recommended set is every collection not in conflict plus each conflicting collection that
  * an alias connects to one that is not. When that set is empty or still holds a colliding pair, there is no
- * recommendation and the options follow the order of the file's collections.
+ * recommendation. The options are largest first, ties in the order of the file's collections (owner decision D15).
  */
 import type { Cluster } from "./cluster.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
@@ -36,36 +36,40 @@ function broken(aliases: CollectionsInput["aliases"], kept: ReadonlySet<string>)
   return aliases.filter((a) => kept.has(a.from) && !kept.has(a.to)).reduce((n, a) => n + a.count, 0);
 }
 
+const show = (name: string): string => (name === "" ? "(no collection)" : name);
+
 function detect(raw: unknown): KindDetection | null {
   const input = raw as CollectionsInput | null;
   if (input === null || typeof input !== "object" || !Array.isArray(input.collections)) return null;
   const names = input.collections.map((c) => c.name);
-  const order = new Map(names.map((n, i) => [n, i]));
   const count = new Map(input.collections.map((c) => [c.name, c.count]));
   const recommended = recommendedCollections(input);
+  const conflicting = new Set(input.collisions.flatMap((c) => [c.a, c.b]));
   return {
     kind: "figma-collections",
     members: input.collisions.length > 0 ? names : [],
     domain: names,
     ask(members) {
       const asked = new Set(members);
-      const pairs = input.collisions.filter((c) => asked.has(c.a) || asked.has(c.b)).map((c) => `${c.a} × ${c.b}: ${c.paths} token paths`);
-      const list = members.map((m) => `${m} (${count.get(m) ?? 0} variables)`).join(", ");
+      const pairs = input.collisions.filter((c) => asked.has(c.a) || asked.has(c.b)).map((c) => `${show(c.a)} × ${show(c.b)}: ${c.paths} token paths`);
+      const list = members.map((m) => `${show(m)} (${count.get(m) ?? 0} variables)`).join(", ");
       const question = `Which variable collections stay? ${list}.${pairs.length > 0 ? ` Collisions: ${pairs.join("; ")}.` : ""} Variables of a collection left out are excluded, counted and named.`;
       const options = setValuedOptions({
         members,
         recommended,
         weight: (m) => count.get(m) ?? 0,
-        // Without a recommendation the options follow the collection order of the file (FR-008).
-        ...(recommended.length === 0 ? { compare: (a: string, b: string) => (order.get(a) ?? 0) - (order.get(b) ?? 0) } : {}),
         describe(group, role) {
           const total = group.reduce((n, m) => n + (count.get(m) ?? 0), 0);
           const aliasNote = `chosen alone, it leaves ${broken(input.aliases, new Set(group))} alias(es) pointing into a collection it does not keep`;
-          const what = role === "recommended" ? `Keep the ${group.length} collection(s) that do not collide` : role === "single" ? `Keep ${group[0]}` : `Keep the other ${group.length} (${total} variables)`;
+          const colliding = group.filter((n) => conflicting.has(n));
+          const recommendedLabel = colliding.length === 0
+            ? `Keep the ${group.length} collection(s) that do not collide`
+            : `Keep ${group.map(show).join(", ")} (${colliding.map(show).join(", ")} collide but are linked by aliases to a collection that does not)`;
+          const what = role === "recommended" ? recommendedLabel : role === "single" ? `Keep ${show(group[0] ?? "")}` : `Keep the other ${group.length} (${total} variables)`;
           return { label: what, consequence: `${total} variables kept; ${aliasNote}` };
         },
       });
-      return { question, options, evidence: { aliases: input.aliases } };
+      return { question, options, evidence: { aliases: input.aliases }, labels: Object.fromEntries(members.map((m) => [m, show(m)])) };
     },
   };
 }

@@ -46,6 +46,7 @@ function detect(raw: unknown): KindDetection | null {
   if (input === null || typeof input !== "object" || !Array.isArray(input.nodes)) return null;
   const found = classificationConflicts(input);
   const by = new Map(found.map((f) => [f.id, f]));
+  const pageOf = new Map(input.nodes.filter((n) => n.pageName !== undefined).map((n) => [n.id, n.pageName as string]));
   return {
     kind: "classification-conflicts",
     members: found.map((f) => f.id),
@@ -62,6 +63,7 @@ function detect(raw: unknown): KindDetection | null {
           { id: "as-screen", label: "Treat them as screens", consequence: `${members.length} node(s) listed as screens, not in the registry` },
           { id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${members.length} node(s); you choose per node` },
         ],
+        labels: Object.fromEntries(rows.map((f) => [f.id, `${f.name}${pageOf.has(f.id) ? ` on ${pageOf.get(f.id)}` : ""}`])),
       };
     },
   };

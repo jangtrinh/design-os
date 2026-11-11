@@ -58,11 +58,15 @@ function requireArray(obj: Record<string, unknown>, key: string): unknown[] {
 
 const isObject = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 
-/** `{ id, name }` or a bare name; anything else (or nothing) is "no page". */
-function readPage(raw: unknown): { id: string; name: string } | undefined {
+/**
+ * `{ id, name }` or a bare name (older hand-written scans); an absent or null page is "no page". Anything else is a
+ * malformed scan: reading it as "no page" would keep the node without asking, so it is refused.
+ */
+function readPage(raw: unknown, where: string): { id: string; name: string } | undefined {
+  if (raw === undefined || raw === null) return undefined;
   if (typeof raw === "string" && raw.length > 0) return { id: raw, name: raw };
   if (isObject(raw) && typeof raw["id"] === "string" && typeof raw["name"] === "string") return { id: raw["id"], name: raw["name"] };
-  return undefined;
+  throw new DsIngestError("BAD_DS", `ds.json ${where} has a malformed page: it must be { "id": string, "name": string }`);
 }
 
 function readInstances(raw: unknown): InstanceRef[] {
@@ -75,7 +79,7 @@ function readFrame(raw: unknown, index: number): DsFrame {
   if (!isObject(raw) || typeof raw["id"] !== "string" || typeof raw["name"] !== "string") {
     throw new DsIngestError("BAD_DS", `ds.json frames[${index}] needs a string id and name`);
   }
-  const page = readPage(raw["page"]);
+  const page = readPage(raw["page"], `frames[${index}]`);
   if (page === undefined) throw new DsIngestError("BAD_DS", `ds.json frames[${index}] needs a page { id, name }`);
   return {
     id: raw["id"], name: raw["name"], pageId: page.id, pageName: page.name,
@@ -91,9 +95,9 @@ export function parseDsFile(json: unknown): DsFile {
   const rawComponents = requireArray(json, "components") as DsComponent[] & { page?: unknown }[];
   const tokens = requireArray(json, "tokens") as DsVariable[];
   const styles = requireArray(json, "styles") as DsStyle[];
-  const components: ScanComponent[] = rawComponents.map((c) => {
+  const components: ScanComponent[] = rawComponents.map((c, index) => {
     const { page: rawPage, ...rest } = c as unknown as Record<string, unknown> & { page?: unknown };
-    const page = readPage(rawPage);
+    const page = readPage(rawPage, `components[${index}]`);
     const base = rest as unknown as ScanComponent;
     return { ...base, ...(page === undefined ? {} : { pageId: page.id, pageName: page.name, section: page.name }) };
   });

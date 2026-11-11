@@ -1,67 +1,100 @@
 /**
  * `token-path-collision` (FR-008): two variables inside the collections the owner kept map to one token path. The
- * member is the token path. Collisions are grouped by the set of collections they run between, one question per group,
- * because "keep the one from collection X" only means something for paths that run between the same collections.
- * `collisionDetections` is the ingest's entry point; the registry's `detect` returns the first group.
+ * question is assigned (one outcome per member): a member is one collision, `<path>#<id>,<id>` (the path plus the
+ * sorted ids of the variables on it), and its outcome names what is kept, `keep:<variableId>` or `keep-none`. A
+ * rename of a collection or a reorder of the scan changes neither a member nor an outcome; a change in who collides is
+ * a new member and is asked. Collisions are grouped by the set of collections they run between, one question per
+ * group, because "keep the one from collection X" only means something for paths that run between the same
+ * collections. `collisionDetections` is the ingest's entry point; the registry's `detect` returns the first group.
  */
-import type { ClusterOption } from "./cluster.js";
+import type { ClusterOption, MemberChoice } from "./cluster.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
-import type { KindDetection, KindEmitter } from "./kind-emitter.js";
+import type { AskResult, KindDetection, KindEmitter } from "./kind-emitter.js";
+
+export interface CollisionVariable { id: string; name: string; collection: string; value?: string }
 
 export interface CollisionInput {
   /** Every colliding path with the variables on it, in scan order. */
-  collisions: { path: string; variables: { id: string; collection: string }[] }[];
+  collisions: { path: string; variables: CollisionVariable[] }[];
+  /** Per variable id, how many aliases point at it (any mode). Absent means "not counted". */
+  aliasedBy?: Record<string, number>;
 }
 
 /** Options name at most three collections; a fourth would not fit beside `review individually`. */
 const MAX_COLLECTION_OPTIONS = 3;
+export const KEEP_NONE_OUTCOME = "keep-none";
 
-const groupKey = (collections: readonly string[]): string => JSON.stringify(collections);
+export const keepOutcome = (variableId: string): string => `keep:${variableId}`;
 
-/** The id of the variable that keeps a colliding path under the option the owner chose; "" keeps none. */
-export function collisionWinner(variables: { id: string; collection: string }[], outcome: string): string {
-  if (outcome.startsWith("keep-from:")) return variables.find((v) => v.collection === outcome.slice("keep-from:".length))?.id ?? "";
-  if (outcome === "keep-first") return variables[0]?.id ?? "";
-  return "";
+/** The id of the variable that keeps a colliding path under the outcome the owner gave; "" keeps none. */
+export function collisionWinner(outcome: string): string {
+  return outcome.startsWith("keep:") ? outcome.slice("keep:".length) : "";
 }
 
-function optionsFor(collections: readonly string[], paths: number): ClusterOption[] {
-  const review: ClusterOption = { id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${paths} token path(s); you choose per path` };
-  if (collections.length === 1) {
-    return [
-      { id: "keep-first", label: "Keep the first variable of each path", consequence: `${paths} path(s): the first variable in the scan stays, the others are excluded and counted` },
-      { id: "keep-none", label: "Exclude all of them", consequence: `${paths} path(s) left out, every variable counted and named` },
-      review,
-    ];
+interface Collision { member: string; path: string; variables: CollisionVariable[] }
+
+/** The member id of one collision: the path plus the sorted ids of the variables on it. */
+export const collisionMember = (path: string, variables: readonly { id: string }[]): string => `${path}#${variables.map((v) => v.id).sort().join(",")}`;
+const memberOf = collisionMember;
+const describe = (v: CollisionVariable): string => `${v.name} (${v.collection === "" ? "(no collection)" : v.collection}${v.value === undefined || v.value === "" ? "" : ` = ${v.value}`})`;
+const collectionText = (c: string): string => (c === "" ? "(no collection)" : c);
+
+function groupAsk(collections: readonly string[], all: ReadonlyMap<string, Collision>, aliasedBy: Record<string, number>, members: readonly string[]): AskResult {
+  const asked = members.map((m) => all.get(m)).filter((c): c is Collision => c !== undefined);
+  const lost = (keep: (c: Collision) => string): number =>
+    asked.reduce((n, c) => n + c.variables.filter((v) => v.id !== keep(c)).reduce((k, v) => k + (aliasedBy[v.id] ?? 0), 0), 0);
+  const aliasNote = (n: number): string => `${n} alias(es) point at variables that would lose; each is then asked as a dangling alias`;
+
+  const options: ClusterOption[] = [];
+  const qualifying = collections.filter((col) => asked.every((c) => c.variables.filter((v) => v.collection === col).length === 1));
+  for (const col of qualifying.slice(0, MAX_COLLECTION_OPTIONS)) {
+    const pick = (c: Collision): string => (c.variables.find((v) => v.collection === col) as CollisionVariable).id;
+    options.push({
+      id: `keep-from:${col}`, label: `Keep the one from ${collectionText(col)}`,
+      consequence: `${asked.length} path(s): the variable from ${collectionText(col)} stays, the others are excluded and counted; ${aliasNote(lost(pick))}`,
+      assigns: Object.fromEntries(asked.map((c) => [c.member, keepOutcome(pick(c))])),
+    });
   }
-  const named = collections.slice(0, MAX_COLLECTION_OPTIONS).map((c): ClusterOption => ({
-    id: `keep-from:${c}`, label: `Keep the one from ${c}`, consequence: `${paths} path(s): the variable from ${c} stays, the others are excluded and counted`,
-  }));
-  return [...named, review];
+  if (options.length + 1 < 4) {
+    options.push({
+      id: KEEP_NONE_OUTCOME, label: "Exclude all of them",
+      consequence: `${asked.length} path(s) left out, every variable counted and named; ${aliasNote(lost(() => ""))}`,
+      assigns: Object.fromEntries(asked.map((c) => [c.member, KEEP_NONE_OUTCOME])),
+    });
+  }
+  options.push({ id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${asked.length} token path(s) with their variables; you choose per path` });
+
+  const where = collections.length === 1 ? `inside ${collectionText(collections[0] as string)}` : `between ${collections.map(collectionText).join(" and ")}`;
+  const extra = collections.length > MAX_COLLECTION_OPTIONS ? ` Only ${MAX_COLLECTION_OPTIONS} of the ${collections.length} collections fit as options: narrow the collections you keep, or review individually.` : "";
+  const memberChoices: Record<string, MemberChoice[]> = {};
+  const labels: Record<string, string> = {};
+  for (const c of asked) {
+    memberChoices[c.member] = [...c.variables.map((v) => ({ id: keepOutcome(v.id), label: `Keep ${describe(v)}` })), { id: KEEP_NONE_OUTCOME, label: "Exclude all of them" }];
+    labels[c.member] = `${c.path}: ${c.variables.map(describe).join(" or ")}`;
+  }
+  return {
+    question: `${asked.length} token path(s) ${where} map to more than one variable. Which variable keeps each path?${extra}`,
+    options, memberChoices, labels,
+  };
 }
 
 /** One detection per set of collections that collide with each other. */
 export function collisionDetections(input: CollisionInput): KindDetection[] {
-  const groups = new Map<string, { collections: string[]; paths: string[] }>();
+  const aliasedBy = input.aliasedBy ?? {};
+  const groups = new Map<string, { collections: string[]; items: Collision[] }>();
   for (const c of input.collisions) {
-    const collections = [...new Set(c.variables.map((v) => v.collection))].sort();
-    const g = groups.get(groupKey(collections)) ?? { collections, paths: [] };
-    g.paths.push(c.path);
-    groups.set(groupKey(collections), g);
+    const collections = [...new Set(c.variables.map((v) => v.collection))];
+    const key = JSON.stringify([...collections].sort());
+    const g = groups.get(key) ?? { collections: [], items: [] };
+    for (const col of collections) if (!g.collections.includes(col)) g.collections.push(col);
+    g.items.push({ member: memberOf(c.path, c.variables), path: c.path, variables: c.variables });
+    groups.set(key, g);
   }
-  return [...groups.values()].map((g) => ({
-    kind: "token-path-collision" as const,
-    members: g.paths,
-    domain: g.paths,
-    ask(members: readonly string[]) {
-      const where = g.collections.length === 1 ? `inside ${g.collections[0]}` : `between ${g.collections.join(" and ")}`;
-      const extra = g.collections.length > MAX_COLLECTION_OPTIONS ? ` Only ${MAX_COLLECTION_OPTIONS} of the ${g.collections.length} collections fit as options: narrow the collections you keep, or review individually.` : "";
-      return {
-        question: `${members.length} token path(s) ${where} map to more than one variable. Which variable keeps each path?${extra}`,
-        options: optionsFor(g.collections, members.length),
-      };
-    },
-  }));
+  return [...groups.values()].map((g) => {
+    const all = new Map(g.items.map((i) => [i.member, i]));
+    const members = g.items.map((i) => i.member);
+    return { kind: "token-path-collision" as const, members, domain: members, ask: (asked: readonly string[]) => groupAsk(g.collections, all, aliasedBy, asked) };
+  });
 }
 
 export const tokenPathCollisionEmitter: KindEmitter = {
@@ -70,4 +103,5 @@ export const tokenPathCollisionEmitter: KindEmitter = {
     const first = collisionDetections(input as CollisionInput)[0];
     return first ?? { kind: "token-path-collision", members: [], domain: [], ask: () => ({ question: "", options: [] }) };
   },
+  detectAll: (input) => collisionDetections(input as CollisionInput),
 };

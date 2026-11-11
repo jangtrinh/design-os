@@ -18,7 +18,7 @@
  * emit `valuesByMode` per mode name so Light/Dark land automatically (this
  * compiler already consumes that richer shape; the current scan emits one value).
  */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { basename, resolve, join } from "node:path";
 
 import type { ParsedArgs } from "../core/cli-args.js";
@@ -27,19 +27,18 @@ import { errJson, errJsonWithData, errText, okJson } from "../core/output.js";
 import { saveRegistry } from "../core/registry-store.js";
 import { registryFileForDir } from "../core/design-system.js";
 import { parseDsFile, planIngest, DsIngestError } from "../core/figma-ds-ingest.js";
+import { leftOutLines } from "../core/figma-ds-designdoc-ledger.js";
 import { ledgerLines } from "../core/figma-ds-ledger.js";
 import { blockOnOpenClusters } from "../core/owner-rulings/block-contract.js";
 import type { ClusterKind } from "../core/owner-rulings/cluster-kinds.js";
 import { RulingStoreError, readRulingStore } from "../core/owner-rulings/ruling-store.js";
-import {
-  buildEvent,
-  validateEvent,
-  MemoryEventError,
-} from "../core/memory-events.js";
-import type { EventType } from "../core/memory-events.js";
+import { MemoryEventError } from "../core/memory-events.js";
 import { MemoryAppendCommittedError } from "../core/memory-error.js";
 import { memoryPaths } from "../core/memory-store.js";
-import { seedMemoryBatch } from "../core/memory-seed-batch.js";
+import { INGEST_FIGMA_DS_HELP } from "./ingest-figma-ds-help.js";
+import { seedMemory } from "./ingest-figma-ds-memory.js";
+
+export { INGEST_FIGMA_DS_HELP } from "./ingest-figma-ds-help.js";
 
 const CMD = "ingest-figma-ds";
 
@@ -49,91 +48,9 @@ const OWN_KINDS: readonly ClusterKind[] = [
   "archived-marked-nodes", "duplicate-component-names", "classification-conflicts", "untypeable-tokens",
 ];
 
-export const INGEST_FIGMA_DS_HELP = `ui ingest-figma-ds — onboard an existing Figma design system
-
-Usage:
-  ui ingest-figma-ds <ds.json> [--out <dir>] [--name <slug>] [--cwd <dir>] [--seed-memory] [--now <iso>] [--json]
-
-Takes a 'figma-agent scan-design-system' output (Variables + Styles + Components)
-and compiles it — deterministically, zero-network, zero-LLM — into ease-design's
-portable stores so an AI can understand, remember, and work on the DS on any runtime.
-
-It asks instead of dropping or guessing. When the scan holds something only the owner can settle (two
-collections that map to one token path, nodes on several pages, archive-marked or duplicate names, variables that
-cannot become tokens), the command writes NOTHING, exits 1 with ONBOARD_BLOCKED_NEEDS_OWNER_RULING, and leaves the
-questions in <cwd>/.design-os/onboard/pending.json. Next: ui onboard questions, then ui onboard answer --file, then
-run this command again. Every item left out is counted under a named reason in the closing ledger.
-
-Writes (into <out>, default: current directory):
-  tokens.json             DTCG tokens — primitive literals + semantic aliases; Light/Dark modes
-  component-registry.json component inventory (name, variants, props)
-  DESIGN.md               the human+AI-readable design-system spec
-  design/memory.events.jsonl  only with --seed-memory (records the DS as remembered)
-
-Options:
-  --out <dir>      Output directory (default: current working directory)
-  --name <slug>    Design-system name for DESIGN.md (default: the --out folder name)
-  --cwd <dir>      The project whose owner rulings apply (default: current working directory)
-  --seed-memory    Also seed 'ui memory' (harvested + component_registered events)
-  --now <iso>      Deterministic clock for the seeded memory graph (ISO-8601)
-  --json           Emit a JSON envelope instead of human-readable text
-  -h, --help       Show this help
-
-Modes:
-  A variable's base/Light mode becomes its $value; other modes (e.g. Dark) are
-  preserved under $extensions and documented — 'ui tokens compile' stays valid.
-
-Error codes:
-  BAD_ARG          Missing <ds.json> positional, or invalid --now
-  UNKNOWN_FLAG     Unrecognised --flag (rejected, with a did-you-mean hint)
-  ONBOARD_BLOCKED_NEEDS_OWNER_RULING  A question has no owner ruling; nothing was written
-  BAD_PENDING      <cwd>/.design-os/onboard/pending.json is unreadable (transient; safe to delete)
-  BAD_MANIFEST     <cwd>/design/design-dir.json is unreadable
-  FILE_NOT_FOUND   ds.json does not exist (ENOENT)
-  READ_ERROR       ds.json exists but cannot be read
-  BAD_JSON         ds.json is not valid JSON
-  BAD_DS           ds.json is not a scan-design-system output (missing components/tokens/styles)
-  SEALED_PATH_COLLISION  --out resolves to a directory named 'design' — the sealed DS path
-  MEMORY_LOCKED    Memory append lock is held; wait for its writer to release it
-  MEMORY_COMMITTED  Memory seed events committed before a later failure; do not repeat seeding
-  WRITE_ERROR      An output file could not be written
-`;
-
 function flagStr(parsed: ParsedArgs, key: string): string | undefined {
   const v = parsed.flags[key];
   return typeof v === "string" ? v : undefined;
-}
-
-/**
- * Seed the project memory with the DS provenance + one event per REAL component.
- * Icons and screens are aggregated into a single event each — never one-per-icon —
- * so onboarding a 1,600-node icon library does not bloat the ledger.
- */
-function seedMemory(
-  outDir: string,
-  source: string,
-  componentNames: string[],
-  iconCount: number,
-  screenCount: number,
-  nowIso: string,
-): void {
-  const paths = memoryPaths(outDir);
-  const events: Array<{ type: EventType; data: Record<string, unknown> }> = [
-    { type: "harvested", data: { source, what: `${componentNames.length} components ingested from a Figma design system` } },
-    ...componentNames.map((name) => ({ type: "component_registered" as EventType, data: { name } })),
-  ];
-  if (iconCount > 0) {
-    events.push({ type: "harvested", data: { source, what: `${iconCount} icons (icon-set)` } });
-  }
-  if (screenCount > 0) {
-    events.push({ type: "harvested", data: { source, what: `${screenCount} screens (not DS components)` } });
-  }
-  seedMemoryBatch(paths, events.length, nowIso, (append) => {
-    for (const e of events) {
-      validateEvent(e.type, e.data, undefined);
-      append(buildEvent({ id: "", t: nowIso, type: e.type, data: e.data, actor: "ingest-figma-ds", medium: "figma" }));
-    }
-  });
 }
 
 function runIngest(parsed: ParsedArgs): CommandResult {
@@ -191,6 +108,10 @@ function runIngest(parsed: ParsedArgs): CommandResult {
   }
 
   const cwd = resolve(flagStr(parsed, "cwd") ?? process.cwd());
+  // A typo in --cwd must not create a project: the questions would be stored where nobody looks.
+  if (flagStr(parsed, "cwd") !== undefined && !(existsSync(cwd) && statSync(cwd).isDirectory())) {
+    return err("BAD_ARG", `--cwd '${cwd}' is not an existing directory; nothing was created`);
+  }
   try {
     const ds = parseDsFile(json);
     const name = flagStr(parsed, "name") ?? basename(outDir);
@@ -262,6 +183,7 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     ...(data.memorySeeded ? ["  design/memory.events.jsonl  seeded"] : []),
     "  ledger",
     ...ledgerLines(result.ledger).map((l) => `    ${l}`),
+    ...leftOutLines(result.excluded).map((l) => `    ${l}`),
     ...(result.pageSignal === "absent" && result.ledger.in.components > 0 ? ["    pageSignal: absent (the scan carries no page; the page question was skipped)"] : []),
     ...(foreignRegistryAtDefaultPath
       ? [`  ! component-registry.json is a FOREIGN file — wrote ${registryPath} instead`]

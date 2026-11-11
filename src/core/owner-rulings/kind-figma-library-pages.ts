@@ -23,7 +23,8 @@ function detect(raw: unknown): KindDetection | null {
     members: input.pages.length > 1 ? ids : [],
     domain: ids,
     ask(members) {
-      const list = [...members].sort((a, b) => nodes(b) - nodes(a) || (a < b ? -1 : 1)).map((m) => `${nameOf(m)} (${nodes(m)} nodes)`).join(", ");
+      const position = new Map(members.map((m, i) => [m, i]));
+      const list = [...members].sort((a, b) => nodes(b) - nodes(a) || (position.get(a) ?? 0) - (position.get(b) ?? 0)).map((m) => `${nameOf(m)} (${nodes(m)} nodes)`).join(", ");
       return {
         question: `Component-kind nodes sit on ${members.length} pages: ${list}. Which pages hold the design system? Nodes on a page left out are excluded, counted and named.`,
         options: setValuedOptions({
@@ -36,6 +37,7 @@ function detect(raw: unknown): KindDetection | null {
               : { label: `Keep ${nameOf(group[0] ?? "")}`, consequence: `${total} nodes kept` };
           },
         }),
+        labels: Object.fromEntries(members.map((m) => [m, nameOf(m)])),
       };
     },
   };

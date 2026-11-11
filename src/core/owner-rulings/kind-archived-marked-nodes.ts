@@ -7,7 +7,7 @@ import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
 
 export interface ArchivedMarkedInput {
-  nodes: { id: string; name: string }[];
+  nodes: { id: string; name: string; page?: string }[];
 }
 
 function detect(raw: unknown): KindDetection | null {
@@ -28,6 +28,7 @@ function detect(raw: unknown): KindDetection | null {
           { id: "keep-archived", label: "Keep them as deprecated components", consequence: `${members.length} record(s) written with the marker removed from the name and the record marked deprecated` },
           { id: REVIEW_INDIVIDUALLY, label: "Review individually", consequence: `a sheet lists the ${members.length} node(s); you choose per node` },
         ],
+        labels: Object.fromEntries(members.map((m) => { const n = marked.find((x) => x.id === m); return [m, `${names.get(m) ?? m}${n?.page === undefined ? "" : ` on ${n.page}`}`]; })),
       };
     },
   };

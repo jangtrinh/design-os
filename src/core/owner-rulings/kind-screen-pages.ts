@@ -39,6 +39,7 @@ function detect(raw: unknown): KindDetection | null {
             return { label, consequence: `${f} frames kept, ${b} built from instances` };
           },
         }),
+        labels: Object.fromEntries(members.map((m) => [m, nameOf(m)])),
       };
     },
   };
