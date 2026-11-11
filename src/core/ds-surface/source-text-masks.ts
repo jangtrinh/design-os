@@ -5,8 +5,16 @@
  *
  *  - A `'` or `"` closes on its own line or it is not a string (an apostrophe in JSX text has no partner).
  *  - A `'` or `"` directly after a letter, a digit or `_` opens nothing (`Don't`, `it's`, `5"`).
- *  - A template literal may span lines and may hold `${ … }` with strings and other templates inside it; the whole span is
- *    one string. A template that never closes is reported, and masks the rest of the text.
+ *  - A template literal may span lines and may hold `${ … }` with other templates inside it; the whole span is one string.
+ *    Inside `${ … }` only braces and nested templates are tracked, never quotes: a quote in a regular expression
+ *    (`.replace(/"/g, '""')`) is far more common in real code than a brace inside a string of an interpolation.
+ *  - A template the nested-aware scan cannot close is closed by the plain rule (at the next backtick); with no further
+ *    backtick nothing after its opening backtick is masked. The scan never masks to the end of the text, and it reports
+ *    the template so the caller can list the file.
+ *
+ * Known limits, not built: a regular expression that holds an even number of backticks shifts the mask between them
+ * without a signal; the comment blanker runs before strings are known, so a comment pattern inside a template can remove
+ * its closing backtick.
  */
 import { blankDelimited, spaces } from "../polyglot-ui-scans.js";
 
@@ -41,13 +49,12 @@ function templateEnd(text: string, open: number): number {
   return -1;
 }
 
-/** Index just past the `}` that closes the interpolation whose body starts at `from`; -1 when none does. */
+/** Index just past the `}` that closes the interpolation whose body starts at `from`, tracking braces and nested templates only; -1 when none does. */
 function interpolationEnd(text: string, from: number): number {
   let depth = 1;
   for (let j = from; j < text.length;) {
     const c = text[j];
     if (c === "`") { j = templateEnd(text, j); if (j === -1) return -1; continue; }
-    if ((c === '"' || c === "'") && !isWordChar(text[j - 1])) { const end = quotedEnd(text, j); j = end === -1 ? j + 1 : end; continue; }
     if (c === "{") depth++;
     else if (c === "}" && --depth === 0) return j + 1;
     j++;
@@ -56,21 +63,33 @@ function interpolationEnd(text: string, from: number): number {
 }
 
 export interface StringScan {
-  /** `[start, end)` of every string literal, the quotes included; an unclosed template runs to the end of the text. */
+  /** `[start, end)` of every string literal, the quotes included. */
   spans: [number, number][];
-  /** Offset of a template literal that never closes, or -1. */
-  unclosedTemplateAt: number;
+  /** Offset of the first template the nested-aware scan could not close (closed by the plain rule or left unmasked), or -1. */
+  undecidedTemplateAt: number;
+}
+
+/** Index just past the next unescaped backtick after `open`; -1 when there is none. */
+function plainTemplateEnd(text: string, open: number): number {
+  for (let j = open + 1; j < text.length; j++) {
+    if (text[j] === "\\") j++;
+    else if (text[j] === "`") return j + 1;
+  }
+  return -1;
 }
 
 export function scanStrings(text: string): StringScan {
-  const scan: StringScan = { spans: [], unclosedTemplateAt: -1 };
+  const scan: StringScan = { spans: [], undecidedTemplateAt: -1 };
   for (let i = 0; i < text.length;) {
     const c = text[i];
     if (c === "`") {
       const end = templateEnd(text, i);
-      if (end === -1) { scan.spans.push([i, text.length]); scan.unclosedTemplateAt = i; break; }
-      scan.spans.push([i, end]);
-      i = end;
+      if (end !== -1) { scan.spans.push([i, end]); i = end; continue; }
+      if (scan.undecidedTemplateAt === -1) scan.undecidedTemplateAt = i;
+      const plain = plainTemplateEnd(text, i);
+      if (plain === -1) break; // no further backtick: nothing after this one is masked
+      scan.spans.push([i, plain]);
+      i = plain;
     } else if ((c === '"' || c === "'") && !isWordChar(text[i - 1])) {
       const end = quotedEnd(text, i);
       if (end === -1) i++; else { scan.spans.push([i, end]); i = end; }
@@ -92,9 +111,8 @@ export function blankStrings(text: string, scan: StringScan = scanStrings(text))
   let from = 0;
   for (const [start, end] of scan.spans) {
     out += text.slice(from, start);
-    const closed = scan.unclosedTemplateAt !== start;
     const keep = text[start] !== "`" && /\bfrom\s*$/.test(text.slice(Math.max(0, start - 200), start));
-    out += keep ? text.slice(start, end) : text[start] + spaces(text.slice(start + 1, closed ? end - 1 : end)) + (closed ? text[end - 1] : "");
+    out += keep ? text.slice(start, end) : text[start] + spaces(text.slice(start + 1, end - 1)) + text[end - 1];
     from = end;
   }
   return out + text.slice(from);
