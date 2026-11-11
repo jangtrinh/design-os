@@ -28,7 +28,7 @@ re-generated from `design/ds.json`, so they are never older than it by more than
 | Rule | Severity | Fix |
 |------|----------|-----|
 | Exactly one token source: `design/tokens.json`. Any other `tokens.json` or `*.tokens.json` in the project is a finding (`extra-token-file`) unless declared derived. Once `design/ds.manifest.json` exists, `design/design.tokens.json` is the store `ui ds` sealed and is not reported | error | delete it, or declare it in `design/design-dir.json` |
-| `design/design.tokens.json` and `design/tokens.json` both exist and their token sets differ (`two-token-sources`; one finding, with both token counts). A file declared derived is exempt, equal sets are silent | error | keep one source: delete one of the two files, or declare `design/design.tokens.json` derived in `design/design-dir.json` |
+| `design/design.tokens.json` and `design/tokens.json` both exist and their token sets differ (`two-token-sources`; one finding, with both token counts). A file declared derived is exempt, equal sets are silent | error | answer the source-authority question (`ui onboard questions`), or keep one source: delete one of the two files, or declare `design/design.tokens.json` derived in `design/design-dir.json` |
 | Tracked log or cache under `design/` | error | `git rm --cached`, add the pattern to `.gitignore` |
 | Art direction outside `design/art-direction/` | error | `git mv` it there |
 | Supersession in a decisions file (`supersession-outside-rulings`: any line containing "supersed") | error | set `superseded_by` on the ruling, drop the note |

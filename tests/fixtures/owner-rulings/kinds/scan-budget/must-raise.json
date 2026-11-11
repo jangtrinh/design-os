@@ -1,0 +1,6 @@
+{
+  "truncated": true,
+  "limit": 4000,
+  "budget": [{ "dir": "bulk-data", "visited": 3400 }, { "dir": "exports", "visited": 300 }, { "dir": "src", "visited": 120 }],
+  "skipped": []
+}

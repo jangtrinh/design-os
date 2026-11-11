@@ -5,7 +5,7 @@
 import type { ProjectView } from "./design-dir-scan.js";
 import { buildPrinciplesIndex, serializePrinciplesIndex } from "./design-dir-principles.js";
 import { parseSupersededMarker } from "./ds-guidelines-rulings-reader.js";
-import { canonicalStringify } from "./ds-manifest.js";
+import { diffTokenSources } from "./design-token-sources.js";
 import { validateMethodSchema } from "./method-json-schema.js";
 import type { Schema } from "./method-json-schema.js";
 
@@ -97,36 +97,17 @@ export function lintDesignDir(view: ProjectView, schema: Schema): DesignFinding[
 
 const count = (n: number): string => `${n} ${n === 1 ? "token" : "tokens"}`;
 
-/** Leaf tokens of a DTCG document as path → serialized $value (null when the text is not a JSON object). */
-function tokenValues(text: string | null): Map<string, string> | null {
-  const doc = parseJson(text);
-  if (doc === null || typeof doc !== "object" || Array.isArray(doc)) return null;
-  const out = new Map<string, string>();
-  const visit = (node: unknown, path: string): void => {
-    if (node === null || typeof node !== "object" || Array.isArray(node)) return;
-    const rec = node as Record<string, unknown>;
-    // The kernel's canonical rule (sorted keys), so key order inside an object value is not a difference.
-    if ("$value" in rec) { out.set(path, canonicalStringify(rec["$value"])); return; }
-    for (const k of Object.keys(rec).sort()) if (!k.startsWith("$")) visit(rec[k], path === "" ? k : `${path}.${k}`);
-  };
-  visit(doc, "");
-  return out;
-}
-
 /**
  * Both the sealed store and the hand-edited file exist and disagree: the project must say which one is the
  * source. A file declared derived is the contract's own route for keeping a second file, so it is not a finding.
  */
 function lintTwoTokenSources(view: ProjectView, derived: Set<string>, out: DesignFinding[]): void {
   if (!view.files.includes(SEALED_TOKENS) || !view.files.includes(TOKEN_SOURCE) || derived.has(SEALED_TOKENS)) return;
-  const sealed = tokenValues(view.read(SEALED_TOKENS));
-  const hand = tokenValues(view.read(TOKEN_SOURCE));
-  if (sealed === null || hand === null) return; // an unreadable file is not a comparison; the JSON error belongs to the token commands
-  const same = sealed.size === hand.size && [...sealed].every(([k, v]) => hand.get(k) === v);
-  if (same) return;
+  const diff = diffTokenSources(view.read(SEALED_TOKENS), view.read(TOKEN_SOURCE));
+  if (diff === null || diff.same) return; // an unreadable file is not a comparison; the JSON error belongs to the token commands
   out.push({ checkId: "two-token-sources", severity: "error", path: SEALED_TOKENS,
-    message: `${SEALED_TOKENS} (${count(sealed.size)}) and ${TOKEN_SOURCE} (${count(hand.size)}) both exist and differ`,
-    fix: `Keep one source: delete one of the two files, or declare ${SEALED_TOKENS} derived in ${MANIFEST_PATH}` });
+    message: `${SEALED_TOKENS} (${count(diff.sealedTokens)}) and ${TOKEN_SOURCE} (${count(diff.otherTokens)}) both exist and differ`,
+    fix: `Answer the source-authority question: ui onboard questions — or keep one source: delete one of the two files, or declare ${SEALED_TOKENS} derived in ${MANIFEST_PATH}` });
 }
 
 function lintPrinciplesIndex(view: ProjectView, out: DesignFinding[]): void {

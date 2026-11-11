@@ -30,8 +30,8 @@ const errorCode = (out: string): string => (JSON.parse(out) as { error: { code: 
 
 describe("ui onboard questions", () => {
   const six = (): Cluster[] => [
-    clusterOf("scan-budget", ["walk"]), clusterOf("app-roots", ["web", "api"]), clusterOf("source-authority", ["tokens"]),
-    clusterOf("figma-collections", ["A", "B", "C"]), clusterOf("token-path-collision", ["x.y"]), clusterOf("figma-library-pages", ["Lib", "Other"]),
+    clusterOf("figma-collections", ["web", "api"]), clusterOf("token-path-collision", ["x.y"]), clusterOf("figma-library-pages", ["Lib", "Other"]),
+    clusterOf("screen-pages", ["A", "B", "C"]), clusterOf("classification-conflicts", ["n1"]), clusterOf("archived-marked-nodes", ["n2"]),
   ];
 
   it("claude format respects the limits, sets multiSelect for set-valued kinds and pages by round", () => {
@@ -45,8 +45,8 @@ describe("ui onboard questions", () => {
       expect(q.options.length).toBeLessThanOrEqual(CLAUDE_MAX_OPTIONS);
       expect(q.options[0].label).toMatch(/\(Recommended\)$/);
     }
-    expect(r1.questions.map((q: { multiSelect: boolean }) => q.multiSelect)).toEqual([false, true, false, true]);
-    expect(r1.answerKey[1].options[0]).toMatchObject({ id: "keep-web", selects: ["web"] });
+    expect(r1.questions.map((q: { multiSelect: boolean }) => q.multiSelect)).toEqual([true, false, true, true]);
+    expect(r1.answerKey[0].options[0]).toMatchObject({ id: "keep-web", selects: ["web"] });
     const r2 = JSON.parse(capture(["onboard", "questions", "--cwd", dir, "--format", "claude", "--round", "2"]).out);
     expect(r2.questions).toHaveLength(2);
     expect(errorCode(capture(["onboard", "questions", "--cwd", dir, "--format", "claude", "--round", "3", "--json"]).out)).toBe("NO_PENDING_QUESTIONS");
@@ -62,7 +62,7 @@ describe("ui onboard questions", () => {
   });
 
   it("json format returns the clusters as stored; exit 1 NO_PENDING_QUESTIONS when nothing is pending", () => {
-    const c = clusterOf("scan-budget", ["walk"]);
+    const c = clusterOf("token-path-collision", ["walk"]);
     expect(JSON.parse(capture(["onboard", "questions", "--cwd", seeded(c)]).out).clusters).toEqual([c]);
     const empty = capture(["onboard", "questions", "--cwd", scratchProject(), "--json"]);
     expect(empty.code).toBe(1);
@@ -173,7 +173,7 @@ describe("ui onboard answer — multi-select kinds", () => {
 });
 
 describe("ui onboard answer — success and refusals", () => {
-  const budget = clusterOf("scan-budget", ["walk"]);
+  const budget = clusterOf("token-path-collision", ["walk"]);
   const collections = clusterOf("figma-collections", ["A", "B", "C"]);
 
   it("records a multi-select answer as one ruling, removes the cluster from pending.json and says what remains", () => {
@@ -182,14 +182,14 @@ describe("ui onboard answer — success and refusals", () => {
     expect(r.code).toBe(0);
     expect(JSON.parse(r.out).data.remaining).toBe(1);
     expect(readRulingStore(dir).rulings).toHaveLength(1);
-    expect(readPending(dir).clusters.map((c) => c.kind)).toEqual(["scan-budget"]);
+    expect(readPending(dir).clusters.map((c) => c.kind)).toEqual(["token-path-collision"]);
   });
 
   it("text mode prints one summary line per ruling and the next command", () => {
     const dir = seeded(budget);
     const r = capture(["onboard", "answer", "--file", answersFile(dir, { answers: [{ fingerprint: budget.fingerprint, choice: "b" }] }), "--cwd", dir, "--now", NOW]);
     expect(r.out).toContain("recorded 1 ruling(s)");
-    expect(r.out).toContain("scan-budget: b (1 covered");
+    expect(r.out).toContain("token-path-collision: b (1 covered");
     expect(r.out).toContain("0 question(s) remain");
   });
 
@@ -364,9 +364,9 @@ describe("the block contract", () => {
     expect(readPending(project).clusters.map((c) => c.kind).sort()).toEqual(["component-name-collision", "figma-collections", "figma-library-pages"]);
   });
 
-  it("the doors that run the project-level detectors also block on a stored project-level cluster", () => {
+  it("the doors that run the project-level detectors also block on a stored project-level cluster (no detector of that kind ran)", () => {
     const project = seeded(clusterOf("scan-budget", ["walk"]));
-    const input = { ...blockInput(project), detections: [], ownKinds: ["figma-collections" as const] };
+    const input = { ...blockInput(project), detections: [], ownKinds: ["figma-collections" as const], emitters: [] };
     expect(blockOnOpenClusters(input)).toBeNull();
     const door = blockOnOpenClusters({ ...input, runsProjectDetectors: true });
     expect(door?.exitCode).toBe(1);

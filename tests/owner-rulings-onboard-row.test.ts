@@ -55,7 +55,7 @@ describe("ui onboard — owner rulings row", () => {
 
   it("N pending: ready turns false, the row names the next command, the tree is unchanged and the exit is 0", () => {
     const dir = readyProject();
-    writePending(dir, [clusterOf("scan-budget", ["walk"]), clusterOf("figma-collections", ["A", "B"])]);
+    writePending(dir, [clusterOf("token-path-collision", ["walk"]), clusterOf("figma-collections", ["A", "B"])]);
     const before = hashTree(dir);
     const r = status(dir);
     expect(r.rulings.pending).toBe(2);
@@ -77,7 +77,7 @@ describe("ui onboard — owner rulings row", () => {
     expect(row).toMatchObject({ pending: 0, recorded: 2, stale: 1, state: "warn" });
     expect(row.label).toBe("owner rulings: 2 recorded, 1 stale");
     expect(hashTree(dir)).toBe(before);
-    expect(status(dir).rulings).toEqual({ pending: 0, recorded: 2, stale: 0 }); // production binary: no emitter judges anything yet
+    expect(status(dir).rulings).toEqual({ pending: 0, recorded: 2, stale: 2 }); // production binary: the project-level detectors judge both rulings, and neither member exists in this project
   });
 
   it("a scan ruling that removes the truncation is not stale: the domain still holds its member", () => {

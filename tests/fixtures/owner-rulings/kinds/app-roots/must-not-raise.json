@@ -1,0 +1,1 @@
+{ "apps": [{ "path": "apps/web", "framework": "next", "styling": ["tailwind"], "componentDirs": 2 }] }

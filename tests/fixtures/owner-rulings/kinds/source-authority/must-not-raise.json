@@ -1,0 +1,5 @@
+{
+  "sealedText": "{ \"color\": { \"brand\": { \"$type\": \"color\", \"$value\": \"#112233\" } } }",
+  "otherText": "{ \"color\": { \"brand\": { \"$value\": \"#112233\", \"$type\": \"color\" } } }",
+  "derived": []
+}
