@@ -14,7 +14,7 @@
     {
       "path": "journeys/onboard.md",
       "description": "Onboard a project onto design:os end to end: pick the right entry point for what already exists (nothing yet, a codebase, a URL, a Figma file, a token set, or reference shots), verify the toolchain with ui doctor / design-os doctor, compile or import the design system, declare the soul, wire agents + heartbeat, and open the Figma plugin. Use when the user says 'onboard', 'set up design:os', 'install this', 'wire up my project', 'get started with design:os', or right after ui init.",
-      "sourceSha256": "e33c376661630bcdadad916a64e4b748cdd77b75d79eb19c1d9fef81f9e5896d"
+      "sourceSha256": "11b4b4884800a48b27d0ed914bd020a9e7e9143061dfd8b56fa2c9d7a16ec213"
     },
     {
       "path": "skills/apply-prompt-mode.md",
