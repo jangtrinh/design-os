@@ -153,8 +153,8 @@ export function readComponentExports(file: string, source: string): SourceExport
     const idx = lineIndexOf(starts, p);
     const end = text.indexOf("\n", p);
     const rest = text.slice(p, end === -1 ? undefined : end);
-    const listIt = (name: string, reason: string, setAside = false): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting[setAside ? "claimed" : "listed"]++; };
-    if (!standing.has(p)) { listIt(firstUpperWord(rest), "an `export` keyword that is not at the start of a top-level statement is not read as a declaration", true); continue; }
+    const listIt = (name: string, reason: string): void => { out.unread.push({ name, line: idx + 1, reason }); out.accounting.listed++; };
+    if (!standing.has(p)) { listIt(firstUpperWord(rest), "an `export` keyword that is not at the start of a top-level statement is not read as a declaration"); continue; }
     if (EXPORT_ASSIGNMENT.test(rest)) { listIt("(export =)", "an export assignment is not read"); continue; }
     const namespace = /^export\s*(?:type\s*)?\*\s*as\s+([A-Za-z_$][\w$]*)\s*from/.exec(rest);
     if (namespace !== null) { listIt(namespace[1] as string, "`export * as <name> from` re-exports a namespace: it is listed here and not followed as a barrel"); continue; }

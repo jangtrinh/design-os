@@ -144,6 +144,13 @@ describe("a template the scanner cannot close never hides the rest of the file",
   });
 });
 
+describe("a keyword the position rule sets aside is counted as listed", () => {
+  it("an export inside a namespace is listed, not claimed", () => {
+    const r = read("namespace X {\n  export function Inner() { return <i />; }\n}\n");
+    expect(r.accounting).toEqual({ keywords: 1, claimed: 0, listed: 1 });
+  });
+});
+
 describe("through the command: the file of the controller's reproduction", () => {
   const withUsage = (inner: string): string => {
     const p = sealedFixture();
