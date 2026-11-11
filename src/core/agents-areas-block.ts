@@ -15,7 +15,7 @@ export const BLOCK_END = "<!-- design-os:ontology-areas:end -->";
 const BLOCK_RE = /<!-- design-os:ontology-areas:start -->[\s\S]*?<!-- design-os:ontology-areas:end -->\n?/g;
 
 /** What the ontology file says about areas: read from the file on disk only, never from the sources. */
-export type OntologyView = { state: "areas"; areas: AreaRow[] } | { state: "missing" } | { state: "unreadable" };
+export type OntologyView = { state: "areas"; areas: AreaRow[] } | { state: "missing" } | { state: "unreadable" } | { state: "notCurrent"; sentence: string; next: string | null };
 
 export function ontologyView(fileText: string | null): OntologyView {
   if (fileText === null) return { state: "missing" };
@@ -38,6 +38,8 @@ export function renderAreasBlock(view: OntologyView, runtime: Runtime): string {
       ? ["The ontology holds no area yet (no component, token or ruling carries one): query it without --area, for example `ui ontology query \"<your task>\"`."]
       : ["Ontology areas of this project. Before design work, find what it knows with the command of the area the task belongs to:",
         ...view.areas.map((a) => `- ${a.key} (${a.nodes} node${a.nodes === 1 ? "" : "s"}): \`ui ontology query "<your task>" --area ${shellQuote(a.key)}\``)]
+    : view.state === "notCurrent"
+    ? [`The ontology file (design/knowledge/ontology.json) is not current, so no area is listed: ${view.sentence}.`, ...(view.next === null ? [] : [`Next: ${view.next}`]), "Then: ui agents init --force"]
     : [view.state === "missing"
       ? "This project has no ontology yet (design/knowledge/ontology.json is missing): run `ui ontology build`, then `ui agents init --force` lists its areas here."
       : "The ontology file cannot be read (design/knowledge/ontology.json): run `ui ontology build`, then `ui agents init --force` lists its areas here."];

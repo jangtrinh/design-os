@@ -97,7 +97,8 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   if (runtimes.includes("codex")) lines.push(`agents section written: ${join(proj.root, CODEX_REL)} (Codex: ${roles.join(", ")})`);
   if (ctx.studio === null) lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   if (runtimes.includes("claude")) lines.push("agents are Claude Code subagents — delegate with their names.");
-  if (ctx.view.state !== "areas") lines.push("The area block of each agent says there is no ontology yet.", "Next: ui ontology build", "Then: ui agents init --force");
+  if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), "Then: ui agents init --force");
+  else if (ctx.view.state !== "areas") lines.push("The area block of each agent says there is no ontology yet.", "Next: ui ontology build", "Then: ui agents init --force");
   else lines.push("Next: ui agents check");
   return ok(lines.join("\n") + "\n");
 }

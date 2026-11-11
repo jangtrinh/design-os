@@ -13,6 +13,8 @@ import { resolvePackageRoots } from "../core/init-stub.js";
 import { ROSTER, parseAgentStamp } from "../core/agents-gen.js";
 import type { AgentRole, AgentStamp } from "../core/agents-gen.js";
 import { ontologyView } from "../core/agents-areas-block.js";
+import type { OntologyView } from "../core/agents-areas-block.js";
+import { judgeCurrentOnDisk } from "./ontology-current.js";
 import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL } from "../core/agents-targets.js";
 import type { TargetContext } from "../core/agents-targets.js";
 import { classifySectionMarkers } from "../core/adapter-section-markers.js";
@@ -73,7 +75,11 @@ export function targetContext(root: string, project: string): TargetContext | Fa
   let text: string | null;
   try { text = existsSync(file) ? readFileSync(file, "utf8") : null; }
   catch (e) { return fail("READ_ERROR", `cannot read '${ONTOLOGY_REL}': ${errText(e)}`); }
-  return { tpls, knowledgeRoot, project, studio: studioNameFromHome(), view: ontologyView(text) };
+  let notCurrent: ReturnType<typeof judgeCurrentOnDisk>;
+  try { notCurrent = judgeCurrentOnDisk(root); }
+  catch (e) { return fail("READ_ERROR", `cannot judge '${ONTOLOGY_REL}': ${errText(e)}`); }
+  const view: OntologyView = notCurrent === null ? ontologyView(text) : { state: "notCurrent", ...notCurrent };
+  return { tpls, knowledgeRoot, project, studio: studioNameFromHome(), view };
 }
 
 export interface ScannedAgent { name: string; rel: string; path: string; text: string; stamp: AgentStamp }

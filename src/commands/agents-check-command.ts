@@ -61,6 +61,7 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
     if (isFail(proj)) return err(proj.code, proj.message);
     const ctx = targetContext(proj.root, proj.project);
     if (isFail(ctx)) return err(ctx.code, ctx.message);
+    if (ctx.view.state === "notCurrent") findings.push({ checkId: STALE, severity: "error", message: `the ontology file is not current, so the area blocks cannot be trusted: ${ctx.view.sentence}${ctx.view.next === null ? "" : `. Next: ${ctx.view.next}`}` });
     const rolesOf = new Map<Runtime, Set<AgentRole>>(found.map((r) => [r, new Set<AgentRole>()]));
     const unknownRole = (what: string, role: string): void => { findings.push({ checkId: "agent-unknown-role", severity: "warning", message: `${what} carries roster-role '${role}', which is not in the roster (${ROSTER.join(", ")})` }); };
     const files = (runtime: "claude" | "antigravity", list: ScannedAgent[]): { a: ScannedAgent; role: AgentRole }[] => list.flatMap((a) => {
@@ -80,7 +81,7 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
     // "Differs outside the block" and "block differs" are judged apart: outside is the roster, inside is the ontology.
     const judge = (rel: string, label: string, text: string, expected: string, outsideCode: string, outsideMessage: string): void => {
       if (stripBlocks(text) !== stripBlocks(expected)) findings.push({ checkId: outsideCode, severity: "error", message: outsideMessage });
-      else if (blocksIn(text).join("") !== blocksIn(expected).join("")) findings.push({ checkId: STALE, severity: "error", message: `the area block of ${label} is not what the ontology gives now (${rel}); regenerate it: ${heal}` });
+      else if (ctx.view.state !== "notCurrent" && blocksIn(text).join("") !== blocksIn(expected).join("")) findings.push({ checkId: STALE, severity: "error", message: `the area block of ${label} is not what the ontology gives now (${rel}); regenerate it: ${heal}` });
     };
     for (const { a, role } of claudeFiles) {
       judge(a.rel, `'${a.name}'`, a.text, agentFile(ctx, "claude", role).content, "agent-stale",

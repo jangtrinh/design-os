@@ -10,36 +10,20 @@ import { okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
-import { blockingAction, blockingClusters, blockingSummary } from "../core/ontology/blocking-clusters.js";
-import { serializeOntology } from "../core/ontology/emit-ontology.js";
-import { graphErrors } from "../core/ontology/graph-errors.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 import type { Ontology } from "../core/ontology/ontology-types.js";
 import { listAreas, resolveArea } from "../core/ontology/query-areas.js";
 import { queryOntology } from "../core/ontology/query-ontology.js";
 import { shellQuote, wordsOf } from "../core/ontology/query-text.js";
+import { judgeCurrent } from "./ontology-current.js";
+import type { NotCurrent } from "./ontology-current.js";
 import { queryText } from "./ontology-query-render.js";
 import { fail, isResult, prepare } from "./ontology-shared.js";
-import type { Prepared } from "./ontology-shared.js";
 
 const CMD = "ontology query";
 const KNOWN = ["dir", "area", "budget"] as const;
 export const DEFAULT_BUDGET = 12000;
 const STALE = "ONTOLOGY_STALE";
-
-/** Why the file on disk cannot be queried, and the one next action that works; null when it is the file a build would write now. */
-function staleReason(dir: string, ready: Prepared, disk: string | null): string | null {
-  if (disk !== null && disk === serializeOntology(ready.built.ontology)) return null;
-  const what = disk === null ? "there is no ontology file yet" : "the ontology file differs from what the current sources give";
-  const refused = ready.sources.rules.pairDrift.length > 0 || graphErrors(ready.built.ontology.nodes, ready.built.ontology.links).length > 0;
-  if (refused) return `${what}, and a rebuild is refused until the findings of the ontology lint are settled; the query reads only a current file`;
-  const open = blockingClusters(dir, ready.built.detections);
-  if (open.length > 0) {
-    const action = blockingAction(dir, open);
-    return `${what}, and ${blockingSummary(open)}; the query reads only a current file.\nNext: ${action.startsWith("run ui ontology build") ? "ui ontology build" : action}`;
-  }
-  return `${what}; the query reads only a current file.\nNext: ui ontology build`;
-}
 
 export function runOntologyQuery(parsed: ParsedArgs): CommandResult {
   const json = parsed.json;
@@ -53,10 +37,10 @@ export function runOntologyQuery(parsed: ParsedArgs): CommandResult {
 
   const file = join(ready.dir, ONTOLOGY_REL);
   const disk = existsSync(file) ? readFileSync(file, "utf8") : null;
-  let why: string | null;
-  try { why = staleReason(ready.dir, ready, disk); }
+  let why: NotCurrent | null;
+  try { why = judgeCurrent(ready.dir, ready, disk); }
   catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(CMD, json, e.code, e.message); throw e; }
-  if (why !== null || disk === null) return fail(CMD, json, STALE, why ?? "there is no ontology file yet");
+  if (why !== null || disk === null) return fail(CMD, json, STALE, why === null ? "there is no ontology file yet" : `${why.sentence}; the query reads only a current file${why.next === null ? "" : `.\nNext: ${why.next}`}`);
   // The file equals what a build from the current sources writes, and the file is what the query reads.
   const ontology = JSON.parse(disk) as Ontology;
 

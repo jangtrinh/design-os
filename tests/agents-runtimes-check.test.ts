@@ -116,12 +116,12 @@ describe("a project with no ontology", () => {
     expect(read(p, "AGENTS.md")).toContain("page:Library");
     expect(check(p).code).toBe(0);
   });
-  it("a file that is not an ontology reads as unreadable, with the same action", () => {
+  it("a file that is not an ontology is not current: the block says so and names the build", () => {
     const p = ring1Project();
     mkdirSync(join(p, "design", "knowledge"), { recursive: true });
     writeFileSync(join(p, "design", "knowledge", "ontology.json"), "{ nope");
     init(p, "--runtimes", "claude");
-    expect(blocksIn(read(p, claudeFile(p, "designer")))[0]).toContain("cannot be read");
+    expect(blocksIn(read(p, claudeFile(p, "designer")))[0]).toContain("is not current");
   });
 });
 
