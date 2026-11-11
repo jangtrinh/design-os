@@ -23,7 +23,8 @@ export function kindsCoverageGaps(input: CoverageInput): string[] {
     for (const [file, mustRaise] of [[MUST_RAISE, true], [MUST_NOT_RAISE, false]] as const) {
       const fixture = input.readFixture(e.kind, file);
       if (fixture === undefined) { gaps.push(`kind '${e.kind}' has an emitter and no ${file} fixture`); continue; }
-      const raised = e.detect(fixture)?.members.length ?? 0;
+      const found = e.detectAll !== undefined ? e.detectAll(fixture) : [e.detect(fixture)];
+      const raised = found.reduce((n, d) => n + (d?.members.length ?? 0), 0);
       if (mustRaise && raised === 0) gaps.push(`kind '${e.kind}' raises nothing on its ${file} fixture`);
       if (!mustRaise && raised > 0) gaps.push(`kind '${e.kind}' raises ${raised} member(s) on its ${file} fixture`);
     }

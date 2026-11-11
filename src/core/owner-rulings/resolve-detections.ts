@@ -59,12 +59,20 @@ export function resolveDetections(detections: readonly KindDetection[], rulings:
   const domains = new Map<ClusterKind, Set<string>>();
   for (const detection of detections) {
     // One spelling of a member everywhere: rulings store NFC, so a detection is compared in NFC, de-duplicated.
+    // `scanOrder` keeps first appearance: `ask` receives the unruled members in the order the scan listed them, so
+    // "ties in scan order" never falls back to comparing member strings.
+    const scanOrder = [...new Set(detection.members.map((m) => m.normalize("NFC")))];
     const d = { ...detection, members: sortedUnique(detection.members), domain: sortedUnique(detection.domain) };
     const governing = index.get(d.kind);
-    const unruled = d.members.filter((m) => governing?.has(m) !== true);
+    const unruled = scanOrder.filter((m) => governing?.has(m) !== true);
     if (unruled.length > 0) {
       const asked = runEmitter(d.kind, () => d.ask(unruled));
-      open.push(buildCluster({ kind: d.kind, question: asked.question, members: unruled, options: asked.options, evidence: asked.evidence, raisedBy, ...(unruled.length < d.members.length ? { delta: true as const } : {}) }));
+      open.push(buildCluster({
+        kind: d.kind, question: asked.question, members: unruled, options: asked.options, evidence: asked.evidence, raisedBy,
+        ...(asked.memberChoices === undefined ? {} : { memberChoices: asked.memberChoices }),
+        ...(asked.labels === undefined ? {} : { labels: asked.labels }),
+        ...(unruled.length < d.members.length ? { delta: true as const } : {}),
+      }));
     }
     const per: Record<string, string> = { ...(outcomes[d.kind] ?? {}) };
     const seen = domains.get(d.kind) ?? new Set<string>();

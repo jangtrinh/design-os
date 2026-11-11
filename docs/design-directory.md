@@ -72,6 +72,20 @@ member is never an option but is always accepted: answer `"choice": ["review-ind
 `keep` or `drop` for exactly the question's members. An option that selects no member may be chosen only on its own. A
 single-choice ruling that chose `review-individually` must carry the `members` map, and no member may map to it.
 
+A single-choice question is in one of two modes. In the plain mode every member takes the chosen option id. In the
+assigned mode (the Figma ingest's collision, duplicate-name and skipped-variable questions) the question carries
+`memberChoices` (per member, the outcomes it may take, each `{ id, label }`) and every option except
+`review-individually` carries `assigns` (the outcome each member takes under that option). Choosing such an option records
+its `assigns` as the ruling's `members` map; `review-individually` takes a `members` map whose every value is one of that
+member's own choices (anything else is `BAD_ANSWER`). A question that mixes the two modes is refused when it is built and
+when `pending.json` is read, and a multi-select question carries neither field. A ruling therefore names what it keeps by
+id (`keep:<variableId>`, `keep:<nodeId>`), never by position or by a name that can change, and `outcomeOf` stays the only
+reader. A question may also carry `labels` (a display name per member): every place that prints a member prints
+`label (id)`.
+
+`ui onboard` does not run the Figma ingest's detectors, so it never reports an ingest ruling as stale; the ingest
+replaces its own stored questions on every run.
+
 Each stored question records the command that raised it. Every run of a command that can block replaces the questions
 that command raised with what it finds now (a project-level question is replaced by whichever command ran its detector),
 and removes the file, and its `onboard/` directory when empty, once nothing is left; a question another command raised

@@ -6,6 +6,7 @@ import { toClaudeQuestionPayload } from "../brief-questions-format.js";
 import type { FormatQuestion } from "../brief-questions-format.js";
 import type { Cluster } from "./cluster.js";
 import { CLUSTER_KIND_TABLE, REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
+import { memberText } from "./member-text.js";
 import { DROP, KEEP } from "./ruling-store.js";
 
 export const QUESTIONS_PER_ROUND = 4;
@@ -21,7 +22,11 @@ export function roundCount(clusters: readonly Cluster[]): number {
 }
 
 function toFormatQuestion(c: Cluster): FormatQuestion {
-  const sample = c.samples.length < c.count ? `${c.samples.join(", ")} … (${c.count} in all)` : c.samples.join(", ");
+  const shown = c.samples.map((m) => memberText(c, m));
+  // The question text is never cut. Only this sample line is capped, at a whole item, and it points at the full list.
+  const sample = c.samples.length < c.count
+    ? `${shown.join(", ")}, and ${c.count - c.samples.length} more. The full list is in the sheet: ui onboard questions --format markdown`
+    : shown.join(", ");
   return {
     id: c.fingerprint,
     header: CLUSTER_KIND_TABLE[c.kind].header,
@@ -45,7 +50,9 @@ export function toOwnerClaudePayload(clusters: readonly Cluster[], round: number
     rounds: roundCount(clusters),
     answerKey: asked.map((c) => ({
       fingerprint: c.fingerprint, kind: c.kind, multiSelect: CLUSTER_KIND_TABLE[c.kind].setValued,
-      options: c.options.map((o) => ({ id: o.id, label: o.label, ...(o.selects === undefined ? {} : { selects: o.selects }) })),
+      options: c.options.map((o) => ({ id: o.id, label: o.label, ...(o.selects === undefined ? {} : { selects: o.selects }), ...(o.assigns === undefined ? {} : { assigns: o.assigns }) })),
+      ...(c.memberChoices === undefined ? {} : { memberChoices: c.memberChoices, perMemberAnswer: { choice: [REVIEW_INDIVIDUALLY], members: c.members } }),
+      ...(c.labels === undefined ? {} : { labels: c.labels }),
       ...(CLUSTER_KIND_TABLE[c.kind].setValued ? { perMemberAnswer: { choice: [REVIEW_INDIVIDUALLY], values: [KEEP, DROP], members: c.members } } : {}),
     })),
   };
@@ -62,10 +69,17 @@ export function toOwnerMarkdown(clusters: readonly Cluster[]): string {
     lines.push(`## ${c.kind} · ${c.count} affected`, "", c.question, "", `Fingerprint: \`${c.fingerprint}\``, multi ? "Pick every option that applies." : "Pick one option.", "");
     for (const o of c.options) {
       lines.push(`- [ ] \`${o.id}\` ${o.label}${o.recommended === true ? " (Recommended)" : ""} — ${o.consequence}`);
-      if (o.selects !== undefined) lines.push(`  - stands for: ${o.selects.join(", ")}`);
+      if (o.selects !== undefined) lines.push(`  - stands for: ${o.selects.map((m) => memberText(c, m)).join(", ")}`);
     }
     if (multi) lines.push("", PER_MEMBER_NOTE);
-    lines.push("", "Members:", ...c.members.map((m) => `- ${m}`), "", "Answer: ", "");
+    lines.push("", "Members:");
+    for (const m of c.members) {
+      lines.push(`- ${memberText(c, m)}`);
+      const choices = c.memberChoices?.[m];
+      if (choices !== undefined) lines.push(...choices.map((x) => `  - \`${x.id}\` ${x.label}`));
+    }
+    if (c.memberChoices !== undefined) lines.push("", `To decide member by member, answer with choice "${REVIEW_INDIVIDUALLY}" and a members map giving each member one of its choice ids above.`);
+    lines.push("", "Answer: ", "");
   }
   return `${lines.join("\n")}\n`;
 }

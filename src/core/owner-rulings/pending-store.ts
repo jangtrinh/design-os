@@ -24,7 +24,7 @@ export interface PendingDoc { version: 1; round: number; clusters: Cluster[] }
 export class PendingStoreError extends Error {
   readonly code = "BAD_PENDING";
   constructor(why: string) {
-    super(`${PENDING_REL} is unreadable (${why}). It is transient and safe to delete: delete it, then rebuild it with: ui onboard questions`);
+    super(`${PENDING_REL} is unreadable (${why}). It is transient and safe to delete: delete it, then re-run the command that raised the questions (ui ingest-figma-ds … or ui onboard questions) to rebuild it`);
   }
 }
 
