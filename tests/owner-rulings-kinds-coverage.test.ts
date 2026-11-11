@@ -46,9 +46,9 @@ describe("the emitter registry", () => {
     expect(emitted.filter((k) => (KINDS_WITHOUT_EMITTER as readonly string[]).includes(k))).toEqual([]);
     expect([...emitted, ...KINDS_WITHOUT_EMITTER].sort()).toEqual([...CLUSTER_KINDS].sort());
   });
-  it("registers the Figma-ingest, import and project-level kinds and leaves the two later kinds without an emitter", () => {
-    expect([...emitted].sort()).toEqual(["ambiguous-roles", "app-roots", "archived-marked-nodes", "classification-conflicts", "duplicate-component-names", "figma-collections", "figma-library-pages", "scan-budget", "screen-pages", "source-authority", "token-path-collision", "untypeable-tokens"]);
-    expect([...KINDS_WITHOUT_EMITTER].sort()).toEqual(["component-name-collision", "inferred-links"]);
+  it("registers the Figma-ingest, import, project-level and surface kinds and leaves the later kind without an emitter", () => {
+    expect([...emitted].sort()).toEqual(["ambiguous-roles", "app-roots", "archived-marked-nodes", "classification-conflicts", "component-name-collision", "duplicate-component-names", "figma-collections", "figma-library-pages", "scan-budget", "screen-pages", "source-authority", "token-path-collision", "untypeable-tokens"]);
+    expect([...KINDS_WITHOUT_EMITTER].sort()).toEqual(["inferred-links"]);
   });
   it("holds the coverage rule on the real registry and the real fixtures", () => {
     const readFixture = (kind: string, file: string): unknown => {

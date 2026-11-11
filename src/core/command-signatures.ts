@@ -881,6 +881,19 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         ],
         errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "BAD_NAME", "FILE_NOT_FOUND", "BAD_JSON", "BAD_REGISTRY", "EXISTS", "REGISTRY_NOT_EMPTY", "BAD_SEALED_REGISTRY", "EMPTY_IMPORT", "KIT_DOWNGRADE", "WRITE_ERROR", "BAD_MANIFEST", "BAD_PENDING", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING"],
       },
+      surface: {
+        summary: "Read an app's component directories: exported components with the tokens their source references, screens, stories, name collisions (asked, never resolved) and what could not be read; --register previews and --apply writes registry records",
+        positionals: [],
+        flags: [
+          { name: "app", type: "string", summary: "The app root to read (default: the one the owner kept, else the scan root with a framework, else the single nested root with one)" },
+          { name: "cwd", type: "string", summary: "Project directory (default cwd)" },
+          { name: "out", type: "string", summary: "Write the surface (design-os-surface/1) to a file" },
+          { name: "register", type: "boolean", summary: "Preview the registry records the surface would write" },
+          { name: "apply", type: "boolean", summary: "With --register: write the records through the shared registration path and reseal once" },
+          { name: "now", type: "string", summary: "UTC ISO-8601 instant for the reseal changelog entry (default now)" },
+        ],
+        errorCodes: ["BAD_ARG", "UNKNOWN_FLAG", "READ_ERROR", "BAD_MANIFEST", "BAD_PENDING", "BAD_REGISTRY", "DS_TAMPERED", "WRITE_ERROR", "ONBOARD_BLOCKED_NEEDS_OWNER_RULING", "SURFACE_APP_AMBIGUOUS", "SURFACE_APP_NOT_A_ROOT", "SURFACE_APP_DROPPED", "SURFACE_NAMES_ALREADY_REGISTERED", "SURFACE_COLLISION_NOT_ASKABLE", "BATCH_REFUSED"],
+      },
       context: {
         summary: "Emit the active design system as a context block for the host model",
         positionals: [],
