@@ -4,10 +4,12 @@
  * line; a source that exists and cannot be read is refused by name. Every list is read in a deterministic order and
  * nothing is deduplicated or dropped: a repeated id is the lint's to report.
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { nodeId } from "./node-ids.js";
-import { BAD_SOURCE, OntologyReadError, parseSourceJson } from "./read-error.js";
+import { BAD_SOURCE, OntologyReadError, parseSourceJson, readSourceDir, readSourceText } from "./read-error.js";
+import { parseScope, skippedText } from "./ruling-scope.js";
+import type { RulingScope } from "./ruling-scope.js";
 import { byText } from "./ontology-types.js";
 import { readScreensMeta } from "./source-screens-meta.js";
 import type { MetaFact } from "./source-screens-meta.js";
@@ -18,7 +20,7 @@ export const PRINCIPLES_REL = "design/principles.json";
 export const TERMS_REL = "CONTEXT.md";
 export const PATTERNS_REL = "design/patterns";
 
-export interface RulingFact { id: string; scope: "global" | { apps: string[]; features: string[] } | null; supersededBy?: string; text: string }
+export interface RulingFact { id: string; scope: "global" | RulingScope | null; supersededBy?: string; text: string }
 export interface PrincipleFact { id: string; text: string }
 export interface Ring2Read {
   nodes: OntNode[];
@@ -30,14 +32,13 @@ export interface Ring2Read {
 
 const isObj = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const str = (v: unknown): string | undefined => (typeof v === "string" && v !== "" ? v : undefined);
-const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 const absent = (kind: SourceReport["kind"], note: string): SourceReport => ({ kind, status: "missing", nodes: 0, note });
 const read = (kind: SourceReport["kind"], n: number, note: string): SourceReport => ({ kind, status: "read", nodes: n, note });
 
 function readList(projectDir: string, rel: string, key: string): unknown[] | null {
   const path = join(projectDir, rel);
   if (!existsSync(path)) return null;
-  const doc = parseSourceJson(rel, readFileSync(path, "utf8"));
+  const doc = parseSourceJson(rel, readSourceText(rel, path));
   const list = isObj(doc) ? doc[key] : undefined;
   if (!Array.isArray(list)) throw new OntologyReadError(BAD_SOURCE, `${rel} must be an object with a '${key}' list`);
   return list;
@@ -47,17 +48,20 @@ function readRulings(projectDir: string, nodes: OntNode[], facts: RulingFact[]):
   const list = readList(projectDir, RULINGS_REL, "rulings");
   if (list === null) return absent("ruling", `no ${RULINGS_REL}`);
   let unusable = 0;
+  const skipped = new Map<string, number>();
   for (const r of list) {
     const id = isObj(r) ? str(r["id"]) : undefined;
     const text = isObj(r) ? str(r["text"]) : undefined;
     if (!isObj(r) || id === undefined || text === undefined) { unusable++; continue; }
-    const s = r["scope"];
-    const scope = s === "global" ? "global" as const : isObj(s) ? { apps: strs(s["apps"]), features: strs(s["features"]) } : null;
+    const parsed = parseScope(r["scope"]);
+    for (const [why, n] of parsed.skipped) skipped.set(why, (skipped.get(why) ?? 0) + n);
+    const scope = parsed.scope;
     const supersededBy = str(r["superseded_by"]);
     nodes.push({ id: nodeId("ruling", id), kind: "ruling", name: id, category: str(r["category"]) ?? "", text });
     facts.push({ id, scope, text, ...(supersededBy === undefined ? {} : { supersededBy }) });
   }
-  return read("ruling", list.length - unusable, `${list.length - unusable} read${unusable > 0 ? `; ${unusable} without id or text left out and counted` : ""}`);
+  const notes = [unusable > 0 ? `${unusable} without id or text left out and counted` : "", skippedText(skipped)].filter((n) => n !== "");
+  return read("ruling", list.length - unusable, `${list.length - unusable} read${notes.map((n) => `; ${n}`).join("")}`);
 }
 
 function readPrinciples(projectDir: string, nodes: OntNode[], facts: PrincipleFact[]): SourceReport {
@@ -93,10 +97,10 @@ export function readTermNodes(text: string): OntNode[] {
 function readPatterns(projectDir: string, nodes: OntNode[]): SourceReport {
   const dir = join(projectDir, PATTERNS_REL);
   if (!existsSync(dir)) return absent("pattern", `no ${PATTERNS_REL}/`);
-  const files = readdirSync(dir).filter((f) => f.endsWith(".md")).sort(byText);
+  const files = readSourceDir(PATTERNS_REL, dir).filter((f) => f.endsWith(".md")).sort(byText);
   for (const f of files) {
     const key = f.replace(/\.md$/, "");
-    const heading = /^#[ \t]+(.+)$/m.exec(readFileSync(join(dir, f), "utf8"))?.[1]?.trim();
+    const heading = /^#[ \t]+(.+)$/m.exec(readSourceText(`${PATTERNS_REL}/${f}`, join(dir, f)))?.[1]?.trim();
     nodes.push({ id: nodeId("pattern", key), kind: "pattern", name: heading ?? key });
   }
   return read("pattern", files.length, `${files.length} pattern file(s)`);
@@ -111,7 +115,7 @@ export function readRing2(projectDir: string): Ring2Read {
   reports.push(readPrinciples(projectDir, nodes, principles));
   const termsPath = join(projectDir, TERMS_REL);
   if (existsSync(termsPath)) {
-    const terms = readTermNodes(readFileSync(termsPath, "utf8"));
+    const terms = readTermNodes(readSourceText(TERMS_REL, termsPath));
     nodes.push(...terms);
     reports.push(read("term", terms.length, `${terms.length} term(s) from ${TERMS_REL}`));
   } else reports.push(absent("term", `no ${TERMS_REL}`));
