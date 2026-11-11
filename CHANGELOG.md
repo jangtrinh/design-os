@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-11-12 - `ui ontology build` and `ui ontology lint`: one design ontology per project
+
+### Added
+- `ui ontology build [--dir <project>] [--out <file>] [--json]` writes `design/knowledge/ontology.json`
+  (`design-os-ontology/1`, `schemas/ontology.schema.json`): one graph of what onboarding already produced. Nodes come
+  from the sealed token store and component registry, the screens of the Figma scan (`design/ds.json`) or of the code
+  surface, the ratified soul, promoted adherence rules, measured conventions and the kernel's gate families; a project
+  that also keeps `design/knowledge/rulings.json`, `design/principles.json`, `CONTEXT.md` terms, `design/patterns/*.md`
+  or `design/knowledge/screens.meta.json` gets ruling, principle, term, pattern, app and feature nodes. The file carries
+  no time and no absolute path, and is the same bytes for the same tree from any checkout path.
+- Links are exact or they are asked. `uses-component`, `consumes-token`, `constrains`, `checked-by`, `belongs-to`,
+  `governs` and `superseded-by` are written only from an exact source (an instance id or key, an import, a record's
+  `tokensUsed`, a rule's own target, a field of the file). A reference that matches nothing is counted `unresolved`; a
+  field the host never sensed is counted `not sensed` with the command that would sense it; neither is matched to the
+  nearest name. A glossary term named like a node raises one `inferred-links` question, and only the owner's answer
+  turns the candidate into a `defines` link or marks the term standalone.
+- The build asks instead of deciding. While a question it depends on is open it writes nothing and exits 1
+  (`ONBOARD_BLOCKED_NEEDS_OWNER_RULING`), and still shows what it would write. It also refuses, with nothing written,
+  a graph its own lint would fail (a duplicate node id, a link to a node that does not exist), a source that exists and
+  cannot be read as what it claims to be (`ONTOLOGY_BAD_SOURCE`), a sealed store that drifted from its seal, and a
+  conventions pair that drifted (`CONVENTIONS_PAIR_DRIFT`).
+- Every entry and every reference of the optional sources is accounted for: each source line reports what was seen,
+  what became a node, and what was left out under a named reason. A component of one door is never linked by name to a
+  record of the other door.
+- `ui ontology lint [--dir <project>] [--file <file>] [--strict] [--json]` fails on a stale file (a fresh emit from the
+  current sources differs from the file), a dangling link, a duplicate node id, a drifted conventions pair and an open
+  question the build depends on. It prints the coverage table (nodes, linked, orphan, standalone, source missing per
+  kind) and the link reports, never writes, and reports orphans as warnings (`--strict` makes them errors).
+- `ui synthesize-conventions` also writes `design/conventions.json` (`design-os-conventions/1`), the machine form
+  `CONVENTIONS.md` is rendered from; convention rule nodes carry the measured counts.
+
+### Known limits
+- A Figma record is tied to its scan component through the name the ingest derives for it: a component renamed through
+  the duplicate-names ruling does not tie (it is counted), and a new component that reuses a retired name ties to the
+  old record.
+- A node nothing refers to and nothing is named after has no question yet; such orphans are counted per kind.
+- No gate evaluates a soul rule or a convention yet, so those rules are counted as not checked.
+- A key repeated inside one JSON object of an optional source, and a supersession cycle between rulings, are not
+  detected.
+
 ## 2026-11-11 - `ui ds surface` onboards a design system from a codebase
 
 ### Added
