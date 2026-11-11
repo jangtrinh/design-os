@@ -61,7 +61,7 @@ function ask(candidates: readonly SourceMatchCandidate[], members: readonly stri
       { id: SAME_OUTCOME, label: `Same component: ${c.name} keeps its record and gains the code reference` },
       { id: SEPARATE_OUTCOME, label: `Different component: register ${c.name} · code on its own` },
     ];
-    labels[member] = `${c.name} (${c.existingId === NO_PROVENANCE_ID ? "no provenance" : c.existingId}, ${c.file})`;
+    labels[member] = c.name; // the sheet prints `<label> (<member id>)`, and the id already names the existing source and the code file
   }
   return {
     question: `${asked.length} component(s) found in code have the name of a record that is already in the registry from another source. Are they the same components?`,

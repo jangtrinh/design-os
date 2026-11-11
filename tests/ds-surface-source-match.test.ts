@@ -62,9 +62,13 @@ describe("the question", () => {
     ]);
     expect(c!.options.map((o) => o.id)).toEqual(["same", "separate", "review-individually"]);
     expect(c!.labels).toEqual({
-      "Card#figma:1:1,src/components/ui/Card.tsx": "Card (figma:1:1, src/components/ui/Card.tsx)",
-      "Panel#no-provenance,src/components/kit/Panel.tsx": "Panel (no provenance, src/components/kit/Panel.tsx)",
+      "Card#figma:1:1,src/components/ui/Card.tsx": "Card",
+      "Panel#no-provenance,src/components/kit/Panel.tsx": "Panel",
     });
+    // the sheet prints each label as `name (id)`: the id names the existing source and the code file
+    const sheet = capture(["onboard", "questions", "--format", "markdown", "--cwd", p]).out;
+    expect(sheet).toContain("- Card (Card#figma:1:1,src/components/ui/Card.tsx)");
+    expect(sheet).toContain("- Panel (Panel#no-provenance,src/components/kit/Panel.tsx)");
   });
   it("computes each consequence for its own option from the members", () => {
     const [c] = pending(readyProject());
@@ -303,6 +307,7 @@ describe("the text form", () => {
     expect(text()).toMatch(/links: 2 existing records would gain a code reference[\s\S]*Card {2}src\/components\/ui\/Card\.tsx:3-5 {2}tokens added: color\.surface/);
     expect(text("--apply", "--now", NOW)).toContain("applied: 4 new, 2 linked, 0 separate; written to design/component-registry.json, resealed once");
     expect(text()).toContain("unchanged: 6 components already registered from exactly this source");
+    expect(text("--apply", "--now", NOW)).toContain("applied: nothing to write, the registry is as the tree says; no reseal (generation 2)");
   });
 });
 

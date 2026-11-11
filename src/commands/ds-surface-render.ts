@@ -49,7 +49,9 @@ export function renderSurfaceText(d: SurfaceData): string {
     if (r.shadowedNotRegistered > 0) lines.push(`  ${plural(r.shadowedNotRegistered, "shadowed file")} not registered (the public file of the name is)`);
   }
   if (d.applied !== undefined) {
-    lines.push(`  applied: ${d.applied.registered} new, ${d.applied.linked} linked, ${d.applied.separate} separate; written to ${d.applied.file}${d.applied.sealed ? `, resealed once (generation ${d.applied.generation})` : " (no sealed design system: written unsealed)"}`);
+    const a = d.applied;
+    if (a.registered + a.linked + a.separate === 0) lines.push(`  applied: nothing to write, the registry is as the tree says${a.generation === undefined ? "" : `; no reseal (generation ${a.generation})`}`);
+    else lines.push(`  applied: ${a.registered} new, ${a.linked} linked, ${a.separate} separate; written to ${a.file}${a.sealed ? `, resealed once (generation ${a.generation})` : " (no sealed design system: written unsealed)"}`);
     for (const w of d.applied.warnings) lines.push(`    ${w}`);
   } else if (r !== undefined) lines.push("  next: ui ds surface --register --apply writes these records");
   return `${lines.join("\n")}\n`;
