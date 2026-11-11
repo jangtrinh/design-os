@@ -48,6 +48,9 @@ function base(): { built: string; unbuilt: string } {
   return bases;
 }
 
+/** A copy of the built base project: the start of every extra state. */
+export const freshBuilt = (): string => copyTree(base().built);
+
 /** The scan changes after the ontology was built, so the file on disk no longer matches the sources. */
 function makeNotCurrent(p: string): void {
   const file = join(p, "design", "ds.json");

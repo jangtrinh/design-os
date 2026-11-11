@@ -2,7 +2,7 @@
  * The extractor of the walker, on its own: one line of each form the tool prints, and the lines that must not be taken.
  */
 import { describe, expect, it } from "vitest";
-import { extractCommands, QUERY_PLACEHOLDER } from "./agents-walker-extract.js";
+import { extractCommands, QUERY_PLACEHOLDER, skippedByName } from "./agents-walker-extract.js";
 
 describe("extractCommands takes a command from every form the tool prints", () => {
   const cases: [string, string, string[][]][] = [
@@ -34,8 +34,11 @@ describe("extractCommands skips what is not a command to run", () => {
     expect(extractCommands(text)).toEqual([]);
     expect(extractCommands(`run \`ui ontology query "${QUERY_PLACEHOLDER}"\` and \`ui agents check\``)).toEqual([["agents", "check"]]);
   });
-  it("a hint that names a command in quotes without telling the reader to run it", () => {
-    expect(extractCommands("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy")).toEqual([]);
+  it("the studio soul command in a hint: recognised, and skipped by name because it writes under the home directory", () => {
+    const hint = "hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)";
+    expect(skippedByName(hint)).toEqual([["ds", "soul", "init", "--studio"]]);
+    expect(extractCommands(hint)).toEqual([]);
+    expect(extractCommands(`${hint}\nNext: ui agents check`)).toEqual([["agents", "check"]]);
   });
   it("prose that mentions ui in a word", () => {
     expect(extractCommands("the ui kernel reads design/ds.json")).toEqual([]);

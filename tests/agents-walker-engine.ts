@@ -3,7 +3,7 @@
  * four invariants after every command. Each violation is a string that names the state, the command and the invariant.
  *   1. a command creates no target for a runtime or a role the state did not have, unless its own line names it;
  *   2. nothing changes except generated agent targets, the ontology file and the agents section of AGENTS.md;
- *   3. a command exits 0, or is refused and its refusal prints no command refused for the same reason;
+ *   3. a printed command, run as printed from the state that printed it, exits 0, with no exception;
  *   4. a walk ends at `ui agents check` with exit 0, or at an output that prints no command.
  */
 import { createHash } from "node:crypto";
@@ -46,8 +46,16 @@ function targetsOf(dir: string): Set<string> {
   return out;
 }
 const flagValues = (argv: string[], flag: string): string[] => { const i = argv.indexOf(flag); return i < 0 ? [] : (argv[i + 1] ?? "").split(","); };
-const run = (dir: string, argv: string[], extra: string[] = []): ReturnType<typeof capture> => capture([...argv, "--dir", dir, ...extra]);
-const errorCode = (dir: string, argv: string[]): string => { const t = copyTree(dir); try { return (JSON.parse(run(t, argv, ["--json"]).out) as { error?: { code?: string } }).error?.code ?? "?"; } catch { return "?"; } };
+/** Runs a printed command in the project: `ui onboard` names the project with --cwd, every other command with --dir. */
+const run = (dir: string, argv: string[], extra: string[] = []): ReturnType<typeof capture> => capture([...argv, argv[0] === "onboard" ? "--cwd" : "--dir", dir, ...extra]);
+/**
+ * The area block tells an agent how to ask the owner an open ruling question, with `ui onboard questions`. That is an
+ * instruction for when a question is open, not a next action of the state: with nothing pending it exits 1 by design
+ * ("nothing is pending"). It is skipped, by name, from area blocks only; every other text that prints it is followed.
+ */
+const asksTheOwner = (argv: string[]): boolean => argv[0] === "onboard" && argv[1] === "questions";
+/** `ui agents check` is a verdict, not a write: its exit code is judged by invariant 4, not by invariant 3. */
+const isVerdict = (argv: string[]): boolean => argv[0] === "agents" && argv[1] === "check";
 
 export function walk(label: string, root: string): WalkResult {
   const violations: string[] = [];
@@ -62,7 +70,7 @@ export function walk(label: string, root: string): WalkResult {
   const printedBy = (dir: string, snap: Snap): { check: string[][]; blocks: string[][]; code: number } => {
     const blocks = [...snap].filter(([k]) => isTarget(k) && k !== "design/knowledge/ontology.json").flatMap(([, v]) => blocksIn(v)).concat(blocksIn(snap.get("AGENTS.md") ?? "")).join("\n");
     const check = run(dir, ["agents", "check"]);
-    return { check: extractCommands(check.out + check.err), blocks: extractCommands(blocks), code: check.code };
+    return { check: extractCommands(check.out + check.err), blocks: extractCommands(blocks).filter((a) => !asksTheOwner(a)), code: check.code };
   };
 
   // The state itself, and the two probes that print refusals: `ui agents init` with and without --force.
@@ -115,14 +123,9 @@ export function walk(label: string, root: string): WalkResult {
         if (path === "AGENTS.md" && outside(snap.get(path)) === outside(after.get(path))) continue;
         say(2, where, `${path} changed and is neither a generated target nor the agents section`);
       }
-      // 3. exit 0, or refused with a refusal that prints no command refused for the same reason.
+      // 3. a printed command, run as printed from the state that printed it, exits 0: a refusal that points elsewhere is still a refusal.
       const printedNow = extractCommands(r.out + r.err);
-      if (r.code !== 0) {
-        const code = errorCode(node.dir, argv);
-        for (const other of printedNow) {
-          if (run(copyTree(node.dir), other).code !== 0 && errorCode(node.dir, other) === code) say(3, where, `it is refused (${code}) and prints \`${cmd(other)}\`, which is refused for the same reason`);
-        }
-      }
+      if (r.code !== 0 && !isVerdict(argv)) say(3, where, `it exits ${r.code} when run as printed: ${(r.out + r.err).trim().split("\n")[0]?.slice(0, 160)}`);
       if (r.code === 0 && next !== here) progressed.add(argv.join(" "));
       if (next === here) { for (const more of printedNow) if (!ran.has(more.join(" "))) todo.push(more); continue; }
       if (!seen.has(next) && node.depth + 1 <= MAX_DEPTH) { seen.add(next); queue.push({ dir: work, depth: node.depth + 1, trail: `${node.trail} > ${cmd(argv)}`, extra: printedNow }); }

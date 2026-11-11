@@ -35,12 +35,25 @@ function rawCommands(text: string): string[] {
     for (const m of line.matchAll(/(?:Next|Then):\s+(ui [^\n`]+)/g)) found.push(m[1] as string);
     for (const m of line.matchAll(/\b(?:with|regenerate it|regenerate them):\s+(ui [^\n`]+)/g)) found.push(m[1] as string);
     for (const m of line.matchAll(/\brun\s+'(ui [^']+)'/g)) found.push(m[1] as string);
+    for (const m of line.matchAll(/\bhint:.*?'(ui [^']+)'/g)) found.push(m[1] as string);
     for (const m of line.matchAll(/\brun\s+(ui [^\n`']+)/g)) found.push(untilProse(m[1] as string));
   }
   return found;
 }
 
-/** Every distinct command the text tells the reader to run, as argv after `ui`; templates with a placeholder are skipped. */
+/**
+ * Commands the walker recognises and never runs: they write outside the temp project. `ui ds soul init --studio` writes
+ * the studio soul under the home directory.
+ */
+const NEVER_RUN: readonly (readonly string[])[] = [["ds", "soul", "init"]];
+const neverRun = (argv: readonly string[]): boolean => NEVER_RUN.some((n) => n.every((w, i) => argv[i] === w));
+
+/** The commands a text names that the walker skips by name. */
+export function skippedByName(text: string): string[][] {
+  return rawCommands(text).map((raw) => shellWords(clean(raw)).slice(1)).filter(neverRun);
+}
+
+/** Every distinct command the text tells the reader to run, as argv after `ui`; templates and skipped-by-name commands are left out. */
 export function extractCommands(text: string): string[][] {
   const seen = new Set<string>();
   const out: string[][] = [];
@@ -49,7 +62,7 @@ export function extractCommands(text: string): string[][] {
     if (line.includes(QUERY_PLACEHOLDER) || /<[a-z -]+>/.test(line)) continue;
     const argv = shellWords(line).slice(1);
     const key = argv.join("\u0000");
-    if (argv.length === 0 || seen.has(key)) continue;
+    if (argv.length === 0 || seen.has(key) || neverRun(argv)) continue;
     seen.add(key);
     out.push(argv);
   }
