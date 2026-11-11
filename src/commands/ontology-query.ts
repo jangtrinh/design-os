@@ -52,12 +52,13 @@ export function runOntologyQuery(parsed: ParsedArgs): CommandResult {
   const budget = rawBudget === undefined ? DEFAULT_BUDGET : Number(rawBudget);
 
   const file = join(ready.dir, ONTOLOGY_REL);
+  const disk = existsSync(file) ? readFileSync(file, "utf8") : null;
   let why: string | null;
-  try { why = staleReason(ready.dir, ready, existsSync(file) ? readFileSync(file, "utf8") : null); }
+  try { why = staleReason(ready.dir, ready, disk); }
   catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(CMD, json, e.code, e.message); throw e; }
-  if (why !== null) return fail(CMD, json, STALE, why);
-  // The file equals the fresh emit, so the fresh ontology in memory is the file.
-  const ontology: Ontology = ready.built.ontology;
+  if (why !== null || disk === null) return fail(CMD, json, STALE, why ?? "there is no ontology file yet");
+  // The file equals what a build from the current sources writes, and the file is what the query reads.
+  const ontology = JSON.parse(disk) as Ontology;
 
   let area: string | null = null;
   if (typeof parsed.flags["area"] === "string") {
