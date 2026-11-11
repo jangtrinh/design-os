@@ -52,7 +52,8 @@ Verdicts (the final line of text output):
 
 Exit codes:
   0  Scan completed (any verdict — the verdict is data, not a failure)
-  1  BAD_ARG (unexpected positional) or READ_ERROR (root unreadable)
+  1  BAD_ARG (unexpected positional), READ_ERROR (root unreadable) or BAD_MANIFEST
+     (design/design-dir.json cannot be read, so its rulings cannot be honoured)
 `;
 
 const VERDICT_LINE: Record<ScanResult["verdict"], string> = {
