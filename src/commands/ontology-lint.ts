@@ -9,13 +9,15 @@ import { join } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { okJsonWithExit } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
-import { resolveDetections } from "../core/owner-rulings/resolve-detections.js";
+import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
+import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
+import { blockingClusters, blockingSummary } from "../core/ontology/blocking-clusters.js";
 import { coverageTable } from "../core/ontology/coverage.js";
 import { CONVENTIONS_JSON_REL, CONVENTIONS_MD_REL } from "../core/ontology/conventions-machine-form.js";
 import { lintOntology } from "../core/ontology/lint-ontology.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 import { lintText } from "./ontology-render.js";
-import { isResult, prepare } from "./ontology-shared.js";
+import { fail, isResult, prepare } from "./ontology-shared.js";
 
 const CMD = "ontology lint";
 const KNOWN = ["dir", "strict"] as const;
@@ -25,12 +27,13 @@ const readIfPresent = (dir: string, rel: string): string | null => (existsSync(j
 export function runOntologyLint(parsed: ParsedArgs): CommandResult {
   const ready = prepare(parsed, CMD, KNOWN);
   if (isResult(ready)) return ready;
-  const { dir, built, rulings } = ready;
-  const open = resolveDetections(built.detections, rulings, CMD).open;
-  const openCount = open.reduce((n, c) => n + c.count, 0);
+  const { dir, built } = ready;
+  let open: ReturnType<typeof blockingClusters>;
+  try { open = blockingClusters(dir, built.detections); }
+  catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(CMD, parsed.json, e.code, e.message); throw e; }
   const result = lintOntology({
     fresh: open.length === 0 ? built.ontology : null,
-    ...(open.length === 0 ? {} : { blockedReason: `${openCount} term candidate(s) await an owner ruling` }),
+    ...(open.length === 0 ? {} : { blockedReason: blockingSummary(open) }),
     disk: readIfPresent(dir, ONTOLOGY_REL),
     conventions: { json: readIfPresent(dir, CONVENTIONS_JSON_REL), md: readIfPresent(dir, CONVENTIONS_MD_REL) },
     strict: parsed.flags["strict"] === true,

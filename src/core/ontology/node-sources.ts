@@ -32,8 +32,6 @@ export interface NodeSources {
   scan: DsFile | null;
   figma: FigmaFacts | null;
   code: CodeFacts | null;
-  /** True when the code door found components to read: the project-level questions of the scan then bear on the build. */
-  codeDoorRead: boolean;
 }
 
 const PROJECT: OntNode = { id: "project:root", kind: "project", name: "project" };
@@ -63,5 +61,5 @@ export function readNodeSources(projectDir: string, rulings?: readonly Ruling[])
   byKind.set("project", { kind: "project", status: "read", nodes: 1, note: "always one node" });
   byKind.set("gate", { kind: "gate", status: "read", nodes: gates.length, note: `${gates.length} gate families of the kernel` });
   const reports = NODE_KINDS.map((k) => byKind.get(k) as SourceReport);
-  return { nodes, reports, stores, rules, ring2, scan: figma.scan, figma: figma.figma, code: code.code, codeDoorRead: code.code !== null };
+  return { nodes, reports, stores, rules, ring2, scan: figma.scan, figma: figma.figma, code: code.code };
 }

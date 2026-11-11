@@ -27,7 +27,7 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   const json = parsed.json;
   const ready = prepare(parsed, CMD, KNOWN);
   if (isResult(ready)) return ready;
-  const { dir, built, sources } = ready;
+  const { dir, built } = ready;
   const o = built.ontology;
   const bad = graphErrors(o.nodes, o.links);
   if (bad.length > 0) return fail(CMD, json, bad[0]!.code, refusalText(bad));
@@ -35,10 +35,8 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   const target = resolve(dir, outFlag);
   const outRel = relative(dir, target).split("\\").join("/");
 
-  // The code door's project-level questions bear on the build only when the code door was read.
-  const tolerated = sources.codeDoorRead ? (["app-roots"] as const) : (["app-roots", "scan-budget"] as const);
   let blocked: CommandResult | null;
-  try { blocked = blockOnOpenClusters({ command: CMD, projectDir: dir, detections: built.detections, ownKinds: ["inferred-links"], runsProjectDetectors: true, tolerated, json }); }
+  try { blocked = blockOnOpenClusters({ command: CMD, projectDir: dir, detections: built.detections, ownKinds: ["inferred-links"], runsProjectDetectors: true, json }); }
   catch (e) { if (e instanceof RulingStoreError || e instanceof PendingStoreError) return fail(CMD, json, e.code, e.message); throw e; }
   const facts = { nodes: o.nodes.length, links: o.links.length, coverage: coverageTable(o), sources: o.sources, linkReports: o.linkReports, proposals: o.proposals, uncovered: o.uncovered };
   if (blocked !== null) {
