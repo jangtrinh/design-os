@@ -47,22 +47,28 @@ function pairFindings(c: LintInput["conventions"]): LintFinding[] {
 
 export function lintOntology(input: LintInput): LintResult {
   const findings: LintFinding[] = [];
-  const err = (code: string, message: string): void => { findings.push({ code, severity: "error", message }); };
+  const seenFinding = new Set<string>();
+  const err = (code: string, message: string): void => { if (!seenFinding.has(`${code} ${message}`)) { seenFinding.add(`${code} ${message}`); findings.push({ code, severity: "error", message }); } };
   let ontology: Ontology | null = null;
   let onDisk: Ontology | null = null;
+  // The build that would run now is judged too: a refusal it would give is reported by its own code, and no line promises that running it cures anything it would refuse.
+  const pair = pairFindings(input.conventions);
+  const freshErrors = graphErrors(input.fresh.nodes, input.fresh.links);
+  const refused = freshErrors.length > 0 || pair.some((f) => f.severity === "error");
+  const settle = "ui ontology build is refused until the findings of this list are settled";
 
-  if (input.disk === null) err(STALE_CODE, input.blocked === undefined ? "there is no ontology file yet: ui ontology build writes design/knowledge/ontology.json" : "there is no ontology file yet; answer the open questions first, then ui ontology build writes design/knowledge/ontology.json");
+  if (input.disk === null) err(STALE_CODE, refused ? `there is no ontology file yet, and ${settle}` : input.blocked === undefined ? "there is no ontology file yet: ui ontology build writes design/knowledge/ontology.json" : "there is no ontology file yet; answer the open questions first, then ui ontology build writes design/knowledge/ontology.json");
   else {
     const parsed = parseDisk(input.disk);
-    if (typeof parsed === "string") err(STALE_CODE, parsed);
+    if (typeof parsed === "string") err(STALE_CODE, refused ? `the ontology file is not readable, and ${settle}` : parsed);
     else { onDisk = parsed; ontology = parsed; }
   }
-  const view = onDisk ?? input.fresh;
-  for (const e of graphErrors(view.nodes, view.links)) err(e.code, e.message);
+  if (onDisk !== null) for (const e of graphErrors(onDisk.nodes, onDisk.links)) err(e.code, e.message);
+  for (const e of freshErrors) err(e.code, e.message);
   const b = input.blocked;
   if (onDisk !== null) {
     if (b !== undefined) err(BLOCKED_FRESH_CODE, `${b.summary}, so the file cannot be compared with a fresh emit: ${b.action}`);
-    else if (serializeOntology(input.fresh) !== input.disk) err(STALE_CODE, "the file differs from a fresh emit of the current sources: ui ontology build rewrites it");
+    else if (serializeOntology(input.fresh) !== input.disk) err(STALE_CODE, refused ? `the file differs from a fresh emit of the current sources, and ${settle}` : "the file differs from a fresh emit of the current sources: ui ontology build rewrites it");
   } else if (b !== undefined) err(BLOCKED_FRESH_CODE, `${b.summary}: ${b.action}`);
   ontology = ontology ?? input.fresh;
 
@@ -74,6 +80,6 @@ export function lintOntology(input: LintInput): LintResult {
     }
     for (const u of ontology.uncovered ?? []) findings.push({ code: "ONTOLOGY_ORPHAN_UNASKED", severity: "warning", message: `${u.count} ${u.kind} orphan(s) have no candidate, so no question covers them yet` });
   }
-  findings.push(...pairFindings(input.conventions));
+  findings.push(...pair);
   return { findings, ontology };
 }
