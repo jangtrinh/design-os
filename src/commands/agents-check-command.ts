@@ -85,7 +85,7 @@ export function runCheck(parsed: ParsedArgs): CommandResult {
     };
     for (const { a, role } of claudeFiles) {
       judge(a.rel, `'${a.name}'`, a.text, agentFile(ctx, "claude", role).content, "agent-stale",
-        `'${a.name}' (${a.stamp.role}) is stale — the file no longer matches its template render; run 'ui agents init --force' to regenerate`);
+        `'${a.name}' (${a.stamp.role}) is stale — the file no longer matches its template render; regenerate it: ${heal}`);
     }
     for (const { a, role } of antigravityFiles) {
       judge(a.rel, `'${a.name}' for Antigravity`, a.text, agentFile(ctx, "antigravity", role).content, DRIFT,
