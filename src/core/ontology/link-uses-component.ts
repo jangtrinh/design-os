@@ -26,7 +26,7 @@ import type { FigmaFacts } from "./source-screens-figma.js";
 import type { LinkReport, OntLink } from "./ontology-types.js";
 import { byText } from "./ontology-types.js";
 
-/** A record the Figma ingest wrote: it writes no provenance. A record with one (registered from code) never ties to a scan component by name. */
+/** A record the Figma ingest wrote: it writes no provenance. A record with one (another door wrote it) never ties to a scan component by name. */
 const figmaRecord = (r: ComponentRecord): boolean => r.provenance === undefined;
 /** The name the ingest stored for a node: its own function, with the flag it passes for a node the owner kept as deprecated. */
 const derivedName = (c: ScanComponent, keptDeprecated: ReadonlySet<string>): string => storedName(c, keptDeprecated.has(c.id));
@@ -80,7 +80,7 @@ function figmaLinks(facts: FigmaFacts, records: readonly ComponentRecord[], kept
   }
   report.unresolved += lookupFailed;
   if (lookupFailed > 0) report.details.push(`${lookupFailed} instance(s) the host could not resolve to a component`);
-  if (toCode > 0) report.details.push(`${toCode} reference(s) match only a record registered from code, which is never tied to a Figma component by name: ${[...lostToCode].sort(byText).slice(0, 5).join(", ")}${lostToCode.size > 5 ? ", ..." : ""}`);
+  if (toCode > 0) report.details.push(`${toCode} reference(s) match only a record another door wrote (registered from code, or any provenance the Figma ingest does not write), which is never tied to a Figma component by name: ${[...lostToCode].sort(byText).slice(0, 5).join(", ")}${lostToCode.size > 5 ? ", ..." : ""}`);
   if (lost.size > 0) report.details.push(`${report.unresolved - lookupFailed - toCode} reference(s) match no registry record: ${[...lost].sort(byText).slice(0, 5).join(", ")}${lost.size > 5 ? ", ..." : ""}`);
 }
 

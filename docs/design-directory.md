@@ -138,7 +138,7 @@ re-emits in memory and compares bytes); orphans (no link, not standalone) are wa
 the kind coverage table (`nodes`, `linked`, `orphan`, `standalone`, `source missing`) and the link reports (`written`,
 `unresolved`, `not sensed`, `not checked`, and the owner-ruled pairs no candidate matches; `--json`: `linkReports`) are
 always printed. An open question the build depends on is an error that names `ui onboard questions`, for every kind.
-`--out` and `--file` must name a file inside the project. The `screen` source keeps one status per door (`doors`), so a
+`--out` and `--file` must name a file inside the project (real paths are compared, so a symbolic link that points outside is refused). The `screen` source keeps one status per door (`doors`), so a
 Figma scan never sensed for frames stays `not-sensed` next to a code door that was read. Project structure is never an
 orphan: the `project` node and the `gate` nodes belong to the kernel.
 
@@ -182,7 +182,7 @@ no question and stays an orphan; the summary counts those per kind.
 `screens.meta.json` (`screens-meta/1`) is supplied by a project, and the kernel reads these fields and ignores the rest:
 `{ "schema": "screens-meta/1", "at", "screens": { "<screen id>": { "name", "app", "feature", "figmaId", "kind", "page",
 "purpose", ... } }, "unassigned": [{ "app", "figmaId", "reason" }] }`. `app` nodes are the distinct `app` values and
-`feature` nodes are the distinct (`app`, `feature`) pairs, keyed `feature:<app>/<feature>`; `belongs-to` runs feature to
+`feature` nodes are the distinct (`app`, `feature`) pairs, keyed `feature:<app>/<feature>` (`%` and `/` are encoded as `%25` and `%2F` inside each part); `belongs-to` runs feature to
 app to project. An entry ties to a screen node only when its `figmaId` equals the node id of a Figma frame that is a
 screen node (exact, never by name): the screen then belongs to the entry's feature (to its app when it names no feature)
 and the entry's strings `name`, `kind`, `page` and `purpose` become the node's `meta`. An entry that ties to no screen

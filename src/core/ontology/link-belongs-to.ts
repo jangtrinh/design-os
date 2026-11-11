@@ -5,6 +5,7 @@
  * An entry that ties to no screen node is counted unresolved and never linked; it still contributed its app and feature.
  */
 import type { NodeSources } from "./node-sources.js";
+import { featureId } from "./source-screens-meta.js";
 import { nodeId } from "./node-ids.js";
 import { tieEntries } from "./screen-meta-ties.js";
 import type { LinkReport, OntLink } from "./ontology-types.js";
@@ -21,7 +22,7 @@ export function belongsToLinks(s: NodeSources): { links: OntLink[]; report: Link
   for (const e of meta.entries) {
     const screen = ties.tied.get(e.id);
     if (screen === undefined || e.app === undefined || e.featureBad === true) continue;
-    links.push({ kind: "belongs-to", from: screen, to: e.feature === undefined ? nodeId("app", e.app) : nodeId("feature", `${e.app}/${e.feature}`) });
+    links.push({ kind: "belongs-to", from: screen, to: e.feature === undefined ? nodeId("app", e.app) : featureId(e.app, e.feature) });
   }
   report.unresolved = ties.untied.length;
   const named = ties.untied.map((e) => `${e.id} ties to no screen (${e.figmaId === undefined ? "no figmaId" : ties.claimed.has(e.figmaId) ? `${ties.claimed.get(e.figmaId)} entries claim one figmaId, ${e.figmaId}` : `figmaId ${e.figmaId}`})`).sort(byText);

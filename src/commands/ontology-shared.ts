@@ -2,8 +2,8 @@
  * What `ui ontology build` and `ui ontology lint` share: the project directory, the stored rulings, one read of every
  * source and the in-memory build. A failure to read becomes an exit-1 envelope that names the file or the store.
  */
-import { existsSync, statSync } from "node:fs";
-import { isAbsolute, relative, resolve } from "node:path";
+import { existsSync, realpathSync, statSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { errJson, errText } from "../core/output.js";
@@ -43,9 +43,17 @@ export function prepare(parsed: ParsedArgs, command: string, known: readonly str
 
 /** A `--out` or `--file` value as a path relative to the project, or the refusal that names it: it must be a file inside the project. */
 export function insideProject(command: string, json: boolean, dir: string, flag: string, value: string): string | CommandResult {
-  const rel = relative(dir, resolve(dir, value));
-  if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) return fail(command, json, "BAD_ARG", `--${flag} '${value}' must be a file inside the project ${dir}`);
-  return rel.split("\\").join("/");
+  const refuse = (why: string): CommandResult => fail(command, json, "BAD_ARG", `--${flag} '${value}' ${why}`);
+  const escapes = (rel: string): boolean => rel.split(sep)[0] === ".." || isAbsolute(rel);
+  const abs = resolve(dir, value);
+  const rel = relative(dir, abs);
+  if (rel === "" || escapes(rel)) return refuse("must be a file inside the project");
+  // A symbolic link inside the project may point outside it: compare the real paths of the nearest existing parent.
+  let probe = abs;
+  while (!existsSync(probe)) probe = dirname(probe);
+  if (escapes(relative(realpathSync(dir), realpathSync(probe)))) return refuse("resolves outside the project through a symbolic link; it must be a file inside the project");
+  if (existsSync(abs) && statSync(abs).isDirectory()) return refuse("must be a file, and it names a directory");
+  return rel.split(sep).join("/");
 }
 
 export const isResult = (v: Prepared | CommandResult): v is CommandResult => "exitCode" in v;

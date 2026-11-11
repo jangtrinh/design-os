@@ -40,6 +40,10 @@ const str = (v: unknown): string | undefined => (typeof v === "string" && v !== 
 const bad = (why: string): OntologyReadError => new OntologyReadError(BAD_SOURCE, `${SCREENS_META_REL} cannot be read as "${SCREENS_META_SCHEMA}": ${why}; fix it or remove it, then run ui ontology build again`);
 const absent = (kind: SourceReport["kind"]): SourceReport => ({ kind, status: "missing", nodes: 0, note: `no ${SCREENS_META_REL}` });
 
+const part = (s: string): string => s.replace(/%/g, "%25").replace(/\//g, "%2F");
+/** `feature:<app>/<feature>`, with `%` and `/` encoded inside each part so no two (app, feature) pairs share an id. */
+export const featureId = (app: string, feature: string): string => nodeId("feature", `${part(app)}/${part(feature)}`);
+
 export function readScreensMeta(projectDir: string): MetaRead {
   const path = join(projectDir, SCREENS_META_REL);
   if (!existsSync(path)) return { meta: null, nodes: [], reports: [absent("app"), absent("feature")] };
@@ -68,7 +72,7 @@ export function readScreensMeta(projectDir: string): MetaRead {
     entries.push({ id, ...(app === undefined ? {} : { app }), ...(feature === undefined ? {} : { feature }), ...(featureBad ? { featureBad: true as const } : {}), ...(figmaId === undefined ? {} : { figmaId }), fields });
     if (app === undefined) { withoutApp++; leave(left, isBadString(raw, "app") ? "app that is not a string" : "without an app"); continue; }
     apps.add(app);
-    if (feature !== undefined) features.set(nodeId("feature", `${app}/${feature}`), { app, name: feature, id: nodeId("feature", `${app}/${feature}`) });
+    if (feature !== undefined) features.set(featureId(app, feature), { app, name: feature, id: featureId(app, feature) });
   }
   const nodes: OntNode[] = [
     ...[...apps].map((a): OntNode => ({ id: nodeId("app", a), kind: "app", name: a })),
