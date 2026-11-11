@@ -84,9 +84,9 @@ describe("ui agents init", () => {
     expect(env.ok).toBe(true);
     expect(env.command).toBe("agents init");
     expect(env.data.agents).toEqual([
-      { role: "designer", name: "designer-meridian-meridian-store", path: agentPath(tmp, "designer-meridian-meridian-store.md"), written: true },
-      { role: "curator", name: "curator-meridian-meridian-store", path: agentPath(tmp, "curator-meridian-meridian-store.md"), written: true },
-      { role: "figma-hand", name: "figma-meridian-meridian-store", path: agentPath(tmp, "figma-meridian-meridian-store.md"), written: true },
+      { role: "designer", name: "designer-meridian-meridian-store", path: agentPath(tmp, "designer-meridian-meridian-store.md"), written: true, replaced: false, differedOutsideBlock: false },
+      { role: "curator", name: "curator-meridian-meridian-store", path: agentPath(tmp, "curator-meridian-meridian-store.md"), written: true, replaced: false, differedOutsideBlock: false },
+      { role: "figma-hand", name: "figma-meridian-meridian-store", path: agentPath(tmp, "figma-meridian-meridian-store.md"), written: true, replaced: false, differedOutsideBlock: false },
     ]);
 
     const designer = readFileSync(agentPath(tmp, "designer-meridian-meridian-store.md"), "utf8");

@@ -19,10 +19,10 @@ import type { AgentRole } from "../core/agents-gen.js";
 import { CODEX_AGENTS_BEGIN, CODEX_AGENTS_END, CODEX_REL, agentFile, codexSection, plainRender } from "../core/agents-targets.js";
 import { RUNTIMES } from "../core/init-stub.js";
 import type { Runtime } from "../core/init-stub.js";
+import { initLines, priorOf } from "./agents-init-report.js";
+import type { InitRow } from "./agents-init-report.js";
 import { overLimitMessage } from "./agents-doc-limit-refusal.js";
 import { isFail, isRosterRole, loadProject, targetContext } from "./agents-shared.js";
-
-interface Row { runtime: Runtime; role: AgentRole; name: string; path: string; written: true }
 
 /** `--runtimes a,b`: the named runtimes in canonical order, or the refusal that names the unknown one. */
 function parseRuntimes(flag: string | boolean | undefined): Runtime[] | string {
@@ -58,18 +58,21 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   const roles = parseRoster(parsed.flags["roster"]);
   if (typeof roles === "string") return err("BAD_ARG", roles);
 
-  const rows: Row[] = [];
+  const rows: InitRow[] = [];
   const artifacts: AdapterArtifact[] = [];
   for (const runtime of runtimes) {
     if (runtime === "codex") {
-      for (const role of roles) rows.push({ runtime, role, name: plainRender(ctx, role).name, path: join(proj.root, CODEX_REL), written: true });
-      artifacts.push({ mode: "upsert-section", absPath: join(proj.root, CODEX_REL), content: codexSection(ctx, roles), sentinelBegin: CODEX_AGENTS_BEGIN, sentinelEnd: CODEX_AGENTS_END });
+      const section: AdapterArtifact = { mode: "upsert-section", absPath: join(proj.root, CODEX_REL), content: codexSection(ctx, roles), sentinelBegin: CODEX_AGENTS_BEGIN, sentinelEnd: CODEX_AGENTS_END };
+      const prior = priorOf(section);
+      for (const role of roles) rows.push({ runtime, role, name: plainRender(ctx, role).name, path: join(proj.root, CODEX_REL), written: true, ...prior });
+      artifacts.push(section);
       continue;
     }
     for (const role of roles) {
       const f = agentFile(ctx, runtime, role);
-      rows.push({ runtime, role, name: f.name, path: join(proj.root, f.rel), written: true });
-      artifacts.push({ mode: "write", absPath: join(proj.root, f.rel), content: f.content });
+      const artifact: AdapterArtifact = { mode: "write", absPath: join(proj.root, f.rel), content: f.content };
+      rows.push({ runtime, role, name: f.name, path: join(proj.root, f.rel), written: true, ...priorOf(artifact) });
+      artifacts.push(artifact);
     }
   }
 
@@ -99,11 +102,9 @@ export function runInit(parsed: ParsedArgs): CommandResult {
   catch (e) { return err("WRITE_ERROR", `cannot write agent files: ${e instanceof AdapterWriteError || e instanceof Error ? e.message : String(e)}`); }
 
   // `agents` keeps the shape `ui init --with-agents` reads: the Claude Code rows. `targets` lists every runtime.
-  const claude = rows.filter((r) => r.runtime === "claude").map(({ role, name, path, written }) => ({ role, name, path, written }));
+  const claude = rows.filter((r) => r.runtime === "claude").map(({ role, name, path, written, replaced, differedOutsideBlock }) => ({ role, name, path, written, replaced, differedOutsideBlock }));
   if (parsed.json) return okJson(sub, { agents: claude, targets: rows });
-  const lines = rows.filter((r) => r.runtime === "claude").map((r) => `agent written: ${r.path} (${r.role})`);
-  lines.push(...rows.filter((r) => r.runtime === "antigravity").map((r) => `agent written: ${r.path} (${r.role}, Antigravity)`));
-  if (runtimes.includes("codex")) lines.push(`agents section written: ${join(proj.root, CODEX_REL)} (Codex: ${roles.join(", ")})`);
+  const lines = initLines(rows, join(proj.root, CODEX_REL));
   if (ctx.studio === null) lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
   if (runtimes.includes("claude")) lines.push("agents are Claude Code subagents — delegate with their names.");
   if (ctx.view.state === "notCurrent") lines.push(`The ontology file is not current, so the area blocks list no area (the roster was written all the same): ${ctx.view.sentence}.`, ...(ctx.view.next === null ? [] : [`Next: ${ctx.view.next}`]), "Then: ui agents init --force");
