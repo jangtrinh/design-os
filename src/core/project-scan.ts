@@ -28,8 +28,8 @@ import {
   buildApps, findTailwindV4Css, frameworkOf, ownerOf, readDeps, stylingOf,
 } from "./project-scan-apps.js";
 import type { AppCandidate, AppRoot } from "./project-scan-apps.js";
-import { NO_SCAN_RULINGS, honouredOf, prunesAppRoot } from "./project-scan-rulings.js";
-import type { ScanRulings } from "./project-scan-rulings.js";
+import { NO_SCAN_RULINGS, honouredOf, onWayToKeptRoot, prunesAppRoot } from "./project-scan-rulings.js";
+import type { Honoured, ScanRulings } from "./project-scan-rulings.js";
 
 export type { AppRoot } from "./project-scan-apps.js";
 
@@ -64,8 +64,8 @@ export interface ScanResult {
   apps: AppRoot[];
   /** When truncated: the first-level directories that consumed the entry budget, most entries first, top 5. Empty otherwise. */
   budget: Array<{ dir: string; visited: number }>;
-  /** Present only when an owner ruling shaped the walk: the directories skipped and the app roots kept. */
-  honoured?: { skip: string[]; roots: string[] };
+  /** Present only when an owner ruling exists (or could not be read): the directories skipped, the app roots kept, left out and not ruled yet. */
+  honoured?: Honoured;
 }
 
 // ─── Tunables ───────────────────────────────────────────────────────────────────
@@ -195,8 +195,16 @@ function walk(root: string, start: string, acc: WalkAccum): void {
     const { dir, depth, hasComponentsAncestor, inTestTree, top } = queue.shift()!;
     if (depth > MAX_DEPTH) continue; // depth cap: skip this branch, map stays honest elsewhere
     const entries = sortedEntries(dir);
-    // An app root the owner did not keep is not walked at all (onboard.scan.roots).
-    if (depth > 0 && !inTestTree && entries.some((e) => e.isFile() && e.name === "package.json") && prunesAppRoot(acc.rulings, relPath(root, dir))) continue;
+    // An app root the owner ruled `drop` is not walked; only the way to a root ruled `keep` below it is.
+    const rel = relPath(root, dir);
+    if (depth > 0 && prunesAppRoot(acc.rulings, rel)) {
+      for (const e of entries) {
+        if (e.isDirectory() && onWayToKeptRoot(acc.rulings, `${rel}/${e.name}`)) {
+          queue.push({ dir: join(dir, e.name), depth: depth + 1, hasComponentsAncestor: false, inTestTree: false, top });
+        }
+      }
+      continue;
+    }
 
     // >=3 direct code-file children qualifies a dir if its own name is
     // components|ui|widgets, OR a "components" dir is one of its ancestors —
@@ -291,6 +299,7 @@ export function scanProject(root: string, rulings: ScanRulings = NO_SCAN_RULINGS
     cssPaths: acc.css.map((f) => f.path), scssPaths: acc.scssPaths,
     tailwindConfigs: acc.tailwindConfigs, componentDirs: acc.componentDirs,
   });
+  const honoured = honouredOf(rulings, apps.map((a) => a.path));
   const rootCss = acc.css.map((f) => f.path).filter((p) => ownerOf(p, acc.appCandidates) === null);
   const budget = acc.truncated
     ? [...acc.byTop].map(([dir, visited]) => ({ dir, visited }))
@@ -312,6 +321,6 @@ export function scanProject(root: string, rulings: ScanRulings = NO_SCAN_RULINGS
     componentDirs, designMd, dsStatus, verdict,
     truncated: acc.truncated, visited: acc.visited,
     tailwindCss: findTailwindV4Css(root, deps, rootCss), apps, budget,
-    ...(honouredOf(rulings) === undefined ? {} : { honoured: honouredOf(rulings) }),
+    ...(honoured === undefined ? {} : { honoured }),
   };
 }

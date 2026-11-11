@@ -9,7 +9,7 @@
  * brought the walk under the cap dissolves the question; `detect` is pure over what it returned.
  */
 import { MAX_ENTRIES, isSkippedDir, scanProject } from "../project-scan.js";
-import { scanRulingsOf } from "../project-scan-rulings.js";
+import { NO_SCAN_RULINGS, scanRulingsOf } from "../project-scan-rulings.js";
 import { REVIEW_INDIVIDUALLY } from "./cluster-kinds.js";
 import type { ClusterOption, MemberChoice } from "./cluster.js";
 import type { KindDetection, KindEmitter } from "./kind-emitter.js";
@@ -82,7 +82,7 @@ function detect(raw: unknown): KindDetection | null {
  */
 function sense(projectDir: string): ScanBudgetInput {
   const rulings = scanRulingsOf(projectDir);
-  const r = scanProject(projectDir, { skip: rulings.skip, keepRoots: [] });
+  const r = scanProject(projectDir, { ...NO_SCAN_RULINGS, skip: rulings.skip });
   const budget = r.budget.filter((b) => !isSkippedDir(b.dir) && !rulings.skip.includes(b.dir));
   return { truncated: r.truncated, limit: MAX_ENTRIES, budget, skipped: [...rulings.skip] };
 }

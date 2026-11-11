@@ -782,7 +782,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
       summary: "Detect existing design signals in a project (framework, styling, components)",
       positionals: [],
       flags: [{ name: "cwd", type: "string", summary: "Directory to scan (default: current working directory)" }],
-      errorCodes: ["BAD_ARG", "READ_ERROR", "BAD_MANIFEST"],
+      errorCodes: ["BAD_ARG", "READ_ERROR"],
     },
   },
 

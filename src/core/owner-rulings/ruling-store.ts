@@ -39,7 +39,6 @@ export interface RulingStore {
   /** null when no manifest exists. */
   version: 1 | 2 | null;
   rulings: Ruling[];
-  scan: { skip: string[]; roots: string[] };
 }
 
 export class RulingStoreError extends Error {
@@ -102,7 +101,7 @@ function readManifestObject(projectDir: string): Record<string, unknown> | null 
 
 export function readRulingStore(projectDir: string): RulingStore {
   const doc = readManifestObject(projectDir);
-  const empty: RulingStore = { version: null, rulings: [], scan: { skip: [], roots: [] } };
+  const empty: RulingStore = { version: null, rulings: [] };
   if (doc === null) return empty;
   const version = doc["version"] as 1 | 2;
   const onboard = doc["onboard"];
@@ -110,12 +109,7 @@ export function readRulingStore(projectDir: string): RulingStore {
   if (!isRecord(onboard)) throw new RulingStoreError(`${MANIFEST_REL}: onboard must be an object`);
   const list = onboard["rulings"] ?? [];
   if (!Array.isArray(list)) throw new RulingStoreError(`${MANIFEST_REL}: onboard.rulings must be an array`);
-  const scan = isRecord(onboard["scan"]) ? onboard["scan"] : {};
-  return {
-    version,
-    rulings: list.map(parseRuling),
-    scan: { skip: isStringList(scan["skip"]) ? scan["skip"] : [], roots: isStringList(scan["roots"]) ? scan["roots"] : [] },
-  };
+  return { version, rulings: list.map(parseRuling) };
 }
 
 /**
