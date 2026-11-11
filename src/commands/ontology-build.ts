@@ -14,6 +14,7 @@ import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
 import { RulingStoreError } from "../core/owner-rulings/ruling-store.js";
 import { coverageTable } from "../core/ontology/coverage.js";
 import { serializeOntology } from "../core/ontology/emit-ontology.js";
+import { blockingClusters, blockingSummary } from "../core/ontology/blocking-clusters.js";
 import { graphErrors } from "../core/ontology/graph-errors.js";
 import { ONTOLOGY_REL } from "../core/ontology/ontology-types.js";
 import { blockedSummaryText, buildText } from "./ontology-render.js";
@@ -22,6 +23,14 @@ import { fail, insideProject, isResult, prepare } from "./ontology-shared.js";
 
 const CMD = "ontology build";
 const KNOWN = ["dir", "out"] as const;
+
+/** Read-only: how many questions are open too, so the refusal names both facts (it still writes no pending file). */
+function openQuestionsNote(dir: string, detections: Parameters<typeof blockingClusters>[1]): string {
+  try {
+    const open = blockingClusters(dir, detections);
+    return open.length === 0 ? "" : `; ${blockingSummary(open).replace(" await", " also await")}`;
+  } catch { return ""; }
+}
 
 export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   const json = parsed.json;
@@ -32,7 +41,7 @@ export function runOntologyBuild(parsed: ParsedArgs): CommandResult {
   const drift = sources.rules.pairDrift;
   if (drift.length > 0) return fail(CMD, json, drift[0]!.code, `nothing was written: ${drift.map((d) => d.message).join("; ")}`);
   const bad = graphErrors(o.nodes, o.links);
-  if (bad.length > 0) return fail(CMD, json, bad[0]!.code, refusalText(bad));
+  if (bad.length > 0) return fail(CMD, json, bad[0]!.code, `${refusalText(bad)}${openQuestionsNote(dir, built.detections)}`);
   const outRel = insideProject(CMD, json, dir, "out", typeof parsed.flags["out"] === "string" ? parsed.flags["out"] : ONTOLOGY_REL);
   if (typeof outRel !== "string") return outRel;
   const target = resolve(dir, outRel);
