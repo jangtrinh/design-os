@@ -106,7 +106,7 @@ export function loadDsUsageGateInput(o: { tokensPath?: string; designDir?: strin
   let lint: DsUsageLintOptions | undefined;
   if (o.tokensPath !== undefined) {
     const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(o.tokensPath, "utf8"))));
-    lint = { declaredVars: declaredCssVarNames(resolved), fonts: fontTokenModel(resolved) };
+    lint = { declaredVars: declaredCssVarNames(resolved, { sourceNames: true }), fonts: fontTokenModel(resolved) };
   }
   const rules = o.designDir === undefined ? [] : loadAdherenceRules(o.designDir).binding.map((l) => l.rule);
   return lint === undefined && rules.length === 0 ? undefined : { lint, rules };

@@ -149,7 +149,7 @@ export const dsUsageLintCommand = {
     let opts: DsUsageLintOptions;
     try {
       const resolved = resolveTokens(parseTokenFile(JSON.parse(readFileSync(tokensPath, "utf8"))));
-      opts = { declaredVars: declaredCssVarNames(resolved), fonts: fontTokenModel(resolved) };
+      opts = { declaredVars: declaredCssVarNames(resolved, { sourceNames: true }), fonts: fontTokenModel(resolved) };
     } catch (e) {
       return err("BAD_JSON", `bad token file '${tokensPath}': ${e instanceof Error ? e.message : String(e)}`);
     }

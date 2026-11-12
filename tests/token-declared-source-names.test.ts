@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { CUSTOM_PROPERTY_EXTENSION, parseTokenFile } from "../src/core/token-model.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
 import { declaredCssVarNames, emitCss } from "../src/core/token-emit.js";
+import { emitKitTheme } from "../src/core/ds-kit-theme.js";
 import { capture } from "./owner-rulings-helpers.js";
 import { envelope } from "./ds-surface-helpers.js";
 
@@ -23,12 +24,20 @@ describe("the usage gate family declares a token under the custom property it wa
       plain: { $type: "color", $value: "#333333" },
     },
   }));
-  it("declaredCssVarNames holds the source names of the tokens that carry one, and the path names of the others", () => {
-    expect([...declaredCssVarNames(resolved)].sort()).toEqual(["--color-plain", "--color-y", "--x"]);
+  it("with sourceNames, declaredCssVarNames holds the source names of the tokens that carry one, and the path names of the others", () => {
+    expect([...declaredCssVarNames(resolved, { sourceNames: true })].sort()).toEqual(["--color-plain", "--color-y", "--x"]);
   });
-  it("it is exactly the set `ui tokens compile --target css` writes", () => {
+  it("with sourceNames it is exactly the set `ui tokens compile --target css` writes", () => {
     const written = [...emitCss(resolved, { sourceNames: true }).matchAll(/^\s+(--[\w-]+):/gm)].map((m) => m[1]).sort();
-    expect([...declaredCssVarNames(resolved)].sort()).toEqual(written);
+    expect([...declaredCssVarNames(resolved, { sourceNames: true })].sort()).toEqual(written);
+  });
+  it("without it the names are the path names, as the Tailwind emitter writes them", () => {
+    expect([...declaredCssVarNames(resolved)].sort()).toEqual(["--color-color-y", "--color-plain", "--color-x"]);
+  });
+  it("the kit theme, which emits path names, still aliases a role to the name it emitted", () => {
+    const css = emitKitTheme({ color: { canvas: { $type: "color", $value: "#ffffff", $extensions: from("--my-canvas") }, ink: { $type: "color", $value: "#111111" } } }, { background: "color.canvas", foreground: "color.ink" });
+    expect(css).toContain("--background: var(--color-canvas);");
+    expect(css).not.toContain("--my-canvas");
   });
 
   const files = (page: string): { page: string; tokens: string } => {
