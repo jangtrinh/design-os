@@ -50,8 +50,9 @@ after they live in real projects. The librarian is not a fourth roster slot — 
 
 ## §3 Identity is runtime-read, never baked
 
-A generated agent body does NOT contain soul text. Its standing first action is
-`ui ds context`, which already carries the project soul and the studio soul beneath
+A generated agent body does NOT contain soul text. Its first-action list opens with
+`ui ds context` (step 1) and carries `ui ontology query` as step 2 of every role; step 1
+already carries the project soul and the studio soul beneath
 it — so editing a soul updates every agent's behaviour instantly, with zero drift
 and nothing to regenerate. Only the **name** is baked at generate time; renaming the
 studio or project means `ui agents init --force`.
@@ -95,6 +96,11 @@ Code: `AskUserQuestion` with the options `ui onboard questions --format claude` 
 numbered questions `ui onboard questions` prints and wait). With no ontology the block says so and names
 `ui ontology build`. It is the one deliberate exception to §3: it sits between markers, the command `ui agents check`
 prints regenerates it (the block itself names no `init` command), and `ui agents check` re-renders it from the ontology file and compares (`ONTOLOGY_STALE`).
+
+The block is data; running the query is an instruction, so it is static template text OUTSIDE the block: step 2 of the
+first-action list of every role (the designer and the figma hand run it before the registry lookups) and a hand-back
+item (the command run and its exit code, or why it was not run). `ui agents check` reports a generated file without the
+step as stale, because the file no longer equals its template.
 
 ## §6 Drift check — the emitter/linter pair
 
