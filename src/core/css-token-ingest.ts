@@ -16,8 +16,12 @@ import { CUSTOM_PROPERTY_EXTENSION, modeExtensionKey } from "./token-model.js";
 import type { Token, TokenTree } from "./token-model.js";
 import type { CustomPropertyObservation } from "./designmd-token-extractor.js";
 import { classifySelector } from "./css-selector-mode.js";
-import { computeOwnPath, resolveValue } from "./css-token-paths.js";
+import { computeOwnPath, parseVarRef, resolveValue } from "./css-token-paths.js";
 import type { PathInfo } from "./css-token-paths.js";
+import { planProperty, settleAliases } from "./css-token-plan.js";
+import type { Outcome } from "./css-token-plan.js";
+import { buildLedger, rankSelectors } from "./css-token-ledger.js";
+import type { CssIngestLedger, LeftOutReason, UnrecognisedSelector } from "./css-token-ledger.js";
 
 export class CssTokenIngestError extends Error {
   readonly code: string;
@@ -36,6 +40,10 @@ export interface CssIngestResult {
   /** Every name that did not land in `tree`, or a declaration that couldn't be placed —
    * recorded, never silently dropped (Art VIII). */
   unverified: { name: string; reason: string }[];
+  /** Every input property, written or left out for one named reason: the sum equals `ledger.properties`. */
+  ledger: CssIngestLedger;
+  /** Selectors no rule maps to a base or a mode, largest first, with the declarations under each. */
+  unrecognisedSelectors: UnrecognisedSelector[];
 }
 
 /** Build the DTCG token tree from extract-tokens' customProperties. Deterministic, sorted keys. */
@@ -70,59 +78,50 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
     nameByDotted.set(dotted, name);
   }
 
-  const tree: TokenTree = {};
-  const unverified: { name: string; reason: string }[] = [];
-  let primitives = 0, semantics = 0, skipped = 0;
-
+  const outcomes = new Map<string, Outcome>();
+  const unrecognised = new Map<string, number>();
   for (const [name, entries] of byName) {
-    const path = pathByName.get(name) ?? null;
-    if (path === null) { skipped++; unverified.push({ name, reason: `unmappable value on every declaration (e.g. '${entries[0]?.value}')` }); continue; }
-
-    const classified = entries.map((e) => ({ e, cls: classifySelector(e.selectors[0] ?? "") }));
-    for (const { e, cls } of classified) {
-      if (cls.kind === "unmapped") {
-        unverified.push({ name, reason: `declaration under unrecognized selector '${e.selectors[0] || "(none)"}' (${e.sources[0] ?? "?"}) — not a mode` });
+    for (const e of entries) {
+      if (classifySelector(e.selectors[0] ?? "").kind === "unmapped") {
+        const sel = e.selectors[0] || "(none)";
+        unrecognised.set(sel, (unrecognised.get(sel) ?? 0) + 1);
       }
     }
+    outcomes.set(name, planProperty(name, entries, pathByName.get(name) ?? null, pathByName));
+  }
+  const written = settleAliases(outcomes);
 
-    const baseEntry = classified.find((c) => c.cls.kind === "base")?.e;
-    const modeGroups = new Map<string, CustomPropertyObservation>();
-    for (const { e, cls } of classified) {
-      if (cls.kind === "modes") for (const m of cls.names) if (!modeGroups.has(m)) modeGroups.set(m, e);
-    }
+  const tree: TokenTree = {};
+  const unverified: { name: string; reason: string }[] = [];
+  const reasons: LeftOutReason[] = [];
+  let primitives = 0, semantics = 0;
 
-    if (baseEntry === undefined) {
-      skipped++;
-      const modeList = [...modeGroups.keys()];
-      unverified.push({
-        name,
-        reason: modeList.length > 0
-          ? `declared only under mode(s) ${modeList.join(", ")} — no base value; not promoted (D2)`
-          : "no recognised base/mode selector for any declaration",
-      });
-      continue;
-    }
+  for (const [name, o] of outcomes) {
+    for (const note of o.notes) unverified.push({ name, reason: note });
+    if (o.kind === "left-out") { reasons.push(o.reason); unverified.push({ name, reason: o.message }); continue; }
 
-    const leafRaw = name.slice(2);
-    const baseValue = resolveValue(baseEntry.value, leafRaw, pathByName);
-    if (baseValue === null) { skipped++; unverified.push({ name, reason: `could not resolve value '${baseEntry.value}'` }); continue; }
-
+    const { path, baseValue, modes } = o.planned;
     const leaf: Token = { $value: baseValue, $type: path.type };
     // The property the token came from: an agent writes `var(--ds-surface)`, never a name derived from the path.
     const extensions: Record<string, unknown> = {};
-    for (const [modeName, entry] of modeGroups) {
-      const mv = resolveValue(entry.value, leafRaw, pathByName);
+    for (const [modeName, entry] of modes) {
+      const ref = parseVarRef(entry.value);
+      const mv = ref !== null && !written.has(ref) ? null : resolveValue(entry.value, name.slice(2), pathByName);
       if (mv !== null) extensions[modeExtensionKey(modeName)] = { $value: mv };
+      else unverified.push({ name, reason: ref !== null
+        ? `mode '${modeName}' not written: it names '${ref}', which ${byName.has(ref) ? "was left out" : "is not in the input"}`
+        : `mode '${modeName}' not written: value '${entry.value}' is not one typed leaf` });
     }
     extensions[CUSTOM_PROPERTY_EXTENSION] = name;
     leaf.$extensions = extensions;
 
     (tree[path.category] ??= {})[path.leaf] = leaf;
-    if (typeof leaf.$value === "string" && /^\{.+\}$/.test(leaf.$value)) semantics++;
+    if (o.planned.aliasOf !== null) semantics++;
     else primitives++;
   }
 
-  return { tree: sortTree(tree), stats: { primitives, semantics, skipped }, unverified };
+  const ledger = buildLedger({ properties: byName.size, declarations: customProperties.length, primitives, semantics, reasons });
+  return { tree: sortTree(tree), stats: { primitives, semantics, skipped: reasons.length }, unverified, ledger, unrecognisedSelectors: rankSelectors(unrecognised) };
 }
 
 function sortTree(tree: TokenTree): TokenTree {

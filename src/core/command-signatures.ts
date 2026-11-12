@@ -1117,7 +1117,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "out", type: "string", summary: "Output directory (default: current working directory)" },
         { name: "name", type: "string", summary: "Recorded in the JSON summary only (no manifest is written here)" },
       ],
-      errorCodes: ["UNKNOWN_FLAG", "BAD_ARG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "LEAF_COLLISION", "WRITE_ERROR"],
+      errorCodes: ["UNKNOWN_FLAG", "BAD_ARG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "LEAF_COLLISION", "NO_TOKENS_WRITTEN", "WRITE_ERROR"],
     },
   },
 
