@@ -127,16 +127,18 @@ export function declaredCssVarNames(map: ResolvedMap): Set<string> {
 
 // ─── CSS emitter ──────────────────────────────────────────────────────────────
 
-/** Two tokens that carry the same source custom property would write one declaration twice: refused, never a last-wins. */
+/** Two tokens that emit the same custom property would write one declaration twice: refused, never a last-wins.
+ * Checked over the names the css target emits: the carried name when a token has one, the path-derived name otherwise. */
 function assertUniqueCustomProperties(map: ResolvedMap): void {
   const pathBy = new Map<string, string>();
   for (const t of map) {
-    if (t.customProperty === undefined) continue;
-    const prior = pathBy.get(t.customProperty);
-    if (prior !== undefined) {
-      throw new TokenError("DUPLICATE_CUSTOM_PROPERTY", `tokens '${prior}' and '${t.path}' both carry the custom property '${t.customProperty}' — keep it on one token`);
+    for (const [varName] of tokenToCssDecls(t, true)) {
+      const prior = pathBy.get(varName);
+      if (prior !== undefined && prior !== t.path) {
+        throw new TokenError("DUPLICATE_CUSTOM_PROPERTY", `tokens '${prior}' and '${t.path}' both emit the custom property '${varName}' in the css target — keep the name on one token`);
+      }
+      pathBy.set(varName, t.path);
     }
-    pathBy.set(t.customProperty, t.path);
   }
 }
 

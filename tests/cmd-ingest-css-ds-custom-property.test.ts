@@ -140,6 +140,45 @@ describe("a custom property carried twice, and a store sealed without the extens
     expect(err.message).toContain("color.b");
   });
 
+  const clash = (): string => tokensFile({ color: {
+    a: { $value: "#111111", $type: "color" },
+    c: { $value: "{color.a}", $type: "color", $extensions: { [KEY]: "--color-d" } },
+    d: { $value: "#333333", $type: "color" },
+  } });
+
+  it("a source name equal to another token's path-derived name is refused too, naming both token paths", () => {
+    for (const args of [[], ["--target", "css"], ["--json"]]) {
+      const r = capture(["tokens", "compile", clash(), ...args]);
+      expect(r.code, args.join(" ")).toBe(1);
+      const text = args.includes("--json") ? (JSON.parse(r.out) as { error: { code: string; message: string } }).error.message : r.err;
+      if (args.includes("--json")) expect((JSON.parse(r.out) as { error: { code: string } }).error.code).toBe("DUPLICATE_CUSTOM_PROPERTY");
+      expect(text).toContain("'color.c'");
+      expect(text).toContain("'color.d'");
+      expect(text).toContain("'--color-d'");
+    }
+  });
+
+  it("the tailwind and figma targets do not emit source names and so do not refuse", () => {
+    const tw = capture(["tokens", "compile", clash(), "--target", "tailwind"]);
+    expect(tw.code).toBe(0);
+    expect(tw.out).toBe("@theme {\n  --color-a: #111111;\n  --color-c: #111111;\n  --color-d: #333333;\n}\n");
+    const fg = capture(["tokens", "compile", clash(), "--target", "figma"]);
+    expect(fg.code).toBe(0);
+    expect(Object.keys(JSON.parse(fg.out).color)).toEqual(["a", "c", "d"]);
+  });
+
+  it("two tokens carrying one property: css and --json refuse, tailwind and figma still compile", () => {
+    const twice = (): string => tokensFile({ color: {
+      a: { $value: "#111", $type: "color", $extensions: { [KEY]: "--ds-x" } },
+      b: { $value: "#222", $type: "color", $extensions: { [KEY]: "--ds-x" } },
+    } });
+    expect(capture(["tokens", "compile", twice(), "--target", "css"]).code).toBe(1);
+    expect(capture(["tokens", "compile", twice(), "--json"]).code).toBe(1);
+    expect(capture(["tokens", "compile", twice(), "--json", "--target", "tailwind"]).code).toBe(1); // --json ignores --target and carries the css artifact
+    expect(capture(["tokens", "compile", twice(), "--target", "tailwind"]).out).toBe("@theme {\n  --color-a: #111;\n  --color-b: #222;\n}\n");
+    expect(capture(["tokens", "compile", twice(), "--target", "figma"]).code).toBe(0);
+  });
+
   it("a token without the extension is emitted under its path-derived name, beside one that has it", () => {
     const f = tokensFile({ color: {
       plain: { $value: "#111", $type: "color" },
