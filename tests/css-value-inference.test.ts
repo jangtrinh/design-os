@@ -13,17 +13,23 @@ import type { CustomPropertyObservation } from "../src/core/designmd-token-extra
 
 const cp = (name: string, value: string, selector = ":root"): CustomPropertyObservation => ({ name, value, sources: ["a.css:L1"], selectors: [selector] });
 
-describe("a number without its leading zero is the same number", () => {
+describe("a number without its leading zero is typed, and stored as written", () => {
   it.each([
-    ["ds-motion-fast", ".1s", "0.1s", "duration"],
-    ["ds-motion-base", ".15s", "0.15s", "duration"],
+    ["ds-motion-fast", ".1s", ".1s", "duration"],
+    ["ds-motion-base", ".15s", ".15s", "duration"],
     ["ds-motion-slow", "0.3s", "0.3s", "duration"],
     ["ds-motion-quick", "150ms", "150ms", "duration"],
-    ["ds-radius", ".5rem", "0.5rem", "dimension"],
-    ["ds-radius-lg", "-.25rem", "-0.25rem", "dimension"],
+    ["ds-radius", ".5rem", ".5rem", "dimension"],
+    ["ds-radius-lg", "-.25rem", "-.25rem", "dimension"],
     ["ds-space", "0.5rem", "0.5rem", "dimension"],
   ])("%s: %s is typed %s as %s", (name, raw, value, type) => {
     expect(inferToken("", name, raw)).toEqual({ $value: value, $type: type });
+  });
+
+  it("a flat file is imported with the bytes it has: .5rem stays .5rem", () => {
+    const flat = importFlatTokens({ dimension: { radius: ".5rem", gap: "0.25rem" }, motion: { fast: ".1s" } });
+    expect(flat.dtcg["dimension"]).toEqual({ radius: { $value: ".5rem", $type: "dimension" }, gap: { $value: "0.25rem", $type: "dimension" } });
+    expect(flat.dtcg["motion"]).toEqual({ fast: { $value: ".1s", $type: "duration" } });
   });
 
   it("a bare .8 is the number 0.8", () => {

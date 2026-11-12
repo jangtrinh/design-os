@@ -72,13 +72,13 @@ describe.skipIf(!built)("a packaged theme, ingest to the outputs an agent reads 
       "  --color-text: #111;",
       "  --ds-border: #ddd;",
       "  --ds-font-sans: \"Inter\",system-ui,sans-serif;",
-      "  --ds-motion-base: 0.15s;",
-      "  --ds-motion-fast: 0.1s;",
-      "  --ds-radius: 0.5rem;",
+      "  --ds-motion-base: .15s;",
+      "  --ds-motion-fast: .1s;",
+      "  --ds-radius: .5rem;",
       "  --ds-surface: #fff;",
       "  --ds-text: #111;",
       "  --font-sans: \"Inter\",system-ui,sans-serif;",
-      "  --radius-md: 0.5rem;",
+      "  --radius-md: .5rem;",
     ]);
   });
 

@@ -10,7 +10,7 @@
 
 import { isAlias, isTokenLeaf } from "./token-model.js";
 import { sanitizeSeg } from "./figma-ds-tokens.js";
-import { DURATION_VALUE_RE, FAMILY_NAME_HINT_RE, isFontFamilyStack, withLeadingZero } from "./css-value-shapes.js";
+import { DURATION_VALUE_RE, FAMILY_NAME_HINT_RE, isFontFamilyStack } from "./css-value-shapes.js";
 
 export type ImportedType = "color" | "dimension" | "number" | "fontFamily" | "fontWeight" | "duration";
 
@@ -64,9 +64,9 @@ export function inferToken(category: string, name: string, value: unknown): { $v
   if (typeof value === "string") {
     const v = value.trim();
     if (COLOR_RE.test(v) || COLOR_FN_RE.test(v)) return { $value: v, $type: "color" };
-    if (DIM_RE.test(v)) return { $value: withLeadingZero(v), $type: "dimension" };
+    if (DIM_RE.test(v)) return { $value: v, $type: "dimension" };
     if (FAMILY_RE.test(ctx)) return { $value: v, $type: "fontFamily" };
-    if (DURATION_CAT_RE.test(ctx) && DURATION_VALUE_RE.test(v)) return { $value: withLeadingZero(v), $type: "duration" };
+    if (DURATION_CAT_RE.test(ctx) && DURATION_VALUE_RE.test(v)) return { $value: v, $type: "duration" };
     // numeric-looking string
     if (/^-?\d*\.?\d+$/.test(v)) return numeric(category, name, Number(v));
     // F2 (spec 009 P3): an alias front-door refusal drops the entire semantic tier

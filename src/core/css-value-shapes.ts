@@ -1,13 +1,9 @@
 /**
  * Value shapes a CSS custom property is written in, shared by the one place that infers a token's `$type`
- * (token-import.ts `inferToken`): a number written without its leading zero, a time, and a font-family stack.
+ * (token-import.ts `inferToken`): a time (with or without its leading zero) and a font-family stack. A value is stored as written: typing a shape
+ * never rewrites it.
  * Pure string tests, no I/O.
  */
-
-/** `.5rem` is `0.5rem` and `-.25rem` is `-0.25rem`: the same number with its leading zero written out. */
-export function withLeadingZero(value: string): string {
-  return value.replace(/^(-?)\./, "$10.");
-}
 
 /** A time: `.1s`, `0.15s`, `150ms`. */
 export const DURATION_VALUE_RE = /^\d*\.?\d+m?s$/i;

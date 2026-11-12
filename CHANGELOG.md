@@ -19,7 +19,7 @@
   unquoted `[data-theme=dark]`, and a base with one theme qualifier (`:root[data-theme=dark]`, `html.dark`). A
   selector list is split on top-level commas only. A component class, a descendant selector and `:host(.x)` stay
   listed, never promoted.
-- `.1s` and `.5rem` are typed (stored as `0.1s` and `0.5rem`), and a font-family stack
+- `.1s` and `.5rem` are typed and stored as written, and a font-family stack
   (`"Inter", system-ui, sans-serif`, `-apple-system, …`) is a `fontFamily` token. A decimal duration such as
   `0.3s` under a motion, duration, transition or delay name is typed too; `ui ds import` shares this inference.
 - An alias takes the type of the property it names, and is written only when that property is written; a mode value

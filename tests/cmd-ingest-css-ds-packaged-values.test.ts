@@ -35,11 +35,11 @@ const read = (): Record<string, Record<string, { $value: unknown; $type: string 
 };
 
 describe.skipIf(!built)("ui ingest-css-ds values on a packaged theme (built CLI)", () => {
-  it("types .1s, .15s as durations and .5rem as a dimension, with the leading zero written out", () => {
+  it("types .1s, .15s as durations and .5rem as a dimension, stored as written", () => {
     const t = read();
-    expect(t["duration"]?.["ds-motion-fast"]).toEqual({ $value: "0.1s", $type: "duration" });
-    expect(t["duration"]?.["ds-motion-base"]).toEqual({ $value: "0.15s", $type: "duration" });
-    expect(t["dimension"]?.["ds-radius"]).toEqual({ $value: "0.5rem", $type: "dimension" });
+    expect(t["duration"]?.["ds-motion-fast"]).toEqual({ $value: ".1s", $type: "duration" });
+    expect(t["duration"]?.["ds-motion-base"]).toEqual({ $value: ".15s", $type: "duration" });
+    expect(t["dimension"]?.["ds-radius"]).toEqual({ $value: ".5rem", $type: "dimension" });
   });
 
   it("writes the font stack as a fontFamily token and types the alias to it as a fontFamily", () => {
