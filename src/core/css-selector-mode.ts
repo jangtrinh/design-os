@@ -1,5 +1,5 @@
 /**
- * D2 (spec 009 P3): selector → mode. One shared table, kept separate from
+ * Selector → mode. One shared table, kept separate from
  * css-token-ingest.ts to keep that file under the Art IX budget.
  *
  *   :root / :host / html / body / @theme … → base   ($value)
@@ -15,7 +15,7 @@
  * widening of this table never promotes a component's variable to a token.
  *
  * Base is mandatory: a token whose only declaration sits under a theme selector has
- * no base value and must not be promoted (D2) — that decision lives in css-token-ingest.ts.
+ * no base value and must not be promoted — that decision lives in css-token-ingest.ts.
  */
 import { sanitizeSeg } from "./figma-ds-tokens.js";
 

@@ -1,6 +1,6 @@
 /**
- * Per custom property: is it a token, and if not, for which one named reason (spec 009 P3, split out of
- * css-token-ingest.ts to keep that file under the Art IX budget). Pure, deterministic. A reference to another property
+ * Per custom property: is it a token, and if not, for which one named reason (split out of
+ * css-token-ingest.ts to keep that file small). Pure, deterministic. A reference to another property
  * is settled afterwards, by the caller, once it is known which properties are written.
  */
 import type { CustomPropertyObservation } from "./designmd-token-extractor.js";
@@ -54,7 +54,7 @@ export function planProperty(
   }
 
   if (base === undefined) {
-    if (modes.size > 0) return leftOut(LEFT_OUT.noBase, notes, `declared only under mode(s) ${[...modes.keys()].join(", ")} — no base value; not promoted (D2)`);
+    if (modes.size > 0) return leftOut(LEFT_OUT.noBase, notes, `declared only under mode(s) ${[...modes.keys()].join(", ")} — no base value; not promoted`);
     return leftOut(LEFT_OUT.unrecognisedSelector, notes, "no recognised base/mode selector for any declaration");
   }
 

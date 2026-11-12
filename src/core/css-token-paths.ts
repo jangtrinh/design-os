@@ -1,8 +1,8 @@
 /**
- * Where a CSS custom property lands in the token tree, and what its value becomes (spec 009 P3, split out of
- * css-token-ingest.ts to keep that file under the Art IX budget). Pure, deterministic.
+ * Where a CSS custom property lands in the token tree, and what its value becomes (split out of
+ * css-token-ingest.ts to keep that file small). Pure, deterministic.
  *
- * D6 (corrected on the integration branch): the leaf is the custom-property name minus `--`, VERBATIM — no prefix
+ * The leaf is the custom-property name minus `--`, VERBATIM — no prefix
  * stripping. `--gray-900` and `--color-gray-900` are two DIFFERENT declared properties (dana: the latter is a
  * Tailwind `@theme` re-export of the former, `var(--gray-900)`, not a duplicate) and land at two different paths:
  * `color.gray-900` and `color.color-gray-900`. An earlier rule stripped a category-matching prefix, silently merging
