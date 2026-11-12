@@ -44,6 +44,8 @@ describe("a font-family stack is a fontFamily token", () => {
     ["ui-monospace, SFMono-Regular, monospace"],
     ['"Inter"'],
     ['"Geist Mono", monospace'],
+    ['-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, Roboto, sans-serif'],
+    ['-apple-system, "Helvetica Neue", sans-serif'],
   ])("%s under a name with no family hint", (stack) => {
     expect(inferToken("", "ds-font-sans", stack)).toEqual({ $value: stack, $type: "fontFamily" });
   });
@@ -55,7 +57,7 @@ describe("a font-family stack is a fontFamily token", () => {
   it.each([
     ["none"], ["auto"], ["inherit"], ["flex"], ["0 0"], ["0 1px 2px #000, 0 2px 4px #111"], ["0 1px 2px rgba(0,0,0,.1)"],
     ["calc(1rem + 2px)"], ["cubic-bezier(.4,0,.2,1)"], ["var(--a, var(--b))"], ['var(--font-sans, "Inter", sans-serif)'],
-    ["1px solid #000, 2px"], ["red, blue"], ["Inter"], ["auto, monospace"], ["Helvetica Neue, Arial"],
+    ["1px solid #000, 2px"], ["red, blue"], ["Inter"], ["-1px, monospace"], ["- , serif"], ["auto, monospace"], ["Helvetica Neue, Arial"],
   ])("%s is not a font stack and stays unmappable", (value) => {
     expect(inferToken("", "ds-thing", value)).toEqual({ skip: `unmappable string value "${value.slice(0, 24)}"` });
   });

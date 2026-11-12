@@ -14,9 +14,9 @@ export const DURATION_VALUE_RE = /^\d*\.?\d+m?s$/i;
 
 /** The generic family keywords of CSS; a list that names one is a font stack whatever the property is called. */
 const GENERIC_FAMILY = /^(?:serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|ui-monospace|ui-rounded|math|emoji|fangsong)$/i;
-/** One family: a quoted name, or bare words (`Segoe UI`, `SFMono-Regular`). Nothing with a parenthesis, a digit first, a unit or `!`. */
+/** One family: a quoted name, or bare words (`Segoe UI`, `SFMono-Regular`, `-apple-system`). Nothing with a parenthesis, a digit first, a unit or `!`. */
 const QUOTED_FAMILY = /^(?:"[^"]+"|'[^']+')$/;
-const BARE_FAMILY = /^[A-Za-z_][\w-]*(?: [A-Za-z_][\w-]*)*$/;
+const BARE_FAMILY = /^-?[A-Za-z_][\w-]*(?: [A-Za-z_][\w-]*)*$/;
 /** A bare word that is a CSS-wide or common keyword, never a family on its own. */
 const KEYWORD = /^(?:inherit|initial|unset|revert|revert-layer|none|normal|auto|flex|grid|block|inline|hidden|visible|red|blue|green|black|white|transparent|currentcolor)$/i;
 
