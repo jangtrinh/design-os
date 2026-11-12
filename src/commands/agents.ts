@@ -52,8 +52,8 @@ Naming (genealogy — studio × project × role):
   ^[a-z][a-z0-9-]*$, capped at 64 chars.
 
 Identity is RUNTIME-READ, never baked: a generated agent's first-action list opens with
-'ui ds context' (which carries the project soul + the studio soul), then runs
-'ui ontology query' as its step 2, so soul edits propagate with zero drift. Only the NAME is baked at generate time —
+'ui ds context' (which carries the project soul + the studio soul), so soul
+edits propagate with zero drift, then runs 'ui ontology query' as its step 2. Only the NAME is baked at generate time —
 rename the studio or project → 'ui agents init --force' (it regenerates the runtimes the project already has).
 
 Ontology areas: each agent carries one generated block, fenced by

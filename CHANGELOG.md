@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-11-12 - Project agents run the ontology query as a numbered first step
+## 2026-11-12 - Project agents run the ontology query as a numbered step of their first-action list
 
 ### Changed
 - **The ontology query is step 2 of the first-action list of every project agent**: designer, curator and figma hand,

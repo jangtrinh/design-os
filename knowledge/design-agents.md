@@ -100,7 +100,8 @@ prints regenerates it (the block itself names no `init` command), and `ui agents
 The block is data; running the query is an instruction, so it is static template text OUTSIDE the block: step 2 of the
 first-action list of every role (the designer and the figma hand run it before the registry lookups) and a hand-back
 item (the command run and its exit code, or why it was not run). `ui agents check` reports a generated file without the
-step as stale, because the file no longer equals its template.
+step: `agent-stale` for a Claude Code file, `AGENTS_ROSTER_DRIFT` for an Antigravity file or the Codex section,
+because the file no longer equals its template.
 
 ## §6 Drift check — the emitter/linter pair
 

@@ -47,7 +47,7 @@ const RUNTIME_LIST = ["claude", "codex", "antigravity"] as const;
 
 describe("the ontology query step in the first-action list", () => {
   for (const role of ROLES) for (const runtime of RUNTIME_LIST) {
-    it(`${role} on ${runtime}: a numbered item with the query, step 2, before the registry step`, () => {
+    it(`${role} on ${runtime}: a numbered item with the query is step 2 (designer and figma hand: before the registry step)`, () => {
       const p = fresh();
       const items = firstActionItems(rendered(p, runtime, role));
       const at = items.findIndex((l) => STEP_LINE.test(l));
