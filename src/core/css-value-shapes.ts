@@ -36,15 +36,22 @@ export const FAMILY_NAME_HINT_RE = /(?=.*(?:font|family|typeface))(?!.*(?:featur
 /** A quoted family holds a letter and no backslash escape: `"/"` and `"\2715"` are glyphs, not families. */
 const fitsQuoted = (f: string): boolean => /\p{L}/u.test(f) && !f.includes("\\");
 
+/** The CSS generic family names. They belong to the `font-family` grammar only. */
+const GENERIC_FAMILY = /^(?:serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|ui-monospace|ui-rounded|math|emoji|fangsong)$/i;
+/** A name that says `family` or `typeface` is the author's own statement that the value is a family. */
+const FAMILY_STATEMENT_RE = /family|typeface/i;
+
 /**
- * True when `value` is a font-family stack: the property is named for a font family (`nameHinted`, decided by the
- * caller from the name alone) and the value fits: a comma-separated list of families, quoted or bare, in which every
- * quoted entry holds a letter and no escape. Any string is a valid family name in CSS, so the value alone never
- * decides: with no name hint nothing is typed.
+ * True when `value` is a font-family list. All three hold: the property or key `name` carries the family hint; the
+ * value fits (a comma-separated list of families, quoted or bare, every quoted entry holding a letter and no escape);
+ * and there is positive evidence that it is a family list: the name contains `family` or `typeface`, or one whole
+ * unquoted entry is a generic family keyword. Any string is a valid family name in CSS, and `font-` is a general
+ * prefix of text properties, so neither the name nor the fit alone decides.
  */
-export function isFontFamilyStack(value: string, nameHinted: boolean): boolean {
-  if (!nameHinted) return false;
+export function isFontFamilyStack(value: string, name: string): boolean {
+  if (!FAMILY_NAME_HINT_RE.test(name)) return false;
   const families = splitFamilies(value.trim());
   if (families === null || families.length === 0) return false;
-  return families.every((f) => (QUOTED_FAMILY.test(f) ? fitsQuoted(f) : BARE_FAMILY.test(f) && !KEYWORD.test(f)));
+  if (!families.every((f) => (QUOTED_FAMILY.test(f) ? fitsQuoted(f) : BARE_FAMILY.test(f) && !KEYWORD.test(f)))) return false;
+  return FAMILY_STATEMENT_RE.test(name) || families.some((f) => GENERIC_FAMILY.test(f));
 }

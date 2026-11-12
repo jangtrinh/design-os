@@ -41,6 +41,59 @@ describe("a number without its leading zero is typed, and stored as written", ()
   });
 });
 
+const GENERICS = ["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace", "ui-rounded", "math", "emoji", "fangsong"];
+const unmapped = (value: string): { skip: string } => ({ skip: `unmappable string value "${value.slice(0, 24)}"` });
+
+describe("a font-family stack needs the family hint in its name, a value that fits, and positive evidence", () => {
+  it.each([
+    ["font-synthesis", "weight style"],
+    ["font-palette", "dark"],
+    ["font-display", '"swap"'],
+    ["font-transform", "uppercase"],
+    ["font-brand", '"Acme Sans"'],
+    ["font-kerning", "normal"],
+    ["font-case", "uppercase"],
+    ["font-code", '"monospace"'],
+    ["font-variant-emoji", "emoji"],
+  ])("%s: %s has the hint but no evidence of a family list, so it is not typed", (name, value) => {
+    expect(inferToken("", name, value)).toEqual(unmapped(value));
+  });
+
+  it.each([
+    ["font-sans", '"Inter", sans-serif'],
+    ["font-mono", "ui-monospace, Menlo, monospace"],
+    ["font-family-brand", '"Acme Sans"'],
+    ["brand-typeface", '"Acme Sans"'],
+    ["font-sans", "SANS-SERIF"],
+    ["ds-font-family", '"Inter", "Helvetica Neue"'],
+  ])("%s: %s is typed (the name says family or typeface, or an unquoted generic keyword is in the list)", (name, value) => {
+    expect(inferToken("", name, value)).toEqual({ $value: value, $type: "fontFamily" });
+  });
+
+  it.each(GENERICS)("the generic keyword %s is evidence on its own, under a font name, unquoted and in any case", (kw) => {
+    expect(inferToken("", "font-x", `"Acme", ${kw}`)).toEqual({ $value: `"Acme", ${kw}`, $type: "fontFamily" });
+    expect(inferToken("", "font-x", kw.toUpperCase())).toEqual({ $value: kw.toUpperCase(), $type: "fontFamily" });
+    expect(inferToken("", "font-x", `"${kw}"`)).toEqual(unmapped(`"${kw}"`));
+  });
+
+  it("the flat import applies the same rule", () => {
+    const flat = importFlatTokens({ type: {
+      "font-sans": '"Inter", sans-serif', "font-family-brand": '"Acme Sans"', "font-brand": '"Acme Sans"', "font-transform": "uppercase", "font-code": '"monospace"',
+    } });
+    expect(Object.keys(flat.dtcg["type"] ?? {})).toEqual(["font-sans", "font-family-brand"]);
+    expect(flat.stats.skippedKeys.map((k) => k.key)).toEqual(["type.font-brand", "type.font-transform", "type.font-code"]);
+  });
+
+  it("the CSS door writes the typed ones and lists the others", () => {
+    const { tree, unverified } = ingestCssTokens([
+      cp("--font-synthesis", "weight style"), cp("--font-palette", "dark"), cp("--font-display", '"swap"'), cp("--font-transform", "uppercase"),
+      cp("--font-brand", '"Acme Sans"'), cp("--font-sans", '"Inter", sans-serif'),
+    ]);
+    expect(Object.keys(tree["font"] ?? {})).toEqual(["font-sans"]);
+    expect(unverified.map((u) => u.name)).toEqual(["--font-synthesis", "--font-palette", "--font-display", "--font-transform", "--font-brand"]);
+  });
+});
+
 describe("a font-family stack is a fontFamily token: the name decides, the value only has to fit", () => {
   it.each([
     ['"Inter", system-ui, sans-serif'],
@@ -50,9 +103,7 @@ describe("a font-family stack is a fontFamily token: the name decides, the value
     ["ui-monospace, SFMono-Regular, monospace"],
     ['"Geist Mono", monospace'],
     ['-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, Roboto, sans-serif'],
-    ['"Inter"'],
-    ['"Inter", "Helvetica Neue"'],
-  ])("%s under a name that carries a family hint", (stack) => {
+  ])("%s under a name that carries a family hint and a generic keyword", (stack) => {
     expect(inferToken("", "ds-font-sans", stack)).toEqual({ $value: stack, $type: "fontFamily" });
   });
 
@@ -100,9 +151,9 @@ describe("a font-family stack is a fontFamily token: the name decides, the value
     expect(unverified.map((u) => u.name)).toEqual([
       "--breadcrumb-sep", "--feature-settings", "--grid-areas", "--display-mode", "--emoji-style", "--font-icon-close", "--icon-font-glyph", "--font-feature-settings",
     ]);
-    const flat = importFlatTokens({ layout: { "breadcrumb-sep": '"/"', "grid-areas": '"header header","main side"', "font-sans": '"Inter"', "emoji-style": "emoji" } });
+    const flat = importFlatTokens({ layout: { "breadcrumb-sep": '"/"', "grid-areas": '"header header","main side"', "font-sans": '"Inter", sans-serif', "emoji-style": "emoji" } });
     expect(flat.stats.skippedKeys.map((k) => k.key)).toEqual(["layout.breadcrumb-sep", "layout.grid-areas", "layout.emoji-style"]);
-    expect(flat.dtcg["layout"]).toEqual({ "font-sans": { $value: '"Inter"', $type: "fontFamily" } });
+    expect(flat.dtcg["layout"]).toEqual({ "font-sans": { $value: '"Inter", sans-serif', $type: "fontFamily" } });
   });
 
   it.each([
