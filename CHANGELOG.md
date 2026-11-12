@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-11-12 - ease-design 0.7.0
+
+The ontology release. A project's design system is onboarded from Figma or from its codebase into one design
+ontology, the kernel asks the owner about what it cannot decide instead of dropping or guessing, and project agents
+are written for three runtimes with the ontology's areas in them. Each item is described in full in its dated entry
+below.
+
+### Added
+- **Owner rulings** (`ui onboard questions`, `ui onboard answer --file`): a command that meets something only the
+  owner can decide writes nothing, exits 1 and leaves a question; the answer is recorded in
+  `design/design-dir.json` (schema version 2) and applied on the next run.
+- **`ui ds surface`**: onboards a design system from a codebase. It reads the component directories of an app, the
+  tokens each component references and the screens that use it; `--register --apply` writes the registry records.
+- **`ui ontology build | lint | query`**: one design ontology per project (`design/knowledge/ontology.json`), with
+  links that are exact or asked, a lint that fails on a stale file, and a query that answers a design task from the
+  ontology with no model and no fuzzy match.
+- **Project agents for Claude Code, Codex and Antigravity**: `ui agents init --runtimes claude,codex,antigravity`
+  renders one roster to three runtimes, and `ui agents check` fails when an agent's area block is not what the
+  ontology gives.
+- **`ui ds harvest-bans`**: proposes, as proposals only, what a codebase never does.
+- **`ui ds import --registry <file>`** seals the component registry of a Figma scan together with the tokens.
+- **`ui ingest-css-ds` reads a packaged theme**: the base and theme selectors of a built sheet are recognised, each
+  token keeps the custom property it came from, and `ui tokens compile --target css` emits it under that name.
+- **`ui gate --origin`, `--baseline` and `--write-baseline`**: findings are labelled authored, kit, framework or
+  tool, accepted findings can be baselined, and findings on a one-line rendered page carry the element they are on.
+- **`ui registry register --source-ref`**: a record of a sealed design system names its source in code or in Figma.
+- The Conversion Monochrome persona, landing conversion craft and six advisory ship-list checks.
+
+### Changed
+- `ui ingest-figma-ds` and `ui ds import` end with a ledger (`in = written + excluded + pending`) and ask about
+  collections, pages, repeated names and values they cannot type.
+- `ui scan` lists nested apps, says where a capped walk spent its budget, honours the owner's scan rulings and no
+  longer walks directories whose name starts with a dot.
+- `ui ds surface` resolves a style reference through the custom property a token came from; the usage gate family
+  compares project source with those names.
+- A font-family value is typed from CSS only when the list holds a generic family keyword; a name alone never
+  grants the type.
+
+### Fixed
+- `ui init` and `ui agents init` in an adopted kit project no longer make `ui ds kit verify` fail.
+- Several false positives of `ui gate` (variant context classes, DTCG metadata keys, custom-property font sizes,
+  labelled icon buttons).
+
+### Known limits
+- A generated agent names the ontology query in a block after its first-action list. In our own runs a designer
+  agent given that text did not run `ui ontology query` (2 of 2 runs); the step is not yet part of the list (#445).
+- The outcome comparison of an agent with and without the ontology is still being measured; this release makes no
+  claim about it.
+- Shadow and easing values are listed, not typed, by `ui ingest-css-ds` (#440); the `tailwind` and `figma` compile
+  targets keep path-derived names (#437).
+
+### Note for 0.6.2 users
+A Figma scan or a token file that ingested or imported in one run may now stop with questions (exit 1,
+`ONBOARD_BLOCKED_NEEDS_OWNER_RULING`): nothing is written until `ui onboard answer` records the owner's choices.
+Token files with typeable tokens and unambiguous roles import byte for byte as before. Once a design system is
+sealed, `ui registry register` requires `--source-ref` or `--synthetic-approved --reason`. `ui ingest-css-ds` exits 1
+with `NO_TOKENS_WRITTEN` when its input holds custom properties and yields no token.
+
 ## 2026-11-12 - `ui ingest-css-ds` compiles a theme from a packaged token sheet and keeps each token's own custom property
 
 ### Added
