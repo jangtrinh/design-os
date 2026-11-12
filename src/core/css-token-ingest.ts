@@ -6,18 +6,22 @@
  * shape) — a literal value → PRIMITIVE, an alias (`var(--x)`) → SEMANTIC (Insight 4, same
  * split figma-ds-tokens.ts already proved). Selectors become modes via classifySelector
  * (D2): base (`:root`/`@theme`/`html`/`body`) → `$value`; theme selectors →
- * `$extensions["mode.<name>"]` (the shared encoding, token-model.ts).
+ * `$extensions["mode.<name>"]` (the shared encoding, token-model.ts). Every token also records the custom property
+ * it was read from under `$extensions["design-os.custom-property"]` (CUSTOM_PROPERTY_EXTENSION, token-model.ts).
  *
  * Pure: no filesystem, no network, deterministic. Reuses `inferToken` (token-import.ts)
  * for $type inference and `sanitizeSeg` (figma-ds-tokens.ts) for the alias-safe alphabet.
  */
-import { inferToken } from "./token-import.js";
-import type { ImportedType } from "./token-import.js";
-import { sanitizeSeg } from "./figma-ds-tokens.js";
-import { modeExtensionKey } from "./token-model.js";
+import { CUSTOM_PROPERTY_EXTENSION, modeExtensionKey } from "./token-model.js";
 import type { Token, TokenTree } from "./token-model.js";
 import type { CustomPropertyObservation } from "./designmd-token-extractor.js";
 import { classifySelector } from "./css-selector-mode.js";
+import { computeOwnPath, parseVarRef, resolveValue } from "./css-token-paths.js";
+import type { PathInfo } from "./css-token-paths.js";
+import { planProperty, settleAliases } from "./css-token-plan.js";
+import type { Outcome } from "./css-token-plan.js";
+import { buildLedger, rankSelectors } from "./css-token-ledger.js";
+import type { CssIngestLedger, LeftOutReason, UnrecognisedSelector } from "./css-token-ledger.js";
 
 export class CssTokenIngestError extends Error {
   readonly code: string;
@@ -28,71 +32,6 @@ export class CssTokenIngestError extends Error {
   }
 }
 
-// ─── D6 (corrected on the integration branch, spec 009 P3): leaf naming ───────
-//
-// The leaf is the custom-property name minus `--`, VERBATIM — no prefix stripping.
-// `--gray-900` and `--color-gray-900` are two DIFFERENT declared properties (dana: the
-// latter is a Tailwind `@theme` re-export of the former, `var(--gray-900)`, not a
-// duplicate) and land at two different paths: `color.gray-900` and `color.color-gray-900`.
-// An earlier rule stripped a category-matching prefix, silently merging the two and
-// collapsing the two-tier structure `token-taxonomy.md:110` mandates. The (uglier)
-// verbatim name is the source's own name, recorded as declared (SOURCE-grade,
-// `learn.md` §3c) — not rewritten to look nicer.
-
-function categoryForType(type: ImportedType): string {
-  switch (type) {
-    case "color": return "color";
-    case "fontFamily":
-    case "fontWeight": return "font";
-    case "dimension": return "dimension";
-    case "duration": return "duration";
-    case "number": return "number";
-  }
-}
-
-/** inferToken can't type a bare `var(--x)` reference (no literal to test) — a name-hint
- * fallback for properties that are ALWAYS alias-valued. Insight 1: overwhelmingly color. */
-function typeFromNameHint(leafRaw: string): ImportedType {
-  if (/font-?family|family/i.test(leafRaw)) return "fontFamily";
-  if (/weight/i.test(leafRaw)) return "fontWeight";
-  if (/motion|duration|transition|delay/i.test(leafRaw)) return "duration";
-  if (/spac|radi|size|width|height|layout|gap|inset|offset/i.test(leafRaw)) return "dimension";
-  return "color";
-}
-
-function parseVarRef(value: string): string | null {
-  const m = /^var\(\s*(--[a-zA-Z0-9_-]+)\s*\)$/.exec(value.trim());
-  return m ? (m[1] as string) : null;
-}
-interface PathInfo { category: string; leaf: string; type: ImportedType }
-
-/** This custom property's own {category, leaf, $type} — independent of alias/base/mode. */
-function computeOwnPath(name: string, entries: CustomPropertyObservation[]): PathInfo | null {
-  const leafRaw = name.slice(2);
-  const literal = entries.find((e) => parseVarRef(e.value) === null);
-  const type = literal !== undefined
-    ? (() => { const r = inferToken("", leafRaw, literal.value); return "skip" in r ? null : r.$type; })()
-    : typeFromNameHint(leafRaw);
-  if (type === null) return null;
-  const category = sanitizeSeg(categoryForType(type));
-  const leaf = sanitizeSeg(leafRaw);
-  return { category, leaf, type };
-}
-
-/** `leafRaw` supplies inferToken's category/name-hint context (WEIGHT_RE/DURATION_CAT_RE/
- * FAMILY_RE) — without it a value like "400ms" can't be recognised as a duration string
- * (only a bare number gets that treatment without a name hint). Measured live on hvs. */
-function resolveValue(value: string, leafRaw: string, pathByName: Map<string, PathInfo | null>): string | number | null {
-  const ref = parseVarRef(value);
-  if (ref !== null) {
-    const target = pathByName.get(ref);
-    if (target === null || target === undefined) return null; // dangling/unresolvable alias
-    return `{${target.category}.${target.leaf}}`;
-  }
-  const inferred = inferToken("", leafRaw, value);
-  return "skip" in inferred ? null : inferred.$value;
-}
-
 // ─── D4: the ingest ─────────────────────────────────────────────────────────
 
 export interface CssIngestResult {
@@ -101,6 +40,10 @@ export interface CssIngestResult {
   /** Every name that did not land in `tree`, or a declaration that couldn't be placed —
    * recorded, never silently dropped (Art VIII). */
   unverified: { name: string; reason: string }[];
+  /** Every input property, written or left out for one named reason: the sum equals `ledger.properties`. */
+  ledger: CssIngestLedger;
+  /** Selectors no rule maps to a base or a mode, largest first, with the declarations under each. */
+  unrecognisedSelectors: UnrecognisedSelector[];
 }
 
 /** Build the DTCG token tree from extract-tokens' customProperties. Deterministic, sorted keys. */
@@ -112,7 +55,7 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
   }
 
   const pathByName = new Map<string, PathInfo | null>();
-  for (const [name, entries] of byName) pathByName.set(name, computeOwnPath(name, entries));
+  for (const name of byName.keys()) pathByName.set(name, computeOwnPath(name, byName));
 
   // Collision guard (D6) — two DIFFERENT declared names landing on the same dotted path.
   // With no prefix stripping this should only fire on a genuine sanitization collision
@@ -135,57 +78,50 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
     nameByDotted.set(dotted, name);
   }
 
-  const tree: TokenTree = {};
-  const unverified: { name: string; reason: string }[] = [];
-  let primitives = 0, semantics = 0, skipped = 0;
-
+  const outcomes = new Map<string, Outcome>();
+  const unrecognised = new Map<string, number>();
   for (const [name, entries] of byName) {
-    const path = pathByName.get(name) ?? null;
-    if (path === null) { skipped++; unverified.push({ name, reason: `unmappable value on every declaration (e.g. '${entries[0]?.value}')` }); continue; }
-
-    const classified = entries.map((e) => ({ e, cls: classifySelector(e.selectors[0] ?? "") }));
-    for (const { e, cls } of classified) {
-      if (cls.kind === "unmapped") {
-        unverified.push({ name, reason: `declaration under unrecognized selector '${e.selectors[0] || "(none)"}' (${e.sources[0] ?? "?"}) — not a mode` });
+    for (const e of entries) {
+      if (classifySelector(e.selectors[0] ?? "").kind === "unmapped") {
+        const sel = e.selectors[0] || "(none)";
+        unrecognised.set(sel, (unrecognised.get(sel) ?? 0) + 1);
       }
     }
+    outcomes.set(name, planProperty(name, entries, pathByName.get(name) ?? null, pathByName));
+  }
+  const written = settleAliases(outcomes);
 
-    const baseEntry = classified.find((c) => c.cls.kind === "base")?.e;
-    const modeGroups = new Map<string, CustomPropertyObservation>();
-    for (const { e, cls } of classified) {
-      if (cls.kind === "modes") for (const m of cls.names) if (!modeGroups.has(m)) modeGroups.set(m, e);
-    }
+  const tree: TokenTree = {};
+  const unverified: { name: string; reason: string }[] = [];
+  const reasons: LeftOutReason[] = [];
+  let primitives = 0, semantics = 0;
 
-    if (baseEntry === undefined) {
-      skipped++;
-      const modeList = [...modeGroups.keys()];
-      unverified.push({
-        name,
-        reason: modeList.length > 0
-          ? `declared only under mode(s) ${modeList.join(", ")} — no base value; not promoted (D2)`
-          : "no recognised base/mode selector for any declaration",
-      });
-      continue;
-    }
+  for (const [name, o] of outcomes) {
+    for (const note of o.notes) unverified.push({ name, reason: note });
+    if (o.kind === "left-out") { reasons.push(o.reason); unverified.push({ name, reason: o.message }); continue; }
 
-    const leafRaw = name.slice(2);
-    const baseValue = resolveValue(baseEntry.value, leafRaw, pathByName);
-    if (baseValue === null) { skipped++; unverified.push({ name, reason: `could not resolve value '${baseEntry.value}'` }); continue; }
-
+    const { path, baseValue, modes } = o.planned;
     const leaf: Token = { $value: baseValue, $type: path.type };
+    // The property the token came from: an agent writes `var(--ds-surface)`, never a name derived from the path.
     const extensions: Record<string, unknown> = {};
-    for (const [modeName, entry] of modeGroups) {
-      const mv = resolveValue(entry.value, leafRaw, pathByName);
+    for (const [modeName, entry] of modes) {
+      const ref = parseVarRef(entry.value);
+      const mv = ref !== null && !written.has(ref) ? null : resolveValue(entry.value, name.slice(2), pathByName);
       if (mv !== null) extensions[modeExtensionKey(modeName)] = { $value: mv };
+      else unverified.push({ name, reason: ref !== null
+        ? `mode '${modeName}' not written: it names '${ref}', which ${byName.has(ref) ? "was left out" : "is not in the input"}`
+        : `mode '${modeName}' not written: value '${entry.value}' is not one typed leaf` });
     }
-    if (Object.keys(extensions).length > 0) leaf.$extensions = extensions;
+    extensions[CUSTOM_PROPERTY_EXTENSION] = name;
+    leaf.$extensions = extensions;
 
     (tree[path.category] ??= {})[path.leaf] = leaf;
-    if (typeof leaf.$value === "string" && /^\{.+\}$/.test(leaf.$value)) semantics++;
+    if (o.planned.aliasOf !== null) semantics++;
     else primitives++;
   }
 
-  return { tree: sortTree(tree), stats: { primitives, semantics, skipped }, unverified };
+  const ledger = buildLedger({ properties: byName.size, declarations: customProperties.length, primitives, semantics, reasons });
+  return { tree: sortTree(tree), stats: { primitives, semantics, skipped: reasons.length }, unverified, ledger, unrecognisedSelectors: rankSelectors(unrecognised) };
 }
 
 function sortTree(tree: TokenTree): TokenTree {

@@ -22,11 +22,12 @@ export function wordsOf(text: string): string[] {
   return words;
 }
 
-/** The words a node is found by: its name, the `name` of its screens-meta entry and the `aliases` it carries. */
+/** The words a node is found by: its name, the `name` of its screens-meta entry, the `aliases` it carries and, for a token
+ * written from CSS, the custom property it came from. */
 export function nodeWords(n: OntNode): Set<string> {
   const meta = (n["meta"] ?? {}) as Record<string, unknown>;
   const aliases = Array.isArray(meta["aliases"]) ? meta["aliases"] : [meta["aliases"]];
-  const texts = [n.name, meta["name"], ...aliases].filter((t): t is string => typeof t === "string");
+  const texts = [n.name, meta["name"], ...aliases, n["customProperty"]].filter((t): t is string => typeof t === "string");
   return new Set(texts.flatMap(wordsOf));
 }
 

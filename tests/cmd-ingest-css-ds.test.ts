@@ -49,7 +49,7 @@ describe("ui ingest-css-ds — happy path", () => {
     expect(env.data.stats).toEqual({ primitives: 1, semantics: 1, skipped: 0 });
     expect(existsSync(env.data.tokens)).toBe(true);
     const written = JSON.parse(readFileSync(env.data.tokens, "utf8"));
-    expect(written.color["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
+    expect(written.color["gray-900"]).toEqual({ $value: "#181818", $type: "color", $extensions: { "design-os.custom-property": "--gray-900" } });
     expect(written.color["text-primary"].$value).toBe("{color.gray-900}");
     // Unsealed — no manifest written by this command.
     expect(existsSync(join(out, "ds.manifest.json"))).toBe(false);
@@ -67,7 +67,7 @@ describe("ui ingest-css-ds — happy path", () => {
     const r = capture(["ingest-css-ds", src, "--out", out, "--json"]);
     expect(r.code).toBe(0);
     const written = JSON.parse(readFileSync(join(out, "tokens.json"), "utf8"));
-    expect(written.color["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
+    expect(written.color["gray-900"]).toEqual({ $value: "#181818", $type: "color", $extensions: { "design-os.custom-property": "--gray-900" } });
     expect(written.color["color-gray-900"].$value).toBe("{color.gray-900}");
   });
 });
@@ -151,12 +151,14 @@ describe("ui ingest-css-ds — UC-03: extract-tokens → ingest-css-ds → ds im
     // spec 011 P2: `ds import` bakes role recognition — "bg" (leading bg- prefix) also
     // gains its role annotation, merged alongside the pre-existing mode.dark extension.
     expect(compiled.color.bg.$extensions).toEqual({
-      "mode.dark": { $value: "#111111" }, "design-os.role": "background",
+      "mode.dark": { $value: "#111111" }, "design-os.custom-property": "--bg", "design-os.role": "background",
     });
 
     const css = capture(["tokens", "compile", join(dsDir, "design", "design.tokens.json"), "--target", "css"]);
     expect(css.code).toBe(0);
-    expect(css.out).toContain("--color-bg: #ffffff");
+    // the css target names the token after the property it was written from
+    expect(css.out).toContain("  --bg: #ffffff;");
+    expect(css.out).not.toContain("--color-bg");
     expect(css.out).not.toContain("#111111");
   });
 });

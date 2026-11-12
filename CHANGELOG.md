@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-11-12 - `ui ingest-css-ds` compiles a theme from a packaged token sheet and keeps each token's own custom property
+
+### Added
+- Each token written from CSS carries the custom property it came from, under
+  `$extensions["design-os.custom-property"]` (`--ds-surface`). `ui ds import` keeps it in the sealed store;
+  `ui tokens compile --target css` emits the token under that name instead of one derived from its path; `ui ds context`
+  prints it (a third column of the semantic table, the roles list, and `customProperty` in the JSON); the ontology's
+  token node carries `customProperty`, `ui ontology query` finds the token by it (`ui ontology query -- --ds-surface`)
+  and prints it. `--target css` and `--json` refuse a carried name that would be declared twice (carried by two tokens, equal to
+  another token's path-derived name, or equal to a sub-property of its own composite) with `DUPLICATE_CUSTOM_PROPERTY`;
+  two path-derived names that collide are compiled as before; `--target tailwind`
+  and `--target figma` never refuse for this. A store sealed before this change behaves as before.
+- The JSON envelope of `ui ingest-css-ds` carries a `ledger`: custom properties in, tokens written (primitives and
+  aliases) and the properties left out per named reason, summing to the input.
+
+### Changed
+- The base and theme selectors of a built, minified sheet are recognised: `:where(:root,:host,…)`, `:is(…)`, `:host`,
+  unquoted `[data-theme=dark]`, and a base with one theme qualifier (`:root[data-theme=dark]`, `html.dark`). A
+  selector list is split on top-level commas only. A component class, a descendant selector and `:host(.x)` stay
+  listed, never promoted.
+- `.1s` and `.5rem` are typed and stored as written. A comma-separated list of font families
+  (`"Inter", system-ui, sans-serif`, `-apple-system, …`) is a `fontFamily` token only when the property or key name
+  carries a family hint (`font`, `family`, `typeface`, not `font-size`, `font-feature-settings` and the like), every
+  quoted entry holds a letter and no backslash escape, and the value itself is evidence: one whole unquoted entry is a
+  generic family keyword (`serif`, `sans-serif`, `monospace`, `system-ui`, …). A name can withhold the type, never
+  grant it: the same list under a name with no hint is listed, not typed, and so is a single family with no generic
+  keyword (`--font-brand: "Acme Sans"`, `--brand-typeface: "Acme Sans"`). A value under a `family` name is typed as it
+  always was. A decimal duration such as
+  `0.3s` under a motion, duration, transition or delay name is typed too; `ui ds import` shares this inference.
+- An alias takes the type of the property it names, and is written only when that property is written; a mode value
+  that names a property left out is dropped and listed.
+- Custom properties in and no token out is an error: `ui ingest-css-ds` exits 1 with `NO_TOKENS_WRITTEN`, writes
+  nothing, and states how many properties were read, every reason the ledger shows with its count, and the five
+  largest unrecognised selectors with their declaration counts when there are any.
+
 ## 2026-11-12 - `ui ontology query`, and project agents for Claude Code, Codex and Antigravity
 
 ### Added

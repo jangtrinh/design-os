@@ -60,7 +60,8 @@ export interface StructuredContext {
    * "soul" section is included. Null ONLY when "soul" is not in `include`.
    */
   factorySoul: string | null;
-  semantic: { path: string; value: string }[];
+  /** `customProperty`: the custom property a token written from CSS came from; absent for every other token. */
+  semantic: { path: string; value: string; customProperty?: string }[];
   registry: { name: string; category: string; tokensUsed: string[] }[];
   naming: { rule: string }[];
   antiPatterns: string[];
@@ -70,7 +71,7 @@ export interface StructuredContext {
    * stick). Empty when the "tokens" section is excluded or no token in the DS
    * carries a baked role (e.g. imported before this feature shipped).
    */
-  roles: { role: string; paths: string[] }[];
+  roles: { role: string; paths: string[]; properties?: Record<string, string> }[];
   /** Canonical roles with zero recognized tokens; same omission rule as `roles`. */
   roleGaps: string[];
   /** The guidelines pack summary (`--include guidelines`); null when not asked for or no pack, "unreadable" for a damaged manifest. */
@@ -342,12 +343,15 @@ export function formatMarkdown(ds: DesignSystem, opts: ContextOptions): string {
       } else {
         const col1 = Math.max(5, ...tok.map((t) => t.path.length));
         const col2 = Math.max(11, ...tok.map((t) => formatValue(t).length));
+        // A third column only when some token came from CSS: a store without the extension prints exactly the two columns.
+        const withProperty = tok.some((t) => t.customProperty !== undefined);
+        const col3 = Math.max(15, ...tok.map((t) => (t.customProperty ?? "").length));
         lines.push(
-          `| ${"Token".padEnd(col1)} | ${"Resolves to".padEnd(col2)} |`,
-          `|${"-".repeat(col1 + 2)}|${"-".repeat(col2 + 2)}|`,
+          `| ${"Token".padEnd(col1)} | ${"Resolves to".padEnd(col2)} |${withProperty ? ` ${"Custom property".padEnd(col3)} |` : ""}`,
+          `|${"-".repeat(col1 + 2)}|${"-".repeat(col2 + 2)}|${withProperty ? `${"-".repeat(col3 + 2)}|` : ""}`,
         );
         for (const t of tok) {
-          lines.push(`| ${t.path.padEnd(col1)} | ${formatValue(t).padEnd(col2)} |`);
+          lines.push(`| ${t.path.padEnd(col1)} | ${formatValue(t).padEnd(col2)} |${withProperty ? ` ${(t.customProperty ?? "").padEnd(col3)} |` : ""}`);
         }
         lines.push("");
       }
@@ -429,7 +433,7 @@ function buildStructured(
     studioSoul: include.includes("soul") ? studioSoul : null,
     factorySoul: include.includes("soul") ? factorySoulSectionForContext() : null,
     semantic: include.includes("tokens")
-      ? tok.map((t) => ({ path: t.path, value: formatValue(t) }))
+      ? tok.map((t) => ({ path: t.path, value: formatValue(t), ...(t.customProperty === undefined ? {} : { customProperty: t.customProperty }) }))
       : [],
     registry: include.includes("registry") ? reg : [],
     naming: include.includes("naming")
@@ -440,7 +444,7 @@ function buildStructured(
     // chain — read from the BAKED annotation, never recomputed (see
     // ds-context-roles.ts), so an owner's `ds set-role` correction always wins.
     roles: include.includes("tokens") && rolesSummary !== null
-      ? rolesSummary.roles.map((r) => ({ role: r.role, paths: r.paths }))
+      ? rolesSummary.roles.map((r) => ({ role: r.role, paths: r.paths, ...(r.properties === undefined ? {} : { properties: r.properties }) }))
       : [],
     roleGaps: include.includes("tokens") && rolesSummary !== null ? [...rolesSummary.gaps] : [],
     guidelines: null,

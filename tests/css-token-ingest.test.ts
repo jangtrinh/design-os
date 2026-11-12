@@ -20,7 +20,7 @@ describe("test_a_literal_becomes_a_primitive_and_an_alias_becomes_a_semantic", (
       cp("--gray-900", "#181818", ":root"),
       cp("--text-primary", "var(--gray-900)", ":root"),
     ]);
-    expect(tree.color?.["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
+    expect(tree.color?.["gray-900"]).toEqual({ $value: "#181818", $type: "color", $extensions: { "design-os.custom-property": "--gray-900" } });
     expect(tree.color?.["text-primary"]?.$value).toBe("{color.gray-900}");
     expect(stats.primitives).toBe(1);
     expect(stats.semantics).toBe(1);
@@ -34,7 +34,7 @@ describe("test_a_literal_becomes_a_primitive_and_an_alias_becomes_a_semantic", (
       cp("--gray-900", "#181818", ":root", "dana-tokens.css:L10"),
       cp("--color-gray-900", "var(--gray-900)", "@theme", "index.css:L31"),
     ]);
-    expect(tree.color?.["gray-900"]).toEqual({ $value: "#181818", $type: "color" });
+    expect(tree.color?.["gray-900"]).toEqual({ $value: "#181818", $type: "color", $extensions: { "design-os.custom-property": "--gray-900" } });
     expect(tree.color?.["color-gray-900"]?.$value).toBe("{color.gray-900}");
   });
 });
@@ -55,6 +55,7 @@ describe("test_four_theme_values_of_one_name_become_base_plus_three_modes", () =
       "mode.classic": { $value: "#0c1220" },
       "mode.light": { $value: "#FBFBFB" },
       "mode.dark": { $value: "#0F0F0F" },
+      "design-os.custom-property": "--surface-content",
     });
   });
 });
@@ -144,7 +145,7 @@ describe("ingestCssTokens — compound comma-separated selector list (real dana 
     ]);
     const ext = tree.color?.["surface-content"]?.$extensions;
     expect(ext).toBeDefined();
-    expect(Object.keys(ext ?? {}).sort()).toEqual(["mode.classic", "mode.dark"]);
+    expect(Object.keys(ext ?? {}).sort()).toEqual(["design-os.custom-property", "mode.classic", "mode.dark"]);
   });
 });
 

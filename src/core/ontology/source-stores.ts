@@ -40,7 +40,8 @@ export function readSealedStores(projectDir: string): StoreRead {
   const paths = pathsForDir(join(projectDir, "design"));
   try {
     const ds = loadDesignSystem(paths);
-    const tokens = ds.resolved.map((t): OntNode => ({ id: nodeId("token", t.path), kind: "token", name: t.path, type: t.type, value: t.value }));
+    // A token written from CSS carries the custom property it came from, so a host can write var(--ds-surface) without guessing.
+    const tokens = ds.resolved.map((t): OntNode => ({ id: nodeId("token", t.path), kind: "token", name: t.path, type: t.type, value: t.value, ...(t.customProperty === undefined ? {} : { customProperty: t.customProperty }) }));
     const components = ds.registry.components.map(componentNode);
     const read = (kind: "token" | "component", n: number, what: string): SourceReport => ({ kind, status: "read", nodes: n, note: n === 0 ? `${what} is sealed and holds no entry` : `${n} from the sealed ${what}` });
     return {

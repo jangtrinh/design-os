@@ -243,7 +243,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         flags: [
           { name: "target", type: "string", values: ["css", "tailwind", "figma"], summary: "Output format (default css); --json returns all three" },
         ],
-        errorCodes: [...IO_CODES, "BAD_JSON", "BAD_TOKEN", "ALIAS_CYCLE", "DANGLING_ALIAS", "TYPE_MISMATCH"],
+        errorCodes: [...IO_CODES, "BAD_JSON", "BAD_TOKEN", "ALIAS_CYCLE", "DANGLING_ALIAS", "TYPE_MISMATCH", "DUPLICATE_CUSTOM_PROPERTY"],
       },
     },
   },
@@ -1117,7 +1117,7 @@ export const COMMAND_SIGNATURES: Readonly<Record<string, CommandSchema>> = {
         { name: "out", type: "string", summary: "Output directory (default: current working directory)" },
         { name: "name", type: "string", summary: "Recorded in the JSON summary only (no manifest is written here)" },
       ],
-      errorCodes: ["UNKNOWN_FLAG", "BAD_ARG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "LEAF_COLLISION", "WRITE_ERROR"],
+      errorCodes: ["UNKNOWN_FLAG", "BAD_ARG", "FILE_NOT_FOUND", "READ_ERROR", "BAD_JSON", "LEAF_COLLISION", "NO_TOKENS_WRITTEN", "WRITE_ERROR"],
     },
   },
 

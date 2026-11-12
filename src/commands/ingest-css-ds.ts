@@ -14,10 +14,11 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { basename, resolve, join } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
 import type { CommandResult } from "../core/output.js";
-import { errJson, errText, okJson } from "../core/output.js";
+import { errJson, errJsonWithData, errText, okJson } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
 import { ingestCssTokens, CssTokenIngestError } from "../core/css-token-ingest.js";
 import type { CustomPropertyObservation } from "../core/designmd-token-extractor.js";
+import { emptyResultMessage } from "../core/css-token-ledger.js";
 
 const CMD = "ingest-css-ds";
 const KNOWN_FLAGS = ["out", "name"] as const;
@@ -35,8 +36,18 @@ each theme selector becomes a mode under $extensions["mode.<name>"]).
 Writes (into <out>, default: current directory):
   tokens.json   DTCG tokens — primitive literals + semantic aliases; base + modes
 
+Each token carries the custom property it was read from under
+$extensions["design-os.custom-property"] (e.g. "--ds-surface"): 'ui ds import' keeps it in
+the sealed store, 'ui tokens compile --target css' emits the token under that name, and
+'ui ds context' and the ontology's token nodes print it, so a host writes var(--ds-surface)
+and never a name derived from the token path.
+
 'ui ds import <out>/tokens.json --dir <project> --name <slug>' seals the result
 into a design/ store afterwards — this command never writes a manifest.
+
+The JSON envelope carries a 'ledger': custom properties in, tokens written (primitives,
+aliases), and the properties left out per named reason with counts — the sum equals the
+input. 'unverified' lists each name and why.
 
 Options:
   --out <dir>      Output directory (default: current working directory)
@@ -52,6 +63,11 @@ Error codes:
   BAD_JSON         extract-tokens.json is not valid JSON, or missing customProperties[]
   LEAF_COLLISION   Two source custom properties strip to the same token path (D6) — fails
                    loudly with both source lines rather than merging or suffixing
+  NO_TOKENS_WRITTEN  The input holds custom properties and none became a token (exit 1, nothing
+                   written): the message states how many custom properties were read, every
+                   reason the ledger shows with its count, the five largest selectors that
+                   were not recognised (with their declaration counts) when there are any,
+                   and the next action
   WRITE_ERROR      An output file could not be written
 `;
 
@@ -101,6 +117,14 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     throw e;
   }
 
+  // Custom properties in and no token out is a failure, not a success: nothing is written.
+  if (result.ledger.properties > 0 && result.ledger.written.primitives + result.ledger.written.semantics === 0) {
+    const message = emptyResultMessage(result.ledger, result.unrecognisedSelectors);
+    return useJson
+      ? errJsonWithData(CMD, "NO_TOKENS_WRITTEN", message, { ledger: result.ledger, unrecognisedSelectors: result.unrecognisedSelectors.slice(0, 5) })
+      : errText(`ui: ${message}\n`);
+  }
+
   const outDir = resolve(flagStr(parsed, "out") ?? process.cwd());
   const name = flagStr(parsed, "name") ?? basename(outDir);
   const tokensPath = join(outDir, "tokens.json");
@@ -116,12 +140,15 @@ function runIngest(parsed: ParsedArgs): CommandResult {
     tokens: tokensPath,
     name,
     stats: result.stats,
+    ledger: result.ledger,
     unverified: result.unverified,
   };
   if (useJson) return okJson(CMD, data);
   const lines = [
     `Ingested CSS vocabulary → ${tokensPath}`,
     `  ${result.stats.primitives} primitive(s) · ${result.stats.semantics} semantic(s)${result.stats.skipped > 0 ? ` · ${result.stats.skipped} skipped` : ""}`,
+    `  ledger: ${result.ledger.properties} propert${result.ledger.properties === 1 ? "y" : "ies"} in = ${result.stats.primitives} primitive(s) + ${result.stats.semantics} semantic(s)` +
+      Object.entries(result.ledger.leftOut).map(([reason, n]) => ` + ${n} left out (${reason})`).join(""),
     ...(result.unverified.length > 0 ? [`  unverified: ${result.unverified.slice(0, 5).map((u) => u.name).join(", ")}${result.unverified.length > 5 ? " …" : ""}`] : []),
     `  next: ui ds import ${tokensPath} --dir <project> --name ${name}`,
   ];

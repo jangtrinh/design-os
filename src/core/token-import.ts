@@ -10,6 +10,7 @@
 
 import { isAlias, isTokenLeaf } from "./token-model.js";
 import { sanitizeSeg } from "./figma-ds-tokens.js";
+import { DURATION_VALUE_RE, isFontFamilyStack } from "./css-value-shapes.js";
 
 export type ImportedType = "color" | "dimension" | "number" | "fontFamily" | "fontWeight" | "duration";
 
@@ -65,7 +66,7 @@ export function inferToken(category: string, name: string, value: unknown): { $v
     if (COLOR_RE.test(v) || COLOR_FN_RE.test(v)) return { $value: v, $type: "color" };
     if (DIM_RE.test(v)) return { $value: v, $type: "dimension" };
     if (FAMILY_RE.test(ctx)) return { $value: v, $type: "fontFamily" };
-    if (DURATION_CAT_RE.test(ctx) && /^\d+m?s$/i.test(v)) return { $value: v, $type: "duration" };
+    if (DURATION_CAT_RE.test(ctx) && DURATION_VALUE_RE.test(v)) return { $value: v, $type: "duration" };
     // numeric-looking string
     if (/^-?\d*\.?\d+$/.test(v)) return numeric(category, name, Number(v));
     // F2 (spec 009 P3): an alias front-door refusal drops the entire semantic tier
@@ -73,6 +74,8 @@ export function inferToken(category: string, name: string, value: unknown): { $v
     // already accepts aliases; only this front door refused. No literal to type from, so
     // fall back to a category/name hint (color dominates the real alias layer).
     if (isAliasShape(v)) return { $value: v, $type: aliasTypeHint(ctx) };
+    // A font-family stack (`"Inter", system-ui, sans-serif`) is one fontFamily value whatever the property is called.
+    if (isFontFamilyStack(v, ctx)) return { $value: v, $type: "fontFamily" };
     return { skip: `unmappable string value "${String(value).slice(0, 24)}"` };
   }
   if (typeof value === "number") return numeric(category, name, value);

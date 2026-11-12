@@ -12,11 +12,12 @@
  */
 import { CANONICAL_ROLES } from "./role-recognition.js";
 import type { Role } from "./role-recognition.js";
+import { customPropertyOf } from "./token-model.js";
 import type { TokenTree } from "./token-model.js";
 
 export interface RolesSummary {
   /** Every canonical role with ≥1 token carrying it, sorted by role name; each entry's paths sorted. */
-  roles: { role: Role; paths: string[] }[];
+  roles: { role: Role; paths: string[]; /** path -> source custom property, only for the tokens written from CSS. */ properties?: Record<string, string> }[];
   /** Canonical roles with zero tokens carrying them. */
   gaps: Role[];
 }
@@ -29,12 +30,15 @@ export interface RolesSummary {
  */
 export function summarizeRoles(tokens: TokenTree): RolesSummary | null {
   const byRole = new Map<Role, string[]>();
+  const propertyOf = new Map<string, string>();
   for (const [category, group] of Object.entries(tokens)) {
     for (const [name, token] of Object.entries(group)) {
       const role = (token.$extensions as Record<string, unknown> | undefined)?.["design-os.role"];
       if (typeof role !== "string" || !(CANONICAL_ROLES as readonly string[]).includes(role)) continue;
       const paths = byRole.get(role as Role);
       const path = `${category}.${name}`;
+      const property = customPropertyOf(token.$extensions);
+      if (property !== undefined) propertyOf.set(path, property);
       if (paths !== undefined) paths.push(path);
       else byRole.set(role as Role, [path]);
     }
@@ -42,7 +46,11 @@ export function summarizeRoles(tokens: TokenTree): RolesSummary | null {
   if (byRole.size === 0) return null;
 
   const roles = [...byRole.entries()]
-    .map(([role, paths]) => ({ role, paths: [...paths].sort() }))
+    .map(([role, paths]) => {
+      const sorted = [...paths].sort();
+      const properties = Object.fromEntries(sorted.filter((p) => propertyOf.has(p)).map((p) => [p, propertyOf.get(p) as string]));
+      return { role, paths: sorted, ...(Object.keys(properties).length > 0 ? { properties } : {}) };
+    })
     .sort((a, b) => a.role.localeCompare(b.role));
   const gaps = CANONICAL_ROLES.filter((r) => !byRole.has(r));
   return { roles, gaps };
@@ -55,8 +63,8 @@ export function summarizeRoles(tokens: TokenTree): RolesSummary | null {
 export function rolesMarkdownLines(summary: RolesSummary | null): string[] {
   if (summary === null) return [];
   const lines: string[] = ["## Roles", ""];
-  for (const { role, paths } of summary.roles) {
-    lines.push(`- ${role} → ${paths.join(", ")}`);
+  for (const { role, paths, properties } of summary.roles) {
+    lines.push(`- ${role} → ${paths.map((p) => (properties?.[p] === undefined ? p : `${p} (${properties[p]})`)).join(", ")}`);
   }
   lines.push("", "## Missing roles", "");
   lines.push(

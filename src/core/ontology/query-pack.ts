@@ -39,7 +39,7 @@ const clip = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n -
 const oneLine = (s: string): string => s.replace(/\s+/g, " ").trim();
 
 function line(n: OntNode): string {
-  const extra = n.kind === "token" ? ` = ${typeof n["value"] === "string" ? n["value"] : JSON.stringify(n["value"])}` : n.kind === "ruling" && typeof n["text"] === "string" ? `: ${clip(oneLine(n["text"]), 160)}` : "";
+  const extra = n.kind === "token" ? ` = ${typeof n["value"] === "string" ? n["value"] : JSON.stringify(n["value"])}${typeof n["customProperty"] === "string" ? ` [${n["customProperty"]}]` : ""}` : n.kind === "ruling" && typeof n["text"] === "string" ? `: ${clip(oneLine(n["text"]), 160)}` : "";
   return `- ${clip(oneLine(n.name), 160)} (${n.id}) — ${sourcePath(n)}${extra}`;
 }
 
