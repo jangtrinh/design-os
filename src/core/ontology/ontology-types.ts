@@ -39,6 +39,8 @@ export interface SourceReport {
   seen?: number;
   /** Reason -> how many entries or values were left out, present only when something was. */
   leftOut?: Record<string, number>;
+  /** Component sources only: reason -> how many components carry no area, present only when some do. */
+  withoutArea?: Record<string, number>;
 }
 export interface SourceDoor { door: "figma" | "code"; status: SourceReport["status"]; nodes: number; note: string }
 

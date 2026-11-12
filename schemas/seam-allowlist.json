@@ -19,8 +19,8 @@
       "proposedJsonHome": "none (integrity check, not data)"
     },
     {
-      "file": "src/commands/agents.ts",
-      "line": 147,
+      "file": "src/commands/agents-shared.ts",
+      "line": 67,
       "readCall": "readFileSync(p, \"utf8\")",
       "paths": [
         "*/templates/agents/curator.md",

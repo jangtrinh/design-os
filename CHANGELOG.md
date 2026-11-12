@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-11-12 - `ui ontology query`, and project agents for Claude Code, Codex and Antigravity
+
+### Added
+- `ui ontology query "<text>" [--area <name>] [--budget <chars>] [--dir <project>] [--json]` answers a design task
+  from `design/knowledge/ontology.json`: the nodes whose name or alias carries the words, what they link to within
+  two hops, packed in a fixed order (rules, patterns, components, tokens, rulings, sibling screens) inside a character
+  budget (default 12,000). Every entry names its node id and its source path. The output says how many entries of
+  each group the budget left out; it never cuts an entry in the middle and never invents one. No match is a result,
+  not an error: exit 0, `matches: 0` and the three nearest titles.
+- Words are matched exactly, with no model and no fuzzy match. Names are split at case boundaries, so `button` finds
+  `PrimaryButton`, and the whole name is kept as a word too.
+- Ontology nodes carry an `area`: the Figma page of a component (`page:<name>`), the directory of a component
+  registered from code (`dir:<category>`), the first segment of a token path (`tokens:<group>`), the category of a
+  ruling (`rulings:<category>`). `--area` takes a name or a full key and is exact: a name that matches two keys is
+  refused with the keys (`ONTOLOGY_AREA_AMBIGUOUS`), a name that matches none with the three nearest
+  (`ONTOLOGY_AREA_UNKNOWN`). A node with no source for an area carries none and is counted.
+- The query reads only a current file. A missing ontology, or one that differs from what the sources give now, is
+  refused (`ONTOLOGY_STALE`) with the command to run; the query writes nothing.
+- A ruling that declares a successor is never packed, and the output counts the rulings left out for that reason.
+- `ui agents init [--runtimes claude,codex,antigravity]` renders one roster to three runtimes: Claude Code
+  (`.claude/agents/<name>.md`), Antigravity (`.agent/skills/design-os-agent-<name>/SKILL.md`) and Codex (a section of
+  `AGENTS.md` between its own markers; the text around it is never rewritten). Each agent carries a generated block
+  that names the query command and lists the project's ontology areas with their node counts.
+- `ui agents check` now also fails when an area block is not what the ontology gives (`ONTOLOGY_STALE`), when one
+  runtime's roster differs from another's (`AGENTS_ROSTER_DRIFT`), when the section markers in `AGENTS.md` are not one
+  start line followed by one end line (`AGENTS_SECTION_MALFORMED`), and when `AGENTS.md` is larger than the 32,768
+  bytes Codex reads by default (`AGENTS_DOC_OVER_LIMIT`). Every regenerate command it prints names the runtimes and
+  roles the project has, and is printed only when it would be accepted.
+
+### Changed
+- `ui agents init` on a project that already has agents regenerates the runtimes that have a target and names the
+  others with the command that adds one. A first run writes the three. `ui init --with-agents` still writes the
+  Claude Code agents only.
+- `ui agents init --force` says "replaced" for a file or section that existed, and says so when the text outside the
+  area block differed from what this version generates.
+- `ui agents init` writes nothing, for any runtime, when the `AGENTS.md` that would result is larger than the limit
+  Codex reads; it states the sizes it measured and what to do.
+- `ui init` and `ui agents init` refuse an `AGENTS.md` whose section markers are malformed (a start without an end,
+  an end before a start, more than one of either) before writing anything. Earlier, `ui init` appended a second
+  section in that case, and a later run could replace a person's text that sat between the markers.
+- The Limits section of the README no longer says project agents are generated for Claude Code only.
+
+### Known limits
+- The generated targets were checked in Codex and Antigravity, headless. The Claude Code target keeps the bytes of the
+  previous release outside the new block and was not started in Claude Code for this release.
+- Ruling text is not searched (a ruling is found by its name), and there are no stop words.
+
 ## 2026-11-12 - `ui ontology build` and `ui ontology lint`: one design ontology per project
 
 ### Added

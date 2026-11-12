@@ -32,7 +32,7 @@ const HINTS = {
   ds: "run `ui ds init` (new) or `ui ds import` (existing) to set up the design system",
   soul: "run `ui ds soul` to declare your design stance",
   heartbeat: "wired automatically by `ui ds init`/`ui ds import`",
-  agents: "run `ui agents init` for soul-bound project agents (Claude Code)",
+  agents: "run `ui agents init` for soul-bound project agents (Claude Code, Codex, Antigravity)",
   figma: "open the Figma Design Agent plugin, then `figma-agent status`",
   figmaAbsent:
     "using Figma? install the Design Agent: https://github.com/jangtrinh/design-os-figma-plugin",

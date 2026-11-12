@@ -1,45 +1,45 @@
 /**
- * `ui agents` — generate + lint soul-bound, task-scoped project agents
- * (Claude Code subagents under `.claude/agents/`). Pure kernel:
- * src/core/agents-gen.ts; knowledge: knowledge/design-agents.md.
+ * `ui agents` — generate + lint soul-bound, task-scoped project agents for the three runtimes (Claude Code subagents
+ * under `.claude/agents/`, Antigravity skills under `.agent/skills/`, and the design-os agents section of Codex's
+ * `AGENTS.md`). Pure kernel: src/core/agents-gen.ts (roster, naming, stamp), src/core/agents-targets.ts (the three
+ * targets), src/core/agents-areas-block.ts (the generated ontology-areas block); knowledge: knowledge/design-agents.md.
  *
- * Opt-in by design — `ui init` only hints, unless the user passes the
- * explicit `--with-agents` flag (the opt-in, exercised at init time). The
- * emitter/linter pair: `init` renders templates/agents/<role>.md with the
- * genealogy name (studio soul `name:` × manifest name × role) and a stamp;
- * `check` re-renders the live templates and flags any file whose content no
- * longer matches (template drift, hand edits, or a renamed studio/project).
+ * Opt-in by design — `ui init` only hints, unless the user passes the explicit `--with-agents` flag (the opt-in,
+ * exercised at init time, Claude Code only). The emitter/linter pair: `init` renders templates/agents/<role>.md with
+ * the genealogy name (studio soul `name:` × manifest name × role) and a stamp; `check` re-renders the live templates
+ * and the ontology file and flags any file whose content no longer matches.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
-import { countBySeverity } from "../core/finding-schema.js";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
-import { errJson, errText, ok, okJson, okJsonWithExit } from "../core/output.js";
-import type { CommandResult } from "../core/output.js";
+import { join } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
+import { errJson, errText, ok, okJson } from "../core/output.js";
+import type { CommandResult } from "../core/output.js";
 import { findUnknownFlag, unknownFlagMessage } from "../core/flag-guard.js";
-import { discoverDesignSystem, pathsForDir } from "../core/design-system.js";
-import { loadManifest, DSManifestError } from "../core/ds-manifest.js";
-import { easeHome } from "../core/memory-store.js";
-import { STUDIO_SOUL_FILENAME, soulName } from "../core/ds-soul-studio.js";
-import { resolvePackageRoots } from "../core/init-stub.js";
-import { ROSTER, agentName, parseAgentStamp, renderAgent, templateHash } from "../core/agents-gen.js";
-import type { AgentRole, AgentStamp } from "../core/agents-gen.js";
+import { stripBlocks } from "../core/agents-areas-block.js";
+import { agentFile } from "../core/agents-targets.js";
+import { templateHash } from "../core/agents-gen.js";
+import { isFail, isRosterRole, loadProject, resolveRoot, scanClaude, targetContext } from "./agents-shared.js";
+import { runCheck } from "./agents-check-command.js";
+import { runInit } from "./agents-init-command.js";
 
 const CMD = "agents";
 
-export const AGENTS_HELP = `ui agents — soul-bound, task-scoped project agents (Claude Code subagents)
+export const AGENTS_HELP = `ui agents — soul-bound, task-scoped project agents for Claude Code, Codex and Antigravity
 
 Usage:
-  ui agents init  [--dir <project>] [--roster designer,curator,figma-hand] [--force] [--json]
+  ui agents init  [--dir <project>] [--runtimes claude,codex,antigravity] [--roster designer,curator,figma-hand] [--force] [--json]
   ui agents list  [--dir <project>] [--json]
   ui agents check [--dir <project>] [--json]
 
 Subcommands:
-  init    Generate one .claude/agents/<name>.md per roster role (opt-in; 'ui init' never runs this)
+  init    Render one roster to each runtime's target (opt-in; 'ui init' never runs this). Without --runtimes it
+          regenerates the runtimes the project already has a target for, and all three on a first run
   list    Scan .claude/agents/*.md for design-os stamps → role / name / hash / fresh
-  check   Findings-linter over the generated agents; exit 1 on error-severity findings
+  check   Findings-linter over the generated agents of every runtime found; exit 1 on error-severity findings
+
+Targets (one roster, templates/agents/{designer,curator,figma-hand}.md, rendered to each):
+  claude       .claude/agents/<name>.md
+  antigravity  .agent/skills/design-os-agent-<name>/SKILL.md
+  codex        the design-os agents section of AGENTS.md (the text around it is never rewritten)
 
 Naming (genealogy — studio × project × role):
   With a studio soul ($EASE_DESIGN_HOME/studio-soul.md, frontmatter name: MERIDIAN)
@@ -54,26 +54,32 @@ Naming (genealogy — studio × project × role):
 Identity is RUNTIME-READ, never baked: a generated agent's first action is
 'ui ds context' (which carries the project soul + the studio soul), so soul
 edits propagate with zero drift. Only the NAME is baked at generate time —
-rename the studio or project → 'ui agents init --force'.
+rename the studio or project → 'ui agents init --force' (it regenerates the runtimes the project already has).
+
+Ontology areas: each agent carries one generated block, fenced by
+<!-- design-os:ontology-areas:start --> and <!-- design-os:ontology-areas:end -->, that lists the areas of
+design/knowledge/ontology.json with their node counts, and names the command 'ui ontology query "<your task>" --area "<area key>"'
+once (the Codex section carries one block). It is the one deliberate exception to "never baked": the command regenerates it and 'check' re-renders
+it from the ontology file and compares. A project with no ontology gets a block that says so and names 'ui ontology build'.
 
 'init' options:
-  --dir <path>    Project directory holding design/ (default: walk up from cwd)
-  --roster <csv>  Roles to generate, from: designer, curator, figma-hand (default: all 3)
-  --force         Overwrite existing agent files (without it, existing files → EXISTS)
+  --dir <path>        Project directory holding design/ (default: walk up from cwd)
+  --runtimes <csv>    Runtimes to render, from: claude, codex, antigravity (default: the runtimes this project already has a target for; all three when it has none)
+  --roster <csv>      Roles to generate, from: designer, curator, figma-hand (default: all 3)
+  --force             Overwrite existing targets (without it, an existing target → EXISTS)
 
 'list' / 'check' options:
   --dir <path>    Project directory (default: the discovered DS project, else cwd)
 
-'check' findings:
-  agent-stale         (error)   file no longer matches its template render — the
-                                template changed, the file was hand-edited, or the
-                                studio/project name moved; fix: 'ui agents init --force'
-  agent-unknown-role  (warning) a stamped file's roster-role is not in the roster
-  no-agents           (warning) no stamped agents found — agents are opt-in, never required
-
-Runtime scope: Claude Code only for now (.claude/agents/). codex / antigravity
-subagent formats are tracked in knowledge/design-agents.md; nothing is emitted
-for them yet.
+'check' findings (one per file; it checks only the runtimes that have a target on disk and names the others):
+  agent-stale          (error)   a Claude Code file no longer matches its template render outside its area block —
+                                the template changed, the file was hand-edited, or the studio/project name moved;
+                                fix: 'ui agents init --force' (it regenerates the runtimes the project already has)
+  AGENTS_ROSTER_DRIFT  (error)   an Antigravity file or the Codex section differs from the roster outside its blocks,
+                                or a role one runtime holds is missing from another
+  ONTOLOGY_STALE       (error)   an area block differs from a fresh render of the ontology file
+  agent-unknown-role   (warning) a stamped file's roster-role is not in the roster
+  no-agents            (warning) no stamped agents found — agents are opt-in, never required
 
 Common options:
   --json        Emit a JSON envelope
@@ -82,289 +88,49 @@ Common options:
 Error codes:
   DS_NOT_FOUND  No design/ds.manifest.json — agents bind to a project design
                 system; run 'ui ds init <name>' (or /ui:learn) first
-  BAD_ARG       Missing/unknown subcommand, or a bad --roster role
-  EXISTS        'init' target agent file already exists (use --force to overwrite)
+  BAD_ARG       Missing/unknown subcommand, a bad --roster role, or an unknown --runtimes name
+  EXISTS        'init' target already exists (use --force to overwrite)
   BAD_MANIFEST  design/ds.manifest.json is malformed
   READ_ERROR    A template or agent file could not be read
   WRITE_ERROR   An agent file could not be written
   UNKNOWN_FLAG  Unrecognised --flag (rejected, with a did-you-mean hint)
 `;
 
-// ─── Shared helpers ───────────────────────────────────────────────────────────
-
-type Fail = { fail: true; code: string; message: string };
-const fail = (code: string, message: string): Fail => ({ fail: true, code, message });
-const isFail = (v: unknown): v is Fail =>
-  typeof v === "object" && v !== null && (v as { fail?: unknown }).fail === true;
-
-const DS_HINT =
-  "no design/ds.manifest.json found — agents bind to a project design system; run 'ui ds init <name>' (or /ui:learn) first.";
-
-/** Project root + manifest name, from --dir or upward discovery. */
-function loadProject(dirFlag: string | boolean | undefined): { root: string; project: string } | Fail {
-  let designDir: string;
-  if (typeof dirFlag === "string") designDir = pathsForDir(resolve(dirFlag, "design")).dir;
-  else {
-    try { designDir = discoverDesignSystem(undefined).dir; }
-    catch { return fail("DS_NOT_FOUND", DS_HINT); }
-  }
-  try {
-    const manifest = loadManifest(join(designDir, "ds.manifest.json"));
-    return { root: dirname(designDir), project: manifest.name };
-  } catch (e) {
-    if (e instanceof DSManifestError && e.code === "MANIFEST_NOT_FOUND") return fail("DS_NOT_FOUND", DS_HINT);
-    const code = e instanceof DSManifestError ? e.code : "READ_ERROR";
-    return fail(code, e instanceof Error ? e.message : String(e));
-  }
-}
-
-/** Project root for read-only scans — --dir, else the discovered DS project, else cwd. */
-function resolveRoot(dirFlag: string | boolean | undefined): string {
-  if (typeof dirFlag === "string") return resolve(dirFlag);
-  try { return dirname(discoverDesignSystem(undefined).dir); }
-  catch { return process.cwd(); }
-}
-
-const agentsDirFor = (root: string): string => join(root, ".claude", "agents");
-
-/** Studio name from $EASE_DESIGN_HOME/studio-soul.md, or null (absence degrades silently). */
-function studioNameFromHome(): string | null {
-  const p = join(easeHome(), STUDIO_SOUL_FILENAME);
-  try { return existsSync(p) ? soulName(readFileSync(p, "utf8")) : null; }
-  catch { return null; }
-}
-
-interface AgentTemplates { tpls: Record<AgentRole, string>; knowledgeRoot: string | null }
-
-/** Read all three role templates (and the knowledge root beside them) from the package. */
-function agentTemplates(): AgentTemplates | Fail {
-  const startDir = dirname(fileURLToPath(import.meta.url));
-  const { templatesRoot, knowledgeRoot } = resolvePackageRoots(startDir);
-  if (templatesRoot === null) return fail("READ_ERROR", `ease-design templates not found (searched upward from ${startDir})`);
-  const tpls = {} as Record<AgentRole, string>;
-  for (const role of ROSTER) {
-    const p = join(templatesRoot, "agents", `${role}.md`);
-    try { tpls[role] = readFileSync(p, "utf8"); }
-    catch (e) { return fail("READ_ERROR", `cannot read agent template '${p}': ${e instanceof Error ? e.message : String(e)}`); }
-  }
-  return { tpls, knowledgeRoot };
-}
-
-interface ScannedAgent { name: string; path: string; text: string; stamp: AgentStamp }
-
-/** All stamped design-os agent files under agentsDir, name-sorted. Unstamped files are never ours to lint. */
-function scanStampedAgents(agentsDir: string): ScannedAgent[] | Fail {
-  if (!existsSync(agentsDir)) return [];
-  let files: string[];
-  try { files = readdirSync(agentsDir).filter((f) => f.endsWith(".md")).sort(); }
-  catch (e) { return fail("READ_ERROR", `cannot read '${agentsDir}': ${e instanceof Error ? e.message : String(e)}`); }
-  const out: ScannedAgent[] = [];
-  for (const f of files) {
-    const p = join(agentsDir, f);
-    let text: string;
-    try { text = readFileSync(p, "utf8"); }
-    catch (e) { return fail("READ_ERROR", `cannot read '${p}': ${e instanceof Error ? e.message : String(e)}`); }
-    const stamp = parseAgentStamp(text);
-    if (stamp !== null) out.push({ name: f.replace(/\.md$/, ""), path: p, text, stamp });
-  }
-  return out;
-}
-
-/** The exact content `init` would write for a role right now — the check/list freshness baseline. */
-function expectedRender(role: AgentRole, t: AgentTemplates, project: string, studio: string | null): string {
-  return renderAgent(t.tpls[role], {
-    name: agentName(role, project, studio),
-    project,
-    studio,
-    knowledgeRoot: t.knowledgeRoot,
-  });
-}
-
-const isRosterRole = (r: string): r is AgentRole => (ROSTER as readonly string[]).includes(r);
-
-// ─── init ─────────────────────────────────────────────────────────────────────
-
-function runInit(parsed: ParsedArgs): CommandResult {
-  const sub = "agents init";
-  const useJson = parsed.json;
-  const err = (code: string, msg: string): CommandResult =>
-    useJson ? errJson(sub, code, msg) : errText(`ui: ${msg}\n`);
-
-  const unknown = findUnknownFlag(parsed.flags, ["dir", "roster", "force"]);
-  if (unknown !== null) return err("UNKNOWN_FLAG", unknownFlagMessage(unknown));
-
-  const proj = loadProject(parsed.flags["dir"]);
-  if (isFail(proj)) return err(proj.code, proj.message);
-  const tpls = agentTemplates();
-  if (isFail(tpls)) return err(tpls.code, tpls.message);
-  const studio = studioNameFromHome();
-
-  // Roster: default all three; csv subset otherwise (canonical ROSTER order).
-  let roles: AgentRole[] = [...ROSTER];
-  const rosterFlag = parsed.flags["roster"];
-  if (rosterFlag === true) return err("BAD_ARG", `--roster requires a value — roles: ${ROSTER.join(", ")}`);
-  if (typeof rosterFlag === "string") {
-    const requested = rosterFlag.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
-    if (requested.length === 0) return err("BAD_ARG", `--roster is empty — roles: ${ROSTER.join(", ")}`);
-    for (const r of requested) {
-      if (!isRosterRole(r)) return err("BAD_ARG", `unknown roster role '${r}' — roles: ${ROSTER.join(", ")}`);
-    }
-    const set = new Set(requested);
-    roles = ROSTER.filter((r) => set.has(r));
-  }
-
-  const dir = agentsDirFor(proj.root);
-  const plan = roles.map((role) => {
-    const name = agentName(role, proj.project, studio);
-    return { role, name, path: join(dir, `${name}.md`), content: expectedRender(role, tpls, proj.project, studio) };
-  });
-
-  // EXISTS pre-flight — all-or-nothing, never a silent overwrite.
-  if (parsed.flags["force"] !== true) {
-    const existing = plan.filter((p) => existsSync(p.path)).map((p) => `'${p.path}'`);
-    if (existing.length > 0) {
-      return err("EXISTS", `agent file(s) already exist — re-run with --force to overwrite: ${existing.join(", ")}`);
-    }
-  }
-
-  const written: string[] = [];
-  try {
-    mkdirSync(dir, { recursive: true });
-    for (const p of plan) {
-      writeFileSync(p.path, p.content, "utf8");
-      written.push(p.path);
-    }
-  } catch (e) {
-    for (const w of written) { try { unlinkSync(w); } catch { /* best-effort rollback */ } }
-    return err("WRITE_ERROR", `cannot write agent files: ${e instanceof Error ? e.message : String(e)}`);
-  }
-
-  if (useJson) {
-    return okJson(sub, { agents: plan.map(({ role, name, path }) => ({ role, name, path, written: true })) });
-  }
-  const lines = plan.map((p) => `agent written: ${p.path} (${p.role})`);
-  if (studio === null) {
-    lines.push("hint: no studio soul — 'ui ds soul init --studio' gives your agents a studio genealogy (name: MERIDIAN → meridian-<project>)");
-  }
-  lines.push("agents are Claude Code subagents — delegate with their names.");
-  return ok(lines.join("\n") + "\n");
-}
-
 // ─── list ─────────────────────────────────────────────────────────────────────
 
 function runList(parsed: ParsedArgs): CommandResult {
   const sub = "agents list";
-  const useJson = parsed.json;
-  const err = (code: string, msg: string): CommandResult =>
-    useJson ? errJson(sub, code, msg) : errText(`ui: ${msg}\n`);
-
+  const err = (code: string, msg: string): CommandResult => (parsed.json ? errJson(sub, code, msg) : errText(`ui: ${msg}\n`));
   const unknown = findUnknownFlag(parsed.flags, ["dir"]);
   if (unknown !== null) return err("UNKNOWN_FLAG", unknownFlagMessage(unknown));
 
-  const agentsDir = agentsDirFor(resolveRoot(parsed.flags["dir"]));
-  const agents = scanStampedAgents(agentsDir);
+  const root = resolveRoot(parsed.flags["dir"]);
+  const agentsDir = join(root, ".claude", "agents");
+  const agents = scanClaude(root);
   if (isFail(agents)) return err(agents.code, agents.message);
-
   if (agents.length === 0) {
-    if (useJson) return okJson(sub, { dir: agentsDir, agents: [] });
+    if (parsed.json) return okJson(sub, { dir: agentsDir, agents: [] });
     return ok(`agents list: no design-os agents in ${agentsDir} — run 'ui agents init'.\n`);
   }
-
   const proj = loadProject(parsed.flags["dir"]);
   if (isFail(proj)) return err(proj.code, proj.message);
-  const tpls = agentTemplates();
-  if (isFail(tpls)) return err(tpls.code, tpls.message);
-  const studio = studioNameFromHome();
+  const ctx = targetContext(proj.root, proj.project);
+  if (isFail(ctx)) return err(ctx.code, ctx.message);
 
+  // Fresh means the roster outside the area block is the template render; the block is `check`'s to judge.
   const rows = agents.map((a) => ({
-    name: a.name,
-    role: a.stamp.role,
-    hash: a.stamp.hash,
-    fresh: isRosterRole(a.stamp.role) && templateHash(a.text) === templateHash(expectedRender(a.stamp.role, tpls, proj.project, studio)),
-    path: a.path,
+    name: a.name, role: a.stamp.role, hash: a.stamp.hash, path: a.path,
+    fresh: isRosterRole(a.stamp.role) && templateHash(stripBlocks(a.text)) === templateHash(stripBlocks(agentFile(ctx, "claude", a.stamp.role).content)),
   }));
-
-  if (useJson) return okJson(sub, { dir: agentsDir, agents: rows });
-  const lines = [
-    `agents list: ${rows.length} design-os agent(s) in ${agentsDir}`,
-    ...rows.map((r) => `  ${r.name.padEnd(32)} ${r.role.padEnd(12)} ${r.hash}  ${r.fresh ? "fresh" : "stale"}`),
-  ];
-  return ok(lines.join("\n") + "\n");
-}
-
-// ─── check ────────────────────────────────────────────────────────────────────
-
-interface AgentFinding { checkId: string; severity: "error" | "warning"; message: string }
-
-function runCheck(parsed: ParsedArgs): CommandResult {
-  const sub = "agents check";
-  const useJson = parsed.json;
-  const err = (code: string, msg: string): CommandResult =>
-    useJson ? errJson(sub, code, msg) : errText(`ui: ${msg}\n`);
-
-  const unknown = findUnknownFlag(parsed.flags, ["dir"]);
-  if (unknown !== null) return err("UNKNOWN_FLAG", unknownFlagMessage(unknown));
-
-  const agentsDir = agentsDirFor(resolveRoot(parsed.flags["dir"]));
-  const agents = scanStampedAgents(agentsDir);
-  if (isFail(agents)) return err(agents.code, agents.message);
-
-  const findings: AgentFinding[] = [];
-  if (agents.length === 0) {
-    findings.push({
-      checkId: "no-agents",
-      severity: "warning",
-      message: `no design-os agents under '${agentsDir}' — agents are opt-in; run 'ui agents init' to create them`,
-    });
-  } else {
-    const proj = loadProject(parsed.flags["dir"]);
-    if (isFail(proj)) return err(proj.code, proj.message);
-    const tpls = agentTemplates();
-    if (isFail(tpls)) return err(tpls.code, tpls.message);
-    const studio = studioNameFromHome();
-    for (const a of agents) {
-      if (!isRosterRole(a.stamp.role)) {
-        findings.push({
-          checkId: "agent-unknown-role",
-          severity: "warning",
-          message: `'${a.name}.md' carries roster-role '${a.stamp.role}', which is not in the roster (${ROSTER.join(", ")})`,
-        });
-      } else if (templateHash(a.text) !== templateHash(expectedRender(a.stamp.role, tpls, proj.project, studio))) {
-        findings.push({
-          checkId: "agent-stale",
-          severity: "error",
-          message: `'${a.name}' (${a.stamp.role}) is stale — the file no longer matches its template render; run 'ui agents init --force' to regenerate`,
-        });
-      }
-    }
-  }
-
-  findings.sort(
-    (a, b) =>
-      (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1) ||
-      a.checkId.localeCompare(b.checkId) ||
-      a.message.localeCompare(b.message),
-  );
-  const errorCount = findings.filter((f) => f.severity === "error").length;
-  const { warningCount } = countBySeverity(findings);
-  const exitCode = errorCount > 0 ? 1 : 0;
-
-  if (useJson) return okJsonWithExit(sub, { dir: agentsDir, findings, errorCount, warningCount }, exitCode);
-  const lines =
-    findings.length === 0
-      ? [`agents check: ${agentsDir} — 0 findings.`]
-      : [
-          `agents check: ${agentsDir} — ${errorCount} error(s), ${warningCount} warning(s)`,
-          ...findings.map((f) => `  ${f.severity === "error" ? "✗" : "!"} [${f.checkId}]: ${f.message}`),
-        ];
-  return { exitCode, stdout: lines.join("\n") + "\n" };
+  if (parsed.json) return okJson(sub, { dir: agentsDir, agents: rows });
+  return ok([`agents list: ${rows.length} design-os agent(s) in ${agentsDir}`, ...rows.map((r) => `  ${r.name.padEnd(32)} ${r.role.padEnd(12)} ${r.hash}  ${r.fresh ? "fresh" : "stale"}`)].join("\n") + "\n");
 }
 
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 export const agentsCommand = {
   name: CMD,
-  summary: "Generate + lint soul-bound, task-scoped project agents (Claude Code)",
+  summary: "Generate + lint soul-bound, task-scoped project agents (Claude Code, Codex, Antigravity)",
   hasSubcommands: true,
   help: AGENTS_HELP,
   run(parsed: ParsedArgs): CommandResult {

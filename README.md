@@ -204,7 +204,7 @@ Diagrams and charts built with the CLI. Each one is a committed artifact that pa
 ## Limits
 
 - The CLI compiles, checks and seals. It never calls a model, installs dependencies or fetches a Figma library. The agent is your own coding agent.
-- Project subagents (`ui agents init`) are generated for Claude Code only. Codex and Antigravity get skills and commands through `ui init`.
+- `ui agents init` renders one roster for Claude Code, Codex and Antigravity; `ui init --with-agents` writes the Claude Code agents only.
 - The Figma path needs a scan from [Bridge](https://github.com/jangtrinh/design-os-figma-plugin). The CSS path reads custom properties only.
 - A capture is only as complete as its source. A partial capture stays partial; the kit gates refuse to mark it complete.
 - `ui gate` and `ui ds a11y` are floors, not conformance claims.

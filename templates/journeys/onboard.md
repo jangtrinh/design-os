@@ -185,14 +185,15 @@ then set `status: ratified` before treating either as final.
 
 ### Agents
 
-`ui agents init [--roster designer,curator,figma-hand] [--force]` writes
-`.claude/agents/<name>.md` — opt-in, never run automatically by `ui init`. Requires
+`ui agents init [--roster designer,curator,figma-hand] [--runtimes claude,codex,antigravity] [--force]` writes
+`.claude/agents/<name>.md` (and the Codex and Antigravity targets) — opt-in, never run automatically by `ui init`. Requires
 `design/ds.manifest.json` to already exist (`DS_NOT_FOUND` otherwise) — run this **after**
 step 4, not before. Names come from studio × project × role
 (`designer-<studio>-<project>`, or bare `<project>-designer` with no studio soul yet).
 `ui agents check` fails on `agent-stale` when a file no longer matches its template render
-(hand-edited, or the studio/project name changed) — heal with `ui agents init --force`.
-Claude Code only for now.
+(hand-edited, or the studio/project name changed) — heal with the command `ui agents check` prints
+(it names only the runtimes and roles the project already has; a bare `ui agents init --force`
+regenerates the runtimes the project already holds and never adds one).
 
 ### Heartbeat — a recurring design-health check, config schema
 
