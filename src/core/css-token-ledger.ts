@@ -40,18 +40,16 @@ export function rankSelectors(counts: ReadonlyMap<string, number>): Unrecognised
     .sort((a, b) => b.declarations - a.declarations || (a.selector < b.selector ? -1 : a.selector > b.selector ? 1 : 0));
 }
 
-/** What to do when custom properties went in and no token came out: which selectors were not recognised, or the reasons the ledger shows. */
+/**
+ * What to say when custom properties went in and no token came out: how many were read, every reason the ledger shows
+ * with its count (in the order the ledger writes them), the unrecognised selectors when there are any, and one next
+ * action. It states the ledger and guesses no single cause.
+ */
 export function emptyResultMessage(ledger: CssIngestLedger, selectors: readonly UnrecognisedSelector[]): string {
   const n = ledger.properties;
-  const head = `no token was written from ${n} custom ${n === 1 ? "property" : "properties"}.`;
-  if (selectors.length > 0) {
-    const listed = selectors.slice(0, 5).map((s) => `'${s.selector}' (${s.declarations})`).join(", ");
-    return `${head} Selectors not recognised, by declarations: ${listed}. The base selector of the theme is among them, or the wrong CSS files were passed.`;
-  }
-  const reasons = Object.entries(ledger.leftOut).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
-  const listed = `Left out, by reason: ${reasons.map(([r, c]) => `${r} (${c})`).join(", ")}.`;
-  if (ledger.leftOut[LEFT_OUT.noBase] !== undefined) {
-    return `${head} ${listed} No base selector (:root, :host, html, @theme) was found: the CSS file that holds it was not passed, or the wrong files were passed.`;
-  }
-  return `${head} ${listed} Each value needs to be a colour, a dimension, a duration, a number or a font stack: none of these is.`;
+  const reasons = Object.entries(ledger.leftOut).map(([reason, count]) => `${reason} (${count})`).join(", ");
+  const listed = selectors.slice(0, 5).map((s) => `'${s.selector}' (${s.declarations})`).join(", ");
+  return `no token was written from ${n} custom ${n === 1 ? "property" : "properties"}. Left out, by reason: ${reasons}.` +
+    (selectors.length > 0 ? ` Selectors not recognised, by declarations: ${listed}.` : "") +
+    " Next action: check that the CSS files passed hold the base selector of the theme and its values.";
 }

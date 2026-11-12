@@ -28,7 +28,8 @@
 - An alias takes the type of the property it names, and is written only when that property is written; a mode value
   that names a property left out is dropped and listed.
 - Custom properties in and no token out is an error: `ui ingest-css-ds` exits 1 with `NO_TOKENS_WRITTEN`, writes
-  nothing, and names the five largest unrecognised selectors with their declaration counts.
+  nothing, and states how many properties were read, every reason the ledger shows with its count, and the five
+  largest unrecognised selectors with their declaration counts when there are any.
 
 ## 2026-11-12 - `ui ontology query`, and project agents for Claude Code, Codex and Antigravity
 

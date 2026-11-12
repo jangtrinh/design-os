@@ -64,9 +64,10 @@ Error codes:
   LEAF_COLLISION   Two source custom properties strip to the same token path (D6) — fails
                    loudly with both source lines rather than merging or suffixing
   NO_TOKENS_WRITTEN  The input holds custom properties and none became a token (exit 1, nothing
-                   written): the message names the five largest selectors that were not
-                   recognised, with their declaration counts, and says the base selector of the
-                   theme is among them or the wrong CSS files were passed
+                   written): the message states how many custom properties were read, every
+                   reason the ledger shows with its count, the five largest selectors that
+                   were not recognised (with their declaration counts) when there are any,
+                   and the next action
   WRITE_ERROR      An output file could not be written
 `;
 

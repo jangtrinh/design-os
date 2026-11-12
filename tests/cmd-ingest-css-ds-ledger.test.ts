@@ -92,8 +92,8 @@ describe("zero tokens from a non-empty input", () => {
     expect(existsSync(join(out, "tokens.json"))).toBe(false);
     expect(existsSync(out)).toBe(false);
     expect(env.error?.message).toBe(
-      "no token was written from 28 custom properties. Selectors not recognised, by declarations: '.card' (7), '.card-body' (6), '.btn' (5), '.nav' (4), '.tab' (3). " +
-        "The base selector of the theme is among them, or the wrong CSS files were passed.",
+      "no token was written from 28 custom properties. Left out, by reason: declared only under unrecognised selectors (28). " +
+        "Selectors not recognised, by declarations: '.card' (7), '.card-body' (6), '.btn' (5), '.nav' (4), '.tab' (3). Next action: check that the CSS files passed hold the base selector of the theme and its values.",
     );
     rmSync(dir, { recursive: true, force: true });
   });
@@ -103,32 +103,58 @@ describe("zero tokens from a non-empty input", () => {
     const r = capture(["ingest-css-ds", extractFileOf(dir, [cp("--a", "1px", ".card"), cp("--b", "2px", ".card")]), "--out", join(dir, "o")]);
     expect(r.code).toBe(1);
     expect(r.err).toBe(
-      "ui: no token was written from 2 custom properties. Selectors not recognised, by declarations: '.card' (2). " +
-        "The base selector of the theme is among them, or the wrong CSS files were passed.\n",
+      "ui: no token was written from 2 custom properties. Left out, by reason: declared only under unrecognised selectors (2). " +
+        "Selectors not recognised, by declarations: '.card' (2). Next action: check that the CSS files passed hold the base selector of the theme and its values.\n",
     );
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("with every property under :root and no value one typed leaf, the message names that reason, not a missing base", () => {
+  it("with every property under :root and no value one typed leaf, the message states that reason and no missing base", () => {
     const dir = scratch();
     const r = capture(["ingest-css-ds", extractFileOf(dir, [
       cp("--shadow-a", "0 1px 2px rgba(0,0,0,.1)", ":root"), cp("--shadow-b", "0 2px 4px #000", ":root"), cp("--ease", "cubic-bezier(.4,0,.2,1)", ":root"),
     ]), "--out", join(dir, "o"), "--json"]);
     expect(r.code).toBe(1);
     expect(parse(r.out).error?.message).toBe(
-      "no token was written from 3 custom properties. Left out, by reason: value is not one typed leaf (calc, a shadow, an easing, a multi-value shorthand) (3). " +
-        "Each value needs to be a colour, a dimension, a duration, a number or a font stack: none of these is.",
+      "no token was written from 3 custom properties. Left out, by reason: value is not one typed leaf (calc, a shadow, an easing, a multi-value shorthand) (3). Next action: check that the CSS files passed hold the base selector of the theme and its values.",
     );
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("with nothing but theme-only declarations it still fails, and names no selector it did not fail to recognise", () => {
+  const message = (props: CustomPropertyObservation[]): string => {
+    const dir = scratch();
+    const r = capture(["ingest-css-ds", extractFileOf(dir, props), "--out", join(dir, "o"), "--json"]);
+    rmSync(dir, { recursive: true, force: true });
+    expect(r.code).toBe(1);
+    return parse(r.out).error?.message ?? "";
+  };
+
+  it("mixed inputs state every ledger reason with its count, in the order the ledger writes them, and guess no single cause", () => {
+    // a theme-only property beside a :root shadow: both reasons, the first met first
+    expect(message([cp("--a", "#111", "[data-theme=dark]"), cp("--b", "0 1px 2px #000", ":root")])).toBe(
+      "no token was written from 2 custom properties. Left out, by reason: declared only under a theme or mode, so it has no base value (1), value is not one typed leaf (calc, a shadow, an easing, a multi-value shorthand) (1)." + " Next action: check that the CSS files passed hold the base selector of the theme and its values.",
+    );
+    // the same properties in the other order: the order follows the ledger, not a sort
+    expect(message([cp("--a", "0 1px 2px #000", ":root"), cp("--b", "#111", "[data-theme=dark]")])).toBe(
+      "no token was written from 2 custom properties. Left out, by reason: value is not one typed leaf (calc, a shadow, an easing, a multi-value shorthand) (1), declared only under a theme or mode, so it has no base value (1)." + " Next action: check that the CSS files passed hold the base selector of the theme and its values.",
+    );
+    // a theme, a component class and a :root shadow: three reasons and the unrecognised selector
+    expect(message([cp("--a", "#111", "[data-theme=dark]"), cp("--b", "1px", ".card"), cp("--c", "0 1px 2px #000", ":root")])).toBe(
+      "no token was written from 3 custom properties. Left out, by reason: declared only under a theme or mode, so it has no base value (1), declared only under unrecognised selectors (1), value is not one typed leaf (calc, a shadow, an easing, a multi-value shorthand) (1). " +
+        "Selectors not recognised, by declarations: '.card' (1)." + " Next action: check that the CSS files passed hold the base selector of the theme and its values.",
+    );
+    // aliases to properties that are not in the input
+    expect(message([cp("--a", "var(--nope)", ":root"), cp("--b", "var(--none)", ":root")])).toBe(
+      "no token was written from 2 custom properties. Left out, by reason: alias names a property that is not in the input (2)." + " Next action: check that the CSS files passed hold the base selector of the theme and its values.",
+    );
+  });
+
+  it("with nothing but theme-only declarations it still fails and states the ledger reason", () => {
     const dir = scratch();
     const r = capture(["ingest-css-ds", extractFileOf(dir, [cp("--a", "#111", "[data-theme=dark]")]), "--out", join(dir, "o"), "--json"]);
     expect(r.code).toBe(1);
     expect(parse(r.out).error?.message).toBe(
-      "no token was written from 1 custom property. Left out, by reason: declared only under a theme or mode, so it has no base value (1). " +
-        "No base selector (:root, :host, html, @theme) was found: the CSS file that holds it was not passed, or the wrong files were passed.",
+      "no token was written from 1 custom property. Left out, by reason: declared only under a theme or mode, so it has no base value (1). Next action: check that the CSS files passed hold the base selector of the theme and its values.",
     );
     rmSync(dir, { recursive: true, force: true });
   });
