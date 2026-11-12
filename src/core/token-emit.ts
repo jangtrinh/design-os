@@ -127,18 +127,31 @@ export function declaredCssVarNames(map: ResolvedMap): Set<string> {
 
 // ─── CSS emitter ──────────────────────────────────────────────────────────────
 
-/** Two tokens that emit the same custom property would write one declaration twice: refused, never a last-wins.
- * Checked over the names the css target emits: the carried name when a token has one, the path-derived name otherwise. */
+/**
+ * A custom property the css target would declare twice is refused when a carried source name is one of the
+ * occurrences (never a last-wins). Occurrences are counted, not token paths: a composite token that carries a name
+ * equal to one of its own derived sub-properties declares it twice. Two path-derived names that collide, with no
+ * carried name involved, are left exactly as they always were.
+ */
 function assertUniqueCustomProperties(map: ResolvedMap): void {
-  const pathBy = new Map<string, string>();
+  const seen = new Map<string, { path: string; carried: boolean }[]>();
   for (const t of map) {
+    let carriedName = t.customProperty;
     for (const [varName] of tokenToCssDecls(t, true)) {
-      const prior = pathBy.get(varName);
-      if (prior !== undefined && prior !== t.path) {
-        throw new TokenError("DUPLICATE_CUSTOM_PROPERTY", `tokens '${prior}' and '${t.path}' both emit the custom property '${varName}' in the css target — keep the name on one token`);
-      }
-      pathBy.set(varName, t.path);
+      const carried = carriedName !== undefined && varName === carriedName;
+      if (carried) carriedName = undefined;
+      seen.set(varName, [...(seen.get(varName) ?? []), { path: t.path, carried }]);
     }
+  }
+  for (const [varName, occurrences] of seen) {
+    if (occurrences.length < 2 || !occurrences.some((o) => o.carried)) continue;
+    const paths = [...new Set(occurrences.map((o) => o.path))];
+    throw new TokenError(
+      "DUPLICATE_CUSTOM_PROPERTY",
+      paths.length === 1
+        ? `token '${paths[0]}' emits the custom property '${varName}' twice in the css target — rename the carried name`
+        : `tokens ${paths.map((p) => `'${p}'`).join(" and ")} both emit the custom property '${varName}' in the css target — keep the name on one token`,
+    );
   }
 }
 

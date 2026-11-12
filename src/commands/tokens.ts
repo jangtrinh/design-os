@@ -45,8 +45,9 @@ Error codes:
   ALIAS_CYCLE      Circular alias reference
   DANGLING_ALIAS   Alias points to a non-existent token
   TYPE_MISMATCH    Alias crosses incompatible $type boundary
-  DUPLICATE_CUSTOM_PROPERTY  Two tokens emit the same custom property in the css target (--target css, and
-                   --json, which carries it); --target tailwind and --target figma never refuse for this
+  DUPLICATE_CUSTOM_PROPERTY  A carried source name is declared twice in the css target (--target css, and
+                   --json, which carries it); two path-derived names that collide are not refused;
+                   --target tailwind and --target figma never refuse for this
 
 A token written from CSS ('ui ingest-css-ds') carries the custom property it came from under
 $extensions["design-os.custom-property"]; --target css emits it under that name (--ds-surface), a token

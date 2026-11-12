@@ -8,6 +8,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ingestCssTokens } from "../src/core/css-token-ingest.js";
+import { importFlatTokens } from "../src/core/token-import.js";
 import type { CustomPropertyObservation } from "../src/core/designmd-token-extractor.js";
 import { capture } from "./owner-rulings-helpers.js";
 import { DIST_CLI, runBuilt, writeSheets } from "./css-door-packaged-theme-fixture.js";
@@ -177,6 +178,37 @@ describe("a custom property carried twice, and a store sealed without the extens
     expect(capture(["tokens", "compile", twice(), "--json", "--target", "tailwind"]).code).toBe(1); // --json ignores --target and carries the css artifact
     expect(capture(["tokens", "compile", twice(), "--target", "tailwind"]).out).toBe("@theme {\n  --color-a: #111;\n  --color-b: #222;\n}\n");
     expect(capture(["tokens", "compile", twice(), "--target", "figma"]).code).toBe(0);
+  });
+
+  it("a store with no carried name behaves exactly as before: two colliding path-derived names compile, both declarations written", () => {
+    const f = tokensFile(importFlatTokens({ spacing: { "gap-sm": "4px", gap: { sm: "8px" } } }).dtcg);
+    const css = ":root {\n  --spacing-gap-sm: 4px;\n  --spacing-gap-sm: 8px;\n}\n";
+    const r = capture(["tokens", "compile", f]);
+    expect([r.code, r.out]).toEqual([0, css]);
+    expect(capture(["tokens", "compile", f, "--target", "css"]).out).toBe(css);
+    expect(capture(["tokens", "compile", f, "--json"]).code).toBe(0);
+    expect(capture(["tokens", "compile", f, "--target", "tailwind"]).code).toBe(0);
+  });
+
+  it("a composite token that carries a name equal to one of its own derived sub-properties is refused", () => {
+    const f = tokensFile({ shadow: { card: {
+      $value: { offsetX: "0px", offsetY: "2px", blur: "4px", spread: "0px", color: "#000000" }, $type: "shadow",
+      $extensions: { [KEY]: "--shadow-card-color" },
+    } } });
+    const r = capture(["tokens", "compile", f, "--target", "css", "--json"]);
+    expect(r.code).toBe(1);
+    const err = (JSON.parse(r.out) as { error: { code: string; message: string } }).error;
+    expect(err.code).toBe("DUPLICATE_CUSTOM_PROPERTY");
+    expect(err.message).toBe("token 'shadow.card' emits the custom property '--shadow-card-color' twice in the css target — rename the carried name");
+  });
+
+  it("a duplicate that involves no carried name stays unrefused even when another token carries a name", () => {
+    const f = tokensFile({
+      spacing: { "gap-sm": { $value: "4px", $type: "dimension" } },
+      "spacing-gap": { sm: { $value: "8px", $type: "dimension" } },
+      color: { a: { $value: "#111", $type: "color", $extensions: { [KEY]: "--ds-a" } } },
+    });
+    expect(capture(["tokens", "compile", f]).out).toBe(":root {\n  --spacing-gap-sm: 4px;\n  --spacing-gap-sm: 8px;\n  --ds-a: #111;\n}\n");
   });
 
   it("a token without the extension is emitted under its path-derived name, beside one that has it", () => {

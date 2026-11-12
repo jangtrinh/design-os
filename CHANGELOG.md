@@ -8,8 +8,9 @@
   `ui tokens compile --target css` emits the token under that name instead of one derived from its path; `ui ds context`
   prints it (a third column of the semantic table, the roles list, and `customProperty` in the JSON); the ontology's
   token node carries `customProperty`, `ui ontology query` finds the token by it (`ui ontology query -- --ds-surface`)
-  and prints it. `--target css` and `--json` refuse two tokens that would emit one custom property (two carrying the same
-  name, or a carried name equal to another token's path-derived name) with `DUPLICATE_CUSTOM_PROPERTY`; `--target tailwind`
+  and prints it. `--target css` and `--json` refuse a carried name that would be declared twice (carried by two tokens, equal to
+  another token's path-derived name, or equal to a sub-property of its own composite) with `DUPLICATE_CUSTOM_PROPERTY`;
+  two path-derived names that collide are compiled as before; `--target tailwind`
   and `--target figma` never refuse for this. A store sealed before this change behaves as before.
 - The JSON envelope of `ui ingest-css-ds` carries a `ledger`: custom properties in, tokens written (primitives and
   aliases) and the properties left out per named reason, summing to the input.
