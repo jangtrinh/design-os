@@ -34,13 +34,13 @@ describe.skipIf(!built)("ui ingest-css-ds on a packaged theme (built CLI)", () =
     const tokens = JSON.parse(readFileSync(env.data.tokens, "utf8")) as Record<string, Record<string, unknown>>;
     expect(tokens["color"]?.["ds-surface"]).toEqual({
       $value: "#fff", $type: "color",
-      $extensions: { "mode.dark": { $value: "#111" }, "mode.paper": { $value: "#f5f0e6" } },
+      $extensions: { "mode.dark": { $value: "#111" }, "mode.paper": { $value: "#f5f0e6" }, "design-os.custom-property": "--ds-surface" },
     });
     expect(tokens["color"]?.["ds-text"]).toEqual({
       $value: "#111", $type: "color",
-      $extensions: { "mode.dark": { $value: "#eee" }, "mode.paper": { $value: "#222" } },
+      $extensions: { "mode.dark": { $value: "#eee" }, "mode.paper": { $value: "#222" }, "design-os.custom-property": "--ds-text" },
     });
-    expect(tokens["color"]?.["ds-border"]).toEqual({ $value: "#ddd", $type: "color" });
+    expect(tokens["color"]?.["ds-border"]).toEqual({ $value: "#ddd", $type: "color", $extensions: { "design-os.custom-property": "--ds-border" } });
   });
 
   it("lists the component-local variables, each under its own selector, and promotes none of them", () => {

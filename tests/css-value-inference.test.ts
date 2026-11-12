@@ -66,8 +66,8 @@ describe("a font-family stack is a fontFamily token", () => {
       cp("--ds-font-body", "var(--ds-font-sans)"),
     ]);
     expect(tree["font"]).toEqual({
-      "ds-font-body": { $value: "{font.ds-font-sans}", $type: "fontFamily" },
-      "ds-font-sans": { $value: '"Inter",system-ui,sans-serif', $type: "fontFamily" },
+      "ds-font-body": { $value: "{font.ds-font-sans}", $type: "fontFamily", $extensions: { "design-os.custom-property": "--ds-font-body" } },
+      "ds-font-sans": { $value: '"Inter",system-ui,sans-serif', $type: "fontFamily", $extensions: { "design-os.custom-property": "--ds-font-sans" } },
     });
     expect(stats).toEqual({ primitives: 1, semantics: 1, skipped: 0 });
     expect(unverified).toEqual([]);

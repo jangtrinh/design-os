@@ -8,6 +8,7 @@
  * var name (PR-FU3-r2 A6) — the per-member vars remain for consumers that
  * compose their own box-shadow string from them.
  */
+import { TokenError } from "./token-model.js";
 import type { ResolvedMap, ResolvedToken } from "./token-model.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -86,13 +87,15 @@ function shadowToBoxShadow(value: Record<string, unknown>): string | undefined {
  * would put a raw hex in the compiled CSS that the gate's raw-hex-when-
  * token-exists check would reject once linked CSS is judged (PR-FU3 A1).
  */
-function tokenToCssDecls(token: ResolvedToken): [string, string][] {
+function tokenToCssDecls(token: ResolvedToken, sourceNames = false): [string, string][] {
+  // A token written from CSS may be emitted under the custom property it came from (`sourceNames`).
+  const ownVar = sourceNames && token.customProperty !== undefined ? token.customProperty : pathToCssVar(token.path);
   // A fontFamily $value array is ONE font-stack value, never split into
   // per-index -0/-1/-2 variables (PR-FU3-r2 A6 — the kernel could not consume
   // its own persona library's font stacks until this was distinguished from
   // a composite like shadow/typography).
   if (Array.isArray(token.value)) {
-    return [[pathToCssVar(token.path), scalarToCss(token.value)]];
+    return [[ownVar, scalarToCss(token.value)]];
   }
   if (typeof token.value === "object" && token.value !== null) {
     const value = token.value as Record<string, unknown>;
@@ -100,11 +103,11 @@ function tokenToCssDecls(token: ResolvedToken): [string, string][] {
     const pairs = expandComposite(token.path, value);
     if (token.type === "shadow") {
       const composite = shadowToBoxShadow(value);
-      if (composite !== undefined) pairs.unshift([pathToCssVar(token.path), composite]);
+      if (composite !== undefined) pairs.unshift([ownVar, composite]);
     }
     return pairs;
   }
-  return [[pathToCssVar(token.path), scalarToCss(token.value)]];
+  return [[ownVar, scalarToCss(token.value)]];
 }
 
 /**
@@ -124,18 +127,34 @@ export function declaredCssVarNames(map: ResolvedMap): Set<string> {
 
 // ─── CSS emitter ──────────────────────────────────────────────────────────────
 
+/** Two tokens that carry the same source custom property would write one declaration twice: refused, never a last-wins. */
+function assertUniqueCustomProperties(map: ResolvedMap): void {
+  const pathBy = new Map<string, string>();
+  for (const t of map) {
+    if (t.customProperty === undefined) continue;
+    const prior = pathBy.get(t.customProperty);
+    if (prior !== undefined) {
+      throw new TokenError("DUPLICATE_CUSTOM_PROPERTY", `tokens '${prior}' and '${t.path}' both carry the custom property '${t.customProperty}' — keep it on one token`);
+    }
+    pathBy.set(t.customProperty, t.path);
+  }
+}
+
 /**
- * Emit resolved tokens as CSS custom properties.
+ * Emit resolved tokens as CSS custom properties. With `sourceNames`, a token written from CSS is emitted under the
+ * custom property it came from (`--ds-surface`); every other token keeps the name derived from its path.
  *
  * :root {
  *   --color-primary: #3B82F6;
  *   --text-body-font-family: Inter;
  * }
  */
-export function emitCss(map: ResolvedMap): string {
+export function emitCss(map: ResolvedMap, options: { sourceNames?: boolean } = {}): string {
+  const sourceNames = options.sourceNames === true;
+  if (sourceNames) assertUniqueCustomProperties(map);
   const lines: string[] = [":root {"];
   for (const token of map) {
-    for (const [varName, value] of tokenToCssDecls(token)) {
+    for (const [varName, value] of tokenToCssDecls(token, sourceNames)) {
       lines.push(`  ${varName}: ${value};`);
     }
   }

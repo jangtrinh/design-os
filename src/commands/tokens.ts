@@ -45,6 +45,11 @@ Error codes:
   ALIAS_CYCLE      Circular alias reference
   DANGLING_ALIAS   Alias points to a non-existent token
   TYPE_MISMATCH    Alias crosses incompatible $type boundary
+  DUPLICATE_CUSTOM_PROPERTY  Two tokens carry the same source custom property (--target css)
+
+A token written from CSS ('ui ingest-css-ds') carries the custom property it came from under
+$extensions["design-os.custom-property"]; --target css emits it under that name (--ds-surface), a token
+without it under the name derived from its path (--color-primary). tailwind and figma are unchanged.
 `;
 
 // ─── compile subcommand ───────────────────────────────────────────────────────
@@ -120,8 +125,16 @@ function runCompile(parsed: ParsedArgs): CommandResult {
     return internalErr(String(e), useJson, COMPILE);
   }
 
-  // 7. Emit
-  const css = emitCss(resolvedMap);
+  // 7. Emit (the css target names a token after the custom property it was written from, when it carries one)
+  let css;
+  try {
+    css = emitCss(resolvedMap, { sourceNames: true });
+  } catch (e) {
+    if (e instanceof TokenError) {
+      return useJson ? errJson(COMPILE, e.code, e.message) : errText(`ui: ${e.message}\n`);
+    }
+    return internalErr(String(e), useJson, COMPILE);
+  }
   const tailwind = emitTailwind(resolvedMap);
   const figmaStr = emitFigma(resolvedMap);
 

@@ -11,6 +11,7 @@
  *      the required $type for that member slot, not the parent composite's type.
  */
 import {
+  customPropertyOf,
   isAlias,
   TokenError,
 } from "./token-model.js";
@@ -213,7 +214,8 @@ export function resolveTokens(tree: TokenTree): ResolvedMap {
       const path = `${category}.${name}`;
       const visited = new Set<string>([path]);
       const value = resolveValue(path, token, index, visited, token.$type);
-      const resolved: ResolvedToken = { path, type: token.$type, value };
+      const customProperty = customPropertyOf(token.$extensions);
+      const resolved: ResolvedToken = { path, type: token.$type, value, ...(customProperty === undefined ? {} : { customProperty }) };
       result.push(resolved);
     }
   }

@@ -60,6 +60,9 @@ export interface ResolvedToken {
   /** Literal value after alias resolution. A fontFamily token's value may be
    * an array (font stack, PR-FU3-r2 A6). */
   value: string | number | Record<string, unknown> | string[];
+  /** The custom property the token was written from (`--ds-surface`), present only when its leaf carries
+   * `CUSTOM_PROPERTY_EXTENSION`. A store without the extension resolves exactly as before. */
+  customProperty?: string;
 }
 
 /** Ordered flat list produced by resolveTokens. */
@@ -100,6 +103,18 @@ export function sanitizeModeName(s: string): string {
 /** The `$extensions` key for a non-base mode, e.g. "dark" → "mode.dark". */
 export function modeExtensionKey(modeName: string): string {
   return `mode.${sanitizeModeName(modeName)}`;
+}
+
+// ─── Source custom property ───────────────────────────────────────────────────
+
+/** The `$extensions` key that holds the custom property a token was written from (`ui ingest-css-ds`), so the
+ * project's own name survives the sealed store: `{ "design-os.custom-property": "--ds-surface" }`. */
+export const CUSTOM_PROPERTY_EXTENSION = "design-os.custom-property";
+
+/** The source custom property a leaf's extensions carry, or undefined when absent or not a `--name`. */
+export function customPropertyOf(extensions: Record<string, unknown> | undefined): string | undefined {
+  const v = extensions?.[CUSTOM_PROPERTY_EXTENSION];
+  return typeof v === "string" && /^--[A-Za-z0-9_-]+$/.test(v) ? v : undefined;
 }
 
 // ─── Predicates ───────────────────────────────────────────────────────────────

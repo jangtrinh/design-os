@@ -33,9 +33,11 @@ describe("test_both_emitters_encode_a_mode_identically", () => {
     const cssResult = ingestCssTokens(cssProps);
 
     expect(figmaResult.tree.color?.bg?.$extensions).toEqual({ "mode.dark": { $value: "#000000" } });
-    expect(cssResult.tree.color?.bg?.$extensions).toEqual({ "mode.dark": { $value: "#000000" } });
+    // The css emitter also records the custom property the token came from; the MODE keys are what the convention pins.
+    const modeKeys = (ext: Record<string, unknown> | undefined): Record<string, unknown> => Object.fromEntries(Object.entries(ext ?? {}).filter(([k]) => k.startsWith("mode.")));
+    expect(modeKeys(cssResult.tree.color?.bg?.$extensions)).toEqual({ "mode.dark": { $value: "#000000" } });
     // Byte-identical shape between the two independently-implemented emitters.
-    expect(cssResult.tree.color?.bg?.$extensions).toEqual(figmaResult.tree.color?.bg?.$extensions);
+    expect(modeKeys(cssResult.tree.color?.bg?.$extensions)).toEqual(figmaResult.tree.color?.bg?.$extensions);
   });
 
   it("modeExtensionKey is the shared encoding both emitters converge on", () => {

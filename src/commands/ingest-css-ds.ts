@@ -35,6 +35,12 @@ each theme selector becomes a mode under $extensions["mode.<name>"]).
 Writes (into <out>, default: current directory):
   tokens.json   DTCG tokens — primitive literals + semantic aliases; base + modes
 
+Each token carries the custom property it was read from under
+$extensions["design-os.custom-property"] (e.g. "--ds-surface"): 'ui ds import' keeps it in
+the sealed store, 'ui tokens compile --target css' emits the token under that name, and
+'ui ds context' and the ontology's token nodes print it, so a host writes var(--ds-surface)
+and never a name derived from the token path.
+
 'ui ds import <out>/tokens.json --dir <project> --name <slug>' seals the result
 into a design/ store afterwards — this command never writes a manifest.
 

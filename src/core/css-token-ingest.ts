@@ -6,12 +6,13 @@
  * shape) — a literal value → PRIMITIVE, an alias (`var(--x)`) → SEMANTIC (Insight 4, same
  * split figma-ds-tokens.ts already proved). Selectors become modes via classifySelector
  * (D2): base (`:root`/`@theme`/`html`/`body`) → `$value`; theme selectors →
- * `$extensions["mode.<name>"]` (the shared encoding, token-model.ts).
+ * `$extensions["mode.<name>"]` (the shared encoding, token-model.ts). Every token also records the custom property
+ * it was read from under `$extensions["design-os.custom-property"]` (CUSTOM_PROPERTY_EXTENSION, token-model.ts).
  *
  * Pure: no filesystem, no network, deterministic. Reuses `inferToken` (token-import.ts)
  * for $type inference and `sanitizeSeg` (figma-ds-tokens.ts) for the alias-safe alphabet.
  */
-import { modeExtensionKey } from "./token-model.js";
+import { CUSTOM_PROPERTY_EXTENSION, modeExtensionKey } from "./token-model.js";
 import type { Token, TokenTree } from "./token-model.js";
 import type { CustomPropertyObservation } from "./designmd-token-extractor.js";
 import { classifySelector } from "./css-selector-mode.js";
@@ -107,12 +108,14 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
     if (baseValue === null) { skipped++; unverified.push({ name, reason: `could not resolve value '${baseEntry.value}'` }); continue; }
 
     const leaf: Token = { $value: baseValue, $type: path.type };
+    // The property the token came from: an agent writes `var(--ds-surface)`, never a name derived from the path.
     const extensions: Record<string, unknown> = {};
     for (const [modeName, entry] of modeGroups) {
       const mv = resolveValue(entry.value, leafRaw, pathByName);
       if (mv !== null) extensions[modeExtensionKey(modeName)] = { $value: mv };
     }
-    if (Object.keys(extensions).length > 0) leaf.$extensions = extensions;
+    extensions[CUSTOM_PROPERTY_EXTENSION] = name;
+    leaf.$extensions = extensions;
 
     (tree[path.category] ??= {})[path.leaf] = leaf;
     if (typeof leaf.$value === "string" && /^\{.+\}$/.test(leaf.$value)) semantics++;

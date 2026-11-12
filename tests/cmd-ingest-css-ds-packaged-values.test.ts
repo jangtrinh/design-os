@@ -28,7 +28,11 @@ beforeAll(() => {
 });
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
-const read = (): Record<string, Record<string, { $value: unknown; $type: string }>> => JSON.parse(readFileSync(tokensFile, "utf8"));
+/** The leaf without its `$extensions`: these tests are about the value and the type, the extensions have a suite of their own. */
+const read = (): Record<string, Record<string, { $value: unknown; $type: string }>> => {
+  const tree = JSON.parse(readFileSync(tokensFile, "utf8")) as Record<string, Record<string, { $value: unknown; $type: string; $extensions?: unknown }>>;
+  return Object.fromEntries(Object.entries(tree).map(([cat, group]) => [cat, Object.fromEntries(Object.entries(group).map(([k, { $value, $type }]) => [k, { $value, $type }]))]));
+};
 
 describe.skipIf(!built)("ui ingest-css-ds values on a packaged theme (built CLI)", () => {
   it("types .1s, .15s as durations and .5rem as a dimension, with the leading zero written out", () => {
