@@ -89,6 +89,11 @@ describe("selectors that stay unmapped", () => {
     ":root .dark",
     "html [data-theme=dark]",
     ":root > [data-theme=dark]",
+    ":where(:root) :is(.card)",
+    ":where(:root):not(.card)",
+    ":where(.dark) :is(.x)",
+    ":where(:root) > :is(.card)",
+    ":is(:root).card",
   ])("%j is unmapped", (s) => {
     expect(classifySelector(s)).toEqual(UNMAPPED);
   });
