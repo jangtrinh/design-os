@@ -11,13 +11,12 @@
  * Pure: no filesystem, no network, deterministic. Reuses `inferToken` (token-import.ts)
  * for $type inference and `sanitizeSeg` (figma-ds-tokens.ts) for the alias-safe alphabet.
  */
-import { inferToken } from "./token-import.js";
-import type { ImportedType } from "./token-import.js";
-import { sanitizeSeg } from "./figma-ds-tokens.js";
 import { modeExtensionKey } from "./token-model.js";
 import type { Token, TokenTree } from "./token-model.js";
 import type { CustomPropertyObservation } from "./designmd-token-extractor.js";
 import { classifySelector } from "./css-selector-mode.js";
+import { computeOwnPath, resolveValue } from "./css-token-paths.js";
+import type { PathInfo } from "./css-token-paths.js";
 
 export class CssTokenIngestError extends Error {
   readonly code: string;
@@ -26,71 +25,6 @@ export class CssTokenIngestError extends Error {
     this.name = "CssTokenIngestError";
     this.code = code;
   }
-}
-
-// ─── D6 (corrected on the integration branch, spec 009 P3): leaf naming ───────
-//
-// The leaf is the custom-property name minus `--`, VERBATIM — no prefix stripping.
-// `--gray-900` and `--color-gray-900` are two DIFFERENT declared properties (dana: the
-// latter is a Tailwind `@theme` re-export of the former, `var(--gray-900)`, not a
-// duplicate) and land at two different paths: `color.gray-900` and `color.color-gray-900`.
-// An earlier rule stripped a category-matching prefix, silently merging the two and
-// collapsing the two-tier structure `token-taxonomy.md:110` mandates. The (uglier)
-// verbatim name is the source's own name, recorded as declared (SOURCE-grade,
-// `learn.md` §3c) — not rewritten to look nicer.
-
-function categoryForType(type: ImportedType): string {
-  switch (type) {
-    case "color": return "color";
-    case "fontFamily":
-    case "fontWeight": return "font";
-    case "dimension": return "dimension";
-    case "duration": return "duration";
-    case "number": return "number";
-  }
-}
-
-/** inferToken can't type a bare `var(--x)` reference (no literal to test) — a name-hint
- * fallback for properties that are ALWAYS alias-valued. Insight 1: overwhelmingly color. */
-function typeFromNameHint(leafRaw: string): ImportedType {
-  if (/font-?family|family/i.test(leafRaw)) return "fontFamily";
-  if (/weight/i.test(leafRaw)) return "fontWeight";
-  if (/motion|duration|transition|delay/i.test(leafRaw)) return "duration";
-  if (/spac|radi|size|width|height|layout|gap|inset|offset/i.test(leafRaw)) return "dimension";
-  return "color";
-}
-
-function parseVarRef(value: string): string | null {
-  const m = /^var\(\s*(--[a-zA-Z0-9_-]+)\s*\)$/.exec(value.trim());
-  return m ? (m[1] as string) : null;
-}
-interface PathInfo { category: string; leaf: string; type: ImportedType }
-
-/** This custom property's own {category, leaf, $type} — independent of alias/base/mode. */
-function computeOwnPath(name: string, entries: CustomPropertyObservation[]): PathInfo | null {
-  const leafRaw = name.slice(2);
-  const literal = entries.find((e) => parseVarRef(e.value) === null);
-  const type = literal !== undefined
-    ? (() => { const r = inferToken("", leafRaw, literal.value); return "skip" in r ? null : r.$type; })()
-    : typeFromNameHint(leafRaw);
-  if (type === null) return null;
-  const category = sanitizeSeg(categoryForType(type));
-  const leaf = sanitizeSeg(leafRaw);
-  return { category, leaf, type };
-}
-
-/** `leafRaw` supplies inferToken's category/name-hint context (WEIGHT_RE/DURATION_CAT_RE/
- * FAMILY_RE) — without it a value like "400ms" can't be recognised as a duration string
- * (only a bare number gets that treatment without a name hint). Measured live on hvs. */
-function resolveValue(value: string, leafRaw: string, pathByName: Map<string, PathInfo | null>): string | number | null {
-  const ref = parseVarRef(value);
-  if (ref !== null) {
-    const target = pathByName.get(ref);
-    if (target === null || target === undefined) return null; // dangling/unresolvable alias
-    return `{${target.category}.${target.leaf}}`;
-  }
-  const inferred = inferToken("", leafRaw, value);
-  return "skip" in inferred ? null : inferred.$value;
 }
 
 // ─── D4: the ingest ─────────────────────────────────────────────────────────
@@ -112,7 +46,7 @@ export function ingestCssTokens(customProperties: CustomPropertyObservation[]): 
   }
 
   const pathByName = new Map<string, PathInfo | null>();
-  for (const [name, entries] of byName) pathByName.set(name, computeOwnPath(name, entries));
+  for (const name of byName.keys()) pathByName.set(name, computeOwnPath(name, byName));
 
   // Collision guard (D6) — two DIFFERENT declared names landing on the same dotted path.
   // With no prefix stripping this should only fire on a genuine sanitization collision
