@@ -83,10 +83,10 @@ To keep `ui` on your path: `npm install -g ease-design`.
 | `ui ds guidelines build \| check \| export` | Compile, lint and export the guidelines pack |
 | `ui init` · `ui agents init` | Write the runtime adapters; generate project agents |
 | `ui gate` | Composed floor judge over every linter family: layout, a11y, taste, tell, content, ds-usage |
-| `ui taste-lint` — 35 absolute checks | Generated-UI taste floor: motion, typography, spacing and focus states |
-| `ui validate-layout` — 20 checks | Structure and overflow safety (`100vw` traps, unclosed tags, sticky overflow) |
-| `ui content-lint` — 15 checks | Honest copy: placeholder text, lorem ipsum, generic names, all-caps shouting |
-| `ui tell-lint` — 43 checks, any language | Design tells across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI and Flutter |
+| `ui taste-lint`: 35 absolute checks | Generated-UI taste floor: motion, typography, spacing and focus states |
+| `ui validate-layout`: 20 checks | Structure and overflow safety (`100vw` traps, unclosed tags, sticky overflow) |
+| `ui content-lint`: 15 checks | Honest copy: placeholder text, lorem ipsum, generic names, all-caps shouting |
+| `ui tell-lint`: 43 checks, any language | Design tells across HTML, JSX/TSX, Vue, Svelte, CSS, SwiftUI and Flutter |
 | `ui tokens` · `ui color` | Compile DTCG tokens to CSS, Tailwind or Figma variables; OKLCH colour math |
 | `ui doctor` | Check that the install and the project are healthy |
 
@@ -249,3 +249,5 @@ Docs: [jangtrinh.github.io/design-os](https://jangtrinh.github.io/design-os/) ·
 Listed on [dalisoft/awesome-ai-coding](https://github.com/dalisoft/awesome-ai-coding), [Skills Directory](https://www.skillsdirectory.com/skills/jangtrinh-design-os), [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli/blob/main/README.md) and [SkillsMP](https://skillsmp.com/creators/jangtrinh).
 
 Built by [Jang Trịnh](https://github.com/jangtrinh), creative technologist and autonomous system architect.
+
+[GitHub](https://github.com/jangtrinh) · [LinkedIn](https://www.linkedin.com/in/jangtrinh/) · [Hub](https://jangtrinh.github.io/) · [YouTube](https://www.youtube.com/@designosbyjang) · [X](https://x.com/Jangtrinhvn)
