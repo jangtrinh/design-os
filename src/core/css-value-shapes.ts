@@ -36,15 +36,19 @@ function splitFamilies(value: string): string[] | null {
   return parts;
 }
 
+/** A property or key name that says it holds a font family (not a font feature, size, weight or style). */
+export const FAMILY_NAME_HINT_RE = /(?=.*(?:font|family|typeface))(?!.*(?:feature|size|weight|style|variant|stretch|smoothing|variation))/i;
+
 /**
  * True when `value` is a font-family stack: one or many families, quoted or bare, separated by commas, and either
- * naming a generic family, or holding a quoted family. A lone bare word (`none`, `flex`, `auto`) is never one: it is a
- * keyword of some other property, and only a property named for a family (decided by the caller) can make it a family.
+ * naming a generic family, or (when `nameHinted`, the property is named for a font family) holding a quoted family.
+ * Quoted strings alone are not a stack: `"/"`, `"cv02","cv03"` and `"header header","main side"` are other properties'
+ * values. A lone bare word (`none`, `flex`) is never one.
  */
-export function isFontFamilyStack(value: string): boolean {
+export function isFontFamilyStack(value: string, nameHinted: boolean): boolean {
   const families = splitFamilies(value.trim());
   if (families === null || families.length === 0) return false;
   if (!families.every((f) => QUOTED_FAMILY.test(f) || (BARE_FAMILY.test(f) && !KEYWORD.test(f)))) return false;
-  if (families.length === 1) return QUOTED_FAMILY.test(families[0] as string);
-  return families.some((f) => QUOTED_FAMILY.test(f) || GENERIC_FAMILY.test(f));
+  if (families.some((f) => GENERIC_FAMILY.test(f))) return true;
+  return nameHinted && families.some((f) => QUOTED_FAMILY.test(f));
 }

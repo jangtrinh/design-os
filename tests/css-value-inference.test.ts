@@ -4,7 +4,7 @@
  * shorthands) stay unmappable and listed.
  */
 import { describe, expect, it } from "vitest";
-import { inferToken } from "../src/core/token-import.js";
+import { importFlatTokens, inferToken } from "../src/core/token-import.js";
 import { ingestCssTokens } from "../src/core/css-token-ingest.js";
 import { emitCss } from "../src/core/token-emit.js";
 import { parseTokenFile } from "../src/core/token-model.js";
@@ -42,12 +42,40 @@ describe("a font-family stack is a fontFamily token", () => {
     ["Inter, system-ui, sans-serif"],
     ["'Segoe UI', Roboto, sans-serif"],
     ["ui-monospace, SFMono-Regular, monospace"],
-    ['"Inter"'],
     ['"Geist Mono", monospace'],
     ['-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, Roboto, sans-serif'],
     ['-apple-system, "Helvetica Neue", sans-serif'],
   ])("%s under a name with no family hint", (stack) => {
     expect(inferToken("", "ds-font-sans", stack)).toEqual({ $value: stack, $type: "fontFamily" });
+  });
+
+  it.each([
+    ["breadcrumb-sep", '"/"'],
+    ["quote-open", '"\\201C"'],
+    ["feature-settings", '"cv02","cv03","cv11"'],
+    ["grid-areas", '"header header","main side"'],
+  ])("%s: the quoted strings %s are not a font stack: no family hint, no generic family", (name, value) => {
+    expect(inferToken("", name, value)).toEqual({ skip: `unmappable string value "${value.slice(0, 24)}"` });
+  });
+
+  it("the CSS door lists them, as before, and ds import of a flat file skips them", () => {
+    const { tree, unverified } = ingestCssTokens([
+      cp("--breadcrumb-sep", '"/"'), cp("--feature-settings", '"cv02","cv03","cv11"'), cp("--grid-areas", '"header header","main side"'),
+    ]);
+    expect(tree).toEqual({});
+    expect(unverified.map((u) => u.name)).toEqual(["--breadcrumb-sep", "--feature-settings", "--grid-areas"]);
+    const flat = importFlatTokens({ layout: { "breadcrumb-sep": '"/"', "grid-areas": '"header header","main side"', "font-sans": '"Inter"' } });
+    expect(flat.stats.skippedKeys.map((k) => k.key)).toEqual(["layout.breadcrumb-sep", "layout.grid-areas"]);
+    expect(flat.dtcg["layout"]).toEqual({ "font-sans": { $value: '"Inter"', $type: "fontFamily" } });
+  });
+
+  it.each([
+    ["ds-font-sans", '"Inter"'],
+    ["ds-font-body", '"Inter", "Helvetica Neue"'],
+    ["ds-x", '"Inter", sans-serif'],
+    ["ds-x", '-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, sans-serif'],
+  ])("%s: %s stays a font stack", (name, value) => {
+    expect(inferToken("", name, value)).toEqual({ $value: value, $type: "fontFamily" });
   });
 
   it("the type does not depend on the name", () => {

@@ -10,7 +10,7 @@
 
 import { isAlias, isTokenLeaf } from "./token-model.js";
 import { sanitizeSeg } from "./figma-ds-tokens.js";
-import { DURATION_VALUE_RE, isFontFamilyStack, withLeadingZero } from "./css-value-shapes.js";
+import { DURATION_VALUE_RE, FAMILY_NAME_HINT_RE, isFontFamilyStack, withLeadingZero } from "./css-value-shapes.js";
 
 export type ImportedType = "color" | "dimension" | "number" | "fontFamily" | "fontWeight" | "duration";
 
@@ -75,7 +75,7 @@ export function inferToken(category: string, name: string, value: unknown): { $v
     // fall back to a category/name hint (color dominates the real alias layer).
     if (isAliasShape(v)) return { $value: v, $type: aliasTypeHint(ctx) };
     // A font-family stack (`"Inter", system-ui, sans-serif`) is one fontFamily value whatever the property is called.
-    if (isFontFamilyStack(v)) return { $value: v, $type: "fontFamily" };
+    if (isFontFamilyStack(v, FAMILY_NAME_HINT_RE.test(ctx))) return { $value: v, $type: "fontFamily" };
     return { skip: `unmappable string value "${String(value).slice(0, 24)}"` };
   }
   if (typeof value === "number") return numeric(category, name, value);
