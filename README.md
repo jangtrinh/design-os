@@ -69,7 +69,7 @@ To keep `ui` on your path: `npm install -g ease-design`.
 
 `ui ingest-css-ds`, `ui ingest-figma-ds` and `ui ds import` write it; `ui ds kit plan | prepare | validate | adopt | verify` takes a full component kit from capture to a verified, adopted state. After that, tokens change through `ui ds change-token` and `ui ds set-role`. A hand edit breaks the seal: `ui ds status` and `ui ds context` report the hash mismatch until the change goes through the CLI or `ui ds reseal`.
 
-**3. Your design agent.** `ui init` writes skills, `/ui` commands and routing rules for Claude Code, Antigravity or Codex. `ui agents init` adds three Claude Code subagents named after your project (designer, curator, figma-hand). Each one loads `ui ds context` before it acts, and the designer looks up every component it uses with `ui registry lookup`, so it works from your tokens and components instead of defaults. `ui gate` checks what the agent builds: layout, accessibility, taste, tells, copy and design-system usage, in one verdict.
+**3. Your design agent.** `ui init` writes skills, `/ui` commands and routing rules for Claude Code, Antigravity or Codex. `ui agents init` adds three project agents named after your project (designer, curator, figma-hand), from one roster, for Claude Code, Codex and Antigravity. Each one loads `ui ds context` before it acts, and the designer looks up every component it uses with `ui registry lookup`, so it works from your tokens and components instead of defaults. `ui gate` checks what the agent builds: layout, accessibility, taste, tells, copy and design-system usage, in one verdict.
 
 ## Commands
 
