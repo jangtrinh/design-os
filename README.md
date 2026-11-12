@@ -249,3 +249,5 @@ Docs: [jangtrinh.github.io/design-os](https://jangtrinh.github.io/design-os/) ·
 Listed on [dalisoft/awesome-ai-coding](https://github.com/dalisoft/awesome-ai-coding), [Skills Directory](https://www.skillsdirectory.com/skills/jangtrinh-design-os), [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli/blob/main/README.md) and [SkillsMP](https://skillsmp.com/creators/jangtrinh).
 
 Built by [Jang Trịnh](https://github.com/jangtrinh), creative technologist and autonomous system architect.
+
+[GitHub](https://github.com/jangtrinh) · [LinkedIn](https://www.linkedin.com/in/jangtrinh/) · [Hub](https://jangtrinh.github.io/) · [YouTube](https://www.youtube.com/@designosbyjang) · [X](https://x.com/Jangtrinhvn)
