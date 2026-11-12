@@ -72,7 +72,7 @@ export function buildTokenValueIndex(map: ResolvedMap): TokenValueIndex {
     else if (t.type === "dimension") dimension.add(val);
   }
 
-  return { declaredVars: declaredCssVarNames(map), color, fontFamily, dimension, shadowShorthand };
+  return { declaredVars: declaredCssVarNames(map, { sourceNames: true }), color, fontFamily, dimension, shadowShorthand };
 }
 
 function hasDeclaredVar(value: string, declaredVars: ReadonlySet<string>): boolean {

@@ -2,8 +2,10 @@
  * The token references of one component's own source (spec 033 FR-019, CD-5; review fix round, section C). A reference
  * is resolved only EXACTLY, and every reference that is not resolved is counted under a key of its own:
  *  - `var(--name)` names one custom property. It resolves when exactly one token carries the name the kernel emits for
- *    it (`pathToCssVar`: `color.primary` is `--color-primary`), or the name a CSS-ingested token came from (a token
- *    `color.color-primary` was read from `--color-primary`). The bare leaf never resolves: `--primary` is not
+ *    it (`pathToCssVar`: `color.primary` is `--color-primary`), or, for a token that carries the custom property it was
+ *    read from (`ui ingest-css-ds`), by that name and no other (`--mu-surface` is `color.mu-surface`; `color-mu-surface`
+ *    is not its name). A token without the property keeps the old rule: a leaf that starts with its group
+ *    (`color.color-primary`) also answers to the leaf. The bare leaf never resolves: `--primary` is not
  *    `color.primary`. An unresolved custom property is counted under `customProperty`.
  *  - a theme-key utility in a class attribute (`bg-primary`, `text-ink/50`, `bg-primary/[.5]`) resolves to the colour
  *    token `--color-<key>` when exactly one token has that name. A utility whose key names no token is NOT in the
@@ -16,6 +18,7 @@
  * A plain string constant resolves nothing, and a helper name inside a string or a comment counts nothing.
  * Without a store nothing resolves.
  */
+import { customPropertyOf } from "../token-model.js";
 import type { TokenTree } from "../token-model.js";
 import { pathToCssVar } from "../token-emit.js";
 import { extractUiRecords } from "../polyglot-ui-extractor.js";
@@ -33,10 +36,14 @@ export function buildTokenLookup(tree: TokenTree | undefined): TokenLookup {
   const byName = new Map<string, Set<string>>();
   const note = (name: string, path: string): void => { const s = byName.get(name) ?? new Set<string>(); s.add(path); byName.set(name, s); };
   for (const [group, leaves] of Object.entries(tree ?? {})) {
-    for (const leaf of Object.keys(leaves)) {
+    for (const [leaf, token] of Object.entries(leaves)) {
       const path = `${group}.${leaf}`;
+      // A token written from CSS has one name in its project: the custom property it came from. The name its path gives
+      // is the kernel's own and may be another token's (`--mu-surface` beside `--color-mu-surface`), so it is not an answer.
+      const source = customPropertyOf(token.$extensions);
+      if (source !== undefined) { note(source.slice(2), path); continue; }
       note(pathToCssVar(path).slice(2), path);
-      // A store ingested from CSS names the token after the property it was read from: `--color-primary` is `color.color-primary`.
+      // A store ingested from CSS without the extension names the token after the property it was read from: `--color-primary` is `color.color-primary`.
       if (leaf.startsWith(`${group}-`)) note(leaf, path);
     }
   }

@@ -113,14 +113,18 @@ function tokenToCssDecls(token: ResolvedToken, sourceNames = false): [string, st
 /**
  * Every CSS custom-property name a resolved token map emits (composite
  * members included, e.g. "text.body" → "--text-body-font-family" AND
- * "--text-body-font-size"). The declared-token vocabulary ds-usage-lint.ts
- * checks page CSS against — same expansion emitCss/emitTailwind use, so the
- * declared set never drifts from what a real `ui tokens compile` would emit.
+ * "--text-body-font-size"), the same expansion emitTailwind uses.
+ *
+ * With `sourceNames` it is the set `emitCss` writes with the same option (`ui tokens compile --target css`): a token
+ * written from CSS is declared under the custom property it came from and under no other name, every other token under
+ * the name its path gives. That is the vocabulary a project's own CSS is judged against (the usage gate, the registry
+ * markup lint, `ui token-coverage`); a generator that emits the path names (the kit theme) keeps the default.
  */
-export function declaredCssVarNames(map: ResolvedMap): Set<string> {
+export function declaredCssVarNames(map: ResolvedMap, options: { sourceNames?: boolean } = {}): Set<string> {
+  const sourceNames = options.sourceNames === true;
   const out = new Set<string>();
   for (const token of map) {
-    for (const [varName] of tokenToCssDecls(token)) out.add(varName);
+    for (const [varName] of tokenToCssDecls(token, sourceNames)) out.add(varName);
   }
   return out;
 }

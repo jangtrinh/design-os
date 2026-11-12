@@ -34,6 +34,16 @@
 - Custom properties in and no token out is an error: `ui ingest-css-ds` exits 1 with `NO_TOKENS_WRITTEN`, writes
   nothing, and states how many properties were read, every reason the ledger shows with its count, and the five
   largest unrecognised selectors with their declaration counts when there are any.
+- `ui ds surface` resolves a style reference through the custom property a token came from: `var(--mu-surface)` is the
+  token read from `--mu-surface`, and `bg-mu-surface` (the utility `--color-mu-surface`) is the token read from that
+  property. A token that carries the property answers to that name and no other, so an alias such as
+  `--color-mu-surface: var(--mu-surface)` no longer makes two tokens answer one name. Two tokens that still share a name
+  stay ambiguous and are counted under `ambiguousToken`. A store without the property gives the same output as before.
+  On a real app (usememos/memos, 117 tokens) components with a token go from 0 to 103 and `ambiguousToken` from 394 to 0.
+- The usage gate family (`ui ds-usage-lint`, the gate, the registry markup lint, `ui token-coverage`) declares a token
+  under the custom property it came from, the set `ui tokens compile --target css` writes, so a component that reads
+  `var(--mu-space-6)` is no longer refused with `REGISTRY_MARKUP_DRIFT` for a property its own design system declares.
+  `declaredCssVarNames` takes `sourceNames`; the default keeps the names the Tailwind emitter and the kit theme write.
 
 ## 2026-11-12 - `ui ontology query`, and project agents for Claude Code, Codex and Antigravity
 
