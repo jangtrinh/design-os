@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-12 - `ui ingest-css-ds` compiles a theme from a packaged token sheet and keeps each token's own custom property
+
+### Added
+- Each token written from CSS carries the custom property it came from, under
+  `$extensions["design-os.custom-property"]` (`--ds-surface`). `ui ds import` keeps it in the sealed store;
+  `ui tokens compile --target css` emits the token under that name instead of one derived from its path; `ui ds context`
+  prints it (a third column of the semantic table, the roles list, and `customProperty` in the JSON); the ontology's
+  token node carries `customProperty`, `ui ontology query` finds the token by it (`ui ontology query -- --ds-surface`)
+  and prints it. Two tokens that carry one property name are refused with `DUPLICATE_CUSTOM_PROPERTY`. A store sealed
+  before this change, and the `tailwind` and `figma` targets, behave as before.
+- The JSON envelope of `ui ingest-css-ds` carries a `ledger`: custom properties in, tokens written (primitives and
+  aliases) and the properties left out per named reason, summing to the input.
+
+### Changed
+- The base and theme selectors of a built, minified sheet are recognised: `:where(:root,:host,…)`, `:is(…)`, `:host`,
+  unquoted `[data-theme=dark]`, and a base with one theme qualifier (`:root[data-theme=dark]`, `html.dark`). A
+  selector list is split on top-level commas only. A component class, a descendant selector and `:host(.x)` stay
+  listed, never promoted.
+- `.1s` and `.5rem` are typed (stored as `0.1s` and `0.5rem`), and a font-family stack
+  (`"Inter", system-ui, sans-serif`, `-apple-system, …`) is a `fontFamily` token. A decimal duration such as
+  `0.3s` under a motion, duration, transition or delay name is typed too; `ui ds import` shares this inference.
+- An alias takes the type of the property it names, and is written only when that property is written; a mode value
+  that names a property left out is dropped and listed.
+- Custom properties in and no token out is an error: `ui ingest-css-ds` exits 1 with `NO_TOKENS_WRITTEN`, writes
+  nothing, and names the five largest unrecognised selectors with their declaration counts.
+
 ## 2026-11-12 - `ui ontology query`, and project agents for Claude Code, Codex and Antigravity
 
 ### Added
