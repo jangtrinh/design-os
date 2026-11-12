@@ -118,7 +118,7 @@ function runIngest(parsed: ParsedArgs): CommandResult {
 
   // Custom properties in and no token out is a failure, not a success: nothing is written.
   if (result.ledger.properties > 0 && result.ledger.written.primitives + result.ledger.written.semantics === 0) {
-    const message = emptyResultMessage(result.ledger.properties, result.unrecognisedSelectors);
+    const message = emptyResultMessage(result.ledger, result.unrecognisedSelectors);
     return useJson
       ? errJsonWithData(CMD, "NO_TOKENS_WRITTEN", message, { ledger: result.ledger, unrecognisedSelectors: result.unrecognisedSelectors.slice(0, 5) })
       : errText(`ui: ${message}\n`);

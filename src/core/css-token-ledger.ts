@@ -40,12 +40,18 @@ export function rankSelectors(counts: ReadonlyMap<string, number>): Unrecognised
     .sort((a, b) => b.declarations - a.declarations || (a.selector < b.selector ? -1 : a.selector > b.selector ? 1 : 0));
 }
 
-/** What to do when custom properties went in and no token came out: which selectors were not recognised, or that no base was found. */
-export function emptyResultMessage(properties: number, selectors: readonly UnrecognisedSelector[]): string {
-  const head = `no token was written from ${properties} custom ${properties === 1 ? "property" : "properties"}.`;
-  if (selectors.length === 0) {
-    return `${head} Every declaration sits under a theme or mode selector: no base selector (:root, :host, html, @theme) was found, so the CSS file that holds it was not passed, or the wrong files were passed.`;
+/** What to do when custom properties went in and no token came out: which selectors were not recognised, or the reasons the ledger shows. */
+export function emptyResultMessage(ledger: CssIngestLedger, selectors: readonly UnrecognisedSelector[]): string {
+  const n = ledger.properties;
+  const head = `no token was written from ${n} custom ${n === 1 ? "property" : "properties"}.`;
+  if (selectors.length > 0) {
+    const listed = selectors.slice(0, 5).map((s) => `'${s.selector}' (${s.declarations})`).join(", ");
+    return `${head} Selectors not recognised, by declarations: ${listed}. The base selector of the theme is among them, or the wrong CSS files were passed.`;
   }
-  const listed = selectors.slice(0, 5).map((s) => `'${s.selector}' (${s.declarations})`).join(", ");
-  return `${head} Selectors not recognised, by declarations: ${listed}. The base selector of the theme is among them, or the wrong CSS files were passed.`;
+  const reasons = Object.entries(ledger.leftOut).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+  const listed = `Left out, by reason: ${reasons.map(([r, c]) => `${r} (${c})`).join(", ")}.`;
+  if (ledger.leftOut[LEFT_OUT.noBase] !== undefined) {
+    return `${head} ${listed} No base selector (:root, :host, html, @theme) was found: the CSS file that holds it was not passed, or the wrong files were passed.`;
+  }
+  return `${head} ${listed} Each value needs to be a colour, a dimension, a duration, a number or a font stack: none of these is.`;
 }

@@ -109,13 +109,26 @@ describe("zero tokens from a non-empty input", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
+  it("with every property under :root and no value one typed leaf, the message names that reason, not a missing base", () => {
+    const dir = scratch();
+    const r = capture(["ingest-css-ds", extractFileOf(dir, [
+      cp("--shadow-a", "0 1px 2px rgba(0,0,0,.1)", ":root"), cp("--shadow-b", "0 2px 4px #000", ":root"), cp("--ease", "cubic-bezier(.4,0,.2,1)", ":root"),
+    ]), "--out", join(dir, "o"), "--json"]);
+    expect(r.code).toBe(1);
+    expect(parse(r.out).error?.message).toBe(
+      "no token was written from 3 custom properties. Left out, by reason: value is not one typed leaf (calc, a shadow, an easing, a multi-value shorthand) (3). " +
+        "Each value needs to be a colour, a dimension, a duration, a number or a font stack: none of these is.",
+    );
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it("with nothing but theme-only declarations it still fails, and names no selector it did not fail to recognise", () => {
     const dir = scratch();
     const r = capture(["ingest-css-ds", extractFileOf(dir, [cp("--a", "#111", "[data-theme=dark]")]), "--out", join(dir, "o"), "--json"]);
     expect(r.code).toBe(1);
     expect(parse(r.out).error?.message).toBe(
-      "no token was written from 1 custom property. Every declaration sits under a theme or mode selector: no base selector (:root, :host, html, @theme) was found, " +
-        "so the CSS file that holds it was not passed, or the wrong files were passed.",
+      "no token was written from 1 custom property. Left out, by reason: declared only under a theme or mode, so it has no base value (1). " +
+        "No base selector (:root, :host, html, @theme) was found: the CSS file that holds it was not passed, or the wrong files were passed.",
     );
     rmSync(dir, { recursive: true, force: true });
   });
