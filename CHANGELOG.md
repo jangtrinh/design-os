@@ -23,10 +23,11 @@
 - `.1s` and `.5rem` are typed and stored as written. A comma-separated list of font families
   (`"Inter", system-ui, sans-serif`, `-apple-system, …`) is a `fontFamily` token only when the property or key name
   carries a family hint (`font`, `family`, `typeface`, not `font-size`, `font-feature-settings` and the like), every
-  quoted entry holds a letter and no backslash escape, and there is positive evidence of a family list: the name
-  contains `family` or `typeface`, or one whole unquoted entry is a generic family keyword (`serif`, `sans-serif`,
-  `monospace`, `system-ui`, …). The same list under a name with no hint is listed, not typed, and so is a single family
-  under a `font-*` name with neither (`--font-brand: "Acme Sans"`). A decimal duration such as
+  quoted entry holds a letter and no backslash escape, and the value itself is evidence: one whole unquoted entry is a
+  generic family keyword (`serif`, `sans-serif`, `monospace`, `system-ui`, …). A name can withhold the type, never
+  grant it: the same list under a name with no hint is listed, not typed, and so is a single family with no generic
+  keyword (`--font-brand: "Acme Sans"`, `--brand-typeface: "Acme Sans"`). A value under a `family` name is typed as it
+  always was. A decimal duration such as
   `0.3s` under a motion, duration, transition or delay name is typed too; `ui ds import` shares this inference.
 - An alias takes the type of the property it names, and is written only when that property is written; a mode value
   that names a property left out is dropped and listed.

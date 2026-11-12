@@ -38,20 +38,17 @@ const fitsQuoted = (f: string): boolean => /\p{L}/u.test(f) && !f.includes("\\")
 
 /** The CSS generic family names. They belong to the `font-family` grammar only. */
 const GENERIC_FAMILY = /^(?:serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|ui-monospace|ui-rounded|math|emoji|fangsong)$/i;
-/** A name that says `family` or `typeface` is the author's own statement that the value is a family. */
-const FAMILY_STATEMENT_RE = /family|typeface/i;
-
 /**
- * True when `value` is a font-family list. All three hold: the property or key `name` carries the family hint; the
- * value fits (a comma-separated list of families, quoted or bare, every quoted entry holding a letter and no escape);
- * and there is positive evidence that it is a family list: the name contains `family` or `typeface`, or one whole
- * unquoted entry is a generic family keyword. Any string is a valid family name in CSS, and `font-` is a general
- * prefix of text properties, so neither the name nor the fit alone decides.
+ * True when `value` is a font-family list. All of these hold: the property or key `name` carries the family hint, which
+ * can only withhold the type (never grant it); the value fits (a comma-separated list of families, quoted or bare,
+ * every quoted entry holding a letter and no escape); and the value itself is evidence: one whole unquoted entry is a
+ * generic family keyword. Any string is a valid family name in CSS, and `font-` and `typeface` are general prefixes
+ * of text properties, so a name alone never decides.
  */
 export function isFontFamilyStack(value: string, name: string): boolean {
   if (!FAMILY_NAME_HINT_RE.test(name)) return false;
   const families = splitFamilies(value.trim());
   if (families === null || families.length === 0) return false;
   if (!families.every((f) => (QUOTED_FAMILY.test(f) ? fitsQuoted(f) : BARE_FAMILY.test(f) && !KEYWORD.test(f)))) return false;
-  return FAMILY_STATEMENT_RE.test(name) || families.some((f) => GENERIC_FAMILY.test(f));
+  return families.some((f) => GENERIC_FAMILY.test(f));
 }

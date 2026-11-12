@@ -9,6 +9,10 @@ import { ingestCssTokens } from "../src/core/css-token-ingest.js";
 import { emitCss } from "../src/core/token-emit.js";
 import { parseTokenFile } from "../src/core/token-model.js";
 import { resolveTokens } from "../src/core/token-resolve.js";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { capture } from "./owner-rulings-helpers.js";
 import type { CustomPropertyObservation } from "../src/core/designmd-token-extractor.js";
 
 const cp = (name: string, value: string, selector = ":root"): CustomPropertyObservation => ({ name, value, sources: ["a.css:L1"], selectors: [selector] });
@@ -55,6 +59,9 @@ describe("a font-family stack needs the family hint in its name, a value that fi
     ["font-case", "uppercase"],
     ["font-code", '"monospace"'],
     ["font-variant-emoji", "emoji"],
+    ["heading-typeface-case", "uppercase"],
+    ["typeface-tracking", "tight"],
+    ["brand-typeface", '"Acme Sans"'],
   ])("%s: %s has the hint but no evidence of a family list, so it is not typed", (name, value) => {
     expect(inferToken("", name, value)).toEqual(unmapped(value));
   });
@@ -63,10 +70,11 @@ describe("a font-family stack needs the family hint in its name, a value that fi
     ["font-sans", '"Inter", sans-serif'],
     ["font-mono", "ui-monospace, Menlo, monospace"],
     ["font-family-brand", '"Acme Sans"'],
-    ["brand-typeface", '"Acme Sans"'],
+    ["brand-typeface", '"Acme Sans", serif'],
+    ["heading-typeface", "Georgia, serif"],
     ["font-sans", "SANS-SERIF"],
     ["ds-font-family", '"Inter", "Helvetica Neue"'],
-  ])("%s: %s is typed (the name says family or typeface, or an unquoted generic keyword is in the list)", (name, value) => {
+  ])("%s: %s is typed (an unquoted generic keyword is in the list; a `family` name is typed by the rule that already existed)", (name, value) => {
     expect(inferToken("", name, value)).toEqual({ $value: value, $type: "fontFamily" });
   });
 
@@ -74,6 +82,33 @@ describe("a font-family stack needs the family hint in its name, a value that fi
     expect(inferToken("", "font-x", `"Acme", ${kw}`)).toEqual({ $value: `"Acme", ${kw}`, $type: "fontFamily" });
     expect(inferToken("", "font-x", kw.toUpperCase())).toEqual({ $value: kw.toUpperCase(), $type: "fontFamily" });
     expect(inferToken("", "font-x", `"${kw}"`)).toEqual(unmapped(`"${kw}"`));
+  });
+
+  it("a name never grants the type: a `family` name types a value only by the rule origin/main already had", () => {
+    // origin/main: any value under a `family` name (the flat import and the CSS door share it); `typeface` has no such rule.
+    expect(inferToken("", "font-family-brand", '"Acme Sans"')).toEqual({ $value: '"Acme Sans"', $type: "fontFamily" });
+    expect(ingestCssTokens([cp("--font-family-brand", '"Acme Sans"')]).tree["font"]).toEqual({
+      "font-family-brand": { $value: '"Acme Sans"', $type: "fontFamily", $extensions: { "design-os.custom-property": "--font-family-brand" } },
+    });
+    const { tree, unverified } = ingestCssTokens([cp("--heading-typeface-case", "uppercase"), cp("--typeface-tracking", "tight"), cp("--brand-typeface", '"Acme Sans"')]);
+    expect(tree).toEqual({});
+    expect(unverified.map((u) => u.name)).toEqual(["--heading-typeface-case", "--typeface-tracking", "--brand-typeface"]);
+  });
+
+  it("a flat file with a typeface group types the family list and asks about the rest", () => {
+    const flat = importFlatTokens({ typeface: { heading: "Georgia, serif", case: "uppercase" } });
+    expect(flat.dtcg["typeface"]).toEqual({ heading: { $value: "Georgia, serif", $type: "fontFamily" } });
+    expect(flat.stats.skippedKeys).toEqual([{ key: "typeface.case", reason: 'unmappable string value "uppercase"' }]);
+  });
+
+  it("ui ds import of that flat file exits 1 and asks about typeface.case only", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ease-typeface-flat-"));
+    const file = join(dir, "flat.json");
+    writeFileSync(file, JSON.stringify({ typeface: { heading: "Georgia, serif", case: "uppercase" } }), "utf8");
+    const r = capture(["ds", "import", file, "--dir", join(dir, "p"), "--name", "t", "--json"]);
+    expect(r.code).toBe(1);
+    const clusters = (JSON.parse(r.out) as { data: { blocked: { clusters: { kind: string; members: string[] }[] } } }).data.blocked.clusters;
+    expect(clusters.map((c) => [c.kind, c.members])).toEqual([["untypeable-tokens", ["/typeface/case"]]]);
   });
 
   it("the flat import applies the same rule", () => {
