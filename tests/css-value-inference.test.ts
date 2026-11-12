@@ -41,7 +41,7 @@ describe("a number without its leading zero is typed, and stored as written", ()
   });
 });
 
-describe("a font-family stack is a fontFamily token", () => {
+describe("a font-family stack is a fontFamily token: the name decides, the value only has to fit", () => {
   it.each([
     ['"Inter", system-ui, sans-serif'],
     ['"Inter",system-ui,sans-serif'],
@@ -50,9 +50,16 @@ describe("a font-family stack is a fontFamily token", () => {
     ["ui-monospace, SFMono-Regular, monospace"],
     ['"Geist Mono", monospace'],
     ['-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, Roboto, sans-serif'],
-    ['-apple-system, "Helvetica Neue", sans-serif'],
-  ])("%s under a name with no family hint", (stack) => {
+    ['"Inter"'],
+    ['"Inter", "Helvetica Neue"'],
+  ])("%s under a name that carries a family hint", (stack) => {
     expect(inferToken("", "ds-font-sans", stack)).toEqual({ $value: stack, $type: "fontFamily" });
+  });
+
+  it("the real names of the app all carry a hint and are typed", () => {
+    for (const name of ["mu-font-sans", "font-sans", "font-mu-mono", "mu-font-display"]) {
+      expect(inferToken("", name, 'ui-monospace, "SF Mono", Menlo, monospace')).toEqual({ $value: 'ui-monospace, "SF Mono", Menlo, monospace', $type: "fontFamily" });
+    }
   });
 
   it.each([
@@ -60,32 +67,42 @@ describe("a font-family stack is a fontFamily token", () => {
     ["quote-open", '"\\201C"'],
     ["feature-settings", '"cv02","cv03","cv11"'],
     ["grid-areas", '"header header","main side"'],
-  ])("%s: the quoted strings %s are not a font stack: no family hint, no generic family", (name, value) => {
+    ["display-mode", "math"],
+    ["emoji-style", "emoji"],
+    ["ds-x", '"Inter", sans-serif'],
+    ["ds-x", '-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, sans-serif'],
+    ["ds-x", '"Inter"'],
+    ["ds-x", "serif"],
+  ])("%s: %s has no family hint in its name, so it is not typed", (name, value) => {
+    expect(inferToken("", name, value)).toEqual({ skip: `unmappable string value "${value.slice(0, 24)}"` });
+  });
+
+  it.each([
+    ["font-icon-close", '"\\2715"'],
+    ["icon-font-glyph", '"\\e900"'],
+    ["font-sep", '"/"'],
+    ["font-feature-settings", '"cv02","cv11"'],
+    ["font-variation-settings", '"wght" 400'],
+    ["font-size-name", '"cv02","cv11"'],
+    ["font-x", "auto, monospace"],
+    ["font-display", "swap"],
+  ])("%s: %s carries a hint but the value does not fit (escape, no letter, a feature or keyword), so it is not typed", (name, value) => {
     expect(inferToken("", name, value)).toEqual({ skip: `unmappable string value "${value.slice(0, 24)}"` });
   });
 
   it("the CSS door lists them, as before, and ds import of a flat file skips them", () => {
     const { tree, unverified } = ingestCssTokens([
       cp("--breadcrumb-sep", '"/"'), cp("--feature-settings", '"cv02","cv03","cv11"'), cp("--grid-areas", '"header header","main side"'),
+      cp("--display-mode", "math"), cp("--emoji-style", "emoji"), cp("--font-icon-close", '"\\2715"'), cp("--icon-font-glyph", '"\\e900"'),
+      cp("--font-feature-settings", '"cv02","cv11"'),
     ]);
     expect(tree).toEqual({});
-    expect(unverified.map((u) => u.name)).toEqual(["--breadcrumb-sep", "--feature-settings", "--grid-areas"]);
-    const flat = importFlatTokens({ layout: { "breadcrumb-sep": '"/"', "grid-areas": '"header header","main side"', "font-sans": '"Inter"' } });
-    expect(flat.stats.skippedKeys.map((k) => k.key)).toEqual(["layout.breadcrumb-sep", "layout.grid-areas"]);
+    expect(unverified.map((u) => u.name)).toEqual([
+      "--breadcrumb-sep", "--feature-settings", "--grid-areas", "--display-mode", "--emoji-style", "--font-icon-close", "--icon-font-glyph", "--font-feature-settings",
+    ]);
+    const flat = importFlatTokens({ layout: { "breadcrumb-sep": '"/"', "grid-areas": '"header header","main side"', "font-sans": '"Inter"', "emoji-style": "emoji" } });
+    expect(flat.stats.skippedKeys.map((k) => k.key)).toEqual(["layout.breadcrumb-sep", "layout.grid-areas", "layout.emoji-style"]);
     expect(flat.dtcg["layout"]).toEqual({ "font-sans": { $value: '"Inter"', $type: "fontFamily" } });
-  });
-
-  it.each([
-    ["ds-font-sans", '"Inter"'],
-    ["ds-font-body", '"Inter", "Helvetica Neue"'],
-    ["ds-x", '"Inter", sans-serif'],
-    ["ds-x", '-apple-system, BlinkMacSystemFont, "Segoe UI (mu)", system-ui, sans-serif'],
-  ])("%s: %s stays a font stack", (name, value) => {
-    expect(inferToken("", name, value)).toEqual({ $value: value, $type: "fontFamily" });
-  });
-
-  it("the type does not depend on the name", () => {
-    expect(inferToken("", "ds-x", '"Inter", system-ui, sans-serif')).toEqual({ $value: '"Inter", system-ui, sans-serif', $type: "fontFamily" });
   });
 
   it.each([
