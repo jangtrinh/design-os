@@ -185,8 +185,8 @@ export function checkBareConfirmButton(html: string): ContentFinding[] {
  * Adding a check here makes both consumers pick it up automatically (L4 lesson:
  * fix mirror drift at the shared layer, not at each copy site).
  */
-export const allContentChecks = [
+export const allContentChecks: readonly ((html: string) => ContentFinding[])[] = [
   checkLoremIpsum, checkPlaceholderCopy, checkPlaceholderName, checkClickHereLink, checkErrorCodeAlone,
   checkAllCapsShout, checkExclamationOverload, checkInsensitiveTerms, checkPluralSHack, checkTextInImage,
   checkBareConfirmButton, checkDumbPunctuation, ...landingContentChecks,
-] as const;
+];

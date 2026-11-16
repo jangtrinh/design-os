@@ -107,7 +107,6 @@ export function checkViewportMetaPresent(html: string): A11yFinding[] {
 
 // ── 4.1.2 / 2.4.4 Icon/emoji controls need an accessible name ──
 const ICON_GLYPHS = "×✕✓✔▶◀▲▼☰≡⋮⋯…→←↑↓«»‹›⌄⌃✚＋−✖☆★♥♡⚙🔍";
-// eslint-disable-next-line no-misleading-character-class
 const EMOJI_OR_GLYPH = new RegExp(`^(?:[\\p{Extended_Pictographic}\\uFE0F\\u200D${ICON_GLYPHS}\\s]|[\\u{1F1E6}-\\u{1F1FF}])+$`, "u");
 
 /**

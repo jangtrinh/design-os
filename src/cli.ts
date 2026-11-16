@@ -14,7 +14,7 @@ import type { ParsedArgs } from "./core/cli-args.js";
 import { errJson } from "./core/output.js";
 import type { CommandResult } from "./core/output.js";
 import { signatureFor } from "./core/command-signatures.js";
-import { findUnknownFlag, unknownFlagMessage } from "./core/flag-guard.js";
+import { findUnknownFlag, rescueDashPositional, unknownFlagMessage } from "./core/flag-guard.js";
 
 import { colorCommand } from "./commands/color.js";
 import { tokensCommand } from "./commands/tokens.js";
@@ -275,13 +275,17 @@ function dispatch(args: string[]): number | Promise<number> {
   // no-opping. Unresolvable signatures (unknown subcommand, dispatcher without
   // a subcommand) fall through to the command's own BAD_ARG handling.
   const sig = signatureFor(parsed.command, parsed.subcommand);
+  const effectiveParsed =
+    sig !== null && parsed.command === "ontology" && parsed.subcommand === "query"
+      ? rescueDashPositional(parsed, sig.flags.map((f) => f.name))
+      : parsed;
   if (sig !== null) {
-    const unknown = findUnknownFlag(parsed.flags, sig.flags.map((f) => f.name));
+    const unknown = findUnknownFlag(effectiveParsed.flags, sig.flags.map((f) => f.name));
     if (unknown !== null) {
       const msg = unknownFlagMessage(unknown);
       const label =
         parsed.subcommand !== undefined ? `${parsed.command} ${parsed.subcommand}` : parsed.command;
-      const res = parsed.json
+      const res = effectiveParsed.json
         ? errJson(label, "UNKNOWN_FLAG", msg)
         : { exitCode: 1, stderr: `ui: ${msg}\n` };
       if (res.stdout !== undefined) stdout.write(res.stdout);
@@ -305,7 +309,7 @@ function dispatch(args: string[]): number | Promise<number> {
   // an unhandled exception that dumps a stack trace to the terminal.
   let result: CommandResult | Promise<CommandResult>;
   try {
-    result = cmd.run(parsed) as CommandResult | Promise<CommandResult>;
+    result = cmd.run(effectiveParsed) as CommandResult | Promise<CommandResult>;
   } catch (e) {
     return internalError(e);
   }

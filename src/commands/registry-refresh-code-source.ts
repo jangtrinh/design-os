@@ -34,7 +34,7 @@ export function refreshCodeSource(registry: Registry, refresh: CodeRefresh): Reg
   }
   let next: ComponentRecord;
   if (held.provenance?.kind === "code") {
-    const { variants: _held, ...rest } = held; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { variants: _held, ...rest } = held;
     next = { ...rest, provenance: { ...held.provenance, sourceRef: refresh.code.sourceRef, sha256: refresh.code.sha256 }, markup: refresh.markup, tokensUsed: [...refresh.tokens], ...(refresh.variants.length > 0 && { variants: [...refresh.variants] }) };
   } else {
     next = { ...held, code: refresh.code, tokensUsed: unionTokens(held.tokensUsed, refresh.tokens) };

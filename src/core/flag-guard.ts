@@ -98,3 +98,25 @@ export function unknownFlagMessage(u: UnknownFlag): string {
   const hint = u.suggestion !== undefined ? ` (did you mean '--${u.suggestion}'?)` : "";
   return `unknown flag '--${u.flag}'${hint}. Run with -h to see accepted flags.`;
 }
+
+/**
+ * Promote a sole unknown boolean `--<name>` flag to `positionals[0]` when no
+ * positional was given yet (e.g. `ui ontology query --mu-surface`). Preserves
+ * unknown-flag rejection when a positional already exists, when a value was
+ * supplied (`--nope val`), when repeated, or for single-char short flags (`-x`).
+ */
+export function rescueDashPositional<T extends {
+  positionals: string[];
+  flags: Record<string, string | boolean>;
+  repeatedFlags: Set<string>;
+}>(parsed: T, knownFlags: readonly string[]): T {
+  if (parsed.positionals.length > 0) return parsed;
+  const allowed = new Set<string>([...GLOBAL_FLAGS, ...knownFlags]);
+  const unknown = Object.keys(parsed.flags).filter((k) => !allowed.has(k));
+  if (unknown.length !== 1) return parsed;
+  const k = unknown[0] as string;
+  if (k.length <= 1 || parsed.flags[k] !== true || parsed.repeatedFlags.has(k)) return parsed;
+  const flags = { ...parsed.flags };
+  delete flags[k];
+  return { ...parsed, positionals: [`--${k}`], flags };
+}

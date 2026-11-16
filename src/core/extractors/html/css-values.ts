@@ -67,7 +67,7 @@ export function parseColor(raw: string): ParsedColor | undefined {
 const ROOT_PX = 16;
 
 /** `16px`, `1rem`, `1.5em`, `0`. Viewport and percentage units are NOT guessed. */
-export function parseLengthPx(raw: string, basePx = ROOT_PX): number | undefined {
+export function parseLengthPx(raw: string, basePx: number = ROOT_PX): number | undefined {
   const v = raw.trim().toLowerCase();
   if (v === "0") return 0;
   const m = /^(-?[\d.]+)(px|rem|em|pt)$/.exec(v);

@@ -15,7 +15,7 @@
  * tests/tell-lint.test.ts, which re-derives the roster from these modules and
  * checks it against CHECK_CATALOG in both directions.
  */
-import type { DesignFact } from "./design-facts/index.js";
+import type { DesignFact, CoverageRow } from "./design-facts/index.js";
 import { partition, coverageMatrix } from "./design-facts/index.js";
 import type { ExtractorProfile, RuleRequirement } from "./design-facts/index.js";
 import { countBySeverity } from "./finding-schema.js";
@@ -189,7 +189,7 @@ export function collapseRepeated<T extends { checkId: string; message: string; n
  * only the 36 fact rules would leave the other seven invisible — and a rule
  * nobody can see is a rule nobody notices has stopped running.
  */
-export function tellCoverage(profiles: readonly ExtractorProfile[]) {
+export function tellCoverage(profiles: readonly ExtractorProfile[]): CoverageRow[] {
   const rendered: RuleRequirement[] = RENDERED_RULES.map((r) => ({
     id: r.id,
     needs: ["structure"],

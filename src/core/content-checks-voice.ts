@@ -154,12 +154,12 @@ export function checkAphoristicCadence(facts: readonly DesignFact[]): VoiceFindi
 }
 
 /** All four, in a stable order. */
-export const VOICE_CHECKS = [
+export const VOICE_CHECKS: readonly ((facts: readonly DesignFact[]) => VoiceFinding[])[] = [
   checkMarketingBuzzword,
   checkEmDashOveruse,
   checkTheaterSlopPhrase,
   checkAphoristicCadence,
-] as const;
+];
 
 export function checkVoice(facts: readonly DesignFact[]): VoiceFinding[] {
   const out: VoiceFinding[] = [];

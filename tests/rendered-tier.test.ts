@@ -10,11 +10,12 @@
  * failure mode this tier exists to avoid.
  */
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { chmodSync, mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lintRendered, RENDERED_RULES } from "../src/core/tell-rules-rendered.js";
-import { locateBrowser } from "../src/core/rendered/browser-session.js";
+import { locateBrowser, openSession } from "../src/core/rendered/browser-session.js";
 import { cdpUnavailableReason } from "../src/core/rendered/cdp-client.js";
 import { capturePage } from "../src/core/rendered/capture-page.js";
 import { CAPTURE_VERSION, isSupportedCapture, describeUnsupported } from "../src/core/rendered/runtime-capture.js";
@@ -194,7 +195,40 @@ describe("browser location", () => {
     if (found.path === undefined) return; // no browser here; the live suite says so
     expect(locateBrowser(found.path, {} as NodeJS.ProcessEnv).path).toBe(found.path);
   });
+
+  it.skipIf(process.platform === "win32")("rejects immediately when browser exits on a signal", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "browser-sig-"));
+    const script = join(dir, "crash.sh");
+    writeFileSync(script, "#!/bin/sh\nkill -ABRT $$\n", "utf8");
+    chmodSync(script, 0o755);
+    const start = Date.now();
+    try {
+      await expect(openSession({ browserPath: script })).rejects.toThrow(/signal SIGABRT/);
+      expect(Date.now() - start).toBeLessThan(3_000);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
+
+function browserSandboxBlockedReason(browserPath: string | undefined): string | undefined {
+  if (browserPath === undefined) return undefined;
+  const profileDir = mkdtempSync(join(tmpdir(), "probe-chrome-"));
+  try {
+    const r = spawnSync(
+      browserPath,
+      ["--headless=new", "--disable-gpu", "--no-first-run", `--user-data-dir=${profileDir}`, "--dump-dom", "about:blank"],
+      { encoding: "utf8", timeout: 5_000 },
+    );
+    if (r.status === 0) return undefined;
+    const detail = r.signal ? `signal ${r.signal}` : `code ${r.status ?? "unknown"}`;
+    return `browser failed headless probe (${detail})`;
+  } catch (e) {
+    return `browser probe error (${(e as Error).message})`;
+  } finally {
+    rmSync(profileDir, { recursive: true, force: true });
+  }
+}
 
 /**
  * Live smoke. Runs only where a browser is already installed, and says so when
@@ -202,16 +236,19 @@ describe("browser location", () => {
  */
 describe("live capture", () => {
   const browser = locateBrowser().path;
-  // Two independent reasons the live half cannot run: no browser, or a Node build with
-  // no global WebSocket (Node 20 — this package supports >=20). Both skip LOUDLY; a
-  // skipped smoke that reads as a pass is the failure mode this tier exists to avoid.
+  // Three independent reasons the live half cannot run: no browser, a Node build with
+  // no global WebSocket (Node 20 — this package supports >=20), or an unprivileged container sandbox.
   const cdpBlocked = cdpUnavailableReason();
-  const cannotRunLive = browser === undefined || cdpBlocked !== undefined;
+  const launchBlocked = cdpBlocked === undefined ? browserSandboxBlockedReason(browser) : undefined;
+  const cannotRunLive = browser === undefined || cdpBlocked !== undefined || launchBlocked !== undefined;
 
   it("reports whether the live tier could be exercised at all", () => {
     // Deliberately always-green: its job is to PRINT the environment fact, so a
     // green suite on a browserless machine cannot be mistaken for coverage.
     if (browser === undefined) console.warn("live rendered tier NOT exercised: no browser on this machine");
+    else if (cdpBlocked !== undefined || launchBlocked !== undefined) {
+      console.warn(`live rendered tier NOT exercised: ${cdpBlocked ?? launchBlocked}`);
+    }
     expect(true).toBe(true);
   });
 

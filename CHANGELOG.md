@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-11-16 - CLI UX hardening, isolated declarations, and parallel CI shards
+
+### Fixed
+- **`ui ontology query` accepts CSS custom-property queries starting with `--`** (#444): `ui ontology query --mu-surface`
+  and `ui ontology query "--mu-surface"` now resolve as positional query text when no prior positional was given, while
+  preserving known options (`--dir`, `--area`, `--budget`, `--json`) and rejecting unknown flags alongside positionals
+  or values.
+- **`ui ingest-css-ds` fails closed on inputs with zero custom properties** (#434): when `customProperties` is empty,
+  the command now exits 1 (`NO_TOKENS_WRITTEN`) without writing an empty `tokens.json` and points to checking `--css`
+  on `ui designmd extract-tokens`.
+- **`package.json` `bin.ui` normalised to `"dist/cli.js"`** (#448): eliminates npm's publish-time `"bin[ui]" script name
+  was invalid` warning.
+- **Headless browser signal-crash fast-fail & sandbox probes**: `openSession` in `src/core/rendered/browser-session.ts`
+  now detects signal exits (`child.signalCode`, e.g. `SIGABRT` in restricted containers) immediately instead of waiting
+  out the 20s debugger timeout, and both `tests/rendered-tier.test.ts` and `a11y/tests/has-chrome.ts` probe real
+  headless launchability before running browser suites.
+- **Test isolation & CPU-contention stability** (#447): `tests/memory-autorecord.test.ts` bounds its orphan fixture with
+  a `.git` directory so `$TMPDIR` ancestry cannot leak a `design/` directory, and the 20,000-deep stack-safety test in
+  `tests/taste-checks-invisible-surface-edge-cases.test.ts` sets an explicit 30s timeout.
+
+### Changed
+- **`declarationMap` and `isolatedDeclarations` enabled on `ease-design/lint` (`tsconfig.dts.json`)**: emits
+  `dist/types/*.d.ts.map` source maps and enforces TypeScript 7 `isolatedDeclarations` across the public lint surface.
+- **Workspace-wide `oxlint` gate and parallelized CI shards**: `npm run lint` now covers `a11y/`, `recall/`, and
+  `scripts/` with `--deny-warnings --report-unused-disable-directives`, and `.github/workflows/ci.yml` splits Vitest
+  across two parallel shards while preserving the required `check` status context.
+
 ## 2026-11-15 - TypeScript 7 toolchain, erasable syntax, and `ease-design/lint` declarations
 
 ### Added

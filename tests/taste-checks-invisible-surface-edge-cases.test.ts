@@ -52,7 +52,7 @@ describe("mode-invisible-surface — hostile and malformed input", () => {
     expect(checkModeInvisibleSurface(deep)).toHaveLength(1); // white on the white page, found without a RangeError
     const cycle = "<style>:root{--a:var(--b);--b:var(--a)} body{background:var(--a)} .p{background:rgba(255,255,255,.05)}</style><span class=\"p\">x</span>";
     expect(withinOneSecond(() => checkModeInvisibleSurface(cycle))).toHaveLength(0); // an unresolvable page is undecidable, not white
-  });
+  }, 30_000);
 });
 
 describe("mode-invisible-surface — an outer ring, outline or shadow paints over the PARENT", () => {

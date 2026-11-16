@@ -109,6 +109,7 @@ describe("recordOutcome", () => {
 
   it("input.projectDir that resolves to NO design/ ancestor is not-opted-in, even with --dir set elsewhere", () => {
     const orphan = tmpProj(); // no design/ anywhere in its ancestry
+    mkdirSync(join(orphan, ".git"), { recursive: true });
     const otherProj = tmpProj();
     mkdirSync(join(otherProj, "design"), { recursive: true });
     const artifact = join(orphan, "page.html");
