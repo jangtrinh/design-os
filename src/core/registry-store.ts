@@ -129,7 +129,7 @@ export function statesToVariants(states: string[]): string[] {
 /** Keys permitted at the registry root object (mirrors schema additionalProperties:false).
  *  Exported (stage-4 N6) so `design-system.ts`'s foreign-registry detection reuses this
  *  EXACT set — never a second, independently-invented schema. */
-export const REGISTRY_ROOT_KEYS = new Set(["version", "components"]);
+export const REGISTRY_ROOT_KEYS: Set<string> = new Set(["version", "components"]);
 
 /** Keys permitted on a component record (mirrors schema additionalProperties:false). */
 const COMPONENT_ALLOWED_KEYS = new Set([

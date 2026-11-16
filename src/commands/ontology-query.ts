@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ParsedArgs } from "../core/cli-args.js";
+import { rescueDashPositional } from "../core/flag-guard.js";
 import { okJson } from "../core/output.js";
 import type { CommandResult } from "../core/output.js";
 import { PendingStoreError } from "../core/owner-rulings/pending-store.js";
@@ -27,11 +28,12 @@ const STALE = "ONTOLOGY_STALE";
 
 export function runOntologyQuery(parsed: ParsedArgs): CommandResult {
   const json = parsed.json;
-  const ready = prepare(parsed, CMD, KNOWN);
+  const effective = rescueDashPositional(parsed, KNOWN);
+  const ready = prepare(effective, CMD, KNOWN);
   if (isResult(ready)) return ready;
-  const text = parsed.positionals.join(" ");
+  const text = effective.positionals.join(" ");
   if (wordsOf(text).length === 0) return fail(CMD, json, "BAD_ARG", `a query needs the task as text with at least one word, for example: ui ontology query ${shellQuote("sign in screen")}`);
-  const rawBudget = parsed.flags["budget"];
+  const rawBudget = effective.flags["budget"];
   if (rawBudget !== undefined && !/^[1-9][0-9]*$/.test(String(rawBudget))) return fail(CMD, json, "BAD_ARG", `--budget '${String(rawBudget)}' must be a whole number of characters above 0`);
   const budget = rawBudget === undefined ? DEFAULT_BUDGET : Number(rawBudget);
 

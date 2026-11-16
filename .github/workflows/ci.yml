@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  check:
+  gates-and-shard-1:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,9 +16,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run typecheck:workspaces
       - run: npm run lint
       - run: npm run build
-      - run: npm test
+      - run: npx vitest run --shard=1/2
       - run: npm run proof:native-mobile
       # The knowledge-core linter (spec 002 P2) — the "unit tier" for knowledge/.
       # Runs the built binary against the repo's own knowledge/ so index/persona/
@@ -28,6 +29,34 @@ jobs:
       # gallery generated from the artifacts, and a render per grammar. Each has a --check
       # so drift fails here instead of shipping to the gallery.
       - run: npm run verify:examples
+
+  test-shard-2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx vitest run --shard=2/2
+
+  # Branch protection on `main` strictly requires the status context `check`.
+  # Aggregating gates-and-shard-1 and test-shard-2 preserves this contract without
+  # renaming status checks to `check (1/2)` which would break branch protection.
+  check:
+    runs-on: ubuntu-latest
+    needs: [gates-and-shard-1, test-shard-2]
+    if: always()
+    steps:
+      - name: Verify parallel shards passed
+        run: |
+          if [ "${{ needs.gates-and-shard-1.result }}" != "success" ] || [ "${{ needs.test-shard-2.result }}" != "success" ]; then
+            echo "One or more parallel shards failed: gates-and-shard-1=${{ needs.gates-and-shard-1.result }}, test-shard-2=${{ needs.test-shard-2.result }}"
+            exit 1
+          fi
+          echo "All shards succeeded."
 
   # figma-agent moved to its own repo (github.com/jangtrinh/design-os-figma-plugin) — it
   # is no longer an in-repo npm workspace, so it has no job here; its own CI gates it.

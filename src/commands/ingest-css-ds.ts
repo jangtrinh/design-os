@@ -63,11 +63,8 @@ Error codes:
   BAD_JSON         extract-tokens.json is not valid JSON, or missing customProperties[]
   LEAF_COLLISION   Two source custom properties strip to the same token path (D6) — fails
                    loudly with both source lines rather than merging or suffixing
-  NO_TOKENS_WRITTEN  The input holds custom properties and none became a token (exit 1, nothing
-                   written): the message states how many custom properties were read, every
-                   reason the ledger shows with its count, the five largest selectors that
-                   were not recognised (with their declaration counts) when there are any,
-                   and the next action
+  NO_TOKENS_WRITTEN  The input holds no custom properties, or none became a token (exit 1,
+                   nothing written): the message states the cause and names the next action
   WRITE_ERROR      An output file could not be written
 `;
 
@@ -107,6 +104,10 @@ function runIngest(parsed: ParsedArgs): CommandResult {
   const customProperties = (json as { customProperties?: unknown }).customProperties;
   if (!Array.isArray(customProperties)) {
     return err("BAD_JSON", `'${srcPath}' has no customProperties[] array — is this a 'ui designmd extract-tokens' output?`);
+  }
+  if (customProperties.length === 0) {
+    const message = "the input holds no custom properties, so no tokens could be written. Check the --css list given to 'ui designmd extract-tokens'.";
+    return useJson ? errJson(CMD, "NO_TOKENS_WRITTEN", message) : errText(`ui: ${message}\n`);
   }
 
   let result;

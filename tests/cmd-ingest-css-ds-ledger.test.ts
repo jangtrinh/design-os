@@ -67,11 +67,15 @@ describe("the ledger of the ingest", () => {
     expect(unverified.filter((u) => u.name === "--x")).toEqual([{ name: "--x", reason: "mode 'dark' not written: it names '--gone', which was left out" }]);
   });
 
-  it("an input without custom properties is an empty ledger, not an error", () => {
+  it("an input without custom properties exits 1 with NO_TOKENS_WRITTEN and names the next action (#434)", () => {
     const dir = scratch();
     const r = capture(["ingest-css-ds", extractFileOf(dir, []), "--out", join(dir, "o"), "--json"]);
-    expect(r.code).toBe(0);
-    expect(parse(r.out).data?.["ledger"]).toEqual({ properties: 0, declarations: 0, written: { primitives: 0, semantics: 0 }, leftOut: {} });
+    expect(r.code).toBe(1);
+    const env = parse(r.out);
+    expect(env.error?.code).toBe("NO_TOKENS_WRITTEN");
+    expect(env.error?.message).toContain("the input holds no custom properties, so no tokens could be written");
+    expect(env.error?.message).toContain("Check the --css list given to 'ui designmd extract-tokens'");
+    expect(existsSync(join(dir, "o", "tokens.json"))).toBe(false);
     rmSync(dir, { recursive: true, force: true });
   });
 });
@@ -212,5 +216,21 @@ describe.skipIf(!built)("the built CLI on a packaged theme (ledger and the empty
     expect(env.error?.code).toBe("NO_TOKENS_WRITTEN");
     expect(env.error?.message).toContain("'.ds-card' (2), '.ds-s-xs' (1)");
     expect(existsSync(join(out, "tokens.json"))).toBe(false);
+  });
+
+  it("an input with no custom property exits 1 with NO_TOKENS_WRITTEN and names the next action (#434)", () => {
+    const extractFile = extractFileOf(root, []);
+    const out = join(root, "empty-out");
+    const r = runBuilt(["ingest-css-ds", extractFile, "--out", out, "--json"], root);
+    expect(r.code).toBe(1);
+    const env = parse(r.out);
+    expect(env.error?.code).toBe("NO_TOKENS_WRITTEN");
+    expect(env.error?.message).toContain("the input holds no custom properties, so no tokens could be written");
+    expect(env.error?.message).toContain("Check the --css list given to 'ui designmd extract-tokens'");
+    expect(existsSync(join(out, "tokens.json"))).toBe(false);
+
+    const rText = runBuilt(["ingest-css-ds", extractFile, "--out", out], root);
+    expect(rText.code).toBe(1);
+    expect(rText.err).toContain("the input holds no custom properties, so no tokens could be written");
   });
 });

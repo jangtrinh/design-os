@@ -48,7 +48,7 @@ export const WORKFLOW_VERBS = [
   "evidence",
   "guidelines",
   "init",
-] as const satisfies readonly string[];
+] as const;
 
 export type WorkflowVerb = (typeof WORKFLOW_VERBS)[number];
 
@@ -95,7 +95,7 @@ export const SKILL_NAMES = [
   "native-macos-craft",
   "native-ios-craft",
   "native-ipados-craft",
-] as const satisfies readonly string[];
+] as const;
 
 export type SkillName = (typeof SKILL_NAMES)[number];
 
@@ -109,7 +109,7 @@ export const JOURNEY_NAMES = [
   "onboard",
   "daily",
   "deliver",
-] as const satisfies readonly string[];
+] as const;
 
 export type JourneyName = (typeof JOURNEY_NAMES)[number];
 

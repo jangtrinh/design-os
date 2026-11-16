@@ -180,7 +180,7 @@ export function nearestOwner<T extends { at: Provenance }>(
 }
 
 /** Fonts that no longer carry personality. Platform defaults are handled per-extractor. */
-export const OVERUSED_FONTS = new Set([
+export const OVERUSED_FONTS: Set<string> = new Set([
   "inter", "roboto", "geist", "plus jakarta sans", "space grotesk", "fraunces",
 ]);
 

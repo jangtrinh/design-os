@@ -121,4 +121,4 @@ export function checkFaviconMissing(html: string): LandingContentFinding[] {
 }
 
 /** The three, in the order they are documented. Composed into `allContentChecks`. */
-export const landingContentChecks = [checkWindowAlert, checkSeoMetaMissing, checkFaviconMissing] as const;
+export const landingContentChecks: readonly ((html: string) => LandingContentFinding[])[] = [checkWindowAlert, checkSeoMetaMissing, checkFaviconMissing];

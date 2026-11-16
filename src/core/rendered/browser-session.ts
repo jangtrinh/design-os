@@ -133,7 +133,10 @@ async function waitForDebugger(
   const deadline = Date.now() + LAUNCH_TIMEOUT_MS;
   let lastError = "browser did not open its debugger port";
   while (Date.now() < deadline) {
-    if (child.exitCode !== null) throw new CdpError(`browser exited immediately (code ${child.exitCode})`);
+    if (child.exitCode !== null || child.signalCode !== null) {
+      const detail = child.signalCode !== null ? `signal ${child.signalCode}` : `code ${child.exitCode}`;
+      throw new CdpError(`browser exited immediately (${detail})`);
+    }
     const port = requestedPort === 0 ? readActivePort(profileDir) : requestedPort;
     if (port !== undefined) {
       try {

@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/jangtrinh/design-os#readme",
   "bin": {
-    "ui": "./dist/cli.js"
+    "ui": "dist/cli.js"
   },
   "exports": {
     "./lint": {
@@ -52,7 +52,7 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "typecheck:workspaces": "npm run typecheck --workspaces",
-    "lint": "oxlint -c .oxlintrc.json src tests",
+    "lint": "oxlint -c .oxlintrc.json --deny-warnings --report-unused-disable-directives src tests a11y/cli/src a11y/tests recall/cli/src recall/tests scripts",
     "test": "vitest run",
     "audit:mutation": "stryker run",
     "personas:verify": "node scripts/derive-personas-json.mjs",

@@ -7,15 +7,16 @@ import { beforeAll, describe, expect, it } from "vitest";
 describe("ease-design/lint package types contract", () => {
   const root = process.cwd();
   const dtsPath = join(root, "dist", "types", "lint.d.ts");
+  const dtsMapPath = join(root, "dist", "types", "lint.d.ts.map");
   const tscBin = join(root, "node_modules", "typescript", "bin", "tsc");
 
   beforeAll(() => {
-    if (!existsSync(dtsPath)) {
+    if (!existsSync(dtsPath) || !existsSync(dtsMapPath)) {
       execFileSync(process.execPath, [tscBin, "-p", join(root, "tsconfig.dts.json")], { cwd: root });
     }
   });
 
-  it("dist/types/lint.d.ts exists and re-exports all 6 linter modules", () => {
+  it("dist/types/lint.d.ts exists, carries sourceMappingURL, and re-exports all 6 linter modules", () => {
     expect(existsSync(dtsPath), "dist/types/lint.d.ts must exist").toBe(true);
     const content = readFileSync(dtsPath, "utf8");
     expect(content).toContain('export * from "./core/layout-lint.js";');
@@ -24,6 +25,14 @@ describe("ease-design/lint package types contract", () => {
     expect(content).toContain('export * from "./core/content-checks.js";');
     expect(content).toContain('export * from "./core/gate.js";');
     expect(content).toContain('export * from "./core/ds-usage-lint.js";');
+    expect(content).toContain("//# sourceMappingURL=lint.d.ts.map");
+  });
+
+  it("dist/types/lint.d.ts.map exists and maps back to src/lint.ts", () => {
+    expect(existsSync(dtsMapPath), "dist/types/lint.d.ts.map must exist").toBe(true);
+    const parsed = JSON.parse(readFileSync(dtsMapPath, "utf8")) as { sources?: string[] };
+    expect(Array.isArray(parsed.sources), "sourcemap sources must be an array").toBe(true);
+    expect(parsed.sources).toContain("../../src/lint.ts");
   });
 
   it("no emitted .d.ts under dist/types leaks internal runtime dependencies", () => {
