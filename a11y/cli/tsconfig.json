@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "lib": ["ES2022"],
+    "lib": ["ES2023"],
     "types": ["node"],
+    "erasableSyntaxOnly": true,
+    "noUncheckedSideEffectImports": true,
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts"]

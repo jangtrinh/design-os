@@ -19,13 +19,17 @@ import { atLeast } from "./fact-model.js";
 export type SupplyMap = Partial<Record<FactKind, Confidence>>;
 
 export class FactContractError extends Error {
+  public readonly extractor: string;
+  public readonly factKind: FactKind;
   constructor(
     message: string,
-    public readonly extractor: string,
-    public readonly factKind: FactKind,
+    extractor: string,
+    factKind: FactKind,
   ) {
     super(message);
     this.name = "FactContractError";
+    this.extractor = extractor;
+    this.factKind = factKind;
   }
 }
 
@@ -35,12 +39,18 @@ export class FactCollector {
   /** Kinds an extractor tried to read but could not resolve, with a count. */
   readonly #unresolved = new Map<string, number>();
 
+  /** Registered id of the extractor filling this collector. */
+  readonly extractorId: string;
+  /** The extractor's declared supply map, from the registry. */
+  readonly supplies: SupplyMap;
+
   constructor(
-    /** Registered id of the extractor filling this collector. */
-    readonly extractorId: string,
-    /** The extractor's declared supply map, from the registry. */
-    readonly supplies: SupplyMap,
-  ) {}
+    extractorId: string,
+    supplies: SupplyMap,
+  ) {
+    this.extractorId = extractorId;
+    this.supplies = supplies;
+  }
 
   /**
    * Record a fact. Throws when the fact contradicts the extractor's declaration

@@ -36,15 +36,21 @@ export type AdherenceRule = TokenBanRule;
 export type AdherenceRuleKind = AdherenceRule["kind"];
 
 export class AdherenceRuleError extends DSError {
+  readonly file: string;
+  readonly ruleIndex?: number;
+  readonly field?: string;
   constructor(
     code: "ADHERENCE_BAD_JSON" | "ADHERENCE_BAD_FIELD" | "ADHERENCE_UNKNOWN_KIND" | "ADHERENCE_DUPLICATE_ID",
     message: string,
-    readonly file: string,
-    readonly ruleIndex?: number,
-    readonly field?: string,
+    file: string,
+    ruleIndex?: number,
+    field?: string,
   ) {
     super(code, message);
     this.name = "AdherenceRuleError";
+    this.file = file;
+    this.ruleIndex = ruleIndex;
+    this.field = field;
   }
 }
 

@@ -11,8 +11,12 @@ import { existsSync, readFileSync } from "node:fs";
 export const INVENTORY_FILE_NAMES = ["ds.json", "canvas-inventory.json"] as const;
 
 export class InventoryJsonError extends Error {
-  constructor(readonly file: string, readonly detail: string) {
+  readonly file: string;
+  readonly detail: string;
+  constructor(file: string, detail: string) {
     super(`Figma inventory '${file}' is not readable JSON (${detail})`);
+    this.file = file;
+    this.detail = detail;
   }
 }
 

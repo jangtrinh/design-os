@@ -40,7 +40,10 @@ export function packVector(v: Float32Array): Uint8Array {
 }
 
 export class RecallStore {
-  private constructor(private readonly db: DatabaseSync) {}
+  private readonly db: DatabaseSync;
+  private constructor(db: DatabaseSync) {
+    this.db = db;
+  }
 
   /** Open (creating if needed) an index file with the given embedding width. */
   static open(dbPath: string, dims: number, modelId: string): RecallStore {

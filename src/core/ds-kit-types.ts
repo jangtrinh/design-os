@@ -3,8 +3,10 @@ export type { Registry } from './registry-store.js';
 export interface KitFile { path: string; hash: string }
 export interface KitFinding { code: string; message: string; sourceId?: string }
 export class KitError extends Error {
-  constructor(readonly code: string, message: string, readonly details: KitFinding[] = []) {
-    super(message); this.name = 'KitError';
+  readonly code: string;
+  readonly details: KitFinding[];
+  constructor(code: string, message: string, details: KitFinding[] = []) {
+    super(message); this.name = 'KitError'; this.code = code; this.details = details;
   }
 }
 export interface KitSource {

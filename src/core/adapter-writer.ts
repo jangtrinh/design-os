@@ -27,11 +27,13 @@ import type { AdapterArtifact } from "../adapters/index.js";
 // ─── Error type ───────────────────────────────────────────────────────────────
 
 export class AdapterWriteError extends Error {
+  public readonly code: "MANIFEST_EXISTS" | "WRITE_ERROR" | "SECTION_MALFORMED";
   constructor(
-    public readonly code: "MANIFEST_EXISTS" | "WRITE_ERROR" | "SECTION_MALFORMED",
+    code: "MANIFEST_EXISTS" | "WRITE_ERROR" | "SECTION_MALFORMED",
     message: string,
   ) {
     super(message);
+    this.code = code;
     this.name = "AdapterWriteError";
   }
 }

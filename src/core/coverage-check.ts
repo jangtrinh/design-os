@@ -62,8 +62,10 @@ export interface CoverageResult {
 
 /** Thrown on a malformed spec/manifest — the command maps it to BAD_JSON. */
 export class CoverageError extends Error {
-  constructor(readonly code: "BAD_JSON", message: string) {
+  readonly code: "BAD_JSON";
+  constructor(code: "BAD_JSON", message: string) {
     super(message);
+    this.code = code;
   }
 }
 

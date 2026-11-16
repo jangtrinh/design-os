@@ -9,10 +9,9 @@ export default defineConfig({
   entry: { cli: "src/cli.ts", lint: "src/lint.ts" },
   format: ["esm"],
   target: "node20",
-  // No `dts` yet: enabling it trips the repo's pre-existing `baseUrl` deprecation
-  // (TS5101) through tsup's stricter dts pass. The sole current consumer imports the
-  // linters untyped by design, so ship the runtime now and add types in a follow-up
-  // once the tsconfig deprecation is addressed on its own.
+  // `.d.ts` declarations for `ease-design/lint` are emitted directly by native
+  // TypeScript 7 (`tsc -p tsconfig.dts.json` -> `dist/types/lint.d.ts`), keeping
+  // `tsup` focused purely on single-file relocatable JS bundling.
   // Bundle the runtime dependencies INTO the artifact.
   //
   // tsup externalises `dependencies` by default, which quietly broke the

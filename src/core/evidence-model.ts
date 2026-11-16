@@ -40,9 +40,11 @@ export interface EvidenceRecord {
 }
 
 export class EvidenceError extends Error {
-  constructor(public code: string, message: string) {
+  public code: string;
+  constructor(code: string, message: string) {
     super(message);
     this.name = "EvidenceError";
+    this.code = code;
   }
 }
 

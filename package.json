@@ -24,7 +24,10 @@
     "ui": "./dist/cli.js"
   },
   "exports": {
-    "./lint": "./dist/lint.js",
+    "./lint": {
+      "types": "./dist/types/lint.d.ts",
+      "default": "./dist/lint.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -45,10 +48,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup && node dist/cli.js templates catalogue --check",
+    "build": "tsup && tsc -p tsconfig.dts.json && node dist/cli.js templates catalogue --check",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src tests",
+    "typecheck:workspaces": "npm run typecheck --workspaces",
+    "lint": "oxlint -c .oxlintrc.json src tests",
     "test": "vitest run",
     "audit:mutation": "stryker run",
     "personas:verify": "node scripts/derive-personas-json.mjs",
@@ -60,16 +64,15 @@
   },
   "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@types/css-tree": "^3.2.0",
     "@types/node": "^25.9.1",
+    "@typescript/typescript6": "^6.0.2",
     "ajv": "^8.20.0",
-    "eslint": "^10.4.0",
+    "oxlint": "^1.93.0",
     "tsup": "^8.5.1",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.4",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.7"
   },
   "dependencies": {

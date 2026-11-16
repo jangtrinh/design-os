@@ -125,7 +125,7 @@ describe("PR-FU3-r2 A6 — nested groups, $type: 'string', and fontFamily arrays
     });
     const resolved = resolveTokens(tree);
     const shadow = resolved.find((t) => t.path === "elevation.shadow");
-    expect((shadow?.value as { color: string }).color).toBe("#0000001f");
+    expect((shadow?.value as { color: string } | undefined)?.color).toBe("#0000001f");
   });
 });
 
