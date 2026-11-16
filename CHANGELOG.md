@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-11-16 - ease-design 0.7.2
+
+TypeScript 7 toolchain, typed `ease-design/lint` declarations, and CLI UX fixes. Each item is described in full in its
+dated entry below.
+
+### Added
+- **TypeScript declarations for `ease-design/lint`**: `npm run build` emits `dist/types/lint.d.ts` and `.d.ts.map`
+  declaration maps under TypeScript 7 `isolatedDeclarations`, exposed via `exports["./lint"].types` in `package.json`.
+
+### Changed
+- **TypeScript `^7.0.2` and workspace-wide `oxlint`**: upgraded the compiler across root, `a11y`, and `recall`
+  (`ES2023`, `erasableSyntaxOnly: true`, `noUncheckedSideEffectImports: true`) and migrated linting to `oxlint`,
+  preserving the Node 20 runtime floor.
+
+### Fixed
+- **`ui ontology query`** accepts CSS custom-property queries starting with `--` (such as `ui ontology query --mu-surface`)
+  when no prior positional was given (#444).
+- **`ui ingest-css-ds`** exits 1 (`NO_TOKENS_WRITTEN`) without writing an empty `tokens.json` when `customProperties`
+  is empty (#434).
+- **`package.json` `bin.ui`** normalised to `"dist/cli.js"`, removing the npm publish-time script-name warning (#448).
+- **Rendered browser & test isolation**: `openSession` fails fast on browser signal exits (`child.signalCode`, such as
+  `SIGABRT` in restricted containers) instead of waiting out the 20s debugger timeout, and test fixtures isolate
+  `$TMPDIR` ancestry (#447).
+
 ## 2026-11-16 - CLI UX hardening, isolated declarations, and parallel CI shards
 
 ### Fixed
