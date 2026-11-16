@@ -77,7 +77,13 @@ export interface BatchResult {
 
 /** A refusal that carries every record that failed, or a store failure under its own code. */
 export class BatchRegisterError extends Error {
-  constructor(readonly code: string, message: string, readonly refusals: BatchRefusal[] = []) { super(message); }
+  readonly code: string;
+  readonly refusals: BatchRefusal[];
+  constructor(code: string, message: string, refusals: BatchRefusal[] = []) {
+    super(message);
+    this.code = code;
+    this.refusals = refusals;
+  }
 }
 
 /**

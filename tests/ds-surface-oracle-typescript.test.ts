@@ -1,8 +1,8 @@
 /**
  * The oracle of the `ui ds surface` export reader (spec 033 P4, fix round 4). Four rounds of fixing the shapes a reviewer
  * showed each opened another, so the reader is measured against an independent instrument: the TypeScript parser. This
- * file is the ONLY importer of `typescript` (a dev dependency; the kernel has no parser: a test below fails if a file
- * under `src/` imports it). For every source that parses without error:
+ * file is the ONLY importer of `@typescript/typescript6` (a dev dependency supplying the in-memory AST oracle under
+ * TypeScript 7; the kernel has no parser: a test below fails if a file under `src/` imports it). For every source that parses without error:
  *   (a) every component the reader claims is a top-level export of the file (no phantom);
  *   (b) every upper-camel top-level export whose declaration holds markup is claimed or listed under `unread`, and a file
  *       listed as undecided counts as listing (no silent drop).
@@ -12,7 +12,7 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import ts from "typescript";
+import ts from "@typescript/typescript6";
 import { describe, expect, it } from "vitest";
 import { isComponentName, readComponentExports } from "../src/core/ds-surface/source-export-reader.js";
 import { buildTokenLookup, readStyleReferences } from "../src/core/ds-surface/style-references.js";
@@ -163,12 +163,22 @@ describe("table 2: known limits, asserted as they behave today", () => {
 });
 
 describe("the kernel has no parser", () => {
+  const TS_IMPORT_RE = /(?:from\s+|require\(\s*|import\(\s*)["'](?:node:)?(?:typescript(?:\/[^"']*)?|@typescript\/[^"']+)["']/;
+
   const sources = (dir: string): string[] => readdirSync(dir).flatMap((n) => {
     const p = join(dir, n);
     return statSync(p).isDirectory() ? sources(p) : n.endsWith(".ts") ? [p] : [];
   });
-  it("no file under src/ imports typescript", () => {
-    const offenders = sources(join(process.cwd(), "src")).filter((f) => /(?:from\s+|require\(\s*|import\(\s*)["'](?:node:)?typescript["']/.test(readFileSync(f, "utf8")));
+
+  it("TS_IMPORT_RE guard matches any typescript imports and rejects non-ts imports", () => {
+    expect(TS_IMPORT_RE.test("import ts from 'typescript'")).toBe(true);
+    expect(TS_IMPORT_RE.test("import { Project } from 'typescript/sync'")).toBe(true);
+    expect(TS_IMPORT_RE.test("import ts from '@typescript/typescript6'")).toBe(true);
+    expect(TS_IMPORT_RE.test("import { x } from './typescript-helper.js'")).toBe(false);
+  });
+
+  it("no file under src/ imports typescript or @typescript/*", () => {
+    const offenders = sources(join(process.cwd(), "src")).filter((f) => TS_IMPORT_RE.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
   });
 });

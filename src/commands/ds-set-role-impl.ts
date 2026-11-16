@@ -38,7 +38,8 @@ function isRole(v: string): v is Role {
 
 /** A refusal of the role change, carrying the error code the command reports. */
 export class SetRoleError extends Error {
-  constructor(readonly code: string, message: string) { super(message); }
+  readonly code: string;
+  constructor(code: string, message: string) { super(message); this.code = code; }
 }
 
 /** Refuses a role change that cannot apply to `tokens`: an unknown token or an unknown role. Writes nothing. */

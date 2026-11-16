@@ -11,7 +11,8 @@ import { tokenExistsInTree } from "../core/registry-token-check.js";
 import type { TokenTree } from "../core/token-model.js";
 
 export class ImportRegistryError extends Error {
-  constructor(readonly code: string, message: string) { super(message); }
+  readonly code: string;
+  constructor(code: string, message: string) { super(message); this.code = code; }
 }
 
 /**

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-11-15 - TypeScript 7 toolchain, erasable syntax, and `ease-design/lint` declarations
+
+### Added
+- **TypeScript declarations for `ease-design/lint`**: `npm run build` now emits `dist/types/lint.d.ts` (and its
+  transitive `.d.ts` modules) with TypeScript 7 `tsc -p tsconfig.dts.json`, and `package.json` `exports["./lint"]`
+  exposes `"types": "./dist/types/lint.d.ts"` alongside `"default": "./dist/lint.js"`.
+- **`npm run typecheck:workspaces`**: checks both `a11y` and `recall` workspaces in one command.
+
+### Changed
+- **TypeScript `^7.0.2` across root, `a11y`, and `recall`**: upgraded the root compiler from `^6.0.3` and both
+  workspaces from `^5.6.0` to native TypeScript `^7.0.2`, targeting `ES2023` with `erasableSyntaxOnly: true` and
+  `noUncheckedSideEffectImports: true` (all 29 constructor parameter properties converted to standard class fields).
+- **Linter migrated to `oxlint` (`^1.93.0`)**: replaces the TS6-locked `typescript-eslint` dev toolchain while keeping
+  the Node 20 CI floor (`@typescript/typescript6` is retained in `devDependencies` solely as the in-memory AST oracle
+  for two test suites, with `src/` guarded against importing `typescript`, `typescript/*`, or `@typescript/*`).
+
 ## 2026-11-12 - ease-design 0.7.1
 
 Project agents run the ontology query. In 0.7.0 a generated agent named `ui ontology query` only in a block at the

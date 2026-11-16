@@ -24,6 +24,7 @@ export interface DeliveryValidationContext {
   catalogDigest?: string;
 }
 export class DeliveryError extends Error {
-  constructor(readonly code: "BAD_DELIVERY", message: string) { super(message); }
+  readonly code: "BAD_DELIVERY";
+  constructor(code: "BAD_DELIVERY", message: string) { super(message); this.code = code; }
 }
 import type { CapabilityCatalog } from "../capability-catalog.js";

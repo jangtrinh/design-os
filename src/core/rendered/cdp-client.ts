@@ -26,9 +26,11 @@ export interface CdpSession {
 }
 
 export class CdpError extends Error {
-  constructor(message: string, public readonly method?: string) {
+  public readonly method?: string;
+  constructor(message: string, method?: string) {
     super(message);
     this.name = "CdpError";
+    this.method = method;
   }
 }
 

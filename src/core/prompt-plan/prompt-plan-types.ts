@@ -17,10 +17,12 @@ export interface PromptPlanResult {
 }
 
 export class PromptPlanError extends Error {
+  readonly code: "BAD_PROMPT_PLAN";
   constructor(
-    readonly code: "BAD_PROMPT_PLAN",
+    code: "BAD_PROMPT_PLAN",
     message: string,
   ) {
     super(message);
+    this.code = code;
   }
 }

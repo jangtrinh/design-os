@@ -86,7 +86,8 @@ function loadPng(file: string): ReturnType<typeof decodePng> {
 }
 
 class TaggedError extends Error {
-  constructor(public code: string, message: string) { super(message); }
+  public code: string;
+  constructor(code: string, message: string) { super(message); this.code = code; }
 }
 const msgOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 

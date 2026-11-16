@@ -7,7 +7,8 @@ import type { CommandResult } from "./output.js";
 import type { ParsedArgs } from "./cli-args.js";
 
 export class KsyncCliError extends Error {
-  constructor(readonly code: string, message: string) { super(message); }
+  readonly code: string;
+  constructor(code: string, message: string) { super(message); this.code = code; }
 }
 
 export const failWith = (parsed: ParsedArgs, sub: string, e: KsyncCliError): CommandResult =>

@@ -9,8 +9,9 @@ import { readBoundKit } from "./ds-kit-seal.js";
 
 export class KitAdoptionError extends Error {
   readonly code: string;
-  constructor(code: string, message: string, readonly reservation?: { path: string; incomplete: true; committed: true; complete: false; committedPaths: string[] }) {
-    super(message); this.name = "KitAdoptionError"; this.code = code;
+  readonly reservation?: { path: string; incomplete: true; committed: true; complete: false; committedPaths: string[] };
+  constructor(code: string, message: string, reservation?: { path: string; incomplete: true; committed: true; complete: false; committedPaths: string[] }) {
+    super(message); this.name = "KitAdoptionError"; this.code = code; this.reservation = reservation;
   }
 }
 export interface AdoptKitOptions { out: string; now?: string; }

@@ -46,8 +46,10 @@ export interface Flow {
 }
 
 export class FlowError extends Error {
-  constructor(readonly code: "BAD_FLOW", message: string) {
+  readonly code: "BAD_FLOW";
+  constructor(code: "BAD_FLOW", message: string) {
     super(message);
+    this.code = code;
   }
 }
 

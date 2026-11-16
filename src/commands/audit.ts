@@ -65,8 +65,10 @@ Error codes:
 // ─── File helpers ─────────────────────────────────────────────────────────────
 
 class InputError extends Error {
-  constructor(readonly code: "FILE_NOT_FOUND" | "READ_ERROR" | "BAD_JSON", message: string) {
+  readonly code: "FILE_NOT_FOUND" | "READ_ERROR" | "BAD_JSON";
+  constructor(code: "FILE_NOT_FOUND" | "READ_ERROR" | "BAD_JSON", message: string) {
     super(message);
+    this.code = code;
   }
 }
 

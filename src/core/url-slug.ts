@@ -18,9 +18,11 @@
 const KEBAB_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
 export class SlugError extends Error {
-  constructor(public code: "BAD_URL" | "BAD_NAME", message: string) {
+  public code: "BAD_URL" | "BAD_NAME";
+  constructor(code: "BAD_URL" | "BAD_NAME", message: string) {
     super(message);
     this.name = "SlugError";
+    this.code = code;
   }
 }
 
