@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-17 - ease-design 0.8.0
+
+Dual-dialect Stitch `DESIGN.md` support, multi-framework `--project` token discovery, self-contained & live CDP HTML snapshots, active-DS prompt-plan raw-hex protection, and Codex plugin capabilities. Each item is described in full in its dated entry below.
+
+### Added
+- **Dual-dialect `DESIGN.md` (`alpha` + `stitch` v1.0)**: `ui designmd audit --dialect auto|alpha|stitch`, `.stitch/DESIGN.md` fallback in `audit` and `scanProject`, and flat Material 3 `on-*` WCAG contrast checks.
+- **Multi-framework token discovery & bare-HSL ingestion**: `ui designmd extract-tokens --project <dir>` across Next.js/React/Tailwind, shadcn/ui, Angular, Vue/Nuxt, SvelteKit, and HTML/CSS/SCSS projects, with `#rgb[a]`, `#rrggbb[aa]`, `rgb[a]()`, `hsl[a]()`, bare shadcn HSL channel triplets, and `oklch()` resolution flowing directly into `ui ingest-css-ds`.
+- **Snapshot local asset inlining & live `--render` CDP capture**: `--inline-assets`, `--base-dir`, `--max-asset-bytes`, `--unlock-scroll`, dev-overlay stripping, and `--render` live DOM/CSSOM/`<canvas>`/`<iframe>` capture on `ui designmd snapshot`.
+- **Active-DS raw-hex guard (`active-ds-token-leakage`)**: flags raw `#hex` literals in `visualSystem.palette` / `visualSystem.typography` when an active design system is bound outside `replicate` mode.
+- **Codex plugin capabilities & manifest integrity checks**: `capabilities: ["Interactive", "Read", "Write"]` in `.codex-plugin/plugin.json` verified by `scripts/self_check.py`.
+
 ## 2026-11-17 - Stitch `DESIGN.md` dialect, project token discovery, live DOM snapshots, and active-DS prompt-plan guard
 
 ### Added
