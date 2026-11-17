@@ -1,7 +1,7 @@
 {
   "name": "ease-design",
-  "version": "0.7.2",
-  "description": "Multi-runtime design-cli \u2014 describe what you want, get pro-taste UI.",
+  "version": "0.8.0",
+  "description": "Multi-runtime design-cli — describe what you want, get pro-taste UI.",
   "type": "module",
   "keywords": [
     "design",
