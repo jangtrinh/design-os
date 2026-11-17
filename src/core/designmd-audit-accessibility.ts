@@ -12,7 +12,6 @@
  * "body" by default; future refinement can read a `--treat-as` hint.
  */
 import { contrastRatio } from "./color-scale.js";
-import { walkYamlPaths } from "./designmd-parser.js";
 import type { DesignMdDocument, YamlNode } from "./designmd-parser.js";
 import type { AuditRow } from "./designmd-audit-types.js";
 
@@ -20,27 +19,26 @@ const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 const WCAG_BODY = 4.5;
 const WCAG_LARGE = 3.0;
 
-export function auditAccessibility(doc: DesignMdDocument): AuditRow[] {
-  const rows: AuditRow[] = [];
+interface ContrastPair {
+  component: string;
+  fg: string;
+  bg: string;
+}
 
+export function auditAccessibility(doc: DesignMdDocument): AuditRow[] {
   const componentsNode = doc.yamlTree["components"];
   if (!componentsNode || typeof componentsNode === "string") {
-    rows.push({
+    const rolePairs = collectM3RolePairs(doc.yamlTree["colors"]);
+    if (rolePairs.length > 0) return evaluatePairs(rolePairs, "M3 role");
+    return [{
       family: "accessibility",
       rule: "components-block-present",
       status: "WARN",
       detail: "no components: block in YAML — skipping contrast checks",
-    });
-    return rows;
+    }];
   }
 
-  const allPaths = new Set<string>();
-  for (const p of walkYamlPaths(doc.yamlTree)) allPaths.add(p);
-
-  const failures: { component: string; fg: string; bg: string; ratio: number }[] = [];
-  const warnings: { component: string; fg: string; bg: string; ratio: number }[] = [];
-  let checked = 0;
-
+  const pairs: ContrastPair[] = [];
   for (const compName of Object.keys(componentsNode)) {
     const comp = componentsNode[compName];
     if (!comp || typeof comp === "string") continue;
@@ -51,23 +49,55 @@ export function auditAccessibility(doc: DesignMdDocument): AuditRow[] {
     const bg = resolveRef(bgRaw, doc.yamlTree);
     if (fg === undefined || bg === undefined) continue;
     if (!HEX_RE.test(fg) || !HEX_RE.test(bg)) continue;
-    checked++;
-    const ratio = Math.round(contrastRatio(fg, bg) * 100) / 100;
-    if (ratio < WCAG_LARGE) {
-      failures.push({ component: compName, fg, bg, ratio });
-    } else if (ratio < WCAG_BODY) {
-      warnings.push({ component: compName, fg, bg, ratio });
-    }
+    pairs.push({ component: compName, fg, bg });
   }
 
-  if (checked === 0) {
-    rows.push({
+  if (pairs.length === 0) {
+    const rolePairs = collectM3RolePairs(doc.yamlTree["colors"]);
+    if (rolePairs.length > 0) return evaluatePairs(rolePairs, "M3 role");
+    return [{
       family: "accessibility",
       rule: "contrast-pairs-checked",
       status: "WARN",
       detail: "no component had both backgroundColor + textColor refs that resolve to hex — nothing to check",
-    });
-    return rows;
+    }];
+  }
+
+  return evaluatePairs(pairs, "component");
+}
+
+function collectM3RolePairs(colorsNode: YamlNode | string | undefined): ContrastPair[] {
+  if (!colorsNode || typeof colorsNode === "string") return [];
+  const pairs: ContrastPair[] = [];
+  for (const key of Object.keys(colorsNode)) {
+    const fg = colorsNode[key];
+    if (typeof fg !== "string" || !HEX_RE.test(fg)) continue;
+    let bgKey: string | undefined;
+    if (key.startsWith("inverse-on-")) {
+      bgKey = `inverse-${key.slice("inverse-on-".length)}`;
+    } else if (key.startsWith("on-")) {
+      bgKey = key.slice("on-".length);
+    }
+    if (bgKey === undefined) continue;
+    const bg = colorsNode[bgKey];
+    if (typeof bg !== "string" || !HEX_RE.test(bg)) continue;
+    pairs.push({ component: `${key} on ${bgKey}`, fg, bg });
+  }
+  return pairs;
+}
+
+function evaluatePairs(pairs: ContrastPair[], subjectLabel: string): AuditRow[] {
+  const rows: AuditRow[] = [];
+  const failures: { component: string; fg: string; bg: string; ratio: number }[] = [];
+  const warnings: { component: string; fg: string; bg: string; ratio: number }[] = [];
+
+  for (const p of pairs) {
+    const ratio = Math.round(contrastRatio(p.fg, p.bg) * 100) / 100;
+    if (ratio < WCAG_LARGE) {
+      failures.push({ ...p, ratio });
+    } else if (ratio < WCAG_BODY) {
+      warnings.push({ ...p, ratio });
+    }
   }
 
   if (failures.length === 0 && warnings.length === 0) {
@@ -75,7 +105,7 @@ export function auditAccessibility(doc: DesignMdDocument): AuditRow[] {
       family: "accessibility",
       rule: "wcag-body-contrast",
       status: "PASS",
-      detail: `all ${checked} component fg/bg pair(s) clear WCAG 4.5:1`,
+      detail: `all ${pairs.length} ${subjectLabel} fg/bg pair(s) clear WCAG 4.5:1`,
     });
     return rows;
   }

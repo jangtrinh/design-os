@@ -308,7 +308,11 @@ export function scanProject(root: string, rulings: ScanRulings = NO_SCAN_RULINGS
         .slice(0, 5)
     : [];
 
-  const designMd = existsSync(join(root, "DESIGN.md")) ? "./DESIGN.md" : null;
+  const designMd = existsSync(join(root, "DESIGN.md"))
+    ? "./DESIGN.md"
+    : existsSync(join(root, ".stitch", "DESIGN.md"))
+      ? "./.stitch/DESIGN.md"
+      : null;
   const dsStatus = detectDsStatus(root);
 
   let verdict: ScanResult["verdict"];

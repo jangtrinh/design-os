@@ -116,7 +116,10 @@ Read only the relevant parts of:
 
 - `knowledge/figma-craft/facet-model.md`;
 - `knowledge/user-evidence.md` when claims or research are present;
-- `knowledge/prompt-modes.md` when a visual reference is supplied.
+- `knowledge/prompt-modes.md` when a visual reference is supplied or when building prompts
+  against an active design system (apply the **Active-DS token-leakage boundary** — semantic
+  token roles and registered components over raw hex/font overrides — and **Natural-to-UI
+  structural & physical terminology** before compiling `prompt-plan.json`).
 - `knowledge/web-technique-craft.md` and `knowledge/web-techniques/catalog.json` while compiling directions.
 - `knowledge/landing-conversion-craft.md` **in full** when the page converts one offer (a launch,
   trial, demo, waitlist, download or campaign page). Run its §1 intake before the brief, map every

@@ -48,7 +48,7 @@ export function validatePromptPlan(json: unknown): PromptPlanResult {
   validateFacets(json, findings);
   validateProductTruth(json["productTruth"], findings);
   validateDirections(json, findings);
-  validateVisualSystem(json["visualSystem"], findings);
+  validateVisualSystem(json["visualSystem"], findings, String(json["promptMode"] ?? ""));
   validateRegions(json["regions"], findings);
   const regionCount = Array.isArray(json["regions"]) ? json["regions"].length : 0;
   validateProportions(json["proportionCandidates"], regionCount, findings);

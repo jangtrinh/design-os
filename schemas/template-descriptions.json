@@ -19,7 +19,7 @@
     {
       "path": "skills/apply-prompt-mode.md",
       "description": "Decide how faithfully to track a reference input. Use when a workflow consumes a screenshot, URL, or Figma frame and must choose between faithful reproduction and inspired reinterpretation.",
-      "sourceSha256": "fd999d84cb87170b8267f0e4c2c7577faddb96791afea77c5fd4af5263336e94"
+      "sourceSha256": "cfdc5d36e984522b12e8e8b57109272350b9776b72d572a53d4bd4d68b8d905e"
     },
     {
       "path": "skills/canvas-effect.md",
@@ -44,7 +44,7 @@
     {
       "path": "skills/designmd-emit.md",
       "description": "Compose a DESIGN.md file from harvested tokens, observed components, and a chosen persona family. Use inside the from-url workflow when writing the 8-section Google-Labs-spec DESIGN.md.",
-      "sourceSha256": "6bc6bba68ed7aa4859ef7f57b7c1b1ee37749be1f1bc5129f52ca9ca05cbce81"
+      "sourceSha256": "ae756b3901f51fce13e0f009f8d7648d80dfd75662f55e10b3365f6db48280cf"
     },
     {
       "path": "skills/diagram-craft.md",
@@ -139,7 +139,7 @@
     {
       "path": "workflows/extract.md",
       "description": "Extract a design system from existing HTML. Use when the user provides HTML and wants its tokens and components harvested into a project design system.",
-      "sourceSha256": "c01b9d57785e403477db6897990ac1b39e9a8b241ef8113bb6d23dbe6924a0b0"
+      "sourceSha256": "0c3c1c62e9eb853f69f623c2a339bd4a3c69e5c7a2e4d8e73e28822de04c0b88"
     },
     {
       "path": "workflows/figma-comments.md",
@@ -159,12 +159,12 @@
     {
       "path": "workflows/from-url.md",
       "description": "Extract a portable DESIGN.md spec folder from a live URL. Use when the user points at a website and wants its design system captured for reuse.",
-      "sourceSha256": "8b40ae5d9781ca59094ef9aefa5977d0f942fa4af1f3463e287a08ee61e72167"
+      "sourceSha256": "e822900c35ab5a20175e50d93adb56c1b5f0db0c28eb02dd9339f5720e9b9122"
     },
     {
       "path": "workflows/generate.md",
       "description": "Generate evidence-qualified marketing or landing-page HTML. Use when web-marketing capability activation succeeds for a plain-language request or visual reference.",
-      "sourceSha256": "25bacca9e68092c82b5ad32aead432dd11f2548686efb0ce664ff7416cf7fe05"
+      "sourceSha256": "162098edc87eb6758a0191a7a02a6465a59f60876b2dedd136ab7b80e01f099d"
     },
     {
       "path": "workflows/guidelines.md",

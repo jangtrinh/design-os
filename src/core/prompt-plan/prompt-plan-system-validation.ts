@@ -21,9 +21,12 @@ const SYSTEM_FIELDS = [
 
 const ADJECTIVE_ONLY = /^(clean|minimal|modern|premium|bold|elegant|beautiful|professional|sleek)$/i;
 
+const RAW_HEX_RE = /#[0-9a-fA-F]{3,8}\b/;
+
 export function validateVisualSystem(
   value: unknown,
   out: PromptPlanFinding[],
+  promptMode = "",
 ): void {
   if (!obj(value) || SYSTEM_FIELDS.some((field) => !str(value[field]))) {
     out.push(finding(
@@ -41,6 +44,18 @@ export function validateVisualSystem(
       "visual-system",
       "visual-system fields must describe implementation consequences, not mood adjectives alone",
     ));
+  }
+  if ((value["activeDesignSystem"] === true || str(value["designSystemRef"])) &&
+      promptMode !== "replicate") {
+    const palette = String(value["palette"]);
+    const typography = String(value["typography"]);
+    if (RAW_HEX_RE.test(palette) || RAW_HEX_RE.test(typography)) {
+      out.push(finding(
+        "active-ds-token-leakage",
+        "visual-system",
+        "active design system forbids raw hex literals in visualSystem palette/typography — bind semantic token roles instead",
+      ));
+    }
   }
   if (String(value["iconFamily"]).toLowerCase() !== "phosphor" &&
       !str(value["iconExceptionRef"])) {

@@ -12,18 +12,14 @@
  *   - font-family declarations (CSS + inline style), with the
  *     primary family name normalised (quotes stripped) and the
  *     observation context (CSS rule or inline style).
- *   - CSS custom properties (--name: value) when the value is a hex.
- *
- * What we do NOT extract:
- *   - rgb()/rgba()/hsl()/oklch() — out of scope this phase; the host
- *     model handles those via cross-check (the workflow's step 5).
+ *   - CSS custom properties (--name: value) when the value resolves to
+ *     a hex via literal hex, rgb()/rgba(), hsl()/hsla(), bare HSL
+ *     triplets, or oklch().
  *   - Tailwind utility class names (e.g. `bg-orange-500`) — we look at
- *     the compiled CSS, not the class names, because the compiled CSS
- *     carries the actual hex values regardless of utility naming.
- *   - Font sizes / weights — these come from the workflow's
- *     `extract.md` recipe still.
+ *     the compiled CSS, not the class names.
  */
 import { computeSelectorBlocks, selectorAt } from "./css-selector-blocks.js";
+import { expandShortHex, resolveCssColorToHex } from "./designmd-color-parse.js";
 
 export interface HexObservation {
   /** Lowercase #RRGGBB. */
@@ -78,11 +74,6 @@ const CUSTOM_PROP_RE = /(--[a-zA-Z][a-zA-Z0-9_-]*)\s*:\s*([^;}\n]+)/g;
 
 const MAX_PROVENANCE_PER_TOKEN = 5;
 
-/** Normalise a 3-digit hex (#abc) to 6-digit (#aabbcc) lowercase. */
-function expandShortHex(short: string): string {
-  return `#${short[0]}${short[0]}${short[1]}${short[1]}${short[2]}${short[2]}`.toLowerCase();
-}
-
 /** Convert a byte offset within a string to a 1-based line number. */
 function lineOf(body: string, idx: number): number {
   let line = 1;
@@ -92,23 +83,14 @@ function lineOf(body: string, idx: number): number {
   return line;
 }
 
-
-/**
- * Extract canonical tokens from one or more raw source files.
- *
- * Returns the combined view across all sources, sorted by count
- * descending (colours and custom properties) or by name (fonts —
- * order rarely matters).
- */
+/** Extract canonical tokens from one or more raw source files, sorted by count descending (colors) or name (fonts/customProperties). */
 export function extractTokens(sources: SourceFile[]): ExtractedTokens {
   const hexMap = new Map<string, { count: number; sources: string[] }>();
   const fontMap = new Map<string, { context: FontObservation["context"]; sources: string[] }>();
   const cpMap = new Map<string, { value: string; hex?: string; sources: string[]; selectors: string[] }>();
 
   function track<T extends { sources: string[] }>(rec: T, src: string): void {
-    if (rec.sources.length < MAX_PROVENANCE_PER_TOKEN) {
-      rec.sources.push(src);
-    }
+    if (rec.sources.length < MAX_PROVENANCE_PER_TOKEN) rec.sources.push(src);
   }
 
   for (const source of sources) {
@@ -171,13 +153,7 @@ export function extractTokens(sources: SourceFile[]): ExtractedTokens {
     while ((m = CUSTOM_PROP_RE.exec(source.body)) !== null) {
       const name = m[1]!;
       const value = m[2]!.trim();
-      // Resolve to hex if the value is a hex literal
-      let hex: string | undefined;
-      const hexMatch = value.match(/^#([0-9a-fA-F]{6})(?:[0-9a-fA-F]{2})?$/) ?? value.match(/^#([0-9a-fA-F]{3})$/);
-      if (hexMatch) {
-        const captured = hexMatch[1]!;
-        hex = captured.length === 3 ? expandShortHex(captured) : `#${captured.toLowerCase()}`;
-      }
+      const hex = resolveCssColorToHex(value, name);
       const key = `${name}=${value}`;
       let rec = cpMap.get(key);
       if (!rec) {

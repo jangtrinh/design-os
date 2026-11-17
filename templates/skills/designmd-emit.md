@@ -6,8 +6,10 @@ description: "Compose a DESIGN.md file from harvested tokens, observed component
 
 Use when the host model is composing a `DESIGN.md` file at project root from
 already-harvested tokens, observed components, and a chosen persona family.
-This skill keeps the YAML + 8-section emit aligned with the Google-Labs alpha
-spec without restating it.
+This skill keeps the YAML + Markdown emit aligned with `knowledge/designmd-format.md`
+without restating it — supporting both the default `alpha` dialect (8-section
+`./<slug>/DESIGN.md`) and the `stitch` v1.0 dialect (`.stitch/DESIGN.md` with
+6 sections and flat Material 3 roles when `--dialect stitch` is requested).
 
 ## When to invoke
 
@@ -17,11 +19,12 @@ workflow that produces `design/*.json` (those use `token-model` instead).
 
 ## What to read
 
-- `knowledge/designmd-format.md` — the authoritative format contract: YAML
-  schema, token value shapes, the 8 required sections and their order, **and
-  the Token-precision sidebar** that defines raw CSS as source-of-truth and
-  WebFetch summaries as inference-only. This skill is the *recipe*; that
-  file is the *contract*. If they disagree, the contract wins.
+- `knowledge/designmd-format.md` — the authoritative format contract for both
+  `alpha` (default 8-section `./<slug>/DESIGN.md`) and `stitch` (`.stitch/DESIGN.md`
+  6-section flat M3 roles when `--dialect stitch` is requested), YAML schema,
+  token value shapes, **and the Token-precision sidebar** that defines raw CSS as
+  source-of-truth and WebFetch summaries as inference-only. This skill is the
+  *recipe*; that file is the *contract*. If they disagree, the contract wins.
 - `<slug>/tokens.json` — produced by `ui designmd extract-tokens` from raw
   HTML + CSS. The canonical source-of-truth for hex values, font families,
   and custom-property declarations. Always re-read this before emitting any

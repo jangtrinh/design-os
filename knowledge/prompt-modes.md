@@ -244,6 +244,37 @@ leaves the builder to invent product and layout decisions.
 Compile and validate the prompt plan before emitting the seven-layer builder frame. The frame is
 the compact execution packet; the prompt plan is the inspectable source of its decisions.
 
+### Active-DS token-leakage boundary
+
+When a project has an active `design/` store (`dsStatus === "present"`) or an active `DESIGN.md` /
+`.stitch/DESIGN.md` (`activeDesignSystem: true` / `designSystemRef` in `prompt-plan`), generation
+and enhancement prompts MUST reference semantic token roles and registered component names — strip
+raw `#RRGGBB` hex codes, raw `font-family` names, and ad-hoc pixel radius or palette overrides from
+the prompt so they cannot conflict with the active design system.
+
+Exceptions: `replicate` mode when no project DS is active, or an explicit single-element colour edit
+override requested by the owner. (`ui prompt-plan validate` enforces this boundary via
+`active-ds-token-leakage`.)
+
+### Natural-to-UI structural & physical terminology
+
+Translate vague user phrasing into explicit structural UI terms and physical shape/elevation
+descriptors before compiling `prompt-plan` / RODES:
+
+| Natural user phrasing | Structural UI translation |
+|---|---|
+| "menu at the top" | Sticky navigation bar with brand mark and primary nav items |
+| "big photo / banner" | Hero region with focal media, headline hierarchy, and primary CTA |
+| "list of things" | Responsive card grid or structured data list with explicit hover/focus states |
+| "popup" | Modal dialog with backdrop scrim, focus trap, and dismiss control |
+
+Shape & elevation descriptors:
+
+- **Radius:** `0px` → sharp, squared-off edges; `4px` → slightly softened corners; `8px` → gently
+  rounded corners; `12–16px` → generously rounded corners; `9999px` → pill-shaped.
+- **Elevation:** `none` → flat border-delineated surface; subtle `sm` → whisper-soft ambient shadow;
+  high `lg` → floating modal/popover layer.
+
 ### Failure Modes
 
 Where this contract goes wrong:
