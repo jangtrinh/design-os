@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-11-17 - Stitch `DESIGN.md` dialect, project token discovery, live DOM snapshots, and active-DS prompt-plan guard
+
+### Added
+- **Dual-dialect `DESIGN.md` (`alpha` + `stitch` v1.0) in `ui designmd audit` and project scan**:
+  - `src/core/designmd-dialect.ts` and `src/core/designmd-audit-format.ts` auto-detect and validate both Google Labs' 8-section `alpha` dialect and Stitch's `stitch` dialect (`.stitch/DESIGN.md`, `version: "1.0"`, 6 numbered/unnumbered Stitch sections, and the 7-section classic flat-token layout).
+  - `src/core/designmd-audit-accessibility.ts` evaluates flat Material 3 `<role>` / `on-<role>` (and `inverse-<role>` / `inverse-on-<role>`) WCAG contrast pairs when nested `components:` tokens are omitted.
+  - `ui designmd audit <folder>` gains `--dialect auto|alpha|stitch`, falls back to `<folder>/.stitch/DESIGN.md` (and `.stitch/tokens.json`), includes `dialect` in `--json` output, and `scanProject` (`src/core/project-scan.ts`) detects `./.stitch/DESIGN.md`.
+- **Multi-framework token source discovery & extended CSS color resolution in `ui designmd extract-tokens`**:
+  - `ui designmd extract-tokens --project <dir>` (`src/core/designmd-project-discovery.ts`) auto-discovers stylesheets and SFC `<style>` blocks across Next.js/React/Tailwind, shadcn/ui (`components.json`), Angular (`angular.json`), Vue/Nuxt (`nuxt.config.*`, `.vue`), SvelteKit (`src/app.css`, `.svelte`), and plain CSS/SCSS projects.
+  - `src/core/designmd-color-parse.ts` resolves `#rgb[a]`, `#rrggbb[aa]`, `rgb()`/`rgba()`, `hsl()`/`hsla()`, shadcn bare HSL channel triplets (`222.2 47.4% 11.2%`), and `oklch()` custom properties to `#rrggbb` `hex` values for `ui ingest-css-ds`.
+- **Snapshot local asset inlining, dev-overlay cleanup, scroll unlock, and live `--render` CDP capture in `ui designmd snapshot`**:
+  - `src/core/designmd-html-snapshot.ts` strips dev overlays (`vite-error-overlay`, `nextjs-portal`, `webpack-dev-server-client-overlay`, `data-nextjs-dialog-overlay`, `data-parcel-error-overlay`, `data-v-inspector`, `data-screenshot-ignore="true"`) and `data-vite-dev-id` attributes, and supports `--unlock-scroll`.
+  - `src/core/designmd-snapshot-assets.ts` (`--inline-assets`, `--base-dir`, `--max-asset-bytes`) inlines local images/fonts in HTML attributes and CSS `url(...)` rules as `data:` URIs with descriptor-pinned reads and path-traversal guards.
+  - `src/core/rendered/capture-dom-snapshot.ts` (`--render`, `--browser`, `--viewport`, `--wait-ms`, `--inline-canvas`, `--flatten-iframes`) captures live DOM + `document.styleSheets` CSSOM bundles, converts readable `<canvas>` nodes to PNG `<img>` data URIs, and flattens same-origin `<iframe>` trees via zero-dep CDP.
+- **Active-DS raw-hex leakage lint rule (`active-ds-token-leakage`) in `ui prompt-plan`**:
+  - `src/core/prompt-plan/prompt-plan-system-validation.ts` flags raw `#hex` literals in `visualSystem.palette` or `visualSystem.typography` when `activeDesignSystem: true` or `designSystemRef` is set outside `replicate` mode, paired with updated guidance in `knowledge/prompt-modes.md`, `templates/skills/apply-prompt-mode.md`, and `templates/workflows/generate.md`.
+- **Codex plugin capabilities & manifest integrity checks**:
+  - `.codex-plugin/plugin.json` declares `"capabilities": ["Interactive", "Read", "Write"]`, documented in `README.md` and verified by `scripts/self_check.py` and `tests/plugin-manifests.test.ts`.
+
 ## 2026-11-16 - ease-design 0.7.2
 
 TypeScript 7 toolchain, typed `ease-design/lint` declarations, and CLI UX fixes. Each item is described in full in its

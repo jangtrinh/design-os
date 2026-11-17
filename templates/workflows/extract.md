@@ -124,6 +124,13 @@ Walk the same HTML again, this time for **token usage**. The goal is a DTCG
 two-tier `design.tokens.json` per `knowledge/token-taxonomy.md`. Pull
 **observed values only** — no guesses, no padding with defaults.
 
+For code repositories, run `ui designmd extract-tokens --project <dir> --out extract.json`:
+it auto-discovers stylesheets and CSS custom properties (including `rgb()`,
+`hsl()`, `oklch()`, and bare-channel HSL variables) across React/Next/Tailwind
+(`globals.css`, `components.json`), Angular (`angular.json`, `styles.scss`),
+Vue/Nuxt (`nuxt.config.*`, `main.css`), SvelteKit (`src/app.css`,
+`+layout.svelte`), and Plain CSS/SCSS.
+
 For each token family:
 
 - **Colors.**

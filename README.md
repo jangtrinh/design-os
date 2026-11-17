@@ -105,6 +105,8 @@ To keep `ui` on your path: `npm install -g ease-design`.
 
 **Codex**
 
+This repository also ships `.codex-plugin/plugin.json` for native Codex plugin discovery.
+
 ```bash
 git clone https://github.com/jangtrinh/design-os.git /tmp/design-os
 mkdir -p ~/.codex/skills/design-os ~/.codex/prompts

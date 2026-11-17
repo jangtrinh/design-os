@@ -4,37 +4,53 @@ description: "The DESIGN.md contract — the YAML token front-matter plus the ei
 when: [designmd, design-md, token-frontmatter, google-labs]
 ---
 
-# DESIGN.md format (Google Labs alpha)
+# DESIGN.md format (Google Labs alpha & Stitch v1.0)
 
 Pinned on-disk reference for the open-source DESIGN.md spec authored by
-Google Labs. Read this instead of refetching the upstream repo each run —
-the file the host model writes at project root must conform exactly to
-what is described here.
+Google Labs and the Stitch `DESIGN.md` v1.0 dialect. Read this instead of
+refetching the upstream repo each run — the file the host model writes at
+project root (or `.stitch/DESIGN.md`) must conform to the selected dialect
+contract described here.
 
 - **Upstream:** <https://github.com/google-labs-code/design.md>
 - **Full schema:** <https://github.com/google-labs-code/design.md/blob/main/docs/spec.md>
-- **Spec snapshot:** alpha (captured 2026-05-27). If the upstream repo has
-  moved to `beta`, this file is the contract — bump it explicitly rather
-  than letting the workflow drift.
+- **Spec snapshot:** alpha (captured 2026-05-27) + `stitch` v1.0. If the
+  upstream repo moves to `beta`, this file is the contract — bump it
+  explicitly rather than letting the workflow drift.
 
 A `DESIGN.md` file is **one document with two halves**:
 
 1. A YAML front-matter block delimited by `---` on its own line, holding
    the structured token data.
-2. A Markdown body of **exactly 8 sections in a fixed order**, holding the
-   prose rationale a human (or another agent) reads.
+2. A Markdown body with ordered `##` sections matching the chosen dialect,
+   holding the prose rationale a human (or another agent) reads.
 
 Both halves are required. Either half alone is not a valid DESIGN.md.
 
 ---
 
-## YAML front-matter schema
+## Supported dialects (`alpha` vs `stitch`)
+
+| Property | `alpha` dialect (default) | `stitch` v1.0 dialect (`.stitch/DESIGN.md` / `--dialect stitch`) |
+|---|---|---|
+| Output location | `./DESIGN.md` or `./<slug>/DESIGN.md` | `.stitch/DESIGN.md` (or `--dialect stitch`) |
+| `version` field | Optional; `"alpha"` | Optional; `"1.0"` or `"stitch"` |
+| `colors:` shape | 2-level nested `colors.<group>.<name>` | 1-level flat Material 3–style semantic roles (`surface`, `on-surface`, `primary`, `on-primary`, …) |
+| `typography:` shape | 2-level nested `typography.<group>.<name>` | 1-level flat slot objects (`display-lg`, `headline-md`, `body-base`, `label-caps`) |
+| `rounded:` / `spacing:` | Named radius (`sm`/`md`/`lg`/`full`) + numeric spacing scale | Includes `rounded.DEFAULT` and `spacing.unit` / `spacing.gutter` |
+| `components:` | Optional object of `"{ref}"` token references | Optional (often omitted in Stitch v1.0) |
+| Markdown body | **8 fixed `##` sections** | **6 ordered `##` sections** (numbered `## 1. ...` or unnumbered; 7-section `examples/DESIGN.md` layout also parses) |
+| Contrast audit | Component `textColor` / `backgroundColor` pairs | Also pairs `<role>` / `on-<role>` colour tokens when `components:` is omitted |
+
+---
+
+## YAML front-matter schema (`alpha` dialect)
 
 ```yaml
 ---
 name: "<brand or product name>"        # required
 description: "<one-line brand line>"   # optional
-version: "alpha"                       # optional; if present must be "alpha" at this snapshot
+version: "alpha"                       # optional; if present must be "alpha" in alpha dialect
 
 colors:                                # object of color tokens (group → name → value)
   brand:
@@ -74,7 +90,7 @@ spacing:                               # object of spacing tokens (name → dime
   "8":  "32px"
   "16": "64px"
 
-components:                            # object of component definitions
+components:                            # object of component definitions (optional)
   button-primary:
     backgroundColor: "{colors.brand.primary}"
     textColor:       "{colors.neutral.bg}"
@@ -89,18 +105,93 @@ components:                            # object of component definitions
 ---
 ```
 
-### Required fields
+### Required fields (`alpha`)
 
 | Field | Required | Notes |
 |---|---|---|
 | `name` | yes | A short brand or product name. Free-form string. |
 | `description` | no | A single line describing the brand voice or product. |
-| `version` | no | If present at this snapshot, must be `"alpha"`. |
+| `version` | no | In `alpha` dialect, must be `"alpha"` if present. |
 | `colors` | as observed | Group → name → hex string. Omit if the source has no colour signal at all (rare). |
 | `typography` | as observed | Group → name → object of typography properties. |
 | `rounded` | as observed | Name → dimension. |
 | `spacing` | as observed | Name → dimension. |
-| `components` | as observed | Name → object using `"{ref}"` strings against the tokens above. |
+| `components` | as observed | Optional. Name → object using `"{ref}"` strings against the tokens above. |
+
+---
+
+## YAML front-matter schema (`stitch` v1.0 dialect)
+
+Use this dialect for `.stitch/DESIGN.md` or when `--dialect stitch` is passed to
+`ui designmd audit`:
+
+```yaml
+---
+name: "<brand or product name>"        # required
+description: "<one-line brand line>"   # optional
+version: "1.0"                         # optional; "1.0" or "stitch" in stitch dialect
+
+colors:                                # 1-level flat Material 3–style semantic roles
+  surface:               "#F9FAFB"
+  on-surface:            "#0F172A"
+  surface-container-low: "#F1F5F9"
+  surface-container:     "#E2E8F0"
+  primary:               "#0F172A"
+  on-primary:            "#FFFFFF"
+  primary-container:     "#DBEAFE"
+  on-primary-container:  "#1E3A8A"
+  secondary:             "#334155"
+  on-secondary:          "#FFFFFF"
+  tertiary:              "#0D9488"
+  on-tertiary:           "#FFFFFF"
+  error:                 "#DC2626"
+  on-error:              "#FFFFFF"
+  outline:               "#94A3B8"
+  outline-variant:       "#CBD5E1"
+
+typography:                            # 1-level flat slots
+  display-lg:
+    fontFamily:    "Inter, sans-serif"
+    fontSize:      "56px"
+    fontWeight:    700
+    lineHeight:    "1.1"
+    letterSpacing: "-0.02em"
+  headline-md:
+    fontFamily:    "Inter, sans-serif"
+    fontSize:      "28px"
+    fontWeight:    600
+    lineHeight:    "1.25"
+  body-base:
+    fontFamily:    "Inter, sans-serif"
+    fontSize:      "16px"
+    fontWeight:    400
+    lineHeight:    "1.55"
+  label-caps:
+    fontFamily:    "Inter, sans-serif"
+    fontSize:      "12px"
+    fontWeight:    600
+    lineHeight:    "1.3"
+    letterSpacing: "0.06em"
+
+rounded:
+  DEFAULT: "8px"
+  sm:      "4px"
+  lg:      "16px"
+  full:    "9999px"
+
+spacing:
+  unit:   "4px"
+  gutter: "24px"
+  "4":    "16px"
+  "8":    "32px"
+---
+```
+
+When `components:` is omitted under the `stitch` dialect, `ui designmd audit`
+checks WCAG contrast across `<role>` / `on-<role>` colour pairs (such as
+`surface` / `on-surface`, `primary` / `on-primary`, `primary-container` /
+`on-primary-container`, `secondary` / `on-secondary`, `tertiary` /
+`on-tertiary`, `error` / `on-error`).
 
 ---
 
@@ -123,14 +214,14 @@ These are the only legal value shapes. Drift from them invalidates the file.
   - `letterSpacing` (dimension string; optional)
   - `fontFeature` (string of OpenType feature settings; optional)
   - `fontVariation` (string of variable-font axis settings; optional)
-- **Reference value.** A string of the form `"{group.name}"` that points
-  at another token defined above. Example: `"{colors.brand.primary}"`,
-  `"{typography.body.md}"`. References resolve at read time; circular
-  references are rejected.
+- **Reference value.** A string of the form `"{group.name}"` (or `"{colors.primary}"`
+  for flat `stitch` roles) that points at another token defined above. Example:
+  `"{colors.brand.primary}"`, `"{typography.body.md}"`. References resolve at
+  read time; circular references are rejected.
 
 ---
 
-## Markdown body — 8 sections, fixed order
+## Markdown body — `alpha` dialect (8 sections, fixed order)
 
 Section headings must be `##` level and must appear in this exact order.
 Synonyms allowed by upstream are listed in parentheses; pick one per
@@ -152,25 +243,52 @@ document and use it consistently.
 8. **Do's and Don'ts** — 3–5 bullets each, drawn from the cross-check
    between observed HTML and the screenshot.
 
+## Markdown body — `stitch` v1.0 dialect (6 ordered sections)
+
+For `.stitch/DESIGN.md` (or `--dialect stitch`), emit these **6 ordered `##`
+sections** (numbered `## 1. Visual Theme & Atmosphere` or unnumbered
+`## Visual Theme & Atmosphere`):
+
+1. **Visual Theme & Atmosphere** — visual mood, aesthetic temperature,
+   density, and surface personality.
+2. **Color Palette & Roles** — semantic Material 3–style role table
+   (`surface`, `on-surface`, `surface-container-*`, `primary`, `on-primary`,
+   `secondary`, `tertiary`, `error`, `outline`, `outline-variant`) with hex
+   values and usage rules.
+3. **Typography Rules** — slot table (`display-lg`, `headline-md`,
+   `body-base`, `label-caps`) with family, size, weight, line height, and
+   letter-spacing rules.
+4. **Component Stylings** — surface treatments, corner radii (`rounded.DEFAULT`,
+   pills, sharp containers), border/elevation rules, and interactive states.
+5. **Layout Principles** — `spacing.unit` / `spacing.gutter` rhythm,
+   container widths, responsive breakpoints, and whitespace proportions.
+6. **Design System Notes for Stitch Generation** — concrete prompting rules,
+   anti-patterns to avoid, and invariant token bindings for generation.
+
+> Note: The 7-section `Brand & Style` → `Colors` → `Typography` → `Layout & Spacing`
+> → `Elevation` → `Shapes` → `Components` layout from upstream
+> `examples/DESIGN.md` also parses under the `stitch` dialect.
+
 ### Section-ordering rules
 
-- All 8 sections are required. An emitted DESIGN.md with a missing
-  section is invalid.
+- All sections required by the active dialect (8 for `alpha`, 6 for `stitch`)
+  must be present. An emitted DESIGN.md with a missing section is invalid.
 - Duplicate headings reject the whole file. Each `##` heading must be
   unique.
 - Unknown `##` headings inserted between the spec sections are preserved
   (the spec is extensible) but disrupt the canonical reading order — do
   not emit them from this workflow.
-- Heading text matches the spec exactly. Capitalisation and apostrophes
-  matter: `Do's and Don'ts`, not `Dos and Donts`.
+- In `alpha`, heading text matches the spec exactly. Capitalisation and
+  apostrophes matter: `Do's and Don'ts`, not `Dos and Donts`.
 
 ---
 
 ## Versioning and extension rules
 
-- The current spec version is **`alpha`**. `version: "alpha"` is optional
-  in the YAML; if present it must be exactly `"alpha"`. Do not emit
-  speculative version strings like `"beta"`, `"v1"`, or `"latest"`.
+- In `alpha` dialect, `version: "alpha"` is optional in the YAML; if present
+  it must be `"alpha"`. In `stitch` dialect, `version` if present must be
+  `"1.0"` or `"stitch"`. Do not emit speculative version strings like
+  `"beta"` or `"latest"`.
 - Unknown YAML keys at the top level are preserved by lenient readers
   but cannot be referenced. Do not invent new top-level keys from this
   workflow.

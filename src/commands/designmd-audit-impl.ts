@@ -13,6 +13,8 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "
 import { join, resolve } from "node:path";
 import { errJson, errText, okJsonWithExit } from "../core/output.js";
 import { parseDesignMd } from "../core/designmd-parser.js";
+import { detectDesignMdDialect } from "../core/designmd-dialect.js";
+import type { DesignMdDialect } from "../core/designmd-dialect.js";
 import { auditFormat } from "../core/designmd-audit-format.js";
 import { auditSourceFidelity } from "../core/designmd-audit-source-fidelity.js";
 import type { TokensJson } from "../core/designmd-audit-source-fidelity.js";
@@ -37,13 +39,27 @@ export function runAudit(parsed: ParsedArgs): CommandResult {
     return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
   }
 
+  const rawDialect = parsed.flags["dialect"];
+  let dialectFlag: "auto" | DesignMdDialect = "auto";
+  if (rawDialect !== undefined) {
+    if (rawDialect === "auto" || rawDialect === "alpha" || rawDialect === "stitch") {
+      dialectFlag = rawDialect;
+    } else {
+      const msg = `invalid --dialect '${String(rawDialect)}' (expected auto, alpha, or stitch)`;
+      return useJson ? errJson(CMD, "BAD_ARG", msg) : errText(`ui: ${msg}\n`);
+    }
+  }
+
   const folder = resolve(folderArg);
   if (!existsSync(folder) || !statSync(folder).isDirectory()) {
     const msg = `folder not found or not a directory: '${folderArg}'`;
     return useJson ? errJson(CMD, "FOLDER_MISSING", msg) : errText(`ui: ${msg}\n`);
   }
 
-  const designMdPath = join(folder, "DESIGN.md");
+  const rootDesignMd = join(folder, "DESIGN.md");
+  const stitchDesignMd = join(folder, ".stitch", "DESIGN.md");
+  const usingStitchPath = !existsSync(rootDesignMd) && existsSync(stitchDesignMd);
+  const designMdPath = usingStitchPath ? stitchDesignMd : rootDesignMd;
   if (!existsSync(designMdPath)) {
     const msg = `missing DESIGN.md in folder: '${folderArg}'`;
     return useJson ? errJson(CMD, "FOLDER_MISSING", msg) : errText(`ui: ${msg}\n`);
@@ -58,31 +74,40 @@ export function runAudit(parsed: ParsedArgs): CommandResult {
   }
 
   const doc = parseDesignMd(designMdRaw);
+  const resolvedDialect: DesignMdDialect =
+    dialectFlag === "auto" ? detectDesignMdDialect(doc, designMdPath) : dialectFlag;
 
   // tokens.json is optional — source-fidelity downgrades to WARN if absent
-  const tokensPath = join(folder, "tokens.json");
+  const rootTokens = join(folder, "tokens.json");
+  const stitchTokens = join(folder, ".stitch", "tokens.json");
+  const tokensPath = existsSync(rootTokens)
+    ? rootTokens
+    : usingStitchPath && existsSync(stitchTokens)
+      ? stitchTokens
+      : rootTokens;
   let tokens: TokensJson = {};
   if (existsSync(tokensPath)) {
     try {
       tokens = JSON.parse(readFileSync(tokensPath, "utf8")) as TokensJson;
     } catch {
-      // Treat unreadable tokens.json the same as missing — surface as WARN in source-fidelity
       tokens = {};
     }
   }
 
-  // Discipline scans every regular file in the folder.
+  // Discipline scans every regular file in the folder (plus .stitch/DESIGN.md when used).
   const disciplineFiles: Record<string, string> = {};
   for (const entry of readdirSync(folder)) {
     const full = join(folder, entry);
     const st = statSync(full);
-    if (!st.isFile()) continue;
-    if (st.size > 5 * 1024 * 1024) continue; // skip > 5 MB
+    if (!st.isFile() || st.size > 5 * 1024 * 1024) continue;
     try {
       disciplineFiles[entry] = readFileSync(full, "utf8");
     } catch {
       // ignore unreadable
     }
+  }
+  if (usingStitchPath) {
+    disciplineFiles[".stitch/DESIGN.md"] = designMdRaw;
   }
 
   // Run families with timing
@@ -95,7 +120,9 @@ export function runAudit(parsed: ParsedArgs): CommandResult {
     timings[name] = Math.round(performance.now() - start);
   };
 
-  runFamily("format", () => auditFormat(doc));
+  runFamily("format", () =>
+    auditFormat(doc, { ...(dialectFlag !== "auto" ? { dialect: dialectFlag } : {}), filePath: designMdPath }),
+  );
   runFamily("source-fidelity", () => auditSourceFidelity(doc, tokens));
   runFamily("ref-integrity", () => auditRefIntegrity(doc));
   runFamily("accessibility", () => auditAccessibility(doc));
@@ -120,6 +147,7 @@ export function runAudit(parsed: ParsedArgs): CommandResult {
   if (useJson) {
     return okJsonWithExit(CMD, {
       folder,
+      dialect: resolvedDialect,
       verdict: result.worstStatus,
       counts: result.counts,
       timings: result.timings,

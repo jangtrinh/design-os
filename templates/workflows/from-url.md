@@ -299,6 +299,9 @@ Step sequence:
      --css <slug>/source.css \
      --out <slug>/DESIGN.preview.html
    ```
+   Optional flags: `--inline-assets` (embeds referenced local/origin assets),
+   `--unlock-scroll` (clears scroll-lock overflow rules), and `--render`
+   (renders a live preview capture when supported).
    The output strips Next.js / React / Angular hydration scripts,
    inlines the CSS, removes inline `opacity:0;transform:translate*`
    reveal-state attributes (Framer-Motion-style scroll-reveal init
@@ -325,12 +328,15 @@ Run the deterministic audit. Its exit code drives workflow success —
 the host model cannot bypass it.
 
 ```sh
-ui designmd audit ./<slug>/
+ui designmd audit ./<slug>/ [--dialect stitch]
 ```
 
-The audit runs five families: **format** (YAML parses, 8 sections in
+Pass `--dialect stitch` when auditing a `.stitch/DESIGN.md` v1.0 document
+(flat Material 3 roles + 6 ordered sections; see `knowledge/designmd-format.md`).
+
+The audit runs five families: **format** (YAML parses, dialect sections in
 order, no duplicate headings, hex/dimension shape, exact heading text,
-`version` is `"alpha"` if present), **source-fidelity** (every emitted
+`version` matches dialect if present), **source-fidelity** (every emitted
 hex appears in `source.css`; top source hex are emitted or excluded;
 emitted fonts present in source), **ref-integrity** (every
 `"{group.name}"` resolves), **accessibility** (every component fg/bg

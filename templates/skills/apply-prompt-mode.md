@@ -11,6 +11,7 @@ At the start of `from-ref.md` and `figma.md`, and any other workflow that takes 
 
 ## What to read
 - `knowledge/prompt-modes.md` — the three modes: **Replicate** (low creativity — match the reference exactly), **Enhance** (high creativity — improve while preserving intent), **Adapt** (medium — same content reshaped for a different platform). Includes a decision table.
+- When building prompts against an active design system (`design/` store or `DESIGN.md`), follow the **Active-DS token-leakage boundary** (reference semantic token roles and registered components rather than raw hex/font overrides) and **Natural-to-UI structural & physical terminology** in `knowledge/prompt-modes.md`.
 
 ## What to produce
 One of `replicate` / `enhance` / `adapt`, plus a one-sentence justification grounded in the user's stated goal. Default to `replicate` when the user is silent — the safest, least-surprising choice.
