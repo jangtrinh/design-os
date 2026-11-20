@@ -1,0 +1,54 @@
+# DESIGN:OS CLI (ease-design)
+
+> FREE design CLI for Claude Code, Codex and Antigravity: describe the interface in plain words, get production-grade UI back, gated by code. Source-available (PolyForm Shield).
+
+A multi-runtime design CLI driven from Claude Code, Codex CLI or Antigravity with `/ui:*` commands. One design system; web, Figma and Apple-native execution. The deterministic UI kernel routes, validates contracts, and refuses unqualified claims without calling external models. Figma is an output target (compatibility), not part of the product name.
+
+License: source-available (PolyForm Shield 1.0.0). The product is FREE and is not sold. The license is source-available (PolyForm Shield 1.0.0), not MIT.
+
+Author: Jang Trịnh, a creative technologist and autonomous system architect. https://www.jang.work/
+
+Updated: 20 November 2026 (Asia/Saigon).
+
+## Documentation
+
+- [Landing Page](https://jangtrinh.github.io/design-os/): Overview of the design CLI, runtime gates, examples, and installation.
+- [llms.txt](https://jangtrinh.github.io/design-os/llms.txt): Short index for AI agents.
+- [Design OS Slides](https://jangtrinh.github.io/design-os/slides.html): Interactive slide deck detailing system design and architecture.
+- [GitHub Repository](https://github.com/jangtrinh/design-os): Source code, package distribution, and contribution guide.
+- [npm Package](https://www.npmjs.com/package/ease-design): Official npm registry package for ease-design.
+
+## Install once
+
+```bash
+npm i -g ease-design
+ui init --runtime claude   # or: codex | antigravity | all
+```
+
+Node 20 or later. The kernel does not call a model and does not need an API key. Your own agent CLI writes the implementation.
+
+## Six daily verbs
+
+- `/ui:generate`: start from a plain-language brief.
+- `/ui:learn`: learn from a live URL or an existing surface.
+- `/ui:iterate` and `/ui:refine`: tighten a draft against the gates.
+- `/ui:from-url`: start from a URL.
+- `/ui:to-figma`: optional hand that authors idiomatic Figma on the canvas (auto-layout, instances, token-bound variables).
+- `/ui:why`: explain a gate result.
+
+## Core capabilities
+
+- Command surface also includes `/ui:draft`, `/ui:spec`, `/ui:gate`, `/ui:render`, `/ui:inspect`.
+- Deterministic taste gates: layout, contrast, accessibility, typography ladders, and token compliance.
+- Cross-platform output: HTML/CSS/Tailwind for web, Figma Desktop via the optional local bridge, and native SwiftUI (native arms marked provisional where live accessibility and device coverage are still being proven).
+
+## FAQ
+
+- The kernel does not call a model or need an API key.
+- It works with Claude Code, Codex CLI and Antigravity through plain-language `/ui:*` commands installed by `ui init --runtime <name>`.
+- Output: production HTML for web surfaces, idiomatic Figma through the opt-in Figma hand, and SwiftUI-first native macOS, iOS and iPadOS routes marked provisional.
+- The Figma plugin and local canvas bridge live in a separate repository, design-os-figma-plugin.
+
+## DESIGN:OS Ecosystem
+
+See [llms.txt](https://jangtrinh.github.io/design-os/llms.txt) for the current product list, or the ecosystem hub at https://jangtrinh.github.io/.
